@@ -53,7 +53,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['isStatic'] = element.isStatic;
     }
     if (element is CompilationUnitElement) {
-      properties['hasLoadLibraryFunction'] = element.hasLoadLibraryFunction;
       properties['source'] = element.source;
     }
     if (element is ConstFieldElementImpl) {
@@ -109,7 +108,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['definingCompilationUnit'] = element.definingCompilationUnit;
       properties['entryPoint'] = element.entryPoint;
       properties['hasExtUri'] = element.hasExtUri;
-      properties['hasLoadLibraryFunction'] = element.hasLoadLibraryFunction;
       properties['isBrowserApplication'] = element.isBrowserApplication;
       properties['isDartAsync'] = element.isDartAsync;
       properties['isDartCore'] = element.isDartCore;

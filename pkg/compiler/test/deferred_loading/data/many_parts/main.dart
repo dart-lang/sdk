@@ -45,27 +45,29 @@
 
 /*three-frag.library: 
  output_units=[
-  f1: {units: [1{b1, b2, b3, b4, b5}, 24{b2, b3, b4, b5}, 16{b1, b3, b4, b5}, 15{b1, b2, b4, b5}, 13{b1, b2, b3, b5}, 9{b1, b2, b3, b4}, 28{b3, b4, b5}, 23{b2, b4, b5}, 22{b2, b3, b5}, 20{b2, b3, b4}, 14{b1, b4, b5}], usedBy: [2, 3], needs: []},
-  f2: {units: [12{b1, b3, b5}], usedBy: [3], needs: [1]},
-  f3: {units: [8{b1, b3, b4, b2, b5}, 11{b1, b2, b5}, 7{b1, b2, b4}, 5{b1, b2, b3}, 30{b4, b5}, 27{b3, b5}, 26{b3, b4}, 21{b2, b5}, 19{b2, b4}, 18{b2, b3}, 10{b1, b5}, 31{b5}, 6{b1, b4}, 29{b4}, 4{b1, b3}, 25{b3}, 3{b1, b2}, 2{b1}, 17{b2}], usedBy: [], needs: [2, 1]}],
+  f1: {units: [1{b1, b2, b3, b4, b5}], usedBy: [2], needs: []},
+  f2: {units: [24{b2, b3, b4, b5, b1}, 16{b1, b3, b4, b5}, 15{b1, b2, b4, b5}, 13{b1, b2, b3, b5}], usedBy: [3], needs: [1]},
+  f3: {units: [9{b1, b2, b3, b4, b5}, 28{b3, b4, b5}, 23{b2, b4, b5}, 22{b2, b3, b5}, 20{b2, b3, b4}, 14{b1, b4, b5}, 12{b1, b3, b5}, 8{b1, b3, b4}, 11{b1, b2, b5}, 7{b1, b2, b4}, 5{b1, b2, b3}, 30{b4, b5}, 27{b3, b5}], usedBy: [4], needs: [2]},
+  f4: {units: [26{b3, b4, b2, b5, b1}, 21{b2, b5}, 19{b2, b4}, 18{b2, b3}, 10{b1, b5}, 6{b1, b4}, 4{b1, b3}, 3{b1, b2}, 31{b5}, 29{b4}, 25{b3}, 17{b2}, 2{b1}], usedBy: [], needs: [3]}],
  steps=[
-  b1=(f1, f2, f3),
-  b2=(f1, f3),
-  b3=(f1, f2, f3),
-  b4=(f1, f3),
-  b5=(f1, f2, f3)]
+  b1=(f1, f2, f3, f4),
+  b2=(f1, f2, f3, f4),
+  b3=(f1, f2, f3, f4),
+  b4=(f1, f2, f3, f4),
+  b5=(f1, f2, f3, f4)]
 */
 
 /*two-frag.library: 
  output_units=[
-  f1: {units: [1{b1, b2, b3, b4, b5}, 24{b2, b3, b4, b5}, 16{b1, b3, b4, b5}, 15{b1, b2, b4, b5}, 13{b1, b2, b3, b5}, 9{b1, b2, b3, b4}, 28{b3, b4, b5}, 23{b2, b4, b5}, 22{b2, b3, b5}, 20{b2, b3, b4}, 14{b1, b4, b5}], usedBy: [2], needs: []},
-  f2: {units: [12{b1, b3, b5, b4, b2}, 8{b1, b3, b4}, 11{b1, b2, b5}, 7{b1, b2, b4}, 5{b1, b2, b3}, 30{b4, b5}, 27{b3, b5}, 26{b3, b4}, 21{b2, b5}, 19{b2, b4}, 18{b2, b3}, 10{b1, b5}, 31{b5}, 6{b1, b4}, 29{b4}, 4{b1, b3}, 25{b3}, 3{b1, b2}, 2{b1}, 17{b2}], usedBy: [], needs: [1]}],
+  f1: {units: [1{b1, b2, b3, b4, b5}], usedBy: [2], needs: []},
+  f2: {units: [24{b2, b3, b4, b5, b1}, 16{b1, b3, b4, b5}, 15{b1, b2, b4, b5}, 13{b1, b2, b3, b5}, 9{b1, b2, b3, b4}, 28{b3, b4, b5}, 23{b2, b4, b5}, 22{b2, b3, b5}, 20{b2, b3, b4}, 14{b1, b4, b5}, 12{b1, b3, b5}], usedBy: [3], needs: [1]},
+  f3: {units: [8{b1, b3, b4, b2, b5}, 11{b1, b2, b5}, 7{b1, b2, b4}, 5{b1, b2, b3}, 30{b4, b5}, 27{b3, b5}, 26{b3, b4}, 21{b2, b5}, 19{b2, b4}, 18{b2, b3}, 10{b1, b5}, 6{b1, b4}, 4{b1, b3}, 3{b1, b2}, 31{b5}, 29{b4}, 25{b3}, 17{b2}, 2{b1}], usedBy: [], needs: [2]}],
  steps=[
-  b1=(f1, f2),
-  b2=(f1, f2),
-  b3=(f1, f2),
-  b4=(f1, f2),
-  b5=(f1, f2)]
+  b1=(f1, f2, f3),
+  b2=(f1, f2, f3),
+  b3=(f1, f2, f3),
+  b4=(f1, f2, f3),
+  b5=(f1, f2, f3)]
 */
 
 import 'lib1.dart';

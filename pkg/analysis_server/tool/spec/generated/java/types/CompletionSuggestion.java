@@ -60,6 +60,21 @@ public class CompletionSuggestion {
   private final String displayText;
 
   /**
+   * The offset of the start of the text to be replaced. If supplied, this should be used in
+   * preference to the offset provided on the containing completion results. This value may be
+   * provided independently of replacementLength (for example if only one differs from the completion
+   * result value).
+   */
+  private final Integer replacementOffset;
+
+  /**
+   * The length of the text to be replaced. If supplied, this should be used in preference to the
+   * offset provided on the containing completion results. This value may be provided independently
+   * of replacementOffset (for example if only one differs from the completion result value).
+   */
+  private final Integer replacementLength;
+
+  /**
    * The offset, relative to the beginning of the completion, of where the selection should be placed
    * after insertion.
    */
@@ -163,11 +178,13 @@ public class CompletionSuggestion {
   /**
    * Constructor for {@link CompletionSuggestion}.
    */
-  public CompletionSuggestion(String kind, int relevance, String completion, String displayText, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String defaultArgumentListString, int[] defaultArgumentListTextRanges, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType) {
+  public CompletionSuggestion(String kind, int relevance, String completion, String displayText, Integer replacementOffset, Integer replacementLength, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String defaultArgumentListString, int[] defaultArgumentListTextRanges, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
     this.displayText = displayText;
+    this.replacementOffset = replacementOffset;
+    this.replacementLength = replacementLength;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
     this.isDeprecated = isDeprecated;
@@ -196,6 +213,8 @@ public class CompletionSuggestion {
         other.relevance == relevance &&
         ObjectUtilities.equals(other.completion, completion) &&
         ObjectUtilities.equals(other.displayText, displayText) &&
+        ObjectUtilities.equals(other.replacementOffset, replacementOffset) &&
+        ObjectUtilities.equals(other.replacementLength, replacementLength) &&
         other.selectionOffset == selectionOffset &&
         other.selectionLength == selectionLength &&
         other.isDeprecated == isDeprecated &&
@@ -222,6 +241,8 @@ public class CompletionSuggestion {
     int relevance = jsonObject.get("relevance").getAsInt();
     String completion = jsonObject.get("completion").getAsString();
     String displayText = jsonObject.get("displayText") == null ? null : jsonObject.get("displayText").getAsString();
+    Integer replacementOffset = jsonObject.get("replacementOffset") == null ? null : jsonObject.get("replacementOffset").getAsInt();
+    Integer replacementLength = jsonObject.get("replacementLength") == null ? null : jsonObject.get("replacementLength").getAsInt();
     int selectionOffset = jsonObject.get("selectionOffset").getAsInt();
     int selectionLength = jsonObject.get("selectionLength").getAsInt();
     boolean isDeprecated = jsonObject.get("isDeprecated").getAsBoolean();
@@ -239,7 +260,7 @@ public class CompletionSuggestion {
     Boolean hasNamedParameters = jsonObject.get("hasNamedParameters") == null ? null : jsonObject.get("hasNamedParameters").getAsBoolean();
     String parameterName = jsonObject.get("parameterName") == null ? null : jsonObject.get("parameterName").getAsString();
     String parameterType = jsonObject.get("parameterType") == null ? null : jsonObject.get("parameterType").getAsString();
-    return new CompletionSuggestion(kind, relevance, completion, displayText, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, defaultArgumentListString, defaultArgumentListTextRanges, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType);
+    return new CompletionSuggestion(kind, relevance, completion, displayText, replacementOffset, replacementLength, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, defaultArgumentListString, defaultArgumentListTextRanges, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType);
   }
 
   public static List<CompletionSuggestion> fromJsonArray(JsonArray jsonArray) {
@@ -390,6 +411,25 @@ public class CompletionSuggestion {
   }
 
   /**
+   * The length of the text to be replaced. If supplied, this should be used in preference to the
+   * offset provided on the containing completion results. This value may be provided independently
+   * of replacementOffset (for example if only one differs from the completion result value).
+   */
+  public Integer getReplacementLength() {
+    return replacementLength;
+  }
+
+  /**
+   * The offset of the start of the text to be replaced. If supplied, this should be used in
+   * preference to the offset provided on the containing completion results. This value may be
+   * provided independently of replacementLength (for example if only one differs from the completion
+   * result value).
+   */
+  public Integer getReplacementOffset() {
+    return replacementOffset;
+  }
+
+  /**
    * The number of required parameters for the function or method being suggested. This field is
    * omitted if the parameterNames field is omitted.
    */
@@ -427,6 +467,8 @@ public class CompletionSuggestion {
     builder.append(relevance);
     builder.append(completion);
     builder.append(displayText);
+    builder.append(replacementOffset);
+    builder.append(replacementLength);
     builder.append(selectionOffset);
     builder.append(selectionLength);
     builder.append(isDeprecated);
@@ -454,6 +496,12 @@ public class CompletionSuggestion {
     jsonObject.addProperty("completion", completion);
     if (displayText != null) {
       jsonObject.addProperty("displayText", displayText);
+    }
+    if (replacementOffset != null) {
+      jsonObject.addProperty("replacementOffset", replacementOffset);
+    }
+    if (replacementLength != null) {
+      jsonObject.addProperty("replacementLength", replacementLength);
     }
     jsonObject.addProperty("selectionOffset", selectionOffset);
     jsonObject.addProperty("selectionLength", selectionLength);
@@ -525,6 +573,10 @@ public class CompletionSuggestion {
     builder.append(completion + ", ");
     builder.append("displayText=");
     builder.append(displayText + ", ");
+    builder.append("replacementOffset=");
+    builder.append(replacementOffset + ", ");
+    builder.append("replacementLength=");
+    builder.append(replacementLength + ", ");
     builder.append("selectionOffset=");
     builder.append(selectionOffset + ", ");
     builder.append("selectionLength=");

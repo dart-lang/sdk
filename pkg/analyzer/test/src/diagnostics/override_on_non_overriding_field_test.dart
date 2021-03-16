@@ -20,17 +20,17 @@ class OverrideOnNonOverridingFieldTest extends PubPackageResolutionTest {
 class A {
   int get a => 0;
   void set b(_) {}
-  int c;
+  int c = 0;
 }
 class B implements A {
   @override
   final int a = 1;
   @override
-  int b;
+  int b = 0;
   @override
-  int c;
+  int c = 0;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 130, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 134, 1),
     ]);
   }
 
@@ -39,17 +39,17 @@ class B implements A {
 class A {
   int get a => 0;
   void set b(_) {}
-  int c;
+  int c = 0;
 }
 class B extends A {
   @override
   final int a = 1;
   @override
-  int b;
+  int b = 0;
   @override
-  int c;
+  int c = 0;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 127, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 131, 1),
     ]);
   }
 

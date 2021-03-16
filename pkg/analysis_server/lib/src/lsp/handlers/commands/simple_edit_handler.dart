@@ -38,7 +38,7 @@ abstract class SimpleEditCommandHandler
     }
 
     final workspaceEdit = toWorkspaceEdit(
-      server.clientCapabilities?.workspace,
+      server.clientCapabilities,
       [FileEditInformation(docIdentifier, unit.lineInfo, edits)],
     );
 

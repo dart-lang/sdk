@@ -1498,8 +1498,15 @@ FinalFieldWithoutInitializer:
 
 MetadataTypeArguments:
   index: 91
-  template: "An annotation (metadata) can't use type arguments."
+  template: "An annotation can't use type arguments."
   analyzerCode: ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS
+
+MetadataTypeArgumentsUninstantiated:
+  index: 114
+  template: "An annotation with type arguments must be followed by an argument list."
+  analyzerCode: ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED
+  script:
+    - "@deprecated<int> class C {}"
 
 ConstructorNotFound:
   template: "Couldn't find constructor '#name'."
@@ -1669,11 +1676,6 @@ SetOrMapLiteralTooManyTypeArguments:
 LoadLibraryTakesNoArguments:
   template: "'loadLibrary' takes no arguments."
   analyzerCode: LOAD_LIBRARY_TAKES_NO_ARGUMENTS
-
-LoadLibraryHidesMember:
-  template: "The library '#uri' defines a top-level member named 'loadLibrary'. This member is hidden by the special member 'loadLibrary' that the language adds to support deferred loading."
-  tip: "Try to rename or hide the member."
-  severity: IGNORED
 
 TypeArgumentMismatch:
   template: "Expected #count type arguments."
@@ -1918,24 +1920,8 @@ IncrementalCompilerIllegalParameter:
 IncrementalCompilerIllegalTypeParameter:
   template: "Illegal type parameter name '#string' found during expression compilation."
 
-LocalDefinitionHidesExport:
-  template: "Local definition of '#name' hides export from '#uri'."
-  severity: IGNORED
-
-LocalDefinitionHidesImport:
-  template: "Local definition of '#name' hides import from '#uri'."
-  severity: IGNORED
-
 DebugTrace:
   template: "Fatal '#name' at:\n#string"
-  severity: IGNORED
-
-ExportHidesExport:
-  template: "Export of '#name' (from '#uri') hides export from '#uri2'."
-  severity: IGNORED
-
-ImportHidesImport:
-  template: "Import of '#name' (from '#uri') hides import from '#uri2'."
   severity: IGNORED
 
 MissingPrefixInDeferredImport:
@@ -1983,10 +1969,6 @@ DuplicatedExport:
 
 DuplicatedExportInType:
   template: "'#name' is exported from both '#uri' and '#uri2'."
-
-DuplicatedImport:
-  template: "'#name' is imported from both '#uri' and '#uri2'."
-  severity: IGNORED
 
 DuplicatedImportInType:
   template: "'#name' is imported from both '#uri' and '#uri2'."
@@ -2107,6 +2089,10 @@ ConflictsWithFactory:
 
 ConflictsWithMember:
   template: "Conflicts with member '#name'."
+  analyzerCode: CONFLICTS_WITH_MEMBER
+
+ConflictsWithImplicitSetter:
+  template: "Conflicts with the implicit setter of the field '#name'."
   analyzerCode: CONFLICTS_WITH_MEMBER
 
 ConflictsWithSetter:
@@ -3182,7 +3168,7 @@ AccessError:
   template: "Access error: '#name'."
 
 ExpressionNotMetadata:
-  template: "This can't be used as metadata; metadata should be a reference to a compile-time constant variable, or a call to a constant constructor."
+  template: "This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor."
 
 ExpectedAnInitializer:
   index: 36
@@ -3505,6 +3491,10 @@ UndefinedOperator:
       c + 0;
     }
 
+UndefinedExtensionMethod:
+  template: "The method '#name' isn't defined for the extension '#type'."
+  tip: "Try correcting the name to the name of an existing method, or defining a method name '#name'."
+
 AmbiguousExtensionMethod:
   template: "The method '#name' is defined in multiple extensions for '#type' and neither is more specific."
   tip: "Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope."
@@ -3765,10 +3755,6 @@ InitializeFromDillUnknownProblemNoDump:
   severity: WARNING
   frontendInternal: true
   external: test/incremental_load_from_invalid_dill_test.dart
-
-MissingExplicitTypeArguments:
-  template: "No type arguments provided, #count possible."
-  severity: IGNORED
 
 WebLiteralCannotBeRepresentedExactly:
   template: "The integer literal #string can't be represented exactly in JavaScript."
@@ -4238,16 +4224,14 @@ FfiEmptyStruct:
   template: "Struct '#name' is empty. Empty structs are undefined behavior."
   external: test/ffi_test.dart
 
-FfiEmptyStructWarning:
-  # Used by dart:ffi
-  template: "Struct '#name' is empty. Support for empty structs is deprecated and will be removed in the next stable version of Dart. Use Opaque instead."
-  analyzerCode: EMPTY_STRUCT_WARNING
-  severity: INFO
-  external: test/ffi_test.dart
-
 FfiTypeInvalid:
   # Used by dart:ffi
   template: "Expected type '#type' to be a valid and instantiated subtype of 'NativeType'."
+  external: test/ffi_test.dart
+
+FfiFieldNull:
+  # Used by dart:ffi
+  template: "Field '#name' cannot have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct`."
   external: test/ffi_test.dart
 
 FfiFieldAnnotation:
@@ -4267,13 +4251,6 @@ FfiFieldCyclic:
     #names
   external: test/ffi_test.dart
 
-FfiNonConstantTypeArgumentWarning:
-  # Used by dart:ffi
-  template: "Support for using non-constant type arguments '#type' in this FFI API is deprecated and will be removed in the next stable version of Dart. Rewrite the code to ensure that type arguments are compile time constants referring to a valid native type."
-  analyzerCode: NON_CONSTANT_TYPE_ARGUMENT_WARNING
-  severity: INFO
-  external: test/ffi_test.dart
-
 FfiNotStatic:
   # Used by dart:ffi
   template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code."
@@ -4288,6 +4265,11 @@ FfiFieldInitializer:
 FfiExtendsOrImplementsSealedClass:
   # Used by dart:ffi
   template: "Class '#name' cannot be extended or implemented."
+  external: test/ffi_test.dart
+
+FfiSizeAnnotation:
+  # Used by dart:ffi
+  template: "Field '#name' must have exactly one 'Array' annotation."
   external: test/ffi_test.dart
 
 FfiStructGeneric:
@@ -4584,6 +4566,16 @@ MultipleVarianceModifiers:
   tip: "Use at most one of the 'in', 'out', or 'inout' modifiers."
   analyzerCode: ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS
 
+VariableCouldBeNullDueToWrite:
+  template: "Variable '#name' could be null due to an intervening write."
+  tip: "Try null checking the variable after the write."
+
+FieldNotPromoted:
+  template: "'#name' refers to a property so it could not be promoted."
+
+ThisNotPromoted:
+  template: "'this' can't be promoted."
+
 NullablePropertyAccessError:
   template: "Property '#name' cannot be accessed on '#type' because it is potentially null."
   tip: "Try accessing using ?. instead."
@@ -4669,6 +4661,10 @@ JsInteropEnclosingClassJSAnnotationContext:
   template: "This is the enclosing class."
   severity: CONTEXT
 
+JsInteropExternalMemberNotJSAnnotated:
+  template: "Only JS interop members may be 'external'."
+  tip: "Try removing the 'external' keyword or adding a JS interop annotation."
+
 JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."
   tip: "Try replacing with a normal method."
@@ -4683,6 +4679,7 @@ JsInteropNamedParameters:
 
 JsInteropNativeClassInAnnotation:
   template: "JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'."
+  tip: "Try making the @JS class into an @anonymous class or use js_util on the JS object."
 
 JsInteropNonExternalConstructor:
   template: "JS interop classes do not support non-external constructors."

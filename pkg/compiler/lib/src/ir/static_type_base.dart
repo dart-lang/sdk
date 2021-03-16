@@ -8,8 +8,8 @@ import 'package:kernel/type_environment.dart' as ir;
 /// Special bottom type used to signal that an expression or statement does
 /// not complete normally. This is the case for instance of throw expressions
 /// and return statements.
-class DoesNotCompleteType extends ir.BottomType {
-  const DoesNotCompleteType();
+class DoesNotCompleteType extends ir.NeverType {
+  const DoesNotCompleteType() : super.internal(ir.Nullability.nonNullable);
 
   @override
   String toString() => 'DoesNotCompleteType()';
@@ -57,7 +57,8 @@ class ExactInterfaceType extends ir.InterfaceType {
 /// expression kind. For instance method invocations whose static type depend
 /// on the static types of the receiver and type arguments and the signature
 /// of the targeted procedure.
-abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
+abstract class StaticTypeBase extends ir.Visitor<ir.DartType>
+    with ir.VisitorNullMixin<ir.DartType> {
   final ir.TypeEnvironment _typeEnvironment;
 
   StaticTypeBase(this._typeEnvironment);
@@ -235,4 +236,56 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
     // TODO(johnniwinther): Include interface exactness where applicable.
     return node.getStaticType(staticTypeContext);
   }
+
+  @override
+  ir.DartType visitEqualsNull(ir.EqualsNull node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitEqualsCall(ir.EqualsCall node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitDynamicInvocation(ir.DynamicInvocation node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitFunctionInvocation(ir.FunctionInvocation node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitInstanceInvocation(ir.InstanceInvocation node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitFunctionTearOff(ir.FunctionTearOff node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitInstanceTearOff(ir.InstanceTearOff node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitDynamicGet(ir.DynamicGet node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitInstanceGet(ir.InstanceGet node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitDynamicSet(ir.DynamicSet node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitInstanceSet(ir.InstanceSet node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitStaticTearOff(ir.StaticTearOff node) =>
+      node.getStaticType(staticTypeContext);
 }

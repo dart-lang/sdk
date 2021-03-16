@@ -47,8 +47,8 @@
 ///
 /// To get information about a path,
 /// you can use the [FileSystemEntity] static methods
-/// such as [FileSystemEntitiy.isDirectory], [FileSystemEntitiy.isFile],
-/// and [FileSystemEntitiy.exists].
+/// such as [FileSystemEntity.isDirectory], [FileSystemEntity.isFile],
+/// and [FileSystemEntity.exists].
 /// Because file system access involves I/O, these methods
 /// are asynchronous and return a [Future].
 /// ```dart
@@ -124,7 +124,7 @@
 /// ```
 /// The client connects to the [WebSocket] using the [WebSocket.connect] method
 /// and a URI that uses the Web Socket protocol.
-/// The client can write to the [WebSocket] with the [Websocket.add] method.
+/// The client can write to the [WebSocket] with the [WebSocket.add] method.
 /// For example,
 /// ```dart
 /// var socket = await WebSocket.connect('ws://127.0.0.1:4040/ws');

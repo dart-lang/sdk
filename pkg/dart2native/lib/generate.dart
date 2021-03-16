@@ -26,6 +26,7 @@ Future<void> generateNative({
   List<String> defines,
   String enableExperiment = '',
   bool enableAsserts = false,
+  bool soundNullSafety,
   bool verbose = false,
   String verbosity = 'all',
   List<String> extraOptions = const [],
@@ -61,7 +62,9 @@ Future<void> generateNative({
         enableExperiment: enableExperiment,
         extraGenKernelOptions: [
           '--invocation-modes=compile',
-          '--verbosity=$verbosity'
+          '--verbosity=$verbosity',
+          if (soundNullSafety != null)
+            '--${soundNullSafety ? '' : 'no-'}sound-null-safety',
         ]);
     if (kernelResult.exitCode != 0) {
       // We pipe both stdout and stderr to stderr because the CFE doesn't print

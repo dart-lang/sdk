@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class LateFinalLocalAlreadyAssignedTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class LateFinalLocalAlreadyAssignedTest extends PubPackageResolutionTest {
   test_assignmentExpression_compound() async {
     await assertErrorsInCode('''
 main() {

@@ -14,6 +14,9 @@ class RemoveEmptyCatch extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_EMPTY_CATCH;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_EMPTY_CATCH_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     if (node.parent is! CatchClause) {
       return;

@@ -67,8 +67,9 @@ class A {}''');
     await assertErrorsInCode('''
 library root;
 import 'lib1.dart' deferred as a;
-a.A f() { return null; }''', [
-      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 48, 3),
+a.A? f() { return null; }
+''', [
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 48, 4),
     ]);
   }
 
@@ -107,9 +108,9 @@ class A {}''');
 library root;
 import 'lib1.dart' deferred as a;
 class C {
-  a.A m() { return null; }
+  a.A? m() { return null; }
 }''', [
-      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 60, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 60, 4),
     ]);
   }
 
@@ -133,7 +134,8 @@ class A {}''');
 library root;
 import 'lib1.dart' deferred as a;
 class C<E> {}
-C<a.A> c;''', [
+C<a.A> c = C();
+''', [
       error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 64, 3),
     ]);
   }
@@ -146,7 +148,8 @@ class A {}''');
 library root;
 import 'lib1.dart' deferred as a;
 class C<E, F> {}
-C<a.A, a.A> c;''', [
+C<a.A, a.A> c = C();
+''', [
       error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 67, 3),
       error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 72, 3),
     ]);
@@ -171,7 +174,8 @@ class A {}''');
     await assertErrorsInCode('''
 library root;
 import 'lib1.dart' deferred as a;
-a.A v;''', [
+a.A v = a.A();
+''', [
       error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 48, 3),
     ]);
   }

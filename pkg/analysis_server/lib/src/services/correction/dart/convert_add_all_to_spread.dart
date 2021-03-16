@@ -37,6 +37,11 @@ class ConvertAddAllToSpread extends CorrectionProducer {
       : DartFixKind.CONVERT_TO_SPREAD;
 
   @override
+  FixKind get multiFixKind => _isInlineInvocation
+      ? DartFixKind.INLINE_INVOCATION_MULTI
+      : DartFixKind.CONVERT_TO_SPREAD_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {

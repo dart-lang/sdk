@@ -488,7 +488,24 @@ part 'a.dart';
     _assertHasClass(text: 'A');
   }
 
-  Future<void> test_limitedResolution_inPart() async {
+  Future<void> test_limitedResolution_inPart_partOfName() async {
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+library my_lib;
+part 'test.dart';
+class A {}
+''');
+
+    await _compute(r'''
+part of my_lib;
+^
+''');
+
+    _assertHasClass(text: 'int');
+    // TODO(scheglov) would be nice to have it
+    _assertNoClass(text: 'A');
+  }
+
+  Future<void> test_limitedResolution_inPart_partOfUri() async {
     newFile('/workspace/dart/test/lib/a.dart', content: r'''
 part 'test.dart';
 class A {}
@@ -496,6 +513,17 @@ class A {}
 
     await _compute(r'''
 part of 'a.dart';
+^
+''');
+
+    _assertHasClass(text: 'int');
+    _assertHasClass(text: 'A');
+  }
+
+  Future<void> test_limitedResolution_inPart_partOfUri_doesNotExist() async {
+    await _compute(r'''
+part of 'a.dart';
+class A {}
 ^
 ''');
 
@@ -528,6 +556,17 @@ mixin M {
 
     _assertHasGetter(text: 'hashCode');
     _assertHasMethod(text: 'foo');
+  }
+
+  Future<void> test_limitedResolution_path_hasSpace() async {
+    testPath = convertPath('/workspace/dart/test name/lib/a.dart');
+    await _compute(r'''
+class A {}
+^
+''');
+
+    _assertHasClass(text: 'int');
+    _assertHasClass(text: 'A');
   }
 
   Future<void> test_limitedResolution_unit_function_body() async {

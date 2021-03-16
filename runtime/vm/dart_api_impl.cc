@@ -1408,7 +1408,7 @@ Dart_CreateIsolateInGroup(Dart_Isolate group_member,
 
   *error = nullptr;
 
-  if (!FLAG_enable_isolate_groups) {
+  if (!IsolateGroup::AreIsolateGroupsEnabled()) {
     *error = Utils::StrDup(
         "Lightweight isolates are only implemented in AOT "
         "mode and need to be explicitly enabled by passing "
@@ -1435,7 +1435,7 @@ Dart_CreateIsolateInGroup(Dart_Isolate group_member,
 
 DART_EXPORT void Dart_ShutdownIsolate() {
   Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
+  auto I = T->isolate();
   CHECK_ISOLATE(I);
 
   // The Thread structure is disassociated from the isolate, we do the
@@ -1461,7 +1461,7 @@ DART_EXPORT void Dart_ShutdownIsolate() {
     StackZone zone(T);
     HandleScope handle_scope(T);
 #if defined(DEBUG)
-    I->ValidateConstants();
+    T->isolate_group()->ValidateConstants();
 #endif
     Dart::RunShutdownCallback();
   }
@@ -1820,7 +1820,6 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
 #else
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
-  auto I = T->isolate();
   if (vm_snapshot_data_buffer != nullptr) {
     CHECK_NULL(vm_snapshot_data_size);
   }
@@ -1831,7 +1830,7 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   if (Api::IsError(state)) {
     return state;
   }
-  BackgroundCompiler::Stop(I);
+  NoBackgroundCompilerScope no_bg_compiler(T);
 
 #if defined(DEBUG)
   T->isolate_group()->heap()->CollectAllGarbage();
@@ -4401,6 +4400,17 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
     args.SetAt(arg_index++, argument);
   }
 
+  const int kTypeArgsLen = 0;
+  Array& args_descriptor_array = Array::Handle(
+      Z, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length()));
+
+  ArgumentsDescriptor args_descriptor(args_descriptor_array);
+  ObjectPtr type_error = constructor.DoArgumentTypesMatch(
+      args, args_descriptor, type_arguments, Object::empty_type_arguments());
+  if (type_error != Error::null()) {
+    return Api::NewHandle(T, type_error);
+  }
+
   // Invoke the constructor and return the new object.
   result = DartEntry::InvokeFunction(constructor, args);
   if (result.IsError()) {
@@ -4423,17 +4433,20 @@ static InstancePtr AllocateObject(Thread* thread, const Class& cls) {
     Class& iterate_cls = Class::Handle(zone, cls.ptr());
     Field& field = Field::Handle(zone);
     Array& fields = Array::Handle(zone);
-    while (!iterate_cls.IsNull()) {
-      ASSERT(iterate_cls.is_finalized());
-      iterate_cls.set_is_fields_marked_nullable();
-      fields = iterate_cls.fields();
-      iterate_cls = iterate_cls.SuperClass();
-      for (int field_num = 0; field_num < fields.Length(); field_num++) {
-        field ^= fields.At(field_num);
-        if (field.is_static()) {
-          continue;
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    if (!cls.is_fields_marked_nullable()) {
+      while (!iterate_cls.IsNull()) {
+        ASSERT(iterate_cls.is_finalized());
+        iterate_cls.set_is_fields_marked_nullable();
+        fields = iterate_cls.fields();
+        iterate_cls = iterate_cls.SuperClass();
+        for (int field_num = 0; field_num < fields.Length(); field_num++) {
+          field ^= fields.At(field_num);
+          if (field.is_static()) {
+            continue;
+          }
+          field.RecordStore(Object::null_object());
         }
-        field.RecordStore(Object::null_object());
       }
     }
   }
@@ -4451,7 +4464,17 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   if (type_obj.IsNull()) {
     RETURN_TYPE_ERROR(Z, type, Type);
   }
+
+  if (!type_obj.IsFinalized()) {
+    return Api::NewError(
+        "%s expects argument 'type' to be a fully resolved type.",
+        CURRENT_FUNC);
+  }
+
   const Class& cls = Class::Handle(Z, type_obj.type_class());
+  const TypeArguments& type_arguments =
+      TypeArguments::Handle(Z, type_obj.arguments());
+
   CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
 #if defined(DEBUG)
   if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
@@ -4459,7 +4482,11 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   }
 #endif
   CHECK_ERROR_HANDLE(cls.EnsureIsAllocateFinalized(T));
-  return Api::NewHandle(T, AllocateObject(T, cls));
+  const Instance& new_obj = Instance::Handle(Z, AllocateObject(T, cls));
+  if (!type_arguments.IsNull()) {
+    new_obj.SetTypeArguments(type_arguments);
+  }
+  return Api::NewHandle(T, new_obj.ptr());
 }
 
 DART_EXPORT Dart_Handle
@@ -4546,7 +4573,7 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
 
   // Construct name of the constructor to invoke.
   const String& constructor_name = Api::UnwrapStringHandle(Z, name);
-  const AbstractType& type_obj =
+  AbstractType& type_obj =
       AbstractType::Handle(Z, instance.GetType(Heap::kNew));
   const Class& cls = Class::Handle(Z, type_obj.type_class());
   const String& class_name = String::Handle(Z, cls.Name());
@@ -4570,20 +4597,23 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
           kTypeArgsLen, number_of_arguments + extra_args, 0, NULL)) {
     CHECK_ERROR_HANDLE(constructor.VerifyCallEntryPoint());
     // Create the argument list.
-    // Constructors get the uninitialized object.
-    if (!type_arguments.IsNull()) {
-      // The type arguments will be null if the class has no type
-      // parameters, in which case the following call would fail
-      // because there is no slot reserved in the object for the
-      // type vector.
-      instance.SetTypeArguments(type_arguments);
-    }
     Dart_Handle result;
     Array& args = Array::Handle(Z);
     result =
         SetupArguments(T, number_of_arguments, arguments, extra_args, &args);
     if (!Api::IsError(result)) {
       args.SetAt(0, instance);
+
+      const int kTypeArgsLen = 0;
+      const Array& args_descriptor_array = Array::Handle(
+          Z, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length()));
+      ArgumentsDescriptor args_descriptor(args_descriptor_array);
+      ObjectPtr type_error = constructor.DoArgumentTypesMatch(
+          args, args_descriptor, type_arguments);
+      if (type_error != Error::null()) {
+        return Api::NewHandle(T, type_error);
+      }
+
       const Object& retval =
           Object::Handle(Z, DartEntry::InvokeFunction(constructor, args));
       if (retval.IsError()) {
@@ -6504,9 +6534,11 @@ DART_EXPORT Dart_Handle Dart_SortClasses() {
   return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
 #else
   DARTSCOPE(Thread::Current());
+
   // Prevent background compiler from running while code is being cleared and
   // adding new code.
-  BackgroundCompiler::Stop(Isolate::Current());
+  NoBackgroundCompilerScope no_bg_compiler(T);
+
   // We don't have mechanisms to change class-ids that are embedded in code and
   // ICData.
   ClassFinalizer::ClearAllCode();
@@ -6902,7 +6934,6 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
 #else
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
-  Isolate* I = T->isolate();
   CHECK_NULL(vm_snapshot_data_buffer);
   CHECK_NULL(vm_snapshot_data_size);
   CHECK_NULL(vm_snapshot_instructions_buffer);
@@ -6916,7 +6947,9 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
   if (Api::IsError(state)) {
     return state;
   }
-  BackgroundCompiler::Stop(I);
+
+  NoBackgroundCompilerScope no_bg_compiler(T);
+
   DropRegExpMatchCode(Z);
 
   ProgramVisitor::Dedup(T);
@@ -7003,7 +7036,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   // Kill off any auxiliary isolates before starting with deduping.
   KillNonMainIsolatesSlow(T, I);
 
-  BackgroundCompiler::Stop(I);
+  NoBackgroundCompilerScope no_bg_compiler(T);
   DropRegExpMatchCode(Z);
 
   ProgramVisitor::Dedup(T);

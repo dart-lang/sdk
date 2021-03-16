@@ -12,6 +12,9 @@ class AddNeNull extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_NE_NULL;
 
   @override
+  FixKind get multiFixKind => DartFixKind.ADD_NE_NULL_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var problemMessage = diagnostic.problemMessage;
     await builder.addDartFileEdit(file, (builder) {

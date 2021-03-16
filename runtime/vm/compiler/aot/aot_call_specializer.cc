@@ -567,6 +567,8 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         FALL_THROUGH;
       case Token::kSHR:
         FALL_THROUGH;
+      case Token::kUSHR:
+        FALL_THROUGH;
       case Token::kBIT_OR:
         FALL_THROUGH;
       case Token::kBIT_XOR:
@@ -579,7 +581,8 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         FALL_THROUGH;
       case Token::kMUL: {
         if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-          if (op_kind == Token::kSHR || op_kind == Token::kSHL) {
+          if (op_kind == Token::kSHL || op_kind == Token::kSHR ||
+              op_kind == Token::kUSHR) {
             left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
             right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
             replacement = new (Z) ShiftInt64OpInstr(
@@ -844,6 +847,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
     case Token::kSHL:
     case Token::kSHR:
+    case Token::kUSHR:
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
     case Token::kBIT_AND:

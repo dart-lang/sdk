@@ -11,9 +11,7 @@
 import 'package:analysis_server/src/services/completion/dart/probability_range.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
-/// A table keyed by completion location and element kind whose values are the
-/// ranges of the relevance of those element kinds in those locations.
-const elementKindRelevance = {
+const defaultElementKindRelevance = {
   'Annotation_name': {
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.000, upper: 0.041),
     ElementKind.TOP_LEVEL_VARIABLE:
@@ -649,7 +647,7 @@ const elementKindRelevance = {
         ProbabilityRange(lower: 0.017, upper: 0.070),
     ElementKind.CLASS: ProbabilityRange(lower: 0.354, upper: 1.000),
   },
-  'GenericTypeAlias_functionType': {
+  'GenericTypeAlias_type': {
     ElementKind.FUNCTION_TYPE_ALIAS:
         ProbabilityRange(lower: 0.000, upper: 0.020),
     ElementKind.PREFIX: ProbabilityRange(lower: 0.020, upper: 0.040),
@@ -1029,9 +1027,7 @@ const elementKindRelevance = {
   },
 };
 
-/// A table keyed by completion location and keyword whose values are the
-/// ranges of the relevance of those keywords in those locations.
-const keywordRelevance = {
+const defaultKeywordRelevance = {
   'ArgumentList_annotation_named': {
     'false': ProbabilityRange(lower: 0.159, upper: 0.517),
     'true': ProbabilityRange(lower: 0.517, upper: 1.000),
@@ -1362,7 +1358,7 @@ const keywordRelevance = {
   'FunctionDeclaration_returnType': {
     'void': ProbabilityRange(lower: 0.070, upper: 0.354),
   },
-  'GenericTypeAlias_functionType': {
+  'GenericTypeAlias_type': {
     'Function': ProbabilityRange(lower: 0.090, upper: 0.140),
     'void': ProbabilityRange(lower: 0.480, upper: 1.000),
   },
@@ -1557,3 +1553,13 @@ const keywordRelevance = {
     'await': ProbabilityRange(lower: 0.049, upper: 0.073),
   },
 };
+
+/// A table keyed by completion location and element kind whose values are the
+/// ranges of the relevance of those element kinds in those locations.
+Map<String, Map<ElementKind, ProbabilityRange>> elementKindRelevance =
+    defaultElementKindRelevance;
+
+/// A table keyed by completion location and keyword whose values are the
+/// ranges of the relevance of those keywords in those locations.
+Map<String, Map<String, ProbabilityRange>> keywordRelevance =
+    defaultKeywordRelevance;

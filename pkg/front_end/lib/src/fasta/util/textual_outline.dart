@@ -26,6 +26,8 @@ import 'package:_fe_analyzer_shared/src/parser/listener.dart';
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
+import '../messages.dart' show Message;
+
 abstract class _Chunk implements Comparable<_Chunk> {
   int originalPosition;
 
@@ -422,11 +424,14 @@ class BoxedInt {
 //              "show A show B" could just be "show A, B".
 //              "show A, B, C hide A show A" would be empty.
 
-String textualOutline(List<int> rawBytes,
-    {ScannerConfiguration configuration,
-    bool throwOnUnexpected: false,
-    bool performModelling: false,
-    bool addMarkerForUnknownForTest: false}) {
+String textualOutline(
+  List<int> rawBytes,
+  ScannerConfiguration configuration, {
+  bool throwOnUnexpected: false,
+  bool performModelling: false,
+  bool addMarkerForUnknownForTest: false,
+  bool returnNullOnError: true,
+}) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
 
@@ -451,6 +456,9 @@ String textualOutline(List<int> rawBytes,
   TextualOutlineListener listener = new TextualOutlineListener();
   ClassMemberParser classMemberParser = new ClassMemberParser(listener);
   classMemberParser.parseUnit(firstToken);
+  if (listener.gotError && returnNullOnError) {
+    return null;
+  }
 
   Token nextToken = firstToken;
   _UnknownTokenBuilder currentUnknown = new _UnknownTokenBuilder();
@@ -653,16 +661,17 @@ void outputUnknownChunk(
 main(List<String> args) {
   File f = new File(args[0]);
   Uint8List data = f.readAsBytesSync();
-  String outline =
-      textualOutline(data, throwOnUnexpected: true, performModelling: true);
+  ScannerConfiguration scannerConfiguration = new ScannerConfiguration();
+  String outline = textualOutline(data, scannerConfiguration,
+      throwOnUnexpected: true, performModelling: true);
   if (args.length > 1 && args[1] == "--overwrite") {
     f.writeAsStringSync(outline);
   } else if (args.length > 1 && args[1] == "--benchmark") {
     Stopwatch stopwatch = new Stopwatch()..start();
     int numRuns = 100;
     for (int i = 0; i < numRuns; i++) {
-      String outline2 =
-          textualOutline(data, throwOnUnexpected: true, performModelling: true);
+      String outline2 = textualOutline(data, scannerConfiguration,
+          throwOnUnexpected: true, performModelling: true);
       if (outline2 != outline) throw "Not the same result every time";
     }
     stopwatch.stop();
@@ -671,8 +680,8 @@ main(List<String> args) {
     stopwatch = new Stopwatch()..start();
     numRuns = 2500;
     for (int i = 0; i < numRuns; i++) {
-      String outline2 =
-          textualOutline(data, throwOnUnexpected: true, performModelling: true);
+      String outline2 = textualOutline(data, scannerConfiguration,
+          throwOnUnexpected: true, performModelling: true);
       if (outline2 != outline) throw "Not the same result every time";
     }
     stopwatch.stop();
@@ -684,11 +693,12 @@ main(List<String> args) {
 }
 
 class TextualOutlineListener extends Listener {
-  Map<Token, _ClassChunk> classStartToChunk = {};
-  Map<Token, _TokenChunk> elementStartToChunk = {};
-  Map<Token, _MetadataChunk> metadataStartToChunk = {};
-  Map<Token, _SingleImportExportChunk> importExportsStartToChunk = {};
-  Map<Token, _TokenChunk> unsortableElementStartToChunk = {};
+  bool gotError = false;
+  final Map<Token, _ClassChunk> classStartToChunk = {};
+  final Map<Token, _TokenChunk> elementStartToChunk = {};
+  final Map<Token, _MetadataChunk> metadataStartToChunk = {};
+  final Map<Token, _SingleImportExportChunk> importExportsStartToChunk = {};
+  final Map<Token, _TokenChunk> unsortableElementStartToChunk = {};
 
   @override
   void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
@@ -868,5 +878,11 @@ class TextualOutlineListener extends Listener {
         exportKeyword, semicolon, firstShowOrHide, _combinators);
     _combinators = null;
     firstShowOrHide = null;
+  }
+
+  @override
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
+    gotError = true;
   }
 }

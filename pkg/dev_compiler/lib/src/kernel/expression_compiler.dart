@@ -9,7 +9,8 @@ import 'dart:async';
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler;
 
-import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Message, Code;
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show Code, Message, PlainAndColorizedString;
 
 import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/js_ast/js_ast.dart' as js_ast;
@@ -36,14 +37,16 @@ import 'package:kernel/ast.dart'
         TreeNode,
         TypeParameter,
         VariableDeclaration,
-        Visitor;
+        Visitor,
+        VisitorNullMixin,
+        VisitorVoidMixin;
 
 DiagnosticMessage _createInternalError(Uri uri, int line, int col, String msg) {
   return Message(Code<String>('Expression Compiler Internal error'),
           message: msg)
       .withLocation(uri, 0, 0)
-      .withFormatting(
-          'Internal error: $msg', line, col, Severity.internalProblem, []);
+      .withFormatting(PlainAndColorizedString.plainOnly('Internal error: $msg'),
+          line, col, Severity.internalProblem, []);
 }
 
 /// Dart scope
@@ -84,7 +87,7 @@ class DartScope {
 /// - locals
 /// - formals
 /// - captured variables (for closures)
-class DartScopeBuilder extends Visitor<void> {
+class DartScopeBuilder extends Visitor<void> with VisitorVoidMixin {
   final Component _component;
   final int _line;
   final int _column;
@@ -196,7 +199,7 @@ class DartScopeBuilder extends Visitor<void> {
 /// that do not have .fileEndOffset field.
 ///
 /// For example - [Block]
-class FileEndOffsetCalculator extends Visitor<int> {
+class FileEndOffsetCalculator extends Visitor<int> with VisitorNullMixin<int> {
   static const int noOffset = -1;
 
   final int _startOffset;
@@ -266,7 +269,7 @@ class FileEndOffsetCalculator extends Visitor<int> {
 /// in the JavaScript scope, so we need to redefine them.
 ///
 /// See [_addSymbolDefinitions]
-class PrivateFieldsVisitor extends Visitor<void> {
+class PrivateFieldsVisitor extends Visitor<void> with VisitorVoidMixin {
   final Map<String, Library> privateFields = {};
 
   @override
@@ -358,6 +361,7 @@ class ExpressionCompiler {
         _log('Scope not found at $libraryUri:$line:$column');
         return null;
       }
+      _log('DartScope: $dartScope');
 
       // 2. perform necessary variable substitutions
 
@@ -371,10 +375,15 @@ class ExpressionCompiler {
       dartScope.definitions
           .removeWhere((variable, type) => !jsScope.containsKey(variable));
 
+      dartScope.typeParameters
+          .removeWhere((parameter) => !jsScope.containsKey(parameter.name));
+
       // map from values from the stack when available (this allows to evaluate
       // captured variables optimized away in chrome)
-      var localJsScope =
-          dartScope.definitions.keys.map((variable) => jsScope[variable]);
+      var localJsScope = [
+        ...dartScope.typeParameters.map((parameter) => jsScope[parameter.name]),
+        ...dartScope.definitions.keys.map((variable) => jsScope[variable])
+      ];
 
       _log('Performed scope substitutions for expression');
 

@@ -4,12 +4,12 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverGeneric, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
@@ -36,7 +36,10 @@ abstract class ServerPlugin {
   PluginCommunicationChannel _channel;
 
   /// The resource provider used to access the file system.
-  final ResourceProvider resourceProvider;
+  final OverlayResourceProvider resourceProvider;
+
+  /// The next modification stamp for a changed file in the [resourceProvider].
+  int _overlayModificationStamp = 0;
 
   /// The object used to manage analysis subscriptions.
   final SubscriptionManager subscriptionManager = SubscriptionManager();
@@ -60,14 +63,12 @@ abstract class ServerPlugin {
   /// The SDK manager used to manage SDKs.
   DartSdkManager _sdkManager;
 
-  /// The file content overlay used by any analysis drivers that are created.
-  final FileContentOverlay fileContentOverlay = FileContentOverlay();
-
   /// Initialize a newly created analysis server plugin. If a resource [provider]
   /// is given, then it will be used to access the file system. Otherwise a
   /// resource provider that accesses the physical file system will be used.
   ServerPlugin(ResourceProvider provider)
-      : resourceProvider = provider ?? PhysicalResourceProvider.INSTANCE {
+      : resourceProvider = OverlayResourceProvider(
+            provider ?? PhysicalResourceProvider.INSTANCE) {
     analysisDriverScheduler = AnalysisDriverScheduler(performanceLog);
     analysisDriverScheduler.start();
   }
@@ -275,11 +276,20 @@ abstract class ServerPlugin {
       AnalysisUpdateContentParams parameters) async {
     Map<String, Object> files = parameters.files;
     files.forEach((String filePath, Object overlay) {
+      // Prepare the old overlay contents.
+      String oldContents;
+      try {
+        if (resourceProvider.hasOverlay(filePath)) {
+          var file = resourceProvider.getFile(filePath);
+          oldContents = file.readAsStringSync();
+        }
+      } catch (_) {}
+
+      // Prepare the new contents.
+      String newContents;
       if (overlay is AddContentOverlay) {
-        fileContentOverlay[filePath] = overlay.content;
+        newContents = overlay.content;
       } else if (overlay is ChangeContentOverlay) {
-        var oldContents = fileContentOverlay[filePath];
-        String newContents;
         if (oldContents == null) {
           // The server should only send a ChangeContentOverlay if there is
           // already an existing overlay for the source.
@@ -292,10 +302,20 @@ abstract class ServerPlugin {
           throw RequestFailure(
               RequestErrorFactory.invalidOverlayChangeInvalidEdit());
         }
-        fileContentOverlay[filePath] = newContents;
       } else if (overlay is RemoveContentOverlay) {
-        fileContentOverlay[filePath] = null;
+        newContents = null;
       }
+
+      if (newContents != null) {
+        resourceProvider.setOverlay(
+          filePath,
+          content: newContents,
+          modificationStamp: _overlayModificationStamp++,
+        );
+      } else {
+        resourceProvider.removeOverlay(filePath);
+      }
+
       contentChanged(filePath);
     });
     return AnalysisUpdateContentResult();

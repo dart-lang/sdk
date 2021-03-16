@@ -26,6 +26,11 @@ Future<Set<Uri>> getGitFiles(Uri uri) async {
   ProcessResult result = await Process.run("git", ["ls-files", "."],
       workingDirectory: new Directory.fromUri(uri).absolute.path,
       runInShell: true);
+  if (result.exitCode != 0) {
+    throw "Git returned non-zero error code (${result.exitCode}):\n\n"
+        "stdout: ${result.stdout}\n\n"
+        "stderr: ${result.stderr}";
+  }
   String stdout = result.stdout;
   return stdout
       .split(new RegExp('^', multiLine: true))

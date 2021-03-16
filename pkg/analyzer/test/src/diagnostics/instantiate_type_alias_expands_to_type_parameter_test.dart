@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class InstantiateTypeAliasExpandsToTypeParameterTest
-    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+    extends PubPackageResolutionTest {
   CompileTimeErrorCode get _errorCode =>
       CompileTimeErrorCode.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
 

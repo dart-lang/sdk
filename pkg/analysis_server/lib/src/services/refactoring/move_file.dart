@@ -40,21 +40,25 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
-    final drivers = refactoringWorkspace.driversContaining(oldFile);
-    if (drivers.length != 1) {
-      if (refactoringWorkspace.drivers
-          .any((d) => pathContext.equals(d.contextRoot.root, oldFile))) {
+    for (var driver in refactoringWorkspace.drivers) {
+      var rootPath = driver.analysisContext.contextRoot.root.path;
+      if (pathContext.equals(rootPath, oldFile)) {
         return RefactoringStatus.fatal(
             'Renaming an analysis root is not supported ($oldFile)');
-      } else {
-        return RefactoringStatus.fatal(
-            '$oldFile does not belong to an analysis root.');
       }
     }
+
+    final drivers = refactoringWorkspace.driversContaining(oldFile);
+    if (drivers.length != 1) {
+      return RefactoringStatus.fatal(
+          '$oldFile does not belong to an analysis root.');
+    }
+
     driver = drivers.first;
     if (!driver.resourceProvider.getFile(oldFile).exists) {
       return RefactoringStatus.fatal('$oldFile does not exist.');
     }
+
     return RefactoringStatus();
   }
 

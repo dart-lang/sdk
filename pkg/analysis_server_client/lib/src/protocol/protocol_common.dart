@@ -601,6 +601,8 @@ class ChangeContentOverlay implements HasToJson {
 ///   "relevance": int
 ///   "completion": String
 ///   "displayText": optional String
+///   "replacementOffset": optional int
+///   "replacementLength": optional int
 ///   "selectionOffset": int
 ///   "selectionLength": int
 ///   "isDeprecated": bool
@@ -629,6 +631,10 @@ class CompletionSuggestion implements HasToJson {
   String _completion;
 
   String _displayText;
+
+  int _replacementOffset;
+
+  int _replacementLength;
 
   int _selectionOffset;
 
@@ -709,6 +715,36 @@ class CompletionSuggestion implements HasToJson {
   /// completion. Otherwise it is omitted.
   set displayText(String value) {
     _displayText = value;
+  }
+
+  /// The offset of the start of the text to be replaced. If supplied, this
+  /// should be used in preference to the offset provided on the containing
+  /// completion results. This value may be provided independently of
+  /// replacementLength (for example if only one differs from the completion
+  /// result value).
+  int get replacementOffset => _replacementOffset;
+
+  /// The offset of the start of the text to be replaced. If supplied, this
+  /// should be used in preference to the offset provided on the containing
+  /// completion results. This value may be provided independently of
+  /// replacementLength (for example if only one differs from the completion
+  /// result value).
+  set replacementOffset(int value) {
+    _replacementOffset = value;
+  }
+
+  /// The length of the text to be replaced. If supplied, this should be used
+  /// in preference to the offset provided on the containing completion
+  /// results. This value may be provided independently of replacementOffset
+  /// (for example if only one differs from the completion result value).
+  int get replacementLength => _replacementLength;
+
+  /// The length of the text to be replaced. If supplied, this should be used
+  /// in preference to the offset provided on the containing completion
+  /// results. This value may be provided independently of replacementOffset
+  /// (for example if only one differs from the completion result value).
+  set replacementLength(int value) {
+    _replacementLength = value;
   }
 
   /// The offset, relative to the beginning of the completion, of where the
@@ -904,6 +940,8 @@ class CompletionSuggestion implements HasToJson {
       bool isDeprecated,
       bool isPotential,
       {String displayText,
+      int replacementOffset,
+      int replacementLength,
       String docSummary,
       String docComplete,
       String declaringType,
@@ -921,6 +959,8 @@ class CompletionSuggestion implements HasToJson {
     this.relevance = relevance;
     this.completion = completion;
     this.displayText = displayText;
+    this.replacementOffset = replacementOffset;
+    this.replacementLength = replacementLength;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
     this.isDeprecated = isDeprecated;
@@ -969,6 +1009,16 @@ class CompletionSuggestion implements HasToJson {
       if (json.containsKey('displayText')) {
         displayText = jsonDecoder.decodeString(
             jsonPath + '.displayText', json['displayText']);
+      }
+      int replacementOffset;
+      if (json.containsKey('replacementOffset')) {
+        replacementOffset = jsonDecoder.decodeInt(
+            jsonPath + '.replacementOffset', json['replacementOffset']);
+      }
+      int replacementLength;
+      if (json.containsKey('replacementLength')) {
+        replacementLength = jsonDecoder.decodeInt(
+            jsonPath + '.replacementLength', json['replacementLength']);
       }
       int selectionOffset;
       if (json.containsKey('selectionOffset')) {
@@ -1070,6 +1120,8 @@ class CompletionSuggestion implements HasToJson {
       return CompletionSuggestion(kind, relevance, completion, selectionOffset,
           selectionLength, isDeprecated, isPotential,
           displayText: displayText,
+          replacementOffset: replacementOffset,
+          replacementLength: replacementLength,
           docSummary: docSummary,
           docComplete: docComplete,
           declaringType: declaringType,
@@ -1096,6 +1148,12 @@ class CompletionSuggestion implements HasToJson {
     result['completion'] = completion;
     if (displayText != null) {
       result['displayText'] = displayText;
+    }
+    if (replacementOffset != null) {
+      result['replacementOffset'] = replacementOffset;
+    }
+    if (replacementLength != null) {
+      result['replacementLength'] = replacementLength;
     }
     result['selectionOffset'] = selectionOffset;
     result['selectionLength'] = selectionLength;
@@ -1153,6 +1211,8 @@ class CompletionSuggestion implements HasToJson {
           relevance == other.relevance &&
           completion == other.completion &&
           displayText == other.displayText &&
+          replacementOffset == other.replacementOffset &&
+          replacementLength == other.replacementLength &&
           selectionOffset == other.selectionOffset &&
           selectionLength == other.selectionLength &&
           isDeprecated == other.isDeprecated &&
@@ -1184,6 +1244,8 @@ class CompletionSuggestion implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, relevance.hashCode);
     hash = JenkinsSmiHash.combine(hash, completion.hashCode);
     hash = JenkinsSmiHash.combine(hash, displayText.hashCode);
+    hash = JenkinsSmiHash.combine(hash, replacementOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, replacementLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
     hash = JenkinsSmiHash.combine(hash, selectionLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, isDeprecated.hashCode);
@@ -1435,6 +1497,7 @@ class DiagnosticMessage implements HasToJson {
 ///   "parameters": optional String
 ///   "returnType": optional String
 ///   "typeParameters": optional String
+///   "aliasedType": optional String
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1476,6 +1539,8 @@ class Element implements HasToJson {
   String _returnType;
 
   String _typeParameters;
+
+  String _aliasedType;
 
   /// The kind of the element.
   ElementKind get kind => _kind;
@@ -1566,11 +1631,22 @@ class Element implements HasToJson {
     _typeParameters = value;
   }
 
+  /// If the element is a type alias, this field is the aliased type. Otherwise
+  /// this field will not be defined.
+  String get aliasedType => _aliasedType;
+
+  /// If the element is a type alias, this field is the aliased type. Otherwise
+  /// this field will not be defined.
+  set aliasedType(String value) {
+    _aliasedType = value;
+  }
+
   Element(ElementKind kind, String name, int flags,
       {Location location,
       String parameters,
       String returnType,
-      String typeParameters}) {
+      String typeParameters,
+      String aliasedType}) {
     this.kind = kind;
     this.name = name;
     this.location = location;
@@ -1578,6 +1654,7 @@ class Element implements HasToJson {
     this.parameters = parameters;
     this.returnType = returnType;
     this.typeParameters = typeParameters;
+    this.aliasedType = aliasedType;
   }
 
   factory Element.fromJson(
@@ -1623,11 +1700,17 @@ class Element implements HasToJson {
         typeParameters = jsonDecoder.decodeString(
             jsonPath + '.typeParameters', json['typeParameters']);
       }
+      String aliasedType;
+      if (json.containsKey('aliasedType')) {
+        aliasedType = jsonDecoder.decodeString(
+            jsonPath + '.aliasedType', json['aliasedType']);
+      }
       return Element(kind, name, flags,
           location: location,
           parameters: parameters,
           returnType: returnType,
-          typeParameters: typeParameters);
+          typeParameters: typeParameters,
+          aliasedType: aliasedType);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'Element', json);
     }
@@ -1658,6 +1741,9 @@ class Element implements HasToJson {
     if (typeParameters != null) {
       result['typeParameters'] = typeParameters;
     }
+    if (aliasedType != null) {
+      result['aliasedType'] = aliasedType;
+    }
     return result;
   }
 
@@ -1673,7 +1759,8 @@ class Element implements HasToJson {
           flags == other.flags &&
           parameters == other.parameters &&
           returnType == other.returnType &&
-          typeParameters == other.typeParameters;
+          typeParameters == other.typeParameters &&
+          aliasedType == other.aliasedType;
     }
     return false;
   }
@@ -1688,6 +1775,7 @@ class Element implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
     hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
     hash = JenkinsSmiHash.combine(hash, typeParameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, aliasedType.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

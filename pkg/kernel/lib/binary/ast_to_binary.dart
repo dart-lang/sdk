@@ -6,7 +6,6 @@
 
 library kernel.ast_to_binary;
 
-import 'dart:core' hide MapEntry;
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' show BytesBuilder;
@@ -1384,6 +1383,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeVariableDeclarationList(node.positionalParameters);
     writeVariableDeclarationList(node.namedParameters);
     writeNode(node.returnType);
+    writeOptionalNode(node.futureValueType);
     writeOptionalNode(node.body);
     _labelIndexer = oldLabels;
     _switchCaseIndexer = oldCases;
@@ -1899,6 +1899,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitLet(Let node) {
     writeByte(Tag.Let);
+    writeOffset(node.fileOffset);
     _variableIndexer ??= new VariableIndexer();
     _variableIndexer.pushScope();
     writeVariableDeclaration(node.variable);
@@ -2184,11 +2185,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeVariableDeclaration(node.variable);
     writeFunctionNode(node.function);
-  }
-
-  @override
-  void visitBottomType(BottomType node) {
-    writeByte(Tag.BottomType);
   }
 
   @override
@@ -2709,7 +2705,7 @@ class SwitchCaseIndexer {
   int operator [](SwitchCase node) => index[node];
 }
 
-class ConstantIndexer extends RecursiveVisitor {
+class ConstantIndexer extends RecursiveResultVisitor {
   final StringIndexer stringIndexer;
 
   final List<Constant> entries = <Constant>[];

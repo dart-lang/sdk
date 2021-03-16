@@ -18,6 +18,7 @@ namespace dart {
 
 class Isolate;
 class Field;
+class FieldInvalidator;
 
 class FieldTable {
  public:

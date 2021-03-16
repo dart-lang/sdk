@@ -17,7 +17,8 @@ main() {
 }
 
 @reflectiveTest
-class AmbiguousSetOrMapLiteralBothTest extends PubPackageResolutionTest {
+class AmbiguousSetOrMapLiteralBothTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_map() async {
     await assertNoErrorsInCode('''
 f(Map<int, int> map) {
@@ -108,7 +109,8 @@ f(Map<int?, int> map, Set<int?> set) {
 }
 
 @reflectiveTest
-class AmbiguousSetOrMapLiteralEitherTest extends PubPackageResolutionTest {
+class AmbiguousSetOrMapLiteralEitherTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_invalidPrefixOperator() async {
     // Guard against an exception being thrown.
     await assertErrorsInCode('''

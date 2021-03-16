@@ -17,9 +17,11 @@ class MulticastInstrumentationService implements InstrumentationService {
   }
 
   @override
-  void logException(Object exception,
-      [StackTrace stackTrace,
-      List<InstrumentationServiceAttachment> attachments]) {
+  void logException(
+    Object exception, [
+    StackTrace? stackTrace,
+    List<InstrumentationServiceAttachment>? attachments,
+  ]) {
     _services
         .forEach((s) => s.logException(exception, stackTrace, attachments));
   }
@@ -50,7 +52,7 @@ class MulticastInstrumentationService implements InstrumentationService {
 
   @override
   void logPluginException(
-      PluginData plugin, Object exception, StackTrace stackTrace) {
+      PluginData plugin, Object exception, StackTrace? stackTrace) {
     _services
         .forEach((s) => s.logPluginException(plugin, exception, stackTrace));
   }

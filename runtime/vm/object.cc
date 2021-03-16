@@ -46,6 +46,7 @@
 #include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
 #include "vm/native_symbol.h"
+#include "vm/object_graph.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/profiler.h"
@@ -74,7 +75,7 @@
 
 namespace dart {
 
-DEFINE_FLAG(int,
+DEFINE_FLAG(uint64_t,
             huge_method_cutoff_in_code_size,
             200000,
             "Huge method cutoff in unoptimized code size (in bytes).");
@@ -660,6 +661,10 @@ void Object::Init(IsolateGroup* isolate_group) {
   // Should only be run by the vm isolate.
   ASSERT(isolate_group == Dart::vm_isolate_group());
   Heap* heap = isolate_group->heap();
+  Thread* thread = Thread::Current();
+  ASSERT(thread != nullptr);
+  // Ensure lock checks in setters are happy.
+  SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
 
   InitVtables();
 
@@ -717,7 +722,7 @@ void Object::Init(IsolateGroup* isolate_group) {
     cls.set_is_type_finalized();
     cls.set_type_arguments_field_offset_in_words(Class::kNoTypeArguments,
                                                  RTN::Class::kNoTypeArguments);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_num_native_fields(0);
     cls.InitEmptyFields();
     isolate_group->class_table()->Register(cls);
@@ -725,12 +730,12 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Allocate and initialize the null class.
   cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate_group);
-  cls.set_num_type_arguments(0);
+  cls.set_num_type_arguments_unsafe(0);
   isolate_group->object_store()->set_null_class(cls);
 
   // Allocate and initialize Never class.
   cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate_group);
-  cls.set_num_type_arguments(0);
+  cls.set_num_type_arguments_unsafe(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
@@ -740,7 +745,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls = Class::New<FreeListElement::FakeInstance,
                    RTN::FreeListElement::FakeInstance>(kFreeListElement,
                                                        isolate_group);
-  cls.set_num_type_arguments(0);
+  cls.set_num_type_arguments_unsafe(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
@@ -749,7 +754,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls = Class::New<ForwardingCorpse::FakeInstance,
                    RTN::ForwardingCorpse::FakeInstance>(kForwardingCorpse,
                                                         isolate_group);
-  cls.set_num_type_arguments(0);
+  cls.set_num_type_arguments_unsafe(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
@@ -884,19 +889,19 @@ void Object::Init(IsolateGroup* isolate_group) {
   isolate_group->object_store()->set_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                       RTN::Array::type_arguments_offset());
-  cls.set_num_type_arguments(1);
+  cls.set_num_type_arguments_unsafe(1);
   cls = Class::New<Array, RTN::Array>(kImmutableArrayCid, isolate_group);
   isolate_group->object_store()->set_immutable_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                       RTN::Array::type_arguments_offset());
-  cls.set_num_type_arguments(1);
+  cls.set_num_type_arguments_unsafe(1);
   cls =
       Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(isolate_group);
   isolate_group->object_store()->set_growable_object_array_class(cls);
   cls.set_type_arguments_field_offset(
       GrowableObjectArray::type_arguments_offset(),
       RTN::GrowableObjectArray::type_arguments_offset());
-  cls.set_num_type_arguments(1);
+  cls.set_num_type_arguments_unsafe(1);
   cls = Class::NewStringClass(kOneByteStringCid, isolate_group);
   isolate_group->object_store()->set_one_byte_string_class(cls);
   cls = Class::NewStringClass(kTwoByteStringCid, isolate_group);
@@ -1040,20 +1045,25 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   cls = Class::New<Instance, RTN::Instance>(kDynamicCid, isolate_group);
   cls.set_is_abstract();
-  cls.set_num_type_arguments(0);
+  cls.set_num_type_arguments_unsafe(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
   dynamic_class_ = cls.ptr();
 
   cls = Class::New<Instance, RTN::Instance>(kVoidCid, isolate_group);
-  cls.set_num_type_arguments(0);
+  cls.set_num_type_arguments_unsafe(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
   void_class_ = cls.ptr();
 
   cls = Class::New<Type, RTN::Type>(isolate_group);
+  cls.set_is_allocate_finalized();
+  cls.set_is_declaration_loaded();
+  cls.set_is_type_finalized();
+
+  cls = Class::New<FunctionType, RTN::FunctionType>(isolate_group);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
@@ -1078,12 +1088,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   // in the vm isolate. See special handling in Class::SuperClass().
   cls = type_arguments_class_;
   cls.set_interfaces(Object::empty_array());
-  {
-    Thread* thread = Thread::Current();
-    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-    cls.SetFields(Object::empty_array());
-    cls.SetFunctions(Object::empty_array());
-  }
+  cls.SetFields(Object::empty_array());
+  cls.SetFunctions(Object::empty_array());
 
   cls = Class::New<Bool, RTN::Bool>(isolate_group);
   isolate_group->object_store()->set_bool_class(cls);
@@ -1124,10 +1130,8 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
-  Thread* thr = Thread::Current();
-  ASSERT(thr != NULL);
-  thr->ClearStickyError();
-  thr->clear_pending_functions();
+  thread->ClearStickyError();
+  thread->clear_pending_functions();
 
   ASSERT(!null_object_->IsSmi());
   ASSERT(!null_class_->IsSmi());
@@ -1325,6 +1329,7 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   SET_CLASS_NAME(library, LibraryClass);
   SET_CLASS_NAME(namespace, Namespace);
   SET_CLASS_NAME(kernel_program_info, KernelProgramInfo);
+  SET_CLASS_NAME(weak_serialization_reference, WeakSerializationReference);
   SET_CLASS_NAME(code, Code);
   SET_CLASS_NAME(instructions, Instructions);
   SET_CLASS_NAME(instructions_section, InstructionsSection);
@@ -1362,6 +1367,12 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   cls.set_name(Symbols::FreeListElement());
   cls = isolate_group->class_table()->At(kForwardingCorpse);
   cls.set_name(Symbols::ForwardingCorpse());
+
+#if defined(DART_PRECOMPILER)
+  const auto& function =
+      Function::Handle(StubCode::UnknownDartCode().function());
+  function.set_name(Symbols::OptimizedOut());
+#endif  // defined(DART_PRECOMPILER)
 
   {
     ASSERT(isolate_group == Dart::vm_isolate_group());
@@ -1588,7 +1599,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     // respective Raw* classes.
     cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                         RTN::Array::type_arguments_offset());
-    cls.set_num_type_arguments(1);
+    cls.set_num_type_arguments_unsafe(1);
 
     // Set up the growable object array class (Has to be done after the array
     // class is setup as one of its field is an array object).
@@ -1598,7 +1609,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls.set_type_arguments_field_offset(
         GrowableObjectArray::type_arguments_offset(),
         RTN::GrowableObjectArray::type_arguments_offset());
-    cls.set_num_type_arguments(1);
+    cls.set_num_type_arguments_unsafe(1);
 
     // Initialize hash set for canonical types.
     const intptr_t kInitialCanonicalTypeSize = 16;
@@ -1693,7 +1704,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     object_store->set_immutable_array_class(cls);
     cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
                                         RTN::Array::type_arguments_offset());
-    cls.set_num_type_arguments(1);
+    cls.set_num_type_arguments_unsafe(1);
     ASSERT(object_store->immutable_array_class() !=
            object_store->array_class());
     cls.set_is_prefinalized();
@@ -1767,7 +1778,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<Instance, RTN::Instance>(kInstanceCid, isolate_group);
     object_store->set_object_class(cls);
     cls.set_name(Symbols::Object());
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     cls.set_is_const();
     core_lib.AddClass(cls);
@@ -1792,13 +1803,13 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate_group);
     object_store->set_null_class(cls);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     RegisterClass(cls, Symbols::Null(), core_lib);
     pending_classes.Add(cls);
 
     cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate_group);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_allocate_finalized();
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
@@ -1885,7 +1896,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls.set_type_arguments_field_offset(
         LinkedHashMap::type_arguments_offset(),
         RTN::LinkedHashMap::type_arguments_offset());
-    cls.set_num_type_arguments(2);
+    cls.set_num_type_arguments_unsafe(2);
     RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
     pending_classes.Add(cls);
 
@@ -1903,7 +1914,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<FutureOr, RTN::FutureOr>(isolate_group);
     cls.set_type_arguments_field_offset(FutureOr::type_arguments_offset(),
                                         RTN::FutureOr::type_arguments_offset());
-    cls.set_num_type_arguments(1);
+    cls.set_num_type_arguments_unsafe(1);
     RegisterClass(cls, Symbols::FutureOr(), lib);
     pending_classes.Add(cls);
 
@@ -1982,7 +1993,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Float32x4(), lib);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_float32x4_type(type);
@@ -1996,7 +2007,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Int32x4(), lib);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_int32x4_type(type);
@@ -2010,7 +2021,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Float64x2(), lib);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_float64x2_type(type);
@@ -2025,7 +2036,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     RegisterClass(cls, Symbols::Type(), core_lib);
     pending_classes.Add(cls);
@@ -2036,7 +2047,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     RegisterClass(cls, Symbols::Function(), core_lib);
     pending_classes.Add(cls);
@@ -2061,7 +2072,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Int(), core_lib);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
@@ -2077,7 +2088,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Double(), core_lib);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
@@ -2094,7 +2105,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                               /*register_class=*/true,
                                               /*is_abstract=*/true);
     RegisterClass(cls, name, core_lib);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
@@ -2251,7 +2262,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     object_store->set_bootstrap_library(ObjectStore::kFfi, lib);
 
     cls = Class::New<Instance, RTN::Instance>(kFfiNativeTypeCid, isolate_group);
-    cls.set_num_type_arguments(0);
+    cls.set_num_type_arguments_unsafe(0);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     object_store->set_ffi_native_type_class(cls);
@@ -2259,7 +2270,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
 #define REGISTER_FFI_TYPE_MARKER(clazz)                                        \
   cls = Class::New<Instance, RTN::Instance>(kFfi##clazz##Cid, isolate_group);  \
-  cls.set_num_type_arguments(0);                                               \
+  cls.set_num_type_arguments_unsafe(0);                                        \
   cls.set_is_prefinalized();                                                   \
   pending_classes.Add(cls);                                                    \
   RegisterClass(cls, Symbols::Ffi##clazz(), lib);
@@ -2270,7 +2281,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
                                               isolate_group);
     cls.set_type_arguments_field_offset(Pointer::type_arguments_offset(),
                                         RTN::Pointer::type_arguments_offset());
-    cls.set_num_type_arguments(1);
+    cls.set_num_type_arguments_unsafe(1);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiNativeFunction(), lib);
@@ -2322,6 +2333,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     // full snapshot linked in and an isolate is initialized using the full
     // snapshot.
     ObjectStore* object_store = isolate_group->object_store();
+    SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
 
     Class& cls = Class::Handle(zone);
 
@@ -2497,8 +2509,12 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
       // If the size is greater than both kNewAllocatableSize and
       // kAllocatablePageSize, the object must have been allocated to a new
       // large page, which must already have been zero initialized by the OS.
+#if defined(DART_COMPRESSED_POINTERS)
+      needs_init = true;
+#else
       needs_init = Heap::IsAllocatableInNewSpace(size) ||
                    Heap::IsAllocatableViaFreeLists(size);
+#endif
     } else {
       initial_value = static_cast<uword>(null_);
       needs_init = true;
@@ -2585,35 +2601,38 @@ ObjectPtr Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
       OUT_OF_MEMORY();
     }
   }
-#ifndef PRODUCT
-  auto class_table = thread->isolate_group()->shared_class_table();
-  if (class_table->TraceAllocationFor(cls_id)) {
-    Profiler::SampleAllocation(thread, cls_id);
-  }
-#endif  // !PRODUCT
   NoSafepointScope no_safepoint;
+  ObjectPtr raw_obj;
   InitializeObject(address, cls_id, size);
-  ObjectPtr raw_obj = static_cast<ObjectPtr>(address + kHeapObjectTag);
+  raw_obj = static_cast<ObjectPtr>(address + kHeapObjectTag);
   ASSERT(cls_id == UntaggedObject::ClassIdTag::decode(raw_obj->untag()->tags_));
   if (raw_obj->IsOldObject() && UNLIKELY(thread->is_marking())) {
-    // Black allocation. Prevents a data race between the mutator and concurrent
-    // marker on ARM and ARM64 (the marker may observe a publishing store of
-    // this object before the stores that initialize its slots), and helps the
-    // collection to finish sooner.
+    // Black allocation. Prevents a data race between the mutator and
+    // concurrent marker on ARM and ARM64 (the marker may observe a
+    // publishing store of this object before the stores that initialize its
+    // slots), and helps the collection to finish sooner.
     raw_obj->untag()->SetMarkBitUnsynchronized();
-    // Setting the mark bit must not be ordered after a publishing store of this
-    // object. Adding a barrier here is cheaper than making every store into the
-    // heap a store-release. Compare Scavenger::ScavengePointer.
+    // Setting the mark bit must not be ordered after a publishing store of
+    // this object. Adding a barrier here is cheaper than making every store
+    // into the heap a store-release. Compare Scavenger::ScavengePointer.
     std::atomic_thread_fence(std::memory_order_release);
     heap->old_space()->AllocateBlack(size);
   }
+#ifndef PRODUCT
+  auto class_table = thread->isolate_group()->shared_class_table();
+  if (class_table->TraceAllocationFor(cls_id)) {
+    uint32_t hash =
+        HeapSnapshotWriter::GetHeapSnapshotIdentityHash(thread, raw_obj);
+    Profiler::SampleAllocation(thread, cls_id, hash);
+  }
+#endif  // !PRODUCT
   return raw_obj;
 }
 
 class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
  public:
   explicit WriteBarrierUpdateVisitor(Thread* thread, ObjectPtr obj)
-      : ObjectPointerVisitor(thread->isolate()->group()),
+      : ObjectPointerVisitor(thread->isolate_group()),
         thread_(thread),
         old_obj_(obj) {
     ASSERT(old_obj_->IsOldObject());
@@ -2630,6 +2649,26 @@ class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
     } else {
       for (ObjectPtr* slot = from; slot <= to; ++slot) {
         ObjectPtr value = *slot;
+        if (value->IsHeapObject()) {
+          old_obj_->untag()->CheckHeapPointerStore(value, thread_);
+        }
+      }
+    }
+  }
+
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* from,
+                               CompressedObjectPtr* to) {
+    if (old_obj_->IsArray()) {
+      for (CompressedObjectPtr* slot = from; slot <= to; ++slot) {
+        ObjectPtr value = slot->Decompress(heap_base);
+        if (value->IsHeapObject()) {
+          old_obj_->untag()->CheckArrayPointerStore(slot, value, thread_);
+        }
+      }
+    } else {
+      for (CompressedObjectPtr* slot = from; slot <= to; ++slot) {
+        ObjectPtr value = slot->Decompress(heap_base);
         if (value->IsHeapObject()) {
           old_obj_->untag()->CheckHeapPointerStore(value, thread_);
         }
@@ -2772,7 +2811,7 @@ ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
                                target_next_field_offset);
   COMPILE_ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
-  result.set_num_type_arguments(0);
+  result.set_num_type_arguments_unsafe(0);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
   if ((FakeObject::kClassId < kInstanceCid) ||
@@ -2808,6 +2847,15 @@ void Class::set_num_type_arguments(intptr_t value) const {
   if (!Utils::IsInt(16, value)) {
     ReportTooManyTypeArguments(*this);
   }
+  // We allow concurrent calculation of the number of type arguments. If two
+  // threads perform this operation it doesn't matter which one wins.
+  DEBUG_ONLY(intptr_t old_value = num_type_arguments());
+  DEBUG_ASSERT(old_value == kUnknownNumTypeArguments || old_value == value);
+  StoreNonPointer<int16_t, int16_t, std::memory_order_relaxed>(
+      &untag()->num_type_arguments_, value);
+}
+
+void Class::set_num_type_arguments_unsafe(intptr_t value) const {
   StoreNonPointer(&untag()->num_type_arguments_, value);
 }
 
@@ -3147,7 +3195,6 @@ intptr_t Class::ComputeNumTypeArguments() const {
   // modified by finalization, only shifted to higher indices in the vector.
   // The super type may not even be resolved yet. This is not necessary, since
   // we only check for matching type parameters, which are resolved by default.
-  const auto& type_params = TypeArguments::Handle(zone, type_parameters());
   // Determine the maximum overlap of a prefix of the vector consisting of the
   // type parameters of this class with a suffix of the vector consisting of the
   // type arguments of the super type of this class.
@@ -3156,7 +3203,6 @@ intptr_t Class::ComputeNumTypeArguments() const {
   // Attempt to overlap the whole vector of type parameters; reduce the size
   // of the vector (keeping the first type parameter) until it fits or until
   // its size is zero.
-  auto& type_param = TypeParameter::Handle(zone);
   auto& sup_type_arg = AbstractType::Handle(zone);
   for (intptr_t num_overlapping_type_args =
            (num_type_params < sup_type_args_length) ? num_type_params
@@ -3164,12 +3210,19 @@ intptr_t Class::ComputeNumTypeArguments() const {
        num_overlapping_type_args > 0; num_overlapping_type_args--) {
     intptr_t i = 0;
     for (; i < num_overlapping_type_args; i++) {
-      type_param ^= type_params.TypeAt(i);
-      ASSERT(!type_param.IsNull());
       sup_type_arg = sup_type_args.TypeAt(sup_type_args_length -
                                           num_overlapping_type_args + i);
       ASSERT(!sup_type_arg.IsNull());
-      if (!type_param.Equals(sup_type_arg)) break;
+      if (!sup_type_arg.IsTypeParameter()) break;
+      // The only type parameters appearing in the type arguments of the super
+      // type are those declared by this class. Their finalized indices depend
+      // on the number of type arguments being computed here. Therefore, they
+      // cannot possibly be finalized yet.
+      ASSERT(!TypeParameter::Cast(sup_type_arg).IsFinalized());
+      if (TypeParameter::Cast(sup_type_arg).index() != i ||
+          TypeParameter::Cast(sup_type_arg).IsNullable()) {
+        break;
+      }
     }
     if (i == num_overlapping_type_args) {
       // Overlap found.
@@ -3224,7 +3277,6 @@ TypeArgumentsPtr Class::InstantiateToBounds(Thread* thread) const {
 ClassPtr Class::SuperClass(bool original_classes) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  auto isolate = thread->isolate();
   auto isolate_group = thread->isolate_group();
   if (super_type() == AbstractType::null()) {
     if (id() == kTypeArgumentsCid) {
@@ -3236,7 +3288,7 @@ ClassPtr Class::SuperClass(bool original_classes) const {
   const AbstractType& sup_type = AbstractType::Handle(zone, super_type());
   const intptr_t type_class_id = sup_type.type_class_id();
   if (original_classes) {
-    return isolate->GetClassForHeapWalkAt(type_class_id);
+    return isolate_group->GetClassForHeapWalkAt(type_class_id);
   } else {
     return isolate_group->class_table()->At(type_class_id);
   }
@@ -3620,6 +3672,7 @@ bool Library::FindPragma(Thread* T,
                          bool only_core,
                          const Object& obj,
                          const String& pragma_name,
+                         bool multiple,
                          Object* options) {
   auto IG = T->isolate_group();
   auto Z = T->zone();
@@ -3665,6 +3718,13 @@ bool Library::FindPragma(Thread* T,
       Field::Handle(Z, pragma_class.LookupField(Symbols::options()));
 
   auto& pragma = Object::Handle(Z);
+  bool found = false;
+  auto& options_value = Object::Handle(Z);
+  auto& results = GrowableObjectArray::Handle(Z);
+  if (multiple) {
+    ASSERT(options != nullptr);
+    results ^= GrowableObjectArray::New(1);
+  }
   for (intptr_t i = 0; i < metadata.Length(); ++i) {
     pragma = metadata.At(i);
     if (pragma.clazz() != pragma_class.ptr() ||
@@ -3672,13 +3732,22 @@ bool Library::FindPragma(Thread* T,
             pragma_name.ptr()) {
       continue;
     }
+    options_value = Instance::Cast(pragma).GetField(pragma_options_field);
+    found = true;
+    if (multiple) {
+      results.Add(options_value);
+      continue;
+    }
     if (options != nullptr) {
-      *options = Instance::Cast(pragma).GetField(pragma_options_field);
+      *options = options_value.ptr();
     }
     return true;
   }
 
-  return false;
+  if (found && options != nullptr) {
+    *options = results.ptr();
+  }
+  return found;
 }
 
 bool Function::IsDynamicInvocationForwarderName(const String& name) {
@@ -3806,7 +3875,7 @@ ArrayPtr Class::invocation_dispatcher_cache() const {
 void Class::Finalize() const {
   auto thread = Thread::Current();
   auto isolate_group = thread->isolate_group();
-  ASSERT(!thread->isolate()->all_classes_finalized());
+  ASSERT(!thread->isolate_group()->all_classes_finalized());
   ASSERT(!is_finalized());
   // Prefinalized classes have a VM internal representation and no Dart fields.
   // Their instance size  is precomputed and field offsets are known.
@@ -4449,7 +4518,7 @@ ClassPtr Class::NewCommon(intptr_t index) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_id(index);
-  result.set_num_type_arguments(kUnknownNumTypeArguments);
+  result.set_num_type_arguments_unsafe(kUnknownNumTypeArguments);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
@@ -4491,7 +4560,7 @@ ClassPtr Class::New(const Library& lib,
   result.set_instance_size_in_words(0, 0);
 
   if (register_class) {
-    Isolate::Current()->RegisterClass(result);
+    IsolateGroup::Current()->RegisterClass(result);
   }
   return result.ptr();
 }
@@ -4767,6 +4836,8 @@ const char* Class::GenerateUserVisibleName() const {
       return Symbols::Namespace().ToCString();
     case kKernelProgramInfoCid:
       return Symbols::KernelProgramInfo().ToCString();
+    case kWeakSerializationReferenceCid:
+      return Symbols::WeakSerializationReference().ToCString();
     case kCodeCid:
       return Symbols::Code().ToCString();
     case kInstructionsCid:
@@ -4857,20 +4928,32 @@ int32_t Class::SourceFingerprint() const {
 }
 
 void Class::set_is_implemented() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_is_implemented_unsafe();
+}
+
+void Class::set_is_implemented_unsafe() const {
   set_state_bits(ImplementedBit::update(true, state_bits()));
 }
 
 void Class::set_is_abstract() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(AbstractBit::update(true, state_bits()));
 }
 
 void Class::set_is_declaration_loaded() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_is_declaration_loaded_unsafe();
+}
+
+void Class::set_is_declaration_loaded_unsafe() const {
   ASSERT(!is_declaration_loaded());
   set_state_bits(ClassLoadingBits::update(UntaggedClass::kDeclarationLoaded,
                                           state_bits()));
 }
 
 void Class::set_is_type_finalized() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(is_declaration_loaded());
   ASSERT(!is_type_finalized());
   set_state_bits(
@@ -4878,46 +4961,64 @@ void Class::set_is_type_finalized() const {
 }
 
 void Class::set_is_synthesized_class() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_is_synthesized_class_unsafe();
+}
+
+void Class::set_is_synthesized_class_unsafe() const {
   set_state_bits(SynthesizedClassBit::update(true, state_bits()));
 }
 
 void Class::set_is_enum_class() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(EnumBit::update(true, state_bits()));
 }
 
 void Class::set_is_const() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(ConstBit::update(true, state_bits()));
 }
 
 void Class::set_is_transformed_mixin_application() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(TransformedMixinApplicationBit::update(true, state_bits()));
 }
 
 void Class::set_is_fields_marked_nullable() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(FieldsMarkedNullableBit::update(true, state_bits()));
 }
 
 void Class::set_is_allocated(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_is_allocated_unsafe(value);
+}
+
+void Class::set_is_allocated_unsafe(bool value) const {
   set_state_bits(IsAllocatedBit::update(value, state_bits()));
 }
 
 void Class::set_is_loaded(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   set_state_bits(IsLoadedBit::update(value, state_bits()));
 }
 
 void Class::set_is_finalized() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!is_finalized());
   set_state_bits(
       ClassFinalizedBits::update(UntaggedClass::kFinalized, state_bits()));
 }
 
 void Class::set_is_allocate_finalized() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!is_allocate_finalized());
   set_state_bits(ClassFinalizedBits::update(UntaggedClass::kAllocateFinalized,
                                             state_bits()));
 }
 
 void Class::set_is_prefinalized() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!is_finalized());
   set_state_bits(
       ClassFinalizedBits::update(UntaggedClass::kPreFinalized, state_bits()));
@@ -5812,7 +5913,7 @@ void Class::RehashConstants(Zone* zone) const {
     // Shape changes lose the canonical bit because they may result/ in merging
     // constants. E.g., [x1, y1], [x1, y2] -> [x1].
     DEBUG_ASSERT(constant.IsCanonical() ||
-                 Isolate::Current()->HasAttemptedReload());
+                 IsolateGroup::Current()->HasAttemptedReload());
     InsertCanonicalConstant(zone, constant);
   }
   set.Release();
@@ -5888,6 +5989,21 @@ intptr_t TypeArguments::HashForRange(intptr_t from_index, intptr_t len) const {
     // purposes only) while a type argument is still temporarily null.
     if (type.IsNull() || type.IsNullTypeRef()) {
       return 0;  // Do not cache hash, since it will still change.
+    }
+    if (type.IsTypeRef()) {
+      // Unwrapping the TypeRef here cannot lead to infinite recursion, because
+      // traversal during hash computation stops at the TypeRef. Indeed,
+      // unwrapping the TypeRef does not always remove it completely, but may
+      // only rotate the cycle. The same TypeRef can be encountered when calling
+      // type.Hash() below after traversing the whole cycle. The class id of the
+      // referenced type is used and the traversal stops.
+      // By dereferencing the TypeRef, we maximize the information reflected by
+      // the hash value. Two equal vectors may have some of their type arguments
+      // 'oriented' differently, i.e. pointing to identical (TypeRef containing)
+      // cyclic type graphs, but to two different nodes in the cycle, thereby
+      // breaking the hash computation earlier for one vector and yielding two
+      // different hash values for identical type graphs.
+      type = TypeRef::Cast(type).type();
     }
     result = CombineHashes(result, type.Hash());
   }
@@ -6675,8 +6791,19 @@ bool Function::HasBreakpoint() const {
 #if defined(PRODUCT)
   return false;
 #else
-  Thread* thread = Thread::Current();
-  return thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
+  // TODO(dartbug.com/36097): We might need to adjust this once we start adding
+  // debugging support to --enable-isolate-groups.
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  auto isolate_group = thread->isolate_group();
+
+  bool has_breakpoint = false;
+  isolate_group->ForEachIsolate([&](Isolate* isolate) {
+    if (isolate->debugger()->HasBreakpoint(*this, zone)) {
+      has_breakpoint = true;
+    }
+  });
+  return has_breakpoint;
 #endif
 }
 
@@ -6753,7 +6880,7 @@ void Function::EnsureHasCompiledUnoptimizedCode() const {
   ASSERT(!ForceOptimize());
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
-  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
+  // TODO(35224): DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
 
   const Error& error =
@@ -6768,7 +6895,6 @@ void Function::SwitchToUnoptimizedCode() const {
   Thread* thread = Thread::Current();
   DEBUG_ASSERT(
       thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
-  Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
   // TODO(35224): DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   const Code& current_code = Code::Handle(zone, CurrentCode());
@@ -6786,7 +6912,6 @@ void Function::SwitchToUnoptimizedCode() const {
   const Code& unopt_code = Code::Handle(zone, unoptimized_code());
   unopt_code.Enable();
   AttachCode(unopt_code);
-  isolate->TrackDeoptimizedCode(current_code);
 }
 
 void Function::SwitchToLazyCompiledUnoptimizedCode() const {
@@ -7724,12 +7849,9 @@ bool Function::CanBeInlined() const {
     return CompilerState::Current().is_aot();
   }
 
-#if !defined(PRODUCT)
-  Thread* thread = Thread::Current();
-  if (thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone())) {
+  if (HasBreakpoint()) {
     return false;
   }
-#endif  // !defined(PRODUCT)
 
   return is_inlinable() && !is_external() && !is_generated_body();
 }
@@ -8140,10 +8262,14 @@ ObjectPtr Function::DoArgumentTypesMatch(
     // Adjust for type arguments when they're present.
     const intptr_t param_index = arg_index - arg_offset;
     type = ParameterTypeAt(param_index);
-
     if (!check_argument(argument, type, instantiator_type_arguments,
                         function_type_arguments)) {
       auto& name = String::Handle(zone, ParameterNameAt(param_index));
+      if (!type.IsInstantiated()) {
+        type =
+            type.InstantiateFrom(instantiator_type_arguments,
+                                 function_type_arguments, kAllFree, Heap::kNew);
+      }
       return ThrowTypeError(token_pos(), argument, type, name);
     }
   }
@@ -8631,7 +8757,6 @@ FunctionPtr Function::New(const FunctionType& signature,
   NOT_IN_PRECOMPILED(result.set_inlining_depth(0));
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
   result.set_is_optimizable(is_native ? false : true);
-  result.set_is_background_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.reset_unboxed_parameters_and_return();
   result.SetInstructionsSafe(StubCode::LazyCompile());
@@ -8978,7 +9103,7 @@ FunctionPtr Function::ImplicitClosureTarget(Zone* zone) const {
       Function::Handle(zone, Resolver::ResolveFunction(zone, owner, func_name));
 
   if (!target.IsNull() && (target.ptr() != parent.ptr())) {
-    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
+    DEBUG_ASSERT(IsolateGroup::Current()->HasAttemptedReload());
     if ((target.is_static() != parent.is_static()) ||
         (target.kind() != parent.kind())) {
       target = Function::null();
@@ -9480,7 +9605,8 @@ void Function::RestoreICDataMap(
   Zone* zone = Thread::Current()->zone();
   const Array& saved_ic_data = Array::Handle(zone, ic_data_array());
   if (saved_ic_data.IsNull()) {
-    // Could happen with deferred loading.
+    // Could happen with not-yet compiled unoptimized code or force-optimized
+    // functions.
     return;
   }
   const intptr_t saved_length = saved_ic_data.Length();
@@ -10290,8 +10416,7 @@ void Field::InitializeNew(const Field& result,
   result.set_has_pragma(false);
   result.set_static_type_exactness_state(
       StaticTypeExactnessState::NotTracking());
-  auto isolate = Isolate::Current();
-  auto isolate_group = isolate->group();
+  auto isolate_group = IsolateGroup::Current();
 
 // Use field guards if they are enabled and the isolate has never reloaded.
 // TODO(johnmccutchan): The reload case assumes the worst case (everything is
@@ -10301,8 +10426,8 @@ void Field::InitializeNew(const Field& result,
       FLAG_precompiled_mode || isolate_group->use_field_guards();
 #else
   const bool use_guarded_cid =
-      FLAG_precompiled_mode ||
-      (isolate_group->use_field_guards() && !isolate->HasAttemptedReload());
+      FLAG_precompiled_mode || (isolate_group->use_field_guards() &&
+                                !isolate_group->HasAttemptedReload());
 #endif  // !defined(PRODUCT)
   result.set_guarded_cid_unsafe(use_guarded_cid ? kIllegalCid : kDynamicCid);
   result.set_is_nullable_unsafe(use_guarded_cid ? false : true);
@@ -10558,7 +10683,8 @@ void Field::RegisterDependentCode(const Code& code) const {
 }
 
 void Field::DeoptimizeDependentCode() const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(IsOriginal());
   FieldDependentArray a(*this);
   if (FLAG_trace_deoptimization && a.HasCodes()) {
@@ -10596,7 +10722,7 @@ FunctionPtr Field::EnsureInitializerFunction() const {
     UNREACHABLE();
 #else
     SafepointMutexLocker ml(
-        thread->isolate()->group()->initializer_functions_mutex());
+        thread->isolate_group()->initializer_functions_mutex());
     // Double check after grabbing the lock.
     initializer = InitializerFunction();
     if (initializer.IsNull()) {
@@ -10754,7 +10880,7 @@ ObjectPtr Field::EvaluateInitializer() const {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   NoOOBMessageScope no_msg_scope(thread);
-  NoReloadScope no_reload_scope(thread->isolate(), thread);
+  NoReloadScope no_reload_scope(thread);
   const Function& initializer = Function::Handle(EnsureInitializerFunction());
   return DartEntry::InvokeFunction(initializer, Object::empty_array());
 }
@@ -13201,7 +13327,7 @@ void Library::AllocatePrivateKey() const {
     // When reloading, we need to make sure we use the original private key
     // if this library previously existed.
     ProgramReloadContext* program_reload_context =
-        thread->isolate()->program_reload_context();
+        isolate_group->program_reload_context();
     const String& original_key =
         String::Handle(program_reload_context->FindLibraryPrivateKey(*this));
     if (!original_key.IsNull()) {
@@ -13444,7 +13570,6 @@ LibraryPrefixPtr LibraryPrefix::New(const String& name,
   result.set_num_imports(0);
   result.set_importer(importer);
   result.StoreNonPointer(&result.untag()->is_deferred_load_, deferred_load);
-  result.StoreNonPointer(&result.untag()->is_loaded_, !deferred_load);
   result.set_imports(Array::Handle(Array::New(kInitialSize)));
   result.AddImport(import);
   return result.ptr();
@@ -16024,26 +16149,14 @@ ICDataPtr ICData::Clone(const ICData& from) {
 #endif
 
 const char* WeakSerializationReference::ToCString() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Symbols::OptimizedOut().ToCString();
-#else
   return Object::Handle(target()).ToCString();
-#endif
 }
 
-#if defined(DART_PRECOMPILER)
-bool WeakSerializationReference::CanWrap(const Object& object) {
-  // Currently we do not wrap the null object (which cannot be dropped from
-  // snapshots), non-heap objects, and WSRs (as there is no point in deeply
-  // nesting them). We also only wrap objects in the precompiler.
-  return FLAG_precompiled_mode && !object.IsNull() &&
-         object.ptr()->IsHeapObject() && !object.IsWeakSerializationReference();
-}
-
-ObjectPtr WeakSerializationReference::Wrap(Zone* zone, const Object& target) {
-  if (!CanWrap(target)) return target.ptr();
+WeakSerializationReferencePtr WeakSerializationReference::New(
+    const Object& target,
+    const Object& replacement) {
   ASSERT(Object::weak_serialization_reference_class() != Class::null());
-  WeakSerializationReference& result = WeakSerializationReference::Handle(zone);
+  WeakSerializationReference& result = WeakSerializationReference::Handle();
   {
     ObjectPtr raw = Object::Allocate(WeakSerializationReference::kClassId,
                                      WeakSerializationReference::InstanceSize(),
@@ -16052,11 +16165,12 @@ ObjectPtr WeakSerializationReference::Wrap(Zone* zone, const Object& target) {
 
     result ^= raw;
     result.untag()->set_target(target.ptr());
+    result.untag()->set_replacement(replacement.ptr());
   }
   return result.ptr();
 }
-#endif
 
+#if defined(INCLUDE_IL_PRINTER)
 Code::Comments& Code::Comments::New(intptr_t count) {
   Comments* comments;
   if (count < 0 || count > (kIntptrMax / kNumberOfEntries)) {
@@ -16091,15 +16205,18 @@ void Code::Comments::SetPCOffsetAt(intptr_t idx, intptr_t pc) {
                   Smi::Handle(Smi::New(pc)));
 }
 
-StringPtr Code::Comments::CommentAt(intptr_t idx) const {
-  return String::RawCast(comments_.At(idx * kNumberOfEntries + kCommentEntry));
+const char* Code::Comments::CommentAt(intptr_t idx) const {
+  string_ ^= comments_.At(idx * kNumberOfEntries + kCommentEntry);
+  return string_.ToCString();
 }
 
 void Code::Comments::SetCommentAt(intptr_t idx, const String& comment) {
   comments_.SetAt(idx * kNumberOfEntries + kCommentEntry, comment);
 }
 
-Code::Comments::Comments(const Array& comments) : comments_(comments) {}
+Code::Comments::Comments(const Array& comments)
+    : comments_(comments), string_(String::Handle()) {}
+#endif  // defined(INCLUDE_IL_PRINTER)
 
 const char* Code::EntryKindToCString(EntryKind kind) {
   switch (kind) {
@@ -16169,6 +16286,10 @@ void Code::set_is_force_optimized(bool value) const {
 
 void Code::set_is_alive(bool value) const {
   set_state_bits(AliveBit::update(value, untag()->state_bits_));
+}
+
+void Code::set_is_discarded(bool value) const {
+  set_state_bits(DiscardedBit::update(value, untag()->state_bits_));
 }
 
 void Code::set_compressed_stackmaps(const CompressedStackMaps& maps) const {
@@ -16241,7 +16362,17 @@ bool Code::HasBreakpoint() const {
 #if defined(PRODUCT)
   return false;
 #else
-  return Isolate::Current()->debugger()->HasBreakpoint(*this);
+  // TODO(dartbug.com/36097): We might need to adjust this once we start adding
+  // debugging support to --enable-isolate-groups.
+  auto isolate_group = Thread::Current()->isolate_group();
+
+  bool has_breakpoint = false;
+  isolate_group->ForEachIsolate([&](Isolate* isolate) {
+    if (isolate->debugger()->HasBreakpoint(*this)) {
+      has_breakpoint = true;
+    }
+  });
+  return has_breakpoint;
 #endif
 }
 
@@ -16368,23 +16499,67 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 }
 
-const Code::Comments& Code::comments() const {
+#if defined(INCLUDE_IL_PRINTER)
 #if defined(PRODUCT)
-  Comments* comments = new Code::Comments(Array::Handle());
-#else
-  Comments* comments = new Code::Comments(Array::Handle(untag()->comments()));
+// In PRODUCT builds we don't have space in Code object to store code comments
+// so we move them into malloced heap (and leak them). This functionality
+// is only indended to be used in AOT compiler so leaking is fine.
+class MallocCodeComments final : public CodeComments {
+ public:
+  explicit MallocCodeComments(const CodeComments& comments)
+      : length_(comments.Length()), comments_(new Comment[comments.Length()]) {
+    for (intptr_t i = 0; i < length_; i++) {
+      comments_[i].pc_offset = comments.PCOffsetAt(i);
+      comments_[i].comment =
+          Utils::CreateCStringUniquePtr(strdup(comments.CommentAt(i)));
+    }
+  }
+
+  intptr_t Length() const override { return length_; }
+
+  intptr_t PCOffsetAt(intptr_t i) const override {
+    return comments_[i].pc_offset;
+  }
+
+  const char* CommentAt(intptr_t i) const override {
+    return comments_[i].comment.get();
+  }
+
+ private:
+  struct Comment {
+    intptr_t pc_offset;
+    Utils::CStringUniquePtr comment{nullptr, std::free};
+  };
+
+  intptr_t length_;
+  std::unique_ptr<Comment[]> comments_;
+};
 #endif
-  return *comments;
+
+const CodeComments& Code::comments() const {
+#if defined(PRODUCT)
+  auto comments =
+      static_cast<CodeComments*>(Thread::Current()->heap()->GetPeer(ptr()));
+  return (comments != nullptr) ? *comments : Code::Comments::New(0);
+#else
+  return *new Code::Comments(Array::Handle(untag()->comments()));
+#endif
 }
 
-void Code::set_comments(const Code::Comments& comments) const {
-#if defined(PRODUCT)
-  UNREACHABLE();
+void Code::set_comments(const CodeComments& comments) const {
+#if !defined(PRODUCT)
+  auto& wrapper = static_cast<const Code::Comments&>(comments);
+  ASSERT(wrapper.comments_.IsOld());
+  untag()->set_comments(wrapper.comments_.ptr());
 #else
-  ASSERT(comments.comments_.IsOld());
-  untag()->set_comments(comments.comments_.ptr());
+  if (FLAG_code_comments && comments.Length() > 0) {
+    Thread::Current()->heap()->SetPeer(ptr(), new MallocCodeComments(comments));
+  } else {
+    Thread::Current()->heap()->SetPeer(ptr(), nullptr);
+  }
 #endif
 }
+#endif  // defined(INCLUDE_IL_PRINTER)
 
 void Code::SetPrologueOffset(intptr_t offset) const {
 #if defined(PRODUCT)
@@ -16436,7 +16611,9 @@ CodePtr Code::New(intptr_t pointer_offsets_length) {
     result.set_is_optimized(false);
     result.set_is_force_optimized(false);
     result.set_is_alive(false);
-    NOT_IN_PRODUCT(result.set_comments(Comments::New(0)));
+#if defined(INCLUDE_IL_PRINTER)
+    result.set_comments(Comments::New(0));
+#endif
     NOT_IN_PRODUCT(result.set_compile_timestamp(0));
     result.set_pc_descriptors(Object::empty_descriptors());
     result.set_compressed_stackmaps(Object::empty_compressed_stackmaps());
@@ -16603,9 +16780,12 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
     CPU::FlushICache(instrs.PayloadStart(), instrs.Size());
   }
 
+#if defined(INCLUDE_IL_PRINTER)
+  code.set_comments(CreateCommentsFrom(assembler));
+#endif  // defined(INCLUDE_IL_PRINTER)
+
 #ifndef PRODUCT
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
-  code.set_comments(CreateCommentsFrom(assembler));
   if (assembler->prologue_offset() >= 0) {
     code.SetPrologueOffset(assembler->prologue_offset());
   } else {
@@ -16656,17 +16836,17 @@ void Code::NotifyCodeObservers(const char* name,
   ASSERT(!Thread::Current()->IsAtSafepoint());
   if (CodeObservers::AreActive()) {
     const auto& instrs = Instructions::Handle(code.instructions());
-    CodeCommentsWrapper comments_wrapper(code.comments());
     CodeObservers::NotifyAll(name, instrs.PayloadStart(),
                              code.GetPrologueOffset(), instrs.Size(), optimized,
-                             &comments_wrapper);
+                             &code.comments());
   }
 #endif
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 bool Code::SlowFindRawCodeVisitor::FindObject(ObjectPtr raw_obj) const {
-  return UntaggedCode::ContainsPC(raw_obj, pc_);
+  return UntaggedCode::ContainsPC(raw_obj, pc_) &&
+         !Code::IsUnknownDartCode(Code::RawCast(raw_obj));
 }
 
 CodePtr Code::LookupCodeInIsolateGroup(IsolateGroup* isolate_group, uword pc) {
@@ -16819,6 +16999,10 @@ bool Code::IsTypeTestStubCode() const {
 
 bool Code::IsFunctionCode() const {
   return OwnerClassId() == kFunctionCid;
+}
+
+bool Code::IsUnknownDartCode(CodePtr code) {
+  return code == StubCode::UnknownDartCode().ptr();
 }
 
 void Code::DisableDartCode() const {
@@ -17916,8 +18100,6 @@ StringPtr LanguageError::FormatMessage() const {
 }
 
 const char* LanguageError::ToErrorCString() const {
-  Thread* thread = Thread::Current();
-  NoReloadScope no_reload_scope(thread->isolate(), thread);
   const String& msg_str = String::Handle(FormatMessage());
   return msg_str.ToCString();
 }
@@ -17966,9 +18148,8 @@ void UnhandledException::set_stacktrace(const Instance& stacktrace) const {
 
 const char* UnhandledException::ToErrorCString() const {
   Thread* thread = Thread::Current();
-  auto isolate = thread->isolate();
   auto isolate_group = thread->isolate_group();
-  NoReloadScope no_reload_scope(isolate, thread);
+  NoReloadScope no_reload_scope(thread);
   HANDLESCOPE(thread);
   Object& strtmp = Object::Handle();
   const char* exc_str;
@@ -18324,6 +18505,14 @@ class CheckForPointers : public ObjectPointerVisitor {
     }
   }
 
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) {
+    if (first != last) {
+      has_pointers_ = true;
+    }
+  }
+
  private:
   bool has_pointers_;
 
@@ -18341,7 +18530,7 @@ void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
     const intptr_t instance_size = SizeFromClass();
     ASSERT(instance_size != 0);
     const auto unboxed_fields_bitmap =
-        thread->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
+        thread->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
             class_id);
     for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
          offset += kWordSize) {
@@ -20212,9 +20401,10 @@ AbstractTypePtr Type::Canonicalize(Thread* thread, TrailPtr trail) const {
       }
     }
     ASSERT(this->Equals(type));
-    ASSERT(type.IsCanonical());
     ASSERT(type.IsOld());
-    return type.ptr();
+    if (type.IsCanonical()) {
+      return type.ptr();
+    }
   }
 
   Type& type = Type::Handle(zone);
@@ -20346,6 +20536,10 @@ intptr_t Type::ComputeHash() const {
     // Only include hashes of type arguments corresponding to type parameters.
     // This prevents obtaining different hashes depending on the location of
     // TypeRefs in the super class type argument vector.
+    // Note that TypeRefs can also appear as type arguments corresponding to
+    // type parameters, typically after an instantiation at runtime.
+    // These are dealt with in TypeArguments::HashForRange, which is also called
+    // to compute the hash of a full standalone TypeArguments.
     const TypeArguments& type_args = TypeArguments::Handle(arguments());
     const Class& cls = Class::Handle(type_class());
     const intptr_t num_type_params = cls.NumTypeParameters();
@@ -20923,12 +21117,12 @@ bool TypeParameter::IsEquivalent(const Instance& other,
     return false;
   }
   const TypeParameter& other_type_param = TypeParameter::Cast(other);
+  ASSERT(IsFinalized() && other_type_param.IsFinalized());
   // Compare index, name, bound, default argument, and flags.
   if (IsFunctionTypeParameter()) {
     if (!other_type_param.IsFunctionTypeParameter()) {
       return false;
     }
-    ASSERT(IsFinalized() && other_type_param.IsFinalized());
     if (kind == TypeEquality::kInSubtypeTest) {
       // To be equivalent, the function type parameters should be declared
       // at the same position in the generic function. Their index therefore
@@ -20995,7 +21189,6 @@ bool TypeParameter::IsEquivalent(const Instance& other,
         return false;
       }
     } else {
-      ASSERT(IsFinalized() && other_type_param.IsFinalized());
       if (index() != other_type_param.index()) {
         return false;
       }
@@ -21674,6 +21867,9 @@ IntegerPtr Integer::ShiftOp(Token::Kind kind,
       return Integer::New(Utils::ShiftLeftWithTruncation(a, b), space);
     case Token::kSHR:
       return Integer::New(a >> Utils::Minimum<int64_t>(b, Mint::kBits), space);
+    case Token::kUSHR:
+      return Integer::New(
+          (b >= kBitsPerInt64) ? 0 : static_cast<uint64_t>(a) >> b, space);
     default:
       UNIMPLEMENTED();
       return Integer::null();
@@ -24553,15 +24749,17 @@ void StackTrace::SetCodeAtFrame(intptr_t frame_index,
   code_array.SetAt(frame_index, code);
 }
 
-SmiPtr StackTrace::PcOffsetAtFrame(intptr_t frame_index) const {
-  const Array& pc_offset_array = Array::Handle(untag()->pc_offset_array());
-  return static_cast<SmiPtr>(pc_offset_array.At(frame_index));
+uword StackTrace::PcOffsetAtFrame(intptr_t frame_index) const {
+  const TypedData& pc_offset_array =
+      TypedData::Handle(untag()->pc_offset_array());
+  return pc_offset_array.GetUintPtr(frame_index * kWordSize);
 }
 
 void StackTrace::SetPcOffsetAtFrame(intptr_t frame_index,
-                                    const Smi& pc_offset) const {
-  const Array& pc_offset_array = Array::Handle(untag()->pc_offset_array());
-  pc_offset_array.SetAt(frame_index, pc_offset);
+                                    uword pc_offset) const {
+  const TypedData& pc_offset_array =
+      TypedData::Handle(untag()->pc_offset_array());
+  pc_offset_array.SetUintPtr(frame_index * kWordSize, pc_offset);
 }
 
 void StackTrace::set_async_link(const StackTrace& async_link) const {
@@ -24572,7 +24770,7 @@ void StackTrace::set_code_array(const Array& code_array) const {
   untag()->set_code_array(code_array.ptr());
 }
 
-void StackTrace::set_pc_offset_array(const Array& pc_offset_array) const {
+void StackTrace::set_pc_offset_array(const TypedData& pc_offset_array) const {
   untag()->set_pc_offset_array(pc_offset_array.ptr());
 }
 
@@ -24585,7 +24783,7 @@ bool StackTrace::expand_inlined() const {
 }
 
 StackTracePtr StackTrace::New(const Array& code_array,
-                              const Array& pc_offset_array,
+                              const TypedData& pc_offset_array,
                               Heap::Space space) {
   StackTrace& result = StackTrace::Handle();
   {
@@ -24602,7 +24800,7 @@ StackTracePtr StackTrace::New(const Array& code_array,
 }
 
 StackTracePtr StackTrace::New(const Array& code_array,
-                              const Array& pc_offset_array,
+                              const TypedData& pc_offset_array,
                               const StackTrace& async_link,
                               bool skip_sync_start_in_parent_stack,
                               Heap::Space space) {
@@ -24718,6 +24916,7 @@ const char* StackTrace::ToCString() const {
   auto const T = Thread::Current();
   auto const zone = T->zone();
   auto& stack_trace = StackTrace::Handle(zone, this->ptr());
+  auto& owner = Object::Handle(zone);
   auto& function = Function::Handle(zone);
   auto& code_object = Object::Handle(zone);
   auto& code = Code::Handle(zone);
@@ -24788,9 +24987,8 @@ const char* StackTrace::ToCString() const {
         if ((i < (stack_trace.Length() - 1)) &&
             (stack_trace.CodeAtFrame(i + 1) != Code::null())) {
           buffer.AddString("...\n...\n");
-          ASSERT(stack_trace.PcOffsetAtFrame(i) != Smi::null());
           // To account for gap frames.
-          frame_index += Smi::Value(stack_trace.PcOffsetAtFrame(i));
+          frame_index += stack_trace.PcOffsetAtFrame(i);
         }
         continue;
       }
@@ -24803,11 +25001,16 @@ const char* StackTrace::ToCString() const {
         continue;
       }
 
-      intptr_t pc_offset = Smi::Value(stack_trace.PcOffsetAtFrame(i));
+      const uword pc_offset = stack_trace.PcOffsetAtFrame(i);
       ASSERT(code_object.IsCode());
       code ^= code_object.ptr();
       ASSERT(code.IsFunctionCode());
-      function = code.function();
+      owner = code.owner();
+      if (owner.IsFunction()) {
+        function ^= owner.ptr();
+      } else {
+        function = Function::null();
+      }
       const uword pc = code.PayloadStart() + pc_offset;
 
       // If the function is not to be shown, skip.
@@ -24893,6 +25096,7 @@ static void DwarfStackTracesHandler(bool value) {
   // debugging options like the observatory available.
   if (value) {
     FLAG_retain_function_objects = false;
+    FLAG_retain_code_objects = false;
   }
 #endif
 }

@@ -16,7 +16,7 @@
 /*prod.class: global#double:*/
 /*spec.class: global#double:implicit=[double]*/
 
-/*class: global#JSDouble:*/
+/*class: global#JSNumNotInt:*/
 
 main() {
   var c = new Class<double, int>();

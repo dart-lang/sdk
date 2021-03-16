@@ -14,6 +14,9 @@ class RemoveInterpolationBraces extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_INTERPOLATION_BRACES;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_INTERPOLATION_BRACES_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is InterpolationExpression) {

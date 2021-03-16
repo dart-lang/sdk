@@ -5,7 +5,7 @@
 import 'package:analyzer/src/summary2/reference.dart';
 
 class Scope {
-  final Scope parent;
+  final Scope? parent;
   final Map<String, Reference> map;
 
   Scope(this.parent, this.map);
@@ -20,11 +20,10 @@ class Scope {
     map.forEach(f);
   }
 
-  Reference lookup(String name) {
+  Reference? lookup(String name) {
     var reference = map[name];
     if (reference != null) return reference;
 
-    if (parent == null) return null;
-    return parent.lookup(name);
+    return parent?.lookup(name);
   }
 }

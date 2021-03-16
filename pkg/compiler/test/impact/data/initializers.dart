@@ -128,7 +128,13 @@ class ClassFieldInitializer1 {
 
 /*member: testFieldInitializer1:
  static=[ClassFieldInitializer1.(1)],
- type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]
+ type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]
 */
 testFieldInitializer1() => new ClassFieldInitializer1(42);
 
@@ -142,7 +148,13 @@ class ClassFieldInitializer2 {
 
 /*member: testFieldInitializer2:
  static=[ClassFieldInitializer2.(1)],
- type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]
+ type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]
 */
 testFieldInitializer2() => new ClassFieldInitializer2(42);
 
@@ -158,8 +170,16 @@ class ClassFieldInitializer3 {
 }
 
 /*member: testFieldInitializer3:
- static=[ClassFieldInitializer3.a(0),ClassFieldInitializer3.b(1)],
- type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]
+ static=[
+  ClassFieldInitializer3.a(0),
+  ClassFieldInitializer3.b(1)],
+ type=[
+  inst:JSInt,
+  inst:JSNumNotInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]
 */
 testFieldInitializer3() {
   new ClassFieldInitializer3.a();
@@ -344,8 +364,8 @@ class ClassGeneric<T> {
   ClassGeneric.(1),
   checkTypeBound(4)],
  type=[
-  inst:JSDouble,
   inst:JSInt,
+  inst:JSNumNotInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,

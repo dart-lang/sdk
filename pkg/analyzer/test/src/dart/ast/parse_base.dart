@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -49,7 +48,7 @@ class ParseBase with ResourceProviderMixin {
     return ParseResult(
       path,
       content,
-      unit.lineInfo,
+      unit.lineInfo!,
       unit,
       errorListener.errors,
     );

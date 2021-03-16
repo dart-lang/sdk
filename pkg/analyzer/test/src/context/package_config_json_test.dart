@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/context/package_config_json.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -86,18 +85,20 @@ class PackageConfigJsonTest with ResourceProviderMixin {
   "generatorVersion": "2.8.0-edge.28b0f1839726c0743e25a2765c5322a24f6e2afa"
 }
 ''');
-    expect(config.generated.year, 2019);
-    expect(config.generated.month, 12);
-    expect(config.generated.day, 10);
-    expect(config.generated.hour, 18);
-    expect(config.generated.minute, 29);
-    expect(config.generated.second, 14);
+    var generated = config.generated!;
+    expect(generated.year, 2019);
+    expect(generated.month, 12);
+    expect(generated.day, 10);
+    expect(generated.hour, 18);
+    expect(generated.minute, 29);
+    expect(generated.second, 14);
 
     expect(config.generator, 'pub');
 
-    expect(config.generatorVersion.major, 2);
-    expect(config.generatorVersion.minor, 8);
-    expect(config.generatorVersion.patch, 0);
+    var generatorVersion = config.generatorVersion!;
+    expect(generatorVersion.major, 2);
+    expect(generatorVersion.minor, 8);
+    expect(generatorVersion.patch, 0);
   }
 
   test_packages() {
@@ -320,12 +321,12 @@ class _ExpectedPackage {
   final String name;
   final String rootUriPath;
   final String packageUriPath;
-  final LanguageVersion languageVersion;
+  final LanguageVersion? languageVersion;
 
   _ExpectedPackage({
-    @required this.name,
-    @required this.rootUriPath,
-    @required this.packageUriPath,
-    @required this.languageVersion,
+    required this.name,
+    required this.rootUriPath,
+    required this.packageUriPath,
+    required this.languageVersion,
   });
 }

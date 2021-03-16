@@ -6,26 +6,22 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for resolving [VariableDeclaration]s.
 class VariableDeclarationResolver {
   final ResolverVisitor _resolver;
-  final FlowAnalysisHelper _flowAnalysis;
   final bool _strictInference;
 
   VariableDeclarationResolver({
-    @required ResolverVisitor resolver,
-    @required FlowAnalysisHelper flowAnalysis,
-    @required bool strictInference,
-  })  : _resolver = resolver,
-        _flowAnalysis = flowAnalysis,
+    required ResolverVisitor resolver,
+    required bool strictInference,
+  })   : _resolver = resolver,
         _strictInference = strictInference;
 
   void resolve(VariableDeclarationImpl node) {
@@ -44,28 +40,28 @@ class VariableDeclarationResolver {
       return;
     }
 
-    var element = node.declaredElement;
+    var element = node.declaredElement!;
     var isTopLevel =
         element is FieldElement || element is TopLevelVariableElement;
 
     InferenceContext.setTypeFromNode(initializer, node);
     if (isTopLevel) {
-      _flowAnalysis?.topLevelDeclaration_enter(node, null, null);
+      _resolver.flowAnalysis?.topLevelDeclaration_enter(node, null, null);
     } else if (element.isLate) {
-      _flowAnalysis?.flow?.lateInitializer_begin(node);
+      _resolver.flowAnalysis?.flow?.lateInitializer_begin(node);
     }
 
     initializer.accept(_resolver);
     initializer = node.initializer;
 
     if (parent.type == null) {
-      _setInferredType(element, initializer.staticType);
+      _setInferredType(element, initializer!.typeOrThrow);
     }
 
     if (isTopLevel) {
-      _flowAnalysis?.topLevelDeclaration_exit();
+      _resolver.flowAnalysis?.topLevelDeclaration_exit();
     } else if (element.isLate) {
-      _flowAnalysis?.flow?.lateInitializer_end();
+      _resolver.flowAnalysis?.flow?.lateInitializer_end();
     }
 
     // Note: in addition to cloning the initializers for const variables, we
@@ -74,7 +70,7 @@ class VariableDeclarationResolver {
     // evaluate the const constructor).
     if (element is ConstVariableElement) {
       (element as ConstVariableElement).constantInitializer =
-          ConstantAstCloner().cloneNode(initializer);
+          ConstantAstCloner().cloneNullableNode(initializer);
     }
   }
 

@@ -24,7 +24,7 @@ class C extends core::Object {
     return new self::C::gen();
   }
   static factory redirect({core::int i = #C1}) → self::C
-    let<BottomType> #redirecting_factory = self::C::gen in invalid-expression;
+    let Never #redirecting_factory = self::C::gen in invalid-expression;
 }
 class D extends core::Object {
   synthetic constructor •() → self::D

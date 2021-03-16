@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for resolving [FunctionExpressionInvocation]s.
 class FunctionExpressionInvocationResolver {
@@ -23,8 +22,8 @@ class FunctionExpressionInvocationResolver {
   final InvocationInferenceHelper _inferenceHelper;
 
   FunctionExpressionInvocationResolver({
-    @required ResolverVisitor resolver,
-  })  : _resolver = resolver,
+    required ResolverVisitor resolver,
+  })   : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper;
 
@@ -38,22 +37,26 @@ class FunctionExpressionInvocationResolver {
   void resolve(FunctionExpressionInvocationImpl node) {
     var function = node.function;
 
-    if (function is ExtensionOverride) {
+    if (function is ExtensionOverrideImpl) {
       _resolveReceiverExtensionOverride(node, function);
+      return;
+    }
+
+    var receiverType = function.staticType;
+    if (receiverType is InterfaceType) {
+      // Note: in this circumstance it's not necessary to call
+      // `_nullableDereferenceVerifier.expression` because
+      // `_resolveReceiverInterfaceType` calls `TypePropertyResolver.resolve`,
+      // which does the necessary null checking.
+      _resolveReceiverInterfaceType(node, function, receiverType);
       return;
     }
 
     _nullableDereferenceVerifier.expression(function,
         errorCode: CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE);
 
-    var receiverType = function.staticType;
     if (receiverType is FunctionType) {
       _resolve(node, receiverType);
-      return;
-    }
-
-    if (receiverType is InterfaceType) {
-      _resolveReceiverInterfaceType(node, function, receiverType);
       return;
     }
 
@@ -82,7 +85,7 @@ class FunctionExpressionInvocationResolver {
   }
 
   void _resolveReceiverExtensionOverride(
-    FunctionExpressionInvocation node,
+    FunctionExpressionInvocationImpl node,
     ExtensionOverride function,
   ) {
     var result = _extensionResolver.getOverrideMember(
@@ -126,7 +129,7 @@ class FunctionExpressionInvocationResolver {
     );
     var callElement = result.getter;
 
-    if (callElement?.kind != ElementKind.METHOD) {
+    if (callElement == null || callElement.kind != ElementKind.METHOD) {
       _unresolved(node, DynamicTypeImpl.instance);
       return;
     }
@@ -150,7 +153,7 @@ class FunctionExpressionInvocationResolver {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
       node.typeArgumentTypes = typeArguments.arguments
-          .map((typeArgument) => typeArgument.type)
+          .map((typeArgument) => typeArgument.type!)
           .toList();
     } else {
       node.typeArgumentTypes = const <DartType>[];

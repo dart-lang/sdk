@@ -67,6 +67,10 @@ class ConstructorReferenceBuilder {
       }
     } else {
       declaration = scope.lookup(name, charOffset, fileUri);
+      if (declaration is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = declaration;
+        declaration = aliasBuilder.unaliasDeclaration(typeArguments);
+      }
     }
     if (declaration is ClassBuilder) {
       target = declaration.findConstructorOrFactory(

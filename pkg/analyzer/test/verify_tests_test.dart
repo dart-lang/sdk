@@ -16,7 +16,7 @@ main() {
 }
 
 class _VerifyTests extends VerifyTests {
-  _VerifyTests(String testDirPath, {List<String> excludedPaths})
+  _VerifyTests(String testDirPath, {List<String>? excludedPaths})
       : super(testDirPath, excludedPaths: excludedPaths);
 
   @override

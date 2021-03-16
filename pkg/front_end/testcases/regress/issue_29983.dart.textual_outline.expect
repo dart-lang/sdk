@@ -1,3 +1,4 @@
+// @dart = 2.9
 f() sync* {}
 g() sync* => dummy;
 h() sync* {}

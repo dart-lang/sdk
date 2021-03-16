@@ -5,7 +5,6 @@
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -65,7 +64,7 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
     newFile('/test/outer/lib/outer.dart');
 
     var innerFolder = newFolder('/test/outer/inner');
-    newOptionsFile('/test/outer/inner');
+    newAnalysisOptionsYamlFile('/test/outer/inner');
     newFile('/test/outer/inner/inner.dart');
 
     var collection = _newCollection(includedPaths: [outerFolder.path]);
@@ -108,7 +107,7 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
   }
 
   AnalysisContextCollectionImpl _newCollection(
-      {@required List<String> includedPaths}) {
+      {required List<String> includedPaths}) {
     return AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       includedPaths: includedPaths,

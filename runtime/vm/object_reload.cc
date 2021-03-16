@@ -219,13 +219,7 @@ void Class::CopyStaticFieldValues(ProgramReloadContext* reload_context,
           if (update_values && !field.is_const()) {
             // Make new field point to the old field value so that both
             // old and new code see and update same value.
-            //
-            // TODO(https://dartbug.com/36097): Once we look into enabling
-            // hot-reload with --enable-isolate-groups we have to do this
-            // for all isolates.
-            reload_context->isolate()->group()->initial_field_table()->Free(
-                field.field_id());
-            reload_context->isolate()->field_table()->Free(field.field_id());
+            reload_context->isolate_group()->FreeStaticField(field);
             field.set_field_id_unsafe(old_field.field_id());
           }
           reload_context->AddStaticFieldMapping(old_field, field);
@@ -852,12 +846,9 @@ void Library::CheckReload(const Library& replacement,
       original_name = original_prefix.name();
       if (!name.Equals(original_name)) continue;
 
-      if (original_prefix.is_loaded()) {
-        prefix.set_is_loaded(true);
-      }
-
-      // The old prefix may be captured in the message queue for a pending load
-      // completion. This pending load should carry to the new prefix.
+      // The replacement of the old prefix with the new prefix
+      // in Isolate::loaded_prefixes_set_ implicitly carried
+      // the loaded state over to the new prefix.
       context->AddBecomeMapping(original_prefix, prefix);
     }
   }

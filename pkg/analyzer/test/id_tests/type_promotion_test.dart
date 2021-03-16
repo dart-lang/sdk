@@ -8,10 +8,8 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
@@ -20,14 +18,12 @@ main(List<String> args) async {
   Directory dataDir = Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/flow_analysis/type_promotion/'
           'data'));
-  await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-    return runTests<DartType>(dataDir,
-        args: args,
-        createUriForFileName: createUriForFileName,
-        onFailure: onFailure,
-        runTest: runTestFor(
-            const _TypePromotionDataComputer(), [analyzerNnbdConfig]));
-  });
+  return runTests<DartType>(dataDir,
+      args: args,
+      createUriForFileName: createUriForFileName,
+      onFailure: onFailure,
+      runTest:
+          runTestFor(const _TypePromotionDataComputer(), [analyzerNnbdConfig]));
 }
 
 class _TypePromotionDataComputer extends DataComputer<DartType> {
@@ -40,7 +36,7 @@ class _TypePromotionDataComputer extends DataComputer<DartType> {
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<DartType>> actualMap) {
-    _TypePromotionDataExtractor(unit.declaredElement.source.uri, actualMap)
+    _TypePromotionDataExtractor(unit.declaredElement!.source.uri, actualMap)
         .run(unit);
   }
 }
@@ -50,12 +46,12 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
       : super(uri, actualMap);
 
   @override
-  DartType computeNodeValue(Id id, AstNode node) {
+  DartType? computeNodeValue(Id id, AstNode node) {
     if (node is SimpleIdentifier && node.inGetterContext()) {
       var element = _readElement(node);
       if (element is LocalVariableElement || element is ParameterElement) {
-        var promotedType = _readType(node) as TypeImpl;
-        var declaredType = (element as VariableElement).type as TypeImpl;
+        var promotedType = _readType(node);
+        var declaredType = (element as VariableElement).type;
         var isPromoted = promotedType != declaredType;
         if (isPromoted) {
           return promotedType;
@@ -65,7 +61,7 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
     return null;
   }
 
-  static Element _readElement(SimpleIdentifier node) {
+  static Element? _readElement(SimpleIdentifier node) {
     var parent = node.parent;
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
       return parent.readElement;
@@ -78,7 +74,7 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
     }
   }
 
-  static DartType _readType(SimpleIdentifier node) {
+  static DartType? _readType(SimpleIdentifier node) {
     var parent = node.parent;
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
       return parent.readType;
@@ -96,12 +92,12 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
   const _TypePromotionDataInterpreter();
 
   @override
-  String getText(DartType actualData, [String indentation]) {
+  String getText(DartType actualData, [String? indentation]) {
     return actualData.getDisplayString(withNullability: true);
   }
 
   @override
-  String isAsExpected(DartType actualData, String expectedData) {
+  String? isAsExpected(DartType actualData, String? expectedData) {
     var actualDataText = getText(actualData);
     if (actualDataText == expectedData) {
       return null;
@@ -111,5 +107,5 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
   }
 
   @override
-  bool isEmpty(DartType actualData) => actualData == null;
+  bool isEmpty(DartType? actualData) => actualData == null;
 }

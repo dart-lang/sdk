@@ -65,6 +65,21 @@ class ReplaceConditionalWithIfElse extends CorrectionProducer {
         // Type v = Conditional;
         if (inVariable) {
           var variable = conditional.parent as VariableDeclaration;
+          var variableList = variable.parent as VariableDeclarationList;
+          if (variableList.type == null) {
+            var type = variable.declaredElement.type;
+            var keyword = variableList.keyword;
+            if (keyword != null && keyword.keyword == Keyword.VAR) {
+              builder.addReplacement(range.token(keyword), (builder) {
+                builder.writeType(type);
+              });
+            } else {
+              builder.addInsertion(variable.name.offset, (builder) {
+                builder.writeType(type);
+                builder.write(' ');
+              });
+            }
+          }
           builder.addDeletion(range.endEnd(variable.name, conditional));
           var conditionSrc = utils.getNodeText(conditional.condition);
           var thenSrc = utils.getNodeText(conditional.thenExpression);

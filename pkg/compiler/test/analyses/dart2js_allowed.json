@@ -222,7 +222,6 @@
     "Dynamic access of 'type'.": 4
   },
   "pkg/compiler/lib/src/inferrer/locals_handler.dart": {
-    "Dynamic access of 'isEmpty'.": 1,
     "Dynamic access of 'positional'.": 2,
     "Dynamic access of 'length'.": 2,
     "Dynamic access of 'named'.": 2,

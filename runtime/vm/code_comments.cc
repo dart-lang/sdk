@@ -1,14 +1,19 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-#if !defined(DART_PRECOMPILED_RUNTIME) &&                                      \
-    (!defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER))
+#include "vm/globals.h"  // For INCLUDE_IL_PRINTER
+#if defined(INCLUDE_IL_PRINTER)
 
 #include "vm/code_comments.h"
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/assembler/assembler.h"
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/object.h"
 
 namespace dart {
 
-const Code::Comments& CreateCommentsFrom(compiler::Assembler* assembler) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+const CodeComments& CreateCommentsFrom(compiler::Assembler* assembler) {
   const auto& comments = assembler->comments();
   Code::Comments& result = Code::Comments::New(comments.length());
 
@@ -19,7 +24,7 @@ const Code::Comments& CreateCommentsFrom(compiler::Assembler* assembler) {
 
   return result;
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) &&                               \
-        // (!defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER))
+#endif  // defined(INCLUDE_IL_PRINTER)

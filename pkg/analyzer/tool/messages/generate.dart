@@ -1,3 +1,4 @@
+// @dart = 2.9
 /// This file contains code to generate scanner and parser message
 /// based on the information in pkg/front_end/messages.yaml.
 ///
@@ -198,7 +199,7 @@ part of 'syntactic_errors.dart';
       }
       throw shouldRunFastaGenerateMessagesFirst;
     }
-    out.writeln('final fastaAnalyzerErrorCodes = <ErrorCode>[null,');
+    out.writeln('final fastaAnalyzerErrorCodes = <ErrorCode?>[null,');
     for (var entry in sorted) {
       List<String> name = nameForEntry(entry);
       out.writeln('_${name[1]},');

@@ -11,7 +11,7 @@ class JavaFile {
   static path.Context pathContext = path.context;
   static final String separator = Platform.pathSeparator;
   static final int separatorChar = Platform.pathSeparator.codeUnitAt(0);
-  String _path;
+  late final String _path;
   JavaFile(String path) {
     _path = path;
   }
@@ -53,14 +53,14 @@ class JavaFile {
   }
 
   String getName() => path.context.basename(_path);
-  String getParent() {
+  String? getParent() {
     var result = path.context.dirname(_path);
     // "." or  "/" or  "C:\"
     if (result.length < 4) return null;
     return result;
   }
 
-  JavaFile getParentFile() {
+  JavaFile? getParentFile() {
     var parent = getParent();
     if (parent == null) return null;
     return JavaFile(parent);

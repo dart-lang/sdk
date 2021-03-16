@@ -2,56 +2,30 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-Language/Classes/Constructors/Factories/redirecting_constructor_call_t03: Skip # Type aliases are not fully implemented
-Language/Classes/Constructors/Factories/redirecting_constructor_t04: Skip # Type aliases are not fully implemented
-Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t07: Skip # Type aliases are not fully implemented
 Language/Expressions/Assignment/Compound_Assignment/null_aware_compound_assignment_static_t12: Skip # Triple shift is not implemented yet
 Language/Expressions/Assignment/Compound_Assignment/null_aware_compound_assignment_t12: Skip # Triple shift is not implemented yet
 Language/Expressions/Assignment/Compound_Assignment/variable_assignment_t12: Skip # Triple shift is not implemented yet
 Language/Expressions/Bitwise_Expressions/syntax_t01: Skip # Triple shift is not implemented yet
 Language/Expressions/Constants/bitwise_operators_t01: Skip # Triple shift is not implemented yet
 Language/Expressions/Equality/syntax_t01: Skip # Triple shift is not implemented yet
-Language/Expressions/Instance_Creation/New/type_t09: Skip # Type aliases are not fully implemented
 Language/Expressions/Lists/syntax_t01: Skip # Triple shift is not implemented yet
 Language/Expressions/Maps/syntax_t01: Skip # Triple shift is not implemented yet
-Language/Generics/Superbounded_types/typedef2_A01_t02: Skip # Non function type aliases are not implemented yet
-Language/Generics/Superbounded_types/typedef2_A01_t03: Skip # Non function type aliases are not implemented yet
-Language/Generics/Superbounded_types/typedef2_A01_t04: Skip # Non function type aliases are not implemented yet
-Language/Generics/parameter_A01_t03: Skip # Type aliases are not fully implemented
-Language/Generics/syntax_t31: Skip # Type aliases are not fully implemented
-Language/Generics/typedef_A01_t10: Skip # Type aliases are not fully implemented
 Language/Reference/Operator_Precedence/precedence_01_assignment_t14: Skip # Triple shift is not implemented yet
 Language/Reference/Operator_Precedence/precedence_12_Shift_t04: Skip # Triple shift is not implemented yet
 Language/Reference/Operator_Precedence/precedence_t05: Skip # Triple shift is not implemented yet
-Language/Statements/Expression_Statements/syntax_t06: Skip # Type aliases are not fully implemented
+Language/Statements/Expression_Statements/syntax_t06: Skip # Triple shift is not implemented for integers yet
 Language/Types/Type_Aliases/built-in_types_t11: Skip # Triple shift is not implemented yet
 LanguageFeatures/Extension-methods/explicit_extension_member_invocation_A15_t09: Skip # Triple shift is not implemented yet
-LanguageFeatures/Instantiate-to-bound/nonfunction_typedef/static/*: Skip # Type aliases are not fully implemented
-LanguageFeatures/Simple-bounds/dynamic/type-aliases/*: Skip # Type aliases are not fully implemented
-LanguageFeatures/Simple-bounds/static/type-aliases/*: Skip # Type aliases are not fully implemented
 LanguageFeatures/Triple-Shift/*: Skip # Triple shift is not implemented yet
 LanguageFeatures/nnbd/local_variable_read_A01_t03: Skip # Triple shift is not implemented yet
 LanguageFeatures/nnbd/local_variable_read_A02_t03: Skip # Triple shift is not implemented yet
 LanguageFeatures/nnbd/local_variable_read_A03_t03: Skip # Triple shift is not implemented yet
-LanguageFeatures/regression/34560_t02/01: Skip # Type aliases are not fully implemented
 LibTest/io/RawDatagramSocket/*: Skip # https://github.com/dart-lang/co19/issues/195
 
 [ $compiler == dart2analyzer ]
 Language/Classes/Instance_Methods/Operators/allowed_names_t01: Skip # Triple shift is not fully implemented
 Language/Classes/Instance_Methods/Operators/arity_1_t19: Skip # Triple shift is not fully implemented (https://github.com/dart-lang/sdk/issues/42353)
 Language/Functions/syntax_t03: Skip # Triple shift is not implemented yet
-LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t02: Skip # Type aliases are not supported by analyzer
-LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t04: Skip # Type aliases are not supported by analyzer
-LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t06: Skip # Type aliases are not supported by analyzer
-LanguageFeatures/nnbd/Least-greatest-closure/nonfunction_typedef/nonfunction_dynamic_t01: Skip # Type aliases are not fully supported by analyzer yet
-LanguageFeatures/nnbd/Least-greatest-closure/nonfunction_typedef/nonfunction_dynamic_t02: Skip # Type aliases are not fully supported by analyzer yet
-LanguageFeatures/nnbd/Least-greatest-closure/nonfunction_typedef/nonfunction_dynamic_t03: Skip # Type aliases are not fully supported by analyzer yet
-LanguageFeatures/nnbd/Least-greatest-closure/nonfunction_typedef/nonfunction_static_t01: Skip # Type aliases are not fully supported by analyzer yet
-LanguageFeatures/nnbd/Least-greatest-closure/nonfunction_typedef/nonfunction_static_t02: Skip # Type aliases are not fully supported by analyzer yet
-LanguageFeatures/nnbd/Least-greatest-closure/nonfunction_typedef/nonfunction_static_t03: Skip # Type aliases are not fully supported by analyzer yet
-
-[ $compiler == fasta ]
-Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t10: Skip # Type aliases are not fully implemented
 
 [ $compiler != fasta ]
 Language/Classes/Abstract_Instance_Members/inherited_t13: Skip # github.com/dart-lang/language/issues/115

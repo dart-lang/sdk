@@ -1,0 +1,69 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "foo_lib.dart" as foo;
+
+import "org-dartlang-testcase:///foo_lib.dart";
+
+static const field core::Set<foo::Foo*>* foo = #C5;
+static method main() → dynamic {}
+
+library;
+import self as foo;
+import "dart:core" as core;
+import "bar_lib.dart" as bar;
+additionalExports = (bar::Bar)
+
+import "org-dartlang-testcase:///bar_lib.dart";
+export "org-dartlang-testcase:///bar_lib.dart";
+
+abstract class Foo extends core::Object /*hasConstConstructor*/  {
+  static final field dynamic _redirecting# = <dynamic>[foo::Foo::bar];
+  const constructor •() → foo::Foo*
+    : super core::Object::•()
+    ;
+  static factory bar() → foo::Foo*
+    let dynamic #redirecting_factory = bar::Bar::• in let dynamic #typeArg0 = null in invalid-expression;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+
+library;
+import self as bar;
+import "dart:core" as core;
+import "foo_lib.dart" as foo;
+
+import "org-dartlang-testcase:///foo_lib.dart";
+
+class Bar<T extends core::Object* = dynamic> extends foo::Foo /*hasConstConstructor*/  {
+  const constructor •() → bar::Bar<bar::Bar::T*>*
+    : super foo::Foo::•()
+    ;
+}
+
+constants  {
+  #C1 = bar::Bar<dynamic> {}
+  #C2 = null
+  #C3 = <dynamic>[#C1, #C2]
+  #C4 = core::_ImmutableMap<foo::Foo*, Null> {_kvPairs:#C3}
+  #C5 = col::_UnmodifiableSet<foo::Foo*> {_map:#C4}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///main.dart:
+- Bar. (from org-dartlang-testcase:///bar_lib.dart:8:9)
+
+org-dartlang-testcase:///foo_lib.dart:
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+
+org-dartlang-testcase:///bar_lib.dart:
+- Foo. (from org-dartlang-testcase:///foo_lib.dart:10:9)

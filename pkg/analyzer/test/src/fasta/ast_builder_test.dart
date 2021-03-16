@@ -25,10 +25,10 @@ class A {
 ''');
     expect(unit, isNotNull);
     expect(unit.declarations, hasLength(1));
-    ClassDeclaration declaration = unit.declarations[0];
+    var declaration = unit.declarations[0] as ClassDeclaration;
     expect(declaration, isNotNull);
     expect(declaration.members, hasLength(1));
-    ConstructorDeclaration member = declaration.members[0];
+    var member = declaration.members[0] as ConstructorDeclaration;
     expect(member, isNotNull);
     expect(member.factoryKeyword, isNotNull);
     expect(member.name, isNull);
@@ -45,10 +45,10 @@ class A {
     ]);
     expect(unit, isNotNull);
     expect(unit.declarations, hasLength(1));
-    ClassDeclaration declaration = unit.declarations[0];
+    var declaration = unit.declarations[0] as ClassDeclaration;
     expect(declaration, isNotNull);
     expect(declaration.members, hasLength(1));
-    ConstructorDeclaration member = declaration.members[0];
+    var member = declaration.members[0] as ConstructorDeclaration;
     expect(member, isNotNull);
     expect(member.initializers, hasLength(1));
   }
@@ -63,10 +63,10 @@ class A {
     ]);
     expect(unit, isNotNull);
     expect(unit.declarations, hasLength(1));
-    ClassDeclaration declaration = unit.declarations[0];
+    var declaration = unit.declarations[0] as ClassDeclaration;
     expect(declaration, isNotNull);
     expect(declaration.members, hasLength(1));
-    MethodDeclaration member = declaration.members[0];
+    var member = declaration.members[0] as MethodDeclaration;
     expect(member, isNotNull);
     expect(member.isGetter, isTrue);
     expect(member.name.name, 'A');

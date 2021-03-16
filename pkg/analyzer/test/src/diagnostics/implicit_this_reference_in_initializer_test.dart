@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class ImplicitThisReferenceInInitializerTest extends PubPackageResolutionTest {
+class ImplicitThisReferenceInInitializerTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_class_field_commentReference_prefixedIdentifier() async {
     await assertNoErrorsInCode(r'''
 class A {

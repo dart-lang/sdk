@@ -146,9 +146,9 @@ class Value : public ZoneAllocated {
   void SetReachingType(CompileType* type);
   void RefineReachingType(CompileType* type);
 
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#if defined(INCLUDE_IL_PRINTER)
   void PrintTo(BaseTextBuffer* f) const;
-#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#endif  // defined(INCLUDE_IL_PRINTER)
 
   SExpression* ToSExpression(FlowGraphSerializer* s) const;
 
@@ -560,18 +560,14 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
   DECLARE_INSTRUCTION_NO_BACKEND(type)                                         \
   DECLARE_COMPARISON_METHODS
 
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#if defined(INCLUDE_IL_PRINTER)
 #define PRINT_TO_SUPPORT virtual void PrintTo(BaseTextBuffer* f) const;
-#else
-#define PRINT_TO_SUPPORT
-#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 #define PRINT_OPERANDS_TO_SUPPORT                                              \
   virtual void PrintOperandsTo(BaseTextBuffer* f) const;
 #else
+#define PRINT_TO_SUPPORT
 #define PRINT_OPERANDS_TO_SUPPORT
-#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#endif  // defined(INCLUDE_IL_PRINTER)
 
 #define TO_S_EXPRESSION_SUPPORT                                                \
   virtual SExpression* ToSExpression(FlowGraphSerializer* s) const;
@@ -934,10 +930,8 @@ class Instruction : public ZoneAllocated {
 
   // Printing support.
   const char* ToCString() const;
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-  virtual void PrintTo(BaseTextBuffer* f) const;
-  virtual void PrintOperandsTo(BaseTextBuffer* f) const;
-#endif
+  PRINT_TO_SUPPORT
+  PRINT_OPERANDS_TO_SUPPORT
   virtual SExpression* ToSExpression(FlowGraphSerializer* s) const;
   virtual void AddOperandsToSExpression(SExpList* sexp,
                                         FlowGraphSerializer* s) const;
@@ -2397,7 +2391,7 @@ class Definition : public Instruction {
     type_ = type;
   }
 
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+#if defined(INCLUDE_IL_PRINTER)
   const char* TypeAsCString() const {
     return HasType() ? type_->ToCString() : "";
   }
@@ -3514,6 +3508,10 @@ class ReachabilityFenceInstr : public TemplateInstruction<1, NoThrow> {
   explicit ReachabilityFenceInstr(Value* value) { SetInputAt(0, value); }
 
   DECLARE_INSTRUCTION(ReachabilityFence)
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return kNoRepresentation;
+  }
 
   Value* value() const { return inputs_[0]; }
 
@@ -5545,7 +5543,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
   virtual CompileType ComputeType() const;
 
   const Field& field() const { return field_; }
-  bool IsFieldInitialized() const;
+  bool IsFieldInitialized(Instance* field_value = nullptr) const;
 
   bool calls_initializer() const { return calls_initializer_; }
   void set_calls_initializer(bool value) { calls_initializer_ = value; }
@@ -5554,7 +5552,9 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
     return field().is_final() && !FLAG_fields_may_be_reset;
   }
 
-  virtual bool ComputeCanDeoptimize() const { return calls_initializer(); }
+  virtual bool ComputeCanDeoptimize() const {
+    return calls_initializer() && !CompilerState::Current().is_aot();
+  }
   virtual bool HasUnknownSideEffects() const { return calls_initializer(); }
   virtual bool CanTriggerGC() const { return calls_initializer(); }
   virtual bool MayThrow() const { return calls_initializer(); }
@@ -5746,7 +5746,8 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
   intptr_t element_count() const { return element_count_; }
 
   bool can_pack_into_smi() const {
-    return element_count() <= kSmiBits / (index_scale() * kBitsPerByte);
+    return element_count() <=
+           compiler::target::kSmiBits / (index_scale() * kBitsPerByte);
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -6593,7 +6594,9 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(LoadField)
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const { return calls_initializer(); }
+  virtual bool ComputeCanDeoptimize() const {
+    return calls_initializer() && !CompilerState::Current().is_aot();
+  }
 
   virtual bool HasUnknownSideEffects() const {
     return calls_initializer() && !throw_exception_on_initialization();
@@ -7829,6 +7832,7 @@ class BinaryInt32OpInstr : public BinaryIntegerOpInstr {
 
       case Token::kSHL:
       case Token::kSHR:
+      case Token::kUSHR:
         if (right->BindsToConstant() && right->BoundConstant().IsSmi()) {
           const intptr_t value = Smi::Cast(right->BoundConstant()).Value();
           return 0 <= value && value < kBitsPerWord;
@@ -7959,7 +7963,8 @@ class ShiftIntegerOpInstr : public BinaryIntegerOpInstr {
                       Range* right_range = nullptr)
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
         shift_range_(right_range) {
-    ASSERT((op_kind == Token::kSHR) || (op_kind == Token::kSHL));
+    ASSERT((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
+           (op_kind == Token::kUSHR));
     mark_truncating();
   }
 

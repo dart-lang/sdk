@@ -145,16 +145,28 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
 
    private:
     void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
-      for (ObjectPtr* raw = from; raw <= to; raw++) {
-        if (!(*raw)->IsHeapObject() || (*raw)->untag()->IsCanonical()) {
-          continue;
-        }
-        if (visited_->GetValueExclusive(*raw) == 1) {
-          continue;
-        }
-        visited_->SetValueExclusive(*raw, 1);
-        working_set_->Add(*raw);
+      for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
+        VisitObject(*ptr);
       }
+    }
+
+    void VisitCompressedPointers(uword heap_base,
+                                 CompressedObjectPtr* from,
+                                 CompressedObjectPtr* to) {
+      for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
+        VisitObject(ptr->Decompress(heap_base));
+      }
+    }
+
+    void VisitObject(ObjectPtr obj) {
+      if (!obj->IsHeapObject() || obj->untag()->IsCanonical()) {
+        return;
+      }
+      if (visited_->GetValueExclusive(obj) == 1) {
+        return;
+      }
+      visited_->SetValueExclusive(obj, 1);
+      working_set_->Add(obj);
     }
 
     WeakTable* visited_;
@@ -586,7 +598,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     ASSERT(name != nullptr);
 
     auto group = state_->isolate_group();
-    if (!FLAG_enable_isolate_groups || group == nullptr) {
+    if (!IsolateGroup::AreIsolateGroupsEnabled() || group == nullptr) {
       RunHeavyweight(name);
     } else {
       RunLightweight(name);
@@ -874,10 +886,10 @@ static const char* CanonicalizeUri(Thread* thread,
                                    char** error) {
   const char* result = NULL;
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  if (isolate->HasTagHandler()) {
+  auto isolate_group = thread->isolate_group();
+  if (isolate_group->HasTagHandler()) {
     const Object& obj = Object::Handle(
-        isolate->CallTagHandler(Dart_kCanonicalizeUrl, library, uri));
+        isolate_group->CallTagHandler(Dart_kCanonicalizeUrl, library, uri));
     if (obj.IsString()) {
       result = String2UTF8(String::Cast(obj));
     } else if (obj.IsError()) {
@@ -999,9 +1011,13 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   // Make sure to route this request to the isolate library OOB mesage handler.
   msg.SetAt(0, Smi::Handle(Smi::New(Message::kIsolateLibOOBMsg)));
 
-  MessageWriter writer(false);
-  PortMap::PostMessage(
-      writer.WriteMessage(msg, port.Id(), Message::kOOBPriority));
+  // Ensure message writer (and it's resources, e.g. forwarding tables) are
+  // cleaned up before handling interrupts.
+  {
+    MessageWriter writer(false);
+    PortMap::PostMessage(
+        writer.WriteMessage(msg, port.Id(), Message::kOOBPriority));
+  }
 
   // Drain interrupts before running so any IMMEDIATE operations on the current
   // isolate happen synchronously.

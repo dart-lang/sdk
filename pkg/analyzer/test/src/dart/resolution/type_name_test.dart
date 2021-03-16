@@ -17,7 +17,8 @@ main() {
 }
 
 @reflectiveTest
-class TypeNameResolutionTest extends PubPackageResolutionTest {
+class TypeNameResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   @override
   bool get typeToStringWithNullability => true;
 
@@ -290,7 +291,7 @@ f(Never a) {}
 
 @reflectiveTest
 class TypeNameResolutionWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest with WithNonFunctionTypeAliasesMixin {
+    extends PubPackageResolutionTest {
   test_typeAlias_asInstanceCreation_explicitNew_typeArguments_interfaceType_none() async {
     await assertNoErrorsInCode(r'''
 class A<T> {}
@@ -613,8 +614,8 @@ f(F a) {}
     var typeName = findNode.typeName('F a');
     assertTypeName(typeName, element, 'int* Function(bool*)*');
 
-    assertFunctionTypeTypedef(
-      typeName.type,
+    assertTypeAlias(
+      typeName.type!,
       element: element,
       typeArguments: [],
     );
@@ -637,8 +638,8 @@ f(F a) {}
     var typeName = findNode.typeName('F a');
     assertTypeName(typeName, element, 'dynamic Function(bool*)*');
 
-    assertFunctionTypeTypedef(
-      typeName.type,
+    assertTypeAlias(
+      typeName.type!,
       element: element,
       typeArguments: ['dynamic'],
     );
@@ -661,8 +662,8 @@ f(F a) {}
     var typeName = findNode.typeName('F a');
     assertTypeName(typeName, element, 'num* Function(bool*)*');
 
-    assertFunctionTypeTypedef(
-      typeName.type,
+    assertTypeAlias(
+      typeName.type!,
       element: element,
       typeArguments: ['num*'],
     );
@@ -685,8 +686,8 @@ f(F<int> a) {}
     var typeName = findNode.typeName('F<int> a');
     assertTypeName(typeName, element, 'int* Function(bool*)*');
 
-    assertFunctionTypeTypedef(
-      typeName.type,
+    assertTypeAlias(
+      typeName.type!,
       element: element,
       typeArguments: ['int*'],
     );

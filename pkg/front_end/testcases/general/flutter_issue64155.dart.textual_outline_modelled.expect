@@ -1,3 +1,4 @@
+// @dart = 2.9
 class Class1 with TestMixin<Response<String>, String> {
   _test() {}
 }

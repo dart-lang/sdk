@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
@@ -128,18 +129,17 @@ class ServerCapabilitiesComputer {
   ServerCapabilitiesComputer(this._server);
 
   ServerCapabilities computeServerCapabilities(
-      ClientCapabilities clientCapabilities) {
-    final codeActionLiteralSupport =
-        clientCapabilities.textDocument?.codeAction?.codeActionLiteralSupport;
+      LspClientCapabilities clientCapabilities) {
+    final codeActionLiteralSupport = clientCapabilities.literalCodeActions;
 
-    final renameOptionsSupport =
-        clientCapabilities.textDocument?.rename?.prepareSupport ?? false;
+    final renameOptionsSupport = clientCapabilities.renameValidation;
 
     final enableFormatter = _server.clientConfiguration.enableSdkFormatter;
     final previewCommitCharacters =
         _server.clientConfiguration.previewCommitCharacters;
 
-    final dynamicRegistrations = ClientDynamicRegistrations(clientCapabilities);
+    final dynamicRegistrations =
+        ClientDynamicRegistrations(clientCapabilities.raw);
 
     // When adding new capabilities to the server that may apply to specific file
     // types, it's important to update
@@ -328,7 +328,7 @@ class ServerCapabilitiesComputer {
     }
 
     final dynamicRegistrations =
-        ClientDynamicRegistrations(_server.clientCapabilities);
+        ClientDynamicRegistrations(_server.clientCapabilities.raw);
 
     register(
       dynamicRegistrations.textSync,

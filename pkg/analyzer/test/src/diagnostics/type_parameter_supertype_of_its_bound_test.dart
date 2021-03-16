@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class TypeParameterSupertypeOfItsBoundTest extends PubPackageResolutionTest {
+class TypeParameterSupertypeOfItsBoundTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_1of1() async {
     await assertErrorsInCode(r'''
 class A<T extends T> {

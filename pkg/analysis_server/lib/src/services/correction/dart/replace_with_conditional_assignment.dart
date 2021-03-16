@@ -14,6 +14,10 @@ class ReplaceWithConditionalAssignment extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT;
 
   @override
+  FixKind get multiFixKind =>
+      DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     IfStatement ifStatement =
         node is IfStatement ? node : node.thisOrAncestorOfType<IfStatement>();

@@ -9,10 +9,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/error/option_codes.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -36,7 +33,7 @@ main() {
 
 @reflectiveTest
 class ContextConfigurationTest {
-  final AnalysisOptions analysisOptions = AnalysisOptionsImpl();
+  final AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
 
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
@@ -400,10 +397,10 @@ linter:
 
 @reflectiveTest
 class OptionsProviderTest {
-  TestPathTranslator pathTranslator;
-  ResourceProvider resourceProvider;
+  late final TestPathTranslator pathTranslator;
+  late final ResourceProvider resourceProvider;
 
-  AnalysisOptionsProvider provider;
+  late final AnalysisOptionsProvider provider;
 
   String get optionsFilePath => '/analysis_options.yaml';
 
@@ -467,13 +464,13 @@ linter:
         ]));
   }
 
-  YamlMap _getOptions(String posixPath, {bool crawlUp = false}) {
-    Resource resource = pathTranslator.getResource(posixPath);
-    return provider.getOptions(resource, crawlUp: crawlUp);
+  YamlMap _getOptions(String posixPath) {
+    var resource = pathTranslator.getResource(posixPath) as Folder;
+    return provider.getOptions(resource);
   }
 
-  AnalysisOptions _getOptionsObject(String posixPath, {bool crawlUp = false}) {
-    final map = _getOptions(posixPath, crawlUp: crawlUp);
+  AnalysisOptions _getOptionsObject(String posixPath) {
+    final map = _getOptions(posixPath);
     final options = AnalysisOptionsImpl();
     applyToAnalysisOptions(options, map);
     return options;
@@ -481,7 +478,19 @@ linter:
 }
 
 class TestRule extends LintRule {
-  TestRule() : super(name: 'fantastic_test_rule', description: '');
+  TestRule()
+      : super(
+          name: 'fantastic_test_rule',
+          description: '',
+          details: '',
+          group: Group.style,
+        );
 
-  TestRule.withName(String name) : super(name: name, description: '');
+  TestRule.withName(String name)
+      : super(
+          name: name,
+          description: '',
+          details: '',
+          group: Group.style,
+        );
 }

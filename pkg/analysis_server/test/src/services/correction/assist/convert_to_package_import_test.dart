@@ -85,6 +85,7 @@ import 'package:test/foo/bar.dart';
 ''');
   }
 
+  @FailingTest(issue: 'http://dartbug.com/44871')
   Future<void> test_relativeImport_noAssistWithLint() async {
     createAnalysisOptionsFile(lints: [LintNames.avoid_relative_lib_imports]);
     verifyNoTestUnitErrors = false;

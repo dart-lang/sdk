@@ -1683,7 +1683,7 @@ final bar;
 
   Future<void> _assertApiTokenSignatureNotSame(
       String name, NodeKind kind, String codeBefore, String codeAfter,
-      {String memberOf, String typeParameterOf}) async {
+      {String? memberOf, String? typeParameterOf}) async {
     Node getNodeLocal(Library library) {
       return getNode(
         library,
@@ -1708,7 +1708,7 @@ final bar;
 
   Future<void> _assertApiTokenSignatureSame(
       String name, NodeKind kind, String codeBefore, String codeAfter,
-      {String memberOf, String typeParameterOf}) async {
+      {String? memberOf, String? typeParameterOf}) async {
     Node getNodeLocal(Library library) {
       return getNode(
         library,

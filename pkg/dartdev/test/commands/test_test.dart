@@ -5,15 +5,18 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
+import '../experiment_util.dart';
 import '../utils.dart';
 
-void main() {
-  group('test', defineTest, timeout: longTimeout);
+Future<void> main() async {
+  final experiments = await experimentsWithValidation();
+  group('test', () => defineTest(experiments), timeout: longTimeout);
 }
 
-void defineTest() {
+void defineTest(List<Experiment> experiments) {
   TestProject p;
 
   tearDown(() => p?.dispose());
@@ -145,29 +148,56 @@ void main() {
     expect(result.stderr, isEmpty);
   });
 
-  test('--enable-experiment', () {
-    p = project(mainSrc: 'int get foo => 1;\n');
-    p.file('test/foo_test.dart', '''
-import 'package:test/test.dart';
-
-void main() {
-  test('', () {
-    int a;
-    a = null;
-    print('a is \$a.');
-  });
-}
-''');
-
-    final result = p.runSync(
-      [
-        '--enable-experiment=non-nullable',
+  group('--enable-experiment', () {
+    ProcessResult runTestWithExperimentFlag(String flag) {
+      return p.runSync([
+        if (flag != null) flag,
         'test',
         '--no-color',
         '--reporter',
         'expanded',
-      ],
-    );
-    expect(result.exitCode, 1);
+      ]);
+    }
+
+    void expectSuccess(String flag) {
+      final result = runTestWithExperimentFlag(flag);
+      expect(result.stdout, contains('feature enabled'),
+          reason: 'stderr: ${result.stderr}');
+      expect(result.exitCode, 0,
+          reason: 'stdout: ${result.stdout} stderr: ${result.stderr}');
+    }
+
+    void expectFailure(String flag) {
+      final result = runTestWithExperimentFlag(flag);
+      expect(result.exitCode, isNot(0));
+    }
+
+    for (final experiment in experiments) {
+      test(experiment.name, () {
+        final currentSdk = Version.parse(Platform.version.split(' ').first);
+        p = project(
+            mainSrc: experiment.validation,
+            sdkConstraint: VersionConstraint.compatibleWith(currentSdk));
+        p.file('test/experiment_test.dart', '''
+import 'package:dartdev_temp/main.dart' as imported;
+import 'package:test/test.dart';
+
+void main() {
+  test('testing feature', () {
+    imported.main();
+  });
+}
+''');
+        if (experiment.enabledIn != null) {
+          // The experiment has been released - enabling it should have no effect.
+          expectSuccess(null);
+          expectSuccess('--enable-experiment=${experiment.name}');
+        } else {
+          expectFailure(null);
+          expectFailure('--enable-experiment=no-${experiment.name}');
+          expectSuccess('--enable-experiment=${experiment.name}');
+        }
+      });
+    }
   });
 }

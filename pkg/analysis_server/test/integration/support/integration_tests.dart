@@ -518,7 +518,7 @@ class Server {
       }
     });
     _process.stderr
-        .transform((Utf8Codec()).decoder)
+        .transform(Utf8Codec().decoder)
         .transform(LineSplitter())
         .listen((String line) {
       var trimmedLine = line.trim();

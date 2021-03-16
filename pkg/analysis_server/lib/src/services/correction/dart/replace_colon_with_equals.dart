@@ -14,6 +14,9 @@ class ReplaceColonWithEquals extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_COLON_WITH_EQUALS;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_COLON_WITH_EQUALS_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     if (node is DefaultFormalParameter) {
       await builder.addDartFileEdit(file, (builder) {

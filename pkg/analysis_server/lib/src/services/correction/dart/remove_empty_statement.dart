@@ -14,6 +14,9 @@ class RemoveEmptyStatement extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_EMPTY_STATEMENT;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_EMPTY_STATEMENT_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     if (node is EmptyStatement && node.parent is Block) {
       await builder.addDartFileEdit(file, (builder) {

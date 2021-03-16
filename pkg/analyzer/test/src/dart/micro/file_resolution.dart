@@ -14,7 +14,8 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:crypto/crypto.dart';
-import 'package:linter/src/rules.dart';
+
+// import 'package:linter/src/rules.dart';
 
 import '../resolution/resolution.dart';
 
@@ -26,10 +27,10 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       CiderCachedByteStore(20 * 1024 * 1024 /* 20 MB */);
 
   final StringBuffer logBuffer = StringBuffer();
-  PerformanceLog logger;
-  MockSdk sdk;
+  late PerformanceLog logger;
+  late MockSdk sdk;
 
-  FileResolver fileResolver;
+  late FileResolver fileResolver;
 
   @override
   void addTestFile(String content) {
@@ -43,7 +44,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     var workspace = BazelWorkspace.find(
       resourceProvider,
       convertPath(_testFile),
-    );
+    )!;
 
     byteStore.testView = CiderByteStoreTestView();
     fileResolver = FileResolver.from(
@@ -72,12 +73,12 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   Future<void> resolveTestFile() async {
     var path = convertPath(_testFile);
     result = await resolveFile(path);
-    findNode = FindNode(result.content, result.unit);
-    findElement = FindElement(result.unit);
+    findNode = FindNode(result.content!, result.unit!);
+    findElement = FindElement(result.unit!);
   }
 
   void setUp() {
-    registerLintRules();
+    // registerLintRules();
 
     logger = PerformanceLog(logBuffer);
     sdk = MockSdk(resourceProvider: resourceProvider);

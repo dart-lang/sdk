@@ -47,7 +47,8 @@ class DirectCallMetadataRepository
 
   @override
   DirectCallMetadata readFromBinary(Node node, BinarySource source) {
-    final targetReference = source.readCanonicalNameReference()?.getReference();
+    final targetReference =
+        source.readNullableCanonicalNameReference()?.getReference();
     if (targetReference == null) {
       throw 'DirectCallMetadata should have a non-null target';
     }

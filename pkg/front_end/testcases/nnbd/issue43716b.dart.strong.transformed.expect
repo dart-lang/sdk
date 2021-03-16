@@ -18,7 +18,7 @@ class C<X extends (self::C::X%) →? void = (Never) →? void> extends core::Obj
     (Never) →? void z = self::b ?{(Never) →? void} this.{self::C::x} : #C1;
     if(z.{core::Object::==}(null))
       return;
-    z{(Never) → void}.call(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue43716b.dart:17:7: Error: The argument type 'int' can't be assigned to the parameter type 'Never'.
+    z{(Never) → void}.call(let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue43716b.dart:17:7: Error: The argument type 'int' can't be assigned to the parameter type 'Never'.
     z(42); // Error.
       ^" in 42 as{TypeError,ForNonNullableByDefault} Never);
   }

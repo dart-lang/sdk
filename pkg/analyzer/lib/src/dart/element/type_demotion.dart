@@ -6,7 +6,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:meta/meta.dart';
 
 /// Visitor that replaces all promoted type variables the type variable itself
 /// and/or replaces all legacy types with non-nullable types.
@@ -17,12 +16,12 @@ class DemotionNonNullificationVisitor extends ReplacementVisitor {
   final bool nonNullifyTypes;
 
   const DemotionNonNullificationVisitor({
-    @required this.demoteTypeVariables,
-    @required this.nonNullifyTypes,
+    required this.demoteTypeVariables,
+    required this.nonNullifyTypes,
   }) : assert(demoteTypeVariables || nonNullifyTypes);
 
   @override
-  NullabilitySuffix visitNullability(DartType type) {
+  NullabilitySuffix? visitNullability(DartType type) {
     if (nonNullifyTypes && type.nullabilitySuffix == NullabilitySuffix.star) {
       return NullabilitySuffix.none;
     }
@@ -30,7 +29,7 @@ class DemotionNonNullificationVisitor extends ReplacementVisitor {
   }
 
   @override
-  DartType visitTypeParameterType(TypeParameterType type) {
+  DartType? visitTypeParameterType(TypeParameterType type) {
     var newNullability = visitNullability(type);
 
     if (demoteTypeVariables) {

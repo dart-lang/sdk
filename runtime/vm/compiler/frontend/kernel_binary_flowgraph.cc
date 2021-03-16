@@ -70,20 +70,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
                            B->last_used_block_id_, prologue_info);
 }
 
-void StreamingFlowGraphBuilder::EvaluateConstFieldValue(const Field& field) {
-  ASSERT(field.is_const() && field.IsUninitialized());
-
-  FieldHelper field_helper(this);
-  field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
-  Tag initializer_tag = ReadTag();  // read first part of initializer.
-
-  ASSERT(initializer_tag == kSomething);
-
-  Instance& value =
-      Instance::Handle(Z, constant_reader_.ReadConstantExpression());
-  field.SetStaticValue(value);
-}
-
 void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
   intptr_t optional_parameter_count =
       parsed_function()->function().NumOptionalParameters();
@@ -243,7 +229,8 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 
     bool has_field_initializers = false;
     for (intptr_t i = 0; i < list_length; ++i) {
-      if (PeekTag() == kRedirectingInitializer) {
+      if (PeekTag() == kRedirectingInitializer ||
+          PeekTag() == kRedirectingFactoryConstructor) {
         is_redirecting_constructor = true;
       } else if (PeekTag() == kFieldInitializer) {
         has_field_initializers = true;
@@ -1024,10 +1011,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     case UntaggedFunction::kImplicitGetter:
     case UntaggedFunction::kImplicitStaticGetter:
     case UntaggedFunction::kImplicitSetter: {
-      const Field& field = Field::Handle(Z, function.accessor_field());
-      if (field.is_const() && field.IsUninitialized()) {
-        EvaluateConstFieldValue(field);
-      }
       return B->BuildGraphOfFieldAccessor(function);
     }
     case UntaggedFunction::kFieldInitializer:
@@ -3667,9 +3650,9 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionExpression() {
   return BuildFunctionNode(TokenPosition::kNoSource, StringIndex());
 }
 
-Fragment StreamingFlowGraphBuilder::BuildLet(TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
-
+Fragment StreamingFlowGraphBuilder::BuildLet(TokenPosition* p) {
+  const TokenPosition position = ReadPosition();  // read position.
+  if (p != nullptr) *p = position;
   Fragment instructions = BuildVariableDeclaration();  // read variable.
   instructions += BuildExpression();                   // read body.
   return instructions;

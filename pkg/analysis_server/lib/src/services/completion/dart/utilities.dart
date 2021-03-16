@@ -220,19 +220,6 @@ String getTypeString(DartType type, {@required bool withNullability}) {
   }
 }
 
-/// Return `true` if the @deprecated annotation is present on the given [node].
-bool isDeprecated(AnnotatedNode node) {
-  if (node != null) {
-    var metadata = node.metadata;
-    if (metadata != null) {
-      return metadata.any((Annotation a) {
-        return a.name is SimpleIdentifier && a.name.name == 'deprecated';
-      });
-    }
-  }
-  return false;
-}
-
 /// Return name of the type of the given [identifier], or, if it unresolved, the
 /// name of its declared [declaredType].
 String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {

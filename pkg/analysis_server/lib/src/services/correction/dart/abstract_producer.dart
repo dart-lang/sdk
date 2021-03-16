@@ -307,6 +307,15 @@ abstract class SingleCorrectionProducer extends _AbstractCorrectionProducer {
   /// Return the fix kind that should be used to build a fix, or `null` if this
   /// producer doesn't support fixes.
   FixKind get fixKind => null;
+
+  /// Return the arguments that should be used when composing the message for a
+  /// multi-fix, or `null` if the fix message has no parameters or if this
+  /// producer doesn't support multi-fixes.
+  List<Object> get multiFixArguments => null;
+
+  /// Return the fix kind that should be used to build a multi-fix, or `null` if
+  /// this producer doesn't support multi-fixes.
+  FixKind get multiFixKind => null;
 }
 
 /// The behavior shared by [CorrectionProducer] and [MultiCorrectionProducer].

@@ -19,13 +19,13 @@ main() {
 class OptionalConstDriverResolutionTest extends PubPackageResolutionTest {
   Map<String, LibraryElement> libraries = {};
 
-  LibraryElement get libraryA => libraries['package:test/a.dart'];
+  LibraryElement get libraryA => libraries['package:test/a.dart']!;
 
   test_instantiateToBounds_notPrefixed_named() async {
     var creation = await _resolveImplicitConst('B.named()');
     assertInstanceCreation(
       creation,
-      libraryA.getType('B'),
+      libraryA.getType('B')!,
       'B<num>',
       constructorName: 'named',
       expectedConstructorMember: true,
@@ -37,7 +37,7 @@ class OptionalConstDriverResolutionTest extends PubPackageResolutionTest {
     var creation = await _resolveImplicitConst('B()');
     assertInstanceCreation(
       creation,
-      libraryA.getType('B'),
+      libraryA.getType('B')!,
       'B<num>',
       expectedConstructorMember: true,
       expectedSubstitution: {'T': 'num'},
@@ -48,12 +48,12 @@ class OptionalConstDriverResolutionTest extends PubPackageResolutionTest {
     var creation = await _resolveImplicitConst('p.B.named()', prefix: 'p');
     assertInstanceCreation(
       creation,
-      libraryA.getType('B'),
+      libraryA.getType('B')!,
       'B<num>',
       constructorName: 'named',
       expectedConstructorMember: true,
       expectedSubstitution: {'T': 'num'},
-      expectedPrefix: _importOfA()?.prefix,
+      expectedPrefix: _importOfA().prefix,
     );
   }
 
@@ -61,11 +61,11 @@ class OptionalConstDriverResolutionTest extends PubPackageResolutionTest {
     var creation = await _resolveImplicitConst('p.B()', prefix: 'p');
     assertInstanceCreation(
       creation,
-      libraryA.getType('B'),
+      libraryA.getType('B')!,
       'B<num>',
       expectedConstructorMember: true,
       expectedSubstitution: {'T': 'num'},
-      expectedPrefix: _importOfA()?.prefix,
+      expectedPrefix: _importOfA().prefix,
     );
   }
 
@@ -73,7 +73,7 @@ class OptionalConstDriverResolutionTest extends PubPackageResolutionTest {
     var creation = await _resolveImplicitConst('A.named()');
     assertInstanceCreation(
       creation,
-      libraryA.getType('A'),
+      libraryA.getType('A')!,
       'A',
       constructorName: 'named',
     );
@@ -83,7 +83,7 @@ class OptionalConstDriverResolutionTest extends PubPackageResolutionTest {
     var creation = await _resolveImplicitConst('A()');
     assertInstanceCreation(
       creation,
-      libraryA.getType('A'),
+      libraryA.getType('A')!,
       'A',
     );
   }
@@ -93,10 +93,10 @@ class OptionalConstDriverResolutionTest extends PubPackageResolutionTest {
     // Note, that we don't resynthesize the import prefix.
     assertInstanceCreation(
       creation,
-      libraryA.getType('A'),
+      libraryA.getType('A')!,
       'A',
       constructorName: 'named',
-      expectedPrefix: _importOfA()?.prefix,
+      expectedPrefix: _importOfA().prefix,
     );
   }
 
@@ -105,9 +105,9 @@ class OptionalConstDriverResolutionTest extends PubPackageResolutionTest {
     // Note, that we don't resynthesize the import prefix.
     assertInstanceCreation(
       creation,
-      libraryA.getType('A'),
+      libraryA.getType('A')!,
       'A',
-      expectedPrefix: _importOfA()?.prefix,
+      expectedPrefix: _importOfA().prefix,
     );
   }
 
@@ -148,11 +148,11 @@ const x = p.C<int>();
     assertElement(ref_C, element_C);
     assertTypeNull(ref_C);
 
-    assertType(typeName.typeArguments.arguments[0], 'int');
+    assertType(typeName.typeArguments!.arguments[0], 'int');
   }
 
-  void _fillLibraries([LibraryElement library]) {
-    library ??= result.unit.declaredElement.library;
+  void _fillLibraries([LibraryElement? library]) {
+    library ??= result.unit!.declaredElement!.library;
     var uriStr = library.source.uri.toString();
     if (!libraries.containsKey(uriStr)) {
       libraries[uriStr] = library;
@@ -162,11 +162,11 @@ const x = p.C<int>();
 
   ImportElement _importOfA() {
     var importOfB = findElement.import('package:test/b.dart');
-    return importOfB.importedLibrary.imports[0];
+    return importOfB.importedLibrary!.imports[0];
   }
 
   Future<InstanceCreationExpression> _resolveImplicitConst(String expr,
-      {String prefix}) async {
+      {String? prefix}) async {
     newFile('$testPackageLibPath/a.dart', content: '''
 class A {
   const A();
@@ -199,7 +199,7 @@ var v = a;
     var vg = findNode.simple('a;').staticElement as PropertyAccessorElement;
     var v = vg.variable as ConstVariableElement;
 
-    InstanceCreationExpression /*!*/ creation = v.constantInitializer;
+    var creation = v.constantInitializer as InstanceCreationExpression;
     return creation;
   }
 }

@@ -52,7 +52,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
   void visitClassMember(ClassMember node) {
     final element = node.declaredElement;
     if (element is ExecutableElement) {
-      _assertLegacyType(element?.type);
+      _assertLegacyType(element.type);
     }
     super.visitClassMember(node);
   }
@@ -114,7 +114,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
     super.visitVariableDeclaration(node);
   }
 
-  void _assertLegacyElement(Element element) {
+  void _assertLegacyElement(Element? element) {
     if (element is ExecutableElement) {
       _assertLegacyType(element.type);
     } else if (element is VariableElement) {
@@ -122,7 +122,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
     }
   }
 
-  void _assertLegacyType(DartType type) {
+  void _assertLegacyType(DartType? type) {
     if (type == null) {
       return;
     }
@@ -144,6 +144,8 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
       return;
     }
 
+    type.aliasArguments?.forEach(_assertLegacyType);
+
     if (type is TypeParameterType) {
       _assertLegacyType(type.bound);
     } else if (type is InterfaceType) {
@@ -151,7 +153,6 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
     } else if (type is FunctionType) {
       _assertLegacyType(type.returnType);
       type.parameters.map((param) => param.type).forEach(_assertLegacyType);
-      type.typeArguments.forEach(_assertLegacyType);
       type.typeFormals.map((param) => param.bound).forEach(_assertLegacyType);
     }
 

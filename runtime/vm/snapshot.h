@@ -289,7 +289,7 @@ class SnapshotReader : public BaseReader {
   Object* GetBackRef(intptr_t id);
 
   // Read version number of snapshot and verify.
-  ApiErrorPtr VerifyVersionAndFeatures(Isolate* isolate);
+  ApiErrorPtr VerifyVersionAndFeatures(IsolateGroup* isolate_group);
 
   ObjectPtr NewInteger(int64_t value);
 
@@ -740,7 +740,10 @@ class SnapshotWriterVisitor : public ObjectPointerVisitor {
         writer_(writer),
         as_references_(as_references) {}
 
-  virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last);
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last);
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last);
 
  private:
   SnapshotWriter* writer_;

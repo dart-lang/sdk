@@ -25,7 +25,9 @@ class StandardFileSystem implements FileSystem {
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme == 'file' || uri.scheme == '') {
+    if (uri.scheme == 'file') {
+      return new _IoFileSystemEntity(uri);
+    } else if (uri.scheme == '') {
       // TODO(askesc): Empty schemes should have been handled elsewhere.
       return new _IoFileSystemEntity(Uri.base.resolveUri(uri));
     } else if (uri.scheme == 'data') {
@@ -53,11 +55,26 @@ class _IoFileSystemEntity implements FileSystemEntity {
 
   @override
   Future<bool> exists() async {
+    if (new io.File.fromUri(uri).existsSync()) {
+      return true;
+    }
+    if (io.FileSystemEntity.isDirectorySync(uri.toFilePath())) {
+      return true;
+    }
+    // TODO(CFE-team): What about [Link]s?
+    return false;
+  }
+
+  @override
+  Future<bool> existsAsyncIfPossible() async {
+    if (await new io.File.fromUri(uri).exists()) {
+      return true;
+    }
     if (await io.FileSystemEntity.isDirectory(uri.toFilePath())) {
       return true;
-    } else {
-      return new io.File.fromUri(uri).exists();
     }
+    // TODO(CFE-team): What about [Link]s?
+    return false;
   }
 
   @override
@@ -65,6 +82,16 @@ class _IoFileSystemEntity implements FileSystemEntity {
     try {
       CompilerContext.recordDependency(uri);
       return new io.File.fromUri(uri).readAsBytesSync();
+    } on io.FileSystemException catch (exception) {
+      throw _toFileSystemException(exception);
+    }
+  }
+
+  @override
+  Future<List<int>> readAsBytesAsyncIfPossible() async {
+    try {
+      CompilerContext.recordDependency(uri);
+      return await new io.File.fromUri(uri).readAsBytes();
     } on io.FileSystemException catch (exception) {
       throw _toFileSystemException(exception);
     }
@@ -116,6 +143,12 @@ class DataFileSystemEntity implements FileSystemEntity {
   Future<List<int>> readAsBytes() async {
     return uri.data.contentAsBytes();
   }
+
+  @override
+  Future<bool> existsAsyncIfPossible() => exists();
+
+  @override
+  Future<List<int>> readAsBytesAsyncIfPossible() => readAsBytes();
 
   @override
   Future<String> readAsString() async {

@@ -459,8 +459,8 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
   FfiCode.ANNOTATION_ON_POINTER_FIELD,
   FfiCode.EMPTY_STRUCT,
-  FfiCode.EMPTY_STRUCT_WARNING,
   FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD,
+  FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY,
   FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER,
   FfiCode.FIELD_INITIALIZER_IN_STRUCT,
   FfiCode.GENERIC_STRUCT_SUBCLASS,
@@ -470,17 +470,19 @@ const List<ErrorCode> errorCodeValues = [
   FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD,
   FfiCode.MISSING_EXCEPTION_VALUE,
   FfiCode.MISSING_FIELD_TYPE_IN_STRUCT,
+  FfiCode.MISSING_SIZE_ANNOTATION_CARRAY,
   FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
   FfiCode.MUST_BE_A_SUBTYPE,
   FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
-  FfiCode.NON_CONSTANT_TYPE_ARGUMENT_WARNING,
   FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER,
+  FfiCode.NON_SIZED_TYPE_ARGUMENT,
   FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
   FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS,
   FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH,
   FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS,
   FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS,
   FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH,
+  HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
   HintCode.ASSIGNMENT_OF_DO_NOT_STORE,
   HintCode.CAN_BE_NULL_AFTER_NULL_AWARE,
   HintCode.DEAD_CODE,
@@ -623,6 +625,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.ABSTRACT_TYPEDEF,
   ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT,
   ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
+  ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED,
   ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
   ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT,
   ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
@@ -842,25 +845,30 @@ const List<ErrorCode> errorCodeValues = [
 
 /// The lazy initialized map from [ErrorCode.uniqueName] to the [ErrorCode]
 /// instance.
-/*late final*/ HashMap<String, ErrorCode> _uniqueNameToCodeMap;
+late final HashMap<String, ErrorCode> _uniqueNameToCodeMap =
+    _computeUniqueNameToCodeMap();
 
 /// Return the [ErrorCode] with the given [uniqueName], or `null` if not
 /// found.
-ErrorCode errorCodeByUniqueName(String uniqueName) {
-  if (_uniqueNameToCodeMap == null) {
-    _uniqueNameToCodeMap = HashMap<String, ErrorCode>();
-    for (ErrorCode errorCode in errorCodeValues) {
-      var uniqueName = errorCode.uniqueName;
-      assert(() {
-        if (_uniqueNameToCodeMap.containsKey(uniqueName)) {
-          throw StateError('Not unique: $uniqueName');
-        }
-        return true;
-      }());
-      _uniqueNameToCodeMap[uniqueName] = errorCode;
-    }
-  }
+ErrorCode? errorCodeByUniqueName(String uniqueName) {
   return _uniqueNameToCodeMap[uniqueName];
+}
+
+/// Return the map from [ErrorCode.uniqueName] to the [ErrorCode] instance
+/// for all [errorCodeValues].
+HashMap<String, ErrorCode> _computeUniqueNameToCodeMap() {
+  var result = HashMap<String, ErrorCode>();
+  for (ErrorCode errorCode in errorCodeValues) {
+    var uniqueName = errorCode.uniqueName;
+    assert(() {
+      if (result.containsKey(uniqueName)) {
+        throw StateError('Not unique: $uniqueName');
+      }
+      return true;
+    }());
+    result[uniqueName] = errorCode;
+  }
+  return result;
 }
 
 /// An error discovered during the analysis of some Dart code.
@@ -897,15 +905,15 @@ class AnalysisError implements Diagnostic {
   final ErrorCode errorCode;
 
   /// The message describing the problem.
-  DiagnosticMessage _problemMessage;
+  late final DiagnosticMessage _problemMessage;
 
   /// The context messages associated with the problem. This list will be empty
   /// if there are no context messages.
-  List<DiagnosticMessage> _contextMessages;
+  final List<DiagnosticMessage> _contextMessages;
 
   /// The correction to be displayed for this error, or `null` if there is no
   /// correction information for this error.
-  String _correction;
+  String? _correction;
 
   /// The source in which the error occurred, or `null` if unknown.
   final Source source;
@@ -916,31 +924,31 @@ class AnalysisError implements Diagnostic {
   /// [arguments] will be used to complete the message and correction. If any
   /// [contextMessages] are provided, they will be recorded with the error.
   AnalysisError(this.source, int offset, int length, this.errorCode,
-      [List<Object> arguments,
-      List<DiagnosticMessage> contextMessages = const []]) {
+      [List<Object?>? arguments,
+      List<DiagnosticMessage> contextMessages = const []])
+      : _contextMessages = contextMessages {
     String message = formatList(errorCode.message, arguments);
-    String correctionTemplate = errorCode.correction;
+    String? correctionTemplate = errorCode.correction;
     if (correctionTemplate != null) {
       _correction = formatList(correctionTemplate, arguments);
     }
     _problemMessage = DiagnosticMessageImpl(
-        filePath: source?.fullName,
+        filePath: source.fullName,
         length: length,
         message: message,
         offset: offset);
-    _contextMessages = contextMessages;
   }
 
   /// Initialize a newly created analysis error with given values.
   AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
       String message, this._correction,
-      {List<DiagnosticMessage> contextMessages = const []}) {
+      {List<DiagnosticMessage> contextMessages = const []})
+      : _contextMessages = contextMessages {
     _problemMessage = DiagnosticMessageImpl(
-        filePath: source?.fullName,
+        filePath: source.fullName,
         length: length,
         message: message,
         offset: offset);
-    _contextMessages = contextMessages;
   }
 
   /// Initialize a newly created analysis error. The error is associated with
@@ -950,18 +958,19 @@ class AnalysisError implements Diagnostic {
   /// [contextMessages] are provided, they will be recorded with the error.
   AnalysisError.withNamedArguments(this.source, int offset, int length,
       this.errorCode, Map<String, dynamic> arguments,
-      {List<DiagnosticMessage> contextMessages = const []}) {
-    String messageText = applyArgumentsToTemplate(errorCode.message, arguments);
-    String correctionTemplate = errorCode.correction;
+      {List<DiagnosticMessage> contextMessages = const []})
+      : _contextMessages = contextMessages {
+    var messageText = applyArgumentsToTemplate(errorCode.message, arguments);
+    var correctionTemplate = errorCode.correction;
     if (correctionTemplate != null) {
       _correction = applyArgumentsToTemplate(correctionTemplate, arguments);
     }
     _problemMessage = DiagnosticMessageImpl(
-        filePath: source?.fullName,
-        length: length,
-        message: messageText,
-        offset: offset);
-    _contextMessages = contextMessages;
+      filePath: source.fullName,
+      length: length,
+      message: messageText,
+      offset: offset,
+    );
   }
 
   @override
@@ -970,16 +979,16 @@ class AnalysisError implements Diagnostic {
   /// Return the template used to create the correction to be displayed for this
   /// error, or `null` if there is no correction information for this error. The
   /// correction should indicate how the user can fix the error.
-  String get correction => _correction;
+  String? get correction => _correction;
 
   @override
-  String get correctionMessage => _correction;
+  String? get correctionMessage => _correction;
 
   @override
   int get hashCode {
     int hashCode = offset;
-    hashCode ^= (message != null) ? message.hashCode : 0;
-    hashCode ^= (source != null) ? source.hashCode : 0;
+    hashCode ^= message.hashCode;
+    hashCode ^= source.hashCode;
     return hashCode;
   }
 
@@ -1042,7 +1051,7 @@ class AnalysisError implements Diagnostic {
   @override
   String toString() {
     StringBuffer buffer = StringBuffer();
-    buffer.write((source != null) ? source.fullName : "<unknown source>");
+    buffer.write(source.fullName);
     buffer.write("(");
     buffer.write(offset);
     buffer.write("..");

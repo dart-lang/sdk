@@ -16,6 +16,9 @@ class ReplaceNullWithClosure extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_NULL_WITH_CLOSURE;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_NULL_WITH_CLOSURE_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     AstNode nodeToFix;
     var parameters = const <ParameterElement>[];

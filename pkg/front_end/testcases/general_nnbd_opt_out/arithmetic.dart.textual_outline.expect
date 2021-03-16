@@ -1,4 +1,0 @@
-// @dart = 2.6
-int foo(int x, int y) {}
-void loop(List xs) {}
-main() {}

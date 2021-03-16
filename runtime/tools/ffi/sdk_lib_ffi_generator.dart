@@ -41,11 +41,12 @@ main(List<String> arguments) {
   generate(path, "ffi_patch.g.dart", generatePatchExtension);
 }
 
-void generate(
-    Uri path, String fileName, Function(StringBuffer, Config) generator) {
+void generate(Uri path, String fileName,
+    Function(StringBuffer, Config, String) generator) {
   final buffer = StringBuffer();
   generateHeader(buffer);
-  configuration.forEach((Config c) => generator(buffer, c));
+  configuration.forEach((Config c) => generator(buffer, c, "Pointer"));
+  configuration.forEach((Config c) => generator(buffer, c, "Array"));
   generateFooter(buffer);
 
   final fullPath = path.resolve(fileName).path;
@@ -71,7 +72,8 @@ void generateHeader(StringBuffer buffer) {
   buffer.write(header);
 }
 
-void generatePublicExtension(StringBuffer buffer, Config config) {
+void generatePublicExtension(
+    StringBuffer buffer, Config config, String container) {
   final nativeType = config.nativeType;
   final dartType = config.dartType;
   final typedListType = config.typedListType;
@@ -170,7 +172,8 @@ void generatePublicExtension(StringBuffer buffer, Config config) {
 $alignment  external $typedListType asTypedList(int length);
 """;
 
-  buffer.write("""
+  if (container == "Pointer") {
+    buffer.write("""
 /// Extension on [Pointer] specialized for the type argument [$nativeType].
 extension ${nativeType}Pointer on Pointer<$nativeType> {
   /// The $property at [address].
@@ -188,9 +191,21 @@ $asTypedList
 }
 
 """);
+  } else {
+    buffer.write("""
+/// Bounds checking indexing methods on [Array]s of [$nativeType].
+extension ${nativeType}Array on Array<$nativeType> {
+  external $dartType operator [](int index);
+
+  external void operator []=(int index, $dartType value);
 }
 
-void generatePatchExtension(StringBuffer buffer, Config config) {
+""");
+  }
+}
+
+void generatePatchExtension(
+    StringBuffer buffer, Config config, String container) {
   final nativeType = config.nativeType;
   final dartType = config.dartType;
   final typedListType = config.typedListType;
@@ -206,7 +221,8 @@ void generatePatchExtension(StringBuffer buffer, Config config) {
   $typedListType asTypedList(int elements) => _asExternalTypedData(this, elements);
 """;
 
-  buffer.write("""
+  if (container == "Pointer") {
+    buffer.write("""
 extension ${nativeType}Pointer on Pointer<$nativeType> {
  @patch
   $dartType get value => _load$nativeType(this, 0);
@@ -224,6 +240,24 @@ $asTypedList
 }
 
 """);
+  } else {
+    buffer.write("""
+extension ${nativeType}Array on Array<$nativeType> {
+  @patch
+  $dartType operator [](int index) {
+    _checkIndex(index);
+    return _load$nativeType(_typedDataBase, ${sizeTimes}index);
+  }
+
+  @patch
+  operator []=(int index, $dartType value) {
+    _checkIndex(index);
+    return _store$nativeType(_typedDataBase, ${sizeTimes}index, value);
+  }
+}
+
+""");
+  }
 }
 
 void generateFooter(StringBuffer buffer) {

@@ -22,12 +22,12 @@ class FromEnvironmentEvaluator {
   /// parsed as a boolean, return the default value from [namedValues]. If no
   /// default value, return the default value of the default value from
   /// the [constructor], possibly a [DartObject] representing 'null'.
-  DartObject getBool2(
-    String name,
+  DartObjectImpl getBool2(
+    String? name,
     Map<String, DartObjectImpl> namedValues,
     ConstructorElement constructor,
   ) {
-    var str = _declaredVariables.get(name);
+    var str = name != null ? _declaredVariables.get(name) : null;
     if (str == 'true') {
       return DartObjectImpl(
         _typeSystem,
@@ -44,7 +44,7 @@ class FromEnvironmentEvaluator {
     }
 
     if (namedValues.containsKey(_defaultValue)) {
-      return namedValues[_defaultValue];
+      return namedValues[_defaultValue]!;
     }
 
     return _defaultValueDefaultValue(constructor);
@@ -55,12 +55,12 @@ class FromEnvironmentEvaluator {
   /// parsed as an integer, return the default value from [namedValues]. If no
   /// default value, return the default value of the default value from
   /// the [constructor], possibly a [DartObject] representing 'null'.
-  DartObject getInt2(
-    String name,
+  DartObjectImpl getInt2(
+    String? name,
     Map<String, DartObjectImpl> namedValues,
     ConstructorElement constructor,
   ) {
-    var str = _declaredVariables.get(name);
+    var str = name != null ? _declaredVariables.get(name) : null;
     if (str != null) {
       try {
         var value = int.parse(str);
@@ -75,7 +75,7 @@ class FromEnvironmentEvaluator {
     }
 
     if (namedValues.containsKey(_defaultValue)) {
-      return namedValues[_defaultValue];
+      return namedValues[_defaultValue]!;
     }
 
     var defaultDefault = _defaultValueDefaultValue(constructor);
@@ -97,12 +97,12 @@ class FromEnvironmentEvaluator {
   /// parsed as a boolean, return the default value from [namedValues]. If no
   /// default value, return the default value of the default value from
   /// the [constructor], possibly a [DartObject] representing 'null'.
-  DartObject getString2(
-    String name,
+  DartObjectImpl getString2(
+    String? name,
     Map<String, DartObjectImpl> namedValues,
     ConstructorElement constructor,
   ) {
-    String str = _declaredVariables.get(name);
+    var str = name != null ? _declaredVariables.get(name) : null;
     if (str != null) {
       return DartObjectImpl(
         _typeSystem,
@@ -112,7 +112,7 @@ class FromEnvironmentEvaluator {
     }
 
     if (namedValues.containsKey(_defaultValue)) {
-      return namedValues[_defaultValue];
+      return namedValues[_defaultValue]!;
     }
 
     var defaultDefault = _defaultValueDefaultValue(constructor);
@@ -129,8 +129,8 @@ class FromEnvironmentEvaluator {
     return defaultDefault;
   }
 
-  DartObject hasEnvironment(String name) {
-    var value = _declaredVariables.get(name) != null;
+  DartObjectImpl hasEnvironment(String? name) {
+    var value = name != null && _declaredVariables.get(name) != null;
     return DartObjectImpl(
       _typeSystem,
       _typeSystem.typeProvider.boolType,
@@ -138,9 +138,10 @@ class FromEnvironmentEvaluator {
     );
   }
 
-  static DartObject _defaultValueDefaultValue(ConstructorElement constructor) {
+  static DartObjectImpl _defaultValueDefaultValue(
+      ConstructorElement constructor) {
     return constructor.parameters
         .singleWhere((parameter) => parameter.name == _defaultValue)
-        .computeConstantValue();
+        .computeConstantValue() as DartObjectImpl;
   }
 }

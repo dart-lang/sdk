@@ -6,7 +6,7 @@
 
 library fasta.scope;
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
 import 'builder/builder.dart';
@@ -17,6 +17,7 @@ import 'builder/name_iterator.dart';
 import 'builder/type_variable_builder.dart';
 import 'kernel/body_builder.dart' show JumpTarget;
 import 'kernel/class_hierarchy_builder.dart' show ClassMember;
+import 'util/helpers.dart' show DelayedActionPerformer;
 
 import 'fasta_codes.dart'
     show
@@ -354,6 +355,9 @@ class Scope extends MutableScope {
       return new AmbiguousBuilder(name.isEmpty ? classNameOrDebugName : name,
           builder, charOffset, fileUri);
     } else if (!isInstanceScope && builder.isDeclarationInstanceMember) {
+      return null;
+    } else if (builder is MemberBuilder && builder.isConflictingSetter) {
+      // TODO(johnniwinther): Use a variant of [AmbiguousBuilder] for this case.
       return null;
     } else {
       return builder;
@@ -779,6 +783,9 @@ mixin ErroneousMemberBuilderMixin implements MemberBuilder {
   bool get isAbstract => false;
 
   @override
+  bool get isConflictingSetter => false;
+
+  @override
   void set parent(Builder value) {
     throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
   }
@@ -793,7 +800,8 @@ mixin ErroneousMemberBuilderMixin implements MemberBuilder {
   ProcedureKind get kind => null;
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
     throw new UnsupportedError(
         'AmbiguousMemberBuilder.buildOutlineExpressions');
   }

@@ -18,7 +18,7 @@ class InvalidUseOfCovariantInExtensionTest extends PubPackageResolutionTest {
   test_optional_named() async {
     await assertErrorsInCode('''
 extension E on String {
-  void foo({covariant int a}) {}
+  void foo({covariant int a = 0}) {}
 }
 ''', [
       error(ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION, 36, 9),
@@ -28,7 +28,7 @@ extension E on String {
   test_optional_positional() async {
     await assertErrorsInCode('''
 extension E on String {
-  void foo([covariant int a]) {}
+  void foo([covariant int a = 0]) {}
 }
 ''', [
       error(ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION, 36, 9),

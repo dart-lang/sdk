@@ -14,6 +14,9 @@ class RemoveOperator extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_OPERATOR;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_OPERATOR_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     if (node is BinaryExpression) {
       var expression = node as BinaryExpression;

@@ -12,6 +12,9 @@ class AddRequired extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_REQUIRED;
 
   @override
+  FixKind get multiFixKind => DartFixKind.ADD_REQUIRED_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(node.parent.offset, '@required ');

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:meta/meta.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -32,7 +31,7 @@ main() {
 @reflectiveTest
 class DeprecatedMemberUse_BasicWorkspace_WithNullSafetyTest
     extends PubPackageResolutionTest
-    with WithNullSafetyMixin, DeprecatedMemberUse_BasicWorkspaceTestCases {
+    with DeprecatedMemberUse_BasicWorkspaceTestCases {
   test_instanceCreation_namedParameter_fromLegacy() async {
     newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
 class A {
@@ -110,7 +109,7 @@ class B extends A {
 
 @reflectiveTest
 class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest
-    with DeprecatedMemberUse_BasicWorkspaceTestCases {}
+    with WithoutNullSafetyMixin, DeprecatedMemberUse_BasicWorkspaceTestCases {}
 
 mixin DeprecatedMemberUse_BasicWorkspaceTestCases on PubPackageResolutionTest {
   @override
@@ -344,10 +343,10 @@ class DeprecatedMemberUse_GnWorkspaceTest extends ContextResolutionTest {
   }
 
   test_differentPackage() async {
-    newFile('$workspaceRootPath/my/pubspec.yaml');
+    newPubspecYamlFile('$workspaceRootPath/my', '');
     newFile('$workspaceRootPath/my/BUILD.gn');
 
-    newFile('$workspaceRootPath/aaa/pubspec.yaml');
+    newPubspecYamlFile('$workspaceRootPath/aaa', '');
     newFile('$workspaceRootPath/aaa/BUILD.gn');
 
     _writeWorkspacePackagesFile({
@@ -370,7 +369,7 @@ void f(A a) {}
   }
 
   test_samePackage() async {
-    newFile('$workspaceRootPath/my/pubspec.yaml');
+    newPubspecYamlFile('$workspaceRootPath/my', '');
     newFile('$workspaceRootPath/my/BUILD.gn');
 
     _writeWorkspacePackagesFile({
@@ -423,7 +422,7 @@ class DeprecatedMemberUse_PackageBuildWorkspaceTest
         ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
     );
 
-    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    newPubspecYamlFile(testPackageRootPath, 'name: test');
     _newTestPackageGeneratedFile(
       packageName: 'aaa',
       pathInLib: 'a.dart',
@@ -453,7 +452,7 @@ void f(A a) {}
 class A {}
 ''');
 
-    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    newPubspecYamlFile(testPackageRootPath, 'name: test');
     _createTestPackageBuildMarker();
 
     await assertErrorsInCode(r'''
@@ -468,7 +467,7 @@ void f(A a) {}
 
 @reflectiveTest
 class DeprecatedMemberUseFromSamePackage_BasicWorkspaceTest
-    extends PubPackageResolutionTest {
+    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   test_assignmentExpression_compound_deprecatedGetter() async {
     await assertErrorsInCode(r'''
 @deprecated
@@ -1467,7 +1466,7 @@ void f(A a) {}
 class DeprecatedMemberUseFromSamePackage_PackageBuildWorkspaceTest
     extends _PackageBuildWorkspaceBase {
   test_generated() async {
-    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    newPubspecYamlFile(testPackageRootPath, 'name: test');
 
     _newTestPackageGeneratedFile(
       packageName: 'test',
@@ -1488,7 +1487,7 @@ void f(A a) {}
   }
 
   test_lib() async {
-    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    newPubspecYamlFile(testPackageRootPath, 'name: test');
     _createTestPackageBuildMarker();
 
     newFile('$testPackageLibPath/a.dart', content: r'''
@@ -1522,9 +1521,9 @@ class _PackageBuildWorkspaceBase extends PubPackageResolutionTest {
   }
 
   void _newTestPackageGeneratedFile({
-    @required String packageName,
-    @required String pathInLib,
-    @required String content,
+    required String packageName,
+    required String pathInLib,
+    required String content,
   }) {
     newFile(
       '$testPackageGeneratedPath/$packageName/lib/$pathInLib',

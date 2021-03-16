@@ -11,11 +11,9 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:path/path.dart' as pathos;
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
@@ -89,28 +87,6 @@ abstract class AnalysisContext {
 /// The entry point for the functionality provided by the analysis engine. There
 /// is a single instance of this class.
 class AnalysisEngine {
-  /// The suffix used for Dart source files.
-  static const String SUFFIX_DART = "dart";
-
-  /// The short suffix used for HTML files.
-  static const String SUFFIX_HTM = "htm";
-
-  /// The long suffix used for HTML files.
-  static const String SUFFIX_HTML = "html";
-
-  /// The file name used for analysis options files.
-  static const String ANALYSIS_OPTIONS_YAML_FILE = 'analysis_options.yaml';
-
-  /// The file name used for the files containing the data for the data-driven
-  /// fixes.
-  static const String FIX_DATA_FILE = 'fix_data.yaml';
-
-  /// The file name used for pubspec files.
-  static const String PUBSPEC_YAML_FILE = 'pubspec.yaml';
-
-  /// The file name used for Android manifest files.
-  static const String ANDROID_MANIFEST_FILE = 'AndroidManifest.xml';
-
   /// The unique instance of this class.
   static final AnalysisEngine instance = AnalysisEngine._();
 
@@ -126,7 +102,7 @@ class AnalysisEngine {
 
   /// Set the instrumentation service that is to be used by this analysis engine
   /// to the given [service].
-  set instrumentationService(InstrumentationService service) {
+  set instrumentationService(InstrumentationService? service) {
     if (service == null) {
       _instrumentationService = InstrumentationService.NULL_SERVICE;
     } else {
@@ -139,40 +115,6 @@ class AnalysisEngine {
   void clearCaches() {
     // See https://github.com/dart-lang/sdk/issues/30314.
     StringToken.canonicalizer.clear();
-  }
-
-  /// A utility method that clients can use to process all of the required
-  /// plugins. This method can only be used by clients that do not need to
-  /// process any other plugins.
-  @deprecated
-  void processRequiredPlugins() {}
-
-  /// Return `true` if the given [fileName] is an analysis options file.
-  static bool isAnalysisOptionsFileName(String fileName,
-      [pathos.Context context]) {
-    if (fileName == null) {
-      return false;
-    }
-    String basename = (context ?? pathos.posix).basename(fileName);
-    return basename == ANALYSIS_OPTIONS_YAML_FILE;
-  }
-
-  /// Return `true` if the given [fileName] is assumed to contain Dart source
-  /// code.
-  static bool isDartFileName(String fileName) {
-    if (fileName == null) {
-      return false;
-    }
-    String extension = FileNameUtilities.getExtension(fileName).toLowerCase();
-    return extension == SUFFIX_DART;
-  }
-
-  /// Return `true` if the given [fileName] is AndroidManifest.xml
-  static bool isManifestFileName(String fileName) {
-    if (fileName == null) {
-      return false;
-    }
-    return fileName.endsWith(AnalysisEngine.ANDROID_MANIFEST_FILE);
   }
 }
 
@@ -242,7 +184,7 @@ abstract class AnalysisOptions {
 
   /// The version range for the SDK specified in `pubspec.yaml`, or `null` if
   /// there is no `pubspec.yaml` or if it does not contain an SDK range.
-  VersionConstraint get sdkVersionConstraint;
+  VersionConstraint? get sdkVersionConstraint;
 
   /// Return the opaque signature of the options.
   ///
@@ -278,16 +220,16 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static const int signatureLength = 4;
 
   /// The cached [unlinkedSignature].
-  Uint32List _unlinkedSignature;
+  Uint32List? _unlinkedSignature;
 
   /// The cached [signature].
-  Uint32List _signature;
+  Uint32List? _signature;
 
   /// The cached [signatureForElements].
-  Uint32List _signatureForElements;
+  Uint32List? _signatureForElements;
 
   @override
-  VersionConstraint sdkVersionConstraint;
+  VersionConstraint? sdkVersionConstraint;
 
   ExperimentStatus _contextFeatures = ExperimentStatus();
 
@@ -312,10 +254,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// A list of error processors that are to be used when reporting errors in
   /// some analysis context.
-  List<ErrorProcessor> _errorProcessors;
+  List<ErrorProcessor>? _errorProcessors;
 
   /// A list of exclude patterns used to exclude some sources from analysis.
-  List<String> _excludePatterns;
+  List<String>? _excludePatterns;
 
   @override
   bool hint = true;
@@ -325,7 +267,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// The lint rules that are to be run in an analysis context if [lint] returns
   /// `true`.
-  List<Linter> _lintRules;
+  List<Linter>? _lintRules;
 
   @override
   bool useFastaParser = true;
@@ -477,7 +419,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       List<int> bytes = buffer.toByteList();
       _signature = Uint8List.fromList(bytes).buffer.asUint32List();
     }
-    return _signature;
+    return _signature!;
   }
 
   Uint32List get signatureForElements {
@@ -494,7 +436,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       List<int> bytes = buffer.toByteList();
       _signatureForElements = Uint8List.fromList(bytes).buffer.asUint32List();
     }
-    return _signatureForElements;
+    return _signatureForElements!;
   }
 
   /// Return the opaque signature of the options that affect unlinked data.
@@ -521,7 +463,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       List<int> bytes = buffer.toByteList();
       _unlinkedSignature = Uint8List.fromList(bytes).buffer.asUint32List();
     }
-    return _unlinkedSignature;
+    return _unlinkedSignature!;
   }
 
   @override

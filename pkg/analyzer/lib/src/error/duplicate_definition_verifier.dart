@@ -26,8 +26,8 @@ class DuplicateDefinitionVerifier {
 
   /// Check that the exception and stack trace parameters have different names.
   void checkCatchClause(CatchClause node) {
-    SimpleIdentifier exceptionParameter = node.exceptionParameter;
-    SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
+    var exceptionParameter = node.exceptionParameter;
+    var stackTraceParameter = node.stackTraceParameter;
     if (exceptionParameter != null && stackTraceParameter != null) {
       String exceptionName = exceptionParameter.name;
       if (exceptionName == stackTraceParameter.name) {
@@ -40,15 +40,15 @@ class DuplicateDefinitionVerifier {
   }
 
   void checkClass(ClassDeclaration node) {
-    _checkClassMembers(node.declaredElement, node.members);
+    _checkClassMembers(node.declaredElement!, node.members);
   }
 
   /// Check that there are no members with the same name.
   void checkEnum(EnumDeclaration node) {
-    ClassElement element = node.declaredElement;
+    ClassElement element = node.declaredElement!;
 
     Map<String, Element> staticGetters = {
-      'values': element.getGetter('values')
+      'values': element.getGetter('values')!
     };
 
     for (EnumConstantDeclaration constant in node.constants) {
@@ -112,7 +112,7 @@ class DuplicateDefinitionVerifier {
               _errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
                 identifier,
-                [node.declaredElement.name, name],
+                [node.declaredElement!.name, name],
               );
             }
           }
@@ -126,7 +126,7 @@ class DuplicateDefinitionVerifier {
             _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
               identifier,
-              [node.declaredElement.name, name],
+              [node.declaredElement!.name, name],
             );
           }
         }
@@ -144,14 +144,14 @@ class DuplicateDefinitionVerifier {
   }
 
   void checkMixin(MixinDeclaration node) {
-    _checkClassMembers(node.declaredElement, node.members);
+    _checkClassMembers(node.declaredElement!, node.members);
   }
 
   /// Check that all of the parameters have unique names.
   void checkParameters(FormalParameterList node) {
     Map<String, Element> definedNames = HashMap<String, Element>();
     for (FormalParameter parameter in node.parameters) {
-      SimpleIdentifier identifier = parameter.identifier;
+      var identifier = parameter.identifier;
       if (identifier != null) {
         // The identifier can be null if this is a parameter list for a generic
         // function type.
@@ -217,12 +217,12 @@ class DuplicateDefinitionVerifier {
     }
 
     for (ImportElement importElement in _currentLibrary.imports) {
-      PrefixElement prefix = importElement.prefix;
+      var prefix = importElement.prefix;
       if (prefix != null) {
         definedGetters[prefix.name] = prefix;
       }
     }
-    CompilationUnitElement element = node.declaredElement;
+    CompilationUnitElement element = node.declaredElement!;
     if (element != _currentLibrary.definingCompilationUnit) {
       addWithoutChecking(_currentLibrary.definingCompilationUnit);
       for (CompilationUnitElement part in _currentLibrary.parts) {
@@ -293,20 +293,21 @@ class DuplicateDefinitionVerifier {
     // Check for local static members conflicting with local instance members.
     for (ClassMember member in members) {
       if (member is ConstructorDeclaration) {
-        if (member.name != null) {
-          String name = member.name.name;
+        var nameNode = member.name;
+        if (nameNode != null) {
+          String name = nameNode.name;
           var staticMember = staticGetters[name] ?? staticSetters[name];
           if (staticMember != null) {
             if (staticMember is PropertyAccessorElement) {
               _errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
-                member.name,
+                nameNode,
                 [name],
               );
             } else {
               _errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
-                member.name,
+                nameNode,
                 [name],
               );
             }
@@ -333,7 +334,7 @@ class DuplicateDefinitionVerifier {
           String name = identifier.name;
           if (instanceGetters.containsKey(name) ||
               instanceSetters.containsKey(name)) {
-            String className = identifier.staticElement.enclosingElement.name;
+            String className = element.name;
             _errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
                 identifier,
@@ -349,11 +350,11 @@ class DuplicateDefinitionVerifier {
   /// error if it is.
   void _checkDuplicateIdentifier(
       Map<String, Element> getterScope, SimpleIdentifier identifier,
-      {Element element, Map<String, Element> setterScope}) {
+      {Element? element, Map<String, Element>? setterScope}) {
     if (identifier.isSynthetic) {
       return;
     }
-    element ??= identifier.staticElement;
+    element ??= identifier.staticElement!;
 
     // Fields define getters and setters, so check them separately.
     if (element is PropertyInducingElement) {
@@ -381,14 +382,14 @@ class DuplicateDefinitionVerifier {
       name = element.name;
     }
 
-    Element previous = getterScope[name];
+    var previous = getterScope[name];
     if (previous != null) {
       if (_isGetterSetterPair(element, previous)) {
         // OK
       } else if (element is FieldFormalParameterElement &&
           previous is FieldFormalParameterElement &&
           element.field != null &&
-          element.field.isFinal) {
+          element.field!.isFinal) {
         // Reported as CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES.
       } else {
         _errorReporter.reportErrorForNode(
@@ -401,16 +402,18 @@ class DuplicateDefinitionVerifier {
       getterScope[name] = element;
     }
 
-    if (element is PropertyAccessorElement && element.isSetter) {
-      previous = setterScope[name];
-      if (previous != null) {
-        _errorReporter.reportErrorForNode(
-          getError(previous, element),
-          identifier,
-          [name],
-        );
-      } else {
-        setterScope[name] = element;
+    if (setterScope != null) {
+      if (element is PropertyAccessorElement && element.isSetter) {
+        previous = setterScope[name];
+        if (previous != null) {
+          _errorReporter.reportErrorForNode(
+            getError(previous, element),
+            identifier,
+            [name],
+          );
+        } else {
+          setterScope[name] = element;
+        }
       }
     }
   }

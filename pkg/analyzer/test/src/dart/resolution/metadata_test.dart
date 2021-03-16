@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,7 +20,8 @@ main() {
 }
 
 @reflectiveTest
-class MetadataResolutionTest extends PubPackageResolutionTest {
+class MetadataResolutionTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_genericClass_instanceGetter() async {
     await resolveTestCode(r'''
 class A<T> {
@@ -195,11 +195,11 @@ import 'b.dart';
 B b;
 ''');
 
-    var classB = findNode.typeName('B b;').name.staticElement;
+    var classB = findNode.typeName('B b;').name.staticElement!;
     var annotation = classB.metadata.single;
-    var value = annotation.computeConstantValue();
+    var value = annotation.computeConstantValue()!;
     assertType(value.type, 'A');
-    expect(value.getField('f').toIntValue(), 42);
+    expect(value.getField('f')!.toIntValue(), 42);
   }
 
   test_otherLibrary_constructor_unnamed() async {
@@ -223,11 +223,11 @@ import 'b.dart';
 B b;
 ''');
 
-    var classB = findNode.typeName('B b;').name.staticElement;
+    var classB = findNode.typeName('B b;').name.staticElement!;
     var annotation = classB.metadata.single;
-    var value = annotation.computeConstantValue();
+    var value = annotation.computeConstantValue()!;
     assertType(value.type, 'A');
-    expect(value.getField('f').toIntValue(), 42);
+    expect(value.getField('f')!.toIntValue(), 42);
   }
 
   test_otherLibrary_implicitConst() async {
@@ -252,11 +252,11 @@ import 'a.dart';
 C c;
 ''');
 
-    var classC = findNode.typeName('C c;').name.staticElement;
+    var classC = findNode.typeName('C c;').name.staticElement!;
     var annotation = classC.metadata.single;
-    var value = annotation.computeConstantValue();
+    var value = annotation.computeConstantValue()!;
     assertType(value.type, 'B');
-    expect(value.getField('a').getField('f').toIntValue(), 42);
+    expect(value.getField('a')!.getField('f')!.toIntValue(), 42);
   }
 
   @FailingTest(reason: 'Reverted because of dartbug.com/38565')
@@ -271,9 +271,9 @@ class A<T> {
 class B {}
 ''');
     var annotation = findElement.class_('B').metadata.single;
-    var value = annotation.computeConstantValue();
+    var value = annotation.computeConstantValue()!;
     assertType(value.type, 'A<int>');
-    expect(value.getField('f').toIntValue(), 42);
+    expect(value.getField('f')!.toIntValue(), 42);
   }
 
   void _assertResolvedNodeText(AstNode node, String expected) {
@@ -295,8 +295,7 @@ class B {}
 }
 
 @reflectiveTest
-class MetadataResolutionWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class MetadataResolutionWithNullSafetyTest extends PubPackageResolutionTest {
   ImportFindElement get import_a {
     return findElement.importFind('package:test/a.dart');
   }
@@ -356,7 +355,7 @@ void f() {}
     );
 
     _assertConstantValue(
-      findElement.function('f').metadata[0].computeConstantValue(),
+      findElement.function('f').metadata[0].computeConstantValue()!,
       type: 'A*',
       fieldMap: {'a': 42},
     );
@@ -390,7 +389,7 @@ void f() {}
     );
 
     _assertConstantValue(
-      findElement.function('f').metadata[0].computeConstantValue(),
+      findElement.function('f').metadata[0].computeConstantValue()!,
       type: 'A*',
       fieldMap: {'a': 42},
     );
@@ -550,9 +549,9 @@ void f() {}
 
   void _assertConstantValue(
     DartObject object, {
-    @required String type,
-    Map<String, Object> fieldMap,
-    int intValue,
+    required String type,
+    Map<String, Object>? fieldMap,
+    int? intValue,
   }) {
     assertType(object.type, type);
     if (fieldMap != null) {
@@ -560,7 +559,7 @@ void f() {}
         var actual = object.getField(entry.key);
         var expected = entry.value;
         if (expected is int) {
-          expect(actual.toIntValue(), expected);
+          expect(actual!.toIntValue(), expected);
         } else {
           fail('Unsupported expected type: ${expected.runtimeType} $expected');
         }
@@ -574,7 +573,7 @@ void f() {}
 
   void _assertIntValue(ElementAnnotation annotation, int intValue) {
     _assertConstantValue(
-      annotation.computeConstantValue(),
+      annotation.computeConstantValue()!,
       type: 'int',
       intValue: intValue,
     );

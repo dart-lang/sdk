@@ -502,8 +502,17 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
       Label length, smi_case;
 
       // The user-controlled index might not fit into a Smi.
+#if !defined(DART_COMPRESSED_POINTERS)
       __ addq(RangeErrorABI::kIndexReg, RangeErrorABI::kIndexReg);
       __ BranchIf(NO_OVERFLOW, &length);
+#else
+      __ movq(TMP, RangeErrorABI::kIndexReg);
+      __ SmiTag(RangeErrorABI::kIndexReg);
+      __ sarq(TMP, Immediate(30));
+      __ addq(TMP, Immediate(1));
+      __ cmpq(TMP, Immediate(2));
+      __ j(BELOW, &length);
+#endif
       {
         // Allocate a mint, reload the two registers and popualte the mint.
         __ PushImmediate(Immediate(0));
@@ -1051,17 +1060,15 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // RoundedAllocationSize(
     //     (array_length * target::kwordSize) + target::Array::header_size()).
     __ movq(RDI, R10);  // Array Length.
-    // Check that length is a positive Smi.
+    // Check that length is Smi.
     __ testq(RDI, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, &slow_case);
 
-    __ cmpq(RDI, Immediate(0));
-    __ j(LESS, &slow_case);
-    // Check for maximum allowed length.
+    // Check length >= 0 && length <= kMaxNewSpaceElements
     const Immediate& max_len =
         Immediate(target::ToRawSmi(target::Array::kMaxNewSpaceElements));
     __ cmpq(RDI, max_len);
-    __ j(GREATER, &slow_case);
+    __ j(ABOVE, &slow_case);
 
     // Check for allocation tracing.
     NOT_IN_PRODUCT(
@@ -2099,8 +2106,14 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ j(NOT_ZERO, not_smi_or_overflow);
   switch (kind) {
     case Token::kADD: {
+#if !defined(DART_COMPRESSED_POINTERS)
       __ addq(RAX, RCX);
       __ j(OVERFLOW, not_smi_or_overflow);
+#else
+      __ addl(RAX, RCX);
+      __ j(OVERFLOW, not_smi_or_overflow);
+      __ movsxd(RAX, RAX);
+#endif
       break;
     }
     case Token::kLT: {
@@ -3365,15 +3378,6 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ jmp(RCX);
 }
 
-void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
-    Assembler* assembler) {
-  __ int3();
-}
-
-void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
-  __ int3();
-}
-
 void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ CallRuntime(kNotLoadedRuntimeEntry, 0);
@@ -3523,13 +3527,11 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   /* RDI: requested array length argument. */
   __ testq(RDI, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &call_runtime);
-  __ cmpq(RDI, Immediate(0));
-  __ j(LESS, &call_runtime);
   __ SmiUntag(RDI);
-  /* Check for maximum allowed length. */
+  /* Check for length >= 0 && length <= max_len. */
   /* RDI: untagged array length. */
   __ cmpq(RDI, Immediate(max_len));
-  __ j(GREATER, &call_runtime);
+  __ j(ABOVE, &call_runtime);
   /* Special case for scaling by 16. */
   if (scale_factor == TIMES_16) {
     /* double length of array. */

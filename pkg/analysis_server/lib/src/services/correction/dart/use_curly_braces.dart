@@ -19,6 +19,9 @@ class UseCurlyBraces extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_CURLY_BRACES;
 
   @override
+  FixKind get multiFixKind => DartFixKind.ADD_CURLY_BRACES_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var statement = node.thisOrAncestorOfType<Statement>();
     var parent = statement?.parent;

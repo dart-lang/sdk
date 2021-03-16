@@ -32,7 +32,10 @@ abstract class SimpleWorkspace extends Workspace {
       PackageMapUriResolver(provider, packageMap);
 
   @override
-  SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {
+  SourceFactory createSourceFactory(
+    DartSdk? sdk,
+    SummaryDataStore? summaryData,
+  ) {
     if (summaryData != null) {
       throw UnsupportedError(
           'Summary files are not supported in a Pub workspace.');

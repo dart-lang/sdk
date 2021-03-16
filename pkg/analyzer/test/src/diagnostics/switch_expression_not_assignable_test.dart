@@ -14,7 +14,8 @@ main() {
 }
 
 @reflectiveTest
-class SwitchExpressionNotAssignableTest extends PubPackageResolutionTest {
+class SwitchExpressionNotAssignableTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_simple() async {
     await assertErrorsInCode('''
 f(int p) {

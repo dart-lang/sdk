@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentToTypeTest extends PubPackageResolutionTest
-    with WithNonFunctionTypeAliasesMixin {
+class AssignmentToTypeTest extends PubPackageResolutionTest {
   test_class() async {
     await assertErrorsInCode('''
 class C {}

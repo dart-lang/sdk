@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class FunctionExpressionInvocationTest extends PubPackageResolutionTest {
+class FunctionExpressionInvocationTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_dynamic_withoutTypeArguments() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -51,7 +52,7 @@ main() {
 
 @reflectiveTest
 class FunctionExpressionInvocationWithNullSafetyTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_call_infer_fromArguments() async {
     await assertNoErrorsInCode(r'''
 class A {

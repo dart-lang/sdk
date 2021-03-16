@@ -253,10 +253,7 @@ class DillClassMember extends BuilderClassMember {
   @override
   bool get isSynthesized {
     Member member = memberBuilder.member;
-    return member is Procedure &&
-        // TODO(johnniwinther): Should this just be `member.isSynthesized`?
-        (member.isMemberSignature ||
-            (member.isForwardingStub && !member.isForwardingSemiStub));
+    return member is Procedure && member.isSynthetic;
   }
 
   @override

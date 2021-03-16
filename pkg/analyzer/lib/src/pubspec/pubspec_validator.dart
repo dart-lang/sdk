@@ -8,6 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/src/span.dart';
@@ -84,7 +85,7 @@ class PubspecValidator {
       return true;
     }
     String fileName = assetFile.shortName;
-    Folder assetFolder = assetFile.parent;
+    Folder assetFolder = assetFile.parent2;
     if (!assetFolder.exists) {
       return false;
     }
@@ -99,7 +100,7 @@ class PubspecValidator {
     return false;
   }
 
-  String _asString(dynamic node) {
+  String? _asString(dynamic node) {
     if (node is String) {
       return node;
     }
@@ -114,7 +115,7 @@ class PubspecValidator {
   /// from the given [contents] using the given [key].
   Map<dynamic, YamlNode> _getDeclaredDependencies(
       ErrorReporter reporter, Map<dynamic, YamlNode> contents, String key) {
-    YamlNode field = contents[key];
+    var field = contents[key];
     if (field == null || (field is YamlScalar && field.value == null)) {
       return <String, YamlNode>{};
     } else if (field is YamlMap) {
@@ -128,7 +129,7 @@ class PubspecValidator {
   /// Report an error for the given node.
   void _reportErrorForNode(
       ErrorReporter reporter, YamlNode node, ErrorCode errorCode,
-      [List<Object> arguments]) {
+      [List<Object>? arguments]) {
     SourceSpan span = node.span;
     reporter.reportErrorForOffset(
         errorCode, span.start.offset, span.length, arguments);
@@ -168,9 +169,9 @@ class PubspecValidator {
   /// Validate the value of the optional `flutter` field.
   void _validateFlutter(
       ErrorReporter reporter, Map<dynamic, YamlNode> contents) {
-    YamlNode flutterField = contents[FLUTTER_FIELD];
+    var flutterField = contents[FLUTTER_FIELD];
     if (flutterField is YamlMap) {
-      YamlNode assetsField = flutterField.nodes[ASSETS_FIELD];
+      var assetsField = flutterField.nodes[ASSETS_FIELD];
       if (assetsField is YamlList) {
         path.Context context = provider.pathContext;
         String packageRoot = context.dirname(source.fullName);
@@ -224,7 +225,7 @@ class PubspecValidator {
 
   /// Validate the value of the required `name` field.
   void _validateName(ErrorReporter reporter, Map<dynamic, YamlNode> contents) {
-    YamlNode nameField = contents[NAME_FIELD];
+    var nameField = contents[NAME_FIELD];
     if (nameField == null) {
       reporter.reportErrorForOffset(PubspecWarningCode.MISSING_NAME, 0, 0);
     } else if (nameField is! YamlScalar || nameField.value is! String) {
@@ -247,8 +248,8 @@ class PubspecValidator {
     if (dependency is YamlMap) {
       var pathEntry = _asString(dependency[PATH_FIELD]);
       if (pathEntry != null) {
-        YamlNode pathKey() => getKey(dependency, PATH_FIELD);
-        YamlNode pathValue() => getValue(dependency, PATH_FIELD);
+        YamlNode pathKey() => getKey(dependency, PATH_FIELD)!;
+        YamlNode pathValue() => getValue(dependency, PATH_FIELD)!;
 
         if (pathEntry.contains(r'\')) {
           _reportErrorForNode(reporter, pathValue(),
@@ -266,9 +267,7 @@ class PubspecValidator {
           _reportErrorForNode(reporter, pathValue(),
               PubspecWarningCode.PATH_DOES_NOT_EXIST, [pathEntry]);
         } else {
-          if (!packageFolder
-              .getChild(AnalysisEngine.PUBSPEC_YAML_FILE)
-              .exists) {
+          if (!packageFolder.getChild(file_paths.pubspecYaml).exists) {
             _reportErrorForNode(reporter, pathValue(),
                 PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST, [pathEntry]);
           }
@@ -281,7 +280,7 @@ class PubspecValidator {
 
       var gitEntry = dependency[GIT_FIELD];
       if (gitEntry != null && checkForPathAndGitDeps) {
-        _reportErrorForNode(reporter, getKey(dependency, GIT_FIELD),
+        _reportErrorForNode(reporter, getKey(dependency, GIT_FIELD)!,
             PubspecWarningCode.INVALID_DEPENDENCY, [GIT_FIELD]);
       }
     }

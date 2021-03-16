@@ -24,9 +24,6 @@ Future<void> main() async {
   final ddsUri = await testerStream.next;
   final ddsChannel = SseClient(ddsUri);
 
-  // Wait for ddsChannel to be established.
-  await ddsChannel.onOpen.first;
-
   final vmService = VmService(
     ddsChannel.stream,
     (e) => ddsChannel.sink.add(e),

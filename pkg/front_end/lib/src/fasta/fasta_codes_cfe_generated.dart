@@ -916,35 +916,6 @@ Message _withArgumentsFfiExpectedNoExceptionalReturn(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
-    templateFfiNonConstantTypeArgumentWarning = const Template<
-            Message Function(DartType _type, bool isNonNullableByDefault)>(
-        messageTemplate:
-            r"""Support for using non-constant type arguments '#type' in this FFI API is deprecated and will be removed in the next stable version of Dart. Rewrite the code to ensure that type arguments are compile time constants referring to a valid native type.""",
-        withArguments: _withArgumentsFfiNonConstantTypeArgumentWarning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
-    codeFfiNonConstantTypeArgumentWarning =
-    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
-        "FfiNonConstantTypeArgumentWarning",
-        analyzerCodes: <String>["NON_CONSTANT_TYPE_ARGUMENT_WARNING"],
-        severity: Severity.info);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiNonConstantTypeArgumentWarning(
-    DartType _type, bool isNonNullableByDefault) {
-  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(codeFfiNonConstantTypeArgumentWarning,
-      message:
-          """Support for using non-constant type arguments '${type}' in this FFI API is deprecated and will be removed in the next stable version of Dart. Rewrite the code to ensure that type arguments are compile time constants referring to a valid native type.""" +
-              labeler.originMessages,
-      arguments: {'type': _type});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType _type,
@@ -4755,6 +4726,43 @@ Message _withArgumentsThrowingNotAssignableToObjectError(
           """Can't throw a value of '${type}' since it is neither dynamic nor non-nullable.""" +
               labeler.originMessages,
       arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateUndefinedExtensionMethod = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The method '#name' isn't defined for the extension '#type'.""",
+        tipTemplate:
+            r"""Try correcting the name to the name of an existing method, or defining a method name '#name'.""",
+        withArguments: _withArgumentsUndefinedExtensionMethod);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+    Message Function(String name, DartType _type,
+        bool isNonNullableByDefault)> codeUndefinedExtensionMethod = const Code<
+    Message Function(String name, DartType _type, bool isNonNullableByDefault)>(
+  "UndefinedExtensionMethod",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUndefinedExtensionMethod(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeUndefinedExtensionMethod,
+      message:
+          """The method '${name}' isn't defined for the extension '${type}'.""" +
+              labeler.originMessages,
+      tip: """Try correcting the name to the name of an existing method, or defining a method name '${name}'.""",
+      arguments: {'name': name, 'type': _type});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

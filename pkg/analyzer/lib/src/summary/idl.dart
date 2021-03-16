@@ -39,9 +39,9 @@
 ///
 /// Except as otherwise noted, synthetic elements are not stored in the summary;
 /// they are re-synthesized at the time the summary is read.
-import 'base.dart' as base;
-import 'base.dart' show Id, TopLevel;
-import 'format.dart' as generated;
+import 'package:analyzer/src/summary/base.dart' as base;
+import 'package:analyzer/src/summary/base.dart' show Id, TopLevel;
+import 'package:analyzer/src/summary/format.dart' as generated;
 
 /// Annotation describing information which is not part of Dart semantics; in
 /// other words, if this information (or any information it refers to) changes,
@@ -97,7 +97,7 @@ abstract class AnalysisDriverResolvedUnit extends base.SummaryClass {
 
   /// The index of the unit.
   @Id(1)
-  AnalysisDriverUnitIndex get index;
+  AnalysisDriverUnitIndex? get index;
 }
 
 /// Information about a subtype of one or more classes.
@@ -284,7 +284,7 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
 
   /// Unlinked information for the unit.
   @Id(4)
-  UnlinkedUnit2 get unit2;
+  UnlinkedUnit2? get unit2;
 }
 
 /// Information about a single declaration.
@@ -402,7 +402,7 @@ abstract class AvailableFile extends base.SummaryClass {
 
   /// The Dartdoc directives in the file.
   @Id(1)
-  DirectiveInfo get directiveInfo;
+  DirectiveInfo? get directiveInfo;
 
   /// Exports directives of the file.
   @Id(2)
@@ -475,7 +475,7 @@ abstract class CiderUnlinkedUnit extends base.SummaryClass {
 
   /// Unlinked summary of the compilation unit.
   @Id(1)
-  UnlinkedUnit2 get unlinkedUnit;
+  UnlinkedUnit2? get unlinkedUnit;
 }
 
 abstract class DiagnosticMessage extends base.SummaryClass {

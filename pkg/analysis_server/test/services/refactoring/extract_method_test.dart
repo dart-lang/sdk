@@ -2334,7 +2334,7 @@ main() async {
   print(v);
 }
 
-Future res() async {
+Future<dynamic> res() async {
   var v = await getValue();
   return v;
 }
@@ -2431,7 +2431,7 @@ main() async {
 // end
 }
 
-Future res() async {
+Future<void> res() async {
   int v = await getValue();
   print(v);
 }
@@ -2812,7 +2812,7 @@ f(bool b) {
 // end
 }
 
-List res(bool b) {
+List<dynamic> res(bool b) {
   if (b) {
     print(true);
     return <int>[];

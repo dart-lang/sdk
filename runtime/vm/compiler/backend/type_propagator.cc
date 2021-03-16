@@ -48,6 +48,7 @@ void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
 FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
     : FlowGraphVisitor(flow_graph->reverse_postorder()),
       flow_graph_(flow_graph),
+      is_aot_(CompilerState::Current().is_aot()),
       visited_blocks_(new (flow_graph->zone())
                           BitVector(flow_graph->zone(),
                                     flow_graph->reverse_postorder().length())),
@@ -119,7 +120,13 @@ void FlowGraphTypePropagator::PropagateRecursive(BlockEntryInstr* block) {
 
   const intptr_t rollback_point = rollback_.length();
 
-  StrengthenAsserts(block);
+  if (!is_aot_) {
+    // Don't try to strengthen asserts with class checks in AOT mode, this is a
+    // speculative optimization which only really makes sense in JIT mode.
+    // It is also written to expect environments to be attached to
+    // AssertAssignable instructions, which is not always a case in AOT mode.
+    StrengthenAsserts(block);
+  }
 
   block->Accept(this);
 
@@ -665,7 +672,7 @@ CompileType CompileType::Int() {
 }
 
 CompileType CompileType::Int32() {
-#if defined(TARGET_ARCH_IS_64_BIT)
+#if defined(TARGET_ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
   return FromCid(kSmiCid);
 #else
   return Int();
@@ -731,7 +738,7 @@ intptr_t CompileType::ToNullableCid() {
           // Type of a private class cannot change through later loaded libs.
           cid_ = type_class.id();
         } else if (FLAG_use_cha_deopt ||
-                   thread->isolate()->all_classes_finalized()) {
+                   thread->isolate_group()->all_classes_finalized()) {
           if (FLAG_trace_cha) {
             THR_Print("  **(CHA) Compile type not subclassed: %s\n",
                       type_class.ToCString());
@@ -1096,7 +1103,7 @@ CompileType ParameterInstr::ComputeType() const {
           cid = type_class.id();
         } else {
           if (FLAG_use_cha_deopt ||
-              thread->isolate()->all_classes_finalized()) {
+              thread->isolate_group()->all_classes_finalized()) {
             if (FLAG_trace_cha) {
               THR_Print(
                   "  **(CHA) Computing exact type of receiver, "
@@ -1446,9 +1453,9 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   AbstractType* abstract_type = &AbstractType::ZoneHandle(field.type());
   TraceStrongModeType(this, *abstract_type);
   ASSERT(field.is_static());
-  const bool is_initialized = IsFieldInitialized() && !FLAG_fields_may_be_reset;
+  auto& obj = Instance::Handle();
+  const bool is_initialized = IsFieldInitialized(&obj);
   if (field.is_final() && is_initialized) {
-    const Instance& obj = Instance::Handle(field.StaticValue());
     if (!obj.IsNull()) {
       is_nullable = CompileType::kNonNullable;
       cid = obj.GetClassId();
@@ -1463,7 +1470,7 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   }
   if (field.needs_load_guard()) {
     // Should be kept in sync with Slot::Get.
-    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
+    DEBUG_ASSERT(IsolateGroup::Current()->HasAttemptedReload());
     return CompileType::Dynamic();
   }
   return CompileType(is_nullable, cid, abstract_type);

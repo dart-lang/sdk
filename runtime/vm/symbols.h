@@ -124,6 +124,8 @@ class ObjectPointerVisitor;
   V(FfiCallback, "_FfiCallback")                                               \
   V(FfiDouble, "Double")                                                       \
   V(FfiDynamicLibrary, "DynamicLibrary")                                       \
+  V(FfiElementType, "elementType")                                             \
+  V(FfiFieldTypes, "fieldTypes")                                               \
   V(FfiFloat, "Float")                                                         \
   V(FfiInt16, "Int16")                                                         \
   V(FfiInt32, "Int32")                                                         \
@@ -133,6 +135,8 @@ class ObjectPointerVisitor;
   V(FfiNativeFunction, "NativeFunction")                                       \
   V(FfiNativeType, "NativeType")                                               \
   V(FfiPointer, "Pointer")                                                     \
+  V(FfiStructLayout, "_FfiStructLayout")                                       \
+  V(FfiStructLayoutArray, "_FfiInlineArray")                                   \
   V(FfiTrampolineData, "FfiTrampolineData")                                    \
   V(FfiUint16, "Uint16")                                                       \
   V(FfiUint32, "Uint32")                                                       \
@@ -286,6 +290,7 @@ class ObjectPointerVisitor;
   V(Uint8ClampedList, "Uint8ClampedList")                                      \
   V(Uint8List, "Uint8List")                                                    \
   V(UnaryMinus, "unary-")                                                      \
+  V(UnsignedRightShiftOperator, ">>>")                                         \
   V(UnhandledException, "UnhandledException")                                  \
   V(UnlinkedCall, "UnlinkedCall")                                              \
   V(UnsafeCast, "unsafeCast")                                                  \
@@ -293,6 +298,7 @@ class ObjectPointerVisitor;
   V(UnwindError, "UnwindError")                                                \
   V(Value, "value")                                                            \
   V(Values, "values")                                                          \
+  V(WeakSerializationReference, "WeakSerializationReference")                  \
   V(YieldKw, "yield")                                                          \
   V(_AsyncAwaitStart, "start")                                                 \
   V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \
@@ -498,7 +504,8 @@ class ObjectPointerVisitor;
   V(vm_recognized, "vm:recognized")                                            \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
   V(vm_procedure_attributes_metadata, "vm.procedure-attributes.metadata")      \
-  V(vm_ffi_struct_fields, "vm:ffi:struct-fields")
+  V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
+  V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

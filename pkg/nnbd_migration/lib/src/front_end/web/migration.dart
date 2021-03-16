@@ -141,7 +141,7 @@ String get rootPath => querySelector('.root').text.trim();
 
 String get sdkVersion => document.getElementById('sdk-version').text;
 
-/*late final*/ List<NavigationTreeNode> navigationTree;
+List<NavigationTreeNode> /*?*/ navigationTree;
 
 void addArrowClickHandler(Element arrow) {
   var childList = (arrow.parentNode as Element).querySelector(':scope > ul');
@@ -797,7 +797,10 @@ void updatePage(String path, [int offset]) {
       link.classes.remove('selected-file');
     }
   });
-  var entity = navigationTree.find(path);
+  // Note: navigationTree might not be loaded yet if the user is clicking around
+  // fast, so we need to allow for the possibility that `navigationTree` might
+  // be `null`.
+  var entity = navigationTree?.find(path);
   // Update migration status for files in current migration.
   if (entity == null) {
     migrateUnitStatusIconLabel.classes.remove('visible');

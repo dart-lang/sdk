@@ -18,6 +18,7 @@
 #include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/bitmap.h"
+#include "vm/code_comments.h"
 #include "vm/code_entry_kind.h"
 #include "vm/compiler/assembler/object_pool_builder.h"
 #include "vm/compiler/method_recognizer.h"
@@ -1335,6 +1336,7 @@ class Class : public Object {
 
   bool is_implemented() const { return ImplementedBit::decode(state_bits()); }
   void set_is_implemented() const;
+  void set_is_implemented_unsafe() const;
 
   bool is_abstract() const { return AbstractBit::decode(state_bits()); }
   void set_is_abstract() const;
@@ -1347,6 +1349,7 @@ class Class : public Object {
     return class_loading_state() >= UntaggedClass::kDeclarationLoaded;
   }
   void set_is_declaration_loaded() const;
+  void set_is_declaration_loaded_unsafe() const;
 
   bool is_type_finalized() const {
     return class_loading_state() >= UntaggedClass::kTypeFinalized;
@@ -1357,6 +1360,7 @@ class Class : public Object {
     return SynthesizedClassBit::decode(state_bits());
   }
   void set_is_synthesized_class() const;
+  void set_is_synthesized_class_unsafe() const;
 
   bool is_enum_class() const { return EnumBit::decode(state_bits()); }
   void set_is_enum_class() const;
@@ -1368,6 +1372,7 @@ class Class : public Object {
                UntaggedClass::kAllocateFinalized;
   }
   void set_is_finalized() const;
+  void set_is_finalized_unsafe() const;
 
   bool is_allocate_finalized() const {
     return ClassFinalizedBits::decode(state_bits()) ==
@@ -1403,6 +1408,7 @@ class Class : public Object {
 
   bool is_allocated() const { return IsAllocatedBit::decode(state_bits()); }
   void set_is_allocated(bool value) const;
+  void set_is_allocated_unsafe(bool value) const;
 
   bool is_loaded() const { return IsLoadedBit::decode(state_bits()); }
   void set_is_loaded(bool value) const;
@@ -1671,7 +1677,10 @@ class Class : public Object {
   // Initial value for the cached number of type arguments.
   static const intptr_t kUnknownNumTypeArguments = -1;
 
-  int16_t num_type_arguments() const { return untag()->num_type_arguments_; }
+  int16_t num_type_arguments() const {
+    return LoadNonPointer<int16_t, std::memory_order_relaxed>(
+        &untag()->num_type_arguments_);
+  }
 
   uint32_t state_bits() const {
     // Ensure any following load instructions do not get performed before this
@@ -1682,6 +1691,7 @@ class Class : public Object {
 
  public:
   void set_num_type_arguments(intptr_t value) const;
+  void set_num_type_arguments_unsafe(intptr_t value) const;
 
   bool has_pragma() const { return HasPragmaBit::decode(state_bits()); }
   void set_has_pragma(bool has_pragma) const;
@@ -2553,9 +2563,6 @@ class Function : public Object {
   StringPtr ParameterNameAt(intptr_t index) const;
   ArrayPtr parameter_names() const { return untag()->parameter_names(); }
   void SetParameterNamesFrom(const FunctionType& signature) const;
-  static intptr_t parameter_names_offset() {
-    return OFFSET_OF(UntaggedFunction, parameter_names_);
-  }
 
   // The required flags are stored at the end of the parameter_names. The flags
   // are packed into SMIs, but omitted if they're 0.
@@ -2931,13 +2938,6 @@ class Function : public Object {
   // Returns the size of the source for this function.
   intptr_t SourceSize() const;
 
-  // Reexported so they can be used by the flow graph builders.
-  using PackedHasNamedOptionalParameters =
-      UntaggedFunction::PackedHasNamedOptionalParameters;
-  using PackedNumFixedParameters = UntaggedFunction::PackedNumFixedParameters;
-  using PackedNumOptionalParameters =
-      UntaggedFunction::PackedNumOptionalParameters;
-
   uint32_t packed_fields() const { return untag()->packed_fields_; }
   void set_packed_fields(uint32_t packed_fields) const;
   static intptr_t packed_fields_offset() {
@@ -2995,10 +2995,13 @@ class Function : public Object {
   static intptr_t name##_offset() {                                            \
     return OFFSET_OF(UntaggedFunction, name##_);                               \
   }                                                                            \
-  return_type name() const { return untag()->name##_; }                        \
+  return_type name() const {                                                   \
+    return LoadNonPointer<type, std::memory_order_relaxed>(&untag()->name##_); \
+  }                                                                            \
                                                                                \
   void set_##name(type value) const {                                          \
-    StoreNonPointer(&untag()->name##_, value);                                 \
+    StoreNonPointer<type, type, std::memory_order_relaxed>(&untag()->name##_,  \
+                                                           value);             \
   }
 #endif
 
@@ -3661,18 +3664,6 @@ class Function : public Object {
   }
   void set_is_optimizable(bool value) const {
     set_packed_fields(UntaggedFunction::PackedOptimizable::update(
-        value, untag()->packed_fields_));
-  }
-
-  // Indicates whether this function can be optimized on the background compiler
-  // thread.
-  bool is_background_optimizable() const {
-    return UntaggedFunction::PackedBackgroundOptimizable::decode(
-        untag()->packed_fields_);
-  }
-
-  void set_is_background_optimizable(bool value) const {
-    set_packed_fields(UntaggedFunction::PackedBackgroundOptimizable::update(
         value, untag()->packed_fields_));
   }
 
@@ -4657,12 +4648,16 @@ class Library : public Object {
   // If [only_core] is true, then the annotations on the object will only
   // be inspected if it is part of a core library.
   //
+  // If [multiple] is true, then sets [options] to an GrowableObjectArray
+  // containing all results and [options] may not be nullptr.
+  //
   // WARNING: If the isolate received an [UnwindError] this function will not
   // return and rather unwinds until the enclosing setjmp() handler.
   static bool FindPragma(Thread* T,
                          bool only_core,
                          const Object& object,
                          const String& pragma_name,
+                         bool multiple = false,
                          Object* options = nullptr);
 
   ClassPtr toplevel_class() const { return untag()->toplevel_class(); }
@@ -5792,6 +5787,13 @@ class ExceptionHandlers : public Object {
   void SetHandledTypes(intptr_t try_index, const Array& handled_types) const;
   bool HasCatchAll(intptr_t try_index) const;
 
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() {
+      return sizeof(UntaggedExceptionHandlers);
+    }
+    static constexpr intptr_t kElementSize = sizeof(ExceptionHandlerInfo);
+  };
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedExceptionHandlers) ==
            OFFSET_OF_RETURNED_VALUE(UntaggedExceptionHandlers, data));
@@ -5845,87 +5847,32 @@ class ExceptionHandlers : public Object {
 //
 // Current uses of WSRs:
 //  * Code::owner_
+//  * Canonical table elements
 class WeakSerializationReference : public Object {
  public:
   ObjectPtr target() const { return TargetOf(ptr()); }
-  static ObjectPtr TargetOf(const WeakSerializationReferencePtr raw) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    // WSRs in the precompiled runtime only contain some remaining info about
-    // their old target, not a reference to the target itself..
-    return Object::null();
-#else
-    // Outside the precompiled runtime, they should always have a target.
-    ASSERT(raw->untag()->target() != Object::null());
-    return raw->untag()->target();
-#endif
+  static ObjectPtr TargetOf(const WeakSerializationReferencePtr obj) {
+    return obj->untag()->target();
   }
 
-  classid_t TargetClassId() const { return TargetClassIdOf(ptr()); }
-  static classid_t TargetClassIdOf(const WeakSerializationReferencePtr raw) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    // No new instances of WSRs are created in the precompiled runtime, so
-    // this instance came from deserialization and thus must be the empty WSR.
-    return raw->untag()->cid_;
-#else
-    return TargetOf(raw)->GetClassId();
-#endif
-  }
-
-  static ObjectPtr Unwrap(const Object& obj) { return Unwrap(obj.ptr()); }
-  // Gets the underlying object from a WSR, or the original object if it is
-  // not one. Notably, Unwrap(Wrap(r)) == r for all raw objects r, whether
-  // CanWrap(r) or not. However, this will not hold if a serialization and
-  // deserialization step is put between the two calls.
   static ObjectPtr Unwrap(ObjectPtr obj) {
-    if (!obj->IsWeakSerializationReference()) return obj;
-    return TargetOf(static_cast<WeakSerializationReferencePtr>(obj));
-  }
-
-  // An Unwrap that only unwraps if there's a valid target, otherwise the
-  // WSR is returned. Useful for cases where we want to call Object methods
-  // like ToCString() on whatever non-null object we can get.
-  static ObjectPtr UnwrapIfTarget(const Object& obj) {
-    return UnwrapIfTarget(obj.ptr());
-  }
-  static ObjectPtr UnwrapIfTarget(ObjectPtr raw) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    // In the precompiled runtime, WSRs never have a target so we always return
-    // the argument.
-    return raw;
-#else
-    if (!raw->IsWeakSerializationReference()) return raw;
-    // Otherwise, they always do.
-    return TargetOf(WeakSerializationReference::RawCast(raw));
+#if defined(DART_PRECOMPILER)
+    if (obj->IsHeapObject() && obj->IsWeakSerializationReference()) {
+      return TargetOf(static_cast<WeakSerializationReferencePtr>(obj));
+    }
 #endif
+    return obj;
   }
-
-  static classid_t UnwrappedClassIdOf(const Object& obj) {
-    return UnwrappedClassIdOf(obj.ptr());
-  }
-  // Gets the class ID of the underlying object from a WSR, or the class ID of
-  // the object if it is not one.
-  //
-  // UnwrappedClassOf(Wrap(r)) == UnwrappedClassOf(r) for all raw objects r,
-  // whether CanWrap(r) or not. Unlike Unwrap, this is still true even if
-  // there is a serialization and deserialization step between the two calls,
-  // since that information is saved in the serialized WSR.
-  static classid_t UnwrappedClassIdOf(ObjectPtr obj) {
-    if (!obj->IsWeakSerializationReference()) return obj->GetClassId();
-    return TargetClassIdOf(WeakSerializationReference::RawCast(obj));
-  }
+  static ObjectPtr Unwrap(const Object& obj) { return Unwrap(obj.ptr()); }
+  static ObjectPtr UnwrapIfTarget(ObjectPtr obj) { return Unwrap(obj); }
+  static ObjectPtr UnwrapIfTarget(const Object& obj) { return Unwrap(obj); }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedWeakSerializationReference));
   }
 
-#if defined(DART_PRECOMPILER)
-  // Returns true if a new WSR would be created when calling Wrap.
-  static bool CanWrap(const Object& object);
-
-  // This returns ObjectPtr, not WeakSerializationReferencePtr, because
-  // target.ptr() is returned when CanWrap(target) is false.
-  static ObjectPtr Wrap(Zone* zone, const Object& target);
-#endif
+  static WeakSerializationReferencePtr New(const Object& target,
+                                           const Object& replacement);
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakSerializationReference, Object);
@@ -5999,6 +5946,12 @@ class Code : public Object {
   bool is_alive() const { return AliveBit::decode(untag()->state_bits_); }
   void set_is_alive(bool value) const;
 
+  bool is_discarded() const { return IsDiscarded(ptr()); }
+  static bool IsDiscarded(const CodePtr code) {
+    return DiscardedBit::decode(code->untag()->state_bits_);
+  }
+  void set_is_discarded(bool value) const;
+
   bool HasMonomorphicEntry() const { return HasMonomorphicEntry(ptr()); }
   static bool HasMonomorphicEntry(const CodePtr code) {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -6013,6 +5966,7 @@ class Code : public Object {
   uword PayloadStart() const { return PayloadStartOf(ptr()); }
   static uword PayloadStartOf(const CodePtr code) {
 #if defined(DART_PRECOMPILED_RUNTIME)
+    if (IsUnknownDartCode(code)) return 0;
     const uword entry_offset = HasMonomorphicEntry(code)
                                    ? Instructions::kPolymorphicEntryOffsetAOT
                                    : 0;
@@ -6058,9 +6012,10 @@ class Code : public Object {
   }
 
   // Returns the size of [instructions()].
-  intptr_t Size() const { return PayloadSizeOf(ptr()); }
-  static intptr_t PayloadSizeOf(const CodePtr code) {
+  uword Size() const { return PayloadSizeOf(ptr()); }
+  static uword PayloadSizeOf(const CodePtr code) {
 #if defined(DART_PRECOMPILED_RUNTIME)
+    if (IsUnknownDartCode(code)) return kUwordMax;
     return code->untag()->instructions_length_;
 #else
     return Instructions::Size(InstructionsOf(code));
@@ -6174,37 +6129,38 @@ class Code : public Object {
 
   void Disassemble(DisassemblyFormatter* formatter = NULL) const;
 
-  class Comments : public ZoneAllocated {
+#if defined(INCLUDE_IL_PRINTER)
+  class Comments : public ZoneAllocated, public CodeComments {
    public:
     static Comments& New(intptr_t count);
 
-    intptr_t Length() const;
+    intptr_t Length() const override;
 
     void SetPCOffsetAt(intptr_t idx, intptr_t pc_offset);
     void SetCommentAt(intptr_t idx, const String& comment);
 
-    intptr_t PCOffsetAt(intptr_t idx) const;
-    StringPtr CommentAt(intptr_t idx) const;
+    intptr_t PCOffsetAt(intptr_t idx) const override;
+    const char* CommentAt(intptr_t idx) const override;
 
    private:
     explicit Comments(const Array& comments);
 
     // Layout of entries describing comments.
-    enum {
-      kPCOffsetEntry = 0,  // PC offset to a comment as a Smi.
-      kCommentEntry,       // Comment text as a String.
-      kNumberOfEntries
-    };
+    enum {kPCOffsetEntry = 0,  // PC offset to a comment as a Smi.
+          kCommentEntry,       // Comment text as a String.
+          kNumberOfEntries};
 
     const Array& comments_;
+    String& string_;
 
     friend class Code;
 
     DISALLOW_COPY_AND_ASSIGN(Comments);
   };
 
-  const Comments& comments() const;
-  void set_comments(const Comments& comments) const;
+  const CodeComments& comments() const;
+  void set_comments(const CodeComments& comments) const;
+#endif  // defined(INCLUDE_IL_PRINTER)
 
   ObjectPtr return_address_metadata() const {
 #if defined(PRODUCT)
@@ -6283,17 +6239,21 @@ class Code : public Object {
   // while generating the snapshot.
   FunctionPtr function() const {
     ASSERT(IsFunctionCode());
-    return Function::RawCast(
-        WeakSerializationReference::Unwrap(untag()->owner()));
+    return Function::RawCast(owner());
   }
 
-  ObjectPtr owner() const { return untag()->owner(); }
+  ObjectPtr owner() const {
+    return WeakSerializationReference::Unwrap(untag()->owner());
+  }
   void set_owner(const Object& owner) const;
 
   classid_t OwnerClassId() const { return OwnerClassIdOf(ptr()); }
   static classid_t OwnerClassIdOf(CodePtr raw) {
-    return WeakSerializationReference::UnwrappedClassIdOf(
-        raw->untag()->owner());
+    ObjectPtr owner = WeakSerializationReference::Unwrap(raw->untag()->owner());
+    if (!owner->IsHeapObject()) {
+      return RawSmiValue(static_cast<SmiPtr>(owner));
+    }
+    return owner->GetClassId();
   }
 
   static intptr_t owner_offset() { return OFFSET_OF(UntaggedCode, owner_); }
@@ -6385,6 +6345,11 @@ class Code : public Object {
   bool IsTypeTestStubCode() const;
   bool IsFunctionCode() const;
 
+  // Returns true if this Code object represents
+  // Dart function code without any additional information.
+  bool IsUnknownDartCode() const { return IsUnknownDartCode(ptr()); }
+  static bool IsUnknownDartCode(CodePtr code);
+
   void DisableDartCode() const;
 
   void DisableStubCode() const;
@@ -6418,8 +6383,9 @@ class Code : public Object {
     kOptimizedBit = 0,
     kForceOptimizedBit = 1,
     kAliveBit = 2,
-    kPtrOffBit = 3,
-    kPtrOffSize = 29,
+    kDiscardedBit = 3,
+    kPtrOffBit = 4,
+    kPtrOffSize = kBitsPerInt32 - kPtrOffBit,
   };
 
   class OptimizedBit : public BitField<int32_t, bool, kOptimizedBit, 1> {};
@@ -6430,6 +6396,13 @@ class Code : public Object {
       : public BitField<int32_t, bool, kForceOptimizedBit, 1> {};
 
   class AliveBit : public BitField<int32_t, bool, kAliveBit, 1> {};
+
+  // Set by precompiler if this Code object doesn't contain
+  // useful information besides instructions and compressed stack map.
+  // Such object is serialized in a shorter form. (In future such
+  // Code objects will not be re-created during snapshot deserialization.)
+  class DiscardedBit : public BitField<int32_t, bool, kDiscardedBit, 1> {};
+
   class PtrOffBits
       : public BitField<int32_t, intptr_t, kPtrOffBit, kPtrOffSize> {};
 
@@ -6669,6 +6642,13 @@ class ContextScope : public Object {
   static const intptr_t kBytesPerElement =
       sizeof(UntaggedContextScope::VariableDesc);
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() {
+      return sizeof(UntaggedContextScope);
+    }
+    static constexpr intptr_t kElementSize = kBytesPerElement;
+  };
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedContextScope) ==
@@ -7295,10 +7275,6 @@ class LibraryPrefix : public Instance {
   void AddImport(const Namespace& import) const;
 
   bool is_deferred_load() const { return untag()->is_deferred_load_; }
-  bool is_loaded() const { return untag()->is_loaded_; }
-  void set_is_loaded(bool value) const {
-    return StoreNonPointer(&untag()->is_loaded_, value);
-  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedLibraryPrefix));
@@ -8135,6 +8111,14 @@ class FunctionType : public AbstractType {
     return OFFSET_OF(UntaggedFunctionType, packed_fields_);
   }
 
+  // Reexported so they can be used by the flow graph builders.
+  using PackedHasNamedOptionalParameters =
+      UntaggedFunctionType::PackedHasNamedOptionalParameters;
+  using PackedNumFixedParameters =
+      UntaggedFunctionType::PackedNumFixedParameters;
+  using PackedNumOptionalParameters =
+      UntaggedFunctionType::PackedNumOptionalParameters;
+
   AbstractTypePtr result_type() const { return untag()->result_type(); }
   void set_result_type(const AbstractType& value) const;
 
@@ -8159,6 +8143,9 @@ class FunctionType : public AbstractType {
   void SetParameterNameAt(intptr_t index, const String& value) const;
   ArrayPtr parameter_names() const { return untag()->parameter_names(); }
   void set_parameter_names(const Array& value) const;
+  static intptr_t parameter_names_offset() {
+    return OFFSET_OF(UntaggedFunctionType, parameter_names_);
+  }
 
   // The required flags are stored at the end of the parameter_names. The flags
   // are packed into SMIs, but omitted if they're 0.
@@ -10823,6 +10810,8 @@ class TransferableTypedData : public Instance {
   friend class Class;
 };
 
+class DebuggerStackTrace;
+
 // Internal stacktrace object used in exceptions for printing stack traces.
 class StackTrace : public Instance {
  public:
@@ -10838,9 +10827,9 @@ class StackTrace : public Instance {
   ObjectPtr CodeAtFrame(intptr_t frame_index) const;
   void SetCodeAtFrame(intptr_t frame_index, const Object& code) const;
 
-  ArrayPtr pc_offset_array() const { return untag()->pc_offset_array(); }
-  SmiPtr PcOffsetAtFrame(intptr_t frame_index) const;
-  void SetPcOffsetAtFrame(intptr_t frame_index, const Smi& pc_offset) const;
+  TypedDataPtr pc_offset_array() const { return untag()->pc_offset_array(); }
+  uword PcOffsetAtFrame(intptr_t frame_index) const;
+  void SetPcOffsetAtFrame(intptr_t frame_index, uword pc_offset) const;
 
   bool skip_sync_start_in_parent_stack() const;
   void set_skip_sync_start_in_parent_stack(bool value) const;
@@ -10863,23 +10852,23 @@ class StackTrace : public Instance {
     return RoundedAllocationSize(sizeof(UntaggedStackTrace));
   }
   static StackTracePtr New(const Array& code_array,
-                           const Array& pc_offset_array,
+                           const TypedData& pc_offset_array,
                            Heap::Space space = Heap::kNew);
 
   static StackTracePtr New(const Array& code_array,
-                           const Array& pc_offset_array,
+                           const TypedData& pc_offset_array,
                            const StackTrace& async_link,
                            bool skip_sync_start_in_parent_stack,
                            Heap::Space space = Heap::kNew);
 
  private:
   void set_code_array(const Array& code_array) const;
-  void set_pc_offset_array(const Array& pc_offset_array) const;
+  void set_pc_offset_array(const TypedData& pc_offset_array) const;
   bool expand_inlined() const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(StackTrace, Instance);
   friend class Class;
-  friend class Debugger;
+  friend class DebuggerStackTrace;
 };
 
 class RegExpFlags {

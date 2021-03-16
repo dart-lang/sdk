@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class AbstractSuper extends core::Object {
+  field core::int extendedConcreteField;
+  field core::int declaredConcreteExtendsConcreteField;
+  field core::int declaredAbstractExtendsConcreteField;
+  synthetic constructor •() → self::AbstractSuper
+    ;
+  abstract get extendedAbstractField() → core::int;
+  abstract set extendedAbstractField(core::int #externalFieldValue) → void;
+  abstract get declaredConcreteExtendsAbstractField() → core::int;
+  abstract set declaredConcreteExtendsAbstractField(core::int #externalFieldValue) → void;
+  abstract get declaredAbstractExtendsAbstractField() → core::int;
+  abstract set declaredAbstractExtendsAbstractField(core::int #externalFieldValue) → void;
+}
+abstract class AbstractClass extends self::AbstractSuper {
+  field core::int declaredConcreteField;
+  field core::int declaredConcreteExtendsConcreteField;
+  field core::int declaredConcreteExtendsAbstractField;
+  synthetic constructor •() → self::AbstractClass
+    ;
+  abstract get declaredAbstractField() → core::int;
+  abstract set declaredAbstractField(core::int #externalFieldValue) → void;
+  abstract get declaredAbstractExtendsConcreteField() → core::int;
+  abstract set declaredAbstractExtendsConcreteField(core::int #externalFieldValue) → void;
+  abstract get declaredAbstractExtendsAbstractField() → core::int;
+  abstract set declaredAbstractExtendsAbstractField(core::int #externalFieldValue) → void;
+}
+static method main() → dynamic
+  ;

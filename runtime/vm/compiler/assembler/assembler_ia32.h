@@ -657,6 +657,7 @@ class Assembler : public AssemblerBase {
   void Drop(intptr_t stack_elements);
 
   void LoadIsolate(Register dst);
+  void LoadIsolateGroup(Register dst);
 
   void LoadUniqueObject(Register dst, const Object& object) {
     LoadObject(dst, object, /*movable_referent=*/true);

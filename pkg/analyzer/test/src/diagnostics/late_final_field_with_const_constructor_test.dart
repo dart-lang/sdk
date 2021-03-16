@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class LateFinalFieldWithConstConstructorTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class LateFinalFieldWithConstConstructorTest extends PubPackageResolutionTest {
   static const _errorCode =
       CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR;
 

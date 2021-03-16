@@ -56,6 +56,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_assignment_general_all() async {
     await resolveTestCode('''
 f(A a) {
@@ -98,6 +99,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_assignment_list_all() async {
     await resolveTestCode('''
 f(List<A> a) {
@@ -140,6 +142,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_assignment_map_all() async {
     await resolveTestCode('''
 f(Map<A, B> a) {
@@ -186,6 +189,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_assignment_needsParens_all() async {
     await resolveTestCode('''
 f(A a) {
@@ -232,6 +236,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_assignment_set_all() async {
     await resolveTestCode('''
 f(Set<A> a) {
@@ -284,6 +289,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_declaration_general_all() async {
     await resolveTestCode('''
 f(A a) {
@@ -322,6 +328,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_declaration_list_all() async {
     await resolveTestCode('''
 f(List<A> a) {
@@ -360,6 +367,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_declaration_map_all() async {
     await resolveTestCode('''
 f(Map<A, B> a) {
@@ -402,6 +410,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_declaration_needsParens_all() async {
     await resolveTestCode('''
 f(A a) {
@@ -444,6 +453,7 @@ class B {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/45026')
   Future<void> test_declaration_set_all() async {
     await resolveTestCode('''
 f(Set<A> a) {

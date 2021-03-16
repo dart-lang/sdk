@@ -155,10 +155,15 @@ class Message {
     return new_list;
   }
 
-  Future<Response> sendToIsolate(SendPort sendPort) {
+  Future<Response> sendToIsolate(
+      List<RawReceivePort> ports, SendPort sendPort) {
     final receivePort = RawReceivePort(null, 'Isolate Message');
+    // Keep track of receive port associated with the request so we can close
+    // it if isolate exits before sending a response.
+    ports.add(receivePort);
     receivePort.handler = (value) {
       receivePort.close();
+      ports.remove(receivePort);
       _setResponseFromPort(value);
     };
     final keys = _makeAllString(params.keys.toList(growable: false));
@@ -172,6 +177,7 @@ class Message {
       ..[5] = values;
     if (!sendIsolateServiceMessage(sendPort, request)) {
       receivePort.close();
+      ports.remove(receivePort);
       _completer.complete(Response.internalError(
           'could not send message [${serial}] to isolate'));
     }

@@ -12,9 +12,9 @@ class C<T> {
 @C<dynamic>()
 //^
 // [analyzer] SYNTACTIC_ERROR.ANNOTATION_WITH_TYPE_ARGUMENTS
-// [cfe] An annotation (metadata) can't use type arguments.
+// [cfe] An annotation can't use type arguments.
 @C<int>()
 //^
 // [analyzer] SYNTACTIC_ERROR.ANNOTATION_WITH_TYPE_ARGUMENTS
-// [cfe] An annotation (metadata) can't use type arguments.
+// [cfe] An annotation can't use type arguments.
 main() {}

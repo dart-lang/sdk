@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -22,7 +23,7 @@ class PrefixedIdentifierResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
-  void resolve(PrefixedIdentifier node) {
+  void resolve(PrefixedIdentifierImpl node) {
     node.prefix.accept(_resolver);
 
     var resolver = PropertyElementResolver(_resolver);
@@ -79,7 +80,7 @@ class PrefixedIdentifierResolver {
     } else if (element is VariableElement) {
       type = element.type;
     } else if (result.functionTypeCallType != null) {
-      type = result.functionTypeCallType;
+      type = result.functionTypeCallType!;
     }
 
     type = _inferenceHelper.inferTearOff(node, identifier, type);
@@ -96,24 +97,15 @@ class PrefixedIdentifierResolver {
   /// TODO(scheglov) this is duplicate
   DartType _getTypeOfProperty(PropertyAccessorElement accessor) {
     FunctionType functionType = accessor.type;
-    if (functionType == null) {
-      // TODO(brianwilkerson) Report this internal error. This happens when we
-      // are analyzing a reference to a property before we have analyzed the
-      // declaration of the property or when the property does not have a
-      // defined type.
-      return DynamicTypeImpl.instance;
-    }
     if (accessor.isSetter) {
       List<DartType> parameterTypes = functionType.normalParameterTypes;
-      if (parameterTypes != null && parameterTypes.isNotEmpty) {
+      if (parameterTypes.isNotEmpty) {
         return parameterTypes[0];
       }
-      PropertyAccessorElement getter = accessor.variable.getter;
+      var getter = accessor.variable.getter;
       if (getter != null) {
         functionType = getter.type;
-        if (functionType != null) {
-          return functionType.returnType;
-        }
+        return functionType.returnType;
       }
       return DynamicTypeImpl.instance;
     }
@@ -149,19 +141,19 @@ class PrefixedIdentifierResolver {
   /// @param type the static type of the node
   ///
   /// TODO(scheglov) this is duplicate
-  void _recordStaticType(Expression expression, DartType type) {
+  void _recordStaticType(ExpressionImpl expression, DartType type) {
     _inferenceHelper.recordStaticType(expression, type);
   }
 
   /// TODO(scheglov) this is duplicate
-  void _setExtensionIdentifierType(Identifier node) {
-    if (node is SimpleIdentifier && node.inDeclarationContext()) {
+  void _setExtensionIdentifierType(IdentifierImpl node) {
+    if (node is SimpleIdentifierImpl && node.inDeclarationContext()) {
       return;
     }
 
     var parent = node.parent;
 
-    if (parent is PrefixedIdentifier && parent.identifier == node) {
+    if (parent is PrefixedIdentifierImpl && parent.identifier == node) {
       node = parent;
       parent = node.parent;
     }
@@ -169,7 +161,7 @@ class PrefixedIdentifierResolver {
     if (parent is CommentReference ||
         parent is ExtensionOverride && parent.extensionName == node ||
         parent is MethodInvocation && parent.target == node ||
-        parent is PrefixedIdentifier && parent.prefix == node ||
+        parent is PrefixedIdentifierImpl && parent.prefix == node ||
         parent is PropertyAccess && parent.target == node) {
       return;
     }
@@ -180,7 +172,7 @@ class PrefixedIdentifierResolver {
       [node.name],
     );
 
-    if (node is PrefixedIdentifier) {
+    if (node is PrefixedIdentifierImpl) {
       node.identifier.staticType = DynamicTypeImpl.instance;
       node.staticType = DynamicTypeImpl.instance;
     } else if (node is SimpleIdentifier) {

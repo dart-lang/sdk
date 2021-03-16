@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
+
 import 'package:test/test.dart';
 
 /// A long [Timeout] is provided for tests that start a process on
@@ -20,11 +23,13 @@ TestProject project(
         {String mainSrc,
         String analysisOptions,
         bool logAnalytics = false,
-        String name = TestProject._defaultProjectName}) =>
+        String name = TestProject._defaultProjectName,
+        VersionConstraint sdkConstraint}) =>
     TestProject(
         mainSrc: mainSrc,
         analysisOptions: analysisOptions,
-        logAnalytics: logAnalytics);
+        logAnalytics: logAnalytics,
+        sdkConstraint: sdkConstraint);
 
 class TestProject {
   static const String _defaultProjectName = 'dartdev_temp';
@@ -39,17 +44,19 @@ class TestProject {
 
   final bool logAnalytics;
 
-  TestProject({
-    String mainSrc,
-    String analysisOptions,
-    this.name = _defaultProjectName,
-    this.logAnalytics = false,
-  }) {
+  final VersionConstraint sdkConstraint;
+
+  TestProject(
+      {String mainSrc,
+      String analysisOptions,
+      this.name = _defaultProjectName,
+      this.logAnalytics = false,
+      this.sdkConstraint}) {
     dir = Directory.systemTemp.createTempSync(name);
     file('pubspec.yaml', '''
 name: $name
 environment:
-  sdk: '>=2.10.0 <3.0.0'
+  sdk: '${sdkConstraint ?? '>=2.10.0 <3.0.0'}'
 
 dev_dependencies:
   test: any
@@ -91,7 +98,8 @@ dev_dependencies:
           ...arguments,
         ],
         workingDirectory: workingDir ?? dir.path,
-        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'});
+        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'},
+        stdoutEncoding: utf8);
   }
 
   Future<Process> start(

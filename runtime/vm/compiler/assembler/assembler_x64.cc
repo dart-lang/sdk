@@ -1228,6 +1228,10 @@ void Assembler::LoadIsolate(Register dst) {
   movq(dst, Address(THR, target::Thread::isolate_offset()));
 }
 
+void Assembler::LoadIsolateGroup(Register dst) {
+  movq(dst, Address(THR, target::Thread::isolate_group_offset()));
+}
+
 void Assembler::LoadDispatchTable(Register dst) {
   movq(dst, Address(THR, target::Thread::dispatch_table_array_offset()));
 }
@@ -1333,6 +1337,26 @@ void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
     LoadImmediate(TMP, imm);
     movq(dst, TMP);
   }
+}
+
+void Assembler::LoadCompressed(Register dest,
+                               const Address& slot,
+                               CanBeSmi can_value_be_smi) {
+#if !defined(DART_COMPRESSED_POINTERS)
+  movq(dest, slot);
+#else
+  Label done;
+  movsxd(dest, slot);  // (movslq) Sign-extension.
+  if (can_value_be_smi == kValueCanBeSmi) {
+    BranchIfSmi(dest, &done, kNearJump);
+  }
+  addq(dest, Address(THR, target::Thread::heap_base_offset()));
+  Bind(&done);
+
+  // After further Smi changes:
+  // movl(dest, slot);  // Zero-extension.
+  // addq(dest, Address(THR, target::Thread::heap_base_offset());
+#endif
 }
 
 // Destroys the value register.
@@ -1922,13 +1946,13 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      JumpDistance distance) {
   ASSERT(cid > 0);
   const intptr_t shared_table_offset =
-      target::Isolate::shared_class_table_offset();
+      target::IsolateGroup::shared_class_table_offset();
   const intptr_t table_offset =
       target::SharedClassTable::class_heap_stats_table_offset();
   const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
 
   Register temp_reg = TMP;
-  LoadIsolate(temp_reg);
+  LoadIsolateGroup(temp_reg);
   movq(temp_reg, Address(temp_reg, shared_table_offset));
   movq(temp_reg, Address(temp_reg, table_offset));
   cmpb(Address(temp_reg, class_offset), Immediate(0));
@@ -2189,9 +2213,9 @@ void Assembler::LoadClassId(Register result, Register object) {
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
   const intptr_t table_offset =
-      target::Isolate::cached_class_table_table_offset();
+      target::IsolateGroup::cached_class_table_table_offset();
 
-  LoadIsolate(result);
+  LoadIsolateGroup(result);
   movq(result, Address(result, table_offset));
   movq(result, Address(result, class_id, TIMES_8, 0));
 }

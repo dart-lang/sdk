@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -15,7 +16,19 @@ main() {
 }
 
 @reflectiveTest
-class TopLevelVariableTest extends PubPackageResolutionTest {
+class TopLevelVariableTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  test_session_getterSetter() async {
+    await resolveTestCode('''
+var v = 0;
+''');
+    var getter = findElement.topGet('v');
+    expect(getter.session, result.session);
+
+    var setter = findElement.topSet('v');
+    expect(setter.session, result.session);
+  }
+
   test_type_inferred_int() async {
     await resolveTestCode('''
 var v = 0;

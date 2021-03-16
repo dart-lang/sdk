@@ -7,21 +7,21 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for resolving [YieldStatement]s.
 class YieldStatementResolver {
   final ResolverVisitor _resolver;
 
   YieldStatementResolver({
-    @required ResolverVisitor resolver,
+    required ResolverVisitor resolver,
   }) : _resolver = resolver;
 
-  ExecutableElement get _enclosingFunction => _resolver.enclosingFunction;
+  ExecutableElement get _enclosingFunction => _resolver.enclosingFunction!;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
@@ -30,7 +30,7 @@ class YieldStatementResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(YieldStatement node) {
-    if (_enclosingFunction?.isGenerator ?? false) {
+    if (_enclosingFunction.isGenerator) {
       _resolve_generator(node);
     } else {
       _resolve_notGenerator(node);
@@ -73,26 +73,24 @@ class YieldStatementResolver {
     var declaredReturnType = _enclosingFunction.returnType;
 
     var expression = node.expression;
-    var expressionType = expression.staticType;
+    var expressionType = expression.typeOrThrow;
 
     DartType impliedReturnType;
     if (isYieldEach) {
       impliedReturnType = expressionType;
     } else if (_enclosingFunction.isSynchronous) {
-      impliedReturnType = _typeProvider.iterableType2(expressionType);
+      impliedReturnType = _typeProvider.iterableType(expressionType);
     } else {
-      impliedReturnType = _typeProvider.streamType2(expressionType);
+      impliedReturnType = _typeProvider.streamType(expressionType);
     }
 
-    if (declaredReturnType != null) {
-      if (!_typeSystem.isAssignableTo2(impliedReturnType, declaredReturnType)) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
-          expression,
-          [impliedReturnType, declaredReturnType],
-        );
-        return;
-      }
+    if (!_typeSystem.isAssignableTo(impliedReturnType, declaredReturnType)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
+        expression,
+        [impliedReturnType, declaredReturnType],
+      );
+      return;
     }
 
     if (isYieldEach) {
@@ -106,7 +104,7 @@ class YieldStatementResolver {
         requiredReturnType = _typeProvider.streamDynamicType;
       }
 
-      if (!_typeSystem.isAssignableTo2(impliedReturnType, requiredReturnType)) {
+      if (!_typeSystem.isAssignableTo(impliedReturnType, requiredReturnType)) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
           expression,
@@ -122,8 +120,8 @@ class YieldStatementResolver {
       var contextType = elementType;
       if (node.star != null) {
         contextType = _enclosingFunction.isSynchronous
-            ? _typeProvider.iterableType2(elementType)
-            : _typeProvider.streamType2(elementType);
+            ? _typeProvider.iterableType(elementType)
+            : _typeProvider.streamType(elementType);
       }
       InferenceContext.setType(node.expression, contextType);
     }

@@ -571,10 +571,11 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         return false;
       }
       break;
-    case Token::kSHR:
     case Token::kSHL:
+    case Token::kSHR:
+    case Token::kUSHR:
       if (binary_feedback.OperandsAre(kSmiCid)) {
-        // Left shift may overflow from smi into mint or big ints.
+        // Left shift may overflow from smi into mint.
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
         if (call->ic_data()->HasDeoptReason(ICData::kDeoptBinaryInt64Op)) {
@@ -638,7 +639,8 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     ReplaceCall(call, double_bin_op);
   } else if (operands_type == kMintCid) {
     if (!FlowGraphCompiler::SupportsUnboxedInt64()) return false;
-    if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
+    if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
+        (op_kind == Token::kUSHR)) {
       SpeculativeShiftInt64OpInstr* shift_op = new (Z)
           SpeculativeShiftInt64OpInstr(op_kind, new (Z) Value(left),
                                        new (Z) Value(right), call->deopt_id());
@@ -1161,7 +1163,7 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
   if (!type_class.IsPrivate()) {
     // In AOT mode we can't use CHA deoptimizations.
     ASSERT(!CompilerState::Current().is_aot() || !FLAG_use_cha_deopt);
-    if (FLAG_use_cha_deopt || isolate()->all_classes_finalized()) {
+    if (FLAG_use_cha_deopt || isolate_group()->all_classes_finalized()) {
       if (FLAG_trace_cha) {
         THR_Print(
             "  **(CHA) Typecheck as class equality since no "

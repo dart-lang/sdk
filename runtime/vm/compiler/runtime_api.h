@@ -303,7 +303,11 @@ constexpr word kWordMin = -(static_cast<uword>(1) << (kBitsPerWord - 1));
 constexpr uword kUwordMax = static_cast<word>(-1);
 
 // The number of bits in the _magnitude_ of a Smi, not counting the sign bit.
+#if !defined(DART_COMPRESSED_POINTERS)
 constexpr int kSmiBits = kBitsPerWord - 2;
+#else
+constexpr int kSmiBits = 30;
+#endif
 constexpr word kSmiMax = (static_cast<uword>(1) << kSmiBits) - 1;
 constexpr word kSmiMin = -(static_cast<uword>(1) << kSmiBits);
 
@@ -326,7 +330,7 @@ enum ParameterFlags {
 // calculate both the parameter flag index in the parameter names array and
 // which bit to check, kNumParameterFlagsPerElement should be a power of two.
 static constexpr intptr_t kNumParameterFlagsPerElementLog2 =
-    kBitsPerWordLog2 - kNumParameterFlags;
+    kBitsPerWordLog2 - 1 - kNumParameterFlags;
 static constexpr intptr_t kNumParameterFlagsPerElement =
     1 << kNumParameterFlagsPerElementLog2;
 static_assert(kNumParameterFlagsPerElement <= kSmiBits,
@@ -440,6 +444,7 @@ class ObjectPool : public AllStatic {
  public:
   // Return offset to the element with the given [index] in the object pool.
   static word element_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -501,7 +506,6 @@ class Function : public AllStatic {
   static word entry_point_offset(CodeEntryKind kind = CodeEntryKind::kNormal);
   static word kind_tag_offset();
   static word packed_fields_offset();
-  static word parameter_names_offset();
   static word signature_offset();
   static word usage_counter_offset();
   static word InstanceSize();
@@ -560,6 +564,7 @@ class Array : public AllStatic {
   static word length_offset();
   static word element_offset(intptr_t index);
   static intptr_t index_at_offset(intptr_t offset_in_bytes);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 
@@ -591,6 +596,7 @@ class TypedDataBase : public PointerBase {
 class TypedData : public AllStatic {
  public:
   static word data_offset();
+  static word InstanceSize(intptr_t lengthInBytes);
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -676,6 +682,7 @@ class FunctionType : public AllStatic {
   static word hash_offset();
   static word type_state_offset();
   static word packed_fields_offset();
+  static word parameter_names_offset();
   static word parameter_types_offset();
   static word type_parameters_offset();
   static word nullability_offset();
@@ -725,6 +732,7 @@ class String : public AllStatic {
 class OneByteString : public AllStatic {
  public:
   static word data_offset();
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -732,6 +740,7 @@ class OneByteString : public AllStatic {
 class TwoByteString : public AllStatic {
  public:
   static word data_offset();
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -845,12 +854,16 @@ class LocalVarDescriptors : public AllStatic {
 
 class ExceptionHandlers : public AllStatic {
  public:
+  static word element_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 };
 
 class ContextScope : public AllStatic {
  public:
+  static word element_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -1018,10 +1031,12 @@ class Thread : public AllStatic {
   static word top_offset();
   static word end_offset();
   static word isolate_offset();
+  static word isolate_group_offset();
   static word field_table_values_offset();
   static word store_buffer_block_offset();
   static word call_to_runtime_entry_point_offset();
   static word write_barrier_mask_offset();
+  static word heap_base_offset();
   static word switchable_call_miss_entry_offset();
   static word write_barrier_wrappers_thread_offset(Register regno);
   static word array_write_barrier_entry_point_offset();
@@ -1137,16 +1152,20 @@ class ObjectStore : public AllStatic {
 
 class Isolate : public AllStatic {
  public:
-  static word cached_object_store_offset();
   static word default_tag_offset();
   static word current_tag_offset();
   static word user_tag_offset();
-  static word cached_class_table_table_offset();
-  static word shared_class_table_offset();
   static word ic_miss_code_offset();
 #if !defined(PRODUCT)
   static word single_step_offset();
 #endif  // !defined(PRODUCT)
+};
+
+class IsolateGroup : public AllStatic {
+ public:
+  static word object_store_offset();
+  static word shared_class_table_offset();
+  static word cached_class_table_table_offset();
 };
 
 class SharedClassTable : public AllStatic {
@@ -1333,6 +1352,7 @@ class TypeArguments : public AllStatic {
   static word nullability_offset();
   static word type_at_offset(intptr_t i);
   static word types_offset();
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 

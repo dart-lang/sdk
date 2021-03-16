@@ -20,9 +20,9 @@ main() {
 @reflectiveTest
 class CollectionLiteralParserTest extends FastaParserTestCase {
   Expression parseCollectionLiteral(String source,
-      {List<ErrorCode> codes,
-      List<ExpectedError> errors,
-      int expectedEndOffset,
+      {List<ErrorCode>? codes,
+      List<ExpectedError>? errors,
+      int? expectedEndOffset,
       bool inAsync = false}) {
     return parseExpression(source,
         codes: codes,
@@ -414,7 +414,8 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_mapLiteral_ifSpread() {
-    SetOrMapLiteral map = parseCollectionLiteral('{1:1, if (true) ...{2:4}}');
+    var map =
+        parseCollectionLiteral('{1:1, if (true) ...{2:4}}') as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
     var first = map.elements[0] as MapLiteralEntry;
     var firstValue = first.value as IntegerLiteral;
@@ -444,7 +445,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     var map = parseCollectionLiteral('<int, int>{1: 2, ...{3: 4}}')
         as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
-    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.typeArguments!.arguments, hasLength(2));
     expect(map.elements, hasLength(2));
 
     var element = map.elements[1] as SpreadElement;
@@ -457,7 +458,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     var map =
         parseCollectionLiteral('<int, int>{...{3: 4}}') as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
-    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.typeArguments!.arguments, hasLength(2));
     expect(map.elements, hasLength(1));
 
     var element = map.elements[0] as SpreadElement;
@@ -482,7 +483,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     var map = parseCollectionLiteral('<int, int>{1: 2, ...?{3: 4}}')
         as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
-    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.typeArguments!.arguments, hasLength(2));
     expect(map.elements, hasLength(2));
 
     var element = map.elements[1] as SpreadElement;
@@ -495,7 +496,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     var map =
         parseCollectionLiteral('<int, int>{...?{3: 4}}') as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
-    expect(map.typeArguments.arguments, hasLength(2));
+    expect(map.typeArguments!.arguments, hasLength(2));
     expect(map.elements, hasLength(1));
 
     var element = map.elements[0] as SpreadElement;

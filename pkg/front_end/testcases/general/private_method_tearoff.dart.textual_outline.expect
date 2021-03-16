@@ -1,3 +1,4 @@
+// @dart = 2.9
 import './private_method_tearoff_lib.dart';
 
 class Foo implements Bar {}

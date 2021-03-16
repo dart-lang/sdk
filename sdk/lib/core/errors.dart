@@ -42,7 +42,7 @@ part of dart.core;
 /// effectively making it an alternative result rather than an error.
 /// The thrown object can choose to implement [Exception]
 /// to document that it represents an exceptional, but not erroneous,
-/// occurrence, but being an [Excpetion] has no other effect
+/// occurrence, but being an [Exception] has no other effect
 /// than documentation.
 ///
 /// All non-`null` values can be thrown in Dart.
@@ -448,13 +448,14 @@ class AbstractClassInstantiationError extends Error {
 
 /// Error thrown by the default implementation of `noSuchMethod` on [Object].
 class NoSuchMethodError extends Error {
-  /// Create a [NoSuchMethodError] corresponding to a failed method call.
+  /// Creates a [NoSuchMethodError] corresponding to a failed method call.
   ///
   /// The [receiver] is the receiver of the method call.
   /// That is, the object on which the method was attempted called.
   ///
-  /// The [invocation] represents the method call that failed.
-  external NoSuchMethodError.withInvocation(
+  /// The [invocation] represents the method call that failed. It
+  /// should not be `null`.
+  external factory NoSuchMethodError.withInvocation(
       Object? receiver, Invocation invocation);
 
   // Deprecated constructor to be removed after dart2js updates to the above.
@@ -575,8 +576,8 @@ class StackOverflowError implements Error {
 
 /// Error thrown when a lazily initialized variable cannot be initialized.
 ///
-/// No longer used in null safe Dart code,
-/// replaced by late variables and [LateInitializationError].
+/// This is no longer used in null safe Dart code and is replaced by late
+/// variables and `LateInitializationError`.
 // TODO: Deprecate?
 class CyclicInitializationError extends Error {
   final String? variableName;

@@ -17,8 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class InvalidUseOfNullValueTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class InvalidUseOfNullValueTest extends PubPackageResolutionTest {
   test_as() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -124,7 +123,7 @@ m(bool cond) {
 
 @reflectiveTest
 class UncheckedUseOfNullableValueInsideExtensionTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   test_indexExpression_nonNullable() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -338,8 +337,7 @@ extension E on A? {
 }
 
 @reflectiveTest
-class UncheckedUseOfNullableValueTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class UncheckedUseOfNullableValueTest extends PubPackageResolutionTest {
   test_and_nonNullable() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -409,7 +407,8 @@ m(B b) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          100, 3),
+          100, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
 
     assertAssignment(
@@ -505,7 +504,7 @@ m(B b) {
       writeElement: findElement.setter('x'),
       writeType: 'int',
       operatorElement: elementMatcher(
-        numElement.getMethod('+'),
+        numElement.getMethod('+')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
@@ -518,7 +517,7 @@ m(B b) {
       writeElement: findElement.setter('y'),
       writeType: 'int?',
       operatorElement: elementMatcher(
-        numElement.getMethod('+'),
+        numElement.getMethod('+')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
@@ -550,7 +549,8 @@ m(B b) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          101, 3),
+          101, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
 
     assertAssignment(
@@ -560,7 +560,7 @@ m(B b) {
       writeElement: findElement.setter('x'),
       writeType: 'int',
       operatorElement: elementMatcher(
-        numElement.getMethod('+'),
+        numElement.getMethod('+')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int?',
@@ -573,7 +573,7 @@ m(B b) {
       writeElement: findElement.setter('x'),
       writeType: 'int',
       operatorElement: elementMatcher(
-        numElement.getMethod('+'),
+        numElement.getMethod('+')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
@@ -607,7 +607,7 @@ m(int x, int? y) {
       writeElement: findElement.parameter('x'),
       writeType: 'int',
       operatorElement: elementMatcher(
-        numElement.getMethod('+'),
+        numElement.getMethod('+')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
@@ -620,7 +620,7 @@ m(int x, int? y) {
       writeElement: findElement.parameter('y'),
       writeType: 'int?',
       operatorElement: elementMatcher(
-        numElement.getMethod('+'),
+        numElement.getMethod('+')!,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
@@ -1424,7 +1424,8 @@ m(B b) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          101, 3),
+          101, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
     var propertyAccess1 = findNode.propertyAccess('b.a?.x; // 1');
     var propertyAccess2 = findNode.propertyAccess('b.a.x; // 2');
@@ -1493,7 +1494,8 @@ m(C c) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          142, 5),
+          142, 5,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
@@ -1530,12 +1532,13 @@ m(C c) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          148, 3),
+          148, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 101, 1)]),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
-    PropertyAccess propertyAccess1t = propertyAccess1.target;
-    PropertyAccess propertyAccess2t = propertyAccess1.target;
+    var propertyAccess1t = propertyAccess1.target as PropertyAccess;
+    var propertyAccess2t = propertyAccess1.target as PropertyAccess;
     assertType(propertyAccess1t.target, 'B?');
     assertType(propertyAccess2t.target, 'B?');
     assertType(propertyAccess1t, 'A');
@@ -1606,6 +1609,19 @@ m(bool cond) {
   cond ? 0 : x;
 }
 ''');
+  }
+
+  test_tripleShift_nullable() async {
+    await assertErrorsInCode(r'''
+m(String? s) {
+  s?.length >>> 2;
+}
+''', [
+      error(
+          CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+          17,
+          9),
+    ]);
   }
 
   test_yieldEach_nonNullable() async {

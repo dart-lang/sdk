@@ -19,7 +19,8 @@ void main() {
   });
 }
 
-class AbstractNavigationTest extends AbstractAnalysisTest {
+class AbstractNavigationTest extends AbstractAnalysisTest
+    with WithNonFunctionTypeAliasesMixin {
   List<NavigationRegion> regions;
   List<NavigationTarget> targets;
   List<String> targetFiles;
@@ -954,6 +955,28 @@ main() {
     await prepareNavigation();
     assertHasRegionTarget('AAA aaa', 'AAA {}');
     expect(testTarget.kind, ElementKind.CLASS);
+  }
+
+  Future<void> test_targetElement_typedef_functionType() async {
+    addTestFile('''
+typedef A = void Function();
+
+void f(A a) {}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('A a', 'A =');
+    expect(testTarget.kind, ElementKind.TYPE_ALIAS);
+  }
+
+  Future<void> test_targetElement_typedef_interfaceType() async {
+    addTestFile('''
+typedef A = List<int>;
+
+void f(A a) {}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('A a', 'A =');
+    expect(testTarget.kind, ElementKind.TYPE_ALIAS);
   }
 
   Future<void> test_type_dynamic() async {

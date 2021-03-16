@@ -86,7 +86,7 @@ class A {
   @literal
   const A(List list);
 }
-var a = A(new List());
+var a = A(new List.filled(1, ''));
 ''');
   }
 

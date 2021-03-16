@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class NotInitializedNonNullableVariableTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class NotInitializedNonNullableVariableTest extends PubPackageResolutionTest {
   test_external_static_field_non_nullable() async {
     await assertNoErrorsInCode('''
 class A {

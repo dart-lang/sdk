@@ -115,7 +115,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
     var source = request.source;
 
     String parentUri;
-    if ((partialUri.endsWith('/'))) {
+    if (partialUri.endsWith('/')) {
       parentUri = partialUri;
     } else {
       parentUri = posix.dirname(partialUri);

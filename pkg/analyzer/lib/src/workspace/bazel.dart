@@ -8,14 +8,13 @@ import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:meta/meta.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:watcher/watcher.dart';
@@ -41,8 +40,8 @@ class BazelFileNotification {
   BazelFileNotification(this.requested, this.candidates, this._provider);
 
   BazelFileWatcher watcher(
-          {@required Duration pollingDelayShort,
-          @required Duration pollingDelayLong,
+          {required Duration pollingDelayShort,
+          required Duration pollingDelayLong,
           Timer Function(Duration, void Function(Timer)) timerFactory =
               _defaultTimerFactory}) =>
       BazelFileWatcher(candidates, _provider, pollingDelayShort,
@@ -64,14 +63,14 @@ class BazelFileUriResolver extends ResourceUriResolver {
         super(workspace.provider);
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     if (!ResourceUriResolver.isFileUri(uri)) {
       return null;
     }
     String filePath = fileUriToNormalizedPath(provider.pathContext, uri);
-    File file = workspace.findFile(filePath);
+    var file = workspace.findFile(filePath);
     if (file != null) {
-      return file.createSource(actualUri ?? uri);
+      return file.createSource(uri);
     }
     return null;
   }
@@ -96,7 +95,7 @@ class BazelFileWatcher {
   final _eventsController = StreamController<WatchEvent>.broadcast();
 
   /// The time of last modification of the file under [_validPath].
-  int _lastModified;
+  int? _lastModified;
 
   /// How often do we poll a file that we have found.
   final Duration _pollingDelayLong;
@@ -108,9 +107,9 @@ class BazelFileWatcher {
 
   /// One of the [_candidates] that is valid, i.e., we found a file with that
   /// path.
-  String _validPath;
+  String? _validPath;
 
-  Timer _timer;
+  Timer? _timer;
 
   /// Used to contruct a [Timer] for polling.
   final Timer Function(Duration, void Function(Timer)) _timerFactory;
@@ -137,14 +136,14 @@ class BazelFileWatcher {
   }
 
   void stop() {
-    _timer.cancel();
+    _timer?.cancel();
     _eventsController.close();
   }
 
   void _poll() {
     if (_eventsController.isClosed) return;
 
-    int modified;
+    int? modified;
     if (_validPath == null) {
       var info = _pollAll();
       if (info != null) {
@@ -152,7 +151,7 @@ class BazelFileWatcher {
         modified = info.modified;
       }
     } else {
-      modified = _pollOne(_validPath);
+      modified = _pollOne(_validPath!);
     }
 
     // If there is no file, then we have nothing to do.
@@ -161,14 +160,14 @@ class BazelFileWatcher {
     if (modified == null && _lastModified != null) {
       // The file is no longer there, so let's issue a REMOVE event, unset
       // `_validPath` and set the timer to poll more frequently.
-      _eventsController.add(WatchEvent(ChangeType.REMOVE, _validPath));
+      _eventsController.add(WatchEvent(ChangeType.REMOVE, _validPath!));
       _validPath = null;
       _setPollingDelayToShort();
     } else if (modified != null && _lastModified == null) {
-      _eventsController.add(WatchEvent(ChangeType.ADD, _validPath));
+      _eventsController.add(WatchEvent(ChangeType.ADD, _validPath!));
       _setPollingDelayToLong();
     } else if (_lastModified != null && modified != _lastModified) {
-      _eventsController.add(WatchEvent(ChangeType.MODIFY, _validPath));
+      _eventsController.add(WatchEvent(ChangeType.MODIFY, _validPath!));
     }
     _lastModified = modified;
   }
@@ -177,7 +176,7 @@ class BazelFileWatcher {
   ///
   /// Will set [_validPath] and return its modified time if a file is found.
   /// Returns [null] if nothing is found.
-  FileInfo _pollAll() {
+  FileInfo? _pollAll() {
     assert(_validPath == null);
     for (var path in _candidates) {
       var modified = _pollOne(path);
@@ -190,7 +189,7 @@ class BazelFileWatcher {
 
   /// Returns the modified time of the path or `null` if the file does not
   /// exist.
-  int _pollOne(String path) {
+  int? _pollOne(String path) {
     try {
       var file = _provider.getFile(path);
       return file.modificationStamp;
@@ -229,62 +228,29 @@ class BazelPackageUriResolver extends UriResolver {
   }
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    return _sourceCache.putIfAbsent(uri, () {
-      if (uri.scheme == 'file') {
-        var path = fileUriToNormalizedPath(_context, uri);
-        var pathRelativeToRoot = _workspace._relativeToRoot(path);
-        if (pathRelativeToRoot == null) return null;
-        var fullFilePath = _context.join(_workspace.root, pathRelativeToRoot);
-        File file = _workspace.findFile(fullFilePath);
-        return file?.createSource(uri);
+  Source? resolveAbsolute(Uri uri) {
+    var source = _sourceCache[uri];
+    if (source == null) {
+      source = _resolveAbsolute(uri);
+      if (source != null) {
+        _sourceCache[uri] = source;
       }
-      if (uri.scheme != 'package') {
-        return null;
-      }
-      String uriPath = uri.path;
-      int slash = uriPath.indexOf('/');
-
-      // If the path either starts with a slash or has no slash, it is invalid.
-      if (slash < 1) {
-        return null;
-      }
-
-      if (uriPath.contains('//') || uriPath.contains('..')) {
-        return null;
-      }
-
-      String packageName = uriPath.substring(0, slash);
-      String fileUriPart = uriPath.substring(slash + 1);
-      String filePath = fileUriPart.replaceAll('/', _context.separator);
-
-      if (!packageName.contains('.')) {
-        String fullFilePath = _context.join(_workspace.root, 'third_party',
-            'dart', packageName, 'lib', filePath);
-        File file = _workspace.findFile(fullFilePath);
-        return file?.createSource(uri);
-      } else {
-        String packagePath = packageName.replaceAll('.', _context.separator);
-        String fullFilePath =
-            _context.join(_workspace.root, packagePath, 'lib', filePath);
-        File file = _workspace.findFile(fullFilePath);
-        return file?.createSource(uri);
-      }
-    });
+    }
+    return source;
   }
 
   @override
-  Uri restoreAbsolute(Source source) {
+  Uri? restoreAbsolute(Source source) {
     String filePath = source.fullName;
 
     // Search in each root.
-    for (String root in [
+    for (var root in [
       ..._workspace.binPaths,
       _workspace.genfiles,
       _workspace.readonly,
       _workspace.root
     ]) {
-      List<String> uriParts = _restoreUriParts(root, filePath);
+      var uriParts = _restoreUriParts(root, filePath);
       if (uriParts != null) {
         return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
       }
@@ -293,10 +259,52 @@ class BazelPackageUriResolver extends UriResolver {
     return null;
   }
 
+  Source? _resolveAbsolute(Uri uri) {
+    if (uri.scheme == 'file') {
+      var path = fileUriToNormalizedPath(_context, uri);
+      var pathRelativeToRoot = _workspace._relativeToRoot(path);
+      if (pathRelativeToRoot == null) return null;
+      var fullFilePath = _context.join(_workspace.root, pathRelativeToRoot);
+      var file = _workspace.findFile(fullFilePath);
+      return file?.createSource(uri);
+    }
+    if (uri.scheme != 'package') {
+      return null;
+    }
+    String uriPath = Uri.decodeComponent(uri.path);
+    int slash = uriPath.indexOf('/');
+
+    // If the path either starts with a slash or has no slash, it is invalid.
+    if (slash < 1) {
+      return null;
+    }
+
+    if (uriPath.contains('//') || uriPath.contains('..')) {
+      return null;
+    }
+
+    String packageName = uriPath.substring(0, slash);
+    String fileUriPart = uriPath.substring(slash + 1);
+    String filePath = fileUriPart.replaceAll('/', _context.separator);
+
+    if (!packageName.contains('.')) {
+      String fullFilePath = _context.join(
+          _workspace.root, 'third_party', 'dart', packageName, 'lib', filePath);
+      var file = _workspace.findFile(fullFilePath);
+      return file?.createSource(uri);
+    } else {
+      String packagePath = packageName.replaceAll('.', _context.separator);
+      String fullFilePath =
+          _context.join(_workspace.root, packagePath, 'lib', filePath);
+      var file = _workspace.findFile(fullFilePath);
+      return file?.createSource(uri);
+    }
+  }
+
   /// Restore [filePath] to its 'package:' URI parts.
   ///
   /// Returns `null` if [root] is null or if [filePath] is not within [root].
-  List<String> _restoreUriParts(String root, String filePath) {
+  List<String>? _restoreUriParts(String? root, String filePath) {
     path.Context context = _workspace.provider.pathContext;
     if (root != null && context.isWithin(root, filePath)) {
       String relative = context.relative(filePath, from: root);
@@ -349,7 +357,7 @@ class BazelWorkspace extends Workspace
 
   /// The absolute path to the optional read only workspace root, in the
   /// `READONLY` folder if a git-based workspace, or `null`.
-  final String readonly;
+  final String? readonly;
 
   /// The absolute paths to all `bazel-bin` folders.
   ///
@@ -360,6 +368,11 @@ class BazelWorkspace extends Workspace
   /// The absolute path to the `bazel-genfiles` folder.
   final String genfiles;
 
+  /// Sometimes `BUILD` files are not preserved, and `xyz.packages` files
+  /// are created instead. But looking for them is expensive, so we want
+  /// to avoid this in cases when `BUILD` files are always available.
+  final bool _lookForBuildFileSubstitutes;
+
   /// The cache of packages. The key is the directory path, the value is
   /// the corresponding package.
   final Map<String, BazelWorkspacePackage> _directoryToPackage = {};
@@ -368,7 +381,13 @@ class BazelWorkspace extends Workspace
       StreamController<BazelFileNotification>.broadcast();
 
   BazelWorkspace._(
-      this.provider, this.root, this.readonly, this.binPaths, this.genfiles);
+    this.provider,
+    this.root,
+    this.readonly,
+    this.binPaths,
+    this.genfiles, {
+    required bool lookForBuildFileSubstitutes,
+  }) : _lookForBuildFileSubstitutes = lookForBuildFileSubstitutes;
 
   /// Stream of files that we tried to find along with their potential or actual
   /// paths.
@@ -382,7 +401,10 @@ class BazelWorkspace extends Workspace
   UriResolver get packageUriResolver => BazelPackageUriResolver(this);
 
   @override
-  SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {
+  SourceFactory createSourceFactory(
+    DartSdk? sdk,
+    SummaryDataStore? summaryData,
+  ) {
     List<UriResolver> resolvers = <UriResolver>[];
     if (sdk != null) {
       resolvers.add(DartUriResolver(sdk));
@@ -400,7 +422,7 @@ class BazelWorkspace extends Workspace
   /// then into the workspace root. The file in the workspace root is returned
   /// even if it does not exist. Return `null` if the given [absolutePath] is
   /// not in the workspace [root].
-  File findFile(String absolutePath) {
+  File? findFile(String absolutePath) {
     path.Context context = provider.pathContext;
     try {
       String relative = context.relative(absolutePath, from: root);
@@ -408,10 +430,8 @@ class BazelWorkspace extends Workspace
         return null;
       }
       // First check genfiles and bin directories
-      var generatedCandidates = <String>[
-        if (genfiles != null) genfiles,
-        ...?binPaths
-      ].map((prefix) => context.join(prefix, relative));
+      var generatedCandidates = <String>[genfiles, ...binPaths]
+          .map((prefix) => context.join(prefix, relative));
       for (var path in generatedCandidates) {
         File file = provider.getFile(path);
         if (file.exists) {
@@ -426,6 +446,7 @@ class BazelWorkspace extends Workspace
         return writableFile;
       }
       // READONLY
+      var readonly = this.readonly;
       if (readonly != null) {
         File file = provider.getFile(context.join(readonly, relative));
         if (file.exists) {
@@ -444,7 +465,7 @@ class BazelWorkspace extends Workspace
   }
 
   @override
-  WorkspacePackage findPackageFor(String filePath) {
+  BazelWorkspacePackage? findPackageFor(String filePath) {
     path.Context context = provider.pathContext;
     var directoryPath = context.dirname(filePath);
 
@@ -453,8 +474,7 @@ class BazelWorkspace extends Workspace
       return cachedPackage;
     }
 
-    Folder folder = provider.getFolder(directoryPath);
-    if (!context.isWithin(root, folder.path)) {
+    if (!context.isWithin(root, directoryPath)) {
       return null;
     }
 
@@ -462,33 +482,33 @@ class BazelWorkspace extends Workspace
     // This does not typically happen during usual analysis, but it still could,
     // and it can come up in tests.
     for (var binPath in [genfiles, ...binPaths]) {
-      if (context.isWithin(binPath, folder.path)) {
+      if (context.isWithin(binPath, directoryPath)) {
         return findPackageFor(
             context.join(root, context.relative(filePath, from: binPath)));
       }
     }
 
-    // Return a Package rooted at [folder].
-    BazelWorkspacePackage packageRootedHere() {
-      List<String> uriParts = (packageUriResolver as BazelPackageUriResolver)
+    /// Return the package rooted at [folder].
+    BazelWorkspacePackage? packageRootedAt(Folder folder) {
+      var uriParts = (packageUriResolver as BazelPackageUriResolver)
           ._restoreUriParts(root, '${folder.path}/lib/__fake__.dart');
-      String packageName;
+      String? packageName;
       if (uriParts != null && uriParts.isNotEmpty) {
         packageName = uriParts[0];
       }
       // TODO(srawlins): If [packageName] could not be derived from [uriParts],
       //  I imagine this should throw.
+      if (packageName == null) {
+        return null;
+      }
       var package = BazelWorkspacePackage(packageName, folder.path, this);
       _directoryToPackage[directoryPath] = package;
       return package;
     }
 
-    while (true) {
-      Folder parent = folder.parent;
-      if (parent == null) {
-        return null;
-      }
-      if (parent.path.length < root.length) {
+    var startFolder = provider.getFolder(directoryPath);
+    for (var folder in startFolder.withAncestors) {
+      if (folder.path.length < root.length) {
         // We've walked up outside of [root], so [path] is definitely not
         // defined in any package in this workspace.
         return null;
@@ -496,44 +516,55 @@ class BazelWorkspace extends Workspace
 
       if (folder.getChildAssumingFile(_buildFileName).exists) {
         // Found the BUILD file, denoting a Dart package.
-        return packageRootedHere();
+        return packageRootedAt(folder);
       }
 
-      // In some distributed build environments, BUILD files are not preserved.
-      // We can still look for a ".packages" file in order to determine a
-      // package's root. A ".packages" file found in [folder]'s sister path
-      // under a "bin" path among [binPaths] denotes a Dart package.
-      //
-      // For example, if this BazelWorkspace's [root] is
-      // "/build/work/abc123/workspace" with two "bin" folders,
-      // "/build/work/abc123/workspace/blaze-out/host/bin/" and
-      // "/build/work/abc123/workspace/blaze-out/k8-opt/bin/", and [folder]
-      // is at "/build/work/abc123/workspace/foo/bar", then we  must look for a
-      // file ending in ".packages" in the folders
-      // "/build/work/abc123/workspace/blaze-out/host/bin/foo/bar" and
-      // "/build/work/abc123/workspace/blaze-out/k8-opt/bin/foo/bar".
-
-      // [folder]'s path, relative to [root]. For example, "foo/bar".
-      String relative = context.relative(folder.path, from: root);
-      for (String bin in binPaths) {
-        Folder binChild =
-            provider.getFolder(context.normalize(context.join(bin, relative)));
-        if (binChild.exists &&
-            binChild.getChildren().any((c) => c.path.endsWith('.packages'))) {
-          // [folder]'s sister folder within [bin] contains a ".packages" file.
-          return packageRootedHere();
-        }
+      if (_hasBuildFileSubstitute(folder)) {
+        return packageRootedAt(folder);
       }
-
-      // Go up a folder.
-      folder = parent;
     }
   }
 
-  String _relativeToRoot(String p) {
+  /// In some distributed build environments, BUILD files are not preserved.
+  /// We can still look for a ".packages" file in order to determine a
+  /// package's root. A ".packages" file found in [folder]'s sister path
+  /// under a "bin" path among [binPaths] denotes a Dart package.
+  ///
+  /// For example, if the [root] of this BazelWorkspace is
+  /// "/build/work/abc123/workspace" with two "bin" folders,
+  /// "/build/work/abc123/workspace/blaze-out/host/bin/" and
+  /// "/build/work/abc123/workspace/blaze-out/k8-opt/bin/", and [folder]
+  /// is at "/build/work/abc123/workspace/foo/bar", then we  must look for a
+  /// file ending in ".packages" in the folders
+  /// "/build/work/abc123/workspace/blaze-out/host/bin/foo/bar" and
+  /// "/build/work/abc123/workspace/blaze-out/k8-opt/bin/foo/bar".
+  bool _hasBuildFileSubstitute(Folder folder) {
+    if (!_lookForBuildFileSubstitutes) {
+      return false;
+    }
+
+    path.Context context = provider.pathContext;
+
+    // [folder]'s path, relative to [root]. For example, "foo/bar".
+    String relative = context.relative(folder.path, from: root);
+
+    for (String bin in binPaths) {
+      Folder binChild =
+          provider.getFolder(context.normalize(context.join(bin, relative)));
+      if (binChild.exists &&
+          binChild.getChildren().any((c) => c.path.endsWith('.packages'))) {
+        // [folder]'s sister folder within [bin] contains a ".packages" file.
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  String? _relativeToRoot(String p) {
     path.Context context = provider.pathContext;
     // genfiles
-    if (genfiles != null && context.isWithin(genfiles, p)) {
+    if (context.isWithin(genfiles, p)) {
       return context.relative(p, from: genfiles);
     }
     // bin
@@ -543,6 +574,7 @@ class BazelWorkspace extends Workspace
       }
     }
     // READONLY
+    var readonly = this.readonly;
     if (readonly != null) {
       if (context.isWithin(readonly, p)) {
         return context.relative(p, from: readonly);
@@ -570,18 +602,15 @@ class BazelWorkspace extends Workspace
   ///   BazelWorkspace rooted at _f_ is returned.
   /// * If _f_ has a child file named "WORKSPACE", then a BazelWorkspace rooted
   ///   at _f_ is returned.
-  static BazelWorkspace find(ResourceProvider provider, String filePath) {
-    Resource resource = provider.getResource(filePath);
-    if (resource is File && resource.parent != null) {
-      filePath = resource.parent.path;
-    }
-    path.Context context = provider.pathContext;
-    Folder folder = provider.getFolder(filePath);
-    while (true) {
-      Folder parent = folder.parent;
-      if (parent == null) {
-        return null;
-      }
+  static BazelWorkspace? find(
+    ResourceProvider provider,
+    String filePath, {
+    bool lookForBuildFileSubstitutes = true,
+  }) {
+    var context = provider.pathContext;
+    var startFolder = provider.getFolder(filePath);
+    for (var folder in startFolder.withAncestors) {
+      var parent = folder.parent2;
 
       // Found the READONLY folder, might be a git-based workspace.
       Folder readonlyFolder = parent.getChildAssumingFolder(_READONLY);
@@ -590,39 +619,42 @@ class BazelWorkspace extends Workspace
         String readonlyRoot =
             context.join(readonlyFolder.path, folder.shortName);
         if (provider.getFolder(readonlyRoot).exists) {
-          List<String> binPaths = _findBinFolderPaths(folder);
+          var binPaths = _findBinFolderPaths(folder);
           String symlinkPrefix =
               _findSymlinkPrefix(provider, root, binPaths: binPaths);
           binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
           return BazelWorkspace._(provider, root, readonlyRoot, binPaths,
-              context.join(root, '$symlinkPrefix-genfiles'));
+              context.join(root, '$symlinkPrefix-genfiles'),
+              lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
         }
       }
 
       if (_firstExistingFolder(parent, ['blaze-out', 'bazel-out']) != null) {
         // Found the "out" folder; must be a bazel workspace.
         String root = parent.path;
-        List<String> binPaths = _findBinFolderPaths(parent);
+        var binPaths = _findBinFolderPaths(parent);
         String symlinkPrefix =
             _findSymlinkPrefix(provider, root, binPaths: binPaths);
         binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
         return BazelWorkspace._(provider, root, null /* readonly */, binPaths,
-            context.join(root, '$symlinkPrefix-genfiles'));
+            context.join(root, '$symlinkPrefix-genfiles'),
+            lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
       }
 
       // Found the WORKSPACE file, must be a non-git workspace.
       if (folder.getChildAssumingFile(_WORKSPACE).exists) {
         String root = folder.path;
-        List<String> binPaths = _findBinFolderPaths(folder);
+        var binPaths = _findBinFolderPaths(folder);
         String symlinkPrefix =
             _findSymlinkPrefix(provider, root, binPaths: binPaths);
         binPaths ??= [context.join(root, '$symlinkPrefix-bin')];
         return BazelWorkspace._(provider, root, null /* readonly */, binPaths,
-            context.join(root, '$symlinkPrefix-genfiles'));
+            context.join(root, '$symlinkPrefix-genfiles'),
+            lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
       }
 
-      // Go up the folder.
-      folder = parent;
+      // // Go up the folder.
+      // folder = parent;
     }
   }
 
@@ -636,8 +668,8 @@ class BazelWorkspace extends Workspace
   /// for folders named "bin".
   ///
   /// If no "bin" folder is found in any of those locations, `null` is returned.
-  static List<String> _findBinFolderPaths(Folder root) {
-    Folder out = _firstExistingFolder(root, ['blaze-out', 'bazel-out']);
+  static List<String>? _findBinFolderPaths(Folder root) {
+    var out = _firstExistingFolder(root, ['blaze-out', 'bazel-out']);
     if (out == null) {
       return null;
     }
@@ -662,7 +694,7 @@ class BazelWorkspace extends Workspace
   /// assumption according to [defaultSymlinkPrefix] if neither of the folders
   /// exists.
   static String _findSymlinkPrefix(ResourceProvider provider, String root,
-      {List<String> binPaths}) {
+      {List<String>? binPaths}) {
     path.Context context = provider.pathContext;
     if (binPaths != null && binPaths.isNotEmpty) {
       return context.basename(binPaths.first).startsWith('bazel')
@@ -680,9 +712,9 @@ class BazelWorkspace extends Workspace
   }
 
   /// Return the first folder within [root], chosen from [names], which exists.
-  static Folder _firstExistingFolder(Folder root, List<String> names) => names
+  static Folder? _firstExistingFolder(Folder root, List<String> names) => names
       .map((name) => root.getChildAssumingFolder(name))
-      .firstWhere((folder) => folder.exists, orElse: () => null);
+      .firstWhereOrNull((folder) => folder.exists);
 }
 
 /// Information about a package defined in a BazelWorkspace.
@@ -701,42 +733,33 @@ class BazelWorkspacePackage extends WorkspacePackage {
   final BazelWorkspace workspace;
 
   bool _buildFileReady = false;
-  List<String> _enabledExperiments;
-  Version _languageVersion;
+  List<String>? _enabledExperiments;
+  Version? _languageVersion;
 
   BazelWorkspacePackage(String packageName, this.root, this.workspace)
       : _uriPrefix = 'package:$packageName/';
 
   @override
-  List<String> get enabledExperiments {
+  List<String>? get enabledExperiments {
     _readBuildFile();
     return _enabledExperiments;
   }
 
   @override
-  Version get languageVersion {
+  Version? get languageVersion {
     _readBuildFile();
     return _languageVersion;
   }
 
   @override
   bool contains(Source source) {
-    if (source.uri.isScheme('package')) {
-      return source.uri.toString().startsWith(_uriPrefix);
-    }
-    String filePath = source.fullName;
-    if (filePath == null) return false;
-    if (workspace.findFile(filePath) == null) {
-      return false;
-    }
-    if (!workspace.provider.pathContext.isWithin(root, filePath)) {
-      return false;
+    var uri = source.uri;
+    if (uri.isScheme('package')) {
+      return uri.toString().startsWith(_uriPrefix);
     }
 
-    // Just because [filePath] is within [root] does not mean it is in this
-    // package; it could be in a "subpackage." Must go through the work of
-    // learning exactly which package [filePath] is contained in.
-    return workspace.findPackageFor(filePath).root == root;
+    var path = source.fullName;
+    return workspace.findPackageFor(path)?.root == root;
   }
 
   @override

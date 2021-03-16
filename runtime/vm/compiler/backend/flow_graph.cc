@@ -482,7 +482,7 @@ bool FlowGraph::IsReceiver(Definition* def) const {
 FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
     InstanceCallInstr* call,
     UntaggedFunction::Kind kind) const {
-  if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
+  if (!FLAG_use_cha_deopt && !isolate_group()->all_classes_finalized()) {
     // Even if class or function are private, lazy class finalization
     // may later add overriding methods.
     return ToCheck::kCheckCid;
@@ -2073,8 +2073,9 @@ static bool BenefitsFromWidening(BinarySmiOpInstr* smi_op) {
   switch (smi_op->op_kind()) {
     case Token::kMUL:
     case Token::kSHR:
-      // For kMUL we save untagging of the argument for kSHR
-      // we save tagging of the result.
+    case Token::kUSHR:
+      // For kMUL we save untagging of the argument.
+      // For kSHR/kUSHR we save tagging of the result.
       return true;
 
     default:

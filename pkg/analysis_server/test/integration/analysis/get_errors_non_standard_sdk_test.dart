@@ -55,14 +55,15 @@ class Future<T> {}
 class Fake {} 
 ''');
 
-    var libsDir = path.join(
-      sdkPath,
-      'lib',
-      '_internal',
-      'sdk_library_metadata',
-      'lib',
-    );
+    var libsInternalDir = path.join(sdkPath, 'lib', '_internal');
+    Directory(libsInternalDir).createSync(recursive: true);
+
+    File(path.join(sdkPath, 'lib', '_internal', 'allowed_experiments.json'))
+        .writeAsStringSync('{}');
+
+    var libsDir = path.join(libsInternalDir, 'sdk_library_metadata', 'lib');
     Directory(libsDir).createSync(recursive: true);
+
     File(path.join(libsDir, 'libraries.dart')).writeAsStringSync(r'''
 final LIBRARIES = const <String, LibraryInfo> {
   "core":  const LibraryInfo("core/core.dart"),

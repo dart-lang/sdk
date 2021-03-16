@@ -2486,6 +2486,23 @@ class _Uri implements Uri {
     return resolveUri(Uri.parse(reference));
   }
 
+  // Returns the index of the `/` after the package name of a package URI.
+  //
+  // Returns negative if the URI is not a valid package URI:
+  // * Scheme must be "package".
+  // * No authority.
+  // * Path starts with "something"/
+  // * where "something" is not all "." characters,
+  // * and contains no escapes or colons.
+  //
+  // The characters are necessarily valid path characters.
+  static int _packageNameEnd(Uri uri, String path) {
+    if (uri.isScheme("package") && !uri.hasAuthority) {
+      return _skipPackageNameChars(path, 0, path.length);
+    }
+    return -1;
+  }
+
   Uri resolveUri(Uri reference) {
     // From RFC 3986.
     String targetScheme;
@@ -2526,7 +2543,22 @@ class _Uri implements Uri {
             targetQuery = this._query;
           }
         } else {
-          if (reference.hasAbsolutePath) {
+          String basePath = this.path;
+          int packageNameEnd = _packageNameEnd(this, basePath);
+          if (packageNameEnd > 0) {
+            assert(targetScheme == "package");
+            assert(!this.hasAuthority);
+            assert(!this.hasEmptyPath);
+            // Merging a path into a package URI.
+            String packageName = basePath.substring(0, packageNameEnd);
+            if (reference.hasAbsolutePath) {
+              targetPath = packageName + _removeDotSegments(reference.path);
+            } else {
+              targetPath = packageName +
+                  _removeDotSegments(_mergePaths(
+                      basePath.substring(packageName.length), reference.path));
+            }
+          } else if (reference.hasAbsolutePath) {
             targetPath = _removeDotSegments(reference.path);
           } else {
             // This is the RFC 3986 behavior for merging.
@@ -4278,6 +4310,25 @@ class _SimpleUri implements Uri {
     return _toNonSimple().resolveUri(reference);
   }
 
+  // Returns the index of the `/` after the package name of a package URI.
+  //
+  // Returns negative if the URI is not a valid package URI:
+  // * Scheme must be "package".
+  // * No authority.
+  // * Path starts with "something"/
+  // * where "something" is not all "." characters,
+  // * and contains no escapes or colons.
+  //
+  // The characters are necessarily valid path characters.
+  static int _packageNameEnd(_SimpleUri uri) {
+    if (uri._isPackage && !uri.hasAuthority) {
+      // Becomes Non zero if seeing any non-dot character.
+      // Also guards against empty package names.
+      return _skipPackageNameChars(uri._uri, uri._pathStart, uri._queryStart);
+    }
+    return -1;
+  }
+
   // Merge two simple URIs. This should always result in a prefix of
   // one concatenated with a suffix of the other, possibly with a `/` in
   // the middle of two merged paths, which is again simple.
@@ -4345,8 +4396,11 @@ class _SimpleUri implements Uri {
       return base.removeFragment();
     }
     if (ref.hasAbsolutePath) {
-      var delta = base._pathStart - ref._pathStart;
-      var newUri = base._uri.substring(0, base._pathStart) +
+      int basePathStart = base._pathStart;
+      int packageNameEnd = _packageNameEnd(this);
+      if (packageNameEnd > 0) basePathStart = packageNameEnd;
+      var delta = basePathStart - ref._pathStart;
+      var newUri = base._uri.substring(0, basePathStart) +
           ref._uri.substring(ref._pathStart);
       return _SimpleUri(
           newUri,
@@ -4393,7 +4447,12 @@ class _SimpleUri implements Uri {
     String refUri = ref._uri;
     int baseStart = base._pathStart;
     int baseEnd = base._queryStart;
-    while (baseUri.startsWith("../", baseStart)) baseStart += 3;
+    int packageNameEnd = _packageNameEnd(this);
+    if (packageNameEnd >= 0) {
+      baseStart = packageNameEnd; // At the `/` after the first package name.
+    } else {
+      while (baseUri.startsWith("../", baseStart)) baseStart += 3;
+    }
     int refStart = ref._pathStart;
     int refEnd = ref._queryStart;
 
@@ -4544,3 +4603,25 @@ int _stringOrNullLength(String? s) => (s == null) ? 0 : s.length;
 
 List<String> _toUnmodifiableStringList(String key, List<String> list) =>
     List<String>.unmodifiable(list);
+
+/// Counts valid package name characters in [source].
+///
+/// If [source] starts at [start] with a valid package name,
+/// followed by a `/`, no later than [end],
+/// then the position of the `/` is returned.
+/// If not, a negative value is returned.
+/// (Assumes source characters are valid path characters.)
+/// A name only consisting of `.` characters is not a valid
+/// package name.
+int _skipPackageNameChars(String source, int start, int end) {
+  // Becomes non-zero when seeing a non-dot character.
+  // Also guards against empty package names.
+  var dots = 0;
+  for (var i = start; i < end; i++) {
+    var char = source.codeUnitAt(i);
+    if (char == _SLASH) return (dots != 0) ? i : -1;
+    if (char == _PERCENT || char == _COLON) return -1;
+    dots |= char ^ _DOT;
+  }
+  return -1;
+}

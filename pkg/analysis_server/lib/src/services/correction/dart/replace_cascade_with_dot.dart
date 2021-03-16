@@ -25,6 +25,9 @@ class ReplaceCascadeWithDot extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_CASCADE_WITH_DOT;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_CASCADE_WITH_DOT_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is CascadeExpression) {

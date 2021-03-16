@@ -712,6 +712,16 @@ inline D bit_copy(const S& source) {
 // Undefine math.h definition which clashes with our condition names.
 #undef OVERFLOW
 
+// Include IL printer functionality into non-PRODUCT builds or in all AOT
+// compiler builds or when forced.
+#if !defined(PRODUCT) || defined(DART_PRECOMPILER) ||                          \
+    defined(FORCE_INCLUDE_DISASSEMBLER)
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(PRODUCT)
+#error Requested to include IL printer into PRODUCT AOT runtime
+#endif
+#define INCLUDE_IL_PRINTER 1
+#endif
+
 }  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_GLOBALS_H_

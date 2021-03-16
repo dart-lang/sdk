@@ -44,14 +44,13 @@ class DynamicUse {
   final Object receiverConstraint;
   final List<DartType> _typeArguments;
 
-  DynamicUse(this.selector, this.receiverConstraint, this._typeArguments) {
-    assert(
-        selector.callStructure.typeArgumentCount ==
-            (_typeArguments?.length ?? 0),
-        "Type argument count mismatch. Selector has "
-        "${selector.callStructure.typeArgumentCount} but "
-        "${_typeArguments?.length ?? 0} were passed.");
-  }
+  DynamicUse(this.selector, this.receiverConstraint, this._typeArguments)
+      : assert(
+            selector.callStructure.typeArgumentCount ==
+                (_typeArguments?.length ?? 0),
+            "Type argument count mismatch. Selector has "
+            "${selector.callStructure.typeArgumentCount} but "
+            "${_typeArguments?.length ?? 0} were passed.");
 
   DynamicUse withReceiverConstraint(Object otherReceiverConstraint) {
     if (otherReceiverConstraint == receiverConstraint) {

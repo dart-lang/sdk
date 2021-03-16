@@ -10,11 +10,45 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CanBeNullAfterNullAwareTest);
+    defineReflectiveTests(CanBeNullAfterNullAwareWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class CanBeNullAfterNullAwareTest extends PubPackageResolutionTest {
+  test_definedForNull() async {
+    await assertNoErrorsInCode(r'''
+m(x) {
+  x?.a.hashCode;
+  x?.a.runtimeType;
+  x?.a.toString();
+  x?.b().hashCode;
+  x?.b().runtimeType;
+  x?.b().toString();
+}
+''');
+  }
+
+  test_guarded_methodInvocation() async {
+    await assertNoErrorsInCode(r'''
+m(x) {
+  x?.a()?.b();
+}
+''');
+  }
+
+  test_guarded_propertyAccess() async {
+    await assertNoErrorsInCode(r'''
+m(x) {
+  x?.a?.b;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class CanBeNullAfterNullAwareWithoutNullSafetyTest
+    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   test_afterCascade() async {
     await assertErrorsInCode(r'''
 m(x) {
@@ -43,35 +77,6 @@ m(x) {
 ''', [
       error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 9, 6),
     ]);
-  }
-
-  test_definedForNull() async {
-    await assertNoErrorsInCode(r'''
-m(x) {
-  x?.a.hashCode;
-  x?.a.runtimeType;
-  x?.a.toString();
-  x?.b().hashCode;
-  x?.b().runtimeType;
-  x?.b().toString();
-}
-''');
-  }
-
-  test_guarded_methodInvocation() async {
-    await assertNoErrorsInCode(r'''
-m(x) {
-  x?.a()?.b();
-}
-''');
-  }
-
-  test_guarded_propertyAccess() async {
-    await assertNoErrorsInCode(r'''
-m(x) {
-  x?.a?.b;
-}
-''');
   }
 
   test_methodInvocation() async {

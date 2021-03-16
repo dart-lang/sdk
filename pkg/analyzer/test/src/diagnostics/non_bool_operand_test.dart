@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class NonBoolOperandTest extends PubPackageResolutionTest {
+class NonBoolOperandTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_and_left() async {
     await assertErrorsInCode(r'''
 bool f(int left, bool right) {
@@ -58,8 +59,7 @@ bool f(bool left, double right) {
 }
 
 @reflectiveTest
-class NonBoolOperandWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class NonBoolOperandWithNullSafetyTest extends PubPackageResolutionTest {
   test_and_null() async {
     await assertErrorsInCode(r'''
 m() {

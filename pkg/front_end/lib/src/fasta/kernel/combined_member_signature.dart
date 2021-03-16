@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchyBase;
 
@@ -332,6 +332,11 @@ abstract class CombinedMemberSignatureBase<T> {
                   _coreTypes,
                   _combinedMemberSignatureType,
                   norm(_coreTypes, getMemberType(index)));
+              assert(
+                  _combinedMemberSignatureType != null,
+                  "No combined member signature found for "
+                  "${_mutualSubtypes.values.map((int i) => getMemberType(i))} "
+                  "for members ${members}");
             }
           }
           _neededNnbdTopMerge =

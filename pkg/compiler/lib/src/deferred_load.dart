@@ -10,6 +10,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
+import '../compiler_new.dart' show OutputType;
 import 'common/metrics.dart' show Metric, Metrics, CountMetric, DurationMetric;
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
@@ -54,25 +55,22 @@ class OutputUnit implements Comparable<OutputUnit> {
   final String name;
 
   /// The deferred imports that use the elements in this output unit.
-  final Set<ImportEntity> _imports;
+  final Set<ImportEntity> imports;
 
-  OutputUnit(this.isMainOutput, this.name, this._imports);
+  OutputUnit(this.isMainOutput, this.name, this.imports);
 
   @override
   int compareTo(OutputUnit other) {
     if (identical(this, other)) return 0;
     if (isMainOutput && !other.isMainOutput) return -1;
     if (!isMainOutput && other.isMainOutput) return 1;
-    var size = _imports.length;
-    var otherSize = other._imports.length;
+    var size = imports.length;
+    var otherSize = other.imports.length;
     if (size != otherSize) return size.compareTo(otherSize);
-    var imports = _imports.toList();
-    var otherImports = other._imports.toList();
+    var thisImports = imports.toList();
+    var otherImports = other.imports.toList();
     for (var i = 0; i < size; i++) {
-      if (imports[i] == otherImports[i]) continue;
-      var a = imports[i].uri.path;
-      var b = otherImports[i].uri.path;
-      var cmp = a.compareTo(b);
+      var cmp = _compareImportEntities(thisImports[i], otherImports[i]);
       if (cmp != 0) return cmp;
     }
     // TODO(sigmund): make compare stable.  If we hit this point, all imported
@@ -82,17 +80,15 @@ class OutputUnit implements Comparable<OutputUnit> {
     return name.compareTo(other.name);
   }
 
-  Set<ImportEntity> get importsForTesting => _imports;
-
   void merge(OutputUnit that) {
     assert(this != that);
     // We don't currently support merging code into the main output unit.
     assert(!isMainOutput);
-    this._imports.addAll(that._imports);
+    this.imports.addAll(that.imports);
   }
 
   @override
-  String toString() => "OutputUnit($name, $_imports)";
+  String toString() => "OutputUnit($name, $imports)";
 }
 
 class _DeferredLoadTaskMetrics implements Metrics {
@@ -715,7 +711,7 @@ class DeferredLoadTask extends CompilerTask {
       hunksToLoad[_importDeferName[import]] = [];
       for (OutputUnit outputUnit in sortedOutputUnits) {
         if (outputUnit == _mainOutputUnit) continue;
-        if (outputUnit._imports.contains(import)) {
+        if (outputUnit.imports.contains(import)) {
           hunksToLoad[_importDeferName[import]].add(outputUnit);
           metrics.hunkListElements.add(1);
         }
@@ -861,9 +857,39 @@ class DeferredLoadTask extends CompilerTask {
     return _buildResult();
   }
 
+  // Dumps a graph as a list of strings of 0 and 1. There is one 'bit' for each
+  // import entity in the graph, and each string in the list represents an
+  // output unit.
+  void _dumpDeferredGraph() {
+    int id = 0;
+    Map<ImportEntity, int> importMap = {};
+    var entities = _deferredImportDescriptions.keys.toList();
+    entities.sort(_compareImportEntities);
+    for (var key in entities) {
+      importMap[key] = id++;
+    }
+    List<String> graph = [];
+    for (var outputUnit in _allOutputUnits) {
+      if (!outputUnit.isMainOutput) {
+        List<int> representation = List.filled(id, 0);
+        for (var entity in outputUnit.imports) {
+          representation[importMap[entity]] = 1;
+        }
+        graph.add(representation.join());
+      }
+    }
+    compiler.outputProvider.createOutputSink(
+        compiler.options.deferredGraphUri.path, '', OutputType.debug)
+      ..add(graph.join('\n'))
+      ..close();
+  }
+
   OutputUnitData _buildResult() {
     _createOutputUnits();
     Map<String, List<OutputUnit>> hunksToLoad = _setupHunksToLoad();
+    if (compiler.options.deferredGraphUri != null) {
+      _dumpDeferredGraph();
+    }
     Map<ClassEntity, OutputUnit> classMap = {};
     Map<ClassEntity, OutputUnit> classTypeMap = {};
     Map<MemberEntity, OutputUnit> memberMap = {};
@@ -969,7 +995,7 @@ class DeferredLoadTask extends CompilerTask {
         unitText.write(' <MAIN UNIT>');
       } else {
         unitText.write(' imports:');
-        var imports = outputUnit._imports
+        var imports = outputUnit.imports
             .map((i) => '${i.enclosingLibraryUri.resolveUri(i.uri)}')
             .toList();
         for (var i in imports..sort()) {
@@ -1528,7 +1554,7 @@ class OutputUnitData {
       outputUnitIndices[outputUnit] = outputUnitIndices.length;
       sink.writeBool(outputUnit.isMainOutput);
       sink.writeString(outputUnit.name);
-      sink.writeImports(outputUnit._imports);
+      sink.writeImports(outputUnit.imports);
     });
     sink.writeInt(outputUnitIndices[mainOutputUnit]);
     sink.writeClassMap(_classToUnit, (OutputUnit outputUnit) {
@@ -1626,7 +1652,7 @@ class OutputUnitData {
     OutputUnit outputUnitTo = outputUnitForMember(to);
     if (outputUnitTo == mainOutputUnit) return true;
     if (outputUnitFrom == mainOutputUnit) return false;
-    return outputUnitTo._imports.containsAll(outputUnitFrom._imports);
+    return outputUnitTo.imports.containsAll(outputUnitFrom.imports);
   }
 
   /// Returns `true` if constant [to] is reachable from element [from] without
@@ -1641,7 +1667,7 @@ class OutputUnitData {
     OutputUnit outputUnitTo = outputUnitForConstant(to);
     if (outputUnitTo == mainOutputUnit) return true;
     if (outputUnitFrom == mainOutputUnit) return false;
-    return outputUnitTo._imports.containsAll(outputUnitFrom._imports);
+    return outputUnitTo.imports.containsAll(outputUnitFrom.imports);
   }
 
   /// Returns `true` if class [to] is reachable from element [from] without
@@ -1655,7 +1681,7 @@ class OutputUnitData {
     OutputUnit outputUnitTo = outputUnitForClass(to);
     if (outputUnitTo == mainOutputUnit) return true;
     if (outputUnitFrom == mainOutputUnit) return false;
-    return outputUnitTo._imports.containsAll(outputUnitFrom._imports);
+    return outputUnitTo.imports.containsAll(outputUnitFrom.imports);
   }
 
   /// Registers that a constant is used in the same deferred output unit as
@@ -1679,7 +1705,7 @@ class OutputUnitData {
 
   /// Returns the names associated with each deferred import in [unit].
   Iterable<String> getImportNames(OutputUnit unit) {
-    return unit._imports.map((i) => _importDeferName[i]);
+    return unit.imports.map((i) => _importDeferName[i]);
   }
 
   /// Returns a json-style map for describing what files that are loaded by a
@@ -1968,5 +1994,13 @@ class ConstantCollector extends ir.RecursiveVisitor {
   @override
   void visitConstantExpression(ir.ConstantExpression node) {
     add(node);
+  }
+}
+
+int _compareImportEntities(ImportEntity a, ImportEntity b) {
+  if (a == b) {
+    return 0;
+  } else {
+    return a.uri.path.compareTo(b.uri.path);
   }
 }

@@ -261,8 +261,6 @@ class AnalysisError implements Comparable<AnalysisError> {
 
   int get length => json['location']['length'] as int;
 
-  String get messageSentenceFragment => trimEnd(message, '.');
-
   String get url => json['url'] as String;
 
   List<DiagnosticMessage> get contextMessages {
@@ -298,7 +296,7 @@ class AnalysisError implements Comparable<AnalysisError> {
 
   @override
   String toString() => '${severity.toLowerCase()} • '
-      '$messageSentenceFragment at $file:$startLine:$startColumn • '
+      '$message • $file:$startLine:$startColumn • '
       '($code)';
 }
 

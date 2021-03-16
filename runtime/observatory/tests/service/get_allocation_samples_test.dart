@@ -54,7 +54,7 @@ var tests = <IsolateTest>[
     var fooClass = await getClassFromRootLib(isolate, 'Foo') as Class;
     await fooClass.reload();
     expect(fooClass.traceAllocations, isTrue);
-    dynamic profileResponse = await fooClass.getAllocationSamples();
+    dynamic profileResponse = await fooClass.getAllocationTraces();
     expect(profileResponse, isNotNull);
     //expect(profileResponse['type'], equals('_CpuProfile'));
     await fooClass.setTraceAllocations(false);

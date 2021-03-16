@@ -14,6 +14,9 @@ class RemoveUnnecessaryCast extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_CAST;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_CAST_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     if (coveredNode is! AsExpression) {
       return;

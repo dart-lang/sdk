@@ -11,22 +11,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstConstructorParamTypeMismatchTest);
+    defineReflectiveTests(
+        ConstConstructorParamTypeMismatchWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ConstConstructorParamTypeMismatchTest extends PubPackageResolutionTest {
-  test_assignable_fieldFormal_null() async {
-    // Null is assignable to anything (before null safety).
-    await assertNoErrorsInCode(r'''
-class A {
-  final int x;
-  const A(this.x);
-}
-var v = const A(null);
-''');
-  }
-
   test_assignable_fieldFormal_omittedType() async {
     // If a field is declared without a type, and no initializer, it's type is
     // dynamic.
@@ -79,29 +70,6 @@ class A<T> {
 }
 var v = const A<int>(3);
 ''');
-  }
-
-  test_assignable_fieldFormal_unresolved_null() async {
-    // Null always passes runtime type checks, even when the type is
-    // unresolved.
-    await assertErrorsInCode(r'''
-class A {
-  final Unresolved x;
-  const A(String this.x);
-}
-var v = const A(null);
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 10),
-    ]);
-  }
-
-  test_assignable_null() async {
-    // Null is assignable to anything (before null safety).
-    await assertNoErrorsInCode(r'''
-class A {
-  const A(int x);
-}
-var v = const A(null);''');
   }
 
   test_assignable_typeSubstitution() async {
@@ -249,7 +217,9 @@ class C {
 const A u = const A();
 var v = const C(u);
 ''', [
+      // TODO(srawlins): It would be best to report only the first one.
       error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 143, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 143, 1),
     ]);
   }
 
@@ -317,5 +287,43 @@ var v = const A('foo');
       error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 46, 5),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 46, 5),
     ]);
+  }
+}
+
+@reflectiveTest
+class ConstConstructorParamTypeMismatchWithoutNullSafetyTest
+    extends PubPackageResolutionTest with WithoutNullSafetyMixin {
+  test_assignable_fieldFormal_null() async {
+    // Null is assignable to anything (before null safety).
+    await assertNoErrorsInCode(r'''
+class A {
+  final int x;
+  const A(this.x);
+}
+var v = const A(null);
+''');
+  }
+
+  test_assignable_fieldFormal_unresolved_null() async {
+    // Null always passes runtime type checks, even when the type is
+    // unresolved.
+    await assertErrorsInCode(r'''
+class A {
+  final Unresolved x;
+  const A(String this.x);
+}
+var v = const A(null);
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 10),
+    ]);
+  }
+
+  test_assignable_null() async {
+    // Null is assignable to anything (before null safety).
+    await assertNoErrorsInCode(r'''
+class A {
+  const A(int x);
+}
+var v = const A(null);''');
   }
 }

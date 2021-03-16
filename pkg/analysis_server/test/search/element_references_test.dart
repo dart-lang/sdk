@@ -7,17 +7,21 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../analysis_abstract.dart';
 import 'abstract_search_domain.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementReferencesTest);
+    defineReflectiveTests(ElementReferencesWithNonFunctionTypeAliasesTest);
   });
 }
 
 @reflectiveTest
 class ElementReferencesTest extends AbstractSearchDomainTest {
   Element searchElement;
+
+  bool get hasNonFunctionTypeAliases => false;
 
   void assertHasRef(SearchResultKind kind, String search, bool isPotential) {
     assertHasResult(kind, search);
@@ -863,26 +867,36 @@ main() {
     assertHasResult(SearchResultKind.REFERENCE, 'int b');
   }
 
-  Future<void> test_typeReference_functionType() async {
-    addTestFile('''
-typedef F();
-main(F f) {
-}
-''');
-    await findElementReferences('F()', false);
-    expect(searchElement.kind, ElementKind.FUNCTION_TYPE_ALIAS);
-    expect(results, hasLength(1));
-    assertHasResult(SearchResultKind.REFERENCE, 'F f');
-  }
-
-  Future<void> test_typeReference_genericTypeAlias_function() async {
+  Future<void> test_typeReference_typeAlias_functionType() async {
     addTestFile('''
 typedef F = Function();
 main(F f) {
 }
 ''');
     await findElementReferences('F =', false);
-    expect(searchElement.kind, ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(
+      searchElement.kind,
+      hasNonFunctionTypeAliases
+          ? ElementKind.TYPE_ALIAS
+          : ElementKind.FUNCTION_TYPE_ALIAS,
+    );
+    expect(results, hasLength(1));
+    assertHasResult(SearchResultKind.REFERENCE, 'F f');
+  }
+
+  Future<void> test_typeReference_typeAlias_legacy() async {
+    addTestFile('''
+typedef F();
+main(F f) {
+}
+''');
+    await findElementReferences('F()', false);
+    expect(
+      searchElement.kind,
+      hasNonFunctionTypeAliases
+          ? ElementKind.TYPE_ALIAS
+          : ElementKind.FUNCTION_TYPE_ALIAS,
+    );
     expect(results, hasLength(1));
     assertHasResult(SearchResultKind.REFERENCE, 'F f');
   }
@@ -899,5 +913,30 @@ class A<T> {
     expect(results, hasLength(2));
     assertHasResult(SearchResultKind.REFERENCE, 'T f;');
     assertHasResult(SearchResultKind.REFERENCE, 'T m()');
+  }
+}
+
+@reflectiveTest
+class ElementReferencesWithNonFunctionTypeAliasesTest
+    extends ElementReferencesTest with WithNonFunctionTypeAliasesMixin {
+  @override
+  bool get hasNonFunctionTypeAliases => true;
+
+  Future<void> test_typeReference_typeAlias_interfaceType() async {
+    addTestFile('''
+typedef A<T> = Map<int, T>;
+
+void(A<String> a) {}
+''');
+    // Can find `A`.
+    await findElementReferences('A<T> =', false);
+    expect(searchElement.kind, ElementKind.TYPE_ALIAS);
+    expect(results, hasLength(1));
+    assertHasResult(SearchResultKind.REFERENCE, 'A<String>');
+
+    // Can find in `A`.
+    await findElementReferences('int,', false);
+    expect(searchElement.kind, ElementKind.CLASS);
+    assertHasResult(SearchResultKind.REFERENCE, 'int,');
   }
 }

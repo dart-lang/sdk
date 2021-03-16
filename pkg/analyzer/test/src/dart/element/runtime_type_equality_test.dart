@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,9 +22,9 @@ main() {
 @reflectiveTest
 class RuntimeTypeEqualityTypeTest with ElementsTypesMixin {
   @override
-  TypeProvider typeProvider;
+  late final TypeProvider typeProvider;
 
-  TypeSystemImpl typeSystem;
+  late final TypeSystemImpl typeSystem;
 
   FeatureSet get testFeatureSet {
     return FeatureSet.forTesting(
@@ -353,8 +352,7 @@ T2: ${_typeString(T2)}
     _check(T1, T2, false);
   }
 
-  String _typeString(TypeImpl type) {
-    if (type == null) return null;
+  String _typeString(DartType type) {
     return type.getDisplayString(withNullability: true);
   }
 }

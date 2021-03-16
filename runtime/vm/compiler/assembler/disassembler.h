@@ -17,8 +17,9 @@
 namespace dart {
 
 // Forward declaration.
-class MemoryRegion;
+class CodeComments;
 class JSONArray;
+class MemoryRegion;
 
 // Disassembly formatter interface, which consumes the
 // disassembled instructions in any desired form.
@@ -122,7 +123,7 @@ class Disassembler : public AllStatic {
                           uword end,
                           DisassemblyFormatter* formatter,
                           const Code& code,
-                          const Code::Comments* comments = nullptr);
+                          const CodeComments* comments = nullptr);
 
   static void Disassemble(uword start,
                           uword end,
@@ -133,7 +134,7 @@ class Disassembler : public AllStatic {
   static void Disassemble(uword start,
                           uword end,
                           DisassemblyFormatter* formatter,
-                          const Code::Comments* comments) {
+                          const CodeComments* comments) {
     Disassemble(start, end, formatter, Code::Handle(), comments);
   }
 

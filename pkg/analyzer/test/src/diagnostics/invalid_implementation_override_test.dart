@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class InvalidImplementationOverrideTest extends PubPackageResolutionTest {
+class InvalidImplementationOverrideTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_getter_abstractOverridesConcrete() async {
     await assertErrorsInCode('''
 class A {

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -126,7 +125,7 @@ bbb:${toUriStr('/packages/bbb/lib')}
       },
     );
 
-    void check(String posixPath, String expectedPackageName) {
+    void check(String posixPath, String? expectedPackageName) {
       var path = convertPath(posixPath);
       var package = packages.packageForPath(path);
       expect(package?.name, expectedPackageName);
@@ -135,7 +134,7 @@ bbb:${toUriStr('/packages/bbb/lib')}
     check('/home/aaa/lib/a.dart', 'aaa');
     check('/home/aaa/bbb/lib/b.dart', 'bbb');
     check('/home/ccc/lib/c.dart', 'ccc');
-    check('/home/ddd/lib/c.dart', null);
+    check('/home/ddd/lib/d.dart', null);
   }
 
   test_parseDotPackagesFile() {
@@ -207,32 +206,6 @@ test:lib/
       name: 'bbb',
       expectedLibPath: '/packages/bbb/lib',
       expectedVersion: null,
-    );
-  }
-
-  /// New features were added in `2.2.2` over `2.2.0`.
-  /// But `2.2.2` is not representable, so we special case it.
-  test_parsePackageConfigJsonFile_version222() {
-    var file = newFile('/test/.dart_tool/package_config.json', content: '''
-{
-  "configVersion": 2,
-  "packages": [
-    {
-      "name": "test",
-      "rootUri": "../",
-      "packageUri": "lib/",
-      "languageVersion": "2.2"
-    }
-  ]
-}
-''');
-    var packages = parsePackageConfigJsonFile(resourceProvider, file);
-
-    _assertPackage(
-      packages,
-      name: 'test',
-      expectedLibPath: '/test/lib',
-      expectedVersion: Version(2, 2, 2),
     );
   }
 
@@ -313,11 +286,11 @@ bbb:${toUriStr('/packages/bbb/lib')}
 
   void _assertPackage(
     Packages packages, {
-    @required String name,
-    @required String expectedLibPath,
-    @required Version expectedVersion,
+    required String name,
+    required String expectedLibPath,
+    required Version? expectedVersion,
   }) {
-    var package = packages[name];
+    var package = packages[name]!;
     expect(package.name, name);
     expect(package.libFolder.path, convertPath(expectedLibPath));
     expect(package.languageVersion, expectedVersion);

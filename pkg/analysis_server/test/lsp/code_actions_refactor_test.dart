@@ -159,6 +159,31 @@ main() {
         req1, throwsA(isResponseError(ErrorCodes.ContentModified)));
   }
 
+  Future<void> test_filtersCorrectly() async {
+    const content = '''
+main() {
+  print('Test!');
+  [[print('Test!');]]
+}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final ofKind = (CodeActionKind kind) => getCodeActions(
+          mainFileUri.toString(),
+          range: rangeFromMarkers(content),
+          kinds: [kind],
+        );
+
+    // The code above will return a RefactorExtract that should be included
+    // by both Refactor and RefactorExtract, but not RefactorExtractFoo or
+    // RefactorRewrite
+    expect(await ofKind(CodeActionKind.Refactor), isNotEmpty);
+    expect(await ofKind(CodeActionKind.RefactorExtract), isNotEmpty);
+    expect(await ofKind(CodeActionKind('refactor.extract.foo')), isEmpty);
+    expect(await ofKind(CodeActionKind.RefactorRewrite), isEmpty);
+  }
+
   Future<void> test_generatesNames() async {
     const content = '''
 Object main() {

@@ -1,0 +1,73 @@
+main = main::main;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  import "dart:ffi";
+
+  @#C6
+  class Coordinate extends dart.ffi::Struct {
+    static final field dart.core::int* #sizeOf = (#C9).{dart.core::List::[]}(dart.ffi::_abi());
+    @#C12
+    constructor #fromTypedDataBase(dynamic #pointer) → dynamic
+      : super dart.ffi::Struct::_fromPointer(#pointer)
+      ;
+    static factory allocate(dart.core::double* x, dart.core::double* y, dart.ffi::Pointer<lib::Coordinate*>* next) → lib::Coordinate* {
+      dart.core::print("hello");
+      return null;
+    }
+    abstract member-signature get _addressOf() → dart.core::Object*; -> dart.ffi::Struct::_addressOf
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+    get x() → dart.core::double*
+      return dart.ffi::_loadDouble(this.{dart.ffi::Struct::_addressOf}, (#C14).{dart.core::List::[]}(dart.ffi::_abi()));
+    set x(dart.core::double* #v) → void
+      return dart.ffi::_storeDouble(this.{dart.ffi::Struct::_addressOf}, (#C14).{dart.core::List::[]}(dart.ffi::_abi()), #v);
+    get y() → dart.core::double*
+      return dart.ffi::_loadDouble(this.{dart.ffi::Struct::_addressOf}, (#C16).{dart.core::List::[]}(dart.ffi::_abi()));
+    set y(dart.core::double* #v) → void
+      return dart.ffi::_storeDouble(this.{dart.ffi::Struct::_addressOf}, (#C16).{dart.core::List::[]}(dart.ffi::_abi()), #v);
+    get next() → dart.ffi::Pointer<lib::Coordinate*>*
+      return dart.ffi::_fromAddress<lib::Coordinate*>(dart.ffi::_loadIntPtr(this.{dart.ffi::Struct::_addressOf}, (#C18).{dart.core::List::[]}(dart.ffi::_abi())));
+    set next(dart.ffi::Pointer<lib::Coordinate*>* #v) → void
+      return dart.ffi::_storeIntPtr(this.{dart.ffi::Struct::_addressOf}, (#C18).{dart.core::List::[]}(dart.ffi::_abi()), #v.{dart.ffi::Pointer::address});
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  static method main() → dynamic {
+    lib::Coordinate* coordinate = lib::Coordinate::allocate(42.0, 42.0, null);
+    dart.core::print(coordinate.{lib::Coordinate::x});
+    dart.core::print(coordinate.{lib::Coordinate::y});
+    dart.core::print(coordinate.{lib::Coordinate::next});
+    dart.core::print("Done!");
+  }
+}
+constants  {
+  #C1 = "vm:ffi:struct-fields"
+  #C2 = TypeLiteralConstant(dart.ffi::Double)
+  #C3 = TypeLiteralConstant(dart.ffi::Pointer<dart.ffi::NativeType>)
+  #C4 = <dart.core::Type>[#C2, #C2, #C3]
+  #C5 = dart.ffi::_FfiStructLayout {fieldTypes:#C4}
+  #C6 = dart.core::pragma {name:#C1, options:#C5}
+  #C7 = 24
+  #C8 = 20
+  #C9 = <dart.core::int*>[#C7, #C8, #C7]
+  #C10 = "vm:entry-point"
+  #C11 = null
+  #C12 = dart.core::pragma {name:#C10, options:#C11}
+  #C13 = 0
+  #C14 = <dart.core::int*>[#C13, #C13, #C13]
+  #C15 = 8
+  #C16 = <dart.core::int*>[#C15, #C15, #C15]
+  #C17 = 16
+  #C18 = <dart.core::int*>[#C17, #C17, #C17]
+}

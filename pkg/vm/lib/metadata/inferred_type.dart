@@ -127,7 +127,7 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
     // TODO(sjindel/tfa): Implement serialization of type arguments when can use
     // them for optimizations.
     final concreteClassReference =
-        source.readCanonicalNameReference()?.getReference();
+        source.readNullableCanonicalNameReference()?.getReference();
     final flags = source.readByte();
     final constantValue = (flags & InferredType.flagConstant) != 0
         ? source.readConstantReference()

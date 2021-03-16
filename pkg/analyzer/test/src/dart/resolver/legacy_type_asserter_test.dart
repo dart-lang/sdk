@@ -24,7 +24,7 @@ main() {
 
 @reflectiveTest
 class LegacyTypeAsserterTest {
-  TypeProvider typeProvider;
+  late final TypeProvider typeProvider;
 
   void setUp() {
     var analysisContext = TestAnalysisContext();
@@ -67,7 +67,7 @@ class LegacyTypeAsserterTest {
   test_nullableUnit_expressionStaticType_nonNullTypeArgument() async {
     var identifier = AstTestFactory.identifier3('foo');
     var unit = _wrapExpression(identifier);
-    identifier.staticType = typeProvider.listType2(
+    identifier.staticType = typeProvider.listType(
         (typeProvider.intType as TypeImpl)
             .withNullability(NullabilitySuffix.question));
 
@@ -145,9 +145,10 @@ class LegacyTypeAsserterTest {
         AstTestFactory.functionDeclaration(
             null,
             null,
-            null,
+            'f',
             AstTestFactory.functionExpression2(
-                null, AstTestFactory.expressionFunctionBody(e)))
+                AstTestFactory.formalParameterList(),
+                AstTestFactory.expressionFunctionBody(e)))
       ],
       featureSet: nonNullable
           ? FeatureSet.latestLanguageVersion()

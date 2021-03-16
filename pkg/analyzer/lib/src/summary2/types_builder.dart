@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -50,8 +51,8 @@ class TypesBuilder {
   }
 
   FunctionType _buildFunctionType(
-    TypeParameterList typeParameterList,
-    TypeAnnotation returnTypeNode,
+    TypeParameterList? typeParameterList,
+    TypeAnnotation? returnTypeNode,
     FormalParameterList parameterList,
     NullabilitySuffix nullabilitySuffix,
   ) {
@@ -148,14 +149,15 @@ class TypesBuilder {
 
   List<ParameterElement> _formalParameters(FormalParameterList node) {
     return node.parameters.asImpl.map((parameter) {
-      return parameter.declaredElement;
+      return parameter.declaredElement!;
     }).toList();
   }
 
   void _functionTypeAlias(FunctionTypeAlias node) {
     var returnTypeNode = node.returnType;
-    var element = node.declaredElement as FunctionTypeAliasElementImpl;
-    element.function.returnType = returnTypeNode?.type ?? _dynamicType;
+    var element = node.declaredElement as TypeAliasElement;
+    var function = element.aliasedElement as GenericFunctionTypeElementImpl;
+    function.returnType = returnTypeNode?.type ?? _dynamicType;
   }
 
   void _functionTypedFormalParameter(FunctionTypedFormalParameter node) {
@@ -171,7 +173,7 @@ class TypesBuilder {
 
   bool _isNonNullableByDefault(AstNode node) {
     var unit = node.thisOrAncestorOfType<CompilationUnit>();
-    return unit.featureSet.isEnabled(Feature.non_nullable);
+    return unit!.featureSet.isEnabled(Feature.non_nullable);
   }
 
   NullabilitySuffix _nullability(AstNode node, bool hasQuestion) {
@@ -186,13 +188,13 @@ class TypesBuilder {
     }
   }
 
-  List<TypeParameterElement> _typeParameters(TypeParameterList node) {
+  List<TypeParameterElement> _typeParameters(TypeParameterList? node) {
     if (node == null) {
       return const <TypeParameterElement>[];
     }
 
     return node.typeParameters
-        .map<TypeParameterElement>((p) => p.declaredElement)
+        .map<TypeParameterElement>((p) => p.declaredElement!)
         .toList();
   }
 }
@@ -204,7 +206,7 @@ class _MixinInference {
   final FeatureSet featureSet;
   final InterfaceType classType;
 
-  InterfacesMerger interfacesMerger;
+  late final InterfacesMerger interfacesMerger;
 
   _MixinInference(this.element, this.featureSet)
       : typeSystem = element.library.typeSystem,
@@ -221,16 +223,16 @@ class _MixinInference {
 
   bool get _nonNullableEnabled => featureSet.isEnabled(Feature.non_nullable);
 
-  void perform(WithClause withClause) {
+  void perform(WithClause? withClause) {
     if (withClause == null) return;
 
     for (var mixinNode in withClause.mixinTypes) {
-      var mixinType = _inferSingle(mixinNode);
+      var mixinType = _inferSingle(mixinNode as TypeNameImpl);
       interfacesMerger.addWithSupertypes(mixinType);
     }
   }
 
-  InterfaceType _findInterfaceTypeForElement(
+  InterfaceType? _findInterfaceTypeForElement(
     ClassElement element,
     List<InterfaceType> interfaceTypes,
   ) {
@@ -240,7 +242,7 @@ class _MixinInference {
     return null;
   }
 
-  List<InterfaceType> _findInterfaceTypesForConstraints(
+  List<InterfaceType>? _findInterfaceTypesForConstraints(
     List<InterfaceType> constraints,
     List<InterfaceType> interfaceTypes,
   ) {
@@ -261,8 +263,8 @@ class _MixinInference {
     return result;
   }
 
-  InterfaceType _inferSingle(TypeName mixinNode) {
-    var mixinType = _interfaceType(mixinNode.type);
+  InterfaceType _inferSingle(TypeNameImpl mixinNode) {
+    var mixinType = _interfaceType(mixinNode.type!);
 
     if (mixinNode.typeArguments != null) {
       return mixinType;
@@ -327,7 +329,7 @@ class _MixinsInference {
   void perform(List<AstNode> declarations) {
     for (var node in declarations) {
       if (node is ClassDeclaration || node is ClassTypeAlias) {
-        ClassElementImpl element = (node as Declaration).declaredElement;
+        var element = (node as Declaration).declaredElement as ClassElementImpl;
         element.linkedMixinInferenceCallback = _callbackWhenRecursion;
       }
     }
@@ -350,13 +352,13 @@ class _MixinsInference {
 
   /// This method is invoked when mixins are asked from the [element], and
   /// we are not inferring the [element] now, i.e. there is no loop.
-  List<InterfaceType> _callbackWhenRecursion(ClassElementImpl element) {
-    _inferDeclaration(element.linkedNode);
+  List<InterfaceType>? _callbackWhenRecursion(ClassElementImpl element) {
+    _inferDeclaration(element.linkedNode!);
     // The inference was successful, let the element return actual mixins.
     return null;
   }
 
-  void _infer(ClassElementImpl element, WithClause withClause) {
+  void _infer(ClassElementImpl element, WithClause? withClause) {
     element.linkedMixinInferenceCallback = _callbackWhenLoop;
     try {
       var featureSet = _unitFeatureSet(element);
@@ -368,9 +370,11 @@ class _MixinsInference {
 
   void _inferDeclaration(AstNode node) {
     if (node is ClassDeclaration) {
-      _infer(node.declaredElement, node.withClause);
+      var element = node.declaredElement as ClassElementImpl;
+      _infer(element, node.withClause);
     } else if (node is ClassTypeAlias) {
-      _infer(node.declaredElement, node.withClause);
+      var element = node.declaredElement as ClassElementImpl;
+      _infer(element, node.withClause);
     }
   }
 
@@ -381,7 +385,7 @@ class _MixinsInference {
   void _resetHierarchies(List<AstNode> declarations) {
     for (var declaration in declarations) {
       if (declaration is ClassOrMixinDeclaration) {
-        var element = declaration.declaredElement;
+        var element = declaration.declaredElement as ClassElementImpl;
         var sessionImpl = element.library.session as AnalysisSessionImpl;
         sessionImpl.classHierarchy.remove(element);
       }
@@ -389,7 +393,7 @@ class _MixinsInference {
   }
 
   static FeatureSet _unitFeatureSet(ClassElementImpl element) {
-    var unit = element.linkedNode.parent as CompilationUnit;
+    var unit = element.linkedNode!.parent as CompilationUnit;
     return unit.featureSet;
   }
 }

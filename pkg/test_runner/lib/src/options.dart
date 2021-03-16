@@ -854,7 +854,7 @@ compiler.''',
             for (var sanitizerName in sanitizers.split(",")) {
               var sanitizer = Sanitizer.find(sanitizerName);
               var configuration = Configuration(
-                  "custom configuration_${configurationNumber++}",
+                  "custom-configuration-${configurationNumber++}",
                   architecture,
                   compiler,
                   mode,

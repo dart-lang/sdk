@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -86,7 +85,7 @@ class ClassHierarchyNullSafetyTest extends AbstractTypeSystemNullSafetyTest
 }
 
 mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
-  ClassElementImpl A;
+  late ClassElementImpl A;
 
   void _assertErrors(List<ClassHierarchyError> errors, List<String> expected) {
     expect(
@@ -112,8 +111,8 @@ mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
   }
 
   void _checkA({
-    @required List<DartType> typeArguments,
-    @required List<String> interfaces,
+    required List<DartType> typeArguments,
+    required List<String> interfaces,
     List<String> errors = const [],
   }) {
     var specifiedInterfaces = typeArguments

@@ -236,5 +236,9 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) =>
-    runIsolateTests(args, tests, testeeBefore: startTimer);
+main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'debugging_test.dart',
+      testeeBefore: startTimer,
+    );

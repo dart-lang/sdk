@@ -23,7 +23,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   final ErrorReporter _errorReporter;
 
   /// The current class or mixin.
-  ClassElement _currentClass;
+  ClassElement? _currentClass;
 
   OverrideVerifier(
       this._inheritance, LibraryElement library, this._errorReporter)
@@ -39,12 +39,12 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
-      FieldElement fieldElement = field.declaredElement;
+      var fieldElement = field.declaredElement as FieldElement;
       if (fieldElement.hasOverride) {
-        PropertyAccessorElement getter = fieldElement.getter;
+        var getter = fieldElement.getter;
         if (getter != null && _isOverride(getter)) continue;
 
-        PropertyAccessorElement setter = fieldElement.setter;
+        var setter = fieldElement.setter;
         if (setter != null && _isOverride(setter)) continue;
 
         _errorReporter.reportErrorForNode(
@@ -57,7 +57,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    ExecutableElement element = node.declaredElement;
+    var element = node.declaredElement!;
     if (element.hasOverride && !_isOverride(element)) {
       if (element is MethodElement) {
         _errorReporter.reportErrorForNode(
@@ -90,6 +90,6 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   /// Return `true` if the [member] overrides a member from a superinterface.
   bool _isOverride(ExecutableElement member) {
     var name = Name(_libraryUri, member.name);
-    return _inheritance.getOverridden2(_currentClass, name) != null;
+    return _inheritance.getOverridden2(_currentClass!, name) != null;
   }
 }

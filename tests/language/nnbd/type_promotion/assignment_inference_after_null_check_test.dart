@@ -7,7 +7,6 @@
 // inference.  This test makes sure that the type argument information is
 // appropriately preserved.
 
-// SharedOptions=--enable-experiment=non-nullable
 
 void f(List<int>? x) {
   if (x == null) {

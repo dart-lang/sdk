@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/producer.dart';
+import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analysis_server/src/utilities/extensions/yaml.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:yaml/yaml.dart';
@@ -15,9 +16,13 @@ abstract class YamlCompletionGenerator {
   /// completion was requested.
   final ResourceProvider resourceProvider;
 
+  /// A service used for collecting Pub package information. May be null for
+  /// generators that do not use Pub packages.
+  final PubPackageService pubPackageService;
+
   /// Initialize a newly created generator to use the [resourceProvider] to
   /// access the content of the file in which completion was requested.
-  YamlCompletionGenerator(this.resourceProvider);
+  YamlCompletionGenerator(this.resourceProvider, this.pubPackageService);
 
   /// Return the producer used to produce suggestions at the top-level of the
   /// file.
@@ -56,7 +61,8 @@ abstract class YamlCompletionGenerator {
     var request = YamlCompletionRequest(
         filePath: filePath,
         precedingText: precedingText,
-        resourceProvider: resourceProvider);
+        resourceProvider: resourceProvider,
+        pubPackageService: pubPackageService);
     return getSuggestionsForPath(request, nodePath, offset);
   }
 
@@ -87,7 +93,7 @@ abstract class YamlCompletionGenerator {
   /// Return the result of parsing the file [content] into a YAML node.
   YamlNode _parseYaml(String content) {
     try {
-      return loadYamlNode(content);
+      return loadYamlNode(content, recover: true);
     } on YamlException {
       // If the file can't be parsed, then fall through to return `null`.
     }

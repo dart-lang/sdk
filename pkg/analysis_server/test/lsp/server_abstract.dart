@@ -26,7 +26,8 @@ import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
-import 'package:test/test.dart';
+import 'package:test/test.dart' hide expect;
+import 'package:test/test.dart' as test show expect;
 
 import '../mocks.dart';
 import '../src/utilities/mock_packages.dart';
@@ -50,6 +51,7 @@ abstract class AbstractLspAnalysisServerTest
   MockLspServerChannel channel;
   TestPluginManager pluginManager;
   LspAnalysisServer server;
+  MockHttpClient httpClient;
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
@@ -118,6 +120,7 @@ abstract class AbstractLspAnalysisServerTest
   }
 
   void setUp() {
+    httpClient = MockHttpClient();
     channel = MockLspServerChannel(debugPrintCommunication);
     // Create an SDK in the mock file system.
     MockSdk(resourceProvider: resourceProvider);
@@ -128,7 +131,8 @@ abstract class AbstractLspAnalysisServerTest
         serverOptions,
         DartSdkManager(convertPath('/sdk')),
         CrashReportingAttachmentsBuilder.empty,
-        InstrumentationService.NULL_SERVICE);
+        InstrumentationService.NULL_SERVICE,
+        httpClient: httpClient);
     server.pluginManager = pluginManager;
 
     projectFolderPath = convertPath('/home/test');
@@ -165,11 +169,7 @@ mixin ClientCapabilitiesHelperMixin {
     Map<String, dynamic> textDocumentCapabilities,
   ) {
     final json = source.toJson();
-    if (textDocumentCapabilities != null) {
-      textDocumentCapabilities.keys.forEach((key) {
-        json[key] = textDocumentCapabilities[key];
-      });
-    }
+    mergeJson(textDocumentCapabilities, json);
     return TextDocumentClientCapabilities.fromJson(json);
   }
 
@@ -178,11 +178,7 @@ mixin ClientCapabilitiesHelperMixin {
     Map<String, dynamic> windowCapabilities,
   ) {
     final json = source.toJson();
-    if (windowCapabilities != null) {
-      windowCapabilities.keys.forEach((key) {
-        json[key] = windowCapabilities[key];
-      });
-    }
+    mergeJson(windowCapabilities, json);
     return ClientCapabilitiesWindow.fromJson(json);
   }
 
@@ -191,12 +187,19 @@ mixin ClientCapabilitiesHelperMixin {
     Map<String, dynamic> workspaceCapabilities,
   ) {
     final json = source.toJson();
-    if (workspaceCapabilities != null) {
-      workspaceCapabilities.keys.forEach((key) {
-        json[key] = workspaceCapabilities[key];
-      });
-    }
+    mergeJson(workspaceCapabilities, json);
     return ClientCapabilitiesWorkspace.fromJson(json);
+  }
+
+  void mergeJson(Map<String, dynamic> source, Map<String, dynamic> dest) {
+    source.keys.forEach((key) {
+      if (source[key] is Map<String, dynamic> &&
+          dest[key] is Map<String, dynamic>) {
+        mergeJson(source[key], dest[key]);
+      } else {
+        dest[key] = source[key];
+      }
+    });
   }
 
   TextDocumentClientCapabilities
@@ -266,6 +269,32 @@ mixin ClientCapabilitiesHelperMixin {
     return extendTextDocumentCapabilities(source, {
       'completion': {
         'completionItem': {'deprecatedSupport': true}
+      }
+    });
+  }
+
+  TextDocumentClientCapabilities withCompletionItemInsertReplaceSupport(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionItem': {'insertReplaceSupport': true}
+      }
+    });
+  }
+
+  TextDocumentClientCapabilities withCompletionItemInsertTextModeSupport(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionItem': {
+          'insertTextModeSupport': {
+            'valueSet': [InsertTextMode.adjustIndentation, InsertTextMode.asIs]
+                .map((k) => k.toJson())
+                .toList()
+          }
+        }
       }
     });
   }
@@ -402,6 +431,19 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  ClientCapabilitiesWorkspace withResourceOperationKinds(
+    ClientCapabilitiesWorkspace source,
+    List<ResourceOperationKind> kinds,
+  ) {
+    return extendWorkspaceCapabilities(source, {
+      'workspaceEdit': {
+        'documentChanges':
+            true, // docChanges aren't included in resourceOperations
+        'resourceOperations': kinds.map((k) => k.toJson()).toList(),
+      }
+    });
+  }
+
   TextDocumentClientCapabilities withSignatureHelpContentFormat(
     TextDocumentClientCapabilities source,
     List<MarkupKind> formats,
@@ -459,28 +501,28 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
 
     if (meta || flutter) {
       var libFolder = MockPackages.instance.addMeta(resourceProvider);
-      config.add(name: 'meta', rootPath: libFolder.parent.path);
+      config.add(name: 'meta', rootPath: libFolder.parent2.path);
     }
 
     if (flutter) {
       {
         var libFolder = MockPackages.instance.addUI(resourceProvider);
-        config.add(name: 'ui', rootPath: libFolder.parent.path);
+        config.add(name: 'ui', rootPath: libFolder.parent2.path);
       }
       {
         var libFolder = MockPackages.instance.addFlutter(resourceProvider);
-        config.add(name: 'flutter', rootPath: libFolder.parent.path);
+        config.add(name: 'flutter', rootPath: libFolder.parent2.path);
       }
     }
 
     if (pedantic) {
       var libFolder = MockPackages.instance.addPedantic(resourceProvider);
-      config.add(name: 'pedantic', rootPath: libFolder.parent.path);
+      config.add(name: 'pedantic', rootPath: libFolder.parent2.path);
     }
 
     if (vector_math) {
       var libFolder = MockPackages.instance.addVectorMath(resourceProvider);
-      config.add(name: 'vector_math', rootPath: libFolder.parent.path);
+      config.add(name: 'vector_math', rootPath: libFolder.parent2.path);
     }
 
     var path = '$projectFolderPath/.dart_tool/package_config.json';
@@ -522,6 +564,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
   }
+
+  bool get initialized => _clientCapabilities != null;
 
   /// A stream of [NotificationMessage]s from the server.
   Stream<NotificationMessage> get notificationsFromServer {
@@ -571,8 +615,23 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Map<String, String> oldFileContent,
     List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> changes,
   ) {
-    // TODO(dantup): Implement handling of resource changes (not currently used).
-    throw 'Test helper applyResourceChanges not currently supported';
+    for (final change in changes) {
+      change.map(
+        (textDocEdit) => applyTextDocumentEdits(oldFileContent, [textDocEdit]),
+        (create) => applyResourceCreate(oldFileContent, create),
+        (rename) => throw 'applyResourceChanges:Delete not currently supported',
+        (delete) => throw 'applyResourceChanges:Delete not currently supported',
+      );
+    }
+  }
+
+  void applyResourceCreate(
+      Map<String, String> oldFileContent, CreateFile create) {
+    final path = Uri.parse(create.uri).toFilePath();
+    if (oldFileContent.containsKey(path)) {
+      throw 'Recieved create instruction for $path which already existed.';
+    }
+    oldFileContent[path] = '';
   }
 
   String applyTextDocumentEdit(String content, TextDocumentEdit edit) {
@@ -584,7 +643,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     edits.forEach((edit) {
       final path = Uri.parse(edit.textDocument.uri).toFilePath();
       if (!oldFileContent.containsKey(path)) {
-        throw 'Recieved edits for $path which was not provided as a file to be edited';
+        throw 'Recieved edits for $path which was not provided as a file to be edited. '
+            'Perhaps a CreateFile change was missing from the edits?';
       }
       oldFileContent[path] = applyTextDocumentEdit(oldFileContent[path], edit);
     });
@@ -723,6 +783,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
     return expectSuccessfulResponseTo(request, (result) => result);
   }
+
+  void expect(actual, matcher, {String reason}) =>
+      test.expect(actual, matcher, reason: reason);
 
   void expectDocumentVersion(
     TextDocumentEdit edit,
@@ -1018,6 +1081,20 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
     return expectSuccessfulResponseTo(
         request, _fromJsonList(Location.fromJson));
+  }
+
+  Future<CompletionItem> getResolvedCompletion(
+    Uri uri,
+    Position pos,
+    String label, {
+    CompletionContext context,
+  }) async {
+    final completions = await getCompletion(uri, pos, context: context);
+
+    final completion = completions.singleWhere((c) => c.label == label);
+    expect(completion, isNotNull);
+
+    return resolveCompletion(completion);
   }
 
   Future<SemanticTokens> getSemanticTokens(Uri uri) {
@@ -1463,10 +1540,29 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo(request, (result) => result);
   }
 
+  /// Creates a [TextEdit] using the `insert` range of a [InsertReplaceEdit].
+  TextEdit textEditForInsert(Either2<TextEdit, InsertReplaceEdit> edit) =>
+      edit.map(
+        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
+        (e) => TextEdit(range: e.insert, newText: e.newText),
+      );
+
+  /// Creates a [TextEdit] using the `replace` range of a [InsertReplaceEdit].
+  TextEdit textEditForReplace(Either2<TextEdit, InsertReplaceEdit> edit) =>
+      edit.map(
+        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
+        (e) => TextEdit(range: e.replace, newText: e.newText),
+      );
+
+  TextEdit toTextEdit(Either2<TextEdit, InsertReplaceEdit> edit) => edit.map(
+        (e) => e,
+        (_) => throw 'Expected TextEdit, got InsertReplaceEdit',
+      );
+
   WorkspaceFolder toWorkspaceFolder(Uri uri) {
     return WorkspaceFolder(
       uri: uri.toString(),
-      name: path.basename(uri.toFilePath()),
+      name: path.basename(uri.path),
     );
   }
 

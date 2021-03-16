@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
-import 'package:meta/meta.dart';
 
 class VarianceBuilder {
   final Set<TypeAlias> _pending = Set.identity();
@@ -20,8 +19,10 @@ class VarianceBuilder {
   void perform(Linker linker) {
     for (var builder in linker.builders.values) {
       for (var unitContext in builder.context.units) {
-        for (var node in unitContext.unit.declarations) {
-          if (node is FunctionTypeAlias || node is GenericTypeAlias) {
+        for (var node in unitContext.unit!.declarations) {
+          if (node is FunctionTypeAlias) {
+            _pending.add(node);
+          } else if (node is GenericTypeAlias) {
             _pending.add(node);
           }
         }
@@ -30,7 +31,7 @@ class VarianceBuilder {
 
     for (var builder in linker.builders.values) {
       for (var unitContext in builder.context.units) {
-        for (var node in unitContext.unit.declarations) {
+        for (var node in unitContext.unit!.declarations) {
           if (node is ClassTypeAlias) {
             _typeParameters(node.typeParameters);
           } else if (node is ClassDeclaration) {
@@ -47,7 +48,7 @@ class VarianceBuilder {
     }
   }
 
-  Variance _compute(TypeParameterElement variable, DartType type) {
+  Variance _compute(TypeParameterElement variable, DartType? type) {
     if (type is TypeParameterType) {
       var element = type.element;
       if (element is TypeParameterElement) {
@@ -106,17 +107,15 @@ class VarianceBuilder {
 
   Variance _computeFunctionType(
     TypeParameterElement variable, {
-    @required DartType returnType,
-    @required List<TypeParameterElement> typeFormals,
-    @required List<ParameterElement> parameters,
+    required DartType? returnType,
+    required List<TypeParameterElement>? typeFormals,
+    required List<ParameterElement> parameters,
   }) {
     var result = Variance.unrelated;
 
-    if (result != null) {
-      result = result.meet(
-        _compute(variable, returnType),
-      );
-    }
+    result = result.meet(
+      _compute(variable, returnType),
+    );
 
     // If [variable] is referenced in a bound at all, it makes the
     // variance of [variable] in the entire type invariant.
@@ -163,7 +162,7 @@ class VarianceBuilder {
     try {
       for (var parameter in parameterList.typeParameters) {
         var variance = _computeFunctionType(
-          parameter.declaredElement,
+          parameter.declaredElement!,
           returnType: node.returnType?.type,
           typeFormals: null,
           parameters: FunctionTypeBuilder.getParameters(
@@ -197,7 +196,7 @@ class VarianceBuilder {
       return;
     }
 
-    var type = node.type?.type;
+    var type = node.type.type;
 
     // Not a function type, recover.
     if (type == null) {
@@ -209,7 +208,7 @@ class VarianceBuilder {
     _visit.add(node);
     try {
       for (var parameter in parameterList.typeParameters) {
-        var variance = _compute(parameter.declaredElement, type);
+        var variance = _compute(parameter.declaredElement!, type);
         _setVariance(parameter, variance);
       }
     } finally {
@@ -228,7 +227,7 @@ class VarianceBuilder {
     }
   }
 
-  void _typeParameters(TypeParameterList parameterList) {
+  void _typeParameters(TypeParameterList? parameterList) {
     if (parameterList == null) {
       return;
     }

@@ -12,13 +12,14 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveUnusedImportTest);
+    defineReflectiveTests(RemoveUnusedImportMultiTest);
   });
 }
 
 @reflectiveTest
-class RemoveUnusedImportTest extends FixProcessorTest {
+class RemoveUnusedImportMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_IMPORT;
+  FixKind get kind => DartFixKind.REMOVE_UNUSED_IMPORT_MULTI;
 
   @override
   void setUp() {
@@ -62,6 +63,7 @@ main() {
 ''');
   }
 
+  @FailingTest(reason: 'one unused import remains unremoved')
   Future<void> test_all_singleLine() async {
     await resolveTestCode('''
 import 'dart:math'; import 'dart:math'; import 'dart:math';
@@ -72,6 +74,33 @@ main() {
 main() {
 }
 ''');
+  }
+
+  Future<void> test_multipleOfSame_all() async {
+    await resolveTestCode('''
+import 'dart:math';
+import 'dart:math';
+import 'dart:math';
+main() {
+}
+''');
+    await assertHasFixAllFix(HintCode.UNUSED_IMPORT, '''
+main() {
+}
+''');
+  }
+}
+
+@reflectiveTest
+class RemoveUnusedImportTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_UNUSED_IMPORT;
+
+  @override
+  void setUp() {
+    super.setUp();
+    // TODO(dantup): Get these tests passing with either line ending.
+    useLineEndingsForPlatform = false;
   }
 
   Future<void> test_anotherImportOnLine() async {
@@ -107,20 +136,6 @@ import 'dart:math';
 
 main() {
   print(min(0, 1));
-}
-''');
-  }
-
-  Future<void> test_multipleOfSame_all() async {
-    await resolveTestCode('''
-import 'dart:math';
-import 'dart:math';
-import 'dart:math';
-main() {
-}
-''');
-    await assertHasFixAllFix(HintCode.UNUSED_IMPORT, '''
-main() {
 }
 ''');
   }

@@ -93,7 +93,8 @@ CompilerOptions setupCompilerOptions(
     int nullSafety,
     List<String> experimentalFlags,
     Uri packagesUri,
-    List<String> errors,
+    List<String> errorsPlain,
+    List<String> errorsColorized,
     String invocationModes,
     String verbosityLevel) {
   final expFlags = <String>[];
@@ -113,8 +114,10 @@ CompilerOptions setupCompilerOptions(
     ..verbose = verbose
     ..omitPlatform = true
     ..explicitExperimentalFlags = parseExperimentalFlags(
-        parseExperimentalArguments(expFlags),
-        onError: (msg) => errors.add(msg))
+        parseExperimentalArguments(expFlags), onError: (msg) {
+      errorsPlain.add(msg);
+      errorsColorized.add(msg);
+    })
     ..environmentDefines = new EnvironmentMap()
     ..nnbdMode = (nullSafety == kNullSafetyOptionStrong)
         ? NnbdMode.Strong
@@ -128,7 +131,8 @@ CompilerOptions setupCompilerOptions(
           // TODO(sigmund): support emitting code with errors as long as they
           // are handled in the generated code.
           printToStdErr = false; // errors are printed by VM
-          errors.addAll(message.plainTextFormatted);
+          errorsPlain.addAll(message.plainTextFormatted);
+          errorsColorized.addAll(message.ansiFormatted);
           break;
         case Severity.warning:
           printToStdErr = true;
@@ -153,7 +157,7 @@ CompilerOptions setupCompilerOptions(
 }
 
 abstract class Compiler {
-  final int isolateId;
+  final int isolateGroupId;
   final FileSystem fileSystem;
   final Uri platformKernelPath;
   final bool enableAsserts;
@@ -168,11 +172,12 @@ abstract class Compiler {
   final bool supportCodeCoverage;
   final bool supportHotReload;
 
-  final List<String> errors = <String>[];
+  final List<String> errorsPlain = <String>[];
+  final List<String> errorsColorized = <String>[];
 
   CompilerOptions options;
 
-  Compiler(this.isolateId, this.fileSystem, this.platformKernelPath,
+  Compiler(this.isolateGroupId, this.fileSystem, this.platformKernelPath,
       {this.enableAsserts: false,
       this.nullSafety: kNullSafetyOptionUnspecified,
       this.experimentalFlags: null,
@@ -202,7 +207,8 @@ abstract class Compiler {
         nullSafety,
         experimentalFlags,
         packagesUri,
-        errors,
+        errorsPlain,
+        errorsColorized,
         invocationModes,
         verbosityLevel);
   }
@@ -212,9 +218,9 @@ abstract class Compiler {
       final CompilerResult compilerResult = await compileInternal(script);
       final Component component = compilerResult.component;
 
-      if (errors.isEmpty) {
+      if (errorsPlain.isEmpty) {
         // Record dependencies only if compilation was error free.
-        _recordDependencies(isolateId, component, options.packagesFileUri);
+        _recordDependencies(isolateGroupId, component, options.packagesFileUri);
       }
 
       return compilerResult;
@@ -289,14 +295,14 @@ class IncrementalCompilerWrapper extends Compiler {
   IncrementalCompiler generator;
 
   IncrementalCompilerWrapper(
-      int isolateId, FileSystem fileSystem, Uri platformKernelPath,
+      int isolateGroupId, FileSystem fileSystem, Uri platformKernelPath,
       {bool enableAsserts: false,
       int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
       String packageConfig: null,
       String invocationModes: '',
       String verbosityLevel: Verbosity.defaultValue})
-      : super(isolateId, fileSystem, platformKernelPath,
+      : super(isolateGroupId, fileSystem, platformKernelPath,
             enableAsserts: enableAsserts,
             nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
@@ -308,7 +314,7 @@ class IncrementalCompilerWrapper extends Compiler {
 
   factory IncrementalCompilerWrapper.forExpressionCompilationOnly(
       Component component,
-      int isolateId,
+      int isolateGroupId,
       FileSystem fileSystem,
       Uri platformKernelPath,
       {bool enableAsserts: false,
@@ -316,7 +322,7 @@ class IncrementalCompilerWrapper extends Compiler {
       String packageConfig: null,
       String invocationModes: ''}) {
     IncrementalCompilerWrapper result = IncrementalCompilerWrapper(
-        isolateId, fileSystem, platformKernelPath,
+        isolateGroupId, fileSystem, platformKernelPath,
         enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
@@ -333,7 +339,8 @@ class IncrementalCompilerWrapper extends Compiler {
     if (generator == null) {
       generator = new IncrementalCompiler(options, script);
     }
-    errors.clear();
+    errorsPlain.clear();
+    errorsColorized.clear();
     final component = await generator.compile(entryPoint: script);
     return new CompilerResult(component, const {},
         generator.getClassHierarchy(), generator.getCoreTypes());
@@ -342,15 +349,16 @@ class IncrementalCompilerWrapper extends Compiler {
   void accept() => generator.accept();
   void invalidate(Uri uri) => generator.invalidate(uri);
 
-  Future<IncrementalCompilerWrapper> clone(int isolateId) async {
+  Future<IncrementalCompilerWrapper> clone(int isolateGroupId) async {
     IncrementalCompilerWrapper clone = IncrementalCompilerWrapper(
-        isolateId, fileSystem, platformKernelPath,
+        isolateGroupId, fileSystem, platformKernelPath,
         enableAsserts: enableAsserts,
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
         packageConfig: packageConfig,
         invocationModes: invocationModes);
-
+    // TODO(VM TEAM): This does not seem safe. What if cloning while having
+    // pending deltas for instance?
     generator.resetDeltaState();
     Component fullComponent = await generator.compile();
 
@@ -358,7 +366,7 @@ class IncrementalCompilerWrapper extends Compiler {
     // clone should be used for.
     MemoryFileSystem memoryFileSystem = (fileSystem as HybridFileSystem).memory;
 
-    String filename = 'full-component-$isolateId.dill';
+    String filename = 'full-component-$isolateGroupId.dill';
     Sink sink = FileSink(memoryFileSystem.entityForUri(Uri.file(filename)));
     new BinaryPrinter(sink).writeComponentFile(fullComponent);
     await sink.close();
@@ -373,7 +381,7 @@ class SingleShotCompilerWrapper extends Compiler {
   final bool requireMain;
 
   SingleShotCompilerWrapper(
-      int isolateId, FileSystem fileSystem, Uri platformKernelPath,
+      int isolateGroupId, FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain: false,
       bool enableAsserts: false,
       int nullSafety: kNullSafetyOptionUnspecified,
@@ -381,7 +389,7 @@ class SingleShotCompilerWrapper extends Compiler {
       String packageConfig: null,
       String invocationModes: '',
       String verbosityLevel: Verbosity.defaultValue})
-      : super(isolateId, fileSystem, platformKernelPath,
+      : super(isolateGroupId, fileSystem, platformKernelPath,
             enableAsserts: enableAsserts,
             nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
@@ -404,18 +412,15 @@ class SingleShotCompilerWrapper extends Compiler {
   }
 }
 
-// TODO(33428): This state is leaked on isolate shutdown.
-final Map<int, IncrementalCompilerWrapper> isolateCompilers =
-    new Map<int, IncrementalCompilerWrapper>();
-final Map<int, List<Uri>> isolateDependencies = new Map<int, List<Uri>>();
-final Map<int, _ExpressionCompilationFromDillSettings> isolateLoadNotifies =
-    new Map<int, _ExpressionCompilationFromDillSettings>();
+final Map<int, IncrementalCompilerWrapper> isolateCompilers = {};
+final Map<int, List<Uri>> isolateDependencies = {};
+final Map<int, _ExpressionCompilationFromDillSettings> isolateLoadNotifies = {};
 
-IncrementalCompilerWrapper lookupIncrementalCompiler(int isolateId) {
-  return isolateCompilers[isolateId];
+IncrementalCompilerWrapper lookupIncrementalCompiler(int isolateGroupId) {
+  return isolateCompilers[isolateGroupId];
 }
 
-Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
+Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateGroupId,
     List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
     {bool enableAsserts: false,
     int nullSafety: kNullSafetyOptionUnspecified,
@@ -425,7 +430,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     String multirootScheme,
     String invocationModes: '',
     String verbosityLevel: Verbosity.defaultValue}) async {
-  IncrementalCompilerWrapper compiler = lookupIncrementalCompiler(isolateId);
+  IncrementalCompilerWrapper compiler =
+      lookupIncrementalCompiler(isolateGroupId);
   if (compiler != null) {
     updateSources(compiler, sourceFiles);
     invalidateSources(compiler, sourceFiles);
@@ -438,7 +444,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
         sourceFiles[1] == null) {
       // Just use first compiler that should represent main isolate as a source for cloning.
       var source = isolateCompilers.entries.first;
-      compiler = await source.value.clone(isolateId);
+      compiler = await source.value.clone(isolateGroupId);
     } else {
       FileSystem fileSystem = _buildFileSystem(
           sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
@@ -448,7 +454,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
       // isolate needs to receive a message indicating that particular
       // isolate was shut down. Message should be handled here in this script.
       compiler = new IncrementalCompilerWrapper(
-          isolateId, fileSystem, platformKernelPath,
+          isolateGroupId, fileSystem, platformKernelPath,
           enableAsserts: enableAsserts,
           nullSafety: nullSafety,
           experimentalFlags: experimentalFlags,
@@ -456,7 +462,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
           invocationModes: invocationModes,
           verbosityLevel: verbosityLevel);
     }
-    isolateCompilers[isolateId] = compiler;
+    isolateCompilers[isolateGroupId] = compiler;
   }
   return compiler;
 }
@@ -493,7 +499,7 @@ void invalidateSources(IncrementalCompilerWrapper compiler, List sourceFiles) {
 // kernel_isolate.cc and Loader::SendKernelRequest in loader.cc.
 Future _processExpressionCompilationRequest(request) async {
   final SendPort port = request[1];
-  final int isolateId = request[2];
+  final int isolateGroupId = request[2];
   final dynamic dart_platform_kernel = request[3];
   final String expression = request[4];
   final List<String> definitions = request[5].cast<String>();
@@ -507,15 +513,15 @@ Future _processExpressionCompilationRequest(request) async {
   final List<String> experimentalFlags =
       request[13] != null ? request[13].cast<String>() : null;
 
-  IncrementalCompilerWrapper compiler = isolateCompilers[isolateId];
+  IncrementalCompilerWrapper compiler = isolateCompilers[isolateGroupId];
 
   _ExpressionCompilationFromDillSettings isolateLoadDillData =
-      isolateLoadNotifies[isolateId];
+      isolateLoadNotifies[isolateGroupId];
   if (isolateLoadDillData != null) {
     // Check if we can reuse the compiler.
     if (isolateLoadDillData.blobLoadCount != blobLoadCount ||
         isolateLoadDillData.prevDillCount != dillData.length) {
-      compiler = isolateCompilers[isolateId] = null;
+      compiler = isolateCompilers[isolateGroupId] = null;
     }
   }
 
@@ -524,7 +530,7 @@ Future _processExpressionCompilationRequest(request) async {
       if (verbose) {
         print("DFE: Initializing compiler from ${dillData.length} dill files");
       }
-      isolateLoadNotifies[isolateId] =
+      isolateLoadNotifies[isolateGroupId] =
           new _ExpressionCompilationFromDillSettings(
               blobLoadCount, dillData.length);
 
@@ -584,11 +590,11 @@ Future _processExpressionCompilationRequest(request) async {
       // isolate was shut down. Message should be handled here in this script.
       try {
         compiler = new IncrementalCompilerWrapper.forExpressionCompilationOnly(
-            component, isolateId, fileSystem, null,
+            component, isolateGroupId, fileSystem, null,
             enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
             packageConfig: dotPackagesFile);
-        isolateCompilers[isolateId] = compiler;
+        isolateCompilers[isolateGroupId] = compiler;
         await compiler.compile(
             component.mainMethod?.enclosingLibrary?.importUri ??
                 component.libraries.last.importUri);
@@ -610,7 +616,8 @@ Future _processExpressionCompilationRequest(request) async {
     return;
   }
 
-  compiler.errors.clear();
+  compiler.errorsPlain.clear();
+  compiler.errorsColorized.clear();
 
   CompilationResult result;
   try {
@@ -623,10 +630,13 @@ Future _processExpressionCompilationRequest(request) async {
       return;
     }
 
-    if (compiler.errors.isNotEmpty) {
+    assert(compiler.errorsPlain.length == compiler.errorsColorized.length);
+    // Any error will be printed verbatim in observatory, so we always use the
+    // plain version (i.e. the one without ANSI escape codes in it).
+    if (compiler.errorsPlain.isNotEmpty) {
       // TODO(sigmund): the compiler prints errors to the console, so we
       // shouldn't print those messages again here.
-      result = new CompilationResult.errors(compiler.errors, null);
+      result = new CompilationResult.errors(compiler.errorsPlain, null);
     } else {
       Component component = createExpressionEvaluationComponent(procedure);
       result = new CompilationResult.ok(serializeComponent(component));
@@ -639,8 +649,8 @@ Future _processExpressionCompilationRequest(request) async {
 }
 
 void _recordDependencies(
-    int isolateId, Component component, Uri packageConfig) {
-  final dependencies = isolateDependencies[isolateId] ??= <Uri>[];
+    int isolateGroupId, Component component, Uri packageConfig) {
+  final dependencies = isolateDependencies[isolateGroupId] ??= <Uri>[];
 
   if (component != null) {
     for (var lib in component.libraries) {
@@ -672,8 +682,9 @@ List<int> _serializeDependencies(List<Uri> uris) {
   return utf8.encode(uris.map(_escapeDependency).join(" "));
 }
 
-Future _processListDependenciesRequest(SendPort port, int isolateId) async {
-  final List<Uri> dependencies = isolateDependencies[isolateId] ?? <Uri>[];
+Future _processListDependenciesRequest(
+    SendPort port, int isolateGroupId) async {
+  final List<Uri> dependencies = isolateDependencies[isolateGroupId] ?? <Uri>[];
 
   CompilationResult result;
   try {
@@ -686,10 +697,10 @@ Future _processListDependenciesRequest(SendPort port, int isolateId) async {
 }
 
 Future _processIsolateShutdownNotification(request) async {
-  final int isolateId = request[1];
-  isolateCompilers.remove(isolateId);
-  isolateDependencies.remove(isolateId);
-  isolateLoadNotifies.remove(isolateId);
+  final int isolateGroupId = request[1];
+  isolateCompilers.remove(isolateGroupId);
+  isolateDependencies.remove(isolateGroupId);
+  isolateLoadNotifies.remove(isolateGroupId);
 }
 
 Future _processLoadRequest(request) async {
@@ -732,10 +743,10 @@ Future _processLoadRequest(request) async {
   }
 
   final SendPort port = request[1];
-  final int isolateId = request[7];
+  final int isolateGroupId = request[7];
 
   if (tag == kListDependenciesTag) {
-    await _processListDependenciesRequest(port, isolateId);
+    await _processListDependenciesRequest(port, isolateGroupId);
     return;
   }
 
@@ -776,7 +787,7 @@ Future _processLoadRequest(request) async {
   if (tag == kUpdateSourcesTag) {
     assert(incremental,
         "Incremental compiler required for use of 'kUpdateSourcesTag'");
-    compiler = lookupIncrementalCompiler(isolateId);
+    compiler = lookupIncrementalCompiler(isolateGroupId);
     if (compiler == null) {
       port.send(new CompilationResult.errors(
               ["No incremental compiler available for this isolate."], null)
@@ -789,7 +800,7 @@ Future _processLoadRequest(request) async {
   } else if (tag == kAcceptTag) {
     assert(
         incremental, "Incremental compiler required for use of 'kAcceptTag'");
-    compiler = lookupIncrementalCompiler(isolateId);
+    compiler = lookupIncrementalCompiler(isolateGroupId);
     // There are unit tests that invoke the IncrementalCompiler directly and
     // request a reload, meaning that we won't have a compiler for this isolate.
     if (compiler != null) {
@@ -811,7 +822,8 @@ Future _processLoadRequest(request) async {
       // resolve it against the working directory.
       packagesUri = Uri.directory(workingDirectory).resolveUri(packagesUri);
     }
-    final List<String> errors = <String>[];
+    final List<String> errorsPlain = <String>[];
+    final List<String> errorsColorized = <String>[];
     var options = setupCompilerOptions(
         fileSystem,
         platformKernelPath,
@@ -819,7 +831,8 @@ Future _processLoadRequest(request) async {
         nullSafety,
         experimentalFlags,
         packagesUri,
-        errors,
+        errorsPlain,
+        errorsColorized,
         invocationModes,
         verbosityLevel);
 
@@ -840,7 +853,7 @@ Future _processLoadRequest(request) async {
   // watch the performance though.
   if (incremental) {
     compiler = await lookupOrBuildNewIncrementalCompiler(
-        isolateId, sourceFiles, platformKernelPath, platformKernel,
+        isolateGroupId, sourceFiles, platformKernelPath, platformKernel,
         enableAsserts: enableAsserts,
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
@@ -853,7 +866,7 @@ Future _processLoadRequest(request) async {
     FileSystem fileSystem = _buildFileSystem(
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
     compiler = new SingleShotCompilerWrapper(
-        isolateId, fileSystem, platformKernelPath,
+        isolateGroupId, fileSystem, platformKernelPath,
         requireMain: false,
         enableAsserts: enableAsserts,
         nullSafety: nullSafety,
@@ -872,14 +885,22 @@ Future _processLoadRequest(request) async {
     CompilerResult compilerResult = await compiler.compile(script);
     Set<Library> loadedLibraries = compilerResult.loadedLibraries;
 
-    if (compiler.errors.isNotEmpty) {
+    assert(compiler.errorsPlain.length == compiler.errorsColorized.length);
+    // http://dartbug.com/45137
+    // enableColors calls `stdout.supportsAnsiEscapes` which - on Windows -
+    // does something with line endings. To avoid this when no error
+    // messages are do be printed anyway, we are carefull not to call it unless
+    // neccessary.
+    if (compiler.errorsColorized.isNotEmpty) {
+      final List<String> errors =
+          (enableColors) ? compiler.errorsColorized : compiler.errorsPlain;
       if (compilerResult.component != null) {
         result = new CompilationResult.errors(
-            compiler.errors,
+            errors,
             serializeComponent(compilerResult.component,
                 filter: (lib) => !loadedLibraries.contains(lib)));
       } else {
-        result = new CompilationResult.errors(compiler.errors, null);
+        result = new CompilationResult.errors(errors, null);
       }
     } else {
       // We serialize the component excluding vm_platform.dill because the VM has
@@ -1006,7 +1027,7 @@ Future trainInternal(String scriptUri, String platformKernelPath) async {
     false /* incremental */,
     false /* snapshot */,
     kNullSafetyOptionUnspecified /* null safety */,
-    1 /* isolateId chosen randomly */,
+    1 /* isolateGroupId chosen randomly */,
     [] /* source files */,
     false /* enable asserts */,
     null /* experimental_flags */,

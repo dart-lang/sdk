@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisHoverTest extends AbstractAnalysisTest {
+class AnalysisHoverTest extends AbstractAnalysisTest
+    with WithNonFunctionTypeAliasesMixin {
   Future<HoverInformation> prepareHover(String search) {
     var offset = findOffset(search);
     return prepareHoverAt(offset);
@@ -828,5 +830,60 @@ main(B b) {
     expect(hover.dartdoc, '''pgetting''');
     expect(hover.elementDescription, 'void set foo(int x)');
     expect(hover.elementKind, 'setter');
+  }
+
+  Future<void> test_simpleIdentifier_typedef_functionType() async {
+    addTestFile('''
+typedef A = void Function(int);
+''');
+    var hover = await prepareHover('A');
+    _assertHover(
+      hover,
+      elementDescription: 'typedef A = void Function(int )',
+      elementKind: 'type alias',
+    );
+  }
+
+  Future<void> test_simpleIdentifier_typedef_interfaceType() async {
+    addTestFile('''
+typedef A = Map<int, String>;
+''');
+    var hover = await prepareHover('A');
+    _assertHover(
+      hover,
+      elementDescription: 'typedef A = Map<int, String>',
+      elementKind: 'type alias',
+    );
+  }
+
+  Future<void> test_simpleIdentifier_typedef_legacy() async {
+    addTestFile('''
+typedef void A(int a);
+''');
+    var hover = await prepareHover('A');
+    _assertHover(
+      hover,
+      elementDescription: 'typedef A = void Function(int a)',
+      elementKind: 'type alias',
+    );
+  }
+
+  void _assertHover(
+    HoverInformation hover, {
+    String containingLibraryPath,
+    String containingLibraryName,
+    @required String elementDescription,
+    @required String elementKind,
+    bool isDeprecated = false,
+  }) {
+    containingLibraryName ??= 'bin/test.dart';
+    expect(hover.containingLibraryName, containingLibraryName);
+
+    containingLibraryPath ??= testFile;
+    expect(hover.containingLibraryPath, containingLibraryPath);
+
+    expect(hover.elementDescription, elementDescription);
+    expect(hover.elementKind, elementKind);
+    expect(hover.isDeprecated, isDeprecated);
   }
 }

@@ -27,6 +27,9 @@ class CreateMethod extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CREATE_METHOD;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CREATE_METHOD_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     if (_kind == _MethodKind.equalsOrHashCode) {
       await createEqualsOrHashCode(builder);

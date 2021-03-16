@@ -304,14 +304,14 @@ class RefactoringWorkspace {
   /// Whether the file with the given [path] is in a context root.
   bool containsFile(String path) {
     return drivers.any((driver) {
-      return driver.contextRoot.containsFile(path);
+      return driver.analysisContext.contextRoot.isAnalyzed(path);
     });
   }
 
   /// Returns the drivers that have [path] in a context root.
   Iterable<AnalysisDriver> driversContaining(String path) {
     return drivers.where((driver) {
-      return driver.contextRoot.containsFile(path);
+      return driver.analysisContext.contextRoot.isAnalyzed(path);
     });
   }
 }

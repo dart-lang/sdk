@@ -241,14 +241,14 @@ class A{
 import 'package:meta/meta.dart';
 
 @doNotStore
-final v = '';
+final String? v = '';
 
 class A {
   final f = v ?? v;
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 83, 1),
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 88, 1),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 91, 1),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 96, 1),
     ]);
   }
 
@@ -281,12 +281,12 @@ import 'package:meta/meta.dart';
 final v = '';
 
 class A {
-  static bool c;
+  static bool c = false;
   final f = c ? v : v;
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 104, 1),
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 108, 1),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 112, 1),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 116, 1),
     ]);
   }
 }

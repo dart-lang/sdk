@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -19,7 +20,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 
 class SimpleIdentifierResolver {
   final ResolverVisitor _resolver;
-  final FlowAnalysisHelper _flowAnalysis;
+  final FlowAnalysisHelper? _flowAnalysis;
 
   SimpleIdentifierResolver(this._resolver, this._flowAnalysis);
 
@@ -29,7 +30,7 @@ class SimpleIdentifierResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
-  void resolve(SimpleIdentifier node) {
+  void resolve(SimpleIdentifierImpl node) {
     if (node.inDeclarationContext()) {
       return;
     }
@@ -50,24 +51,15 @@ class SimpleIdentifierResolver {
   /// TODO(scheglov) this is duplicate
   DartType _getTypeOfProperty(PropertyAccessorElement accessor) {
     FunctionType functionType = accessor.type;
-    if (functionType == null) {
-      // TODO(brianwilkerson) Report this internal error. This happens when we
-      // are analyzing a reference to a property before we have analyzed the
-      // declaration of the property or when the property does not have a
-      // defined type.
-      return DynamicTypeImpl.instance;
-    }
     if (accessor.isSetter) {
-      List<DartType> parameterTypes = functionType.normalParameterTypes;
-      if (parameterTypes != null && parameterTypes.isNotEmpty) {
+      var parameterTypes = functionType.normalParameterTypes;
+      if (parameterTypes.isNotEmpty) {
         return parameterTypes[0];
       }
-      PropertyAccessorElement getter = accessor.variable.getter;
+      var getter = accessor.variable.getter;
       if (getter != null) {
         functionType = getter.type;
-        if (functionType != null) {
-          return functionType.returnType;
-        }
+        return functionType.returnType;
       }
       return DynamicTypeImpl.instance;
     }
@@ -101,7 +93,7 @@ class SimpleIdentifierResolver {
   /// * it is the prefix in an import directive, or
   /// * it is the prefix in a prefixed identifier.
   bool _isValidAsPrefix(SimpleIdentifier node) {
-    AstNode parent = node.parent;
+    var parent = node.parent;
     if (parent is ImportDirective) {
       return identical(parent.prefix, node);
     } else if (parent is PrefixedIdentifier) {
@@ -119,27 +111,19 @@ class SimpleIdentifierResolver {
   /// @param type the static type of the node
   ///
   /// TODO(scheglov) this is duplicate
-  void _recordStaticType(Expression expression, DartType type) {
-    if (_resolver.migrationResolutionHooks != null) {
-      // TODO(scheglov) type cannot be null
-      type = _resolver.migrationResolutionHooks.modifyExpressionType(
-        expression,
-        type ?? DynamicTypeImpl.instance,
-      );
+  void _recordStaticType(ExpressionImpl expression, DartType type) {
+    var hooks = _resolver.migrationResolutionHooks;
+    if (hooks != null) {
+      type = hooks.modifyExpressionType(expression, type);
     }
 
-    // TODO(scheglov) type cannot be null
-    if (type == null) {
-      expression.staticType = DynamicTypeImpl.instance;
-    } else {
-      expression.staticType = type;
-      if (_resolver.typeSystem.isBottom(type)) {
-        _flowAnalysis?.flow?.handleExit();
-      }
+    expression.staticType = type;
+    if (_resolver.typeSystem.isBottom(type)) {
+      _flowAnalysis?.flow?.handleExit();
     }
   }
 
-  void _resolve1(SimpleIdentifier node) {
+  void _resolve1(SimpleIdentifierImpl node) {
     //
     // Synthetic identifiers have been already reported during parsing.
     //
@@ -157,7 +141,7 @@ class SimpleIdentifierResolver {
         node.staticElement is ParameterElement) {
       return;
     }
-    AstNode parent = node.parent;
+    var parent = node.parent;
     if (parent is FieldFormalParameter) {
       return;
     } else if (parent is ConstructorFieldInitializer &&
@@ -189,10 +173,9 @@ class SimpleIdentifierResolver {
       hasWrite: hasWrite,
     );
 
-    // Element element = _resolver.elementResolver.resolveSimpleIdentifier(node);
-    Element element = hasRead ? result.readElement : result.writeElement;
+    var element = hasRead ? result.readElement : result.writeElement;
 
-    ClassElement enclosingClass = _resolver.enclosingClass;
+    var enclosingClass = _resolver.enclosingClass;
     if (_isFactoryConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
       _errorReporter.reportErrorForNode(
@@ -231,8 +214,8 @@ class SimpleIdentifierResolver {
     node.staticElement = element;
   }
 
-  void _resolve2(SimpleIdentifier node) {
-    Element element = node.staticElement;
+  void _resolve2(SimpleIdentifierImpl node) {
+    var element = node.staticElement;
 
     if (element is ExtensionElement) {
       _setExtensionIdentifierType(node);
@@ -278,14 +261,14 @@ class SimpleIdentifierResolver {
   }
 
   /// TODO(scheglov) this is duplicate
-  void _setExtensionIdentifierType(Identifier node) {
-    if (node is SimpleIdentifier && node.inDeclarationContext()) {
+  void _setExtensionIdentifierType(IdentifierImpl node) {
+    if (node is SimpleIdentifierImpl && node.inDeclarationContext()) {
       return;
     }
 
     var parent = node.parent;
 
-    if (parent is PrefixedIdentifier && parent.identifier == node) {
+    if (parent is PrefixedIdentifierImpl && parent.identifier == node) {
       node = parent;
       parent = node.parent;
     }
@@ -293,7 +276,7 @@ class SimpleIdentifierResolver {
     if (parent is CommentReference ||
         parent is ExtensionOverride && parent.extensionName == node ||
         parent is MethodInvocation && parent.target == node ||
-        parent is PrefixedIdentifier && parent.prefix == node ||
+        parent is PrefixedIdentifierImpl && parent.prefix == node ||
         parent is PropertyAccess && parent.target == node) {
       return;
     }
@@ -304,7 +287,7 @@ class SimpleIdentifierResolver {
       [node.name],
     );
 
-    if (node is PrefixedIdentifier) {
+    if (node is PrefixedIdentifierImpl) {
       node.identifier.staticType = DynamicTypeImpl.instance;
       node.staticType = DynamicTypeImpl.instance;
     } else if (node is SimpleIdentifier) {
@@ -315,7 +298,7 @@ class SimpleIdentifierResolver {
   /// Return `true` if the given [identifier] is the return type of a
   /// constructor declaration.
   static bool _isConstructorReturnType(SimpleIdentifier identifier) {
-    AstNode parent = identifier.parent;
+    var parent = identifier.parent;
     if (parent is ConstructorDeclaration) {
       return identical(parent.returnType, identifier);
     }
@@ -325,7 +308,7 @@ class SimpleIdentifierResolver {
   /// Return `true` if the given [identifier] is the return type of a factory
   /// constructor.
   static bool _isFactoryConstructorReturnType(SimpleIdentifier identifier) {
-    AstNode parent = identifier.parent;
+    var parent = identifier.parent;
     if (parent is ConstructorDeclaration) {
       return identical(parent.returnType, identifier) &&
           parent.factoryKeyword != null;

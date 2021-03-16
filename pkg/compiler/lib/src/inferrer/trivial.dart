@@ -226,12 +226,6 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractBool isTruthy(AbstractValue value) => AbstractBool.Maybe;
 
   @override
-  AbstractBool isDoubleOrNull(AbstractValue value) => AbstractBool.Maybe;
-
-  @override
-  AbstractBool isDouble(AbstractValue value) => AbstractBool.Maybe;
-
-  @override
   AbstractBool isNumberOrNull(AbstractValue value) => AbstractBool.Maybe;
 
   @override
@@ -426,7 +420,7 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractValue get numType => const TrivialAbstractValue();
 
   @override
-  AbstractValue get doubleType => const TrivialAbstractValue();
+  AbstractValue get numNotIntType => const TrivialAbstractValue();
 
   @override
   AbstractValue get intType => const TrivialAbstractValue();

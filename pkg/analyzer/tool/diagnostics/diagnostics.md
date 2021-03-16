@@ -9755,7 +9755,7 @@ void f(String? s) {
 
 ### type_argument_not_matching_bounds
 
-_'{0}' doesn't extend '{1}'._
+_'{0}' doesn't conform to the bound '{2}' of the type parameter '{1}'._
 
 #### Description
 

@@ -1,0 +1,38 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///call_opt_in_through_opt_out_lib.dart";
+
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+static method takesNull(Null n) → void
+  ;
+static method takesNever(Never n) → void
+  ;
+static method applyTakesNull((Null) → void f) → dynamic
+  ;
+static method applyTakesNever((Never) → void f) → dynamic
+  ;
+static method applyTakesNullNamed({required (Null) → void f}) → dynamic
+  ;
+static method applyTakesNeverNamed({required (Never) → void f}) → dynamic
+  ;
+static method takesNullable(core::int? i) → void
+  ;
+static method takesNonNullable(core::int i) → void
+  ;
+static method applyTakesNullable((core::int?) → void f) → dynamic
+  ;
+static method applyTakesNonNullable((core::int) → void f) → dynamic
+  ;
+static method applyTakesNullableNamed({required (core::int?) → void f}) → dynamic
+  ;
+static method applyTakesNonNullableNamed({required (core::int) → void f}) → dynamic
+  ;

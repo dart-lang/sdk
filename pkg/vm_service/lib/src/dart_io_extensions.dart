@@ -6,8 +6,6 @@
 
 import 'dart:collection';
 
-import 'package:vm_service/vm_service.dart';
-
 import 'vm_service.dart';
 
 extension DartIOExtension on VmService {

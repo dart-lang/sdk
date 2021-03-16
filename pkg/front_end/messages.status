@@ -76,10 +76,10 @@ ConflictingModifiers/script1: Fail
 ConflictsWithConstructor/example: Fail
 ConflictsWithFactory/analyzerCode: Fail
 ConflictsWithFactory/example: Fail
+ConflictsWithImplicitSetter/example: Fail
 ConflictsWithMember/example: Fail
 ConflictsWithMemberWarning/example: Fail
 ConflictsWithSetter/example: Fail
-ConflictsWithSetterWarning/example: Fail
 ConflictsWithTypeVariable/example: Fail
 ConstAndFinal/declaration3: Fail
 ConstAndFinal/declaration4: Fail
@@ -327,7 +327,9 @@ FfiFieldAnnotation/analyzerCode: Fail
 FfiFieldCyclic/analyzerCode: Fail
 FfiFieldInitializer/analyzerCode: Fail
 FfiFieldNoAnnotation/analyzerCode: Fail
+FfiFieldNull/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
+FfiSizeAnnotation/analyzerCode: Fail
 FfiStructAnnotation/analyzerCode: Fail
 FfiStructGeneric/analyzerCode: Fail
 FfiTypeInvalid/analyzerCode: Fail
@@ -344,6 +346,8 @@ FieldNonNullableWithoutInitializerError/analyzerCode: Fail
 FieldNonNullableWithoutInitializerError/example: Fail
 FieldNonNullableWithoutInitializerWarning/analyzerCode: Fail
 FieldNonNullableWithoutInitializerWarning/example: Fail
+FieldNotPromoted/analyzerCode: Fail
+FieldNotPromoted/example: Fail
 FinalAndCovariant/part_wrapped_script2: Fail
 FinalAndCovariant/script2: Fail
 FinalFieldWithoutInitializer/example: Fail
@@ -484,6 +488,8 @@ JsInteropDartClassExtendsJSClass/analyzerCode: Fail # Web compiler specific
 JsInteropDartClassExtendsJSClass/example: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/example: Fail # Web compiler specific
+JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
+JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
 JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropIndexNotSupported/example: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
@@ -745,6 +751,8 @@ SyntheticToken/example: Fail # Can't be tested, used to recover from other error
 ThisAccessInFieldInitializer/example: Fail
 ThisAsIdentifier/example: Fail
 ThisInNullAwareReceiver/analyzerCode: Fail
+ThisNotPromoted/analyzerCode: Fail
+ThisNotPromoted/example: Fail
 ThisOrSuperAccessInFieldInitializer/example: Fail
 ThrowingNotAssignableToObjectError/analyzerCode: Fail
 ThrowingNotAssignableToObjectError/example: Fail
@@ -764,6 +772,8 @@ TypedefNotType/example: Fail # Feature not yet enabled by default.
 TypedefNullableType/analyzerCode: Fail
 TypedefTypeVariableNotConstructor/analyzerCode: Fail # Feature not yet enabled by default.
 TypedefTypeVariableNotConstructor/example: Fail # Feature not yet enabled by default.
+UndefinedExtensionMethod/analyzerCode: Fail
+UndefinedExtensionMethod/example: Fail
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
 UnmatchedToken/part_wrapped_script1: Fail
@@ -793,6 +803,8 @@ ValueForRequiredParameterNotProvidedWarning/analyzerCode: Fail
 ValueForRequiredParameterNotProvidedWarning/example: Fail
 VarAsTypeName/part_wrapped_script1: Fail
 VarAsTypeName/script1: Fail # Too many problems
+VariableCouldBeNullDueToWrite/analyzerCode: Fail
+VariableCouldBeNullDueToWrite/example: Fail
 WeakWithStrongDillLibrary/analyzerCode: Fail
 WeakWithStrongDillLibrary/example: Fail
 WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail

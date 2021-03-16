@@ -95,6 +95,9 @@ class ConvertToSingleQuotes extends ConvertQuotes {
   FixKind get fixKind => DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING_MULTI;
+
+  @override
   bool get _fromDouble => true;
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

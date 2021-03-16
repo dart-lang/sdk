@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -206,12 +205,10 @@ class FixBuilder {
   /// makes note of changes that need to be made.
   void visitAll() {
     try {
-      NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-        ElementTypeProvider.current = migrationResolutionHooks;
-        unit.accept(_FixBuilderPreVisitor(this));
-        unit.accept(_resolver);
-        unit.accept(_FixBuilderPostVisitor(this));
-      });
+      ElementTypeProvider.current = migrationResolutionHooks;
+      unit.accept(_FixBuilderPreVisitor(this));
+      unit.accept(_resolver);
+      unit.accept(_FixBuilderPostVisitor(this));
     } catch (exception, stackTrace) {
       if (listener != null) {
         listener.reportException(source, unit, exception, stackTrace);
@@ -893,7 +890,7 @@ abstract class _AssignmentLikeExpressionHandler {
     writeType = writeTypeToSet;
     // TODO(scheglov) Remove this after the analyzer breaking change that
     // will top setting types for LHS.
-    target.staticType = writeTypeToSet;
+    (target as ExpressionImpl).staticType = writeTypeToSet;
     var fixBuilder = hooks._fixBuilder;
     if (combinerType == TokenType.EQ) {
       rhsContextType = writeTypeToSet;
@@ -1170,7 +1167,8 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
         _makeTypeNameNullable(node, decoratedType);
       }
     }
-    node.type = _fixBuilder._variables.toFinalType(decoratedType);
+    (node as TypeNameImpl).type =
+        _fixBuilder._variables.toFinalType(decoratedType);
     super.visitTypeName(node);
   }
 

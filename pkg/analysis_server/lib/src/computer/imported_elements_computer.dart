@@ -31,8 +31,7 @@ class ImportedElementsComputer {
     if (_regionIncludesDirectives()) {
       return const <ImportedElements>[];
     }
-    var visitor =
-        _Visitor(unit.declaredElement.library, offset, offset + length);
+    var visitor = _Visitor(offset, offset + length);
     unit.accept(visitor);
     return visitor.importedElements.values.toList();
   }
@@ -54,9 +53,6 @@ class ImportedElementsComputer {
 /// The visitor used by an [ImportedElementsComputer] to record the names of all
 /// imported elements.
 class _Visitor extends UnifyingAstVisitor<void> {
-  /// The element representing the library containing the code being visited.
-  final LibraryElement containingLibrary;
-
   /// The offset of the start of the region of text being copied.
   final int startOffset;
 
@@ -69,7 +65,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
 
   /// Initialize a newly created visitor to visit nodes within a specified
   /// region.
-  _Visitor(this.containingLibrary, this.startOffset, this.endOffset);
+  _Visitor(this.startOffset, this.endOffset);
 
   @override
   void visitNode(AstNode node) {

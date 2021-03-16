@@ -15,6 +15,9 @@ class ConvertToIfNull extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_IF_NULL;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_IF_NULL_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is ConditionalExpression &&

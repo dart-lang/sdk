@@ -1,3 +1,4 @@
+// @dart = 2.9
 class Class1 {
   int operator []=(a, b) {}
   int set setter1(_) {}

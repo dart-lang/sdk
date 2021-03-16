@@ -79,7 +79,7 @@ class TimingResult {
       var diff = values[i] - average;
       sumOfDiffSquared += diff * diff;
     }
-    return sqrt((sumOfDiffSquared / (count - 1)));
+    return sqrt(sumOfDiffSquared / (count - 1));
   }
 
   /// Convert the given [times], expressed in nanoseconds, to times expressed in

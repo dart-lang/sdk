@@ -17,42 +17,6 @@ export 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
 final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
     HashMap<String, RefactoringKind>();
 
-/// Adds the given [sourceEdits] to the list in [sourceFileEdit].
-void addAllEditsForSource(
-    SourceFileEdit sourceFileEdit, Iterable<SourceEdit> edits) {
-  edits.forEach(sourceFileEdit.add);
-}
-
-/// Adds the given [sourceEdit] to the list in [sourceFileEdit].
-void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
-  var edits = sourceFileEdit.edits;
-  var index = 0;
-  while (index < edits.length && edits[index].offset > sourceEdit.offset) {
-    index++;
-  }
-  edits.insert(index, sourceEdit);
-}
-
-/// Adds [edit] to the [FileEdit] for the given [file].
-void addEditToSourceChange(
-    SourceChange change, String file, int fileStamp, SourceEdit edit) {
-  var fileEdit = change.getFileEdit(file);
-  if (fileEdit == null) {
-    fileEdit = SourceFileEdit(file, fileStamp);
-    change.addFileEdit(fileEdit);
-  }
-  fileEdit.add(edit);
-}
-
-/// Get the result of applying the edit to the given [code].  Access via
-/// SourceEdit.apply().
-String applyEdit(String code, SourceEdit edit) {
-  if (edit.length < 0) {
-    throw RangeError('length is negative');
-  }
-  return code.replaceRange(edit.offset, edit.end, edit.replacement);
-}
-
 /// Get the result of applying a set of [edits] to the given [code].  Edits
 /// are applied in the order they appear in [edits].  Access via
 /// SourceEdit.applySequence().
@@ -61,16 +25,6 @@ String applySequenceOfEdits(String code, Iterable<SourceEdit> edits) {
     code = edit.apply(code);
   });
   return code;
-}
-
-/// Returns the [FileEdit] for the given [file], maybe `null`.
-SourceFileEdit getChangeFileEdit(SourceChange change, String file) {
-  for (var fileEdit in change.edits) {
-    if (fileEdit.file == file) {
-      return fileEdit;
-    }
-  }
-  return null;
 }
 
 /// Compare the lists [listA] and [listB], using [itemEqual] to compare
@@ -141,28 +95,6 @@ Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
   return result;
 }
 
-RefactoringProblemSeverity maxRefactoringProblemSeverity(
-    RefactoringProblemSeverity a, RefactoringProblemSeverity b) {
-  if (b == null) {
-    return a;
-  }
-  if (a == null) {
-    return b;
-  } else if (a == RefactoringProblemSeverity.INFO) {
-    return b;
-  } else if (a == RefactoringProblemSeverity.WARNING) {
-    if (b == RefactoringProblemSeverity.ERROR ||
-        b == RefactoringProblemSeverity.FATAL) {
-      return b;
-    }
-  } else if (a == RefactoringProblemSeverity.ERROR) {
-    if (b == RefactoringProblemSeverity.FATAL) {
-      return b;
-    }
-  }
-  return a;
-}
-
 /// Create a [RefactoringFeedback] corresponding the given [kind].
 RefactoringFeedback refactoringFeedbackFromJson(
     JsonDecoder jsonDecoder, String jsonPath, Object json, Map feedbackJson) {
@@ -211,11 +143,6 @@ RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
   }
   return null;
 }
-
-/// Type of callbacks used to decode parts of JSON objects.  [jsonPath] is a
-/// string describing the part of the JSON object being decoded, and [value] is
-/// the part to decode.
-typedef JsonDecoderCallback<E> = E Function(String jsonPath, Object value);
 
 /// Instances of the class [HasToJson] implement [toJson] method that returns
 /// a JSON presentation.

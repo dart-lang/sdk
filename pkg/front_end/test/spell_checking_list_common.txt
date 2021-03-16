@@ -794,6 +794,7 @@ dependence
 dependencies
 dependency
 dependent
+dependents
 depending
 depends
 deprecate
@@ -878,6 +879,7 @@ discards
 discover
 discovered
 discovery
+discrepancy
 disk
 dispatch
 dispatches
@@ -1604,6 +1606,7 @@ invariantly
 inversion
 invert
 inverted
+inverter
 investigate
 invisible
 invocation
@@ -2161,6 +2164,8 @@ perfect
 perform
 performance
 performed
+performer
+performers
 performing
 performs
 perhaps
@@ -3124,6 +3129,7 @@ two
 type
 typed
 typedef
+typedef's
 typedefs
 types
 typically

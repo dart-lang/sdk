@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 
 import 'server_abstract.dart';
@@ -77,11 +76,13 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
 
   Future<Either2<Command, CodeAction>> getFixAllAction(
       String title, Uri uri, String content) async {
-    final codeActions =
-        await getCodeActions(uri.toString(), range: rangeFromMarkers(content));
-    final fixAction =
-        findCommand(codeActions, Commands.fixAllOfErrorCodeInFile, title);
-    return fixAction;
+    // TODO(dantup): Fix this once new server support has landed.
+    throw UnimplementedError();
+    // final codeActions =
+    //     await getCodeActions(uri.toString(), range: rangeFromMarkers(content));
+    // final fixAction =
+    //     findCommand(codeActions, Commands.fixAllOfErrorCodeInFile, title);
+    // return fixAction;
   }
 
   /// Verifies that executing the given code actions command on the server

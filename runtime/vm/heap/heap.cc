@@ -40,23 +40,6 @@ DEFINE_FLAG(bool,
             false,
             "Explicitly disable heap verification.");
 
-// We ensure that the GC does not use the current isolate.
-class NoActiveIsolateScope {
- public:
-  NoActiveIsolateScope() : thread_(Thread::Current()) {
-    saved_isolate_ = thread_->isolate_;
-    thread_->isolate_ = nullptr;
-  }
-  ~NoActiveIsolateScope() {
-    ASSERT(thread_->isolate_ == nullptr);
-    thread_->isolate_ = saved_isolate_;
-  }
-
- private:
-  Thread* thread_;
-  Isolate* saved_isolate_;
-};
-
 Heap::Heap(IsolateGroup* isolate_group,
            bool is_vm_isolate,
            intptr_t max_new_gen_semi_words,
@@ -239,7 +222,7 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
       heap_(isolate_group()->heap()),
       old_space_(heap_->old_space()),
       writable_(writable) {
-  isolate()->safepoint_handler()->SafepointThreads(thread);
+  isolate_group()->safepoint_handler()->SafepointThreads(thread);
 
   {
     // It's not safe to iterate over old space when concurrent marking or
@@ -290,7 +273,7 @@ HeapIterationScope::~HeapIterationScope() {
     ml.NotifyAll();
   }
 
-  isolate()->safepoint_handler()->ResumeThreads(thread());
+  isolate_group()->safepoint_handler()->ResumeThreads(thread());
 }
 
 void HeapIterationScope::IterateObjects(ObjectVisitor* visitor) const {
@@ -1210,13 +1193,14 @@ WritableVMIsolateScope::~WritableVMIsolateScope() {
   }
 }
 
-WritableCodePages::WritableCodePages(Thread* thread, Isolate* isolate)
-    : StackResource(thread), isolate_(isolate) {
-  isolate_->group()->heap()->WriteProtectCode(false);
+WritableCodePages::WritableCodePages(Thread* thread,
+                                     IsolateGroup* isolate_group)
+    : StackResource(thread), isolate_group_(isolate_group) {
+  isolate_group_->heap()->WriteProtectCode(false);
 }
 
 WritableCodePages::~WritableCodePages() {
-  isolate_->group()->heap()->WriteProtectCode(true);
+  isolate_group_->heap()->WriteProtectCode(true);
 }
 
 }  // namespace dart

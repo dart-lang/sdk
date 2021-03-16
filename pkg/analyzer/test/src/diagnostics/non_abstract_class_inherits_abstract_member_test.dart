@@ -18,7 +18,9 @@ main() {
 @reflectiveTest
 class NonAbstractClassInheritsAbstractMemberTest
     extends PubPackageResolutionTest
-    with NonAbstractClassInheritsAbstractMemberTestCases {}
+    with
+        WithoutNullSafetyMixin,
+        NonAbstractClassInheritsAbstractMemberTestCases {}
 
 mixin NonAbstractClassInheritsAbstractMemberTestCases
     on PubPackageResolutionTest {
@@ -616,7 +618,7 @@ class C implements I {
 @reflectiveTest
 class NonAbstractClassInheritsAbstractMemberWithNullSafetyTest
     extends PubPackageResolutionTest
-    with WithNullSafetyMixin, NonAbstractClassInheritsAbstractMemberTestCases {
+    with NonAbstractClassInheritsAbstractMemberTestCases {
   test_abstract_field_final_implement_getter() async {
     await assertNoErrorsInCode('''
 abstract class A {

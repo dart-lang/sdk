@@ -69,12 +69,12 @@ Stream<List<int>> f2() async* {
     await assertNoErrorsInCode(r'''
 Iterable f1() sync* {
   yield []; // 1
-  yield* List(); // 2
+  yield* List.empty(); // 2
 }
 
 Iterable<List<int>> f2() sync* {
   yield []; // 3
-  yield* List(); // 4
+  yield* List.empty(); // 4
 }
 ''');
     assertType(
@@ -83,7 +83,7 @@ Iterable<List<int>> f2() sync* {
     );
 
     assertType(
-      findNode.instanceCreation('List(); // 2'),
+      findNode.instanceCreation('List.empty(); // 2'),
       'List<dynamic>',
     );
 
@@ -93,7 +93,7 @@ Iterable<List<int>> f2() sync* {
     );
 
     assertType(
-      findNode.instanceCreation('List(); // 4'),
+      findNode.instanceCreation('List.empty(); // 4'),
       'List<List<int>>',
     );
   }
@@ -142,13 +142,13 @@ main() {
 main() {
   Iterable Function() f1 = () sync* {
     yield []; // 1
-    yield* List(); // 2
+    yield* List.empty(); // 2
   };
   f1;
 
   Iterable<List<int>> Function() f2 = () sync* {
     yield []; // 3
-    yield* List(); // 4
+    yield* List.empty(); // 4
   };
   f2;
 }
@@ -159,7 +159,7 @@ main() {
     );
 
     assertType(
-      findNode.instanceCreation('List(); // 2'),
+      findNode.instanceCreation('List.empty(); // 2'),
       'List<dynamic>',
     );
 
@@ -169,7 +169,7 @@ main() {
     );
 
     assertType(
-      findNode.instanceCreation('List(); // 4'),
+      findNode.instanceCreation('List.empty(); // 4'),
       'List<List<int>>',
     );
   }
@@ -216,12 +216,12 @@ class A {
 class A {
   Iterable m1() sync* {
     yield []; // 1
-    yield* List(); // 2
+    yield* List.empty(); // 2
   }
 
   Iterable<List<int>> m2() sync* {
     yield []; // 3
-    yield* List(); // 4
+    yield* List.empty(); // 4
   }
 }
 ''');
@@ -231,7 +231,7 @@ class A {
     );
 
     assertType(
-      findNode.instanceCreation('List(); // 2'),
+      findNode.instanceCreation('List.empty(); // 2'),
       'List<dynamic>',
     );
 
@@ -241,7 +241,7 @@ class A {
     );
 
     assertType(
-      findNode.instanceCreation('List(); // 4'),
+      findNode.instanceCreation('List.empty(); // 4'),
       'List<List<int>>',
     );
   }

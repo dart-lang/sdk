@@ -79,62 +79,62 @@ class MyClass {
   test_constructor_named() async {
     await assertErrorsInCode(r'''
 class A {
-  int y;
-  A({x : y}) {}
+  int y = 0;
+  A({x: y}) {}
 }
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 28, 1),
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 31, 1),
     ]);
   }
 
   test_constructor_positional() async {
     await assertErrorsInCode(r'''
 class A {
-  int y;
+  int y = 0;
   A([x = y]) {}
 }
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 28, 1),
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1),
     ]);
   }
 
   test_function_named() async {
     await assertErrorsInCode(r'''
-int y;
-f({x : y}) {}
+int y = 0;
+f({x: y}) {}
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 14, 1),
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 17, 1),
     ]);
   }
 
   test_function_positional() async {
     await assertErrorsInCode(r'''
-int y;
+int y = 0;
 f([x = y]) {}
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 14, 1),
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 18, 1),
     ]);
   }
 
   test_method_named() async {
     await assertErrorsInCode(r'''
 class A {
-  int y;
-  m({x : y}) {}
+  int y = 0;
+  m({x: y}) {}
 }
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 28, 1),
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 31, 1),
     ]);
   }
 
   test_method_positional() async {
     await assertErrorsInCode(r'''
 class A {
-  int y;
+  int y = 0;
   m([x = y]) {}
 }
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 28, 1),
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 32, 1),
     ]);
   }
 

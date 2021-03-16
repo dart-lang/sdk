@@ -27,10 +27,10 @@ part of dart.ffi;
 ///
 /// ```
 /// class MyStruct extends Struct {
-///   @Int32
+///   @Int32()
 ///   external int a;
 ///
-///   @Float
+///   @Float()
 ///   external double b;
 ///
 ///   external Pointer<Void> c;
@@ -57,11 +57,4 @@ abstract class Struct extends NativeType {
   Struct() : _addressOf = nullptr;
 
   Struct._fromPointer(this._addressOf);
-}
-
-/// Extension on [Struct] specialized for its subtypes.
-extension StructAddressOf<T extends Struct> on T {
-  /// Returns the address backing the reference.
-  @Deprecated('Hold on to the pointer backing a struct instead.')
-  Pointer<T> get addressOf => _addressOf as Pointer<T>;
 }

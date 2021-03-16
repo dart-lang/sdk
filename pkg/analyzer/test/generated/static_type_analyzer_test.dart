@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -43,19 +45,19 @@ void _fail(String message) {
 @reflectiveTest
 class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// The error listener to which errors will be reported.
-  GatheringErrorListener _listener;
+  late final GatheringErrorListener _listener;
 
   /// The resolver visitor used to create the analyzer.
-  ResolverVisitor _visitor;
+  late final ResolverVisitor _visitor;
 
   /// The library containing the code being resolved.
-  LibraryElementImpl _definingLibrary;
+  late final LibraryElementImpl _definingLibrary;
 
   /// The analyzer being used to analyze the test cases.
-  StaticTypeAnalyzer _analyzer;
+  late final StaticTypeAnalyzer _analyzer;
 
   /// The type provider used to access the types.
-  TypeProvider _typeProvider;
+  late final TypeProvider _typeProvider;
 
   @override
   TypeProvider get typeProvider => _definingLibrary.typeProvider;
@@ -83,6 +85,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _createAnalyzer();
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   void test_flatten_derived() {
     // class Derived<T> extends Future<T> { ... }
     ClassElementImpl derivedClass =
@@ -111,6 +114,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         derivedIntType);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   void test_flatten_inhibit_recursion() {
     // class A extends B
     // class B extends A
@@ -125,6 +129,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     expect(_flatten(interfaceTypeStar(classB)), interfaceTypeStar(classB));
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   void test_flatten_related_derived_types() {
     InterfaceType intType = _typeProvider.intType;
     InterfaceType numType = _typeProvider.numType;
@@ -152,17 +157,18 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     expect(_flatten(interfaceTypeStar(classB)), intType);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   void test_flatten_related_types() {
     InterfaceType intType = _typeProvider.intType;
     InterfaceType numType = _typeProvider.numType;
     // class A extends Future<int> implements Future<num> { ... }
     ClassElementImpl classA =
-        ElementFactory.classElement('A', _typeProvider.futureType2(intType));
-    classA.interfaces = <InterfaceType>[_typeProvider.futureType2(numType)];
+        ElementFactory.classElement('A', _typeProvider.futureType(intType));
+    classA.interfaces = <InterfaceType>[_typeProvider.futureType(numType)];
     // class B extends Future<num> implements Future<int> { ... }
     ClassElementImpl classB =
-        ElementFactory.classElement('B', _typeProvider.futureType2(numType));
-    classB.interfaces = <InterfaceType>[_typeProvider.futureType2(intType)];
+        ElementFactory.classElement('B', _typeProvider.futureType(numType));
+    classB.interfaces = <InterfaceType>[_typeProvider.futureType(intType)];
     // flatten(A) = flatten(B) = int, since int is more specific than num.
     expect(_flatten(interfaceTypeStar(classA)), intType);
     expect(_flatten(interfaceTypeStar(classB)), intType);
@@ -172,11 +178,10 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     InterfaceType intType = _typeProvider.intType;
     DartType dynamicType = _typeProvider.dynamicType;
     InterfaceType futureDynamicType = _typeProvider.futureDynamicType;
-    InterfaceType futureIntType = _typeProvider.futureType2(intType);
+    InterfaceType futureIntType = _typeProvider.futureType(intType);
     InterfaceType futureFutureDynamicType =
-        _typeProvider.futureType2(futureDynamicType);
-    InterfaceType futureFutureIntType =
-        _typeProvider.futureType2(futureIntType);
+        _typeProvider.futureType(futureDynamicType);
+    InterfaceType futureFutureIntType = _typeProvider.futureType(futureIntType);
     // flatten(int) = int
     expect(_flatten(intType), intType);
     // flatten(dynamic) = dynamic
@@ -191,17 +196,18 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     expect(_flatten(futureFutureIntType), futureIntType);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   void test_flatten_unrelated_types() {
     InterfaceType intType = _typeProvider.intType;
     InterfaceType stringType = _typeProvider.stringType;
     // class A extends Future<int> implements Future<String> { ... }
     ClassElementImpl classA =
-        ElementFactory.classElement('A', _typeProvider.futureType2(intType));
-    classA.interfaces = <InterfaceType>[_typeProvider.futureType2(stringType)];
+        ElementFactory.classElement('A', _typeProvider.futureType(intType));
+    classA.interfaces = <InterfaceType>[_typeProvider.futureType(stringType)];
     // class B extends Future<String> implements Future<int> { ... }
     ClassElementImpl classB =
-        ElementFactory.classElement('B', _typeProvider.futureType2(stringType));
-    classB.interfaces = <InterfaceType>[_typeProvider.futureType2(intType)];
+        ElementFactory.classElement('B', _typeProvider.futureType(stringType));
+    classB.interfaces = <InterfaceType>[_typeProvider.futureType(intType)];
     // flatten(A) = A and flatten(B) = B, since neither string nor int is more
     // specific than the other.
     expect(_flatten(interfaceTypeStar(classA)), interfaceTypeStar(classA));
@@ -231,9 +237,8 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   void test_visitAwaitExpression_flattened() {
     // await e, where e has type Future<Future<int>>
     InterfaceType intType = _typeProvider.intType;
-    InterfaceType futureIntType = _typeProvider.futureType2(intType);
-    InterfaceType futureFutureIntType =
-        _typeProvider.futureType2(futureIntType);
+    InterfaceType futureIntType = _typeProvider.futureType(intType);
+    InterfaceType futureFutureIntType = _typeProvider.futureType(futureIntType);
     Expression node = AstTestFactory.awaitExpression(
         _resolvedVariable(futureFutureIntType, 'e'));
     expect(_analyze(node), same(futureIntType));
@@ -243,7 +248,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   void test_visitAwaitExpression_simple() {
     // await e, where e has type Future<int>
     InterfaceType intType = _typeProvider.intType;
-    InterfaceType futureIntType = _typeProvider.futureType2(intType);
+    InterfaceType futureIntType = _typeProvider.futureType(intType);
     Expression node =
         AstTestFactory.awaitExpression(_resolvedVariable(futureIntType, 'e'));
     expect(_analyze(node), same(intType));
@@ -322,7 +327,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(elementC, null);
     elementC.constructors = <ConstructorElement>[constructor];
-    TypeName typeName =
+    var typeName =
         AstTestFactory.typeName(elementC, [AstTestFactory.typeName(elementI)]);
     typeName.type = interfaceTypeStar(elementC,
         typeArguments: [interfaceTypeStar(elementI)]);
@@ -351,6 +356,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   void test_visitIntegerLiteral() {
     // 42
     Expression node = _resolvedInteger(42);
+    AstTestFactory.argumentList([node]);
     expect(_analyze(node), same(_typeProvider.intType));
     _listener.assertNoErrors();
   }
@@ -445,13 +451,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  void test_visitThrowExpression_withoutValue() {
-    // throw
-    Expression node = AstTestFactory.throwExpression();
-    expect(_analyze(node), same(_typeProvider.bottomType));
-    _listener.assertNoErrors();
-  }
-
   void test_visitThrowExpression_withValue() {
     // throw 0
     Expression node = AstTestFactory.throwExpression2(_resolvedInteger(0));
@@ -462,10 +461,12 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// Return the type associated with the given [node] after the static type
   /// analyzer has computed a type for it. If [thisType] is provided, it is the
   /// type of 'this'.
-  DartType _analyze(Expression node, [InterfaceType thisType]) {
-    _visitor.setThisInterfaceType(thisType);
+  DartType _analyze(Expression node, [InterfaceType? thisType]) {
+    if (thisType != null) {
+      _visitor.setThisInterfaceType(thisType);
+    }
     node.accept(_analyzer);
-    return node.staticType;
+    return node.typeOrThrow;
   }
 
   void _assertType(
@@ -503,8 +504,8 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         definingCompilationUnit.source = source;
     var featureSet = FeatureSet.forTesting();
 
-    _definingLibrary =
-        LibraryElementImpl(context, null, null, -1, 0, featureSet);
+    _definingLibrary = LibraryElementImpl(
+        context, _AnalysisSessionMock(), 'name', -1, 0, featureSet);
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
 
     _definingLibrary.typeProvider = context.typeProviderLegacy;
@@ -524,7 +525,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @param value the value of the literal
   /// @return an integer literal that has been resolved to the correct type
   DoubleLiteral _resolvedDouble(double value) {
-    DoubleLiteral literal = AstTestFactory.doubleLiteral(value);
+    var literal = AstTestFactory.doubleLiteral(value);
     literal.staticType = _typeProvider.doubleType;
     return literal;
   }
@@ -534,7 +535,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @param value the value of the literal
   /// @return an integer literal that has been resolved to the correct type
   IntegerLiteral _resolvedInteger(int value) {
-    IntegerLiteral literal = AstTestFactory.integer(value);
+    var literal = AstTestFactory.integer(value);
     literal.staticType = _typeProvider.intType;
     return literal;
   }
@@ -544,7 +545,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @param value the value of the literal
   /// @return a string literal that has been resolved to the correct type
   SimpleStringLiteral _resolvedString(String value) {
-    SimpleStringLiteral string = AstTestFactory.string2(value);
+    var string = AstTestFactory.string2(value);
     string.staticType = _typeProvider.stringType;
     return string;
   }
@@ -557,7 +558,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @return a simple identifier that has been resolved to a variable element
   ///           with the given type
   SimpleIdentifier _resolvedVariable(InterfaceType type, String variableName) {
-    SimpleIdentifier identifier = AstTestFactory.identifier3(variableName);
+    var identifier = AstTestFactory.identifier3(variableName);
     VariableElementImpl element =
         ElementFactory.localVariableElement(identifier);
     element.type = type;
@@ -565,4 +566,9 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     identifier.staticType = type;
     return identifier;
   }
+}
+
+class _AnalysisSessionMock implements AnalysisSession {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

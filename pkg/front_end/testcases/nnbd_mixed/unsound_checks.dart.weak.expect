@@ -254,7 +254,7 @@ static method main() → dynamic {
   uns::unnecessaryIfNullAssign(<core::int*>[null], () → core::int* => 42);
   uns::unnecessaryNullAwareAccess(() → core::int* => 0);
   uns::unnecessaryNullAwareAccess(() → Null => null);
-  self::throws(() → dynamic => uns::callReturningNever(() → <BottomType>=> throw "foo"), (core::Object* e) → core::bool* => e.{core::Object::==}("foo"));
+  self::throws(() → dynamic => uns::callReturningNever(() → Null => throw "foo"), (core::Object* e) → core::bool* => e.{core::Object::==}("foo"));
   () →* Null f = () → Null => null;
   self::throws(() → dynamic => uns::callReturningNever(f));
   uns::switchOnEnum(#C3);

@@ -32,7 +32,7 @@ class UpdateSdkConstraints extends CorrectionProducer {
         break;
       }
       pubspecFile = null;
-      folder = folder.parent;
+      folder = folder.parent2;
     }
     if (pubspecFile == null) {
       return;

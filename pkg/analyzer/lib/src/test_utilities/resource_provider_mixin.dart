@@ -4,7 +4,7 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/dart/analysis/context_locator.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 
 /// A mixin for test classes that adds a [ResourceProvider] and utility methods
 /// for manipulating the file system. The utility methods all take a posix style
@@ -35,19 +35,34 @@ mixin ResourceProviderMixin {
   }
 
   String join(String part1,
-          [String part2,
-          String part3,
-          String part4,
-          String part5,
-          String part6,
-          String part7,
-          String part8]) =>
+          [String? part2,
+          String? part3,
+          String? part4,
+          String? part5,
+          String? part6,
+          String? part7,
+          String? part8]) =>
       resourceProvider.pathContext
           .join(part1, part2, part3, part4, part5, part6, part7, part8);
 
   void modifyFile(String path, String content) {
     String convertedPath = convertPath(path);
     resourceProvider.modifyFile(convertedPath, content);
+  }
+
+  File newAnalysisOptionsYamlFile(String directoryPath, {String content = ''}) {
+    String path = join(directoryPath, file_paths.analysisOptionsYaml);
+    return newFile(path, content: content);
+  }
+
+  File newBazelBuildFile(String directoryPath, String content) {
+    String path = join(directoryPath, file_paths.bazelBuild);
+    return newFile(path, content: content);
+  }
+
+  File newDotPackagesFile(String directoryPath, {String content = ''}) {
+    String path = join(directoryPath, file_paths.dotPackages);
+    return newFile(path, content: content);
   }
 
   File newFile(String path, {String content = ''}) {
@@ -60,14 +75,18 @@ mixin ResourceProviderMixin {
     return resourceProvider.newFolder(convertedPath);
   }
 
-  File newOptionsFile(String directoryPath, {String content = ''}) {
-    String path = join(directoryPath, ContextLocatorImpl.ANALYSIS_OPTIONS_NAME);
+  File newPackageConfigJsonFile(String directoryPath, {String content = ''}) {
+    String path = join(
+      directoryPath,
+      file_paths.dotDartTool,
+      file_paths.packageConfigJson,
+    );
     return newFile(path, content: content);
   }
 
-  File newPackagesFile(String directoryPath) {
-    String path = join(directoryPath, ContextLocatorImpl.DOT_PACKAGES_NAME);
-    return newFile(path);
+  File newPubspecYamlFile(String directoryPath, String content) {
+    String path = join(directoryPath, file_paths.pubspecYaml);
+    return newFile(path, content: content);
   }
 
   Uri toUri(String path) {

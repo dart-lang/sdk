@@ -502,6 +502,113 @@ void f(PointerHoverEvent event) {
   }
 
   Future<void>
+      test_gestures_VelocityTracker_unnamedConstructor_withArg_deprecated() async {
+    setPackageContent('''
+class VelocityTracker {
+  @deprecated
+  VelocityTracker([PointerDeviceKind kind = PointerDeviceKind.touch]);
+  VelocityTracker.withKind(PointerDeviceKind kind);
+}
+class PointerDeviceKind {
+  static PointerDeviceKind mouse = PointerDeviceKind();
+  static PointerDeviceKind touch = PointerDeviceKind();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Use withKind"
+    date: 2020-09-17
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'VelocityTracker'
+    oneOf:
+      - if: "pointerDeviceKind == ''"
+        changes:
+          - kind: 'rename'
+            newName: 'withKind'
+          - kind: 'addParameter'
+            index: 0
+            name: 'kind'
+            style: required_positional
+            argumentValue:
+              expression: 'PointerDeviceKind.touch'
+      - if: "pointerDeviceKind != ''"
+        changes:
+          - kind: 'rename'
+            newName: 'withKind'
+    variables:
+      pointerDeviceKind:
+        kind: 'fragment'
+        value: 'arguments[0]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+VelocityTracker tracker = VelocityTracker(PointerDeviceKind.mouse);
+''');
+    await assertHasFix('''
+import '$importUri';
+
+VelocityTracker tracker = VelocityTracker.withKind(PointerDeviceKind.mouse);
+''');
+  }
+
+  Future<void>
+      test_gestures_VelocityTracker_unnamedConstructor_withoutArg_deprecated() async {
+    setPackageContent('''
+class VelocityTracker {
+  @deprecated
+  VelocityTracker([PointerDeviceKind kind = PointerDeviceKind.touch]);
+  VelocityTracker.withKind(PointerDeviceKind kind);
+}
+class PointerDeviceKind {
+  static PointerDeviceKind touch = PointerDeviceKind();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Use withKind"
+    date: 2020-09-17
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'VelocityTracker'
+    oneOf:
+      - if: "pointerDeviceKind == ''"
+        changes:
+          - kind: 'rename'
+            newName: 'withKind'
+          - kind: 'addParameter'
+            index: 0
+            name: 'kind'
+            style: required_positional
+            argumentValue:
+              expression: 'PointerDeviceKind.touch'
+      - if: "pointerDeviceKind != ''"
+        changes:
+          - kind: 'rename'
+            newName: 'withKind'
+    variables:
+      pointerDeviceKind:
+        kind: 'fragment'
+        value: 'arguments[0]'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+VelocityTracker tracker = VelocityTracker();
+''');
+    await assertHasFix('''
+import '$importUri';
+
+VelocityTracker tracker = VelocityTracker.withKind(PointerDeviceKind.touch);
+''');
+  }
+
+  Future<void>
       test_material_BottomNavigationBarItem_unnamedConstructor_deprecated() async {
     setPackageContent('''
 class BottomNavigationBarItem {

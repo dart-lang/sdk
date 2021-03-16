@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:collection/collection.dart';
 
 /// An object used to infer the type of instance fields and the return types of
 /// instance methods within a single compilation unit.
@@ -19,9 +20,9 @@ class InstanceMemberInferrer {
   final InheritanceManager3 inheritance;
   final Set<ClassElement> elementsBeingInferred = HashSet<ClassElement>();
 
-  TypeSystemImpl typeSystem;
-  bool isNonNullableByDefault;
-  ClassElement currentClassElement;
+  late TypeSystemImpl typeSystem;
+  late bool isNonNullableByDefault;
+  late ClassElement currentClassElement;
 
   /// Initialize a newly create inferrer.
   InstanceMemberInferrer(this.inheritance);
@@ -31,7 +32,7 @@ class InstanceMemberInferrer {
   /// Infer type information for all of the instance members in the given
   /// compilation [unit].
   void inferCompilationUnit(CompilationUnitElement unit) {
-    typeSystem = unit.library.typeSystem;
+    typeSystem = unit.library.typeSystem as TypeSystemImpl;
     isNonNullableByDefault = typeSystem.isNonNullableByDefault;
     _inferClasses(unit.mixins);
     _inferClasses(unit.types);
@@ -53,7 +54,7 @@ class InstanceMemberInferrer {
   /// Given a method, return the parameter in the method that corresponds to the
   /// given [parameter]. If the parameter is positional, then it appears at the
   /// given [index] in its enclosing element's list of parameters.
-  ParameterElement _getCorrespondingParameter(ParameterElement parameter,
+  ParameterElement? _getCorrespondingParameter(ParameterElement parameter,
       int index, List<ParameterElement> methodParameters) {
     //
     // Find the corresponding parameter.
@@ -63,10 +64,10 @@ class InstanceMemberInferrer {
       // If we're looking for a named parameter, only a named parameter with
       // the same name will be matched.
       //
-      return methodParameters.lastWhere(
+      return methodParameters.lastWhereOrNull(
           (ParameterElement methodParameter) =>
-              methodParameter.isNamed && methodParameter.name == parameter.name,
-          orElse: () => null);
+              methodParameter.isNamed &&
+              methodParameter.name == parameter.name);
     }
     //
     // If we're looking for a positional parameter we ignore the difference
@@ -87,8 +88,8 @@ class InstanceMemberInferrer {
   /// If the given [field] represents a non-synthetic instance field for
   /// which no type was provided, infer the type of the field.
   void _inferAccessorOrField({
-    PropertyAccessorElementImpl accessor,
-    FieldElementImpl field,
+    PropertyAccessorElementImpl? accessor,
+    FieldElementImpl? field,
   }) {
     Uri elementLibraryUri;
     String elementName;
@@ -99,14 +100,14 @@ class InstanceMemberInferrer {
       }
       elementLibraryUri = accessor.library.source.uri;
       elementName = accessor.displayName;
-    }
-
-    if (field != null) {
+    } else if (field != null) {
       if (field.isSynthetic || field.isStatic) {
         return;
       }
       elementLibraryUri = field.library.source.uri;
       elementName = field.name;
+    } else {
+      throw UnimplementedError();
     }
 
     var getterName = Name(elementLibraryUri, elementName);
@@ -132,7 +133,7 @@ class InstanceMemberInferrer {
     DartType combinedGetterType() {
       var combinedGetter = inheritance.combineSignatures(
         targetClass: currentClassElement,
-        candidates: overriddenGetters,
+        candidates: overriddenGetters!,
         doTopMerge: true,
         name: getterName,
       );
@@ -146,7 +147,7 @@ class InstanceMemberInferrer {
     DartType combinedSetterType() {
       var combinedSetter = inheritance.combineSignatures(
         targetClass: currentClassElement,
-        candidates: overriddenSetters,
+        candidates: overriddenSetters!,
         doTopMerge: true,
         name: setterName,
       );
@@ -233,7 +234,7 @@ class InstanceMemberInferrer {
     if (field != null) {
       if (field.setter != null) {
         if (overriddenSetters.any(_isCovariantSetter)) {
-          var parameter = field.setter.parameters[0] as ParameterElementImpl;
+          var parameter = field.setter!.parameters[0] as ParameterElementImpl;
           parameter.inheritsCovariant = true;
         }
       }
@@ -330,14 +331,18 @@ class InstanceMemberInferrer {
         // Then infer the types for the members.
         //
         currentClassElement = classElement;
-        for (FieldElement field in classElement.fields) {
-          _inferAccessorOrField(field: field);
+        for (var field in classElement.fields) {
+          _inferAccessorOrField(
+            field: field as FieldElementImpl,
+          );
         }
-        for (PropertyAccessorElement accessor in classElement.accessors) {
-          _inferAccessorOrField(accessor: accessor);
+        for (var accessor in classElement.accessors) {
+          _inferAccessorOrField(
+            accessor: accessor as PropertyAccessorElementImpl,
+          );
         }
-        for (MethodElement method in classElement.methods) {
-          _inferExecutable(method);
+        for (var method in classElement.methods) {
+          _inferExecutable(method as MethodElementImpl);
         }
         //
         // Infer initializing formal parameter types. This must happen after
@@ -366,7 +371,7 @@ class InstanceMemberInferrer {
     for (ParameterElement parameter in constructor.parameters) {
       if (parameter.hasImplicitType &&
           parameter is FieldFormalParameterElementImpl) {
-        FieldElement field = parameter.field;
+        var field = parameter.field;
         if (field != null) {
           parameter.type = field.type;
         }
@@ -392,7 +397,7 @@ class InstanceMemberInferrer {
       return;
     }
 
-    FunctionType combinedSignatureType;
+    FunctionType? combinedSignatureType;
     var hasImplicitType = element.hasImplicitReturnType ||
         element.parameters.any((e) => e.hasImplicitType);
     if (hasImplicitType) {
@@ -476,7 +481,7 @@ class InstanceMemberInferrer {
   /// [combinedSignatureType], which might be `null` if there is no valid
   /// combined signature for signatures from direct superinterfaces.
   void _inferParameterType(ParameterElementImpl parameter, int index,
-      FunctionType combinedSignatureType) {
+      FunctionType? combinedSignatureType) {
     if (combinedSignatureType != null) {
       var matchingParameter = _getCorrespondingParameter(
         parameter,
@@ -497,12 +502,9 @@ class InstanceMemberInferrer {
 
   /// Infer type information for all of the instance members in the given
   /// interface [type].
-  void _inferType(InterfaceType type) {
+  void _inferType(InterfaceType? type) {
     if (type != null) {
-      ClassElement element = type.element;
-      if (element != null) {
-        _inferClass(element);
-      }
+      _inferClass(type.element);
     }
   }
 
@@ -525,13 +527,13 @@ class InstanceMemberInferrer {
       return;
     }
 
-    ParameterElementImpl parameter = parameters[0];
+    var parameter = parameters[0] as ParameterElementImpl;
     if (!parameter.hasImplicitType) {
       element.isOperatorEqualWithParameterTypeFromObject = false;
       return;
     }
 
-    for (MethodElement overridden in overriddenElements) {
+    for (var overridden in overriddenElements) {
       overridden = overridden.declaration;
 
       // Skip Object itself.
@@ -566,7 +568,7 @@ class InstanceMemberInferrer {
   /// we must express its parameter and return types in terms of its own
   /// parameters. For example, given `m<T>(t)` overriding `m<S>(S s)` we
   /// should infer this as `m<T>(T t)`.
-  FunctionType _toOverriddenFunctionType(
+  FunctionType? _toOverriddenFunctionType(
       ExecutableElement element, ExecutableElement overriddenElement) {
     var elementTypeParameters = element.typeParameters;
     var overriddenTypeParameters = overriddenElement.typeParameters;
@@ -575,7 +577,7 @@ class InstanceMemberInferrer {
       return null;
     }
 
-    var overriddenType = overriddenElement.type;
+    var overriddenType = overriddenElement.type as FunctionTypeImpl;
     if (elementTypeParameters.isEmpty) {
       return overriddenType;
     }

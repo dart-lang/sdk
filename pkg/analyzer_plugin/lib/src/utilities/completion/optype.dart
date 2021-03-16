@@ -813,8 +813,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (entity == node.functionType) {
-      optype.completionLocation = 'GenericTypeAlias_functionType';
+    if (entity == node.type) {
+      optype.includeTypeNameSuggestions = true;
+      optype.completionLocation = 'GenericTypeAlias_type';
     }
   }
 

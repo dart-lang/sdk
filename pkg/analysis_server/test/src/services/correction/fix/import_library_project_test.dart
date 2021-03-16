@@ -72,7 +72,7 @@ void f() {
         ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
     );
 
-    newFile('/home/test/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test', r'''
 dependencies:
   my_pkg: any
 ''');
@@ -106,7 +106,7 @@ extension E on int {
         ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
     );
 
-    newFile('/home/test/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test', r'''
 dependencies:
   my_pkg: any
 ''');
@@ -134,7 +134,7 @@ f() {
         ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
     );
 
-    newFile('/home/test/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test', r'''
 dependencies:
   my_pkg: any
 ''');
@@ -620,7 +620,7 @@ class ImportLibraryProject2Test extends FixProcessorTest {
         ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
     );
 
-    newFile('/home/test/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test', r'''
 dependencies:
   my_pkg: any
 ''');
@@ -649,7 +649,7 @@ main() {
         ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
     );
 
-    newFile('/home/test/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test', r'''
 dependencies:
   my_pkg: any
 ''');
@@ -682,7 +682,7 @@ extension E on int {
         ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
     );
 
-    newFile('/home/test/pubspec.yaml', content: r'''
+    newPubspecYamlFile('/home/test', r'''
 dependencies:
   my_pkg: any
 ''');

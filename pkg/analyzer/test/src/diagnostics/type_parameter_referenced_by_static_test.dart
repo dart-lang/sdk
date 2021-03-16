@@ -30,7 +30,7 @@ class A<T> {
   test_type_field() async {
     await assertErrorsInCode('''
 class A<T> {
-  static T foo;
+  static T? foo;
 }
 ''', [
       error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1),
@@ -40,7 +40,7 @@ class A<T> {
   test_type_getter() async {
     await assertErrorsInCode('''
 class A<T> {
-  static T get foo => null;
+  static T? get foo => null;
 }
 ''', [
       error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1),

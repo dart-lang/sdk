@@ -14,8 +14,6 @@ import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
 
 class CiderServiceTest with ResourceProviderMixin {
-  static final String _testPath = '/workspace/dart/test/lib/test.dart';
-
   final ByteStore byteStore = MemoryByteStore();
 
   final StringBuffer logBuffer = StringBuffer();
@@ -24,7 +22,7 @@ class CiderServiceTest with ResourceProviderMixin {
 
   FileResolver fileResolver;
 
-  String get testPath => _testPath;
+  String testPath = '/workspace/dart/test/lib/test.dart';
 
   /// Create a new [FileResolver] into [fileResolver].
   ///
@@ -32,7 +30,7 @@ class CiderServiceTest with ResourceProviderMixin {
   void createFileResolver() {
     var workspace = BazelWorkspace.find(
       resourceProvider,
-      convertPath(_testPath),
+      convertPath(testPath),
     );
 
     fileResolver = FileResolver(

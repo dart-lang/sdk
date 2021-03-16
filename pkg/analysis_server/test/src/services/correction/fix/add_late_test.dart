@@ -57,7 +57,6 @@ class C {
 ''', target: '/home/test/lib/a.dart');
   }
 
-  @FailingTest(reason: 'The lint does not fire for parts.')
   Future<void> test_changeInPart() async {
     addSource('/home/test/lib/a.dart', '''
 part 'test.dart';

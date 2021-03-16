@@ -758,6 +758,22 @@ Dart_Handle DartUtils::NewInternalError(const char* message) {
   return NewDartExceptionWithMessage(kCoreLibURL, "_InternalError", message);
 }
 
+Dart_Handle DartUtils::NewStringFormatted(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  intptr_t len = vsnprintf(NULL, 0, format, args);
+  va_end(args);
+
+  char* buffer = reinterpret_cast<char*>(Dart_ScopeAllocate(len + 1));
+  MSAN_UNPOISON(buffer, (len + 1));
+  va_list args2;
+  va_start(args2, format);
+  vsnprintf(buffer, (len + 1), format, args2);
+  va_end(args2);
+
+  return NewString(buffer);
+}
+
 bool DartUtils::SetOriginalWorkingDirectory() {
   // If we happen to re-initialize the Dart VM multiple times, make sure to free
   // the old string (allocated by getcwd()) before setting a new one.
@@ -928,6 +944,32 @@ Dart_CObject* CObject::NewIOBuffer(int64_t length) {
   }
   return NewExternalUint8Array(static_cast<intptr_t>(length), data, data,
                                IOBuffer::Finalizer);
+}
+
+void CObject::ShrinkIOBuffer(Dart_CObject* cobject, int64_t new_length) {
+  if (cobject == nullptr) return;
+  ASSERT(cobject->type == Dart_CObject_kExternalTypedData);
+
+  const auto old_data = cobject->value.as_external_typed_data.data;
+  const auto old_length = cobject->value.as_external_typed_data.length;
+
+  // We only shrink IOBuffers, never grow them.
+  ASSERT(0 <= new_length && new_length <= old_length);
+
+  // We only reallocate if we think the freed space is worth reallocating.
+  // We consider it worthwhile when freed space is >=25% and we have at
+  // least 100 free bytes.
+  const auto free_memory = old_length - new_length;
+  if ((old_length >> 2) <= free_memory && 100 <= free_memory) {
+    const auto new_data = IOBuffer::Reallocate(old_data, new_length);
+    if (new_data != nullptr) {
+      cobject->value.as_external_typed_data.data = new_data;
+      cobject->value.as_external_typed_data.peer = new_data;
+    }
+  }
+
+  // The typed data object always has to have the shranken length.
+  cobject->value.as_external_typed_data.length = new_length;
 }
 
 void CObject::FreeIOBufferData(Dart_CObject* cobject) {

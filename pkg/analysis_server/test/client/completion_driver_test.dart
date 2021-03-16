@@ -142,7 +142,7 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
     );
     driver.createProject(packageRoots: packageRoots);
 
-    newFile('$projectPath/pubspec.yaml', content: '');
+    newPubspecYamlFile(projectPath, '');
     newFile('$projectPath/.packages', content: '''
 project:${toUri('$projectPath/lib')}
 ''');

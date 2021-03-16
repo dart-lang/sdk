@@ -22,7 +22,6 @@ import 'package:kernel/ast.dart'
         Member,
         NamedNode,
         NeverType,
-        Nullability,
         Procedure,
         ProcedureKind,
         Reference,
@@ -162,7 +161,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     addBuilder(
         "Never",
         new NeverTypeDeclarationBuilder(
-            const NeverType(Nullability.nonNullable), this, -1),
+            const NeverType.nonNullable(), this, -1),
         -1);
   }
 

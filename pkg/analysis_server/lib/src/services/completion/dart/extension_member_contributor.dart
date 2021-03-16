@@ -74,7 +74,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       }
     }
     if (expression is ExtensionOverride) {
-      _addInstanceMembers(expression.staticElement, -1.0);
+      _addInstanceMembers(expression.staticElement, 0.0);
     } else {
       var type = expression.staticType;
       if (type == null) {
@@ -96,12 +96,10 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       var extendedType =
           _resolveExtendedType(containingLibrary, extension, type);
       if (extendedType != null && typeSystem.isSubtypeOf(type, extendedType)) {
-        double inheritanceDistance;
+        var inheritanceDistance = 0.0;
         if (type is InterfaceType && extendedType is InterfaceType) {
           inheritanceDistance = memberBuilder.request.featureComputer
               .inheritanceDistanceFeature(type.element, extendedType.element);
-        } else {
-          inheritanceDistance = -1;
         }
         // TODO(brianwilkerson) We might want to apply the substitution to the
         //  members of the extension for display purposes.

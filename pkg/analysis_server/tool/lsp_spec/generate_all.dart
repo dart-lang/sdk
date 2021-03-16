@@ -163,6 +163,7 @@ String generatedFileHeader(int year, {bool importCustom = false}) => '''
 // ignore_for_file: deprecated_member_use
 // ignore_for_file: deprecated_member_use_from_same_package
 // ignore_for_file: unnecessary_brace_in_string_interps
+// ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: unused_import
 // ignore_for_file: unused_shown_name
 
@@ -261,10 +262,13 @@ List<AstNode> getCustomClasses() {
     interface(
       'DartCompletionItemResolutionInfo',
       [
+        // These fields have short-ish names because they're on the payload
+        // for all suggestion-set backed completions.
         field('libId', type: 'number'),
         field('displayUri', type: 'string'),
-        field('rOffset', type: 'number'),
-        field('rLength', type: 'number'),
+        field('rOffset', type: 'number'), // replacementOffset
+        field('iLength', type: 'number'), // insertLength
+        field('rLength', type: 'number'), // replacementLength
       ],
       baseType: 'CompletionItemResolutionInfo',
     ),

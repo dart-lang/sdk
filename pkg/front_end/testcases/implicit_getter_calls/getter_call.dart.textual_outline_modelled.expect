@@ -1,3 +1,4 @@
+// @dart = 2.9
 bool enableRead = true;
 callField(Class c) {}
 callGetter(Class c) {}

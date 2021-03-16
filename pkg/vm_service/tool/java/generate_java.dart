@@ -4,9 +4,6 @@
 
 library generate_vm_service_java;
 
-// TODO(bkonyi): remove once markdown and pub_semver deps are updated to null
-// safety for the SDK.
-// ignore_for_file: import_of_legacy_library_into_null_safe
 import 'package:markdown/markdown.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -280,7 +277,7 @@ class Api extends Member with ApiParseUtil {
       } else if (isHeader(node)) {
         h3Name = null;
       } else if (isPara(node)) {
-        var children = (node as Element).children;
+        var children = (node as Element).children!;
         if (children.isNotEmpty && children.first is Text) {
           var text = children.expand<String>((child) {
             if (child is Text) return [child.text];
@@ -356,7 +353,7 @@ class Api extends Member with ApiParseUtil {
       return n.text;
     } else if (n is Element) {
       if (n.tag != 'h3') return n.tag;
-      return '${n.tag}:[${n.children.map((c) => printNode(c)).join(', ')}]';
+      return '${n.tag}:[${n.children!.map((c) => printNode(c)).join(', ')}]';
     } else {
       return '${n}';
     }

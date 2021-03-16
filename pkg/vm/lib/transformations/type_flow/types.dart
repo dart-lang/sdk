@@ -82,9 +82,7 @@ abstract class TypesBuilder {
       result = new ConeType(getTFClass(cls));
     } else if (type == const DynamicType() || type == const VoidType()) {
       result = const AnyType();
-    } else if (type == const BottomType() ||
-        type is NeverType ||
-        type is NullType) {
+    } else if (type is NeverType || type is NullType) {
       result = const EmptyType();
     } else if (type is FunctionType) {
       // TODO(alexmarkov): support function types
@@ -1149,13 +1147,10 @@ class RuntimeType extends Type {
         rhs.nullability == Nullability.nonNullable) {
       return false;
     }
-    if (rhs is DynamicType ||
-        rhs is VoidType ||
-        _type is BottomType ||
-        _type is NeverType) {
+    if (rhs is DynamicType || rhs is VoidType || _type is NeverType) {
       return true;
     }
-    if (rhs is BottomType || rhs is NeverType) return false;
+    if (rhs is NeverType) return false;
     if (_type is DynamicType || _type is VoidType) {
       return (rhs is InterfaceType &&
           rhs.classNode == typeHierarchy.coreTypes.objectClass);

@@ -15,6 +15,9 @@ class UseIsNotEmpty extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.USE_IS_NOT_EMPTY;
 
   @override
+  FixKind get multiFixKind => DartFixKind.USE_IS_NOT_EMPTY_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     if (node is! PrefixExpression) {
       return;

@@ -15,7 +15,34 @@ main() {
 
 @reflectiveTest
 class DuplicateNamedArgumentTest extends PubPackageResolutionTest {
-  test_duplicate_named_argument() async {
+  test_constructor() async {
+    await assertErrorsInCode(r'''
+class C {
+  C({int? a, int? b});
+}
+main() {
+  C(a: 1, a: 2);
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 54, 1),
+    ]);
+  }
+
+  test_constructor_nonFunctionTypedef() async {
+    await assertErrorsInCode(r'''
+class C {
+  C({int? a, int? b});
+}
+typedef D = C;
+main() {
+  D(a: 1, a: 2);
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 69, 1),
+    ]);
+  }
+
+  test_function() async {
     await assertErrorsInCode(r'''
 f({a, b}) {}
 main() {

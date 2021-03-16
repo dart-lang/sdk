@@ -77,7 +77,9 @@ class Profiler : public AllStatic {
   static void DumpStackTrace(void* context);
   static void DumpStackTrace(bool for_crash = true);
 
-  static void SampleAllocation(Thread* thread, intptr_t cid);
+  static void SampleAllocation(Thread* thread,
+                               intptr_t cid,
+                               uint32_t identity_hash);
   static Sample* SampleNativeAllocation(intptr_t skip_count,
                                         uword address,
                                         uintptr_t allocation_size);
@@ -210,6 +212,7 @@ class Sample {
     lr_ = 0;
     metadata_ = 0;
     state_ = 0;
+    allocation_identity_hash_ = 0;
     native_allocation_address_ = 0;
     native_allocation_size_bytes_ = 0;
     continuation_index_ = -1;
@@ -313,6 +316,14 @@ class Sample {
 
   void set_is_allocation_sample(bool allocation_sample) {
     state_ = ClassAllocationSampleBit::update(allocation_sample, state_);
+  }
+
+  uint32_t allocation_identity_hash() const {
+    return allocation_identity_hash_;
+  }
+
+  void set_allocation_identity_hash(uint32_t hash) {
+    allocation_identity_hash_ = hash;
   }
 
   uword native_allocation_address() const { return native_allocation_address_; }
@@ -423,6 +434,7 @@ class Sample {
   uword metadata_;
   uword lr_;
   uword state_;
+  uint32_t allocation_identity_hash_;
   uword native_allocation_address_;
   uintptr_t native_allocation_size_bytes_;
   intptr_t continuation_index_;
@@ -747,6 +759,15 @@ class ProcessedSample : public ZoneAllocated {
   intptr_t allocation_cid() const { return allocation_cid_; }
   void set_allocation_cid(intptr_t cid) { allocation_cid_ = cid; }
 
+  // The identity hash code of the allocated object if this is an allocation
+  // profile sample. -1 otherwise.
+  uint32_t allocation_identity_hash() const {
+    return allocation_identity_hash_;
+  }
+  void set_allocation_identity_hash(uint32_t hash) {
+    allocation_identity_hash_ = hash;
+  }
+
   bool IsAllocationSample() const { return allocation_cid_ > 0; }
 
   bool is_native_allocation_sample() const {
@@ -800,6 +821,7 @@ class ProcessedSample : public ZoneAllocated {
   uword vm_tag_;
   uword user_tag_;
   intptr_t allocation_cid_;
+  uint32_t allocation_identity_hash_;
   bool truncated_;
   bool first_frame_executing_;
   uword native_allocation_address_;

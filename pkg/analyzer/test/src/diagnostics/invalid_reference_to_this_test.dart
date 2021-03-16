@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class InvalidReferenceToThisTest extends PubPackageResolutionTest {
+class InvalidReferenceToThisTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_class_constructor() async {
     await assertErrorsInCode(r'''
 class A {

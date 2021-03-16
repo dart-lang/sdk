@@ -4,16 +4,6 @@
 
 import 'package:meta/meta.dart';
 
-/// Set this boolean to `true` to permanently enable the feature of allowing
-/// local boolean variables to influence promotion (see
-/// https://github.com/dart-lang/language/issues/1274).  While this boolean is
-/// `false`, the feature remains experimental and can be activated via an
-/// optional boolean parameter to the [FlowAnalysis] constructor.
-///
-/// Changing this value to `true` will cause some dead code warnings to appear
-/// for code that only exists to support the old behavior.
-const bool allowLocalBooleanVarsToPromoteByDefault = true;
-
 /// [AssignedVariables] is a helper class capable of computing the set of
 /// variables that are potentially written to, and potentially captured by
 /// closures, at various locations inside the code being analyzed.  This class
@@ -242,6 +232,11 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
             '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}'));
   }
 
+  /// Indicates whether information is stored for the given [node].
+  bool _hasInfoForNode(Node node) {
+    return _info[node] != null;
+  }
+
   void _printOn(StringBuffer sb) {
     sb.write('_info=$_info,');
     sb.write('_stack=$_stack,');
@@ -307,6 +302,63 @@ class AssignedVariablesNodeInfo<Variable extends Object> {
       '_declared=$_declared)';
 }
 
+/// Non-promotion reason describing the situation where a variable was not
+/// promoted due to an explicit write to the variable appearing somewhere in the
+/// source code.
+class DemoteViaExplicitWrite<Variable extends Object, Expression extends Object>
+    extends NonPromotionReason {
+  /// The local variable that was not promoted.
+  final Variable variable;
+
+  /// The expression that wrote to the variable; this corresponds to an
+  /// expression that was passed to [FlowAnalysis.write].
+  final Expression writeExpression;
+
+  DemoteViaExplicitWrite(this.variable, this.writeExpression);
+
+  @override
+  String get shortName => 'explicitWrite';
+
+  @override
+  R accept<R, Node extends Object, Expression extends Object,
+              Variable extends Object, Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
+              visitor) =>
+      visitor.visitDemoteViaExplicitWrite(
+          this as DemoteViaExplicitWrite<Variable, Expression>);
+
+  @override
+  String toString() => 'DemoteViaExplicitWrite($writeExpression)';
+}
+
+/// Non-promotion reason describing the situation where a variable was not
+/// promoted due to the variable appearing before the word `in` in a "for each"
+/// statement or a "for each" collection element.
+class DemoteViaForEachVariableWrite<Variable extends Object,
+    Node extends Object> extends NonPromotionReason {
+  /// The local variable that was not promoted.
+  final Variable variable;
+
+  /// The "for each" statement or collection element that wrote to the variable.
+  final Node node;
+
+  DemoteViaForEachVariableWrite(this.variable, this.node);
+
+  @override
+  String get shortName => 'explicitWrite';
+
+  @override
+  R accept<R, Node extends Object, Expression extends Object,
+              Variable extends Object, Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
+              visitor) =>
+      visitor.visitDemoteViaForEachVariableWrite(
+          this as DemoteViaForEachVariableWrite<Variable, Node>);
+
+  @override
+  String toString() => 'DemoteViaForEachVariableWrite($node)';
+}
+
 /// A collection of flow models representing the possible outcomes of evaluating
 /// an expression that are relevant to flow analysis.
 class ExpressionInfo<Variable extends Object, Type extends Object> {
@@ -347,10 +399,8 @@ class ExpressionInfo<Variable extends Object, Type extends Object> {
 abstract class FlowAnalysis<Node extends Object, Statement extends Node,
     Expression extends Object, Variable extends Object, Type extends Object> {
   factory FlowAnalysis(TypeOperations<Variable, Type> typeOperations,
-      AssignedVariables<Node, Variable> assignedVariables,
-      {bool allowLocalBooleanVarsToPromote = false}) {
-    return new _FlowAnalysisImpl(typeOperations, assignedVariables,
-        allowLocalBooleanVarsToPromote: allowLocalBooleanVarsToPromote);
+      AssignedVariables<Node, Variable> assignedVariables) {
+    return new _FlowAnalysisImpl(typeOperations, assignedVariables);
   }
 
   factory FlowAnalysis.legacy(TypeOperations<Variable, Type> typeOperations,
@@ -715,6 +765,14 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// is currently promoted.  Otherwise returns `null`.
   Type? promotedType(Variable variable);
 
+  /// Call this method just after visiting a property get expression.
+  /// [wholeExpression] should be the whole property get, [target] should be the
+  /// expression to the left hand side of the `.`, and [propertyName] should be
+  /// the identifier to the right hand side of the `.`.  [staticType] should be
+  /// the static type of the value returned by the property get.
+  void propertyGet(Expression wholeExpression, Expression target,
+      String propertyName, Type staticType);
+
   /// Retrieves the SSA node associated with [variable], or `null` if [variable]
   /// is not associated with an SSA node because it is write captured.  For
   /// testing only.
@@ -749,6 +807,23 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   ///   - Visit the case.
   /// - Call [switchStatement_end].
   void switchStatement_expressionEnd(Statement switchStatement);
+
+  /// Call this method just after visiting the expression `this` (or the
+  /// pseudo-expression `super`, in the case of the analyzer, which represents
+  /// `super.x` as a property get whose target is `super`).  [expression] should
+  /// be the `this` or `super` expression.  [staticType] should be the static
+  /// type of `this`.
+  void thisOrSuper(Expression expression, Type staticType);
+
+  /// Call this method just after visiting an expression that represents a
+  /// property get on `this` or `super`.  This handles situations where there is
+  /// an implicit reference to `this`, or the case of the front end, where
+  /// `super.x` is represented by a single expression.  [expression] should be
+  /// the whole property get, and [propertyName] should be the name of the
+  /// property being read.  [staticType] should be the static type of the value
+  /// returned by the property get.
+  void thisOrSuperPropertyGet(
+      Expression expression, String propertyName, Type staticType);
 
   /// Call this method just before visiting the body of a "try/catch" statement.
   ///
@@ -855,8 +930,37 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method after visiting a "while" statement.
   void whileStatement_end();
 
+  /// Call this method when an error occurs that may be due to a lack of type
+  /// promotion, to retrieve information about why [target] was not promoted.
+  /// This call must be made right after visiting [target].
+  ///
+  /// The returned value is a map whose keys are types that the user might have
+  /// been expecting the target to be promoted to, and whose values are reasons
+  /// why the corresponding promotion did not occur.  The caller is expected to
+  /// select which non-promotion reason to report to the user by seeing which
+  /// promotion would have prevented the error.  (For example, if an error
+  /// occurs due to the target having a nullable type, the caller should report
+  /// a non-promotion reason associated with non-promotion to a non-nullable
+  /// type).
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression target);
+
+  /// Call this method when an error occurs that may be due to a lack of type
+  /// promotion, to retrieve information about why an implicit reference to
+  /// `this` was not promoted.  [staticType] is the (unpromoted) type of `this`.
+  ///
+  /// The returned value is a map whose keys are types that the user might have
+  /// been expecting the target to be promoted to, and whose values are reasons
+  /// why the corresponding promotion did not occur.  The caller is expected to
+  /// select which non-promotion reason to report to the user by seeing which
+  /// promotion would have prevented the error.  (For example, if an error
+  /// occurs due to the target having a nullable type, the caller should report
+  /// a non-promotion reason associated with non-promotion to a non-nullable
+  /// type).
+  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType);
+
   /// Register write of the given [variable] in the current state.
   /// [writtenType] should be the type of the value that was written.
+  /// [expression] should be the whole expression performing the write.
   /// [writtenExpression] should be the expression that was written, or `null`
   /// if the expression that was written is not directly represented in the
   /// source code (this happens, for example, with compound assignments and with
@@ -865,8 +969,8 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// This should also be used for the implicit write to a non-final variable in
   /// its initializer, to ensure that the type is promoted to non-nullable if
   /// necessary; in this case, [viaInitializer] should be `true`.
-  void write(
-      Variable variable, Type writtenType, Expression? writtenExpression);
+  void write(Expression expression, Variable variable, Type writtenType,
+      Expression? writtenExpression);
 
   /// Prints out a summary of the current state of flow analysis, intended for
   /// debugging use only.
@@ -883,12 +987,10 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   bool _exceptionOccurred = false;
 
   factory FlowAnalysisDebug(TypeOperations<Variable, Type> typeOperations,
-      AssignedVariables<Node, Variable> assignedVariables,
-      {bool allowLocalBooleanVarsToPromote = false}) {
+      AssignedVariables<Node, Variable> assignedVariables) {
     print('FlowAnalysisDebug()');
-    return new FlowAnalysisDebug._(new _FlowAnalysisImpl(
-        typeOperations, assignedVariables,
-        allowLocalBooleanVarsToPromote: allowLocalBooleanVarsToPromote));
+    return new FlowAnalysisDebug._(
+        new _FlowAnalysisImpl(typeOperations, assignedVariables));
   }
 
   factory FlowAnalysisDebug.legacy(
@@ -1249,6 +1351,15 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
+  void propertyGet(Expression wholeExpression, Expression target,
+      String propertyName, Type staticType) {
+    _wrap(
+        'propertyGet($wholeExpression, $target, $propertyName, $staticType)',
+        () => _wrapped.propertyGet(
+            wholeExpression, target, propertyName, staticType));
+  }
+
+  @override
   SsaNode<Variable, Type>? ssaNodeForTesting(Variable variable) {
     return _wrap('ssaNodeForTesting($variable)',
         () => _wrapped.ssaNodeForTesting(variable),
@@ -1271,6 +1382,21 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   void switchStatement_expressionEnd(Statement switchStatement) {
     _wrap('switchStatement_expressionEnd($switchStatement)',
         () => _wrapped.switchStatement_expressionEnd(switchStatement));
+  }
+
+  @override
+  void thisOrSuper(Expression expression, Type staticType) {
+    return _wrap('thisOrSuper($expression, $staticType)',
+        () => _wrapped.thisOrSuper(expression, staticType));
+  }
+
+  @override
+  void thisOrSuperPropertyGet(
+      Expression expression, String propertyName, Type staticType) {
+    _wrap(
+        'thisOrSuperPropertyGet($expression, $propertyName, $staticType)',
+        () => _wrapped.thisOrSuperPropertyGet(
+            expression, propertyName, staticType));
   }
 
   @override
@@ -1350,10 +1476,26 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void write(
-      Variable variable, Type writtenType, Expression? writtenExpression) {
-    _wrap('write($variable, $writtenType, $writtenExpression)',
-        () => _wrapped.write(variable, writtenType, writtenExpression));
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
+    return _wrap(
+        'whyNotPromoted($target)', () => _wrapped.whyNotPromoted(target),
+        isQuery: true);
+  }
+
+  @override
+  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType) {
+    return _wrap('whyNotPromotedImplicitThis($staticType)',
+        () => _wrapped.whyNotPromotedImplicitThis(staticType),
+        isQuery: true);
+  }
+
+  @override
+  void write(Expression expression, Variable variable, Type writtenType,
+      Expression? writtenExpression) {
+    _wrap(
+        'write($expression, $variable, $writtenType, $writtenExpression)',
+        () => _wrapped.write(
+            expression, variable, writtenType, writtenExpression));
   }
 
   @override
@@ -1403,10 +1545,14 @@ class FlowModel<Variable extends Object, Type extends Object> {
   /// variable is not in scope anymore.  This should not have any effect on
   /// analysis results for error-free code, because it is an error to refer to a
   /// variable that is no longer in scope.
-  final Map<Variable, VariableModel<Variable, Type> /*!*/ > variableInfo;
+  ///
+  /// `null` is allowed as a special key; it represents the pseudo-variable
+  /// `this`.  (This is needed so that we can explain why `this` is not
+  /// promoted, and why properties of `this` are not promoted).
+  final Map<Variable?, VariableModel<Variable, Type> /*!*/ > variableInfo;
 
   /// The empty map, used to [join] variables.
-  final Map<Variable, VariableModel<Variable, Type>> _emptyVariableMap = {};
+  final Map<Variable?, VariableModel<Variable, Type>> _emptyVariableMap = {};
 
   /// Creates a state object with the given [reachable] status.  All variables
   /// are assumed to be unpromoted and already assigned, so joining another
@@ -1455,13 +1601,13 @@ class FlowModel<Variable extends Object, Type extends Object> {
     Reachability newReachable = afterFinally.reachable.rebaseForward(reachable);
 
     // Consider each variable that is common to all three models.
-    Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
-        <Variable, VariableModel<Variable, Type>>{};
+    Map<Variable?, VariableModel<Variable, Type>> newVariableInfo =
+        <Variable?, VariableModel<Variable, Type>>{};
     bool variableInfoMatchesThis = true;
     bool variableInfoMatchesAfterFinally = true;
-    for (MapEntry<Variable, VariableModel<Variable, Type>> entry
+    for (MapEntry<Variable?, VariableModel<Variable, Type>> entry
         in variableInfo.entries) {
-      Variable variable = entry.key;
+      Variable? variable = entry.key;
       VariableModel<Variable, Type> thisModel = entry.value;
       VariableModel<Variable, Type>? beforeFinallyModel =
           beforeFinally.variableInfo[variable];
@@ -1524,7 +1670,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
     // erroneously think that `newVariableInfo` matches `afterFinally`.  If so,
     // correct that.
     if (variableInfoMatchesAfterFinally) {
-      for (Variable variable in afterFinally.variableInfo.keys) {
+      for (Variable? variable in afterFinally.variableInfo.keys) {
         if (!variableInfo.containsKey(variable)) {
           variableInfoMatchesAfterFinally = false;
           break;
@@ -1567,7 +1713,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
   FlowModel<Variable, Type> conservativeJoin(
       Iterable<Variable> writtenVariables,
       Iterable<Variable> capturedVariables) {
-    Map<Variable, VariableModel<Variable, Type>>? newVariableInfo;
+    Map<Variable?, VariableModel<Variable, Type>>? newVariableInfo;
 
     for (Variable variable in writtenVariables) {
       VariableModel<Variable, Type> info = infoFor(variable);
@@ -1575,7 +1721,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
           info.discardPromotionsAndMarkNotUnassigned();
       if (!identical(info, newInfo)) {
         (newVariableInfo ??=
-            new Map<Variable, VariableModel<Variable, Type>>.from(
+            new Map<Variable?, VariableModel<Variable, Type>>.of(
                 variableInfo))[variable] = newInfo;
       }
     }
@@ -1584,7 +1730,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
       VariableModel<Variable, Type>? info = variableInfo[variable];
       if (info == null) {
         (newVariableInfo ??=
-            new Map<Variable, VariableModel<Variable, Type>>.from(
+            new Map<Variable?, VariableModel<Variable, Type>>.of(
                 variableInfo))[variable] = new VariableModel<Variable, Type>(
             promotedTypes: null,
             tested: const [],
@@ -1593,7 +1739,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
             ssaNode: null);
       } else if (!info.writeCaptured) {
         (newVariableInfo ??=
-            new Map<Variable, VariableModel<Variable, Type>>.from(
+            new Map<Variable?, VariableModel<Variable, Type>>.of(
                 variableInfo))[variable] = info.writeCapture();
       }
     }
@@ -1630,14 +1776,14 @@ class FlowModel<Variable extends Object, Type extends Object> {
   FlowModel<Variable, Type> inheritTested(
       TypeOperations<Variable, Type> typeOperations,
       FlowModel<Variable, Type> other) {
-    Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
-        <Variable, VariableModel<Variable, Type>>{};
-    Map<Variable, VariableModel<Variable, Type>> otherVariableInfo =
+    Map<Variable?, VariableModel<Variable, Type>> newVariableInfo =
+        <Variable?, VariableModel<Variable, Type>>{};
+    Map<Variable?, VariableModel<Variable, Type>> otherVariableInfo =
         other.variableInfo;
     bool changed = false;
-    for (MapEntry<Variable, VariableModel<Variable, Type>> entry
+    for (MapEntry<Variable?, VariableModel<Variable, Type>> entry
         in variableInfo.entries) {
-      Variable variable = entry.key;
+      Variable? variable = entry.key;
       VariableModel<Variable, Type> variableModel = entry.value;
       VariableModel<Variable, Type>? otherVariableModel =
           otherVariableInfo[variable];
@@ -1674,13 +1820,13 @@ class FlowModel<Variable extends Object, Type extends Object> {
     Reachability newReachable = reachable.rebaseForward(base.reachable);
 
     // Consider each variable in the new base model.
-    Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
-        <Variable, VariableModel<Variable, Type>>{};
+    Map<Variable?, VariableModel<Variable, Type>> newVariableInfo =
+        <Variable?, VariableModel<Variable, Type>>{};
     bool variableInfoMatchesThis = true;
     bool variableInfoMatchesBase = true;
-    for (MapEntry<Variable, VariableModel<Variable, Type>> entry
+    for (MapEntry<Variable?, VariableModel<Variable, Type>> entry
         in base.variableInfo.entries) {
-      Variable variable = entry.key;
+      Variable? variable = entry.key;
       VariableModel<Variable, Type> baseModel = entry.value;
       VariableModel<Variable, Type>? thisModel = variableInfo[variable];
       if (thisModel == null) {
@@ -1736,7 +1882,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
     // present in `this` that aren't present in `base`, we may erroneously think
     // that `newVariableInfo` matches `this`.  If so, correct that.
     if (variableInfoMatchesThis) {
-      for (Variable variable in variableInfo.keys) {
+      for (Variable? variable in variableInfo.keys) {
         if (!base.variableInfo.containsKey(variable)) {
           variableInfoMatchesThis = false;
           break;
@@ -1754,79 +1900,6 @@ class FlowModel<Variable extends Object, Type extends Object> {
     }
 
     return _identicalOrNew(this, base, newReachable, newVariableInfo);
-  }
-
-  /// Updates the state to reflect a control path that is known to have
-  /// previously passed through some [other] state.
-  ///
-  /// Approximately, this method forms the union of the definite assignments and
-  /// promotions in `this` state and the [other] state.  More precisely:
-  ///
-  /// The control flow path is considered reachable if both this state and the
-  /// other state are reachable.  Variables are considered definitely assigned
-  /// if they were definitely assigned in either this state or the other state.
-  /// Variable type promotions are taken from this state, unless the promotion
-  /// in the other state is more specific, and the variable is "safe".  A
-  /// variable is considered safe if there is no chance that it was assigned
-  /// more recently than the "other" state.
-  ///
-  /// This is used after a `try/finally` statement to combine the promotions and
-  /// definite assignments that occurred in the `try` and `finally` blocks
-  /// (where `this` is the state from the `finally` block and `other` is the
-  /// state from the `try` block).  Variables that are assigned in the `finally`
-  /// block are considered "unsafe" because the assignment might have cancelled
-  /// the effect of any promotion that occurred inside the `try` block.
-  FlowModel<Variable, Type> restrict(
-      TypeOperations<Variable, Type> typeOperations,
-      FlowModel<Variable, Type> other,
-      Set<Variable> unsafe) {
-    if (allowLocalBooleanVarsToPromoteByDefault) {
-      // TODO(paulberry): when we hardcode
-      // allowLocalBooleanVarsToPromoteByDefault to `true`, we should remove
-      // this method entirely.
-      throw new StateError('This method should not be called anymore');
-    }
-    Reachability newReachable =
-        Reachability.restrict(reachable, other.reachable);
-
-    Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
-        <Variable, VariableModel<Variable, Type>>{};
-    bool variableInfoMatchesThis = true;
-    bool variableInfoMatchesOther = true;
-    for (MapEntry<Variable, VariableModel<Variable, Type>> entry
-        in variableInfo.entries) {
-      Variable variable = entry.key;
-      VariableModel<Variable, Type> thisModel = entry.value;
-      VariableModel<Variable, Type>? otherModel = other.variableInfo[variable];
-      if (otherModel == null) {
-        variableInfoMatchesThis = false;
-        continue;
-      }
-      VariableModel<Variable, Type> restricted = thisModel.restrict(
-          typeOperations, otherModel, unsafe.contains(variable));
-      newVariableInfo[variable] = restricted;
-      if (!identical(restricted, thisModel)) variableInfoMatchesThis = false;
-      if (!identical(restricted, otherModel)) variableInfoMatchesOther = false;
-    }
-    if (variableInfoMatchesOther) {
-      for (Variable variable in other.variableInfo.keys) {
-        if (!variableInfo.containsKey(variable)) {
-          variableInfoMatchesOther = false;
-          break;
-        }
-      }
-    }
-    assert(variableInfoMatchesThis ==
-        _variableInfosEqual(newVariableInfo, variableInfo));
-    assert(variableInfoMatchesOther ==
-        _variableInfosEqual(newVariableInfo, other.variableInfo));
-    if (variableInfoMatchesThis) {
-      newVariableInfo = variableInfo;
-    } else if (variableInfoMatchesOther) {
-      newVariableInfo = other.variableInfo;
-    }
-
-    return _identicalOrNew(this, other, newReachable, newVariableInfo);
   }
 
   /// Updates the state to indicate that the control flow path is unreachable.
@@ -1852,23 +1925,22 @@ class FlowModel<Variable extends Object, Type extends Object> {
   /// potentially nullable.
   ExpressionInfo<Variable, Type> tryMarkNonNullable(
       TypeOperations<Variable, Type> typeOperations,
-      Reference<Variable, Type> reference) {
-    VariableModel<Variable, Type> info = reference.getInfo(variableInfo);
+      ReferenceWithType<Variable, Type> referenceWithType) {
+    VariableModel<Variable, Type> info =
+        referenceWithType.reference.getInfo(variableInfo);
     if (info.writeCaptured) {
       return new _TrivialExpressionInfo<Variable, Type>(this);
     }
 
-    Type? previousType = info.promotedTypes?.last;
-    previousType ??= reference.getDeclaredType(typeOperations);
-
+    Type previousType = referenceWithType.type;
     Type newType = typeOperations.promoteToNonNull(previousType);
     if (typeOperations.isSameType(newType, previousType)) {
       return new _TrivialExpressionInfo<Variable, Type>(this);
     }
     assert(typeOperations.isSubtypeOf(newType, previousType));
 
-    FlowModel<Variable, Type> modelIfSuccessful =
-        _finishTypeTest(typeOperations, reference, info, null, newType);
+    FlowModel<Variable, Type> modelIfSuccessful = _finishTypeTest(
+        typeOperations, referenceWithType.reference, info, null, newType);
 
     FlowModel<Variable, Type> modelIfFailed = this;
 
@@ -1877,7 +1949,8 @@ class FlowModel<Variable extends Object, Type extends Object> {
   }
 
   /// Returns an [ExpressionInfo] indicating the result of casting the given
-  /// [reference] to the given [type], as a consequence of an `as` expression.
+  /// [referenceWithType] to the given [type], as a consequence of an `as`
+  /// expression.
   ///
   /// Note that the state is only changed if [type] is a subtype of the
   /// variable's previous (possibly promoted) type.
@@ -1886,16 +1959,15 @@ class FlowModel<Variable extends Object, Type extends Object> {
   /// variable as definitely assigned?  Does it matter?
   FlowModel<Variable, Type> tryPromoteForTypeCast(
       TypeOperations<Variable, Type> typeOperations,
-      Reference<Variable, Type> reference,
+      ReferenceWithType<Variable, Type> referenceWithType,
       Type type) {
-    VariableModel<Variable, Type> info = reference.getInfo(variableInfo);
+    VariableModel<Variable, Type> info =
+        referenceWithType.reference.getInfo(variableInfo);
     if (info.writeCaptured) {
       return this;
     }
 
-    Type? previousType = info.promotedTypes?.last;
-    previousType ??= reference.getDeclaredType(typeOperations);
-
+    Type previousType = referenceWithType.type;
     Type? newType = typeOperations.tryPromoteToType(type, previousType);
     if (newType == null || typeOperations.isSameType(newType, previousType)) {
       return this;
@@ -1903,7 +1975,8 @@ class FlowModel<Variable extends Object, Type extends Object> {
 
     assert(typeOperations.isSubtypeOf(newType, previousType),
         "Expected $newType to be a subtype of $previousType.");
-    return _finishTypeTest(typeOperations, reference, info, type, newType);
+    return _finishTypeTest(
+        typeOperations, referenceWithType.reference, info, type, newType);
   }
 
   /// Returns an [ExpressionInfo] indicating the result of checking whether the
@@ -1917,24 +1990,23 @@ class FlowModel<Variable extends Object, Type extends Object> {
   /// variable as definitely assigned?  Does it matter?
   ExpressionInfo<Variable, Type> tryPromoteForTypeCheck(
       TypeOperations<Variable, Type> typeOperations,
-      Reference<Variable, Type> reference,
+      ReferenceWithType<Variable, Type> referenceWithType,
       Type type) {
-    VariableModel<Variable, Type> info = reference.getInfo(variableInfo);
+    VariableModel<Variable, Type> info =
+        referenceWithType.reference.getInfo(variableInfo);
     if (info.writeCaptured) {
       return new _TrivialExpressionInfo<Variable, Type>(this);
     }
 
-    Type? previousType = info.promotedTypes?.last;
-    previousType ??= reference.getDeclaredType(typeOperations);
-
+    Type previousType = referenceWithType.type;
     FlowModel<Variable, Type> modelIfSuccessful = this;
     Type? typeIfSuccess = typeOperations.tryPromoteToType(type, previousType);
     if (typeIfSuccess != null &&
         !typeOperations.isSameType(typeIfSuccess, previousType)) {
       assert(typeOperations.isSubtypeOf(typeIfSuccess, previousType),
           "Expected $typeIfSuccess to be a subtype of $previousType.");
-      modelIfSuccessful =
-          _finishTypeTest(typeOperations, reference, info, type, typeIfSuccess);
+      modelIfSuccessful = _finishTypeTest(typeOperations,
+          referenceWithType.reference, info, type, typeIfSuccess);
     }
 
     Type factoredType = typeOperations.factor(previousType, type);
@@ -1949,8 +2021,8 @@ class FlowModel<Variable extends Object, Type extends Object> {
     } else {
       typeIfFailed = factoredType;
     }
-    FlowModel<Variable, Type> modelIfFailed =
-        _finishTypeTest(typeOperations, reference, info, type, typeIfFailed);
+    FlowModel<Variable, Type> modelIfFailed = _finishTypeTest(
+        typeOperations, referenceWithType.reference, info, type, typeIfFailed);
 
     return new ExpressionInfo<Variable, Type>(
         this, modelIfSuccessful, modelIfFailed);
@@ -1975,7 +2047,12 @@ class FlowModel<Variable extends Object, Type extends Object> {
   /// Updates the state to indicate that an assignment was made to the given
   /// [variable].  The variable is marked as definitely assigned, and any
   /// previous type promotion is removed.
+  ///
+  /// If there is any chance that the write will cause a demotion, the caller
+  /// must pass in a non-null value for [nonPromotionReason] describing the
+  /// reason for any potential demotion.
   FlowModel<Variable, Type> write(
+      NonPromotionReason? nonPromotionReason,
       Variable variable,
       Type writtenType,
       SsaNode<Variable, Type> newSsaNode,
@@ -1983,8 +2060,8 @@ class FlowModel<Variable extends Object, Type extends Object> {
     VariableModel<Variable, Type>? infoForVar = variableInfo[variable];
     if (infoForVar == null) return this;
 
-    VariableModel<Variable, Type> newInfoForVar =
-        infoForVar.write(variable, writtenType, typeOperations, newSsaNode);
+    VariableModel<Variable, Type> newInfoForVar = infoForVar.write(
+        nonPromotionReason, variable, writtenType, typeOperations, newSsaNode);
     if (identical(newInfoForVar, infoForVar)) return this;
 
     return _updateVariableInfo(new VariableReference(variable), newInfoForVar);
@@ -2019,7 +2096,8 @@ class FlowModel<Variable extends Object, Type extends Object> {
     if (promotedType != null) {
       newPromotedTypes =
           VariableModel._addToPromotedTypes(info.promotedTypes, promotedType);
-      if (typeOperations.isNever(promotedType)) {
+      if (reference is VariableReference<Object, Object> &&
+          typeOperations.isNever(promotedType)) {
         newReachable = reachable.setUnreachable();
       }
     }
@@ -2035,7 +2113,8 @@ class FlowModel<Variable extends Object, Type extends Object> {
                 tested: newTested,
                 assigned: info.assigned,
                 unassigned: info.unassigned,
-                ssaNode: info.ssaNode),
+                ssaNode: info.ssaNode,
+                nonPromotionHistory: info.nonPromotionHistory),
             reachable: newReachable);
   }
 
@@ -2045,8 +2124,8 @@ class FlowModel<Variable extends Object, Type extends Object> {
       Reference<Variable, Type> reference, VariableModel<Variable, Type> model,
       {Reachability? reachable}) {
     reachable ??= this.reachable;
-    Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
-        new Map<Variable, VariableModel<Variable, Type>>.from(variableInfo);
+    Map<Variable?, VariableModel<Variable, Type>> newVariableInfo =
+        new Map<Variable?, VariableModel<Variable, Type>>.of(variableInfo);
     reference.storeInfo(newVariableInfo, model);
     return new FlowModel<Variable, Type>.withInfo(reachable, newVariableInfo);
   }
@@ -2065,7 +2144,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
     TypeOperations<Variable, Type> typeOperations,
     FlowModel<Variable, Type>? first,
     FlowModel<Variable, Type>? second,
-    Map<Variable, VariableModel<Variable, Type>> emptyVariableMap,
+    Map<Variable?, VariableModel<Variable, Type>> emptyVariableMap,
   ) {
     if (first == null) return second!;
     if (second == null) return first;
@@ -2082,7 +2161,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
 
     Reachability newReachable =
         Reachability.join(first.reachable, second.reachable);
-    Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
+    Map<Variable?, VariableModel<Variable, Type>> newVariableInfo =
         FlowModel.joinVariableInfo(typeOperations, first.variableInfo,
             second.variableInfo, emptyVariableMap);
 
@@ -2092,25 +2171,25 @@ class FlowModel<Variable extends Object, Type extends Object> {
 
   /// Joins two "variable info" maps.  See [join] for details.
   @visibleForTesting
-  static Map<Variable, VariableModel<Variable, Type>>
+  static Map<Variable?, VariableModel<Variable, Type>>
       joinVariableInfo<Variable extends Object, Type extends Object>(
     TypeOperations<Variable, Type> typeOperations,
-    Map<Variable, VariableModel<Variable, Type>> first,
-    Map<Variable, VariableModel<Variable, Type>> second,
-    Map<Variable, VariableModel<Variable, Type>> emptyMap,
+    Map<Variable?, VariableModel<Variable, Type>> first,
+    Map<Variable?, VariableModel<Variable, Type>> second,
+    Map<Variable?, VariableModel<Variable, Type>> emptyMap,
   ) {
     if (identical(first, second)) return first;
     if (first.isEmpty || second.isEmpty) {
       return emptyMap;
     }
 
-    Map<Variable, VariableModel<Variable, Type>> result =
-        <Variable, VariableModel<Variable, Type>>{};
+    Map<Variable?, VariableModel<Variable, Type>> result =
+        <Variable?, VariableModel<Variable, Type>>{};
     bool alwaysFirst = true;
     bool alwaysSecond = true;
-    for (MapEntry<Variable, VariableModel<Variable, Type>> entry
+    for (MapEntry<Variable?, VariableModel<Variable, Type>> entry
         in first.entries) {
-      Variable variable = entry.key;
+      Variable? variable = entry.key;
       VariableModel<Variable, Type>? secondModel = second[variable];
       if (secondModel == null) {
         alwaysFirst = false;
@@ -2137,7 +2216,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
     TypeOperations<Variable, Type> typeOperations,
     FlowModel<Variable, Type>? first,
     FlowModel<Variable, Type>? second,
-    Map<Variable, VariableModel<Variable, Type>> emptyVariableMap,
+    Map<Variable?, VariableModel<Variable, Type>> emptyVariableMap,
   ) {
     if (first == null) return second!.unsplit();
     if (second == null) return first.unsplit();
@@ -2154,7 +2233,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
 
     Reachability newReachable =
         Reachability.join(first.reachable, second.reachable).unsplit();
-    Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
+    Map<Variable?, VariableModel<Variable, Type>> newVariableInfo =
         FlowModel.joinVariableInfo(typeOperations, first.variableInfo,
             second.variableInfo, emptyVariableMap);
 
@@ -2169,7 +2248,7 @@ class FlowModel<Variable extends Object, Type extends Object> {
           FlowModel<Variable, Type> first,
           FlowModel<Variable, Type> second,
           Reachability newReachable,
-          Map<Variable, VariableModel<Variable, Type>> newVariableInfo) {
+          Map<Variable?, VariableModel<Variable, Type>> newVariableInfo) {
     if (first.reachable == newReachable &&
         identical(first.variableInfo, newVariableInfo)) {
       return first;
@@ -2188,11 +2267,11 @@ class FlowModel<Variable extends Object, Type extends Object> {
   /// The equivalence check is shallow; if two variables' models are not
   /// identical, we return `false`.
   static bool _variableInfosEqual<Variable extends Object, Type extends Object>(
-      Map<Variable, VariableModel<Variable, Type>> p1,
-      Map<Variable, VariableModel<Variable, Type>> p2) {
+      Map<Variable?, VariableModel<Variable, Type>> p1,
+      Map<Variable?, VariableModel<Variable, Type>> p2) {
     if (p1.length != p2.length) return false;
     if (!p1.keys.toSet().containsAll(p2.keys)) return false;
-    for (MapEntry<Variable, VariableModel<Variable, Type>> entry
+    for (MapEntry<Variable?, VariableModel<Variable, Type>> entry
         in p1.entries) {
       VariableModel<Variable, Type> p1Value = entry.value;
       VariableModel<Variable, Type>? p2Value = p2[entry.key];
@@ -2202,6 +2281,88 @@ class FlowModel<Variable extends Object, Type extends Object> {
     }
     return true;
   }
+}
+
+/// Linked list node representing a set of reasons why a given expression was
+/// not promoted.
+///
+/// We use a linked list representation because it is very efficient to build;
+/// this means that in the "happy path" where no error occurs (so non-promotion
+/// history is not needed) we do a minimal amount of work.
+class NonPromotionHistory<Type> {
+  /// The type that was not promoted to.
+  final Type type;
+
+  /// The reason why the promotion didn't occur.
+  final NonPromotionReason nonPromotionReason;
+
+  /// The previous link in the list.
+  final NonPromotionHistory<Type>? previous;
+
+  NonPromotionHistory(this.type, this.nonPromotionReason, this.previous);
+
+  @override
+  String toString() {
+    List<String> items = <String>[];
+    for (NonPromotionHistory<Type>? link = this;
+        link != null;
+        link = link.previous) {
+      items.add('${link.type}: ${link.nonPromotionReason}');
+    }
+    return items.toString();
+  }
+}
+
+/// Abstract class representing a reason why something was not promoted.
+abstract class NonPromotionReason {
+  /// Short text description of this non-promotion reason; intended for ID
+  /// testing.
+  String get shortName;
+
+  /// Implementation of the visitor pattern for non-promotion reasons.
+  R accept<R, Node extends Object, Expression extends Object,
+          Variable extends Object, Type extends Object>(
+      NonPromotionReasonVisitor<R, Node, Expression, Variable, Type> visitor);
+}
+
+/// Implementation of the visitor pattern for non-promotion reasons.
+abstract class NonPromotionReasonVisitor<R, Node extends Object,
+    Expression extends Object, Variable extends Object, Type extends Object> {
+  NonPromotionReasonVisitor._() : assert(false, 'Do not extend this class');
+
+  R visitDemoteViaExplicitWrite(
+      DemoteViaExplicitWrite<Variable, Expression> reason);
+
+  R visitDemoteViaForEachVariableWrite(
+      DemoteViaForEachVariableWrite<Variable, Node> reason);
+
+  R visitPropertyNotPromoted(PropertyNotPromoted<Type> reason);
+
+  R visitThisNotPromoted(ThisNotPromoted reason);
+}
+
+/// Non-promotion reason describing the situation where an expression was not
+/// promoted due to the fact that it's a property get.
+class PropertyNotPromoted<Type extends Object> extends NonPromotionReason {
+  /// The name of the property.
+  final String propertyName;
+
+  /// The static type of the property at the time of the access.  This is the
+  /// type that was passed to [FlowAnalysis.whyNotPromoted]; it is provided to
+  /// the client as a convenience for ID testing.
+  final Type staticType;
+
+  PropertyNotPromoted(this.propertyName, this.staticType);
+
+  @override
+  String get shortName => 'propertyNotPromoted';
+
+  @override
+  R accept<R, Node extends Object, Expression extends Object,
+              Variable extends Object, Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
+              visitor) =>
+      visitor.visitPropertyNotPromoted(this as PropertyNotPromoted<Type>);
 }
 
 /// Immutable data structure modeling the reachability of the given point in the
@@ -2353,22 +2514,40 @@ class Reachability {
 /// why promotion did not occur.
 @visibleForTesting
 abstract class Reference<Variable extends Object, Type extends Object> {
-  /// Retrieves the declared type of this reference.  This is used as the
-  /// starting point for promotions.
-  Type getDeclaredType(TypeOperations<Variable, Type> typeOperations);
-
   /// Gets the info for this reference, creating it if it doesn't exist.
   VariableModel<Variable, Type> getInfo(
-          Map<Variable, VariableModel<Variable, Type>> variableInfo) =>
+          Map<Variable?, VariableModel<Variable, Type>> variableInfo) =>
       _getInfo(variableInfo) ?? new VariableModel<Variable, Type>.fresh();
 
+  /// Gets a map of non-promotion reasons associated with this reference.  This
+  /// is the map that will be returned from [FlowAnalysis.whyNotPromoted].
+  Map<Type, NonPromotionReason> getNonPromotionReasons(
+      Map<Variable?, VariableModel<Variable, Type>> variableInfo,
+      Type staticType,
+      TypeOperations<Variable, Type> typeOperations);
+
+  /// Creates a reference representing a get of a property called [propertyName]
+  /// on the reference represented by `this`.
+  Reference<Variable, Type> propertyGet(String propertyName) =>
+      new _PropertyGetReference<Variable, Type>(this, propertyName);
+
   /// Stores info for this reference in [variableInfo].
-  void storeInfo(Map<Variable, VariableModel<Variable, Type>> variableInfo,
+  void storeInfo(Map<Variable?, VariableModel<Variable, Type>> variableInfo,
       VariableModel<Variable, Type> variableModel);
 
   /// Gets the info for this reference, or `null` if it doesn't exist.
   VariableModel<Variable, Type>? _getInfo(
-      Map<Variable, VariableModel<Variable, Type>> variableInfo);
+      Map<Variable?, VariableModel<Variable, Type>> variableInfo);
+}
+
+/// Container object combining a [Reference] object with its static type.
+@visibleForTesting
+class ReferenceWithType<Variable extends Object, Type extends Object> {
+  final Reference<Variable, Type> reference;
+
+  final Type type;
+
+  ReferenceWithType(this.reference, this.type);
 }
 
 /// Data structure representing a unique value that a variable might take on
@@ -2405,6 +2584,20 @@ class SsaNode<Variable extends Object, Type extends Object> {
     int id = _debugIds[self] ??= _nextDebugId++;
     return 'ssa$id';
   }
+}
+
+/// Non-promotion reason describing the situation where an expression was not
+/// promoted due to the fact that it's a reference to `this`.
+class ThisNotPromoted extends NonPromotionReason {
+  @override
+  String get shortName => 'thisNotPromoted';
+
+  @override
+  R accept<R, Node extends Object, Expression extends Object,
+              Variable extends Object, Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
+              visitor) =>
+      visitor.visitThisNotPromoted(this);
 }
 
 /// Enum representing the different classifications of types that can be
@@ -2510,12 +2703,22 @@ class VariableModel<Variable extends Object, Type extends Object> {
   /// `null` if the variable has been write captured.
   final SsaNode<Variable, Type>? ssaNode;
 
+  /// Non-promotion history of this variable.
+  final NonPromotionHistory<Type>? nonPromotionHistory;
+
+  /// Promotion information for properties of this variable.  We don't actually
+  /// promote properties, but we track the promotions that would occur if we
+  /// did, so that we can report those as non-promotion reasons.
+  final Map<String, VariableModel<Variable, Type>> properties;
+
   VariableModel(
       {required this.promotedTypes,
       required this.tested,
       required this.assigned,
       required this.unassigned,
-      required this.ssaNode}) {
+      required this.ssaNode,
+      this.nonPromotionHistory,
+      this.properties = const {}}) {
     assert(!(assigned && unassigned),
         "Can't be both definitely assigned and unassigned");
     assert(promotedTypes == null || promotedTypes!.isNotEmpty);
@@ -2533,7 +2736,9 @@ class VariableModel<Variable extends Object, Type extends Object> {
       : promotedTypes = null,
         tested = const [],
         unassigned = !assigned,
-        ssaNode = new SsaNode<Variable, Type>(null);
+        ssaNode = new SsaNode<Variable, Type>(null),
+        nonPromotionHistory = null,
+        properties = const {};
 
   /// Indicates whether the variable has been write captured.
   bool get writeCaptured => ssaNode == null;
@@ -2552,58 +2757,17 @@ class VariableModel<Variable extends Object, Type extends Object> {
         ssaNode: writeCaptured ? null : new SsaNode<Variable, Type>(null));
   }
 
-  /// Returns an updated model reflect a control path that is known to have
-  /// previously passed through some [other] state.  See [FlowModel.restrict]
-  /// for details.
-  VariableModel<Variable, Type> restrict(
-      TypeOperations<Variable, Type> typeOperations,
-      VariableModel<Variable, Type> otherModel,
-      bool unsafe) {
-    if (allowLocalBooleanVarsToPromoteByDefault) {
-      // TODO(paulberry): when we hardcode
-      // allowLocalBooleanVarsToPromoteByDefault to `true`, we should remove
-      // this method entirely.
-      throw new StateError('This method should not be called anymore');
-    }
-    List<Type>? thisPromotedTypes = promotedTypes;
-    List<Type>? otherPromotedTypes = otherModel.promotedTypes;
-    bool newAssigned = assigned || otherModel.assigned;
-    // The variable can only be unassigned in this state if it was also
-    // unassigned in the other state or if the other state didn't complete
-    // normally. For the latter case the resulting state is unreachable but to
-    // avoid creating a variable model that is both assigned and unassigned we
-    // take the intersection below.
-    //
-    // This situation can occur in try-finally like:
-    //
-    //   method() {
-    //     var local;
-    //     try {
-    //       local = 0;
-    //       return; // assigned
-    //     } finally {
-    //       local; // unassigned
-    //     }
-    //     local; // unreachable state
-    //   }
-    //
-    bool newUnassigned = unassigned && otherModel.unassigned;
-    bool newWriteCaptured = writeCaptured || otherModel.writeCaptured;
-    List<Type>? newPromotedTypes;
-    if (newWriteCaptured) {
-      // Write-captured variables can't be promoted
-      newPromotedTypes = null;
-    } else if (unsafe) {
-      // There was an assignment to the variable in the "this" path, so none of
-      // the promotions from the "other" path can be used.
-      newPromotedTypes = thisPromotedTypes;
-    } else {
-      newPromotedTypes = rebasePromotedTypes(
-          typeOperations, thisPromotedTypes, otherPromotedTypes);
-    }
-    return _identicalOrNew(this, otherModel, newPromotedTypes, tested,
-        newAssigned, newUnassigned, newWriteCaptured ? null : ssaNode);
-  }
+  /// Updates `this` with a new set of properties.
+  VariableModel<Variable, Type> setProperties(
+          Map<String, VariableModel<Variable, Type>> newProperties) =>
+      new VariableModel<Variable, Type>(
+          promotedTypes: promotedTypes,
+          tested: tested,
+          unassigned: unassigned,
+          assigned: assigned,
+          ssaNode: ssaNode,
+          nonPromotionHistory: nonPromotionHistory,
+          properties: newProperties);
 
   @override
   String toString() {
@@ -2623,12 +2787,20 @@ class VariableModel<Variable extends Object, Type extends Object> {
     if (writeCaptured) {
       parts.add('writeCaptured: true');
     }
+    if (nonPromotionHistory != null) {
+      parts.add('nonPromotionHistory: $nonPromotionHistory');
+    }
     return 'VariableModel(${parts.join(', ')})';
   }
 
   /// Returns a new [VariableModel] reflecting the fact that the variable was
   /// just written to.
+  ///
+  /// If there is any chance that the write will cause a demotion, the caller
+  /// must pass in a non-null value for [nonPromotionReason] describing the
+  /// reason for any potential demotion.
   VariableModel<Variable, Type> write(
+      NonPromotionReason? nonPromotionReason,
       Variable variable,
       Type writtenType,
       TypeOperations<Variable, Type> typeOperations,
@@ -2642,14 +2814,15 @@ class VariableModel<Variable extends Object, Type extends Object> {
           ssaNode: null);
     }
 
-    List<Type>? newPromotedTypes = _demoteViaAssignment(
-      writtenType,
-      typeOperations,
-    );
+    _DemotionResult<Type> demotionResult =
+        _demoteViaAssignment(writtenType, typeOperations, nonPromotionReason);
+    List<Type>? newPromotedTypes = demotionResult.promotedTypes;
 
     Type declaredType = typeOperations.variableType(variable);
     newPromotedTypes = _tryPromoteToTypeOfInterest(
         typeOperations, declaredType, newPromotedTypes, writtenType);
+    // TODO(paulberry): remove demotions from demotionResult.nonPromotionHistory
+    // that are no longer in effect due to re-promotion.
     if (identical(promotedTypes, newPromotedTypes) && assigned) {
       return new VariableModel<Variable, Type>(
           promotedTypes: promotedTypes,
@@ -2671,7 +2844,8 @@ class VariableModel<Variable extends Object, Type extends Object> {
         tested: newTested,
         assigned: true,
         unassigned: false,
-        ssaNode: newSsaNode);
+        ssaNode: newSsaNode,
+        nonPromotionHistory: demotionResult.nonPromotionHistory);
   }
 
   /// Returns a new [VariableModel] reflecting the fact that the variable has
@@ -2685,28 +2859,45 @@ class VariableModel<Variable extends Object, Type extends Object> {
         ssaNode: null);
   }
 
-  List<Type>? _demoteViaAssignment(
-    Type writtenType,
-    TypeOperations<Variable, Type> typeOperations,
-  ) {
+  /// Computes the result of demoting this variable due to writing a value of
+  /// type [writtenType].
+  ///
+  /// If there is any chance that the write will cause an actual demotion to
+  /// occur, the caller must pass in a non-null value for [nonPromotionReason]
+  /// describing the reason for the potential demotion.
+  _DemotionResult<Type> _demoteViaAssignment(
+      Type writtenType,
+      TypeOperations<Variable, Type> typeOperations,
+      NonPromotionReason? nonPromotionReason) {
     List<Type>? promotedTypes = this.promotedTypes;
     if (promotedTypes == null) {
-      return null;
+      return new _DemotionResult<Type>(null, nonPromotionHistory);
     }
 
     int numElementsToKeep = promotedTypes.length;
+    NonPromotionHistory<Type>? newNonPromotionHistory = nonPromotionHistory;
+    List<Type>? newPromotedTypes;
     for (;; numElementsToKeep--) {
       if (numElementsToKeep == 0) {
-        return null;
+        break;
       }
       Type promoted = promotedTypes[numElementsToKeep - 1];
       if (typeOperations.isSubtypeOf(writtenType, promoted)) {
         if (numElementsToKeep == promotedTypes.length) {
-          return promotedTypes;
+          newPromotedTypes = promotedTypes;
+          break;
         }
-        return promotedTypes.sublist(0, numElementsToKeep);
+        newPromotedTypes = promotedTypes.sublist(0, numElementsToKeep);
+        break;
+      }
+      if (nonPromotionReason == null) {
+        assert(false, 'Demotion occurred but nonPromotionReason is null');
+      } else {
+        newNonPromotionHistory = new NonPromotionHistory<Type>(
+            promoted, nonPromotionReason, newNonPromotionHistory);
       }
     }
+    return new _DemotionResult<Type>(newPromotedTypes, newNonPromotionHistory);
   }
 
   /// Determines whether a variable with the given [promotedTypes] should be
@@ -3005,7 +3196,7 @@ class VariableModel<Variable extends Object, Type extends Object> {
           Type newType,
           TypeOperations<Variable, Type> typeOperations) {
     if (_typeListContains(typeOperations, types, newType)) return types;
-    return new List<Type>.from(types)..add(newType);
+    return new List<Type>.of(types)..add(newType);
   }
 
   /// Creates a new [VariableModel] object, unless it is equivalent to either
@@ -3063,18 +3254,37 @@ class VariableReference<Variable extends Object, Type extends Object>
   VariableReference(this.variable);
 
   @override
-  Type getDeclaredType(TypeOperations<Variable, Type> typeOperations) =>
-      typeOperations.variableType(variable);
+  Map<Type, NonPromotionReason> getNonPromotionReasons(
+      Map<Variable?, VariableModel<Variable, Type>> variableInfo,
+      Type staticType,
+      TypeOperations<Variable, Type> typeOperations) {
+    Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
+    VariableModel<Variable, Type>? currentVariableInfo = variableInfo[variable];
+    if (currentVariableInfo != null) {
+      Type currentType = currentVariableInfo.promotedTypes?.last ??
+          typeOperations.variableType(variable);
+      NonPromotionHistory? nonPromotionHistory =
+          currentVariableInfo.nonPromotionHistory;
+      while (nonPromotionHistory != null) {
+        Type nonPromotedType = nonPromotionHistory.type;
+        if (!typeOperations.isSubtypeOf(currentType, nonPromotedType)) {
+          result[nonPromotedType] ??= nonPromotionHistory.nonPromotionReason;
+        }
+        nonPromotionHistory = nonPromotionHistory.previous;
+      }
+    }
+    return result;
+  }
 
   @override
-  void storeInfo(Map<Variable, VariableModel<Variable, Type>> variableInfo,
+  void storeInfo(Map<Variable?, VariableModel<Variable, Type>> variableInfo,
       VariableModel<Variable, Type> variableModel) {
     variableInfo[variable] = variableModel;
   }
 
   @override
   VariableModel<Variable, Type>? _getInfo(
-          Map<Variable, VariableModel<Variable, Type>> variableInfo) =>
+          Map<Variable?, VariableModel<Variable, Type>> variableInfo) =>
       variableInfo[variable];
 }
 
@@ -3145,6 +3355,19 @@ class _ConditionalContext<Variable extends Object, Type extends Object>
       'thenInfo: $_thenInfo)';
 }
 
+/// Data structure representing the result of demoting a variable from one type
+/// to another.
+class _DemotionResult<Type extends Object> {
+  /// The new set of promoted types.
+  final List<Type>? promotedTypes;
+
+  /// The new non-promotion history (including the types that the variable is
+  /// no longer promoted to).
+  final NonPromotionHistory<Type>? nonPromotionHistory;
+
+  _DemotionResult(this.promotedTypes, this.nonPromotionHistory);
+}
+
 /// [_FlowContext] representing an equality comparison using `==` or `!=`.
 class _EqualityOpContext<Variable extends Object, Type extends Object>
     extends _BranchContext<Variable, Type> {
@@ -3153,7 +3376,7 @@ class _EqualityOpContext<Variable extends Object, Type extends Object>
 
   /// If the LHS of `==` or `!=` is a reference, the thing being referred to.
   /// Otherwise `null`.
-  final Reference<Variable, Type>? _leftOperandReference;
+  final ReferenceWithType<Variable, Type>? _leftOperandReference;
 
   _EqualityOpContext(ExpressionInfo<Variable, Type>? conditionInfo,
       this._leftOperandType, this._leftOperandReference)
@@ -3181,7 +3404,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   final Map<Statement, _BranchTargetContext<Variable, Type>>
       _statementToContext = {};
 
-  late FlowModel<Variable, Type> _current;
+  FlowModel<Variable, Type> _current =
+      new FlowModel<Variable, Type>(Reachability.initial);
 
   /// The most recently visited expression for which an [ExpressionInfo] object
   /// exists, or `null` if no expression has been visited that has a
@@ -3198,36 +3422,24 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   /// If [_expressionVariable] is not `null`, the reference corresponding to it.
   /// Otherwise `null`.
-  Reference<Variable, Type>? _expressionReference;
+  ReferenceWithType<Variable, Type>? _expressionReference;
 
   int _functionNestingLevel = 0;
 
   final AssignedVariables<Node, Variable> _assignedVariables;
 
-  /// Set this boolean to `true` to temporarily enable the feature of allowing
-  /// local boolean variables to influence promotion, for this flow analysis
-  /// session (see https://github.com/dart-lang/language/issues/1274).  Once the
-  /// top level const [allowLocalBooleanVarsToPromoteByDefault] is changed to
-  /// `true`, this field will always be `true`, so it can be safely removed.
-  final bool allowLocalBooleanVarsToPromote;
-
-  _FlowAnalysisImpl(this.typeOperations, this._assignedVariables,
-      {bool allowLocalBooleanVarsToPromote = false})
-      : allowLocalBooleanVarsToPromote =
-            allowLocalBooleanVarsToPromoteByDefault ||
-                allowLocalBooleanVarsToPromote {
-    _current = new FlowModel<Variable, Type>(Reachability.initial);
-  }
+  _FlowAnalysisImpl(this.typeOperations, this._assignedVariables);
 
   @override
   bool get isReachable => _current.reachable.overallReachable;
 
   @override
   void asExpression_end(Expression subExpression, Type type) {
-    Reference<Variable, Type>? reference =
+    ReferenceWithType<Variable, Type>? referenceWithType =
         _getExpressionReference(subExpression);
-    if (reference == null) return;
-    _current = _current.tryPromoteForTypeCast(typeOperations, reference, type);
+    if (referenceWithType == null) return;
+    _current =
+        _current.tryPromoteForTypeCast(typeOperations, referenceWithType, type);
   }
 
   @override
@@ -3334,10 +3546,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _EqualityOpContext<Variable, Type> context =
         _stack.removeLast() as _EqualityOpContext<Variable, Type>;
     ExpressionInfo<Variable, Type>? lhsInfo = context._conditionInfo;
-    Reference<Variable, Type>? lhsReference = context._leftOperandReference;
+    ReferenceWithType<Variable, Type>? lhsReference =
+        context._leftOperandReference;
     Type leftOperandType = context._leftOperandType;
     ExpressionInfo<Variable, Type>? rhsInfo = _getExpressionInfo(rightOperand);
-    Reference<Variable, Type>? rhsReference =
+    ReferenceWithType<Variable, Type>? rhsReference =
         _getExpressionReference(rightOperand);
     TypeClassification leftOperandTypeClassification =
         typeOperations.classifyType(leftOperandType);
@@ -3437,8 +3650,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
             _current.reachable.parent!, _current);
     _stack.add(context);
     if (loopVariable != null) {
-      _current = _current.write(loopVariable, writtenType,
-          new SsaNode<Variable, Type>(null), typeOperations);
+      _current = _current.write(
+          new DemoteViaForEachVariableWrite<Variable, Node>(loopVariable, node),
+          loopVariable,
+          writtenType,
+          new SsaNode<Variable, Type>(null),
+          typeOperations);
     }
   }
 
@@ -3514,7 +3731,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void ifNullExpression_rightBegin(
       Expression leftHandSide, Type leftHandSideType) {
-    Reference<Variable, Type>? lhsReference =
+    ReferenceWithType<Variable, Type>? lhsReference =
         _getExpressionReference(leftHandSide);
     FlowModel<Variable, Type> promoted;
     _current = _current.split();
@@ -3581,8 +3798,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       // written type is the variable's declared type.
       initializerType = typeOperations.variableType(variable);
     }
-    _current =
-        _current.write(variable, initializerType, newSsaNode, typeOperations);
+    _current = _current.write(
+        null, variable, initializerType, newSsaNode, typeOperations);
   }
 
   @override
@@ -3593,7 +3810,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void isExpression_end(Expression isExpression, Expression subExpression,
       bool isNot, Type type) {
-    Reference<Variable, Type>? subExpressionReference =
+    ReferenceWithType<Variable, Type>? subExpressionReference =
         _getExpressionReference(subExpression);
     if (subExpressionReference != null) {
       ExpressionInfo<Variable, Type> expressionInfo = _current
@@ -3687,7 +3904,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void nonNullAssert_end(Expression operand) {
-    Reference<Variable, Type>? operandReference =
+    ReferenceWithType<Variable, Type>? operandReference =
         _getExpressionReference(operand);
     if (operandReference != null) {
       _current =
@@ -3708,7 +3925,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     assert(targetType != null);
     _current = _current.split();
     _stack.add(new _NullAwareAccessContext<Variable, Type>(_current));
-    Reference<Variable, Type>? targetReference =
+    ReferenceWithType<Variable, Type>? targetReference =
         _getExpressionReference(target);
     if (targetReference != null) {
       _current =
@@ -3730,14 +3947,32 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void promote(Variable variable, Type type) {
     _current = _current
-        .tryPromoteForTypeCheck(typeOperations,
-            new VariableReference<Variable, Type>(variable), type)
+        .tryPromoteForTypeCheck(
+            typeOperations,
+            new ReferenceWithType<Variable, Type>(
+                new VariableReference<Variable, Type>(variable),
+                promotedType(variable) ??
+                    typeOperations.variableType(variable)),
+            type)
         .ifTrue;
   }
 
   @override
   Type? promotedType(Variable variable) {
     return _current.infoFor(variable).promotedTypes?.last;
+  }
+
+  @override
+  void propertyGet(Expression wholeExpression, Expression target,
+      String propertyName, Type staticType) {
+    Reference<Variable, Type>? reference =
+        _getExpressionReference(target)?.reference;
+    if (reference != null) {
+      _storeExpressionReference(
+          wholeExpression,
+          new ReferenceWithType<Variable, Type>(
+              reference.propertyGet(propertyName), staticType));
+    }
   }
 
   @override
@@ -3785,6 +4020,24 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  void thisOrSuper(Expression expression, Type staticType) {
+    _storeExpressionReference(
+        expression,
+        new ReferenceWithType<Variable, Type>(
+            new _ThisReference<Variable, Type>(), staticType));
+  }
+
+  @override
+  void thisOrSuperPropertyGet(
+      Expression expression, String propertyName, Type staticType) {
+    _storeExpressionReference(
+        expression,
+        new ReferenceWithType<Variable, Type>(
+            new _ThisReference<Variable, Type>().propertyGet(propertyName),
+            staticType));
+  }
+
+  @override
   void tryCatchStatement_bodyBegin() {
     _current = _current.split();
     _stack.add(new _TryContext<Variable, Type>(_current));
@@ -3812,7 +4065,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       Variable? exceptionVariable, Variable? stackTraceVariable) {
     _TryContext<Variable, Type> context =
         _stack.last as _TryContext<Variable, Type>;
-    _current = context._beforeCatch!;
+    _current = context._beforeCatch;
     if (exceptionVariable != null) {
       _current = _current.declare(exceptionVariable, true);
     }
@@ -3833,7 +4086,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void tryCatchStatement_end() {
     _TryContext<Variable, Type> context =
         _stack.removeLast() as _TryContext<Variable, Type>;
-    _current = context._afterBodyAndCatches!.unsplit();
+    _current = context._afterBodyAndCatches.unsplit();
   }
 
   @override
@@ -3843,17 +4096,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void tryFinallyStatement_end(Node finallyBlock) {
-    AssignedVariablesNodeInfo<Variable> info =
-        _assignedVariables._getInfoForNode(finallyBlock);
+    // We used to need info for `finally` blocks but we don't anymore.
+    assert(!_assignedVariables._hasInfoForNode(finallyBlock),
+        'No assigned variables info should have been stored for $finallyBlock');
     _TryFinallyContext<Variable, Type> context =
         _stack.removeLast() as _TryFinallyContext<Variable, Type>;
-    if (allowLocalBooleanVarsToPromote) {
-      _current = context._afterBodyAndCatches!
-          .attachFinally(typeOperations, context._beforeFinally, _current);
-    } else {
-      _current = _current.restrict(
-          typeOperations, context._afterBodyAndCatches!, info._written);
-    }
+    _current = context._afterBodyAndCatches
+        .attachFinally(typeOperations, context._beforeFinally, _current);
   }
 
   @override
@@ -3872,18 +4121,19 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   Type? variableRead(Expression expression, Variable variable) {
     VariableReference<Variable, Type> variableReference =
         new VariableReference<Variable, Type>(variable);
-    _storeExpressionReference(expression, variableReference);
     VariableModel<Variable, Type> variableModel =
         variableReference.getInfo(_current.variableInfo);
-    if (allowLocalBooleanVarsToPromote) {
-      ExpressionInfo<Variable, Type>? expressionInfo = variableModel
-          .ssaNode?.expressionInfo
-          ?.rebaseForward(typeOperations, _current);
-      if (expressionInfo != null) {
-        _storeExpressionInfo(expression, expressionInfo);
-      }
+    Type? promotedType = variableModel.promotedTypes?.last;
+    Type currentType = promotedType ?? typeOperations.variableType(variable);
+    _storeExpressionReference(expression,
+        new ReferenceWithType<Variable, Type>(variableReference, currentType));
+    ExpressionInfo<Variable, Type>? expressionInfo = variableModel
+        .ssaNode?.expressionInfo
+        ?.rebaseForward(typeOperations, _current);
+    if (expressionInfo != null) {
+      _storeExpressionInfo(expression, expressionInfo);
     }
-    return variableModel.promotedTypes?.last;
+    return promotedType;
   }
 
   @override
@@ -3914,15 +4164,35 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void write(
-      Variable variable, Type writtenType, Expression? writtenExpression) {
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
+    ReferenceWithType<Variable, Type>? referenceWithType = _expressionReference;
+    if (referenceWithType != null) {
+      return referenceWithType.reference.getNonPromotionReasons(
+          _current.variableInfo, referenceWithType.type, typeOperations);
+    }
+    return {};
+  }
+
+  @override
+  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType) {
+    return new _ThisReference<Variable, Type>().getNonPromotionReasons(
+        _current.variableInfo, staticType, typeOperations);
+  }
+
+  @override
+  void write(Expression expression, Variable variable, Type writtenType,
+      Expression? writtenExpression) {
     ExpressionInfo<Variable, Type>? expressionInfo = writtenExpression == null
         ? null
         : _getExpressionInfo(writtenExpression);
     SsaNode<Variable, Type> newSsaNode = new SsaNode<Variable, Type>(
         expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
-    _current =
-        _current.write(variable, writtenType, newSsaNode, typeOperations);
+    _current = _current.write(
+        new DemoteViaExplicitWrite<Variable, Expression>(variable, expression),
+        variable,
+        writtenType,
+        newSsaNode,
+        typeOperations);
   }
 
   @override
@@ -3962,9 +4232,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// Gets the [Reference] associated with the [expression] (which should be the
   /// last expression that was traversed).  If there is no [Reference]
   /// associated with the [expression], then `null` is returned.
-  Reference<Variable, Type>? _getExpressionReference(Expression? expression) {
+  ReferenceWithType<Variable, Type>? _getExpressionReference(
+      Expression? expression) {
     if (identical(expression, _expressionWithReference)) {
-      Reference<Variable, Type>? expressionReference = _expressionReference;
+      ReferenceWithType<Variable, Type>? expressionReference =
+          _expressionReference;
       _expressionReference = null;
       return expressionReference;
     } else {
@@ -3993,8 +4265,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   /// Associates [expression], which should be the most recently visited
   /// expression, with the given [Reference] object.
-  void _storeExpressionReference(
-      Expression expression, Reference<Variable, Type> expressionReference) {
+  void _storeExpressionReference(Expression expression,
+      ReferenceWithType<Variable, Type> expressionReference) {
     _expressionWithReference = expression;
     _expressionReference = expressionReference;
   }
@@ -4387,7 +4659,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
           _assignedVariables._anywhere._written.contains(entry.key)) {
         continue;
       }
-      (newKnownTypes ??= new Map<Variable, Type>.from(_knownTypes))[entry.key] =
+      (newKnownTypes ??= new Map<Variable, Type>.of(_knownTypes))[entry.key] =
           entry.value;
     }
     if (newKnownTypes != null) _knownTypes = newKnownTypes;
@@ -4425,6 +4697,10 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
+  void propertyGet(Expression wholeExpression, Expression target,
+      String propertyName, Type staticType) {}
+
+  @override
   SsaNode<Variable, Type>? ssaNodeForTesting(Variable variable) {
     throw new StateError('ssaNodeForTesting requires null-aware flow analysis');
   }
@@ -4437,6 +4713,13 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void switchStatement_expressionEnd(Statement switchStatement) {}
+
+  @override
+  void thisOrSuper(Expression expression, Type staticType) {}
+
+  @override
+  void thisOrSuperPropertyGet(
+      Expression expression, String propertyName, Type staticType) {}
 
   @override
   void tryCatchStatement_bodyBegin() {}
@@ -4481,8 +4764,18 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void whileStatement_end() {}
 
   @override
-  void write(
-      Variable variable, Type writtenType, Expression? writtenExpression) {
+  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
+    return {};
+  }
+
+  @override
+  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType) {
+    return {};
+  }
+
+  @override
+  void write(Expression expression, Variable variable, Type writtenType,
+      Expression? writtenExpression) {
     assert(
         _assignedVariables._anywhere._written.contains(variable),
         "Variable is written to, but was not included in "
@@ -4517,8 +4810,8 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
             _assignedVariables._anywhere._written.contains(entry.key)) {
           continue;
         }
-        (newKnownTypes ??=
-            new Map<Variable, Type>.from(_knownTypes))[entry.key] = entry.value;
+        (newKnownTypes ??= new Map<Variable, Type>.of(_knownTypes))[entry.key] =
+            entry.value;
       }
       if (newKnownTypes != null) _knownTypes = newKnownTypes;
     }
@@ -4615,6 +4908,53 @@ class _NullInfo<Variable extends Object, Type extends Object>
       null;
 }
 
+/// [Reference] object representing a property get applied to another reference.
+class _PropertyGetReference<Variable extends Object, Type extends Object>
+    extends Reference<Variable, Type> {
+  /// The target of the property get.  For example a property get of the form
+  /// `a.b`, where `a` is a local variable, has a target which is a reference to
+  /// `a`.
+  final Reference<Variable, Type> target;
+
+  /// The name of the property.
+  final String propertyName;
+
+  _PropertyGetReference(this.target, this.propertyName);
+
+  @override
+  Map<Type, NonPromotionReason> getNonPromotionReasons(
+      Map<Variable?, VariableModel<Variable, Type>> variableInfo,
+      Type staticType,
+      TypeOperations<Variable, Type> typeOperations) {
+    Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
+    List<Type>? promotedTypes = _getInfo(variableInfo)?.promotedTypes;
+    if (promotedTypes != null) {
+      for (Type type in promotedTypes) {
+        result[type] = new PropertyNotPromoted(propertyName, staticType);
+      }
+    }
+    return result;
+  }
+
+  @override
+  void storeInfo(Map<Variable?, VariableModel<Variable, Type>> variableInfo,
+      VariableModel<Variable, Type> variableModel) {
+    VariableModel<Variable, Type> targetInfo = target.getInfo(variableInfo);
+    Map<String, VariableModel<Variable, Type>> newProperties =
+        new Map<String, VariableModel<Variable, Type>>.of(
+            targetInfo.properties);
+    newProperties[propertyName] = variableModel;
+    target.storeInfo(variableInfo, targetInfo.setProperties(newProperties));
+  }
+
+  @override
+  VariableModel<Variable, Type>? _getInfo(
+      Map<Variable?, VariableModel<Variable, Type>> variableInfo) {
+    VariableModel<Variable, Type> targetInfo = target.getInfo(variableInfo);
+    return targetInfo.properties[propertyName];
+  }
+}
+
 /// [_FlowContext] representing a language construct for which flow analysis
 /// must store a flow model state to be retrieved later, such as a `try`
 /// statement, function expression, or "if-null" (`??`) expression.
@@ -4650,6 +4990,36 @@ class _SimpleStatementContext<Variable extends Object, Type extends Object>
       'checkpoint: $_checkpoint)';
 }
 
+/// [Reference] object representing an implicit or explicit reference to `this`.
+class _ThisReference<Variable extends Object, Type extends Object>
+    extends Reference<Variable, Type> {
+  @override
+  Map<Type, NonPromotionReason> getNonPromotionReasons(
+      Map<Variable?, VariableModel<Variable, Type>> variableInfo,
+      Type staticType,
+      TypeOperations<Variable, Type> typeOperations) {
+    Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
+    List<Type>? promotedTypes = _getInfo(variableInfo)?.promotedTypes;
+    if (promotedTypes != null) {
+      for (Type type in promotedTypes) {
+        result[type] = new ThisNotPromoted();
+      }
+    }
+    return result;
+  }
+
+  @override
+  void storeInfo(Map<Variable?, VariableModel<Variable, Type>> variableInfo,
+      VariableModel<Variable, Type> variableModel) {
+    variableInfo[null] = variableModel;
+  }
+
+  @override
+  VariableModel<Variable, Type>? _getInfo(
+          Map<Variable?, VariableModel<Variable, Type>> variableInfo) =>
+      variableInfo[null];
+}
+
 /// Specialization of [ExpressionInfo] for the case where the information we
 /// have about the expression is trivial (meaning we know by construction that
 /// the expression's [after], [ifTrue], and [ifFalse] models are all the same).
@@ -4681,14 +5051,14 @@ class _TryContext<Variable extends Object, Type extends Object>
     extends _SimpleContext<Variable, Type> {
   /// If the statement is a "try/catch" statement, the flow model representing
   /// program state at the top of any `catch` block.
-  FlowModel<Variable, Type>? _beforeCatch;
+  late final FlowModel<Variable, Type> _beforeCatch;
 
   /// If the statement is a "try/catch" statement, the accumulated flow model
   /// representing program state after the `try` block or one of the `catch`
   /// blocks has finished executing.  If the statement is a "try/finally"
   /// statement, the flow model representing program state after the `try` block
   /// has finished executing.
-  FlowModel<Variable, Type>? _afterBodyAndCatches;
+  late FlowModel<Variable, Type> _afterBodyAndCatches;
 
   _TryContext(FlowModel<Variable, Type> previous) : super(previous);
 
@@ -4702,7 +5072,7 @@ class _TryFinallyContext<Variable extends Object, Type extends Object>
     extends _TryContext<Variable, Type> {
   /// The flow model representing program state at the top of the `finally`
   /// block.
-  late FlowModel<Variable, Type> _beforeFinally;
+  late final FlowModel<Variable, Type> _beforeFinally;
 
   _TryFinallyContext(FlowModel<Variable, Type> previous) : super(previous);
 }

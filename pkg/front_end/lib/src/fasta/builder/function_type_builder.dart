@@ -107,6 +107,8 @@ class FunctionTypeBuilder extends TypeBuilder {
       typeParameters = <TypeParameter>[];
       for (TypeVariableBuilder t in typeVariables) {
         typeParameters.add(t.parameter);
+        // Build the bound to detect cycles in typedefs.
+        t.bound?.build(library, origin);
       }
     }
     return new FunctionType(positionalParameters, builtReturnType,

@@ -166,7 +166,8 @@ class AnalyzeCommand extends DartdevCommand {
     io.Directory relativeToDir,
     bool verbose = false,
   }) {
-    final bullet = log.ansi.bullet;
+    final ansi = log.ansi;
+    final bullet = ansi.bullet;
 
     log.stdout('');
 
@@ -175,44 +176,43 @@ class AnalyzeCommand extends DartdevCommand {
         : (dartdevUsageLineLength - _bodyIndentWidth);
 
     for (final AnalysisError error in errors) {
-      // error • Message ... at path.dart:line:col • (code)
-
-      var filePath = path.relative(error.file, from: relativeToDir?.path);
       var severity = error.severity.toLowerCase().padLeft(_severityWidth);
       if (error.isError) {
-        severity = log.ansi.error(severity);
+        severity = ansi.error(severity);
+      }
+      var filePath = _relativePath(error.file, relativeToDir?.path);
+      var codeRef = error.code;
+      // If we're in verbose mode, write any error urls instead of error codes.
+      if (error.url != null && verbose) {
+        codeRef = error.url;
       }
 
+      // Emit "file:line:col * Error message. Correction (code)."
+      var message = ansi.emphasized('${error.message}');
+      if (error.correction != null) {
+        message += ' ${error.correction}';
+      }
+      var location = '$filePath:${error.startLine}:${error.startColumn}';
+      var output = '$location $bullet '
+          '$message $bullet '
+          '${ansi.green}$codeRef${ansi.none}';
+
+      // TODO(devoncarew): We need to take into account ansi color codes when
+      // performing line wrapping.
+      output = wrapText(output, width: wrapWidth);
       log.stdout(
         '$severity $bullet '
-        '${log.ansi.emphasized(error.messageSentenceFragment)} '
-        'at $filePath:${error.startLine}:${error.startColumn} $bullet '
-        '(${error.code})',
+        '${output.replaceAll('\n', '\n$_bodyIndent')}',
       );
 
-      if (verbose) {
-        for (var message in error.contextMessages) {
-          // Wrap longer context messages.
-          var contextMessage = wrapText(
-              '${message.message} at '
-              '${message.filePath}:${message.line}:${message.column}',
-              width: wrapWidth);
-          log.stdout('$_bodyIndent'
-              '${contextMessage.replaceAll('\n', '\n$_bodyIndent')}');
-        }
-      }
+      // Add any context messages as bullet list items.
+      for (var message in error.contextMessages) {
+        var contextPath = _relativePath(error.file, relativeToDir?.path);
+        var messageSentenceFragment = trimEnd(message.message, '.');
 
-      if (error.correction != null) {
-        // Wrap longer correction messages.
-        var correction = wrapText(error.correction, width: wrapWidth);
-        log.stdout(
-            '$_bodyIndent${correction.replaceAll('\n', '\n$_bodyIndent')}');
-      }
-
-      if (verbose) {
-        if (error.url != null) {
-          log.stdout('$_bodyIndent${error.url}');
-        }
+        log.stdout('$_bodyIndent'
+            ' - $messageSentenceFragment at '
+            '$contextPath:${message.line}:${message.column}.');
       }
     }
 
@@ -220,6 +220,12 @@ class AnalyzeCommand extends DartdevCommand {
 
     final errorCount = errors.length;
     log.stdout('$errorCount ${pluralize('issue', errorCount)} found.');
+  }
+
+  /// Return a relative path if it is a shorter reference than the given path.
+  static String _relativePath(String givenPath, String fromPath) {
+    String relative = path.relative(givenPath, from: fromPath);
+    return relative.length <= givenPath.length ? relative : givenPath;
   }
 
   @visibleForTesting

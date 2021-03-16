@@ -459,6 +459,36 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
   }
 
+  Future<void> test_nonFileScheme_rootUri() async {
+    final rootUri = Uri.parse('vsls://');
+    final fileUri = rootUri.replace(path: '/file1.dart');
+
+    await initialize(rootUri: rootUri);
+    expect(server.contextManager.includedPaths, equals([]));
+
+    // Also open a non-file file to ensure it doesn't cause the root to be added.
+    await openFile(fileUri, '');
+    expect(server.contextManager.includedPaths, equals([]));
+  }
+
+  Future<void> test_nonFileScheme_workspaceFolders() async {
+    final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
+    newFile(pubspecPath);
+
+    final rootUri = Uri.parse('vsls://');
+    final fileUri = rootUri.replace(path: '/file1.dart');
+
+    await initialize(workspaceFolders: [
+      rootUri,
+      Uri.file(projectFolderPath),
+    ]);
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+
+    // Also open a non-file file to ensure it doesn't cause the root to be added.
+    await openFile(fileUri, '');
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_multipleFiles() async {
     final file1 = join(projectFolderPath, 'file1.dart');
     final file1Uri = Uri.file(file1);

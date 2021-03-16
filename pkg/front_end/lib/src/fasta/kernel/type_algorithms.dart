@@ -6,7 +6,6 @@
 
 import 'package:kernel/ast.dart'
     show
-        BottomType,
         DartType,
         DartTypeVisitor,
         DynamicType,
@@ -989,9 +988,21 @@ void findGenericFunctionTypes(TypeBuilder type, {List<TypeBuilder> result}) {
         findGenericFunctionTypes(formal.type, result: result);
       }
     }
-  } else if (type is NamedTypeBuilder && type.arguments != null) {
-    for (TypeBuilder argument in type.arguments) {
-      findGenericFunctionTypes(argument, result: result);
+  } else if (type is NamedTypeBuilder) {
+    if (type.arguments != null) {
+      for (TypeBuilder argument in type.arguments) {
+        findGenericFunctionTypes(argument, result: result);
+      }
+    }
+
+    TypeDeclarationBuilder declaration = type.declaration;
+    if (declaration is TypeAliasBuilder) {
+      TypeBuilder rhsType = declaration.type;
+      if (rhsType is FunctionTypeBuilder &&
+          rhsType.typeVariables != null &&
+          rhsType.typeVariables.isNotEmpty) {
+        result.add(type);
+      }
     }
   }
 }
@@ -1023,8 +1034,6 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
   bool visitDynamicType(DynamicType node) => false;
 
   bool visitVoidType(VoidType node) => false;
-
-  bool visitBottomType(BottomType node) => false;
 
   bool visitNeverType(NeverType node) => false;
 

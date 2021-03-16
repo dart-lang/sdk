@@ -202,11 +202,16 @@ const _SENTINEL = 0;
 
 /// An object in a heap snapshot.
 abstract class SnapshotObject {
-  // If this object has been obtained from [successors] or [predecessors], the
-  // name of slot. Otherwise, the empty string.
+  /// The identity hash code of this object, used to compare objects across
+  /// snapshots. If [identityHashCode] is 0, this object cannot be compared to
+  /// other objects.
+  int get identityHashCode;
+
+  /// If this object has been obtained from [successors] or [predecessors], the
+  /// name of slot. Otherwise, the empty string.
   String get label;
 
-  // The value for primitives. Otherwise, the class name.
+  /// The value for primitives. Otherwise, the class name.
   String get description;
 
   /// [internalSize] + [externalSize].
@@ -255,10 +260,12 @@ abstract class SnapshotObject {
 
 class _SnapshotObject implements SnapshotObject {
   final int _id;
+  final int identityHashCode;
   final _SnapshotGraph _graph;
   final String label;
 
-  _SnapshotObject._new(this._id, this._graph, this.label);
+  _SnapshotObject._new(this._id, this._graph, this.label)
+      : identityHashCode = _graph._identityHashes[_id];
 
   bool operator ==(Object other) {
     if (other is _SnapshotObject) {
@@ -344,6 +351,7 @@ class _SyntheticSnapshotObject implements SnapshotObject {
   SnapshotObject _parent;
   List<SnapshotObject> _children;
 
+  int get identityHashCode => 0;
   String get label => null;
   String get description => _description;
   SnapshotClass get klass => _klass;
@@ -794,6 +802,9 @@ class _SnapshotGraph implements SnapshotGraph {
     onProgress.add("Loading external properties...");
     await new Future(() => _readExternalProperties(stream));
 
+    onProgress.add("Loading object identity hash codes...");
+    await new Future(() => _readObjectIdentityHashes(stream));
+
     stream = null;
 
     onProgress.add("Compute class table...");
@@ -866,6 +877,7 @@ class _SnapshotGraph implements SnapshotGraph {
   Uint32List _externalSizes;
   Uint32List _firstSuccs;
   Uint32List _succs;
+  Uint32List _identityHashes;
 
   // Intermediates.
   Uint32List _vertex;
@@ -1023,6 +1035,15 @@ class _SnapshotGraph implements SnapshotGraph {
     }
 
     _externalSizes = externalSizes;
+  }
+
+  void _readObjectIdentityHashes(_ReadStream stream) {
+    final N = _N;
+    final identityHashes = _newUint32Array(N + 1);
+    for (int oid = 1; oid <= N; ++oid) {
+      identityHashes[oid] = stream.readUnsigned();
+    }
+    _identityHashes = identityHashes;
   }
 
   void _computeClassTable() {

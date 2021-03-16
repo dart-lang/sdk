@@ -1,3 +1,4 @@
+// @dart = 2.9
 set b();
 set c(x, y);
 class A {

@@ -1667,7 +1667,7 @@ class E {}
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestParameter('e', null);
+    assertSuggestParameter('e', 'Object');
     assertSuggestParameter('s', 'StackTrace');
     assertSuggestMethod('a', 'A', null);
     assertNotSuggested('Object');
@@ -1821,8 +1821,6 @@ class Foo {  }
     assertNotSuggested('Abcd');
   }
 
-  /// see: https://github.com/dart-lang/sdk/issues/36037
-  @failingTest
   Future<void> test_classReference_in_comment_eof() async {
     addTestSource(r'''
 class Abc { }
@@ -2588,7 +2586,8 @@ class C {foo(){^} void bar() {}}''');
     assertSuggestClass('C');
     assertSuggestMethod('foo', 'C', null);
     assertSuggestMethod('bar', 'C', 'void');
-    assertSuggestFunctionTypeAlias('F2', 'int');
+    assertSuggestTypeAlias('F2',
+        aliasedType: 'int Function(int)', returnType: 'int');
     assertSuggestClass('Clz');
     assertSuggestClass('C');
     assertNotSuggested('x');
@@ -3242,7 +3241,8 @@ class C2 { }
     assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
-    assertSuggestFunctionTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertNotSuggested('name');
   }
@@ -3272,7 +3272,8 @@ class C2 { }
     assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
-    assertSuggestFunctionTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertNotSuggested('name');
   }
@@ -3303,7 +3304,8 @@ class C2 { }
     assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
-    assertSuggestFunctionTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertNotSuggested('name');
   }
@@ -3385,39 +3387,6 @@ var c = <T>(^) {};
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestTypeParameter('T');
-  }
-
-  Future<void> test_functionTypeAlias_genericTypeAlias() async {
-    addTestSource(r'''
-typedef F = void Function();
-main() {
-  ^
-}
-''');
-    await computeSuggestions();
-    assertSuggestFunctionTypeAlias('F', 'void');
-  }
-
-  Future<void> test_functionTypeAlias_genericTypeAlias_incomplete() async {
-    addTestSource(r'''
-typedef F = int;
-main() {
-  ^
-}
-''');
-    await computeSuggestions();
-    assertSuggestFunctionTypeAlias('F', 'dynamic');
-  }
-
-  Future<void> test_functionTypeAlias_old() async {
-    addTestSource(r'''
-typedef void F();
-main() {
-  ^
-}
-''');
-    await computeSuggestions();
-    assertSuggestFunctionTypeAlias('F', 'void');
   }
 
   Future<void> test_genericFunctionType_parameterList() async {
@@ -3903,7 +3872,8 @@ main() {String name; print("hello \${^}");}''');
     assertNotSuggested('C1');
     assertSuggestTopLevelVar('T2', 'int');
     assertSuggestFunction('F2', null);
-    assertSuggestFunctionTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertSuggestLocalVariable('name', 'String');
   }
@@ -4251,7 +4221,8 @@ foo = {^''');
     assertNotSuggested('C1');
     assertSuggestTopLevelVar('T2', 'int');
     assertSuggestFunction('F2', null);
-    assertSuggestFunctionTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
   }
 
@@ -4800,7 +4771,8 @@ class C2 {^ zoo(z) { } String name; }''');
     assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
-    assertSuggestFunctionTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertNotSuggested('name');
   }
@@ -4829,7 +4801,8 @@ class C2 {/* */ ^ zoo(z) { } String name; }''');
     assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
-    assertSuggestFunctionTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertNotSuggested('name');
   }
@@ -4858,7 +4831,8 @@ class C2 {/** */ ^ zoo(z) { } String name; }''');
     assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
-    assertSuggestFunctionTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertNotSuggested('name');
   }
@@ -4889,7 +4863,8 @@ class C2 {
     assertNotSuggested('C1');
     assertNotSuggested('T2');
     assertNotSuggested('F2');
-    assertSuggestFunctionTypeAlias('D2', 'dynamic');
+    assertSuggestTypeAlias('D2',
+        aliasedType: 'dynamic Function()', returnType: 'dynamic');
     assertSuggestClass('C2');
     assertNotSuggested('name');
   }
@@ -6060,6 +6035,41 @@ void bar() {
     assertNoSuggestions();
   }
 
+  Future<void> test_typeAlias_functionType() async {
+    addTestSource(r'''
+typedef F = void Function();
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestTypeAlias('F',
+        aliasedType: 'void Function()', returnType: 'void');
+  }
+
+  Future<void> test_typeAlias_interfaceType() async {
+    addTestSource(r'''
+typedef F = List<int>;
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestTypeAlias('F', aliasedType: 'List<int>');
+  }
+
+  Future<void> test_typeAlias_legacy() async {
+    addTestSource(r'''
+typedef void F();
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestTypeAlias('F',
+        aliasedType: 'void Function()', returnType: 'void');
+  }
+
   Future<void> test_TypeArgumentList() async {
     // SimpleIdentifier  BinaryExpression  ExpressionStatement
     addSource('/home/test/lib/a.dart', '''
@@ -6081,7 +6091,8 @@ main() { C<^> c; }''');
     assertNotSuggested('C1');
     assertNotSuggested('T1');
     assertSuggestClass('C2');
-    assertSuggestFunctionTypeAlias('T2', 'int');
+    assertSuggestTypeAlias('T2',
+        aliasedType: 'int Function(int)', returnType: 'int');
     assertNotSuggested('F1');
     assertNotSuggested('F2');
   }

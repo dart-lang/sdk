@@ -71,11 +71,11 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   @visibleForTesting
   factory ExperimentStatus.forTesting(
       // ignore:avoid_unused_constructor_parameters
-      {String sdkVersion,
+      {String? sdkVersion,
       List<Feature> additionalFeatures = const []}) {
     var explicitFlags = decodeExplicitFlags([]);
-    for (ExperimentalFeature feature in additionalFeatures) {
-      explicitFlags.enabled[feature.index] = true;
+    for (var feature in additionalFeatures) {
+      explicitFlags.enabled[(feature as ExperimentalFeature).index] = true;
     }
 
     var sdkLanguageVersion = latestSdkLanguageVersion;
@@ -147,8 +147,8 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   /// unrecognized flags are ignored, conflicting flags are resolved in favor of
   /// the flag appearing last.
   factory ExperimentStatus.fromStrings2({
-    @required Version sdkLanguageVersion,
-    @required List<String> flags,
+    required Version sdkLanguageVersion,
+    required List<String> flags,
     // TODO(scheglov) use restrictEnableFlagsToVersion
   }) {
     var explicitFlags = decodeExplicitFlags(flags);

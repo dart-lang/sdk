@@ -1,3 +1,4 @@
+// @dart = 2.9
 class Class1 {
   const Class1({Class1 c = const Class1(c: null)});
 }

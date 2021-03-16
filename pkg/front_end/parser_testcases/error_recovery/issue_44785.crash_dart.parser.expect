@@ -1,0 +1,27 @@
+NOTICE: Stream was rewritten by parser!
+
+foo(int a, int b){
+if (a == null || b == null){
+return null
+;}
+}
+
+bar(int a, int b){
+if (a == null && b == null){
+return null
+;}
+}
+
+
+foo[StringToken]([BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken])[SimpleToken]{[BeginToken]
+if[KeywordToken] ([BeginToken]a[StringToken] ==[SimpleToken] null[KeywordToken] ||[ReplacementToken] b[StringToken] ==[SimpleToken] null[KeywordToken])[SimpleToken]{[BeginToken]
+return[KeywordToken] null[KeywordToken]
+;[SyntheticToken]}[SimpleToken]
+}[SimpleToken]
+
+bar[StringToken]([BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken])[SimpleToken]{[BeginToken]
+if[KeywordToken] ([BeginToken]a[StringToken] ==[SimpleToken] null[KeywordToken] &&[ReplacementToken] b[StringToken] ==[SimpleToken] null[KeywordToken])[SimpleToken]{[BeginToken]
+return[KeywordToken] null[KeywordToken]
+;[SyntheticToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

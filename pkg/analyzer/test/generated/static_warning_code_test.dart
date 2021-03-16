@@ -92,7 +92,7 @@ typedef FuncDyn(x);
 typedef FuncA(A a);
 class A {}
 class B {}
-main(FuncA f) {
+f(FuncA f) {
   if (f is FuncDyn) {
     f(new B());
   }

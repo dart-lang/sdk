@@ -1,3 +1,4 @@
+// @dart = 2.9
 const int shiftNegative1 = 2 << -1;
 const int shiftNegative2 = 2 >>> -1;
 const int shiftNegative3 = 2 >> -1;

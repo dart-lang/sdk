@@ -295,10 +295,8 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     StackZone zone(T);
     HandleScope handle_scope(T);
     Object::InitNullAndBool(vm_isolate_->group());
-    vm_isolate_->set_object_store(new ObjectStore());
+    vm_isolate_->isolate_group_->set_object_store(new ObjectStore());
     vm_isolate_->isolate_object_store()->Init();
-    vm_isolate_->isolate_group_->object_store_ =
-        vm_isolate_->object_store_shared_ptr_;
     TargetCPUFeatures::Init();
     Object::Init(vm_isolate_->group());
     ArgumentsDescriptor::Init();
@@ -675,6 +673,7 @@ char* Dart::Cleanup() {
   IsolateGroupReloadContext::SetFileModifiedCallback(NULL);
   Service::SetEmbedderStreamCallbacks(NULL, NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  VirtualMemory::Cleanup();
   return NULL;
 }
 
@@ -879,9 +878,6 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   HandleScope handle_scope(T);
   bool was_child_cloned_into_existing_isolate = false;
   if (source_isolate_group != nullptr) {
-    I->isolate_object_store()->Init();
-    I->isolate_object_store()->PreallocateObjects();
-
     // If a static field gets registered in [IsolateGroup::RegisterStaticField]:
     //
     //   * before this block it will ignore this isolate. The [Clone] of the
@@ -938,16 +934,18 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
 
   I->set_ic_miss_code(StubCode::SwitchableCallMiss());
 
-  if ((snapshot_data == NULL) || (kernel_buffer != NULL)) {
-    Error& error = Error::Handle();
+  Error& error = Error::Handle();
+  if (snapshot_data == nullptr || kernel_buffer != nullptr) {
     error ^= IG->object_store()->PreallocateObjects();
     if (!error.IsNull()) {
       return error.ptr();
     }
-    error ^= I->isolate_object_store()->PreallocateObjects();
-    if (!error.IsNull()) {
-      return error.ptr();
-    }
+  }
+  const auto& out_of_memory =
+      Object::Handle(IG->object_store()->out_of_memory());
+  error ^= I->isolate_object_store()->PreallocateObjects(out_of_memory);
+  if (!error.IsNull()) {
+    return error.ptr();
   }
 
   if (!was_child_cloned_into_existing_isolate) {
@@ -978,18 +976,14 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
   I->set_current_tag(default_tag);
 
-  if (FLAG_keep_code) {
-    I->set_deoptimized_code_array(
-        GrowableObjectArray::Handle(GrowableObjectArray::New()));
-  }
+  I->init_loaded_prefixes_set_storage();
+
   return Error::null();
 }
 
-const char* Dart::FeaturesString(Isolate* isolate,
+const char* Dart::FeaturesString(IsolateGroup* isolate_group,
                                  bool is_vm_isolate,
                                  Snapshot::Kind kind) {
-  auto isolate_group = isolate != nullptr ? isolate->group() : nullptr;
-
   TextBuffer buffer(64);
 
 // Different fields are included for DEBUG/RELEASE/PRODUCT.
@@ -1059,6 +1053,9 @@ const char* Dart::FeaturesString(Isolate* isolate,
 
 #else
 #error What architecture?
+#endif
+#if defined(DART_COMPRESSED_POINTERS)
+    buffer.AddString(" compressed");
 #endif
   }
 

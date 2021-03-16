@@ -23,7 +23,7 @@ class TransformSetManager {
   List<TransformSet> forLibrary(LibraryElement library) {
     var transformSets = <TransformSet>[];
     var analysisContext = library.session.analysisContext;
-    var workspace = analysisContext.workspace;
+    var workspace = analysisContext.contextRoot.workspace;
     var libraryPath = library.source.fullName;
     var package = workspace.findPackageFor(libraryPath);
     if (package == null) {
@@ -59,7 +59,7 @@ class TransformSetManager {
       var parser = TransformSetParser(
           ErrorReporter(
               AnalysisErrorListener.NULL_LISTENER, file.createSource()),
-          file.parent.parent.shortName);
+          file.parent2.parent2.shortName);
       return parser.parse(content);
     } on FileSystemException {
       // Fall through to return `null`.

@@ -50,10 +50,7 @@ class KernelDartTypes extends DartTypes {
   }
 
   @override
-  FunctionType getCallType(InterfaceType type) {
-    DartType callType = elementMap.getCallType(type);
-    return callType is FunctionType ? callType : null;
-  }
+  FunctionType getCallType(InterfaceType type) => elementMap.getCallType(type);
 
   @override
   void checkTypeVariableBounds<T>(

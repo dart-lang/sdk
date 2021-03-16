@@ -1,10 +1,15 @@
+## 0.5.0-dev
+- Changed the support version range of the analyzer to `>=0.42.0 <0.43.0`.
+- Removed `Plugin.fileContentOverlay`, instead `Plugin.resourceProvider` is
+  now `OverlayResourceProvider`, and `analysis.updateContent` updates it.
+
 ## 0.4.0
 - Deprecated the class `DartChangeBuilder` and enhanced `ChangeBuilder` to be
   the replacement for it.
 - Deprecated the method `ChangeBuilder.addFileEdit` and introduced
   `ChangeBuilder.addDartFileEdit` and `ChangeBuilder.addGenericFileEdit` to be
   the replacements for it.
-- Changed the support version range of the analyzer to `>=0.41.0 <0.42.0`.
+- Changed the supported version range of the analyzer to `>=0.41.0 <0.42.0`.
 
 ## 0.3.0
 - Removed deprecated `Plugin.getResolveResult`. Use `getResolvedUnitResult`.

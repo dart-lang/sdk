@@ -144,9 +144,9 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
 
   std::unique_ptr<Program> program(new Program());
   program->binary_version_ = formatVersion;
-  program->typed_data_ = reader->typed_data();
-  program->kernel_data_ = reader->buffer();
-  program->kernel_data_size_ = reader->size();
+  program->binary_.typed_data = reader->typed_data();
+  program->binary_.kernel_data = reader->buffer();
+  program->binary_.kernel_data_size = reader->size();
 
   // Dill files can be concatenated (e.g. cat a.dill b.dill > c.dill). Find out
   // if this dill contains more than one program.
@@ -194,18 +194,18 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
 std::unique_ptr<Program> Program::ReadFromFile(
     const char* script_uri, const char** error /* = nullptr */) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
   if (script_uri == NULL) {
     return nullptr;
   }
-  if (!isolate->HasTagHandler()) {
+  if (!isolate_group->HasTagHandler()) {
     return nullptr;
   }
   std::unique_ptr<kernel::Program> kernel_program;
 
   const String& uri = String::Handle(String::New(script_uri));
-  const Object& ret = Object::Handle(
-      isolate->CallTagHandler(Dart_kKernelTag, Object::null_object(), uri));
+  const Object& ret = Object::Handle(isolate_group->CallTagHandler(
+      Dart_kKernelTag, Object::null_object(), uri));
   if (ret.IsExternalTypedData()) {
     const auto& typed_data = ExternalTypedData::Handle(
         thread->zone(), ExternalTypedData::RawCast(ret.ptr()));

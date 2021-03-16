@@ -23,12 +23,12 @@ extension E on C {
   static int get a => 0;
 }
 
-C g(C c) => null;
+C g(C c) => C();
 f(C c) {
   g(c).a;
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 93, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 92, 1),
     ]);
     assertElement(
       findNode.simple('a;'),
@@ -94,11 +94,11 @@ f(C c) {
 class A {
   static m() {}
 }
-main(A a) {
+f(A a) {
   a.m;
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 41, 1),
     ]);
   }
 
@@ -107,11 +107,11 @@ main(A a) {
 class A {
   static var f;
 }
-main(A a) {
+f(A a) {
   a.f;
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 41, 1),
     ]);
   }
 
@@ -120,11 +120,11 @@ main(A a) {
 class A {
   static get f => 42;
 }
-main(A a) {
+f(A a) {
   a.f;
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 50, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 47, 1),
     ]);
   }
 
@@ -133,11 +133,11 @@ main(A a) {
 class A {
   static set f(x) {}
 }
-main(A a) {
+f(A a) {
   a.f = 42;
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 49, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 46, 1),
     ]);
   }
 }

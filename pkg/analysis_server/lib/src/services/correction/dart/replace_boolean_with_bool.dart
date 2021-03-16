@@ -13,6 +13,9 @@ class ReplaceBooleanWithBool extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.error(diagnostic), 'bool');

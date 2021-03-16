@@ -33,7 +33,7 @@ runTests(List<String> args, [int shardIndex]) {
       shards: 2,
       directory: 'data',
       skip: skip,
-      options: ['--enable-experiment=non-nullable', Flags.soundNullSafety]);
+      options: [Flags.soundNullSafety]);
 }
 
 runTests2(List<String> args, [int shardIndex]) {

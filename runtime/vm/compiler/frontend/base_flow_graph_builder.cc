@@ -425,7 +425,7 @@ Fragment BaseFlowGraphBuilder::ConvertUnboxedToUntagged(
 Fragment BaseFlowGraphBuilder::AddIntptrIntegers() {
   Value* right = Pop();
   Value* left = Pop();
-#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IS_64_BIT)
   auto add = new (Z) BinaryInt64OpInstr(
       Token::kADD, left, right, DeoptId::kNone, Instruction::kNotSpeculative);
 #else
@@ -1121,7 +1121,8 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
 
   Object& options = Object::Handle(Z);
   if (!Library::FindPragma(thread_, /*only_core=*/false, function,
-                           Symbols::vm_trace_entrypoints(), &options) ||
+                           Symbols::vm_trace_entrypoints(), /*multiple=*/false,
+                           &options) ||
       options.IsNull() || !options.IsClosure()) {
     return Drop();
   }

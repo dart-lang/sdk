@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
-import 'package:meta/meta.dart';
 
 /// Determines the list of analysis contexts that can be used to analyze the
 /// files and folders that should be analyzed given a list of included files and
@@ -32,8 +31,8 @@ abstract class ContextLocator {
   /// `.packages` file that should be used in place of the one that would be
   /// found by looking in the directories containing the context roots.
   List<ContextRoot> locateRoots(
-      {@required List<String> includedPaths,
-      List<String> excludedPaths,
-      String optionsFile,
-      String packagesFile});
+      {required List<String> includedPaths,
+      List<String>? excludedPaths,
+      String? optionsFile,
+      String? packagesFile});
 }

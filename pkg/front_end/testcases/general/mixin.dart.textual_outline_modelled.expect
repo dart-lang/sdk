@@ -1,3 +1,4 @@
+// @dart = 2.9
 abstract class G1<T> {
   m() => print(T);
 }

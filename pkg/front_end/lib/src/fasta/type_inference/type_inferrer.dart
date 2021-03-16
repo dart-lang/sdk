@@ -5,17 +5,19 @@
 // @dart = 2.9
 
 import 'dart:core' hide MapEntry;
+import 'dart:core' as core;
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
-    hide Reference; // Work around https://github.com/dart-lang/sdk/issues/44667
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 
+import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 
 import 'package:front_end/src/fasta/kernel/internal_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_demotion.dart';
+import 'package:front_end/src/testing/id_extractor.dart';
+import 'package:front_end/src/testing/id_testing_utils.dart';
 
-import 'package:kernel/ast.dart'
-    hide Reference; // Work around https://github.com/dart-lang/sdk/issues/44667
+import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_algebra.dart';
@@ -149,7 +151,7 @@ abstract class TypeInferrer {
       InferenceHelper helper, DartType declaredType, Expression initializer);
 
   /// Performs type inference on the given function body.
-  Statement inferFunctionBody(InferenceHelper helper, int fileOffset,
+  InferredFunctionBody inferFunctionBody(InferenceHelper helper, int fileOffset,
       DartType returnType, AsyncMarker asyncMarker, Statement body);
 
   /// Performs type inference on the given constructor initializer.
@@ -245,9 +247,8 @@ class TypeInferrerImpl implements TypeInferrer {
   bool get useNewMethodInvocationEncoding =>
       library.loader.target.backendTarget.supportsNewMethodInvocationEncoding;
 
-  DartType get bottomType => isNonNullableByDefault
-      ? const NeverType(Nullability.nonNullable)
-      : const NullType();
+  DartType get bottomType =>
+      isNonNullableByDefault ? const NeverType.nonNullable() : const NullType();
 
   DartType computeGreatestClosure(DartType type) {
     return greatestClosure(type, const DynamicType(), bottomType);
@@ -271,9 +272,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
   DartType computeNonNullable(DartType type) {
     if (type is NullType) {
-      return isNonNullableByDefault
-          ? const NeverType(Nullability.nonNullable)
-          : type;
+      return isNonNullableByDefault ? const NeverType.nonNullable() : type;
     }
     if (type is TypeParameterType && type.promotedBound != null) {
       return new TypeParameterType(type.parameter, Nullability.nonNullable,
@@ -302,6 +301,51 @@ class TypeInferrerImpl implements TypeInferrer {
             coreTypes.reachabilityErrorConstructor, arguments)
           ..fileOffset = fileOffset)
       ..fileOffset = fileOffset;
+  }
+
+  /// Computes a list of context messages explaining why [receiver] was not
+  /// promoted, to be used when reporting an error for a larger expression
+  /// containing [receiver].  [expression] is the containing expression.
+  List<LocatedMessage> getWhyNotPromotedContext(Expression receiver,
+      Map<DartType, NonPromotionReason> whyNotPromoted, Expression expression) {
+    List<LocatedMessage> context;
+    if (whyNotPromoted != null && whyNotPromoted.isNotEmpty) {
+      _WhyNotPromotedVisitor whyNotPromotedVisitor =
+          new _WhyNotPromotedVisitor(this, receiver);
+      for (core.MapEntry<DartType, NonPromotionReason> entry
+          in whyNotPromoted.entries) {
+        if (entry.key.isPotentiallyNullable) continue;
+        LocatedMessage message = entry.value.accept(whyNotPromotedVisitor);
+        if (dataForTesting != null) {
+          String nonPromotionReasonText = entry.value.shortName;
+          List<String> args = <String>[];
+          if (whyNotPromotedVisitor.propertyReference != null) {
+            Id id = computeMemberId(whyNotPromotedVisitor.propertyReference);
+            args.add('target: $id');
+          }
+          if (whyNotPromotedVisitor.propertyType != null) {
+            String typeText = typeToText(whyNotPromotedVisitor.propertyType,
+                TypeRepresentation.analyzerNonNullableByDefault);
+            args.add('type: $typeText');
+          }
+          if (args.isNotEmpty) {
+            nonPromotionReasonText += '(${args.join(', ')})';
+          }
+          dataForTesting.flowAnalysisResult.nonPromotionReasons[expression] =
+              nonPromotionReasonText;
+        }
+        // Note: this will always pick the first viable reason (only).  I
+        // (paulberry) believe this is the one that will be the most relevant,
+        // but I need to do more testing to validate that.  I can't do that
+        // additional testing yet because at the moment we only handle failed
+        // promotions to non-nullable.
+        // TODO(paulberry): do more testing and then expand on the comment
+        // above.
+        context = [message];
+        break;
+      }
+    }
+    return context;
   }
 
   /// Returns `true` if exceptions should be thrown in paths reachable only due
@@ -644,7 +688,9 @@ class TypeInferrerImpl implements TypeInferrer {
         // uses of type variables, for example, on static members. Once
         // that has been fixed, we should always be able to use
         // [contextType] directly here.
-        hasAnyTypeVariables(contextType) ? const BottomType() : contextType)
+        hasAnyTypeVariables(contextType)
+            ? const NeverType.nonNullable()
+            : contextType)
       ..isTypeError = true
       ..fileOffset = expression.fileOffset;
     if (contextType is! InvalidType) {
@@ -665,7 +711,9 @@ class TypeInferrerImpl implements TypeInferrer {
         // uses of type variables, for example, on static members. Once
         // that has been fixed, we should always be able to use
         // [contextType] directly here.
-        hasAnyTypeVariables(contextType) ? const BottomType() : contextType)
+        hasAnyTypeVariables(contextType)
+            ? const NeverType.nonNullable()
+            : contextType)
       ..isTypeError = true
       ..isForNonNullableByDefault = isNonNullableByDefault
       ..fileOffset = expression.fileOffset;
@@ -828,6 +876,41 @@ class TypeInferrerImpl implements TypeInferrer {
     typeSchemaEnvironment.inferGenericFunctionOrType(null, typeParameters,
         [onType], [receiverType], null, inferredTypes, library.library);
     return inferredTypes;
+  }
+
+  /// Returns extension member declared immediately for [receiverType].
+  ///
+  /// If none is found, [defaultTarget] is returned.
+  ObjectAccessTarget _findDirectExtensionMember(
+      ExtensionType receiverType, Name name, int fileOffset,
+      {ObjectAccessTarget defaultTarget}) {
+    Member targetMethod;
+    Member targetTearoff;
+    for (ExtensionMemberDescriptor descriptor
+        in receiverType.extensionNode.members) {
+      if (descriptor.name == name) {
+        switch (descriptor.kind) {
+          case ExtensionMemberKind.Method:
+            targetMethod = descriptor.member.asMember;
+            break;
+          case ExtensionMemberKind.TearOff:
+            targetTearoff = descriptor.member.asMember;
+            break;
+          default:
+            unhandled("${descriptor.kind}", "findInterfaceMember", fileOffset,
+                library.fileUri);
+        }
+      }
+    }
+    if (targetMethod != null) {
+      return new ObjectAccessTarget.extensionMember(
+          targetMethod,
+          targetTearoff ?? targetMethod,
+          ProcedureKind.Method,
+          receiverType.typeArguments);
+    } else {
+      return defaultTarget;
+    }
   }
 
   /// Returns the extension member access by the given [name] for a receiver
@@ -1066,6 +1149,10 @@ class TypeInferrerImpl implements TypeInferrer {
       target = isReceiverTypePotentiallyNullable
           ? const ObjectAccessTarget.nullableCallFunction()
           : const ObjectAccessTarget.callFunction();
+    } else if (library.enableExtensionTypesInLibrary &&
+        receiverBound is ExtensionType) {
+      target = _findDirectExtensionMember(receiverBound, name, fileOffset,
+          defaultTarget: const ObjectAccessTarget.missing());
     } else {
       target = const ObjectAccessTarget.missing();
     }
@@ -1190,7 +1277,7 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.ambiguous:
         return const DynamicType();
       case ObjectAccessTargetKind.never:
-        return const NeverType(Nullability.nonNullable);
+        return const NeverType.nonNullable();
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
@@ -1385,7 +1472,7 @@ class TypeInferrerImpl implements TypeInferrer {
         }
         break;
       case ObjectAccessTargetKind.never:
-        return const NeverType(Nullability.nonNullable);
+        return const NeverType.nonNullable();
       case ObjectAccessTargetKind.invalid:
         return const InvalidType();
       case ObjectAccessTargetKind.callFunction:
@@ -1716,7 +1803,7 @@ class TypeInferrerImpl implements TypeInferrer {
       assert(isTopLevel, "No initializer type provided.");
       return null;
     }
-    if (initializerType is BottomType || initializerType is NullType) {
+    if (initializerType is NullType) {
       // If the initializer type is Null or bottom, the inferred type is
       // dynamic.
       // TODO(paulberry): this rule is inherited from analyzer behavior but is
@@ -1784,7 +1871,8 @@ class TypeInferrerImpl implements TypeInferrer {
     return createNullAwareExpressionInferenceResult(
         result.inferredType,
         helper.wrapInProblem(
-            result.nullAwareAction, message, fileOffset, length),
+            result.nullAwareAction, message, fileOffset, length,
+            context: context),
         result.nullAwareGuards);
   }
 
@@ -1908,7 +1996,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  Statement inferFunctionBody(InferenceHelper helper, int fileOffset,
+  InferredFunctionBody inferFunctionBody(InferenceHelper helper, int fileOffset,
       DartType returnType, AsyncMarker asyncMarker, Statement body) {
     assert(body != null);
     assert(closureContext == null);
@@ -1923,10 +2011,17 @@ class TypeInferrerImpl implements TypeInferrer {
     }
     result =
         closureContext.handleImplicitReturn(this, body, result, fileOffset);
+    DartType futureValueType = closureContext.futureValueType;
+    assert(
+        !(isNonNullableByDefault &&
+            asyncMarker == AsyncMarker.Async &&
+            futureValueType == null),
+        "No future value type computed.");
     closureContext = null;
     this.helper = null;
     flowAnalysis.finish();
-    return result.hasChanged ? result.statement : body;
+    return new InferredFunctionBody(
+        result.hasChanged ? result.statement : body, futureValueType);
   }
 
   InvocationInferenceResult inferInvocation(DartType typeContext, int offset,
@@ -2530,6 +2625,12 @@ class TypeInferrerImpl implements TypeInferrer {
     }
     bodyResult = closureContext.handleImplicitReturn(
         this, function.body, bodyResult, fileOffset);
+    function.futureValueType = closureContext.futureValueType;
+    assert(
+        !(isNonNullableByDefault &&
+            function.asyncMarker == AsyncMarker.Async &&
+            function.futureValueType == null),
+        "No future value type computed.");
 
     if (bodyResult.hasChanged) {
       function.body = bodyResult.statement..parent = function;
@@ -2635,7 +2736,7 @@ class TypeInferrerImpl implements TypeInferrer {
         ..fileOffset = fileOffset;
     }
     return createNullAwareExpressionInferenceResult(
-        const NeverType(Nullability.nonNullable),
+        const NeverType.nonNullable(),
         result.applyResult(expression),
         nullAwareGuards);
   }
@@ -2705,12 +2806,22 @@ class TypeInferrerImpl implements TypeInferrer {
           implicitInvocationPropertyName: name);
 
       if (!isTopLevel && target.isNullable) {
+        // Handles cases like:
+        //   C? c;
+        //   c();
+        // where there is an extension on C defined as:
+        //   extension on C {
+        //     void Function() get call => () {};
+        //   }
+        List<LocatedMessage> context = getWhyNotPromotedContext(
+            receiver, flowAnalysis?.whyNotPromoted(receiver), staticInvocation);
         result = wrapExpressionInferenceResultInProblem(
             result,
             templateNullableExpressionCallError.withArguments(
                 receiverType, isNonNullableByDefault),
             fileOffset,
-            noLength);
+            noLength,
+            context: context);
       }
 
       return result;
@@ -2730,20 +2841,38 @@ class TypeInferrerImpl implements TypeInferrer {
 
       Expression replacement = result.applyResult(staticInvocation);
       if (!isTopLevel && target.isNullable) {
+        List<LocatedMessage> context = getWhyNotPromotedContext(
+            receiver, flowAnalysis?.whyNotPromoted(receiver), staticInvocation);
         if (isImplicitCall) {
+          // Handles cases like:
+          //   int? i;
+          //   i();
+          // where there is an extension:
+          //   extension on int {
+          //     void call() {}
+          //   }
           replacement = helper.wrapInProblem(
               replacement,
               templateNullableExpressionCallError.withArguments(
                   receiverType, isNonNullableByDefault),
               fileOffset,
-              noLength);
+              noLength,
+              context: context);
         } else {
+          // Handles cases like:
+          //   int? i;
+          //   i.methodOnNonNullInt();
+          // where `methodOnNonNullInt` is declared in an extension:
+          //   extension on int {
+          //     void methodOnNonNullInt() {}
+          //   }
           replacement = helper.wrapInProblem(
               replacement,
               templateNullableMethodCallError.withArguments(
                   name.text, receiverType, isNonNullableByDefault),
               fileOffset,
-              name.text.length);
+              name.text.length,
+              context: context);
         }
       }
       return createNullAwareExpressionInferenceResult(
@@ -2807,20 +2936,30 @@ class TypeInferrerImpl implements TypeInferrer {
     }
     Expression replacement = result.applyResult(expression);
     if (!isTopLevel && target.isNullableCallFunction) {
+      List<LocatedMessage> context = getWhyNotPromotedContext(
+          receiver, flowAnalysis?.whyNotPromoted(receiver), expression);
       if (isImplicitCall) {
+        // Handles cases like:
+        //   void Function()? f;
+        //   f();
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableExpressionCallError.withArguments(
                 receiverType, isNonNullableByDefault),
             fileOffset,
-            noLength);
+            noLength,
+            context: context);
       } else {
+        // Handles cases like:
+        //   void Function()? f;
+        //   f.call();
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableMethodCallError.withArguments(
                 callName.text, receiverType, isNonNullableByDefault),
             fileOffset,
-            callName.text.length);
+            callName.text.length,
+            context: context);
       }
     }
     // TODO(johnniwinther): Check that type arguments against the bounds.
@@ -2969,20 +3108,34 @@ class TypeInferrerImpl implements TypeInferrer {
 
     replacement = result.applyResult(replacement);
     if (!isTopLevel && target.isNullable) {
+      List<LocatedMessage> context = getWhyNotPromotedContext(
+          receiver, flowAnalysis?.whyNotPromoted(receiver), expression);
       if (isImplicitCall) {
+        // Handles cases like:
+        //   C? c;
+        //   c();
+        // Where C is defined as:
+        //   class C {
+        //     void call();
+        //   }
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableExpressionCallError.withArguments(
                 receiverType, isNonNullableByDefault),
             fileOffset,
-            noLength);
+            noLength,
+            context: context);
       } else {
+        // Handles cases like:
+        //   int? i;
+        //   i.abs();
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableMethodCallError.withArguments(
                 methodName.text, receiverType, isNonNullableByDefault),
             fileOffset,
-            methodName.text.length);
+            methodName.text.length,
+            context: context);
       }
     }
 
@@ -3106,12 +3259,22 @@ class TypeInferrerImpl implements TypeInferrer {
     }
 
     if (!isTopLevel && target.isNullable) {
+      // Handles cases like:
+      //   C? c;
+      //   c.foo();
+      // Where C is defined as:
+      //   class C {
+      //     void Function() get foo => () {};
+      //   }
+      List<LocatedMessage> context = getWhyNotPromotedContext(receiver,
+          flowAnalysis?.whyNotPromoted(receiver), invocationResult.expression);
       invocationResult = wrapExpressionInferenceResultInProblem(
           invocationResult,
           templateNullableExpressionCallError.withArguments(
               receiverType, isNonNullableByDefault),
           fileOffset,
-          noLength);
+          noLength,
+          context: context);
     }
 
     if (!library.loader.target.backendTarget.supportsExplicitGetterCalls) {
@@ -3208,6 +3371,14 @@ class TypeInferrerImpl implements TypeInferrer {
       receiver = _hoist(receiver, receiverType, hoistedExpressions);
     }
 
+    Map<DartType, NonPromotionReason> whyNotPromotedInfo;
+    if (!isTopLevel && target.isNullable) {
+      // We won't report the error until later (after we have an
+      // invocationResult), but we need to gather "why not promoted" info now,
+      // before we tell flow analysis about the property get.
+      whyNotPromotedInfo = flowAnalysis?.whyNotPromoted(receiver);
+    }
+
     Name originalName = field.name;
     Expression originalReceiver = receiver;
     Member originalTarget = field;
@@ -3231,6 +3402,8 @@ class TypeInferrerImpl implements TypeInferrer {
           kind, originalReceiver, originalName,
           resultType: calleeType, interfaceTarget: originalTarget)
         ..fileOffset = fileOffset;
+      flowAnalysis.propertyGet(
+          originalPropertyGet, originalReceiver, originalName.name, calleeType);
     } else {
       originalPropertyGet =
           new PropertyGet(originalReceiver, originalName, originalTarget)
@@ -3277,12 +3450,25 @@ class TypeInferrerImpl implements TypeInferrer {
     }
 
     if (!isTopLevel && target.isNullable) {
+      // Handles cases like:
+      //   C? c;
+      //   c.foo();
+      // Where C is defined as:
+      //   class C {
+      //     void Function() foo;
+      //     C(this.foo);
+      //   }
+      // TODO(paulberry): would it be better to report NullableMethodCallError
+      // in this scenario?
+      List<LocatedMessage> context = getWhyNotPromotedContext(
+          receiver, whyNotPromotedInfo, invocationResult.expression);
       invocationResult = wrapExpressionInferenceResultInProblem(
           invocationResult,
           templateNullableExpressionCallError.withArguments(
               receiverType, isNonNullableByDefault),
           fileOffset,
-          noLength);
+          noLength,
+          context: context);
     }
 
     if (!library.loader.target.backendTarget.supportsExplicitGetterCalls) {
@@ -3590,6 +3776,8 @@ class TypeInferrerImpl implements TypeInferrer {
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
+    flowAnalysis.thisOrSuperPropertyGet(
+        expression, expression.name.name, inferredType);
     return new ExpressionInferenceResult(inferredType, expression);
   }
 
@@ -3932,7 +4120,9 @@ class TypeInferrerImpl implements TypeInferrer {
           receiverType,
           name,
           extensionAccessCandidates,
-          templateUndefinedMethod,
+          receiverType is ExtensionType
+              ? templateUndefinedExtensionMethod
+              : templateUndefinedMethod,
           templateAmbiguousExtensionMethod);
     }
   }
@@ -4817,4 +5007,79 @@ FunctionType replaceReturnType(FunctionType functionType, DartType returnType) {
       requiredParameterCount: functionType.requiredParameterCount,
       namedParameters: functionType.namedParameters,
       typeParameters: functionType.typeParameters);
+}
+
+class InferredFunctionBody {
+  final Statement body;
+  final DartType futureValueType;
+
+  InferredFunctionBody(this.body, this.futureValueType);
+}
+
+class _WhyNotPromotedVisitor
+    implements
+        NonPromotionReasonVisitor<LocatedMessage, Node, Expression,
+            VariableDeclaration, DartType> {
+  final TypeInferrerImpl inferrer;
+
+  final Expression receiver;
+
+  Member propertyReference;
+
+  DartType propertyType;
+
+  _WhyNotPromotedVisitor(this.inferrer, this.receiver);
+
+  @override
+  LocatedMessage visitDemoteViaExplicitWrite(
+      DemoteViaExplicitWrite<VariableDeclaration, Expression> reason) {
+    if (inferrer.dataForTesting != null) {
+      inferrer.dataForTesting.flowAnalysisResult
+          .nonPromotionReasonTargets[reason.writeExpression] = reason.shortName;
+    }
+    int offset = reason.writeExpression.fileOffset;
+    return templateVariableCouldBeNullDueToWrite
+        .withArguments(reason.variable.name)
+        .withLocation(inferrer.helper.uri, offset, noLength);
+  }
+
+  @override
+  LocatedMessage visitDemoteViaForEachVariableWrite(
+      DemoteViaForEachVariableWrite<VariableDeclaration, Node> reason) {
+    int offset = (reason.node as TreeNode).fileOffset;
+    return templateVariableCouldBeNullDueToWrite
+        .withArguments(reason.variable.name)
+        .withLocation(inferrer.helper.uri, offset, noLength);
+  }
+
+  @override
+  LocatedMessage visitPropertyNotPromoted(PropertyNotPromoted reason) {
+    Member member;
+    Expression receiver = this.receiver;
+    if (receiver is InstanceGet) {
+      member = receiver.interfaceTarget;
+    } else if (receiver is SuperPropertyGet) {
+      member = receiver.interfaceTarget;
+    } else if (receiver is StaticInvocation) {
+      member = receiver.target;
+    } else if (receiver is PropertyGet) {
+      member = receiver.interfaceTarget;
+    } else {
+      assert(false, 'Unrecognized receiver: ${receiver.runtimeType}');
+    }
+    if (member != null) {
+      propertyReference = member;
+      propertyType = reason.staticType;
+      return templateFieldNotPromoted
+          .withArguments(reason.propertyName)
+          .withLocation(member.fileUri, member.fileOffset, noLength);
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  LocatedMessage visitThisNotPromoted(ThisNotPromoted reason) {
+    return messageThisNotPromoted.withoutLocation();
+  }
 }

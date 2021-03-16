@@ -1,0 +1,22 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method f() → dynamic {
+  core::int* a = 0;
+  dynamic b = null;
+  dynamic c = throw "foo";
+  () →* core::int* d = () → core::int* => 0;
+  () →* Null e = () → Null => null;
+  () →* Null f = () → Null => throw "foo";
+  () →* core::int* g = () → core::int* {
+    return 0;
+  };
+  () →* Null h = () → Null {
+    return null;
+  };
+  () →* Null i = () → Null {
+    return throw "foo";
+  };
+}
+static method main() → dynamic {}

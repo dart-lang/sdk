@@ -41,8 +41,6 @@ import '../fasta_codes.dart'
         templateDuplicatedDeclarationSyntheticCause,
         templateEnumConstantSameNameAsEnclosing;
 
-import '../kernel/metadata_collector.dart';
-
 import '../modifier.dart'
     show
         constMask,
@@ -118,7 +116,6 @@ class EnumBuilder extends SourceClassBuilder {
             cls: cls);
 
   factory EnumBuilder(
-      MetadataCollector metadataCollector,
       List<MetadataBuilder> metadata,
       String name,
       List<EnumConstantInfo> enumConstantInfos,
@@ -285,7 +282,6 @@ class EnumBuilder extends SourceClassBuilder {
         EnumConstantInfo enumConstantInfo = enumConstantInfos[i];
         List<MetadataBuilder> metadata = enumConstantInfo.metadata;
         String name = enumConstantInfo.name;
-        String documentationComment = enumConstantInfo.documentationComment;
         MemberBuilder existing = members[name];
         if (existing != null) {
           // The existing declaration is synthetic if it has the same
@@ -335,8 +331,6 @@ class EnumBuilder extends SourceClassBuilder {
             enumConstantInfo.charOffset,
             fieldGetterReference: getterReference,
             fieldSetterReference: setterReference);
-        metadataCollector?.setDocumentationComment(
-            fieldBuilder.field, documentationComment);
         members[name] = fieldBuilder..next = existing;
       }
     }
@@ -488,7 +482,5 @@ class EnumConstantInfo {
   final List<MetadataBuilder> metadata;
   final String name;
   final int charOffset;
-  final String documentationComment;
-  const EnumConstantInfo(
-      this.metadata, this.name, this.charOffset, this.documentationComment);
+  const EnumConstantInfo(this.metadata, this.name, this.charOffset);
 }

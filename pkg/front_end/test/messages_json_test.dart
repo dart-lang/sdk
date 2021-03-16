@@ -27,18 +27,34 @@ main() {
     LocatedMessage locatedMessage1 =
         new LocatedMessage(Uri.parse("what:ever/fun_1.dart"), 117, 2, message);
     FormattedMessage formattedMessage2 = new FormattedMessage(
-        null, "Formatted string #2", 13, 2, Severity.error, []);
+        null,
+        "Formatted string Plain #2",
+        "Formatted string Colorized #2",
+        13,
+        2,
+        Severity.error, []);
     FormattedMessage formattedMessage3 = new FormattedMessage(
-        null, "Formatted string #3", 313, 32, Severity.error, []);
+        null,
+        "Formatted string Plain #3",
+        "Formatted string Colorized #3",
+        313,
+        32,
+        Severity.error, []);
 
     FormattedMessage formattedMessage1 = new FormattedMessage(
-        locatedMessage1, "Formatted string", 42, 86, severity, [
+        locatedMessage1,
+        "Formatted string Plain",
+        "Formatted string Colorized",
+        42,
+        86,
+        severity, [
       formattedMessage2,
       formattedMessage3
-    ], involvedFiles: [
-      Uri.parse("what:ever/foo.dart"),
-      Uri.parse("what:ever/bar.dart")
-    ]);
+    ],
+        involvedFiles: [
+          Uri.parse("what:ever/foo.dart"),
+          Uri.parse("what:ever/bar.dart")
+        ]);
     expect(formattedMessage1.codeName, "MyCodeName");
 
     DiagnosticMessageFromJson diagnosticMessageFromJson =

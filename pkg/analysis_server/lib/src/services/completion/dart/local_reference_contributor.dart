@@ -270,7 +270,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
             opType.includeReturnValueSuggestions &&
             (!opType.inStaticMethodBody || fieldDecl.isStatic)) ||
         suggestLocalFields) {
-      var inheritanceDistance = -1.0;
+      var inheritanceDistance = 0.0;
       var enclosingClass = request.target.containingNode
           .thisOrAncestorOfType<ClassDeclaration>();
       if (enclosingClass != null) {
@@ -310,16 +310,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     if (opType.includeTypeNameSuggestions) {
-      builder.suggestFunctionTypeAlias(declaration.declaredElement,
-          kind: _defaultKind);
+      builder.suggestTypeAlias(declaration.declaredElement, kind: _defaultKind);
     }
   }
 
   @override
   void declaredGenericTypeAlias(GenericTypeAlias declaration) {
     if (opType.includeTypeNameSuggestions) {
-      builder.suggestFunctionTypeAlias(declaration.declaredElement,
-          kind: _defaultKind);
+      builder.suggestTypeAlias(declaration.declaredElement, kind: _defaultKind);
     }
   }
 
@@ -343,7 +341,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         (opType.includeReturnValueSuggestions ||
             opType.includeVoidReturnSuggestions) &&
         (!opType.inStaticMethodBody || declaration.isStatic)) {
-      var inheritanceDistance = -1.0;
+      var inheritanceDistance = 0.0;
       var enclosingClass = request.target.containingNode
           .thisOrAncestorOfType<ClassDeclaration>();
       if (enclosingClass != null) {

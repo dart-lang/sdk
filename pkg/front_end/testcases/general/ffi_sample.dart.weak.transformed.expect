@@ -1,0 +1,73 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+
+import "dart:ffi";
+import "package:ffi/ffi.dart";
+
+@#C6
+class Coordinate extends ffi::Struct {
+  static final field core::int* #sizeOf = (#C9).{core::List::[]}(ffi::_abi());
+  @#C12
+  constructor #fromTypedDataBase(dynamic #pointer) → dynamic
+    : super ffi::Struct::_fromPointer(#pointer)
+    ;
+  static factory allocate(ffi::Allocator* allocator, core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
+    return let final self::Coordinate* #t1 = new self::Coordinate::#fromTypedDataBase(allocator.{ffi::Allocator::allocate}<self::Coordinate*>(self::Coordinate::#sizeOf)!) in block {
+      #t1.{self::Coordinate::x} = x;
+      #t1.{self::Coordinate::y} = y;
+      #t1.{self::Coordinate::next} = next;
+    } =>#t1;
+  }
+  abstract member-signature get _addressOf() → core::Object*; -> ffi::Struct::_addressOf
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  get x() → core::double*
+    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C14).{core::List::[]}(ffi::_abi()));
+  set x(core::double* #v) → void
+    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C14).{core::List::[]}(ffi::_abi()), #v);
+  get y() → core::double*
+    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C16).{core::List::[]}(ffi::_abi()));
+  set y(core::double* #v) → void
+    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C16).{core::List::[]}(ffi::_abi()), #v);
+  get next() → ffi::Pointer<self::Coordinate*>*
+    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::Struct::_addressOf}, (#C18).{core::List::[]}(ffi::_abi())));
+  set next(ffi::Pointer<self::Coordinate*>* #v) → void
+    return ffi::_storeIntPtr(this.{ffi::Struct::_addressOf}, (#C18).{core::List::[]}(ffi::_abi()), #v.{ffi::Pointer::address});
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = "vm:ffi:struct-fields"
+  #C2 = TypeLiteralConstant(ffi::Double)
+  #C3 = TypeLiteralConstant(ffi::Pointer<ffi::NativeType>)
+  #C4 = <core::Type>[#C2, #C2, #C3]
+  #C5 = ffi::_FfiStructLayout {fieldTypes:#C4}
+  #C6 = core::pragma {name:#C1, options:#C5}
+  #C7 = 24
+  #C8 = 20
+  #C9 = <core::int*>[#C7, #C8, #C7]
+  #C10 = "vm:entry-point"
+  #C11 = null
+  #C12 = core::pragma {name:#C10, options:#C11}
+  #C13 = 0
+  #C14 = <core::int*>[#C13, #C13, #C13]
+  #C15 = 8
+  #C16 = <core::int*>[#C15, #C15, #C15]
+  #C17 = 16
+  #C18 = <core::int*>[#C17, #C17, #C17]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///ffi_sample.dart:
+- Double. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:122:9)

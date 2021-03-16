@@ -45,16 +45,14 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/generated/engine.dart' as engine;
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/manifest/manifest_values.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:dart_style/dart_style.dart';
@@ -108,15 +106,10 @@ class EditDomainHandler extends AbstractRequestHandler {
       var processor = BulkFixProcessor(server.instrumentationService, workspace,
           useConfigFiles: params.inTestMode);
 
-      String sdkPath;
-      var sdk = server.findSdk();
-      if (sdk is FolderBasedDartSdk) {
-        sdkPath = sdk.directory.path;
-      }
       var collection = AnalysisContextCollectionImpl(
         includedPaths: params.included,
         resourceProvider: server.resourceProvider,
-        sdkPath: sdkPath,
+        sdkPath: server.sdkPath,
       );
       var changeBuilder = await processor.fixErrors(collection.contexts);
 
@@ -222,8 +215,10 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (driver == null) {
       pluginFutures = <PluginInfo, Future<plugin.Response>>{};
     } else {
-      pluginFutures = server.pluginManager
-          .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
+      pluginFutures = server.pluginManager.broadcastRequest(
+        requestParams,
+        contextRoot: driver.analysisContext.contextRoot,
+      );
     }
 
     //
@@ -266,7 +261,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
 
-    if (!server.contextManager.isInAnalysisRoot(file)) {
+    if (!server.isAnalyzed(file)) {
       server.sendResponse(Response.getFixesInvalidFile(request));
       return;
     }
@@ -280,8 +275,10 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (driver == null) {
       pluginFutures = <PluginInfo, Future<plugin.Response>>{};
     } else {
-      pluginFutures = server.pluginManager
-          .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
+      pluginFutures = server.pluginManager.broadcastRequest(
+        requestParams,
+        contextRoot: driver.analysisContext.contextRoot,
+      );
     }
     //
     // Compute fixes associated with server-generated errors.
@@ -503,7 +500,9 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
-    if (!engine.AnalysisEngine.isDartFileName(file)) {
+
+    var pathContext = server.resourceProvider.pathContext;
+    if (!file_paths.isDart(pathContext, file)) {
       server.sendResponse(Response.fileNotAnalyzed(request, file));
       return;
     }
@@ -540,7 +539,9 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
-    if (!engine.AnalysisEngine.isDartFileName(file)) {
+
+    var pathContext = server.resourceProvider.pathContext;
+    if (!file_paths.isDart(pathContext, file)) {
       server.sendResponse(Response.sortMembersInvalidFile(request));
       return;
     }
@@ -786,14 +787,14 @@ length: $length
   /// Compute and return the fixes associated with server-generated errors.
   Future<List<AnalysisErrorFixes>> _computeServerErrorFixes(
       Request request, String file, int offset) async {
-    var context = server.resourceProvider.pathContext;
-    if (AnalysisEngine.isDartFileName(file)) {
+    var pathContext = server.resourceProvider.pathContext;
+    if (file_paths.isDart(pathContext, file)) {
       return _computeDartFixes(request, file, offset);
-    } else if (AnalysisEngine.isAnalysisOptionsFileName(file, context)) {
+    } else if (file_paths.isAnalysisOptionsYaml(pathContext, file)) {
       return _computeAnalysisOptionsFixes(file, offset);
-    } else if (context.basename(file) == 'pubspec.yaml') {
+    } else if (file_paths.isPubspecYaml(pathContext, file)) {
       return _computePubspecFixes(file, offset);
-    } else if (context.basename(file) == 'manifest.xml') {
+    } else if (file_paths.isAndroidManifestXml(pathContext, file)) {
       // TODO(brianwilkerson) Do we need to check more than the file name?
       return _computeManifestFixes(file, offset);
     }

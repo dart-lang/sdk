@@ -10,7 +10,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InstanceCreationTest);
-    defineReflectiveTests(InstanceCreationWithNullSafetyTest);
   });
 }
 
@@ -162,7 +161,7 @@ main() {
     var creation = findNode.instanceCreation('Foo.bar<int>');
     assertInstanceCreation(
       creation,
-      import.importedLibrary.getType('Foo'),
+      import.importedLibrary!.getType('Foo')!,
       'Foo<int>',
       constructorName: 'bar',
       expectedConstructorMember: true,
@@ -171,7 +170,3 @@ main() {
     );
   }
 }
-
-@reflectiveTest
-class InstanceCreationWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin, InstanceCreationTestCases {}

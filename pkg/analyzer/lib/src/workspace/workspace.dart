@@ -23,14 +23,15 @@ abstract class Workspace {
 
   /// Create the source factory that should be used to resolve Uris to
   /// [Source]s. The [sdk] may be `null`. The [summaryData] can also be `null`.
-  SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData);
+  SourceFactory createSourceFactory(
+      DartSdk? sdk, SummaryDataStore? summaryData);
 
   /// Find the [WorkspacePackage] where the library at [path] is defined.
   ///
   /// Separate from [Packages] or [packageMap], this method is designed to find
   /// the package, by its root, in which a library at an arbitrary path is
   /// defined.
-  WorkspacePackage findPackageFor(String path);
+  WorkspacePackage? findPackageFor(String path);
 }
 
 /// Abstract superclass of classes that provide information about a package
@@ -43,7 +44,7 @@ abstract class WorkspacePackage {
   /// Return the experiments enabled for all files in the package.
   ///
   /// Return `null` if this package does not have enabled experiments.
-  List<String> get enabledExperiments => null;
+  List<String>? get enabledExperiments => null;
 
   /// Return the language version override for all files in the package.
   ///
@@ -52,7 +53,7 @@ abstract class WorkspacePackage {
   /// to disable Null Safety for packages that are not migrated yet.
   ///
   /// Return `null` if this package does not have a language version override.
-  Version get languageVersion => null;
+  Version? get languageVersion => null;
 
   String get root;
 
@@ -65,7 +66,7 @@ abstract class WorkspacePackage {
   /// If [source]'s URI scheme is package, it's fullName might be unusable (for
   /// example, the case of a [InSummarySource]). In this case, use
   /// [workspace]'s package URI resolver to fetch the file path.
-  String filePathFromSource(Source source) {
+  String? filePathFromSource(Source source) {
     if (source.uri.scheme == 'package') {
       return workspace.packageUriResolver.resolveAbsolute(source.uri)?.fullName;
     } else {

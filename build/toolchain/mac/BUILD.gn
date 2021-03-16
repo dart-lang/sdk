@@ -244,3 +244,19 @@ mac_toolchain("clang_x86") {
   }
   sysroot_flags = "-isysroot $mac_sdk_path -mmacosx-version-min=$mac_sdk_min"
 }
+
+mac_toolchain("clang_arm64") {
+  toolchain_cpu = "arm64"
+  toolchain_os = "mac"
+  prefix = rebase_path("//buildtools/mac-x64/clang/bin", root_build_dir)
+  cc = "${goma_prefix}$prefix/clang"
+  cxx = "${goma_prefix}$prefix/clang++"
+  ar = "${prefix}/llvm-ar"
+  ld = cxx
+  strip = "strip"
+  is_clang = true
+  if (mac_enable_relative_sdk_path) {
+    mac_sdk_path = rebase_path(mac_sdk_path, root_build_dir)
+  }
+  sysroot_flags = "-isysroot $mac_sdk_path -mmacosx-version-min=$mac_sdk_min"
+}

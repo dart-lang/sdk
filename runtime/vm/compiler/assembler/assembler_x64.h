@@ -733,6 +733,7 @@ class Assembler : public AssemblerBase {
   }
 
   void LoadIsolate(Register dst);
+  void LoadIsolateGroup(Register dst);
   void LoadDispatchTable(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);
@@ -765,6 +766,10 @@ class Assembler : public AssemblerBase {
     kValueIsNotSmi,
     kValueCanBeSmi,
   };
+
+  void LoadCompressed(Register dest,
+                      const Address& slot,
+                      CanBeSmi can_value_be_smi = kValueCanBeSmi);
 
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,

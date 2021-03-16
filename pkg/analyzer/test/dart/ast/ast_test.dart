@@ -4,8 +4,8 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -64,7 +64,7 @@ class ClassDeclarationTest extends ParserTestCase {
     expect(clazz.getConstructor(null), same(defaultConstructor));
     expect(clazz.getConstructor("a"), same(aConstructor));
     expect(clazz.getConstructor("b"), same(bConstructor));
-    expect(clazz.getConstructor("noSuchConstructor"), same(null));
+    expect(clazz.getConstructor("noSuchConstructor"), isNull);
   }
 
   void test_getField() {
@@ -79,7 +79,7 @@ class ClassDeclarationTest extends ParserTestCase {
     expect(clazz.getField("a"), same(aVar));
     expect(clazz.getField("b"), same(bVar));
     expect(clazz.getField("c"), same(cVar));
-    expect(clazz.getField("noSuchField"), same(null));
+    expect(clazz.getField("noSuchField"), isNull);
   }
 
   void test_getMethod() {
@@ -101,7 +101,7 @@ class ClassDeclarationTest extends ParserTestCase {
         null, "Test", null, null, null, null, [aMethod, bMethod]);
     expect(clazz.getMethod("a"), same(aMethod));
     expect(clazz.getMethod("b"), same(bMethod));
-    expect(clazz.getMethod("noSuchMethod"), same(null));
+    expect(clazz.getMethod("noSuchMethod"), isNull);
   }
 
   void test_isAbstract() {
@@ -121,12 +121,23 @@ class ClassDeclarationTest extends ParserTestCase {
 class ClassTypeAliasTest extends ParserTestCase {
   void test_isAbstract() {
     expect(
-        AstTestFactory.classTypeAlias("A", null, null, null, null, null)
+        AstTestFactory.classTypeAlias(
+                "A",
+                null,
+                null,
+                AstTestFactory.typeName4('B'),
+                AstTestFactory.withClause([AstTestFactory.typeName4('M')]),
+                null)
             .isAbstract,
         isFalse);
     expect(
         AstTestFactory.classTypeAlias(
-                "B", null, Keyword.ABSTRACT, null, null, null)
+                "B",
+                null,
+                Keyword.ABSTRACT,
+                AstTestFactory.typeName4('A'),
+                AstTestFactory.withClause([AstTestFactory.typeName4('M')]),
+                null)
             .isAbstract,
         isTrue);
   }
@@ -137,17 +148,17 @@ class ConstructorDeclarationTest {
   void test_firstTokenAfterCommentAndMetadata_all_inverted() {
     Token externalKeyword = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     externalKeyword.offset = 14;
-    ConstructorDeclaration declaration = AstTestFactory.constructorDeclaration2(
+    var declaration = AstTestFactory.constructorDeclaration2(
         Keyword.CONST,
         Keyword.FACTORY,
         AstTestFactory.identifier3('int'),
         null,
-        null,
-        null,
-        null);
+        AstTestFactory.formalParameterList(),
+        [],
+        AstTestFactory.emptyFunctionBody());
     declaration.externalKeyword = externalKeyword;
-    declaration.constKeyword.offset = 8;
-    Token factoryKeyword = declaration.factoryKeyword;
+    declaration.constKeyword!.offset = 8;
+    Token factoryKeyword = declaration.factoryKeyword!;
     factoryKeyword.offset = 0;
     expect(declaration.firstTokenAfterCommentAndMetadata, factoryKeyword);
   }
@@ -155,17 +166,17 @@ class ConstructorDeclarationTest {
   void test_firstTokenAfterCommentAndMetadata_all_normal() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     token.offset = 0;
-    ConstructorDeclaration declaration = AstTestFactory.constructorDeclaration2(
+    var declaration = AstTestFactory.constructorDeclaration2(
         Keyword.CONST,
         Keyword.FACTORY,
         AstTestFactory.identifier3('int'),
         null,
-        null,
-        null,
-        null);
+        AstTestFactory.formalParameterList(),
+        [],
+        AstTestFactory.emptyFunctionBody());
     declaration.externalKeyword = token;
-    declaration.constKeyword.offset = 9;
-    declaration.factoryKeyword.offset = 15;
+    declaration.constKeyword!.offset = 9;
+    declaration.factoryKeyword!.offset = 15;
     expect(declaration.firstTokenAfterCommentAndMetadata, token);
   }
 
@@ -175,17 +186,23 @@ class ConstructorDeclarationTest {
         null,
         AstTestFactory.identifier3('int'),
         null,
-        null,
-        null,
-        null);
+        AstTestFactory.formalParameterList(),
+        [],
+        AstTestFactory.emptyFunctionBody());
     expect(declaration.firstTokenAfterCommentAndMetadata,
         declaration.constKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_externalOnly() {
     Token externalKeyword = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
-    ConstructorDeclaration declaration = AstTestFactory.constructorDeclaration2(
-        null, null, AstTestFactory.identifier3('int'), null, null, null, null);
+    var declaration = AstTestFactory.constructorDeclaration2(
+        null,
+        null,
+        AstTestFactory.identifier3('int'),
+        null,
+        AstTestFactory.formalParameterList(),
+        [],
+        AstTestFactory.emptyFunctionBody());
     declaration.externalKeyword = externalKeyword;
     expect(declaration.firstTokenAfterCommentAndMetadata, externalKeyword);
   }
@@ -196,9 +213,9 @@ class ConstructorDeclarationTest {
         Keyword.FACTORY,
         AstTestFactory.identifier3('int'),
         null,
-        null,
-        null,
-        null);
+        AstTestFactory.formalParameterList(),
+        [],
+        AstTestFactory.emptyFunctionBody());
     expect(declaration.firstTokenAfterCommentAndMetadata,
         declaration.factoryKeyword);
   }
@@ -215,7 +232,7 @@ class FieldFormalParameterTest {
   void test_endToken_parameters() {
     FieldFormalParameter parameter = AstTestFactory.fieldFormalParameter(
         null, null, 'field', AstTestFactory.formalParameterList([]));
-    expect(parameter.endToken, parameter.parameters.endToken);
+    expect(parameter.endToken, parameter.parameters!.endToken);
   }
 }
 
@@ -584,36 +601,44 @@ class InterpolationStringTest extends ParserTestCase {
 @reflectiveTest
 class MethodDeclarationTest {
   void test_firstTokenAfterCommentAndMetadata_external() {
-    MethodDeclaration declaration =
-        AstTestFactory.methodDeclaration4(external: true, name: 'm');
+    MethodDeclaration declaration = AstTestFactory.methodDeclaration4(
+        external: true, name: 'm', body: AstTestFactory.emptyFunctionBody());
     expect(declaration.firstTokenAfterCommentAndMetadata,
         declaration.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_external_getter() {
     MethodDeclaration declaration = AstTestFactory.methodDeclaration4(
-        external: true, property: Keyword.GET, name: 'm');
+        external: true,
+        property: Keyword.GET,
+        name: 'm',
+        body: AstTestFactory.emptyFunctionBody());
     expect(declaration.firstTokenAfterCommentAndMetadata,
         declaration.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_external_operator() {
     MethodDeclaration declaration = AstTestFactory.methodDeclaration4(
-        external: true, operator: true, name: 'm');
+        external: true,
+        operator: true,
+        name: 'm',
+        body: AstTestFactory.emptyFunctionBody());
     expect(declaration.firstTokenAfterCommentAndMetadata,
         declaration.externalKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_getter() {
-    MethodDeclaration declaration =
-        AstTestFactory.methodDeclaration4(property: Keyword.GET, name: 'm');
+    MethodDeclaration declaration = AstTestFactory.methodDeclaration4(
+        property: Keyword.GET,
+        name: 'm',
+        body: AstTestFactory.emptyFunctionBody());
     expect(declaration.firstTokenAfterCommentAndMetadata,
         declaration.propertyKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_operator() {
-    MethodDeclaration declaration =
-        AstTestFactory.methodDeclaration4(operator: true, name: 'm');
+    MethodDeclaration declaration = AstTestFactory.methodDeclaration4(
+        operator: true, name: 'm', body: AstTestFactory.emptyFunctionBody());
     expect(declaration.firstTokenAfterCommentAndMetadata,
         declaration.operatorKeyword);
   }
@@ -823,7 +848,6 @@ class NodeListTest {
     expect(list.indexOf(secondNode), 1);
     expect(list.indexOf(thirdNode), 2);
     expect(list.indexOf(fourthNode), -1);
-    expect(list.indexOf(null), -1);
   }
 
   void test_remove() {
@@ -874,8 +898,7 @@ class NodeListTest {
     nodes.add(firstNode);
     nodes.add(secondNode);
     nodes.add(thirdNode);
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
+    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     list.addAll(nodes);
     expect(list, hasLength(3));
     AstNode fourthNode = AstTestFactory.integer(0);
@@ -888,8 +911,7 @@ class NodeListTest {
 
   void test_set_negative() {
     AstNode node = AstTestFactory.booleanLiteral(true);
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
+    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[-1] = node;
       fail("Expected IndexOutOfBoundsException");
@@ -900,8 +922,7 @@ class NodeListTest {
 
   void test_set_tooBig() {
     AstNode node = AstTestFactory.booleanLiteral(true);
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
+    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[1] = node;
       fail("Expected IndexOutOfBoundsException");
@@ -925,7 +946,7 @@ E f() => g;
 
   final featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
 
-  CompilationUnit _unit;
+  CompilationUnit? _unit;
 
   CompilationUnit get unit {
     if (_unit == null) {
@@ -945,7 +966,7 @@ E f() => g;
         featureSet: featureSet,
       ).parseCompilationUnit(tokens);
     }
-    return _unit;
+    return _unit!;
   }
 
   Token findToken(String lexeme) {
@@ -954,20 +975,20 @@ E f() => g;
       if (token.lexeme == lexeme) {
         return token;
       }
-      token = token.next;
+      token = token.next!;
     }
     fail('Failed to find $lexeme');
   }
 
   void test_findPrevious_basic_class() {
     var clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.findPrevious(findToken('A')).lexeme, 'class');
+    expect(clazz.findPrevious(findToken('A'))!.lexeme, 'class');
   }
 
   void test_findPrevious_basic_method() {
     var clazz = unit.declarations[0] as ClassDeclaration;
     var method = clazz.members[0] as MethodDeclaration;
-    expect(method.findPrevious(findToken('foo')).lexeme, 'B');
+    expect(method.findPrevious(findToken('foo'))!.lexeme, 'B');
   }
 
   void test_findPrevious_basic_statement() {
@@ -975,8 +996,8 @@ E f() => g;
     var method = clazz.members[0] as MethodDeclaration;
     var body = method.body as BlockFunctionBody;
     Statement statement = body.block.statements[0];
-    expect(statement.findPrevious(findToken('bar')).lexeme, 'return');
-    expect(statement.findPrevious(findToken(';')).lexeme, 'bar');
+    expect(statement.findPrevious(findToken('bar'))!.lexeme, 'return');
+    expect(statement.findPrevious(findToken(';'))!.lexeme, 'bar');
   }
 
   void test_findPrevious_missing() {
@@ -995,13 +1016,12 @@ E f() => g;
     Token missing = scanner.tokenize();
 
     expect(statement.findPrevious(missing), null);
-    expect(statement.findPrevious(null), null);
   }
 
   void test_findPrevious_parent_method() {
     var clazz = unit.declarations[0] as ClassDeclaration;
     var method = clazz.members[0] as MethodDeclaration;
-    expect(method.findPrevious(findToken('B')).lexeme, '{');
+    expect(method.findPrevious(findToken('B'))!.lexeme, '{');
   }
 
   void test_findPrevious_parent_statement() {
@@ -1009,18 +1029,18 @@ E f() => g;
     var method = clazz.members[0] as MethodDeclaration;
     var body = method.body as BlockFunctionBody;
     Statement statement = body.block.statements[0];
-    expect(statement.findPrevious(findToken('return')).lexeme, '{');
+    expect(statement.findPrevious(findToken('return'))!.lexeme, '{');
   }
 
   void test_findPrevious_sibling_class() {
     CompilationUnitMember declaration = unit.declarations[1];
-    expect(declaration.findPrevious(findToken('E')).lexeme, '}');
+    expect(declaration.findPrevious(findToken('E'))!.lexeme, '}');
   }
 
   void test_findPrevious_sibling_method() {
     var clazz = unit.declarations[0] as ClassDeclaration;
     var method = clazz.members[1] as MethodDeclaration;
-    expect(method.findPrevious(findToken('D')).lexeme, '}');
+    expect(method.findPrevious(findToken('D'))!.lexeme, '}');
   }
 }
 
@@ -1128,8 +1148,7 @@ class SimpleIdentifierTest extends ParserTestCase {
             assignment == _AssignmentKind.COMPOUND_RIGHT ||
             assignment == _AssignmentKind.POSTFIX_BANG ||
             assignment == _AssignmentKind.PREFIX_NOT ||
-            assignment == _AssignmentKind.SIMPLE_RIGHT ||
-            assignment == _AssignmentKind.NONE) {
+            assignment == _AssignmentKind.SIMPLE_RIGHT) {
           if (identifier.inSetterContext()) {
             fail("Expected ${_topMostNode(identifier).toSource()} to be false");
           }
@@ -1149,6 +1168,13 @@ class SimpleIdentifierTest extends ParserTestCase {
     AstTestFactory.forStatement(
         AstTestFactory.forEachPartsWithIdentifier(identifier, iterator), body);
     expect(identifier.inSetterContext(), isTrue);
+  }
+
+  void test_isQualified_inConstructorName() {
+    ConstructorName constructor = AstTestFactory.constructorName(
+        AstTestFactory.typeName4('MyClass'), "test");
+    SimpleIdentifier name = constructor.name!;
+    expect(name.isQualified, isTrue);
   }
 
   void test_isQualified_inMethodInvocation_noTarget() {
@@ -1215,7 +1241,9 @@ class SimpleIdentifierTest extends ParserTestCase {
       } else if (wrapper == _WrapperKind.PROPERTY_RIGHT) {
         expression = AstTestFactory.propertyAccess(
             AstTestFactory.identifier3("_"), identifier);
-      } else if (wrapper == _WrapperKind.NONE) {}
+      } else {
+        throw UnimplementedError();
+      }
       break;
     }
     while (true) {
@@ -1244,7 +1272,9 @@ class SimpleIdentifierTest extends ParserTestCase {
       } else if (assignment == _AssignmentKind.SIMPLE_RIGHT) {
         AstTestFactory.assignmentExpression(
             AstTestFactory.identifier3("_"), TokenType.EQ, expression);
-      } else if (assignment == _AssignmentKind.NONE) {}
+      } else {
+        throw UnimplementedError();
+      }
       break;
     }
     return identifier;
@@ -1257,7 +1287,7 @@ class SimpleIdentifierTest extends ParserTestCase {
   /// @return the root of the AST structure containing the identifier
   AstNode _topMostNode(SimpleIdentifier identifier) {
     AstNode child = identifier;
-    AstNode parent = identifier.parent;
+    var parent = identifier.parent;
     while (parent != null) {
       child = parent;
       parent = parent.parent;
@@ -1478,25 +1508,25 @@ class SimpleStringLiteralTest extends ParserTestCase {
     // '
     {
       var token = TokenFactory.tokenFromString("'X'");
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = astFactory.simpleStringLiteral(token, 'X');
       expect(node.isSingleQuoted, isTrue);
     }
     // '''
     {
       var token = TokenFactory.tokenFromString("'''X'''");
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = astFactory.simpleStringLiteral(token, 'X');
       expect(node.isSingleQuoted, isTrue);
     }
     // "
     {
       var token = TokenFactory.tokenFromString('"X"');
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = astFactory.simpleStringLiteral(token, 'X');
       expect(node.isSingleQuoted, isFalse);
     }
     // """
     {
       var token = TokenFactory.tokenFromString('"""X"""');
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = astFactory.simpleStringLiteral(token, 'X');
       expect(node.isSingleQuoted, isFalse);
     }
   }
@@ -1505,25 +1535,25 @@ class SimpleStringLiteralTest extends ParserTestCase {
     // r'
     {
       var token = TokenFactory.tokenFromString("r'X'");
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = astFactory.simpleStringLiteral(token, 'X');
       expect(node.isSingleQuoted, isTrue);
     }
     // r'''
     {
       var token = TokenFactory.tokenFromString("r'''X'''");
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = astFactory.simpleStringLiteral(token, 'X');
       expect(node.isSingleQuoted, isTrue);
     }
     // r"
     {
       var token = TokenFactory.tokenFromString('r"X"');
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = astFactory.simpleStringLiteral(token, 'X');
       expect(node.isSingleQuoted, isFalse);
     }
     // r"""
     {
       var token = TokenFactory.tokenFromString('r"""X"""');
-      var node = astFactory.simpleStringLiteral(token, null);
+      var node = astFactory.simpleStringLiteral(token, 'X');
       expect(node.isSingleQuoted, isFalse);
     }
   }
@@ -1690,10 +1720,9 @@ class StringInterpolationTest extends ParserTestCase {
 class VariableDeclarationTest extends ParserTestCase {
   void test_getDocumentationComment_onGrandParent() {
     VariableDeclaration varDecl = AstTestFactory.variableDeclaration("a");
-    TopLevelVariableDeclaration decl =
+    var decl =
         AstTestFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
-    Comment comment =
-        astFactory.documentationComment(List<Token>.filled(0, null));
+    Comment comment = astFactory.documentationComment([]);
     expect(varDecl.documentationComment, isNull);
     decl.documentationComment = comment;
     expect(varDecl.documentationComment, isNotNull);
@@ -1701,9 +1730,8 @@ class VariableDeclarationTest extends ParserTestCase {
   }
 
   void test_getDocumentationComment_onNode() {
-    VariableDeclaration decl = AstTestFactory.variableDeclaration("a");
-    Comment comment =
-        astFactory.documentationComment(List<Token>.filled(0, null));
+    var decl = AstTestFactory.variableDeclaration("a");
+    Comment comment = astFactory.documentationComment([]);
     decl.documentationComment = comment;
     expect(decl.documentationComment, isNotNull);
   }
@@ -1733,8 +1761,6 @@ class _AssignmentKind {
   static const _AssignmentKind SIMPLE_RIGHT =
       _AssignmentKind('SIMPLE_RIGHT', 9);
 
-  static const _AssignmentKind NONE = _AssignmentKind('NONE', 10);
-
   static const List<_AssignmentKind> values = [
     BINARY,
     COMPOUND_LEFT,
@@ -1746,7 +1772,6 @@ class _AssignmentKind {
     PREFIX_NOT,
     SIMPLE_LEFT,
     SIMPLE_RIGHT,
-    NONE
   ];
 
   final String name;
@@ -1773,14 +1798,11 @@ class _WrapperKind {
 
   static const _WrapperKind PROPERTY_RIGHT = _WrapperKind('PROPERTY_RIGHT', 3);
 
-  static const _WrapperKind NONE = _WrapperKind('NONE', 4);
-
   static const List<_WrapperKind> values = [
     PREFIXED_LEFT,
     PREFIXED_RIGHT,
     PROPERTY_LEFT,
     PROPERTY_RIGHT,
-    NONE
   ];
 
   final String name;

@@ -70,5 +70,9 @@ var tests = <IsolateTest>[
   resumeIsolate,
 ];
 
-main([args = const <String>[]]) =>
-    runIsolateTests(args, tests, testeeConcurrent: testeeDo);
+main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'async_scope_test.dart',
+      testeeConcurrent: testeeDo,
+    );

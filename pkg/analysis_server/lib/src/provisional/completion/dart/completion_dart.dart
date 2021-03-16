@@ -29,6 +29,8 @@ abstract class DartCompletionContributor {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartCompletionRequest extends CompletionRequest {
+  CompletionPreference get completionPreference;
+
   /// Return the type imposed on the target's `containingNode` based on its
   /// context, or `null` if the context does not impose any type.
   DartType get contextType;
@@ -71,6 +73,10 @@ abstract class DartCompletionRequest extends CompletionRequest {
   /// The [OpType] which describes which types of suggestions would fit the
   /// request.
   OpType get opType;
+
+  /// The source range that represents the region of text that should be
+  /// replaced when a suggestion is selected.
+  SourceRange get replacementRange;
 
   /// Return the [SourceFactory] of the request.
   SourceFactory get sourceFactory;

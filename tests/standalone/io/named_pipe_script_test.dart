@@ -34,6 +34,8 @@ main() async {
       Platform.executable,
       []
         ..addAll(Platform.executableArguments)
+        ..add('--sound-null-safety')
+        ..add('--verbosity=warning')
         ..add(stdinPipePath));
   bool stdinWriteFailed = false;
   process.stdout.transform(utf8.decoder).listen(output.write);

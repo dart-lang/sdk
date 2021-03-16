@@ -11,14 +11,15 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ReplaceBooleanWithBoolMultiTest);
     defineReflectiveTests(ReplaceBooleanWithBoolTest);
   });
 }
 
 @reflectiveTest
-class ReplaceBooleanWithBoolTest extends FixProcessorTest {
+class ReplaceBooleanWithBoolMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL;
+  FixKind get kind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL_MULTI;
 
   Future<void> test_all() async {
     await resolveTestCode('''
@@ -34,6 +35,12 @@ main() {
 }
 ''');
   }
+}
+
+@reflectiveTest
+class ReplaceBooleanWithBoolTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL;
 
   Future<void> test_single() async {
     await resolveTestCode('''

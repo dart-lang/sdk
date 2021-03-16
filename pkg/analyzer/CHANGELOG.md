@@ -1,10 +1,35 @@
-## 0.41.2-dev
+## 1.2.0
+* Deprecated all setters in API of AST. Use `parseString()` instead.
+
+## 1.1.0
+* Deprecated `TypeProvider.futureType2()`, `iterableType2()`, etc.
+  Use corresponding `TypeProvider.futureType()`, `iterableType()`, etc.
+* Remove experimental markers from Null Safety APIs.
+* Added `Resource.parent2` and deprecated `Resource.parent`.
+* Added `Folder.isRoot`.
+* Added `FolderExtension` with `withAncestors`.
+* Added `ContextRoot.workspace`, deprecated `AnalysisContext.workspace`.
+* Deprecated `ElementVisitor.visitFunctionTypeAliasElement()`.
+  Override `ElementVisitor.visitTypeAliasElement()` instead.
+* Deprecated `FunctionTypeAliasElement`. Use `TypeAliasElement` instead.
+
+## 1.0.0
+* Stable null safety release.
+* Updated dependencies to null safe releases.
+
+## 0.42.0-nullsafety.0
+* Migrated to null safety, min SDK is `2.12.0`.
 * Deprecated `FunctionTypeAliasElement.function`.
   Use `TypeAliasElement.aliasedElement` instead.
 * Widened the dependency on package:crypto to include version 3.0.0.
 * Deprecated `CompilationUnitElement.functionTypeAliases`.
   Use `CompilationUnitElement.typeAliases` instead.
 * Added `AnalysisContext.sdkRoot`.
+* Removed `NullSafetyUnderstandingFlag`.
+* Removed `functionTypeAliasElement` from `TypeSystem.instantiateToBounds2`.
+* Added `Annotation.typeArguments` in preparation for supporting #44838.
+* Removed `actualUri` from `UriResolver.resolveAbsolute`.
+* Deprecated `FunctionType.element` and `FunctionType.typeArguments`.
 
 ## 0.41.1
 * Updated `PackageBuildWorkspace` that supports `package:build` to stop

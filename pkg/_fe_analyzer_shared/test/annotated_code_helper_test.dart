@@ -16,6 +16,7 @@ main() {
   testDir('pkg/_fe_analyzer_shared/test/flow_analysis/nullability/data');
   testDir('pkg/_fe_analyzer_shared/test/flow_analysis/reachability/data');
   testDir('pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion/data');
+  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/why_not_promoted/data');
   testDir('pkg/_fe_analyzer_shared/test/inheritance/data');
 }
 

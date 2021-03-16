@@ -111,6 +111,11 @@ class CompletionTarget {
   /// invoked [ExecutableElement], otherwise this is `null`.
   ExecutableElement _executableElement;
 
+  /// If the target is in an argument list of a [FunctionExpressionInvocation],
+  /// then this is the static type of the function being invoked, otherwise this
+  /// is `null`.
+  FunctionType _functionType;
+
   /// If the target is an argument in an [ArgumentList], then this is the
   /// corresponding [ParameterElement] in the invoked [ExecutableElement],
   /// otherwise this is `null`.
@@ -222,6 +227,14 @@ class CompletionTarget {
       // containingNode is still the entryPoint.
       assert(identical(containingNode, entryPoint));
 
+      // Check for comments on the EOF token (trailing comments in a file).
+      var commentToken =
+          _getContainingCommentToken(compilationUnit.endToken, offset);
+      if (commentToken != null) {
+        return CompletionTarget._(
+            compilationUnit, offset, compilationUnit, commentToken, true);
+      }
+
       // Since no completion target was found, we set the completion target
       // entity to null and use the entryPoint as the parent.
       return CompletionTarget._(
@@ -268,6 +281,32 @@ class CompletionTarget {
       }
     }
     return _executableElement;
+  }
+
+  /// If the target is in an argument list of a [FunctionExpressionInvocation],
+  /// then this is the static type of the function being invoked, otherwise this
+  /// is `null`.
+  FunctionType get functionType {
+    if (_functionType == null) {
+      var argumentList = containingNode;
+      if (argumentList is NamedExpression) {
+        argumentList = argumentList.parent;
+      }
+      if (argumentList is! ArgumentList) {
+        return null;
+      }
+
+      var invocation = argumentList.parent;
+
+      if (invocation is FunctionExpressionInvocation) {
+        final invokeType = invocation.staticInvokeType;
+        if (invokeType is FunctionType) {
+          _functionType = invokeType;
+        }
+      }
+    }
+
+    return _functionType;
   }
 
   /// Return `true` if the [containingNode] is a cascade

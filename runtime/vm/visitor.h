@@ -35,6 +35,9 @@ class ObjectPointerVisitor {
 
   // Range of pointers to visit 'first' <= pointer <= 'last'.
   virtual void VisitPointers(ObjectPtr* first, ObjectPtr* last) = 0;
+  virtual void VisitCompressedPointers(uword heap_base,
+                                       CompressedObjectPtr* first,
+                                       CompressedObjectPtr* last) = 0;
 
   // len argument is the number of pointers to visit starting from 'p'.
   void VisitPointers(ObjectPtr* p, intptr_t len) {

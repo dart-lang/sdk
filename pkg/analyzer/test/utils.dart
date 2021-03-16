@@ -34,7 +34,7 @@ class AstFinder {
         return unitMember;
       }
     }
-    Source source = unit.declaredElement.source;
+    Source source = unit.declaredElement!.source;
     fail('No class named $className in $source');
   }
 
@@ -42,7 +42,7 @@ class AstFinder {
   /// in the class with the given [className] in the given compilation [unit].
   /// If constructorName is null, return the default constructor;
   static ConstructorDeclaration getConstructorInClass(
-      CompilationUnit unit, String className, String constructorName) {
+      CompilationUnit unit, String className, String? constructorName) {
     ClassDeclaration unitMember = getClass(unit, className);
     NodeList<ClassMember> classMembers = unitMember.members;
     for (ClassMember classMember in classMembers) {
@@ -76,9 +76,10 @@ class AstFinder {
 
   /// Return the element of the field with the given [fieldName] in the class
   /// with the given [className] in the given compilation [unit].
-  static FieldElement getFieldInClassElement(
+  static FieldElement? getFieldInClassElement(
       CompilationUnit unit, String className, String fieldName) {
-    return getFieldInClass(unit, className, fieldName)?.name?.staticElement;
+    return getFieldInClass(unit, className, fieldName).name.staticElement
+        as FieldElement;
   }
 
   /// Return the declaration of the method with the given [methodName] in the
@@ -103,7 +104,7 @@ class AstFinder {
   static List<Statement> getStatementsInMethod(
       CompilationUnit unit, String className, String methodName) {
     MethodDeclaration method = getMethodInClass(unit, className, methodName);
-    BlockFunctionBody body = method.body;
+    var body = method.body as BlockFunctionBody;
     return body.block.statements;
   }
 
@@ -112,7 +113,7 @@ class AstFinder {
   static List<Statement> getStatementsInTopLevelFunction(
       CompilationUnit unit, String functionName) {
     FunctionDeclaration function = getTopLevelFunction(unit, functionName);
-    BlockFunctionBody body = function.functionExpression.body;
+    var body = function.functionExpression.body as BlockFunctionBody;
     return body.block.statements;
   }
 
@@ -153,7 +154,8 @@ class AstFinder {
   /// Return the top-level variable element with the given [name].
   static TopLevelVariableElement getTopLevelVariableElement(
       CompilationUnit unit, String name) {
-    return getTopLevelVariable(unit, name)?.name?.staticElement;
+    return getTopLevelVariable(unit, name).name.staticElement
+        as TopLevelVariableElement;
   }
 }
 

@@ -35,9 +35,10 @@ class NormalizeHelper {
   FunctionTypeImpl _functionType(FunctionType functionType) {
     var fresh = getFreshTypeParameters(functionType.typeFormals);
     for (var typeParameter in fresh.freshTypeParameters) {
-      if (typeParameter.bound != null) {
+      var bound = typeParameter.bound;
+      if (bound != null) {
         var typeParameterImpl = typeParameter as TypeParameterElementImpl;
-        typeParameterImpl.bound = _normalize(typeParameter.bound);
+        typeParameterImpl.bound = _normalize(bound);
       }
     }
 
@@ -132,7 +133,7 @@ class NormalizeHelper {
 
     // NORM(X extends T)
     // NORM(X & T)
-    if (T is TypeParameterType) {
+    if (T is TypeParameterTypeImpl) {
       return _typeParameterType(T);
     }
 
@@ -145,13 +146,13 @@ class NormalizeHelper {
     }
 
     // NORM(R Function<X extends B>(S)) = R1 Function(X extends B1>(S1)
-    return _functionType(T);
+    return _functionType(T as FunctionType);
   }
 
   /// NORM(T?)
-  DartType _nullabilityQuestion(TypeImpl T) {
+  DartType _nullabilityQuestion(DartType T) {
     // * let S be NORM(T)
-    var T_none = T.withNullability(NullabilitySuffix.none);
+    var T_none = (T as TypeImpl).withNullability(NullabilitySuffix.none);
     var S = _normalize(T_none);
     var S_nullability = S.nullabilitySuffix;
 
@@ -205,9 +206,9 @@ class NormalizeHelper {
   }
 
   /// NORM(T*)
-  DartType _nullabilityStar(TypeImpl T) {
+  DartType _nullabilityStar(DartType T) {
     // * let S be NORM(T)
-    var T_none = T.withNullability(NullabilitySuffix.none);
+    var T_none = (T as TypeImpl).withNullability(NullabilitySuffix.none);
     var S = _normalize(T_none);
     var S_nullability = S.nullabilitySuffix;
 
@@ -237,9 +238,10 @@ class NormalizeHelper {
     var element = T.element;
 
     // NORM(X & T)
-    if (T.promotedBound != null) {
+    var promotedBound = T.promotedBound;
+    if (promotedBound != null) {
       // let S be NORM(T)
-      var S = _normalize(T.promotedBound);
+      var S = _normalize(promotedBound);
       return _typeParameterType_promoted(element, S);
     }
 

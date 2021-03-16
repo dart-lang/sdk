@@ -1,0 +1,6 @@
+M(r1 int32, r2 int32, r3 int32) Compound(size: 9)
+M(S+0 int32, S+4 int32, S+8 int32) Compound(size: 9)
+S+12 int32[int8]
+d0 double
+=>
+P(r0 uint32) Compound(size: 9)

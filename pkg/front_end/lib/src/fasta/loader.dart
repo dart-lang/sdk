@@ -260,9 +260,9 @@ abstract class Loader {
   void logSummary(Template<SummaryTemplate> template) {
     ticker.log((Duration elapsed, Duration sinceStart) {
       int libraryCount = 0;
-      builders.forEach((Uri uri, LibraryBuilder library) {
+      for (LibraryBuilder library in builders.values) {
         if (library.loader == this) libraryCount++;
-      });
+      }
       double ms = elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
       Message message = template.withArguments(
           libraryCount, byteCount, ms, byteCount / ms, ms / libraryCount);

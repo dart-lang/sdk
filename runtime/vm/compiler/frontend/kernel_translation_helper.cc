@@ -433,15 +433,18 @@ const String& TranslationHelper::DartConstructorName(NameIndex constructor) {
 }
 
 const String& TranslationHelper::DartProcedureName(NameIndex procedure) {
-  ASSERT(IsProcedure(procedure));
+  ASSERT(IsProcedure(procedure) || IsConstructor(procedure));
   if (IsSetter(procedure)) {
     return DartSetterName(procedure);
   } else if (IsGetter(procedure)) {
     return DartGetterName(procedure);
   } else if (IsFactory(procedure)) {
     return DartFactoryName(procedure);
-  } else {
+  } else if (IsMethod(procedure)) {
     return DartMethodName(procedure);
+  } else {
+    ASSERT(IsConstructor(procedure));
+    return DartConstructorName(procedure);
   }
 }
 
@@ -526,7 +529,7 @@ const String& TranslationHelper::DartFactoryName(NameIndex factory) {
 static void CheckStaticLookup(const Object& target) {
   if (target.IsNull()) {
 #ifndef PRODUCT
-    ASSERT(Isolate::Current()->HasAttemptedReload());
+    ASSERT(IsolateGroup::Current()->HasAttemptedReload());
     Report::LongJump(LanguageError::Handle(LanguageError::New(String::Handle(
         String::New("Unimplemented handling of missing static target")))));
 #else
@@ -895,6 +898,10 @@ void FunctionNodeHelper::ReadUntilExcluding(Field field) {
       FALL_THROUGH;
     case kReturnType:
       helper_->SkipDartType();  // read return type.
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
+    case kFutureValueType:
+      helper_->SkipOptionalDartType();  // read future value type.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kBody:
@@ -2444,6 +2451,7 @@ void KernelReaderHelper::SkipExpression() {
       SkipFunctionNode();  // read function node.
       return;
     case kLet:
+      ReadPosition();             // read position.
       SkipVariableDeclaration();  // read variable declaration.
       SkipExpression();           // read expression.
       return;

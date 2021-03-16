@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test2() → void
+  ;
+static method main() → void
+  ;
+static method checkFirstLineHasPosition(core::StackTrace* stackTrace) → void
+  ;

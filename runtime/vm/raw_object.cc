@@ -377,7 +377,7 @@ intptr_t UntaggedObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 #endif
 }
 
-void UntaggedObject::VisitPointersPrecise(Isolate* isolate,
+void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
                                           ObjectPointerVisitor* visitor) {
   intptr_t class_id = GetClassId();
   if (class_id < kNumPredefinedCids) {
@@ -386,7 +386,7 @@ void UntaggedObject::VisitPointersPrecise(Isolate* isolate,
   }
 
   // N.B.: Not using the heap size!
-  uword next_field_offset = isolate->GetClassForHeapWalkAt(class_id)
+  uword next_field_offset = isolate_group->GetClassForHeapWalkAt(class_id)
                                 ->untag()
                                 ->host_next_field_offset_in_words_
                             << kWordSizeLog2;
@@ -434,6 +434,22 @@ bool UntaggedObject::FindObject(FindObjectVisitor* visitor) {
     return Type::InstanceSize();                                               \
   }
 
+#if !defined(DART_COMPRESSED_POINTERS)
+#define COMPRESSED_VISITOR(Type) REGULAR_VISITOR(Type)
+#else
+#define COMPRESSED_VISITOR(Type)                                               \
+  intptr_t Untagged##Type::Visit##Type##Pointers(                              \
+      Type##Ptr raw_obj, ObjectPointerVisitor* visitor) {                      \
+    /* Make sure that we got here with the tagged pointer as this. */          \
+    ASSERT(raw_obj->IsHeapObject());                                           \
+    ASSERT_UNCOMPRESSED(Type);                                                 \
+    visitor->VisitCompressedPointers(raw_obj->heap_base(),                     \
+                                     raw_obj->untag()->from(),                 \
+                                     raw_obj->untag()->to());                  \
+    return Type::InstanceSize();                                               \
+  }
+#endif
+
 // It calls the from() and to() methods on the raw object to get the first and
 // last cells that need visiting.
 //
@@ -463,10 +479,22 @@ bool UntaggedObject::FindObject(FindObjectVisitor* visitor) {
     return Type::InstanceSize(length);                                         \
   }
 
-// For now there are no compressed pointers:
-#define COMPRESSED_VISITOR(Type) REGULAR_VISITOR(Type)
+#if !defined(DART_COMPRESSED_POINTERS)
 #define VARIABLE_COMPRESSED_VISITOR(Type, get_length)                          \
   VARIABLE_VISITOR(Type, get_length)
+#else
+#define VARIABLE_COMPRESSED_VISITOR(Type, get_length)                          \
+  intptr_t Untagged##Type::Visit##Type##Pointers(                              \
+      Type##Ptr raw_obj, ObjectPointerVisitor* visitor) {                      \
+    /* Make sure that we got here with the tagged pointer as this. */          \
+    ASSERT(raw_obj->IsHeapObject());                                           \
+    intptr_t length = get_length;                                              \
+    visitor->VisitCompressedPointers(raw_obj->heap_base(),                     \
+                                     raw_obj->untag()->from(),                 \
+                                     raw_obj->untag()->to(length));            \
+    return Type::InstanceSize(length);                                         \
+  }
+#endif
 
 // For fixed-length objects that don't have any pointers that need visiting.
 #define NULL_VISITOR(Type)                                                     \
@@ -505,7 +533,7 @@ REGULAR_VISITOR(TypeRef)
 REGULAR_VISITOR(TypeParameter)
 REGULAR_VISITOR(PatchClass)
 REGULAR_VISITOR(Function)
-COMPRESSED_VISITOR(Closure)
+REGULAR_VISITOR(Closure)
 REGULAR_VISITOR(ClosureData)
 REGULAR_VISITOR(FfiTrampolineData)
 REGULAR_VISITOR(Script)
@@ -523,9 +551,9 @@ REGULAR_VISITOR(UnhandledException)
 REGULAR_VISITOR(UnwindError)
 REGULAR_VISITOR(ExternalOneByteString)
 REGULAR_VISITOR(ExternalTwoByteString)
-COMPRESSED_VISITOR(GrowableObjectArray)
-COMPRESSED_VISITOR(LinkedHashMap)
-COMPRESSED_VISITOR(ExternalTypedData)
+REGULAR_VISITOR(GrowableObjectArray)
+REGULAR_VISITOR(LinkedHashMap)
+REGULAR_VISITOR(ExternalTypedData)
 TYPED_DATA_VIEW_VISITOR(TypedDataView)
 REGULAR_VISITOR(ReceivePort)
 REGULAR_VISITOR(StackTrace)
@@ -536,15 +564,15 @@ REGULAR_VISITOR(UserTag)
 REGULAR_VISITOR(SubtypeTestCache)
 REGULAR_VISITOR(LoadingUnit)
 REGULAR_VISITOR(KernelProgramInfo)
+REGULAR_VISITOR(WeakSerializationReference)
 VARIABLE_VISITOR(TypeArguments, Smi::Value(raw_obj->untag()->length_))
 VARIABLE_VISITOR(LocalVarDescriptors, raw_obj->untag()->num_entries_)
 VARIABLE_VISITOR(ExceptionHandlers, raw_obj->untag()->num_entries_)
 VARIABLE_VISITOR(Context, raw_obj->untag()->num_variables_)
-VARIABLE_COMPRESSED_VISITOR(Array, Smi::Value(raw_obj->untag()->length()))
-VARIABLE_COMPRESSED_VISITOR(
-    TypedData,
-    TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *
-        Smi::Value(raw_obj->untag()->length_))
+VARIABLE_VISITOR(Array, Smi::Value(raw_obj->untag()->length()))
+VARIABLE_VISITOR(TypedData,
+                 TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *
+                     Smi::Value(raw_obj->untag()->length_))
 VARIABLE_VISITOR(ContextScope, raw_obj->untag()->num_variables_)
 NULL_VISITOR(Mint)
 NULL_VISITOR(Double)
@@ -576,11 +604,6 @@ UNREACHABLE_VISITOR(String)
 UNREACHABLE_VISITOR(FutureOr)
 // Smi has no heap representation.
 UNREACHABLE_VISITOR(Smi)
-#if defined(DART_PRECOMPILED_RUNTIME)
-NULL_VISITOR(WeakSerializationReference)
-#else
-REGULAR_VISITOR(WeakSerializationReference)
-#endif
 
 intptr_t UntaggedField::VisitFieldPointers(FieldPtr raw_obj,
                                            ObjectPointerVisitor* visitor) {
@@ -692,6 +715,12 @@ intptr_t UntaggedImmutableArray::VisitImmutableArrayPointers(
 void UntaggedObject::RememberCard(ObjectPtr const* slot) {
   OldPage::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
 }
+
+#if defined(DART_COMPRESSED_POINTERS)
+void UntaggedObject::RememberCard(CompressedObjectPtr const* slot) {
+  OldPage::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
+}
+#endif
 
 DEFINE_LEAF_RUNTIME_ENTRY(void,
                           RememberCard,

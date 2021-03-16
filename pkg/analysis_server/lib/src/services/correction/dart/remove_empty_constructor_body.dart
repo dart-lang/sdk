@@ -14,6 +14,9 @@ class RemoveEmptyConstructorBody extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
       if (node is Block && node.parent is BlockFunctionBody) {

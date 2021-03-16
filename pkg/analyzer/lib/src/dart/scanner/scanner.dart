@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -44,14 +43,14 @@ class Scanner {
   /// If the file has [fasta.LanguageVersionToken], it is allowed to use the
   /// language version greater than the one specified in the package config.
   /// So, we need to know the full feature set for the context.
-  FeatureSet _featureSetForOverriding;
+  late final FeatureSet _featureSetForOverriding;
 
   /// The flag specifying whether documentation comments should be parsed.
   bool _preserveComments = true;
 
   final List<int> lineStarts = <int>[];
 
-  /*late final*/ Token firstToken;
+  late final Token firstToken;
 
   /// A flag indicating whether the scanner should recognize the `>>>` operator
   /// and the `>>>=` operator.
@@ -65,9 +64,9 @@ class Scanner {
   /// Use [configureFeatures] rather than this field.
   bool enableNonNullable = false;
 
-  Version _overrideVersion;
+  Version? _overrideVersion;
 
-  FeatureSet _featureSet;
+  late FeatureSet _featureSet;
 
   /// Initialize a newly created scanner to scan characters from the given
   /// [source]. The given character [reader] will be used to read the characters
@@ -79,7 +78,7 @@ class Scanner {
           contents: reader.getContents(), offset: reader.offset);
 
   factory Scanner.fasta(Source source, AnalysisErrorListener errorListener,
-      {String contents, int offset = -1}) {
+      {String? contents, int offset = -1}) {
     return Scanner._(
         source, contents ?? source.contents.data, offset, errorListener);
   }
@@ -101,7 +100,7 @@ class Scanner {
 
   /// The language version override specified for this compilation unit using a
   /// token like '// @dart = 2.7', or `null` if no override is specified.
-  Version get overrideVersion => _overrideVersion;
+  Version? get overrideVersion => _overrideVersion;
 
   set preserveComments(bool preserveComments) {
     _preserveComments = preserveComments;
@@ -113,8 +112,8 @@ class Scanner {
   /// that callers are forced to use this API.  Note that this would be a
   /// breaking change.
   void configureFeatures({
-    @required FeatureSet featureSetForOverriding,
-    @required FeatureSet featureSet,
+    required FeatureSet featureSetForOverriding,
+    required FeatureSet featureSet,
   }) {
     _featureSetForOverriding = featureSetForOverriding;
     _featureSet = featureSet;
@@ -123,7 +122,7 @@ class Scanner {
   }
 
   void reportError(
-      ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+      ScannerErrorCode errorCode, int offset, List<Object?>? arguments) {
     _errorListener
         .onError(AnalysisError(source, offset, 1, errorCode, arguments));
   }
@@ -146,11 +145,7 @@ class Scanner {
   /// Set [reportScannerErrors] `true` when using the old parser.
   Token tokenize({bool reportScannerErrors = true}) {
     fasta.ScannerResult result = fasta.scanString(_contents,
-        configuration: _featureSet != null
-            ? buildConfig(_featureSet)
-            : fasta.ScannerConfiguration(
-                enableTripleShift: enableGtGtGt,
-                enableNonNullable: enableNonNullable),
+        configuration: buildConfig(_featureSet),
         includeComments: _preserveComments,
         languageVersionChanged: _languageVersionChanged);
 
@@ -170,8 +165,8 @@ class Scanner {
       // The default recovery strategy used by scanString
       // places all error tokens at the head of the stream.
       while (token.type == TokenType.BAD_INPUT) {
-        translateErrorToken(token, reportError);
-        token = token.next;
+        translateErrorToken(token as fasta.ErrorToken, reportError);
+        token = token.next!;
       }
     }
 
@@ -181,7 +176,7 @@ class Scanner {
       final int delta = _readerOffset + 1;
       do {
         token.offset += delta;
-        token = token.next;
+        token = token.next!;
       } while (!token.isEof);
     }
     return firstToken;
@@ -194,7 +189,9 @@ class Scanner {
     if (overrideMajor < 0 || overrideMinor < 0) {
       return;
     }
-    _overrideVersion = Version(overrideMajor, overrideMinor, 0);
+
+    var overrideVersion = Version(overrideMajor, overrideMinor, 0);
+    _overrideVersion = overrideVersion;
 
     var latestVersion = ExperimentStatus.currentVersion;
     if (overrideVersion > latestVersion) {
@@ -209,17 +206,15 @@ class Scanner {
       );
       _overrideVersion = null;
     } else {
-      if (_featureSet != null) {
-        _featureSet = _featureSetForOverriding.restrictToVersion(
-          _overrideVersion,
-        );
-        scanner.configuration = buildConfig(_featureSet);
-      }
+      _featureSet = _featureSetForOverriding.restrictToVersion(
+        overrideVersion,
+      );
+      scanner.configuration = buildConfig(_featureSet);
     }
   }
 
   /// Return a ScannerConfiguration based upon the specified feature set.
-  static fasta.ScannerConfiguration buildConfig(FeatureSet featureSet) =>
+  static fasta.ScannerConfiguration buildConfig(FeatureSet? featureSet) =>
       featureSet == null
           ? fasta.ScannerConfiguration()
           : fasta.ScannerConfiguration(

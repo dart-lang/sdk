@@ -11,7 +11,7 @@ class TestInstrumentationService implements InstrumentationService {
   void logException(
     exception, [
     StackTrace stackTrace,
-    List<InstrumentationServiceAttachment> attachments,
+    List<InstrumentationServiceAttachment> attachments = const [],
   ]) {
     throw CaughtException(exception, stackTrace);
   }

@@ -10,7 +10,7 @@ import "dart:convert" show JsonEncoder;
 
 import "dart:io" show File;
 
-import "package:kernel/ast.dart" hide MapEntry;
+import "package:kernel/ast.dart";
 
 import "package:front_end/src/fasta/type_inference/type_schema.dart"
     show UnknownType;
@@ -241,11 +241,6 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   @override
   void visitVoidType(VoidType node, StringBuffer sb) {
     sb.write("void");
-  }
-
-  @override
-  void visitBottomType(BottomType node, StringBuffer sb) {
-    sb.write("⊥");
   }
 
   @override

@@ -1,3 +1,4 @@
+// @dart = 2.9
 class Foo<T extends Foo<T>> {}
 
 abstract class Bar {

@@ -1499,6 +1499,10 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return _buildClassHierarchy(classes);
   }
 
+  Future<ServiceObject> getAllocationTraces() {
+    return invokeRpc('getAllocationTraces', {});
+  }
+
   Future<ServiceObject> getPorts() {
     return invokeRpc('_getPorts', {});
   }
@@ -1910,7 +1914,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   }
 
   Future<ServiceObject> eval(ServiceObject target, String expression,
-      {Map<String, ServiceObject>? scope, bool disableBreakpoints: false}) {
+      {Map<String, ServiceObject>? scope,
+      bool disableBreakpoints: false}) async {
     Map params = {
       'targetId': target.id,
       'expression': expression,
@@ -1923,7 +1928,24 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       });
       params["scope"] = scopeWithIds;
     }
-    return invokeRpc('evaluate', params);
+    try {
+      return await invokeRpc('evaluate', params);
+    } on ServerRpcException catch (error) {
+      if (error.code == ServerRpcException.kExpressionCompilationError) {
+        final String details =
+            error.data != null ? error.data!["details"]?.toString() ?? "" : "";
+        Map map = {
+          'type': 'Error',
+          'message': details,
+          'kind': 'LanguageError',
+          'exception': null,
+          'stacktrace': null,
+        };
+        return ServiceObject._fromMap(null, map);
+      } else {
+        rethrow;
+      }
+    }
   }
 
   Future<ServiceObject> evalFrame(int frameIndex, String expression,
@@ -1946,9 +1968,10 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       return await invokeRpc('evaluateInFrame', params);
     } on ServerRpcException catch (error) {
       if (error.code == ServerRpcException.kExpressionCompilationError) {
+        String details = error.data?["details"].toString() ?? "";
         Map map = {
           'type': 'Error',
-          'message': error.data.toString(),
+          'message': details,
           'kind': 'LanguageError',
           'exception': null,
           'stacktrace': null,
@@ -2649,7 +2672,7 @@ class Class extends HeapObject implements M.Class {
     error = map['error'];
 
     traceAllocations =
-        (map['_traceAllocations'] != null) ? map['_traceAllocations'] : false;
+        (map['traceAllocations'] != null) ? map['traceAllocations'] : false;
   }
 
   void _addSubclass(Class subclass) {
@@ -2667,17 +2690,17 @@ class Class extends HeapObject implements M.Class {
   }
 
   Future<ServiceObject> setTraceAllocations(bool enable) {
-    return isolate!.invokeRpc('_setTraceClassAllocation', {
+    return isolate!.invokeRpc('setTraceClassAllocation', {
       'enable': enable,
       'classId': id,
     });
   }
 
-  Future<ServiceObject> getAllocationSamples() {
+  Future<ServiceObject> getAllocationTraces() {
     var params = {
       'classId': id,
     };
-    return isolate!.invokeRpc('_getAllocationSamples', params);
+    return isolate!.invokeRpc('getAllocationTraces', params);
   }
 
   String toString() => 'Class($vmName)';

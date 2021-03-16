@@ -83,7 +83,6 @@ DECLARE_FLAG(bool, print_flow_graph_optimized);
 
 // Quick access to the current zone.
 #define Z (zone())
-#define I (isolate())
 
 #define TRACE_INLINING(statement)                                              \
   do {                                                                         \
@@ -608,7 +607,7 @@ class PolymorphicInliner : public ValueObject {
 
   TargetEntryInstr* BuildDecisionGraph();
 
-  Isolate* isolate() const;
+  IsolateGroup* isolate_group() const;
   Zone* zone() const;
   intptr_t AllocateBlockId() const;
   inline bool trace_inlining() const;
@@ -762,7 +761,6 @@ class CallSiteInliner : public ValueObject {
   FlowGraph* caller_graph() const { return caller_graph_; }
 
   Thread* thread() const { return caller_graph_->thread(); }
-  Isolate* isolate() const { return caller_graph_->isolate(); }
   Zone* zone() const { return caller_graph_->zone(); }
 
   bool trace_inlining() const { return inliner_->trace_inlining(); }
@@ -1002,12 +1000,9 @@ class CallSiteInliner : public ValueObject {
         ZoneGrowableArray<const ICData*>* ic_data_array =
             new (Z) ZoneGrowableArray<const ICData*>();
         const bool clone_ic_data = Compiler::IsBackgroundCompilation();
+        ASSERT(CompilerState::Current().is_aot() ||
+               function.ic_data_array() != Array::null());
         function.RestoreICDataMap(ic_data_array, clone_ic_data);
-        if (Compiler::IsBackgroundCompilation() &&
-            (function.ic_data_array() == Array::null())) {
-          Compiler::AbortBackgroundCompilation(DeoptId::kNone,
-                                               "ICData cleared while inlining");
-        }
 
         // Parse the callee function.
         bool in_cache;
@@ -1663,8 +1658,8 @@ PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
       exit_collector_(new (Z) InlineExitCollector(owner->caller_graph(), call)),
       caller_function_(caller_function) {}
 
-Isolate* PolymorphicInliner::isolate() const {
-  return owner_->caller_graph()->isolate();
+IsolateGroup* PolymorphicInliner::isolate_group() const {
+  return owner_->caller_graph()->isolate_group();
 }
 
 Zone* PolymorphicInliner::zone() const {
@@ -2266,13 +2261,15 @@ static bool IsInlineableOperator(const Function& function) {
 bool FlowGraphInliner::FunctionHasPreferInlinePragma(const Function& function) {
   Object& options = Object::Handle();
   return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
-                             function, Symbols::vm_prefer_inline(), &options);
+                             function, Symbols::vm_prefer_inline(),
+                             /*multiple=*/false, &options);
 }
 
 bool FlowGraphInliner::FunctionHasNeverInlinePragma(const Function& function) {
   Object& options = Object::Handle();
   return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
-                             function, Symbols::vm_never_inline(), &options);
+                             function, Symbols::vm_never_inline(),
+                             /*multiple=*/false, &options);
 }
 
 bool FlowGraphInliner::AlwaysInline(const Function& function) {
@@ -2764,31 +2761,6 @@ static bool InlineDoubleTestOp(FlowGraph* flow_graph,
   return true;
 }
 
-static bool InlineSmiBitAndFromSmi(FlowGraph* flow_graph,
-                                   Instruction* call,
-                                   Definition* receiver,
-                                   GraphEntryInstr* graph_entry,
-                                   FunctionEntryInstr** entry,
-                                   Instruction** last,
-                                   Definition** result) {
-  Definition* left = receiver;
-  Definition* right = call->ArgumentAt(1);
-
-  *entry =
-      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
-                                 call->GetBlock()->try_index(), DeoptId::kNone);
-  (*entry)->InheritDeoptTarget(Z, call);
-  // Right arguments is known to be smi: other._bitAndFromSmi(this);
-  BinarySmiOpInstr* smi_op =
-      new (Z) BinarySmiOpInstr(Token::kBIT_AND, new (Z) Value(left),
-                               new (Z) Value(right), call->deopt_id());
-  flow_graph->AppendTo(*entry, smi_op, call->env(), FlowGraph::kValue);
-  *last = smi_op;
-  *result = smi_op->AsDefinition();
-
-  return true;
-}
-
 static bool InlineGrowableArraySetter(FlowGraph* flow_graph,
                                       const Slot& field,
                                       StoreBarrierType store_barrier_type,
@@ -2890,7 +2862,6 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
                                  call->GetBlock()->try_index(), DeoptId::kNone);
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
-
 
   // Generates a template for the load, either a dynamic conditional
   // that dispatches on external and internal storage, or a single
@@ -3970,9 +3941,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       return InlineGrowableArraySetter(
           flow_graph, Slot::GrowableObjectArray_length(), kNoStoreBarrier, call,
           receiver, graph_entry, entry, last, result);
-    case MethodRecognizer::kSmi_bitAndFromSmi:
-      return InlineSmiBitAndFromSmi(flow_graph, call, receiver, graph_entry,
-                                    entry, last, result);
 
     case MethodRecognizer::kFloat32x4Abs:
     case MethodRecognizer::kFloat32x4Clamp:

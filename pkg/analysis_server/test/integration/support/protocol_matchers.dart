@@ -250,6 +250,8 @@ final Matcher isCompletionService =
 ///   "relevance": int
 ///   "completion": String
 ///   "displayText": optional String
+///   "replacementOffset": optional int
+///   "replacementLength": optional int
 ///   "selectionOffset": int
 ///   "selectionLength": int
 ///   "isDeprecated": bool
@@ -279,6 +281,8 @@ final Matcher isCompletionSuggestion =
           'isPotential': isBool
         }, optionalFields: {
           'displayText': isString,
+          'replacementOffset': isInt,
+          'replacementLength': isInt,
           'docSummary': isString,
           'docComplete': isString,
           'declaringType': isString,
@@ -379,6 +383,7 @@ final Matcher isDiagnosticMessage = LazyMatcher(() => MatchesJsonObject(
 ///   "parameters": optional String
 ///   "returnType": optional String
 ///   "typeParameters": optional String
+///   "aliasedType": optional String
 /// }
 final Matcher isElement = LazyMatcher(() => MatchesJsonObject('Element', {
       'kind': isElementKind,
@@ -388,7 +393,8 @@ final Matcher isElement = LazyMatcher(() => MatchesJsonObject('Element', {
       'location': isLocation,
       'parameters': isString,
       'returnType': isString,
-      'typeParameters': isString
+      'typeParameters': isString,
+      'aliasedType': isString
     }));
 
 /// ElementDeclaration

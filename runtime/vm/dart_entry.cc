@@ -276,7 +276,7 @@ ObjectPtr DartEntry::InvokeCallable(Thread* thread,
   const auto& result = Object::Handle(
       zone, callable_function.DoArgumentTypesMatch(arguments, args_desc));
   if (result.IsError()) {
-    Exceptions::PropagateError(Error::Cast(result));
+    return result.ptr();
   }
 
   return InvokeFunction(callable_function, arguments, arguments_descriptor);

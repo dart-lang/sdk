@@ -99,6 +99,24 @@ class A {
 ''');
   }
 
+  Future<void> test_binaryOperator_leftSide() async {
+    await resolveTestCode('''
+f(int? i) => i + 1;
+''');
+    await assertHasFix('''
+f(int? i) => i! + 1;
+''');
+  }
+
+  Future<void> test_binaryOperator_rightSide() async {
+    await resolveTestCode('''
+f(int? i) => 1 + i;
+''');
+    await assertHasFix('''
+f(int? i) => 1 + i!;
+''');
+  }
+
   Future<void> test_forEachWithDeclarationCondition() async {
     await resolveTestCode('''
 void f (List<String>? args) {
@@ -225,6 +243,15 @@ String f(String? s) => s!.substring(0);
 ''');
   }
 
+  Future<void> test_postfixOperator() async {
+    await resolveTestCode('''
+f(int? i) => i++;
+''');
+    await assertHasFix('''
+f(int? i) => i!++;
+''');
+  }
+
   Future<void> test_prefixedIdentifier() async {
     await resolveTestCode('''
 int f(String? s) => s.length;
@@ -234,12 +261,39 @@ int f(String? s) => s!.length;
 ''');
   }
 
+  Future<void> test_prefixOperator() async {
+    await resolveTestCode('''
+f(int? i) => -i;
+''');
+    await assertHasFix('''
+f(int? i) => -i!;
+''');
+  }
+
   Future<void> test_propertyAccess() async {
     await resolveTestCode('''
 int f(String? s) => (s).length;
 ''');
     await assertHasFix('''
 int f(String? s) => (s)!.length;
+''');
+  }
+
+  Future<void> test_propertyAccess_cascade() async {
+    await resolveTestCode('''
+String? f(String? s) => s..length;
+''');
+    await assertHasFix('''
+String? f(String? s) => s!..length;
+''');
+  }
+
+  Future<void> test_propertyAccess_cascadeAfterNullProperty() async {
+    await resolveTestCode('''
+String? f(String? s) => s..hashCode..length;
+''');
+    await assertHasFix('''
+String? f(String? s) => s!..hashCode..length;
 ''');
   }
 

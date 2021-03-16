@@ -4,12 +4,13 @@
 
 import 'dart:collection';
 
+import 'package:source_span/source_span.dart';
 import 'package:yaml/src/event.dart';
 import 'package:yaml/yaml.dart';
 
 /// Given a [map], return the [YamlNode] associated with the given [key], or
 /// `null` if there is no matching key.
-YamlNode getKey(YamlMap map, String key) {
+YamlNode? getKey(YamlMap map, String key) {
   for (YamlNode k in map.nodes.keys) {
     if (k is YamlScalar && k.value == key) {
       return k;
@@ -20,7 +21,7 @@ YamlNode getKey(YamlMap map, String key) {
 
 /// Given a [map], return the value associated with the key whose value matches
 /// the given [key], or `null` if there is no matching key.
-YamlNode getValue(YamlMap map, String key) {
+YamlNode? getValue(YamlMap map, String key) {
   for (var k in map.nodes.keys) {
     if (k is YamlScalar && k.value == key) {
       return map.nodes[k];
@@ -31,7 +32,7 @@ YamlNode getValue(YamlMap map, String key) {
 
 /// If all of the elements of [list] are strings, return a list of strings
 /// containing the same elements. Otherwise, return `null`.
-List<String> toStringList(List list) {
+List<String>? toStringList(List? list) {
   if (list == null) {
     return null;
   }
@@ -68,16 +69,17 @@ class Merger {
   ///   * maps are merged recursively.
   ///   * if map values cannot be merged, the overriding value is taken.
   ///
-  YamlNode merge(YamlNode o1, YamlNode o2) {
+  YamlNode merge(YamlNode o1, YamlNode? o2) {
     // Handle promotion first.
     YamlMap listToMap(YamlList list) {
       Map<YamlNode, YamlNode> map =
           HashMap<YamlNode, YamlNode>(); // equals: _equals, hashCode: _hashCode
-      ScalarEvent event = ScalarEvent(null, 'true', ScalarStyle.PLAIN);
+      ScalarEvent event =
+          ScalarEvent(o1.span as FileSpan, 'true', ScalarStyle.PLAIN);
       for (var element in list.nodes) {
         map[element] = YamlScalar.internal(true, event);
       }
-      return YamlMap.internal(map, null, CollectionStyle.BLOCK);
+      return YamlMap.internal(map, o1.span, CollectionStyle.BLOCK);
     }
 
     if (isListOfString(o1) && isMapToBools(o2)) {
@@ -105,7 +107,7 @@ class Merger {
         list.add(n2);
       }
     }
-    return YamlList.internal(list, null, CollectionStyle.BLOCK);
+    return YamlList.internal(list, l1.span, CollectionStyle.BLOCK);
   }
 
   /// Merge maps (recursively).
@@ -116,18 +118,24 @@ class Merger {
       merged[k] = v;
     });
     m2.nodes.forEach((k, v) {
-      YamlScalar mergedKey = merged.keys
-          .firstWhere((key) => key.value == k.value, orElse: () => k);
-      merged[mergedKey] = merge(merged[mergedKey], v);
+      var mergedKey =
+          merged.keys.firstWhere((key) => key.value == k.value, orElse: () => k)
+              as YamlScalar;
+      var o1 = merged[mergedKey];
+      if (o1 != null) {
+        merged[mergedKey] = merge(o1, v);
+      } else {
+        merged[mergedKey] = v;
+      }
     });
-    return YamlMap.internal(merged, null, CollectionStyle.BLOCK);
+    return YamlMap.internal(merged, m1.span, CollectionStyle.BLOCK);
   }
 
-  static bool isListOfString(Object o) =>
+  static bool isListOfString(Object? o) =>
       o is YamlList &&
       o.nodes.every((e) => e is YamlScalar && e.value is String);
 
-  static bool isMapToBools(Object o) =>
+  static bool isMapToBools(Object? o) =>
       o is YamlMap &&
       o.nodes.values.every((v) => v is YamlScalar && v.value is bool);
 }

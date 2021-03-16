@@ -22,14 +22,14 @@ class Foo {
   int x, y, z;
 
   Foo(int a, int b)
-      : this.x = a,
-        this.y = b {
+      : x = a,
+        y = b {
     z = a + b;
   }
 
   Foo.named()
-      : this.x = 42,
-        this.y = 88 {
+      : x = 42,
+        y = 88 {
     z = 28;
   }
 }

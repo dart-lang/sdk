@@ -4,18 +4,25 @@
 
 // @dart = 2.7
 
-/*class: Foo:
+/*spec|three-frag.class: Foo:
  class_unit=1{libB},
  type_unit=3{libA, libB, libC}
 */
+/*two-frag.class: Foo:
+ class_unit=1{libB, libA},
+ type_unit=3{libA, libB, libC}
+*/
 class Foo {
-  /*member: Foo.x:member_unit=1{libB}*/
+  /*spec|three-frag.member: Foo.x:member_unit=1{libB}*/
+  /*two-frag.member: Foo.x:member_unit=1{libB, libA}*/
   int x;
-  /*member: Foo.:member_unit=1{libB}*/
+  /*spec|three-frag.member: Foo.:member_unit=1{libB}*/
+  /*two-frag.member: Foo.:member_unit=1{libB, libA}*/
   Foo() {
     x = DateTime.now().millisecond;
   }
-  /*member: Foo.method:member_unit=1{libB}*/
+  /*spec|three-frag.member: Foo.method:member_unit=1{libB}*/
+  /*two-frag.member: Foo.method:member_unit=1{libB, libA}*/
   int method() => x;
 }
 
@@ -24,7 +31,8 @@ bool isFoo(o) {
   return o is Foo;
 }
 
-/*member: callFooMethod:member_unit=1{libB}*/
+/*spec|three-frag.member: callFooMethod:member_unit=1{libB}*/
+/*two-frag.member: callFooMethod:member_unit=1{libB, libA}*/
 int callFooMethod() {
   return Foo().method();
 }
@@ -56,9 +64,13 @@ class Boo<T> implements Aoo<T> {}
 /*member: Coo.:member_unit=2{libC}*/
 class Coo<T> {}
 
-/*class: Doo:
+/*spec|three-frag.class: Doo:
  class_unit=2{libC},
  type_unit=5{libB, libC}
+*/
+/*two-frag.class: Doo:
+ class_unit=2{libC},
+ type_unit=5{libB, libC, libA}
 */
 /*member: Doo.:member_unit=2{libC}*/
 class Doo<T> extends Coo<T> with Boo<T> {}

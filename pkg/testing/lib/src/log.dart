@@ -68,6 +68,11 @@ abstract class Logger {
   void logSuiteComplete(Suite suite);
 
   void logUncaughtError(error, StackTrace stackTrace);
+
+  /// Issued when there's been a crash caught by the framework.
+  /// Notice that the exit-code has already been set and that the error has
+  /// been printed to stderr.
+  void noticeFrameworkCatchError(error, StackTrace stackTrace);
 }
 
 class StdoutLogger implements Logger {
@@ -185,6 +190,8 @@ class StdoutLogger implements Logger {
       logMessage(stackTrace);
     }
   }
+
+  void noticeFrameworkCatchError(error, StackTrace stackTrace) {}
 }
 
 String pad(Object o, int pad, {String filler: " "}) {

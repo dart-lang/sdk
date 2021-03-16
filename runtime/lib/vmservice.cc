@@ -27,15 +27,23 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
  public:
   explicit RegisterRunningIsolatesVisitor(Thread* thread)
       : IsolateVisitor(),
+        zone_(thread->zone()),
         register_function_(Function::Handle(thread->zone())),
-        service_isolate_(thread->isolate()) {
-  }
+        service_isolate_(thread->isolate()) {}
 
   virtual void VisitIsolate(Isolate* isolate) {
-    ServiceIsolate::RegisterRunningIsolate(isolate);
+    isolate_ports_.Add(isolate->main_port());
+    isolate_names_.Add(&String::Handle(zone_, String::New(isolate->name())));
+  }
+
+  void RegisterIsolates() {
+    ServiceIsolate::RegisterRunningIsolates(isolate_ports_, isolate_names_);
   }
 
  private:
+  Zone* zone_;
+  GrowableArray<Dart_Port> isolate_ports_;
+  GrowableArray<const String*> isolate_names_;
   Function& register_function_;
   Isolate* service_isolate_;
 };
@@ -90,6 +98,7 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0, 0) {
     OS::PrintErr("vm-service: Registering running isolates.\n");
   }
   Isolate::VisitIsolates(&register_isolates);
+  register_isolates.RegisterIsolates();
 #endif
   return Object::null();
 }

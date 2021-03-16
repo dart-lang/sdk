@@ -81,7 +81,7 @@ class TestRunner {
     test('(cond (bool true) (dynamic) (int 0) (int 1))');
     test('(is (bool true) (invalid))');
     test('(as (bool true) (void))');
-    test('(type (bottom))');
+    test('(type (null-type))');
     test('(list (dynamic) ((null) (null) (null)))');
     test('(const-list (dynamic) ((int 0) (int 1) (int 2)))');
     test('(set (dynamic) ((bool true) (bool false) (int 0)))');

@@ -16,7 +16,8 @@ main() {
 }
 
 @reflectiveTest
-class MapLiteralTest extends PubPackageResolutionTest {
+class MapLiteralTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_entry_conflictingKey() async {

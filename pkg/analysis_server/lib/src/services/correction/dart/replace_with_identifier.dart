@@ -14,6 +14,9 @@ class ReplaceWithIdentifier extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_WITH_IDENTIFIER;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_IDENTIFIER_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var functionTyped =
         node.thisOrAncestorOfType<FunctionTypedFormalParameter>();

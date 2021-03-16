@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.ast_from_binary;
 
-import 'dart:core' hide MapEntry;
 import 'dart:developer';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -16,18 +13,19 @@ import '../transformations/flags.dart';
 import 'tag.dart';
 
 class ParseError {
-  String filename;
-  int byteIndex;
-  String message;
-  String path;
+  final String? filename;
+  final int byteIndex;
+  final String message;
+  final String path;
 
-  ParseError(this.message, {this.filename, this.byteIndex, this.path});
+  ParseError(this.message,
+      {required this.filename, required this.byteIndex, required this.path});
 
   String toString() => '$filename:$byteIndex: $message at $path';
 }
 
 class InvalidKernelVersionError {
-  final String filename;
+  final String? filename;
   final int version;
 
   InvalidKernelVersionError(this.filename, this.version);
@@ -79,17 +77,30 @@ class CanonicalNameSdkError extends CanonicalNameError {
 class _ComponentIndex {
   static const int numberOfFixedFields = 10;
 
-  int binaryOffsetForSourceTable;
-  int binaryOffsetForCanonicalNames;
-  int binaryOffsetForMetadataPayloads;
-  int binaryOffsetForMetadataMappings;
-  int binaryOffsetForStringTable;
-  int binaryOffsetForConstantTable;
-  int mainMethodReference;
-  NonNullableByDefaultCompiledMode compiledMode;
-  List<int> libraryOffsets;
-  int libraryCount;
-  int componentFileSizeInBytes;
+  final int binaryOffsetForSourceTable;
+  final int binaryOffsetForCanonicalNames;
+  final int binaryOffsetForMetadataPayloads;
+  final int binaryOffsetForMetadataMappings;
+  final int binaryOffsetForStringTable;
+  final int binaryOffsetForConstantTable;
+  final int mainMethodReference;
+  final NonNullableByDefaultCompiledMode compiledMode;
+  final List<int> libraryOffsets;
+  final int libraryCount;
+  final int componentFileSizeInBytes;
+
+  _ComponentIndex(
+      {required this.binaryOffsetForSourceTable,
+      required this.binaryOffsetForCanonicalNames,
+      required this.binaryOffsetForMetadataPayloads,
+      required this.binaryOffsetForMetadataMappings,
+      required this.binaryOffsetForStringTable,
+      required this.binaryOffsetForConstantTable,
+      required this.mainMethodReference,
+      required this.compiledMode,
+      required this.libraryOffsets,
+      required this.libraryCount,
+      required this.componentFileSizeInBytes});
 }
 
 class SubComponentView {
@@ -101,6 +112,18 @@ class SubComponentView {
       this.libraries, this.componentStartOffset, this.componentFileSize);
 }
 
+/// [StringInterner] allows Strings created from the binary to be shared with
+/// other components.
+///
+/// The [StringInterner] is an optional parameter to [BinaryBuilder], so sharing
+/// should not be required for correctness, and an implementation of
+/// [StringInterner] method may be partial (sometimes not finding an existing
+/// object) or trivial (returning the argument).
+abstract class StringInterner {
+  /// Returns a string with the same contents as [string].
+  String internString(String string);
+}
+
 class BinaryBuilder {
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final List<LabeledStatement> labelStack = <LabeledStatement>[];
@@ -108,17 +131,17 @@ class BinaryBuilder {
   int switchCaseStackBase = 0;
   final List<SwitchCase> switchCaseStack = <SwitchCase>[];
   final List<TypeParameter> typeParameterStack = <TypeParameter>[];
-  final String filename;
+  final String? filename;
   final List<int> _bytes;
   int _byteOffset = 0;
   final List<String> _stringTable = <String>[];
-  final List<Uri> _sourceUriTable = <Uri>[];
+  final List<Uri?> _sourceUriTable = <Uri>[];
   Map<int, Constant> _constantTable = <int, Constant>{};
-  List<CanonicalName> _linkTable;
+  late List<CanonicalName> _linkTable;
   int _transformerFlags = 0;
-  Library _currentLibrary;
+  Library? _currentLibrary;
   int _componentStartOffset = 0;
-  NonNullableByDefaultCompiledMode compilationMode;
+  NonNullableByDefaultCompiledMode? compilationMode;
 
   // If something goes wrong, this list should indicate what library,
   // class, and member was being built.
@@ -136,13 +159,24 @@ class BinaryBuilder {
   /// will not be resolved correctly.
   bool _disableLazyClassReading = false;
 
+  /// [stringInterner] (optional) may be used to allow components to share
+  /// instances of [String] that have the same contents.
+  final StringInterner? stringInterner;
+
+  /// When creating lists that *might* be growable, use this boolean as the
+  /// setting to pass to `growable` so the dill can be loaded in a more compact
+  /// manner if the caller knows that the growability isn't needed.
+  final bool useGrowableLists;
+
   /// Note that [disableLazyClassReading] is incompatible
   /// with checkCanonicalNames on readComponent.
   BinaryBuilder(this._bytes,
       {this.filename,
       bool disableLazyReading = false,
       bool disableLazyClassReading = false,
-      bool alwaysCreateNewNamedNodes})
+      bool? alwaysCreateNewNamedNodes,
+      this.stringInterner,
+      this.useGrowableLists = true})
       : _disableLazyReading = disableLazyReading,
         _disableLazyClassReading = disableLazyReading ||
             disableLazyClassReading ||
@@ -189,18 +223,19 @@ class BinaryBuilder {
   }
 
   final Float64List _doubleBuffer = new Float64List(1);
-  Uint8List _doubleBufferUint8;
+  Uint8List? _doubleBufferUint8;
 
   double readDouble() {
-    _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
-    _doubleBufferUint8[0] = readByte();
-    _doubleBufferUint8[1] = readByte();
-    _doubleBufferUint8[2] = readByte();
-    _doubleBufferUint8[3] = readByte();
-    _doubleBufferUint8[4] = readByte();
-    _doubleBufferUint8[5] = readByte();
-    _doubleBufferUint8[6] = readByte();
-    _doubleBufferUint8[7] = readByte();
+    Uint8List doubleBufferUint8 =
+        _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
+    doubleBufferUint8[0] = readByte();
+    doubleBufferUint8[1] = readByte();
+    doubleBufferUint8[2] = readByte();
+    doubleBufferUint8[3] = readByte();
+    doubleBufferUint8[4] = readByte();
+    doubleBufferUint8[5] = readByte();
+    doubleBufferUint8[6] = readByte();
+    doubleBufferUint8[7] = readByte();
     return _doubleBuffer[0];
   }
 
@@ -220,6 +255,12 @@ class BinaryBuilder {
   }
 
   String readStringEntry(int numBytes) {
+    String string = _readStringEntry(numBytes);
+    if (stringInterner == null) return string;
+    return stringInterner!.internString(string);
+  }
+
+  String _readStringEntry(int numBytes) {
     int start = _byteOffset;
     int end = start + numBytes;
     _byteOffset = end;
@@ -281,7 +322,7 @@ class BinaryBuilder {
   }
 
   /// Reads metadata for the given [node].
-  Node _associateMetadata(Node node, int nodeOffset) {
+  T _associateMetadata<T extends Node>(T node, int nodeOffset) {
     // Default reader ignores metadata section entirely.
     return node;
   }
@@ -289,10 +330,8 @@ class BinaryBuilder {
   void readStringTable(List<String> table) {
     // Read the table of end offsets.
     int length = readUInt30();
-    List<int> endOffsets = new List<int>.filled(length, null);
-    for (int i = 0; i < length; ++i) {
-      endOffsets[i] = readUInt30();
-    }
+    List<int> endOffsets =
+        new List<int>.generate(length, (_) => readUInt30(), growable: false);
     // Read the WTF-8 encoded strings.
     table.length = length;
     int startOffset = 0;
@@ -314,96 +353,139 @@ class BinaryBuilder {
     final int constantTag = readByte();
     switch (constantTag) {
       case ConstantTag.NullConstant:
-        return new NullConstant();
+        return _readNullConstant();
       case ConstantTag.BoolConstant:
-        return new BoolConstant(readByte() == 1);
+        return _readBoolConstant();
       case ConstantTag.IntConstant:
-        return new IntConstant((readExpression() as IntLiteral).value);
+        return _readIntConstant();
       case ConstantTag.DoubleConstant:
-        return new DoubleConstant(readDouble());
+        return _readDoubleConstant();
       case ConstantTag.StringConstant:
-        return new StringConstant(readStringReference());
+        return _readStringConstant();
       case ConstantTag.SymbolConstant:
-        Reference libraryReference = readLibraryReference(allowNull: true);
-        return new SymbolConstant(readStringReference(), libraryReference);
+        return _readSymbolConstant();
       case ConstantTag.MapConstant:
-        final DartType keyType = readDartType();
-        final DartType valueType = readDartType();
-        final int length = readUInt30();
-        final List<ConstantMapEntry> entries =
-            new List<ConstantMapEntry>.filled(length, null, growable: true);
-        for (int i = 0; i < length; i++) {
-          final Constant key = readConstantReference();
-          final Constant value = readConstantReference();
-          entries[i] = new ConstantMapEntry(key, value);
-        }
-        return new MapConstant(keyType, valueType, entries);
+        return _readMapConstant();
       case ConstantTag.ListConstant:
-        final DartType typeArgument = readDartType();
-        final int length = readUInt30();
-        final List<Constant> entries =
-            new List<Constant>.filled(length, null, growable: true);
-        for (int i = 0; i < length; i++) {
-          entries[i] = readConstantReference();
-        }
-        return new ListConstant(typeArgument, entries);
+        return _readListConstant();
       case ConstantTag.SetConstant:
-        final DartType typeArgument = readDartType();
-        final int length = readUInt30();
-        final List<Constant> entries =
-            new List<Constant>.filled(length, null, growable: true);
-        for (int i = 0; i < length; i++) {
-          entries[i] = readConstantReference();
-        }
-        return new SetConstant(typeArgument, entries);
+        return _readSetConstant();
       case ConstantTag.InstanceConstant:
-        final Reference classReference = readClassReference();
-        final int typeArgumentCount = readUInt30();
-        final List<DartType> typeArguments =
-            new List<DartType>.filled(typeArgumentCount, null, growable: true);
-        for (int i = 0; i < typeArgumentCount; i++) {
-          typeArguments[i] = readDartType();
-        }
-        final int fieldValueCount = readUInt30();
-        final Map<Reference, Constant> fieldValues = <Reference, Constant>{};
-        for (int i = 0; i < fieldValueCount; i++) {
-          final Reference fieldRef =
-              readCanonicalNameReference().getReference();
-          final Constant constant = readConstantReference();
-          fieldValues[fieldRef] = constant;
-        }
-        return new InstanceConstant(classReference, typeArguments, fieldValues);
+        return _readInstanceConstant();
       case ConstantTag.PartialInstantiationConstant:
-        final TearOffConstant tearOffConstant =
-            readConstantReference() as TearOffConstant;
-        final int length = readUInt30();
-        final List<DartType> types = new List<DartType>.filled(length, null);
-        for (int i = 0; i < length; i++) {
-          types[i] = readDartType();
-        }
-        return new PartialInstantiationConstant(tearOffConstant, types);
+        return _readPartialInstantiationConstant();
       case ConstantTag.TearOffConstant:
-        final Reference reference = readCanonicalNameReference().getReference();
-        return new TearOffConstant.byReference(reference);
+        return _readTearOffConstant();
       case ConstantTag.TypeLiteralConstant:
-        final DartType type = readDartType();
-        return new TypeLiteralConstant(type);
+        return _readTypeLiteralConstant();
       case ConstantTag.UnevaluatedConstant:
-        final Expression expression = readExpression();
-        return new UnevaluatedConstant(expression);
+        return _readUnevaluatedConstant();
     }
 
     throw fail('unexpected constant tag: $constantTag');
   }
 
-  Constant readConstantReference() {
-    final int offset = readUInt30();
-    Constant constant = _constantTable[offset];
-    assert(constant != null);
-    return constant;
+  Constant _readNullConstant() {
+    return new NullConstant();
   }
 
-  Uri readUriReference() {
+  Constant _readBoolConstant() {
+    return new BoolConstant(readByte() == 1);
+  }
+
+  Constant _readIntConstant() {
+    return new IntConstant((readExpression() as IntLiteral).value);
+  }
+
+  Constant _readDoubleConstant() {
+    return new DoubleConstant(readDouble());
+  }
+
+  Constant _readStringConstant() {
+    return new StringConstant(readStringReference());
+  }
+
+  Constant _readSymbolConstant() {
+    Reference? libraryReference = readNullableLibraryReference();
+    return new SymbolConstant(readStringReference(), libraryReference);
+  }
+
+  Constant _readMapConstant() {
+    final DartType keyType = readDartType();
+    final DartType valueType = readDartType();
+    final int length = readUInt30();
+    final List<ConstantMapEntry> entries =
+        new List<ConstantMapEntry>.generate(length, (_) {
+      final Constant key = readConstantReference();
+      final Constant value = readConstantReference();
+      return new ConstantMapEntry(key, value);
+    }, growable: useGrowableLists);
+    return new MapConstant(keyType, valueType, entries);
+  }
+
+  Constant _readListConstant() {
+    final DartType typeArgument = readDartType();
+    List<Constant> entries = _readConstantReferenceList();
+    return new ListConstant(typeArgument, entries);
+  }
+
+  Constant _readSetConstant() {
+    final DartType typeArgument = readDartType();
+    List<Constant> entries = _readConstantReferenceList();
+    return new SetConstant(typeArgument, entries);
+  }
+
+  Constant _readInstanceConstant() {
+    final Reference classReference = readNonNullClassReference();
+    final List<DartType> typeArguments = readDartTypeList();
+    final int fieldValueCount = readUInt30();
+    final Map<Reference, Constant> fieldValues = <Reference, Constant>{};
+    for (int i = 0; i < fieldValueCount; i++) {
+      final Reference fieldRef =
+          readNonNullCanonicalNameReference().getReference();
+      final Constant constant = readConstantReference();
+      fieldValues[fieldRef] = constant;
+    }
+    return new InstanceConstant(classReference, typeArguments, fieldValues);
+  }
+
+  Constant _readPartialInstantiationConstant() {
+    final TearOffConstant tearOffConstant =
+        readConstantReference() as TearOffConstant;
+    final List<DartType> types = readDartTypeList();
+    return new PartialInstantiationConstant(tearOffConstant, types);
+  }
+
+  Constant _readTearOffConstant() {
+    final Reference reference =
+        readNonNullCanonicalNameReference().getReference();
+    return new TearOffConstant.byReference(reference);
+  }
+
+  Constant _readTypeLiteralConstant() {
+    final DartType type = readDartType();
+    return new TypeLiteralConstant(type);
+  }
+
+  Constant _readUnevaluatedConstant() {
+    final Expression expression = readExpression();
+    return new UnevaluatedConstant(expression);
+  }
+
+  Constant readConstantReference() {
+    final int offset = readUInt30();
+    Constant? constant = _constantTable[offset];
+    assert(constant != null, "No constant found at offset $offset.");
+    return constant!;
+  }
+
+  List<Constant> _readConstantReferenceList() {
+    final int length = readUInt30();
+    return new List<Constant>.generate(length, (_) => readConstantReference(),
+        growable: useGrowableLists);
+  }
+
+  Uri? readUriReference() {
     return _sourceUriTable[readUInt30()];
   }
 
@@ -413,14 +495,11 @@ class BinaryBuilder {
 
   List<String> readStringReferenceList() {
     int length = readUInt30();
-    List<String> result = new List<String>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readStringReference();
-    }
-    return result;
+    return new List<String>.generate(length, (_) => readStringReference(),
+        growable: useGrowableLists);
   }
 
-  String readStringOrNullIfEmpty() {
+  String? readStringOrNullIfEmpty() {
     String string = readStringReference();
     return string.isEmpty ? null : string;
   }
@@ -436,15 +515,12 @@ class BinaryBuilder {
     }
   }
 
-  List<Expression> readAnnotationList(TreeNode parent) {
+  List<Expression> readAnnotationList(TreeNode? parent) {
     int length = readUInt30();
     if (length == 0) return const <Expression>[];
-    List<Expression> list =
-        new List<Expression>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      list[i] = readExpression()..parent = parent;
-    }
-    return list;
+    return new List<Expression>.generate(
+        length, (_) => readExpression()..parent = parent,
+        growable: useGrowableLists);
   }
 
   void _fillTreeNodeList(
@@ -482,7 +558,11 @@ class BinaryBuilder {
 
   void readLinkTable(CanonicalName linkRoot) {
     int length = readUInt30();
-    _linkTable = new List<CanonicalName>.filled(length, null);
+    _linkTable = new List<CanonicalName>.filled(
+        length,
+        // Use [linkRoot] as a dummy default value.
+        linkRoot,
+        growable: false);
     for (int i = 0; i < length; ++i) {
       int biasedParentIndex = readUInt30();
       String name = readStringReference();
@@ -534,9 +614,9 @@ class BinaryBuilder {
   /// If [createView] is true, returns a list of [SubComponentView] - one for
   /// each concatenated dill - each of which knowing where in the combined dill
   /// it came from. If [createView] is false null will be returned.
-  List<SubComponentView> readComponent(Component component,
+  List<SubComponentView>? readComponent(Component component,
       {bool checkCanonicalNames: false, bool createView: false}) {
-    return Timeline.timeSync<List<SubComponentView>>(
+    return Timeline.timeSync<List<SubComponentView>?>(
         "BinaryBuilder.readComponent", () {
       _checkEmptyInput();
 
@@ -561,16 +641,16 @@ class BinaryBuilder {
         _disableLazyClassReading = true;
       }
       int componentFileIndex = 0;
-      List<SubComponentView> views;
+      List<SubComponentView>? views;
       if (createView) {
         views = <SubComponentView>[];
       }
       while (_byteOffset < _bytes.length) {
-        SubComponentView view = _readOneComponent(
+        SubComponentView? view = _readOneComponent(
             component, componentFileSizes[componentFileIndex],
             createView: createView);
         if (createView) {
-          views.add(view);
+          views!.add(view!);
         }
         ++componentFileIndex;
       }
@@ -631,7 +711,7 @@ class BinaryBuilder {
   }
 
   void _checkCanonicalNameChildren(CanonicalName parent) {
-    Iterable<CanonicalName> parentChildren = parent.childrenOrNull;
+    Iterable<CanonicalName>? parentChildren = parent.childrenOrNull;
     if (parentChildren != null) {
       for (CanonicalName child in parentChildren) {
         if (child.name != '@methods' &&
@@ -657,11 +737,11 @@ class BinaryBuilder {
             }
           }
           if (checkReferenceNode) {
-            if (child.reference.canonicalName != child) {
+            if (child.reference!.canonicalName != child) {
               throw new CanonicalNameError(
                   "Canonical name and reference doesn't agree.");
             }
-            if (child.reference.node == null) {
+            if (child.reference!.node == null) {
               throw buildCanonicalNameError(
                   "Reference is null (${child.name}) ($child).", child);
             }
@@ -676,7 +756,7 @@ class BinaryBuilder {
       String message, CanonicalName problemNode) {
     // Special-case missing sdk entries as that is probably a change to the
     // platform - that's something we might want to react differently to.
-    String libraryUri = problemNode?.nonRootTop?.name ?? "";
+    String libraryUri = problemNode.nonRootTop?.name ?? "";
     if (libraryUri.startsWith("dart:")) {
       return new CanonicalNameSdkError(message);
     }
@@ -686,44 +766,56 @@ class BinaryBuilder {
   _ComponentIndex _readComponentIndex(int componentFileSize) {
     int savedByteIndex = _byteOffset;
 
-    _ComponentIndex result = new _ComponentIndex();
-
     // There are two fields: file size and library count.
     _byteOffset = _componentStartOffset + componentFileSize - (2) * 4;
-    result.libraryCount = readUint32();
+    int libraryCount = readUint32();
     // Library offsets are used for start and end offsets, so there is one extra
     // element that this the end offset of the last library
-    result.libraryOffsets = new List<int>.filled(result.libraryCount + 1, null);
-    result.componentFileSizeInBytes = readUint32();
-    if (result.componentFileSizeInBytes != componentFileSize) {
+    List<int> libraryOffsets = new List<int>.filled(
+        libraryCount + 1,
+        // Use `-1` as a dummy default value.
+        -1,
+        growable: false);
+    int componentFileSizeInBytes = readUint32();
+    if (componentFileSizeInBytes != componentFileSize) {
       throw "Malformed binary: This component file's component index indicates "
           "that the file size should be $componentFileSize but other component "
           "indexes has indicated that the size should be "
-          "${result.componentFileSizeInBytes}.";
+          "${componentFileSizeInBytes}.";
     }
 
     // Skip to the start of the index.
     _byteOffset -=
-        ((result.libraryCount + 1) + _ComponentIndex.numberOfFixedFields) * 4;
+        ((libraryCount + 1) + _ComponentIndex.numberOfFixedFields) * 4;
 
     // Now read the component index.
-    result.binaryOffsetForSourceTable = _componentStartOffset + readUint32();
-    result.binaryOffsetForCanonicalNames = _componentStartOffset + readUint32();
-    result.binaryOffsetForMetadataPayloads =
-        _componentStartOffset + readUint32();
-    result.binaryOffsetForMetadataMappings =
-        _componentStartOffset + readUint32();
-    result.binaryOffsetForStringTable = _componentStartOffset + readUint32();
-    result.binaryOffsetForConstantTable = _componentStartOffset + readUint32();
-    result.mainMethodReference = readUint32();
-    result.compiledMode = NonNullableByDefaultCompiledMode.values[readUint32()];
-    for (int i = 0; i < result.libraryCount + 1; ++i) {
-      result.libraryOffsets[i] = _componentStartOffset + readUint32();
+    int binaryOffsetForSourceTable = _componentStartOffset + readUint32();
+    int binaryOffsetForCanonicalNames = _componentStartOffset + readUint32();
+    int binaryOffsetForMetadataPayloads = _componentStartOffset + readUint32();
+    int binaryOffsetForMetadataMappings = _componentStartOffset + readUint32();
+    int binaryOffsetForStringTable = _componentStartOffset + readUint32();
+    int binaryOffsetForConstantTable = _componentStartOffset + readUint32();
+    int mainMethodReference = readUint32();
+    NonNullableByDefaultCompiledMode compiledMode =
+        NonNullableByDefaultCompiledMode.values[readUint32()];
+    for (int i = 0; i < libraryCount + 1; ++i) {
+      libraryOffsets[i] = _componentStartOffset + readUint32();
     }
 
     _byteOffset = savedByteIndex;
 
-    return result;
+    return new _ComponentIndex(
+        libraryCount: libraryCount,
+        libraryOffsets: libraryOffsets,
+        componentFileSizeInBytes: componentFileSizeInBytes,
+        binaryOffsetForSourceTable: binaryOffsetForSourceTable,
+        binaryOffsetForCanonicalNames: binaryOffsetForCanonicalNames,
+        binaryOffsetForMetadataPayloads: binaryOffsetForMetadataPayloads,
+        binaryOffsetForMetadataMappings: binaryOffsetForMetadataMappings,
+        binaryOffsetForStringTable: binaryOffsetForStringTable,
+        binaryOffsetForConstantTable: binaryOffsetForConstantTable,
+        mainMethodReference: mainMethodReference,
+        compiledMode: compiledMode);
   }
 
   void _readOneComponentSource(Component component, int componentFileSize) {
@@ -745,13 +837,14 @@ class BinaryBuilder {
     _ComponentIndex index = _readComponentIndex(componentFileSize);
 
     _byteOffset = index.binaryOffsetForSourceTable;
-    Map<Uri, Source> uriToSource = readUriToSource(/* readCoverage = */ false);
+    Map<Uri?, Source> uriToSource = readUriToSource(readCoverage: false);
     _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = _componentStartOffset + componentFileSize;
   }
 
-  SubComponentView _readOneComponent(Component component, int componentFileSize,
+  SubComponentView? _readOneComponent(
+      Component component, int componentFileSize,
       {bool createView: false}) {
     _componentStartOffset = _byteOffset;
 
@@ -767,10 +860,10 @@ class BinaryBuilder {
 
     _readAndVerifySdkHash();
 
-    List<String> problemsAsJson = readListOfStrings();
+    List<String>? problemsAsJson = readListOfStrings();
     if (problemsAsJson != null) {
       component.problemsAsJson ??= <String>[];
-      component.problemsAsJson.addAll(problemsAsJson);
+      component.problemsAsJson!.addAll(problemsAsJson);
     }
 
     // Read component index from the end of this ComponentFiles serialized data.
@@ -794,7 +887,7 @@ class BinaryBuilder {
     _associateMetadata(component, _componentStartOffset);
 
     _byteOffset = index.binaryOffsetForSourceTable;
-    Map<Uri, Source> uriToSource = readUriToSource(/* readCoverage = */ true);
+    Map<Uri?, Source> uriToSource = readUriToSource(readCoverage: true);
     _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = index.binaryOffsetForConstantTable;
@@ -802,25 +895,25 @@ class BinaryBuilder {
 
     int numberOfLibraries = index.libraryCount;
 
-    SubComponentView result;
+    SubComponentView? result;
     if (createView) {
       result = new SubComponentView(
-          new List<Library>.filled(numberOfLibraries, null),
+          new List<Library>.generate(numberOfLibraries, (int i) {
+            _byteOffset = index.libraryOffsets[i];
+            return readLibrary(component, index.libraryOffsets[i + 1]);
+          }, growable: false),
           _componentStartOffset,
           componentFileSize);
-    }
-
-    for (int i = 0; i < numberOfLibraries; ++i) {
-      _byteOffset = index.libraryOffsets[i];
-      Library library = readLibrary(component, index.libraryOffsets[i + 1]);
-      if (createView) {
-        result.libraries[i] = library;
+    } else {
+      for (int i = 0; i < numberOfLibraries; ++i) {
+        _byteOffset = index.libraryOffsets[i];
+        readLibrary(component, index.libraryOffsets[i + 1]);
       }
     }
 
-    Reference mainMethod =
-        getMemberReferenceFromInt(index.mainMethodReference, allowNull: true);
-    component.setMainMethodAndMode(mainMethod, false, compilationMode);
+    Reference? mainMethod =
+        getNullableMemberReferenceFromInt(index.mainMethodReference);
+    component.setMainMethodAndMode(mainMethod, false, compilationMode!);
 
     _byteOffset = _componentStartOffset + componentFileSize;
 
@@ -830,16 +923,11 @@ class BinaryBuilder {
   }
 
   /// Read a list of strings. If the list is empty, [null] is returned.
-  List<String> readListOfStrings() {
+  List<String>? readListOfStrings() {
     int length = readUInt30();
     if (length == 0) return null;
-    List<String> strings =
-        new List<String>.filled(length, null, growable: true);
-    for (int i = 0; i < length; i++) {
-      String s = readString();
-      strings[i] = s;
-    }
-    return strings;
+    return new List<String>.generate(length, (_) => readString(),
+        growable: useGrowableLists);
   }
 
   /// Read the uri-to-source part of the binary.
@@ -847,21 +935,26 @@ class BinaryBuilder {
   /// [readCoverage] is true, otherwise coverage will be skipped. Note also that
   /// if [readCoverage] is true, references are read and that the link table
   /// thus has to be read first.
-  Map<Uri, Source> readUriToSource(bool readCoverage) {
+  Map<Uri?, Source> readUriToSource({required bool readCoverage}) {
+    // ignore: unnecessary_null_comparison
     assert(!readCoverage || (readCoverage && _linkTable != null));
 
     int length = readUint32();
 
     // Read data.
     _sourceUriTable.length = length;
-    Map<Uri, Source> uriToSource = <Uri, Source>{};
+    Map<Uri?, Source> uriToSource = <Uri, Source>{};
     for (int i = 0; i < length; ++i) {
       String uriString = readString();
-      Uri uri = uriString.isEmpty ? null : Uri.parse(uriString);
+      Uri? uri = uriString.isEmpty ? null : Uri.parse(uriString);
       _sourceUriTable[i] = uri;
       Uint8List sourceCode = readByteList();
       int lineCount = readUInt30();
-      List<int> lineStarts = new List<int>.filled(lineCount, null);
+      List<int> lineStarts = new List<int>.filled(
+          lineCount,
+          // Use `-1` as a dummy default value.
+          -1,
+          growable: false);
       int previousLineStart = 0;
       for (int j = 0; j < lineCount; ++j) {
         int lineStart = readUInt30() + previousLineStart;
@@ -869,21 +962,22 @@ class BinaryBuilder {
         previousLineStart = lineStart;
       }
       String importUriString = readString();
-      Uri importUri =
+      Uri? importUri =
           importUriString.isEmpty ? null : Uri.parse(importUriString);
 
-      Set<Reference> coverageConstructors;
+      Set<Reference>? coverageConstructors;
       {
         int constructorCoverageCount = readUInt30();
-        if (readCoverage) {
-          coverageConstructors =
-              constructorCoverageCount == 0 ? null : new Set<Reference>();
-          for (int j = 0; j < constructorCoverageCount; ++j) {
-            coverageConstructors.add(readMemberReference());
-          }
-        } else {
-          for (int j = 0; j < constructorCoverageCount; ++j) {
-            skipMemberReference();
+        if (constructorCoverageCount > 0) {
+          if (readCoverage) {
+            coverageConstructors = new Set<Reference>();
+            for (int j = 0; j < constructorCoverageCount; ++j) {
+              coverageConstructors.add(readNonNullMemberReference());
+            }
+          } else {
+            for (int j = 0; j < constructorCoverageCount; ++j) {
+              skipMemberReference();
+            }
           }
         }
       }
@@ -903,14 +997,14 @@ class BinaryBuilder {
   // source with an empty source. Empty sources may be introduced by
   // synthetic, copy-down implementations such as mixin applications or
   // noSuchMethod forwarders.
-  void _mergeUriToSource(Map<Uri, Source> dst, Map<Uri, Source> src) {
+  void _mergeUriToSource(Map<Uri?, Source> dst, Map<Uri?, Source> src) {
     if (dst.isEmpty) {
       // Fast path for the common case of one component per binary.
       dst.addAll(src);
     } else {
-      src.forEach((Uri key, Source value) {
-        Source originalDestinationSource = dst[key];
-        Source mergeFrom;
+      src.forEach((Uri? key, Source value) {
+        Source? originalDestinationSource = dst[key];
+        Source? mergeFrom;
         Source mergeTo;
         if (value.source.isNotEmpty || originalDestinationSource == null) {
           dst[key] = value;
@@ -932,9 +1026,9 @@ class BinaryBuilder {
         } else if (mergeFrom?.constantCoverageConstructors == null) {
           // Nothing to do.
         } else {
-          // Bot are non-null: Merge.
-          mergeTo.constantCoverageConstructors
-              .addAll(mergeFrom.constantCoverageConstructors);
+          // Both are non-null: Merge.
+          mergeTo.constantCoverageConstructors!
+              .addAll(mergeFrom!.constantCoverageConstructors!);
         }
       });
     }
@@ -944,71 +1038,99 @@ class BinaryBuilder {
     readUInt30();
   }
 
-  CanonicalName readCanonicalNameReference() {
+  CanonicalName? readNullableCanonicalNameReference() {
     int index = readUInt30();
     if (index == 0) return null;
     return _linkTable[index - 1];
   }
 
-  CanonicalName getCanonicalNameReferenceFromInt(int index) {
+  CanonicalName readNonNullCanonicalNameReference() {
+    CanonicalName? canonicalName = readNullableCanonicalNameReference();
+    if (canonicalName == null) {
+      throw new StateError('No canonical name found.');
+    }
+    return canonicalName;
+  }
+
+  CanonicalName? getNullableCanonicalNameReferenceFromInt(int index) {
     if (index == 0) return null;
     return _linkTable[index - 1];
   }
 
-  Reference readLibraryReference({bool allowNull: false}) {
-    CanonicalName canonicalName = readCanonicalNameReference();
+  Reference? readNullableLibraryReference() {
+    CanonicalName? canonicalName = readNullableCanonicalNameReference();
+    return canonicalName?.getReference();
+  }
+
+  Reference readNonNullLibraryReference() {
+    CanonicalName? canonicalName = readNullableCanonicalNameReference();
     if (canonicalName != null) return canonicalName.getReference();
-    if (allowNull) return null;
     throw 'Expected a library reference to be valid but was `null`.';
   }
 
   LibraryDependency readLibraryDependencyReference() {
     int index = readUInt30();
-    return _currentLibrary.dependencies[index];
+    return _currentLibrary!.dependencies[index];
   }
 
-  Reference readClassReference({bool allowNull: false}) {
-    CanonicalName name = readCanonicalNameReference();
-    if (name == null && !allowNull) {
+  Reference? readNullableClassReference() {
+    CanonicalName? name = readNullableCanonicalNameReference();
+    return name?.getReference();
+  }
+
+  Reference readNonNullClassReference() {
+    CanonicalName? name = readNullableCanonicalNameReference();
+    if (name == null) {
       throw 'Expected a class reference to be valid but was `null`.';
     }
-    return name?.getReference();
+    return name.getReference();
   }
 
   void skipMemberReference() {
     skipCanonicalNameReference();
   }
 
-  Reference readMemberReference({bool allowNull: false}) {
-    CanonicalName name = readCanonicalNameReference();
-    if (name == null && !allowNull) {
-      throw 'Expected a member reference to be valid but was `null`.';
-    }
+  Reference? readNullableMemberReference() {
+    CanonicalName? name = readNullableCanonicalNameReference();
     return name?.getReference();
   }
 
-  Reference readInstanceMemberReference({bool allowNull: false}) {
-    Reference reference = readMemberReference(allowNull: allowNull);
-    readMemberReference(allowNull: true); // Skip origin
+  Reference readNonNullMemberReference() {
+    CanonicalName? name = readNullableCanonicalNameReference();
+    if (name == null) {
+      throw 'Expected a member reference to be valid but was `null`.';
+    }
+    return name.getReference();
+  }
+
+  Reference? readNullableInstanceMemberReference() {
+    Reference? reference = readNullableMemberReference();
+    readNullableMemberReference(); // Skip origin
     return reference;
   }
 
-  Reference getMemberReferenceFromInt(int index, {bool allowNull: false}) {
-    CanonicalName name = getCanonicalNameReferenceFromInt(index);
-    if (name == null && !allowNull) {
-      throw 'Expected a member reference to be valid but was `null`.';
-    }
-    return name?.getReference();
+  Reference readNonNullInstanceMemberReference() {
+    Reference reference = readNonNullMemberReference();
+    readNullableMemberReference(); // Skip origin
+    return reference;
   }
 
-  Reference readTypedefReference() {
-    return readCanonicalNameReference()?.getReference();
+  Reference? getNullableMemberReferenceFromInt(int index) {
+    return getNullableCanonicalNameReferenceFromInt(index)?.getReference();
+  }
+
+  Reference? readNullableTypedefReference() {
+    return readNullableCanonicalNameReference()?.getReference();
+  }
+
+  Reference readNonNullTypedefReference() {
+    return readNonNullCanonicalNameReference().getReference();
   }
 
   Name readName() {
     String text = readStringReference();
     if (text.isNotEmpty && text[0] == '_') {
-      return new Name.byReference(text, readLibraryReference());
+      return new Name.byReference(text, readNonNullLibraryReference());
     } else {
       return new Name(text);
     }
@@ -1021,7 +1143,11 @@ class BinaryBuilder {
     // There is a field for the procedure count.
     _byteOffset = endOffset - (1) * 4;
     int procedureCount = readUint32();
-    List<int> procedureOffsets = new List<int>.filled(procedureCount + 1, null);
+    List<int> procedureOffsets = new List<int>.filled(
+        procedureCount + 1,
+        // Use `-1` as a dummy default value.
+        -1,
+        growable: false);
 
     // There is a field for the procedure count, that number + 1 (for the end)
     // offsets, and then the class count (i.e. procedure count + 3 fields).
@@ -1030,7 +1156,11 @@ class BinaryBuilder {
     for (int i = 0; i < procedureCount + 1; i++) {
       procedureOffsets[i] = _componentStartOffset + readUint32();
     }
-    List<int> classOffsets = new List<int>.filled(classCount + 1, null);
+    List<int> classOffsets = new List<int>.filled(
+        classCount + 1,
+        // Use `-1` as a dummy default value.
+        -1,
+        growable: false);
 
     // There is a field for the procedure count, that number + 1 (for the end)
     // offsets, then the class count and that number + 1 (for the end) offsets.
@@ -1046,9 +1176,9 @@ class BinaryBuilder {
     int languageVersionMajor = readUInt30();
     int languageVersionMinor = readUInt30();
 
-    CanonicalName canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.getReference();
-    Library library = reference.node;
+    Library? library = reference.node as Library?;
     if (alwaysCreateNewNamedNodes) {
       library = null;
     }
@@ -1058,12 +1188,12 @@ class BinaryBuilder {
       component.libraries.add(library..parent = component);
     }
     _currentLibrary = library;
-    String name = readStringOrNullIfEmpty();
+    String? name = readStringOrNullIfEmpty();
 
     // TODO(jensj): We currently save (almost the same) uri twice.
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
 
-    List<String> problemsAsJson = readListOfStrings();
+    List<String>? problemsAsJson = readListOfStrings();
 
     library.flags = flags;
     library.setLanguageVersion(
@@ -1080,7 +1210,7 @@ class BinaryBuilder {
         "into component with mode $compilationMode");
 
     assert(() {
-      debugPath.add(library.name ?? library.importUri?.toString() ?? 'library');
+      debugPath.add(library!.name ?? library.importUri.toString());
       return true;
     }());
 
@@ -1125,8 +1255,8 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     int flags = readByte();
     List<Expression> annotations = readExpressionList();
-    Reference targetLibrary = readLibraryReference(allowNull: true);
-    String prefixName = readStringOrNullIfEmpty();
+    Reference targetLibrary = readNonNullLibraryReference();
+    String? prefixName = readStringOrNullIfEmpty();
     List<Combinator> names = readCombinatorList();
     return new LibraryDependency.byReference(
         flags, annotations, targetLibrary, prefixName, names)
@@ -1139,7 +1269,7 @@ class BinaryBuilder {
     if (numExportedReference != 0) {
       library.additionalExports.clear();
       for (int i = 0; i < numExportedReference; i++) {
-        CanonicalName exportedName = readCanonicalNameReference();
+        CanonicalName exportedName = readNonNullCanonicalNameReference();
         Reference reference = exportedName.getReference();
         library.additionalExports.add(reference);
       }
@@ -1154,12 +1284,13 @@ class BinaryBuilder {
 
   List<Combinator> readCombinatorList() {
     int length = readUInt30();
-    List<Combinator> result =
-        new List<Combinator>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readCombinator();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfCombinator;
     }
-    return result;
+    return new List<Combinator>.generate(length, (_) => readCombinator(),
+        growable: useGrowableLists);
   }
 
   void _readLibraryParts(Library library) {
@@ -1177,18 +1308,18 @@ class BinaryBuilder {
   }
 
   Typedef readTypedef() {
-    CanonicalName canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.getReference();
-    Typedef node = reference.node;
+    Typedef? node = reference.node as Typedef?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    if (node == null) {
-      node = new Typedef(null, null, reference: reference);
-    }
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
     int fileOffset = readOffset();
     String name = readStringReference();
+    if (node == null) {
+      node = new Typedef(name, null, reference: reference);
+    }
     node.annotations = readAnnotationList(node);
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType type = readDartType();
@@ -1217,43 +1348,45 @@ class BinaryBuilder {
     // There is a field for the procedure count.
     _byteOffset = endOffset - (1) * 4;
     int procedureCount = readUint32();
-    List<int> procedureOffsets = new List<int>.filled(procedureCount + 1, null);
     // There is a field for the procedure count, that number + 1 (for the end)
     // offsets (i.e. procedure count + 2 fields).
     _byteOffset = endOffset - (procedureCount + 2) * 4;
-    for (int i = 0; i < procedureCount + 1; i++) {
-      procedureOffsets[i] = _componentStartOffset + readUint32();
-    }
+    List<int> procedureOffsets = new List<int>.generate(
+        procedureCount + 1, (_) => _componentStartOffset + readUint32(),
+        growable: false);
     _byteOffset = savedByteOffset;
 
-    CanonicalName canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.getReference();
-    Class node = reference.node;
+    Class? node = reference.node as Class?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
+    Uri? fileUri = readUriReference();
+    int startFileOffset = readOffset();
+    int fileOffset = readOffset();
+    int fileEndOffset = readOffset();
+    int flags = readByte();
+    String name = readStringReference();
     if (node == null) {
-      node = new Class(reference: reference)..dirty = false;
+      node = new Class(name: name, reference: reference)..dirty = false;
     }
 
-    Uri fileUri = readUriReference();
-    node.startFileOffset = readOffset();
-    node.fileOffset = readOffset();
-    node.fileEndOffset = readOffset();
-    int flags = readByte();
+    node.startFileOffset = startFileOffset;
+    node.fileOffset = fileOffset;
+    node.fileEndOffset = fileEndOffset;
     node.flags = flags;
-    String name = readStringOrNullIfEmpty();
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name ?? 'normal-class');
+      debugPath.add(name);
       return true;
     }());
 
     assert(typeParameterStack.length == 0);
 
     readAndPushTypeParameterList(node.typeParameters, node);
-    Supertype supertype = readSupertypeOption();
-    Supertype mixedInType = readSupertypeOption();
+    Supertype? supertype = readSupertypeOption();
+    Supertype? mixedInType = readSupertypeOption();
     _fillNonTreeNodeList(node.implementedTypes, readSupertype);
     if (_disableLazyClassReading) {
       readClassPartialContent(node, procedureOffsets);
@@ -1262,6 +1395,7 @@ class BinaryBuilder {
     }
 
     typeParameterStack.length = 0;
+    // ignore: unnecessary_null_comparison
     assert(debugPath.removeLast() != null);
     node.name = name;
     node.fileUri = fileUri;
@@ -1278,23 +1412,23 @@ class BinaryBuilder {
     int tag = readByte();
     assert(tag == Tag.Extension);
 
-    CanonicalName canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.getReference();
-    Extension node = reference.node;
+    Extension? node = reference.node as Extension?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    if (node == null) {
-      node = new Extension(reference: reference);
-    }
 
-    String name = readStringOrNullIfEmpty();
+    String name = readStringReference();
+    if (node == null) {
+      node = new Extension(name: name, reference: reference);
+    }
     assert(() {
-      debugPath.add(node.name ?? 'extension');
+      debugPath.add(name);
       return true;
     }());
 
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
     node.fileOffset = readOffset();
 
     readAndPushTypeParameterList(node.typeParameters, node);
@@ -1311,7 +1445,7 @@ class BinaryBuilder {
       Name name = readName();
       int kind = readByte();
       int flags = readByte();
-      CanonicalName canonicalName = readCanonicalNameReference();
+      CanonicalName canonicalName = readNonNullCanonicalNameReference();
       node.members[i] = new ExtensionMemberDescriptor(
           name: name,
           kind: ExtensionMemberKind.values[kind],
@@ -1341,7 +1475,7 @@ class BinaryBuilder {
   void _setLazyLoadClass(Class node, List<int> procedureOffsets) {
     final int savedByteOffset = _byteOffset;
     final int componentStartOffset = _componentStartOffset;
-    final Library currentLibrary = _currentLibrary;
+    final Library? currentLibrary = _currentLibrary;
     node.lazyBuilder = () {
       _byteOffset = savedByteOffset;
       _currentLibrary = currentLibrary;
@@ -1368,11 +1502,11 @@ class BinaryBuilder {
   Field readField() {
     int tag = readByte();
     assert(tag == Tag.Field);
-    CanonicalName getterCanonicalName = readCanonicalNameReference();
+    CanonicalName getterCanonicalName = readNonNullCanonicalNameReference();
     Reference getterReference = getterCanonicalName.getReference();
-    CanonicalName setterCanonicalName = readCanonicalNameReference();
-    Reference setterReference = setterCanonicalName?.getReference();
-    Field node = getterReference.node;
+    CanonicalName? setterCanonicalName = readNullableCanonicalNameReference();
+    Reference? setterReference = setterCanonicalName?.getReference();
+    Field? node = getterReference.node as Field?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
@@ -1384,18 +1518,18 @@ class BinaryBuilder {
         node = new Field.immutable(null, getterReference: getterReference);
       }
     }
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readUInt30();
     Name name = readName();
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.text ?? 'field');
+      debugPath.add(name.text);
       return true;
     }());
     DartType type = readDartType();
-    Expression initializer = readExpressionOption();
+    Expression? initializer = readExpressionOption();
     int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
     node.fileOffset = fileOffset;
@@ -1414,16 +1548,16 @@ class BinaryBuilder {
   Constructor readConstructor() {
     int tag = readByte();
     assert(tag == Tag.Constructor);
-    CanonicalName canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.getReference();
-    Constructor node = reference.node;
+    Constructor? node = reference.node as Constructor?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
     if (node == null) {
       node = new Constructor(null, reference: reference);
     }
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
     int startFileOffset = readOffset();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
@@ -1431,7 +1565,7 @@ class BinaryBuilder {
     Name name = readName();
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.text ?? 'constructor');
+      debugPath.add(name.text);
       return true;
     }());
     FunctionNode function = readFunctionNode();
@@ -1456,13 +1590,13 @@ class BinaryBuilder {
   Procedure readProcedure(int endOffset) {
     int tag = readByte();
     assert(tag == Tag.Procedure);
-    CanonicalName canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.getReference();
-    Procedure node = reference.node;
+    Procedure? node = reference.node as Procedure?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
     int startFileOffset = readOffset();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
@@ -1478,7 +1612,7 @@ class BinaryBuilder {
     Name name = readName();
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.text ?? 'procedure');
+      debugPath.add(name.text);
       return true;
     }());
     int functionNodeSize = endOffset - _byteOffset;
@@ -1486,8 +1620,8 @@ class BinaryBuilder {
     bool readFunctionNodeNow =
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
-    Reference stubTargetReference = readMemberReference(allowNull: true);
-    FunctionNode function =
+    Reference? stubTargetReference = readNullableMemberReference();
+    FunctionNode? function =
         readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
@@ -1506,7 +1640,7 @@ class BinaryBuilder {
 
     assert((node.stubKind == ProcedureStubKind.ConcreteForwardingStub &&
             node.stubTargetReference != null) ||
-        !(node.isForwardingStub && node.function.body != null));
+        !(node.isForwardingStub && node.function!.body != null));
     assert(!(node.isMemberSignature && node.stubTargetReference == null),
         "No member signature origin for member signature $node.");
     return node;
@@ -1515,26 +1649,27 @@ class BinaryBuilder {
   RedirectingFactoryConstructor readRedirectingFactoryConstructor() {
     int tag = readByte();
     assert(tag == Tag.RedirectingFactoryConstructor);
-    CanonicalName canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.getReference();
-    RedirectingFactoryConstructor node = reference.node;
+    RedirectingFactoryConstructor? node =
+        reference.node as RedirectingFactoryConstructor?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
     if (node == null) {
       node = new RedirectingFactoryConstructor(null, reference: reference);
     }
-    Uri fileUri = readUriReference();
+    Uri? fileUri = readUriReference();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readByte();
     Name name = readName();
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.text ?? 'redirecting-factory-constructor');
+      debugPath.add(name.text);
       return true;
     }());
-    Reference targetReference = readMemberReference();
+    Reference targetReference = readNonNullMemberReference();
     List<DartType> typeArguments = readDartTypeList();
     int typeParameterStackHeight = typeParameterStack.length;
     List<TypeParameter> typeParameters = readAndPushTypeParameterList();
@@ -1566,34 +1701,58 @@ class BinaryBuilder {
     bool isSynthetic = readByte() == 1;
     switch (tag) {
       case Tag.InvalidInitializer:
-        return new InvalidInitializer();
+        return _readInvalidInitializer();
       case Tag.FieldInitializer:
-        Reference reference = readMemberReference();
-        Expression value = readExpression();
-        return new FieldInitializer.byReference(reference, value)
-          ..isSynthetic = isSynthetic;
+        return _readFieldInitializer(isSynthetic);
       case Tag.SuperInitializer:
-        int offset = readOffset();
-        Reference reference = readMemberReference();
-        Arguments arguments = readArguments();
-        return new SuperInitializer.byReference(reference, arguments)
-          ..isSynthetic = isSynthetic
-          ..fileOffset = offset;
+        return _readSuperInitializer(isSynthetic);
       case Tag.RedirectingInitializer:
-        int offset = readOffset();
-        return new RedirectingInitializer.byReference(
-            readMemberReference(), readArguments())
-          ..fileOffset = offset;
+        return _readRedirectingInitializer();
       case Tag.LocalInitializer:
-        return new LocalInitializer(readAndPushVariableDeclaration());
+        return _readLocalInitializer();
       case Tag.AssertInitializer:
-        return new AssertInitializer(readStatement());
+        return _readAssertInitializer();
       default:
         throw fail('unexpected initializer tag: $tag');
     }
   }
 
-  FunctionNode readFunctionNodeOption(bool lazyLoadBody, int outerEndOffset) {
+  Initializer _readInvalidInitializer() {
+    return new InvalidInitializer();
+  }
+
+  Initializer _readFieldInitializer(bool isSynthetic) {
+    Reference reference = readNonNullMemberReference();
+    Expression value = readExpression();
+    return new FieldInitializer.byReference(reference, value)
+      ..isSynthetic = isSynthetic;
+  }
+
+  Initializer _readSuperInitializer(bool isSynthetic) {
+    int offset = readOffset();
+    Reference reference = readNonNullMemberReference();
+    Arguments arguments = readArguments();
+    return new SuperInitializer.byReference(reference, arguments)
+      ..isSynthetic = isSynthetic
+      ..fileOffset = offset;
+  }
+
+  Initializer _readRedirectingInitializer() {
+    int offset = readOffset();
+    return new RedirectingInitializer.byReference(
+        readNonNullMemberReference(), readArguments())
+      ..fileOffset = offset;
+  }
+
+  Initializer _readLocalInitializer() {
+    return new LocalInitializer(readAndPushVariableDeclaration());
+  }
+
+  Initializer _readAssertInitializer() {
+    return new AssertInitializer(readStatement() as AssertStatement);
+  }
+
+  FunctionNode? readFunctionNodeOption(bool lazyLoadBody, int outerEndOffset) {
     return readAndCheckOptionTag()
         ? readFunctionNode(
             lazyLoadBody: lazyLoadBody, outerEndOffset: outerEndOffset)
@@ -1616,6 +1775,7 @@ class BinaryBuilder {
     List<VariableDeclaration> positional = readAndPushVariableDeclarationList();
     List<VariableDeclaration> named = readAndPushVariableDeclarationList();
     DartType returnType = readDartType();
+    DartType? futureValueType = readDartTypeOption();
     int oldLabelStackBase = labelStackBase;
     int oldSwitchCaseStackBase = switchCaseStackBase;
 
@@ -1624,7 +1784,7 @@ class BinaryBuilder {
           2; // e.g. outline has Tag.Something and Tag.EmptyStatement
     }
 
-    Statement body;
+    Statement? body;
     if (!lazyLoadBody) {
       labelStackBase = labelStack.length;
       switchCaseStackBase = switchCaseStack.length;
@@ -1638,7 +1798,8 @@ class BinaryBuilder {
         namedParameters: named,
         returnType: returnType,
         asyncMarker: asyncMarker,
-        dartAsyncMarker: dartAsyncMarker)
+        dartAsyncMarker: dartAsyncMarker,
+        futureValueType: futureValueType)
       ..fileOffset = offset
       ..fileEndOffset = endOffset;
 
@@ -1661,7 +1822,7 @@ class BinaryBuilder {
     final int componentStartOffset = _componentStartOffset;
     final List<TypeParameter> typeParameters = typeParameterStack.toList();
     final List<VariableDeclaration> variables = variableStack.toList();
-    final Library currentLibrary = _currentLibrary;
+    final Library currentLibrary = _currentLibrary!;
     result.lazyBuilder = () {
       _byteOffset = savedByteOffset;
       _currentLibrary = currentLibrary;
@@ -1677,8 +1838,8 @@ class BinaryBuilder {
       switchCaseStackBase = oldSwitchCaseStackBase;
       variableStack.length = variableStackHeight;
       typeParameterStack.clear();
-      if (result.parent is Procedure) {
-        Procedure parent = result.parent;
+      TreeNode? parent = result.parent;
+      if (parent is Procedure) {
         parent.transformerFlags |= getAndResetTransformerFlags();
       }
     };
@@ -1714,15 +1875,16 @@ class BinaryBuilder {
 
   List<Expression> readExpressionList() {
     int length = readUInt30();
-    List<Expression> result =
-        new List<Expression>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readExpression();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return emptyListOfExpression;
     }
-    return result;
+    return new List<Expression>.generate(length, (_) => readExpression(),
+        growable: useGrowableLists);
   }
 
-  Expression readExpressionOption() {
+  Expression? readExpressionOption() {
     return readAndCheckOptionTag() ? readExpression() : null;
   }
 
@@ -1733,370 +1895,653 @@ class BinaryBuilder {
         : (tagByte & Tag.SpecializedTagMask);
     switch (tag) {
       case Tag.LoadLibrary:
-        return new LoadLibrary(readLibraryDependencyReference());
+        return _readLoadLibrary();
       case Tag.CheckLibraryIsLoaded:
-        return new CheckLibraryIsLoaded(readLibraryDependencyReference());
+        return _readCheckLibraryIsLoaded();
       case Tag.InvalidExpression:
-        int offset = readOffset();
-        return new InvalidExpression(readStringOrNullIfEmpty())
-          ..fileOffset = offset;
+        return _readInvalidExpression();
       case Tag.VariableGet:
-        int offset = readOffset();
-        readUInt30(); // offset of the variable declaration in the binary.
-        return new VariableGet(readVariableReference(), readDartTypeOption())
-          ..fileOffset = offset;
+        return _readVariableGet();
       case Tag.SpecializedVariableGet:
-        int index = tagByte & Tag.SpecializedPayloadMask;
-        int offset = readOffset();
-        readUInt30(); // offset of the variable declaration in the binary.
-        return new VariableGet(variableStack[index])..fileOffset = offset;
+        return _readSpecializedVariableGet(tagByte);
       case Tag.VariableSet:
-        int offset = readOffset();
-        readUInt30(); // offset of the variable declaration in the binary.
-        return new VariableSet(readVariableReference(), readExpression())
-          ..fileOffset = offset;
+        return _readVariableSet();
       case Tag.SpecializedVariableSet:
-        int index = tagByte & Tag.SpecializedPayloadMask;
-        int offset = readOffset();
-        readUInt30(); // offset of the variable declaration in the binary.
-        return new VariableSet(variableStack[index], readExpression())
-          ..fileOffset = offset;
+        return _readSpecializedVariableSet(tagByte);
       case Tag.PropertyGet:
-        int offset = readOffset();
-        return new PropertyGet.byReference(readExpression(), readName(),
-            readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset;
+        return _readPropertyGet();
       case Tag.InstanceGet:
-        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
-        int offset = readOffset();
-        return new InstanceGet.byReference(kind, readExpression(), readName(),
-            resultType: readDartType(),
-            interfaceTargetReference: readInstanceMemberReference())
-          ..fileOffset = offset;
+        return _readInstanceGet();
       case Tag.InstanceTearOff:
-        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
-        int offset = readOffset();
-        return new InstanceTearOff.byReference(
-            kind, readExpression(), readName(),
-            resultType: readDartType(),
-            interfaceTargetReference: readInstanceMemberReference())
-          ..fileOffset = offset;
+        return _readInstanceTearOff();
       case Tag.DynamicGet:
-        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
-        int offset = readOffset();
-        return new DynamicGet(kind, readExpression(), readName())
-          ..fileOffset = offset;
+        return _readDynamicGet();
       case Tag.PropertySet:
-        int offset = readOffset();
-        return new PropertySet.byReference(readExpression(), readName(),
-            readExpression(), readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset;
+        return _readPropertySet();
       case Tag.InstanceSet:
-        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
-        int offset = readOffset();
-        return new InstanceSet.byReference(
-            kind, readExpression(), readName(), readExpression(),
-            interfaceTargetReference: readInstanceMemberReference())
-          ..fileOffset = offset;
+        return _readInstanceSet();
       case Tag.DynamicSet:
-        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
-        int offset = readOffset();
-        return new DynamicSet(
-            kind, readExpression(), readName(), readExpression())
-          ..fileOffset = offset;
+        return _readDynamicSet();
       case Tag.SuperPropertyGet:
-        int offset = readOffset();
-        addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperPropertyGet.byReference(
-            readName(), readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset;
+        return _readSuperPropertyGet();
       case Tag.SuperPropertySet:
-        int offset = readOffset();
-        addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperPropertySet.byReference(readName(), readExpression(),
-            readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset;
+        return _readSuperPropertySet();
       case Tag.StaticGet:
-        int offset = readOffset();
-        return new StaticGet.byReference(readMemberReference())
-          ..fileOffset = offset;
+        return _readStaticGet();
       case Tag.StaticTearOff:
-        int offset = readOffset();
-        return new StaticTearOff.byReference(readMemberReference())
-          ..fileOffset = offset;
+        return _readStaticTearOff();
       case Tag.StaticSet:
-        int offset = readOffset();
-        return new StaticSet.byReference(
-            readMemberReference(), readExpression())
-          ..fileOffset = offset;
+        return _readStaticSet();
       case Tag.MethodInvocation:
-        int flags = readByte();
-        int offset = readOffset();
-        return new MethodInvocation.byReference(readExpression(), readName(),
-            readArguments(), readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset
-          ..flags = flags;
+        return _readMethodInvocation();
       case Tag.InstanceInvocation:
-        InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
-        int flags = readByte();
-        int offset = readOffset();
-        return new InstanceInvocation.byReference(
-            kind, readExpression(), readName(), readArguments(),
-            functionType: readDartType(),
-            interfaceTargetReference: readInstanceMemberReference())
-          ..fileOffset = offset
-          ..flags = flags;
+        return _readInstanceInvocation();
       case Tag.DynamicInvocation:
-        DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
-        int offset = readOffset();
-        return new DynamicInvocation(
-            kind, readExpression(), readName(), readArguments())
-          ..fileOffset = offset;
+        return _readDynamicInvocation();
       case Tag.FunctionInvocation:
-        FunctionAccessKind kind = FunctionAccessKind.values[readByte()];
-        int offset = readOffset();
-        Expression receiver = readExpression();
-        Arguments arguments = readArguments();
-        DartType functionType = readDartType();
-        // `const DynamicType()` is used to encode a missing function type.
-        assert(functionType is FunctionType || functionType is DynamicType,
-            "Unexpected function type $functionType for FunctionInvocation");
-        return new FunctionInvocation(kind, receiver, arguments,
-            functionType: functionType is FunctionType ? functionType : null)
-          ..fileOffset = offset;
+        return _readFunctionInvocation();
       case Tag.FunctionTearOff:
-        int offset = readOffset();
-        return new FunctionTearOff(readExpression())..fileOffset = offset;
+        return _readFunctionTearOff();
       case Tag.LocalFunctionInvocation:
-        int offset = readOffset();
-        readUInt30(); // offset of the variable declaration in the binary.
-        return new LocalFunctionInvocation(
-            readVariableReference(), readArguments(),
-            functionType: readDartType())
-          ..fileOffset = offset;
+        return _readLocalFunctionInvocation();
       case Tag.EqualsNull:
-        int offset = readOffset();
-        return new EqualsNull(readExpression(), isNot: readByte() == 1)
-          ..fileOffset = offset;
+        return _readEqualsNull();
       case Tag.EqualsCall:
-        int offset = readOffset();
-        return new EqualsCall.byReference(readExpression(), readExpression(),
-            isNot: readByte() == 1,
-            functionType: readDartType(),
-            interfaceTargetReference: readInstanceMemberReference())
-          ..fileOffset = offset;
+        return _readEqualsCall();
       case Tag.SuperMethodInvocation:
-        int offset = readOffset();
-        addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperMethodInvocation.byReference(readName(),
-            readArguments(), readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset;
+        return _readSuperMethodInvocation();
       case Tag.StaticInvocation:
-        int offset = readOffset();
-        return new StaticInvocation.byReference(
-            readMemberReference(), readArguments(),
-            isConst: false)
-          ..fileOffset = offset;
+        return _readStaticInvocation();
       case Tag.ConstStaticInvocation:
-        int offset = readOffset();
-        return new StaticInvocation.byReference(
-            readMemberReference(), readArguments(),
-            isConst: true)
-          ..fileOffset = offset;
+        return _readConstStaticInvocation();
       case Tag.ConstructorInvocation:
-        int offset = readOffset();
-        return new ConstructorInvocation.byReference(
-            readMemberReference(), readArguments(),
-            isConst: false)
-          ..fileOffset = offset;
+        return _readConstructorInvocation();
       case Tag.ConstConstructorInvocation:
-        int offset = readOffset();
-        return new ConstructorInvocation.byReference(
-            readMemberReference(), readArguments(),
-            isConst: true)
-          ..fileOffset = offset;
+        return _readConstConstructorInvocation();
       case Tag.Not:
-        return new Not(readExpression());
+        return _readNot();
       case Tag.NullCheck:
-        int offset = readOffset();
-        return new NullCheck(readExpression())..fileOffset = offset;
+        return _readNullCheck();
       case Tag.LogicalExpression:
-        return new LogicalExpression(readExpression(),
-            logicalOperatorToEnum(readByte()), readExpression());
+        return _readLogicalExpression();
       case Tag.ConditionalExpression:
-        return new ConditionalExpression(readExpression(), readExpression(),
-            readExpression(), readDartTypeOption());
+        return _readConditionalExpression();
       case Tag.StringConcatenation:
-        int offset = readOffset();
-        return new StringConcatenation(readExpressionList())
-          ..fileOffset = offset;
+        return _readStringConcatenation();
       case Tag.ListConcatenation:
-        int offset = readOffset();
-        DartType typeArgument = readDartType();
-        return new ListConcatenation(readExpressionList(),
-            typeArgument: typeArgument)
-          ..fileOffset = offset;
+        return _readListConcatenation();
       case Tag.SetConcatenation:
-        int offset = readOffset();
-        DartType typeArgument = readDartType();
-        return new SetConcatenation(readExpressionList(),
-            typeArgument: typeArgument)
-          ..fileOffset = offset;
+        return _readSetConcatenation();
       case Tag.MapConcatenation:
-        int offset = readOffset();
-        DartType keyType = readDartType();
-        DartType valueType = readDartType();
-        return new MapConcatenation(readExpressionList(),
-            keyType: keyType, valueType: valueType)
-          ..fileOffset = offset;
+        return _readMapConcatenation();
       case Tag.InstanceCreation:
-        int offset = readOffset();
-        Reference classReference = readClassReference();
-        List<DartType> typeArguments = readDartTypeList();
-        int fieldValueCount = readUInt30();
-        Map<Reference, Expression> fieldValues = <Reference, Expression>{};
-        for (int i = 0; i < fieldValueCount; i++) {
-          final Reference fieldRef =
-              readCanonicalNameReference().getReference();
-          final Expression value = readExpression();
-          fieldValues[fieldRef] = value;
-        }
-        int assertCount = readUInt30();
-        List<AssertStatement> asserts =
-            new List<AssertStatement>.filled(assertCount, null);
-        for (int i = 0; i < assertCount; i++) {
-          asserts[i] = readStatement();
-        }
-        List<Expression> unusedArguments = readExpressionList();
-        return new InstanceCreation(classReference, typeArguments, fieldValues,
-            asserts, unusedArguments)
-          ..fileOffset = offset;
+        return _readInstanceCreation();
       case Tag.FileUriExpression:
-        Uri fileUri = readUriReference();
-        int offset = readOffset();
-        return new FileUriExpression(readExpression(), fileUri)
-          ..fileOffset = offset;
+        return _readFileUriExpression();
       case Tag.IsExpression:
-        int offset = readOffset();
-        int flags = readByte();
-        return new IsExpression(readExpression(), readDartType())
-          ..fileOffset = offset
-          ..flags = flags;
+        return _readIsExpression();
       case Tag.AsExpression:
-        int offset = readOffset();
-        int flags = readByte();
-        return new AsExpression(readExpression(), readDartType())
-          ..fileOffset = offset
-          ..flags = flags;
+        return _readAsExpression();
       case Tag.StringLiteral:
-        return new StringLiteral(readStringReference());
+        return _readStringLiteral();
       case Tag.SpecializedIntLiteral:
-        int biasedValue = tagByte & Tag.SpecializedPayloadMask;
-        return new IntLiteral(biasedValue - Tag.SpecializedIntLiteralBias);
+        return _readSpecializedIntLiteral(tagByte);
       case Tag.PositiveIntLiteral:
-        return new IntLiteral(readUInt30());
+        return _readPositiveIntLiteral();
       case Tag.NegativeIntLiteral:
-        return new IntLiteral(-readUInt30());
+        return _readNegativeIntLiteral();
       case Tag.BigIntLiteral:
-        return new IntLiteral(int.parse(readStringReference()));
+        return _readBigIntLiteral();
       case Tag.DoubleLiteral:
-        return new DoubleLiteral(readDouble());
+        return _readDoubleLiteral();
       case Tag.TrueLiteral:
-        return new BoolLiteral(true);
+        return _readTrueLiteral();
       case Tag.FalseLiteral:
-        return new BoolLiteral(false);
+        return _readFalseLiteral();
       case Tag.NullLiteral:
-        return new NullLiteral();
+        return _readNullLiteral();
       case Tag.SymbolLiteral:
-        return new SymbolLiteral(readStringReference());
+        return _readSymbolLiteral();
       case Tag.TypeLiteral:
-        return new TypeLiteral(readDartType());
+        return _readTypeLiteral();
       case Tag.ThisExpression:
-        return new ThisExpression();
+        return _readThisLiteral();
       case Tag.Rethrow:
-        int offset = readOffset();
-        return new Rethrow()..fileOffset = offset;
+        return _readRethrow();
       case Tag.Throw:
-        int offset = readOffset();
-        return new Throw(readExpression())..fileOffset = offset;
+        return _readThrow();
       case Tag.ListLiteral:
-        int offset = readOffset();
-        DartType typeArgument = readDartType();
-        return new ListLiteral(readExpressionList(),
-            typeArgument: typeArgument, isConst: false)
-          ..fileOffset = offset;
+        return _readListLiteral();
       case Tag.ConstListLiteral:
-        int offset = readOffset();
-        DartType typeArgument = readDartType();
-        return new ListLiteral(readExpressionList(),
-            typeArgument: typeArgument, isConst: true)
-          ..fileOffset = offset;
+        return _readConstListLiteral();
       case Tag.SetLiteral:
-        int offset = readOffset();
-        DartType typeArgument = readDartType();
-        return new SetLiteral(readExpressionList(),
-            typeArgument: typeArgument, isConst: false)
-          ..fileOffset = offset;
+        return _readSetLiteral();
       case Tag.ConstSetLiteral:
-        int offset = readOffset();
-        DartType typeArgument = readDartType();
-        return new SetLiteral(readExpressionList(),
-            typeArgument: typeArgument, isConst: true)
-          ..fileOffset = offset;
+        return _readConstSetLiteral();
       case Tag.MapLiteral:
-        int offset = readOffset();
-        DartType keyType = readDartType();
-        DartType valueType = readDartType();
-        return new MapLiteral(readMapEntryList(),
-            keyType: keyType, valueType: valueType, isConst: false)
-          ..fileOffset = offset;
+        return _readMapLiteral();
       case Tag.ConstMapLiteral:
-        int offset = readOffset();
-        DartType keyType = readDartType();
-        DartType valueType = readDartType();
-        return new MapLiteral(readMapEntryList(),
-            keyType: keyType, valueType: valueType, isConst: true)
-          ..fileOffset = offset;
+        return _readConstMapLiteral();
       case Tag.AwaitExpression:
-        return new AwaitExpression(readExpression());
+        return _readAwaitExpression();
       case Tag.FunctionExpression:
-        int offset = readOffset();
-        return new FunctionExpression(readFunctionNode())..fileOffset = offset;
+        return _readFunctionExpression();
       case Tag.Let:
-        VariableDeclaration variable = readVariableDeclaration();
-        int stackHeight = variableStack.length;
-        pushVariableDeclaration(variable);
-        Expression body = readExpression();
-        variableStack.length = stackHeight;
-        return new Let(variable, body);
+        return _readLet();
       case Tag.BlockExpression:
-        int stackHeight = variableStack.length;
-        List<Statement> statements = readStatementList();
-        Expression value = readExpression();
-        variableStack.length = stackHeight;
-        return new BlockExpression(new Block(statements), value);
+        return _readBlockExpression();
       case Tag.Instantiation:
-        Expression expression = readExpression();
-        List<DartType> typeArguments = readDartTypeList();
-        return new Instantiation(expression, typeArguments);
+        return _readInstantiation();
       case Tag.ConstantExpression:
-        int offset = readOffset();
-        DartType type = readDartType();
-        Constant constant = readConstantReference();
-        return new ConstantExpression(constant, type)..fileOffset = offset;
+        return _readConstantExpression();
       default:
         throw fail('unexpected expression tag: $tag');
     }
   }
 
+  Expression _readLoadLibrary() {
+    return new LoadLibrary(readLibraryDependencyReference());
+  }
+
+  Expression _readCheckLibraryIsLoaded() {
+    return new CheckLibraryIsLoaded(readLibraryDependencyReference());
+  }
+
+  Expression _readInvalidExpression() {
+    int offset = readOffset();
+    return new InvalidExpression(readStringOrNullIfEmpty())
+      ..fileOffset = offset;
+  }
+
+  Expression _readVariableGet() {
+    int offset = readOffset();
+    readUInt30(); // offset of the variable declaration in the binary.
+    return new VariableGet(readVariableReference(), readDartTypeOption())
+      ..fileOffset = offset;
+  }
+
+  Expression _readSpecializedVariableGet(int tagByte) {
+    int index = tagByte & Tag.SpecializedPayloadMask;
+    int offset = readOffset();
+    readUInt30(); // offset of the variable declaration in the binary.
+    return new VariableGet(variableStack[index])..fileOffset = offset;
+  }
+
+  Expression _readVariableSet() {
+    int offset = readOffset();
+    readUInt30(); // offset of the variable declaration in the binary.
+    return new VariableSet(readVariableReference(), readExpression())
+      ..fileOffset = offset;
+  }
+
+  Expression _readSpecializedVariableSet(int tagByte) {
+    int index = tagByte & Tag.SpecializedPayloadMask;
+    int offset = readOffset();
+    readUInt30(); // offset of the variable declaration in the binary.
+    return new VariableSet(variableStack[index], readExpression())
+      ..fileOffset = offset;
+  }
+
+  Expression _readPropertyGet() {
+    int offset = readOffset();
+    return new PropertyGet.byReference(
+        readExpression(), readName(), readNullableInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readInstanceGet() {
+    InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+    int offset = readOffset();
+    return new InstanceGet.byReference(kind, readExpression(), readName(),
+        resultType: readDartType(),
+        interfaceTargetReference: readNonNullInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readInstanceTearOff() {
+    InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+    int offset = readOffset();
+    return new InstanceTearOff.byReference(kind, readExpression(), readName(),
+        resultType: readDartType(),
+        interfaceTargetReference: readNonNullInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readDynamicGet() {
+    DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+    int offset = readOffset();
+    return new DynamicGet(kind, readExpression(), readName())
+      ..fileOffset = offset;
+  }
+
+  Expression _readPropertySet() {
+    int offset = readOffset();
+    return new PropertySet.byReference(readExpression(), readName(),
+        readExpression(), readNullableInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readInstanceSet() {
+    InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+    int offset = readOffset();
+    return new InstanceSet.byReference(
+        kind, readExpression(), readName(), readExpression(),
+        interfaceTargetReference: readNonNullInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readDynamicSet() {
+    DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+    int offset = readOffset();
+    return new DynamicSet(kind, readExpression(), readName(), readExpression())
+      ..fileOffset = offset;
+  }
+
+  Expression _readSuperPropertyGet() {
+    int offset = readOffset();
+    addTransformerFlag(TransformerFlag.superCalls);
+    return new SuperPropertyGet.byReference(
+        readName(), readNullableInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readSuperPropertySet() {
+    int offset = readOffset();
+    addTransformerFlag(TransformerFlag.superCalls);
+    return new SuperPropertySet.byReference(
+        readName(), readExpression(), readNullableInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readStaticGet() {
+    int offset = readOffset();
+    return new StaticGet.byReference(readNonNullMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readStaticTearOff() {
+    int offset = readOffset();
+    return new StaticTearOff.byReference(readNonNullMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readStaticSet() {
+    int offset = readOffset();
+    return new StaticSet.byReference(
+        readNonNullMemberReference(), readExpression())
+      ..fileOffset = offset;
+  }
+
+  Expression _readMethodInvocation() {
+    int flags = readByte();
+    int offset = readOffset();
+    return new MethodInvocation.byReference(readExpression(), readName(),
+        readArguments(), readNullableInstanceMemberReference())
+      ..fileOffset = offset
+      ..flags = flags;
+  }
+
+  Expression _readInstanceInvocation() {
+    InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
+    int flags = readByte();
+    int offset = readOffset();
+    return new InstanceInvocation.byReference(
+        kind, readExpression(), readName(), readArguments(),
+        functionType: readDartType() as FunctionType,
+        interfaceTargetReference: readNonNullInstanceMemberReference())
+      ..fileOffset = offset
+      ..flags = flags;
+  }
+
+  Expression _readDynamicInvocation() {
+    DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
+    int offset = readOffset();
+    return new DynamicInvocation(
+        kind, readExpression(), readName(), readArguments())
+      ..fileOffset = offset;
+  }
+
+  Expression _readFunctionInvocation() {
+    FunctionAccessKind kind = FunctionAccessKind.values[readByte()];
+    int offset = readOffset();
+    Expression receiver = readExpression();
+    Arguments arguments = readArguments();
+    DartType functionType = readDartType();
+    // `const DynamicType()` is used to encode a missing function type.
+    assert(functionType is FunctionType || functionType is DynamicType,
+        "Unexpected function type $functionType for FunctionInvocation");
+    return new FunctionInvocation(kind, receiver, arguments,
+        functionType: functionType is FunctionType ? functionType : null)
+      ..fileOffset = offset;
+  }
+
+  Expression _readFunctionTearOff() {
+    int offset = readOffset();
+    return new FunctionTearOff(readExpression())..fileOffset = offset;
+  }
+
+  Expression _readLocalFunctionInvocation() {
+    int offset = readOffset();
+    readUInt30(); // offset of the variable declaration in the binary.
+    return new LocalFunctionInvocation(readVariableReference(), readArguments(),
+        functionType: readDartType() as FunctionType)
+      ..fileOffset = offset;
+  }
+
+  Expression _readEqualsNull() {
+    int offset = readOffset();
+    return new EqualsNull(readExpression(), isNot: readByte() == 1)
+      ..fileOffset = offset;
+  }
+
+  Expression _readEqualsCall() {
+    int offset = readOffset();
+    return new EqualsCall.byReference(readExpression(), readExpression(),
+        isNot: readByte() == 1,
+        functionType: readDartType() as FunctionType,
+        interfaceTargetReference: readNonNullInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readSuperMethodInvocation() {
+    int offset = readOffset();
+    addTransformerFlag(TransformerFlag.superCalls);
+    return new SuperMethodInvocation.byReference(
+        readName(), readArguments(), readNullableInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readStaticInvocation() {
+    int offset = readOffset();
+    return new StaticInvocation.byReference(
+        readNonNullMemberReference(), readArguments(),
+        isConst: false)
+      ..fileOffset = offset;
+  }
+
+  Expression _readConstStaticInvocation() {
+    int offset = readOffset();
+    return new StaticInvocation.byReference(
+        readNonNullMemberReference(), readArguments(),
+        isConst: true)
+      ..fileOffset = offset;
+  }
+
+  Expression _readConstructorInvocation() {
+    int offset = readOffset();
+    return new ConstructorInvocation.byReference(
+        readNonNullMemberReference(), readArguments(),
+        isConst: false)
+      ..fileOffset = offset;
+  }
+
+  Expression _readConstConstructorInvocation() {
+    int offset = readOffset();
+    return new ConstructorInvocation.byReference(
+        readNonNullMemberReference(), readArguments(),
+        isConst: true)
+      ..fileOffset = offset;
+  }
+
+  Expression _readNot() {
+    return new Not(readExpression());
+  }
+
+  Expression _readNullCheck() {
+    int offset = readOffset();
+    return new NullCheck(readExpression())..fileOffset = offset;
+  }
+
+  Expression _readLogicalExpression() {
+    return new LogicalExpression(
+        readExpression(), logicalOperatorToEnum(readByte()), readExpression());
+  }
+
+  Expression _readConditionalExpression() {
+    return new ConditionalExpression(
+        readExpression(),
+        readExpression(),
+        readExpression(),
+        // TODO(johnniwinther): Change this to use `readDartType`.
+        readDartTypeOption()!);
+  }
+
+  Expression _readStringConcatenation() {
+    int offset = readOffset();
+    return new StringConcatenation(readExpressionList())..fileOffset = offset;
+  }
+
+  Expression _readListConcatenation() {
+    int offset = readOffset();
+    DartType typeArgument = readDartType();
+    return new ListConcatenation(readExpressionList(),
+        typeArgument: typeArgument)
+      ..fileOffset = offset;
+  }
+
+  Expression _readSetConcatenation() {
+    int offset = readOffset();
+    DartType typeArgument = readDartType();
+    return new SetConcatenation(readExpressionList(),
+        typeArgument: typeArgument)
+      ..fileOffset = offset;
+  }
+
+  Expression _readMapConcatenation() {
+    int offset = readOffset();
+    DartType keyType = readDartType();
+    DartType valueType = readDartType();
+    return new MapConcatenation(readExpressionList(),
+        keyType: keyType, valueType: valueType)
+      ..fileOffset = offset;
+  }
+
+  Expression _readInstanceCreation() {
+    int offset = readOffset();
+    Reference classReference = readNonNullClassReference();
+    List<DartType> typeArguments = readDartTypeList();
+    int fieldValueCount = readUInt30();
+    Map<Reference, Expression> fieldValues = <Reference, Expression>{};
+    for (int i = 0; i < fieldValueCount; i++) {
+      final Reference fieldRef =
+          readNonNullCanonicalNameReference().getReference();
+      final Expression value = readExpression();
+      fieldValues[fieldRef] = value;
+    }
+    int assertCount = readUInt30();
+    List<AssertStatement> asserts;
+
+    if (!useGrowableLists && assertCount == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      asserts = emptyListOfAssertStatement;
+    } else {
+      asserts = new List<AssertStatement>.generate(
+          assertCount, (_) => readStatement() as AssertStatement,
+          growable: false);
+    }
+    List<Expression> unusedArguments = readExpressionList();
+    return new InstanceCreation(
+        classReference, typeArguments, fieldValues, asserts, unusedArguments)
+      ..fileOffset = offset;
+  }
+
+  Expression _readFileUriExpression() {
+    Uri fileUri = readUriReference()!;
+    int offset = readOffset();
+    return new FileUriExpression(readExpression(), fileUri)
+      ..fileOffset = offset;
+  }
+
+  Expression _readIsExpression() {
+    int offset = readOffset();
+    int flags = readByte();
+    return new IsExpression(readExpression(), readDartType())
+      ..fileOffset = offset
+      ..flags = flags;
+  }
+
+  Expression _readAsExpression() {
+    int offset = readOffset();
+    int flags = readByte();
+    return new AsExpression(readExpression(), readDartType())
+      ..fileOffset = offset
+      ..flags = flags;
+  }
+
+  Expression _readStringLiteral() {
+    return new StringLiteral(readStringReference());
+  }
+
+  Expression _readSpecializedIntLiteral(int tagByte) {
+    int biasedValue = tagByte & Tag.SpecializedPayloadMask;
+    return new IntLiteral(biasedValue - Tag.SpecializedIntLiteralBias);
+  }
+
+  Expression _readPositiveIntLiteral() {
+    return new IntLiteral(readUInt30());
+  }
+
+  Expression _readNegativeIntLiteral() {
+    return new IntLiteral(-readUInt30());
+  }
+
+  Expression _readBigIntLiteral() {
+    return new IntLiteral(int.parse(readStringReference()));
+  }
+
+  Expression _readDoubleLiteral() {
+    return new DoubleLiteral(readDouble());
+  }
+
+  Expression _readTrueLiteral() {
+    return new BoolLiteral(true);
+  }
+
+  Expression _readFalseLiteral() {
+    return new BoolLiteral(false);
+  }
+
+  Expression _readNullLiteral() {
+    return new NullLiteral();
+  }
+
+  Expression _readSymbolLiteral() {
+    return new SymbolLiteral(readStringReference());
+  }
+
+  Expression _readTypeLiteral() {
+    return new TypeLiteral(readDartType());
+  }
+
+  Expression _readThisLiteral() {
+    return new ThisExpression();
+  }
+
+  Expression _readRethrow() {
+    int offset = readOffset();
+    return new Rethrow()..fileOffset = offset;
+  }
+
+  Expression _readThrow() {
+    int offset = readOffset();
+    return new Throw(readExpression())..fileOffset = offset;
+  }
+
+  Expression _readListLiteral() {
+    int offset = readOffset();
+    DartType typeArgument = readDartType();
+    return new ListLiteral(readExpressionList(),
+        typeArgument: typeArgument, isConst: false)
+      ..fileOffset = offset;
+  }
+
+  Expression _readConstListLiteral() {
+    int offset = readOffset();
+    DartType typeArgument = readDartType();
+    return new ListLiteral(readExpressionList(),
+        typeArgument: typeArgument, isConst: true)
+      ..fileOffset = offset;
+  }
+
+  Expression _readSetLiteral() {
+    int offset = readOffset();
+    DartType typeArgument = readDartType();
+    return new SetLiteral(readExpressionList(),
+        typeArgument: typeArgument, isConst: false)
+      ..fileOffset = offset;
+  }
+
+  Expression _readConstSetLiteral() {
+    int offset = readOffset();
+    DartType typeArgument = readDartType();
+    return new SetLiteral(readExpressionList(),
+        typeArgument: typeArgument, isConst: true)
+      ..fileOffset = offset;
+  }
+
+  Expression _readMapLiteral() {
+    int offset = readOffset();
+    DartType keyType = readDartType();
+    DartType valueType = readDartType();
+    return new MapLiteral(readMapEntryList(),
+        keyType: keyType, valueType: valueType, isConst: false)
+      ..fileOffset = offset;
+  }
+
+  Expression _readConstMapLiteral() {
+    int offset = readOffset();
+    DartType keyType = readDartType();
+    DartType valueType = readDartType();
+    return new MapLiteral(readMapEntryList(),
+        keyType: keyType, valueType: valueType, isConst: true)
+      ..fileOffset = offset;
+  }
+
+  Expression _readAwaitExpression() {
+    return new AwaitExpression(readExpression());
+  }
+
+  Expression _readFunctionExpression() {
+    int offset = readOffset();
+    return new FunctionExpression(readFunctionNode())..fileOffset = offset;
+  }
+
+  Expression _readLet() {
+    int offset = readOffset();
+    VariableDeclaration variable = readVariableDeclaration();
+    int stackHeight = variableStack.length;
+    pushVariableDeclaration(variable);
+    Expression body = readExpression();
+    variableStack.length = stackHeight;
+    return new Let(variable, body)..fileOffset = offset;
+  }
+
+  Expression _readBlockExpression() {
+    int stackHeight = variableStack.length;
+    List<Statement> statements = readStatementListAlwaysGrowable();
+    Expression value = readExpression();
+    variableStack.length = stackHeight;
+    return new BlockExpression(new Block(statements), value);
+  }
+
+  Expression _readInstantiation() {
+    Expression expression = readExpression();
+    List<DartType> typeArguments = readDartTypeList();
+    return new Instantiation(expression, typeArguments);
+  }
+
+  Expression _readConstantExpression() {
+    int offset = readOffset();
+    DartType type = readDartType();
+    Constant constant = readConstantReference();
+    return new ConstantExpression(constant, type)..fileOffset = offset;
+  }
+
   List<MapEntry> readMapEntryList() {
     int length = readUInt30();
-    List<MapEntry> result =
-        new List<MapEntry>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readMapEntry();
-    }
-    return result;
+    return new List<MapEntry>.generate(length, (_) => readMapEntry(),
+        growable: useGrowableLists);
   }
 
   MapEntry readMapEntry() {
@@ -2105,15 +2550,22 @@ class BinaryBuilder {
 
   List<Statement> readStatementList() {
     int length = readUInt30();
-    List<Statement> result =
-        new List<Statement>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readStatement();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfStatement;
     }
-    return result;
+    return new List<Statement>.generate(length, (_) => readStatement(),
+        growable: useGrowableLists);
   }
 
-  Statement readStatementOrNullIfEmpty() {
+  List<Statement> readStatementListAlwaysGrowable() {
+    int length = readUInt30();
+    return new List<Statement>.generate(length, (_) => readStatement(),
+        growable: true);
+  }
+
+  Statement? readStatementOrNullIfEmpty() {
     Statement node = readStatement();
     if (node is EmptyStatement) {
       return null;
@@ -2122,7 +2574,7 @@ class BinaryBuilder {
     }
   }
 
-  Statement readStatementOption() {
+  Statement? readStatementOption() {
     return readAndCheckOptionTag() ? readStatement() : null;
   }
 
@@ -2130,119 +2582,197 @@ class BinaryBuilder {
     int tag = readByte();
     switch (tag) {
       case Tag.ExpressionStatement:
-        return new ExpressionStatement(readExpression());
+        return _readExpressionStatement();
       case Tag.Block:
-        return readBlock();
+        return _readBlock();
       case Tag.AssertBlock:
-        return readAssertBlock();
+        return _readAssertBlock();
       case Tag.EmptyStatement:
-        return new EmptyStatement();
+        return _readEmptyStatement();
       case Tag.AssertStatement:
-        return new AssertStatement(readExpression(),
-            conditionStartOffset: readOffset(),
-            conditionEndOffset: readOffset(),
-            message: readExpressionOption());
+        return _readAssertStatement();
       case Tag.LabeledStatement:
-        LabeledStatement label = new LabeledStatement(null);
-        labelStack.add(label);
-        label.body = readStatement()..parent = label;
-        labelStack.removeLast();
-        return label;
+        return _readLabeledStatement();
       case Tag.BreakStatement:
-        int offset = readOffset();
-        int index = readUInt30();
-        return new BreakStatement(labelStack[labelStackBase + index])
-          ..fileOffset = offset;
+        return _readBreakStatement();
       case Tag.WhileStatement:
-        int offset = readOffset();
-        return new WhileStatement(readExpression(), readStatement())
-          ..fileOffset = offset;
+        return _readWhileStatement();
       case Tag.DoStatement:
-        int offset = readOffset();
-        return new DoStatement(readStatement(), readExpression())
-          ..fileOffset = offset;
+        return _readDoStatement();
       case Tag.ForStatement:
-        int variableStackHeight = variableStack.length;
-        int offset = readOffset();
-        List<VariableDeclaration> variables =
-            readAndPushVariableDeclarationList();
-        Expression condition = readExpressionOption();
-        List<Expression> updates = readExpressionList();
-        Statement body = readStatement();
-        variableStack.length = variableStackHeight;
-        return new ForStatement(variables, condition, updates, body)
-          ..fileOffset = offset;
+        return _readForStatement();
       case Tag.ForInStatement:
       case Tag.AsyncForInStatement:
-        bool isAsync = tag == Tag.AsyncForInStatement;
-        int variableStackHeight = variableStack.length;
-        int offset = readOffset();
-        int bodyOffset = readOffset();
-        VariableDeclaration variable = readAndPushVariableDeclaration();
-        Expression iterable = readExpression();
-        Statement body = readStatement();
-        variableStack.length = variableStackHeight;
-        return new ForInStatement(variable, iterable, body, isAsync: isAsync)
-          ..fileOffset = offset
-          ..bodyOffset = bodyOffset;
+        return _readForInStatement(tag);
       case Tag.SwitchStatement:
-        int offset = readOffset();
-        Expression expression = readExpression();
-        int count = readUInt30();
-        List<SwitchCase> cases =
-            new List<SwitchCase>.filled(count, null, growable: true);
-        for (int i = 0; i < count; ++i) {
-          cases[i] = new SwitchCase.empty();
-        }
-        switchCaseStack.addAll(cases);
-        for (int i = 0; i < cases.length; ++i) {
-          readSwitchCaseInto(cases[i]);
-        }
-        switchCaseStack.length -= count;
-        return new SwitchStatement(expression, cases)..fileOffset = offset;
+        return _readSwitchStatement();
       case Tag.ContinueSwitchStatement:
-        int offset = readOffset();
-        int index = readUInt30();
-        return new ContinueSwitchStatement(
-            switchCaseStack[switchCaseStackBase + index])
-          ..fileOffset = offset;
+        return _readContinueSwitchStatement();
       case Tag.IfStatement:
-        int offset = readOffset();
-        return new IfStatement(
-            readExpression(), readStatement(), readStatementOrNullIfEmpty())
-          ..fileOffset = offset;
+        return _readIfStatement();
       case Tag.ReturnStatement:
-        int offset = readOffset();
-        return new ReturnStatement(readExpressionOption())..fileOffset = offset;
+        return _readReturnStatement();
       case Tag.TryCatch:
-        Statement body = readStatement();
-        int flags = readByte();
-        return new TryCatch(body, readCatchList(), isSynthetic: flags & 2 == 2);
+        return _readTryCatch();
       case Tag.TryFinally:
-        return new TryFinally(readStatement(), readStatement());
+        return _readTryFinally();
       case Tag.YieldStatement:
-        int offset = readOffset();
-        int flags = readByte();
-        return new YieldStatement(readExpression(),
-            isYieldStar: flags & YieldStatement.FlagYieldStar != 0,
-            isNative: flags & YieldStatement.FlagNative != 0)
-          ..fileOffset = offset;
+        return _readYieldStatement();
       case Tag.VariableDeclaration:
-        VariableDeclaration variable = readVariableDeclaration();
-        variableStack.add(variable); // Will be popped by the enclosing scope.
-        return variable;
+        return _readVariableDeclaration();
       case Tag.FunctionDeclaration:
-        int offset = readOffset();
-        VariableDeclaration variable = readVariableDeclaration();
-        variableStack.add(variable); // Will be popped by the enclosing scope.
-        FunctionNode function = readFunctionNode();
-        return new FunctionDeclaration(variable, function)..fileOffset = offset;
+        return _readFunctionDeclaration();
       default:
         throw fail('unexpected statement tag: $tag');
     }
   }
 
-  void readSwitchCaseInto(SwitchCase caseNode) {
+  Statement _readExpressionStatement() {
+    return new ExpressionStatement(readExpression());
+  }
+
+  Statement _readEmptyStatement() {
+    return new EmptyStatement();
+  }
+
+  Statement _readAssertStatement() {
+    return new AssertStatement(readExpression(),
+        conditionStartOffset: readOffset(),
+        conditionEndOffset: readOffset(),
+        message: readExpressionOption());
+  }
+
+  Statement _readLabeledStatement() {
+    LabeledStatement label = new LabeledStatement(null);
+    labelStack.add(label);
+    label.body = readStatement()..parent = label;
+    labelStack.removeLast();
+    return label;
+  }
+
+  Statement _readBreakStatement() {
+    int offset = readOffset();
+    int index = readUInt30();
+    return new BreakStatement(labelStack[labelStackBase + index])
+      ..fileOffset = offset;
+  }
+
+  Statement _readWhileStatement() {
+    int offset = readOffset();
+    return new WhileStatement(readExpression(), readStatement())
+      ..fileOffset = offset;
+  }
+
+  Statement _readDoStatement() {
+    int offset = readOffset();
+    return new DoStatement(readStatement(), readExpression())
+      ..fileOffset = offset;
+  }
+
+  Statement _readForStatement() {
+    int variableStackHeight = variableStack.length;
+    int offset = readOffset();
+    List<VariableDeclaration> variables = readAndPushVariableDeclarationList();
+    Expression? condition = readExpressionOption();
+    List<Expression> updates = readExpressionList();
+    Statement body = readStatement();
+    variableStack.length = variableStackHeight;
+    return new ForStatement(variables, condition, updates, body)
+      ..fileOffset = offset;
+  }
+
+  Statement _readForInStatement(int tag) {
+    bool isAsync = tag == Tag.AsyncForInStatement;
+    int variableStackHeight = variableStack.length;
+    int offset = readOffset();
+    int bodyOffset = readOffset();
+    VariableDeclaration variable = readAndPushVariableDeclaration();
+    Expression iterable = readExpression();
+    Statement body = readStatement();
+    variableStack.length = variableStackHeight;
+    return new ForInStatement(variable, iterable, body, isAsync: isAsync)
+      ..fileOffset = offset
+      ..bodyOffset = bodyOffset;
+  }
+
+  Statement _readSwitchStatement() {
+    int offset = readOffset();
+    Expression expression = readExpression();
+    int count = readUInt30();
+    List<SwitchCase> cases;
+    if (!useGrowableLists && count == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      cases = emptyListOfSwitchCase;
+    } else {
+      cases = new List<SwitchCase>.generate(
+          count,
+          (_) => new SwitchCase(<Expression>[], <int>[], dummyStatement,
+              isDefault: false),
+          growable: useGrowableLists);
+    }
+    switchCaseStack.addAll(cases);
+    for (int i = 0; i < cases.length; ++i) {
+      _readSwitchCaseInto(cases[i]);
+    }
+    switchCaseStack.length -= count;
+    return new SwitchStatement(expression, cases)..fileOffset = offset;
+  }
+
+  Statement _readContinueSwitchStatement() {
+    int offset = readOffset();
+    int index = readUInt30();
+    return new ContinueSwitchStatement(
+        switchCaseStack[switchCaseStackBase + index])
+      ..fileOffset = offset;
+  }
+
+  Statement _readIfStatement() {
+    int offset = readOffset();
+    return new IfStatement(
+        readExpression(), readStatement(), readStatementOrNullIfEmpty())
+      ..fileOffset = offset;
+  }
+
+  Statement _readReturnStatement() {
+    int offset = readOffset();
+    return new ReturnStatement(readExpressionOption())..fileOffset = offset;
+  }
+
+  Statement _readTryCatch() {
+    Statement body = readStatement();
+    int flags = readByte();
+    return new TryCatch(body, readCatchList(), isSynthetic: flags & 2 == 2);
+  }
+
+  Statement _readTryFinally() {
+    return new TryFinally(readStatement(), readStatement());
+  }
+
+  Statement _readYieldStatement() {
+    int offset = readOffset();
+    int flags = readByte();
+    return new YieldStatement(readExpression(),
+        isYieldStar: flags & YieldStatement.FlagYieldStar != 0,
+        isNative: flags & YieldStatement.FlagNative != 0)
+      ..fileOffset = offset;
+  }
+
+  Statement _readVariableDeclaration() {
+    VariableDeclaration variable = readVariableDeclaration();
+    variableStack.add(variable); // Will be popped by the enclosing scope.
+    return variable;
+  }
+
+  Statement _readFunctionDeclaration() {
+    int offset = readOffset();
+    VariableDeclaration variable = readVariableDeclaration();
+    variableStack.add(variable); // Will be popped by the enclosing scope.
+    FunctionNode function = readFunctionNode();
+    return new FunctionDeclaration(variable, function)..fileOffset = offset;
+  }
+
+  void _readSwitchCaseInto(SwitchCase caseNode) {
     int length = readUInt30();
     caseNode.expressions.length = length;
     caseNode.expressionOffsets.length = length;
@@ -2256,85 +2786,90 @@ class BinaryBuilder {
 
   List<Catch> readCatchList() {
     int length = readUInt30();
-    List<Catch> result = new List<Catch>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readCatch();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfCatch;
     }
-    return result;
+    return new List<Catch>.generate(length, (_) => readCatch(),
+        growable: useGrowableLists);
   }
 
   Catch readCatch() {
     int variableStackHeight = variableStack.length;
     int offset = readOffset();
     DartType guard = readDartType();
-    VariableDeclaration exception = readAndPushVariableDeclarationOption();
-    VariableDeclaration stackTrace = readAndPushVariableDeclarationOption();
+    VariableDeclaration? exception = readAndPushVariableDeclarationOption();
+    VariableDeclaration? stackTrace = readAndPushVariableDeclarationOption();
     Statement body = readStatement();
     variableStack.length = variableStackHeight;
     return new Catch(exception, body, guard: guard, stackTrace: stackTrace)
       ..fileOffset = offset;
   }
 
-  Block readBlock() {
+  Block _readBlock() {
     int stackHeight = variableStack.length;
     int offset = readOffset();
     int endOffset = readOffset();
-    List<Statement> body = readStatementList();
+    List<Statement> body = readStatementListAlwaysGrowable();
     variableStack.length = stackHeight;
     return new Block(body)
       ..fileOffset = offset
       ..fileEndOffset = endOffset;
   }
 
-  AssertBlock readAssertBlock() {
+  AssertBlock _readAssertBlock() {
     int stackHeight = variableStack.length;
-    List<Statement> body = readStatementList();
+    List<Statement> body = readStatementListAlwaysGrowable();
     variableStack.length = stackHeight;
     return new AssertBlock(body);
   }
 
   Supertype readSupertype() {
-    InterfaceType type = readDartType(forSupertype: true);
+    InterfaceType type = readDartType(forSupertype: true) as InterfaceType;
     assert(
-        type.nullability == _currentLibrary.nonNullable,
+        type.nullability == _currentLibrary!.nonNullable,
         "In serialized form supertypes should have Nullability.legacy if they "
         "are in a library that is opted out of the NNBD feature.  If they are "
         "in an opted-in library, they should have Nullability.nonNullable.");
     return new Supertype.byReference(type.className, type.typeArguments);
   }
 
-  Supertype readSupertypeOption() {
+  Supertype? readSupertypeOption() {
     return readAndCheckOptionTag() ? readSupertype() : null;
   }
 
   List<Supertype> readSupertypeList() {
     int length = readUInt30();
-    List<Supertype> result =
-        new List<Supertype>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readSupertype();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfSupertype;
     }
-    return result;
+    return new List<Supertype>.generate(length, (_) => readSupertype(),
+        growable: useGrowableLists);
   }
 
   List<DartType> readDartTypeList() {
     int length = readUInt30();
-    List<DartType> result =
-        new List<DartType>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readDartType();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfDartType;
     }
-    return result;
+    return new List<DartType>.generate(length, (_) => readDartType(),
+        growable: useGrowableLists);
   }
 
   List<NamedType> readNamedTypeList() {
     int length = readUInt30();
-    List<NamedType> result =
-        new List<NamedType>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readNamedType();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return emptyListOfNamedType;
     }
-    return result;
+    return new List<NamedType>.generate(length, (_) => readNamedType(),
+        growable: useGrowableLists);
   }
 
   NamedType readNamedType() {
@@ -2345,7 +2880,7 @@ class BinaryBuilder {
         isRequired: (flags & NamedType.FlagRequiredNamedType) != 0);
   }
 
-  DartType readDartTypeOption() {
+  DartType? readDartTypeOption() {
     return readAndCheckOptionTag() ? readDartType() : null;
   }
 
@@ -2353,96 +2888,136 @@ class BinaryBuilder {
     int tag = readByte();
     switch (tag) {
       case Tag.TypedefType:
-        int nullabilityIndex = readByte();
-        return new TypedefType.byReference(readTypedefReference(),
-            Nullability.values[nullabilityIndex], readDartTypeList());
-      case Tag.BottomType:
-        return const BottomType();
+        return _readTypedefType();
       case Tag.InvalidType:
-        return const InvalidType();
+        return _readInvalidType();
       case Tag.DynamicType:
-        return const DynamicType();
+        return _readDynamicType();
       case Tag.VoidType:
-        return const VoidType();
+        return _readVoidType();
       case Tag.NeverType:
-        int nullabilityIndex = readByte();
-        return new NeverType(Nullability.values[nullabilityIndex]);
+        return _readNeverType();
       case Tag.InterfaceType:
-        int nullabilityIndex = readByte();
-        Reference reference = readClassReference();
-        List<DartType> typeArguments = readDartTypeList();
-        {
-          CanonicalName canonicalName = reference.canonicalName;
-          if (canonicalName.name == "FutureOr" &&
-              canonicalName.parent != null &&
-              canonicalName.parent.name == "dart:async" &&
-              canonicalName.parent.parent != null &&
-              canonicalName.parent.parent.isRoot) {
-            return new FutureOrType(
-                typeArguments.single, Nullability.values[nullabilityIndex]);
-          }
-        }
-        return new InterfaceType.byReference(
-            reference, Nullability.values[nullabilityIndex], typeArguments);
+        return _readInterfaceType();
       case Tag.SimpleInterfaceType:
-        int nullabilityIndex = readByte();
-        Reference classReference = readClassReference();
-        {
-          CanonicalName canonicalName = classReference.canonicalName;
-          if (canonicalName != null &&
-              !forSupertype &&
-              canonicalName.name == "Null" &&
-              canonicalName.parent?.name == "dart:core" &&
-              (canonicalName.parent?.parent?.isRoot ?? false)) {
-            return const NullType();
-          }
-        }
-        return new InterfaceType.byReference(classReference,
-            Nullability.values[nullabilityIndex], const <DartType>[]);
+        return _readSimpleInterfaceType(forSupertype);
       case Tag.FunctionType:
-        int typeParameterStackHeight = typeParameterStack.length;
-        int nullabilityIndex = readByte();
-        List<TypeParameter> typeParameters = readAndPushTypeParameterList();
-        int requiredParameterCount = readUInt30();
-        int totalParameterCount = readUInt30();
-        List<DartType> positional = readDartTypeList();
-        List<NamedType> named = readNamedTypeList();
-        DartType typedefType = readDartTypeOption();
-        assert(positional.length + named.length == totalParameterCount);
-        DartType returnType = readDartType();
-        typeParameterStack.length = typeParameterStackHeight;
-        return new FunctionType(
-            positional, returnType, Nullability.values[nullabilityIndex],
-            typeParameters: typeParameters,
-            requiredParameterCount: requiredParameterCount,
-            namedParameters: named,
-            typedefType: typedefType);
+        return _readFunctionType();
       case Tag.SimpleFunctionType:
-        int nullabilityIndex = readByte();
-        List<DartType> positional = readDartTypeList();
-        DartType returnType = readDartType();
-        return new FunctionType(
-            positional, returnType, Nullability.values[nullabilityIndex]);
+        return _readSimpleFunctionType();
       case Tag.TypeParameterType:
-        int declaredNullabilityIndex = readByte();
-        int index = readUInt30();
-        DartType bound = readDartTypeOption();
-        return new TypeParameterType(typeParameterStack[index],
-            Nullability.values[declaredNullabilityIndex], bound);
+        return _readTypeParameterType();
       default:
         throw fail('unexpected dart type tag: $tag');
     }
   }
 
+  DartType _readTypedefType() {
+    int nullabilityIndex = readByte();
+    return new TypedefType.byReference(readNonNullTypedefReference(),
+        Nullability.values[nullabilityIndex], readDartTypeList());
+  }
+
+  DartType _readInvalidType() {
+    return const InvalidType();
+  }
+
+  DartType _readDynamicType() {
+    return const DynamicType();
+  }
+
+  DartType _readVoidType() {
+    return const VoidType();
+  }
+
+  DartType _readNeverType() {
+    int nullabilityIndex = readByte();
+    return NeverType.fromNullability(Nullability.values[nullabilityIndex]);
+  }
+
+  DartType _readInterfaceType() {
+    int nullabilityIndex = readByte();
+    Reference reference = readNonNullClassReference();
+    List<DartType> typeArguments = readDartTypeList();
+    CanonicalName? canonicalName = reference.canonicalName;
+    if (canonicalName != null &&
+        canonicalName.name == "FutureOr" &&
+        canonicalName.parent!.name == "dart:async" &&
+        canonicalName.parent!.parent != null &&
+        canonicalName.parent!.parent!.isRoot) {
+      return new FutureOrType(
+          typeArguments.single, Nullability.values[nullabilityIndex]);
+    }
+    return new InterfaceType.byReference(
+        reference, Nullability.values[nullabilityIndex], typeArguments);
+  }
+
+  DartType _readSimpleInterfaceType(bool forSupertype) {
+    int nullabilityIndex = readByte();
+    Reference classReference = readNonNullClassReference();
+    CanonicalName? canonicalName = classReference.canonicalName;
+    if (canonicalName != null &&
+        !forSupertype &&
+        canonicalName.name == "Null" &&
+        canonicalName.parent!.name == "dart:core" &&
+        canonicalName.parent!.parent!.isRoot) {
+      return const NullType();
+    }
+    return new InterfaceType.byReference(classReference,
+        Nullability.values[nullabilityIndex], const <DartType>[]);
+  }
+
+  DartType _readFunctionType() {
+    int typeParameterStackHeight = typeParameterStack.length;
+    int nullabilityIndex = readByte();
+    List<TypeParameter> typeParameters = readAndPushTypeParameterList();
+    int requiredParameterCount = readUInt30();
+    int totalParameterCount = readUInt30();
+    List<DartType> positional = readDartTypeList();
+    List<NamedType> named = readNamedTypeList();
+    TypedefType? typedefType = readDartTypeOption() as TypedefType?;
+    assert(positional.length + named.length == totalParameterCount);
+    DartType returnType = readDartType();
+    typeParameterStack.length = typeParameterStackHeight;
+    return new FunctionType(
+        positional, returnType, Nullability.values[nullabilityIndex],
+        typeParameters: typeParameters,
+        requiredParameterCount: requiredParameterCount,
+        namedParameters: named,
+        typedefType: typedefType);
+  }
+
+  DartType _readSimpleFunctionType() {
+    int nullabilityIndex = readByte();
+    List<DartType> positional = readDartTypeList();
+    DartType returnType = readDartType();
+    return new FunctionType(
+        positional, returnType, Nullability.values[nullabilityIndex]);
+  }
+
+  DartType _readTypeParameterType() {
+    int declaredNullabilityIndex = readByte();
+    int index = readUInt30();
+    DartType? bound = readDartTypeOption();
+    return new TypeParameterType(typeParameterStack[index],
+        Nullability.values[declaredNullabilityIndex], bound);
+  }
+
   List<TypeParameter> readAndPushTypeParameterList(
-      [List<TypeParameter> list, TreeNode parent]) {
+      [List<TypeParameter>? list, TreeNode? parent]) {
     int length = readUInt30();
-    if (length == 0) return list ?? <TypeParameter>[];
-    if (list == null) {
-      list = new List<TypeParameter>.filled(length, null, growable: true);
-      for (int i = 0; i < length; ++i) {
-        list[i] = new TypeParameter(null, null)..parent = parent;
+    if (length == 0) {
+      if (list != null) return list;
+      if (useGrowableLists) {
+        return <TypeParameter>[];
+      } else {
+        return emptyListOfTypeParameter;
       }
+    }
+    if (list == null) {
+      list = new List<TypeParameter>.generate(
+          length, (_) => new TypeParameter(null, null)..parent = parent,
+          growable: useGrowableLists);
     } else if (list.length != length) {
       list.length = length;
       for (int i = 0; i < length; ++i) {
@@ -2481,12 +3056,14 @@ class BinaryBuilder {
 
   List<NamedExpression> readNamedExpressionList() {
     int length = readUInt30();
-    List<NamedExpression> result =
-        new List<NamedExpression>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readNamedExpression();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost-constant one for the empty list.
+      return emptyListOfNamedExpression;
     }
-    return result;
+    return new List<NamedExpression>.generate(
+        length, (_) => readNamedExpression(),
+        growable: useGrowableLists);
   }
 
   NamedExpression readNamedExpression() {
@@ -2495,15 +3072,17 @@ class BinaryBuilder {
 
   List<VariableDeclaration> readAndPushVariableDeclarationList() {
     int length = readUInt30();
-    List<VariableDeclaration> result =
-        new List<VariableDeclaration>.filled(length, null, growable: true);
-    for (int i = 0; i < length; ++i) {
-      result[i] = readAndPushVariableDeclaration();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfVariableDeclaration;
     }
-    return result;
+    return new List<VariableDeclaration>.generate(
+        length, (_) => readAndPushVariableDeclaration(),
+        growable: useGrowableLists);
   }
 
-  VariableDeclaration readAndPushVariableDeclarationOption() {
+  VariableDeclaration? readAndPushVariableDeclarationOption() {
     return readAndCheckOptionTag() ? readAndPushVariableDeclaration() : null;
   }
 
@@ -2547,13 +3126,13 @@ class BinaryBuilder {
 class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   /// List of metadata subsections that have corresponding [MetadataRepository]
   /// and are awaiting to be parsed and attached to nodes.
-  List<_MetadataSubsection> _subsections;
+  List<_MetadataSubsection>? _subsections;
 
   BinaryBuilderWithMetadata(List<int> bytes,
-      {String filename,
+      {String? filename,
       bool disableLazyReading = false,
       bool disableLazyClassReading = false,
-      bool alwaysCreateNewNamedNodes})
+      bool? alwaysCreateNewNamedNodes})
       : super(bytes,
             filename: filename,
             disableLazyReading: disableLazyReading,
@@ -2581,7 +3160,7 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
       // UInt32 tag (fixed size StringReference)
       final String tag = _stringTable[readUint32()];
 
-      final MetadataRepository repository = component.metadata[tag];
+      final MetadataRepository<dynamic>? repository = component.metadata[tag];
       if (repository != null) {
         // Read nodeOffsetToMetadataOffset mapping.
         final Map<int, int> mapping = <int, int>{};
@@ -2593,8 +3172,8 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
           mapping[nodeOffset] = metadataOffset;
         }
 
-        _subsections ??= <_MetadataSubsection>[];
-        _subsections.add(new _MetadataSubsection(repository, mapping));
+        (_subsections ??= <_MetadataSubsection>[])
+            .add(new _MetadataSubsection(repository, mapping));
       }
 
       // Start of the subsection and the end of the previous one.
@@ -2613,28 +3192,28 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  void enterScope({List<TypeParameter> typeParameters}) {
+  void enterScope({List<TypeParameter>? typeParameters}) {
     if (typeParameters != null) {
       typeParameterStack.addAll(typeParameters);
     }
   }
 
   @override
-  void leaveScope({List<TypeParameter> typeParameters}) {
+  void leaveScope({List<TypeParameter>? typeParameters}) {
     if (typeParameters != null) {
       typeParameterStack.length -= typeParameters.length;
     }
   }
 
   @override
-  Node _associateMetadata(Node node, int nodeOffset) {
+  T _associateMetadata<T extends Node>(T node, int nodeOffset) {
     if (_subsections == null) {
       return node;
     }
 
-    for (_MetadataSubsection subsection in _subsections) {
+    for (_MetadataSubsection subsection in _subsections!) {
       // First check if there is any metadata associated with this node.
-      final int metadataOffset = subsection.mapping[nodeOffset];
+      final int? metadataOffset = subsection.mapping[nodeOffset];
       if (metadataOffset != null) {
         subsection.repository.mapping[node] =
             _readMetadata(node, subsection.repository, metadataOffset);
@@ -2781,9 +3360,9 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  void readSwitchCaseInto(SwitchCase caseNode) {
+  void _readSwitchCaseInto(SwitchCase caseNode) {
     _associateMetadata(caseNode, _byteOffset);
-    super.readSwitchCaseInto(caseNode);
+    super._readSwitchCaseInto(caseNode);
   }
 
   @override
@@ -2795,7 +3374,8 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   @override
   Supertype readSupertype() {
     final int nodeOffset = _byteOffset;
-    InterfaceType type = super.readDartType(forSupertype: true);
+    InterfaceType type =
+        super.readDartType(forSupertype: true) as InterfaceType;
     return _associateMetadata(
         new Supertype.byReference(type.className, type.typeArguments),
         nodeOffset);
@@ -2828,7 +3408,7 @@ class _MetadataSubsection {
 
 /// Merges two compilation modes or throws if they are not compatible.
 NonNullableByDefaultCompiledMode mergeCompilationModeOrThrow(
-    NonNullableByDefaultCompiledMode a, NonNullableByDefaultCompiledMode b) {
+    NonNullableByDefaultCompiledMode? a, NonNullableByDefaultCompiledMode b) {
   if (a == null || a == b) {
     return b;
   }

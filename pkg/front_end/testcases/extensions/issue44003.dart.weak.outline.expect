@@ -1,0 +1,26 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/issue44003.dart:14:8: Error: 'foo' is already declared in this scope.
+//   void foo(String baz, int a) {
+//        ^^^
+// pkg/front_end/testcases/extensions/issue44003.dart:10:8: Context: Previous declaration of 'foo'.
+//   void foo(String bar) {
+//        ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension _extension#0 on core::List<core::String*>* {
+  method foo = self::_extension#0|foo;
+  tearoff foo = self::_extension#0|get#foo;
+}
+static method test(core::List<core::String*>* args) → void
+  ;
+static method _extension#0|foo(lowered final core::List<core::String*>* #this, core::String* bar) → void
+  ;
+static method _extension#0|get#foo(lowered final core::List<core::String*>* #this) → (core::String*) →* void
+  return (core::String* bar) → void => self::_extension#0|foo(#this, bar);
+static method main() → dynamic
+  ;

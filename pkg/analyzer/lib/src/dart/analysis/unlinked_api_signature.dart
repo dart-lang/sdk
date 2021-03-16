@@ -17,6 +17,10 @@ List<int> computeUnlinkedApiSignature(CompilationUnit unit) {
 }
 
 class _UnitApiSignatureComputer {
+  static const int _kindConstructorDeclaration = 1;
+  static const int _kindFieldDeclaration = 2;
+  static const int _kindMethodDeclaration = 3;
+
   final ApiSignature signature = ApiSignature();
 
   void addClassOrMixin(ClassOrMixinDeclaration node) {
@@ -28,12 +32,14 @@ class _UnitApiSignatureComputer {
     signature.addInt(node.members.length);
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
+        signature.addInt(_kindConstructorDeclaration);
         addTokens(member.beginToken, member.parameters.endToken);
         if (member.constKeyword != null) {
           addNodeList(member.initializers);
         }
         addNode(member.redirectedConstructor);
       } else if (member is FieldDeclaration) {
+        signature.addInt(_kindFieldDeclaration);
         var variableList = member.fields;
         addVariables(
           member,
@@ -41,6 +47,7 @@ class _UnitApiSignatureComputer {
           !member.isStatic && variableList.isFinal && hasConstConstructor,
         );
       } else if (member is MethodDeclaration) {
+        signature.addInt(_kindMethodDeclaration);
         addTokens(
           member.beginToken,
           (member.parameters ?? member.name).endToken,
@@ -48,19 +55,21 @@ class _UnitApiSignatureComputer {
         signature.addBool(member.body is EmptyFunctionBody);
         addFunctionBodyModifiers(member.body);
       } else {
-        addNode(member);
+        throw UnimplementedError('(${member.runtimeType}) $member');
       }
     }
 
     addToken(node.rightBracket);
   }
 
-  void addFunctionBodyModifiers(FunctionBody node) {
-    signature.addBool(node.isSynchronous);
-    signature.addBool(node.isGenerator);
+  void addFunctionBodyModifiers(FunctionBody? node) {
+    if (node != null) {
+      signature.addBool(node.isSynchronous);
+      signature.addBool(node.isGenerator);
+    }
   }
 
-  void addNode(AstNode node) {
+  void addNode(AstNode? node) {
     if (node != null) {
       addTokens(node.beginToken, node.endToken);
     }
@@ -79,10 +88,10 @@ class _UnitApiSignatureComputer {
   /// Appends tokens from [begin] (including), to [end] (also including).
   void addTokens(Token begin, Token end) {
     if (begin is CommentToken) {
-      begin = (begin as CommentToken).parent;
+      begin = begin.parent!;
     }
 
-    Token token = begin;
+    Token? token = begin;
     while (token != null) {
       addToken(token);
 
@@ -111,13 +120,13 @@ class _UnitApiSignatureComputer {
         includeInitializers) {
       addTokens(node.beginToken, node.endToken);
     } else {
-      addTokens(node.beginToken, variableList.type.endToken);
+      addTokens(node.beginToken, variableList.type!.endToken);
 
       signature.addInt(variableList.variables.length);
       for (var variable in variableList.variables) {
         addTokens(variable.beginToken, variable.name.endToken);
         signature.addBool(variable.initializer != null);
-        addToken(variable.endToken.next); // `,` or `;`
+        addToken(variable.endToken.next!); // `,` or `;`
       }
     }
   }

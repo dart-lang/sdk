@@ -6,9 +6,9 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -87,17 +87,17 @@ class DocumentationValidator {
   final StringBuffer buffer = StringBuffer();
 
   /// The path to the file currently being verified.
-  String filePath;
+  late String filePath;
 
   /// A flag indicating whether the [filePath] has already been written to the
   /// buffer.
   bool hasWrittenFilePath = false;
 
   /// The name of the variable currently being verified.
-  String variableName;
+  late String variableName;
 
   /// The name of the error code currently being verified.
-  String codeName;
+  late String codeName;
 
   /// A flag indicating whether the [variableName] has already been written to
   /// the buffer.
@@ -122,17 +122,17 @@ class DocumentationValidator {
 
   /// Return the name of the code as defined in the [initializer].
   String _extractCodeName(VariableDeclaration variable) {
-    Expression initializer = variable.initializer;
+    var initializer = variable.initializer;
     if (initializer is MethodInvocation) {
       var firstArgument = initializer.argumentList.arguments[0];
-      return (firstArgument as StringLiteral).stringValue;
+      return (firstArgument as StringLiteral).stringValue!;
     }
     return variable.name.name;
   }
 
   /// Extract documentation from the given [field] declaration.
-  List<String> _extractDoc(FieldDeclaration field) {
-    Token comments = field.firstTokenAfterCommentAndMetadata.precedingComments;
+  List<String>? _extractDoc(FieldDeclaration field) {
+    var comments = field.firstTokenAfterCommentAndMetadata.precedingComments;
     if (comments == null) {
       return null;
     }
@@ -146,7 +146,7 @@ class DocumentationValidator {
       } else if (lexeme == '//') {
         docs.add('');
       }
-      comments = comments.next;
+      comments = comments.next as CommentToken?;
     }
     if (docs.isEmpty) {
       return null;
@@ -159,7 +159,7 @@ class DocumentationValidator {
     bool errorRequired,
     Map<String, String> auxiliaryFiles,
     List<String> experiments,
-    String languageVersion,
+    String? languageVersion,
   ) {
     int rangeStart = snippet.indexOf(errorRangeStart);
     if (rangeStart < 0) {
@@ -194,8 +194,8 @@ class DocumentationValidator {
       List<String> lines, int start, int end, bool errorRequired) {
     var snippets = <_SnippetData>[];
     var auxiliaryFiles = <String, String>{};
-    List<String> experiments;
-    String languageVersion;
+    List<String>? experiments;
+    String? languageVersion;
     var currentStart = -1;
     for (var i = start; i < end; i++) {
       var line = lines[i];
@@ -224,7 +224,7 @@ class DocumentationValidator {
           }
           var content = lines.sublist(currentStart + 1, i).join('\n');
           snippets.add(_extractSnippetData(content, errorRequired,
-              auxiliaryFiles, experiments, languageVersion));
+              auxiliaryFiles, experiments ?? [], languageVersion));
           auxiliaryFiles = <String, String>{};
         }
         currentStart = -1;
@@ -243,9 +243,6 @@ class DocumentationValidator {
   /// [path] and return the result.
   ParsedUnitResult _parse(AnalysisContextCollection collection, String path) {
     AnalysisSession session = collection.contextFor(path).currentSession;
-    if (session == null) {
-      throw StateError('No session for "$path"');
-    }
     ParsedUnitResult result = session.getParsedUnit(path);
     if (result.state != ResultState.VALID) {
       throw StateError('Unable to parse "$path"');
@@ -280,7 +277,7 @@ class DocumentationValidator {
   /// Extract documentation from the file that was parsed to produce the given
   /// [result].
   Future<void> _validateFile(ParsedUnitResult result) async {
-    filePath = result.path;
+    filePath = result.path!;
     hasWrittenFilePath = false;
     CompilationUnit unit = result.unit;
     for (CompilationUnitMember declaration in unit.declarations) {
@@ -288,7 +285,7 @@ class DocumentationValidator {
         String className = declaration.name.name;
         for (ClassMember member in declaration.members) {
           if (member is FieldDeclaration) {
-            List<String> docs = _extractDoc(member);
+            var docs = _extractDoc(member);
             if (docs != null) {
               VariableDeclaration variable = member.fields.variables[0];
               codeName = _extractCodeName(variable);
@@ -306,7 +303,7 @@ class DocumentationValidator {
 
               List<_SnippetData> exampleSnippets =
                   _extractSnippets(docs, exampleStart + 1, fixesStart, true);
-              _SnippetData firstExample;
+              _SnippetData? firstExample;
               if (exampleSnippets.isEmpty) {
                 _reportProblem('No example.');
               } else {
@@ -416,7 +413,7 @@ class _SnippetData {
   final int length;
   final Map<String, String> auxiliaryFiles;
   final List<String> experiments;
-  final String languageVersion;
+  final String? languageVersion;
 
   _SnippetData(this.content, this.offset, this.length, this.auxiliaryFiles,
       this.experiments, this.languageVersion);
@@ -438,7 +435,7 @@ class _SnippetTest extends PubPackageResolutionTest {
   }
 
   @override
-  String get testPackageLanguageVersion {
+  String? get testPackageLanguageVersion {
     return snippet.languageVersion;
   }
 
@@ -462,12 +459,12 @@ class _SnippetTest extends PubPackageResolutionTest {
         String pathInLib = uri.pathSegments.skip(1).join('/');
         newFile(
           '$packageRootPath/lib/$pathInLib',
-          content: auxiliaryFiles[uriStr],
+          content: auxiliaryFiles[uriStr]!,
         );
       } else {
         newFile(
           '$testPackageRootPath/$uriStr',
-          content: auxiliaryFiles[uriStr],
+          content: auxiliaryFiles[uriStr]!,
         );
       }
     }

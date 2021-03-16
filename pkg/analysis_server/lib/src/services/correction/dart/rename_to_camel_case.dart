@@ -23,6 +23,9 @@ class RenameToCamelCase extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.RENAME_TO_CAMEL_CASE;
 
   @override
+  FixKind get multiFixKind => DartFixKind.RENAME_TO_CAMEL_CASE_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     if (node is! SimpleIdentifier) {
       return;

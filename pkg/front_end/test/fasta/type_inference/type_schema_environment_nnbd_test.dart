@@ -26,7 +26,6 @@ class TypeSchemaEnvironmentTest {
 
   final Map<String, DartType Function()> additionalTypes = {
     "UNKNOWN": () => new UnknownType(),
-    "BOTTOM": () => new BottomType(),
   };
 
   Library _coreLibrary;
@@ -269,8 +268,8 @@ class TypeSchemaEnvironmentTest {
     parseTestLibrary("class A;");
 
     for (String type in ["A*", "A?", "A"]) {
-      checkLowerBound(type1: "bottom", type2: type, lowerBound: "bottom");
-      checkLowerBound(type1: type, type2: "bottom", lowerBound: "bottom");
+      checkLowerBound(type1: "Never", type2: type, lowerBound: "Never");
+      checkLowerBound(type1: type, type2: "Never", lowerBound: "Never");
     }
 
     // DOWN(T1, T2) where BOTTOM(T1) and BOTTOM(T2) =
@@ -1461,7 +1460,7 @@ class TypeSchemaEnvironmentTest {
         typeSchemaEnvironment.solveTypeConstraint(
             parseConstraint(constraint),
             coreTypes.objectNullableRawType,
-            new NeverType(Nullability.nonNullable),
+            new NeverType.internal(Nullability.nonNullable),
             grounded: grounded),
         parseType(expected));
   }

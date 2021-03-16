@@ -6,7 +6,6 @@ import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -28,7 +27,7 @@ class PackageBuildFileUriResolver extends ResourceUriResolver {
         super(workspace.provider);
 
   @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+  Source? resolveAbsolute(Uri uri) {
     if (!ResourceUriResolver.isFileUri(uri)) {
       return null;
     }
@@ -37,9 +36,9 @@ class PackageBuildFileUriResolver extends ResourceUriResolver {
     if (resource is! File) {
       return null;
     }
-    File file = workspace.findFile(filePath);
+    var file = workspace.findFile(filePath);
     if (file != null) {
-      return file.createSource(actualUri ?? uri);
+      return file.createSource(uri);
     }
     return null;
   }
@@ -60,13 +59,12 @@ class PackageBuildPackageUriResolver extends UriResolver {
   Map<String, List<Folder>> get packageMap => _workspace._packageMap;
 
   @override
-  Source resolveAbsolute(Uri _ignore, [Uri uri]) {
-    uri ??= _ignore;
+  Source? resolveAbsolute(Uri uri) {
     if (uri.scheme != 'package') {
       return null;
     }
 
-    Source basicResolverSource = _normalUriResolver.resolveAbsolute(uri);
+    var basicResolverSource = _normalUriResolver.resolveAbsolute(uri);
     if (basicResolverSource != null && basicResolverSource.exists()) {
       return basicResolverSource;
     }
@@ -83,7 +81,7 @@ class PackageBuildPackageUriResolver extends UriResolver {
     String fileUriPart = uriPath.substring(slash + 1);
     String filePath = fileUriPart.replaceAll('/', _context.separator);
 
-    File file = _workspace.builtFile(
+    var file = _workspace.builtFile(
         _workspace.builtPackageSourcePath(filePath), packageName);
     if (file != null && file.exists) {
       return file.createSource(uri);
@@ -92,11 +90,11 @@ class PackageBuildPackageUriResolver extends UriResolver {
   }
 
   @override
-  Uri restoreAbsolute(Source source) {
+  Uri? restoreAbsolute(Source source) {
     String filePath = source.fullName;
 
     if (_context.isWithin(_workspace.root, filePath)) {
-      List<String> uriParts = _restoreUriParts(filePath);
+      var uriParts = _restoreUriParts(filePath);
       if (uriParts != null) {
         return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
       }
@@ -105,7 +103,7 @@ class PackageBuildPackageUriResolver extends UriResolver {
     return _normalUriResolver.restoreAbsolute(source);
   }
 
-  List<String> _restoreUriParts(String filePath) {
+  List<String>? _restoreUriParts(String filePath) {
     String relative = _context.relative(filePath, from: _workspace.root);
     List<String> components = _context.split(relative);
     if (components.length > 5 &&
@@ -167,7 +165,7 @@ class PackageBuildWorkspace extends Workspace {
   /// The singular package in this workspace.
   ///
   /// Each "package:build" workspace is itself one package.
-  PackageBuildWorkspacePackage _theOnlyPackage;
+  late final PackageBuildWorkspacePackage _theOnlyPackage;
 
   PackageBuildWorkspace._(
     this.provider,
@@ -176,7 +174,9 @@ class PackageBuildWorkspace extends Workspace {
     this.projectPackageName,
     this.generatedRootPath,
     this.generatedThisPath,
-  );
+  ) {
+    _theOnlyPackage = PackageBuildWorkspacePackage(root, this);
+  }
 
   @override
   UriResolver get packageUriResolver => PackageBuildPackageUriResolver(
@@ -189,7 +189,7 @@ class PackageBuildWorkspace extends Workspace {
   /// To get a [builtPath] for a package source file to use in this method,
   /// use [builtPackageSourcePath]. For `bin/`, `web/`, etc, it must be relative
   /// to the project root.
-  File builtFile(String builtPath, String packageName) {
+  File? builtFile(String builtPath, String packageName) {
     if (!_packageMap.containsKey(packageName)) {
       return null;
     }
@@ -211,7 +211,10 @@ class PackageBuildWorkspace extends Workspace {
   }
 
   @override
-  SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {
+  SourceFactory createSourceFactory(
+    DartSdk? sdk,
+    SummaryDataStore? summaryData,
+  ) {
     if (summaryData != null) {
       throw UnsupportedError(
           'Summary files are not supported in a package:build workspace.');
@@ -231,14 +234,14 @@ class PackageBuildWorkspace extends Workspace {
   ///
   /// The file in the workspace [root] is returned even if it does not exist.
   /// Return `null` if the given [filePath] is not in the workspace root.
-  File findFile(String filePath) {
+  File? findFile(String filePath) {
     path.Context context = provider.pathContext;
     assert(context.isAbsolute(filePath), 'Not an absolute path: $filePath');
     try {
       final String relativePath = context.relative(filePath, from: root);
-      final File file = builtFile(relativePath, projectPackageName);
+      final file = builtFile(relativePath, projectPackageName);
 
-      if (file.exists) {
+      if (file!.exists) {
         return file;
       }
 
@@ -249,7 +252,7 @@ class PackageBuildWorkspace extends Workspace {
   }
 
   @override
-  WorkspacePackage findPackageFor(String path) {
+  PackageBuildWorkspacePackage? findPackageFor(String path) {
     var pathContext = provider.pathContext;
 
     // Must be in this workspace.
@@ -264,21 +267,16 @@ class PackageBuildWorkspace extends Workspace {
       }
     }
 
-    return _theOnlyPackage ??= PackageBuildWorkspacePackage(root, this);
+    return _theOnlyPackage;
   }
 
   /// Find the package:build workspace that contains the given [filePath].
   ///
   /// Return `null` if the filePath is not in a package:build workspace.
-  static PackageBuildWorkspace find(ResourceProvider provider,
+  static PackageBuildWorkspace? find(ResourceProvider provider,
       Map<String, List<Folder>> packageMap, String filePath) {
-    Folder folder = provider.getFolder(filePath);
-    while (true) {
-      Folder parent = folder.parent;
-      if (parent == null) {
-        return null;
-      }
-
+    var startFolder = provider.getFolder(filePath);
+    for (var folder in startFolder.withAncestors) {
       final File pubspec = folder.getChildAssumingFile(_pubspecName);
       final Folder dartToolDir =
           folder.getChildAssumingFolder(_dartToolRootName);
@@ -308,9 +306,6 @@ class PackageBuildWorkspace extends Workspace {
       if (pubspec.exists) {
         return null;
       }
-
-      // Go up the folder.
-      folder = parent;
     }
   }
 }

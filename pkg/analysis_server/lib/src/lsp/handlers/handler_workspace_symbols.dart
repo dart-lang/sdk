@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_document_symbols.dart'
-    show defaultSupportedSymbolKinds;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -34,12 +30,7 @@ class WorkspaceSymbolHandler
       return success([]);
     }
 
-    final symbolCapabilities = server?.clientCapabilities?.workspace?.symbol;
-
-    final clientSupportedSymbolKinds =
-        symbolCapabilities?.symbolKind?.valueSet != null
-            ? HashSet<SymbolKind>.of(symbolCapabilities.symbolKind.valueSet)
-            : defaultSupportedSymbolKinds;
+    final supportedSymbolKinds = server.clientCapabilities.workspaceSymbolKinds;
 
     // Convert the string input into a case-insensitive regex that has wildcards
     // between every character and at start/end to allow for fuzzy matching.
@@ -67,7 +58,7 @@ class WorkspaceSymbolHandler
     final symbols = declarations
         .map((declaration) => _asSymbolInformation(
               declaration,
-              clientSupportedSymbolKinds,
+              supportedSymbolKinds,
               filePaths,
             ))
         .toList();
@@ -77,13 +68,13 @@ class WorkspaceSymbolHandler
 
   SymbolInformation _asSymbolInformation(
     search.Declaration declaration,
-    HashSet<SymbolKind> clientSupportedSymbolKinds,
+    Set<SymbolKind> supportedKinds,
     List<String> filePaths,
   ) {
     final filePath = filePaths[declaration.fileIndex];
 
     final kind = declarationKindToSymbolKind(
-      clientSupportedSymbolKinds,
+      supportedKinds,
       declaration.kind,
     );
     final range = toRange(

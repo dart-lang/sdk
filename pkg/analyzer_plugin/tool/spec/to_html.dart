@@ -169,7 +169,7 @@ abstract class HtmlMixin {
   void dl(void Function() callback) => element('dl', {}, callback);
   void dt(String cls, void Function() callback) =>
       element('dt', {'class': cls}, callback);
-  void element(String name, Map<dynamic, String> attributes,
+  void element(String name, Map<Object, String> attributes,
       [void Function() callback]);
   void gray(void Function() callback) =>
       element('span', {'style': 'color:#999999'}, callback);

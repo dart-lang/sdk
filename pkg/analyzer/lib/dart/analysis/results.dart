@@ -16,7 +16,9 @@ import 'package:analyzer/src/generated/source.dart';
 /// Clients may not extend, implement or mix-in this class.
 abstract class AnalysisResult {
   /// The absolute and normalized path of the file that was analyzed.
-  String get path;
+  ///
+  /// TODO(migration): should not be nullable
+  String? get path;
 
   /// Return the session used to compute this result.
   AnalysisSession get session;
@@ -48,11 +50,11 @@ abstract class ElementDeclarationResult {
 
   /// If this declaration is returned from [ParsedLibraryResult], the parsed
   /// unit that contains the [node]. Otherwise `null`.
-  ParsedUnitResult get parsedUnit;
+  ParsedUnitResult? get parsedUnit;
 
   /// If this declaration is returned from [ResolvedLibraryResult], the
   /// resolved unit that contains the [node]. Otherwise `null`.
-  ResolvedUnitResult get resolvedUnit;
+  ResolvedUnitResult? get resolvedUnit;
 }
 
 /// The result of computing all of the errors contained in a single file, both
@@ -78,12 +80,14 @@ abstract class FileResult implements AnalysisResult {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ParsedLibraryResult implements AnalysisResult {
   /// The parsed units of the library.
-  List<ParsedUnitResult> get units;
+  ///
+  /// TODO(migration): should not be null, probably empty list
+  List<ParsedUnitResult>? get units;
 
   /// Return the declaration of the [element], or `null` if the [element]
   /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
   /// this library.
-  ElementDeclarationResult getElementDeclaration(Element element);
+  ElementDeclarationResult? getElementDeclaration(Element element);
 }
 
 /// The result of parsing of a single file. The errors returned include only
@@ -124,18 +128,18 @@ abstract class ParseStringResult {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ResolvedLibraryResult implements AnalysisResult {
   /// The element representing this library.
-  LibraryElement get element;
+  LibraryElement? get element;
 
   /// The type provider used when resolving the library.
   TypeProvider get typeProvider;
 
   /// The resolved units of the library.
-  List<ResolvedUnitResult> get units;
+  List<ResolvedUnitResult>? get units;
 
   /// Return the declaration of the [element], or `null` if the [element]
   /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
   /// this library.
-  ElementDeclarationResult getElementDeclaration(Element element);
+  ElementDeclarationResult? getElementDeclaration(Element element);
 }
 
 /// The result of building a resolved AST for a single file. The errors returned
@@ -144,7 +148,7 @@ abstract class ResolvedLibraryResult implements AnalysisResult {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ResolvedUnitResult implements AnalysisResultWithErrors {
   /// The content of the file that was scanned, parsed and resolved.
-  String get content;
+  String? get content;
 
   /// The element representing the library containing the compilation [unit].
   LibraryElement get libraryElement;
@@ -156,7 +160,7 @@ abstract class ResolvedUnitResult implements AnalysisResultWithErrors {
   TypeSystem get typeSystem;
 
   /// The fully resolved compilation unit for the [content].
-  CompilationUnit get unit;
+  CompilationUnit? get unit;
 }
 
 /// An indication of whether an analysis result is valid, and if not why.

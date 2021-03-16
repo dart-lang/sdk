@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///type_parameter_nullability_lib.dart";
+
+class C<T extends core::num? = core::num?, S extends core::Object? = dynamic, U extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%, self::C::S%, self::C::U%>
+    ;
+  method promoteNullable(generic-covariant-impl self::C::T? t) → void
+    ;
+  method nullableAsUndetermined(generic-covariant-impl self::C::S? s) → void
+    ;
+}
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+class D<T extends core::num* = core::num*> extends core::Object {
+  synthetic constructor •() → self2::D<self2::D::T*>*
+    ;
+  method promoteLegacy(generic-covariant-impl self2::D::T* t) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}

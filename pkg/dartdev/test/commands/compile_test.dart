@@ -187,7 +187,11 @@ void defineCompileTests() {
   });
 
   test('Compile JS', () {
-    final p = project(mainSrc: "void main() { print('Hello from JS'); }");
+    final p = project(mainSrc: '''
+        void main() {
+          print('1: ' + const String.fromEnvironment('foo'));
+          print('2: ' + const String.fromEnvironment('bar'));
+        }''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'main.js'));
 
@@ -195,6 +199,8 @@ void defineCompileTests() {
       'compile',
       'js',
       '-m',
+      '-Dfoo=bar',
+      '--define=bar=foo',
       '-o',
       outFile,
       '-v',
@@ -202,8 +208,14 @@ void defineCompileTests() {
     ]);
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
+    final file = File(outFile);
+    expect(file.existsSync(), true, reason: 'File not found: $outFile');
+
+    // Ensure the -D and --define arguments were processed correctly.
+    final contents = file.readAsStringSync();
+    print(contents);
+    expect(contents.contains('1: bar'), true);
+    expect(contents.contains('2: foo'), true);
   });
 
   test('Compile exe with error', () {
@@ -308,6 +320,74 @@ void main() {}
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
+  });
+
+  test('Compile and run exe with --sound-null-safety', () {
+    final p = project(mainSrc: '''void main() {
+      print((<int?>[] is List<int>) ? 'oh no' : 'sound');
+    }''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'exe',
+        '--sound-null-safety',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains(soundNullSafetyMessage));
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+
+    result = Process.runSync(
+      outFile,
+      [],
+    );
+
+    expect(result.stdout, contains('sound'));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
+
+  test('Compile and run exe with --no-sound-null-safety', () {
+    final p = project(mainSrc: '''void main() {
+      print((<int?>[] is List<int>) ? 'unsound' : 'oh no');
+    }''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'exe',
+        '--no-sound-null-safety',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains(unsoundNullSafetyMessage));
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+
+    result = Process.runSync(
+      outFile,
+      [],
+    );
+
+    expect(result.stdout, contains('unsound'));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
   });
 
   test('Compile exe without info', () {

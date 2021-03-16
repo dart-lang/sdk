@@ -1,3 +1,4 @@
+// @dart = 2.9
 class A {
   A() : m = 1;
   A.foo() : m = 2;

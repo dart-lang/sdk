@@ -1135,10 +1135,32 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
   return field().ptr() == other->AsLoadStaticField()->field().ptr();
 }
 
-bool LoadStaticFieldInstr::IsFieldInitialized() const {
+bool LoadStaticFieldInstr::IsFieldInitialized(Instance* field_value) const {
+  if (FLAG_fields_may_be_reset) {
+    return false;
+  }
+
+  // Since new isolates will be spawned, the JITed code cannot depend on whether
+  // global field was initialized when running with --enable-isolate-groups.
+  if (IsolateGroup::AreIsolateGroupsEnabled()) return false;
+
   const Field& field = this->field();
-  return (field.StaticValue() != Object::sentinel().ptr()) &&
-         (field.StaticValue() != Object::transition_sentinel().ptr());
+  Isolate* only_isolate = IsolateGroup::Current()->FirstIsolate();
+  if (only_isolate == nullptr) {
+    // This can happen if background compiler executes this code but the mutator
+    // is being shutdown and the isolate was already unregistered from the group
+    // (and is trying to stop this BG compiler).
+    if (field_value != nullptr) {
+      *field_value = Object::sentinel().ptr();
+    }
+    return false;
+  }
+  if (field_value == nullptr) {
+    field_value = &Instance::Handle();
+  }
+  *field_value = only_isolate->field_table()->At(field.field_id());
+  return (field_value->ptr() != Object::sentinel().ptr()) &&
+         (field_value->ptr() != Object::transition_sentinel().ptr());
 }
 
 Definition* LoadStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -1146,8 +1168,7 @@ Definition* LoadStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // make it safe to omit code that checks if the field needs initialization
   // because the field will be reset so it starts uninitialized in the process
   // running the precompiled code. We must be prepared to reinitialize fields.
-  if (calls_initializer() && !FLAG_fields_may_be_reset &&
-      IsFieldInitialized()) {
+  if (calls_initializer() && IsFieldInitialized()) {
     set_calls_initializer(false);
   }
   return this;
@@ -2097,6 +2118,7 @@ bool BinaryInt32OpInstr::ComputeCanDeoptimize() const {
     case Token::kSHR:
       return false;
 
+    case Token::kUSHR:
     case Token::kSHL:
       // Currently only shifts by in range constant are supported, see
       // BinaryInt32OpInstr::IsSupported.
@@ -2121,6 +2143,7 @@ bool BinarySmiOpInstr::ComputeCanDeoptimize() const {
     case Token::kSHR:
       return !RangeUtils::IsPositive(right_range());
 
+    case Token::kUSHR:
     case Token::kSHL:
       return can_overflow() || !RangeUtils::IsPositive(right_range());
 
@@ -2152,7 +2175,7 @@ bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
 static intptr_t RepresentationBits(Representation r) {
   switch (r) {
     case kTagged:
-      return compiler::target::kBitsPerWord - 1;
+      return compiler::target::kSmiBits + 1;
     case kUnboxedInt32:
     case kUnboxedUint32:
       return 32;
@@ -2323,8 +2346,9 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
     case Token::kTRUNCDIV:
       if (representation != kTagged) break;
       FALL_THROUGH;
-    case Token::kSHR:
     case Token::kSHL:
+    case Token::kSHR:
+    case Token::kUSHR:
       if (auto const const_def = right->definition()->AsConstant()) {
         right_range = new Range();
         const_def->InferRange(nullptr, right_range);
@@ -2344,7 +2368,8 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
       op = new BinaryInt32OpInstr(op_kind, left, right, deopt_id);
       break;
     case kUnboxedUint32:
-      if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
+      if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
+          (op_kind == Token::kUSHR)) {
         if (speculative_mode == kNotSpeculative) {
           op = new ShiftUint32OpInstr(op_kind, left, right, deopt_id,
                                       right_range);
@@ -2357,7 +2382,8 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
       }
       break;
     case kUnboxedInt64:
-      if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
+      if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
+          (op_kind == Token::kUSHR)) {
         if (speculative_mode == kNotSpeculative) {
           op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id,
                                      right_range);
@@ -2610,6 +2636,12 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       }
       break;
 
+    case Token::kUSHR:
+      if (rhs >= kBitsPerInt64) {
+        return flow_graph->TryCreateConstantReplacementFor(this,
+                                                           Object::smi_zero());
+      }
+      FALL_THROUGH;
     case Token::kSHR:
       if (rhs == 0) {
         return left()->definition();
@@ -2742,9 +2774,9 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kFunction_data:
     case Slot::Kind::kFunction_kind_tag:
     case Slot::Kind::kFunction_packed_fields:
-    case Slot::Kind::kFunction_parameter_names:
     case Slot::Kind::kFunction_signature:
     case Slot::Kind::kFunctionType_packed_fields:
+    case Slot::Kind::kFunctionType_parameter_names:
     case Slot::Kind::kFunctionType_parameter_types:
     case Slot::Kind::kFunctionType_type_parameters:
     case Slot::Kind::kPointerBase_data_field:
@@ -3244,10 +3276,10 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
     UnboxedConstantInstr* uc = NULL;
 
     const Object& val = value()->BoundConstant();
-    if (val.IsSmi()) {
+    if (val.IsInteger()) {
       const Double& double_val = Double::ZoneHandle(
           flow_graph->zone(),
-          Double::NewCanonical(Smi::Cast(val).AsDoubleValue()));
+          Double::NewCanonical(Integer::Cast(val).AsDoubleValue()));
       uc = new UnboxedConstantInstr(double_val, kUnboxedDouble);
     } else if (val.IsDouble()) {
       uc = new UnboxedConstantInstr(val, kUnboxedDouble);
@@ -3308,10 +3340,10 @@ Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   ConstantInstr* c = value()->definition()->AsConstant();
-  if ((c != NULL) && c->value().IsSmi()) {
+  if ((c != NULL) && c->value().IsInteger()) {
     if (!is_truncating()) {
       // Check that constant fits into 32-bit integer.
-      const int64_t value = static_cast<int64_t>(Smi::Cast(c->value()).Value());
+      const int64_t value = Integer::Cast(c->value()).AsInt64Value();
       if (!Utils::IsInt(32, value)) {
         return this;
       }
@@ -3357,16 +3389,18 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
 
   IntConverterInstr* box_defn = value()->definition()->AsIntConverter();
   if ((box_defn != NULL) && (box_defn->representation() == from())) {
-    // Do not erase truncating conversions from 64-bit value to 32-bit values
-    // because such conversions erase upper 32 bits.
-    if ((box_defn->from() == kUnboxedInt64) && box_defn->is_truncating()) {
+    // If the first convertion can erase bits (or deoptimize) we can't
+    // canonicalize it away.
+    auto src_defn = box_defn->value()->definition();
+    if ((box_defn->from() == kUnboxedInt64) &&
+        !Range::Fits(src_defn->range(), box_defn->to())) {
       return this;
     }
 
-    // It's safe to discard any other conversions from and then back to the same
-    // integer type.
+    // Otherise it is safe to discard any other conversions from and then back
+    // to the same integer type.
     if (box_defn->from() == to()) {
-      return box_defn->value()->definition();
+      return src_defn;
     }
 
     // Do not merge conversions where the first starts from Untagged or the

@@ -4,13 +4,17 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:args/args.dart';
 
 const String analysisOptionsFileOption = 'options';
+const String defaultLanguageVersionOption = 'default-language-version';
 const String defineVariableOption = 'D';
+const String enableExperimentOption = 'enable-experiment';
 const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
 @deprecated
 const String enableSuperMixinFlag = 'supermixin';
@@ -27,11 +31,19 @@ const String sdkSummaryPathOption = 'dart-sdk-summary';
 
 /// Update [options] with the value of each analysis option command line flag.
 void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
-    {void Function(String text) verbosePrint}) {
+    {void Function(String text)? verbosePrint}) {
   void verbose(String text) {
     if (verbosePrint != null) {
       verbosePrint('Analysis options: $text');
     }
+  }
+
+  if (args.wasParsed(enableExperimentOption)) {
+    var flags = args[enableExperimentOption] as List<String>;
+    options.contextFeatures = FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
+      flags: flags,
+    );
   }
 
   if (args.wasParsed(implicitCastsFlag)) {
@@ -57,7 +69,7 @@ ContextBuilderOptions createContextBuilderOptions(
   ResourceProvider resourceProvider,
   ArgResults args,
 ) {
-  String absoluteNormalizedPath(String path) {
+  String? absoluteNormalizedPath(String? path) {
     if (path == null) {
       return null;
     }
@@ -136,6 +148,10 @@ void defineAnalysisArguments(ArgParser parser,
       help: 'Disable declaration casts in strong mode (https://goo.gl/cTLz40)\n'
           'This option is now ignored and will be removed in a future release.',
       hide: ddc && hide);
+  parser.addMultiOption(enableExperimentOption,
+      help: 'Enable one or more experimental features. If multiple features '
+          'are being added, they should be comma separated.',
+      splitCommas: true);
   parser.addFlag(implicitCastsFlag,
       negatable: true,
       help: 'Disable implicit casts in strong mode (https://goo.gl/cTLz40).',
@@ -222,11 +238,11 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
   Set<String> knownAbbreviations = HashSet<String>();
   parser.options.forEach((String name, Option option) {
     knownOptions.add(name);
-    String abbreviation = option.abbr;
+    String? abbreviation = option.abbr;
     if (abbreviation != null) {
       knownAbbreviations.add(abbreviation);
     }
-    if (option.negatable) {
+    if (option.negatable ?? false) {
       knownOptions.add('no-$name');
     }
   });

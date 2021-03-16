@@ -641,4 +641,30 @@ main() {
     // old name
     expect(refactoring.oldName, 'test');
   }
+
+  Future<void> test_reuseNameOfCalledConstructor() async {
+    // https://github.com/dart-lang/sdk/issues/45105
+    await indexTestUnit('''
+class Foo {
+  Foo.now();
+}
+
+test() {
+  final foo = Foo.now();
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('foo =');
+    refactoring.newName = 'now';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class Foo {
+  Foo.now();
+}
+
+test() {
+  final now = Foo.now();
+}
+''');
+  }
 }

@@ -62,7 +62,7 @@ class InterceptorStubGenerator {
       if (cls == _commonElements.jsBoolClass) {
         condition = js('(typeof receiver) == "boolean"');
       } else if (cls == _commonElements.jsIntClass ||
-          cls == _commonElements.jsDoubleClass ||
+          cls == _commonElements.jsNumNotIntClass ||
           cls == _commonElements.jsNumberClass) {
         throw 'internal error';
       } else if (cls == _commonElements.jsArrayClass ||
@@ -82,7 +82,7 @@ class InterceptorStubGenerator {
 
     bool hasArray = false;
     bool hasBool = false;
-    bool hasDouble = false;
+    bool hasNumNotInt = false;
     bool hasInt = false;
     bool hasNull = false;
     bool hasNumber = false;
@@ -98,8 +98,8 @@ class InterceptorStubGenerator {
         hasArray = true;
       else if (cls == _commonElements.jsBoolClass)
         hasBool = true;
-      else if (cls == _commonElements.jsDoubleClass)
-        hasDouble = true;
+      else if (cls == _commonElements.jsNumNotIntClass)
+        hasNumNotInt = true;
       else if (cls == _commonElements.jsIntClass)
         hasInt = true;
       else if (cls == _commonElements.jsNullClass)
@@ -123,7 +123,7 @@ class InterceptorStubGenerator {
         }
       }
     }
-    if (hasDouble) {
+    if (hasNumNotInt) {
       hasNumber = true;
     }
     if (hasInt) hasNumber = true;
@@ -138,21 +138,22 @@ class InterceptorStubGenerator {
     if (hasNumber) {
       jsAst.Statement whenNumber;
 
-      /// Note: there are two number classes in play: Dart's [num],
-      /// and JavaScript's Number (typeof receiver == 'number').  This
-      /// is the fallback used when we have determined that receiver
-      /// is a JavaScript Number.
-      jsAst.Expression interceptorForNumber = interceptorFor(hasDouble
-          ? _commonElements.jsDoubleClass
-          : _commonElements.jsNumberClass);
-
       if (hasInt) {
         whenNumber = js.statement('''{
             if (Math.floor(receiver) == receiver) return #;
             return #;
-        }''',
-            [interceptorFor(_commonElements.jsIntClass), interceptorForNumber]);
+        }''', [
+          interceptorFor(_commonElements.jsIntClass),
+          interceptorFor(_commonElements.jsNumNotIntClass)
+        ]);
       } else {
+        // If we don't have methods defined on the JSInt interceptor, use the
+        // JSNumber interceptor, unless we have a method defined only for
+        // non-integral values.
+        jsAst.Expression interceptorForNumber = interceptorFor(hasNumNotInt
+            ? _commonElements.jsNumNotIntClass
+            : _commonElements.jsNumberClass);
+
         whenNumber = js.statement('return #', interceptorForNumber);
       }
       statements
@@ -242,7 +243,7 @@ class InterceptorStubGenerator {
       }
       if (!classes.contains(_commonElements.jsIntClass) &&
           !classes.contains(_commonElements.jsNumberClass) &&
-          !classes.contains(_commonElements.jsDoubleClass)) {
+          !classes.contains(_commonElements.jsNumNotIntClass)) {
         return null;
       }
       if (selector.argumentCount == 1) {

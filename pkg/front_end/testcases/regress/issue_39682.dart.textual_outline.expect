@@ -1,3 +1,4 @@
+// @dart = 2.9
 import "issue_39682_lib.dart" deferred as foo;
 
 main() {}

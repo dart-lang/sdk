@@ -4070,6 +4070,56 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Asr(result, TMP, result);
       __ SmiTag(result);
       break;
+    case Token::kUSHR: {
+      ASSERT(result != left);
+      ASSERT(result != right);
+      __ CompareImmediate(right, compiler::target::ToRawSmi(kBitsPerInt64));
+      __ b(slow_path->entry_label(), UNSIGNED_GREATER_EQUAL);
+
+      compiler::Label done;
+      __ SmiUntag(result, right);
+      // 64-bit representation of left operand value:
+      //
+      //       ss...sssss  s  s  xxxxxxxxxxxxx
+      //       |        |  |  |  |           |
+      //       63      32  31 30 kSmiBits-1  0
+      //
+      // Where 's' is a sign bit.
+      //
+      // If left operand is negative (sign bit is set), then
+      // result will fit into Smi range if and only if
+      // the shift amount >= 64 - kSmiBits.
+      //
+      // If left operand is non-negative, the result always
+      // fits into Smi range.
+      //
+      __ CompareImmediate(result, 64 - compiler::target::kSmiBits);
+      // Shift amount >= 64 - kSmiBits > 32, but < 64.
+      // Result is guaranteed to fit into Smi range.
+      // Low (Smi) part of the left operand is shifted out.
+      // High part is filled with sign bits.
+      __ sub(result, result, compiler::Operand(32), GE);
+      __ Asr(TMP, left, compiler::Operand(31), GE);
+      __ Lsr(result, TMP, result, GE);
+      __ SmiTag(result, GE);
+      __ b(&done, GE);
+      // Shift amount < 64 - kSmiBits.
+      // If left is negative, then result will not fit into Smi range.
+      // Also deopt in case of negative shift amount.
+      __ tst(left, compiler::Operand(left));
+      __ b(slow_path->entry_label(), MI);
+      // At this point left operand is non-negative, so unsigned shift
+      // can't overflow.
+      __ CompareImmediate(result, compiler::target::kSmiBits);
+      // Left operand >= 0, shift amount >= kSmiBits. Result is 0.
+      __ LoadImmediate(result, 0, GE);
+      // Left operand >= 0, shift amount < kSmiBits < 32.
+      __ SmiUntag(TMP, left, LT);
+      __ Lsr(result, TMP, result, LT);
+      __ SmiTag(result, LT);
+      __ Bind(&done);
+      break;
+    }
     default:
       UNREACHABLE();
   }
@@ -4230,7 +4280,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
   } else if (op_kind() == Token::kMOD) {
     num_temps = 2;
   } else if (((op_kind() == Token::kSHL) && can_overflow()) ||
-             (op_kind() == Token::kSHR)) {
+             (op_kind() == Token::kSHR) || (op_kind() == Token::kUSHR)) {
     num_temps = 1;
   }
   LocationSummary* summary = new (zone)
@@ -4262,7 +4312,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, LocationRegisterOrSmiConstant(right()));
   if (((op_kind() == Token::kSHL) && can_overflow()) ||
-      (op_kind() == Token::kSHR)) {
+      (op_kind() == Token::kSHR) || (op_kind() == Token::kUSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
   }
   // We make use of 3-operand instructions by not requiring result register
@@ -4386,6 +4436,52 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                compiler::Operand(
                    Utils::Minimum(value + kSmiTagSize, kCountLimit)));
         __ SmiTag(result);
+        break;
+      }
+      case Token::kUSHR: {
+        const intptr_t value = compiler::target::SmiValue(constant);
+        ASSERT((value > 0) && (value < 64));
+        COMPILE_ASSERT(compiler::target::kSmiBits < 32);
+        // 64-bit representation of left operand value:
+        //
+        //       ss...sssss  s  s  xxxxxxxxxxxxx
+        //       |        |  |  |  |           |
+        //       63      32  31 30 kSmiBits-1  0
+        //
+        // Where 's' is a sign bit.
+        //
+        // If left operand is negative (sign bit is set), then
+        // result will fit into Smi range if and only if
+        // the shift amount >= 64 - kSmiBits.
+        //
+        // If left operand is non-negative, the result always
+        // fits into Smi range.
+        //
+        if (value < (64 - compiler::target::kSmiBits)) {
+          if (deopt != nullptr) {
+            __ CompareImmediate(left, 0);
+            __ b(deopt, LT);
+          } else {
+            // Operation cannot overflow only if left value is always
+            // non-negative.
+            ASSERT(!can_overflow());
+          }
+          // At this point left operand is non-negative, so unsigned shift
+          // can't overflow.
+          if (value >= compiler::target::kSmiBits) {
+            __ LoadImmediate(result, 0);
+          } else {
+            __ Lsr(result, left, compiler::Operand(value + kSmiTagSize));
+            __ SmiTag(result);
+          }
+        } else {
+          // Shift amount > 32, and the result is guaranteed to fit into Smi.
+          // Low (Smi) part of the left operand is shifted out.
+          // High part is filled with sign bits.
+          __ Asr(result, left, compiler::Operand(31));
+          __ Lsr(result, result, compiler::Operand(value - 32));
+          __ SmiTag(result);
+        }
         break;
       }
 
@@ -4516,6 +4612,71 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiTag(result);
       break;
     }
+    case Token::kUSHR: {
+      compiler::Label done;
+      __ SmiUntag(IP, right);
+      // 64-bit representation of left operand value:
+      //
+      //       ss...sssss  s  s  xxxxxxxxxxxxx
+      //       |        |  |  |  |           |
+      //       63      32  31 30 kSmiBits-1  0
+      //
+      // Where 's' is a sign bit.
+      //
+      // If left operand is negative (sign bit is set), then
+      // result will fit into Smi range if and only if
+      // the shift amount >= 64 - kSmiBits.
+      //
+      // If left operand is non-negative, the result always
+      // fits into Smi range.
+      //
+      if (!RangeUtils::OnlyLessThanOrEqualTo(
+              right_range(), 64 - compiler::target::kSmiBits - 1)) {
+        if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(),
+                                               kBitsPerInt64 - 1)) {
+          __ CompareImmediate(IP, kBitsPerInt64);
+          // If shift amount >= 64, then result is 0.
+          __ LoadImmediate(result, 0, GE);
+          __ b(&done, GE);
+        }
+        __ CompareImmediate(IP, 64 - compiler::target::kSmiBits);
+        // Shift amount >= 64 - kSmiBits > 32, but < 64.
+        // Result is guaranteed to fit into Smi range.
+        // Low (Smi) part of the left operand is shifted out.
+        // High part is filled with sign bits.
+        __ sub(IP, IP, compiler::Operand(32), GE);
+        __ Asr(result, left, compiler::Operand(31), GE);
+        __ Lsr(result, result, IP, GE);
+        __ SmiTag(result, GE);
+        __ b(&done, GE);
+      }
+      // Shift amount < 64 - kSmiBits.
+      // If left is negative, then result will not fit into Smi range.
+      // Also deopt in case of negative shift amount.
+      if (deopt != nullptr) {
+        __ tst(left, compiler::Operand(left));
+        __ tst(right, compiler::Operand(right), PL);
+        __ b(deopt, MI);
+      } else {
+        ASSERT(!can_overflow());
+      }
+      // At this point left operand is non-negative, so unsigned shift
+      // can't overflow.
+      if (!RangeUtils::OnlyLessThanOrEqualTo(right_range(),
+                                             compiler::target::kSmiBits - 1)) {
+        __ CompareImmediate(IP, compiler::target::kSmiBits);
+        // Left operand >= 0, shift amount >= kSmiBits. Result is 0.
+        __ LoadImmediate(result, 0, GE);
+        __ b(&done, GE);
+      }
+      // Left operand >= 0, shift amount < kSmiBits < 32.
+      const Register temp = locs()->temp(0).reg();
+      __ SmiUntag(temp, left);
+      __ Lsr(result, temp, IP);
+      __ SmiTag(result);
+      __ Bind(&done);
+      break;
+    }
     case Token::kDIV: {
       // Dispatches to 'Double./'.
       // TODO(srdjan): Implement as conversion to double and double division.
@@ -4568,7 +4729,7 @@ LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Zone* zone,
   // Calculate number of temporaries.
   intptr_t num_temps = 0;
   if (((op_kind() == Token::kSHL) && can_overflow()) ||
-      (op_kind() == Token::kSHR)) {
+      (op_kind() == Token::kSHR) || (op_kind() == Token::kUSHR)) {
     num_temps = 1;
   }
   LocationSummary* summary = new (zone)
@@ -4576,7 +4737,7 @@ LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, LocationRegisterOrSmiConstant(right()));
   if (((op_kind() == Token::kSHL) && can_overflow()) ||
-      (op_kind() == Token::kSHR)) {
+      (op_kind() == Token::kSHR) || (op_kind() == Token::kUSHR)) {
     summary->set_temp(0, Location::RequiresRegister());
   }
   // We make use of 3-operand instructions by not requiring result register
@@ -4676,6 +4837,45 @@ void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         const intptr_t kCountLimit = 0x1F;
         __ Asr(result, left,
                compiler::Operand(Utils::Minimum(value, kCountLimit)));
+        break;
+      }
+      case Token::kUSHR: {
+        ASSERT((value > 0) && (value < 64));
+        // 64-bit representation of left operand value:
+        //
+        //       ss...sssss  s  xxxxxxxxxxxxx
+        //       |        |  |  |           |
+        //       63      32  31 30          0
+        //
+        // Where 's' is a sign bit.
+        //
+        // If left operand is negative (sign bit is set), then
+        // result will fit into Int32 range if and only if
+        // the shift amount > 32.
+        //
+        if (value <= 32) {
+          if (deopt != nullptr) {
+            __ tst(left, compiler::Operand(left));
+            __ b(deopt, MI);
+          } else {
+            // Operation cannot overflow only if left value is always
+            // non-negative.
+            ASSERT(!can_overflow());
+          }
+          // At this point left operand is non-negative, so unsigned shift
+          // can't overflow.
+          if (value == 32) {
+            __ LoadImmediate(result, 0);
+          } else {
+            __ Lsr(result, left, compiler::Operand(value));
+          }
+        } else {
+          // Shift amount > 32.
+          // Low (Int32) part of the left operand is shifted out.
+          // Shift high part which is filled with sign bits.
+          __ Asr(result, left, compiler::Operand(31));
+          __ Lsr(result, result, compiler::Operand(value - 32));
+        }
         break;
       }
 
@@ -6832,6 +7032,22 @@ static void EmitShiftInt64ByConstant(FlowGraphCompiler* compiler,
       }
       break;
     }
+    case Token::kUSHR: {
+      ASSERT(shift < 64);
+      if (shift < 32) {
+        __ Lsl(out_lo, left_hi, compiler::Operand(32 - shift));
+        __ orr(out_lo, out_lo, compiler::Operand(left_lo, LSR, shift));
+        __ Lsr(out_hi, left_hi, compiler::Operand(shift));
+      } else {
+        if (shift == 32) {
+          __ mov(out_lo, compiler::Operand(left_hi));
+        } else {
+          __ Lsr(out_lo, left_hi, compiler::Operand(shift - 32));
+        }
+        __ mov(out_hi, compiler::Operand(0));
+      }
+      break;
+    }
     case Token::kSHL: {
       ASSERT(shift < 64);
       if (shift < 32) {
@@ -6870,6 +7086,15 @@ static void EmitShiftInt64ByRegister(FlowGraphCompiler* compiler,
       __ mov(out_hi, compiler::Operand(left_hi, ASR, right));
       break;
     }
+    case Token::kUSHR: {
+      __ rsbs(IP, right, compiler::Operand(32));
+      __ sub(IP, right, compiler::Operand(32), MI);
+      __ mov(out_lo, compiler::Operand(left_hi, LSR, IP), MI);
+      __ mov(out_lo, compiler::Operand(left_lo, LSR, right), PL);
+      __ orr(out_lo, out_lo, compiler::Operand(left_hi, LSL, IP), PL);
+      __ mov(out_hi, compiler::Operand(left_hi, LSR, right));
+      break;
+    }
     case Token::kSHL: {
       __ rsbs(IP, right, compiler::Operand(32));
       __ sub(IP, right, compiler::Operand(32), MI);
@@ -6896,6 +7121,7 @@ static void EmitShiftUint32ByConstant(FlowGraphCompiler* compiler,
   } else {
     switch (op_kind) {
       case Token::kSHR:
+      case Token::kUSHR:
         __ Lsr(out, left, compiler::Operand(shift));
         break;
       case Token::kSHL:
@@ -6914,6 +7140,7 @@ static void EmitShiftUint32ByRegister(FlowGraphCompiler* compiler,
                                       Register right) {
   switch (op_kind) {
     case Token::kSHR:
+    case Token::kUSHR:
       __ Lsr(out, left, right);
       break;
     case Token::kSHL:
@@ -6951,6 +7178,7 @@ class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
                compiler::Operand(compiler::target::kBitsPerWord - 1), GE);
         __ mov(out_lo, compiler::Operand(out_hi), GE);
         break;
+      case Token::kUSHR:
       case Token::kSHL: {
         __ LoadImmediate(out_lo, 0, GE);
         __ LoadImmediate(out_hi, 0, GE);

@@ -102,5 +102,9 @@ Future testAsync(VmService service, IsolateRef isolateRef) async {
 
 final tests = <IsolateTest>[testAsync];
 
-main([args = const <String>[]]) =>
-    runIsolateTests(args, tests, testeeConcurrent: testeeDo);
+main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'async_generator_breakpoint_test.dart',
+      testeeConcurrent: testeeDo,
+    );

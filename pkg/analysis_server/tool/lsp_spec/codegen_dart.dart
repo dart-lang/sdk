@@ -668,9 +668,8 @@ void _writeJsonMapAssignment(
   }
   // Suppress the ? operator if we've output a null check already.
   final nullOp = shouldBeOmittedIfNoValue ? '' : '?';
-  final valueCode =
-      _isSpecType(field.type) ? '${field.name}$nullOp.toJson()' : field.name;
-  buffer.writeIndented('''$mapName['${field.name}'] = $valueCode''');
+  buffer.writeIndented('''$mapName['${field.name}'] = ''');
+  _writeToJsonCode(buffer, field.type, field.name, nullOp);
   if (!field.allowsUndefined && !field.allowsNull) {
     buffer.write(''' ?? (throw '${field.name} is required but was not set')''');
   }
@@ -694,6 +693,19 @@ void _writeMember(IndentableStringBuffer buffer, Member member) {
 
 void _writeMembers(IndentableStringBuffer buffer, List<Member> members) {
   _getSortedUnique(members).forEach((m) => _writeMember(buffer, m));
+}
+
+void _writeToJsonCode(IndentableStringBuffer buffer, TypeBase type,
+    String valueCode, String nullOp) {
+  if (_isSpecType(type)) {
+    buffer.write('$valueCode$nullOp.toJson()');
+  } else if (type is ArrayType && _isSpecType(type.elementType)) {
+    buffer.write('$valueCode$nullOp.map((item) => ');
+    _writeToJsonCode(buffer, type.elementType, 'item', '');
+    buffer.write(')$nullOp.toList()');
+  } else {
+    buffer.write(valueCode);
+  }
 }
 
 void _writeToJsonFieldsForResponseMessage(

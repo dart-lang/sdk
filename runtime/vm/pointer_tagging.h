@@ -84,6 +84,12 @@ enum {
   kSmiTagShift = 1,
 };
 
+#if !defined(DART_COMPRESSED_POINTERS)
+static constexpr uintptr_t kHeapBaseMask = 0;
+#else
+static constexpr uintptr_t kHeapBaseMask = ~(4LL * GB - 1);
+#endif
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_POINTER_TAGGING_H_

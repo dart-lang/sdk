@@ -223,6 +223,20 @@ bool isFixedLength(AbstractValue mask, JClosedWorld closedWorld) {
   return false;
 }
 
+/// Returns `true` if the end of [block] is unreachable, e.g. due to a `throw`
+/// expression.
+bool hasUnreachableExit(HBasicBlock block) {
+  if (!block.isLive) return false;
+  HInstruction last = block.last;
+  if (last is HGoto) {
+    HInstruction previous = last.previous;
+    if (previous is HThrowExpression) return true;
+    // TODO(sra): Match other signs of unreachability, e.g. a call to a method
+    // that returns `[empty]`.
+  }
+  return false;
+}
+
 /// If both inputs to known operations are available execute the operation at
 /// compile-time.
 class SsaInstructionSimplifier extends HBaseVisitor
@@ -1201,7 +1215,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   void simplifyCondition(
-      HBasicBlock block, HInstruction condition, bool value) {
+      HBasicBlock block, HInstruction condition, bool value, String tag) {
+    if (block == null) return;
+
     // `excludePhiOutEdges: true` prevents replacing a partially dominated phi
     // node input with a constant. This tends to add unnecessary assignments, by
     // transforming the following, which has phi(false, x),
@@ -1225,6 +1241,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         DominatedUses.of(condition, block.first, excludePhiOutEdges: true);
     if (uses.isEmpty) return;
     uses.replaceWith(_graph.addConstantBool(value, _closedWorld));
+    _log?.registerConditionValue(condition, value, tag, uses.length);
   }
 
   @override
@@ -1242,25 +1259,60 @@ class SsaInstructionSimplifier extends HBaseVisitor
           node, _graph.addConstantBool(false, _closedWorld));
     }
 
-    bool isNegated = condition is HNot;
+    HBasicBlock thenBlock = node.thenBlock;
+    HBasicBlock elseBlock = node.elseBlock;
 
-    if (isNegated) {
-      condition = condition.inputs[0];
+    // For diamond control flow, if the end of the then- or else-block is not
+    // reachable, the other block dynamically dominates the join, so the join
+    // acts as a continuation of the else- or then- branch.
+    HBasicBlock thenContinuation = null;
+    HBasicBlock elseContinuation = null;
+    if (node.joinBlock != null) {
+      final joinPredecessors = node.joinBlock.predecessors;
+      if (joinPredecessors.length == 2) {
+        if (hasUnreachableExit(joinPredecessors[0])) {
+          elseContinuation = node.joinBlock;
+        } else if (hasUnreachableExit(joinPredecessors[1])) {
+          thenContinuation = node.joinBlock;
+        }
+      }
+    }
+
+    simplifyCondition(thenBlock, condition, true, 'then');
+    simplifyCondition(thenContinuation, condition, true, 'then-join');
+    simplifyCondition(elseBlock, condition, false, 'else');
+    simplifyCondition(elseContinuation, condition, false, 'else-join');
+
+    if (condition is HNot) {
+      //  if (!t1) ... t1 ...
+      HInstruction negated = condition.inputs[0];
+      simplifyCondition(thenBlock, negated, false, 'then');
+      simplifyCondition(thenContinuation, negated, false, 'then-join');
+      simplifyCondition(elseBlock, negated, true, 'else');
+      simplifyCondition(elseContinuation, negated, true, 'else-join');
     } else {
-      // It is possible for LICM to move a negated version of the
-      // condition out of the loop where it used. We still want to
-      // simplify the nested use of the condition in that case, so
-      // we look for all dominating negated conditions and replace
-      // nested uses of them with true or false.
+      // It is possible for LICM to move a negated version of the condition out
+      // of the loop where it used. We still want to simplify the nested use of
+      // the condition in that case, so we look for all dominating negated
+      // conditions and replace nested uses of them with true or false.
+      //
+      //     t1 = ...
+      //     t2 = !t1
+      //     loop
+      //       if (t1)
+      //         t2     // replace with `false`
+      //
       Iterable<HInstruction> dominating = condition.usedBy
           .where((user) => user is HNot && user.dominates(node));
       dominating.forEach((hoisted) {
-        simplifyCondition(node.thenBlock, hoisted, false);
-        simplifyCondition(node.elseBlock, hoisted, true);
+        simplifyCondition(thenBlock, hoisted, false, 'hoisted-then');
+        simplifyCondition(
+            thenContinuation, hoisted, false, 'hoisted-then-join');
+        simplifyCondition(elseBlock, hoisted, true, 'hoisted-else');
+        simplifyCondition(elseContinuation, hoisted, true, 'hoisted-else-join');
       });
     }
-    simplifyCondition(node.thenBlock, condition, !isNegated);
-    simplifyCondition(node.elseBlock, condition, isNegated);
+
     return node;
   }
 
@@ -3347,27 +3399,65 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    if (block.predecessors.length == 0) {
+    final predecessors = block.predecessors;
+    final indegree = predecessors.length;
+    if (indegree == 0) {
       // Entry block.
       memorySet = new MemorySet(_closedWorld);
-    } else if (block.predecessors.length == 1 &&
-        block.predecessors[0].successors.length == 1) {
+    } else if (indegree == 1 && predecessors[0].successors.length == 1) {
       // No need to clone, there is no other successor for
-      // `block.predecessors[0]`, and this block has only one
-      // predecessor. Since we are not going to visit
-      // `block.predecessors[0]` again, we can just re-use its
-      // [memorySet].
-      memorySet = memories[block.predecessors[0].id];
-    } else if (block.predecessors.length == 1) {
-      // Clone the memorySet of the predecessor, because it is also used
-      // by other successors of it.
-      memorySet = memories[block.predecessors[0].id].clone();
+      // `block.predecessors[0]`, and this block has only one predecessor. Since
+      // we are not going to visit `block.predecessors[0]` again, we can just
+      // re-use its [memorySet].
+      memorySet = memories[predecessors[0].id];
+    } else if (indegree == 1) {
+      // Clone the memorySet of the predecessor, because it is also used by
+      // other successors of it.
+      memorySet = memories[predecessors[0].id].clone();
     } else {
       // Compute the intersection of all predecessors.
-      memorySet = memories[block.predecessors[0].id];
-      for (int i = 1; i < block.predecessors.length; i++) {
-        memorySet = memorySet.intersectionFor(
-            memories[block.predecessors[i].id], block, i);
+      //
+      // If a predecessor does not have a reachable exit, the kills on that path
+      // can be ignored. Since the usual case is conditional diamond flow with
+      // two predecessors, this is done by detecting a single non-dead
+      // predecessor and cloning the memory-set, but removing expressions that
+      // are not valid in the current block (invalid instructions would be in
+      // one arm of the diamond).
+
+      List<MemorySet> inputs = List.filled(indegree, null);
+      int firstLiveIndex = -1;
+      int otherLiveIndex = -1;
+      int firstDeadIndex = -1;
+      bool pendingBackEdge = false;
+
+      for (int i = 0; i < indegree; i++) {
+        final predecessor = predecessors[i];
+        final input = inputs[i] = memories[predecessor.id];
+        if (input == null) pendingBackEdge = true;
+        if (hasUnreachableExit(predecessor)) {
+          if (firstDeadIndex == -1) firstDeadIndex = i;
+        } else {
+          if (firstLiveIndex == -1) {
+            firstLiveIndex = i;
+          } else if (otherLiveIndex == -1) {
+            otherLiveIndex = i;
+          }
+        }
+      }
+
+      if (firstLiveIndex != -1 &&
+          otherLiveIndex == -1 &&
+          firstDeadIndex != -1 &&
+          !pendingBackEdge) {
+        // Single live input intersection.
+        memorySet = memories[predecessors[firstLiveIndex].id]
+            .cloneIfDominatesBlock(block);
+      } else {
+        // Standard intersection over all predecessors.
+        memorySet = inputs[0];
+        for (int i = 1; i < inputs.length; i++) {
+          memorySet = memorySet.intersectionFor(inputs[i], block, i);
+        }
       }
     }
 
@@ -3959,6 +4049,40 @@ class MemorySet {
     });
 
     result.nonEscapingReceivers.addAll(nonEscapingReceivers);
+    return result;
+  }
+
+  /// Returns a copy of [this] memory set, removing any expressions that are not
+  /// valid in [block].
+  MemorySet cloneIfDominatesBlock(HBasicBlock block) {
+    bool instructionDominatesBlock(HInstruction instruction) {
+      return instruction != null && instruction.block.dominates(block);
+    }
+
+    MemorySet result = MemorySet(closedWorld);
+
+    fieldValues.forEach((element, values) {
+      values.forEach((receiver, value) {
+        if ((receiver == null || instructionDominatesBlock(receiver)) &&
+            instructionDominatesBlock(value)) {
+          result.registerFieldValue(element, receiver, value);
+        }
+      });
+    });
+
+    keyedValues.forEach((receiver, values) {
+      if (instructionDominatesBlock(receiver)) {
+        values.forEach((index, value) {
+          if (instructionDominatesBlock(index) &&
+              instructionDominatesBlock(value)) {
+            result.registerKeyedValue(receiver, index, value);
+          }
+        });
+      }
+    });
+
+    result.nonEscapingReceivers
+        .addAll(nonEscapingReceivers.where(instructionDominatesBlock));
     return result;
   }
 }

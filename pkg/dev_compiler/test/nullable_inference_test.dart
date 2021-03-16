@@ -536,7 +536,7 @@ Future expectAllNotNull(String code) async {
 bool useAnnotations = false;
 NullableInference inference;
 
-class _TestRecursiveVisitor extends RecursiveVisitor<void> {
+class _TestRecursiveVisitor extends RecursiveVisitor {
   final Set<Library> librariesFromDill;
   int _functionNesting = 0;
   TypeEnvironment _typeEnvironment;

@@ -8,7 +8,7 @@ library fasta.named_type_builder;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 
 import '../fasta_codes.dart'
     show
@@ -21,7 +21,6 @@ import '../fasta_codes.dart'
         messageTypedefCause,
         noLength,
         templateExtendingRestricted,
-        templateMissingExplicitTypeArguments,
         templateNotAType,
         templateSupertypeIsIllegal,
         templateSupertypeIsTypeVariable,
@@ -37,6 +36,8 @@ import '../messages.dart'
 import '../problems.dart' show unhandled;
 
 import '../scope.dart';
+
+import '../source/source_library_builder.dart';
 
 import 'builder.dart';
 import 'builtin_type_declaration_builder.dart';
@@ -141,24 +142,9 @@ class NamedTypeBuilder extends TypeBuilder {
       return;
     } else if (member is TypeDeclarationBuilder) {
       declaration = member.origin;
-      if (!declaration.isExtension) {
-        if (arguments == null && declaration.typeVariablesCount != 0) {
-          String typeName;
-          int typeNameOffset;
-          if (name is Identifier) {
-            typeName = name.name;
-            typeNameOffset = name.charOffset;
-          } else {
-            typeName = name;
-            typeNameOffset = charOffset;
-          }
-          library.addProblem(
-              templateMissingExplicitTypeArguments
-                  .withArguments(declaration.typeVariablesCount),
-              typeNameOffset,
-              typeName.length,
-              fileUri);
-        }
+      if (!declaration.isExtension ||
+          library is SourceLibraryBuilder &&
+              library.enableExtensionTypesInLibrary) {
         return;
       }
     }

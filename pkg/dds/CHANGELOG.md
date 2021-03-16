@@ -1,3 +1,6 @@
+# 1.7.5
+- Add 30 second keep alive period for SSE connections.
+
 # 1.7.4
 - Update `package:vm_service` to 6.0.1-nullsafety.0.
 

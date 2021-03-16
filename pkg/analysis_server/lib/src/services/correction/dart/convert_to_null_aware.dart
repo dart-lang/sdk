@@ -21,6 +21,9 @@ class ConvertToNullAware extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_NULL_AWARE;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_NULL_AWARE_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node.parent is BinaryExpression &&

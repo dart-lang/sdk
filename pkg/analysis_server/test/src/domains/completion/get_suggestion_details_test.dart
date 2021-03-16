@@ -115,6 +115,104 @@ main() {} // ref
 ''');
   }
 
+  Future<void> test_newImport_afterLibraryBeforeFirstImportsAnnotation() async {
+    // Annotations are only treated as being for the file if they are on the first
+    // directive of the file.
+    addTestFile(r'''
+library foo;
+
+@myAnnotation
+import 'package:zzz';
+
+main() {} // ref
+''');
+
+    var mathSet = await waitForSetWithUri('dart:math');
+    var result = await _getSuggestionDetails(
+      _buildRequest(
+        id: mathSet.id,
+        label: 'sin',
+        offset: testCode.indexOf('} // ref'),
+      ),
+    );
+
+    expect(result.completion, 'sin');
+    _assertTestFileChange(result.change, r'''
+library foo;
+
+import 'dart:math';
+
+@myAnnotation
+import 'package:zzz';
+
+main() {} // ref
+''');
+  }
+
+  Future<void> test_newImport_betweenAnnotationAndFirstImport() async {
+    // Annotations attached to the first import in a file are considered
+    // to be for the file, so if an import is inserted in the top position, it
+    // should go after the annotation.
+    addTestFile(r'''
+@myAnnotation
+
+import 'package:zzz';
+
+main() {} // ref
+''');
+
+    var mathSet = await waitForSetWithUri('dart:math');
+    var result = await _getSuggestionDetails(
+      _buildRequest(
+        id: mathSet.id,
+        label: 'sin',
+        offset: testCode.indexOf('} // ref'),
+      ),
+    );
+
+    expect(result.completion, 'sin');
+    _assertTestFileChange(result.change, r'''
+@myAnnotation
+
+import 'dart:math';
+
+import 'package:zzz';
+
+main() {} // ref
+''');
+  }
+
+  Future<void> test_newImport_notBetweenAnnotationAndNonFirstImport() async {
+    // Annotations on non-first directives should not be kept above the newly
+    // imported imports (opposite of test_newImport_betweenAnnotationAndFirstImport).
+    addTestFile(r'''
+import 'dart:async';
+@myAnnotation
+import 'package:zzz';
+
+main() {} // ref
+''');
+
+    var mathSet = await waitForSetWithUri('dart:math');
+    var result = await _getSuggestionDetails(
+      _buildRequest(
+        id: mathSet.id,
+        label: 'sin',
+        offset: testCode.indexOf('} // ref'),
+      ),
+    );
+
+    expect(result.completion, 'sin');
+    _assertTestFileChange(result.change, r'''
+import 'dart:async';
+import 'dart:math';
+@myAnnotation
+import 'package:zzz';
+
+main() {} // ref
+''');
+  }
+
   Future<void> test_newImport_part() async {
     var partCode = r'''
 part of 'test.dart';

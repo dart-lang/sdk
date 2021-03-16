@@ -20,6 +20,9 @@ class ConvertToSetLiteral extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_SET_LITERAL;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_SET_LITERAL_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     //
     // Check whether this is an invocation of `toSet` on a list literal.

@@ -574,12 +574,7 @@ void main() {
             expectedResult: '''
             (function(x, y, z) {
               T\$Eval.VoidTodynamic = () => (T\$Eval.VoidTodynamic = dart.constFn(dart.fnType(dart.dynamic, [])))();
-              dart.defineLazy(CT, {
-                get C0() {
-                  return C[0] = dart.fn(foo.main, T\$Eval.VoidTodynamic());
-                }
-              }, false);
-              return C[0] || CT.C0;
+              return dart.fn(foo.main, T\$Eval.VoidTodynamic());
             }(
               1,
               2,
@@ -1476,15 +1471,10 @@ void main() {
             expression: 'const MyClass(1)',
             expectedResult: '''
             (function(p) {
-              dart.defineLazy(CT, {
-                get C0() {
-                  return C[0] = dart.const({
-                    __proto__: foo.MyClass.prototype,
-                    [_t]: 1
-                  });
-                }
-              }, false);
-              return C[0] || CT.C0;
+              return dart.const({
+                __proto__: foo.MyClass.prototype,
+                [_t]: 1
+              });
             }(
               1
             ))
@@ -1524,15 +1514,10 @@ void main() {
             expression: "const Key('t')",
             expectedResult: '''
             (function(p) {
-              dart.defineLazy(CT, {
-                get C0() {
-                  return C[0] = dart.const({
-                    __proto__: foo.ValueKey.prototype,
-                    [value]: "t"
-                    });
-                  }
-              }, false);
-              return C[0] || CT.C0;
+              return dart.const({
+                __proto__: foo.ValueKey.prototype,
+                [value]: "t"
+                });
             }(
               1
             ))
@@ -2113,14 +2098,9 @@ void main() {
             expression: 'const B()',
             expectedResult: '''
             (function(a, check) {
-            dart.defineLazy(CT, {
-              get C1() {
-                return C[1] = dart.const({
-                  __proto__: foo.B.prototype
-                });
-              }
-            }, false);
-            return C[1] || CT.C1;
+              return dart.const({
+                __proto__: foo.B.prototype
+              });
             }(
               null,
               null
@@ -2128,16 +2108,86 @@ void main() {
             ''');
       });
 
-      test('evaluation that reuses the constant container', () async {
+      test(
+          'evaluation that reuses the constant container and canonicalizes properly',
+          () async {
         await driver.check(
             scope: <String, String>{'a': 'null', 'check': 'null'},
-            expression: 'const A()',
+            expression: 'a == const A()',
             expectedResult: '''
             (function(a, check) {
-              return C[0] || CT.C0;
+              return dart.equals(a, dart.const({
+                __proto__: foo.A.prototype
+              }));
             }(
               null,
               null
+            ))
+            ''');
+      });
+    });
+
+    group('Expression compiler tests in generic method:', () {
+      var source = '''
+        ${options.dartLangComment}
+        class A {
+          void generic<TType, KType>(TType a, KType b) {
+            /* evaluation placeholder */
+            print(a);
+            print(b);
+          }
+        }
+
+        void main() => generic<int, String>(0, 'hi');
+        ''';
+
+      TestDriver driver;
+      setUp(() {
+        driver = TestDriver(options, source);
+      });
+
+      tearDown(() {
+        driver.delete();
+      });
+
+      test('evaluate formals', () async {
+        await driver.check(
+            scope: <String, String>{
+              'TType': 'TType',
+              'KType': 'KType',
+              'a': 'a',
+              'b': 'b'
+            },
+            expression: 'a',
+            expectedResult: '''
+            (function(TType, KType, a, b) {
+                return a;
+            }.bind(this)(
+              TType,
+              KType,
+              a,
+              b
+            ))
+            ''');
+      });
+
+      test('evaluate type parameters', () async {
+        await driver.check(
+            scope: <String, String>{
+              'TType': 'TType',
+              'KType': 'KType',
+              'a': 'a',
+              'b': 'b'
+            },
+            expression: 'TType',
+            expectedResult: '''
+            (function(TType, KType, a, b) {
+              return dart.wrapType(dart.legacy(TType));
+            }.bind(this)(
+              TType,
+              KType,
+              a,
+              b
             ))
             ''');
       });
@@ -2429,12 +2479,7 @@ void main() {
             expectedResult: '''
             (function(x, y, z) {
               T\$Eval.VoidTodynamic = () => (T\$Eval.VoidTodynamic = dart.constFn(dart.fnType(dart.dynamic, [])))();
-              dart.defineLazy(CT, {
-                get C0() {
-                  return C[0] = dart.fn(foo.main, T\$Eval.VoidTodynamic());
-                }
-              }, false);
-              return C[0] || CT.C0;
+              return dart.fn(foo.main, T\$Eval.VoidTodynamic());
             }(
               1,
               2,
@@ -3330,15 +3375,10 @@ void main() {
             expression: 'const MyClass(1)',
             expectedResult: '''
             (function(p) {
-              dart.defineLazy(CT, {
-                get C0() {
-                  return C[0] = dart.const({
-                    __proto__: foo.MyClass.prototype,
-                    [_t]: 1
-                  });
-                }
-              }, false);
-              return C[0] || CT.C0;
+              return dart.const({
+                __proto__: foo.MyClass.prototype,
+                [_t]: 1
+              });
             }(
               1
             ))
@@ -3378,15 +3418,10 @@ void main() {
             expression: "const Key('t')",
             expectedResult: '''
             (function(p) {
-              dart.defineLazy(CT, {
-                get C0() {
-                  return C[0] = dart.const({
-                    __proto__: foo.ValueKey.prototype,
-                    [value]: "t"
-                    });
-                  }
-              }, false);
-              return C[0] || CT.C0;
+              return dart.const({
+                __proto__: foo.ValueKey.prototype,
+                [value]: "t"
+                });
             }(
               1
             ))
@@ -3897,6 +3932,72 @@ void main() {
             scope: <String, String>{'x': '1', 'c': 'null'},
             expression: 'z',
             expectedError: "Error: Getter not found: 'z'");
+      });
+    });
+
+    group('Expression compiler tests in generic method:', () {
+      var source = '''
+        ${options.dartLangComment}
+        class A {
+          void generic<TType, KType>(TType a, KType b) {
+            /* evaluation placeholder */
+            print(a);
+            print(b);
+          }
+        }
+
+        void main() => generic<int, String>(0, 'hi');
+        ''';
+
+      TestDriver driver;
+      setUp(() {
+        driver = TestDriver(options, source);
+      });
+
+      tearDown(() {
+        driver.delete();
+      });
+
+      test('evaluate formals', () async {
+        await driver.check(
+            scope: <String, String>{
+              'TType': 'TType',
+              'KType': 'KType',
+              'a': 'a',
+              'b': 'b'
+            },
+            expression: 'a',
+            expectedResult: '''
+            (function(TType, KType, a, b) {
+                return a;
+            }.bind(this)(
+              TType,
+              KType,
+              a,
+              b
+            ))
+            ''');
+      });
+
+      test('evaluate type parameters', () async {
+        await driver.check(
+            scope: <String, String>{
+              'TType': 'TType',
+              'KType': 'KType',
+              'a': 'a',
+              'b': 'b'
+            },
+            expression: 'TType',
+            expectedResult: '''
+            (function(TType, KType, a, b) {
+              return dart.wrapType(TType);
+            }.bind(this)(
+              TType,
+              KType,
+              a,
+              b
+            ))
+            ''');
       });
     });
   });

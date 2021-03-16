@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.canonical_name;
 
 import 'ast.dart';
@@ -69,25 +67,27 @@ import 'ast.dart';
 /// The "qualified name" allows a member to have a name that is private to
 /// a library other than the one containing that member.
 class CanonicalName {
-  CanonicalName _parent;
+  CanonicalName? _parent;
 
-  CanonicalName get parent => _parent;
+  CanonicalName? get parent => _parent;
 
   final String name;
-  CanonicalName _nonRootTop;
+  CanonicalName? _nonRootTop;
 
-  Map<String, CanonicalName> _children;
+  Map<String, CanonicalName>? _children;
 
   /// The library, class, or member bound to this name.
-  Reference reference;
+  Reference? reference;
 
   /// Temporary index used during serialization.
   int index = -1;
 
-  CanonicalName._(this._parent, this.name) {
+  CanonicalName._(CanonicalName parent, this.name) : _parent = parent {
+    // ignore: unnecessary_null_comparison
     assert(name != null);
+    // ignore: unnecessary_null_comparison
     assert(parent != null);
-    _nonRootTop = _parent.isRoot ? this : _parent._nonRootTop;
+    _nonRootTop = parent.isRoot ? this : parent._nonRootTop;
   }
 
   CanonicalName.root()
@@ -96,15 +96,16 @@ class CanonicalName {
         name = '';
 
   bool get isRoot => _parent == null;
-  CanonicalName get nonRootTop => _nonRootTop;
+
+  CanonicalName? get nonRootTop => _nonRootTop;
 
   Iterable<CanonicalName> get children =>
       _children?.values ?? const <CanonicalName>[];
 
-  Iterable<CanonicalName> get childrenOrNull => _children?.values;
+  Iterable<CanonicalName>? get childrenOrNull => _children?.values;
 
   bool hasChild(String name) {
-    return _children != null && _children.containsKey(name);
+    return _children != null && _children!.containsKey(name);
   }
 
   CanonicalName getChild(String name) {
@@ -121,32 +122,32 @@ class CanonicalName {
 
   CanonicalName getChildFromQualifiedName(Name name) {
     return name.isPrivate
-        ? getChildFromUri(name.library.importUri).getChild(name.text)
+        ? getChildFromUri(name.library!.importUri).getChild(name.text)
         : getChild(name.text);
   }
 
   CanonicalName getChildFromProcedure(Procedure procedure) {
     return getChild(getProcedureQualifier(procedure))
-        .getChildFromQualifiedName(procedure.name);
+        .getChildFromQualifiedName(procedure.name!);
   }
 
   CanonicalName getChildFromField(Field field) {
-    return getChild('@fields').getChildFromQualifiedName(field.name);
+    return getChild('@fields').getChildFromQualifiedName(field.name!);
   }
 
   CanonicalName getChildFromFieldSetter(Field field) {
-    return getChild('@=fields').getChildFromQualifiedName(field.name);
+    return getChild('@=fields').getChildFromQualifiedName(field.name!);
   }
 
   CanonicalName getChildFromConstructor(Constructor constructor) {
     return getChild('@constructors')
-        .getChildFromQualifiedName(constructor.name);
+        .getChildFromQualifiedName(constructor.name!);
   }
 
   CanonicalName getChildFromRedirectingFactoryConstructor(
       RedirectingFactoryConstructor redirectingFactoryConstructor) {
     return getChild('@factories')
-        .getChildFromQualifiedName(redirectingFactoryConstructor.name);
+        .getChildFromQualifiedName(redirectingFactoryConstructor.name!);
   }
 
   CanonicalName getChildFromFieldWithName(Name name) {
@@ -175,26 +176,27 @@ class CanonicalName {
   /// the same name.
   void adoptChild(CanonicalName child) {
     if (child._parent == this) return;
-    if (_children != null && _children.containsKey(child.name)) {
+    if (_children != null && _children!.containsKey(child.name)) {
       throw 'Cannot add a child to $this because this name already has a '
           'child named ${child.name}';
     }
-    child._parent.removeChild(child.name);
+    child._parent?.removeChild(child.name);
     child._parent = this;
-    if (_children == null) _children = <String, CanonicalName>{};
-    _children[child.name] = child;
+    _children ??= <String, CanonicalName>{};
+    _children![child.name] = child;
   }
 
   void removeChild(String name) {
     if (_children != null) {
-      _children.remove(name);
-      if (_children.isEmpty) {
+      _children!.remove(name);
+      if (_children!.isEmpty) {
         _children = null;
       }
     }
   }
 
   void bindTo(Reference target) {
+    // ignore: unnecessary_null_comparison
     if (target == null) {
       throw '$this cannot be bound to null';
     }
@@ -217,25 +219,25 @@ class CanonicalName {
     // canonical name tree. We need to establish better invariants about the
     // state of the canonical name tree, since for instance [unbindAll] doesn't
     // remove unneeded leaf nodes.
-    _parent.removeChild(name);
+    _parent?.removeChild(name);
   }
 
   void _unbindInternal() {
     if (reference == null) return;
-    assert(reference.canonicalName == this);
-    if (reference.node is Class) {
+    assert(reference!.canonicalName == this);
+    if (reference!.node is Class) {
       // TODO(jensj): Get rid of this. This is only needed because pkg:vm does
       // weird stuff in transformations. `unbind` should probably be private.
-      Class c = reference.node;
+      Class c = reference!.asClass;
       c.ensureLoaded();
     }
-    reference.canonicalName = null;
+    reference!.canonicalName = null;
     reference = null;
   }
 
   void unbindAll() {
     _unbindInternal();
-    Iterable<CanonicalName> children_ = childrenOrNull;
+    Iterable<CanonicalName>? children_ = childrenOrNull;
     if (children_ != null) {
       for (CanonicalName child in children_) {
         child.unbindAll();
@@ -246,8 +248,8 @@ class CanonicalName {
   String toString() => _parent == null ? 'root' : '$parent::$name';
   String toStringInternal() {
     if (isRoot) return "";
-    if (parent.isRoot) return "$name";
-    return "${parent.toStringInternal()}::$name";
+    if (parent!.isRoot) return "$name";
+    return "${parent!.toStringInternal()}::$name";
   }
 
   Reference getReference() {

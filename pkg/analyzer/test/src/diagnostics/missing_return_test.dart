@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class MissingReturnTest extends PubPackageResolutionTest {
+class MissingReturnTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_alwaysThrows() async {
     writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''
@@ -215,8 +216,7 @@ class B extends A {
 }
 
 @reflectiveTest
-class MissingReturnWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class MissingReturnWithNullSafetyTest extends PubPackageResolutionTest {
   test_returnNever() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 Never foo() {

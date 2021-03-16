@@ -14,10 +14,10 @@ import 'package:pub_semver/pub_semver.dart';
 /// suitable only for command-line tools, but not for IDEs - it does not
 /// implement [sdkLibraries], [uris] and [fromFileUri].
 class SummaryBasedDartSdk implements DartSdk {
-  SummaryDataStore _dataStore;
-  InSummaryUriResolver _uriResolver;
-  PackageBundleReader _bundle;
-  ResourceProvider resourceProvider;
+  late final SummaryDataStore _dataStore;
+  late final InSummaryUriResolver _uriResolver;
+  late final PackageBundleReader _bundle;
+  ResourceProvider? resourceProvider;
 
   SummaryBasedDartSdk(String summaryPath, bool _, {this.resourceProvider}) {
     _dataStore = SummaryDataStore(<String>[summaryPath],
@@ -28,7 +28,7 @@ class SummaryBasedDartSdk implements DartSdk {
 
   @override
   String get allowedExperimentsJson {
-    return _bundle.sdk.allowedExperimentsJson;
+    return _bundle.sdk!.allowedExperimentsJson;
   }
 
   /// Return the [PackageBundleReader] for this SDK, not `null`.
@@ -37,8 +37,8 @@ class SummaryBasedDartSdk implements DartSdk {
   @override
   Version get languageVersion {
     return Version(
-      _bundle.sdk.languageVersionMajor,
-      _bundle.sdk.languageVersionMinor,
+      _bundle.sdk!.languageVersionMajor,
+      _bundle.sdk!.languageVersionMinor,
       0,
     );
   }
@@ -61,19 +61,19 @@ class SummaryBasedDartSdk implements DartSdk {
   }
 
   @override
-  Source fromFileUri(Uri uri) {
+  Source? fromFileUri(Uri uri) {
     return null;
   }
 
   @override
-  SdkLibrary getSdkLibrary(String uri) {
+  SdkLibrary? getSdkLibrary(String uri) {
     // This is not quite correct, but currently it's used only in
     // to report errors on importing or exporting of internal libraries.
     return null;
   }
 
   @override
-  Source mapDartUri(String uriStr) {
+  Source? mapDartUri(String uriStr) {
     Uri uri = Uri.parse(uriStr);
     return _uriResolver.resolveAbsolute(uri);
   }

@@ -426,4 +426,18 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   }
 }
 
+/// Used to detect cycles in the declaration of a typedef
+///
+/// When a typedef is built, [pendingTypeAliasMarker] is used as a placeholder
+/// value to indicated that the process has started.  If somewhere in the
+/// process of building the typedef this value is encountered, it's replaced
+/// with [cyclicTypeAliasMarker] as the result of the build process.
+final InvalidType pendingTypeAliasMarker = new InvalidType();
+
+/// Used to detect cycles in the declaration of a typedef
+///
+/// When a typedef is built, [pendingTypeAliasMarker] is used as a placeholder
+/// value to indicated that the process has started.  If somewhere in the
+/// process of building the typedef this value is encountered, it's replaced
+/// with [cyclicTypeAliasMarker] as the result of the build process.
 final InvalidType cyclicTypeAliasMarker = new InvalidType();

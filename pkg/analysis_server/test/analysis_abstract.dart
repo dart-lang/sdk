@@ -128,10 +128,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   /// Creates a project [projectPath].
   void createProject({Map<String, String> packageRoots}) {
     newFolder(projectPath);
-    var request = AnalysisSetAnalysisRootsParams([projectPath], [],
-            packageRoots: packageRoots)
-        .toRequest('0');
-    handleSuccessfulRequest(request, handler: analysisHandler);
+    setRoots(included: [projectPath], excluded: []);
   }
 
   void doAllDeclarationsTrackerWork() {
@@ -188,6 +185,18 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   void setPriorityFiles(List<String> files) {
     var request = AnalysisSetPriorityFilesParams(files).toRequest('0');
     handleSuccessfulRequest(request);
+  }
+
+  void setRoots({
+    @required List<String> included,
+    @required List<String> excluded,
+  }) {
+    var includedConverted = included.map(convertPath).toList();
+    var excludedConverted = excluded.map(convertPath).toList();
+    var request = AnalysisSetAnalysisRootsParams(
+        includedConverted, excludedConverted,
+        packageRoots: {}).toRequest('0');
+    handleSuccessfulRequest(request, handler: analysisHandler);
   }
 
   @mustCallSuper

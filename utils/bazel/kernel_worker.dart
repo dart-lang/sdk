@@ -147,7 +147,13 @@ final summaryArgsParser = new ArgParser()
       help: 'Enable a language experiment when invoking the CFE.')
   ..addMultiOption('define', abbr: 'D')
   ..addFlag('verbose', defaultsTo: false)
-  ..addFlag('sound-null-safety', defaultsTo: false);
+  ..addFlag('sound-null-safety', defaultsTo: false)
+  ..addOption('verbosity',
+      defaultsTo: fe.Verbosity.defaultValue,
+      help: 'Sets the verbosity level used for filtering messages during '
+          'compilation.',
+      allowed: fe.Verbosity.allowedValues,
+      allowedHelp: fe.Verbosity.allowedValuesHelp);
 
 class ComputeKernelResult {
   final bool succeeded;
@@ -257,6 +263,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   bool recordUsedInputs = parsedArgs["used-inputs"] != null;
   var environmentDefines = _parseEnvironmentDefines(parsedArgs['define']);
   var verbose = parsedArgs['verbose'] as bool;
+  var verbosity = fe.Verbosity.parseArgument(parsedArgs['verbosity']);
 
   if (parsedArgs['use-incremental-compiler']) {
     usingIncrementalCompiler = true;
@@ -321,7 +328,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   }
 
   void onDiagnostic(fe.DiagnosticMessage message) {
-    fe.printDiagnosticMessage(message, out.writeln);
+    if (fe.Verbosity.shouldPrint(verbosity, message)) {
+      fe.printDiagnosticMessage(message, out.writeln);
+    }
     if (message.severity == fe.Severity.error) {
       succeeded = false;
     }

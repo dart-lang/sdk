@@ -40,11 +40,11 @@ class X5 extends A with B, C implements D, E {}
     var d = findElement.class_('D');
     var e = findElement.class_('E');
 
-    var typeA = interfaceTypeStar(a);
-    var typeB = interfaceTypeStar(b);
-    var typeC = interfaceTypeStar(c);
-    var typeD = interfaceTypeStar(d);
-    var typeE = interfaceTypeStar(e);
+    var typeA = interfaceTypeNone(a);
+    var typeB = interfaceTypeNone(b);
+    var typeC = interfaceTypeNone(c);
+    var typeD = interfaceTypeNone(d);
+    var typeE = interfaceTypeNone(e);
 
     assertElementTypes(
       findElement.class_('X1').allSupertypes,
@@ -85,16 +85,16 @@ class X3 extends C<double> {}
     assertElementTypes(
       findElement.class_('X1').allSupertypes,
       [
-        interfaceTypeStar(a, typeArguments: [stringType]),
+        interfaceTypeNone(a, typeArguments: [stringType]),
         objectType
       ],
     );
     assertElementTypes(
       findElement.class_('X2').allSupertypes,
       [
-        interfaceTypeStar(b, typeArguments: [
+        interfaceTypeNone(b, typeArguments: [
           stringType,
-          interfaceTypeStar(listElement, typeArguments: [intType])
+          interfaceTypeNone(listElement, typeArguments: [intType])
         ]),
         objectType
       ],
@@ -102,8 +102,8 @@ class X3 extends C<double> {}
     assertElementTypes(
       findElement.class_('X3').allSupertypes,
       [
-        interfaceTypeStar(c, typeArguments: [doubleType]),
-        interfaceTypeStar(b, typeArguments: [intType, doubleType]),
+        interfaceTypeNone(c, typeArguments: [doubleType]),
+        interfaceTypeNone(b, typeArguments: [intType, doubleType]),
         objectType
       ],
     );
@@ -127,7 +127,7 @@ class X extends A {}
     var c = findElement.class_('C');
     assertElementTypes(
       findElement.class_('X').allSupertypes,
-      [interfaceTypeStar(a), interfaceTypeStar(b), interfaceTypeStar(c)],
+      [interfaceTypeNone(a), interfaceTypeNone(b), interfaceTypeNone(c)],
     );
   }
 
@@ -153,8 +153,8 @@ class C implements A, Function, B {}
     assertElementTypes(
       c.interfaces,
       [
-        interfaceTypeStar(a),
-        interfaceTypeStar(b),
+        interfaceTypeNone(a),
+        interfaceTypeNone(b),
       ],
     );
   }
@@ -173,8 +173,8 @@ class C extends Object with A, Function, B {}
     assertElementTypes(
       c.mixins,
       [
-        interfaceTypeStar(a),
-        interfaceTypeStar(b),
+        interfaceTypeNone(a),
+        interfaceTypeNone(b),
       ],
     );
   }
@@ -183,7 +183,7 @@ class C extends Object with A, Function, B {}
     await assertErrorsInCode(r'''
 class C {
   C.foo();
-  static int foo;
+  static int foo = 0;
 }
 ''', [
       error(
@@ -206,7 +206,7 @@ class C {
   test_error_conflictingConstructorAndStaticField_OK_notSameClass() async {
     await assertNoErrorsInCode(r'''
 class A {
-  static int foo;
+  static int foo = 0;
 }
 class B extends A {
   B.foo();
@@ -218,7 +218,7 @@ class B extends A {
     await assertNoErrorsInCode(r'''
 class C {
   C.foo();
-  int foo;
+  int foo = 0;
 }
 ''');
   }
@@ -273,7 +273,7 @@ class A {
   foo() {}
 }
 class B extends A {
-  int foo;
+  int foo = 0;
 }
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 49, 3),
@@ -309,13 +309,13 @@ class B extends A {
   test_error_conflictingMethodAndField_inSuper_field() async {
     await assertErrorsInCode(r'''
 class A {
-  int foo;
+  int foo = 0;
 }
 class B extends A {
   foo() {}
 }
 ''', [
-      error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 45, 3),
+      error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 49, 3),
     ]);
   }
 
@@ -410,10 +410,10 @@ class A extends M {} // ref
 
   test_error_extendsNonClass_variable() async {
     await assertErrorsInCode(r'''
-int v;
+int v = 0;
 class A extends v {}
 ''', [
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 23, 1),
+      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1),
     ]);
 
     var a = findElement.class_('A');
@@ -422,10 +422,10 @@ class A extends v {}
 
   test_error_extendsNonClass_variable_generic() async {
     await assertErrorsInCode(r'''
-int v;
+int v = 0;
 class A extends v<int> {}
 ''', [
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 23, 1),
+      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1),
     ]);
 
     var a = findElement.class_('A');
@@ -469,7 +469,7 @@ class C {
   test_error_memberWithClassName_getter() async {
     await assertErrorsInCode(r'''
 class C {
-  int get C => null;
+  int get C => 0;
 }
 ''', [
       error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
@@ -479,7 +479,7 @@ class C {
   test_error_memberWithClassName_getter_static() async {
     await assertErrorsInCode(r'''
 class C {
-  static int get C => null;
+  static int get C => 0;
 }
 ''', [
       error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),

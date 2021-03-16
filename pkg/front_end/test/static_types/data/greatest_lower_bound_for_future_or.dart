@@ -23,7 +23,7 @@ void func1<T extends Foo>(T t) {
   // type inference.
   void context(FutureOr<T> x) {}
   S expr<S extends Foo>() =>
-      /*cfe.<bottom>*/ /*cfe:nnbd.Never*/
+      /*cfe.Never*/ /*cfe:nnbd.Never*/
       throw /*cfe.int*/ /*cfe:nnbd.int!*/ 42;
 
   // Type of the expression is GLB(FutureOr<T>, Foo) = T.
@@ -39,7 +39,7 @@ void func1<T extends Foo>(T t) {
 void func2<T extends Foo>() {
   void context(FutureOr<T> x) {}
   S expr<S extends Future<Foo>>() =>
-      /*cfe.<bottom>*/ /*cfe:nnbd.Never*/
+      /*cfe.Never*/ /*cfe:nnbd.Never*/
       throw /*cfe.int*/ /*cfe:nnbd.int!*/ 42;
 
   // Type of the expression is GLB(FutureOr<T>, Future<Foo>) = Future<T>.
@@ -56,7 +56,7 @@ void func2<T extends Foo>() {
 void func3<T extends Foo>() {
   void context(T x) {}
   S expr<S extends FutureOr<Foo>>() =>
-      /*cfe.<bottom>*/ /*cfe:nnbd.Never*/
+      /*cfe.Never*/ /*cfe:nnbd.Never*/
       throw /*cfe.int*/ /*cfe:nnbd.int!*/ 42;
 
   // Type of the expression is GLB(T, FutureOr<Foo>) = T.
@@ -72,7 +72,7 @@ void func3<T extends Foo>() {
 void func4<T extends Foo>() {
   void context(Future<T> x) {}
   S expr<S extends FutureOr<Foo>>() =>
-      /*cfe.<bottom>*/ /*cfe:nnbd.Never*/
+      /*cfe.Never*/ /*cfe:nnbd.Never*/
       throw /*cfe.int*/ /*cfe:nnbd.int!*/ 42;
 
   // Type of the expression is GLB(Future<T>, FutureOr<Foo>) = Future<T>.
@@ -90,7 +90,7 @@ void func4<T extends Foo>() {
 void func5<T extends Foo>() {
   void context(FutureOr<FutureOr<T>> x) {}
   S expr<S extends FutureOr<Future<Foo>>>() =>
-      /*cfe.<bottom>*/ /*cfe:nnbd.Never*/
+      /*cfe.Never*/ /*cfe:nnbd.Never*/
       throw /*cfe.int*/ /*cfe:nnbd.int!*/ 42;
 
   // Type of the expression is GLB(FutureOr<FutureOr<T>>, FutureOr<Future<Foo>>)

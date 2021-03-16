@@ -17,19 +17,19 @@ class DefaultValueResolver {
   final LibraryElementImpl _libraryElement;
   final TypeSystemImpl _typeSystem;
 
-  ClassElement _classElement;
-  CompilationUnitElement _unitElement;
-  ExecutableElement _executableElement;
-  Scope _scope;
+  late CompilationUnitElementImpl _unitElement;
+  ClassElement? _classElement;
+  late ExecutableElement _executableElement;
+  late Scope _scope;
 
-  AstResolver _astResolver;
+  AstResolver? _astResolver;
 
   DefaultValueResolver(this._linker, this._libraryElement)
       : _typeSystem = _libraryElement.typeSystem;
 
   void resolve() {
-    for (CompilationUnitElementImpl unit in _libraryElement.units) {
-      _unitElement = unit;
+    for (var unit in _libraryElement.units) {
+      _unitElement = unit as CompilationUnitElementImpl;
 
       for (var extensionElement in unit.extensions) {
         _extension(extensionElement);
@@ -53,12 +53,12 @@ class DefaultValueResolver {
     _classElement = classElement;
 
     for (var element in classElement.constructors) {
-      _constructor(element);
+      _constructor(element as ConstructorElementImpl);
     }
 
     for (var element in classElement.methods) {
       _setScopeFromElement(element);
-      _method(element);
+      _method(element as MethodElementImpl);
     }
 
     _classElement = null;
@@ -77,11 +77,11 @@ class DefaultValueResolver {
   void _extension(ExtensionElement extensionElement) {
     for (var element in extensionElement.methods) {
       _setScopeFromElement(element);
-      _method(element);
+      _method(element as MethodElementImpl);
     }
   }
 
-  void _function(FunctionElementImpl element) {
+  void _function(FunctionElement element) {
     _astResolver = null;
     _executableElement = element;
     _setScopeFromElement(element);
@@ -100,7 +100,7 @@ class DefaultValueResolver {
   void _parameter(ParameterElementImpl parameter) {
     // If a function typed parameter, process nested parameters.
     for (var localParameter in parameter.parameters) {
-      _parameter(localParameter);
+      _parameter(localParameter as ParameterElementImpl);
     }
 
     var node = _defaultParameter(parameter);
@@ -108,11 +108,12 @@ class DefaultValueResolver {
 
     var contextType = _typeSystem.eliminateTypeVariables(parameter.type);
 
-    _astResolver ??= AstResolver(_linker, _unitElement, _scope);
-    _astResolver.resolve(
-      node.defaultValue,
+    var astResolver =
+        _astResolver ??= AstResolver(_linker, _unitElement, _scope);
+    astResolver.resolve(
+      node.defaultValue!,
       () {
-        var defaultValue = node.defaultValue;
+        var defaultValue = node.defaultValue!;
         InferenceContext.setType(defaultValue, contextType);
         return defaultValue;
       },
@@ -123,15 +124,15 @@ class DefaultValueResolver {
 
   void _parameters(List<ParameterElement> parameters) {
     for (var parameter in parameters) {
-      _parameter(parameter);
+      _parameter(parameter as ParameterElementImpl);
     }
   }
 
   void _setScopeFromElement(Element element) {
-    _scope = LinkingNodeContext.get((element as ElementImpl).linkedNode).scope;
+    _scope = LinkingNodeContext.get((element as ElementImpl).linkedNode!).scope;
   }
 
-  static DefaultFormalParameter _defaultParameter(
+  static DefaultFormalParameter? _defaultParameter(
       ParameterElementImpl element) {
     var node = element.linkedNode;
     if (node is DefaultFormalParameter && node.defaultValue != null) {

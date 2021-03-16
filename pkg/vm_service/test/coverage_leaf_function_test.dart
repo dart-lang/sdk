@@ -111,5 +111,9 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) =>
-    runIsolateTests(args, tests, testeeConcurrent: testFunction);
+main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'coverage_leaf_function_test.dart',
+      testeeConcurrent: testFunction,
+    );

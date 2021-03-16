@@ -1,0 +1,52 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/invalid_combined_member_signature.dart:11:16: Error: Type 'Unresolved' not found.
+//   void method1(Unresolved c) {}
+//                ^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/invalid_combined_member_signature.dart:17:16: Error: Class 'D' inherits multiple members named 'method2' with incompatible signatures.
+// Try adding a declaration of 'method2' to 'D'.
+// abstract class D implements A, B {}
+//                ^
+// pkg/front_end/testcases/nnbd/invalid_combined_member_signature.dart:7:8: Context: This is one of the overridden members.
+//   void method2(int a, int b) {}
+//        ^^^^^^^
+// pkg/front_end/testcases/nnbd/invalid_combined_member_signature.dart:12:8: Context: This is one of the overridden members.
+//   void method2(int a) {}
+//        ^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/invalid_combined_member_signature.dart:11:16: Error: 'Unresolved' isn't a type.
+//   void method1(Unresolved c) {}
+//                ^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method method1(self::C c) → void {}
+  method method2(core::int a, core::int b) → void {}
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  method method1(invalid-type c) → void {}
+  method method2(core::int a) → void {}
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+abstract class D extends core::Object implements self::A, self::B {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  abstract member-signature method method1(invalid-type c) → void; -> self::A::method1
+}
+static method main() → dynamic {}

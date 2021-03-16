@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:meta/meta.dart';
 
 /// Used in [ResolvedAstPrinter] to print lines of code that corresponding
 /// to a subtree of AST. This help to make the bulky presentation of AST a
@@ -26,13 +25,13 @@ abstract class CodeLinesProvider {
 /// Prints AST as a tree, with properties and children.
 class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// The URI of the library that contains the AST being printed.
-  final String _selfUriStr;
+  final String? _selfUriStr;
 
   /// The target sink to print AST.
   final StringSink _sink;
 
   /// The optional provider for code lines, might be `null`.
-  final CodeLinesProvider _codeLinesProvider;
+  final CodeLinesProvider? _codeLinesProvider;
 
   /// If `true`, types should be printed with nullability suffixes.
   final bool _withNullability;
@@ -40,10 +39,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   String _indent = '';
 
   ResolvedAstPrinter({
-    @required String selfUriStr,
-    @required StringSink sink,
-    @required String indent,
-    CodeLinesProvider codeLinesProvider,
+    required String? selfUriStr,
+    required StringSink sink,
+    required String indent,
+    CodeLinesProvider? codeLinesProvider,
     bool withNullability = false,
   })  : _selfUriStr = selfUriStr,
         _sink = sink,
@@ -613,7 +612,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('FunctionDeclaration');
     _withIndent(() {
       var properties = _Properties();
-      properties.addType('declaredElementType', node.declaredElement.type);
+      properties.addType('declaredElementType', node.declaredElement!.type);
       properties.addToken('externalKeyword', node.externalKeyword);
       properties.addNode('functionExpression', node.functionExpression);
       properties.addToken('propertyKeyword', node.propertyKeyword);
@@ -916,7 +915,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       var properties = _Properties();
       properties.addNode('body', node.body);
-      properties.addType('declaredElementType', node.declaredElement.type);
+      properties.addType('declaredElementType', node.declaredElement!.type);
       properties.addToken('externalKeyword', node.externalKeyword);
       properties.addToken('modifierKeyword', node.modifierKeyword);
       properties.addNode('name', node.name);
@@ -1339,8 +1338,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
       // added to the interface.
       if ((node as TypeParameterImpl).varianceKeyword != null) {
-        properties.addToken(
-            'variance', (node as TypeParameterImpl).varianceKeyword);
+        properties.addToken('variance', node.varianceKeyword);
       }
       properties.addNode('bound', node.bound);
       properties.addNode('name', node.name);
@@ -1524,7 +1522,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   void _addFormalParameter(_Properties properties, FormalParameter node) {
     properties.addToken('covariantKeyword', node.covariantKeyword);
     properties.addElement('declaredElement', node.declaredElement);
-    properties.addType('declaredElementType', node.declaredElement.type);
+    properties.addType('declaredElementType', node.declaredElement!.type);
     properties.addNode('identifier', node.identifier);
     properties.addNodeList('metadata', node.metadata);
     properties.addToken('requiredKeyword', node.requiredKeyword);
@@ -1565,7 +1563,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     properties.addNode('argumentList', node.argumentList);
     properties.addType('staticInvokeType', node.staticInvokeType);
     properties.addNode('typeArguments', node.typeArguments);
-    properties.addTypeList('typeArgumentTypes', node.typeArgumentTypes);
+    properties.addTypeList('typeArgumentTypes', node.typeArgumentTypes!);
     _addExpression(properties, node);
   }
 
@@ -1659,7 +1657,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   String _referenceToString(Reference reference) {
-    if (reference.parent.parent == null) {
+    var parent = reference.parent!;
+    if (parent.parent == null) {
       var libraryUriStr = reference.name;
       if (libraryUriStr == _selfUriStr) {
         return 'self';
@@ -1668,15 +1667,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
 
     // Ignore the unit, skip to the library.
-    if (reference.parent.name == '@unit') {
-      return _referenceToString(reference.parent.parent);
+    if (parent.name == '@unit') {
+      return _referenceToString(parent.parent!);
     }
 
     var name = reference.name;
     if (name.isEmpty) {
       name = '•';
     }
-    return _referenceToString(reference.parent) + '::$name';
+    return _referenceToString(parent) + '::$name';
   }
 
   String _substitutionMapStr(Map<TypeParameterElement, DartType> map) {
@@ -1686,7 +1685,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     return '{$entriesStr}';
   }
 
-  String _typeStr(DartType type) {
+  String? _typeStr(DartType? type) {
     return type?.getDisplayString(withNullability: _withNullability);
   }
 
@@ -1697,13 +1696,13 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _indent = indent;
   }
 
-  void _writeElement(String name, Element element) {
+  void _writeElement(String name, Element? element) {
     _sink.write(_indent);
     _sink.write('$name: ');
     _writeElement0(element);
   }
 
-  void _writeElement0(Element element) {
+  void _writeElement0(Element? element) {
     if (element == null) {
       _sink.writeln('<null>');
       return;
@@ -1744,7 +1743,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
-  void _writeNode(String name, AstNode node) {
+  void _writeNode(String name, AstNode? node) {
     if (node != null) {
       _sink.write(_indent);
       _sink.write('$name: ');
@@ -1772,7 +1771,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
-  void _writeSource(String name, Source source) {
+  void _writeSource(String name, Source? source) {
     if (source != null) {
       _writelnWithIndent('$name: ${source.uri}');
     } else {
@@ -1780,14 +1779,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
-  void _writeToken(String name, Token token) {
+  void _writeToken(String name, Token? token) {
     if (token != null) {
       _sink.write(_indent);
       _sink.writeln('$name: $token');
     }
   }
 
-  void _writeType(String name, DartType type) {
+  void _writeType(String name, DartType? type) {
     var typeStr = _typeStr(type);
     _writelnWithIndent('$name: $typeStr');
   }
@@ -1810,7 +1809,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 }
 
 class _ElementProperty extends _Property {
-  final Element element;
+  final Element? element;
 
   _ElementProperty(String name, this.element) : super(name);
 
@@ -1832,7 +1831,7 @@ class _NodeListProperty extends _Property {
 }
 
 class _NodeProperty extends _Property {
-  final AstNode node;
+  final AstNode? node;
 
   _NodeProperty(String name, this.node) : super(name);
 
@@ -1845,13 +1844,13 @@ class _NodeProperty extends _Property {
 class _Properties {
   final properties = <_Property>[];
 
-  void addElement(String name, Element element) {
+  void addElement(String name, Element? element) {
     properties.add(
       _ElementProperty(name, element),
     );
   }
 
-  void addNode(String name, AstNode node) {
+  void addNode(String name, AstNode? node) {
     properties.add(
       _NodeProperty(name, node),
     );
@@ -1863,25 +1862,25 @@ class _Properties {
     );
   }
 
-  void addRaw(String name, Object value) {
+  void addRaw(String name, Object? value) {
     properties.add(
       _RawProperty(name, value),
     );
   }
 
-  void addSource(String name, Source source) {
+  void addSource(String name, Source? source) {
     properties.add(
       _SourceProperty(name, source),
     );
   }
 
-  void addToken(String name, Token token) {
+  void addToken(String name, Token? token) {
     properties.add(
       _TokenProperty(name, token),
     );
   }
 
-  void addType(String name, DartType type) {
+  void addType(String name, DartType? type) {
     properties.add(
       _TypeProperty(name, type),
     );
@@ -1903,7 +1902,7 @@ abstract class _Property {
 }
 
 class _RawProperty extends _Property {
-  final Object value;
+  final Object? value;
 
   _RawProperty(String name, this.value) : super(name);
 
@@ -1914,7 +1913,7 @@ class _RawProperty extends _Property {
 }
 
 class _SourceProperty extends _Property {
-  final Source source;
+  final Source? source;
 
   _SourceProperty(String name, this.source) : super(name);
 
@@ -1925,7 +1924,7 @@ class _SourceProperty extends _Property {
 }
 
 class _TokenProperty extends _Property {
-  final Token token;
+  final Token? token;
 
   _TokenProperty(String name, this.token) : super(name);
 
@@ -1947,7 +1946,7 @@ class _TypeListProperty extends _Property {
 }
 
 class _TypeProperty extends _Property {
-  final DartType type;
+  final DartType? type;
 
   _TypeProperty(String name, this.type) : super(name);
 

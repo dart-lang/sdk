@@ -36,7 +36,7 @@ export '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 
 export '../api_prototype/terminal_color_support.dart'
-    show printDiagnosticMessage;
+    show printDiagnosticMessage, enableColors;
 
 export '../base/nnbd_mode.dart' show NnbdMode;
 
@@ -55,7 +55,6 @@ export '../fasta/fasta_codes.dart'
         noLength,
         templateFfiDartTypeMismatch,
         templateFfiEmptyStruct,
-        templateFfiEmptyStructWarning,
         templateFfiExpectedExceptionalReturn,
         templateFfiExpectedNoExceptionalReturn,
         templateFfiExtendsOrImplementsSealedClass,
@@ -63,8 +62,9 @@ export '../fasta/fasta_codes.dart'
         templateFfiFieldCyclic,
         templateFfiFieldInitializer,
         templateFfiFieldNoAnnotation,
-        templateFfiNonConstantTypeArgumentWarning,
+        templateFfiFieldNull,
         templateFfiNotStatic,
+        templateFfiSizeAnnotation,
         templateFfiStructGeneric,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch;

@@ -3,8 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
+import 'package:analysis_server/src/services/pub/pub_api.dart';
+import 'package:analysis_server/src/services/pub/pub_package_service.dart';
+import 'package:analyzer/instrumentation/service.dart';
+import 'package:http/http.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../mocks.dart';
 import 'yaml_generator_test_support.dart';
 
 void main() {
@@ -15,11 +21,27 @@ void main() {
 
 @reflectiveTest
 class PubspecGeneratorTest extends YamlGeneratorTest {
+  MockHttpClient httpClient;
+
+  PubPackageService pubPackageService;
   @override
   String get fileName => 'pubspec.yaml';
 
   @override
-  PubspecGenerator get generator => PubspecGenerator(resourceProvider);
+  PubspecGenerator get generator =>
+      PubspecGenerator(resourceProvider, pubPackageService);
+
+  void setUp() {
+    httpClient = MockHttpClient();
+    pubPackageService = PubPackageService(
+        InstrumentationService.NULL_SERVICE,
+        resourceProvider,
+        PubApi(InstrumentationService.NULL_SERVICE, httpClient, null));
+  }
+
+  void tearDown() {
+    pubPackageService.shutdown();
+  }
 
   void test_empty() {
     getCompletions('^');
@@ -253,5 +275,54 @@ flutter:
   uses-material-design: ^
 ''');
     assertSuggestion('true');
+  }
+
+  void test_packageName() async {
+    const samplePackageList = '''
+  { "packages": ["one", "two", "three"] }
+  ''';
+
+    httpClient.sendHandler = (BaseRequest request) async {
+      if (request.url.toString().endsWith(PubApi.packageNameListPath)) {
+        return Response(samplePackageList, 200);
+      } else {
+        throw UnimplementedError();
+      }
+    };
+
+    pubPackageService.beginPackageNamePreload();
+    await pumpEventQueue();
+
+    getCompletions('''
+dependencies:
+  ^
+''');
+    assertSuggestion('one: ');
+    assertSuggestion('two: ');
+  }
+
+  void test_packageName_invalidYaml() async {
+    const samplePackageList = '''
+  { "packages": ["one", "two", "three"] }
+  ''';
+
+    httpClient.sendHandler = (BaseRequest request) async {
+      if (request.url.toString().endsWith(PubApi.packageNameListPath)) {
+        return Response(samplePackageList, 200);
+      } else {
+        throw UnimplementedError();
+      }
+    };
+
+    pubPackageService.beginPackageNamePreload();
+    await pumpEventQueue();
+
+    getCompletions('''
+dependencies:
+  one:
+  tw^
+  three:
+''');
+    assertSuggestion('two: ');
   }
 }

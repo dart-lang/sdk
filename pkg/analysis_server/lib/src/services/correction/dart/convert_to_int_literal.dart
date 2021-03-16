@@ -19,6 +19,9 @@ class ConvertToIntLiteral extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_INT_LITERAL;
 
   @override
+  FixKind get multiFixKind => DartFixKind.CONVERT_TO_INT_LITERAL_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     if (node is! DoubleLiteral) {
       return;

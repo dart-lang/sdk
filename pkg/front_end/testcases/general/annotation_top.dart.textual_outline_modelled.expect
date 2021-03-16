@@ -1,3 +1,4 @@
+// @dart = 2.9
 @a
 @A(1)
 library test;

@@ -62,7 +62,8 @@ Future<TestResult<T>> checkTests<T>(
       memorySourceFiles, codeMap, expectedMaps);
   var config =
       TestConfig(marker, 'provisional test config', featureSet: featureSet);
-  return runTestForConfig<T>(testData, dataComputer, config);
+  return runTestForConfig<T>(testData, dataComputer, config,
+      onFailure: onFailure);
 }
 
 /// Creates the testing URI used for [fileName] in annotated tests.
@@ -77,11 +78,11 @@ void onFailure(String message) {
 /// Returns `true` if an error was encountered.
 Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs,
-    {bool testAfterFailures,
+    {required bool testAfterFailures,
     bool forUserLibrariesOnly = true,
     Iterable<Id> globalIds = const <Id>[],
-    void Function(String message) onFailure,
-    Map<String, List<String>> skipMap}) async {
+    required void Function(String message) onFailure,
+    Map<String, List<String>>? skipMap}) async {
   for (TestConfig config in testedConfigs) {
     if (!testData.expectedMaps.containsKey(config.marker)) {
       throw ArgumentError("Unexpected test marker '${config.marker}'. "
@@ -105,12 +106,12 @@ Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
 RunTestFunction<T> runTestFor<T>(
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
   return (TestData testData,
-      {bool testAfterFailures,
-      bool verbose,
-      bool succinct,
-      bool printCode,
-      Map<String, List<String>> skipMap,
-      Uri nullUri}) {
+      {required bool testAfterFailures,
+      bool? verbose,
+      bool? succinct,
+      bool? printCode,
+      Map<String, List<String>>? skipMap,
+      Uri? nullUri}) {
     return runTest(testData, dataComputer, testedConfigs,
         testAfterFailures: testAfterFailures,
         onFailure: onFailure,
@@ -123,11 +124,11 @@ RunTestFunction<T> runTestFor<T>(
 /// Returns `true` if an error was encountered.
 Future<TestResult<T>> runTestForConfig<T>(
     TestData testData, DataComputer<T> dataComputer, TestConfig config,
-    {bool fatalErrors,
-    void Function(String message) onFailure,
-    Map<String, List<String>> skipMap}) async {
+    {bool fatalErrors = true,
+    required void Function(String message) onFailure,
+    Map<String, List<String>>? skipMap}) async {
   MemberAnnotations<IdValue> memberAnnotations =
-      testData.expectedMaps[config.marker];
+      testData.expectedMaps[config.marker]!;
   var resourceProvider = MemoryResourceProvider();
   var testUris = <Uri>[];
   for (var entry in testData.memorySourceFiles.entries) {
@@ -171,8 +172,8 @@ Future<TestResult<T>> runTestForConfig<T>(
 
   var results = <Uri, ResolvedUnitResult>{};
   for (var testUri in testUris) {
-    var result =
-        await driver.getResult(resourceProvider.convertPath(testUri.path));
+    var path = resourceProvider.convertPath(testUri.path);
+    var result = (await driver.getResult(path))!;
     var errors =
         result.errors.where((e) => e.severity == Severity.error).toList();
     if (errors.isNotEmpty) {
@@ -189,7 +190,7 @@ Future<TestResult<T>> runTestForConfig<T>(
         errorMap.forEach((offset, errors) {
           var id = NodeId(offset, IdKind.error);
           var data = dataComputer.computeErrorData(
-              config, driver.testingData, id, errors);
+              config, driver.testingData!, id, errors);
           if (data != null) {
             Map<Id, ActualData<T>> actualMap = actualMapFor(testUri);
             actualMap[id] = ActualData<T>(id, data, testUri, offset, errors);
@@ -197,7 +198,7 @@ Future<TestResult<T>> runTestForConfig<T>(
         });
       } else {
         String _formatError(AnalysisError e) {
-          var locationInfo = result.unit.lineInfo.getLocation(e.offset);
+          var locationInfo = result.unit!.lineInfo!.getLocation(e.offset);
           return '$locationInfo: ${e.errorCode}: ${e.message}';
         }
 
@@ -210,7 +211,7 @@ Future<TestResult<T>> runTestForConfig<T>(
 
   results.forEach((testUri, result) {
     dataComputer.computeUnitData(
-        driver.testingData, result.unit, actualMapFor(testUri));
+        driver.testingData!, result.unit!, actualMapFor(testUri));
   });
   var compiledData = AnalyzerCompiledData<T>(
       testData.code, testData.entryPoint, actualMaps, globalData);
@@ -243,7 +244,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
       var className = id.className;
       var name = id.memberName;
       var unit =
-          parseString(content: code[uri].sourceCode, throwIfDiagnostics: false)
+          parseString(content: code[uri]!.sourceCode, throwIfDiagnostics: false)
               .unit;
       if (className != null) {
         for (var declaration in unit.declarations) {
@@ -251,7 +252,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
               declaration.name.name == className) {
             for (var member in declaration.members) {
               if (member is ConstructorDeclaration) {
-                if (member.name.name == name) {
+                if (member.name!.name == name) {
                   return member.offset;
                 }
               } else if (member is FieldDeclaration) {
@@ -289,7 +290,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
     } else if (id is ClassId) {
       var className = id.className;
       var unit =
-          parseString(content: code[uri].sourceCode, throwIfDiagnostics: false)
+          parseString(content: code[uri]!.sourceCode, throwIfDiagnostics: false)
               .unit;
       for (var declaration in unit.declarations) {
         if (declaration is ClassDeclaration &&
@@ -300,9 +301,9 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
       return 0;
     } else if (id is LibraryId) {
       var unit =
-          parseString(content: code[uri].sourceCode, throwIfDiagnostics: false)
+          parseString(content: code[uri]!.sourceCode, throwIfDiagnostics: false)
               .unit;
-      var offset = unit?.declaredElement?.library?.nameOffset ?? -1;
+      var offset = unit.declaredElement?.library.nameOffset ?? -1;
       return offset >= 0 ? offset : 0;
     } else {
       throw StateError('Unexpected id ${id.runtimeType}');
@@ -329,7 +330,7 @@ abstract class DataComputer<T> {
   bool get supportsErrors => false;
 
   /// Returns data corresponding to [error].
-  T computeErrorData(TestConfig config, TestingData testingData, Id id,
+  T? computeErrorData(TestConfig config, TestingData testingData, Id id,
           List<AnalysisError> errors) =>
       null;
 
@@ -346,6 +347,6 @@ class TestConfig {
   final String name;
   final FeatureSet featureSet;
 
-  TestConfig(this.marker, this.name, {FeatureSet featureSet})
+  TestConfig(this.marker, this.name, {FeatureSet? featureSet})
       : featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 }

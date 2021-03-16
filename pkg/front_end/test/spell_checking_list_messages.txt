@@ -36,6 +36,8 @@ futureor
 h
 https
 interop
+intervening
+js_util
 libraries.json
 list.filled
 loadlibrary

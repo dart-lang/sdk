@@ -154,8 +154,10 @@ class CompletionResolveHandler
         }
 
         // Documentation is added on during resolve for LSP.
-        final formats = server.clientCapabilities?.textDocument?.completion
-            ?.completionItem?.documentationFormat;
+        final formats =
+            server.clientCapabilities.completionDocumentationFormats;
+        final supportsInsertReplace =
+            server.clientCapabilities.insertReplaceCompletionRanges;
         final dartDoc =
             analyzer.getDartDocPlainText(requestedElement.documentationComment);
         final documentation = asStringOrMarkupContent(formats, dartDoc);
@@ -175,10 +177,20 @@ class CompletionResolveHandler
           filterText: item.filterText,
           insertText: newInsertText,
           insertTextFormat: item.insertTextFormat,
-          textEdit: TextEdit(
-            range: toRange(lineInfo, data.rOffset, data.rLength),
-            newText: newInsertText,
-          ),
+          textEdit: supportsInsertReplace && data.iLength != data.rLength
+              ? Either2<TextEdit, InsertReplaceEdit>.t2(
+                  InsertReplaceEdit(
+                    insert: toRange(lineInfo, data.rOffset, data.iLength),
+                    replace: toRange(lineInfo, data.rOffset, data.rLength),
+                    newText: newInsertText,
+                  ),
+                )
+              : Either2<TextEdit, InsertReplaceEdit>.t1(
+                  TextEdit(
+                    range: toRange(lineInfo, data.rOffset, data.rLength),
+                    newText: newInsertText,
+                  ),
+                ),
           additionalTextEdits: thisFilesChanges
               .expand((change) =>
                   change.edits.map((edit) => toTextEdit(lineInfo, edit)))

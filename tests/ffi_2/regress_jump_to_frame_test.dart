@@ -40,7 +40,7 @@ typedef Dart_PropagateError_DartType = void Function(Object);
 final Dart_PropagateError_DartType propagateError = () {
   final Pointer<_DartApi> dlapi = NativeApi.initializeApiDLData.cast();
   for (int i = 0; dlapi.ref.functions[i].name != nullptr; i++) {
-    final name = Utf8.fromUtf8(dlapi.ref.functions[i].name.cast<Utf8>());
+    final name = dlapi.ref.functions[i].name.cast<Utf8>().toDartString();
     if (name == 'Dart_PropagateError') {
       return dlapi.ref.functions[i].function
           .cast<NativeFunction<Dart_PropagateError_NativeType>>()

@@ -124,14 +124,6 @@ var c = 'a$b';
 ''');
   }
 
-  Future<void> test_stringLiteral_variable_raw_single_notMulti() async {
-    await resolveTestCode('''
-var b = 'b';
-var c = r'a' + b;
-''');
-    await assertNoFix();
-  }
-
   Future<void> test_stringLiteral_variable_withEscapes() async {
     await resolveTestCode(r'''
 var b = 'b';

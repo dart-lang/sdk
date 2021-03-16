@@ -77,9 +77,9 @@ test4() {
 
 /*member: A5.:[exact=A5]*/
 class A5 {
-  /*member: A5.x5:Union([exact=JSDouble], [exact=JSUInt31])*/
+  /*member: A5.x5:Union([exact=JSNumNotInt], [exact=JSUInt31])*/
   x5(
-          /*Union([exact=JSDouble], [exact=JSUInt31])*/ p) =>
+          /*Union([exact=JSNumNotInt], [exact=JSUInt31])*/ p) =>
       p;
 }
 
@@ -91,9 +91,9 @@ test5() {
 
 /*member: A6.:[exact=A6]*/
 class A6 {
-  /*member: A6.x6:Union([exact=JSDouble], [exact=JSUInt31])*/
+  /*member: A6.x6:Union([exact=JSNumNotInt], [exact=JSUInt31])*/
   x6(
-          /*Union([exact=JSDouble], [exact=JSUInt31])*/ p) =>
+          /*Union([exact=JSNumNotInt], [exact=JSUInt31])*/ p) =>
       p;
 }
 
@@ -206,7 +206,7 @@ test13() {
 class A14 {
   /*member: A14.x14:[exact=JSUInt31]*/
   x14(
-          /*Union([exact=JSDouble], [exact=JSUInt31])*/ p) =>
+          /*Union([exact=JSNumNotInt], [exact=JSUInt31])*/ p) =>
       1;
 }
 
@@ -280,7 +280,7 @@ test17() {
 class A18 {
   /*member: A18.x18:[exact=JSUInt31]*/
   x18(/*[exact=JSUInt31]*/ p1,
-          [/*[exact=JSBool]*/ p2 = 1, /*[exact=JSDouble]*/ p3 = "s"]) =>
+          [/*[exact=JSBool]*/ p2 = 1, /*[exact=JSNumNotInt]*/ p3 = "s"]) =>
       1;
 }
 

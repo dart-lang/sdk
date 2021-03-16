@@ -188,12 +188,6 @@ void JitCallSpecializer::VisitStoreInstanceField(
       }
     }
     if (!unboxed_field) {
-      if (Compiler::IsBackgroundCompilation()) {
-        isolate()->AddDeoptimizingBoxedField(field);
-        Compiler::AbortBackgroundCompilation(
-            DeoptId::kNone, "Unboxing instance field while compiling");
-        UNREACHABLE();
-      }
       if (FLAG_trace_optimization || FLAG_trace_field_guards) {
         THR_Print("Disabling unboxing of %s\n", field.ToCString());
         if (!setter.IsNull()) {

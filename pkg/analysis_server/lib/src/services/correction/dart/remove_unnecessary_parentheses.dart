@@ -14,6 +14,9 @@ class RemoveUnnecessaryParentheses extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_PARENTHESES;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_PARENTHESES_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var outer = coveredNode;
     if (outer is ParenthesizedExpression &&

@@ -14,11 +14,12 @@ mirrors/immutable_collections_test: Pass, Slow # http://dartbug.com/33057
 [ $arch == ia32 && $mode == debug && $runtime == vm && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Skip # Verification OOM.
 
-[ $arch != ia32 && $arch != simarm && $arch != simarmv6 && $arch != x64 && $mode == debug && $runtime == vm ]
+[ $arch != ia32 && $arch != simarm && $arch != x64 && $mode == debug && $runtime == vm ]
 convert/streamed_conversion_json_utf8_decode_test: Skip # Verification not yet implemented.
 
-[ $arch == simarm64 && $runtime == vm ]
-convert/utf85_test: Skip # Pass, Slow Issue 20111.
+[ $arch == simarm && $runtime == vm ]
+convert/chunked_conversion_utf88_test: Skip # Pass, Slow Issue 12644.
+convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
 [ $compiler != app_jitk && $compiler != dartk && $runtime == vm ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
@@ -78,16 +79,13 @@ mirrors/invocation_fuzz_test: Crash
 mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
 
-[ $runtime == vm && ($arch == simarm || $arch == simarmv6) ]
-convert/utf85_test: Skip # Pass, Slow Issue 12644.
+[ $runtime == vm && ($arch == simarm64 || $arch == simarm64c) ]
+convert/utf85_test: Skip # Pass, Slow Issue 20111.
 
-[ $arch == simarm || $arch == simarm64 || $hot_reload || $hot_reload_rollback ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $hot_reload || $hot_reload_rollback ]
 convert/chunked_conversion_utf88_test: SkipSlow
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow
 convert/utf85_test: SkipSlow
-
-[ $arch == simarmv6 || $arch == simarm && $runtime == vm ]
-convert/chunked_conversion_utf88_test: Skip # Pass, Slow Issue 12644.
 
 [ $hot_reload || $hot_reload_rollback ]
 isolate/bool_from_environment_default_value_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.

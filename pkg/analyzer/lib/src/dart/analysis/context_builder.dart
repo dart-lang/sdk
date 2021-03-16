@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_builder.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -20,10 +19,10 @@ import 'package:analyzer/src/dart/analysis/file_state.dart'
     show FileContentOverlay;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
 import 'package:analyzer/src/generated/source.dart' show ContentCache;
 import 'package:cli_util/cli_util.dart';
-import 'package:meta/meta.dart';
 
 /// An implementation of a context builder.
 class ContextBuilderImpl implements ContextBuilder {
@@ -33,28 +32,32 @@ class ContextBuilderImpl implements ContextBuilder {
   /// Initialize a newly created context builder. If a [resourceProvider] is
   /// given, then it will be used to access the file system, otherwise the
   /// default resource provider will be used.
-  ContextBuilderImpl({ResourceProvider resourceProvider})
+  ContextBuilderImpl({ResourceProvider? resourceProvider})
       : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   @override
-  AnalysisContext createContext(
-      {ByteStore byteStore,
-      @required ContextRoot contextRoot,
-      DeclaredVariables declaredVariables,
-      bool enableIndex = false,
-      List<String> librarySummaryPaths,
-      @deprecated PerformanceLog performanceLog,
-        bool retainDataForTesting = false,
-      @deprecated AnalysisDriverScheduler scheduler,
-      String sdkPath,
-      String sdkSummaryPath}) {
+  DriverBasedAnalysisContext createContext({
+    ByteStore? byteStore,
+    required ContextRoot contextRoot,
+    DeclaredVariables? declaredVariables,
+    bool drainStreams = true,
+    bool enableIndex = false,
+    FileContentOverlay? fileContentOverlay,
+    List<String>? librarySummaryPaths,
+    PerformanceLog? performanceLog,
+    bool retainDataForTesting = false,
+    AnalysisDriverScheduler? scheduler,
+    String? sdkPath,
+    String? sdkSummaryPath,
+    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
+  }) {
     // TODO(scheglov) Remove this, and make `sdkPath` required.
     sdkPath ??= getSdkPath();
     ArgumentError.checkNotNull(sdkPath, 'sdkPath');
 
     byteStore ??= MemoryByteStore();
-    var fileContentOverlay = FileContentOverlay();
+    fileContentOverlay ??= FileContentOverlay();
     performanceLog ??= PerformanceLog(StringBuffer());
 
     DartSdkManager sdkManager = DartSdkManager(sdkPath);
@@ -76,6 +79,7 @@ class ContextBuilderImpl implements ContextBuilder {
     if (librarySummaryPaths != null) {
       options.librarySummaryPaths = librarySummaryPaths;
     }
+    options.defaultAnalysisOptionsFilePath = contextRoot.optionsFile?.path;
     options.defaultPackageFilePath = contextRoot.packagesFile?.path;
 
     old.ContextBuilder builder = old.ContextBuilder(
@@ -91,15 +95,23 @@ class ContextBuilderImpl implements ContextBuilder {
     old.ContextRoot oldContextRoot = old.ContextRoot(
         contextRoot.root.path, contextRoot.excludedPaths.toList(),
         pathContext: resourceProvider.pathContext);
-    AnalysisDriver driver = builder.buildDriver(oldContextRoot);
+    AnalysisDriver driver = builder.buildDriver(
+      oldContextRoot,
+      contextRoot.workspace,
+      updateAnalysisOptions: updateAnalysisOptions,
+    );
 
     // AnalysisDriver reports results into streams.
     // We need to drain these streams to avoid memory leak.
-    driver.results.drain();
-    driver.exceptions.drain();
+    if (drainStreams) {
+      driver.results.drain();
+      driver.exceptions.drain();
+    }
 
     DriverBasedAnalysisContext context =
         DriverBasedAnalysisContext(resourceProvider, contextRoot, driver);
+    driver.configure(analysisContext: context);
+
     return context;
   }
 
@@ -108,7 +120,7 @@ class ContextBuilderImpl implements ContextBuilder {
   Map<String, String> _toMap(DeclaredVariables declaredVariables) {
     Map<String, String> map = <String, String>{};
     for (String name in declaredVariables.variableNames) {
-      map[name] = declaredVariables.get(name);
+      map[name] = declaredVariables.get(name)!;
     }
     return map;
   }

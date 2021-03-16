@@ -244,9 +244,11 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
       case Architecture.arm:
       case Architecture.arm_x64:
       case Architecture.arm64:
+      case Architecture.arm64c:
       case Architecture.simarmv6:
       case Architecture.armv6:
       case Architecture.simarm64:
+      case Architecture.simarm64c:
         multiplier *= 4;
         break;
     }

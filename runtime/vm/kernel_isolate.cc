@@ -559,13 +559,12 @@ class KernelCompilationRequest : public ValueObject {
     is_static_object.type = Dart_CObject_kBool;
     is_static_object.value.as_bool = is_static;
 
-    auto isolate = thread->isolate();
     auto isolate_group = thread->isolate_group();
     auto source = isolate_group->source();
 
     Dart_CObject isolate_id;
     isolate_id.type = Dart_CObject_kInt64;
-    isolate_id.value.as_int64 = static_cast<int64_t>(isolate->main_port());
+    isolate_id.value.as_int64 = static_cast<int64_t>(isolate_group->id());
 
     intptr_t num_dills = 0;
     if (source->kernel_buffer != nullptr) {
@@ -756,16 +755,16 @@ class KernelCompilationRequest : public ValueObject {
     // compilation logic out of CreateIsolateAndSetupHelper and into
     // IsolateSetupHelper in main.cc.
     auto thread = Thread::Current();
-    auto isolate = thread != nullptr ? thread->isolate() : nullptr;
     auto isolate_group = thread != nullptr ? thread->isolate_group() : nullptr;
 
     if (incremental_compile) {
-      ASSERT(isolate != NULL);
+      ASSERT(isolate_group != nullptr);
     }
     Dart_CObject isolate_id;
     isolate_id.type = Dart_CObject_kInt64;
-    isolate_id.value.as_int64 =
-        isolate != nullptr ? static_cast<int64_t>(isolate->main_port()) : 0;
+    isolate_id.value.as_int64 = isolate_group != nullptr
+                                    ? static_cast<int64_t>(isolate_group->id())
+                                    : 0;
 
     Dart_CObject message;
     message.type = Dart_CObject_kArray;
@@ -1155,7 +1154,8 @@ Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
       Dart_KernelCompilationVerbosityLevel_Error);
 }
 
-void KernelIsolate::NotifyAboutIsolateShutdown(const Isolate* isolate) {
+void KernelIsolate::NotifyAboutIsolateGroupShutdown(
+    const IsolateGroup* isolate_group) {
   if (!KernelIsolate::IsRunning()) {
     return;
   }
@@ -1170,8 +1170,7 @@ void KernelIsolate::NotifyAboutIsolateShutdown(const Isolate* isolate) {
 
   Dart_CObject isolate_id;
   isolate_id.type = Dart_CObject_kInt64;
-  isolate_id.value.as_int64 =
-      isolate != NULL ? static_cast<int64_t>(isolate->main_port()) : 0;
+  isolate_id.value.as_int64 = static_cast<int64_t>(isolate_group->id());
 
   Dart_CObject message;
   message.type = Dart_CObject_kArray;

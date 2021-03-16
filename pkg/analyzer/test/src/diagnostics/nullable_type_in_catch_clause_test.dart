@@ -14,8 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class NullableTypeInCatchClauseTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class NullableTypeInCatchClauseTest extends PubPackageResolutionTest {
   test_noOnClause() async {
     await assertNoErrorsInCode('''
 f() {

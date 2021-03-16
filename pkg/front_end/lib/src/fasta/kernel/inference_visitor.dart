@@ -4,8 +4,6 @@
 
 // @dart = 2.9
 
-import 'dart:core' hide MapEntry;
-
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
@@ -403,8 +401,7 @@ class InferenceVisitor
   ExpressionInferenceResult visitConstructorInvocation(
       ConstructorInvocation node, DartType typeContext) {
     inferrer.inferConstructorParameterTypes(node.target);
-    bool hasExplicitTypeArguments =
-        getExplicitTypeArguments(node.arguments) != null;
+    bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
     FunctionType functionType = replaceReturnType(
         node.target.function
             .computeThisFunctionType(inferrer.library.nonNullable),
@@ -414,7 +411,7 @@ class InferenceVisitor
         isConst: node.isConst, staticTarget: node.target);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
-      if (!hasExplicitTypeArguments) {
+      if (!hadExplicitTypeArguments) {
         library.checkBoundsInConstructorInvocation(
             node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
             inferred: true);
@@ -691,8 +688,7 @@ class InferenceVisitor
 
   ExpressionInferenceResult visitFactoryConstructorInvocationJudgment(
       FactoryConstructorInvocationJudgment node, DartType typeContext) {
-    bool hadExplicitTypeArguments =
-        getExplicitTypeArguments(node.arguments) != null;
+    bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
 
     FunctionType functionType = replaceReturnType(
         node.target.function
@@ -739,7 +735,7 @@ class InferenceVisitor
       SourceLibraryBuilder library = inferrer.library;
       library.checkBoundsInType(result.inferredType,
           inferrer.typeSchemaEnvironment, inferrer.helper.uri, node.fileOffset,
-          inferred: true);
+          inferred: true, allowSuperBounded: false);
       if (inferrer.isNonNullableByDefault) {
         if (node.target == inferrer.coreTypes.listDefaultConstructor) {
           resultNode = inferrer.helper.wrapInProblem(node,
@@ -767,7 +763,7 @@ class InferenceVisitor
       SourceLibraryBuilder library = inferrer.library;
       library.checkBoundsInType(result.inferredType,
           inferrer.typeSchemaEnvironment, inferrer.helper.uri, node.fileOffset,
-          inferred: true);
+          inferred: true, allowSuperBounded: false);
       if (inferrer.isNonNullableByDefault) {
         if (node.target == inferrer.coreTypes.listDefaultConstructor) {
           resultNode = inferrer.helper.wrapInProblem(node,
@@ -1330,7 +1326,7 @@ class InferenceVisitor
       DartType spreadType, DartType spreadTypeBound, bool isNullAware) {
     if (inferrer.coreTypes.isNull(spreadTypeBound)) {
       if (inferrer.isNonNullableByDefault) {
-        return isNullAware ? const NeverType(Nullability.nonNullable) : null;
+        return isNullAware ? const NeverType.nonNullable() : null;
       } else {
         return isNullAware ? const NullType() : null;
       }
@@ -1346,7 +1342,7 @@ class InferenceVisitor
     } else if (spreadType is DynamicType) {
       return const DynamicType();
     } else if (inferrer.coreTypes.isBottom(spreadType)) {
-      return const NeverType(Nullability.nonNullable);
+      return const NeverType.nonNullable();
     }
     return null;
   }
@@ -1799,8 +1795,7 @@ class InferenceVisitor
     if (inferrer.coreTypes.isNull(typeBound)) {
       if (isNullAware) {
         if (inferrer.isNonNullableByDefault) {
-          output[offset] =
-              output[offset + 1] = const NeverType(Nullability.nonNullable);
+          output[offset] = output[offset + 1] = const NeverType.nonNullable();
         } else {
           output[offset] = output[offset + 1] = const NullType();
         }
@@ -1815,8 +1810,7 @@ class InferenceVisitor
     } else if (spreadMapEntryType is DynamicType) {
       output[offset] = output[offset + 1] = const DynamicType();
     } else if (inferrer.coreTypes.isBottom(spreadMapEntryType)) {
-      output[offset] =
-          output[offset + 1] = const NeverType(Nullability.nonNullable);
+      output[offset] = output[offset + 1] = const NeverType.nonNullable();
     }
   }
 
@@ -2483,7 +2477,9 @@ class InferenceVisitor
           replacement = inferrer.helper.buildProblem(
               messageCantDisambiguateNotEnoughInformation, node.fileOffset, 1);
         }
-        return new ExpressionInferenceResult(const BottomType(), replacement);
+        return new ExpressionInferenceResult(
+            NeverType.fromNullability(inferrer.library.nonNullable),
+            replacement);
       }
       if (!canBeSet && !canBeMap) {
         Expression replacement = node;
@@ -2491,7 +2487,9 @@ class InferenceVisitor
           replacement = inferrer.helper.buildProblem(
               messageCantDisambiguateAmbiguousInformation, node.fileOffset, 1);
         }
-        return new ExpressionInferenceResult(const BottomType(), replacement);
+        return new ExpressionInferenceResult(
+            NeverType.fromNullability(inferrer.library.nonNullable),
+            replacement);
       }
       inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
           mapType,
@@ -3806,10 +3804,8 @@ class InferenceVisitor
           ..fileOffset = fileOffset;
       } else {
         assert(equalsTarget.isNever);
-        FunctionType functionType = new FunctionType(
-            [const DynamicType()],
-            const NeverType(Nullability.nonNullable),
-            inferrer.library.nonNullable);
+        FunctionType functionType = new FunctionType([const DynamicType()],
+            const NeverType.nonNullable(), inferrer.library.nonNullable);
         // Ensure operator == member even for `Never`.
         Member target = inferrer
             .findInterfaceMember(const DynamicType(), equalsName, -1,
@@ -3838,7 +3834,7 @@ class InferenceVisitor
         notEqual: isNot);
     return new ExpressionInferenceResult(
         equalsTarget.isNever
-            ? const NeverType(Nullability.nonNullable)
+            ? const NeverType.nonNullable()
             : inferrer.coreTypes.boolRawType(inferrer.library.nonNullable),
         equals);
   }
@@ -4743,7 +4739,9 @@ class InferenceVisitor
           templateNullablePropertyAccessError.withArguments(
               propertyName.text, receiverType, inferrer.isNonNullableByDefault),
           read.fileOffset,
-          propertyName.text.length);
+          propertyName.text.length,
+          context: inferrer.getWhyNotPromotedContext(
+              receiver, inferrer.flowAnalysis?.whyNotPromoted(receiver), read));
     }
     return readResult;
   }
@@ -5709,8 +5707,14 @@ class InferenceVisitor
     ExpressionInferenceResult readResult = _computePropertyGet(
         node.fileOffset, receiver, receiverType, node.name, typeContext,
         isThisReceiver: node.receiver is ThisExpression);
-    return inferrer.createNullAwareExpressionInferenceResult(
-        readResult.inferredType, readResult.expression, nullAwareGuards);
+    inferrer.flowAnalysis.propertyGet(
+        node, node.receiver, node.name.name, readResult.inferredType);
+    ExpressionInferenceResult expressionInferenceResult =
+        inferrer.createNullAwareExpressionInferenceResult(
+            readResult.inferredType, readResult.expression, nullAwareGuards);
+    inferrer.flowAnalysis
+        .forwardExpression(expressionInferenceResult.nullAwareAction, node);
+    return expressionInferenceResult;
   }
 
   @override
@@ -5741,8 +5745,8 @@ class InferenceVisitor
     inferrer.flowAnalysis.handleExit();
     return new ExpressionInferenceResult(
         inferrer.isNonNullableByDefault
-            ? const NeverType(Nullability.nonNullable)
-            : const BottomType(),
+            ? const NeverType.nonNullable()
+            : const NeverType.legacy(),
         node);
   }
 
@@ -6160,6 +6164,7 @@ class InferenceVisitor
 
   ExpressionInferenceResult visitThisExpression(
       ThisExpression node, DartType typeContext) {
+    inferrer.flowAnalysis.thisOrSuper(node, inferrer.thisType);
     return new ExpressionInferenceResult(inferrer.thisType, node);
   }
 
@@ -6186,8 +6191,8 @@ class InferenceVisitor
     // Return BottomType in legacy mode for compatibility.
     return new ExpressionInferenceResult(
         inferrer.isNonNullableByDefault
-            ? const NeverType(Nullability.nonNullable)
-            : const BottomType(),
+            ? const NeverType.nonNullable()
+            : const NullType(),
         node);
   }
 
@@ -6280,7 +6285,7 @@ class InferenceVisitor
         fileOffset: node.fileOffset,
         isVoidAllowed: declaredOrInferredType is VoidType);
     inferrer.flowAnalysis
-        .write(variable, rhsResult.inferredType, rhsResult.expression);
+        .write(node, variable, rhsResult.inferredType, rhsResult.expression);
     DartType resultType = rhsResult.inferredType;
     Expression resultExpression;
     if (variable.lateSetter != null) {
@@ -6563,8 +6568,7 @@ class InferenceVisitor
     DartType promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     if (isExtensionThis(variable)) {
-      // Don't promote the synthetic variable `#this` that we use to represent
-      // `this` inside extension methods.
+      inferrer.flowAnalysis.thisOrSuper(node, variable.type);
     } else if (inferrer.isNonNullableByDefault) {
       if (node.forNullGuardedAccess) {
         DartType nonNullableType = inferrer.computeNonNullable(variable.type);
@@ -7005,7 +7009,8 @@ class LocalForInVariable implements ForInVariable {
         isVoidAllowed: true);
 
     variableSet.value = rhs..parent = variableSet;
-    inferrer.flowAnalysis.write(variableSet.variable, rhsType, null);
+    inferrer.flowAnalysis
+        .write(variableSet, variableSet.variable, rhsType, null);
     return variableSet;
   }
 }

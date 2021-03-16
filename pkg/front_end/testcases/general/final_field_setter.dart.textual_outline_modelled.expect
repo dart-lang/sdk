@@ -1,0 +1,9 @@
+// @dart = 2.9
+class Class {
+  final int field = 42;
+  void set field(int value) {}
+}
+
+final int field = 42;
+main() {}
+void set field(int value) {}

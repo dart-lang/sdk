@@ -9,34 +9,29 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for resolving [PrefixExpression]s.
 class PrefixExpressionResolver {
   final ResolverVisitor _resolver;
-  final FlowAnalysisHelper _flowAnalysis;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
   final AssignmentExpressionShared _assignmentShared;
 
   PrefixExpressionResolver({
-    @required ResolverVisitor resolver,
-    @required FlowAnalysisHelper flowAnalysis,
-  })  : _resolver = resolver,
-        _flowAnalysis = flowAnalysis,
+    required ResolverVisitor resolver,
+  })   : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
           resolver: resolver,
-          flowAnalysis: flowAnalysis,
         );
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
@@ -83,8 +78,8 @@ class PrefixExpressionResolver {
   /// TODO(scheglov) this is duplicate
   void _checkForInvalidAssignmentIncDec(
       PrefixExpressionImpl node, DartType type) {
-    var operandWriteType = node.writeType;
-    if (!_typeSystem.isAssignableTo2(type, operandWriteType)) {
+    var operandWriteType = node.writeType!;
+    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
         node,
@@ -99,18 +94,16 @@ class PrefixExpressionResolver {
   /// @return the static return type that was computed
   ///
   /// TODO(scheglov) this is duplicate
-  DartType _computeStaticReturnType(Element element) {
+  DartType _computeStaticReturnType(Element? element) {
     if (element is PropertyAccessorElement) {
       //
       // This is a function invocation expression disguised as something else.
       // We are invoking a getter and then invoking the returned function.
       //
-      FunctionType propertyType = element.type;
-      if (propertyType != null) {
-        return _resolver.inferenceHelper.computeInvokeReturnType(
-          propertyType.returnType,
-        );
-      }
+      var propertyType = element.type;
+      return _resolver.inferenceHelper.computeInvokeReturnType(
+        propertyType.returnType,
+      );
     } else if (element is ExecutableElement) {
       return _resolver.inferenceHelper.computeInvokeReturnType(element.type);
     }
@@ -138,7 +131,7 @@ class PrefixExpressionResolver {
   /// @param type the static type of the node
   ///
   /// TODO(scheglov) this is duplicate
-  void _recordStaticType(Expression expression, DartType type) {
+  void _recordStaticType(ExpressionImpl expression, DartType type) {
     _inferenceHelper.recordStaticType(expression, type);
   }
 
@@ -150,8 +143,8 @@ class PrefixExpressionResolver {
       Expression operand = node.operand;
       String methodName = _getPrefixOperator(node);
       if (operand is ExtensionOverride) {
-        ExtensionElement element = operand.extensionName.staticElement;
-        MethodElement member = element.getMethod(methodName);
+        var element = operand.extensionName.staticElement as ExtensionElement;
+        var member = element.getMethod(methodName);
         if (member == null) {
           _errorReporter.reportErrorForToken(
               CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
@@ -162,7 +155,7 @@ class PrefixExpressionResolver {
         return;
       }
 
-      var readType = node.readType ?? operand.staticType;
+      var readType = node.readType ?? operand.typeOrThrow;
       if (identical(readType, NeverTypeImpl.instance)) {
         _resolver.errorReporter.reportErrorForNode(
           HintCode.RECEIVER_OF_TYPE_NEVER,
@@ -178,7 +171,7 @@ class PrefixExpressionResolver {
         receiverErrorNode: operand,
         nameErrorEntity: operand,
       );
-      node.staticElement = result.getter;
+      node.staticElement = result.getter as MethodElement?;
       if (result.needsGetterError) {
         if (operand is SuperExpression) {
           _errorReporter.reportErrorForToken(
@@ -203,13 +196,13 @@ class PrefixExpressionResolver {
       _recordStaticType(node, NeverTypeImpl.instance);
     } else {
       // The other cases are equivalent to invoking a method.
-      ExecutableElement staticMethodElement = node.staticElement;
+      var staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
       Expression operand = node.operand;
       if (operand is ExtensionOverride) {
         // No special handling for incremental operators.
       } else if (operator.isIncrementOperator) {
-        if (node.readType.isDartCoreInt) {
+        if (node.readType!.isDartCoreInt) {
           staticType = _typeProvider.intType;
         } else {
           _checkForInvalidAssignmentIncDec(node, staticType);
@@ -217,7 +210,8 @@ class PrefixExpressionResolver {
         if (operand is SimpleIdentifier) {
           var element = operand.staticElement;
           if (element is PromotableElement) {
-            _flowAnalysis?.flow?.write(element, staticType, null);
+            _resolver.flowAnalysis?.flow
+                ?.write(node, element, staticType, null);
           }
         }
       }
@@ -237,6 +231,6 @@ class PrefixExpressionResolver {
 
     _recordStaticType(node, _typeProvider.boolType);
 
-    _flowAnalysis?.flow?.logicalNot_end(node, operand);
+    _resolver.flowAnalysis?.flow?.logicalNot_end(node, operand);
   }
 }

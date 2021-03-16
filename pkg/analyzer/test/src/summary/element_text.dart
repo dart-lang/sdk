@@ -12,33 +12,32 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/inference_error.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'resolved_ast_printer.dart';
 
 /// Set this path to automatically replace expectations in invocations of
 /// [checkElementText] with the new actual texts.
-const String _testPath = null;
+const String? _testPath = null;
 
 /// The list of replacements that update expectations.
 final List<_Replacement> _replacements = [];
 
 /// The cached content of the file with the [_testPath].
-String _testCode;
+String? _testCode;
 
 /// The cache line information for the [_testPath] file.
-LineInfo _testCodeLines;
+LineInfo? _testCodeLines;
 
 void applyCheckElementTextReplacements() {
   if (_testPath != null && _replacements.isNotEmpty) {
     _replacements.sort((a, b) => b.offset - a.offset);
-    String newCode = _testCode;
+    String newCode = _testCode!;
     _replacements.forEach((r) {
       newCode =
           newCode.substring(0, r.offset) + r.text + newCode.substring(r.end);
     });
-    File(_testPath).writeAsStringSync(newCode);
+    File(_testPath!).writeAsStringSync(newCode);
   }
 }
 
@@ -78,8 +77,8 @@ void checkElementText(
 
   if (_testPath != null && actualText != expected) {
     if (_testCode == null) {
-      _testCode = File(_testPath).readAsStringSync();
-      _testCodeLines = LineInfo.fromContent(_testCode);
+      _testCode = File(_testPath!).readAsStringSync();
+      _testCodeLines = LineInfo.fromContent(_testCode!);
     }
 
     try {
@@ -90,27 +89,28 @@ void checkElementText(
       // Assuming traceString contains "$_testPath:$invocationLine:$column",
       // figure out the value of invocationLine.
 
-      int testFilePathOffset = traceString.indexOf(_testPath);
+      int testFilePathOffset = traceString.indexOf(_testPath!);
       expect(testFilePathOffset, isNonNegative);
 
       // Sanity check: there must be ':' after the path.
-      expect(traceString[testFilePathOffset + _testPath.length], ':');
+      expect(traceString[testFilePathOffset + _testPath!.length], ':');
 
-      int lineOffset = testFilePathOffset + _testPath.length + ':'.length;
+      int lineOffset = testFilePathOffset + _testPath!.length + ':'.length;
       int invocationLine = int.parse(traceString.substring(
           lineOffset, traceString.indexOf(':', lineOffset)));
-      int invocationOffset = _testCodeLines.getOffsetOfLine(invocationLine - 1);
+      int invocationOffset =
+          _testCodeLines!.getOffsetOfLine(invocationLine - 1);
 
       const String rawStringPrefix = "r'''";
       int expectationOffset =
-          _testCode.indexOf(rawStringPrefix, invocationOffset);
+          _testCode!.indexOf(rawStringPrefix, invocationOffset);
 
       // Sanity check: there must be no other strings or blocks.
-      expect(_testCode.substring(invocationOffset, expectationOffset),
+      expect(_testCode!.substring(invocationOffset, expectationOffset),
           isNot(anyOf(contains("'"), contains('"'), contains('}'))));
 
       expectationOffset += rawStringPrefix.length;
-      int expectationEnd = _testCode.indexOf("'''", expectationOffset);
+      int expectationEnd = _testCode!.indexOf("'''", expectationOffset);
 
       _replacements.add(
           _Replacement(expectationOffset, expectationEnd, '\n' + actualText));
@@ -118,17 +118,17 @@ void checkElementText(
   }
 
   // Print the actual text to simplify copy/paste into the expectation.
-//  if (actualText != expected) {
-//    print('-------- Actual --------');
-//    print(actualText + '------------------------');
-//  }
+  // if (actualText != expected) {
+  //   print('-------- Actual --------');
+  //   print(actualText + '------------------------');
+  // }
 
   expect(actualText, expected);
 }
 
 /// Writes the canonical text presentation of elements.
 class _ElementWriter {
-  final String selfUriStr;
+  final String? selfUriStr;
   final bool withCodeRanges;
   final bool withExportScope;
   final bool withFullyResolvedAst;
@@ -144,7 +144,7 @@ class _ElementWriter {
 
   _ElementWriter({
     this.selfUriStr,
-    this.withCodeRanges,
+    this.withCodeRanges = false,
     this.withConstElements = true,
     this.withExportScope = false,
     this.withFullyResolvedAst = false,
@@ -152,13 +152,13 @@ class _ElementWriter {
     this.withSyntheticAccessors = false,
     this.withSyntheticFields = false,
     this.withTypes = false,
-    this.withTypeParameterVariance,
+    this.withTypeParameterVariance = false,
   });
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
 
   bool isEnumField(Element e) {
-    Element enclosing = e.enclosingElement;
+    var enclosing = e.enclosingElement;
     return enclosing is ClassElement && enclosing.isEnum;
   }
 
@@ -203,10 +203,10 @@ class _ElementWriter {
     writeCodeRange(e);
     writeTypeParameterElements(e.typeParameters, withDefault: true);
 
-    if (e.supertype != null && e.supertype.element.name != 'Object' ||
+    if (e.supertype != null && e.supertype!.element.name != 'Object' ||
         e.mixins.isNotEmpty) {
       buffer.write(' extends ');
-      writeType(e.supertype);
+      writeType(e.supertype!);
     }
 
     if (e.isMixin) {
@@ -287,7 +287,7 @@ class _ElementWriter {
     writeParameterElements(e.parameters);
 
     {
-      ConstructorElement redirected = e.redirectedConstructor;
+      var redirected = e.redirectedConstructor;
       if (redirected != null) {
         buffer.write(' = ');
         writeType(redirected.returnType);
@@ -302,7 +302,7 @@ class _ElementWriter {
     if (withFullyResolvedAst) {
       buffer.writeln(';');
       _withIndent(() {
-        if (initializers != null && initializers.isNotEmpty) {
+        if (initializers.isNotEmpty) {
           _writelnWithIndent('constantInitializers');
           _withIndent(() {
             for (var initializer in initializers) {
@@ -313,9 +313,7 @@ class _ElementWriter {
         _writeParameterElementDefaultValues(e.parameters);
       });
     } else {
-      if (initializers != null) {
-        writeList(' : ', '', initializers, ', ', writeNode);
-      }
+      writeList(' : ', '', initializers, ', ', writeNode);
       buffer.writeln(';');
     }
 
@@ -324,7 +322,7 @@ class _ElementWriter {
   }
 
   void writeDocumentation(Element e, [String prefix = '']) {
-    String comment = e.documentationComment;
+    var comment = e.documentationComment;
     if (comment != null) {
       if (comment.startsWith('///')) {
         comment = comment.split('\n').join('\n$prefix');
@@ -368,10 +366,8 @@ class _ElementWriter {
     writeName(e);
     writeCodeRange(e);
     writeTypeParameterElements(e.typeParameters, withDefault: false);
-    if (e.extendedType != null) {
-      buffer.write(' on ');
-      writeType(e.extendedType);
-    }
+    buffer.write(' on ');
+    writeType(e.extendedType);
 
     buffer.writeln(' {');
 
@@ -432,7 +428,7 @@ class _ElementWriter {
 
       if (e.prefix != null) {
         buffer.write(' as ');
-        writeName(e.prefix);
+        writeName(e.prefix!);
         if (withOffsets) {
           buffer.write('(${e.prefixOffset})');
         }
@@ -560,7 +556,7 @@ class _ElementWriter {
     }
   }
 
-  void writeNode(AstNode e, {Expression enclosing}) {
+  void writeNode(AstNode? e, {Expression? enclosing}) {
     bool needsParenthesis = e is Expression &&
         enclosing != null &&
         e.precedence < enclosing.precedence;
@@ -582,10 +578,10 @@ class _ElementWriter {
       writeNode(e.name);
       if (e.constructorName != null) {
         buffer.write('.');
-        writeNode(e.constructorName);
+        writeNode(e.constructorName!);
       }
       if (e.arguments != null) {
-        writeList('(', ')', e.arguments.arguments, ', ', writeNode,
+        writeList('(', ')', e.arguments!.arguments, ', ', writeNode,
             includeEmpty: true);
       }
     } else if (e is AsExpression) {
@@ -597,7 +593,7 @@ class _ElementWriter {
       writeNode(e.condition);
       if (e.message != null) {
         buffer.write(', ');
-        writeNode(e.message);
+        writeNode(e.message!);
       }
       buffer.write(')');
     } else if (e is BinaryExpression) {
@@ -622,24 +618,24 @@ class _ElementWriter {
       writeNode(e.type);
       if (e.name != null) {
         buffer.write('.');
-        writeNode(e.name);
+        writeNode(e.name!);
       }
     } else if (e is DoubleLiteral) {
       buffer.write(e.value);
     } else if (e is GenericFunctionType) {
       if (e.returnType != null) {
-        writeNode(e.returnType);
+        writeNode(e.returnType!);
         buffer.write(' ');
       }
       buffer.write('Function');
       if (e.typeParameters != null) {
-        writeList('<', '>', e.typeParameters.typeParameters, ', ', writeNode);
+        writeList('<', '>', e.typeParameters!.typeParameters, ', ', writeNode);
       }
       writeList('(', ')', e.parameters.parameters, ', ', writeNode,
           includeEmpty: true);
     } else if (e is InstanceCreationExpression) {
       if (e.keyword != null) {
-        buffer.write(e.keyword.lexeme);
+        buffer.write(e.keyword!.lexeme);
         buffer.write(' ');
       }
       if (withTypes && e.constructorName.type.typeArguments == null) {
@@ -665,7 +661,7 @@ class _ElementWriter {
         buffer.write('const ');
       }
       if (e.typeArguments != null) {
-        writeList('<', '>', e.typeArguments.arguments, ', ', writeNode);
+        writeList('<', '>', e.typeArguments!.arguments, ', ', writeNode);
       } else if (withTypes) {
         writeInterfaceTypeArgsComment(e);
       }
@@ -678,7 +674,7 @@ class _ElementWriter {
         buffer.write('const ');
       }
       if (e.typeArguments != null) {
-        writeList('<', '>', e.typeArguments.arguments, ', ', writeNode);
+        writeList('<', '>', e.typeArguments!.arguments, ', ', writeNode);
       } else if (withTypes) {
         writeInterfaceTypeArgsComment(e);
       }
@@ -700,7 +696,7 @@ class _ElementWriter {
       }
       writeNode(e.methodName);
       if (e.typeArguments != null) {
-        writeList('<', '>', e.typeArguments.arguments, ', ', writeNode);
+        writeList('<', '>', e.typeArguments!.arguments, ', ', writeNode);
       }
       writeList('(', ')', e.argumentList.arguments, ', ', writeNode,
           includeEmpty: true);
@@ -734,7 +730,7 @@ class _ElementWriter {
       writeNode(e.type);
       if (e.identifier != null) {
         buffer.write(' ');
-        buffer.write(e.identifier.name);
+        buffer.write(e.identifier!.name);
       }
     } else if (e is SimpleIdentifier) {
       if (withConstElements) {
@@ -778,7 +774,7 @@ class _ElementWriter {
     } else if (e is TypeName) {
       writeNode(e.name);
       if (e.typeArguments != null) {
-        writeList('<', '>', e.typeArguments.arguments, ', ', writeNode);
+        writeList('<', '>', e.typeArguments!.arguments, ', ', writeNode);
       }
     } else if (e is SpreadElement) {
       buffer.write(e.spreadOperator.lexeme);
@@ -803,8 +799,8 @@ class _ElementWriter {
   }
 
   void writeParameterElement(ParameterElement e) {
-    String defaultValueSeparator;
-    Expression defaultValue;
+    String? defaultValueSeparator;
+    Expression? defaultValue;
     String closeString;
     if (e.isRequiredPositional) {
       closeString = '';
@@ -884,12 +880,12 @@ class _ElementWriter {
       if (e.isGetter) {
         expect(variable.getter, same(e));
         if (variable.setter != null) {
-          expect(variable.setter.variable, same(variable));
+          expect(variable.setter!.variable, same(variable));
         }
       } else {
         expect(variable.setter, same(e));
         if (variable.getter != null) {
-          expect(variable.getter.variable, same(variable));
+          expect(variable.getter!.variable, same(variable));
         }
       }
     }
@@ -947,10 +943,10 @@ class _ElementWriter {
 
     if (!e.isSynthetic) {
       expect(e.getter, isNotNull);
-      _assertSyntheticAccessorEnclosing(e, e.getter);
+      _assertSyntheticAccessorEnclosing(e, e.getter!);
 
       if (e.setter != null) {
-        _assertSyntheticAccessorEnclosing(e, e.setter);
+        _assertSyntheticAccessorEnclosing(e, e.setter!);
       }
     }
 
@@ -998,8 +994,7 @@ class _ElementWriter {
       });
     } else {
       if (e is ConstVariableElement) {
-        Expression initializer =
-            (e as ConstVariableElement).constantInitializer;
+        var initializer = (e as ConstVariableElement).constantInitializer;
         if (initializer != null) {
           buffer.write(' = ');
           writeNode(initializer);
@@ -1050,7 +1045,7 @@ class _ElementWriter {
   }
 
   void writeTypeInferenceError(Element e) {
-    TopLevelInferenceError inferenceError;
+    TopLevelInferenceError? inferenceError;
     if (e is MethodElementImpl) {
       inferenceError = e.typeInferenceError;
     } else if (e is PropertyInducingElementImpl) {
@@ -1068,7 +1063,7 @@ class _ElementWriter {
 
   void writeTypeParameterElement(
     TypeParameterElement e, {
-    @required bool withDefault,
+    required bool withDefault,
   }) {
     var impl = e as TypeParameterElementImpl;
 
@@ -1083,13 +1078,13 @@ class _ElementWriter {
 
     writeName(e);
     writeCodeRange(e);
-    if (e.bound != null && !e.bound.isDartCoreObject) {
+    if (e.bound != null && !e.bound!.isDartCoreObject) {
       buffer.write(' extends ');
-      writeType(e.bound);
+      writeType(e.bound!);
     }
 
     if (withDefault) {
-      var defaultType = impl.defaultType;
+      var defaultType = impl.defaultType!;
       if (defaultType is! DynamicTypeImpl) {
         buffer.write(' = ');
         writeType(defaultType);
@@ -1099,10 +1094,10 @@ class _ElementWriter {
 
   void writeTypeParameterElements(
     List<TypeParameterElement> elements, {
-    @required bool withDefault,
+    required bool withDefault,
   }) {
     if (!withFullyResolvedAst) {
-      writeList('<', '>', elements, ', ', (e) {
+      writeList<TypeParameterElement>('<', '>', elements, ', ', (e) {
         writeTypeParameterElement(e, withDefault: withDefault);
       });
     }
@@ -1111,7 +1106,7 @@ class _ElementWriter {
   void writeUnitElement(CompilationUnitElement e) {
     if (e.library.definingCompilationUnit != e) {
       buffer.writeln('-' * 20);
-      buffer.writeln('unit: ${e.source?.shortName}');
+      buffer.writeln('unit: ${e.source.shortName}');
       buffer.writeln();
     }
     e.typeAliases.forEach(writeTypeAliasElement);
@@ -1124,7 +1119,7 @@ class _ElementWriter {
     e.functions.forEach(writeFunctionElement);
   }
 
-  void writeUri(Source source) {
+  void writeUri(Source? source) {
     if (source != null) {
       Uri uri = source.uri;
       String uriStr = uri.toString();
@@ -1154,7 +1149,7 @@ class _ElementWriter {
     }
   }
 
-  String _getElementLocationString(Element element) {
+  String _getElementLocationString(Element? element) {
     if (element == null) {
       return 'null';
     }
@@ -1166,7 +1161,7 @@ class _ElementWriter {
       return uri;
     }
 
-    ElementLocation location = element.location;
+    var location = element.location!;
     List<String> components = location.components.toList();
     if (components.isNotEmpty) {
       components[0] = onlyName(components[0]);
@@ -1180,7 +1175,7 @@ class _ElementWriter {
     return components.join(';');
   }
 
-  String _typeStr(DartType type) {
+  String? _typeStr(DartType? type) {
     return type?.getDisplayString(
       withNullability: true,
     );
@@ -1193,7 +1188,7 @@ class _ElementWriter {
     this.indent = indent;
   }
 
-  void _writelnTypeWithIndent(String name, DartType type) {
+  void _writelnTypeWithIndent(String name, DartType? type) {
     buffer.write(indent);
     buffer.write('$name: ');
     buffer.writeln(_typeStr(type));
@@ -1232,7 +1227,8 @@ class _ElementWriter {
     if (metadata.isNotEmpty) {
       _writelnWithIndent('metadata');
       _withIndent(() {
-        for (ElementAnnotationImpl annotation in metadata) {
+        for (var annotation in metadata) {
+          annotation as ElementAnnotationImpl;
           _writeResolvedNode(annotation.annotationAst);
         }
       });
@@ -1255,7 +1251,8 @@ class _ElementWriter {
     if (elements.isNotEmpty) {
       _writelnWithIndent('typeParameters');
       _withIndent(() {
-        for (TypeParameterElementImpl e in elements) {
+        for (var e in elements) {
+          e as TypeParameterElementImpl;
           _writelnWithIndent(e.name);
           _withIndent(() {
             _writelnTypeWithIndent('bound', e.bound);

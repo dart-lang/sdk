@@ -10,12 +10,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(YieldOfInvalidTypeTest);
-    defineReflectiveTests(YieldOfInvalidTypeTest2);
+    defineReflectiveTests(YieldOfInvalidTypeWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class YieldOfInvalidTypeTest extends PubPackageResolutionTest {
+class YieldOfInvalidTypeTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_none_asyncStar_dynamic_to_streamInt() async {
     await assertErrorsInCode(
         '''
@@ -410,5 +411,5 @@ Iterable<String> g() => throw 0;
 }
 
 @reflectiveTest
-class YieldOfInvalidTypeTest2 extends YieldOfInvalidTypeTest
+class YieldOfInvalidTypeWithNullSafetyTest extends YieldOfInvalidTypeTest
     with WithNullSafetyMixin {}

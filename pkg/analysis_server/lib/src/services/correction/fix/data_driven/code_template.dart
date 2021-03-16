@@ -102,6 +102,10 @@ class TemplateContext {
         return parent.parent.parent.parent;
       } else if (parent is MethodInvocation && parent.methodName == node) {
         return parent;
+      } else if (parent is TypeName &&
+          parent.parent is ConstructorName &&
+          parent.parent.parent is InstanceCreationExpression) {
+        return parent.parent.parent;
       }
     } else if (node is TypeArgumentList) {
       var parent = node.parent;

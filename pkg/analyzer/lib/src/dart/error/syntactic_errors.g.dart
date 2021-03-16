@@ -6,7 +6,7 @@
 
 part of 'syntactic_errors.dart';
 
-final fastaAnalyzerErrorCodes = <ErrorCode>[
+final fastaAnalyzerErrorCodes = <ErrorCode?>[
   null,
   _EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
   _CONTINUE_OUTSIDE_OF_LOOP,
@@ -121,6 +121,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _ANNOTATION_ON_TYPE_ARGUMENT,
   _BINARY_OPERATOR_WRITTEN_OUT,
   _EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
+  _ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
@@ -148,7 +149,11 @@ const ParserErrorCode _ANNOTATION_ON_TYPE_ARGUMENT = ParserErrorCode(
 
 const ParserErrorCode _ANNOTATION_WITH_TYPE_ARGUMENTS = ParserErrorCode(
     'ANNOTATION_WITH_TYPE_ARGUMENTS',
-    r"An annotation (metadata) can't use type arguments.");
+    r"An annotation can't use type arguments.");
+
+const ParserErrorCode _ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED =
+    ParserErrorCode('ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED',
+        r"An annotation with type arguments must be followed by an argument list.");
 
 const ParserErrorCode _BINARY_OPERATOR_WRITTEN_OUT = ParserErrorCode(
     'BINARY_OPERATOR_WRITTEN_OUT',

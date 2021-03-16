@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -16,6 +16,8 @@ import 'package:kernel/type_environment.dart';
 
 import 'package:kernel/src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
+
+import '../kernel/internal_ast.dart' show ExtensionType;
 
 import 'standard_bounds.dart' show TypeSchemaStandardBounds;
 
@@ -266,7 +268,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       if (isConst) {
         returnContextType = new TypeVariableEliminator(
                 clientLibrary.isNonNullableByDefault
-                    ? const NeverType(Nullability.nonNullable)
+                    ? const NeverType.nonNullable()
                     : const NullType(),
                 clientLibrary.isNonNullableByDefault
                     ? objectNullableRawType
@@ -363,12 +365,52 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   IsSubtypeOf performNullabilityAwareSubtypeCheck(
       DartType subtype, DartType supertype) {
     if (subtype is UnknownType) return const IsSubtypeOf.always();
+
+    // For now, extension types are only related to themselves, top types, and
+    // bottom types.
+    // TODO(dmitryas): Implement subtyping rules for extension types.
+    if (subtype is ExtensionType) {
+      if (coreTypes.isTop(supertype)) {
+        return const IsSubtypeOf.always();
+      } else if (supertype is ExtensionType &&
+          subtype.extensionNode == supertype.extensionNode) {
+        assert(subtype.typeArguments.length == supertype.typeArguments.length);
+        IsSubtypeOf result = const IsSubtypeOf.always();
+        for (int i = 0; i < subtype.typeArguments.length; ++i) {
+          result.and(performNullabilityAwareMutualSubtypesCheck(
+              subtype.typeArguments[i], supertype.typeArguments[i]));
+        }
+        return result;
+      } else {
+        return const IsSubtypeOf.never();
+      }
+    }
+
     DartType unwrappedSupertype = supertype;
     while (unwrappedSupertype is FutureOrType) {
       unwrappedSupertype = (unwrappedSupertype as FutureOrType).typeArgument;
     }
     if (unwrappedSupertype is UnknownType) {
       return const IsSubtypeOf.always();
+    } else if (unwrappedSupertype is ExtensionType) {
+      // For now, extension types are only related to themselves, top types, and
+      // bottom types.
+      // TODO(dmitryas): Implement subtyping rules for extension types.
+      if (coreTypes.isBottom(subtype)) {
+        return const IsSubtypeOf.always();
+      } else if (subtype is ExtensionType &&
+          subtype.extensionNode == unwrappedSupertype.extensionNode) {
+        assert(subtype.typeArguments.length ==
+            unwrappedSupertype.typeArguments.length);
+        IsSubtypeOf result = const IsSubtypeOf.always();
+        for (int i = 0; i < subtype.typeArguments.length; ++i) {
+          result.and(performNullabilityAwareMutualSubtypesCheck(
+              subtype.typeArguments[i], unwrappedSupertype.typeArguments[i]));
+        }
+        return result;
+      } else {
+        return const IsSubtypeOf.never();
+      }
     }
     return super.performNullabilityAwareSubtypeCheck(subtype, supertype);
   }
@@ -430,7 +472,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   DartType solveTypeConstraint(
       TypeConstraint constraint, DartType topType, DartType bottomType,
       {bool grounded: false, bool isContravariant: false}) {
-    assert(bottomType == const NeverType(Nullability.nonNullable) ||
+    assert(bottomType == const NeverType.nonNullable() ||
         bottomType == const NullType());
     if (!isContravariant) {
       // Prefer the known bound, if any.
@@ -503,7 +545,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             ? coreTypes.objectNullableRawType
             : const DynamicType(),
         clientLibrary.isNonNullableByDefault
-            ? const NeverType(Nullability.nonNullable)
+            ? const NeverType.nonNullable()
             : const NullType(),
         grounded: true,
         isContravariant: isContravariant);
@@ -517,7 +559,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             ? coreTypes.objectNullableRawType
             : const DynamicType(),
         clientLibrary.isNonNullableByDefault
-            ? const NeverType(Nullability.nonNullable)
+            ? const NeverType.nonNullable()
             : const NullType());
     if (!isKnown(t)) {
       return t;
@@ -539,7 +581,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
               ? coreTypes.objectNullableRawType
               : const DynamicType(),
           clientLibrary.isNonNullableByDefault
-              ? const NeverType(Nullability.nonNullable)
+              ? const NeverType.nonNullable()
               : const NullType());
     }
     return t;

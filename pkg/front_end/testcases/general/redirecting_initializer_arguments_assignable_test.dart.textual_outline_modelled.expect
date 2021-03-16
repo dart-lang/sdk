@@ -1,3 +1,4 @@
+// @dart = 2.9
 class Foo<T extends X> {
   Foo._internal({this.x});
   Foo.fromT(T _init) : this._internal(x: _init);

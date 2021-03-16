@@ -36,9 +36,6 @@
 
 namespace dart {
 
-// For now there are no compressed pointers.
-typedef ObjectPtr RawCompressed;
-
 // Forward declarations.
 class Isolate;
 class IsolateGroup;
@@ -501,7 +498,8 @@ class UntaggedObject {
 
   // This variant ensures that we do not visit the extra slot created from
   // rounding up instance sizes up to the allocation unit.
-  void VisitPointersPrecise(Isolate* isolate, ObjectPointerVisitor* visitor);
+  void VisitPointersPrecise(IsolateGroup* isolate_group,
+                            ObjectPointerVisitor* visitor);
 
   static ObjectPtr FromAddr(uword addr) {
     // We expect the untagged address here.
@@ -560,6 +558,15 @@ class UntaggedObject {
     }
   }
 
+  void StorePointer(CompressedObjectPtr* addr,
+                    ObjectPtr value,
+                    Thread* thread) {
+    *addr = value;
+    if (value->IsHeapObject()) {
+      CheckHeapPointerStore(value, thread);
+    }
+  }
+
   template <typename type>
   void StorePointerUnaligned(type const* addr, type value, Thread* thread) {
     StoreUnaligned(const_cast<type*>(addr), value);
@@ -580,6 +587,15 @@ class UntaggedObject {
   template <typename type>
   void StoreArrayPointer(type const* addr, type value, Thread* thread) {
     *const_cast<type*>(addr) = value;
+    if (value->IsHeapObject()) {
+      CheckArrayPointerStore(addr, value, thread);
+    }
+  }
+
+  void StoreArrayPointer(CompressedObjectPtr* addr,
+                         ObjectPtr value,
+                         Thread* thread) {
+    *addr = value;
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, thread);
     }
@@ -642,7 +658,7 @@ class UntaggedObject {
         // old-and-not-remembered -> new reference.
         ASSERT(!this->IsRemembered());
         if (this->IsCardRemembered()) {
-          RememberCard(reinterpret_cast<ObjectPtr const*>(addr));
+          RememberCard(addr);
         } else {
           this->SetRememberedBit();
           thread->StoreBufferAddObject(static_cast<ObjectPtr>(this));
@@ -667,6 +683,9 @@ class UntaggedObject {
 
   friend class StoreBufferUpdateVisitor;  // RememberCard
   void RememberCard(ObjectPtr const* slot);
+#if defined(DART_COMPRESSED_POINTERS)
+  void RememberCard(CompressedObjectPtr const* slot);
+#endif
 
   friend class Array;
   friend class ByteBuffer;
@@ -882,7 +901,7 @@ class UntaggedClass : public UntaggedObject {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class Instance;
-  friend class Isolate;
+  friend class IsolateGroup;
   friend class Object;
   friend class UntaggedInstance;
   friend class UntaggedInstructions;
@@ -1128,9 +1147,7 @@ class UntaggedFunction : public UntaggedObject {
 
   // TODO(regis): Split packed_fields_ in 2 uint32_t if max values are too low.
 
-  // Keep in sync with corresponding constants in UntaggedFunctionType.
   static constexpr intptr_t kMaxOptimizableBits = 1;
-  static constexpr intptr_t kMaxBackgroundOptimizableBits = 1;
   static constexpr intptr_t kMaxTypeParametersBits = 7;
   static constexpr intptr_t kMaxHasNamedOptionalParametersBits = 1;
   static constexpr intptr_t kMaxFixedParametersBits = 10;
@@ -1138,13 +1155,8 @@ class UntaggedFunction : public UntaggedObject {
 
   typedef BitField<uint32_t, bool, 0, kMaxOptimizableBits> PackedOptimizable;
   typedef BitField<uint32_t,
-                   bool,
-                   PackedOptimizable::kNextBit,
-                   kMaxBackgroundOptimizableBits>
-      PackedBackgroundOptimizable;
-  typedef BitField<uint32_t,
                    uint8_t,
-                   PackedBackgroundOptimizable::kNextBit,
+                   PackedOptimizable::kNextBit,
                    kMaxTypeParametersBits>
       PackedNumTypeParameters;
   typedef BitField<uint32_t,
@@ -1165,10 +1177,6 @@ class UntaggedFunction : public UntaggedObject {
   static_assert(PackedNumOptionalParameters::kNextBit <=
                     kBitsPerByte * sizeof(decltype(packed_fields_)),
                 "UntaggedFunction::packed_fields_ bitfields don't fit.");
-  static_assert(PackedNumOptionalParameters::kNextBit <=
-                    compiler::target::kSmiBits,
-                "In-place mask for number of optional parameters cannot fit in "
-                "a Smi on the target architecture");
 
 #define JIT_FUNCTION_COUNTERS(F)                                               \
   F(intptr_t, int32_t, usage_counter)                                          \
@@ -1186,6 +1194,8 @@ class UntaggedFunction : public UntaggedObject {
 #undef DECLARE
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  friend class UntaggedFunctionType;  // To use same constants for packing.
 };
 
 class UntaggedClosureData : public UntaggedObject {
@@ -1461,7 +1471,22 @@ class UntaggedNamespace : public UntaggedObject {
   POINTER_FIELD(ArrayPtr, hide_names)  // list of names that are hidden.
   POINTER_FIELD(LibraryPtr, owner)
   VISIT_TO(ObjectPtr, owner)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
+    switch (kind) {
+      case Snapshot::kFullAOT:
+        return reinterpret_cast<ObjectPtr*>(&target_);
+      case Snapshot::kFull:
+      case Snapshot::kFullCore:
+      case Snapshot::kFullJIT:
+        return reinterpret_cast<ObjectPtr*>(&owner_);
+      case Snapshot::kMessage:
+      case Snapshot::kNone:
+      case Snapshot::kInvalid:
+        break;
+    }
+    UNREACHABLE();
+    return NULL;
+  }
 };
 
 class UntaggedKernelProgramInfo : public UntaggedObject {
@@ -1493,14 +1518,10 @@ class UntaggedKernelProgramInfo : public UntaggedObject {
 class UntaggedWeakSerializationReference : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakSerializationReference);
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-  VISIT_NOTHING();
-  ClassIdTagType cid_;
-#else
   VISIT_FROM(ObjectPtr, target)
   POINTER_FIELD(ObjectPtr, target)
-  VISIT_TO(ObjectPtr, target)
-#endif
+  POINTER_FIELD(ObjectPtr, replacement)
+  VISIT_TO(ObjectPtr, replacement)
 };
 
 class UntaggedCode : public UntaggedObject {
@@ -1642,6 +1663,8 @@ class UntaggedObjectPool : public UntaggedObject {
 
   friend class Object;
   friend class CodeSerializationCluster;
+  friend class UnitSerializationRoots;
+  friend class UnitDeserializationRoots;
 };
 
 class UntaggedInstructions : public UntaggedObject {
@@ -2228,7 +2251,6 @@ class UntaggedLibraryPrefix : public UntaggedInstance {
   }
   uint16_t num_imports_;  // Number of library entries in libraries_.
   bool is_deferred_load_;
-  bool is_loaded_;
 };
 
 class UntaggedTypeArguments : public UntaggedInstance {
@@ -2311,28 +2333,30 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   uint8_t type_state_;
   uint8_t nullability_;
 
-  // Keep in sync with corresponding constants in UntaggedFunction.
   static constexpr intptr_t kMaxParentTypeArgumentsBits = 8;
-  static constexpr intptr_t kMaxHasNamedOptionalParametersBits = 1;
   static constexpr intptr_t kMaxImplicitParametersBits = 1;
-  static constexpr intptr_t kMaxFixedParametersBits = 10;
-  static constexpr intptr_t kMaxOptionalParametersBits = 10;
+  static constexpr intptr_t kMaxHasNamedOptionalParametersBits =
+      UntaggedFunction::kMaxHasNamedOptionalParametersBits;
+  static constexpr intptr_t kMaxFixedParametersBits =
+      UntaggedFunction::kMaxFixedParametersBits;
+  static constexpr intptr_t kMaxOptionalParametersBits =
+      UntaggedFunction::kMaxOptionalParametersBits;
 
   typedef BitField<uint32_t, uint8_t, 0, kMaxParentTypeArgumentsBits>
       PackedNumParentTypeArguments;
   typedef BitField<uint32_t,
-                   bool,
-                   PackedNumParentTypeArguments::kNextBit,
-                   kMaxHasNamedOptionalParametersBits>
-      PackedHasNamedOptionalParameters;
-  typedef BitField<uint32_t,
                    uint8_t,
-                   PackedHasNamedOptionalParameters::kNextBit,
+                   PackedNumParentTypeArguments::kNextBit,
                    kMaxImplicitParametersBits>
       PackedNumImplicitParameters;
   typedef BitField<uint32_t,
-                   uint16_t,
+                   bool,
                    PackedNumImplicitParameters::kNextBit,
+                   kMaxHasNamedOptionalParametersBits>
+      PackedHasNamedOptionalParameters;
+  typedef BitField<uint32_t,
+                   uint16_t,
+                   PackedHasNamedOptionalParameters::kNextBit,
                    kMaxFixedParametersBits>
       PackedNumFixedParameters;
   typedef BitField<uint32_t,
@@ -2343,6 +2367,10 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   static_assert(PackedNumOptionalParameters::kNextBit <=
                     kBitsPerByte * sizeof(decltype(packed_fields_)),
                 "UntaggedFunctionType::packed_fields_ bitfields don't fit.");
+  static_assert(PackedNumOptionalParameters::kNextBit <=
+                    compiler::target::kSmiBits,
+                "In-place mask for number of optional parameters cannot fit in "
+                "a Smi on the target architecture");
 
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
@@ -2405,7 +2433,7 @@ class UntaggedClosure : public UntaggedInstance {
 
   // The following fields are also declared in the Dart source of class
   // _Closure.
-  VISIT_FROM(RawCompressed, instantiator_type_arguments)
+  VISIT_FROM(ObjectPtr, instantiator_type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, instantiator_type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, function_type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, delayed_type_arguments)
@@ -2413,7 +2441,7 @@ class UntaggedClosure : public UntaggedInstance {
   POINTER_FIELD(ContextPtr, context)
   POINTER_FIELD(SmiPtr, hash)
 
-  VISIT_TO(RawCompressed, hash)
+  VISIT_TO(ObjectPtr, hash)
 
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
@@ -2576,8 +2604,8 @@ class UntaggedTypedData : public UntaggedTypedDataBase {
   void RecomputeDataField() { data_ = internal_data(); }
 
  protected:
-  VISIT_FROM(RawCompressed, length)
-  VISIT_TO_LENGTH(RawCompressed, &length_)
+  VISIT_FROM(ObjectPtr, length)
+  VISIT_TO_LENGTH(ObjectPtr, &length_)
 
   // Variable length data follows here.
 
@@ -2694,12 +2722,12 @@ class UntaggedBool : public UntaggedInstance {
 class UntaggedArray : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Array);
 
-  VISIT_FROM(RawCompressed, type_arguments)
+  VISIT_FROM(ObjectPtr, type_arguments)
   ARRAY_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   SMI_FIELD(SmiPtr, length)
   // Variable length data follows here.
   VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
-  VISIT_TO_LENGTH(RawCompressed, &data()[length - 1])
+  VISIT_TO_LENGTH(ObjectPtr, &data()[length - 1])
 
   friend class LinkedHashMapSerializationCluster;
   friend class LinkedHashMapDeserializationCluster;
@@ -2729,11 +2757,11 @@ class UntaggedImmutableArray : public UntaggedArray {
 class UntaggedGrowableObjectArray : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray);
 
-  VISIT_FROM(RawCompressed, type_arguments)
+  VISIT_FROM(ObjectPtr, type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   SMI_FIELD(SmiPtr, length)
   POINTER_FIELD(ArrayPtr, data)
-  VISIT_TO(RawCompressed, data)
+  VISIT_TO(ObjectPtr, data)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class SnapshotReader;
@@ -2743,14 +2771,14 @@ class UntaggedGrowableObjectArray : public UntaggedInstance {
 class UntaggedLinkedHashMap : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
 
-  VISIT_FROM(RawCompressed, type_arguments)
+  VISIT_FROM(ObjectPtr, type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   POINTER_FIELD(TypedDataPtr, index)
   POINTER_FIELD(SmiPtr, hash_mask)
   POINTER_FIELD(ArrayPtr, data)
   POINTER_FIELD(SmiPtr, used_data)
   POINTER_FIELD(SmiPtr, deleted_keys)
-  VISIT_TO(RawCompressed, deleted_keys)
+  VISIT_TO(ObjectPtr, deleted_keys)
 
   friend class SnapshotReader;
 };
@@ -2806,10 +2834,18 @@ COMPILE_ASSERT(sizeof(UntaggedFloat64x2) == 24);
 // Define an aliases for intptr_t.
 #if defined(ARCH_IS_32_BIT)
 #define kIntPtrCid kTypedDataInt32ArrayCid
+#define GetIntPtr GetInt32
 #define SetIntPtr SetInt32
+#define kUintPtrCid kTypedDataUint32ArrayCid
+#define GetUintPtr GetUint32
+#define SetUintPtr SetUint32
 #elif defined(ARCH_IS_64_BIT)
 #define kIntPtrCid kTypedDataInt64ArrayCid
+#define GetIntPtr GetInt64
 #define SetIntPtr SetInt64
+#define kUintPtrCid kTypedDataUint64ArrayCid
+#define GetUintPtr GetUint64
+#define SetUintPtr SetUint64
 #else
 #error Architecture is not 32-bit or 64-bit.
 #endif  // ARCH_IS_32_BIT
@@ -2818,16 +2854,16 @@ class UntaggedExternalTypedData : public UntaggedTypedDataBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTypedData);
 
  protected:
-  VISIT_FROM(RawCompressed, length)
-  VISIT_TO(RawCompressed, length)
+  VISIT_FROM(ObjectPtr, length)
+  VISIT_TO(ObjectPtr, length)
 };
 
 class UntaggedPointer : public UntaggedPointerBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Pointer);
 
-  VISIT_FROM(RawCompressed, type_arguments)
+  VISIT_FROM(ObjectPtr, type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, type_arguments)
-  VISIT_TO(RawCompressed, type_arguments)
+  VISIT_TO(ObjectPtr, type_arguments)
 
   friend class Pointer;
 };
@@ -2888,7 +2924,8 @@ class UntaggedStackTrace : public UntaggedInstance {
                 async_link);  // Link to parent async stack trace.
   POINTER_FIELD(ArrayPtr,
                 code_array);  // Code object for each frame in the stack trace.
-  POINTER_FIELD(ArrayPtr, pc_offset_array);  // Offset of PC for each frame.
+  POINTER_FIELD(TypedDataPtr, pc_offset_array);  // Offset of PC for each frame.
+
   VISIT_TO(ObjectPtr, pc_offset_array)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
@@ -2985,9 +3022,9 @@ class UntaggedUserTag : public UntaggedInstance {
 class UntaggedFutureOr : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(FutureOr);
 
-  VISIT_FROM(RawCompressed, type_arguments)
+  VISIT_FROM(ObjectPtr, type_arguments)
   POINTER_FIELD(TypeArgumentsPtr, type_arguments)
-  VISIT_TO(RawCompressed, type_arguments)
+  VISIT_TO(ObjectPtr, type_arguments)
 
   friend class SnapshotReader;
 };

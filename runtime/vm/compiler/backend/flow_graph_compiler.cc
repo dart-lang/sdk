@@ -209,7 +209,7 @@ bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
   ASSERT(!field.is_non_nullable_integer() || FLAG_precompiled_mode);
   // Unboxed fields in JIT lightweight isolates mode are not supported yet.
   const bool valid_class =
-      (FLAG_precompiled_mode || !FLAG_enable_isolate_groups) &&
+      (FLAG_precompiled_mode || !IsolateGroup::AreIsolateGroupsEnabled()) &&
       ((SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid)) ||
@@ -225,7 +225,8 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
     return IsUnboxedField(field);
   }
   // Unboxed fields in JIT lightweight isolates mode are not supported yet.
-  return !FLAG_enable_isolate_groups && field.is_unboxing_candidate() &&
+  return !IsolateGroup::AreIsolateGroupsEnabled() &&
+         field.is_unboxing_candidate() &&
          (FlowGraphCompiler::IsUnboxedField(field) ||
           (field.guarded_cid() == kIllegalCid));
 }
@@ -299,9 +300,9 @@ void FlowGraphCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
 
 bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
 #if !defined(PRODUCT)
-  if ((FLAG_stacktrace_every > 0) || (FLAG_deoptimize_every > 0) ||
-      (FLAG_gc_every > 0) ||
-      (isolate()->reload_every_n_stack_overflow_checks() > 0)) {
+  if (FLAG_stacktrace_every > 0 || FLAG_deoptimize_every > 0 ||
+      FLAG_gc_every > 0 ||
+      (isolate_group()->reload_every_n_stack_overflow_checks() > 0)) {
     if (!IsolateGroup::IsSystemIsolateGroup(isolate_group())) {
       return true;
     }
@@ -1546,15 +1547,12 @@ void FlowGraphCompiler::GenerateListTypeCheck(
 }
 
 void FlowGraphCompiler::EmitComment(Instruction* instr) {
-  if (!FLAG_support_il_printer || !FLAG_support_disassembler) {
-    return;
-  }
-#ifndef PRODUCT
+#if defined(INCLUDE_IL_PRINTER)
   char buffer[256];
   BufferFormatter f(buffer, sizeof(buffer));
   instr->PrintTo(&f);
   assembler()->Comment("%s", buffer);
-#endif
+#endif  // defined(INCLUDE_IL_PRINTER)
 }
 
 bool FlowGraphCompiler::NeedsEdgeCounter(BlockEntryInstr* block) {
@@ -2041,7 +2039,7 @@ intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
   } else if (parsed_function_.function().IsIrregexpFunction()) {
     threshold = FLAG_regexp_optimization_counter_threshold;
   } else if (FLAG_randomize_optimization_counter) {
-    threshold = Thread::Current()->GetRandomUInt64() %
+    threshold = Thread::Current()->random()->NextUInt64() %
                 FLAG_optimization_counter_threshold;
   } else {
     const intptr_t basic_blocks = flow_graph().preorder().length();

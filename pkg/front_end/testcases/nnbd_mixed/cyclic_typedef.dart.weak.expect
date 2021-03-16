@@ -38,6 +38,13 @@ class Hest2<TypeX extends core::Object? = dynamic> extends core::Object {
 static method main() → dynamic {}
 
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/cyclic_typedef_lib.dart:10:13: Error: Type variables can't have generic function types in their bounds.
+// class Hest1<TypeX extends Fisk1> {}
+//             ^^^^^
+//
 import self as self2;
 import "cyclic_typedef.dart" as self;
 import "dart:core" as core;
@@ -45,7 +52,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///cyclic_typedef.dart";
 
 typedef Fisk2 = <TypeY extends self::Hest2<dynamic> = dynamic>() → void;
-class Hest1<TypeX extends <TypeY extends core::Object? = dynamic>() → void = <TypeY extends core::Object? = dynamic>() → void> extends core::Object {
+class Hest1<TypeX extends <TypeY extends core::Object? = dynamic>() → void = dynamic> extends core::Object {
   synthetic constructor •() → self2::Hest1<self2::Hest1::TypeX>
     : super core::Object::•()
     ;

@@ -62,7 +62,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
             } else {
               if (element is ClassElement ||
                   element is ExtensionElement ||
-                  element is FunctionTypeAliasElement) {
+                  element is TypeAliasElement) {
                 builder.suggestElement(element,
                     kind: CompletionSuggestionKind.INVOCATION);
               } else if (!typesOnly &&

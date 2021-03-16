@@ -4,7 +4,7 @@
 
 // SharedObjects=ffi_test_functions
 // VMOptions=
-// VMOptions=--enable-isolate-groups --disable-heap-verification
+// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --disable-heap-verification
 
 import 'dart:async';
 import 'dart:ffi';
@@ -14,12 +14,13 @@ import 'dart:isolate';
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 
-import '../../../../../tests/ffi/calloc.dart';
 import '../../../../../tests/ffi/dylib_utils.dart';
 
 final bool isAOT = Platform.executable.contains('dart_precompiled_runtime');
-final bool isolateGropusEnabled =
+final bool isolateGroupsEnabled =
     Platform.executableArguments.contains('--enable-isolate-groups');
+final bool isolateGroupsEnabledInJIT = Platform.executableArguments
+    .contains('--experimental-enable-isolate-groups-jit');
 final sdkRoot = Platform.script.resolve('../../../../../');
 
 class Isolate extends Opaque {}
@@ -56,7 +57,7 @@ abstract class FfiBindings {
 
   static Pointer<Isolate> createLightweightIsolate(
       String name, Pointer<Void> peer) {
-    final cname = Utf8.toUtf8(name);
+    final cname = name.toNativeUtf8();
     IGH_MsanUnpoison(cname.cast(), name.length + 10);
     try {
       final isolate = IGH_CreateIsolate(cname, peer);
@@ -73,9 +74,9 @@ abstract class FfiBindings {
     final dartScriptUri = sdkRoot.resolve(
         'runtime/tests/vm/dart/isolates/dart_api_create_lightweight_isolate_test.dart');
     final dartScript = dartScriptUri.toString();
-    final libraryUri = Utf8.toUtf8(dartScript);
+    final libraryUri = dartScript.toNativeUtf8();
     IGH_MsanUnpoison(libraryUri.cast(), dartScript.length + 1);
-    final functionName = Utf8.toUtf8(name);
+    final functionName = name.toNativeUtf8();
     IGH_MsanUnpoison(functionName.cast(), name.length + 1);
 
     IGH_StartIsolate(
@@ -105,7 +106,7 @@ void scheduleAsyncInvocation(void fun()) {
 }
 
 Future withPeerPointer(fun(Pointer<Void> peer)) async {
-  final Pointer<Void> peer = Utf8.toUtf8('abc').cast();
+  final Pointer<Void> peer = 'abc'.toNativeUtf8().cast();
   FfiBindings.IGH_MsanUnpoison(peer.cast(), 'abc'.length + 1);
   try {
     await fun(peer);
@@ -115,12 +116,12 @@ Future withPeerPointer(fun(Pointer<Void> peer)) async {
   } finally {
     // The shutdown callback is called before the exit listeners are notified, so
     // we can validate that a->x has been changed.
-    Expect.isTrue(Utf8.fromUtf8(peer.cast()).startsWith('xb'));
+    Expect.isTrue(peer.cast<Utf8>().toDartString().startsWith('xb'));
 
     // The cleanup callback is called after after notifying exit listeners. So we
     // wait a little here to ensure the write of the callback has arrived.
     await Future.delayed(const Duration(milliseconds: 100));
-    Expect.equals('xbz', Utf8.fromUtf8(peer.cast()));
+    Expect.equals('xbz', peer.cast<Utf8>().toDartString());
     calloc.free(peer);
   }
 }
@@ -242,13 +243,17 @@ Future testJit() async {
 }
 
 Future main(args) async {
-  if (!isolateGropusEnabled) {
+  if (!isolateGroupsEnabled) {
     await testNotSupported();
     return;
   }
   if (isAOT) {
     await testAot();
   } else {
-    await testJit();
+    if (isolateGroupsEnabledInJIT) {
+      await testJit();
+    } else {
+      await testNotSupported();
+    }
   }
 }

@@ -9,7 +9,7 @@ class AnalysisException implements Exception {
 
   /// The exception that caused this exception, or `null` if this exception was
   /// not caused by another exception.
-  final CaughtException cause;
+  final CaughtException? cause;
 
   /// Initialize a newly created exception to have the given [message] and
   /// [cause].
@@ -20,10 +20,13 @@ class AnalysisException implements Exception {
     StringBuffer buffer = StringBuffer();
     buffer.write('$runtimeType: ');
     buffer.writeln(message);
+
+    var cause = this.cause;
     if (cause != null) {
       buffer.write('Caused by ');
       cause._writeOn(buffer);
     }
+
     return buffer.toString();
   }
 }
@@ -34,7 +37,7 @@ class CaughtException implements Exception {
   final Object exception;
 
   /// The message describing where/how/why this was caught.
-  final String message;
+  final String? message;
 
   /// The stack trace associated with the exception.
   StackTrace stackTrace;
@@ -46,9 +49,7 @@ class CaughtException implements Exception {
 
   /// Initialize a newly created caught exception to have the given [exception],
   /// [stackTrace], and [message].
-  CaughtException.withMessage(
-      this.message, this.exception, StackTrace stackTrace)
-      : stackTrace = stackTrace ?? StackTrace.current;
+  CaughtException.withMessage(this.message, this.exception, this.stackTrace);
 
   /// Recursively unwrap this [CaughtException] if it itself contains a
   /// [CaughtException].
@@ -74,22 +75,18 @@ class CaughtException implements Exception {
     if (message != null) {
       buffer.writeln(message);
     }
+    var exception = this.exception;
     if (exception is AnalysisException) {
-      AnalysisException analysisException = exception;
-      buffer.writeln(analysisException.message);
-      if (stackTrace != null) {
-        buffer.writeln(stackTrace.toString());
-      }
-      CaughtException cause = analysisException.cause;
+      buffer.writeln(exception.message);
+      buffer.writeln(stackTrace.toString());
+      CaughtException? cause = exception.cause;
       if (cause != null) {
         buffer.write('Caused by ');
         cause._writeOn(buffer);
       }
     } else {
       buffer.writeln(exception.toString());
-      if (stackTrace != null) {
-        buffer.writeln(stackTrace.toString());
-      }
+      buffer.writeln(stackTrace.toString());
     }
   }
 }
@@ -105,5 +102,5 @@ class SilentException extends CaughtException {
   /// Create a [SilentException] to wrap a [CaughtException], adding a
   /// [message].
   SilentException.wrapInMessage(String message, CaughtException exception)
-      : this(message, exception, null);
+      : this(message, exception, StackTrace.current);
 }

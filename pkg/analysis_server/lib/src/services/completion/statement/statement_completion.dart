@@ -1231,10 +1231,10 @@ class StatementCompletionProcessor {
     }
     if (body is Block) {
       var block = body;
-      return (!(block.leftBracket.isSynthetic));
+      return !block.leftBracket.isSynthetic;
     }
-    return (lineInfo.getLocation(keyword.offset) ==
-        lineInfo.getLocation(body.offset));
+    return lineInfo.getLocation(keyword.offset) ==
+        lineInfo.getLocation(body.offset);
   }
 }
 

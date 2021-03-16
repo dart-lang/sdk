@@ -4,9 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -52,6 +50,74 @@ class A {
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ');
     expect(suggestions, hasLength(2));
+  }
+
+  Future<void>
+      test_ArgumentList_function_named_fromPositionalNumeric_withoutSpace() async {
+    addTestFile('void f(int a, {int b = 0}) {}'
+        'void g() { f(2, ^3); }');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ');
+    expect(suggestions, hasLength(1));
+    // Ensure we don't try to replace the following arg.
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+  }
+
+  Future<void>
+      test_ArgumentList_function_named_fromPositionalNumeric_withSpace() async {
+    addTestFile('void f(int a, {int b = 0}) {}'
+        'void g() { f(2, ^ 3); }');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ');
+    expect(suggestions, hasLength(1));
+    // Ensure we don't try to replace the following arg.
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+  }
+
+  Future<void>
+      test_ArgumentList_function_named_fromPositionalVariable_withoutSpace() async {
+    addTestFile('void f(int a, {int b = 0}) {}'
+        'var foo = 1;'
+        'void g() { f(2, ^foo); }');
+    await getSuggestions();
+    expect(suggestions, hasLength(1));
+
+    // The named arg "b: " should not replace anything.
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ',
+        replacementOffset: null, replacementLength: 0);
+  }
+
+  Future<void>
+      test_ArgumentList_function_named_fromPositionalVariable_withSpace() async {
+    addTestFile('void f(int a, {int b = 0}) {}'
+        'var foo = 1;'
+        'void g() { f(2, ^ foo); }');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ');
+    expect(suggestions, hasLength(1));
+    // Ensure we don't try to replace the following arg.
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+  }
+
+  Future<void> test_ArgumentList_function_named_partiallyTyped() async {
+    addTestFile('''
+    class C {
+      void m(String firstString, {String secondString}) {}
+
+      void n() {
+        m('a', se^'b');
+      }
+    }
+    ''');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'secondString: ');
+    expect(suggestions, hasLength(1));
+    // Ensure we replace the correct section.
+    expect(replacementOffset, equals(completionOffset - 2));
+    expect(replacementLength, equals(2));
   }
 
   Future<void> test_ArgumentList_imported_function_named_param() async {
@@ -268,7 +334,7 @@ class A {
     assertValidId(result2.id);
 
     // Wait for all processing to be complete
-    await analysisHandler.server.analysisDriverScheduler.waitForIdle();
+    await analysisHandler.server.onAnalysisComplete;
     await pumpEventQueue();
 
     // Assert that first request has been aborted
@@ -306,7 +372,7 @@ class A {
     assertValidId(completionId);
 
     // Wait for all processing to be complete
-    await analysisHandler.server.analysisDriverScheduler.waitForIdle();
+    await analysisHandler.server.onAnalysisComplete;
     await pumpEventQueue();
 
     // Assert that request has been aborted
@@ -412,6 +478,14 @@ class A {
     /* text ^ */
     print(42);
   }
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  Future<void> test_inComment_endOfFile() async {
+    addTestFile('''
+    // text ^
   ''');
     await getSuggestions();
     expect(suggestions, isEmpty);
@@ -774,18 +848,5 @@ class B extends A {m() {^}}
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'test');
       assertNoResult('HtmlElement');
     });
-  }
-}
-
-class MockRelevancySorter implements DartContributionSorter {
-  bool enabled = true;
-
-  @override
-  Future sort(
-      CompletionRequest request, Iterable<CompletionSuggestion> suggestions) {
-    if (!enabled) {
-      throw 'unexpected sort';
-    }
-    return Future.value();
   }
 }

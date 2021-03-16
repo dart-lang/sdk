@@ -20,6 +20,9 @@ class ReplaceWithEightDigitHex extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_WITH_EIGHT_DIGIT_HEX;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_EIGHT_DIGIT_HEX_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     //
     // Extract the information needed to build the edit.

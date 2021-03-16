@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that if, while etc create an implicit scope if the body
 // is not a compound statement.
-
+// @dart=2.9
 import "package:expect/expect.dart";
 
 class ImplicitScopeTest {

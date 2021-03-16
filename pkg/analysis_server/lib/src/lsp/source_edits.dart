@@ -305,6 +305,8 @@ class FileEditInformation {
   final OptionalVersionedTextDocumentIdentifier doc;
   final LineInfo lineInfo;
   final List<server.SourceEdit> edits;
+  final bool newFile;
 
-  FileEditInformation(this.doc, this.lineInfo, this.edits);
+  FileEditInformation(this.doc, this.lineInfo, this.edits,
+      {this.newFile = false});
 }

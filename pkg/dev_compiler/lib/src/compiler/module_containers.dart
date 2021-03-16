@@ -66,7 +66,7 @@ abstract class ModuleItemContainer<K> {
   /// containerId is safe to use during eval.
   ModuleItemContainer._(
       this.name, this.containerId, js_ast.Identifier aggregatedId)
-      : this.aggregatedContainerId = aggregatedId ?? containerId;
+      : aggregatedContainerId = aggregatedId ?? containerId;
 
   /// Creates an automatically sharding container backed by JS Objects.
   factory ModuleItemContainer.asObject(String name,
@@ -147,7 +147,7 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
 
   @override
   void operator []=(K key, js_ast.Expression value) {
-    if (this.contains(key)) {
+    if (contains(key)) {
       moduleItems[key].jsValue = value;
       return;
     }

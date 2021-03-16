@@ -10,7 +10,6 @@ import 'dart:ffi';
 
 import "package:ffi/ffi.dart";
 
-import 'calloc.dart';
 import 'dylib_utils.dart';
 
 void main() {
@@ -529,7 +528,7 @@ class TestStruct1002 extends Struct {
   external Pointer notEmpty;
 }
 
-class EmptyStruct extends Struct {} //# 1099: ok
+class EmptyStruct extends Struct {} //# 1099: compile-time error
 
 class EmptyStruct extends Struct {} //# 1100: compile-time error
 
@@ -610,23 +609,26 @@ void testAllocateNativeType() {
 void testRefStruct() {
   final myStructPointer = calloc<TestStruct13>();
   Pointer<Struct> structPointer = myStructPointer;
-  structPointer.ref; //# 1330: ok
+  structPointer.ref; //# 1330: compile-time error
   calloc.free(myStructPointer);
 }
 
-T genericRef<T extends Struct>(Pointer<T> p) => //# 1200: ok
-    p.ref; //# 1200: ok
+T genericRef<T extends Struct>(Pointer<T> p) => //# 1200: compile-time error
+    p.ref; //# 1200: compile-time error
 
-T genericRef2<T extends Struct>(Pointer<T> p) => //# 1201: ok
-    p.cast<T>().ref; //# 1201: ok
+T genericRef2<T extends Struct>(Pointer<T> p) => //# 1201: compile-time error
+    p.cast<T>().ref; //# 1201: compile-time error
 
-T genericRef3<T extends Struct>(Pointer<T> p) => //# 1202: ok
-    p[0]; //# 1202: ok
+T genericRef3<T extends Struct>(Pointer<T> p) => //# 1202: compile-time error
+    p[0]; //# 1202: compile-time error
+
+T genericRef4<T extends Struct>(Array<T> p) => //# 1210: compile-time error
+    p[0]; //# 1210: compile-time error
 
 void testSizeOfGeneric() {
   int generic<T extends Pointer>() {
     int size = sizeOf<IntPtr>();
-    size = sizeOf<T>(); //# 1300: ok
+    size = sizeOf<T>(); //# 1300: compile-time error
     return size;
   }
 
@@ -635,7 +637,7 @@ void testSizeOfGeneric() {
 
 void testSizeOfNativeType() {
   try {
-    sizeOf(); //# 1301: ok
+    sizeOf(); //# 1301: compile-time error
   } catch (e) {
     print(e);
   }
@@ -644,7 +646,7 @@ void testSizeOfNativeType() {
 void testElementAtGeneric() {
   Pointer<T> generic<T extends NativeType>(Pointer<T> pointer) {
     Pointer<T> returnValue = pointer;
-    returnValue = returnValue.elementAt(1); //# 1310: ok
+    returnValue = returnValue.elementAt(1); //# 1310: compile-time error
     return returnValue;
   }
 
@@ -658,6 +660,25 @@ void testElementAtNativeType() {
   Pointer<Int8> p = calloc();
   p.elementAt(1);
   Pointer<NativeType> p2 = p;
-  p2.elementAt(1); //# 1311: ok
+  p2.elementAt(1); //# 1311: compile-time error
   calloc.free(p);
+}
+
+class TestStruct1400 extends Struct {
+  @Array(8) //# 1400: compile-time error
+  @Array(8)
+  external Array<Uint8> a0;
+}
+
+class TestStruct1401 extends Struct {
+  external Array<Uint8> a0; //# 1401: compile-time error
+
+  external Pointer<Uint8> notEmpty;
+}
+
+class TestStruct1402 extends Struct {
+  @Array(8) //# 1402: compile-time error
+  external Array<Array<Uint8>> a0; //# 1402: compile-time error
+
+  external Pointer<Uint8> notEmpty;
 }

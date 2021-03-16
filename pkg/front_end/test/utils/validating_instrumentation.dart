@@ -228,11 +228,14 @@ class ValidatingInstrumentation implements Instrumentation {
 
   String _formatProblem(
       Uri uri, int offset, String desc, StackTrace stackTrace) {
-    return CompilerContext.current.format(
-        templateUnspecified
-            .withArguments('$desc${stackTrace == null ? '' : '\n$stackTrace'}')
-            .withLocation(uri, offset, noLength),
-        Severity.internalProblem);
+    return CompilerContext.current
+        .format(
+            templateUnspecified
+                .withArguments(
+                    '$desc${stackTrace == null ? '' : '\n$stackTrace'}')
+                .withLocation(uri, offset, noLength),
+            Severity.internalProblem)
+        .plain;
   }
 
   String _makeExpectationComment(String property, InstrumentationValue value) {

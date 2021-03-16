@@ -26,9 +26,9 @@ class C<T extends S Function<S>(S)> {
 
   test_genericFunction() async {
     await assertErrorsInCode(r'''
-T Function<T extends S Function<S>(S)>(T) fun;
+late T Function<T extends S Function<S>(S)>(T) fun;
 ''', [
-      error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND, 21, 16),
+      error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND, 26, 16),
     ]);
   }
 

@@ -945,7 +945,6 @@ class FlowGraphCompiler : public ValueObject {
   }
 
   Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return thread_->isolate(); }
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   Zone* zone() const { return zone_; }
 

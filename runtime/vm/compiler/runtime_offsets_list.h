@@ -40,6 +40,8 @@
 
 #define COMMON_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, PAYLOAD_SIZEOF, RANGE,       \
                             CONSTANT)                                          \
+  ARRAY(ContextScope, element_offset)                                          \
+  ARRAY(ExceptionHandlers, element_offset)                                     \
   ARRAY(ObjectPool, element_offset)                                            \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
@@ -111,7 +113,6 @@
         CodeEntryKind::kUnchecked, [](CodeEntryKind value) { return true; })   \
   FIELD(Function, kind_tag_offset)                                             \
   FIELD(Function, packed_fields_offset)                                        \
-  FIELD(Function, parameter_names_offset)                                      \
   FIELD(Function, signature_offset)                                            \
   FIELD(FutureOr, type_arguments_offset)                                       \
   FIELD(GrowableObjectArray, data_offset)                                      \
@@ -125,12 +126,12 @@
   FIELD(ICData, owner_offset)                                                  \
   FIELD(ICData, state_bits_offset)                                             \
   FIELD(Int32x4, value_offset)                                                 \
-  FIELD(Isolate, shared_class_table_offset)                                    \
-  FIELD(Isolate, cached_class_table_table_offset)                              \
   FIELD(Isolate, current_tag_offset)                                           \
   FIELD(Isolate, default_tag_offset)                                           \
   FIELD(Isolate, ic_miss_code_offset)                                          \
-  FIELD(Isolate, cached_object_store_offset)                                   \
+  FIELD(IsolateGroup, object_store_offset)                                     \
+  FIELD(IsolateGroup, shared_class_table_offset)                               \
+  FIELD(IsolateGroup, cached_class_table_table_offset)                         \
   NOT_IN_PRODUCT(FIELD(Isolate, single_step_offset))                           \
   FIELD(Isolate, user_tag_offset)                                              \
   FIELD(LinkedHashMap, data_offset)                                            \
@@ -211,6 +212,7 @@
   FIELD(Thread, invoke_dart_code_stub_offset)                                  \
   FIELD(Thread, exit_through_ffi_offset)                                       \
   FIELD(Thread, isolate_offset)                                                \
+  FIELD(Thread, isolate_group_offset)                                          \
   FIELD(Thread, field_table_values_offset)                                     \
   FIELD(Thread, lazy_deopt_from_return_stub_offset)                            \
   FIELD(Thread, lazy_deopt_from_throw_stub_offset)                             \
@@ -255,6 +257,7 @@
   FIELD(Thread, write_barrier_code_offset)                                     \
   FIELD(Thread, write_barrier_entry_point_offset)                              \
   FIELD(Thread, write_barrier_mask_offset)                                     \
+  FIELD(Thread, heap_base_offset)                                              \
   FIELD(Thread, callback_code_offset)                                          \
   FIELD(Thread, callback_stack_return_offset)                                  \
   FIELD(TimelineStream, enabled_offset)                                        \
@@ -267,6 +270,7 @@
   FIELD(FunctionType, hash_offset)                                             \
   FIELD(FunctionType, packed_fields_offset)                                    \
   FIELD(FunctionType, parameter_types_offset)                                  \
+  FIELD(FunctionType, parameter_names_offset)                                  \
   FIELD(FunctionType, type_parameters_offset)                                  \
   FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \

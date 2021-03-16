@@ -30,9 +30,17 @@ void testIntegerShifts() {
     testShift(0x55555555, i);
     testShift(0xaaaaaaaa, i);
     testShift(0x80000000, i);
+    //         .   .   .   .
+    testShift(0x7fffffffffff, i);
+    testShift(0xffffffffffff, i);
     //         .   .   .   .   .
-    testShift(0x7fffffffffffffff, i);
-    testShift(0xffffffffffffffff, i);
+    testShift(0x7ffffffffffff000, i);
+    testShift(0xfffffffffffff000, i);
+    // Construct the values below to get 'all ones' values on the VM without a
+    // compile-time error for roundned literals on the web. The arithmetic
+    // produces rounded values on the web, so they are effectively testing zero.
+    testShift(0x7ffffffffffff000 + 0xfff, i);
+    testShift(0xfffffffffffff000 + 0xfff, i);
   }
 
   // JavaScript numbers may consider Infinity as an integer.
@@ -55,25 +63,21 @@ void testNonDoubleShifts() {
   }
 }
 
-int testConstantShifts() {
+void testConstantShifts() {
   const c = C();
   // >>> is a constant operation on integers.
   const c1 = 2 >>> 1;
   const c2 = (1 >>> 0) >>> 0;
-  // >>> is a potentially constant operation independent of type.
-  // The type must still type-check.
-  const c3 = false ? 1 : c >>> c;
+  const c3 = 1 >>> 65;
 
-  // It's an error if it doesn't type-check.
-  const c4 = true || c >>> c; //# 02: compile-time error
-  const c5 = true || "string" >>> 1;  //# 03: compile-time error
-
-  // Or if the shift isn't on integers and it is evaluated.
-  const c6 = c >>> c; //# 04: compile-time error
+  // >>> is a non-constant operation on other types.
+  const c4 = false ? 1 : c >>> c; //# 02: compile-time error
+  const c5 = true || c >>> c; //# 03: compile-time error
+  const c6 = true || "string" >>> 1;  //# 04: compile-time error
+  const c7 = c >>> c; //# 05: compile-time error
 
   // Or if shifting throws
-  const c7 = 1 >>> -1; //# 05: compile-time error
-  const c8 = 1 >>> 65; //# 06: compile-time error
+  const c8 = 1 >>> -1; //# 06: compile-time error
 
   Expect.isNotNull(c1 + c2 + c3);  // Avoid "unused variable" warnings.
 }
@@ -85,12 +89,7 @@ void testShift(int value, int shift) {
   var title = "0x${value.toRadixString(16)} >>> $shift$jsFlag";
   if (shift < 0) {
     // No platform allows shifting a negative.
-    Expect.throws(() => value >>> shift, "$title: shift < 0");
-    return;
-  }
-  if (!isJSBitOps && shift > 64) {
-    // Native 64-bit integers do not allow shifts above 64.
-    Expect.throws(() => value >>> shift, "$title: shift > 64");
+    Expect.throwsArgumentError(() => value >>> shift, "$title: shift < 0");
     return;
   }
   var expected;
@@ -98,7 +97,9 @@ void testShift(int value, int shift) {
     // TODO: Check that this is the desired behavior for JS >>>.
     expected = value.toUnsigned(32) >> shift;
   } else if (value < 0) {
-    if (shift > 0) {
+    if (shift >= 64) {
+      expected = 0;
+    } else if (shift > 0) {
       expected = (value >> shift).toUnsigned(64 - shift);
     } else {
       expected = value;

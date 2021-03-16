@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class UndefinedShownNameTest extends PubPackageResolutionTest {
+class UndefinedShownNameTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_export() async {
     newFile('$testPackageLibPath/lib1.dart');
     await assertErrorsInCode(r'''

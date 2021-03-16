@@ -7,7 +7,7 @@
 library fasta.source_class_builder;
 
 import 'package:front_end/src/fasta/kernel/combined_member_signature.dart';
-import 'package:kernel/ast.dart' hide MapEntry;
+import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
@@ -133,6 +133,12 @@ class SourceClassBuilder extends ClassBuilderImpl
   SourceLibraryBuilder get library => super.library;
 
   Class build(SourceLibraryBuilder library, LibraryBuilder coreLibrary) {
+    SourceLibraryBuilder.checkMemberConflicts(library, scope,
+        // These checks are performed as part of the class hierarchy
+        // computation.
+        checkForInstanceVsStaticConflict: false,
+        checkForMethodVsSetterConflict: false);
+
     void buildBuilders(String name, Builder declaration) {
       do {
         if (declaration.parent != this) {
@@ -148,7 +154,9 @@ class SourceClassBuilder extends ClassBuilderImpl
           memberBuilder.buildMembers(library,
               (Member member, BuiltMemberKind memberKind) {
             member.parent = cls;
-            if (!memberBuilder.isPatch && !memberBuilder.isDuplicate) {
+            if (!memberBuilder.isPatch &&
+                !memberBuilder.isDuplicate &&
+                !memberBuilder.isConflictingSetter) {
               if (member is Procedure) {
                 cls.addProcedure(member);
               } else if (member is Field) {
@@ -267,20 +275,6 @@ class SourceClassBuilder extends ClassBuilderImpl
             member.charOffset,
             noLength);
       }
-    });
-
-    scope.forEachLocalSetter((String name, Builder setter) {
-      Builder member = scopeBuilder[name];
-      if (member == null ||
-          !(member.isField && !member.isFinal && !member.isConst ||
-              member.isRegularMethod && member.isStatic && setter.isStatic)) {
-        return;
-      }
-      addProblem(templateConflictsWithMember.withArguments(name),
-          setter.charOffset, noLength);
-      // TODO(ahe): Context argument to previous message?
-      addProblem(templateConflictsWithSetter.withArguments(name),
-          member.charOffset, noLength);
     });
 
     scope.forEachLocalSetter((String name, Builder setter) {
@@ -431,19 +425,21 @@ class SourceClassBuilder extends ClassBuilderImpl
     Library library = libraryBuilder.library;
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        library,
         new InterfaceType(
             supertype.classNode, library.nonNullable, supertype.typeArguments),
         typeEnvironment,
         libraryBuilder.isNonNullableByDefault
             ? SubtypeCheckMode.withNullabilities
             : SubtypeCheckMode.ignoringNullabilities,
-        allowSuperBounded: false);
+        allowSuperBounded: false,
+        isNonNullableByDefault: library.isNonNullableByDefault,
+        areGenericArgumentsAllowed:
+            libraryBuilder.enableGenericMetadataInLibrary);
     for (TypeArgumentIssue issue in issues) {
       DartType argument = issue.argument;
       TypeParameter typeParameter = issue.typeParameter;
       bool inferred = libraryBuilder.inferredTypes.contains(argument);
-      if (isGenericFunctionTypeOrAlias(argument)) {
+      if (issue.isGenericTypeAsArgumentIssue) {
         if (inferred) {
           // Supertype can't be or contain super-bounded types, so null is
           // passed for super-bounded hint here.

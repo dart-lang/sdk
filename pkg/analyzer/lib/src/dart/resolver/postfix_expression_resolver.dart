@@ -8,35 +8,30 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:meta/meta.dart';
 
 /// Helper for resolving [PostfixExpression]s.
 class PostfixExpressionResolver {
   final ResolverVisitor _resolver;
-  final FlowAnalysisHelper _flowAnalysis;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
   final AssignmentExpressionShared _assignmentShared;
 
   PostfixExpressionResolver({
-    @required ResolverVisitor resolver,
-    @required FlowAnalysisHelper flowAnalysis,
-  })  : _resolver = resolver,
-        _flowAnalysis = flowAnalysis,
+    required ResolverVisitor resolver,
+  })   : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
           resolver: resolver,
-          flowAnalysis: flowAnalysis,
         );
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
@@ -68,7 +63,7 @@ class PostfixExpressionResolver {
     // TODO(scheglov) Use VariableElement and do in resolveForWrite() ?
     _assignmentShared.checkFinalAlreadyAssigned(operand);
 
-    var receiverType = node.readType;
+    var receiverType = node.readType!;
     _resolve1(node, receiverType);
     _resolve2(node, receiverType);
   }
@@ -79,8 +74,8 @@ class PostfixExpressionResolver {
   /// TODO(scheglov) this is duplicate
   void _checkForInvalidAssignmentIncDec(
       PostfixExpression node, Expression operand, DartType type) {
-    var operandWriteType = node.writeType;
-    if (!_typeSystem.isAssignableTo2(type, operandWriteType)) {
+    var operandWriteType = node.writeType!;
+    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
         node,
@@ -95,18 +90,16 @@ class PostfixExpressionResolver {
   /// @return the static return type that was computed
   ///
   /// TODO(scheglov) this is duplicate
-  DartType _computeStaticReturnType(Element element) {
+  DartType _computeStaticReturnType(Element? element) {
     if (element is PropertyAccessorElement) {
       //
       // This is a function invocation expression disguised as something else.
       // We are invoking a getter and then invoking the returned function.
       //
       FunctionType propertyType = element.type;
-      if (propertyType != null) {
-        return _resolver.inferenceHelper.computeInvokeReturnType(
-          propertyType.returnType,
-        );
-      }
+      return _resolver.inferenceHelper.computeInvokeReturnType(
+        propertyType.returnType,
+      );
     } else if (element is ExecutableElement) {
       return _resolver.inferenceHelper.computeInvokeReturnType(element.type);
     }
@@ -125,7 +118,7 @@ class PostfixExpressionResolver {
     }
   }
 
-  void _resolve1(PostfixExpression node, DartType receiverType) {
+  void _resolve1(PostfixExpressionImpl node, DartType receiverType) {
     Expression operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
@@ -144,7 +137,7 @@ class PostfixExpressionResolver {
       receiverErrorNode: operand,
       nameErrorEntity: operand,
     );
-    node.staticElement = result.getter;
+    node.staticElement = result.getter as MethodElement?;
     if (result.needsGetterError) {
       if (operand is SuperExpression) {
         _errorReporter.reportErrorForToken(
@@ -162,7 +155,7 @@ class PostfixExpressionResolver {
     }
   }
 
-  void _resolve2(PostfixExpression node, DartType receiverType) {
+  void _resolve2(PostfixExpressionImpl node, DartType receiverType) {
     Expression operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
@@ -180,7 +173,8 @@ class PostfixExpressionResolver {
       if (operand is SimpleIdentifier) {
         var element = operand.staticElement;
         if (element is PromotableElement) {
-          _flowAnalysis?.flow?.write(element, operatorReturnType, null);
+          _resolver.flowAnalysis?.flow
+              ?.write(node, element, operatorReturnType, null);
         }
       }
     }
@@ -213,12 +207,12 @@ class PostfixExpressionResolver {
     operand.accept(_resolver);
     operand = node.operand;
 
-    var operandType = operand.staticType;
+    var operandType = operand.typeOrThrow;
 
     var type = _typeSystem.promoteToNonNull(operandType);
     _inferenceHelper.recordStaticType(node, type);
 
     _resolver.nullShortingTermination(node);
-    _flowAnalysis?.flow?.nonNullAssert_end(operand);
+    _resolver.flowAnalysis?.flow?.nonNullAssert_end(operand);
   }
 }

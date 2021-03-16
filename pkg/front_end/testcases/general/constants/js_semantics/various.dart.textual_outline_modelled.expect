@@ -1,3 +1,4 @@
+// @dart = 2.9
 const String intStringConcat = "hello" "${intFortyTwo * intFortyTwo}";
 const bool isItDouble = maybeInt is double ? true : false;
 const bool isItDouble2 = actualInt is double ? true : false;

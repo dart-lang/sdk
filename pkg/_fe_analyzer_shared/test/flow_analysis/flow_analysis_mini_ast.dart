@@ -9,7 +9,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:test/test.dart';
 
-const Expression nullLiteral = const _NullLiteral();
+Expression get nullLiteral => new _NullLiteral();
 
 Statement assert_(Expression condition, [Expression? message]) =>
     new _Assert(condition, message);
@@ -144,6 +144,10 @@ Statement if_(Expression condition, List<Statement> ifTrue,
         [List<Statement>? ifFalse]) =>
     new _If(condition, ifTrue, ifFalse);
 
+Statement implicitThis_whyNotPromoted(String staticType,
+        void Function(Map<Type, NonPromotionReason>) callback) =>
+    new _WhyNotPromoted_ImplicitThis(Type(staticType), callback);
+
 Statement labeled(Statement body) => new _LabeledStatement(body);
 
 Statement localFunction(List<Statement> body) => _LocalFunction(body);
@@ -153,6 +157,11 @@ Statement return_() => new _Return();
 Statement switch_(Expression expression, List<SwitchCase> cases,
         {required bool isExhaustive}) =>
     new _Switch(expression, cases, isExhaustive);
+
+Expression this_(String type) => new _This(Type(type));
+
+Expression thisOrSuperPropertyGet(String name, {String type = 'Object?'}) =>
+    new _ThisOrSuperPropertyGet(name, Type(type));
 
 Expression throw_(Expression operand) => new _Throw(operand);
 
@@ -210,7 +219,7 @@ class CatchClause implements _Visitable<void> {
 /// analysis testing.  Methods in this class may be used to create more complex
 /// expressions based on this one.
 abstract class Expression extends Node implements _Visitable<Type> {
-  const Expression() : super._();
+  Expression() : super._();
 
   /// If `this` is an expression `x`, creates the expression `x!`.
   Expression get nonNullAssert => new _NonNullAssert(this);
@@ -273,12 +282,24 @@ abstract class Expression extends Node implements _Visitable<Type> {
   /// If `this` is an expression `x`, creates the expression `x || other`.
   Expression or(Expression other) => new _Logical(this, other, isAnd: false);
 
+  /// If `this` is an expression `x`, creates the expression `x.name`.
+  Expression propertyGet(String name, {String type = 'Object?'}) =>
+      new _PropertyGet(this, name, Type(type));
+
   /// If `this` is an expression `x`, creates a pseudo-expression that models
   /// evaluation of `x` followed by execution of [stmt].  This can be used to
   /// test that flow analysis is in the correct state after an expression is
   /// visited.
   Expression thenStmt(Statement stmt) =>
       new _WrappedExpression(null, this, stmt);
+
+  /// Creates an [Expression] that, when analyzed, will behave the same as
+  /// `this`, but after visiting it, will cause [callback] to be passed the
+  /// non-promotion info associated with it.  If the expression has no
+  /// non-promotion info, an empty map will be passed to [callback].
+  Expression whyNotPromoted(
+          void Function(Map<Type, NonPromotionReason>) callback) =>
+      new _WhyNotPromoted(this, callback);
 }
 
 /// Test harness for creating flow analysis tests.  This class implements all
@@ -311,8 +332,10 @@ class Harness extends TypeOperations<Var, Type> {
     'int? <: num?': true,
     'int? <: Object': false,
     'int? <: Object?': true,
+    'Never <: Object?': true,
     'Null <: int': false,
     'Null <: Object': false,
+    'Null <: Object?': true,
     'num <: int': false,
     'num <: Iterable': false,
     'num <: List': false,
@@ -347,6 +370,7 @@ class Harness extends TypeOperations<Var, Type> {
     'Object <: int': false,
     'Object <: int?': false,
     'Object <: List': false,
+    'Object <: Null': false,
     'Object <: num': false,
     'Object <: num?': false,
     'Object <: Object?': true,
@@ -354,6 +378,7 @@ class Harness extends TypeOperations<Var, Type> {
     'Object? <: Object': false,
     'Object? <: int': false,
     'Object? <: int?': false,
+    'Object? <: Null': false,
     'String <: int': false,
     'String <: int?': false,
     'String <: num?': false,
@@ -364,6 +389,8 @@ class Harness extends TypeOperations<Var, Type> {
   static final Map<String, Type> _coreFactors = {
     'Object? - int': Type('Object?'),
     'Object? - int?': Type('Object'),
+    'Object? - Never': Type('Object?'),
+    'Object? - Null': Type('Object'),
     'Object? - num?': Type('Object'),
     'Object? - Object?': Type('Never?'),
     'Object? - String': Type('Object?'),
@@ -396,8 +423,6 @@ class Harness extends TypeOperations<Var, Type> {
     'num* - Object': Type('Never'),
   };
 
-  final bool allowLocalBooleanVarsToPromote;
-
   final bool legacy;
 
   final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
@@ -408,7 +433,7 @@ class Harness extends TypeOperations<Var, Type> {
 
   Map<String, Map<String, String>> _promotionExceptions = {};
 
-  Harness({this.allowLocalBooleanVarsToPromote = false, this.legacy = false});
+  Harness({this.legacy = false});
 
   /// Updates the harness so that when a [factor] query is invoked on types
   /// [from] and [what], [result] will be returned.
@@ -482,8 +507,7 @@ class Harness extends TypeOperations<Var, Type> {
         ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
             this, assignedVariables)
         : FlowAnalysis<Node, Statement, Expression, Var, Type>(
-            this, assignedVariables,
-            allowLocalBooleanVarsToPromote: allowLocalBooleanVarsToPromote);
+            this, assignedVariables);
     statements._visit(this, flow);
     flow.finish();
   }
@@ -544,7 +568,13 @@ class Harness extends TypeOperations<Var, Type> {
 /// Representation of an expression or statement in the pseudo-Dart language
 /// used for flow analysis testing.
 class Node {
-  const Node._();
+  static int _nextId = 0;
+
+  final int id;
+
+  Node._() : id = _nextId++;
+
+  String toString() => 'Node#$id';
 }
 
 /// Helper class allowing tests to examine the values of variables' SSA nodes.
@@ -597,15 +627,30 @@ class SwitchCase implements _Visitable<void> {
 /// testing.  This is essentially a thin wrapper around a string representation
 /// of the type.
 class Type {
+  static bool _allowComparisons = false;
+
   final String type;
 
   Type(this.type);
 
   @override
+  int get hashCode {
+    if (!_allowComparisons) {
+      // The flow analysis engine should not hash types using hashCode.  It
+      // should compare them using TypeOperations.
+      fail('Unexpected use of operator== on types');
+    }
+    return type.hashCode;
+  }
+
+  @override
   bool operator ==(Object other) {
-    // The flow analysis engine should not compare types using operator==.  It
-    // should compare them using TypeOperations.
-    fail('Unexpected use of operator== on types');
+    if (!_allowComparisons) {
+      // The flow analysis engine should not compare types using operator==.  It
+      // should compare them using TypeOperations.
+      fail('Unexpected use of operator== on types');
+    }
+    return other is Type && this.type == other.type;
   }
 
   @override
@@ -1369,7 +1414,7 @@ class _NullAwareAccess extends Expression {
 }
 
 class _NullLiteral extends Expression {
-  const _NullLiteral();
+  _NullLiteral();
 
   @override
   String toString() => 'null';
@@ -1422,6 +1467,29 @@ class _PlaceholderExpression extends Expression {
   Type _visit(Harness h,
           FlowAnalysis<Node, Statement, Expression, Var, Type> flow) =>
       type;
+}
+
+class _PropertyGet extends Expression {
+  final Expression target;
+
+  final String propertyName;
+
+  final Type type;
+
+  _PropertyGet(this.target, this.propertyName, this.type);
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    target._preVisit(assignedVariables);
+  }
+
+  @override
+  Type _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    target._visit(h, flow);
+    flow.propertyGet(this, target, propertyName, type);
+    return type;
+  }
 }
 
 class _Return extends Statement {
@@ -1478,6 +1546,43 @@ class _Switch extends Statement {
     cases._visit(h, flow);
     h._currentSwitch = oldSwitch;
     flow.switchStatement_end(isExhaustive);
+  }
+}
+
+class _This extends Expression {
+  final Type type;
+
+  _This(this.type);
+
+  @override
+  String toString() => 'this';
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+
+  @override
+  Type _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    flow.thisOrSuper(this, type);
+    return type;
+  }
+}
+
+class _ThisOrSuperPropertyGet extends Expression {
+  final String propertyName;
+
+  final Type type;
+
+  _ThisOrSuperPropertyGet(this.propertyName, this.type);
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+
+  @override
+  Type _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    flow.thisOrSuperPropertyGet(this, propertyName, type);
+    return type;
   }
 }
 
@@ -1547,9 +1652,7 @@ class _TryFinally extends Statement {
     assignedVariables.beginNode();
     body._preVisit(assignedVariables);
     assignedVariables.endNode(_bodyNode);
-    assignedVariables.beginNode();
     finally_._preVisit(assignedVariables);
-    assignedVariables.endNode(_finallyNode);
   }
 
   @override
@@ -1622,6 +1725,63 @@ class _While extends Statement {
   }
 }
 
+class _WhyNotPromoted extends Expression {
+  final Expression target;
+
+  final void Function(Map<Type, NonPromotionReason>) callback;
+
+  _WhyNotPromoted(this.target, this.callback);
+
+  @override
+  String toString() => '$target (whyNotPromoted)';
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    target._preVisit(assignedVariables);
+  }
+
+  @override
+  Type _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    var type = target._visit(h, flow);
+    flow.forwardExpression(this, target);
+    assert(!Type._allowComparisons);
+    Type._allowComparisons = true;
+    try {
+      callback(flow.whyNotPromoted(this));
+    } finally {
+      Type._allowComparisons = false;
+    }
+    return type;
+  }
+}
+
+class _WhyNotPromoted_ImplicitThis extends Statement {
+  final Type staticType;
+
+  final void Function(Map<Type, NonPromotionReason>) callback;
+
+  _WhyNotPromoted_ImplicitThis(this.staticType, this.callback) : super._();
+
+  @override
+  String toString() => 'implicit this (whyNotPromoted)';
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+
+  @override
+  void _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    assert(!Type._allowComparisons);
+    Type._allowComparisons = true;
+    try {
+      callback(flow.whyNotPromotedImplicitThis(staticType));
+    } finally {
+      Type._allowComparisons = false;
+    }
+  }
+}
+
 class _WrappedExpression extends Expression {
   final Statement? before;
   final Expression expr;
@@ -1681,7 +1841,7 @@ class _Write extends Expression {
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     var rhs = this.rhs;
     var type = rhs == null ? variable.type : rhs._visit(h, flow);
-    flow.write(variable, type, rhs);
+    flow.write(this, variable, type, rhs);
     return type;
   }
 }

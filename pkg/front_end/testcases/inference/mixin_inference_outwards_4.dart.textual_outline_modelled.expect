@@ -1,3 +1,4 @@
+// @dart = 2.9
 class A extends Object with M0, M1 implements I<int> {}
 
 class I<X> {}

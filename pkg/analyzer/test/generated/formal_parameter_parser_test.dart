@@ -24,7 +24,7 @@ main() {
 @reflectiveTest
 class FormalParameterParserTest extends FastaParserTestCase {
   FormalParameter parseNNBDFormalParameter(String code, ParameterKind kind,
-      {List<ExpectedError> errors}) {
+      {List<ExpectedError>? errors}) {
     String parametersCode;
     if (kind == ParameterKind.REQUIRED) {
       parametersCode = '($code)';
@@ -48,7 +48,7 @@ class FormalParameterParserTest extends FastaParserTestCase {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFieldFormalParameter);
-    FieldFormalParameter functionParameter = parameter;
+    var functionParameter = parameter as FieldFormalParameter;
     expect(functionParameter.type, isNotNull);
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
@@ -158,7 +158,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
@@ -178,7 +178,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
     expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -194,7 +194,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
@@ -215,7 +215,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
@@ -236,7 +236,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
     expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -252,7 +252,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
@@ -273,7 +273,7 @@ class C {
         errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 12, 8)]);
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
@@ -294,7 +294,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
     expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -310,7 +310,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
@@ -331,7 +331,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
     expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -347,7 +347,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
@@ -368,7 +368,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
@@ -388,7 +388,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
     expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -404,7 +404,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
@@ -430,7 +430,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -450,7 +450,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
     expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -465,7 +465,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -486,7 +486,7 @@ class C {
         errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 8, 8)]);
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -506,7 +506,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -526,7 +526,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
     expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -541,7 +541,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -561,7 +561,7 @@ class C {
         parseNNBDFormalParameter('required covariant A a : null', kind);
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
@@ -581,7 +581,7 @@ class C {
         parseNNBDFormalParameter('required final a : null', kind);
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -601,7 +601,7 @@ class C {
         parseNNBDFormalParameter('required A a : null', kind);
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -621,7 +621,7 @@ class C {
         parseNNBDFormalParameter('required var a : null', kind);
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -642,7 +642,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
     expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -657,7 +657,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -677,7 +677,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -697,7 +697,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
     expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -712,7 +712,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -732,7 +732,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -752,7 +752,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -772,7 +772,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
     expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -787,7 +787,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -808,7 +808,7 @@ class C {
         errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 8)]);
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
-    DefaultFormalParameter defaultParameter = parameter;
+    var defaultParameter = parameter as DefaultFormalParameter;
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
@@ -902,16 +902,16 @@ class C {
     expect(parameters, hasLength(2));
 
     expect(parameters[0], isSimpleFormalParameter);
-    SimpleFormalParameter required = parameters[0];
+    var required = parameters[0] as SimpleFormalParameter;
     expect(required.identifier, isNull);
     expect(required.type, isTypeName);
     expect((required.type as TypeName).name.name, 'A');
 
     expect(parameters[1], isDefaultFormalParameter);
-    DefaultFormalParameter named = parameters[1];
+    var named = parameters[1] as DefaultFormalParameter;
     expect(named.identifier, isNotNull);
     expect(named.parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simple = named.parameter;
+    var simple = named.parameter as SimpleFormalParameter;
     expect(simple.type, isTypeName);
     expect((simple.type as TypeName).name.name, 'B');
   }
@@ -1014,11 +1014,11 @@ class C {
     expect(list.leftDelimiter, isNull);
     expect(list.parameters, hasLength(1));
     // TODO(danrubel): Investigate and improve recovery of parameter type/name.
-    SimpleFormalParameter parameter = list.parameters[0];
+    var parameter = list.parameters[0] as SimpleFormalParameter;
     expect(parameter.toSource(), 'io.File ');
-    expect(parameter.identifier.token.isSynthetic, isTrue);
-    TypeName type = parameter.type;
-    PrefixedIdentifier typeName = type.name;
+    expect(parameter.identifier!.token.isSynthetic, isTrue);
+    var type = parameter.type as TypeName;
+    var typeName = type.name as PrefixedIdentifier;
     expect(typeName.prefix.token.isSynthetic, isFalse);
     expect(typeName.identifier.token.isSynthetic, isFalse);
     expect(list.rightDelimiter, isNull);
@@ -1035,11 +1035,11 @@ class C {
     expect(list.leftDelimiter, isNull);
     expect(list.parameters, hasLength(1));
     // TODO(danrubel): Investigate and improve recovery of parameter type/name.
-    SimpleFormalParameter parameter = list.parameters[0];
+    var parameter = list.parameters[0] as SimpleFormalParameter;
     expect(parameter.toSource(), 'io. ');
-    expect(parameter.identifier.token.isSynthetic, isTrue);
-    TypeName type = parameter.type;
-    PrefixedIdentifier typeName = type.name;
+    expect(parameter.identifier!.token.isSynthetic, isTrue);
+    var type = parameter.type as TypeName;
+    var typeName = type.name as PrefixedIdentifier;
     expect(typeName.prefix.token.isSynthetic, isFalse);
     expect(typeName.identifier.token.isSynthetic, isTrue);
     expect(list.rightDelimiter, isNull);
@@ -1066,7 +1066,7 @@ class C {
         errorCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER]);
     expect(parameter, isNotNull);
     expect(parameter, isFieldFormalParameter);
-    FieldFormalParameter fieldParameter = parameter;
+    var fieldParameter = parameter as FieldFormalParameter;
     expect(fieldParameter.keyword, isNotNull);
     expect(fieldParameter.type, isNull);
     expect(fieldParameter.identifier, isNotNull);
@@ -1079,7 +1079,7 @@ class C {
         errorCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER]);
     expect(parameter, isNotNull);
     expect(parameter, isFieldFormalParameter);
-    FieldFormalParameter fieldParameter = parameter;
+    var fieldParameter = parameter as FieldFormalParameter;
     expect(fieldParameter.keyword, isNotNull);
     expect(fieldParameter.type, isNotNull);
     expect(fieldParameter.identifier, isNotNull);
@@ -1092,7 +1092,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFieldFormalParameter);
-    FieldFormalParameter fieldParameter = parameter;
+    var fieldParameter = parameter as FieldFormalParameter;
     expect(fieldParameter.keyword, isNotNull);
     expect(fieldParameter.type, isNull);
     expect(fieldParameter.identifier, isNotNull);
@@ -1105,7 +1105,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFieldFormalParameter);
-    FieldFormalParameter fieldParameter = parameter;
+    var fieldParameter = parameter as FieldFormalParameter;
     expect(fieldParameter.keyword, isNotNull);
     expect(fieldParameter.type, isNotNull);
     expect(fieldParameter.identifier, isNotNull);
@@ -1117,11 +1117,11 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFieldFormalParameter);
-    FieldFormalParameter fieldParameter = parameter;
+    var fieldParameter = parameter as FieldFormalParameter;
     expect(fieldParameter.keyword, isNull);
     expect(fieldParameter.type, isNull);
     expect(fieldParameter.identifier, isNotNull);
-    FormalParameterList parameterList = fieldParameter.parameters;
+    FormalParameterList parameterList = fieldParameter.parameters!;
     expect(parameterList, isNotNull);
     expect(parameterList.parameters, hasLength(1));
   }
@@ -1131,11 +1131,11 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFieldFormalParameter);
-    FieldFormalParameter fieldParameter = parameter;
+    var fieldParameter = parameter as FieldFormalParameter;
     expect(fieldParameter.keyword, isNull);
     expect(fieldParameter.type, isNull);
     expect(fieldParameter.identifier, isNotNull);
-    FormalParameterList parameterList = fieldParameter.parameters;
+    FormalParameterList parameterList = fieldParameter.parameters!;
     expect(parameterList, isNotNull);
     expect(parameterList.parameters, hasLength(0));
   }
@@ -1150,7 +1150,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFieldFormalParameter);
-    FieldFormalParameter fieldParameter = parameter;
+    var fieldParameter = parameter as FieldFormalParameter;
     expect(fieldParameter.keyword, isNull);
     expect(fieldParameter.type, isNull);
     expect(fieldParameter.identifier, isNotNull);
@@ -1162,7 +1162,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFieldFormalParameter);
-    FieldFormalParameter fieldParameter = parameter;
+    var fieldParameter = parameter as FieldFormalParameter;
     expect(fieldParameter.keyword, isNull);
     expect(fieldParameter.type, isNotNull);
     expect(fieldParameter.identifier, isNotNull);
@@ -1174,7 +1174,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFieldFormalParameter);
-    FieldFormalParameter fieldParameter = parameter;
+    var fieldParameter = parameter as FieldFormalParameter;
     expect(fieldParameter.keyword, isNotNull);
     expect(fieldParameter.type, isNull);
     expect(fieldParameter.identifier, isNotNull);
@@ -1209,7 +1209,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFunctionTypedFormalParameter);
-    FunctionTypedFormalParameter functionParameter = parameter;
+    var functionParameter = parameter as FunctionTypedFormalParameter;
     expect(functionParameter.returnType, isNull);
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
@@ -1223,7 +1223,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFunctionTypedFormalParameter);
-    FunctionTypedFormalParameter functionParameter = parameter;
+    var functionParameter = parameter as FunctionTypedFormalParameter;
     expect(functionParameter.covariantKeyword, isNotNull);
     expect(functionParameter.returnType, isNull);
     expect(functionParameter.identifier, isNotNull);
@@ -1233,12 +1233,12 @@ class C {
   }
 
   void test_parseNormalFormalParameter_function_noType_nullable() {
-    NormalFormalParameter parameter =
-        parseNNBDFormalParameter('a()?', ParameterKind.REQUIRED);
+    var parameter = parseNNBDFormalParameter('a()?', ParameterKind.REQUIRED)
+        as NormalFormalParameter;
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFunctionTypedFormalParameter);
-    FunctionTypedFormalParameter functionParameter = parameter;
+    var functionParameter = parameter as FunctionTypedFormalParameter;
     expect(functionParameter.returnType, isNull);
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
@@ -1252,7 +1252,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFunctionTypedFormalParameter);
-    FunctionTypedFormalParameter functionParameter = parameter;
+    var functionParameter = parameter as FunctionTypedFormalParameter;
     expect(functionParameter.returnType, isNull);
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNotNull);
@@ -1265,7 +1265,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFunctionTypedFormalParameter);
-    FunctionTypedFormalParameter functionParameter = parameter;
+    var functionParameter = parameter as FunctionTypedFormalParameter;
     expect(functionParameter.returnType, isNotNull);
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
@@ -1278,7 +1278,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFunctionTypedFormalParameter);
-    FunctionTypedFormalParameter functionParameter = parameter;
+    var functionParameter = parameter as FunctionTypedFormalParameter;
     expect(functionParameter.returnType, isNotNull);
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNotNull);
@@ -1292,7 +1292,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFunctionTypedFormalParameter);
-    FunctionTypedFormalParameter functionParameter = parameter;
+    var functionParameter = parameter as FunctionTypedFormalParameter;
     expect(functionParameter.covariantKeyword, isNotNull);
     expect(functionParameter.returnType, isNotNull);
     expect(functionParameter.identifier, isNotNull);
@@ -1306,7 +1306,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFunctionTypedFormalParameter);
-    FunctionTypedFormalParameter functionParameter = parameter;
+    var functionParameter = parameter as FunctionTypedFormalParameter;
     expect(functionParameter.returnType, isNotNull);
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
@@ -1319,7 +1319,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isFunctionTypedFormalParameter);
-    FunctionTypedFormalParameter functionParameter = parameter;
+    var functionParameter = parameter as FunctionTypedFormalParameter;
     expect(functionParameter.returnType, isNotNull);
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNotNull);
@@ -1327,6 +1327,7 @@ class C {
     expect(functionParameter.question, isNull);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   void test_parseNormalFormalParameter_function_withDocComment() {
     var parameter = parseFormalParameter('/// Doc\nf()', ParameterKind.REQUIRED)
         as FunctionTypedFormalParameter;
@@ -1338,7 +1339,7 @@ class C {
         errorCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER]);
     expect(parameter, isNotNull);
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -1349,7 +1350,7 @@ class C {
         errorCodes: [ParserErrorCode.EXTRANEOUS_MODIFIER]);
     expect(parameter, isNotNull);
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -1360,7 +1361,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -1371,7 +1372,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -1383,7 +1384,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
     expect(simpleParameter.identifier, isNull);
@@ -1394,7 +1395,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNull);
     expect(simpleParameter.identifier, isNotNull);
@@ -1405,7 +1406,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNull);
@@ -1417,7 +1418,7 @@ class C {
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, isSimpleFormalParameter);
-    SimpleFormalParameter simpleParameter = parameter;
+    var simpleParameter = parameter as SimpleFormalParameter;
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
     expect(simpleParameter.identifier, isNotNull);

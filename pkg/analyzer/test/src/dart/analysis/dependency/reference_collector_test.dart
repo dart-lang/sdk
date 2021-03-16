@@ -2246,8 +2246,8 @@ void test() {}
 
 class _Base extends BaseDependencyTest {
   void _assertApi(Library library, String name, NodeKind kind,
-      {String memberOf,
-      String typeParameterOf,
+      {String? memberOf,
+      String? typeParameterOf,
       List<String> unprefixed = const [],
       Map<String, List<String>> prefixed = const {},
       List<String> superPrefixed = const [],
@@ -2295,8 +2295,8 @@ class _Base extends BaseDependencyTest {
   }
 
   void _assertImpl(Library library, String name, NodeKind kind,
-      {String memberOf,
-      String typeParameterOf,
+      {String? memberOf,
+      String? typeParameterOf,
       List<String> unprefixed = const [],
       Map<String, List<String>> prefixed = const {},
       List<String> superPrefixed = const [],

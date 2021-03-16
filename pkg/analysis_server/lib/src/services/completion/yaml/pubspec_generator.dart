@@ -2,9 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/producer.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
+import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analyzer/file_system/file_system.dart';
+
+/// An object that represents the location of a package name.
+class PubPackageNameProducer extends Producer {
+  const PubPackageNameProducer();
+
+  @override
+  Iterable<CompletionSuggestion> suggestions(
+      YamlCompletionRequest request) sync* {
+    final cachedPackages = request.pubPackageService.cachedPackages;
+    var relevance = cachedPackages.length;
+    yield* cachedPackages.map((package) =>
+        packageName('${package.packageName}: ', relevance: relevance--));
+  }
+}
 
 /// A completion generator that can produce completion suggestions for pubspec
 /// files.
@@ -24,8 +40,8 @@ class PubspecGenerator extends YamlCompletionGenerator {
       'flutter': EmptyProducer(),
       'sdk': EmptyProducer(),
     }),
-    'dependencies': EmptyProducer(),
-    'dev_dependencies': EmptyProducer(),
+    'dependencies': PubPackageNameProducer(),
+    'dev_dependencies': PubPackageNameProducer(),
     // TODO(brianwilkerson) Suggest names already listed under 'dependencies'
     //  and 'dev_dependencies'.
     'dependency_overrides': EmptyProducer(),
@@ -78,7 +94,9 @@ class PubspecGenerator extends YamlCompletionGenerator {
   });
 
   /// Initialize a newly created suggestion generator for pubspec files.
-  PubspecGenerator(ResourceProvider resourceProvider) : super(resourceProvider);
+  PubspecGenerator(
+      ResourceProvider resourceProvider, PubPackageService pubPackageService)
+      : super(resourceProvider, pubPackageService);
 
   @override
   Producer get topLevelProducer => pubspecProducer;

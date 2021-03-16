@@ -191,5 +191,5 @@ Language/Classes/Constructors/Constant_Constructors/potentially_constant_express
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64) ]
+[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 LibTest/isolate/Isolate/spawnUri*: Skip

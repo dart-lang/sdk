@@ -35,8 +35,15 @@ DirectParserASTContentCompilationUnitEnd getAST(List<int> rawBytes,
       enableNonNullable: enableNonNullable,
       enableTripleShift: enableTripleShift);
 
-  Utf8BytesScanner scanner = new Utf8BytesScanner(bytes,
-      includeComments: includeComments, configuration: scannerConfiguration);
+  Utf8BytesScanner scanner = new Utf8BytesScanner(
+    bytes,
+    includeComments: includeComments,
+    configuration: scannerConfiguration,
+    languageVersionChanged: (scanner, languageVersion) {
+      // For now don't do anything, but having it (making it non-null) means the
+      // configuration won't be reset.
+    },
+  );
   Token firstToken = scanner.tokenize();
   if (firstToken == null) {
     throw "firstToken is null";
@@ -51,6 +58,301 @@ DirectParserASTContentCompilationUnitEnd getAST(List<int> rawBytes,
   }
   parser.parseUnit(firstToken);
   return listener.data.single;
+}
+
+/// Best-effort visitor for DirectParserASTContent that visits top-level entries
+/// and class members only (i.e. no bodies, no field initializer content, no
+/// names etc).
+class DirectParserASTContentVisitor {
+  void accept(DirectParserASTContent node) {
+    if (node is DirectParserASTContentCompilationUnitEnd ||
+        node is DirectParserASTContentTopLevelDeclarationEnd ||
+        node is DirectParserASTContentClassOrMixinBodyEnd ||
+        node is DirectParserASTContentMemberEnd) {
+      visitChildren(node);
+      return;
+    }
+
+    if (node.type == DirectParserASTType.BEGIN) {
+      // Ignored. These are basically just dummy nodes anyway.
+      assert(node.children == null);
+      return;
+    }
+    if (node.type == DirectParserASTType.HANDLE) {
+      // Ignored at least for know.
+      assert(node.children == null);
+      return;
+    }
+    if (node is DirectParserASTContentTypeVariablesEnd ||
+        node is DirectParserASTContentTypeArgumentsEnd ||
+        node is DirectParserASTContentTypeListEnd ||
+        node is DirectParserASTContentFunctionTypeEnd ||
+        node is DirectParserASTContentBlockEnd) {
+      // Ignored at least for know.
+      return;
+    }
+    if (node is DirectParserASTContentMetadataStarEnd) {
+      DirectParserASTContentMetadataStarEnd metadata = node;
+      visitMetadataStar(metadata);
+      return;
+    }
+    if (node is DirectParserASTContentFunctionTypeAliasEnd) {
+      DirectParserASTContentFunctionTypeAliasEnd typedefDecl = node;
+      visitTypedef(
+          typedefDecl, typedefDecl.typedefKeyword, typedefDecl.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentClassDeclarationEnd) {
+      DirectParserASTContentClassDeclarationEnd cls = node;
+      visitClass(cls, cls.beginToken, cls.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentTopLevelMethodEnd) {
+      DirectParserASTContentTopLevelMethodEnd method = node;
+      visitTopLevelMethod(method, method.beginToken, method.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentClassMethodEnd) {
+      DirectParserASTContentClassMethodEnd method = node;
+      visitClassMethod(method, method.beginToken, method.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentExtensionMethodEnd) {
+      DirectParserASTContentExtensionMethodEnd method = node;
+      visitExtensionMethod(method, method.beginToken, method.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentMixinMethodEnd) {
+      DirectParserASTContentMixinMethodEnd method = node;
+      visitMixinMethod(method, method.beginToken, method.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentImportEnd) {
+      DirectParserASTContentImportEnd import = node;
+      visitImport(import, import.importKeyword, import.semicolon);
+      return;
+    }
+    if (node is DirectParserASTContentExportEnd) {
+      DirectParserASTContentExportEnd export = node;
+      visitExport(export, export.exportKeyword, export.semicolon);
+      return;
+    }
+    if (node is DirectParserASTContentTopLevelFieldsEnd) {
+      // TODO(jensj): Possibly this could go into more details too
+      // (e.g. to split up a field declaration).
+      DirectParserASTContentTopLevelFieldsEnd fields = node;
+      visitTopLevelFields(fields, fields.beginToken, fields.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentClassFieldsEnd) {
+      // TODO(jensj): Possibly this could go into more details too
+      // (e.g. to split up a field declaration).
+      DirectParserASTContentClassFieldsEnd fields = node;
+      visitClassFields(fields, fields.beginToken, fields.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentExtensionFieldsEnd) {
+      // TODO(jensj): Possibly this could go into more details too
+      // (e.g. to split up a field declaration).
+      DirectParserASTContentExtensionFieldsEnd fields = node;
+      visitExtensionFields(fields, fields.beginToken, fields.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentMixinFieldsEnd) {
+      // TODO(jensj): Possibly this could go into more details too
+      // (e.g. to split up a field declaration).
+      DirectParserASTContentMixinFieldsEnd fields = node;
+      visitMixinFields(fields, fields.beginToken, fields.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentNamedMixinApplicationEnd) {
+      DirectParserASTContentNamedMixinApplicationEnd namedMixin = node;
+      visitNamedMixin(namedMixin, namedMixin.begin, namedMixin.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentMixinDeclarationEnd) {
+      DirectParserASTContentMixinDeclarationEnd declaration = node;
+      visitMixin(declaration, declaration.mixinKeyword, declaration.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentEnumEnd) {
+      DirectParserASTContentEnumEnd declaration = node;
+      visitEnum(
+          declaration, declaration.enumKeyword, declaration.leftBrace.endGroup);
+      return;
+    }
+    if (node is DirectParserASTContentLibraryNameEnd) {
+      DirectParserASTContentLibraryNameEnd name = node;
+      visitLibraryName(name, name.libraryKeyword, name.semicolon);
+      return;
+    }
+    if (node is DirectParserASTContentPartEnd) {
+      DirectParserASTContentPartEnd part = node;
+      visitPart(part, part.partKeyword, part.semicolon);
+      return;
+    }
+    if (node is DirectParserASTContentPartOfEnd) {
+      DirectParserASTContentPartOfEnd partOf = node;
+      visitPartOf(partOf, partOf.partKeyword, partOf.semicolon);
+      return;
+    }
+    if (node is DirectParserASTContentExtensionDeclarationEnd) {
+      DirectParserASTContentExtensionDeclarationEnd ext = node;
+      visitExtension(ext, ext.extensionKeyword, ext.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentClassConstructorEnd) {
+      DirectParserASTContentClassConstructorEnd decl = node;
+      visitClassConstructor(decl, decl.beginToken, decl.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentExtensionConstructorEnd) {
+      DirectParserASTContentExtensionConstructorEnd decl = node;
+      visitExtensionConstructor(decl, decl.beginToken, decl.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentClassFactoryMethodEnd) {
+      DirectParserASTContentClassFactoryMethodEnd decl = node;
+      visitClassFactoryMethod(decl, decl.beginToken, decl.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentExtensionFactoryMethodEnd) {
+      DirectParserASTContentExtensionFactoryMethodEnd decl = node;
+      visitExtensionFactoryMethod(decl, decl.beginToken, decl.endToken);
+      return;
+    }
+    if (node is DirectParserASTContentMetadataEnd) {
+      DirectParserASTContentMetadataEnd decl = node;
+      // TODO(jensj): endToken is not part of the metadata! It's the first token
+      // of the next thing.
+      visitMetadata(decl, decl.beginToken, decl.endToken.previous);
+      return;
+    }
+
+    throw "Unknown: $node (${node.runtimeType} @ ${node.what})";
+  }
+
+  void visitChildren(DirectParserASTContent node) {
+    if (node.children == null) return;
+    final int numChildren = node.children.length;
+    for (int i = 0; i < numChildren; i++) {
+      DirectParserASTContent child = node.children[i];
+      accept(child);
+    }
+  }
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitImport(DirectParserASTContentImportEnd node, Token startInclusive,
+      Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitExport(DirectParserASTContentExportEnd node, Token startInclusive,
+      Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitTypedef(DirectParserASTContentFunctionTypeAliasEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers can call visitChildren on this node.
+  void visitMetadataStar(DirectParserASTContentMetadataStarEnd node) {
+    visitChildren(node);
+  }
+
+  /// Note: Implementers can call visitChildren on this node.
+  void visitClass(DirectParserASTContentClassDeclarationEnd node,
+      Token startInclusive, Token endInclusive) {
+    visitChildren(node);
+  }
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitTopLevelMethod(DirectParserASTContentTopLevelMethodEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitClassMethod(DirectParserASTContentClassMethodEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitExtensionMethod(DirectParserASTContentExtensionMethodEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitMixinMethod(DirectParserASTContentMixinMethodEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitTopLevelFields(DirectParserASTContentTopLevelFieldsEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitClassFields(DirectParserASTContentClassFieldsEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitExtensionFields(DirectParserASTContentExtensionFieldsEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitMixinFields(DirectParserASTContentMixinFieldsEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers can call visitChildren on this node.
+  void visitNamedMixin(DirectParserASTContentNamedMixinApplicationEnd node,
+      Token startInclusive, Token endInclusive) {
+    visitChildren(node);
+  }
+
+  /// Note: Implementers can call visitChildren on this node.
+  void visitMixin(DirectParserASTContentMixinDeclarationEnd node,
+      Token startInclusive, Token endInclusive) {
+    visitChildren(node);
+  }
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitEnum(DirectParserASTContentEnumEnd node, Token startInclusive,
+      Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitLibraryName(DirectParserASTContentLibraryNameEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitPart(DirectParserASTContentPartEnd node, Token startInclusive,
+      Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitPartOf(DirectParserASTContentPartOfEnd node, Token startInclusive,
+      Token endInclusive) {}
+
+  /// Note: Implementers can call visitChildren on this node.
+  void visitExtension(DirectParserASTContentExtensionDeclarationEnd node,
+      Token startInclusive, Token endInclusive) {
+    visitChildren(node);
+  }
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitClassConstructor(DirectParserASTContentClassConstructorEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitExtensionConstructor(
+      DirectParserASTContentExtensionConstructorEnd node,
+      Token startInclusive,
+      Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitClassFactoryMethod(DirectParserASTContentClassFactoryMethodEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitExtensionFactoryMethod(
+      DirectParserASTContentExtensionFactoryMethodEnd node,
+      Token startInclusive,
+      Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitMetadata(DirectParserASTContentMetadataEnd node,
+      Token startInclusive, Token endInclusive) {}
 }
 
 extension GeneralASTContentExtension on DirectParserASTContent {

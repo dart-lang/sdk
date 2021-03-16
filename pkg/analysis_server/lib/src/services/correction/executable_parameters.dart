@@ -61,7 +61,7 @@ class ExecutableParameters {
   /// can't be found.
   Future<FormalParameterList> getParameterList() async {
     var result = await sessionHelper.getElementDeclaration(executable);
-    var targetDeclaration = result.node;
+    var targetDeclaration = result?.node;
     if (targetDeclaration is ConstructorDeclaration) {
       return targetDeclaration.parameters;
     } else if (targetDeclaration is FunctionDeclaration) {
@@ -77,7 +77,7 @@ class ExecutableParameters {
   /// or `null` if it can't be found.
   Future<FormalParameter> getParameterNode(ParameterElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
-    var declaration = result.node;
+    var declaration = result?.node;
     for (var node = declaration; node != null; node = node.parent) {
       if (node is FormalParameter && node.parent is FormalParameterList) {
         return node;

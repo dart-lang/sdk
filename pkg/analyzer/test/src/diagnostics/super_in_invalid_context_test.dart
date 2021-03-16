@@ -45,8 +45,9 @@ class A {
 class B extends A {
   factory B() {
     super.m();
-    return null;
+    return B._();
   }
+  B._();
 }
 ''', [
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 61, 5),

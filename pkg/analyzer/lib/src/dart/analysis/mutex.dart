@@ -18,14 +18,14 @@ import 'dart:async';
 ///       m.release();
 ///     }
 class Mutex {
-  Completer<void> _lock;
+  Completer<void>? _lock;
 
   /// Acquire a lock.
   ///
   /// Returns a [Future] that will be completed when the lock has been acquired.
   Future<void> acquire() async {
     while (_lock != null) {
-      await _lock.future;
+      await _lock!.future;
     }
     _lock = Completer<void>();
   }
@@ -47,7 +47,7 @@ class Mutex {
     if (_lock == null) {
       throw StateError('No lock to release.');
     }
-    _lock.complete();
+    _lock!.complete();
     _lock = null;
   }
 }

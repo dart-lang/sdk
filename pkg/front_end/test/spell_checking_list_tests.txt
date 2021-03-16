@@ -11,11 +11,15 @@
 
 a0x
 a1x
+a2i
 a2x
+a3i
+a4i
 aa
 aaa
 abc
 abcompile
+adaptor
 adopted
 albeit
 allocations
@@ -39,6 +43,7 @@ auth
 authority
 autobianchi
 automatic
+axis
 b0x
 b1x
 b2x
@@ -86,6 +91,8 @@ btw
 builddir
 bulk2
 bulkcompile
+busy
+busywait
 bye
 c's
 c59cdee365b94ce066344840f9e3412d642019b
@@ -99,9 +106,11 @@ cc
 ccc
 cell
 cf
+characteristics
 charset
 checkme
 checkout
+chunked
 cipd
 circular
 class1a
@@ -126,6 +135,7 @@ columns
 commented
 commit
 companion
+comparative
 comparer
 compilations
 compiler's
@@ -183,6 +193,7 @@ denylist
 depended
 depfile
 desc
+descending
 descriptors
 detector
 deviation
@@ -229,7 +240,6 @@ echo
 edits
 elapse
 ell
-enm
 entrypoint
 entrypoints
 eoo
@@ -361,6 +371,7 @@ illustrate
 image
 images
 implementor
+imprecision
 in1
 in2
 inclosure
@@ -374,7 +385,9 @@ initializer2
 inlinable
 inlineable
 inlines
+insights
 instance2
+instrument
 insufficient
 intdiv
 interactive
@@ -422,6 +435,7 @@ koo
 la
 launch
 launching
+layers
 le
 legs
 lengths
@@ -525,6 +539,7 @@ out1
 out2
 outbound
 outlined
+overhead
 overlay
 ox
 pack
@@ -564,6 +579,7 @@ property5a
 property5b
 property8a
 property8b
+proportional
 protected
 proved
 provider
@@ -604,6 +620,8 @@ reload
 remap
 remaps
 rendition
+reorder
+reordering
 repaint
 repro
 reproduce
@@ -623,6 +641,7 @@ row
 rows
 runtimes
 rv
+saves
 scans
 scheduler
 screen
@@ -654,6 +673,7 @@ slight
 smoke
 snull
 somehow
+sorter
 spans
 spawn
 spell
@@ -745,6 +765,7 @@ unpacked
 unpatched
 unpaused
 unregistered
+unsurprisingly
 untransformed
 untrimmed
 unusual
@@ -773,6 +794,7 @@ week
 wherever
 whiskers
 wins
+wording
 workflow
 worlds
 wrongly

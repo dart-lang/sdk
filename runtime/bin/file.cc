@@ -1246,9 +1246,12 @@ CObject* File::ReadRequest(const CObjectArray& request) {
     CObject::FreeIOBufferData(io_buffer);
     return CObject::NewOSError();
   }
-  CObjectExternalUint8Array* external_array =
-      new CObjectExternalUint8Array(io_buffer);
-  external_array->SetLength(bytes_read);
+
+  // Possibly shrink the used malloc() storage if the actual number of bytes is
+  // significantly lower.
+  CObject::ShrinkIOBuffer(io_buffer, bytes_read);
+
+  auto external_array = new CObjectExternalUint8Array(io_buffer);
   CObjectArray* result = new CObjectArray(CObject::NewArray(2));
   result->SetAt(0, new CObjectIntptr(CObject::NewInt32(0)));
   result->SetAt(1, external_array);
@@ -1278,9 +1281,12 @@ CObject* File::ReadIntoRequest(const CObjectArray& request) {
     CObject::FreeIOBufferData(io_buffer);
     return CObject::NewOSError();
   }
-  CObjectExternalUint8Array* external_array =
-      new CObjectExternalUint8Array(io_buffer);
-  external_array->SetLength(bytes_read);
+
+  // Possibly shrink the used malloc() storage if the actual number of bytes is
+  // significantly lower.
+  CObject::ShrinkIOBuffer(io_buffer, bytes_read);
+
+  auto external_array = new CObjectExternalUint8Array(io_buffer);
   CObjectArray* result = new CObjectArray(CObject::NewArray(3));
   result->SetAt(0, new CObjectIntptr(CObject::NewInt32(0)));
   result->SetAt(1, new CObjectInt64(CObject::NewInt64(bytes_read)));

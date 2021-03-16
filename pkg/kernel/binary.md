@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 54;
+  UInt32 formatVersion = 56;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -510,6 +510,7 @@ type FunctionNode {
   List<VariableDeclarationPlain> positionalParameters;
   List<VariableDeclarationPlain> namedParameters;
   DartType returnType;
+  Option<DartType> futureValueType;
   Option<Statement> body;
 }
 
@@ -1063,6 +1064,7 @@ type FunctionExpression extends Expression {
 
 type Let extends Expression {
   Byte tag = 53;
+  FileOffset fileOffset;
   VariableDeclarationPlain variable;
   Expression body;
 }
@@ -1384,10 +1386,6 @@ enum Nullability { nullable = 0, nonNullable = 1, neither = 2, legacy = 3, }
 enum Variance { unrelated = 0, covariant = 1, contravariant = 2, invariant = 3, legacyCovariant = 4, }
 
 abstract type DartType extends Node {}
-
-type BottomType extends DartType {
-  Byte tag = 89;
-}
 
 type NeverType extends DartType {
   Byte tag = 98;

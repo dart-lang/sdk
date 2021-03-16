@@ -20,7 +20,7 @@ class SdkVersionEqEqOperatorTest extends SdkConstraintVerifierTest {
 class A {
   const A();
 }
-const A a = A();
+const A? a = A();
 const c = a == null;
 ''');
   }
@@ -30,10 +30,10 @@ const c = a == null;
 class A {
   const A();
 }
-const A a = A();
+const A? a = A();
 const c = a == null;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT, 54, 2),
+      error(HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT, 55, 2),
     ]);
   }
 
@@ -43,7 +43,7 @@ class A {
   const A();
 }
 const A a = A();
-const c = null == a;
+const c = 0 == a;
 ''');
   }
 
@@ -53,9 +53,9 @@ class A {
   const A();
 }
 const A a = A();
-const c = null == a;
+const c = 0 == a;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT, 57, 2),
+      error(HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT, 54, 2),
     ]);
   }
 }

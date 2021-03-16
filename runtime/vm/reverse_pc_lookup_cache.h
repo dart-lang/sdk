@@ -13,11 +13,28 @@ namespace dart {
 
 class IsolateGroup;
 
+// This class provides mechanism to find Code and CompressedStackMaps
+// objects corresponding to the given PC.
+// Can only be used in AOT runtime with bare instructions.
 class ReversePc : public AllStatic {
  public:
-  static CodePtr Lookup(IsolateGroup* group,
-                        uword pc,
-                        bool is_return_address = false);
+  // Looks for Code object corresponding to |pc| in the
+  // given isolate |group| and vm isolate group.
+  static CodePtr Lookup(IsolateGroup* group, uword pc, bool is_return_address);
+
+  // Looks for CompressedStackMaps corresponding to |pc| in the
+  // given isolate |group| and vm isolate group.
+  // Sets |code_start| to the beginning of the instructions corresponding
+  // to |pc| (like Code::PayloadStart()).
+  static CompressedStackMapsPtr FindCompressedStackMaps(IsolateGroup* group,
+                                                        uword pc,
+                                                        bool is_return_address,
+                                                        uword* code_start);
+
+ private:
+  static CodePtr LookupInGroup(IsolateGroup* group,
+                               uword pc,
+                               bool is_return_address);
 };
 
 }  // namespace dart

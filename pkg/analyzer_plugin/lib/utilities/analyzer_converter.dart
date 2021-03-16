@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart' as analyzer;
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart' as analyzer;
@@ -110,19 +111,22 @@ class AnalyzerConverter {
   plugin.Element convertElement(analyzer.Element element) {
     var kind = _convertElementToElementKind(element);
     return plugin.Element(
-        kind,
-        element.displayName,
-        plugin.Element.makeFlags(
-            isPrivate: element.isPrivate,
-            isDeprecated: element.hasDeprecated,
-            isAbstract: _isAbstract(element),
-            isConst: _isConst(element),
-            isFinal: _isFinal(element),
-            isStatic: _isStatic(element)),
-        location: locationFromElement(element),
-        typeParameters: _getTypeParametersString(element),
-        parameters: _getParametersString(element),
-        returnType: _getReturnTypeString(element));
+      kind,
+      element.displayName,
+      plugin.Element.makeFlags(
+        isPrivate: element.isPrivate,
+        isDeprecated: element.hasDeprecated,
+        isAbstract: _isAbstract(element),
+        isConst: _isConst(element),
+        isFinal: _isFinal(element),
+        isStatic: _isStatic(element),
+      ),
+      location: locationFromElement(element),
+      typeParameters: _getTypeParametersString(element),
+      aliasedType: _getAliasedTypeString(element),
+      parameters: _getParametersString(element),
+      returnType: _getReturnTypeString(element),
+    );
   }
 
   /// Convert the element [kind] from the 'analyzer' package to an element kind
@@ -164,6 +168,8 @@ class AnalyzerConverter {
       return plugin.ElementKind.SETTER;
     } else if (kind == analyzer.ElementKind.TOP_LEVEL_VARIABLE) {
       return plugin.ElementKind.TOP_LEVEL_VARIABLE;
+    } else if (kind == analyzer.ElementKind.TYPE_ALIAS) {
+      return plugin.ElementKind.TYPE_ALIAS;
     } else if (kind == analyzer.ElementKind.TYPE_PARAMETER) {
       return plugin.ElementKind.TYPE_PARAMETER;
     }
@@ -219,6 +225,14 @@ class AnalyzerConverter {
       return plugin.ElementKind.ENUM_CONSTANT;
     }
     return convertElementKind(element.kind);
+  }
+
+  String _getAliasedTypeString(analyzer.Element element) {
+    if (element is analyzer.TypeAliasElement) {
+      var aliasedType = element.aliasedType;
+      return aliasedType.getDisplayString(withNullability: false);
+    }
+    return null;
   }
 
   /// Return a textual representation of the parameters of the given [element],
@@ -281,12 +295,10 @@ class AnalyzerConverter {
           ? type.getDisplayString(withNullability: false)
           : 'dynamic';
     } else if (element is analyzer.TypeAliasElement) {
-      var aliasedElement = element.aliasedElement;
-      if (aliasedElement is analyzer.GenericFunctionTypeElement) {
-        var returnType = aliasedElement.returnType;
+      var aliasedType = element.aliasedType;
+      if (aliasedType is FunctionType) {
+        var returnType = aliasedType.returnType;
         return returnType.getDisplayString(withNullability: false);
-      } else {
-        return null;
       }
     }
     return null;

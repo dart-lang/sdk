@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
@@ -26,53 +27,59 @@ main() {
 
 /// Strong mode static analyzer local type inference tests
 @reflectiveTest
-class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
-  TypeAssertions _assertions;
+class StrongModeLocalInferenceTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
+  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
+  //  test cases.
+  TypeAssertions? _assertions;
 
-  Asserter<DartType> _isDynamic;
-  Asserter<InterfaceType> _isFutureOfDynamic;
-  Asserter<InterfaceType> _isFutureOfInt;
-  Asserter<InterfaceType> _isFutureOfNull;
-  Asserter<InterfaceType> _isFutureOrOfInt;
-  Asserter<DartType> _isInt;
-  Asserter<DartType> _isNull;
-  Asserter<DartType> _isNum;
-  Asserter<DartType> _isObject;
-  Asserter<DartType> _isString;
+  late final Asserter<DartType> _isDynamic;
+  late final Asserter<InterfaceType> _isFutureOfDynamic;
+  late final Asserter<InterfaceType> _isFutureOfInt;
+  late final Asserter<InterfaceType> _isFutureOfNull;
+  late final Asserter<InterfaceType> _isFutureOrOfInt;
+  late final Asserter<DartType> _isInt;
+  late final Asserter<DartType> _isNull;
+  late final Asserter<DartType> _isNum;
+  late final Asserter<DartType> _isObject;
+  late final Asserter<DartType> _isString;
 
-  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>, DartType>
+  late final AsserterBuilder2<Asserter<DartType>, Asserter<DartType>, DartType>
       _isFunction2Of;
-  AsserterBuilder<List<Asserter<DartType>>, InterfaceType> _isFutureOf;
-  AsserterBuilder<List<Asserter<DartType>>, InterfaceType> _isFutureOrOf;
-  AsserterBuilderBuilder<Asserter<DartType>, List<Asserter<DartType>>, DartType>
-      _isInstantiationOf;
-  AsserterBuilder<Asserter<DartType>, InterfaceType> _isListOf;
-  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>, InterfaceType>
-      _isMapOf;
-  AsserterBuilder<DartType, DartType> _isType;
+  late final AsserterBuilder<List<Asserter<DartType>>, InterfaceType>
+      _isFutureOf;
+  late final AsserterBuilder<List<Asserter<DartType>>, InterfaceType>
+      _isFutureOrOf;
+  late final AsserterBuilderBuilder<Asserter<DartType>,
+      List<Asserter<DartType>>, DartType> _isInstantiationOf;
+  late final AsserterBuilder<Asserter<DartType>, InterfaceType> _isListOf;
+  late final AsserterBuilder2<Asserter<DartType>, Asserter<DartType>,
+      InterfaceType> _isMapOf;
+  late final AsserterBuilder<DartType, DartType> _isType;
 
-  AsserterBuilder<Element, DartType> _hasElement;
+  late final AsserterBuilder<Element, DartType> _hasElement;
 
-  CompilationUnit get unit => result.unit;
+  CompilationUnit get unit => result.unit!;
 
   @override
   Future<void> resolveTestFile() async {
     var result = await super.resolveTestFile();
 
-    if (_assertions == null) {
-      _assertions = TypeAssertions(typeProvider);
-      _isType = _assertions.isType;
-      _hasElement = _assertions.hasElement;
-      _isInstantiationOf = _assertions.isInstantiationOf;
-      _isInt = _assertions.isInt;
-      _isNull = _assertions.isNull;
-      _isNum = _assertions.isNum;
-      _isObject = _assertions.isObject;
-      _isString = _assertions.isString;
-      _isDynamic = _assertions.isDynamic;
-      _isListOf = _assertions.isListOf;
-      _isMapOf = _assertions.isMapOf;
-      _isFunction2Of = _assertions.isFunction2Of;
+    var assertions = _assertions;
+    if (assertions == null) {
+      assertions = _assertions = TypeAssertions(typeProvider);
+      _isType = assertions.isType;
+      _hasElement = assertions.hasElement;
+      _isInstantiationOf = assertions.isInstantiationOf;
+      _isInt = assertions.isInt;
+      _isNull = assertions.isNull;
+      _isNum = assertions.isNum;
+      _isObject = assertions.isObject;
+      _isString = assertions.isString;
+      _isDynamic = assertions.isDynamic;
+      _isListOf = assertions.isListOf;
+      _isMapOf = assertions.isMapOf;
+      _isFunction2Of = assertions.isFunction2Of;
       _isFutureOf = _isInstantiationOf(_hasElement(typeProvider.futureElement));
       _isFutureOrOf =
           _isInstantiationOf(_hasElement(typeProvider.futureOrElement));
@@ -116,11 +123,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       } else {
         var stmt =
             (body as BlockFunctionBody).block.statements[0] as ReturnStatement;
-        returnExp = stmt.expression;
+        returnExp = stmt.expression!;
       }
-      DartType type = returnExp.staticType;
+      DartType type = returnExp.typeOrThrow;
       if (returnExp is AwaitExpression) {
-        type = returnExp.expression.staticType;
+        type = returnExp.expression.typeOrThrow;
       }
       typeTest(type as InterfaceType);
     }
@@ -164,18 +171,18 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
     void check(String name, Asserter<InterfaceType> typeTest) {
       FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, name);
-      FunctionBody body = test.functionExpression.body;
+      var body = test.functionExpression.body;
       Expression returnExp;
       if (body is ExpressionFunctionBody) {
         returnExp = body.expression;
       } else {
         var stmt =
             (body as BlockFunctionBody).block.statements[0] as ReturnStatement;
-        returnExp = stmt.expression;
+        returnExp = stmt.expression!;
       }
-      DartType type = returnExp.staticType;
+      DartType type = returnExp.typeOrThrow;
       if (returnExp is AwaitExpression) {
-        type = returnExp.expression.staticType;
+        type = returnExp.expression.typeOrThrow;
       }
       typeTest(type as InterfaceType);
     }
@@ -217,13 +224,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       return exp;
     }
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
 
     CascadeExpression cascade = fetch(0);
-    _isInstantiationOf(_hasElement(elementA))([_isInt])(cascade.staticType);
+    _isInstantiationOf(_hasElement(elementA))([_isInt])(cascade.typeOrThrow);
     var invoke = cascade.cascadeSections[0] as MethodInvocation;
     var function = invoke.argumentList.arguments[1] as FunctionExpression;
-    ExecutableElement f0 = function.declaredElement;
+    ExecutableElement f0 = function.declaredElement!;
     _isListOf(_isInt)(f0.type.returnType as InterfaceType);
     expect(f0.type.normalParameterTypes[0], typeProvider.intType);
   }
@@ -244,8 +251,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     var stmt = statements[0] as VariableDeclarationStatement;
     VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer;
-    _isInt(call.staticType);
+    Expression call = decl.initializer!;
+    _isInt(call.typeOrThrow);
   }
 
   test_constrainedByBounds2() async {
@@ -264,8 +271,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     var stmt = statements[0] as VariableDeclarationStatement;
     VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer;
-    _isInt(call.staticType);
+    Expression call = decl.initializer!;
+    _isInt(call.typeOrThrow);
   }
 
   test_constrainedByBounds3() async {
@@ -281,8 +288,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     var stmt = statements[0] as VariableDeclarationStatement;
     VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer;
-    _isInt(call.staticType);
+    Expression call = decl.initializer!;
+    _isInt(call.typeOrThrow);
   }
 
   test_constrainedByBounds4() async {
@@ -303,8 +310,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     var stmt = statements[0] as VariableDeclarationStatement;
     VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer;
-    _isInt(call.staticType);
+    Expression call = decl.initializer!;
+    _isInt(call.typeOrThrow);
   }
 
   test_constrainedByBounds5() async {
@@ -327,8 +334,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     var stmt = statements[0] as VariableDeclarationStatement;
     VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer;
-    _isDynamic(call.staticType);
+    Expression call = decl.initializer!;
+    _isDynamic(call.typeOrThrow);
   }
 
   test_constructorInitializer_propagation() async {
@@ -363,13 +370,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     var body = constructor.body as BlockFunctionBody;
     var stmt = body.block.statements[0] as ReturnStatement;
     var exp = stmt.expression as InstanceCreationExpression;
-    ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement;
-    ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement;
-    expect(exp.constructorName.type.type.element, elementB);
+    ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement!;
+    ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement!;
+    expect(exp.constructorName.type.type!.element, elementB);
     _isInstantiationOf(_hasElement(elementB))([
       _isType(elementA.typeParameters[0]
           .instantiate(nullabilitySuffix: NullabilitySuffix.star))
-    ])(exp.staticType);
+    ])(exp.typeOrThrow);
   }
 
   test_fieldDeclaration_propagation() async {
@@ -382,7 +389,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
     VariableDeclaration field = AstFinder.getFieldInClass(unit, "A", "f0");
 
-    _isListOf(_isString)(field.initializer.staticType as InterfaceType);
+    _isListOf(_isString)(field.initializer!.staticType as InterfaceType);
   }
 
   test_functionDeclaration_body_propagation() async {
@@ -415,14 +422,14 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         (statements[0] as FunctionDeclarationStatement).functionDeclaration;
     var body0 = inner.functionExpression.body as BlockFunctionBody;
     var return0 = body0.block.statements[0] as ReturnStatement;
-    Expression anon0 = return0.expression;
+    Expression anon0 = return0.expression!;
     var type0 = anon0.staticType as FunctionType;
     expect(type0.returnType, typeProvider.intType);
     expect(type0.normalParameterTypes[0], typeProvider.stringType);
 
     var anon1 =
         (statements[1] as ReturnStatement).expression as FunctionExpression;
-    FunctionType type1 = anon1.declaredElement.type;
+    FunctionType type1 = anon1.declaredElement!.type;
     expect(type1.returnType, typeProvider.intType);
     expect(type1.normalParameterTypes[0], typeProvider.intType);
   }
@@ -456,7 +463,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
       var exp = decl.initializer as FunctionExpression;
-      return exp.declaredElement.type;
+      return exp.declaredElement!.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -494,7 +501,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
       var exp = decl.initializer as FunctionExpression;
-      return exp.declaredElement.type;
+      return exp.declaredElement!.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -536,7 +543,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         return body.expression;
       } else {
         Statement stmt = (body as BlockFunctionBody).block.statements[0];
-        return (stmt as ReturnStatement).expression;
+        return (stmt as ReturnStatement).expression!;
       }
     }
 
@@ -573,7 +580,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       var stmt = statements[i] as ExpressionStatement;
       var invk = stmt.expression as FunctionExpressionInvocation;
       var exp = invk.argumentList.arguments[0] as FunctionExpression;
-      return exp.declaredElement.type;
+      return exp.declaredElement!.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -608,7 +615,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       var stmt = statements[i] as ExpressionStatement;
       var invk = stmt.expression as FunctionExpressionInvocation;
       var exp = invk.argumentList.arguments[0] as FunctionExpression;
-      return exp.declaredElement.type;
+      return exp.declaredElement!.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -642,7 +649,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       var stmt = statements[i] as ExpressionStatement;
       var invk = stmt.expression as MethodInvocation;
       var exp = invk.argumentList.arguments[0] as FunctionExpression;
-      return exp.declaredElement.type;
+      return exp.declaredElement!.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -675,7 +682,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       var stmt = statements[i] as ExpressionStatement;
       var invk = stmt.expression as MethodInvocation;
       var exp = invk.argumentList.arguments[0] as FunctionExpression;
-      return exp.declaredElement.type;
+      return exp.declaredElement!.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -711,7 +718,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       var stmt = statements[i] as ExpressionStatement;
       var invk = stmt.expression as MethodInvocation;
       var exp = invk.argumentList.arguments[0] as FunctionExpression;
-      return exp.declaredElement.type;
+      return exp.declaredElement!.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -746,7 +753,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       var stmt = statements[i] as ExpressionStatement;
       var invk = stmt.expression as MethodInvocation;
       var exp = invk.argumentList.arguments[0] as FunctionExpression;
-      return exp.declaredElement.type;
+      return exp.declaredElement!.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -789,7 +796,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         return body.expression;
       } else {
         Statement stmt = (body as BlockFunctionBody).block.statements[0];
-        return (stmt as ReturnStatement).expression;
+        return (stmt as ReturnStatement).expression!;
       }
     }
 
@@ -947,7 +954,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     FutureOr<List<int>> test() => mk(3);
     ''');
     _isListOf(_isInt)(invoke.staticType as InterfaceType);
-    _isInt(invoke.argumentList.arguments[0].staticType);
+    _isInt(invoke.argumentList.arguments[0].typeOrThrow);
   }
 
   test_futureOr_methods1() async {
@@ -955,7 +962,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.toString();
     ''');
-    _isString(invoke.staticType);
+    _isString(invoke.typeOrThrow);
   }
 
   test_futureOr_methods2() async {
@@ -965,7 +972,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     ''', expectedErrors: [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 61, 3),
     ]);
-    _isDynamic(invoke.staticType);
+    _isDynamic(invoke.typeOrThrow);
   }
 
   test_futureOr_methods3() async {
@@ -975,7 +982,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     ''', expectedErrors: [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 61, 4),
     ]);
-    _isDynamic(invoke.staticType);
+    _isDynamic(invoke.typeOrThrow);
   }
 
   test_futureOr_methods4() async {
@@ -985,7 +992,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     ''', expectedErrors: [
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 65, 3),
     ]);
-    _isDynamic(invoke.staticType);
+    _isDynamic(invoke.typeOrThrow);
   }
 
   test_futureOr_no_return() async {
@@ -995,7 +1002,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then((int x) {});
     ''');
     _isFunction2Of(_isInt, _isNull)(
-        invoke.argumentList.arguments[0].staticType);
+        invoke.argumentList.arguments[0].typeOrThrow);
     _isFutureOfNull(invoke.staticType as InterfaceType);
   }
 
@@ -1006,7 +1013,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then((int x) {return;});
     ''');
     _isFunction2Of(_isInt, _isNull)(
-        invoke.argumentList.arguments[0].staticType);
+        invoke.argumentList.arguments[0].typeOrThrow);
     _isFutureOfNull(invoke.staticType as InterfaceType);
   }
 
@@ -1017,7 +1024,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then((int x) {return null;});
     ''');
     _isFunction2Of(_isInt, _isNull)(
-        invoke.argumentList.arguments[0].staticType);
+        invoke.argumentList.arguments[0].typeOrThrow);
     _isFutureOfNull(invoke.staticType as InterfaceType);
   }
 
@@ -1050,7 +1057,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then<Null>((int x) {});
     ''');
     _isFunction2Of(_isInt, _isNull)(
-        invoke.argumentList.arguments[0].staticType);
+        invoke.argumentList.arguments[0].typeOrThrow);
     _isFutureOfNull(invoke.staticType as InterfaceType);
   }
 
@@ -1061,7 +1068,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then<Null>((int x) {return;});
     ''');
     _isFunction2Of(_isInt, _isNull)(
-        invoke.argumentList.arguments[0].staticType);
+        invoke.argumentList.arguments[0].typeOrThrow);
     _isFutureOfNull(invoke.staticType as InterfaceType);
   }
 
@@ -1072,7 +1079,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     test() => f.then<Null>((int x) { return null;});
     ''');
     _isFunction2Of(_isInt, _isNull)(
-        invoke.argumentList.arguments[0].staticType);
+        invoke.argumentList.arguments[0].typeOrThrow);
     _isFutureOfNull(invoke.staticType as InterfaceType);
   }
 
@@ -1111,14 +1118,14 @@ void test() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 347, 2),
     ]);
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     void check(int i) {
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      Expression init = decl.initializer;
-      _isInstantiationOf(_hasElement(elementA))([_isInt])(init.staticType);
+      Expression init = decl.initializer!;
+      _isInstantiationOf(_hasElement(elementA))([_isInt])(init.typeOrThrow);
     }
 
     for (var i = 0; i < 5; i++) {
@@ -1142,7 +1149,7 @@ void test() {
     ]);
 
     DartType cType = findElement.localVar('c').type;
-    Element elementC = AstFinder.getClass(unit, "C").declaredElement;
+    Element elementC = AstFinder.getClass(unit, "C").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementC))([_isDynamic])(cType);
   }
@@ -1245,7 +1252,7 @@ test() {
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'String' for 'T' which doesn't work:
-  Type parameter 'T' declared to extend 'num'.
+  Type parameter 'T' is declared to extend 'num' producing 'num'.
 The type 'String' was inferred from:
   Return type declared as 'T Function(T)'
               used where  'String Function(String)' is required.
@@ -1419,7 +1426,7 @@ test() {
             as VariableDeclarationStatement)
         .variables
         .variables[0];
-    _isDynamic(h.declaredElement.type);
+    _isDynamic(h.declaredElement!.type);
     var fCall = h.initializer as MethodInvocation;
     assertInvokeType(fCall, 'dynamic Function(dynamic Function(dynamic))');
     var g = fCall.argumentList.arguments[0];
@@ -1473,8 +1480,9 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     VariableDeclaration mapB = AstFinder.getFieldInClass(unit, "B", "map");
     MethodDeclaration mapC = AstFinder.getMethodInClass(unit, "C", "map");
-    assertMapOfIntToListOfInt(mapB.declaredElement.type as InterfaceType);
-    assertMapOfIntToListOfInt(mapC.declaredElement.returnType as InterfaceType);
+    assertMapOfIntToListOfInt(mapB.declaredElement!.type as InterfaceType);
+    assertMapOfIntToListOfInt(
+        mapC.declaredElement!.returnType as InterfaceType);
 
     var mapLiteralB = mapB.initializer as SetOrMapLiteral;
     var mapLiteralC =
@@ -1649,21 +1657,22 @@ num test(Iterable values) => values.fold(values.first as num, max);
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 3154, 7),
     ]);
 
-    Expression rhs(VariableDeclarationStatement stmt) {
+    Expression rhs(AstNode stmt) {
+      stmt as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      Expression exp = decl.initializer;
+      Expression exp = decl.initializer!;
       return exp;
     }
 
     void hasType(Asserter<DartType> assertion, Expression exp) =>
-        assertion(exp.staticType);
+        assertion(exp.typeOrThrow);
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement;
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement;
-    Element elementC = AstFinder.getClass(unit, "C").declaredElement;
-    Element elementD = AstFinder.getClass(unit, "D").declaredElement;
-    Element elementE = AstFinder.getClass(unit, "E").declaredElement;
-    Element elementF = AstFinder.getClass(unit, "F").declaredElement;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
+    Element elementC = AstFinder.getClass(unit, "C").declaredElement!;
+    Element elementD = AstFinder.getClass(unit, "D").declaredElement!;
+    Element elementE = AstFinder.getClass(unit, "E").declaredElement!;
+    Element elementF = AstFinder.getClass(unit, "F").declaredElement!;
 
     AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf =
         _isInstantiationOf(_hasElement(elementA));
@@ -1811,7 +1820,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
     Asserter<InterfaceType> assertListOfListOfInt =
-        _isListOf((DartType type) => assertListOfInt(type));
+        _isListOf((DartType type) => assertListOfInt(type as InterfaceType));
 
     assertListOfListOfInt(literal(0).staticType as InterfaceType);
     assertListOfListOfInt(literal(1).staticType as InterfaceType);
@@ -1850,7 +1859,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
       var exp = decl.initializer as ListLiteral;
-      return exp.staticType;
+      return exp.typeOrThrow;
     }
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
@@ -1885,7 +1894,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
       var exp = decl.initializer as ListLiteral;
-      return exp.staticType;
+      return exp.typeOrThrow;
     }
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
@@ -1922,7 +1931,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
       var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
       var exp = decl.initializer as ListLiteral;
-      return exp.staticType;
+      return exp.typeOrThrow;
     }
 
     _isListOf(_isNum)(literal(0) as InterfaceType);
@@ -1951,11 +1960,11 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
-    DartType literal(int i) {
-      VariableDeclarationStatement stmt = statements[i];
+    InterfaceType literal(int i) {
+      var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      ListLiteral exp = decl.initializer;
-      return exp.staticType;
+      var exp = decl.initializer as ListLiteral;
+      return exp.staticType as InterfaceType;
     }
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
@@ -1991,30 +2000,34 @@ num test(Iterable values) => values.fold(values.first as num, max);
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     SetOrMapLiteral literal(int i) {
-      VariableDeclarationStatement stmt = statements[i];
+      var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      SetOrMapLiteral exp = decl.initializer;
+      var exp = decl.initializer as SetOrMapLiteral;
       return exp;
     }
 
     Asserter<InterfaceType> assertListOfString = _isListOf(_isString);
-    Asserter<InterfaceType> assertMapOfIntToListOfString =
-        _isMapOf(_isInt, (DartType type) => assertListOfString(type));
+    Asserter<InterfaceType> assertMapOfIntToListOfString = _isMapOf(
+        _isInt, (DartType type) => assertListOfString(type as InterfaceType));
 
-    assertMapOfIntToListOfString(literal(0).staticType);
-    assertMapOfIntToListOfString(literal(1).staticType);
-    assertMapOfIntToListOfString(literal(2).staticType);
-    assertMapOfIntToListOfString(literal(3).staticType);
-    assertMapOfIntToListOfString(literal(4).staticType);
+    assertMapOfIntToListOfString(literal(0).staticType as InterfaceType);
+    assertMapOfIntToListOfString(literal(1).staticType as InterfaceType);
+    assertMapOfIntToListOfString(literal(2).staticType as InterfaceType);
+    assertMapOfIntToListOfString(literal(3).staticType as InterfaceType);
+    assertMapOfIntToListOfString(literal(4).staticType as InterfaceType);
 
-    assertListOfString(
-        (literal(1).elements[0] as MapLiteralEntry).value.staticType);
-    assertListOfString(
-        (literal(2).elements[0] as MapLiteralEntry).value.staticType);
-    assertListOfString(
-        (literal(3).elements[0] as MapLiteralEntry).value.staticType);
-    assertListOfString(
-        (literal(4).elements[0] as MapLiteralEntry).value.staticType);
+    assertListOfString((literal(1).elements[0] as MapLiteralEntry)
+        .value
+        .staticType as InterfaceType);
+    assertListOfString((literal(2).elements[0] as MapLiteralEntry)
+        .value
+        .staticType as InterfaceType);
+    assertListOfString((literal(3).elements[0] as MapLiteralEntry)
+        .value
+        .staticType as InterfaceType);
+    assertListOfString((literal(4).elements[0] as MapLiteralEntry)
+        .value
+        .staticType as InterfaceType);
   }
 
   test_mapLiteral_simple() async {
@@ -2041,11 +2054,11 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
-    DartType literal(int i) {
-      VariableDeclarationStatement stmt = statements[i];
+    InterfaceType literal(int i) {
+      var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      SetOrMapLiteral exp = decl.initializer;
-      return exp.staticType;
+      var exp = decl.initializer as SetOrMapLiteral;
+      return exp.staticType as InterfaceType;
     }
 
     Asserter<InterfaceType> assertMapOfIntToString =
@@ -2080,11 +2093,11 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
-    DartType literal(int i) {
-      VariableDeclarationStatement stmt = statements[i];
+    InterfaceType literal(int i) {
+      var stmt = statements[i] as VariableDeclarationStatement;
       VariableDeclaration decl = stmt.variables.variables[0];
-      SetOrMapLiteral exp = decl.initializer;
-      return exp.staticType;
+      var exp = decl.initializer as SetOrMapLiteral;
+      return exp.staticType as InterfaceType;
     }
 
     Asserter<InterfaceType> assertMapOfIntToDynamic =
@@ -2115,13 +2128,13 @@ num test(Iterable values) => values.fold(values.first as num, max);
         return body.expression;
       } else {
         Statement stmt = (body as BlockFunctionBody).block.statements[0];
-        return (stmt as ReturnStatement).expression;
+        return (stmt as ReturnStatement).expression!;
       }
     }
 
     Asserter<InterfaceType> assertListOfString = _isListOf(_isString);
-    assertListOfString(methodReturnValue("m0").staticType);
-    assertListOfString(methodReturnValue("m1").staticType);
+    assertListOfString(methodReturnValue("m0").staticType as InterfaceType);
+    assertListOfString(methodReturnValue("m1").staticType as InterfaceType);
   }
 
   test_partialTypes1() async {
@@ -2136,11 +2149,11 @@ num test(Iterable values) => values.fold(values.first as num, max);
     await assertNoErrorsInCode(code);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    _isString(body.expression.staticType);
-    MethodInvocation invoke = body.expression;
-    FunctionExpression function = invoke.argumentList.arguments[0];
-    ExecutableElement f0 = function.declaredElement;
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    _isString(body.expression.typeOrThrow);
+    var invoke = body.expression as MethodInvocation;
+    var function = invoke.argumentList.arguments[0] as FunctionExpression;
+    ExecutableElement f0 = function.declaredElement!;
     FunctionType type = f0.type;
     _isFunction2Of(_isString, _isInt)(type);
   }
@@ -2162,10 +2175,10 @@ num test(Iterable values) => values.fold(values.first as num, max);
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    DartType type = body.expression.staticType;
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementB))([_isNull])(type);
   }
@@ -2184,10 +2197,10 @@ num test(Iterable values) => values.fold(values.first as num, max);
     await assertNoErrorsInCode(code);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    DartType type = body.expression.staticType;
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementB))([_isNum])(type);
   }
@@ -2209,10 +2222,10 @@ num test(Iterable values) => values.fold(values.first as num, max);
     ]);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    DartType type = body.expression.staticType;
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementB))([_isNull])(type);
   }
@@ -2232,10 +2245,10 @@ num test(Iterable values) => values.fold(values.first as num, max);
     await assertNoErrorsInCode(code);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    DartType type = body.expression.staticType;
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementB))([_isInt])(type);
   }
@@ -2257,11 +2270,11 @@ num test(Iterable values) => values.fold(values.first as num, max);
     await assertNoErrorsInCode(code);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    FunctionType functionType = body.expression.staticType;
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementA))([_isObject, _isObject])(type);
   }
@@ -2282,11 +2295,11 @@ num test(Iterable values) => values.fold(values.first as num, max);
     await assertNoErrorsInCode(code);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    FunctionType functionType = body.expression.staticType;
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -2308,11 +2321,11 @@ num test(Iterable values) => values.fold(values.first as num, max);
     await assertNoErrorsInCode(code);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    FunctionType functionType = body.expression.staticType;
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -2334,11 +2347,11 @@ num test(Iterable values) => values.fold(values.first as num, max);
     await assertNoErrorsInCode(code);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    FunctionType functionType = body.expression.staticType;
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -2355,20 +2368,20 @@ class B<T2, U2> {
    ''';
     await assertNoErrorsInCode(code);
 
-    ClassDeclaration b = unit.declarations[1];
-    ConstructorDeclaration bConstructor = b.members[0];
-    ConstructorName redirected = bConstructor.redirectedConstructor;
+    var b = unit.declarations[1] as ClassDeclaration;
+    var bConstructor = b.members[0] as ConstructorDeclaration;
+    var redirected = bConstructor.redirectedConstructor as ConstructorName;
 
-    TypeName typeName = redirected.type;
+    var typeName = redirected.type;
     assertType(typeName.type, 'A<T2, U2>');
     assertType(typeName.type, 'A<T2, U2>');
 
-    var constructorMember = redirected.staticElement;
+    var constructorMember = redirected.staticElement!;
     expect(
       constructorMember.getDisplayString(withNullability: false),
       'A<T2, U2> A.named()',
     );
-    expect(redirected.name.staticElement, constructorMember);
+    expect(redirected.name!.staticElement, constructorMember);
   }
 
   test_redirectedConstructor_self() async {
@@ -2391,17 +2404,17 @@ class B<T2, U2> {
 }
 ''');
 
-    ClassDeclaration b = result.unit.declarations[1];
-    ConstructorDeclaration bConstructor = b.members[0];
-    ConstructorName redirected = bConstructor.redirectedConstructor;
+    var b = result.unit!.declarations[1] as ClassDeclaration;
+    var bConstructor = b.members[0] as ConstructorDeclaration;
+    var redirected = bConstructor.redirectedConstructor as ConstructorName;
 
-    TypeName typeName = redirected.type;
+    var typeName = redirected.type;
     assertType(typeName.type, 'A<T2, U2>');
     assertType(typeName.type, 'A<T2, U2>');
 
     expect(redirected.name, isNull);
     expect(
-      redirected.staticElement.getDisplayString(withNullability: false),
+      redirected.staticElement!.getDisplayString(withNullability: false),
       'A<T2, U2> A()',
     );
   }
@@ -2417,9 +2430,10 @@ class B<T2, U2> {
 
     ConstructorDeclaration constructor =
         AstFinder.getConstructorInClass(unit, "A", null);
-    RedirectingConstructorInvocation invocation = constructor.initializers[0];
+    var invocation =
+        constructor.initializers[0] as RedirectingConstructorInvocation;
     Expression exp = invocation.argumentList.arguments[0];
-    _isListOf(_isString)(exp.staticType);
+    _isListOf(_isString)(exp.staticType as InterfaceType);
   }
 
   test_returnType_variance1() async {
@@ -2433,10 +2447,10 @@ class B<T2, U2> {
     await assertNoErrorsInCode(code);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    MethodInvocation invoke = body.expression;
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var invoke = body.expression as MethodInvocation;
     _isFunction2Of(_isNum, _isFunction2Of(_isNum, _isString))(
-        invoke.staticInvokeType);
+        invoke.staticInvokeType!);
   }
 
   test_returnType_variance2() async {
@@ -2450,10 +2464,10 @@ class B<T2, U2> {
     await assertNoErrorsInCode(code);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    MethodInvocation invoke = body.expression;
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var invoke = body.expression as MethodInvocation;
     _isFunction2Of(_isNum, _isFunction2Of(_isString, _isNum))(
-        invoke.staticInvokeType);
+        invoke.staticInvokeType!);
   }
 
   test_returnType_variance3() async {
@@ -2468,8 +2482,8 @@ class B<T2, U2> {
     await assertNoErrorsInCode(code);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    FunctionType functionType = body.expression.staticType;
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
     _isInt(type);
   }
@@ -2486,8 +2500,8 @@ class B<T2, U2> {
     await assertNoErrorsInCode(code);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    FunctionType functionType = body.expression.staticType;
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.returnType;
     _isInt(type);
   }
@@ -2504,11 +2518,11 @@ class B<T2, U2> {
     await assertNoErrorsInCode(code);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    MethodInvocation call = body.expression;
-    _isNum(call.staticType);
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var call = body.expression as MethodInvocation;
+    _isNum(call.typeOrThrow);
     _isFunction2Of(_isFunction2Of(_isNum, _isString), _isNum)(
-        call.staticInvokeType);
+        call.staticInvokeType!);
   }
 
   test_returnType_variance6() async {
@@ -2523,11 +2537,11 @@ class B<T2, U2> {
     await assertNoErrorsInCode(code);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    MethodInvocation call = body.expression;
-    _isNum(call.staticType);
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var call = body.expression as MethodInvocation;
+    _isNum(call.typeOrThrow);
     _isFunction2Of(_isFunction2Of(_isString, _isNum), _isNum)(
-        call.staticInvokeType);
+        call.staticInvokeType!);
   }
 
   test_superConstructorInvocation_propagation() async {
@@ -2543,9 +2557,9 @@ class B<T2, U2> {
 
     ConstructorDeclaration constructor =
         AstFinder.getConstructorInClass(unit, "A", null);
-    SuperConstructorInvocation invocation = constructor.initializers[0];
+    var invocation = constructor.initializers[0] as SuperConstructorInvocation;
     Expression exp = invocation.argumentList.arguments[0];
-    _isListOf(_isString)(exp.staticType);
+    _isListOf(_isString)(exp.staticType as InterfaceType);
   }
 
   /// Verifies the result has [CompileTimeErrorCode.COULD_NOT_INFER] with
@@ -2577,8 +2591,8 @@ $code
     await assertErrorsInCode(fullCode, expectedErrors);
 
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
-    ExpressionFunctionBody body = test.functionExpression.body;
-    return body.expression;
+    var body = test.functionExpression.body as ExpressionFunctionBody;
+    return body.expression as MethodInvocation;
   }
 }
 
@@ -2658,7 +2672,7 @@ void main() {
     await assertNoErrorsInCode(r'T f<T>(T x) => null;');
     expectFunctionType('f', 'T Function<T>(T)', typeFormals: '[T]');
     SimpleIdentifier f = findNode.simple('f');
-    FunctionElementImpl e = f.staticElement;
+    var e = f.staticElement as FunctionElementImpl;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
     assertType(ft, 'String Function(String)');
   }
@@ -2686,7 +2700,7 @@ class C<E> {
 ''');
     expectFunctionType('f', 'T Function<T>(T)', typeFormals: '[T]');
     SimpleIdentifier f = findNode.simple('f');
-    MethodElementImpl e = f.staticElement;
+    var e = f.staticElement as MethodElementImpl;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
     assertType(ft, 'String Function(String)');
   }
@@ -2773,7 +2787,7 @@ main() {
     assertType(findElement.method('f').type, 'List<T> Function<T>(E)');
 
     var cOfString = findElement.localVar('cOfString');
-    var ft = (cOfString.type as InterfaceType).getMethod('f').type;
+    var ft = (cOfString.type as InterfaceType).getMethod('f')!.type;
     assertType(ft, 'List<T> Function<T>(String)');
     assertType(
         ft.instantiate([typeProvider.intType]), 'List<int> Function(String)');
@@ -2791,12 +2805,12 @@ main() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 1),
     ]);
-    MethodInvocation f = findNode.simple('f<int>').parent;
-    FunctionType ft = f.staticInvokeType;
+    var f = findNode.simple('f<int>').parent as MethodInvocation;
+    var ft = f.staticInvokeType as FunctionType;
     assertType(ft, 'List<int> Function(String)');
 
     var x = findElement.localVar('x');
-    expect(x.type, typeProvider.listType2(typeProvider.intType));
+    expect(x.type, typeProvider.listType(typeProvider.intType));
   }
 
   test_genericMethod_functionExpressionInvocation_explicit() async {
@@ -3022,7 +3036,7 @@ main() {
         findElement.method('f').type, 'List<T> Function<T>(T Function(E))');
 
     var cOfString = findElement.localVar('cOfString');
-    var ft = (cOfString.type as InterfaceType).getMethod('f').type;
+    var ft = (cOfString.type as InterfaceType).getMethod('f')!.type;
     assertType(ft, 'List<T> Function<T>(T Function(String))');
     assertType(ft.instantiate([typeProvider.intType]),
         'List<int> Function(int Function(String))');
@@ -3163,8 +3177,6 @@ class C<T> {
 ''');
     MethodInvocation f = findNode.methodInvocation('f<int>(3);');
     assertInvokeType(f, 'S Function(int)');
-    FunctionType ft = f.staticInvokeType;
-    expect('${ft.typeArguments}', '[S, int]');
 
     expectIdentifierType('f;', 'S Function<S₀ extends S>(S₀)');
   }
@@ -3195,7 +3207,7 @@ class D extends C {
     expectFunctionType('f<T>(T x) => null; // from D', 'T Function<T>(T)',
         typeFormals: '[T]');
     SimpleIdentifier f = findNode.simple('f<T>(T x) => null; // from D');
-    MethodElementImpl e = f.staticElement;
+    var e = f.staticElement as MethodElementImpl;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
     assertType(ft, 'String Function(String)');
   }

@@ -6,8 +6,6 @@
 
 library fasta.member_builder;
 
-import 'dart:core' hide MapEntry;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
@@ -18,6 +16,7 @@ import '../modifier.dart';
 import '../problems.dart' show unsupported;
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting;
+import '../util/helpers.dart' show DelayedActionPerformer;
 
 import 'builder.dart';
 import 'class_builder.dart';
@@ -70,7 +69,12 @@ abstract class MemberBuilder implements ModifierBuilder {
 
   bool get isAbstract;
 
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes);
+  /// Returns `true` if this member is a setter that conflicts with the implicit
+  /// setter of a field.
+  bool get isConflictingSetter;
+
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers);
 
   /// Returns the [ClassMember]s for the non-setter members created for this
   /// member builder.
@@ -137,6 +141,19 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   bool get isAbstract => (modifiers & abstractMask) != 0;
 
+  bool _isConflictingSetter;
+
+  @override
+  bool get isConflictingSetter {
+    return _isConflictingSetter ??= false;
+  }
+
+  void set isConflictingSetter(bool value) {
+    assert(_isConflictingSetter == null,
+        '$this.isConflictingSetter has already been fixed.');
+    _isConflictingSetter = value;
+  }
+
   @override
   LibraryBuilder get library {
     if (parent is LibraryBuilder) {
@@ -156,7 +173,8 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   ProcedureKind get kind => unsupported("kind", charOffset, fileUri);
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {}
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {}
 
   /// Builds the core AST structures for this member as needed for the outline.
   void buildMembers(

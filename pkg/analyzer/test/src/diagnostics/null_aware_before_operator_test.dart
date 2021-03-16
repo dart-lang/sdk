@@ -13,8 +13,10 @@ main() {
   });
 }
 
+/// This diagnostic is only reported in pre-null safe code.
 @reflectiveTest
-class NullAwareBeforeOperatorTest extends PubPackageResolutionTest {
+class NullAwareBeforeOperatorTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_assignment() async {
     await assertNoErrorsInCode(r'''
 m(x) {

@@ -17,8 +17,10 @@ import 'perf/flutter_analyze_benchmark.dart';
 
 Future main(List<String> args) async {
   var benchmarks = <Benchmark>[
-    ColdAnalysisBenchmark(),
-    AnalysisBenchmark(),
+    ColdAnalysisBenchmark(ServerBenchmark.das),
+    ColdAnalysisBenchmark(ServerBenchmark.lsp),
+    AnalysisBenchmark(ServerBenchmark.das),
+    AnalysisBenchmark(ServerBenchmark.lsp),
     FlutterAnalyzeBenchmark(),
   ];
 

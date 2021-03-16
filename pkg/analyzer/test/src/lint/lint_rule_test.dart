@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -67,26 +68,26 @@ const LintCode customCode = LintCode(
     correction: 'Implement `==`.');
 
 class CollectingReporter extends ErrorReporter {
-  ErrorCode code;
+  ErrorCode? code;
 
   CollectingReporter(AnalysisErrorListener listener, Source source)
       : super(listener, source, isNonNullableByDefault: false);
 
   @override
   void reportErrorForElement(ErrorCode errorCode, Element element,
-      [List<Object> arguments]) {
+      [List<Object?>? arguments]) {
     code = errorCode;
   }
 
   @override
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object> arguments]) {
+      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
     code = errorCode;
   }
 
   @override
   void reportErrorForToken(ErrorCode errorCode, Token token,
-      [List<Object> arguments]) {
+      [List<Object?>? arguments]) {
     code = errorCode;
   }
 }

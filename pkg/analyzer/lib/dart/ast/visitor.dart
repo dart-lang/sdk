@@ -53,7 +53,7 @@ class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
 
   /// A visitor, used to visit the children of the current node, that will add
   /// the nodes it visits to the [_queue].
-  _BreadthFirstChildVisitor _childVisitor;
+  late final _BreadthFirstChildVisitor _childVisitor;
 
   /// Initialize a newly created visitor.
   BreadthFirstVisitor() {
@@ -71,7 +71,7 @@ class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
   }
 
   @override
-  R visitNode(AstNode node) {
+  R? visitNode(AstNode node) {
     node.visitChildren(_childVisitor);
     return null;
   }
@@ -101,7 +101,7 @@ class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
   const DelegatingAstVisitor(this.delegates);
 
   @override
-  T visitNode(AstNode node) {
+  T? visitNode(AstNode node) {
     delegates.forEach((delegate) {
       node.accept(delegate);
     });
@@ -132,470 +132,474 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   const GeneralizingAstVisitor();
 
   @override
-  R visitAdjacentStrings(AdjacentStrings node) => visitStringLiteral(node);
+  R? visitAdjacentStrings(AdjacentStrings node) => visitStringLiteral(node);
 
-  R visitAnnotatedNode(AnnotatedNode node) => visitNode(node);
-
-  @override
-  R visitAnnotation(Annotation node) => visitNode(node);
+  R? visitAnnotatedNode(AnnotatedNode node) => visitNode(node);
 
   @override
-  R visitArgumentList(ArgumentList node) => visitNode(node);
+  R? visitAnnotation(Annotation node) => visitNode(node);
 
   @override
-  R visitAsExpression(AsExpression node) => visitExpression(node);
+  R? visitArgumentList(ArgumentList node) => visitNode(node);
 
   @override
-  R visitAssertInitializer(AssertInitializer node) => visitNode(node);
+  R? visitAsExpression(AsExpression node) => visitExpression(node);
 
   @override
-  R visitAssertStatement(AssertStatement node) => visitStatement(node);
+  R? visitAssertInitializer(AssertInitializer node) => visitNode(node);
 
   @override
-  R visitAssignmentExpression(AssignmentExpression node) =>
+  R? visitAssertStatement(AssertStatement node) => visitStatement(node);
+
+  @override
+  R? visitAssignmentExpression(AssignmentExpression node) =>
       visitExpression(node);
 
   @override
-  R visitAwaitExpression(AwaitExpression node) => visitExpression(node);
+  R? visitAwaitExpression(AwaitExpression node) => visitExpression(node);
 
   @override
-  R visitBinaryExpression(BinaryExpression node) => visitExpression(node);
+  R? visitBinaryExpression(BinaryExpression node) => visitExpression(node);
 
   @override
-  R visitBlock(Block node) => visitStatement(node);
+  R? visitBlock(Block node) => visitStatement(node);
 
   @override
-  R visitBlockFunctionBody(BlockFunctionBody node) => visitFunctionBody(node);
+  R? visitBlockFunctionBody(BlockFunctionBody node) => visitFunctionBody(node);
 
   @override
-  R visitBooleanLiteral(BooleanLiteral node) => visitLiteral(node);
+  R? visitBooleanLiteral(BooleanLiteral node) => visitLiteral(node);
 
   @override
-  R visitBreakStatement(BreakStatement node) => visitStatement(node);
+  R? visitBreakStatement(BreakStatement node) => visitStatement(node);
 
   @override
-  R visitCascadeExpression(CascadeExpression node) => visitExpression(node);
+  R? visitCascadeExpression(CascadeExpression node) => visitExpression(node);
 
   @override
-  R visitCatchClause(CatchClause node) => visitNode(node);
+  R? visitCatchClause(CatchClause node) => visitNode(node);
 
   @override
-  R visitClassDeclaration(ClassDeclaration node) =>
+  R? visitClassDeclaration(ClassDeclaration node) =>
       visitNamedCompilationUnitMember(node);
 
-  R visitClassMember(ClassMember node) => visitDeclaration(node);
+  R? visitClassMember(ClassMember node) => visitDeclaration(node);
 
   @override
-  R visitClassTypeAlias(ClassTypeAlias node) => visitTypeAlias(node);
+  R? visitClassTypeAlias(ClassTypeAlias node) => visitTypeAlias(node);
 
-  R visitCollectionElement(CollectionElement node) => visitNode(node);
+  R? visitCollectionElement(CollectionElement node) => visitNode(node);
 
-  R visitCombinator(Combinator node) => visitNode(node);
-
-  @override
-  R visitComment(Comment node) => visitNode(node);
+  R? visitCombinator(Combinator node) => visitNode(node);
 
   @override
-  R visitCommentReference(CommentReference node) => visitNode(node);
+  R? visitComment(Comment node) => visitNode(node);
 
   @override
-  R visitCompilationUnit(CompilationUnit node) => visitNode(node);
+  R? visitCommentReference(CommentReference node) => visitNode(node);
 
-  R visitCompilationUnitMember(CompilationUnitMember node) =>
+  @override
+  R? visitCompilationUnit(CompilationUnit node) => visitNode(node);
+
+  R? visitCompilationUnitMember(CompilationUnitMember node) =>
       visitDeclaration(node);
 
   @override
-  R visitConditionalExpression(ConditionalExpression node) =>
+  R? visitConditionalExpression(ConditionalExpression node) =>
       visitExpression(node);
 
   @override
-  R visitConfiguration(Configuration node) => visitNode(node);
+  R? visitConfiguration(Configuration node) => visitNode(node);
 
   @override
-  R visitConstructorDeclaration(ConstructorDeclaration node) =>
+  R? visitConstructorDeclaration(ConstructorDeclaration node) =>
       visitClassMember(node);
 
   @override
-  R visitConstructorFieldInitializer(ConstructorFieldInitializer node) =>
+  R? visitConstructorFieldInitializer(ConstructorFieldInitializer node) =>
       visitConstructorInitializer(node);
 
-  R visitConstructorInitializer(ConstructorInitializer node) => visitNode(node);
+  R? visitConstructorInitializer(ConstructorInitializer node) =>
+      visitNode(node);
 
   @override
-  R visitConstructorName(ConstructorName node) => visitNode(node);
+  R? visitConstructorName(ConstructorName node) => visitNode(node);
 
   @override
-  R visitContinueStatement(ContinueStatement node) => visitStatement(node);
+  R? visitContinueStatement(ContinueStatement node) => visitStatement(node);
 
-  R visitDeclaration(Declaration node) => visitAnnotatedNode(node);
-
-  @override
-  R visitDeclaredIdentifier(DeclaredIdentifier node) => visitDeclaration(node);
+  R? visitDeclaration(Declaration node) => visitAnnotatedNode(node);
 
   @override
-  R visitDefaultFormalParameter(DefaultFormalParameter node) =>
+  R? visitDeclaredIdentifier(DeclaredIdentifier node) => visitDeclaration(node);
+
+  @override
+  R? visitDefaultFormalParameter(DefaultFormalParameter node) =>
       visitFormalParameter(node);
 
-  R visitDirective(Directive node) => visitAnnotatedNode(node);
+  R? visitDirective(Directive node) => visitAnnotatedNode(node);
 
   @override
-  R visitDoStatement(DoStatement node) => visitStatement(node);
+  R? visitDoStatement(DoStatement node) => visitStatement(node);
 
   @override
-  R visitDottedName(DottedName node) => visitNode(node);
+  R? visitDottedName(DottedName node) => visitNode(node);
 
   @override
-  R visitDoubleLiteral(DoubleLiteral node) => visitLiteral(node);
+  R? visitDoubleLiteral(DoubleLiteral node) => visitLiteral(node);
 
   @override
-  R visitEmptyFunctionBody(EmptyFunctionBody node) => visitFunctionBody(node);
+  R? visitEmptyFunctionBody(EmptyFunctionBody node) => visitFunctionBody(node);
 
   @override
-  R visitEmptyStatement(EmptyStatement node) => visitStatement(node);
+  R? visitEmptyStatement(EmptyStatement node) => visitStatement(node);
 
   @override
-  R visitEnumConstantDeclaration(EnumConstantDeclaration node) =>
+  R? visitEnumConstantDeclaration(EnumConstantDeclaration node) =>
       visitDeclaration(node);
 
   @override
-  R visitEnumDeclaration(EnumDeclaration node) =>
+  R? visitEnumDeclaration(EnumDeclaration node) =>
       visitNamedCompilationUnitMember(node);
 
   @override
-  R visitExportDirective(ExportDirective node) => visitNamespaceDirective(node);
+  R? visitExportDirective(ExportDirective node) =>
+      visitNamespaceDirective(node);
 
-  R visitExpression(Expression node) => visitCollectionElement(node);
+  R? visitExpression(Expression node) => visitCollectionElement(node);
 
   @override
-  R visitExpressionFunctionBody(ExpressionFunctionBody node) =>
+  R? visitExpressionFunctionBody(ExpressionFunctionBody node) =>
       visitFunctionBody(node);
 
   @override
-  R visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
+  R? visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
 
   @override
-  R visitExtendsClause(ExtendsClause node) => visitNode(node);
+  R? visitExtendsClause(ExtendsClause node) => visitNode(node);
 
   @override
-  R visitExtensionDeclaration(ExtensionDeclaration node) =>
+  R? visitExtensionDeclaration(ExtensionDeclaration node) =>
       visitCompilationUnitMember(node);
 
   @override
-  R visitExtensionOverride(ExtensionOverride node) => visitExpression(node);
+  R? visitExtensionOverride(ExtensionOverride node) => visitExpression(node);
 
   @override
-  R visitFieldDeclaration(FieldDeclaration node) => visitClassMember(node);
+  R? visitFieldDeclaration(FieldDeclaration node) => visitClassMember(node);
 
   @override
-  R visitFieldFormalParameter(FieldFormalParameter node) =>
+  R? visitFieldFormalParameter(FieldFormalParameter node) =>
       visitNormalFormalParameter(node);
 
-  R visitForEachParts(ForEachParts node) => visitNode(node);
+  R? visitForEachParts(ForEachParts node) => visitNode(node);
 
   @override
-  R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
+  R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
       visitForEachParts(node);
 
   @override
-  R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) =>
+  R? visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) =>
       visitForEachParts(node);
 
   @override
-  R visitForElement(ForElement node) => visitCollectionElement(node);
+  R? visitForElement(ForElement node) => visitCollectionElement(node);
 
-  R visitFormalParameter(FormalParameter node) => visitNode(node);
-
-  @override
-  R visitFormalParameterList(FormalParameterList node) => visitNode(node);
-
-  R visitForParts(ForParts node) => visitNode(node);
+  R? visitFormalParameter(FormalParameter node) => visitNode(node);
 
   @override
-  R visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
+  R? visitFormalParameterList(FormalParameterList node) => visitNode(node);
+
+  R? visitForParts(ForParts node) => visitNode(node);
+
+  @override
+  R? visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
       visitForParts(node);
 
   @override
-  R visitForPartsWithExpression(ForPartsWithExpression node) =>
+  R? visitForPartsWithExpression(ForPartsWithExpression node) =>
       visitForParts(node);
 
   @override
-  R visitForStatement(ForStatement node) => visitStatement(node);
+  R? visitForStatement(ForStatement node) => visitStatement(node);
 
-  R visitFunctionBody(FunctionBody node) => visitNode(node);
+  R? visitFunctionBody(FunctionBody node) => visitNode(node);
 
   @override
-  R visitFunctionDeclaration(FunctionDeclaration node) =>
+  R? visitFunctionDeclaration(FunctionDeclaration node) =>
       visitNamedCompilationUnitMember(node);
 
   @override
-  R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
+  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
       visitStatement(node);
 
   @override
-  R visitFunctionExpression(FunctionExpression node) => visitExpression(node);
+  R? visitFunctionExpression(FunctionExpression node) => visitExpression(node);
 
   @override
-  R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
+  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
       visitInvocationExpression(node);
 
   @override
-  R visitFunctionTypeAlias(FunctionTypeAlias node) => visitTypeAlias(node);
+  R? visitFunctionTypeAlias(FunctionTypeAlias node) => visitTypeAlias(node);
 
   @override
-  R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
+  R? visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
       visitNormalFormalParameter(node);
 
   @override
-  R visitGenericFunctionType(GenericFunctionType node) =>
+  R? visitGenericFunctionType(GenericFunctionType node) =>
       visitTypeAnnotation(node);
 
   @override
-  R visitGenericTypeAlias(GenericTypeAlias node) => visitTypeAlias(node);
+  R? visitGenericTypeAlias(GenericTypeAlias node) => visitTypeAlias(node);
 
   @override
-  R visitHideCombinator(HideCombinator node) => visitCombinator(node);
+  R? visitHideCombinator(HideCombinator node) => visitCombinator(node);
 
-  R visitIdentifier(Identifier node) => visitExpression(node);
-
-  @override
-  R visitIfElement(IfElement node) => visitCollectionElement(node);
+  R? visitIdentifier(Identifier node) => visitExpression(node);
 
   @override
-  R visitIfStatement(IfStatement node) => visitStatement(node);
+  R? visitIfElement(IfElement node) => visitCollectionElement(node);
 
   @override
-  R visitImplementsClause(ImplementsClause node) => visitNode(node);
+  R? visitIfStatement(IfStatement node) => visitStatement(node);
 
   @override
-  R visitImportDirective(ImportDirective node) => visitNamespaceDirective(node);
+  R? visitImplementsClause(ImplementsClause node) => visitNode(node);
 
   @override
-  R visitIndexExpression(IndexExpression node) => visitExpression(node);
+  R? visitImportDirective(ImportDirective node) =>
+      visitNamespaceDirective(node);
 
   @override
-  R visitInstanceCreationExpression(InstanceCreationExpression node) =>
+  R? visitIndexExpression(IndexExpression node) => visitExpression(node);
+
+  @override
+  R? visitInstanceCreationExpression(InstanceCreationExpression node) =>
       visitExpression(node);
 
   @override
-  R visitIntegerLiteral(IntegerLiteral node) => visitLiteral(node);
+  R? visitIntegerLiteral(IntegerLiteral node) => visitLiteral(node);
 
-  R visitInterpolationElement(InterpolationElement node) => visitNode(node);
+  R? visitInterpolationElement(InterpolationElement node) => visitNode(node);
 
   @override
-  R visitInterpolationExpression(InterpolationExpression node) =>
+  R? visitInterpolationExpression(InterpolationExpression node) =>
       visitInterpolationElement(node);
 
   @override
-  R visitInterpolationString(InterpolationString node) =>
+  R? visitInterpolationString(InterpolationString node) =>
       visitInterpolationElement(node);
 
-  R visitInvocationExpression(InvocationExpression node) =>
+  R? visitInvocationExpression(InvocationExpression node) =>
       visitExpression(node);
 
   @override
-  R visitIsExpression(IsExpression node) => visitExpression(node);
+  R? visitIsExpression(IsExpression node) => visitExpression(node);
 
   @override
-  R visitLabel(Label node) => visitNode(node);
+  R? visitLabel(Label node) => visitNode(node);
 
   @override
-  R visitLabeledStatement(LabeledStatement node) => visitStatement(node);
+  R? visitLabeledStatement(LabeledStatement node) => visitStatement(node);
 
   @override
-  R visitLibraryDirective(LibraryDirective node) => visitDirective(node);
+  R? visitLibraryDirective(LibraryDirective node) => visitDirective(node);
 
   @override
-  R visitLibraryIdentifier(LibraryIdentifier node) => visitIdentifier(node);
+  R? visitLibraryIdentifier(LibraryIdentifier node) => visitIdentifier(node);
 
   @override
-  R visitListLiteral(ListLiteral node) => visitTypedLiteral(node);
+  R? visitListLiteral(ListLiteral node) => visitTypedLiteral(node);
 
-  R visitLiteral(Literal node) => visitExpression(node);
-
-  @override
-  R visitMapLiteralEntry(MapLiteralEntry node) => visitCollectionElement(node);
+  R? visitLiteral(Literal node) => visitExpression(node);
 
   @override
-  R visitMethodDeclaration(MethodDeclaration node) => visitClassMember(node);
+  R? visitMapLiteralEntry(MapLiteralEntry node) => visitCollectionElement(node);
 
   @override
-  R visitMethodInvocation(MethodInvocation node) =>
+  R? visitMethodDeclaration(MethodDeclaration node) => visitClassMember(node);
+
+  @override
+  R? visitMethodInvocation(MethodInvocation node) =>
       visitInvocationExpression(node);
 
   @override
-  R visitMixinDeclaration(MixinDeclaration node) =>
+  R? visitMixinDeclaration(MixinDeclaration node) =>
       visitNamedCompilationUnitMember(node);
 
-  R visitNamedCompilationUnitMember(NamedCompilationUnitMember node) =>
+  R? visitNamedCompilationUnitMember(NamedCompilationUnitMember node) =>
       visitCompilationUnitMember(node);
 
   @override
-  R visitNamedExpression(NamedExpression node) => visitExpression(node);
+  R? visitNamedExpression(NamedExpression node) => visitExpression(node);
 
-  R visitNamespaceDirective(NamespaceDirective node) =>
+  R? visitNamespaceDirective(NamespaceDirective node) =>
       visitUriBasedDirective(node);
 
   @override
-  R visitNativeClause(NativeClause node) => visitNode(node);
+  R? visitNativeClause(NativeClause node) => visitNode(node);
 
   @override
-  R visitNativeFunctionBody(NativeFunctionBody node) => visitFunctionBody(node);
+  R? visitNativeFunctionBody(NativeFunctionBody node) =>
+      visitFunctionBody(node);
 
-  R visitNode(AstNode node) {
+  R? visitNode(AstNode node) {
     node.visitChildren(this);
     return null;
   }
 
-  R visitNormalFormalParameter(NormalFormalParameter node) =>
+  R? visitNormalFormalParameter(NormalFormalParameter node) =>
       visitFormalParameter(node);
 
   @override
-  R visitNullLiteral(NullLiteral node) => visitLiteral(node);
+  R? visitNullLiteral(NullLiteral node) => visitLiteral(node);
 
   @override
-  R visitOnClause(OnClause node) => visitNode(node);
+  R? visitOnClause(OnClause node) => visitNode(node);
 
   @override
-  R visitParenthesizedExpression(ParenthesizedExpression node) =>
+  R? visitParenthesizedExpression(ParenthesizedExpression node) =>
       visitExpression(node);
 
   @override
-  R visitPartDirective(PartDirective node) => visitUriBasedDirective(node);
+  R? visitPartDirective(PartDirective node) => visitUriBasedDirective(node);
 
   @override
-  R visitPartOfDirective(PartOfDirective node) => visitDirective(node);
+  R? visitPartOfDirective(PartOfDirective node) => visitDirective(node);
 
   @override
-  R visitPostfixExpression(PostfixExpression node) => visitExpression(node);
+  R? visitPostfixExpression(PostfixExpression node) => visitExpression(node);
 
   @override
-  R visitPrefixedIdentifier(PrefixedIdentifier node) => visitIdentifier(node);
+  R? visitPrefixedIdentifier(PrefixedIdentifier node) => visitIdentifier(node);
 
   @override
-  R visitPrefixExpression(PrefixExpression node) => visitExpression(node);
+  R? visitPrefixExpression(PrefixExpression node) => visitExpression(node);
 
   @override
-  R visitPropertyAccess(PropertyAccess node) => visitExpression(node);
+  R? visitPropertyAccess(PropertyAccess node) => visitExpression(node);
 
   @override
-  R visitRedirectingConstructorInvocation(
+  R? visitRedirectingConstructorInvocation(
           RedirectingConstructorInvocation node) =>
       visitConstructorInitializer(node);
 
   @override
-  R visitRethrowExpression(RethrowExpression node) => visitExpression(node);
+  R? visitRethrowExpression(RethrowExpression node) => visitExpression(node);
 
   @override
-  R visitReturnStatement(ReturnStatement node) => visitStatement(node);
+  R? visitReturnStatement(ReturnStatement node) => visitStatement(node);
 
   @override
-  R visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
+  R? visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
 
   @override
-  R visitSetOrMapLiteral(SetOrMapLiteral node) => visitTypedLiteral(node);
+  R? visitSetOrMapLiteral(SetOrMapLiteral node) => visitTypedLiteral(node);
 
   @override
-  R visitShowCombinator(ShowCombinator node) => visitCombinator(node);
+  R? visitShowCombinator(ShowCombinator node) => visitCombinator(node);
 
   @override
-  R visitSimpleFormalParameter(SimpleFormalParameter node) =>
+  R? visitSimpleFormalParameter(SimpleFormalParameter node) =>
       visitNormalFormalParameter(node);
 
   @override
-  R visitSimpleIdentifier(SimpleIdentifier node) => visitIdentifier(node);
+  R? visitSimpleIdentifier(SimpleIdentifier node) => visitIdentifier(node);
 
   @override
-  R visitSimpleStringLiteral(SimpleStringLiteral node) =>
+  R? visitSimpleStringLiteral(SimpleStringLiteral node) =>
       visitSingleStringLiteral(node);
 
-  R visitSingleStringLiteral(SingleStringLiteral node) =>
+  R? visitSingleStringLiteral(SingleStringLiteral node) =>
       visitStringLiteral(node);
 
   @override
-  R visitSpreadElement(SpreadElement node) => visitCollectionElement(node);
+  R? visitSpreadElement(SpreadElement node) => visitCollectionElement(node);
 
-  R visitStatement(Statement node) => visitNode(node);
+  R? visitStatement(Statement node) => visitNode(node);
 
   @override
-  R visitStringInterpolation(StringInterpolation node) =>
+  R? visitStringInterpolation(StringInterpolation node) =>
       visitSingleStringLiteral(node);
 
-  R visitStringLiteral(StringLiteral node) => visitLiteral(node);
+  R? visitStringLiteral(StringLiteral node) => visitLiteral(node);
 
   @override
-  R visitSuperConstructorInvocation(SuperConstructorInvocation node) =>
+  R? visitSuperConstructorInvocation(SuperConstructorInvocation node) =>
       visitConstructorInitializer(node);
 
   @override
-  R visitSuperExpression(SuperExpression node) => visitExpression(node);
+  R? visitSuperExpression(SuperExpression node) => visitExpression(node);
 
   @override
-  R visitSwitchCase(SwitchCase node) => visitSwitchMember(node);
+  R? visitSwitchCase(SwitchCase node) => visitSwitchMember(node);
 
   @override
-  R visitSwitchDefault(SwitchDefault node) => visitSwitchMember(node);
+  R? visitSwitchDefault(SwitchDefault node) => visitSwitchMember(node);
 
-  R visitSwitchMember(SwitchMember node) => visitNode(node);
-
-  @override
-  R visitSwitchStatement(SwitchStatement node) => visitStatement(node);
+  R? visitSwitchMember(SwitchMember node) => visitNode(node);
 
   @override
-  R visitSymbolLiteral(SymbolLiteral node) => visitLiteral(node);
+  R? visitSwitchStatement(SwitchStatement node) => visitStatement(node);
 
   @override
-  R visitThisExpression(ThisExpression node) => visitExpression(node);
+  R? visitSymbolLiteral(SymbolLiteral node) => visitLiteral(node);
 
   @override
-  R visitThrowExpression(ThrowExpression node) => visitExpression(node);
+  R? visitThisExpression(ThisExpression node) => visitExpression(node);
 
   @override
-  R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
+  R? visitThrowExpression(ThrowExpression node) => visitExpression(node);
+
+  @override
+  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
       visitCompilationUnitMember(node);
 
   @override
-  R visitTryStatement(TryStatement node) => visitStatement(node);
+  R? visitTryStatement(TryStatement node) => visitStatement(node);
 
-  R visitTypeAlias(TypeAlias node) => visitNamedCompilationUnitMember(node);
+  R? visitTypeAlias(TypeAlias node) => visitNamedCompilationUnitMember(node);
 
-  R visitTypeAnnotation(TypeAnnotation node) => visitNode(node);
-
-  @override
-  R visitTypeArgumentList(TypeArgumentList node) => visitNode(node);
-
-  R visitTypedLiteral(TypedLiteral node) => visitLiteral(node);
+  R? visitTypeAnnotation(TypeAnnotation node) => visitNode(node);
 
   @override
-  R visitTypeName(TypeName node) => visitNode(node);
+  R? visitTypeArgumentList(TypeArgumentList node) => visitNode(node);
+
+  R? visitTypedLiteral(TypedLiteral node) => visitLiteral(node);
 
   @override
-  R visitTypeParameter(TypeParameter node) => visitNode(node);
+  R? visitTypeName(TypeName node) => visitNode(node);
 
   @override
-  R visitTypeParameterList(TypeParameterList node) => visitNode(node);
-
-  R visitUriBasedDirective(UriBasedDirective node) => visitDirective(node);
+  R? visitTypeParameter(TypeParameter node) => visitNode(node);
 
   @override
-  R visitVariableDeclaration(VariableDeclaration node) =>
+  R? visitTypeParameterList(TypeParameterList node) => visitNode(node);
+
+  R? visitUriBasedDirective(UriBasedDirective node) => visitDirective(node);
+
+  @override
+  R? visitVariableDeclaration(VariableDeclaration node) =>
       visitDeclaration(node);
 
   @override
-  R visitVariableDeclarationList(VariableDeclarationList node) =>
+  R? visitVariableDeclarationList(VariableDeclarationList node) =>
       visitNode(node);
 
   @override
-  R visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
+  R? visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
       visitStatement(node);
 
   @override
-  R visitWhileStatement(WhileStatement node) => visitStatement(node);
+  R? visitWhileStatement(WhileStatement node) => visitStatement(node);
 
   @override
-  R visitWithClause(WithClause node) => visitNode(node);
+  R? visitWithClause(WithClause node) => visitNode(node);
 
   @override
-  R visitYieldStatement(YieldStatement node) => visitStatement(node);
+  R? visitYieldStatement(YieldStatement node) => visitStatement(node);
 }
 
 /// An AST visitor that will recursively visit all of the nodes in an AST
@@ -613,728 +617,728 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   const RecursiveAstVisitor();
 
   @override
-  R visitAdjacentStrings(AdjacentStrings node) {
+  R? visitAdjacentStrings(AdjacentStrings node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitAnnotation(Annotation node) {
+  R? visitAnnotation(Annotation node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitArgumentList(ArgumentList node) {
+  R? visitArgumentList(ArgumentList node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitAsExpression(AsExpression node) {
+  R? visitAsExpression(AsExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitAssertInitializer(AssertInitializer node) {
+  R? visitAssertInitializer(AssertInitializer node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitAssertStatement(AssertStatement node) {
+  R? visitAssertStatement(AssertStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitAssignmentExpression(AssignmentExpression node) {
+  R? visitAssignmentExpression(AssignmentExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitAwaitExpression(AwaitExpression node) {
+  R? visitAwaitExpression(AwaitExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitBinaryExpression(BinaryExpression node) {
+  R? visitBinaryExpression(BinaryExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitBlock(Block node) {
+  R? visitBlock(Block node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitBlockFunctionBody(BlockFunctionBody node) {
+  R? visitBlockFunctionBody(BlockFunctionBody node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitBooleanLiteral(BooleanLiteral node) {
+  R? visitBooleanLiteral(BooleanLiteral node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitBreakStatement(BreakStatement node) {
+  R? visitBreakStatement(BreakStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitCascadeExpression(CascadeExpression node) {
+  R? visitCascadeExpression(CascadeExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitCatchClause(CatchClause node) {
+  R? visitCatchClause(CatchClause node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitClassDeclaration(ClassDeclaration node) {
+  R? visitClassDeclaration(ClassDeclaration node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitClassTypeAlias(ClassTypeAlias node) {
+  R? visitClassTypeAlias(ClassTypeAlias node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitComment(Comment node) {
+  R? visitComment(Comment node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitCommentReference(CommentReference node) {
+  R? visitCommentReference(CommentReference node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitCompilationUnit(CompilationUnit node) {
+  R? visitCompilationUnit(CompilationUnit node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitConditionalExpression(ConditionalExpression node) {
+  R? visitConditionalExpression(ConditionalExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitConfiguration(Configuration node) {
+  R? visitConfiguration(Configuration node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitConstructorDeclaration(ConstructorDeclaration node) {
+  R? visitConstructorDeclaration(ConstructorDeclaration node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+  R? visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitConstructorName(ConstructorName node) {
+  R? visitConstructorName(ConstructorName node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitContinueStatement(ContinueStatement node) {
+  R? visitContinueStatement(ContinueStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitDeclaredIdentifier(DeclaredIdentifier node) {
+  R? visitDeclaredIdentifier(DeclaredIdentifier node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitDefaultFormalParameter(DefaultFormalParameter node) {
+  R? visitDefaultFormalParameter(DefaultFormalParameter node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitDoStatement(DoStatement node) {
+  R? visitDoStatement(DoStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitDottedName(DottedName node) {
+  R? visitDottedName(DottedName node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitDoubleLiteral(DoubleLiteral node) {
+  R? visitDoubleLiteral(DoubleLiteral node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitEmptyFunctionBody(EmptyFunctionBody node) {
+  R? visitEmptyFunctionBody(EmptyFunctionBody node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitEmptyStatement(EmptyStatement node) {
+  R? visitEmptyStatement(EmptyStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  R? visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitEnumDeclaration(EnumDeclaration node) {
+  R? visitEnumDeclaration(EnumDeclaration node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitExportDirective(ExportDirective node) {
+  R? visitExportDirective(ExportDirective node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  R? visitExpressionFunctionBody(ExpressionFunctionBody node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitExpressionStatement(ExpressionStatement node) {
+  R? visitExpressionStatement(ExpressionStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitExtendsClause(ExtendsClause node) {
+  R? visitExtendsClause(ExtendsClause node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitExtensionDeclaration(ExtensionDeclaration node) {
+  R? visitExtensionDeclaration(ExtensionDeclaration node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitExtensionOverride(ExtensionOverride node) {
+  R? visitExtensionOverride(ExtensionOverride node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitFieldDeclaration(FieldDeclaration node) {
+  R? visitFieldDeclaration(FieldDeclaration node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitFieldFormalParameter(FieldFormalParameter node) {
+  R? visitFieldFormalParameter(FieldFormalParameter node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+  R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+  R? visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitForElement(ForElement node) {
+  R? visitForElement(ForElement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitFormalParameterList(FormalParameterList node) {
+  R? visitFormalParameterList(FormalParameterList node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+  R? visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitForPartsWithExpression(ForPartsWithExpression node) {
+  R? visitForPartsWithExpression(ForPartsWithExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitForStatement(ForStatement node) {
+  R? visitForStatement(ForStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitFunctionDeclaration(FunctionDeclaration node) {
+  R? visitFunctionDeclaration(FunctionDeclaration node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitFunctionExpression(FunctionExpression node) {
+  R? visitFunctionExpression(FunctionExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitFunctionTypeAlias(FunctionTypeAlias node) {
+  R? visitFunctionTypeAlias(FunctionTypeAlias node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  R? visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitGenericFunctionType(GenericFunctionType node) {
+  R? visitGenericFunctionType(GenericFunctionType node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitGenericTypeAlias(GenericTypeAlias node) {
+  R? visitGenericTypeAlias(GenericTypeAlias node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitHideCombinator(HideCombinator node) {
+  R? visitHideCombinator(HideCombinator node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitIfElement(IfElement node) {
+  R? visitIfElement(IfElement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitIfStatement(IfStatement node) {
+  R? visitIfStatement(IfStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitImplementsClause(ImplementsClause node) {
+  R? visitImplementsClause(ImplementsClause node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitImportDirective(ImportDirective node) {
+  R? visitImportDirective(ImportDirective node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitIndexExpression(IndexExpression node) {
+  R? visitIndexExpression(IndexExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitInstanceCreationExpression(InstanceCreationExpression node) {
+  R? visitInstanceCreationExpression(InstanceCreationExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitIntegerLiteral(IntegerLiteral node) {
+  R? visitIntegerLiteral(IntegerLiteral node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitInterpolationExpression(InterpolationExpression node) {
+  R? visitInterpolationExpression(InterpolationExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitInterpolationString(InterpolationString node) {
+  R? visitInterpolationString(InterpolationString node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitIsExpression(IsExpression node) {
+  R? visitIsExpression(IsExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitLabel(Label node) {
+  R? visitLabel(Label node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitLabeledStatement(LabeledStatement node) {
+  R? visitLabeledStatement(LabeledStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitLibraryDirective(LibraryDirective node) {
+  R? visitLibraryDirective(LibraryDirective node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitLibraryIdentifier(LibraryIdentifier node) {
+  R? visitLibraryIdentifier(LibraryIdentifier node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitListLiteral(ListLiteral node) {
+  R? visitListLiteral(ListLiteral node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitMapLiteralEntry(MapLiteralEntry node) {
+  R? visitMapLiteralEntry(MapLiteralEntry node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitMethodDeclaration(MethodDeclaration node) {
+  R? visitMethodDeclaration(MethodDeclaration node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitMethodInvocation(MethodInvocation node) {
+  R? visitMethodInvocation(MethodInvocation node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitMixinDeclaration(MixinDeclaration node) {
+  R? visitMixinDeclaration(MixinDeclaration node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitNamedExpression(NamedExpression node) {
+  R? visitNamedExpression(NamedExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitNativeClause(NativeClause node) {
+  R? visitNativeClause(NativeClause node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitNativeFunctionBody(NativeFunctionBody node) {
+  R? visitNativeFunctionBody(NativeFunctionBody node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitNullLiteral(NullLiteral node) {
+  R? visitNullLiteral(NullLiteral node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitOnClause(OnClause node) {
+  R? visitOnClause(OnClause node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitParenthesizedExpression(ParenthesizedExpression node) {
+  R? visitParenthesizedExpression(ParenthesizedExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitPartDirective(PartDirective node) {
+  R? visitPartDirective(PartDirective node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitPartOfDirective(PartOfDirective node) {
+  R? visitPartOfDirective(PartOfDirective node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitPostfixExpression(PostfixExpression node) {
+  R? visitPostfixExpression(PostfixExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitPrefixedIdentifier(PrefixedIdentifier node) {
+  R? visitPrefixedIdentifier(PrefixedIdentifier node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitPrefixExpression(PrefixExpression node) {
+  R? visitPrefixExpression(PrefixExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitPropertyAccess(PropertyAccess node) {
+  R? visitPropertyAccess(PropertyAccess node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitRedirectingConstructorInvocation(
+  R? visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitRethrowExpression(RethrowExpression node) {
+  R? visitRethrowExpression(RethrowExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitReturnStatement(ReturnStatement node) {
+  R? visitReturnStatement(ReturnStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitScriptTag(ScriptTag node) {
+  R? visitScriptTag(ScriptTag node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitSetOrMapLiteral(SetOrMapLiteral node) {
+  R? visitSetOrMapLiteral(SetOrMapLiteral node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitShowCombinator(ShowCombinator node) {
+  R? visitShowCombinator(ShowCombinator node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitSimpleFormalParameter(SimpleFormalParameter node) {
+  R? visitSimpleFormalParameter(SimpleFormalParameter node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitSimpleIdentifier(SimpleIdentifier node) {
+  R? visitSimpleIdentifier(SimpleIdentifier node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitSimpleStringLiteral(SimpleStringLiteral node) {
+  R? visitSimpleStringLiteral(SimpleStringLiteral node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitSpreadElement(SpreadElement node) {
+  R? visitSpreadElement(SpreadElement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitStringInterpolation(StringInterpolation node) {
+  R? visitStringInterpolation(StringInterpolation node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  R? visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitSuperExpression(SuperExpression node) {
+  R? visitSuperExpression(SuperExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitSwitchCase(SwitchCase node) {
+  R? visitSwitchCase(SwitchCase node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitSwitchDefault(SwitchDefault node) {
+  R? visitSwitchDefault(SwitchDefault node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitSwitchStatement(SwitchStatement node) {
+  R? visitSwitchStatement(SwitchStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitSymbolLiteral(SymbolLiteral node) {
+  R? visitSymbolLiteral(SymbolLiteral node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitThisExpression(ThisExpression node) {
+  R? visitThisExpression(ThisExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitThrowExpression(ThrowExpression node) {
+  R? visitThrowExpression(ThrowExpression node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitTryStatement(TryStatement node) {
+  R? visitTryStatement(TryStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitTypeArgumentList(TypeArgumentList node) {
+  R? visitTypeArgumentList(TypeArgumentList node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitTypeName(TypeName node) {
+  R? visitTypeName(TypeName node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitTypeParameter(TypeParameter node) {
+  R? visitTypeParameter(TypeParameter node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitTypeParameterList(TypeParameterList node) {
+  R? visitTypeParameterList(TypeParameterList node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitVariableDeclaration(VariableDeclaration node) {
+  R? visitVariableDeclaration(VariableDeclaration node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitVariableDeclarationList(VariableDeclarationList node) {
+  R? visitVariableDeclarationList(VariableDeclarationList node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+  R? visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitWhileStatement(WhileStatement node) {
+  R? visitWhileStatement(WhileStatement node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitWithClause(WithClause node) {
+  R? visitWithClause(WithClause node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitYieldStatement(YieldStatement node) {
+  R? visitYieldStatement(YieldStatement node) {
     node.visitChildren(this);
     return null;
   }
@@ -1351,373 +1355,373 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   const SimpleAstVisitor();
 
   @override
-  R visitAdjacentStrings(AdjacentStrings node) => null;
+  R? visitAdjacentStrings(AdjacentStrings node) => null;
 
   @override
-  R visitAnnotation(Annotation node) => null;
+  R? visitAnnotation(Annotation node) => null;
 
   @override
-  R visitArgumentList(ArgumentList node) => null;
+  R? visitArgumentList(ArgumentList node) => null;
 
   @override
-  R visitAsExpression(AsExpression node) => null;
+  R? visitAsExpression(AsExpression node) => null;
 
   @override
-  R visitAssertInitializer(AssertInitializer node) => null;
+  R? visitAssertInitializer(AssertInitializer node) => null;
 
   @override
-  R visitAssertStatement(AssertStatement node) => null;
+  R? visitAssertStatement(AssertStatement node) => null;
 
   @override
-  R visitAssignmentExpression(AssignmentExpression node) => null;
+  R? visitAssignmentExpression(AssignmentExpression node) => null;
 
   @override
-  R visitAwaitExpression(AwaitExpression node) => null;
+  R? visitAwaitExpression(AwaitExpression node) => null;
 
   @override
-  R visitBinaryExpression(BinaryExpression node) => null;
+  R? visitBinaryExpression(BinaryExpression node) => null;
 
   @override
-  R visitBlock(Block node) => null;
+  R? visitBlock(Block node) => null;
 
   @override
-  R visitBlockFunctionBody(BlockFunctionBody node) => null;
+  R? visitBlockFunctionBody(BlockFunctionBody node) => null;
 
   @override
-  R visitBooleanLiteral(BooleanLiteral node) => null;
+  R? visitBooleanLiteral(BooleanLiteral node) => null;
 
   @override
-  R visitBreakStatement(BreakStatement node) => null;
+  R? visitBreakStatement(BreakStatement node) => null;
 
   @override
-  R visitCascadeExpression(CascadeExpression node) => null;
+  R? visitCascadeExpression(CascadeExpression node) => null;
 
   @override
-  R visitCatchClause(CatchClause node) => null;
+  R? visitCatchClause(CatchClause node) => null;
 
   @override
-  R visitClassDeclaration(ClassDeclaration node) => null;
+  R? visitClassDeclaration(ClassDeclaration node) => null;
 
   @override
-  R visitClassTypeAlias(ClassTypeAlias node) => null;
+  R? visitClassTypeAlias(ClassTypeAlias node) => null;
 
   @override
-  R visitComment(Comment node) => null;
+  R? visitComment(Comment node) => null;
 
   @override
-  R visitCommentReference(CommentReference node) => null;
+  R? visitCommentReference(CommentReference node) => null;
 
   @override
-  R visitCompilationUnit(CompilationUnit node) => null;
+  R? visitCompilationUnit(CompilationUnit node) => null;
 
   @override
-  R visitConditionalExpression(ConditionalExpression node) => null;
+  R? visitConditionalExpression(ConditionalExpression node) => null;
 
   @override
-  R visitConfiguration(Configuration node) => null;
+  R? visitConfiguration(Configuration node) => null;
 
   @override
-  R visitConstructorDeclaration(ConstructorDeclaration node) => null;
+  R? visitConstructorDeclaration(ConstructorDeclaration node) => null;
 
   @override
-  R visitConstructorFieldInitializer(ConstructorFieldInitializer node) => null;
+  R? visitConstructorFieldInitializer(ConstructorFieldInitializer node) => null;
 
   @override
-  R visitConstructorName(ConstructorName node) => null;
+  R? visitConstructorName(ConstructorName node) => null;
 
   @override
-  R visitContinueStatement(ContinueStatement node) => null;
+  R? visitContinueStatement(ContinueStatement node) => null;
 
   @override
-  R visitDeclaredIdentifier(DeclaredIdentifier node) => null;
+  R? visitDeclaredIdentifier(DeclaredIdentifier node) => null;
 
   @override
-  R visitDefaultFormalParameter(DefaultFormalParameter node) => null;
+  R? visitDefaultFormalParameter(DefaultFormalParameter node) => null;
 
   @override
-  R visitDoStatement(DoStatement node) => null;
+  R? visitDoStatement(DoStatement node) => null;
 
   @override
-  R visitDottedName(DottedName node) => null;
+  R? visitDottedName(DottedName node) => null;
 
   @override
-  R visitDoubleLiteral(DoubleLiteral node) => null;
+  R? visitDoubleLiteral(DoubleLiteral node) => null;
 
   @override
-  R visitEmptyFunctionBody(EmptyFunctionBody node) => null;
+  R? visitEmptyFunctionBody(EmptyFunctionBody node) => null;
 
   @override
-  R visitEmptyStatement(EmptyStatement node) => null;
+  R? visitEmptyStatement(EmptyStatement node) => null;
 
   @override
-  R visitEnumConstantDeclaration(EnumConstantDeclaration node) => null;
+  R? visitEnumConstantDeclaration(EnumConstantDeclaration node) => null;
 
   @override
-  R visitEnumDeclaration(EnumDeclaration node) => null;
+  R? visitEnumDeclaration(EnumDeclaration node) => null;
 
   @override
-  R visitExportDirective(ExportDirective node) => null;
+  R? visitExportDirective(ExportDirective node) => null;
 
   @override
-  R visitExpressionFunctionBody(ExpressionFunctionBody node) => null;
+  R? visitExpressionFunctionBody(ExpressionFunctionBody node) => null;
 
   @override
-  R visitExpressionStatement(ExpressionStatement node) => null;
+  R? visitExpressionStatement(ExpressionStatement node) => null;
 
   @override
-  R visitExtendsClause(ExtendsClause node) => null;
+  R? visitExtendsClause(ExtendsClause node) => null;
 
   @override
-  R visitExtensionDeclaration(ExtensionDeclaration node) => null;
+  R? visitExtensionDeclaration(ExtensionDeclaration node) => null;
 
   @override
-  R visitExtensionOverride(ExtensionOverride node) => null;
+  R? visitExtensionOverride(ExtensionOverride node) => null;
 
   @override
-  R visitFieldDeclaration(FieldDeclaration node) => null;
+  R? visitFieldDeclaration(FieldDeclaration node) => null;
 
   @override
-  R visitFieldFormalParameter(FieldFormalParameter node) => null;
+  R? visitFieldFormalParameter(FieldFormalParameter node) => null;
 
   @override
-  R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) => null;
+  R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) => null;
 
   @override
-  R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) => null;
+  R? visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) => null;
 
   @override
-  R visitForElement(ForElement node) => null;
+  R? visitForElement(ForElement node) => null;
 
   @override
-  R visitFormalParameterList(FormalParameterList node) => null;
+  R? visitFormalParameterList(FormalParameterList node) => null;
 
   @override
-  R visitForPartsWithDeclarations(ForPartsWithDeclarations node) => null;
+  R? visitForPartsWithDeclarations(ForPartsWithDeclarations node) => null;
 
   @override
-  R visitForPartsWithExpression(ForPartsWithExpression node) => null;
+  R? visitForPartsWithExpression(ForPartsWithExpression node) => null;
 
   @override
-  R visitForStatement(ForStatement node) => null;
+  R? visitForStatement(ForStatement node) => null;
 
   @override
-  R visitFunctionDeclaration(FunctionDeclaration node) => null;
+  R? visitFunctionDeclaration(FunctionDeclaration node) => null;
 
   @override
-  R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
+  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
       null;
 
   @override
-  R visitFunctionExpression(FunctionExpression node) => null;
+  R? visitFunctionExpression(FunctionExpression node) => null;
 
   @override
-  R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
+  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
       null;
 
   @override
-  R visitFunctionTypeAlias(FunctionTypeAlias node) => null;
+  R? visitFunctionTypeAlias(FunctionTypeAlias node) => null;
 
   @override
-  R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
+  R? visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
       null;
 
   @override
-  R visitGenericFunctionType(GenericFunctionType node) => null;
+  R? visitGenericFunctionType(GenericFunctionType node) => null;
 
   @override
-  R visitGenericTypeAlias(GenericTypeAlias node) => null;
+  R? visitGenericTypeAlias(GenericTypeAlias node) => null;
 
   @override
-  R visitHideCombinator(HideCombinator node) => null;
+  R? visitHideCombinator(HideCombinator node) => null;
 
   @override
-  R visitIfElement(IfElement node) => null;
+  R? visitIfElement(IfElement node) => null;
 
   @override
-  R visitIfStatement(IfStatement node) => null;
+  R? visitIfStatement(IfStatement node) => null;
 
   @override
-  R visitImplementsClause(ImplementsClause node) => null;
+  R? visitImplementsClause(ImplementsClause node) => null;
 
   @override
-  R visitImportDirective(ImportDirective node) => null;
+  R? visitImportDirective(ImportDirective node) => null;
 
   @override
-  R visitIndexExpression(IndexExpression node) => null;
+  R? visitIndexExpression(IndexExpression node) => null;
 
   @override
-  R visitInstanceCreationExpression(InstanceCreationExpression node) => null;
+  R? visitInstanceCreationExpression(InstanceCreationExpression node) => null;
 
   @override
-  R visitIntegerLiteral(IntegerLiteral node) => null;
+  R? visitIntegerLiteral(IntegerLiteral node) => null;
 
   @override
-  R visitInterpolationExpression(InterpolationExpression node) => null;
+  R? visitInterpolationExpression(InterpolationExpression node) => null;
 
   @override
-  R visitInterpolationString(InterpolationString node) => null;
+  R? visitInterpolationString(InterpolationString node) => null;
 
   @override
-  R visitIsExpression(IsExpression node) => null;
+  R? visitIsExpression(IsExpression node) => null;
 
   @override
-  R visitLabel(Label node) => null;
+  R? visitLabel(Label node) => null;
 
   @override
-  R visitLabeledStatement(LabeledStatement node) => null;
+  R? visitLabeledStatement(LabeledStatement node) => null;
 
   @override
-  R visitLibraryDirective(LibraryDirective node) => null;
+  R? visitLibraryDirective(LibraryDirective node) => null;
 
   @override
-  R visitLibraryIdentifier(LibraryIdentifier node) => null;
+  R? visitLibraryIdentifier(LibraryIdentifier node) => null;
 
   @override
-  R visitListLiteral(ListLiteral node) => null;
+  R? visitListLiteral(ListLiteral node) => null;
 
   @override
-  R visitMapLiteralEntry(MapLiteralEntry node) => null;
+  R? visitMapLiteralEntry(MapLiteralEntry node) => null;
 
   @override
-  R visitMethodDeclaration(MethodDeclaration node) => null;
+  R? visitMethodDeclaration(MethodDeclaration node) => null;
 
   @override
-  R visitMethodInvocation(MethodInvocation node) => null;
+  R? visitMethodInvocation(MethodInvocation node) => null;
 
   @override
-  R visitMixinDeclaration(MixinDeclaration node) => null;
+  R? visitMixinDeclaration(MixinDeclaration node) => null;
 
   @override
-  R visitNamedExpression(NamedExpression node) => null;
+  R? visitNamedExpression(NamedExpression node) => null;
 
   @override
-  R visitNativeClause(NativeClause node) => null;
+  R? visitNativeClause(NativeClause node) => null;
 
   @override
-  R visitNativeFunctionBody(NativeFunctionBody node) => null;
+  R? visitNativeFunctionBody(NativeFunctionBody node) => null;
 
   @override
-  R visitNullLiteral(NullLiteral node) => null;
+  R? visitNullLiteral(NullLiteral node) => null;
 
   @override
-  R visitOnClause(OnClause node) => null;
+  R? visitOnClause(OnClause node) => null;
 
   @override
-  R visitParenthesizedExpression(ParenthesizedExpression node) => null;
+  R? visitParenthesizedExpression(ParenthesizedExpression node) => null;
 
   @override
-  R visitPartDirective(PartDirective node) => null;
+  R? visitPartDirective(PartDirective node) => null;
 
   @override
-  R visitPartOfDirective(PartOfDirective node) => null;
+  R? visitPartOfDirective(PartOfDirective node) => null;
 
   @override
-  R visitPostfixExpression(PostfixExpression node) => null;
+  R? visitPostfixExpression(PostfixExpression node) => null;
 
   @override
-  R visitPrefixedIdentifier(PrefixedIdentifier node) => null;
+  R? visitPrefixedIdentifier(PrefixedIdentifier node) => null;
 
   @override
-  R visitPrefixExpression(PrefixExpression node) => null;
+  R? visitPrefixExpression(PrefixExpression node) => null;
 
   @override
-  R visitPropertyAccess(PropertyAccess node) => null;
+  R? visitPropertyAccess(PropertyAccess node) => null;
 
   @override
-  R visitRedirectingConstructorInvocation(
+  R? visitRedirectingConstructorInvocation(
           RedirectingConstructorInvocation node) =>
       null;
 
   @override
-  R visitRethrowExpression(RethrowExpression node) => null;
+  R? visitRethrowExpression(RethrowExpression node) => null;
 
   @override
-  R visitReturnStatement(ReturnStatement node) => null;
+  R? visitReturnStatement(ReturnStatement node) => null;
 
   @override
-  R visitScriptTag(ScriptTag node) => null;
+  R? visitScriptTag(ScriptTag node) => null;
 
   @override
-  R visitSetOrMapLiteral(SetOrMapLiteral node) => null;
+  R? visitSetOrMapLiteral(SetOrMapLiteral node) => null;
 
   @override
-  R visitShowCombinator(ShowCombinator node) => null;
+  R? visitShowCombinator(ShowCombinator node) => null;
 
   @override
-  R visitSimpleFormalParameter(SimpleFormalParameter node) => null;
+  R? visitSimpleFormalParameter(SimpleFormalParameter node) => null;
 
   @override
-  R visitSimpleIdentifier(SimpleIdentifier node) => null;
+  R? visitSimpleIdentifier(SimpleIdentifier node) => null;
 
   @override
-  R visitSimpleStringLiteral(SimpleStringLiteral node) => null;
+  R? visitSimpleStringLiteral(SimpleStringLiteral node) => null;
 
   @override
-  R visitSpreadElement(SpreadElement node) => null;
+  R? visitSpreadElement(SpreadElement node) => null;
 
   @override
-  R visitStringInterpolation(StringInterpolation node) => null;
+  R? visitStringInterpolation(StringInterpolation node) => null;
 
   @override
-  R visitSuperConstructorInvocation(SuperConstructorInvocation node) => null;
+  R? visitSuperConstructorInvocation(SuperConstructorInvocation node) => null;
 
   @override
-  R visitSuperExpression(SuperExpression node) => null;
+  R? visitSuperExpression(SuperExpression node) => null;
 
   @override
-  R visitSwitchCase(SwitchCase node) => null;
+  R? visitSwitchCase(SwitchCase node) => null;
 
   @override
-  R visitSwitchDefault(SwitchDefault node) => null;
+  R? visitSwitchDefault(SwitchDefault node) => null;
 
   @override
-  R visitSwitchStatement(SwitchStatement node) => null;
+  R? visitSwitchStatement(SwitchStatement node) => null;
 
   @override
-  R visitSymbolLiteral(SymbolLiteral node) => null;
+  R? visitSymbolLiteral(SymbolLiteral node) => null;
 
   @override
-  R visitThisExpression(ThisExpression node) => null;
+  R? visitThisExpression(ThisExpression node) => null;
 
   @override
-  R visitThrowExpression(ThrowExpression node) => null;
+  R? visitThrowExpression(ThrowExpression node) => null;
 
   @override
-  R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => null;
+  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => null;
 
   @override
-  R visitTryStatement(TryStatement node) => null;
+  R? visitTryStatement(TryStatement node) => null;
 
   @override
-  R visitTypeArgumentList(TypeArgumentList node) => null;
+  R? visitTypeArgumentList(TypeArgumentList node) => null;
 
   @override
-  R visitTypeName(TypeName node) => null;
+  R? visitTypeName(TypeName node) => null;
 
   @override
-  R visitTypeParameter(TypeParameter node) => null;
+  R? visitTypeParameter(TypeParameter node) => null;
 
   @override
-  R visitTypeParameterList(TypeParameterList node) => null;
+  R? visitTypeParameterList(TypeParameterList node) => null;
 
   @override
-  R visitVariableDeclaration(VariableDeclaration node) => null;
+  R? visitVariableDeclaration(VariableDeclaration node) => null;
 
   @override
-  R visitVariableDeclarationList(VariableDeclarationList node) => null;
+  R? visitVariableDeclarationList(VariableDeclarationList node) => null;
 
   @override
-  R visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
+  R? visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
       null;
 
   @override
-  R visitWhileStatement(WhileStatement node) => null;
+  R? visitWhileStatement(WhileStatement node) => null;
 
   @override
-  R visitWithClause(WithClause node) => null;
+  R? visitWithClause(WithClause node) => null;
 
   @override
-  R visitYieldStatement(YieldStatement node) => null;
+  R? visitYieldStatement(YieldStatement node) => null;
 }
 
 /// An AST visitor that will throw an exception if any of the visit methods that
@@ -1732,380 +1736,380 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   const ThrowingAstVisitor();
 
   @override
-  R visitAdjacentStrings(AdjacentStrings node) => _throw(node);
+  R? visitAdjacentStrings(AdjacentStrings node) => _throw(node);
 
   @override
-  R visitAnnotation(Annotation node) => _throw(node);
+  R? visitAnnotation(Annotation node) => _throw(node);
 
   @override
-  R visitArgumentList(ArgumentList node) => _throw(node);
+  R? visitArgumentList(ArgumentList node) => _throw(node);
 
   @override
-  R visitAsExpression(AsExpression node) => _throw(node);
+  R? visitAsExpression(AsExpression node) => _throw(node);
 
   @override
-  R visitAssertInitializer(AssertInitializer node) => _throw(node);
+  R? visitAssertInitializer(AssertInitializer node) => _throw(node);
 
   @override
-  R visitAssertStatement(AssertStatement node) => _throw(node);
+  R? visitAssertStatement(AssertStatement node) => _throw(node);
 
   @override
-  R visitAssignmentExpression(AssignmentExpression node) => _throw(node);
+  R? visitAssignmentExpression(AssignmentExpression node) => _throw(node);
 
   @override
-  R visitAwaitExpression(AwaitExpression node) => _throw(node);
+  R? visitAwaitExpression(AwaitExpression node) => _throw(node);
 
   @override
-  R visitBinaryExpression(BinaryExpression node) => _throw(node);
+  R? visitBinaryExpression(BinaryExpression node) => _throw(node);
 
   @override
-  R visitBlock(Block node) => _throw(node);
+  R? visitBlock(Block node) => _throw(node);
 
   @override
-  R visitBlockFunctionBody(BlockFunctionBody node) => _throw(node);
+  R? visitBlockFunctionBody(BlockFunctionBody node) => _throw(node);
 
   @override
-  R visitBooleanLiteral(BooleanLiteral node) => _throw(node);
+  R? visitBooleanLiteral(BooleanLiteral node) => _throw(node);
 
   @override
-  R visitBreakStatement(BreakStatement node) => _throw(node);
+  R? visitBreakStatement(BreakStatement node) => _throw(node);
 
   @override
-  R visitCascadeExpression(CascadeExpression node) => _throw(node);
+  R? visitCascadeExpression(CascadeExpression node) => _throw(node);
 
   @override
-  R visitCatchClause(CatchClause node) => _throw(node);
+  R? visitCatchClause(CatchClause node) => _throw(node);
 
   @override
-  R visitClassDeclaration(ClassDeclaration node) => _throw(node);
+  R? visitClassDeclaration(ClassDeclaration node) => _throw(node);
 
   @override
-  R visitClassTypeAlias(ClassTypeAlias node) => _throw(node);
+  R? visitClassTypeAlias(ClassTypeAlias node) => _throw(node);
 
   @override
-  R visitComment(Comment node) => _throw(node);
+  R? visitComment(Comment node) => _throw(node);
 
   @override
-  R visitCommentReference(CommentReference node) => _throw(node);
+  R? visitCommentReference(CommentReference node) => _throw(node);
 
   @override
-  R visitCompilationUnit(CompilationUnit node) => _throw(node);
+  R? visitCompilationUnit(CompilationUnit node) => _throw(node);
 
   @override
-  R visitConditionalExpression(ConditionalExpression node) => _throw(node);
+  R? visitConditionalExpression(ConditionalExpression node) => _throw(node);
 
   @override
-  R visitConfiguration(Configuration node) => _throw(node);
+  R? visitConfiguration(Configuration node) => _throw(node);
 
   @override
-  R visitConstructorDeclaration(ConstructorDeclaration node) => _throw(node);
+  R? visitConstructorDeclaration(ConstructorDeclaration node) => _throw(node);
 
   @override
-  R visitConstructorFieldInitializer(ConstructorFieldInitializer node) =>
+  R? visitConstructorFieldInitializer(ConstructorFieldInitializer node) =>
       _throw(node);
 
   @override
-  R visitConstructorName(ConstructorName node) => _throw(node);
+  R? visitConstructorName(ConstructorName node) => _throw(node);
 
   @override
-  R visitContinueStatement(ContinueStatement node) => _throw(node);
+  R? visitContinueStatement(ContinueStatement node) => _throw(node);
 
   @override
-  R visitDeclaredIdentifier(DeclaredIdentifier node) => _throw(node);
+  R? visitDeclaredIdentifier(DeclaredIdentifier node) => _throw(node);
 
   @override
-  R visitDefaultFormalParameter(DefaultFormalParameter node) => _throw(node);
+  R? visitDefaultFormalParameter(DefaultFormalParameter node) => _throw(node);
 
   @override
-  R visitDoStatement(DoStatement node) => _throw(node);
+  R? visitDoStatement(DoStatement node) => _throw(node);
 
   @override
-  R visitDottedName(DottedName node) => _throw(node);
+  R? visitDottedName(DottedName node) => _throw(node);
 
   @override
-  R visitDoubleLiteral(DoubleLiteral node) => _throw(node);
+  R? visitDoubleLiteral(DoubleLiteral node) => _throw(node);
 
   @override
-  R visitEmptyFunctionBody(EmptyFunctionBody node) => _throw(node);
+  R? visitEmptyFunctionBody(EmptyFunctionBody node) => _throw(node);
 
   @override
-  R visitEmptyStatement(EmptyStatement node) => _throw(node);
+  R? visitEmptyStatement(EmptyStatement node) => _throw(node);
 
   @override
-  R visitEnumConstantDeclaration(EnumConstantDeclaration node) => _throw(node);
+  R? visitEnumConstantDeclaration(EnumConstantDeclaration node) => _throw(node);
 
   @override
-  R visitEnumDeclaration(EnumDeclaration node) => _throw(node);
+  R? visitEnumDeclaration(EnumDeclaration node) => _throw(node);
 
   @override
-  R visitExportDirective(ExportDirective node) => _throw(node);
+  R? visitExportDirective(ExportDirective node) => _throw(node);
 
   @override
-  R visitExpressionFunctionBody(ExpressionFunctionBody node) => _throw(node);
+  R? visitExpressionFunctionBody(ExpressionFunctionBody node) => _throw(node);
 
   @override
-  R visitExpressionStatement(ExpressionStatement node) => _throw(node);
+  R? visitExpressionStatement(ExpressionStatement node) => _throw(node);
 
   @override
-  R visitExtendsClause(ExtendsClause node) => _throw(node);
+  R? visitExtendsClause(ExtendsClause node) => _throw(node);
 
   @override
-  R visitExtensionDeclaration(ExtensionDeclaration node) => _throw(node);
+  R? visitExtensionDeclaration(ExtensionDeclaration node) => _throw(node);
 
   @override
-  R visitExtensionOverride(ExtensionOverride node) => _throw(node);
+  R? visitExtensionOverride(ExtensionOverride node) => _throw(node);
 
   @override
-  R visitFieldDeclaration(FieldDeclaration node) => _throw(node);
+  R? visitFieldDeclaration(FieldDeclaration node) => _throw(node);
 
   @override
-  R visitFieldFormalParameter(FieldFormalParameter node) => _throw(node);
+  R? visitFieldFormalParameter(FieldFormalParameter node) => _throw(node);
 
   @override
-  R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
+  R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
       _throw(node);
 
   @override
-  R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) =>
+  R? visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) =>
       _throw(node);
 
   @override
-  R visitForElement(ForElement node) => _throw(node);
+  R? visitForElement(ForElement node) => _throw(node);
 
   @override
-  R visitFormalParameterList(FormalParameterList node) => _throw(node);
+  R? visitFormalParameterList(FormalParameterList node) => _throw(node);
 
   @override
-  R visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
+  R? visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
       _throw(node);
 
   @override
-  R visitForPartsWithExpression(ForPartsWithExpression node) => _throw(node);
+  R? visitForPartsWithExpression(ForPartsWithExpression node) => _throw(node);
 
   @override
-  R visitForStatement(ForStatement node) => _throw(node);
+  R? visitForStatement(ForStatement node) => _throw(node);
 
   @override
-  R visitFunctionDeclaration(FunctionDeclaration node) => _throw(node);
+  R? visitFunctionDeclaration(FunctionDeclaration node) => _throw(node);
 
   @override
-  R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
+  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
       _throw(node);
 
   @override
-  R visitFunctionExpression(FunctionExpression node) => _throw(node);
+  R? visitFunctionExpression(FunctionExpression node) => _throw(node);
 
   @override
-  R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
+  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
       _throw(node);
 
   @override
-  R visitFunctionTypeAlias(FunctionTypeAlias node) => _throw(node);
+  R? visitFunctionTypeAlias(FunctionTypeAlias node) => _throw(node);
 
   @override
-  R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
+  R? visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
       _throw(node);
 
   @override
-  R visitGenericFunctionType(GenericFunctionType node) => _throw(node);
+  R? visitGenericFunctionType(GenericFunctionType node) => _throw(node);
 
   @override
-  R visitGenericTypeAlias(GenericTypeAlias node) => _throw(node);
+  R? visitGenericTypeAlias(GenericTypeAlias node) => _throw(node);
 
   @override
-  R visitHideCombinator(HideCombinator node) => _throw(node);
+  R? visitHideCombinator(HideCombinator node) => _throw(node);
 
   @override
-  R visitIfElement(IfElement node) => _throw(node);
+  R? visitIfElement(IfElement node) => _throw(node);
 
   @override
-  R visitIfStatement(IfStatement node) => _throw(node);
+  R? visitIfStatement(IfStatement node) => _throw(node);
 
   @override
-  R visitImplementsClause(ImplementsClause node) => _throw(node);
+  R? visitImplementsClause(ImplementsClause node) => _throw(node);
 
   @override
-  R visitImportDirective(ImportDirective node) => _throw(node);
+  R? visitImportDirective(ImportDirective node) => _throw(node);
 
   @override
-  R visitIndexExpression(IndexExpression node) => _throw(node);
+  R? visitIndexExpression(IndexExpression node) => _throw(node);
 
   @override
-  R visitInstanceCreationExpression(InstanceCreationExpression node) =>
+  R? visitInstanceCreationExpression(InstanceCreationExpression node) =>
       _throw(node);
 
   @override
-  R visitIntegerLiteral(IntegerLiteral node) => _throw(node);
+  R? visitIntegerLiteral(IntegerLiteral node) => _throw(node);
 
   @override
-  R visitInterpolationExpression(InterpolationExpression node) => _throw(node);
+  R? visitInterpolationExpression(InterpolationExpression node) => _throw(node);
 
   @override
-  R visitInterpolationString(InterpolationString node) => _throw(node);
+  R? visitInterpolationString(InterpolationString node) => _throw(node);
 
   @override
-  R visitIsExpression(IsExpression node) => _throw(node);
+  R? visitIsExpression(IsExpression node) => _throw(node);
 
   @override
-  R visitLabel(Label node) => _throw(node);
+  R? visitLabel(Label node) => _throw(node);
 
   @override
-  R visitLabeledStatement(LabeledStatement node) => _throw(node);
+  R? visitLabeledStatement(LabeledStatement node) => _throw(node);
 
   @override
-  R visitLibraryDirective(LibraryDirective node) => _throw(node);
+  R? visitLibraryDirective(LibraryDirective node) => _throw(node);
 
   @override
-  R visitLibraryIdentifier(LibraryIdentifier node) => _throw(node);
+  R? visitLibraryIdentifier(LibraryIdentifier node) => _throw(node);
 
   @override
-  R visitListLiteral(ListLiteral node) => _throw(node);
+  R? visitListLiteral(ListLiteral node) => _throw(node);
 
   @override
-  R visitMapLiteralEntry(MapLiteralEntry node) => _throw(node);
+  R? visitMapLiteralEntry(MapLiteralEntry node) => _throw(node);
 
   @override
-  R visitMethodDeclaration(MethodDeclaration node) => _throw(node);
+  R? visitMethodDeclaration(MethodDeclaration node) => _throw(node);
 
   @override
-  R visitMethodInvocation(MethodInvocation node) => _throw(node);
+  R? visitMethodInvocation(MethodInvocation node) => _throw(node);
 
   @override
-  R visitMixinDeclaration(MixinDeclaration node) => _throw(node);
+  R? visitMixinDeclaration(MixinDeclaration node) => _throw(node);
 
   @override
-  R visitNamedExpression(NamedExpression node) => _throw(node);
+  R? visitNamedExpression(NamedExpression node) => _throw(node);
 
   @override
-  R visitNativeClause(NativeClause node) => _throw(node);
+  R? visitNativeClause(NativeClause node) => _throw(node);
 
   @override
-  R visitNativeFunctionBody(NativeFunctionBody node) => _throw(node);
+  R? visitNativeFunctionBody(NativeFunctionBody node) => _throw(node);
 
   @override
-  R visitNullLiteral(NullLiteral node) => _throw(node);
+  R? visitNullLiteral(NullLiteral node) => _throw(node);
 
   @override
-  R visitOnClause(OnClause node) => _throw(node);
+  R? visitOnClause(OnClause node) => _throw(node);
 
   @override
-  R visitParenthesizedExpression(ParenthesizedExpression node) => _throw(node);
+  R? visitParenthesizedExpression(ParenthesizedExpression node) => _throw(node);
 
   @override
-  R visitPartDirective(PartDirective node) => _throw(node);
+  R? visitPartDirective(PartDirective node) => _throw(node);
 
   @override
-  R visitPartOfDirective(PartOfDirective node) => _throw(node);
+  R? visitPartOfDirective(PartOfDirective node) => _throw(node);
 
   @override
-  R visitPostfixExpression(PostfixExpression node) => _throw(node);
+  R? visitPostfixExpression(PostfixExpression node) => _throw(node);
 
   @override
-  R visitPrefixedIdentifier(PrefixedIdentifier node) => _throw(node);
+  R? visitPrefixedIdentifier(PrefixedIdentifier node) => _throw(node);
 
   @override
-  R visitPrefixExpression(PrefixExpression node) => _throw(node);
+  R? visitPrefixExpression(PrefixExpression node) => _throw(node);
 
   @override
-  R visitPropertyAccess(PropertyAccess node) => _throw(node);
+  R? visitPropertyAccess(PropertyAccess node) => _throw(node);
 
   @override
-  R visitRedirectingConstructorInvocation(
+  R? visitRedirectingConstructorInvocation(
           RedirectingConstructorInvocation node) =>
       _throw(node);
 
   @override
-  R visitRethrowExpression(RethrowExpression node) => _throw(node);
+  R? visitRethrowExpression(RethrowExpression node) => _throw(node);
 
   @override
-  R visitReturnStatement(ReturnStatement node) => _throw(node);
+  R? visitReturnStatement(ReturnStatement node) => _throw(node);
 
   @override
-  R visitScriptTag(ScriptTag node) => _throw(node);
+  R? visitScriptTag(ScriptTag node) => _throw(node);
 
   @override
-  R visitSetOrMapLiteral(SetOrMapLiteral node) => _throw(node);
+  R? visitSetOrMapLiteral(SetOrMapLiteral node) => _throw(node);
 
   @override
-  R visitShowCombinator(ShowCombinator node) => _throw(node);
+  R? visitShowCombinator(ShowCombinator node) => _throw(node);
 
   @override
-  R visitSimpleFormalParameter(SimpleFormalParameter node) => _throw(node);
+  R? visitSimpleFormalParameter(SimpleFormalParameter node) => _throw(node);
 
   @override
-  R visitSimpleIdentifier(SimpleIdentifier node) => _throw(node);
+  R? visitSimpleIdentifier(SimpleIdentifier node) => _throw(node);
 
   @override
-  R visitSimpleStringLiteral(SimpleStringLiteral node) => _throw(node);
+  R? visitSimpleStringLiteral(SimpleStringLiteral node) => _throw(node);
 
   @override
-  R visitSpreadElement(SpreadElement node) => _throw(node);
+  R? visitSpreadElement(SpreadElement node) => _throw(node);
 
   @override
-  R visitStringInterpolation(StringInterpolation node) => _throw(node);
+  R? visitStringInterpolation(StringInterpolation node) => _throw(node);
 
   @override
-  R visitSuperConstructorInvocation(SuperConstructorInvocation node) =>
+  R? visitSuperConstructorInvocation(SuperConstructorInvocation node) =>
       _throw(node);
 
   @override
-  R visitSuperExpression(SuperExpression node) => _throw(node);
+  R? visitSuperExpression(SuperExpression node) => _throw(node);
 
   @override
-  R visitSwitchCase(SwitchCase node) => _throw(node);
+  R? visitSwitchCase(SwitchCase node) => _throw(node);
 
   @override
-  R visitSwitchDefault(SwitchDefault node) => _throw(node);
+  R? visitSwitchDefault(SwitchDefault node) => _throw(node);
 
   @override
-  R visitSwitchStatement(SwitchStatement node) => _throw(node);
+  R? visitSwitchStatement(SwitchStatement node) => _throw(node);
 
   @override
-  R visitSymbolLiteral(SymbolLiteral node) => _throw(node);
+  R? visitSymbolLiteral(SymbolLiteral node) => _throw(node);
 
   @override
-  R visitThisExpression(ThisExpression node) => _throw(node);
+  R? visitThisExpression(ThisExpression node) => _throw(node);
 
   @override
-  R visitThrowExpression(ThrowExpression node) => _throw(node);
+  R? visitThrowExpression(ThrowExpression node) => _throw(node);
 
   @override
-  R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
+  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
       _throw(node);
 
   @override
-  R visitTryStatement(TryStatement node) => _throw(node);
+  R? visitTryStatement(TryStatement node) => _throw(node);
 
   @override
-  R visitTypeArgumentList(TypeArgumentList node) => _throw(node);
+  R? visitTypeArgumentList(TypeArgumentList node) => _throw(node);
 
   @override
-  R visitTypeName(TypeName node) => _throw(node);
+  R? visitTypeName(TypeName node) => _throw(node);
 
   @override
-  R visitTypeParameter(TypeParameter node) => _throw(node);
+  R? visitTypeParameter(TypeParameter node) => _throw(node);
 
   @override
-  R visitTypeParameterList(TypeParameterList node) => _throw(node);
+  R? visitTypeParameterList(TypeParameterList node) => _throw(node);
 
   @override
-  R visitVariableDeclaration(VariableDeclaration node) => _throw(node);
+  R? visitVariableDeclaration(VariableDeclaration node) => _throw(node);
 
   @override
-  R visitVariableDeclarationList(VariableDeclarationList node) => _throw(node);
+  R? visitVariableDeclarationList(VariableDeclarationList node) => _throw(node);
 
   @override
-  R visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
+  R? visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
       _throw(node);
 
   @override
-  R visitWhileStatement(WhileStatement node) => _throw(node);
+  R? visitWhileStatement(WhileStatement node) => _throw(node);
 
   @override
-  R visitWithClause(WithClause node) => _throw(node);
+  R? visitWithClause(WithClause node) => _throw(node);
 
   @override
-  R visitYieldStatement(YieldStatement node) => _throw(node);
+  R? visitYieldStatement(YieldStatement node) => _throw(node);
 
   R _throw(AstNode node) {
     throw Exception('Missing implementation of visit${node.runtimeType}');
@@ -2124,974 +2128,974 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
 
   /// Initialize a newly created visitor to time calls to the given base
   /// visitor's visits.
-  TimedAstVisitor(this._baseVisitor, [Stopwatch watch])
+  TimedAstVisitor(this._baseVisitor, [Stopwatch? watch])
       : stopwatch = watch ?? Stopwatch();
 
   @override
-  T visitAdjacentStrings(AdjacentStrings node) {
+  T? visitAdjacentStrings(AdjacentStrings node) {
     stopwatch.start();
-    T result = _baseVisitor.visitAdjacentStrings(node);
+    T? result = _baseVisitor.visitAdjacentStrings(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitAnnotation(Annotation node) {
+  T? visitAnnotation(Annotation node) {
     stopwatch.start();
-    T result = _baseVisitor.visitAnnotation(node);
+    T? result = _baseVisitor.visitAnnotation(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitArgumentList(ArgumentList node) {
+  T? visitArgumentList(ArgumentList node) {
     stopwatch.start();
-    T result = _baseVisitor.visitArgumentList(node);
+    T? result = _baseVisitor.visitArgumentList(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitAsExpression(AsExpression node) {
+  T? visitAsExpression(AsExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitAsExpression(node);
+    T? result = _baseVisitor.visitAsExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitAssertInitializer(AssertInitializer node) {
+  T? visitAssertInitializer(AssertInitializer node) {
     stopwatch.start();
-    T result = _baseVisitor.visitAssertInitializer(node);
+    T? result = _baseVisitor.visitAssertInitializer(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitAssertStatement(AssertStatement node) {
+  T? visitAssertStatement(AssertStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitAssertStatement(node);
+    T? result = _baseVisitor.visitAssertStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitAssignmentExpression(AssignmentExpression node) {
+  T? visitAssignmentExpression(AssignmentExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitAssignmentExpression(node);
+    T? result = _baseVisitor.visitAssignmentExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitAwaitExpression(AwaitExpression node) {
+  T? visitAwaitExpression(AwaitExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitAwaitExpression(node);
+    T? result = _baseVisitor.visitAwaitExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitBinaryExpression(BinaryExpression node) {
+  T? visitBinaryExpression(BinaryExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitBinaryExpression(node);
+    T? result = _baseVisitor.visitBinaryExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitBlock(Block node) {
+  T? visitBlock(Block node) {
     stopwatch.start();
-    T result = _baseVisitor.visitBlock(node);
+    T? result = _baseVisitor.visitBlock(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitBlockFunctionBody(BlockFunctionBody node) {
+  T? visitBlockFunctionBody(BlockFunctionBody node) {
     stopwatch.start();
-    T result = _baseVisitor.visitBlockFunctionBody(node);
+    T? result = _baseVisitor.visitBlockFunctionBody(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitBooleanLiteral(BooleanLiteral node) {
+  T? visitBooleanLiteral(BooleanLiteral node) {
     stopwatch.start();
-    T result = _baseVisitor.visitBooleanLiteral(node);
+    T? result = _baseVisitor.visitBooleanLiteral(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitBreakStatement(BreakStatement node) {
+  T? visitBreakStatement(BreakStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitBreakStatement(node);
+    T? result = _baseVisitor.visitBreakStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitCascadeExpression(CascadeExpression node) {
+  T? visitCascadeExpression(CascadeExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitCascadeExpression(node);
+    T? result = _baseVisitor.visitCascadeExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitCatchClause(CatchClause node) {
+  T? visitCatchClause(CatchClause node) {
     stopwatch.start();
-    T result = _baseVisitor.visitCatchClause(node);
+    T? result = _baseVisitor.visitCatchClause(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitClassDeclaration(ClassDeclaration node) {
+  T? visitClassDeclaration(ClassDeclaration node) {
     stopwatch.start();
-    T result = _baseVisitor.visitClassDeclaration(node);
+    T? result = _baseVisitor.visitClassDeclaration(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitClassTypeAlias(ClassTypeAlias node) {
+  T? visitClassTypeAlias(ClassTypeAlias node) {
     stopwatch.start();
-    T result = _baseVisitor.visitClassTypeAlias(node);
+    T? result = _baseVisitor.visitClassTypeAlias(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitComment(Comment node) {
+  T? visitComment(Comment node) {
     stopwatch.start();
-    T result = _baseVisitor.visitComment(node);
+    T? result = _baseVisitor.visitComment(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitCommentReference(CommentReference node) {
+  T? visitCommentReference(CommentReference node) {
     stopwatch.start();
-    T result = _baseVisitor.visitCommentReference(node);
+    T? result = _baseVisitor.visitCommentReference(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitCompilationUnit(CompilationUnit node) {
+  T? visitCompilationUnit(CompilationUnit node) {
     stopwatch.start();
-    T result = _baseVisitor.visitCompilationUnit(node);
+    T? result = _baseVisitor.visitCompilationUnit(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitConditionalExpression(ConditionalExpression node) {
+  T? visitConditionalExpression(ConditionalExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitConditionalExpression(node);
+    T? result = _baseVisitor.visitConditionalExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitConfiguration(Configuration node) {
+  T? visitConfiguration(Configuration node) {
     stopwatch.start();
-    T result = _baseVisitor.visitConfiguration(node);
+    T? result = _baseVisitor.visitConfiguration(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitConstructorDeclaration(ConstructorDeclaration node) {
+  T? visitConstructorDeclaration(ConstructorDeclaration node) {
     stopwatch.start();
-    T result = _baseVisitor.visitConstructorDeclaration(node);
+    T? result = _baseVisitor.visitConstructorDeclaration(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+  T? visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     stopwatch.start();
-    T result = _baseVisitor.visitConstructorFieldInitializer(node);
+    T? result = _baseVisitor.visitConstructorFieldInitializer(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitConstructorName(ConstructorName node) {
+  T? visitConstructorName(ConstructorName node) {
     stopwatch.start();
-    T result = _baseVisitor.visitConstructorName(node);
+    T? result = _baseVisitor.visitConstructorName(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitContinueStatement(ContinueStatement node) {
+  T? visitContinueStatement(ContinueStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitContinueStatement(node);
+    T? result = _baseVisitor.visitContinueStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitDeclaredIdentifier(DeclaredIdentifier node) {
+  T? visitDeclaredIdentifier(DeclaredIdentifier node) {
     stopwatch.start();
-    T result = _baseVisitor.visitDeclaredIdentifier(node);
+    T? result = _baseVisitor.visitDeclaredIdentifier(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitDefaultFormalParameter(DefaultFormalParameter node) {
+  T? visitDefaultFormalParameter(DefaultFormalParameter node) {
     stopwatch.start();
-    T result = _baseVisitor.visitDefaultFormalParameter(node);
+    T? result = _baseVisitor.visitDefaultFormalParameter(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitDoStatement(DoStatement node) {
+  T? visitDoStatement(DoStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitDoStatement(node);
+    T? result = _baseVisitor.visitDoStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitDottedName(DottedName node) {
+  T? visitDottedName(DottedName node) {
     stopwatch.start();
-    T result = _baseVisitor.visitDottedName(node);
+    T? result = _baseVisitor.visitDottedName(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitDoubleLiteral(DoubleLiteral node) {
+  T? visitDoubleLiteral(DoubleLiteral node) {
     stopwatch.start();
-    T result = _baseVisitor.visitDoubleLiteral(node);
+    T? result = _baseVisitor.visitDoubleLiteral(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitEmptyFunctionBody(EmptyFunctionBody node) {
+  T? visitEmptyFunctionBody(EmptyFunctionBody node) {
     stopwatch.start();
-    T result = _baseVisitor.visitEmptyFunctionBody(node);
+    T? result = _baseVisitor.visitEmptyFunctionBody(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitEmptyStatement(EmptyStatement node) {
+  T? visitEmptyStatement(EmptyStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitEmptyStatement(node);
+    T? result = _baseVisitor.visitEmptyStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  T? visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     stopwatch.start();
-    T result = _baseVisitor.visitEnumConstantDeclaration(node);
+    T? result = _baseVisitor.visitEnumConstantDeclaration(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitEnumDeclaration(EnumDeclaration node) {
+  T? visitEnumDeclaration(EnumDeclaration node) {
     stopwatch.start();
-    T result = _baseVisitor.visitEnumDeclaration(node);
+    T? result = _baseVisitor.visitEnumDeclaration(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitExportDirective(ExportDirective node) {
+  T? visitExportDirective(ExportDirective node) {
     stopwatch.start();
-    T result = _baseVisitor.visitExportDirective(node);
+    T? result = _baseVisitor.visitExportDirective(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  T? visitExpressionFunctionBody(ExpressionFunctionBody node) {
     stopwatch.start();
-    T result = _baseVisitor.visitExpressionFunctionBody(node);
+    T? result = _baseVisitor.visitExpressionFunctionBody(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitExpressionStatement(ExpressionStatement node) {
+  T? visitExpressionStatement(ExpressionStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitExpressionStatement(node);
+    T? result = _baseVisitor.visitExpressionStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitExtendsClause(ExtendsClause node) {
+  T? visitExtendsClause(ExtendsClause node) {
     stopwatch.start();
-    T result = _baseVisitor.visitExtendsClause(node);
+    T? result = _baseVisitor.visitExtendsClause(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitExtensionDeclaration(ExtensionDeclaration node) {
+  T? visitExtensionDeclaration(ExtensionDeclaration node) {
     stopwatch.start();
-    T result = _baseVisitor.visitExtensionDeclaration(node);
+    T? result = _baseVisitor.visitExtensionDeclaration(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitExtensionOverride(ExtensionOverride node) {
+  T? visitExtensionOverride(ExtensionOverride node) {
     stopwatch.start();
-    T result = _baseVisitor.visitExtensionOverride(node);
+    T? result = _baseVisitor.visitExtensionOverride(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitFieldDeclaration(FieldDeclaration node) {
+  T? visitFieldDeclaration(FieldDeclaration node) {
     stopwatch.start();
-    T result = _baseVisitor.visitFieldDeclaration(node);
+    T? result = _baseVisitor.visitFieldDeclaration(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitFieldFormalParameter(FieldFormalParameter node) {
+  T? visitFieldFormalParameter(FieldFormalParameter node) {
     stopwatch.start();
-    T result = _baseVisitor.visitFieldFormalParameter(node);
+    T? result = _baseVisitor.visitFieldFormalParameter(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+  T? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     stopwatch.start();
-    T result = _baseVisitor.visitForEachPartsWithDeclaration(node);
+    T? result = _baseVisitor.visitForEachPartsWithDeclaration(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+  T? visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     stopwatch.start();
-    T result = _baseVisitor.visitForEachPartsWithIdentifier(node);
+    T? result = _baseVisitor.visitForEachPartsWithIdentifier(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitForElement(ForElement node) {
+  T? visitForElement(ForElement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitForElement(node);
+    T? result = _baseVisitor.visitForElement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitFormalParameterList(FormalParameterList node) {
+  T? visitFormalParameterList(FormalParameterList node) {
     stopwatch.start();
-    T result = _baseVisitor.visitFormalParameterList(node);
+    T? result = _baseVisitor.visitFormalParameterList(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+  T? visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     stopwatch.start();
-    T result = _baseVisitor.visitForPartsWithDeclarations(node);
+    T? result = _baseVisitor.visitForPartsWithDeclarations(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitForPartsWithExpression(ForPartsWithExpression node) {
+  T? visitForPartsWithExpression(ForPartsWithExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitForPartsWithExpression(node);
+    T? result = _baseVisitor.visitForPartsWithExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitForStatement(ForStatement node) {
+  T? visitForStatement(ForStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitForStatement(node);
+    T? result = _baseVisitor.visitForStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitFunctionDeclaration(FunctionDeclaration node) {
+  T? visitFunctionDeclaration(FunctionDeclaration node) {
     stopwatch.start();
-    T result = _baseVisitor.visitFunctionDeclaration(node);
+    T? result = _baseVisitor.visitFunctionDeclaration(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+  T? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitFunctionDeclarationStatement(node);
+    T? result = _baseVisitor.visitFunctionDeclarationStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitFunctionExpression(FunctionExpression node) {
+  T? visitFunctionExpression(FunctionExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitFunctionExpression(node);
+    T? result = _baseVisitor.visitFunctionExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+  T? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     stopwatch.start();
-    T result = _baseVisitor.visitFunctionExpressionInvocation(node);
+    T? result = _baseVisitor.visitFunctionExpressionInvocation(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitFunctionTypeAlias(FunctionTypeAlias node) {
+  T? visitFunctionTypeAlias(FunctionTypeAlias node) {
     stopwatch.start();
-    T result = _baseVisitor.visitFunctionTypeAlias(node);
+    T? result = _baseVisitor.visitFunctionTypeAlias(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  T? visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     stopwatch.start();
-    T result = _baseVisitor.visitFunctionTypedFormalParameter(node);
+    T? result = _baseVisitor.visitFunctionTypedFormalParameter(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitGenericFunctionType(GenericFunctionType node) {
+  T? visitGenericFunctionType(GenericFunctionType node) {
     stopwatch.start();
-    T result = _baseVisitor.visitGenericFunctionType(node);
+    T? result = _baseVisitor.visitGenericFunctionType(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitGenericTypeAlias(GenericTypeAlias node) {
+  T? visitGenericTypeAlias(GenericTypeAlias node) {
     stopwatch.start();
-    T result = _baseVisitor.visitGenericTypeAlias(node);
+    T? result = _baseVisitor.visitGenericTypeAlias(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitHideCombinator(HideCombinator node) {
+  T? visitHideCombinator(HideCombinator node) {
     stopwatch.start();
-    T result = _baseVisitor.visitHideCombinator(node);
+    T? result = _baseVisitor.visitHideCombinator(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitIfElement(IfElement node) {
+  T? visitIfElement(IfElement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitIfElement(node);
+    T? result = _baseVisitor.visitIfElement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitIfStatement(IfStatement node) {
+  T? visitIfStatement(IfStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitIfStatement(node);
+    T? result = _baseVisitor.visitIfStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitImplementsClause(ImplementsClause node) {
+  T? visitImplementsClause(ImplementsClause node) {
     stopwatch.start();
-    T result = _baseVisitor.visitImplementsClause(node);
+    T? result = _baseVisitor.visitImplementsClause(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitImportDirective(ImportDirective node) {
+  T? visitImportDirective(ImportDirective node) {
     stopwatch.start();
-    T result = _baseVisitor.visitImportDirective(node);
+    T? result = _baseVisitor.visitImportDirective(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitIndexExpression(IndexExpression node) {
+  T? visitIndexExpression(IndexExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitIndexExpression(node);
+    T? result = _baseVisitor.visitIndexExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitInstanceCreationExpression(InstanceCreationExpression node) {
+  T? visitInstanceCreationExpression(InstanceCreationExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitInstanceCreationExpression(node);
+    T? result = _baseVisitor.visitInstanceCreationExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitIntegerLiteral(IntegerLiteral node) {
+  T? visitIntegerLiteral(IntegerLiteral node) {
     stopwatch.start();
-    T result = _baseVisitor.visitIntegerLiteral(node);
+    T? result = _baseVisitor.visitIntegerLiteral(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitInterpolationExpression(InterpolationExpression node) {
+  T? visitInterpolationExpression(InterpolationExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitInterpolationExpression(node);
+    T? result = _baseVisitor.visitInterpolationExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitInterpolationString(InterpolationString node) {
+  T? visitInterpolationString(InterpolationString node) {
     stopwatch.start();
-    T result = _baseVisitor.visitInterpolationString(node);
+    T? result = _baseVisitor.visitInterpolationString(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitIsExpression(IsExpression node) {
+  T? visitIsExpression(IsExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitIsExpression(node);
+    T? result = _baseVisitor.visitIsExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitLabel(Label node) {
+  T? visitLabel(Label node) {
     stopwatch.start();
-    T result = _baseVisitor.visitLabel(node);
+    T? result = _baseVisitor.visitLabel(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitLabeledStatement(LabeledStatement node) {
+  T? visitLabeledStatement(LabeledStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitLabeledStatement(node);
+    T? result = _baseVisitor.visitLabeledStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitLibraryDirective(LibraryDirective node) {
+  T? visitLibraryDirective(LibraryDirective node) {
     stopwatch.start();
-    T result = _baseVisitor.visitLibraryDirective(node);
+    T? result = _baseVisitor.visitLibraryDirective(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitLibraryIdentifier(LibraryIdentifier node) {
+  T? visitLibraryIdentifier(LibraryIdentifier node) {
     stopwatch.start();
-    T result = _baseVisitor.visitLibraryIdentifier(node);
+    T? result = _baseVisitor.visitLibraryIdentifier(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitListLiteral(ListLiteral node) {
+  T? visitListLiteral(ListLiteral node) {
     stopwatch.start();
-    T result = _baseVisitor.visitListLiteral(node);
+    T? result = _baseVisitor.visitListLiteral(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitMapLiteralEntry(MapLiteralEntry node) {
+  T? visitMapLiteralEntry(MapLiteralEntry node) {
     stopwatch.start();
-    T result = _baseVisitor.visitMapLiteralEntry(node);
+    T? result = _baseVisitor.visitMapLiteralEntry(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitMethodDeclaration(MethodDeclaration node) {
+  T? visitMethodDeclaration(MethodDeclaration node) {
     stopwatch.start();
-    T result = _baseVisitor.visitMethodDeclaration(node);
+    T? result = _baseVisitor.visitMethodDeclaration(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitMethodInvocation(MethodInvocation node) {
+  T? visitMethodInvocation(MethodInvocation node) {
     stopwatch.start();
-    T result = _baseVisitor.visitMethodInvocation(node);
+    T? result = _baseVisitor.visitMethodInvocation(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitMixinDeclaration(MixinDeclaration node) {
+  T? visitMixinDeclaration(MixinDeclaration node) {
     stopwatch.start();
-    T result = _baseVisitor.visitMixinDeclaration(node);
+    T? result = _baseVisitor.visitMixinDeclaration(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitNamedExpression(NamedExpression node) {
+  T? visitNamedExpression(NamedExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitNamedExpression(node);
+    T? result = _baseVisitor.visitNamedExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitNativeClause(NativeClause node) {
+  T? visitNativeClause(NativeClause node) {
     stopwatch.start();
-    T result = _baseVisitor.visitNativeClause(node);
+    T? result = _baseVisitor.visitNativeClause(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitNativeFunctionBody(NativeFunctionBody node) {
+  T? visitNativeFunctionBody(NativeFunctionBody node) {
     stopwatch.start();
-    T result = _baseVisitor.visitNativeFunctionBody(node);
+    T? result = _baseVisitor.visitNativeFunctionBody(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitNullLiteral(NullLiteral node) {
+  T? visitNullLiteral(NullLiteral node) {
     stopwatch.start();
-    T result = _baseVisitor.visitNullLiteral(node);
+    T? result = _baseVisitor.visitNullLiteral(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitOnClause(OnClause node) {
+  T? visitOnClause(OnClause node) {
     stopwatch.start();
-    T result = _baseVisitor.visitOnClause(node);
+    T? result = _baseVisitor.visitOnClause(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitParenthesizedExpression(ParenthesizedExpression node) {
+  T? visitParenthesizedExpression(ParenthesizedExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitParenthesizedExpression(node);
+    T? result = _baseVisitor.visitParenthesizedExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitPartDirective(PartDirective node) {
+  T? visitPartDirective(PartDirective node) {
     stopwatch.start();
-    T result = _baseVisitor.visitPartDirective(node);
+    T? result = _baseVisitor.visitPartDirective(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitPartOfDirective(PartOfDirective node) {
+  T? visitPartOfDirective(PartOfDirective node) {
     stopwatch.start();
-    T result = _baseVisitor.visitPartOfDirective(node);
+    T? result = _baseVisitor.visitPartOfDirective(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitPostfixExpression(PostfixExpression node) {
+  T? visitPostfixExpression(PostfixExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitPostfixExpression(node);
+    T? result = _baseVisitor.visitPostfixExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitPrefixedIdentifier(PrefixedIdentifier node) {
+  T? visitPrefixedIdentifier(PrefixedIdentifier node) {
     stopwatch.start();
-    T result = _baseVisitor.visitPrefixedIdentifier(node);
+    T? result = _baseVisitor.visitPrefixedIdentifier(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitPrefixExpression(PrefixExpression node) {
+  T? visitPrefixExpression(PrefixExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitPrefixExpression(node);
+    T? result = _baseVisitor.visitPrefixExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitPropertyAccess(PropertyAccess node) {
+  T? visitPropertyAccess(PropertyAccess node) {
     stopwatch.start();
-    T result = _baseVisitor.visitPropertyAccess(node);
+    T? result = _baseVisitor.visitPropertyAccess(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitRedirectingConstructorInvocation(
+  T? visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     stopwatch.start();
-    T result = _baseVisitor.visitRedirectingConstructorInvocation(node);
+    T? result = _baseVisitor.visitRedirectingConstructorInvocation(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitRethrowExpression(RethrowExpression node) {
+  T? visitRethrowExpression(RethrowExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitRethrowExpression(node);
+    T? result = _baseVisitor.visitRethrowExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitReturnStatement(ReturnStatement node) {
+  T? visitReturnStatement(ReturnStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitReturnStatement(node);
+    T? result = _baseVisitor.visitReturnStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitScriptTag(ScriptTag node) {
+  T? visitScriptTag(ScriptTag node) {
     stopwatch.start();
-    T result = _baseVisitor.visitScriptTag(node);
+    T? result = _baseVisitor.visitScriptTag(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitSetOrMapLiteral(SetOrMapLiteral node) {
+  T? visitSetOrMapLiteral(SetOrMapLiteral node) {
     stopwatch.start();
-    T result = _baseVisitor.visitSetOrMapLiteral(node);
+    T? result = _baseVisitor.visitSetOrMapLiteral(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitShowCombinator(ShowCombinator node) {
+  T? visitShowCombinator(ShowCombinator node) {
     stopwatch.start();
-    T result = _baseVisitor.visitShowCombinator(node);
+    T? result = _baseVisitor.visitShowCombinator(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitSimpleFormalParameter(SimpleFormalParameter node) {
+  T? visitSimpleFormalParameter(SimpleFormalParameter node) {
     stopwatch.start();
-    T result = _baseVisitor.visitSimpleFormalParameter(node);
+    T? result = _baseVisitor.visitSimpleFormalParameter(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitSimpleIdentifier(SimpleIdentifier node) {
+  T? visitSimpleIdentifier(SimpleIdentifier node) {
     stopwatch.start();
-    T result = _baseVisitor.visitSimpleIdentifier(node);
+    T? result = _baseVisitor.visitSimpleIdentifier(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitSimpleStringLiteral(SimpleStringLiteral node) {
+  T? visitSimpleStringLiteral(SimpleStringLiteral node) {
     stopwatch.start();
-    T result = _baseVisitor.visitSimpleStringLiteral(node);
+    T? result = _baseVisitor.visitSimpleStringLiteral(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitSpreadElement(SpreadElement node) {
+  T? visitSpreadElement(SpreadElement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitSpreadElement(node);
+    T? result = _baseVisitor.visitSpreadElement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitStringInterpolation(StringInterpolation node) {
+  T? visitStringInterpolation(StringInterpolation node) {
     stopwatch.start();
-    T result = _baseVisitor.visitStringInterpolation(node);
+    T? result = _baseVisitor.visitStringInterpolation(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  T? visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     stopwatch.start();
-    T result = _baseVisitor.visitSuperConstructorInvocation(node);
+    T? result = _baseVisitor.visitSuperConstructorInvocation(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitSuperExpression(SuperExpression node) {
+  T? visitSuperExpression(SuperExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitSuperExpression(node);
+    T? result = _baseVisitor.visitSuperExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitSwitchCase(SwitchCase node) {
+  T? visitSwitchCase(SwitchCase node) {
     stopwatch.start();
-    T result = _baseVisitor.visitSwitchCase(node);
+    T? result = _baseVisitor.visitSwitchCase(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitSwitchDefault(SwitchDefault node) {
+  T? visitSwitchDefault(SwitchDefault node) {
     stopwatch.start();
-    T result = _baseVisitor.visitSwitchDefault(node);
+    T? result = _baseVisitor.visitSwitchDefault(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitSwitchStatement(SwitchStatement node) {
+  T? visitSwitchStatement(SwitchStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitSwitchStatement(node);
+    T? result = _baseVisitor.visitSwitchStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitSymbolLiteral(SymbolLiteral node) {
+  T? visitSymbolLiteral(SymbolLiteral node) {
     stopwatch.start();
-    T result = _baseVisitor.visitSymbolLiteral(node);
+    T? result = _baseVisitor.visitSymbolLiteral(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitThisExpression(ThisExpression node) {
+  T? visitThisExpression(ThisExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitThisExpression(node);
+    T? result = _baseVisitor.visitThisExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitThrowExpression(ThrowExpression node) {
+  T? visitThrowExpression(ThrowExpression node) {
     stopwatch.start();
-    T result = _baseVisitor.visitThrowExpression(node);
+    T? result = _baseVisitor.visitThrowExpression(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  T? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     stopwatch.start();
-    T result = _baseVisitor.visitTopLevelVariableDeclaration(node);
+    T? result = _baseVisitor.visitTopLevelVariableDeclaration(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitTryStatement(TryStatement node) {
+  T? visitTryStatement(TryStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitTryStatement(node);
+    T? result = _baseVisitor.visitTryStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitTypeArgumentList(TypeArgumentList node) {
+  T? visitTypeArgumentList(TypeArgumentList node) {
     stopwatch.start();
-    T result = _baseVisitor.visitTypeArgumentList(node);
+    T? result = _baseVisitor.visitTypeArgumentList(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitTypeName(TypeName node) {
+  T? visitTypeName(TypeName node) {
     stopwatch.start();
-    T result = _baseVisitor.visitTypeName(node);
+    T? result = _baseVisitor.visitTypeName(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitTypeParameter(TypeParameter node) {
+  T? visitTypeParameter(TypeParameter node) {
     stopwatch.start();
-    T result = _baseVisitor.visitTypeParameter(node);
+    T? result = _baseVisitor.visitTypeParameter(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitTypeParameterList(TypeParameterList node) {
+  T? visitTypeParameterList(TypeParameterList node) {
     stopwatch.start();
-    T result = _baseVisitor.visitTypeParameterList(node);
+    T? result = _baseVisitor.visitTypeParameterList(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitVariableDeclaration(VariableDeclaration node) {
+  T? visitVariableDeclaration(VariableDeclaration node) {
     stopwatch.start();
-    T result = _baseVisitor.visitVariableDeclaration(node);
+    T? result = _baseVisitor.visitVariableDeclaration(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitVariableDeclarationList(VariableDeclarationList node) {
+  T? visitVariableDeclarationList(VariableDeclarationList node) {
     stopwatch.start();
-    T result = _baseVisitor.visitVariableDeclarationList(node);
+    T? result = _baseVisitor.visitVariableDeclarationList(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+  T? visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitVariableDeclarationStatement(node);
+    T? result = _baseVisitor.visitVariableDeclarationStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitWhileStatement(WhileStatement node) {
+  T? visitWhileStatement(WhileStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitWhileStatement(node);
+    T? result = _baseVisitor.visitWhileStatement(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitWithClause(WithClause node) {
+  T? visitWithClause(WithClause node) {
     stopwatch.start();
-    T result = _baseVisitor.visitWithClause(node);
+    T? result = _baseVisitor.visitWithClause(node);
     stopwatch.stop();
     return result;
   }
 
   @override
-  T visitYieldStatement(YieldStatement node) {
+  T? visitYieldStatement(YieldStatement node) {
     stopwatch.start();
-    T result = _baseVisitor.visitYieldStatement(node);
+    T? result = _baseVisitor.visitYieldStatement(node);
     stopwatch.stop();
     return result;
   }
@@ -3113,389 +3117,393 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   const UnifyingAstVisitor();
 
   @override
-  R visitAdjacentStrings(AdjacentStrings node) => visitNode(node);
+  R? visitAdjacentStrings(AdjacentStrings node) => visitNode(node);
 
   @override
-  R visitAnnotation(Annotation node) => visitNode(node);
+  R? visitAnnotation(Annotation node) => visitNode(node);
 
   @override
-  R visitArgumentList(ArgumentList node) => visitNode(node);
+  R? visitArgumentList(ArgumentList node) => visitNode(node);
 
   @override
-  R visitAsExpression(AsExpression node) => visitNode(node);
+  R? visitAsExpression(AsExpression node) => visitNode(node);
 
   @override
-  R visitAssertInitializer(AssertInitializer node) => visitNode(node);
+  R? visitAssertInitializer(AssertInitializer node) => visitNode(node);
 
   @override
-  R visitAssertStatement(AssertStatement node) => visitNode(node);
+  R? visitAssertStatement(AssertStatement node) => visitNode(node);
 
   @override
-  R visitAssignmentExpression(AssignmentExpression node) => visitNode(node);
+  R? visitAssignmentExpression(AssignmentExpression node) => visitNode(node);
 
   @override
-  R visitAwaitExpression(AwaitExpression node) => visitNode(node);
+  R? visitAwaitExpression(AwaitExpression node) => visitNode(node);
 
   @override
-  R visitBinaryExpression(BinaryExpression node) => visitNode(node);
+  R? visitBinaryExpression(BinaryExpression node) => visitNode(node);
 
   @override
-  R visitBlock(Block node) => visitNode(node);
+  R? visitBlock(Block node) => visitNode(node);
 
   @override
-  R visitBlockFunctionBody(BlockFunctionBody node) => visitNode(node);
+  R? visitBlockFunctionBody(BlockFunctionBody node) => visitNode(node);
 
   @override
-  R visitBooleanLiteral(BooleanLiteral node) => visitNode(node);
+  R? visitBooleanLiteral(BooleanLiteral node) => visitNode(node);
 
   @override
-  R visitBreakStatement(BreakStatement node) => visitNode(node);
+  R? visitBreakStatement(BreakStatement node) => visitNode(node);
 
   @override
-  R visitCascadeExpression(CascadeExpression node) => visitNode(node);
+  R? visitCascadeExpression(CascadeExpression node) => visitNode(node);
 
   @override
-  R visitCatchClause(CatchClause node) => visitNode(node);
+  R? visitCatchClause(CatchClause node) => visitNode(node);
 
   @override
-  R visitClassDeclaration(ClassDeclaration node) => visitNode(node);
+  R? visitClassDeclaration(ClassDeclaration node) => visitNode(node);
 
   @override
-  R visitClassTypeAlias(ClassTypeAlias node) => visitNode(node);
+  R? visitClassTypeAlias(ClassTypeAlias node) => visitNode(node);
 
   @override
-  R visitComment(Comment node) => visitNode(node);
+  R? visitComment(Comment node) => visitNode(node);
 
   @override
-  R visitCommentReference(CommentReference node) => visitNode(node);
+  R? visitCommentReference(CommentReference node) => visitNode(node);
 
   @override
-  R visitCompilationUnit(CompilationUnit node) => visitNode(node);
+  R? visitCompilationUnit(CompilationUnit node) => visitNode(node);
 
   @override
-  R visitConditionalExpression(ConditionalExpression node) => visitNode(node);
+  R? visitConditionalExpression(ConditionalExpression node) => visitNode(node);
 
   @override
-  R visitConfiguration(Configuration node) => visitNode(node);
+  R? visitConfiguration(Configuration node) => visitNode(node);
 
   @override
-  R visitConstructorDeclaration(ConstructorDeclaration node) => visitNode(node);
-
-  @override
-  R visitConstructorFieldInitializer(ConstructorFieldInitializer node) =>
+  R? visitConstructorDeclaration(ConstructorDeclaration node) =>
       visitNode(node);
 
   @override
-  R visitConstructorName(ConstructorName node) => visitNode(node);
-
-  @override
-  R visitContinueStatement(ContinueStatement node) => visitNode(node);
-
-  @override
-  R visitDeclaredIdentifier(DeclaredIdentifier node) => visitNode(node);
-
-  @override
-  R visitDefaultFormalParameter(DefaultFormalParameter node) => visitNode(node);
-
-  @override
-  R visitDoStatement(DoStatement node) => visitNode(node);
-
-  @override
-  R visitDottedName(DottedName node) => visitNode(node);
-
-  @override
-  R visitDoubleLiteral(DoubleLiteral node) => visitNode(node);
-
-  @override
-  R visitEmptyFunctionBody(EmptyFunctionBody node) => visitNode(node);
-
-  @override
-  R visitEmptyStatement(EmptyStatement node) => visitNode(node);
-
-  @override
-  R visitEnumConstantDeclaration(EnumConstantDeclaration node) =>
+  R? visitConstructorFieldInitializer(ConstructorFieldInitializer node) =>
       visitNode(node);
 
   @override
-  R visitEnumDeclaration(EnumDeclaration node) => visitNode(node);
+  R? visitConstructorName(ConstructorName node) => visitNode(node);
 
   @override
-  R visitExportDirective(ExportDirective node) => visitNode(node);
+  R? visitContinueStatement(ContinueStatement node) => visitNode(node);
 
   @override
-  R visitExpressionFunctionBody(ExpressionFunctionBody node) => visitNode(node);
+  R? visitDeclaredIdentifier(DeclaredIdentifier node) => visitNode(node);
 
   @override
-  R visitExpressionStatement(ExpressionStatement node) => visitNode(node);
-
-  @override
-  R visitExtendsClause(ExtendsClause node) => visitNode(node);
-
-  @override
-  R visitExtensionDeclaration(ExtensionDeclaration node) => visitNode(node);
-
-  @override
-  R visitExtensionOverride(ExtensionOverride node) => visitNode(node);
-
-  @override
-  R visitFieldDeclaration(FieldDeclaration node) => visitNode(node);
-
-  @override
-  R visitFieldFormalParameter(FieldFormalParameter node) => visitNode(node);
-
-  @override
-  R visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
+  R? visitDefaultFormalParameter(DefaultFormalParameter node) =>
       visitNode(node);
 
   @override
-  R visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) =>
+  R? visitDoStatement(DoStatement node) => visitNode(node);
+
+  @override
+  R? visitDottedName(DottedName node) => visitNode(node);
+
+  @override
+  R? visitDoubleLiteral(DoubleLiteral node) => visitNode(node);
+
+  @override
+  R? visitEmptyFunctionBody(EmptyFunctionBody node) => visitNode(node);
+
+  @override
+  R? visitEmptyStatement(EmptyStatement node) => visitNode(node);
+
+  @override
+  R? visitEnumConstantDeclaration(EnumConstantDeclaration node) =>
       visitNode(node);
 
   @override
-  R visitForElement(ForElement node) => visitNode(node);
+  R? visitEnumDeclaration(EnumDeclaration node) => visitNode(node);
 
   @override
-  R visitFormalParameterList(FormalParameterList node) => visitNode(node);
+  R? visitExportDirective(ExportDirective node) => visitNode(node);
 
   @override
-  R visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
+  R? visitExpressionFunctionBody(ExpressionFunctionBody node) =>
       visitNode(node);
 
   @override
-  R visitForPartsWithExpression(ForPartsWithExpression node) => visitNode(node);
+  R? visitExpressionStatement(ExpressionStatement node) => visitNode(node);
 
   @override
-  R visitForStatement(ForStatement node) => visitNode(node);
+  R? visitExtendsClause(ExtendsClause node) => visitNode(node);
 
   @override
-  R visitFunctionDeclaration(FunctionDeclaration node) => visitNode(node);
+  R? visitExtensionDeclaration(ExtensionDeclaration node) => visitNode(node);
 
   @override
-  R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
+  R? visitExtensionOverride(ExtensionOverride node) => visitNode(node);
+
+  @override
+  R? visitFieldDeclaration(FieldDeclaration node) => visitNode(node);
+
+  @override
+  R? visitFieldFormalParameter(FieldFormalParameter node) => visitNode(node);
+
+  @override
+  R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
       visitNode(node);
 
   @override
-  R visitFunctionExpression(FunctionExpression node) => visitNode(node);
-
-  @override
-  R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
+  R? visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) =>
       visitNode(node);
 
   @override
-  R visitFunctionTypeAlias(FunctionTypeAlias node) => visitNode(node);
+  R? visitForElement(ForElement node) => visitNode(node);
 
   @override
-  R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
+  R? visitFormalParameterList(FormalParameterList node) => visitNode(node);
+
+  @override
+  R? visitForPartsWithDeclarations(ForPartsWithDeclarations node) =>
       visitNode(node);
 
   @override
-  R visitGenericFunctionType(GenericFunctionType node) => visitNode(node);
-
-  @override
-  R visitGenericTypeAlias(GenericTypeAlias node) => visitNode(node);
-
-  @override
-  R visitHideCombinator(HideCombinator node) => visitNode(node);
-
-  @override
-  R visitIfElement(IfElement node) => visitNode(node);
-
-  @override
-  R visitIfStatement(IfStatement node) => visitNode(node);
-
-  @override
-  R visitImplementsClause(ImplementsClause node) => visitNode(node);
-
-  @override
-  R visitImportDirective(ImportDirective node) => visitNode(node);
-
-  @override
-  R visitIndexExpression(IndexExpression node) => visitNode(node);
-
-  @override
-  R visitInstanceCreationExpression(InstanceCreationExpression node) =>
+  R? visitForPartsWithExpression(ForPartsWithExpression node) =>
       visitNode(node);
 
   @override
-  R visitIntegerLiteral(IntegerLiteral node) => visitNode(node);
+  R? visitForStatement(ForStatement node) => visitNode(node);
 
   @override
-  R visitInterpolationExpression(InterpolationExpression node) =>
+  R? visitFunctionDeclaration(FunctionDeclaration node) => visitNode(node);
+
+  @override
+  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
       visitNode(node);
 
   @override
-  R visitInterpolationString(InterpolationString node) => visitNode(node);
+  R? visitFunctionExpression(FunctionExpression node) => visitNode(node);
 
   @override
-  R visitIsExpression(IsExpression node) => visitNode(node);
+  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
+      visitNode(node);
 
   @override
-  R visitLabel(Label node) => visitNode(node);
+  R? visitFunctionTypeAlias(FunctionTypeAlias node) => visitNode(node);
 
   @override
-  R visitLabeledStatement(LabeledStatement node) => visitNode(node);
+  R? visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
+      visitNode(node);
 
   @override
-  R visitLibraryDirective(LibraryDirective node) => visitNode(node);
+  R? visitGenericFunctionType(GenericFunctionType node) => visitNode(node);
 
   @override
-  R visitLibraryIdentifier(LibraryIdentifier node) => visitNode(node);
+  R? visitGenericTypeAlias(GenericTypeAlias node) => visitNode(node);
 
   @override
-  R visitListLiteral(ListLiteral node) => visitNode(node);
+  R? visitHideCombinator(HideCombinator node) => visitNode(node);
 
   @override
-  R visitMapLiteralEntry(MapLiteralEntry node) => visitNode(node);
+  R? visitIfElement(IfElement node) => visitNode(node);
 
   @override
-  R visitMethodDeclaration(MethodDeclaration node) => visitNode(node);
+  R? visitIfStatement(IfStatement node) => visitNode(node);
 
   @override
-  R visitMethodInvocation(MethodInvocation node) => visitNode(node);
+  R? visitImplementsClause(ImplementsClause node) => visitNode(node);
 
   @override
-  R visitMixinDeclaration(MixinDeclaration node) => visitNode(node);
+  R? visitImportDirective(ImportDirective node) => visitNode(node);
 
   @override
-  R visitNamedExpression(NamedExpression node) => visitNode(node);
+  R? visitIndexExpression(IndexExpression node) => visitNode(node);
 
   @override
-  R visitNativeClause(NativeClause node) => visitNode(node);
+  R? visitInstanceCreationExpression(InstanceCreationExpression node) =>
+      visitNode(node);
 
   @override
-  R visitNativeFunctionBody(NativeFunctionBody node) => visitNode(node);
+  R? visitIntegerLiteral(IntegerLiteral node) => visitNode(node);
 
-  R visitNode(AstNode node) {
+  @override
+  R? visitInterpolationExpression(InterpolationExpression node) =>
+      visitNode(node);
+
+  @override
+  R? visitInterpolationString(InterpolationString node) => visitNode(node);
+
+  @override
+  R? visitIsExpression(IsExpression node) => visitNode(node);
+
+  @override
+  R? visitLabel(Label node) => visitNode(node);
+
+  @override
+  R? visitLabeledStatement(LabeledStatement node) => visitNode(node);
+
+  @override
+  R? visitLibraryDirective(LibraryDirective node) => visitNode(node);
+
+  @override
+  R? visitLibraryIdentifier(LibraryIdentifier node) => visitNode(node);
+
+  @override
+  R? visitListLiteral(ListLiteral node) => visitNode(node);
+
+  @override
+  R? visitMapLiteralEntry(MapLiteralEntry node) => visitNode(node);
+
+  @override
+  R? visitMethodDeclaration(MethodDeclaration node) => visitNode(node);
+
+  @override
+  R? visitMethodInvocation(MethodInvocation node) => visitNode(node);
+
+  @override
+  R? visitMixinDeclaration(MixinDeclaration node) => visitNode(node);
+
+  @override
+  R? visitNamedExpression(NamedExpression node) => visitNode(node);
+
+  @override
+  R? visitNativeClause(NativeClause node) => visitNode(node);
+
+  @override
+  R? visitNativeFunctionBody(NativeFunctionBody node) => visitNode(node);
+
+  R? visitNode(AstNode node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
-  R visitNullLiteral(NullLiteral node) => visitNode(node);
+  R? visitNullLiteral(NullLiteral node) => visitNode(node);
 
   @override
-  R visitOnClause(OnClause node) => visitNode(node);
+  R? visitOnClause(OnClause node) => visitNode(node);
 
   @override
-  R visitParenthesizedExpression(ParenthesizedExpression node) =>
+  R? visitParenthesizedExpression(ParenthesizedExpression node) =>
       visitNode(node);
 
   @override
-  R visitPartDirective(PartDirective node) => visitNode(node);
+  R? visitPartDirective(PartDirective node) => visitNode(node);
 
   @override
-  R visitPartOfDirective(PartOfDirective node) => visitNode(node);
+  R? visitPartOfDirective(PartOfDirective node) => visitNode(node);
 
   @override
-  R visitPostfixExpression(PostfixExpression node) => visitNode(node);
+  R? visitPostfixExpression(PostfixExpression node) => visitNode(node);
 
   @override
-  R visitPrefixedIdentifier(PrefixedIdentifier node) => visitNode(node);
+  R? visitPrefixedIdentifier(PrefixedIdentifier node) => visitNode(node);
 
   @override
-  R visitPrefixExpression(PrefixExpression node) => visitNode(node);
+  R? visitPrefixExpression(PrefixExpression node) => visitNode(node);
 
   @override
-  R visitPropertyAccess(PropertyAccess node) => visitNode(node);
+  R? visitPropertyAccess(PropertyAccess node) => visitNode(node);
 
   @override
-  R visitRedirectingConstructorInvocation(
+  R? visitRedirectingConstructorInvocation(
           RedirectingConstructorInvocation node) =>
       visitNode(node);
 
   @override
-  R visitRethrowExpression(RethrowExpression node) => visitNode(node);
+  R? visitRethrowExpression(RethrowExpression node) => visitNode(node);
 
   @override
-  R visitReturnStatement(ReturnStatement node) => visitNode(node);
+  R? visitReturnStatement(ReturnStatement node) => visitNode(node);
 
   @override
-  R visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
+  R? visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
 
   @override
-  R visitSetOrMapLiteral(SetOrMapLiteral node) => visitNode(node);
+  R? visitSetOrMapLiteral(SetOrMapLiteral node) => visitNode(node);
 
   @override
-  R visitShowCombinator(ShowCombinator node) => visitNode(node);
+  R? visitShowCombinator(ShowCombinator node) => visitNode(node);
 
   @override
-  R visitSimpleFormalParameter(SimpleFormalParameter node) => visitNode(node);
+  R? visitSimpleFormalParameter(SimpleFormalParameter node) => visitNode(node);
 
   @override
-  R visitSimpleIdentifier(SimpleIdentifier node) => visitNode(node);
+  R? visitSimpleIdentifier(SimpleIdentifier node) => visitNode(node);
 
   @override
-  R visitSimpleStringLiteral(SimpleStringLiteral node) => visitNode(node);
+  R? visitSimpleStringLiteral(SimpleStringLiteral node) => visitNode(node);
 
   @override
-  R visitSpreadElement(SpreadElement node) => visitNode(node);
+  R? visitSpreadElement(SpreadElement node) => visitNode(node);
 
   @override
-  R visitStringInterpolation(StringInterpolation node) => visitNode(node);
+  R? visitStringInterpolation(StringInterpolation node) => visitNode(node);
 
   @override
-  R visitSuperConstructorInvocation(SuperConstructorInvocation node) =>
+  R? visitSuperConstructorInvocation(SuperConstructorInvocation node) =>
       visitNode(node);
 
   @override
-  R visitSuperExpression(SuperExpression node) => visitNode(node);
+  R? visitSuperExpression(SuperExpression node) => visitNode(node);
 
   @override
-  R visitSwitchCase(SwitchCase node) => visitNode(node);
+  R? visitSwitchCase(SwitchCase node) => visitNode(node);
 
   @override
-  R visitSwitchDefault(SwitchDefault node) => visitNode(node);
+  R? visitSwitchDefault(SwitchDefault node) => visitNode(node);
 
   @override
-  R visitSwitchStatement(SwitchStatement node) => visitNode(node);
+  R? visitSwitchStatement(SwitchStatement node) => visitNode(node);
 
   @override
-  R visitSymbolLiteral(SymbolLiteral node) => visitNode(node);
+  R? visitSymbolLiteral(SymbolLiteral node) => visitNode(node);
 
   @override
-  R visitThisExpression(ThisExpression node) => visitNode(node);
+  R? visitThisExpression(ThisExpression node) => visitNode(node);
 
   @override
-  R visitThrowExpression(ThrowExpression node) => visitNode(node);
+  R? visitThrowExpression(ThrowExpression node) => visitNode(node);
 
   @override
-  R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
+  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
       visitNode(node);
 
   @override
-  R visitTryStatement(TryStatement node) => visitNode(node);
+  R? visitTryStatement(TryStatement node) => visitNode(node);
 
   @override
-  R visitTypeArgumentList(TypeArgumentList node) => visitNode(node);
+  R? visitTypeArgumentList(TypeArgumentList node) => visitNode(node);
 
   @override
-  R visitTypeName(TypeName node) => visitNode(node);
+  R? visitTypeName(TypeName node) => visitNode(node);
 
   @override
-  R visitTypeParameter(TypeParameter node) => visitNode(node);
+  R? visitTypeParameter(TypeParameter node) => visitNode(node);
 
   @override
-  R visitTypeParameterList(TypeParameterList node) => visitNode(node);
+  R? visitTypeParameterList(TypeParameterList node) => visitNode(node);
 
   @override
-  R visitVariableDeclaration(VariableDeclaration node) => visitNode(node);
+  R? visitVariableDeclaration(VariableDeclaration node) => visitNode(node);
 
   @override
-  R visitVariableDeclarationList(VariableDeclarationList node) =>
+  R? visitVariableDeclarationList(VariableDeclarationList node) =>
       visitNode(node);
 
   @override
-  R visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
+  R? visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
       visitNode(node);
 
   @override
-  R visitWhileStatement(WhileStatement node) => visitNode(node);
+  R? visitWhileStatement(WhileStatement node) => visitNode(node);
 
   @override
-  R visitWithClause(WithClause node) => visitNode(node);
+  R? visitWithClause(WithClause node) => visitNode(node);
 
   @override
-  R visitYieldStatement(YieldStatement node) => visitNode(node);
+  R? visitYieldStatement(YieldStatement node) => visitNode(node);
 }
 
 /// A helper class used to implement the correct order of visits for a

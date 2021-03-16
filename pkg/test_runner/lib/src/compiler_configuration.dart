@@ -100,6 +100,7 @@ abstract class CompilerConfiguration {
       case Compiler.dartk:
         if (configuration.architecture == Architecture.simarm ||
             configuration.architecture == Architecture.simarm64 ||
+            configuration.architecture == Architecture.simarm64c ||
             configuration.system == System.android) {
           return VMKernelCompilerConfiguration(configuration);
         }
@@ -557,7 +558,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     args.addAll(options);
     args.addAll(_configuration.sharedOptions);
 
-    bool d8Runtime = _configuration.runtime == Runtime.d8;
+    var d8Runtime = _configuration.runtime == Runtime.d8;
 
     args.addAll([
       "--ignore-unrecognized-flags",
@@ -690,13 +691,19 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isSimArm => _configuration.architecture == Architecture.simarm;
 
-  bool get _isSimArm64 => _configuration.architecture == Architecture.simarm64;
+  bool get _isSimArm64 =>
+      _configuration.architecture == Architecture.simarm64 ||
+      _configuration.architecture == Architecture.simarm64c;
 
   bool get _isArmX64 => _configuration.architecture == Architecture.arm_x64;
 
-  bool get _isArm64 => _configuration.architecture == Architecture.arm64;
+  bool get _isArm64 =>
+      _configuration.architecture == Architecture.arm64 ||
+      _configuration.architecture == Architecture.arm64c;
 
-  bool get _isX64 => _configuration.architecture == Architecture.x64;
+  bool get _isX64 =>
+      _configuration.architecture == Architecture.x64 ||
+      _configuration.architecture == Architecture.x64c;
 
   bool get _isIA32 => _configuration.architecture == Architecture.ia32;
 
@@ -864,14 +871,17 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     String ccFlags;
     switch (_configuration.architecture) {
       case Architecture.x64:
+      case Architecture.x64c:
         ccFlags = "-m64";
         break;
       case Architecture.simarm64:
+      case Architecture.simarm64c:
       case Architecture.ia32:
       case Architecture.simarm:
       case Architecture.arm:
       case Architecture.arm_x64:
       case Architecture.arm64:
+      case Architecture.arm64c:
         ccFlags = null;
         break;
       default:
@@ -1197,6 +1207,7 @@ abstract class VMKernelCompilerMixin {
       arguments.where((name) => name.endsWith('.dart')).single,
       ...arguments.where((name) =>
           name.startsWith('-D') ||
+          name.startsWith('--define') ||
           name.startsWith('--packages=') ||
           name.startsWith('--enable-experiment=')),
       '-Ddart.vm.product=$isProductMode',

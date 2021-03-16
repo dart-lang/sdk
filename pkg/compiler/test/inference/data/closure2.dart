@@ -82,7 +82,7 @@ returnInt4() {
   return g();
 }
 
-/*member: returnNum1:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: returnNum1:Union([exact=JSNumNotInt], [exact=JSUInt31])*/
 returnNum1() {
   dynamic a = 42.5;
   try {

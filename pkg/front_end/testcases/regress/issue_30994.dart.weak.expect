@@ -1,0 +1,118 @@
+library lib;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:6:7: Error: Can't use string interpolation in a URI.
+// part '$foo';
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:7:7: Error: Can't use string interpolation in a URI.
+// part '$foo/bar';
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:8:7: Error: Can't use string interpolation in a URI.
+// part '$for/bar';
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:9:7: Error: Can't use string interpolation in a URI.
+// part '${true}';
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:10:10: Error: Can't use string interpolation in a URI.
+// part 'the${1}thing';
+//          ^
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:11:12: Error: Can't use string interpolation in a URI.
+// part 'part_$foo${'a'}.dart';
+//            ^
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:12:12: Error: Can't use string interpolation in a URI.
+// part 'part_${'a'}_$foo.dart';
+//            ^
+//
+import self as self;
+
+part org-dartlang-malformed-uri:bad247;
+part org-dartlang-malformed-uri:bad260;
+part org-dartlang-malformed-uri:bad277;
+part org-dartlang-malformed-uri:bad294;
+part org-dartlang-malformed-uri:bad310;
+part org-dartlang-malformed-uri:bad331;
+part org-dartlang-malformed-uri:bad360;
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:6:6: Error: Expected a URI.
+// part '$foo';
+//      ^
+//
+import self as self2;
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:7:6: Error: Expected a URI.
+// part '$foo/bar';
+//      ^
+//
+import self as self3;
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:8:6: Error: Expected a URI.
+// part '$for/bar';
+//      ^
+//
+import self as self4;
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:9:6: Error: Expected a URI.
+// part '${true}';
+//      ^
+//
+import self as self5;
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:10:6: Error: Expected a URI.
+// part 'the${1}thing';
+//      ^
+//
+import self as self6;
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:11:6: Error: Expected a URI.
+// part 'part_$foo${'a'}.dart';
+//      ^
+//
+import self as self7;
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:12:6: Error: Expected a URI.
+// part 'part_${'a'}_$foo.dart';
+//      ^
+//
+import self as self8;

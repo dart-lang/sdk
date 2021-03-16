@@ -255,7 +255,7 @@ class TypeCheckingVisitor
     while (type is TypeParameterType) {
       type = (type as TypeParameterType).bound;
     }
-    if (type is BottomType || type is NeverType || type is NullType) {
+    if (type is NeverType || type is NullType) {
       // The bottom type is a subtype of all types, so it should be allowed.
       return Substitution.bottomForClass(superclass);
     }
@@ -290,17 +290,17 @@ class TypeCheckingVisitor
       typeParameters ??= functionType.typeParameters;
       if (arguments.positional.length < functionType.requiredParameterCount) {
         fail(arguments, 'Too few positional arguments');
-        return const BottomType();
+        return NeverType.fromNullability(currentLibrary.nonNullable);
       }
       if (arguments.positional.length >
           functionType.positionalParameters.length) {
         fail(arguments, 'Too many positional arguments');
-        return const BottomType();
+        return NeverType.fromNullability(currentLibrary.nonNullable);
       }
       List<DartType> typeArguments = arguments.types;
       if (typeArguments.length != typeParameters.length) {
         fail(arguments, 'Wrong number of type arguments');
-        return const BottomType();
+        return NeverType.fromNullability(currentLibrary.nonNullable);
       }
       Substitution substitution = _instantiateFunction(
           typeParameters, typeArguments, arguments,
@@ -328,7 +328,7 @@ class TypeCheckingVisitor
         }
         if (!found) {
           fail(argument.value, 'Unexpected named parameter: ${argument.name}');
-          return const BottomType();
+          return NeverType.fromNullability(currentLibrary.nonNullable);
         }
       }
       return substitution.substituteType(functionType.returnType);
@@ -509,12 +509,12 @@ class TypeCheckingVisitor
     DartType type = visitExpression(node.expression);
     if (type is! FunctionType) {
       fail(node, 'Not a function type: $type');
-      return const BottomType();
+      return NeverType.fromNullability(currentLibrary.nonNullable);
     }
     FunctionType functionType = type;
     if (functionType.typeParameters.length != node.typeArguments.length) {
       fail(node, 'Wrong number of type arguments');
-      return const BottomType();
+      return NeverType.fromNullability(currentLibrary.nonNullable);
     }
     return _instantiateFunction(
             functionType.typeParameters, node.typeArguments, node)
@@ -568,15 +568,15 @@ class TypeCheckingVisitor
       TreeNode access, FunctionType function, Arguments arguments) {
     if (function.requiredParameterCount > arguments.positional.length) {
       fail(access, 'Too few positional arguments');
-      return const BottomType();
+      return NeverType.fromNullability(currentLibrary.nonNullable);
     }
     if (function.positionalParameters.length < arguments.positional.length) {
       fail(access, 'Too many positional arguments');
-      return const BottomType();
+      return NeverType.fromNullability(currentLibrary.nonNullable);
     }
     if (function.typeParameters.length != arguments.types.length) {
       fail(access, 'Wrong number of type arguments');
-      return const BottomType();
+      return NeverType.fromNullability(currentLibrary.nonNullable);
     }
     Substitution instantiation =
         Substitution.fromPairs(function.typeParameters, arguments.types);
@@ -597,7 +597,7 @@ class TypeCheckingVisitor
             checkAndDowncastExpression(argument.value, expectedType);
       } else {
         fail(argument.value, 'Unexpected named parameter: ${argument.name}');
-        return const BottomType();
+        return NeverType.fromNullability(currentLibrary.nonNullable);
       }
     }
     return instantiation.substituteType(function.returnType);
@@ -675,12 +675,12 @@ class TypeCheckingVisitor
 
   @override
   DartType visitNullLiteral(NullLiteral node) {
-    return const BottomType();
+    return const NullType();
   }
 
   @override
   DartType visitRethrow(Rethrow node) {
-    return const BottomType();
+    return NeverType.fromNullability(currentLibrary.nonNullable);
   }
 
   @override
@@ -813,7 +813,7 @@ class TypeCheckingVisitor
   @override
   DartType visitThrow(Throw node) {
     visitExpression(node.expression);
-    return const BottomType();
+    return NeverType.fromNullability(currentLibrary.nonNullable);
   }
 
   @override

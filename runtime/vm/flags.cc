@@ -5,6 +5,7 @@
 #include "vm/flags.h"
 
 #include "platform/assert.h"
+#include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/os.h"
 
@@ -472,21 +473,11 @@ char* Flags::ProcessCommandLineFlags(int number_of_vm_flags,
   // graudally remove those restrictions.
 
 #if !defined(DART_PRCOMPILED_RUNTIME)
-  if (!FLAG_precompiled_mode && FLAG_enable_isolate_groups) {
+  if (!FLAG_precompiled_mode && IsolateGroup::AreIsolateGroupsEnabled()) {
     // Our compiler should not make rely on a global field being initialized at
     // compile-time, since that compiled code might be re-used in another
     // isolate that has not yet initialized the global field.
     FLAG_fields_may_be_reset = true;
-
-    // We will start by only allowing compilation to unoptimized code.
-    FLAG_optimization_counter_threshold = -1;
-    FLAG_background_compilation = false;
-    FLAG_force_clone_compiler_objects = true;
-
-    // To eliminate potential flakiness, we will start by disabling field guards
-    // and CHA-based compilations.
-    FLAG_use_field_guards = false;
-    FLAG_use_cha_deopt = false;
   }
 #endif  // !defined(DART_PRCOMPILED_RUNTIME)
 

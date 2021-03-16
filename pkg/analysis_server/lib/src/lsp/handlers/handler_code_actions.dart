@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
@@ -15,7 +13,6 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Position;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
@@ -25,8 +22,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart' show groupBy;
 
 class CodeActionHandler extends MessageHandler<CodeActionParams,
@@ -48,27 +44,44 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     }
 
     final path = pathOfDoc(params.textDocument);
-    if (!path.isError && !server.isAnalyzedFile(path.result)) {
+    if (!path.isError && !server.isAnalyzed(path.result)) {
       return success(const []);
     }
 
-    final capabilities = server?.clientCapabilities?.textDocument;
+    final supportsApplyEdit = server.clientCapabilities.applyEdit;
 
-    final clientSupportsWorkspaceApplyEdit =
-        server?.clientCapabilities?.workspace?.applyEdit == true;
+    final supportsLiteralCodeActions =
+        server.clientCapabilities.literalCodeActions;
 
-    final clientSupportsLiteralCodeActions =
-        capabilities?.codeAction?.codeActionLiteralSupport != null;
+    final supportedKinds = server.clientCapabilities.codeActionKinds;
 
-    final clientSupportedCodeActionKinds = HashSet<CodeActionKind>.of(
-        capabilities?.codeAction?.codeActionLiteralSupport?.codeActionKind
-                ?.valueSet ??
-            []);
-
-    final clientSupportedDiagnosticTags = HashSet<DiagnosticTag>.of(
-        capabilities?.publishDiagnostics?.tagSupport?.valueSet ?? []);
+    final supportedDiagnosticTags = server.clientCapabilities.diagnosticTags;
 
     final unit = await path.mapResult(requireResolvedUnit);
+
+    bool shouldIncludeKind(CodeActionKind kind) {
+      /// Checks whether the kind matches the [wanted] kind.
+      ///
+      /// If `wanted` is `refactor.foo` then:
+      ///  - refactor.foo - included
+      ///  - refactor.foobar - not included
+      ///  - refactor.foo.bar - included
+      bool isMatch(CodeActionKind wanted) =>
+          kind == wanted || kind.toString().startsWith('${wanted.toString()}.');
+
+      // If the client wants only a specific set, use only that filter.
+      if (params.context?.only != null) {
+        return params.context.only.any(isMatch);
+      }
+
+      // Otherwise, filter out anything not supported by the client (if they
+      // advertised that they provided the kinds).
+      if (supportsLiteralCodeActions && !supportedKinds.any(isMatch)) {
+        return false;
+      }
+
+      return true;
+    }
 
     return unit.mapResult((unit) {
       final startOffset = toOffset(unit.lineInfo, params.range.start);
@@ -78,10 +91,10 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           final offset = startOffset;
           final length = endOffset - startOffset;
           return _getCodeActions(
-              clientSupportedCodeActionKinds,
-              clientSupportsLiteralCodeActions,
-              clientSupportsWorkspaceApplyEdit,
-              clientSupportedDiagnosticTags,
+              shouldIncludeKind,
+              supportsLiteralCodeActions,
+              supportsApplyEdit,
+              supportedDiagnosticTags,
               path.result,
               params.range,
               offset,
@@ -110,11 +123,11 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// Wraps a command in a CodeAction if the client supports it so that a
   /// CodeActionKind can be supplied.
   Either2<Command, CodeAction> _commandOrCodeAction(
-    bool clientSupportsLiteralCodeActions,
+    bool supportsLiteralCodeActions,
     CodeActionKind kind,
     Command command,
   ) {
-    return clientSupportsLiteralCodeActions
+    return supportsLiteralCodeActions
         ? Either2<Command, CodeAction>.t2(
             CodeAction(title: command.title, kind: kind, command: command),
           )
@@ -144,26 +157,6 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       kind: toCodeActionKind(fix.change.id, CodeActionKind.QuickFix),
       diagnostics: [diagnostic],
       edit: createWorkspaceEdit(server, fix.change.edits),
-    );
-  }
-
-  /// Creates a CodeAction command to apply a particular fix for all instances of
-  /// a specific error in the file for [path].
-  CodeAction _createFixAllCommand(Fix fix, Diagnostic diagnostic, String path) {
-    final title = 'Apply all: ${fix.change.message}';
-    return CodeAction(
-      title: title,
-      kind: CodeActionKind.QuickFix,
-      diagnostics: [diagnostic],
-      command: Command(
-        command: Commands.fixAllOfErrorCodeInFile,
-        title: title,
-        arguments: [
-          diagnostic.code,
-          path,
-          server.getVersionedDocumentIdentifier(path).version
-        ],
-      ),
     );
   }
 
@@ -218,19 +211,13 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   }
 
   Future<List<Either2<Command, CodeAction>>> _getAssistActions(
-    HashSet<CodeActionKind> clientSupportedCodeActionKinds,
-    bool clientSupportsLiteralCodeActions,
+    bool Function(CodeActionKind) shouldIncludeKind,
+    bool supportsLiteralCodeActions,
     Range range,
     int offset,
     int length,
     ResolvedUnitResult unit,
   ) async {
-    // We only support these for clients that advertise codeActionLiteralSupport.
-    if (!clientSupportsLiteralCodeActions ||
-        !clientSupportedCodeActionKinds.contains(CodeActionKind.Refactor)) {
-      return const [];
-    }
-
     try {
       var context = DartAssistContextImpl(
         server.instrumentationService,
@@ -247,6 +234,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           _dedupeActions(assists.map(_createAssistAction), range.start);
 
       return assistActions
+          .where((action) => shouldIncludeKind(action.kind))
           .map((action) => Either2<Command, CodeAction>.t2(action))
           .toList();
     } on InconsistentAnalysisException {
@@ -258,10 +246,10 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   }
 
   Future<ErrorOr<List<Either2<Command, CodeAction>>>> _getCodeActions(
-    HashSet<CodeActionKind> kinds,
+    bool Function(CodeActionKind) shouldIncludeKind,
     bool supportsLiterals,
     bool supportsWorkspaceApplyEdit,
-    HashSet<DiagnosticTag> supportedDiagnosticTags,
+    Set<DiagnosticTag> supportedDiagnosticTags,
     String path,
     Range range,
     int offset,
@@ -269,12 +257,14 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     ResolvedUnitResult unit,
   ) async {
     final results = await Future.wait([
-      _getSourceActions(
-          kinds, supportsLiterals, supportsWorkspaceApplyEdit, path),
-      _getAssistActions(kinds, supportsLiterals, range, offset, length, unit),
-      _getRefactorActions(kinds, supportsLiterals, path, offset, length, unit),
-      _getFixActions(
-          kinds, supportsLiterals, supportedDiagnosticTags, range, unit),
+      _getSourceActions(shouldIncludeKind, supportsLiterals,
+          supportsWorkspaceApplyEdit, path),
+      _getAssistActions(
+          shouldIncludeKind, supportsLiterals, range, offset, length, unit),
+      _getRefactorActions(
+          shouldIncludeKind, supportsLiterals, path, offset, length, unit),
+      _getFixActions(shouldIncludeKind, supportsLiterals,
+          supportedDiagnosticTags, range, unit),
     ]);
     final flatResults = results.expand((x) => x).toList();
 
@@ -282,21 +272,14 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   }
 
   Future<List<Either2<Command, CodeAction>>> _getFixActions(
-    HashSet<CodeActionKind> clientSupportedCodeActionKinds,
-    bool clientSupportsLiteralCodeActions,
-    HashSet<DiagnosticTag> supportedDiagnosticTags,
+    bool Function(CodeActionKind) shouldIncludeKind,
+    bool supportsLiteralCodeActions,
+    Set<DiagnosticTag> supportedDiagnosticTags,
     Range range,
     ResolvedUnitResult unit,
   ) async {
-    // We only support these for clients that advertise codeActionLiteralSupport.
-    if (!clientSupportsLiteralCodeActions ||
-        !clientSupportedCodeActionKinds.contains(CodeActionKind.QuickFix)) {
-      return const [];
-    }
-
     final lineInfo = unit.lineInfo;
     final codeActions = <CodeAction>[];
-    final fixAllCodeActions = <CodeAction>[];
     final fixContributor = DartFixContributor();
 
     try {
@@ -306,13 +289,6 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         errorCodeCounts[error.errorCode] =
             (errorCodeCounts[error.errorCode] ?? 0) + 1;
       }
-
-      // Because an error code may appear multiple times, cache the possible fixes
-      // as we discover them to avoid re-computing them for a given diagnostic.
-      final possibleFixesForErrorCode = <ErrorCode, Set<FixKind>>{};
-      final workspace = DartChangeWorkspace(server.currentSessions);
-      final processor =
-          BulkFixProcessor(server.instrumentationService, workspace);
 
       for (final error in unit.errors) {
         // Server lineNumber is one-based so subtract one.
@@ -342,38 +318,13 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           codeActions.addAll(
             fixes.map((fix) => _createFixAction(fix, diagnostic)),
           );
-
-          // Only consider an apply-all if there's more than one of these errors.
-          if (errorCodeCounts[error.errorCode] > 1) {
-            // Find out which fixes the bulk processor can handle.
-            possibleFixesForErrorCode[error.errorCode] ??=
-                processor.producableFixesForError(unit, error).toSet();
-
-            // Get the intersection of single-fix kinds we created and those
-            // the bulk processor can handle.
-            final possibleFixes = possibleFixesForErrorCode[error.errorCode]
-                .intersection(fixes.map((f) => f.kind).toSet())
-                  // Exclude data-driven fixes as they're more likely to apply
-                  // different fixes for the same error/fix kind that users
-                  // might not expect.
-                  ..remove(DartFixKind.DATA_DRIVEN);
-
-            // Until we can apply a specific fix, only include apply-all when
-            // there's exactly one.
-            if (possibleFixes.length == 1) {
-              fixAllCodeActions.addAll(fixes.map(
-                  (fix) => _createFixAllCommand(fix, diagnostic, unit.path)));
-            }
-          }
         }
       }
-
-      // Append all fix-alls to the very end.
-      codeActions.addAll(fixAllCodeActions);
 
       final dedupedActions = _dedupeActions(codeActions, range.start);
 
       return dedupedActions
+          .where((action) => shouldIncludeKind(action.kind))
           .map((action) => Either2<Command, CodeAction>.t2(action))
           .toList();
     } on InconsistentAnalysisException {
@@ -385,22 +336,16 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   }
 
   Future<List<Either2<Command, CodeAction>>> _getRefactorActions(
-    HashSet<CodeActionKind> clientSupportedCodeActionKinds,
-    bool clientSupportsLiteralCodeActions,
+    bool Function(CodeActionKind) shouldIncludeKind,
+    bool supportsLiteralCodeActions,
     String path,
     int offset,
     int length,
     ResolvedUnitResult unit,
   ) async {
     // The refactor actions supported are only valid for Dart files.
-    if (!AnalysisEngine.isDartFileName(path)) {
-      return const [];
-    }
-
-    // If the client told us what kinds they support but it does not include
-    // Refactor then don't return any.
-    if (clientSupportsLiteralCodeActions &&
-        !clientSupportedCodeActionKinds.contains(CodeActionKind.Refactor)) {
+    var pathContext = server.resourceProvider.pathContext;
+    if (!file_paths.isDart(pathContext, path)) {
       return const [];
     }
 
@@ -413,7 +358,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       Map<String, dynamic> options,
     ]) {
       return _commandOrCodeAction(
-          clientSupportsLiteralCodeActions,
+          supportsLiteralCodeActions,
           actionKind,
           Command(
             title: name,
@@ -432,24 +377,29 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     try {
       final refactorActions = <Either2<Command, CodeAction>>[];
 
-      // Extract Method
-      if (ExtractMethodRefactoring(server.searchEngine, unit, offset, length)
-          .isAvailable()) {
-        refactorActions.add(createRefactor(CodeActionKind.RefactorExtract,
-            'Extract Method', RefactoringKind.EXTRACT_METHOD));
-      }
+      // Extracts
+      if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {
+        // Extract Method
+        if (ExtractMethodRefactoring(server.searchEngine, unit, offset, length)
+            .isAvailable()) {
+          refactorActions.add(createRefactor(CodeActionKind.RefactorExtract,
+              'Extract Method', RefactoringKind.EXTRACT_METHOD));
+        }
 
-      // Extract Local Variable
-      if (ExtractLocalRefactoring(unit, offset, length).isAvailable()) {
-        refactorActions.add(createRefactor(CodeActionKind.RefactorExtract,
-            'Extract Local Variable', RefactoringKind.EXTRACT_LOCAL_VARIABLE));
-      }
+        // Extract Local Variable
+        if (ExtractLocalRefactoring(unit, offset, length).isAvailable()) {
+          refactorActions.add(createRefactor(
+              CodeActionKind.RefactorExtract,
+              'Extract Local Variable',
+              RefactoringKind.EXTRACT_LOCAL_VARIABLE));
+        }
 
-      // Extract Widget
-      if (ExtractWidgetRefactoring(server.searchEngine, unit, offset, length)
-          .isAvailable()) {
-        refactorActions.add(createRefactor(CodeActionKind.RefactorExtract,
-            'Extract Widget', RefactoringKind.EXTRACT_WIDGET));
+        // Extract Widget
+        if (ExtractWidgetRefactoring(server.searchEngine, unit, offset, length)
+            .isAvailable()) {
+          refactorActions.add(createRefactor(CodeActionKind.RefactorExtract,
+              'Extract Widget', RefactoringKind.EXTRACT_WIDGET));
+        }
       }
 
       return refactorActions;
@@ -464,46 +414,42 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// Gets "Source" CodeActions, which are actions that apply to whole files of
   /// source such as Sort Members and Organise Imports.
   Future<List<Either2<Command, CodeAction>>> _getSourceActions(
-    HashSet<CodeActionKind> clientSupportedCodeActionKinds,
-    bool clientSupportsLiteralCodeActions,
-    bool clientSupportsWorkspaceApplyEdit,
+    bool Function(CodeActionKind) shouldIncludeKind,
+    bool supportsLiteralCodeActions,
+    bool supportsApplyEdit,
     String path,
   ) async {
     // The source actions supported are only valid for Dart files.
-    if (!AnalysisEngine.isDartFileName(path)) {
-      return const [];
-    }
-
-    // If the client told us what kinds they support but it does not include
-    // Source then don't return any.
-    if (clientSupportsLiteralCodeActions &&
-        !clientSupportedCodeActionKinds.contains(CodeActionKind.Source)) {
+    var pathContext = server.resourceProvider.pathContext;
+    if (!file_paths.isDart(pathContext, path)) {
       return const [];
     }
 
     // If the client does not support workspace/applyEdit, we won't be able to
     // run any of these.
-    if (!clientSupportsWorkspaceApplyEdit) {
+    if (!supportsApplyEdit) {
       return const [];
     }
 
     return [
-      _commandOrCodeAction(
-        clientSupportsLiteralCodeActions,
-        DartCodeActionKind.SortMembers,
-        Command(
-            title: 'Sort Members',
-            command: Commands.sortMembers,
-            arguments: [path]),
-      ),
-      _commandOrCodeAction(
-        clientSupportsLiteralCodeActions,
-        CodeActionKind.SourceOrganizeImports,
-        Command(
-            title: 'Organize Imports',
-            command: Commands.organizeImports,
-            arguments: [path]),
-      ),
+      if (shouldIncludeKind(DartCodeActionKind.SortMembers))
+        _commandOrCodeAction(
+          supportsLiteralCodeActions,
+          DartCodeActionKind.SortMembers,
+          Command(
+              title: 'Sort Members',
+              command: Commands.sortMembers,
+              arguments: [path]),
+        ),
+      if (shouldIncludeKind(CodeActionKind.SourceOrganizeImports))
+        _commandOrCodeAction(
+          supportsLiteralCodeActions,
+          CodeActionKind.SourceOrganizeImports,
+          Command(
+              title: 'Organize Imports',
+              command: Commands.organizeImports,
+              arguments: [path]),
+        ),
     ];
   }
 }

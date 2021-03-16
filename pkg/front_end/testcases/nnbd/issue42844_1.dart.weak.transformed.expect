@@ -13,7 +13,7 @@ class C extends core::Object {
   field Never n = null;
   static final field dynamic _redirecting# = <dynamic>[self::C::•]/*isLegacy*/;
   static factory •(Never n) → self::C
-    let<BottomType> #redirecting_factory = self::D::• in invalid-expression;
+    let Never #redirecting_factory = self::D::• in invalid-expression;
 }
 class D extends core::Object implements self::C {
   field Never n;

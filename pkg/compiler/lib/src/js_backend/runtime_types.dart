@@ -334,10 +334,6 @@ abstract class RuntimeTypesSubstitutionsMixin
       for (InterfaceType type in _types.getSupertypes(cls)) {
         processSupertype(type);
       }
-      FunctionType callType = _types.getCallType(_types.getThisType(cls));
-      if (callType != null) {
-        processSupertype(_closedWorld.commonElements.functionType);
-      }
       return checks;
     }
 

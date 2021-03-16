@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // SharedObjects=ffi_test_functions
-// VMOptions=--enable-isolate-groups --disable-heap-verification
+// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --disable-heap-verification
 
 import 'dart:async';
 import 'dart:ffi';

@@ -16,6 +16,9 @@ class AddOverride extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_OVERRIDE;
 
   @override
+  FixKind get multiFixKind => DartFixKind.ADD_OVERRIDE_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var member = node.thisOrAncestorOfType<ClassMember>();
     if (member == null) {

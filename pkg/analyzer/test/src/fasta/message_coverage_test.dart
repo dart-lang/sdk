@@ -68,7 +68,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
       for (String name in contents.keys) {
         Object value = contents[name];
         if (value is YamlMap) {
-          String code = value['analyzerCode']?.toString();
+          var code = value['analyzerCode']?.toString();
           if (code != null) {
             codes.add(code);
           }
@@ -83,21 +83,20 @@ class AbstractRecoveryTest extends FastaParserTestCase {
   List<String> getTranslatedCodes(String astBuilderPath) {
     String content = io.File(astBuilderPath).readAsStringSync();
     CompilationUnit unit = parseCompilationUnit(content);
-    ClassDeclaration astBuilder = unit.declarations[0];
-    expect(astBuilder, isNotNull);
-    MethodDeclaration method = astBuilder.members.firstWhere(
-        (x) => x is MethodDeclaration && x.name.name == 'reportMessage',
-        orElse: () => null);
-    expect(method, isNotNull);
+    var astBuilder = unit.declarations[0] as ClassDeclaration;
+    var method = astBuilder.members
+        .whereType<MethodDeclaration>()
+        .firstWhere((x) => x.name.name == 'reportMessage');
     SwitchStatement statement = (method.body as BlockFunctionBody)
         .block
         .statements
-        .firstWhere((x) => x is SwitchStatement, orElse: () => null);
+        .whereType<SwitchStatement>()
+        .first;
     expect(statement, isNotNull);
     List<String> codes = <String>[];
     for (SwitchMember member in statement.members) {
       if (member is SwitchCase) {
-        codes.add((member.expression as StringLiteral).stringValue);
+        codes.add((member.expression as StringLiteral).stringValue!);
       }
     }
     return codes;

@@ -2674,10 +2674,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitVoidType(VoidType type) => runtimeCall('void');
 
   @override
-  js_ast.Expression visitBottomType(BottomType type) =>
-      _emitType(const NullType());
-
-  @override
   js_ast.Expression visitNullType(NullType type) =>
       _emitInterfaceType(_coreTypes.deprecatedNullType);
 
@@ -3099,6 +3095,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Set module item containers to incremental mode.
     setSymbolContainerIncrementalMode(true);
     _typeTable.typeContainer.incrementalMode = true;
+    _constTableCache.incrementalMode = true;
 
     // Emit function with additional information, such as types that are used
     // in the expression.
@@ -3315,16 +3312,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //
     // In the body of an `async`, `await` is generated simply as `yield`.
     var gen = emitGeneratorFn((_) => []);
-    // Return type of an async body is `Future<flatten(T)>`, where T is the
-    // declared return type, unless T is Object. In that case the Object refers
-    // to a return type of `Future<Object?>`.
-    // TODO(nshahan) Use the Future type value when available on a FunctionNode.
-    var declaredReturnType = function
-        .computeThisFunctionType(_currentLibrary.nonNullable)
-        .returnType;
-    var returnType = _coreTypes.isObject(declaredReturnType)
-        ? _coreTypes.objectNullableRawType
-        : _types.flatten(declaredReturnType);
+    var returnType = _currentLibrary.isNonNullableByDefault
+        ? function.futureValueType
+        // Otherwise flatten the return type because futureValueType(T) is not
+        // defined for legacy libraries.
+        : _types.flatten(function
+            .computeThisFunctionType(_currentLibrary.nonNullable)
+            .returnType);
     return js.call('#.async(#, #)',
         [emitLibraryName(_coreTypes.asyncLibrary), _emitType(returnType), gen]);
   }
@@ -6061,12 +6055,27 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (type.nullability == Nullability.legacy) {
         type = type.withDeclaredNullability(Nullability.nonNullable);
       }
-      assert(!_isInForeignJS || type.nullability == Nullability.nonNullable);
+      assert(!_isInForeignJS ||
+          type.nullability == Nullability.nonNullable ||
+          // The types dynamic, void, and Null all instrinsicly have
+          // `Nullability.nullable` but are handled explicitly without emiting
+          // the nullable runtime wrapper. They are safe to allow through
+          // unchanged.
+          type == const DynamicType() ||
+          type == const NullType() ||
+          type == const VoidType());
       return _emitTypeLiteral(type);
     }
     if (isSdkInternalRuntime(_currentLibrary) || node is PrimitiveConstant) {
       return super.visitConstant(node);
     }
+
+    // Avoid caching constants during evaluation while scoping issues remain.
+    // See: #44713
+    if (_constTableCache.incrementalMode) {
+      return super.visitConstant(node);
+    }
+
     var constAlias = constAliasCache[node];
     if (constAlias != null) {
       return constAlias;

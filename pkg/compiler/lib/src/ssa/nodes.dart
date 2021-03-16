@@ -1207,12 +1207,6 @@ abstract class HInstruction implements Spannable {
   AbstractBool isNumberOrNull(AbstractValueDomain domain) =>
       domain.isNumberOrNull(instructionType);
 
-  AbstractBool isDouble(AbstractValueDomain domain) =>
-      domain.isDouble(instructionType);
-
-  AbstractBool isDoubleOrNull(AbstractValueDomain domain) =>
-      domain.isDoubleOrNull(instructionType);
-
   AbstractBool isBoolean(AbstractValueDomain domain) =>
       domain.isBoolean(instructionType);
 
@@ -4218,19 +4212,6 @@ AbstractBool _typeTest(
       if (interface == commonElements.doubleType) {
         // We let the JS semantics decide for that check. Currently the code we
         // emit will always return true.
-        return AbstractBool.Maybe;
-      }
-      return AbstractBool.False;
-    }
-
-    if (expression.isDouble(abstractValueDomain).isDefinitelyTrue) {
-      if (dartTypes.isSubtype(commonElements.doubleType, interface)) {
-        return AbstractBool.True;
-      }
-      if (interface == commonElements.intType) {
-        // We let the JS semantics decide for that check. Currently the code we
-        // emit will return true for a double that can be represented as a 31-bit
-        // integer and for -0.0.
         return AbstractBool.Maybe;
       }
       return AbstractBool.False;

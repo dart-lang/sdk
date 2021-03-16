@@ -6,7 +6,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -235,8 +234,8 @@ f() {}
     var files = params.files;
     expect(files, hasLength(1));
     Object overlay = files[filePath];
-    expect(overlay, const TypeMatcher<plugin.AddContentOverlay>());
-    plugin.AddContentOverlay addOverlay = overlay;
+    expect(overlay, const TypeMatcher<AddContentOverlay>());
+    AddContentOverlay addOverlay = overlay;
     expect(addOverlay.content, fileContent);
     //
     // Change
@@ -251,8 +250,8 @@ f() {}
     files = params.files;
     expect(files, hasLength(1));
     overlay = files[filePath];
-    expect(overlay, const TypeMatcher<plugin.ChangeContentOverlay>());
-    plugin.ChangeContentOverlay changeOverlay = overlay;
+    expect(overlay, const TypeMatcher<ChangeContentOverlay>());
+    ChangeContentOverlay changeOverlay = overlay;
     expect(changeOverlay.edits, hasLength(2));
     //
     // Remove
@@ -265,7 +264,7 @@ f() {}
     files = params.files;
     expect(files, hasLength(1));
     overlay = files[filePath];
-    expect(overlay, const TypeMatcher<plugin.RemoveContentOverlay>());
+    expect(overlay, const TypeMatcher<RemoveContentOverlay>());
   }
 
 //  CompilationUnit _getTestUnit() {

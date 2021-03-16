@@ -559,9 +559,18 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
       Label length, smi_case;
 
       // The user-controlled index might not fit into a Smi.
+#if !defined(DART_COMPRESSED_POINTERS)
       __ adds(RangeErrorABI::kIndexReg, RangeErrorABI::kIndexReg,
               compiler::Operand(RangeErrorABI::kIndexReg));
       __ BranchIf(NO_OVERFLOW, &length);
+#else
+      __ mov(TMP, RangeErrorABI::kIndexReg);
+      __ SmiTag(RangeErrorABI::kIndexReg);
+      __ sxtw(RangeErrorABI::kIndexReg, RangeErrorABI::kIndexReg);
+      __ cmp(TMP,
+             compiler::Operand(RangeErrorABI::kIndexReg, ASR, kSmiTagSize));
+      __ BranchIf(EQ, &length);
+#endif
       {
         // Allocate a mint, reload the two registers and popualte the mint.
         __ PushRegister(NULL_REG);
@@ -1119,18 +1128,14 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // and is computed as:
     // RoundedAllocationSize(
     //     (array_length * kwordSize) + target::Array::header_size()).
-    // Assert that length is a Smi.
-    __ tsti(R2, Immediate(kSmiTagMask));
-    __ b(&slow_case, NE);
+    // Check that length is a Smi.
+    __ BranchIfNotSmi(R2, &slow_case);
 
-    __ cmp(R2, Operand(0));
-    __ b(&slow_case, LT);
-
-    // Check for maximum allowed length.
+    // Check length >= 0 && length <= kMaxNewSpaceElements
     const intptr_t max_len =
         target::ToRawSmi(target::Array::kMaxNewSpaceElements);
     __ CompareImmediate(R2, max_len);
-    __ b(&slow_case, GT);
+    __ b(&slow_case, HI);
 
     const intptr_t cid = kArrayCid;
     NOT_IN_PRODUCT(__ MaybeTraceAllocation(kArrayCid, R4, &slow_case));
@@ -2172,8 +2177,14 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ BranchIfNotSmi(TMP, not_smi_or_overflow);
   switch (kind) {
     case Token::kADD: {
-      __ adds(R0, R1, Operand(R0));   // Adds.
+#if !defined(DART_COMPRESSED_POINTERS)
+      __ adds(R0, R1, Operand(R0));   // Add.
       __ b(not_smi_or_overflow, VS);  // Branch if overflow.
+#else
+      __ addsw(R0, R1, Operand(R0));  // Add (32-bit).
+      __ b(not_smi_or_overflow, VS);  // Branch if overflow.
+      __ sxtw(R0, R0);                // Sign extend.
+#endif
       break;
     }
     case Token::kLT: {
@@ -3435,15 +3446,6 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ br(R1);
 }
 
-void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
-    Assembler* assembler) {
-  __ brk(0);
-}
-
-void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
-  __ brk(0);
-}
-
 void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ CallRuntime(kNotLoadedRuntimeEntry, 0);
@@ -3579,13 +3581,11 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   /* Check that length is a positive Smi. */
   /* R2: requested array length argument. */
   __ BranchIfNotSmi(R2, &call_runtime);
-  __ CompareRegisters(R2, ZR);
-  __ b(&call_runtime, LT);
   __ SmiUntag(R2);
-  /* Check for maximum allowed length. */
+  /* Check for length >= 0 && length <= max_len. */
   /* R2: untagged array length. */
   __ CompareImmediate(R2, max_len);
-  __ b(&call_runtime, GT);
+  __ b(&call_runtime, HI);
   __ LslImmediate(R2, R2, scale_shift);
   const intptr_t fixed_size_plus_alignment_padding =
       target::TypedData::InstanceSize() +

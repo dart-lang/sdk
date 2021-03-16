@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.42.0';
+const String vmServiceVersion = '3.43.0';
 
 /// @optional
 const String optional = 'optional';
@@ -55,7 +55,8 @@ Object? createServiceObject(dynamic json, List<String> expectedTypes) {
       } else {
         return null;
       }
-    } else if (_isNullInstance(json) && (!expectedTypes.contains(type))) {
+    } else if (_isNullInstance(json) &&
+        (!expectedTypes.contains('InstanceRef'))) {
       // Replace null instances with null when we don't expect an instance to
       // be returned.
       return null;
@@ -198,6 +199,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'evaluate': const ['InstanceRef', 'ErrorRef'],
   'evaluateInFrame': const ['InstanceRef', 'ErrorRef'],
   'getAllocationProfile': const ['AllocationProfile'],
+  'getAllocationTraces': const ['CpuSamples'],
   'getClassList': const ['ClassList'],
   'getCpuSamples': const ['CpuSamples'],
   'getFlagList': const ['FlagList'],
@@ -231,6 +233,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'setFlag': const ['Success', 'Error'],
   'setLibraryDebuggable': const ['Success'],
   'setName': const ['Success'],
+  'setTraceClassAllocation': const ['Success'],
   'setVMName': const ['Success'],
   'setVMTimelineFlags': const ['Success'],
   'streamCancel': const ['Success'],
@@ -501,6 +504,28 @@ abstract class VmServiceInterface {
   /// returned.
   Future<AllocationProfile> getAllocationProfile(String isolateId,
       {bool? reset, bool? gc});
+
+  /// The `getAllocationTraces` RPC allows for the retrieval of allocation
+  /// traces for objects of a specific set of types (see
+  /// [setTraceClassAllocation]). Only samples collected in the time range
+  /// `[timeOriginMicros, timeOriginMicros + timeExtentMicros]` will be
+  /// reported.
+  ///
+  /// If `classId` is provided, only traces for allocations with the matching
+  /// `classId` will be reported.
+  ///
+  /// If the profiler is disabled, an RPC error response will be returned.
+  ///
+  /// If isolateId refers to an isolate which has exited, then the Collected
+  /// Sentinel is returned.
+  ///
+  /// See [CpuSamples].
+  Future<CpuSamples> getAllocationTraces(
+    String isolateId, {
+    int? timeOriginMicros,
+    int? timeExtentMicros,
+    String? classId,
+  });
 
   /// The `getClassList` RPC is used to retrieve a `ClassList` containing all
   /// classes for an isolate based on the isolate's `isolateId`.
@@ -1050,6 +1075,23 @@ abstract class VmServiceInterface {
   /// returned.
   Future<Success> setName(String isolateId, String name);
 
+  /// The `setTraceClassAllocation` RPC allows for enabling or disabling
+  /// allocation tracing for a specific type of object. Allocation traces can be
+  /// retrieved with the `getAllocationTraces` RPC.
+  ///
+  /// If `enable` is true, allocations of objects of the class represented by
+  /// `classId` will be traced.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// See [Success].
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Success> setTraceClassAllocation(
+      String isolateId, String classId, bool enable);
+
   /// The `setVMName` RPC is used to change the debugging name for the vm.
   ///
   /// See [Success].
@@ -1270,6 +1312,14 @@ class VmServerConnection {
             gc: params['gc'],
           );
           break;
+        case 'getAllocationTraces':
+          response = await _serviceImplementation.getAllocationTraces(
+            params!['isolateId'],
+            timeOriginMicros: params['timeOriginMicros'],
+            timeExtentMicros: params['timeExtentMicros'],
+            classId: params['classId'],
+          );
+          break;
         case 'getClassList':
           response = await _serviceImplementation.getClassList(
             params!['isolateId'],
@@ -1446,6 +1496,13 @@ class VmServerConnection {
             params['name'],
           );
           break;
+        case 'setTraceClassAllocation':
+          response = await _serviceImplementation.setTraceClassAllocation(
+            params!['isolateId'],
+            params['classId'],
+            params['enable'],
+          );
+          break;
         case 'setVMName':
           response = await _serviceImplementation.setVMName(
             params!['name'],
@@ -1541,12 +1598,25 @@ class VmServerConnection {
   }
 }
 
+class _OutstandingRequest<T> {
+  _OutstandingRequest(this.method);
+  static int _idCounter = 0;
+  final String id = '${_idCounter++}';
+  final String method;
+  final StackTrace _stackTrace = StackTrace.current;
+  final Completer<T> _completer = Completer<T>();
+
+  Future<T> get future => _completer.future;
+
+  void complete(T value) => _completer.complete(value);
+  void completeError(Object error) =>
+      _completer.completeError(error, _stackTrace);
+}
+
 class VmService implements VmServiceInterface {
   late final StreamSubscription _streamSub;
   late final Function _writeMessage;
-  int _id = 0;
-  Map<String, Completer> _completers = {};
-  Map<String, String> _methodCalls = {};
+  final Map<String, _OutstandingRequest> _outstandingRequests = {};
   Map<String, ServiceCallback> _services = {};
   late final Log _log;
 
@@ -1724,6 +1794,20 @@ class VmService implements VmServiceInterface {
         'isolateId': isolateId,
         if (reset != null && reset) 'reset': reset,
         if (gc != null && gc) 'gc': gc,
+      });
+
+  @override
+  Future<CpuSamples> getAllocationTraces(
+    String isolateId, {
+    int? timeOriginMicros,
+    int? timeExtentMicros,
+    String? classId,
+  }) =>
+      _call('getAllocationTraces', {
+        'isolateId': isolateId,
+        if (timeOriginMicros != null) 'timeOriginMicros': timeOriginMicros,
+        if (timeExtentMicros != null) 'timeExtentMicros': timeExtentMicros,
+        if (classId != null) 'classId': classId,
       });
 
   @override
@@ -1920,6 +2004,12 @@ class VmService implements VmServiceInterface {
       _call('setName', {'isolateId': isolateId, 'name': name});
 
   @override
+  Future<Success> setTraceClassAllocation(
+          String isolateId, String classId, bool enable) =>
+      _call('setTraceClassAllocation',
+          {'isolateId': isolateId, 'classId': classId, 'enable': enable});
+
+  @override
   Future<Success> setVMName(String name) => _call('setVMName', {'name': name});
 
   @override
@@ -1966,12 +2056,14 @@ class VmService implements VmServiceInterface {
 
   Future<void> dispose() async {
     await _streamSub.cancel();
-    _completers.forEach((id, c) {
-      final method = _methodCalls[id];
-      return c.completeError(RPCError(
-          method, RPCError.kServerError, 'Service connection disposed'));
+    _outstandingRequests.forEach((id, request) {
+      request._completer.completeError(RPCError(
+        request.method,
+        RPCError.kServerError,
+        'Service connection disposed',
+      ));
     });
-    _completers.clear();
+    _outstandingRequests.clear();
     if (_disposeHandler != null) {
       await _disposeHandler!();
     }
@@ -1982,21 +2074,19 @@ class VmService implements VmServiceInterface {
 
   Future get onDone => _onDoneCompleter.future;
 
-  Future<T> _call<T>(String method, [Map args = const {}]) {
-    String id = '${++_id}';
-    Completer<T> completer = Completer<T>();
-    _completers[id] = completer;
-    _methodCalls[id] = method;
+  Future<T> _call<T>(String method, [Map args = const {}]) async {
+    final request = _OutstandingRequest(method);
+    _outstandingRequests[request.id] = request;
     Map m = {
       'jsonrpc': '2.0',
-      'id': id,
+      'id': request.id,
       'method': method,
       'params': args,
     };
     String message = jsonEncode(m);
     _onSend.add(message);
     _writeMessage(message);
-    return completer.future;
+    return await request.future as T;
   }
 
   /// Register a service for invocation.
@@ -2066,22 +2156,21 @@ class VmService implements VmServiceInterface {
   }
 
   void _processResponse(Map<String, dynamic> json) {
-    Completer? completer = _completers.remove(json['id']);
-    String methodName = _methodCalls.remove(json['id'])!;
-    List<String> returnTypes = _methodReturnTypes[methodName] ?? [];
-    if (completer == null) {
+    final request = _outstandingRequests.remove(json['id']);
+    if (request == null) {
       _log.severe('unmatched request response: ${jsonEncode(json)}');
     } else if (json['error'] != null) {
-      completer.completeError(RPCError.parse(methodName, json['error']));
+      request.completeError(RPCError.parse(request.method, json['error']));
     } else {
       Map<String, dynamic> result = json['result'] as Map<String, dynamic>;
       String type = result['type'];
       if (type == 'Sentinel') {
-        completer.completeError(SentinelException.parse(methodName, result));
+        request.completeError(SentinelException.parse(request.method, result));
       } else if (_typeFactories[type] == null) {
-        completer.complete(Response.parse(result));
+        request.complete(Response.parse(result));
       } else {
-        completer.complete(createServiceObject(result, returnTypes));
+        List<String> returnTypes = _methodReturnTypes[request.method] ?? [];
+        request.complete(createServiceObject(result, returnTypes));
       }
     }
   }
@@ -2836,6 +2925,9 @@ class Class extends Obj implements ClassRef {
   /// Is this a const class?
   bool? isConst;
 
+  /// Are allocations of this class being traced?
+  bool? traceAllocations;
+
   /// The library which contains this class.
   LibraryRef? library;
 
@@ -2878,6 +2970,7 @@ class Class extends Obj implements ClassRef {
     required this.name,
     required this.isAbstract,
     required this.isConst,
+    required this.traceAllocations,
     required this.library,
     required this.interfaces,
     required this.fields,
@@ -2898,6 +2991,7 @@ class Class extends Obj implements ClassRef {
     error = createServiceObject(json['error'], const ['ErrorRef']) as ErrorRef?;
     isAbstract = json['abstract'] ?? false;
     isConst = json['const'] ?? false;
+    traceAllocations = json['traceAllocations'] ?? false;
     library = createServiceObject(json['library']!, const ['LibraryRef'])
         as LibraryRef;
     location = createServiceObject(json['location'], const ['SourceLocation'])
@@ -2933,6 +3027,7 @@ class Class extends Obj implements ClassRef {
       'name': name,
       'abstract': isAbstract,
       'const': isConst,
+      'traceAllocations': traceAllocations,
       'library': library?.toJson(),
       'interfaces': interfaces?.map((f) => f.toJson()).toList(),
       'fields': fields?.map((f) => f.toJson()).toList(),
@@ -3385,6 +3480,17 @@ class CpuSample {
   /// @Function(foo())` `functions[stack[2]] = @Function(main())`
   List<int>? stack;
 
+  /// The identityHashCode assigned to the allocated object. This hash code is
+  /// the same as the hash code provided in HeapSnapshot. Provided for CpuSample
+  /// instances returned from a getAllocationTraces().
+  @optional
+  int? identityHashCode;
+
+  /// Matches the index of a class in HeapSnapshot.classes. Provided for
+  /// CpuSample instances returned from a getAllocationTraces().
+  @optional
+  int? classId;
+
   CpuSample({
     required this.tid,
     required this.timestamp,
@@ -3392,6 +3498,8 @@ class CpuSample {
     this.vmTag,
     this.userTag,
     this.truncated,
+    this.identityHashCode,
+    this.classId,
   });
 
   CpuSample._fromJson(Map<String, dynamic> json) {
@@ -3401,6 +3509,8 @@ class CpuSample {
     userTag = json['userTag'];
     truncated = json['truncated'];
     stack = List<int>.from(json['stack']);
+    identityHashCode = json['identityHashCode'];
+    classId = json['classId'];
   }
 
   Map<String, dynamic> toJson() {
@@ -3413,6 +3523,8 @@ class CpuSample {
     _setIfNotNull(json, 'vmTag', vmTag);
     _setIfNotNull(json, 'userTag', userTag);
     _setIfNotNull(json, 'truncated', truncated);
+    _setIfNotNull(json, 'identityHashCode', identityHashCode);
+    _setIfNotNull(json, 'classId', classId);
     return json;
   }
 
@@ -4811,21 +4923,63 @@ class Instance extends Obj implements InstanceRef {
 
   Instance._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'] ?? '';
+    classRef =
+        createServiceObject(json['class']!, const ['ClassRef']) as ClassRef;
     valueAsString = json['valueAsString'];
     valueAsStringIsTruncated = json['valueAsStringIsTruncated'];
     length = json['length'];
     offset = json['offset'];
     count = json['count'];
     name = json['name'];
+    typeClass =
+        createServiceObject(json['typeClass'], const ['ClassRef']) as ClassRef?;
+    parameterizedClass =
+        createServiceObject(json['parameterizedClass'], const ['ClassRef'])
+            as ClassRef?;
+    fields = json['fields'] == null
+        ? null
+        : List<BoundField>.from(
+            createServiceObject(json['fields'], const ['BoundField'])! as List);
+    elements = json['elements'] == null
+        ? null
+        : List<dynamic>.from(
+            createServiceObject(json['elements'], const ['dynamic'])! as List);
     associations = json['associations'] == null
         ? null
         : List<MapAssociation>.from(
             _createSpecificObject(json['associations'], MapAssociation.parse));
     bytes = json['bytes'];
+    mirrorReferent =
+        createServiceObject(json['mirrorReferent'], const ['InstanceRef'])
+            as InstanceRef?;
+    pattern = createServiceObject(json['pattern'], const ['InstanceRef'])
+        as InstanceRef?;
+    closureFunction =
+        createServiceObject(json['closureFunction'], const ['FuncRef'])
+            as FuncRef?;
+    closureContext =
+        createServiceObject(json['closureContext'], const ['ContextRef'])
+            as ContextRef?;
     isCaseSensitive = json['isCaseSensitive'];
     isMultiLine = json['isMultiLine'];
+    propertyKey =
+        createServiceObject(json['propertyKey'], const ['InstanceRef'])
+            as InstanceRef?;
+    propertyValue =
+        createServiceObject(json['propertyValue'], const ['InstanceRef'])
+            as InstanceRef?;
+    typeArguments =
+        createServiceObject(json['typeArguments'], const ['TypeArgumentsRef'])
+            as TypeArgumentsRef?;
     parameterIndex = json['parameterIndex'];
+    targetType = createServiceObject(json['targetType'], const ['InstanceRef'])
+        as InstanceRef?;
+    bound = createServiceObject(json['bound'], const ['InstanceRef'])
+        as InstanceRef?;
     portId = json['portId'];
+    allocationLocation =
+        createServiceObject(json['allocationLocation'], const ['InstanceRef'])
+            as InstanceRef?;
     debugName = json['debugName'];
   }
 
@@ -6527,8 +6681,7 @@ class ScriptRef extends ObjRef {
 /// line number followed by `(tokenPos, columnNumber)` pairs:
 ///
 /// ```
-/// [
-/// ```lineNumber, (tokenPos, columnNumber)*]
+/// [lineNumber, (tokenPos, columnNumber)*]
 /// ```
 ///
 /// The `tokenPos` is an arbitrary integer value that is used to represent a
@@ -6538,10 +6691,7 @@ class ScriptRef extends ObjRef {
 /// For example, a `tokenPosTable` with the value...
 ///
 /// ```
-/// [
-/// ```[
-/// ```1, 100, 5, 101, 8],[
-/// ```2, 102, 7]]
+/// [[1, 100, 5, 101, 8],[2, 102, 7]]
 /// ```
 ///
 /// ...encodes the mapping:

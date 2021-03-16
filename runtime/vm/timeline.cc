@@ -1524,7 +1524,7 @@ void TimelineEventBlock::Finish() {
   in_use_ = false;
 #ifndef PRODUCT
   if (Service::timeline_stream.enabled()) {
-    ServiceEvent service_event(NULL, ServiceEvent::kTimelineEvents);
+    ServiceEvent service_event(ServiceEvent::kTimelineEvents);
     service_event.set_timeline_event_block(this);
     Service::HandleEvent(&service_event);
   }

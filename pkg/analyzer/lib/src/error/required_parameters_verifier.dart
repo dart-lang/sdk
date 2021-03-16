@@ -4,12 +4,12 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:collection/collection.dart';
 
 /// Checks for missing arguments for required named parameters.
 class RequiredParametersVerifier extends SimpleAstVisitor<void> {
@@ -75,7 +75,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   }
 
   void _check(
-    List<ParameterElement> parameters,
+    List<ParameterElement>? parameters,
     ArgumentList argumentList,
     AstNode node,
   ) {
@@ -99,7 +99,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
         if (annotation != null) {
           String parameterName = parameter.name;
           if (!_containsNamedExpression(argumentList, parameterName)) {
-            String reason = annotation.reason;
+            var reason = annotation.reason;
             if (reason != null) {
               _errorReporter.reportErrorForNode(
                 HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
@@ -132,7 +132,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     return false;
   }
 
-  static ExecutableElement _executableElement(Element element) {
+  static ExecutableElement? _executableElement(Element? element) {
     if (element is ExecutableElement) {
       return element;
     } else {
@@ -140,11 +140,9 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     }
   }
 
-  static _RequiredAnnotation _requiredAnnotation(ParameterElement element) {
-    var annotation = element.metadata.firstWhere(
-      (e) => e.isRequired,
-      orElse: () => null,
-    );
+  static _RequiredAnnotation? _requiredAnnotation(ParameterElement element) {
+    var annotation = element.metadata.firstWhereOrNull((e) => e.isRequired)
+        as ElementAnnotationImpl?;
     if (annotation != null) {
       return _RequiredAnnotation(annotation);
     }
@@ -160,17 +158,17 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 class _RequiredAnnotation {
   /// The instance of `@required` annotation.
   /// If `null`, then the parameter is `required` in null safety.
-  final ElementAnnotationImpl annotation;
+  final ElementAnnotationImpl? annotation;
 
   _RequiredAnnotation(this.annotation);
 
-  String get reason {
+  String? get reason {
     if (annotation == null) {
       return null;
     }
 
-    DartObject constantValue = annotation.computeConstantValue();
-    String value = constantValue?.getField('reason')?.toStringValue();
+    var constantValue = annotation!.computeConstantValue();
+    var value = constantValue?.getField('reason')?.toStringValue();
     return (value == null || value.isEmpty) ? null : value;
   }
 }

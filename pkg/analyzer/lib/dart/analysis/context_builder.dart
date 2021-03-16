@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
-import 'package:meta/meta.dart';
 
 /// A utility class used to build an analysis context based on a context root.
 ///
@@ -37,9 +36,9 @@ abstract class ContextBuilder {
   /// If an [sdkSummaryPath] is provided, then that file will be used as the
   /// summary file for the SDK.
   AnalysisContext createContext(
-      {@required ContextRoot contextRoot,
-      DeclaredVariables declaredVariables,
-      List<String> librarySummaryPaths,
-      String sdkPath,
-      String sdkSummaryPath});
+      {required ContextRoot contextRoot,
+      DeclaredVariables? declaredVariables,
+      List<String>? librarySummaryPaths,
+      String? sdkPath,
+      String? sdkSummaryPath});
 }

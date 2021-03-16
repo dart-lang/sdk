@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:test/test.dart';
@@ -17,14 +17,126 @@ import '../resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantVisitorTest);
-    defineReflectiveTests(ConstantVisitorWithNullSafetyWithTripleShiftTest);
-    defineReflectiveTests(ConstantVisitorWithNullSafetyTest);
+    defineReflectiveTests(ConstantVisitorWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ConstantVisitorTest extends ConstantVisitorTestSupport
-    with ConstantVisitorTestCases {}
+    with ConstantVisitorTestCases {
+  test_visitAsExpression_potentialConstType() async {
+    await assertNoErrorsInCode('''
+const num three = 3;
+
+class C<T extends num> {
+  final T w;
+  const C() : w = three as T;
+}
+
+void main() {
+  const C<int>().w;
+}
+''');
+  }
+
+  test_visitBinaryExpression_gtGtGt_negative_fewerBits() async {
+    await resolveTestCode('''
+const c = 0xFFFFFFFF >>> 8;
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0xFFFFFF);
+  }
+
+  test_visitBinaryExpression_gtGtGt_negative_moreBits() async {
+    await resolveTestCode('''
+const c = 0xFFFFFFFF >>> 33;
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0);
+  }
+
+  test_visitBinaryExpression_gtGtGt_negative_moreThan64Bits() async {
+    await resolveTestCode('''
+const c = 0xFFFFFFFF >>> 65;
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0);
+  }
+
+  test_visitBinaryExpression_gtGtGt_negative_negativeBits() async {
+    await resolveTestCode('''
+const c = 0xFFFFFFFF >>> -2;
+''');
+    _evaluateConstantOrNull('c',
+        errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+  }
+
+  test_visitBinaryExpression_gtGtGt_negative_zeroBits() async {
+    await resolveTestCode('''
+const c = 0xFFFFFFFF >>> 0;
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0xFFFFFFFF);
+  }
+
+  test_visitBinaryExpression_gtGtGt_positive_fewerBits() async {
+    await resolveTestCode('''
+const c = 0xFF >>> 3;
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0x1F);
+  }
+
+  test_visitBinaryExpression_gtGtGt_positive_moreBits() async {
+    await resolveTestCode('''
+const c = 0xFF >>> 9;
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0);
+  }
+
+  test_visitBinaryExpression_gtGtGt_positive_moreThan64Bits() async {
+    await resolveTestCode('''
+const c = 0xFF >>> 65;
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0);
+  }
+
+  test_visitBinaryExpression_gtGtGt_positive_negativeBits() async {
+    await resolveTestCode('''
+const c = 0xFF >>> -2;
+''');
+    _evaluateConstantOrNull('c',
+        errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+  }
+
+  test_visitBinaryExpression_gtGtGt_positive_zeroBits() async {
+    await resolveTestCode('''
+const c = 0xFF >>> 0;
+''');
+    DartObjectImpl result = _evaluateConstant('c');
+    expect(result.type, typeProvider.intType);
+    expect(result.toIntValue(), 0xFF);
+  }
+
+  test_visitSimpleIdentifier_className() async {
+    await resolveTestCode('''
+const a = C;
+class C {}
+''');
+    DartObjectImpl result = _evaluateConstant('a');
+    expect(result.type, typeProvider.typeType);
+    assertType(result.toTypeValue(), 'C*');
+  }
+}
 
 @reflectiveTest
 mixin ConstantVisitorTestCases on ConstantVisitorTestSupport {
@@ -33,8 +145,8 @@ mixin ConstantVisitorTestCases on ConstantVisitorTestSupport {
 const c = [1, if (1 < 0) 2 else 3, 4];
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.listType2(typeProvider.intType));
-    expect(result.toListValue().map((e) => e.toIntValue()), [1, 3, 4]);
+    expect(result.type, typeProvider.listType(typeProvider.intType));
+    expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 3, 4]);
   }
 
   test_listLiteral_ifElement_false_withoutElse() async {
@@ -42,8 +154,8 @@ const c = [1, if (1 < 0) 2 else 3, 4];
 const c = [1, if (1 < 0) 2, 3];
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.listType2(typeProvider.intType));
-    expect(result.toListValue().map((e) => e.toIntValue()), [1, 3]);
+    expect(result.type, typeProvider.listType(typeProvider.intType));
+    expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 3]);
   }
 
   test_listLiteral_ifElement_true_withElse() async {
@@ -51,8 +163,8 @@ const c = [1, if (1 < 0) 2, 3];
 const c = [1, if (1 > 0) 2 else 3, 4];
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.listType2(typeProvider.intType));
-    expect(result.toListValue().map((e) => e.toIntValue()), [1, 2, 4]);
+    expect(result.type, typeProvider.listType(typeProvider.intType));
+    expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 4]);
   }
 
   test_listLiteral_ifElement_true_withoutElse() async {
@@ -60,8 +172,8 @@ const c = [1, if (1 > 0) 2 else 3, 4];
 const c = [1, if (1 > 0) 2, 3];
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.listType2(typeProvider.intType));
-    expect(result.toListValue().map((e) => e.toIntValue()), [1, 2, 3]);
+    expect(result.type, typeProvider.listType(typeProvider.intType));
+    expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
   test_listLiteral_nested() async {
@@ -71,8 +183,8 @@ const c = [1, if (1 > 0) if (2 > 1) 2, 3];
     DartObjectImpl result = _evaluateConstant('c');
     // The expected type ought to be `List<int>`, but type inference isn't yet
     // implemented.
-    expect(result.type, typeProvider.listType2(typeProvider.intType));
-    expect(result.toListValue().map((e) => e.toIntValue()), [1, 2, 3]);
+    expect(result.type, typeProvider.listType(typeProvider.intType));
+    expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
   test_listLiteral_spreadElement() async {
@@ -80,8 +192,8 @@ const c = [1, if (1 > 0) if (2 > 1) 2, 3];
 const c = [1, ...[2, 3], 4];
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.listType2(typeProvider.intType));
-    expect(result.toListValue().map((e) => e.toIntValue()), [1, 2, 3, 4]);
+    expect(result.type, typeProvider.listType(typeProvider.intType));
+    expect(result.toListValue()!.map((e) => e.toIntValue()), [1, 2, 3, 4]);
   }
 
   test_mapLiteral_ifElement_false_withElse() async {
@@ -90,8 +202,8 @@ const c = {'a' : 1, if (1 < 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type,
-        typeProvider.mapType2(typeProvider.stringType, typeProvider.intType));
-    Map<DartObject, DartObject> value = result.toMapValue();
+        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
+    Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'c', 'd']));
     expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 3, 4]));
@@ -103,8 +215,8 @@ const c = {'a' : 1, if (1 < 0) 'b' : 2, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type,
-        typeProvider.mapType2(typeProvider.stringType, typeProvider.intType));
-    Map<DartObject, DartObject> value = result.toMapValue();
+        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
+    Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(
         value.keys.map((e) => e.toStringValue()), unorderedEquals(['a', 'c']));
     expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 3]));
@@ -116,8 +228,8 @@ const c = {'a' : 1, if (1 > 0) 'b' : 2 else 'c' : 3, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type,
-        typeProvider.mapType2(typeProvider.stringType, typeProvider.intType));
-    Map<DartObject, DartObject> value = result.toMapValue();
+        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
+    Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'b', 'd']));
     expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 4]));
@@ -129,8 +241,8 @@ const c = {'a' : 1, if (1 > 0) 'b' : 2, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type,
-        typeProvider.mapType2(typeProvider.stringType, typeProvider.intType));
-    Map<DartObject, DartObject> value = result.toMapValue();
+        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
+    Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'b', 'c']));
     expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 3]));
@@ -144,8 +256,8 @@ const c = {'a' : 1, if (1 > 0) if (2 > 1) {'b' : 2}, 'c' : 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type,
-        typeProvider.mapType2(typeProvider.intType, typeProvider.intType));
-    Map<DartObject, DartObject> value = result.toMapValue();
+        typeProvider.mapType(typeProvider.intType, typeProvider.intType));
+    Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'b', 'c']));
     expect(value.values.map((e) => e.toIntValue()), unorderedEquals([1, 2, 3]));
@@ -157,8 +269,8 @@ const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type,
-        typeProvider.mapType2(typeProvider.stringType, typeProvider.intType));
-    Map<DartObject, DartObject> value = result.toMapValue();
+        typeProvider.mapType(typeProvider.stringType, typeProvider.intType));
+    Map<DartObject, DartObject> value = result.toMapValue()!;
     expect(value.keys.map((e) => e.toStringValue()),
         unorderedEquals(['a', 'b', 'c', 'd']));
     expect(
@@ -170,8 +282,8 @@ const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
 const c = {1, if (1 < 0) 2 else 3, 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.setType2(typeProvider.intType));
-    expect(result.toSetValue().map((e) => e.toIntValue()), [1, 3, 4]);
+    expect(result.type, typeProvider.setType(typeProvider.intType));
+    expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 3, 4]);
   }
 
   test_setLiteral_ifElement_false_withoutElse() async {
@@ -179,8 +291,8 @@ const c = {1, if (1 < 0) 2 else 3, 4};
 const c = {1, if (1 < 0) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.setType2(typeProvider.intType));
-    expect(result.toSetValue().map((e) => e.toIntValue()), [1, 3]);
+    expect(result.type, typeProvider.setType(typeProvider.intType));
+    expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 3]);
   }
 
   test_setLiteral_ifElement_true_withElse() async {
@@ -188,8 +300,8 @@ const c = {1, if (1 < 0) 2, 3};
 const c = {1, if (1 > 0) 2 else 3, 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.setType2(typeProvider.intType));
-    expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 4]);
+    expect(result.type, typeProvider.setType(typeProvider.intType));
+    expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 4]);
   }
 
   test_setLiteral_ifElement_true_withoutElse() async {
@@ -197,8 +309,8 @@ const c = {1, if (1 > 0) 2 else 3, 4};
 const c = {1, if (1 > 0) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.setType2(typeProvider.intType));
-    expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 3]);
+    expect(result.type, typeProvider.setType(typeProvider.intType));
+    expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
   test_setLiteral_nested() async {
@@ -206,8 +318,8 @@ const c = {1, if (1 > 0) 2, 3};
 const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.setType2(typeProvider.intType));
-    expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 3]);
+    expect(result.type, typeProvider.setType(typeProvider.intType));
+    expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
   test_setLiteral_spreadElement() async {
@@ -215,8 +327,8 @@ const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 const c = {1, ...{2, 3}, 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.setType2(typeProvider.intType));
-    expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 3, 4]);
+    expect(result.type, typeProvider.setType(typeProvider.intType));
+    expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3, 4]);
   }
 
   test_visitAsExpression_instanceOfSameClass() async {
@@ -259,7 +371,7 @@ class B extends A {
   const B();
 }
 ''');
-    DartObjectImpl result = _evaluateConstant('b',
+    var result = _evaluateConstantOrNull('b',
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
     expect(result, isNull);
   }
@@ -275,19 +387,9 @@ class B {
   const B();
 }
 ''');
-    DartObjectImpl result = _evaluateConstant('b',
+    var result = _evaluateConstantOrNull('b',
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
     expect(result, isNull);
-  }
-
-  test_visitAsExpression_null() async {
-    await resolveTestCode('''
-const a = null;
-const b = a as A;
-class A {}
-''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.nullType);
   }
 
   test_visitAsExpression_potentialConst() async {
@@ -351,7 +453,7 @@ const c = 3 & 5;
     await resolveTestCode('''
 const c = 3 & false;
 ''');
-    _evaluateConstant('c',
+    _evaluateConstantOrNull('c',
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT]);
   }
 
@@ -403,7 +505,7 @@ const c = 3 | 5;
     await resolveTestCode('''
 const c = 3 | false;
 ''');
-    _evaluateConstant('c',
+    _evaluateConstantOrNull('c',
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT]);
   }
 
@@ -457,7 +559,8 @@ const c = 'a' ?? 'b';
 const c = null ?? new C();
 class C {}
 ''');
-    _evaluateConstant('c', errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
+    _evaluateConstantOrNull('c',
+        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
   }
 
   test_visitBinaryExpression_questionQuestion_lazy_null_notNull() async {
@@ -525,7 +628,7 @@ const c = 3 ^ 5;
     await resolveTestCode('''
 const c = 3 ^ false;
 ''');
-    _evaluateConstant('c',
+    _evaluateConstantOrNull('c',
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT]);
   }
 
@@ -542,7 +645,7 @@ const c = false ? 1 : 0;
     await resolveTestCode('''
 const c = null ? 1 : 0;
 ''');
-    DartObjectImpl result = _evaluateConstant(
+    var result = _evaluateConstantOrNull(
       'c',
       errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL],
     );
@@ -577,7 +680,7 @@ const c = true ? 1 : x;
     await resolveTestCode('''
 const c = true ? x : 0;
 ''');
-    DartObjectImpl result = _evaluateConstant(
+    var result = _evaluateConstantOrNull(
       'c',
       errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT],
     );
@@ -597,7 +700,8 @@ const c = false ? 1 : 0;
     await resolveTestCode('''
 const c = false ? 1 : new C();
 ''');
-    _evaluateConstant('c', errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
+    _evaluateConstantOrNull('c',
+        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
   }
 
   test_visitConditionalExpression_lazy_false_invalid_int() async {
@@ -614,7 +718,7 @@ const c = false ? new C() : 0;
     await resolveTestCode('''
 const c = 3 ? 1 : 0;
 ''');
-    _evaluateConstant('c',
+    _evaluateConstantOrNull('c',
         errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL]);
   }
 
@@ -642,7 +746,8 @@ const c = true ? 1: new C();
 const c = true ? new C() : 0;
 class C {}
 ''');
-    _evaluateConstant('c', errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
+    _evaluateConstantOrNull('c',
+        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
   }
 
   test_visitInstanceCreationExpression_bool_fromEnvironment() async {
@@ -935,16 +1040,6 @@ const b = B('');
     ]);
   }
 
-  test_visitSimpleIdentifier_className() async {
-    await resolveTestCode('''
-const a = C;
-class C {}
-''');
-    DartObjectImpl result = _evaluateConstant('a');
-    expect(result.type, typeProvider.typeType);
-    assertType(result.toTypeValue(), 'C');
-  }
-
   test_visitSimpleIdentifier_dynamic() async {
     await resolveTestCode('''
 const a = dynamic;
@@ -1016,13 +1111,31 @@ const b = 3;''');
 class ConstantVisitorTestSupport extends PubPackageResolutionTest {
   DartObjectImpl _evaluateConstant(
     String name, {
-    List<ErrorCode> errorCodes,
+    List<ErrorCode>? errorCodes,
     Map<String, String> declaredVariables = const {},
-    Map<String, DartObjectImpl> lexicalEnvironment,
+    Map<String, DartObjectImpl>? lexicalEnvironment,
   }) {
-    var expression = findNode.topVariableDeclarationByName(name).initializer;
+    return _evaluateConstantOrNull(
+      name,
+      errorCodes: errorCodes,
+      declaredVariables: declaredVariables,
+      lexicalEnvironment: lexicalEnvironment,
+    )!;
+  }
 
-    var source = this.result.unit.declaredElement.source;
+  DartObjectImpl? _evaluateConstantOrNull(
+    String name, {
+    List<ErrorCode>? errorCodes,
+    Map<String, String> declaredVariables = const {},
+    Map<String, DartObjectImpl>? lexicalEnvironment,
+  }) {
+    var expression = findNode.topVariableDeclarationByName(name).initializer!;
+
+    var unit = this.result.unit;
+    if (unit == null) {
+      throw StateError('analysis result unit is null');
+    }
+    var source = unit.declaredElement!.source;
     var errorListener = GatheringErrorListener();
     var errorReporter = ErrorReporter(
       errorListener,
@@ -1030,12 +1143,13 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
       isNonNullableByDefault: false,
     );
 
-    DartObjectImpl result = expression.accept(
+    DartObjectImpl? result = expression.accept(
       ConstantVisitor(
         ConstantEvaluationEngine(
           DeclaredVariables.fromMap(declaredVariables),
+          unit.featureSet.isEnabled(Feature.triple_shift),
         ),
-        this.result.libraryElement,
+        this.result.libraryElement as LibraryElementImpl,
         errorReporter,
         lexicalEnvironment: lexicalEnvironment,
       ),
@@ -1050,130 +1164,15 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
 }
 
 @reflectiveTest
-class ConstantVisitorWithNullSafetyTest extends ConstantVisitorTestSupport
-    with WithNullSafetyMixin {
-  test_visitAsExpression_potentialConstType() async {
-    await assertNoErrorsInCode('''
-const num three = 3;
-
-class C<T extends num> {
-  final T w;
-  const C() : w = three as T;
-}
-
-void main() {
-  const C<int>().w;
-}
-''');
-  }
-}
-
-@reflectiveTest
-class ConstantVisitorWithNullSafetyWithTripleShiftTest
-    extends ConstantVisitorTestSupport {
-  @override
-  String get testPackageLanguageVersion =>
-      '${ExperimentStatus.currentVersion.major}.'
-      '${ExperimentStatus.currentVersion.minor}';
-
-  @override
-  void setUp() {
-    super.setUp();
-
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: [
-          EnableString.triple_shift,
-        ],
-      ),
-    );
-  }
-
-  test_visitBinaryExpression_gtGtGt_negative_fewerBits() async {
+class ConstantVisitorWithoutNullSafetyTest extends ConstantVisitorTestSupport
+    with ConstantVisitorTestCases, WithoutNullSafetyMixin {
+  test_visitAsExpression_null() async {
     await resolveTestCode('''
-const c = 0xFFFFFFFF >>> 8;
+const a = null;
+const b = a as A;
+class A {}
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0xFFFFFF);
-  }
-
-  test_visitBinaryExpression_gtGtGt_negative_moreBits() async {
-    await resolveTestCode('''
-const c = 0xFFFFFFFF >>> 33;
-''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0);
-  }
-
-  test_visitBinaryExpression_gtGtGt_negative_moreThan64Bits() async {
-    await resolveTestCode('''
-const c = 0xFFFFFFFF >>> 65;
-''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0);
-  }
-
-  test_visitBinaryExpression_gtGtGt_negative_negativeBits() async {
-    await resolveTestCode('''
-const c = 0xFFFFFFFF >>> -2;
-''');
-    _evaluateConstant('c',
-        errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
-  }
-
-  test_visitBinaryExpression_gtGtGt_negative_zeroBits() async {
-    await resolveTestCode('''
-const c = 0xFFFFFFFF >>> 0;
-''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0xFFFFFFFF);
-  }
-
-  test_visitBinaryExpression_gtGtGt_positive_fewerBits() async {
-    await resolveTestCode('''
-const c = 0xFF >>> 3;
-''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0x1F);
-  }
-
-  test_visitBinaryExpression_gtGtGt_positive_moreBits() async {
-    await resolveTestCode('''
-const c = 0xFF >>> 9;
-''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0);
-  }
-
-  test_visitBinaryExpression_gtGtGt_positive_moreThan64Bits() async {
-    await resolveTestCode('''
-const c = 0xFF >>> 65;
-''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0);
-  }
-
-  test_visitBinaryExpression_gtGtGt_positive_negativeBits() async {
-    await resolveTestCode('''
-const c = 0xFF >>> -2;
-''');
-    _evaluateConstant('c',
-        errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
-  }
-
-  test_visitBinaryExpression_gtGtGt_positive_zeroBits() async {
-    await resolveTestCode('''
-const c = 0xFF >>> 0;
-''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0xFF);
+    DartObjectImpl result = _evaluateConstant('b');
+    expect(result.type, typeProvider.nullType);
   }
 }

@@ -85,7 +85,7 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, hash, Context, VAR)                              \
   V(ClosureData, UntaggedClosureData, default_type_arguments_info, Smi, FINAL) \
   V(Function, UntaggedFunction, data, Dynamic, FINAL)                          \
-  V(Function, UntaggedFunction, parameter_names, Array, FINAL)                 \
+  V(FunctionType, UntaggedFunctionType, parameter_names, Array, FINAL)         \
   V(FunctionType, UntaggedFunctionType, parameter_types, Array, FINAL)         \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, length, Smi, VAR)        \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, data, Array, VAR)        \

@@ -1,0 +1,576 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the getter 'Super with Mixin.extendedSetterMixedInField' is not a subtype of the type 'int' of the inherited setter 'Super.extendedSetterMixedInField'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:19:12: Context: This is the declaration of the setter 'Super.extendedSetterMixedInField'.
+//   void set extendedSetterMixedInField(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the getter 'Super with Mixin.extendedSetterMixedInGetter' is not a subtype of the type 'int' of the inherited setter 'Super.extendedSetterMixedInGetter'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:23:12: Context: This is the declaration of the setter 'Super.extendedSetterMixedInGetter'.
+//   void set extendedSetterMixedInGetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited getter 'Super.extendedGetterMixedInSetter' is not a subtype of the type 'int' of the setter 'Super with Mixin.extendedGetterMixedInSetter'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:11:14: Context: This is the declaration of the getter 'Super.extendedGetterMixedInSetter'.
+//   String get extendedGetterMixedInSetter => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited field 'Super.extendedFieldMixedInSetter' is not a subtype of the type 'int' of the setter 'Super with Mixin.extendedFieldMixedInSetter'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:15:16: Context: This is the declaration of the field 'Super.extendedFieldMixedInSetter'.
+//   final String extendedFieldMixedInSetter = '';
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: Applying the mixin 'Mixin' to 'Super' introduces an erroneous override of 'extendedGetterMixedInField'.
+// abstract class Class extends Super
+//                ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:28:7: Context: The return type of the method 'Mixin.extendedGetterMixedInField' is 'int', which does not match the return type, 'String', of the overridden method, 'Super.extendedGetterMixedInField'.
+// Change to a subtype of 'String'.
+//   int extendedGetterMixedInField = 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:7:14: Context: This is the overridden method ('extendedGetterMixedInField').
+//   String get extendedGetterMixedInField => '';
+//              ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:93:16: Error: The type 'String' of the field 'Class.extendedSetterDeclaredField' is not a subtype of the type 'int' of the inherited setter 'Super.extendedSetterDeclaredField'.
+//   final String extendedSetterDeclaredField = '';
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:18:12: Context: This is the declaration of the setter 'Super.extendedSetterDeclaredField'.
+//   void set extendedSetterDeclaredField(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:94:14: Error: The type 'String' of the getter 'Class.extendedSetterDeclaredGetter' is not a subtype of the type 'int' of the inherited setter 'Super.extendedSetterDeclaredGetter'.
+//   String get extendedSetterDeclaredGetter => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:22:12: Context: This is the declaration of the setter 'Super.extendedSetterDeclaredGetter'.
+//   void set extendedSetterDeclaredGetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:99:16: Error: The type 'String' of the field 'Class.mixedInSetterDeclaredField' is not a subtype of the type 'int' of the inherited setter 'Super with Mixin.mixedInSetterDeclaredField'.
+//   final String mixedInSetterDeclaredField = '';
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the declaration of the setter 'Super with Mixin.mixedInSetterDeclaredField'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:100:14: Error: The type 'String' of the getter 'Class.mixedInSetterDeclaredGetter' is not a subtype of the type 'int' of the inherited setter 'Super with Mixin.mixedInSetterDeclaredGetter'.
+//   String get mixedInSetterDeclaredGetter => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the declaration of the setter 'Super with Mixin.mixedInSetterDeclaredGetter'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:105:16: Error: The type 'String' of the field 'Class.implementedSetterDeclaredField' is not a subtype of the type 'int' of the inherited setter 'Interface1.implementedSetterDeclaredField'.
+//   final String implementedSetterDeclaredField = '';
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:72:12: Context: This is the declaration of the setter 'Interface1.implementedSetterDeclaredField'.
+//   void set implementedSetterDeclaredField(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:106:14: Error: The type 'String' of the getter 'Class.implementedSetterDeclaredGetter' is not a subtype of the type 'int' of the inherited setter 'Interface1.implementedSetterDeclaredGetter'.
+//   String get implementedSetterDeclaredGetter => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:75:12: Context: This is the declaration of the setter 'Interface1.implementedSetterDeclaredGetter'.
+//   void set implementedSetterDeclaredGetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:108:14: Error: The type 'String' of the getter 'Class.declaredGetterDeclaredSetter' is not a subtype of the type 'int' of the setter 'Class.declaredGetterDeclaredSetter'.
+//   String get declaredGetterDeclaredSetter => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:109:12: Context: This is the declaration of the setter 'Class.declaredGetterDeclaredSetter'.
+//   void set declaredGetterDeclaredSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:111:16: Error: The type 'String' of the getter 'Class.declaredFieldDeclaredSetter' is not a subtype of the type 'int' of the setter 'Class.declaredFieldDeclaredSetter'.
+//   final String declaredFieldDeclaredSetter = '';
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:112:12: Context: This is the declaration of the setter 'Class.declaredFieldDeclaredSetter'.
+//   void set declaredFieldDeclaredSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:91:12: Error: The type 'String' of the inherited getter 'Super.extendedGetterDeclaredSetter' is not a subtype of the type 'int' of the setter 'Class.extendedGetterDeclaredSetter'.
+//   void set extendedGetterDeclaredSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:10:14: Context: This is the declaration of the getter 'Super.extendedGetterDeclaredSetter'.
+//   String get extendedGetterDeclaredSetter => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:92:12: Error: The type 'String' of the inherited field 'Super.extendedFieldDeclaredSetter' is not a subtype of the type 'int' of the setter 'Class.extendedFieldDeclaredSetter'.
+//   void set extendedFieldDeclaredSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:14:16: Context: This is the declaration of the field 'Super.extendedFieldDeclaredSetter'.
+//   final String extendedFieldDeclaredSetter = '';
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:97:12: Error: The type 'String' of the inherited getter 'Super with Mixin.mixedInGetterDeclaredSetter' is not a subtype of the type 'int' of the setter 'Class.mixedInGetterDeclaredSetter'.
+//   void set mixedInGetterDeclaredSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the declaration of the getter 'Super with Mixin.mixedInGetterDeclaredSetter'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:98:12: Error: The type 'String' of the inherited getter 'Super with Mixin.mixedInFieldDeclaredSetter' is not a subtype of the type 'int' of the setter 'Class.mixedInFieldDeclaredSetter'.
+//   void set mixedInFieldDeclaredSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the declaration of the getter 'Super with Mixin.mixedInFieldDeclaredSetter'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:103:12: Error: The type 'String' of the inherited getter 'Interface1.implementedGetterDeclaredSetter' is not a subtype of the type 'int' of the setter 'Class.implementedGetterDeclaredSetter'.
+//   void set implementedGetterDeclaredSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:66:14: Context: This is the declaration of the getter 'Interface1.implementedGetterDeclaredSetter'.
+//   String get implementedGetterDeclaredSetter => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:104:12: Error: The type 'String' of the inherited field 'Interface1.implementedFieldDeclaredSetter' is not a subtype of the type 'int' of the setter 'Class.implementedFieldDeclaredSetter'.
+//   void set implementedFieldDeclaredSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:69:16: Context: This is the declaration of the field 'Interface1.implementedFieldDeclaredSetter'.
+//   final String implementedFieldDeclaredSetter = '';
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited getter 'Super with Mixin.extendedSetterMixedInField' is not a subtype of the type 'int' of the inherited setter 'Super.extendedSetterMixedInField'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the declaration of the getter 'Super with Mixin.extendedSetterMixedInField'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:19:12: Context: This is the declaration of the setter 'Super.extendedSetterMixedInField'.
+//   void set extendedSetterMixedInField(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited getter 'Super with Mixin.extendedSetterMixedInGetter' is not a subtype of the type 'int' of the inherited setter 'Super.extendedSetterMixedInGetter'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the declaration of the getter 'Super with Mixin.extendedSetterMixedInGetter'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:23:12: Context: This is the declaration of the setter 'Super.extendedSetterMixedInGetter'.
+//   void set extendedSetterMixedInGetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: Class 'Class' inherits multiple members named 'Mixin.mixedInGetterImplementedField' with incompatible signatures.
+// Try adding a declaration of 'Mixin.mixedInGetterImplementedField' to 'Class'.
+// abstract class Class extends Super
+//                ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:35:14: Context: This is one of the overridden members.
+//   String get mixedInGetterImplementedField => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:57:7: Context: This is one of the overridden members.
+//   int mixedInGetterImplementedField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited getter 'Super with Mixin.mixedInGetterImplementedField' is not a subtype of the type 'int' of the inherited setter 'Interface1.mixedInGetterImplementedField'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the declaration of the getter 'Super with Mixin.mixedInGetterImplementedField'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:57:7: Context: This is the declaration of the setter 'Interface1.mixedInGetterImplementedField'.
+//   int mixedInGetterImplementedField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited getter 'Super with Mixin.mixedInGetterImplementedSetter' is not a subtype of the type 'int' of the inherited setter 'Interface1.mixedInGetterImplementedSetter'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the declaration of the getter 'Super with Mixin.mixedInGetterImplementedSetter'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:58:12: Context: This is the declaration of the setter 'Interface1.mixedInGetterImplementedSetter'.
+//   void set mixedInGetterImplementedSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited getter 'Super with Mixin.mixedInFieldImplementedSetter' is not a subtype of the type 'int' of the inherited setter 'Interface1.mixedInFieldImplementedSetter'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the declaration of the getter 'Super with Mixin.mixedInFieldImplementedSetter'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:59:12: Context: This is the declaration of the setter 'Interface1.mixedInFieldImplementedSetter'.
+//   void set mixedInFieldImplementedSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited getter 'Super.extendedGetterMixedInSetter' is not a subtype of the type 'int' of the inherited setter 'Super with Mixin.extendedGetterMixedInSetter'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:11:14: Context: This is the declaration of the getter 'Super.extendedGetterMixedInSetter'.
+//   String get extendedGetterMixedInSetter => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the declaration of the setter 'Super with Mixin.extendedGetterMixedInSetter'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited field 'Super.extendedFieldMixedInSetter' is not a subtype of the type 'int' of the inherited setter 'Super with Mixin.extendedFieldMixedInSetter'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:15:16: Context: This is the declaration of the field 'Super.extendedFieldMixedInSetter'.
+//   final String extendedFieldMixedInSetter = '';
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the declaration of the setter 'Super with Mixin.extendedFieldMixedInSetter'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: Class 'Class' inherits multiple members named 'extendedGetterImplementedField' with incompatible signatures.
+// Try adding a declaration of 'extendedGetterImplementedField' to 'Class'.
+// abstract class Class extends Super
+//                ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:8:14: Context: This is one of the overridden members.
+//   String get extendedGetterImplementedField => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:51:7: Context: This is one of the overridden members.
+//   int extendedGetterImplementedField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited getter 'Super.extendedGetterImplementedField' is not a subtype of the type 'int' of the inherited setter 'Interface1.extendedGetterImplementedField'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:8:14: Context: This is the declaration of the getter 'Super.extendedGetterImplementedField'.
+//   String get extendedGetterImplementedField => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:51:7: Context: This is the declaration of the setter 'Interface1.extendedGetterImplementedField'.
+//   int extendedGetterImplementedField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited getter 'Super.extendedGetterImplementedSetter' is not a subtype of the type 'int' of the inherited setter 'Interface1.extendedGetterImplementedSetter'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:12:14: Context: This is the declaration of the getter 'Super.extendedGetterImplementedSetter'.
+//   String get extendedGetterImplementedSetter => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:52:12: Context: This is the declaration of the setter 'Interface1.extendedGetterImplementedSetter'.
+//   void set extendedGetterImplementedSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited field 'Super.extendedFieldImplementedSetter' is not a subtype of the type 'int' of the inherited setter 'Interface1.extendedFieldImplementedSetter'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:16:16: Context: This is the declaration of the field 'Super.extendedFieldImplementedSetter'.
+//   final String extendedFieldImplementedSetter = '';
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:53:12: Context: This is the declaration of the setter 'Interface1.extendedFieldImplementedSetter'.
+//   void set extendedFieldImplementedSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited field 'Interface1.mixedInSetterImplementedField' is not a subtype of the type 'int' of the inherited setter 'Super with Mixin.mixedInSetterImplementedField'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:60:16: Context: This is the declaration of the field 'Interface1.mixedInSetterImplementedField'.
+//   final String mixedInSetterImplementedField = '';
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the declaration of the setter 'Super with Mixin.mixedInSetterImplementedField'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited getter 'Interface1.mixedInSetterImplementedGetter' is not a subtype of the type 'int' of the inherited setter 'Super with Mixin.mixedInSetterImplementedGetter'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:61:14: Context: This is the declaration of the getter 'Interface1.mixedInSetterImplementedGetter'.
+//   String get mixedInSetterImplementedGetter => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the declaration of the setter 'Super with Mixin.mixedInSetterImplementedGetter'.
+// abstract class Class extends Super
+//                ^^^^^^^^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited field 'Interface1.extendedSetterImplementedField' is not a subtype of the type 'int' of the inherited setter 'Super.extendedSetterImplementedField'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:54:16: Context: This is the declaration of the field 'Interface1.extendedSetterImplementedField'.
+//   final String extendedSetterImplementedField = '';
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:20:12: Context: This is the declaration of the setter 'Super.extendedSetterImplementedField'.
+//   void set extendedSetterImplementedField(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited getter 'Interface1.extendedSetterImplementedGetter' is not a subtype of the type 'int' of the inherited setter 'Super.extendedSetterImplementedGetter'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:55:14: Context: This is the declaration of the getter 'Interface1.extendedSetterImplementedGetter'.
+//   String get extendedSetterImplementedGetter => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:24:12: Context: This is the declaration of the setter 'Super.extendedSetterImplementedGetter'.
+//   void set extendedSetterImplementedGetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: Class 'Class' inherits multiple members named 'implementedGetterImplementedField' with incompatible signatures.
+// Try adding a declaration of 'implementedGetterImplementedField' to 'Class'.
+// abstract class Class extends Super
+//                ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:64:14: Context: This is one of the overridden members.
+//   String get implementedGetterImplementedField => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:80:7: Context: This is one of the overridden members.
+//   int implementedGetterImplementedField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited getter 'Interface1.implementedGetterImplementedField' is not a subtype of the type 'int' of the inherited setter 'Interface2.implementedGetterImplementedField'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:64:14: Context: This is the declaration of the getter 'Interface1.implementedGetterImplementedField'.
+//   String get implementedGetterImplementedField => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:80:7: Context: This is the declaration of the setter 'Interface2.implementedGetterImplementedField'.
+//   int implementedGetterImplementedField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited getter 'Interface1.implementedGetterImplementedSetter' is not a subtype of the type 'int' of the inherited setter 'Interface2.implementedGetterImplementedSetter'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:67:14: Context: This is the declaration of the getter 'Interface1.implementedGetterImplementedSetter'.
+//   String get implementedGetterImplementedSetter => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:81:12: Context: This is the declaration of the setter 'Interface2.implementedGetterImplementedSetter'.
+//   void set implementedGetterImplementedSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited field 'Interface1.implementedFieldImplementedSetter' is not a subtype of the type 'int' of the inherited setter 'Interface2.implementedFieldImplementedSetter'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:70:16: Context: This is the declaration of the field 'Interface1.implementedFieldImplementedSetter'.
+//   final String implementedFieldImplementedSetter = '';
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:82:12: Context: This is the declaration of the setter 'Interface2.implementedFieldImplementedSetter'.
+//   void set implementedFieldImplementedSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited field 'Interface2.implementedSetterImplementedField' is not a subtype of the type 'int' of the inherited setter 'Interface1.implementedSetterImplementedField'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:83:16: Context: This is the declaration of the field 'Interface2.implementedSetterImplementedField'.
+//   final String implementedSetterImplementedField = '';
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:73:12: Context: This is the declaration of the setter 'Interface1.implementedSetterImplementedField'.
+//   void set implementedSetterImplementedField(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Error: The type 'String' of the inherited getter 'Interface2.implementedSetterImplementedGetter' is not a subtype of the type 'int' of the inherited setter 'Interface1.implementedSetterImplementedGetter'.
+// abstract class Class extends Super
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:84:14: Context: This is the declaration of the getter 'Interface2.implementedSetterImplementedGetter'.
+//   String get implementedSetterImplementedGetter => '';
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:76:12: Context: This is the declaration of the setter 'Interface1.implementedSetterImplementedGetter'.
+//   void set implementedSetterImplementedGetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:90:7: Error: The return type of the method 'Class.extendedGetterDeclaredField' is 'int', which does not match the return type, 'String', of the overridden method, 'Super.extendedGetterDeclaredField'.
+// Change to a subtype of 'String'.
+//   int extendedGetterDeclaredField = 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:6:14: Context: This is the overridden method ('extendedGetterDeclaredField').
+//   String get extendedGetterDeclaredField => '';
+//              ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:96:7: Error: The return type of the method 'Class.mixedInGetterDeclaredField' is 'int', which does not match the return type, 'String', of the overridden method, 'Super with Mixin.mixedInGetterDeclaredField'.
+// Change to a subtype of 'String'.
+//   int mixedInGetterDeclaredField = 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:87:16: Context: This is the overridden method ('mixedInGetterDeclaredField').
+// abstract class Class extends Super
+//                ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:102:7: Error: The return type of the method 'Class.implementedGetterDeclaredField' is 'int', which does not match the return type, 'String', of the overridden method, 'Interface1.implementedGetterDeclaredField'.
+// Change to a subtype of 'String'.
+//   int implementedGetterDeclaredField = 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/getter_setter.dart:63:14: Context: This is the overridden method ('implementedGetterDeclaredField').
+//   String get implementedGetterDeclaredField => '';
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Super extends core::Object {
+  final field core::String extendedFieldDeclaredSetter;
+  final field core::String extendedFieldMixedInSetter;
+  final field core::String extendedFieldImplementedSetter;
+  synthetic constructor •() → self::Super
+    ;
+  get extendedGetterDeclaredField() → core::String
+    ;
+  get extendedGetterMixedInField() → core::String
+    ;
+  get extendedGetterImplementedField() → core::String
+    ;
+  get extendedGetterDeclaredSetter() → core::String
+    ;
+  get extendedGetterMixedInSetter() → core::String
+    ;
+  get extendedGetterImplementedSetter() → core::String
+    ;
+  set extendedSetterDeclaredField(core::int value) → void
+    ;
+  set extendedSetterMixedInField(core::int value) → void
+    ;
+  set extendedSetterImplementedField(core::int value) → void
+    ;
+  set extendedSetterDeclaredGetter(core::int value) → void
+    ;
+  set extendedSetterMixedInGetter(core::int value) → void
+    ;
+  set extendedSetterImplementedGetter(core::int value) → void
+    ;
+}
+abstract class Mixin extends core::Object {
+  field core::int extendedGetterMixedInField;
+  final field core::String extendedSetterMixedInField;
+  final field core::String mixedInFieldDeclaredSetter;
+  final field core::String mixedInFieldImplementedSetter;
+  synthetic constructor •() → self::Mixin
+    ;
+  set extendedGetterMixedInSetter(core::int value) → void
+    ;
+  set extendedFieldMixedInSetter(core::int value) → void
+    ;
+  get extendedSetterMixedInGetter() → core::String
+    ;
+  get mixedInGetterDeclaredField() → core::String
+    ;
+  get mixedInGetterImplementedField() → core::String
+    ;
+  get mixedInGetterDeclaredSetter() → core::String
+    ;
+  get mixedInGetterImplementedSetter() → core::String
+    ;
+  set mixedInSetterDeclaredField(core::int value) → void
+    ;
+  set mixedInSetterImplementedField(core::int value) → void
+    ;
+  set mixedInSetterDeclaredGetter(core::int value) → void
+    ;
+  set mixedInSetterImplementedGetter(core::int value) → void
+    ;
+}
+abstract class Interface1 extends core::Object {
+  field core::int extendedGetterImplementedField;
+  final field core::String extendedSetterImplementedField;
+  field core::int mixedInGetterImplementedField;
+  final field core::String mixedInSetterImplementedField;
+  final field core::String implementedFieldDeclaredSetter;
+  final field core::String implementedFieldImplementedSetter;
+  synthetic constructor •() → self::Interface1
+    ;
+  set extendedGetterImplementedSetter(core::int value) → void
+    ;
+  set extendedFieldImplementedSetter(core::int value) → void
+    ;
+  get extendedSetterImplementedGetter() → core::String
+    ;
+  set mixedInGetterImplementedSetter(core::int value) → void
+    ;
+  set mixedInFieldImplementedSetter(core::int value) → void
+    ;
+  get mixedInSetterImplementedGetter() → core::String
+    ;
+  get implementedGetterDeclaredField() → core::String
+    ;
+  get implementedGetterImplementedField() → core::String
+    ;
+  get implementedGetterDeclaredSetter() → core::String
+    ;
+  get implementedGetterImplementedSetter() → core::String
+    ;
+  set implementedSetterDeclaredField(core::int value) → void
+    ;
+  set implementedSetterImplementedField(core::int value) → void
+    ;
+  set implementedSetterDeclaredGetter(core::int value) → void
+    ;
+  set implementedSetterImplementedGetter(core::int value) → void
+    ;
+}
+abstract class Interface2 extends core::Object {
+  field core::int implementedGetterImplementedField;
+  final field core::String implementedSetterImplementedField;
+  synthetic constructor •() → self::Interface2
+    ;
+  set implementedGetterImplementedSetter(core::int value) → void
+    ;
+  set implementedFieldImplementedSetter(core::int value) → void
+    ;
+  get implementedSetterImplementedGetter() → core::String
+    ;
+}
+abstract class _Class&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Super&Mixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub get mixedInGetterDeclaredField() → core::String
+    return super.{self::Mixin::mixedInGetterDeclaredField};
+  mixin-super-stub set mixedInSetterDeclaredField(core::int value) → void
+    return super.{self::Mixin::mixedInSetterDeclaredField} = value;
+  mixin-super-stub get mixedInGetterDeclaredSetter() → core::String
+    return super.{self::Mixin::mixedInGetterDeclaredSetter};
+  mixin-super-stub get mixedInFieldDeclaredSetter() → core::String
+    return super.{self::Mixin::mixedInFieldDeclaredSetter};
+  mixin-super-stub get extendedGetterMixedInField() → core::int
+    return super.{self::Mixin::extendedGetterMixedInField};
+  mixin-super-stub set extendedGetterMixedInField(core::int value) → void
+    return super.{self::Mixin::extendedGetterMixedInField} = value;
+  mixin-super-stub get extendedSetterMixedInField() → core::String
+    return super.{self::Mixin::extendedSetterMixedInField};
+  mixin-super-stub get extendedSetterMixedInGetter() → core::String
+    return super.{self::Mixin::extendedSetterMixedInGetter};
+  mixin-super-stub set extendedGetterMixedInSetter(core::int value) → void
+    return super.{self::Mixin::extendedGetterMixedInSetter} = value;
+  mixin-super-stub set extendedFieldMixedInSetter(core::int value) → void
+    return super.{self::Mixin::extendedFieldMixedInSetter} = value;
+  mixin-super-stub set mixedInSetterDeclaredGetter(core::int value) → void
+    return super.{self::Mixin::mixedInSetterDeclaredGetter} = value;
+  mixin-super-stub get mixedInGetterImplementedField() → core::String
+    return super.{self::Mixin::mixedInGetterImplementedField};
+  mixin-super-stub get mixedInGetterImplementedSetter() → core::String
+    return super.{self::Mixin::mixedInGetterImplementedSetter};
+  mixin-super-stub get mixedInFieldImplementedSetter() → core::String
+    return super.{self::Mixin::mixedInFieldImplementedSetter};
+  mixin-super-stub set mixedInSetterImplementedField(core::int value) → void
+    return super.{self::Mixin::mixedInSetterImplementedField} = value;
+  mixin-super-stub set mixedInSetterImplementedGetter(core::int value) → void
+    return super.{self::Mixin::mixedInSetterImplementedGetter} = value;
+}
+abstract class Class extends self::_Class&Super&Mixin implements self::Interface1, self::Interface2 {
+  field core::int extendedGetterDeclaredField;
+  final field core::String extendedSetterDeclaredField;
+  field core::int mixedInGetterDeclaredField;
+  final field core::String mixedInSetterDeclaredField;
+  field core::int implementedGetterDeclaredField;
+  final field core::String implementedSetterDeclaredField;
+  final field core::String declaredFieldDeclaredSetter;
+  synthetic constructor •() → self::Class
+    ;
+  set extendedGetterDeclaredSetter(core::int value) → void
+    ;
+  set extendedFieldDeclaredSetter(core::int value) → void
+    ;
+  get extendedSetterDeclaredGetter() → core::String
+    ;
+  set mixedInGetterDeclaredSetter(core::int value) → void
+    ;
+  set mixedInFieldDeclaredSetter(core::int value) → void
+    ;
+  get mixedInSetterDeclaredGetter() → core::String
+    ;
+  set implementedGetterDeclaredSetter(core::int value) → void
+    ;
+  set implementedFieldDeclaredSetter(core::int value) → void
+    ;
+  get implementedSetterDeclaredGetter() → core::String
+    ;
+  get declaredGetterDeclaredSetter() → core::String
+    ;
+  set declaredGetterDeclaredSetter(core::int value) → void
+    ;
+  set declaredFieldDeclaredSetter(core::int value) → void
+    ;
+}
+static method main() → dynamic
+  ;

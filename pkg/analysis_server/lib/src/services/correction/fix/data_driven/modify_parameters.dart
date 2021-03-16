@@ -177,7 +177,9 @@ class ModifyParameters extends Change<_Data> {
       }
       // The remaining insertion ranges might include new required arguments
       // that need to be inserted after the last argument.
-      var offset = arguments[arguments.length - 1].end;
+      var offset = arguments.isEmpty
+          ? argumentList.leftParenthesis.end
+          : arguments[arguments.length - 1].end;
       while (nextInsertionRange < insertionRanges.length) {
         var insertionRange = insertionRanges[nextInsertionRange];
         var lower = insertionRange.lower;
@@ -219,6 +221,12 @@ class ModifyParameters extends Change<_Data> {
       }
     } else if (parent?.parent is InvocationExpression) {
       var argumentList = (parent.parent as InvocationExpression).argumentList;
+      return _Data(argumentList);
+    } else if (parent is TypeName &&
+        parent.parent is ConstructorName &&
+        parent.parent.parent is InstanceCreationExpression) {
+      var argumentList =
+          (parent.parent.parent as InstanceCreationExpression).argumentList;
       return _Data(argumentList);
     }
     return null;

@@ -75,6 +75,7 @@ automagically
 auxiliary
 awaited
 awaiting
+awaits
 b
 b0i
 b0m
@@ -100,6 +101,7 @@ bb
 became
 beforehand
 behave
+believe
 bellow
 belonging
 beloning
@@ -208,6 +210,7 @@ codebase
 codec
 codes
 collision
+colorized
 com
 combinations
 combinator
@@ -373,6 +376,7 @@ end'ed
 enforce
 enforced
 enforces
+enforcing
 enumerates
 env
 eof
@@ -385,11 +389,14 @@ establish
 established
 estimate
 eval
+execute
 exhausted
+existence
 existentially
 exp
 expando
 expense
+explaining
 exportable
 exportee
 exportees
@@ -487,6 +494,7 @@ goto
 gotos
 gradually
 graphs
+growability
 gt
 guarantee
 guarded
@@ -498,6 +506,7 @@ h
 hacky
 hadn't
 hang
+happy
 hardcode
 harness
 hashes
@@ -628,6 +637,7 @@ layout
 lc
 ld
 leafp
+leeway
 len
 lets
 letting
@@ -669,6 +679,7 @@ macos
 maintaining
 mangled
 manipulation
+manner
 markdown
 masking
 masks
@@ -708,6 +719,7 @@ method8b
 method9a
 method9b
 mi
+migrated
 migration
 mime
 min
@@ -839,6 +851,7 @@ per
 perf
 permanently
 permit
+physically
 pi
 picking
 pkg
@@ -847,8 +860,10 @@ player
 plugin
 pm
 pn
+pointed
 pointwise
 polluted
+polymorphism
 pool
 popped
 pos
@@ -910,6 +925,7 @@ ran
 randomly
 ranges
 ranked
+rarely
 ratio
 rb
 rc
@@ -1025,6 +1041,7 @@ semantically
 semver
 separators
 sequencing
+sequential
 serializables
 serializer
 serializers
@@ -1169,6 +1186,7 @@ tells
 temp
 temporaries
 temps
+tempting
 term
 termcap
 terminator
@@ -1266,6 +1284,7 @@ unification
 unifier
 unify
 uninstantiable
+uninstantiated
 unions
 uniqueness
 unittest
@@ -1316,6 +1335,7 @@ vector
 vegorov
 verbosity
 versa
+viable
 vice
 video
 violated
@@ -1328,6 +1348,8 @@ vn
 vs
 vtab
 w
+waiting
+wanting
 waste
 wasted
 watch
@@ -1347,6 +1369,7 @@ widgets
 wiki
 wikipedia
 wind
+wiser
 with1
 wn
 worthwhile

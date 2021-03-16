@@ -62,11 +62,3 @@ class DiagnosticDomainHandler implements RequestHandler {
     return null;
   }
 }
-
-class MemoryCpuSample {
-  final DateTime time;
-  final double cpuPercentage;
-  final int memoryKB;
-
-  MemoryCpuSample(this.time, this.cpuPercentage, this.memoryKB);
-}

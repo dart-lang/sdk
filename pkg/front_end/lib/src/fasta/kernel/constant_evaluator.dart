@@ -20,8 +20,6 @@
 /// language.  Issue(http://dartbug.com/31799)
 library fasta.constant_evaluator;
 
-import 'dart:core' hide MapEntry;
-
 import 'dart:io' as io;
 
 import 'package:kernel/ast.dart';
@@ -86,12 +84,14 @@ Component transformComponent(
     {bool evaluateAnnotations,
     bool desugarSets,
     bool enableTripleShift,
+    bool enableConstFunctions,
     bool errorOnUnevaluatedConstant,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy}) {
   assert(evaluateAnnotations != null);
   assert(desugarSets != null);
   assert(enableTripleShift != null);
+  assert(enableConstFunctions != null);
   assert(errorOnUnevaluatedConstant != null);
   coreTypes ??= new CoreTypes(component);
   hierarchy ??= new ClassHierarchy(component, coreTypes);
@@ -102,6 +102,7 @@ Component transformComponent(
   transformLibraries(component.libraries, backend, environmentDefines,
       typeEnvironment, errorReporter, evaluationMode,
       enableTripleShift: enableTripleShift,
+      enableConstFunctions: enableConstFunctions,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
       evaluateAnnotations: evaluateAnnotations);
   return component;
@@ -116,15 +117,18 @@ ConstantCoverage transformLibraries(
     EvaluationMode evaluationMode,
     {bool evaluateAnnotations,
     bool enableTripleShift,
+    bool enableConstFunctions,
     bool errorOnUnevaluatedConstant}) {
   assert(evaluateAnnotations != null);
   assert(enableTripleShift != null);
+  assert(enableConstFunctions != null);
   assert(errorOnUnevaluatedConstant != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
       evaluateAnnotations,
       enableTripleShift,
+      enableConstFunctions,
       errorOnUnevaluatedConstant,
       typeEnvironment,
       errorReporter,
@@ -144,20 +148,23 @@ void transformProcedure(
     EvaluationMode evaluationMode,
     {bool evaluateAnnotations: true,
     bool enableTripleShift: false,
+    bool enableConstFunctions: false,
     bool errorOnUnevaluatedConstant: false}) {
   assert(evaluateAnnotations != null);
   assert(enableTripleShift != null);
+  assert(enableConstFunctions != null);
   assert(errorOnUnevaluatedConstant != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
       evaluateAnnotations,
       enableTripleShift,
+      enableConstFunctions,
       errorOnUnevaluatedConstant,
       typeEnvironment,
       errorReporter,
       evaluationMode);
-  constantsTransformer.visitProcedure(procedure);
+  constantsTransformer.visitProcedure(procedure, null);
 }
 
 enum EvaluationMode {
@@ -329,7 +336,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant> {
   Constant visitUnevaluatedConstant(UnevaluatedConstant node) => null;
 }
 
-class ConstantsTransformer extends Transformer {
+class ConstantsTransformer extends RemovingTransformer {
   final ConstantsBackend backend;
   final ConstantEvaluator constantEvaluator;
   final TypeEnvironment typeEnvironment;
@@ -337,6 +344,7 @@ class ConstantsTransformer extends Transformer {
 
   final bool evaluateAnnotations;
   final bool enableTripleShift;
+  final bool enableConstFunctions;
   final bool errorOnUnevaluatedConstant;
 
   ConstantsTransformer(
@@ -344,6 +352,7 @@ class ConstantsTransformer extends Transformer {
       Map<String, String> environmentDefines,
       this.evaluateAnnotations,
       this.enableTripleShift,
+      this.enableConstFunctions,
       this.errorOnUnevaluatedConstant,
       this.typeEnvironment,
       ErrorReporter errorReporter,
@@ -351,6 +360,7 @@ class ConstantsTransformer extends Transformer {
       : constantEvaluator = new ConstantEvaluator(
             backend, environmentDefines, typeEnvironment, errorReporter,
             enableTripleShift: enableTripleShift,
+            enableConstFunctions: enableConstFunctions,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
             evaluationMode: evaluationMode);
 
@@ -369,12 +379,12 @@ class ConstantsTransformer extends Transformer {
 
     transformAnnotations(library.annotations, library);
 
-    transformList(library.dependencies, this, library);
-    transformList(library.parts, this, library);
-    transformList(library.typedefs, this, library);
-    transformList(library.classes, this, library);
-    transformList(library.procedures, this, library);
-    transformList(library.fields, this, library);
+    transformLibraryDependencyList(library.dependencies, library);
+    transformLibraryPartList(library.parts, library);
+    transformTypedefList(library.typedefs, library);
+    transformClassList(library.classes, library);
+    transformProcedureList(library.procedures, library);
+    transformFieldList(library.fields, library);
 
     if (!keepFields) {
       // The transformer API does not iterate over `Library.additionalExports`,
@@ -387,7 +397,7 @@ class ConstantsTransformer extends Transformer {
   }
 
   @override
-  LibraryPart visitLibraryPart(LibraryPart node) {
+  LibraryPart visitLibraryPart(LibraryPart node, TreeNode removalSentinel) {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
     });
@@ -395,7 +405,8 @@ class ConstantsTransformer extends Transformer {
   }
 
   @override
-  LibraryDependency visitLibraryDependency(LibraryDependency node) {
+  LibraryDependency visitLibraryDependency(
+      LibraryDependency node, TreeNode removalSentinel) {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
     });
@@ -403,78 +414,80 @@ class ConstantsTransformer extends Transformer {
   }
 
   @override
-  Class visitClass(Class node) {
+  Class visitClass(Class node, TreeNode removalSentinel) {
     StaticTypeContext oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = new StaticTypeContext.forAnnotations(
         node.enclosingLibrary, typeEnvironment);
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
-      transformList(node.fields, this, node);
-      transformList(node.typeParameters, this, node);
-      transformList(node.constructors, this, node);
-      transformList(node.procedures, this, node);
-      transformList(node.redirectingFactoryConstructors, this, node);
+      transformFieldList(node.fields, node);
+      transformTypeParameterList(node.typeParameters, node);
+      transformConstructorList(node.constructors, node);
+      transformProcedureList(node.procedures, node);
+      transformRedirectingFactoryConstructorList(
+          node.redirectingFactoryConstructors, node);
     });
     _staticTypeContext = oldStaticTypeContext;
     return node;
   }
 
   @override
-  Procedure visitProcedure(Procedure node) {
+  Procedure visitProcedure(Procedure node, TreeNode removalSentinel) {
     StaticTypeContext oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = new StaticTypeContext(node, typeEnvironment);
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
-      node.function = node.function.accept<TreeNode>(this)..parent = node;
+      node.function = transform(node.function)..parent = node;
     });
     _staticTypeContext = oldStaticTypeContext;
     return node;
   }
 
   @override
-  Constructor visitConstructor(Constructor node) {
+  Constructor visitConstructor(Constructor node, TreeNode removalSentinel) {
     StaticTypeContext oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = new StaticTypeContext(node, typeEnvironment);
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
-      transformList(node.initializers, this, node);
-      node.function = node.function.accept<TreeNode>(this)..parent = node;
+      transformInitializerList(node.initializers, node);
+      node.function = transform(node.function)..parent = node;
     });
     _staticTypeContext = oldStaticTypeContext;
     return node;
   }
 
   @override
-  Typedef visitTypedef(Typedef node) {
+  Typedef visitTypedef(Typedef node, TreeNode removalSentinel) {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
-      transformList(node.typeParameters, this, node);
-      transformList(node.typeParametersOfFunctionType, this, node);
-      transformList(node.positionalParameters, this, node);
-      transformList(node.namedParameters, this, node);
+      transformTypeParameterList(node.typeParameters, node);
+      transformTypeParameterList(node.typeParametersOfFunctionType, node);
+      transformVariableDeclarationList(node.positionalParameters, node);
+      transformVariableDeclarationList(node.namedParameters, node);
     });
     return node;
   }
 
   @override
   RedirectingFactoryConstructor visitRedirectingFactoryConstructor(
-      RedirectingFactoryConstructor node) {
+      RedirectingFactoryConstructor node, TreeNode removalSentinel) {
     // Currently unreachable as the compiler doesn't produce
     // RedirectingFactoryConstructor.
     StaticTypeContext oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = new StaticTypeContext(node, typeEnvironment);
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
-      transformList(node.typeParameters, this, node);
-      transformList(node.positionalParameters, this, node);
-      transformList(node.namedParameters, this, node);
+      transformTypeParameterList(node.typeParameters, node);
+      transformVariableDeclarationList(node.positionalParameters, node);
+      transformVariableDeclarationList(node.namedParameters, node);
     });
     _staticTypeContext = oldStaticTypeContext;
     return node;
   }
 
   @override
-  TypeParameter visitTypeParameter(TypeParameter node) {
+  TypeParameter visitTypeParameter(
+      TypeParameter node, TreeNode removalSentinel) {
     transformAnnotations(node.annotations, node);
     return node;
   }
@@ -497,8 +510,8 @@ class ConstantsTransformer extends Transformer {
   // Handle definition of constants:
 
   @override
-  FunctionNode visitFunctionNode(FunctionNode node) {
-    transformList(node.typeParameters, this, node);
+  FunctionNode visitFunctionNode(FunctionNode node, TreeNode removalSentinel) {
+    transformTypeParameterList(node.typeParameters, node);
     final int positionalParameterCount = node.positionalParameters.length;
     for (int i = 0; i < positionalParameterCount; ++i) {
       final VariableDeclaration variable = node.positionalParameters[i];
@@ -518,19 +531,20 @@ class ConstantsTransformer extends Transformer {
       }
     }
     if (node.body != null) {
-      node.body = node.body.accept<TreeNode>(this)..parent = node;
+      node.body = transform(node.body)..parent = node;
     }
     return node;
   }
 
   @override
-  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) {
+  Statement visitVariableDeclaration(
+      VariableDeclaration node, TreeNode removalSentinel) {
     transformAnnotations(node.annotations, node);
 
     if (node.initializer != null) {
       if (node.isConst) {
         final Constant constant = evaluateWithContext(node, node.initializer);
-        constantEvaluator.env.addVariableValue(node, constant);
+        constantEvaluator.env.updateVariableValue(node, constant);
         node.initializer = makeConstantExpression(constant, node.initializer)
           ..parent = node;
 
@@ -540,19 +554,18 @@ class ConstantsTransformer extends Transformer {
             // If the constant is unevaluated we need to keep the expression,
             // so that, in the case the constant contains error but the local
             // is unused, the error will still be reported.
-            return null;
+            return removalSentinel /*!*/ ?? node;
           }
         }
       } else {
-        node.initializer = node.initializer.accept<TreeNode>(this)
-          ..parent = node;
+        node.initializer = transform(node.initializer)..parent = node;
       }
     }
     return node;
   }
 
   @override
-  Field visitField(Field node) {
+  Field visitField(Field node, TreeNode removalSentinel) {
     StaticTypeContext oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = new StaticTypeContext(node, typeEnvironment);
     Field field = constantEvaluator.withNewEnvironment(() {
@@ -564,13 +577,12 @@ class ConstantsTransformer extends Transformer {
 
         // If this constant is inlined, remove it.
         if (!keepFields && shouldInline(node.initializer)) {
-          return null;
+          return removalSentinel;
         }
       } else {
         transformAnnotations(node.annotations, node);
         if (node.initializer != null) {
-          node.initializer = node.initializer.accept<TreeNode>(this)
-            ..parent = node;
+          node.initializer = transform(node.initializer)..parent = node;
         }
       }
       return node;
@@ -582,7 +594,7 @@ class ConstantsTransformer extends Transformer {
   // Handle use-sites of constants (and "inline" constant expressions):
 
   @override
-  Expression visitSymbolLiteral(SymbolLiteral node) {
+  Expression visitSymbolLiteral(SymbolLiteral node, TreeNode removalSentinel) {
     return makeConstantExpression(
         constantEvaluator.evaluate(_staticTypeContext, node), node);
   }
@@ -593,9 +605,9 @@ class ConstantsTransformer extends Transformer {
   }
 
   @override
-  Expression visitEqualsCall(EqualsCall node) {
-    Expression left = node.left.accept<TreeNode>(this);
-    Expression right = node.right.accept<TreeNode>(this);
+  Expression visitEqualsCall(EqualsCall node, TreeNode removalSentinel) {
+    Expression left = transform(node.left);
+    Expression right = transform(node.right);
     if (_isNull(left)) {
       return new EqualsNull(right, isNot: node.isNot)
         ..fileOffset = node.fileOffset;
@@ -609,7 +621,7 @@ class ConstantsTransformer extends Transformer {
   }
 
   @override
-  Expression visitStaticGet(StaticGet node) {
+  Expression visitStaticGet(StaticGet node, TreeNode removalSentinel) {
     final Member target = node.target;
     if (target is Field && target.isConst) {
       // Make sure the initializer is evaluated first.
@@ -625,27 +637,28 @@ class ConstantsTransformer extends Transformer {
     } else if (target is Procedure && target.kind == ProcedureKind.Method) {
       return evaluateAndTransformWithContext(node, node);
     }
-    return super.visitStaticGet(node);
+    return super.visitStaticGet(node, removalSentinel);
   }
 
   @override
-  Expression visitStaticTearOff(StaticTearOff node) {
+  Expression visitStaticTearOff(StaticTearOff node, TreeNode removalSentinel) {
     final Member target = node.target;
     if (target is Procedure && target.kind == ProcedureKind.Method) {
       return evaluateAndTransformWithContext(node, node);
     }
-    return super.visitStaticTearOff(node);
+    return super.visitStaticTearOff(node, removalSentinel);
   }
 
   @override
-  SwitchCase visitSwitchCase(SwitchCase node) {
+  SwitchCase visitSwitchCase(SwitchCase node, TreeNode removalSentinel) {
     transformExpressions(node.expressions, node);
-    return super.visitSwitchCase(node);
+    return super.visitSwitchCase(node, removalSentinel);
   }
 
   @override
-  SwitchStatement visitSwitchStatement(SwitchStatement node) {
-    SwitchStatement result = super.visitSwitchStatement(node);
+  SwitchStatement visitSwitchStatement(
+      SwitchStatement node, TreeNode removalSentinel) {
+    SwitchStatement result = super.visitSwitchStatement(node, removalSentinel);
     Library library = constantEvaluator.libraryOf(node);
     if (library != null && library.isNonNullableByDefault) {
       for (SwitchCase switchCase in node.cases) {
@@ -672,7 +685,7 @@ class ConstantsTransformer extends Transformer {
   }
 
   @override
-  Expression visitVariableGet(VariableGet node) {
+  Expression visitVariableGet(VariableGet node, TreeNode removalSentinel) {
     final VariableDeclaration variable = node.variable;
     if (variable.isConst) {
       variable.initializer =
@@ -682,74 +695,80 @@ class ConstantsTransformer extends Transformer {
         return evaluateAndTransformWithContext(node, node);
       }
     }
-    return super.visitVariableGet(node);
+    return super.visitVariableGet(node, removalSentinel);
   }
 
   @override
-  Expression visitListLiteral(ListLiteral node) {
+  Expression visitListLiteral(ListLiteral node, TreeNode removalSentinel) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
     }
-    return super.visitListLiteral(node);
+    return super.visitListLiteral(node, removalSentinel);
   }
 
   @override
-  Expression visitListConcatenation(ListConcatenation node) {
+  Expression visitListConcatenation(
+      ListConcatenation node, TreeNode removalSentinel) {
     return evaluateAndTransformWithContext(node, node);
   }
 
   @override
-  Expression visitSetLiteral(SetLiteral node) {
+  Expression visitSetLiteral(SetLiteral node, TreeNode removalSentinel) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
     }
-    return super.visitSetLiteral(node);
+    return super.visitSetLiteral(node, removalSentinel);
   }
 
   @override
-  Expression visitSetConcatenation(SetConcatenation node) {
+  Expression visitSetConcatenation(
+      SetConcatenation node, TreeNode removalSentinel) {
     return evaluateAndTransformWithContext(node, node);
   }
 
   @override
-  Expression visitMapLiteral(MapLiteral node) {
+  Expression visitMapLiteral(MapLiteral node, TreeNode removalSentinel) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
     }
-    return super.visitMapLiteral(node);
+    return super.visitMapLiteral(node, removalSentinel);
   }
 
   @override
-  Expression visitTypeLiteral(TypeLiteral node) {
+  Expression visitTypeLiteral(TypeLiteral node, TreeNode removalSentinel) {
     if (!containsFreeTypeVariables(node.type)) {
       return evaluateAndTransformWithContext(node, node);
     }
-    return super.visitTypeLiteral(node);
+    return super.visitTypeLiteral(node, removalSentinel);
   }
 
   @override
-  Expression visitMapConcatenation(MapConcatenation node) {
+  Expression visitMapConcatenation(
+      MapConcatenation node, TreeNode removalSentinel) {
     return evaluateAndTransformWithContext(node, node);
   }
 
   @override
-  Expression visitConstructorInvocation(ConstructorInvocation node) {
+  Expression visitConstructorInvocation(
+      ConstructorInvocation node, TreeNode removalSentinel) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
     }
-    return super.visitConstructorInvocation(node);
+    return super.visitConstructorInvocation(node, removalSentinel);
   }
 
   @override
-  Expression visitStaticInvocation(StaticInvocation node) {
+  Expression visitStaticInvocation(
+      StaticInvocation node, TreeNode removalSentinel) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
     }
-    return super.visitStaticInvocation(node);
+    return super.visitStaticInvocation(node, removalSentinel);
   }
 
   @override
-  Expression visitConstantExpression(ConstantExpression node) {
+  Expression visitConstantExpression(
+      ConstantExpression node, TreeNode removalSentinel) {
     Constant constant = node.constant;
     if (constant is UnevaluatedConstant) {
       Expression expression = constant.expression;
@@ -792,7 +811,7 @@ class ConstantsTransformer extends Transformer {
   }
 }
 
-class ConstantEvaluator extends RecursiveVisitor<Constant> {
+class ConstantEvaluator extends ExpressionVisitor<Constant> {
   final ConstantsBackend backend;
   final NumberSemantics numberSemantics;
   ConstantIntFolder intFolder;
@@ -805,6 +824,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final EvaluationMode evaluationMode;
 
   final bool enableTripleShift;
+  final bool enableConstFunctions;
 
   final bool Function(DartType) isInstantiated =
       new IsInstantiatedVisitor().isInstantiated;
@@ -839,6 +859,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
       this.errorReporter,
       {this.enableTripleShift = false,
+      this.enableConstFunctions = false,
       this.errorOnUnevaluatedConstant = false,
       this.evaluationMode: EvaluationMode.weak})
       : numberSemantics = backend.numberSemantics,
@@ -966,6 +987,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           removeRedundantFileUriExpressions(result.expression)));
     }
     return result;
+  }
+
+  /// Execute the statement using the [StatementConstantEvaluator].
+  Constant execute(Statement statement) {
+    StatementConstantEvaluator statementEvaluator =
+        new StatementConstantEvaluator(this);
+    return statement.accept(statementEvaluator);
   }
 
   /// Create an error-constant indicating that an error has been detected during
@@ -1136,7 +1164,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   @override
-  Constant defaultTreeNode(Node node) {
+  Constant defaultExpression(Expression node) {
     // Only a subset of the expression language is valid for constant
     // evaluation.
     return createInvalidExpressionConstant(
@@ -1449,17 +1477,17 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         instanceBuilder.setFieldValue(fieldRef.asField, constant);
       });
       if (error != null) return error;
-      node.unusedArguments.forEach((Expression value) {
-        if (error != null) return;
+      for (Expression value in node.unusedArguments) {
+        if (error != null) return error;
         Constant constant = _evaluateSubexpression(value);
         if (constant is AbortConstant) {
           error ??= constant;
-          return;
+          return error;
         }
         if (constant is UnevaluatedConstant) {
           instanceBuilder.unusedArguments.add(extract(constant));
         }
-      });
+      }
       if (error != null) return error;
       if (shouldBeUnevaluated) {
         return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
@@ -1485,7 +1513,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     //     - or the empty string (the default name of a library with no library
     //       name declaration).
 
-    const List<String> operatorNames = const <String>[
+    const Set<String> operatorNames = const <String>{
       '+',
       '-',
       '*',
@@ -1507,7 +1535,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       '[]',
       '[]=',
       'unary-'
-    ];
+    };
 
     if (name == null) return false;
     if (name == '') return true;
@@ -1554,7 +1582,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   static final RegExp publicIdentifierRegExp =
       new RegExp(r'^[a-zA-Z$][a-zA-Z0-9_$]*$');
 
-  static const List<String> nonUsableKeywords = const <String>[
+  static const Set<String> nonUsableKeywords = const <String>{
     'assert',
     'break',
     'case',
@@ -1587,7 +1615,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     'var',
     'while',
     'with',
-  ];
+  };
 
   bool isValidPublicIdentifier(String name) {
     return publicIdentifierRegExp.hasMatch(name) &&
@@ -1623,14 +1651,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             : _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
-        env.addVariableValue(parameter, value);
+        env.updateVariableValue(parameter, value);
       }
       for (final VariableDeclaration parameter in function.namedParameters) {
         final Constant value = namedArguments[parameter.name] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
-        env.addVariableValue(parameter, value);
+        env.updateVariableValue(parameter, value);
       }
 
       // Step 2) Run all initializers (including super calls) with environment
@@ -1651,7 +1679,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           final VariableDeclaration variable = init.variable;
           Constant constant = _evaluateSubexpression(variable.initializer);
           if (constant is AbortConstant) return constant;
-          env.addVariableValue(variable, constant);
+          env.updateVariableValue(variable, constant);
         } else if (init is SuperInitializer) {
           AbortConstant error = checkConstructorConst(init, constructor);
           if (error != null) return error;
@@ -2353,7 +2381,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   Constant visitLet(Let node) {
     Constant value = _evaluateSubexpression(node.variable.initializer);
     if (value is AbortConstant) return value;
-    env.addVariableValue(node.variable, value);
+    env.updateVariableValue(node.variable, value);
     return _evaluateSubexpression(node.body);
   }
 
@@ -2577,6 +2605,17 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   Constant visitStaticInvocation(StaticInvocation node) {
     final Procedure target = node.target;
     final Arguments arguments = node.arguments;
+    List<DartType> types = _evaluateTypeArguments(node, arguments);
+    if (types == null && _gotError != null) {
+      AbortConstant error = _gotError;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    assert(types != null);
+
+    final List<DartType> typeArguments = convertTypes(types);
+
     final List<Constant> positionals = _evaluatePositionalArguments(arguments);
     if (positionals == null && _gotError != null) {
       AbortConstant error = _gotError;
@@ -2663,6 +2702,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       }
     } else if (target.isExtensionMember) {
       return createErrorConstant(node, messageConstEvalExtension);
+    } else if (enableConstFunctions && target.kind == ProcedureKind.Method) {
+      return _handleStaticInvocation(node, typeArguments, positionals, named);
     }
 
     String name = target.name.text;
@@ -2674,6 +2715,38 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       }
     }
     return createInvalidExpressionConstant(node, "Invocation of $name");
+  }
+
+  Constant _handleStaticInvocation(
+      StaticInvocation node,
+      List<DartType> typeArguments,
+      List<Constant> positionalArguments,
+      Map<String, Constant> namedArguments) {
+    return withNewEnvironment(() {
+      final FunctionNode function = node.target.function;
+
+      // Map arguments from caller to callee.
+      for (int i = 0; i < function.typeParameters.length; i++) {
+        env.addTypeParameterValue(function.typeParameters[i], typeArguments[i]);
+      }
+      for (int i = 0; i < function.positionalParameters.length; i++) {
+        final VariableDeclaration parameter = function.positionalParameters[i];
+        final Constant value = (i < positionalArguments.length)
+            ? positionalArguments[i]
+            // TODO(johnniwinther): This should call [_evaluateSubexpression].
+            : _evaluateNullableSubexpression(parameter.initializer);
+        if (value is AbortConstant) return value;
+        env.updateVariableValue(parameter, value);
+      }
+      for (final VariableDeclaration parameter in function.namedParameters) {
+        final Constant value = namedArguments[parameter.name] ??
+            // TODO(johnniwinther): This should call [_evaluateSubexpression].
+            _evaluateNullableSubexpression(parameter.initializer);
+        if (value is AbortConstant) return value;
+        env.updateVariableValue(parameter, value);
+      }
+      return execute(function.body);
+    });
   }
 
   @override
@@ -3035,7 +3108,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (arguments.named.isEmpty) return const <String, Constant>{};
 
     final Map<String, Constant> named = {};
-    arguments.named.forEach((NamedExpression pair) {
+    for (NamedExpression pair in arguments.named) {
       if (_gotError != null) return null;
       Constant constant = _evaluateSubexpression(pair.value);
       if (constant is AbortConstant) {
@@ -3043,7 +3116,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         return null;
       }
       named[pair.name] = constant;
-    });
+    }
     if (_gotError != null) return null;
     return named;
   }
@@ -3133,6 +3206,27 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 }
 
+class StatementConstantEvaluator extends StatementVisitor<Constant> {
+  ConstantEvaluator exprEvaluator;
+
+  StatementConstantEvaluator(this.exprEvaluator) {
+    if (!exprEvaluator.enableConstFunctions) {
+      throw new UnsupportedError("Const functions feature is not enabled.");
+    }
+  }
+
+  /// Evaluate the expression using the [ConstantEvaluator].
+  Constant evaluate(Expression expr) => expr.accept(exprEvaluator);
+
+  @override
+  Constant defaultStatement(Statement node) => throw new UnsupportedError(
+      'Statement constant evaluation does not support ${node.runtimeType}.');
+
+  @override
+  Constant visitReturnStatement(ReturnStatement node) =>
+      evaluate(node.expression);
+}
+
 class ConstantCoverage {
   final Map<Uri, Set<Reference>> constructorCoverage;
 
@@ -3193,9 +3287,9 @@ class EvaluationEnvironment {
   final Map<TypeParameter, DartType> _typeVariables =
       <TypeParameter, DartType>{};
 
-  /// The values of the parameters/variables in scope.
-  final Map<VariableDeclaration, Constant> _variables =
-      <VariableDeclaration, Constant>{};
+  /// The references to values of the parameters/variables in scope.
+  final Map<VariableDeclaration, EvaluationReference> _variables =
+      <VariableDeclaration, EvaluationReference>{};
 
   /// The variables that hold unevaluated constants.
   ///
@@ -3212,15 +3306,19 @@ class EvaluationEnvironment {
     _typeVariables[parameter] = value;
   }
 
-  void addVariableValue(VariableDeclaration variable, Constant value) {
-    _variables[variable] = value;
+  void updateVariableValue(VariableDeclaration variable, Constant value) {
+    if (!_variables.containsKey(variable)) {
+      _variables[variable] = new EvaluationReference(value);
+    } else {
+      _variables[variable].value = value;
+    }
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.add(variable);
     }
   }
 
   Constant lookupVariable(VariableDeclaration variable) {
-    Constant value = _variables[variable];
+    Constant value = _variables[variable]?.value;
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.remove(variable);
     }
@@ -3231,7 +3329,7 @@ class EvaluationEnvironment {
   Iterable<UnevaluatedConstant> get unevaluatedUnreadConstants {
     if (_unreadUnevaluatedVariables.isEmpty) return const [];
     return _unreadUnevaluatedVariables.map<UnevaluatedConstant>(
-        (VariableDeclaration variable) => _variables[variable]);
+        (VariableDeclaration variable) => _variables[variable].value);
   }
 
   DartType substituteType(DartType type) {
@@ -3254,6 +3352,70 @@ class RedundantFileUriExpressionRemover extends Transformer {
       currentFileUri = oldFileUri;
       return node;
     }
+  }
+}
+
+/// Location that stores a value in the [ConstantEvaluator].
+class EvaluationReference {
+  Constant value;
+
+  EvaluationReference(this.value);
+}
+
+/// An intermediate result that is used within the [ConstantEvaluator].
+class IntermediateValue implements Constant {
+  dynamic value;
+
+  IntermediateValue(this.value);
+
+  @override
+  R accept<R>(ConstantVisitor<R> v) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  R acceptReference<R>(Visitor<R> v) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Expression asExpression() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  DartType getType(StaticTypeContext context) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String leakingDebugToString() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toString() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toStringInternal() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toText(AstTextStrategy strategy) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    throw new UnimplementedError();
   }
 }
 
@@ -3429,9 +3591,6 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
 
   @override
   bool visitVoidType(VoidType node) => true;
-
-  @override
-  bool visitBottomType(BottomType node) => true;
 
   @override
   bool visitNullType(NullType node) => true;

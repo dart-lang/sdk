@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Dart test program for testing dart:ffi struct pointers.
+// Dart test program for testing getters/setters in structs rather than fields.
 //
 // VMOptions=--deterministic --optimization-counter-threshold=50
 
@@ -11,7 +11,6 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
-import 'calloc.dart';
 import 'coordinate_nnbd_workaround.dart';
 
 void main() {
@@ -26,12 +25,17 @@ void main() {
 
 /// allocates each coordinate separately in c memory
 void testStructAllocate() {
-  Pointer<Coordinate> c1 =
-      Coordinate.allocate(calloc, 10.0, 10.0, nullptr).addressOf;
-  Pointer<Coordinate> c2 =
-      Coordinate.allocate(calloc, 20.0, 20.0, c1).addressOf;
-  Pointer<Coordinate> c3 =
-      Coordinate.allocate(calloc, 30.0, 30.0, c2).addressOf;
+  final c1 = calloc<Coordinate>()
+    ..ref.x = 10.0
+    ..ref.y = 10.0;
+  final c2 = calloc<Coordinate>()
+    ..ref.x = 20.0
+    ..ref.y = 20.0
+    ..ref.next = c1;
+  final c3 = calloc<Coordinate>()
+    ..ref.x = 30.0
+    ..ref.y = 30.0
+    ..ref.next = c2;
   c1.ref.next = c3;
 
   Coordinate currentCoordinate = c1.ref;
@@ -79,8 +83,9 @@ void testStructFromAddress() {
 }
 
 void testStructWithNulls() {
-  Pointer<Coordinate> coordinate =
-      Coordinate.allocate(calloc, 10.0, 10.0, nullptr).addressOf;
+  final coordinate = calloc<Coordinate>()
+    ..ref.x = 10.0
+    ..ref.y = 10.0;
   Expect.equals(coordinate.ref.next, nullptr);
   coordinate.ref.next = coordinate;
   Expect.notEquals(coordinate.ref.next, nullptr);
@@ -90,15 +95,15 @@ void testStructWithNulls() {
 }
 
 void testTypeTest() {
-  Coordinate c = Coordinate.allocate(calloc, 10, 10, nullptr);
+  final pointer = calloc<Coordinate>();
+  Coordinate c = pointer.ref;
   Expect.isTrue(c is Struct);
-  Expect.isTrue(c.addressOf is Pointer<Coordinate>);
-  calloc.free(c.addressOf);
+  calloc.free(pointer);
 }
 
 void testUtf8() {
   final String test = 'Hasta Mañana';
-  final Pointer<Utf8> medium = Utf8.toUtf8(test);
-  Expect.equals(test, Utf8.fromUtf8(medium));
+  final Pointer<Utf8> medium = test.toNativeUtf8();
+  Expect.equals(test, medium.toDartString());
   calloc.free(medium);
 }

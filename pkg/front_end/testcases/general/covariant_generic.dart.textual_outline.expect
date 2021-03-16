@@ -1,3 +1,4 @@
+// @dart = 2.9
 typedef void Callback<T>(T x);
 
 class Foo<T> {

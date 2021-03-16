@@ -56,6 +56,18 @@ void f() {
     assertType(findNode.instanceCreation('new A<int>'), 'A<int>');
   }
 
+  test_new_interfaceTypeTypedef() async {
+    await assertErrorsInCode('''
+abstract class A {}
+typedef B = A;
+void f() {
+  new B();
+}
+''', [
+      error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 52, 1),
+    ]);
+  }
+
   test_new_nonGeneric() async {
     await assertErrorsInCode('''
 abstract class A {}
@@ -78,6 +90,18 @@ void f() {
     ]);
 
     assertType(findNode.instanceCreation('A<int>'), 'A<int>');
+  }
+
+  test_noKeyword_interfaceTypeTypedef() async {
+    await assertErrorsInCode('''
+abstract class A {}
+typedef B = A;
+void f() {
+  B();
+}
+''', [
+      error(CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, 48, 1),
+    ]);
   }
 
   test_noKeyword_nonGeneric() async {

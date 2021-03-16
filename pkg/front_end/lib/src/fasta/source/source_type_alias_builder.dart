@@ -20,6 +20,8 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/type_algebra.dart'
     show FreshTypeParameters, getFreshTypeParameters;
 
+import 'package:kernel/type_environment.dart';
+
 import '../fasta_codes.dart'
     show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
 
@@ -60,6 +62,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                 reference: referenceFrom?.reference)
               ..fileOffset = charOffset),
         super(metadata, name, parent, charOffset);
+
+  @override
+  SourceLibraryBuilder get library => super.library;
 
   @override
   List<TypeVariableBuilder> get typeVariables => _typeVariables;
@@ -123,9 +128,12 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   DartType buildThisType() {
     if (thisType != null) {
-      if (identical(thisType, cyclicTypeAliasMarker)) {
+      if (identical(thisType, pendingTypeAliasMarker)) {
+        thisType = cyclicTypeAliasMarker;
         library.addProblem(templateCyclicTypedef.withArguments(name),
             charOffset, noLength, fileUri);
+        return const InvalidType();
+      } else if (identical(thisType, cyclicTypeAliasMarker)) {
         return const InvalidType();
       }
       return thisType;
@@ -133,7 +141,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     // It is a compile-time error for an alias (typedef) to refer to itself. We
     // detect cycles by detecting recursive calls to this method using an
     // instance of InvalidType that isn't identical to `const InvalidType()`.
-    thisType = cyclicTypeAliasMarker;
+    thisType = pendingTypeAliasMarker;
     TypeBuilder type = this.type;
     if (type != null) {
       DartType builtType =
@@ -145,7 +153,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             tv.bound?.build(library);
           }
         }
-        return thisType = builtType;
+        if (identical(thisType, cyclicTypeAliasMarker)) {
+          return thisType = const InvalidType();
+        } else {
+          return thisType = builtType;
+        }
       } else {
         return thisType = const InvalidType();
       }
@@ -223,5 +235,12 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       result[i] = arguments[i].build(library);
     }
     return result;
+  }
+
+  void checkTypesInOutline(TypeEnvironment typeEnvironment) {
+    library.checkBoundsInTypeParameters(
+        typeEnvironment, typedef.typeParameters, fileUri);
+    library.checkBoundsInType(
+        typedef.type, typeEnvironment, fileUri, type?.charOffset ?? charOffset);
   }
 }

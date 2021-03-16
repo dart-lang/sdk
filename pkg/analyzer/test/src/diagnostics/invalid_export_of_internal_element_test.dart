@@ -282,7 +282,7 @@ class InvalidExportOfInternalElement_PubPackageTest
   void setUp() async {
     super.setUp();
     writeTestPackageConfigWithMeta();
-    newFile('$testPackageRootPath/pubspec.yaml', content: r'''
+    newPubspecYamlFile(testPackageRootPath, r'''
 name: test
 version: 0.0.1
 ''');

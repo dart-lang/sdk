@@ -9,7 +9,6 @@ import 'dart:convert' show json;
 import 'package:kernel/ast.dart'
     show
         BoolConstant,
-        BottomType,
         Class,
         Constant,
         ConstantMapEntry,
@@ -169,11 +168,6 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   void visitInvalidType(InvalidType node) {
     // TODO(askesc): Throw internal error if InvalidType appears in diagnostics.
     result.add("invalid-type");
-  }
-
-  void visitBottomType(BottomType node) {
-    // TODO(askesc): Throw internal error if BottomType appears in diagnostics.
-    result.add("bottom-type");
   }
 
   void visitNeverType(NeverType node) {

@@ -15,8 +15,8 @@ String get dartVm => Platform.executable;
 main(List<String> args) async {
   Stopwatch stopwatch = new Stopwatch()..start();
   List<Future> futures = <Future>[];
-  futures.add(run(
-      "pkg/front_end/test/explicit_creation_test.dart", ["--front-end-only"],
+  futures.add(run("pkg/front_end/test/explicit_creation_git_test.dart",
+      ["--front-end-only"],
       filter: false));
   futures.add(run(
     "pkg/front_end/test/fasta/messages_suite.dart",
@@ -27,7 +27,7 @@ main(List<String> args) async {
       ["--", "spelling_test_src/front_end/..."]));
   futures.add(
       run("pkg/front_end/test/lint_suite.dart", ["--", "lint/front_end/..."]));
-  futures.add(run("pkg/front_end/test/deps_test.dart", [], filter: false));
+  futures.add(run("pkg/front_end/test/deps_git_test.dart", [], filter: false));
   futures.add(run(
       "pkg/front_end/tool/_fasta/generate_experimental_flags_test.dart", [],
       filter: false));

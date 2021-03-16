@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart' show AnnotatedNode, Comment;
+import 'package:analyzer/dart/ast/ast.dart' show AnnotatedNode;
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
-import 'package:meta/meta.dart';
 
 export 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
@@ -13,7 +12,7 @@ export 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
 /// If the given [node] has a documentation comment, remember its content
 /// and range into the given [element].
 void setElementDocumentationComment(ElementImpl element, AnnotatedNode node) {
-  Comment comment = node.documentationComment;
+  var comment = node.documentationComment;
   if (comment != null && comment.isDocumentation) {
     element.documentationComment =
         comment.tokens.map((Token t) => t.lexeme).join('\n');
@@ -158,16 +157,16 @@ class ParameterKind implements Comparable<ParameterKind> {
 
   /// Initialize a newly created kind with the given state.
   const ParameterKind({
-    @required this.name,
-    @required this.ordinal,
-    @required this.isPositional,
-    @required this.isRequiredPositional,
-    @required this.isOptionalPositional,
-    @required this.isNamed,
-    @required this.isRequiredNamed,
-    @required this.isOptionalNamed,
-    @required this.isRequired,
-    @required this.isOptional,
+    required this.name,
+    required this.ordinal,
+    required this.isPositional,
+    required this.isRequiredPositional,
+    required this.isOptionalPositional,
+    required this.isNamed,
+    required this.isRequiredNamed,
+    required this.isOptionalNamed,
+    required this.isRequired,
+    required this.isOptional,
   });
 
   @override

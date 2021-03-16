@@ -11,7 +11,16 @@ String computeRepoDir() {
       'git', ['rev-parse', '--show-toplevel'],
       runInShell: true,
       workingDirectory: new File.fromUri(Platform.script).parent.path);
-  return (result.stdout as String).trim();
+  if (result.exitCode != 0) {
+    throw "Git returned non-zero error code (${result.exitCode}):\n\n"
+        "stdout: ${result.stdout}\n\n"
+        "stderr: ${result.stderr}";
+  }
+  String dirPath = (result.stdout as String).trim();
+  if (!new Directory(dirPath).existsSync()) {
+    throw "The path returned by git ($dirPath) does not actually exist.";
+  }
+  return dirPath;
 }
 
 Uri computeRepoDirUri() {

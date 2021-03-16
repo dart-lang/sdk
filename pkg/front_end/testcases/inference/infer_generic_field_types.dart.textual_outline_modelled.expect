@@ -1,3 +1,4 @@
+// @dart = 2.9
 abstract class B<Y> implements A<Y> {
   get field;
   set field(value);

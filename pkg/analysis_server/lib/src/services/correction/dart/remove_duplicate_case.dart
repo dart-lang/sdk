@@ -15,6 +15,9 @@ class RemoveDuplicateCase extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_DUPLICATE_CASE;
 
   @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_DUPLICATE_CASE_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = coveredNode;
     if (node is SwitchCase) {

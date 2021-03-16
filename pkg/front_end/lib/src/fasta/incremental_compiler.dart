@@ -6,6 +6,11 @@
 
 library fasta.incremental_compiler;
 
+import 'dart:async' show Completer;
+
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
+    show ScannerConfiguration;
+
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/base/nnbd_mode.dart';
@@ -164,6 +169,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   IncrementalKernelTarget userCode;
   Set<Library> previousSourceBuilders;
 
+  /// Guard against multiple computeDelta calls at the same time (possibly
+  /// caused by lacking awaits etc).
+  Completer<dynamic> currentlyCompiling;
+
   IncrementalCompiler.fromComponent(
       this.context, this.componentToInitializeFrom,
       [bool outlineOnly, this.incrementalSerializer])
@@ -213,6 +222,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   @override
   Future<Component> computeDelta(
       {List<Uri> entryPoints, bool fullComponent: false}) async {
+    while (currentlyCompiling != null) {
+      await currentlyCompiling.future;
+    }
+    currentlyCompiling = new Completer();
     if (resetTicker) {
       ticker.reset();
     }
@@ -362,10 +375,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       NonNullableByDefaultCompiledMode compiledMode = componentWithDill == null
           ? data.component?.mode
           : componentWithDill.mode;
-      return context.options.target.configureComponent(
+      Component result = context.options.target.configureComponent(
           new Component(libraries: outputLibraries, uriToSource: uriToSource))
         ..setMainMethodAndMode(mainMethod?.reference, true, compiledMode)
         ..problemsAsJson = problemsAsJson;
+
+      // We're now done. Allow any waiting compile to start.
+      Completer<dynamic> currentlyCompilingLocal = currentlyCompiling;
+      currentlyCompiling = null;
+      currentlyCompilingLocal.complete();
+
+      return result;
     });
   }
 
@@ -1021,7 +1041,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (previousSource == null || previousSource.isEmpty) {
         return null;
       }
-      String before = textualOutline(previousSource, performModelling: true);
+      ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
+          enableExtensionMethods: true /* can't be disabled */,
+          enableNonNullable: builder
+              .isNonNullableByDefault /* depends on language version etc */,
+          enableTripleShift:
+              /* should this be on the library? */
+              /* this is effectively what the constant evaluator does */
+              context.options
+                  .isExperimentEnabledGlobally(ExperimentalFlag.tripleShift));
+      String before = textualOutline(previousSource, scannerConfiguration,
+          performModelling: true);
       if (before == null) {
         return null;
       }
@@ -1029,8 +1059,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       FileSystemEntity entity =
           c.options.fileSystem.entityForUri(builder.fileUri);
       if (await entity.exists()) {
-        now =
-            textualOutline(await entity.readAsBytes(), performModelling: true);
+        now = textualOutline(await entity.readAsBytes(), scannerConfiguration,
+            performModelling: true);
       }
       if (before != now) {
         return null;
@@ -2124,6 +2154,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     for (Uri entryPoint in entryPoints) {
       LibraryBuilder parent = partUriToParent[entryPoint];
+      if (parent == null) continue;
+      // TODO(jensj): .contains on a list is O(n).
+      // It will only be done for each entry point that's a part though, i.e.
+      // most likely very rarely.
       if (reusedLibraries.contains(parent)) {
         result.registerLibraryUriForPartUsedAsEntryPoint(
             entryPoint, parent.importUri);

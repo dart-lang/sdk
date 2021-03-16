@@ -4,21 +4,18 @@
 
 library analyzer.parser;
 
-import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart'
-    as fasta;
-import 'package:_fe_analyzer_shared/src/parser/member_kind.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/parser/type_info.dart' as fasta;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:meta/meta.dart';
 
 export 'package:analyzer/src/dart/ast/utilities.dart' show ResolutionCopier;
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -26,16 +23,16 @@ export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 /// A simple data-holder for a method that needs to return multiple values.
 class CommentAndMetadata {
   /// The documentation comment that was parsed, or `null` if none was given.
-  final Comment comment;
+  final Comment? comment;
 
   /// The metadata that was parsed, or `null` if none was given.
-  final List<Annotation> metadata;
+  final List<Annotation>? metadata;
 
   /// Initialize a newly created holder with the given [comment] and [metadata].
   CommentAndMetadata(this.comment, this.metadata);
 
   /// Return `true` if some metadata was parsed.
-  bool get hasMetadata => metadata != null && metadata.isNotEmpty;
+  bool get hasMetadata => metadata != null && metadata!.isNotEmpty;
 }
 
 /// A simple data-holder for a method that needs to return multiple values.
@@ -54,35 +51,35 @@ class FinalConstVarOrType {
 class Modifiers {
   /// The token representing the keyword 'abstract', or `null` if the keyword
   /// was not found.
-  Token abstractKeyword;
+  Token? abstractKeyword;
 
   /// The token representing the keyword 'const', or `null` if the keyword was
   /// not found.
-  Token constKeyword;
+  Token? constKeyword;
 
   /// The token representing the keyword 'covariant', or `null` if the keyword
   /// was not found.
-  Token covariantKeyword;
+  Token? covariantKeyword;
 
   /// The token representing the keyword 'external', or `null` if the keyword
   /// was not found.
-  Token externalKeyword;
+  Token? externalKeyword;
 
   /// The token representing the keyword 'factory', or `null` if the keyword was
   /// not found.
-  Token factoryKeyword;
+  Token? factoryKeyword;
 
   /// The token representing the keyword 'final', or `null` if the keyword was
   /// not found.
-  Token finalKeyword;
+  Token? finalKeyword;
 
   /// The token representing the keyword 'static', or `null` if the keyword was
   /// not found.
-  Token staticKeyword;
+  Token? staticKeyword;
 
   /// The token representing the keyword 'var', or `null` if the keyword was not
   /// found.
-  Token varKeyword;
+  Token? varKeyword;
 
   @override
   String toString() {
@@ -100,7 +97,7 @@ class Modifiers {
   /// If the given [keyword] is not `null`, append it to the given [builder],
   /// prefixing it with a space if [needsSpace] is `true`. Return `true` if
   /// subsequent keywords need to be prefixed with a space.
-  bool _appendKeyword(StringBuffer buffer, bool needsSpace, Token keyword) {
+  bool _appendKeyword(StringBuffer buffer, bool needsSpace, Token? keyword) {
     if (keyword != null) {
       if (needsSpace) {
         buffer.writeCharCode(0x20);
@@ -114,17 +111,17 @@ class Modifiers {
 
 /// A parser used to parse tokens into an AST structure.
 class Parser {
-  Token currentToken;
+  late Token currentToken;
 
   /// The fasta parser being wrapped.
-  /*late final*/ fasta.Parser fastaParser;
+  late final fasta.Parser fastaParser;
 
   /// The builder which creates the analyzer AST data structures
   /// based on the Fasta parser.
   final AstBuilder astBuilder;
 
   Parser(Source source, AnalysisErrorListener errorListener,
-      {@required FeatureSet featureSet, bool allowNativeClause = true})
+      {required FeatureSet featureSet, bool allowNativeClause = true})
       : astBuilder = AstBuilder(
             ErrorReporter(
               errorListener,
@@ -160,12 +157,12 @@ class Parser {
   /// Append the given token to the end of the token stream,
   /// and update the token's offset.
   void appendToken(Token token, Token newToken) {
-    while (!token.next.isEof) {
-      token = token.next;
+    while (!token.next!.isEof) {
+      token = token.next!;
     }
     newToken
       ..offset = token.end
-      ..setNext(token.next);
+      ..setNext(token.next!);
     token.setNext(newToken);
   }
 
@@ -176,7 +173,7 @@ class Parser {
     appendToken(currentToken, SimpleToken(TokenType.CLOSE_PAREN, 0));
     currentToken = fastaParser
         .parseArguments(fastaParser.syntheticPreviousToken(currentToken))
-        .next;
+        .next!;
     var invocation = astBuilder.pop() as MethodInvocation;
     return invocation.argumentList.arguments[0];
   }
@@ -190,14 +187,14 @@ class Parser {
 
   Expression parseBitwiseXorExpression() => parseExpression2();
 
-  CompilationUnit parseCompilationUnit(Token token) {
+  CompilationUnitImpl parseCompilationUnit(Token token) {
     currentToken = token;
     return parseCompilationUnit2();
   }
 
-  CompilationUnit parseCompilationUnit2() {
+  CompilationUnitImpl parseCompilationUnit2() {
     currentToken = fastaParser.parseUnit(currentToken);
-    return astBuilder.pop() as CompilationUnit;
+    return astBuilder.pop() as CompilationUnitImpl;
   }
 
   Expression parseConditionalExpression() => parseExpression2();
@@ -205,7 +202,7 @@ class Parser {
   Configuration parseConfiguration() {
     currentToken = fastaParser
         .parseConditionalUri(fastaParser.syntheticPreviousToken(currentToken))
-        .next;
+        .next!;
     return astBuilder.pop() as Configuration;
   }
 
@@ -224,7 +221,7 @@ class Parser {
   DottedName parseDottedName() {
     currentToken = fastaParser
         .parseDottedName(fastaParser.syntheticPreviousToken(currentToken))
-        .next;
+        .next!;
     return astBuilder.pop() as DottedName;
   }
 
@@ -238,7 +235,7 @@ class Parser {
   Expression parseExpression2() {
     currentToken = fastaParser
         .parseExpression(fastaParser.syntheticPreviousToken(currentToken))
-        .next;
+        .next!;
     return astBuilder.pop() as Expression;
   }
 
@@ -251,7 +248,7 @@ class Parser {
             inFunctionType
                 ? fasta.MemberKind.GeneralizedFunctionType
                 : fasta.MemberKind.NonStaticMethod)
-        .next;
+        .next!;
     return astBuilder.pop() as FormalParameterList;
   }
 
@@ -284,7 +281,7 @@ class Parser {
     currentToken = fastaParser
         .parsePrimary(fastaParser.syntheticPreviousToken(currentToken),
             fasta.IdentifierContext.expression)
-        .next;
+        .next!;
     return astBuilder.pop() as Expression;
   }
 
@@ -306,7 +303,7 @@ class Parser {
   Statement parseStatement2() {
     currentToken = fastaParser
         .parseStatement(fastaParser.syntheticPreviousToken(currentToken))
-        .next;
+        .next!;
     return astBuilder.pop() as Statement;
   }
 
@@ -329,7 +326,7 @@ class Parser {
     currentToken = fasta
         .computeType(previous, true, !inExpression)
         .parseType(previous, fastaParser)
-        .next;
+        .next!;
     return astBuilder.pop() as TypeAnnotation;
   }
 
@@ -338,7 +335,7 @@ class Parser {
     currentToken = fasta
         .computeTypeParamOrArg(previous)
         .parseArguments(previous, fastaParser)
-        .next;
+        .next!;
     return astBuilder.pop() as TypeArgumentList;
   }
 
@@ -347,7 +344,7 @@ class Parser {
     currentToken = fasta
         .computeType(previous, true, !inExpression)
         .parseType(previous, fastaParser)
-        .next;
+        .next!;
     return astBuilder.pop() as TypeName;
   }
 
@@ -355,18 +352,18 @@ class Parser {
     currentToken = SyntheticBeginToken(TokenType.LT, 0)
       ..endGroup = SyntheticToken(TokenType.GT, 0)
       ..setNext(currentToken);
-    appendToken(currentToken, currentToken.endGroup);
-    TypeParameterList typeParams = parseTypeParameterList();
+    appendToken(currentToken, currentToken.endGroup!);
+    TypeParameterList typeParams = parseTypeParameterList()!;
     return typeParams.typeParameters[0];
   }
 
-  TypeParameterList parseTypeParameterList() {
+  TypeParameterList? parseTypeParameterList() {
     Token token = fastaParser.syntheticPreviousToken(currentToken);
     currentToken = fasta
         .computeTypeParamOrArg(token, true)
         .parseVariables(token, fastaParser)
-        .next;
-    return astBuilder.pop() as TypeParameterList;
+        .next!;
+    return astBuilder.pop() as TypeParameterList?;
   }
 
   Expression parseUnaryExpression() => parseExpression2();

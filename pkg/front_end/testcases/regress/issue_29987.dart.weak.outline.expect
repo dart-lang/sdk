@@ -1,0 +1,25 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29987.dart:5:13: Error: Couldn't parse URI 'dart_:core':
+//   Illegal scheme character.
+// import "dart_:core";
+//             ^
+//
+import self as self;
+
+import "org-dartlang-malformed-uri:?dart_%3Acore";
+
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29987.dart:5:8: Error: Expected a URI.
+// import "dart_:core";
+//        ^
+//
+import self as self2;

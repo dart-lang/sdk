@@ -17,11 +17,11 @@ main() {
 class NonTypeAsTypeArgumentTest extends PubPackageResolutionTest {
   test_notAType() async {
     await assertErrorsInCode(r'''
-int A;
+int A = 0;
 class B<E> {}
 f(B<A> b) {}
 ''', [
-      error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 25, 1),
+      error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 29, 1),
     ]);
   }
 

@@ -73,7 +73,7 @@ class TestMetadataRepository extends MetadataRepository<Metadata> {
   Metadata readFromBinary(Node node, BinarySource source) {
     final string1 = utf8.decode(source.readByteList());
     final string2 = source.readStringReference();
-    final memberRef = source.readCanonicalNameReference()?.reference;
+    final memberRef = source.readNullableCanonicalNameReference()?.reference;
     final type = source.readDartType();
     expect(string1, equals(string2));
     return new Metadata(string2, memberRef, type);
@@ -96,7 +96,7 @@ typedef NodePredicate = bool Function(TreeNode node);
 
 /// Visitor calling [handle] function on every node which can have metadata
 /// associated with it and also satisfies the given [predicate].
-class Visitor extends RecursiveVisitor<Null> {
+class Visitor extends RecursiveVisitor {
   final NodePredicate predicate;
   final void Function(TreeNode) handle;
 

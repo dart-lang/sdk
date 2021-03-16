@@ -636,7 +636,7 @@ Future<TestResult<T>> checkCode<T>(
 }
 
 typedef Future<Map<String, TestResult<T>>> RunTestFunction<T>(TestData testData,
-    {bool testAfterFailures,
+    {required bool testAfterFailures,
     bool verbose,
     bool succinct,
     bool printCode,

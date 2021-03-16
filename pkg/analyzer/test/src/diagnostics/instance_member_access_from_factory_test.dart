@@ -15,66 +15,97 @@ main() {
 
 @reflectiveTest
 class InstanceMemberAccessFromFactoryTest extends PubPackageResolutionTest {
-  test_named() async {
+  test_named_getter() async {
     await assertErrorsInCode(r'''
 class A {
-  m() {}
-  A();
+  int get foo => 0;
+
   factory A.make() {
-    m();
-    return new A();
+    foo;
+    throw 0;
   }
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 51, 1),
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 56, 3),
     ]);
   }
 
-  test_property() async {
+  test_named_getter_localFunction() async {
     await assertErrorsInCode(r'''
 class A {
-  int m;
-  A();
-  factory A.make() {
-    m;
-    return new A();
-  }
-}
-''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 51, 1),
-    ]);
-  }
+  int get foo => 0;
 
-  test_property_fromClosure() async {
-    await assertErrorsInCode(r'''
-class A {
-  int m;
-  A();
   factory A.make() {
     void f() {
-      m;
+      foo;
     }
     f();
-    return new A();
+    throw 0;
   }
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 68, 1),
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 73, 3),
     ]);
   }
 
-  test_unnamed() async {
+  test_named_method() async {
     await assertErrorsInCode(r'''
 class A {
-  m() {}
-  A._();
-  factory A() {
-    m();
-    return new A._();
+  void foo() {}
+
+  factory A.make() {
+    foo();
+    throw 0;
   }
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 48, 1),
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 52, 3),
+    ]);
+  }
+
+  test_named_method_functionExpression() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+
+  factory A.make() {
+    () => foo();
+    throw 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 58, 3),
+    ]);
+  }
+
+  test_named_method_functionExpression_localVariable() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+
+  factory A.make() {
+    // ignore:unused_local_variable
+    var x = () => foo();
+    throw 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 102, 3),
+    ]);
+  }
+
+  test_unnamed_method() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+
+  factory A() {
+    foo();
+    throw 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY, 47, 3),
     ]);
   }
 }

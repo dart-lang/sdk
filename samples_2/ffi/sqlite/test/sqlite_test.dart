@@ -170,8 +170,8 @@ void main() {
   });
   test("Utf8 unit test", () {
     final String test = 'Hasta Mañana';
-    final medium = Utf8.toUtf8(test);
-    expect(test, Utf8.fromUtf8(medium));
+    final medium = test.toNativeUtf8();
+    expect(test, medium.toDartString());
     calloc.free(medium);
   });
 }

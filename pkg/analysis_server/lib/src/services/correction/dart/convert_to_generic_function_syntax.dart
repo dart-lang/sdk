@@ -20,6 +20,10 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX;
 
   @override
+  FixKind get multiFixKind =>
+      DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX_MULTI;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     while (node != null) {
@@ -85,19 +89,16 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
     if (!_allParametersHaveTypes(node.parameters)) {
       return;
     }
-    String returnType;
-    if (node.returnType != null) {
-      returnType = utils.getNodeText(node.returnType);
-    }
+    var required = node.requiredKeyword != null ? 'required ' : '';
+    var covariant = node.covariantKeyword != null ? 'covariant ' : '';
+    var returnType =
+        node.returnType != null ? '${utils.getNodeText(node.returnType)} ' : '';
     var functionName = utils.getRangeText(range.startEnd(
         node.identifier, node.typeParameters ?? node.identifier));
     var parameters = utils.getNodeText(node.parameters);
-    String replacement;
-    if (returnType == null) {
-      replacement = 'Function$parameters $functionName';
-    } else {
-      replacement = '$returnType Function$parameters $functionName';
-    }
+    var question = node.question != null ? '?' : '';
+    var replacement =
+        '$required$covariant${returnType}Function$parameters$question $functionName';
     // add change
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(node), replacement);

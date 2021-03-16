@@ -17,7 +17,8 @@ void main() {
   });
 }
 
-class AbstractOutlineComputerTest extends AbstractContextTest {
+class AbstractOutlineComputerTest extends AbstractContextTest
+    with WithNonFunctionTypeAliasesMixin {
   String testPath;
   String testCode;
 
@@ -471,27 +472,7 @@ extension on String {
     }
   }
 
-  Future<void> test_genericTypeAlias_incomplete() async {
-    var unitOutline = await _computeOutline('''
-typedef F = Object;
-''');
-    var topOutlines = unitOutline.children;
-    expect(topOutlines, hasLength(1));
-    // F
-    var outline_F = topOutlines[0];
-    var element_F = outline_F.element;
-    expect(element_F.kind, ElementKind.FUNCTION_TYPE_ALIAS);
-    expect(element_F.name, 'F');
-    {
-      var location = element_F.location;
-      expect(location.offset, testCode.indexOf('F ='));
-      expect(location.length, 'F'.length);
-    }
-    expect(element_F.parameters, '');
-    expect(element_F.returnType, '');
-  }
-
-  Future<void> test_genericTypeAlias_minimal() async {
+  Future<void> test_genericTypeAlias_functionType() async {
     var unitOutline = await _computeOutline('''
 typedef F = void Function();
 ''');
@@ -507,11 +488,13 @@ typedef F = void Function();
       expect(location.offset, testCode.indexOf('F ='));
       expect(location.length, 'F'.length);
     }
+    expect(element_F.aliasedType, 'void Function()');
     expect(element_F.parameters, '()');
     expect(element_F.returnType, 'void');
+    expect(element_F.typeParameters, isNull);
   }
 
-  Future<void> test_genericTypeAlias_noReturnType() async {
+  Future<void> test_genericTypeAlias_functionType_noReturnType() async {
     var unitOutline = await _computeOutline('''
 typedef F = Function();
 ''');
@@ -527,8 +510,32 @@ typedef F = Function();
       expect(location.offset, testCode.indexOf('F ='));
       expect(location.length, 'F'.length);
     }
+    expect(element_F.aliasedType, ' Function()');
     expect(element_F.parameters, '()');
     expect(element_F.returnType, '');
+    expect(element_F.typeParameters, isNull);
+  }
+
+  Future<void> test_genericTypeAlias_interfaceType() async {
+    var unitOutline = await _computeOutline('''
+typedef F<T> = Map<int, T>;
+''');
+    var topOutlines = unitOutline.children;
+    expect(topOutlines, hasLength(1));
+    // F
+    var outline_F = topOutlines[0];
+    var element_F = outline_F.element;
+    expect(element_F.kind, ElementKind.TYPE_ALIAS);
+    expect(element_F.name, 'F');
+    {
+      var location = element_F.location;
+      expect(location.offset, testCode.indexOf('F<T> ='));
+      expect(location.length, 'F'.length);
+    }
+    expect(element_F.aliasedType, 'Map<int, T>');
+    expect(element_F.parameters, isNull);
+    expect(element_F.returnType, isNull);
+    expect(element_F.typeParameters, '<T>');
   }
 
   Future<void> test_groupAndTest() async {

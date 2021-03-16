@@ -1,3 +1,4 @@
+// @dart = 2.9
 class Class<X5 extends X4, X4 extends X3, X3 extends X2, X2 extends X1,
     X1 extends X0, X0 extends int> {
   X0 field0;

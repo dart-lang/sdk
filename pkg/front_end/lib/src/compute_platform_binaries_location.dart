@@ -7,10 +7,63 @@
 import "dart:io" show File, Platform;
 
 import 'package:kernel/ast.dart' show Source;
+import 'package:kernel/target/targets.dart';
 
+import 'base/nnbd_mode.dart' show NnbdMode;
 import 'base/processed_options.dart' show ProcessedOptions;
 
 import 'fasta/compiler_context.dart' show CompilerContext;
+
+/// Returns the name of the default platform dill file name for the [target]
+/// with the given [nnbdMode].
+///
+/// If the target doesn't have a default platform dill file for the nnbd mode,
+/// [onError] is called.
+String computePlatformDillName(
+    Target target, NnbdMode nnbdMode, void Function() onError) {
+  switch (target.name) {
+    case 'dartdevc':
+      switch (nnbdMode) {
+        case NnbdMode.Strong:
+          return 'ddc_platform_sound.dill';
+        case NnbdMode.Weak:
+          return 'ddc_platform.dill';
+        case NnbdMode.Agnostic:
+          break;
+      }
+      break;
+    case 'dart2js':
+      switch (nnbdMode) {
+        case NnbdMode.Strong:
+          return 'dart2js_nnbd_strong_platform.dill';
+        case NnbdMode.Weak:
+          return 'dart2js_platform.dill';
+        case NnbdMode.Agnostic:
+          break;
+      }
+      break;
+    case 'dart2js_server':
+      switch (nnbdMode) {
+        case NnbdMode.Strong:
+          return 'dart2js_server_nnbd_strong_platform.dill';
+        case NnbdMode.Weak:
+          return 'dart2js_server_platform.dill';
+        case NnbdMode.Agnostic:
+          break;
+      }
+      break;
+    case 'vm':
+      // TODO(johnniwinther): Stop generating 'vm_platform.dill' and rename
+      // 'vm_platform_strong.dill' to 'vm_platform.dill'.
+      return "vm_platform_strong.dill";
+    case 'none':
+      return "vm_platform_strong.dill";
+    default:
+      break;
+  }
+  onError();
+  return null;
+}
 
 /// Computes the location of platform binaries, that is, compiled `.dill` files
 /// of the platform libraries that are used to avoid recompiling those

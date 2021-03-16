@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=non-nullable
 
 // Tests that language operators and constructrs requiring non-nullable values
 // will not accept an operand with a nullable static type.

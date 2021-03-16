@@ -13,15 +13,12 @@ main() {
     defineReflectiveTests(
       TypeArgumentNotMatchingBoundsWithNullSafetyTest,
     );
-    defineReflectiveTests(
-      TypeArgumentNotMatchingBoundsWithNonFunctionTypeAliasesTest,
-    );
   });
 }
 
 @reflectiveTest
 class TypeArgumentNotMatchingBoundsTest extends PubPackageResolutionTest
-    with TypeArgumentNotMatchingBoundsTestCases {
+    with WithoutNullSafetyMixin, TypeArgumentNotMatchingBoundsTestCases {
   test_regression_42196_Null() async {
     await assertNoErrorsInCode(r'''
 typedef G<X> = Function(X);
@@ -303,7 +300,7 @@ void main() {}
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 3),
     ]);
     // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>".
-    assertType(result.unit.declaredElement.getType('Baz').supertype,
+    assertType(result.unit!.declaredElement!.getType('Baz')!.supertype,
         'Bar<Foo<dynamic>>');
   }
 
@@ -419,43 +416,9 @@ class C extends Object with G<B>{}
 }
 
 @reflectiveTest
-class TypeArgumentNotMatchingBoundsWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest
-    with
-        WithNonFunctionTypeAliasesMixin,
-        TypeArgumentNotMatchingBoundsTestCases {
-  test_nonFunctionTypeAlias_interfaceType_parameter() async {
-    await assertErrorsInCode(r'''
-class A {}
-typedef X<T extends A> = Map<int, T>;
-void f(X<String> a) {}
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 58, 6),
-    ]);
-  }
-
-  test_nonFunctionTypeAlias_interfaceType_parameter_regularBounded() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B extends A {}
-typedef X<T extends A> = Map<int, T>;
-void f(X<B> a) {}
-''');
-  }
-
-  test_nonFunctionTypeAlias_interfaceType_parameter_superBounded() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-typedef X<T extends A> = Map<int, T>;
-void f(X<Never> a) {}
-''');
-  }
-}
-
-@reflectiveTest
 class TypeArgumentNotMatchingBoundsWithNullSafetyTest
     extends PubPackageResolutionTest
-    with TypeArgumentNotMatchingBoundsTestCases, WithNullSafetyMixin {
+    with TypeArgumentNotMatchingBoundsTestCases {
   test_extends_optIn_fromOptOut_Null() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A<X extends int> {}
@@ -485,6 +448,33 @@ class B extends A {}
 main() {
   foo<B, A>();
 }
+''');
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_parameter() async {
+    await assertErrorsInCode(r'''
+class A {}
+typedef X<T extends A> = Map<int, T>;
+void f(X<String> a) {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 58, 6),
+    ]);
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_parameter_regularBounded() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+typedef X<T extends A> = Map<int, T>;
+void f(X<B> a) {}
+''');
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_parameter_superBounded() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+typedef X<T extends A> = Map<int, T>;
+void f(X<Never> a) {}
 ''');
   }
 

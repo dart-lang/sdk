@@ -19,7 +19,7 @@ class BufferedSink {
   int length = 0;
 
   final Float64List _doubleBuffer = Float64List(1);
-  Uint8List _doubleBufferUint8;
+  Uint8List? _doubleBufferUint8;
 
   BufferedSink(this._sink);
 
@@ -89,12 +89,13 @@ class BufferedSink {
   }
 
   void addDouble(double value) {
-    _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
+    var doubleBufferUint8 =
+        _doubleBufferUint8 ??= _doubleBuffer.buffer.asUint8List();
     _doubleBuffer[0] = value;
-    addByte4(_doubleBufferUint8[0], _doubleBufferUint8[1],
-        _doubleBufferUint8[2], _doubleBufferUint8[3]);
-    addByte4(_doubleBufferUint8[4], _doubleBufferUint8[5],
-        _doubleBufferUint8[6], _doubleBufferUint8[7]);
+    addByte4(doubleBufferUint8[0], doubleBufferUint8[1], doubleBufferUint8[2],
+        doubleBufferUint8[3]);
+    addByte4(doubleBufferUint8[4], doubleBufferUint8[5], doubleBufferUint8[6],
+        doubleBufferUint8[7]);
   }
 
   void flush() {
@@ -124,7 +125,7 @@ class BufferedSink {
   /// Write the [value] as UTF8 encoded byte array.
   void writeStringUtf8(String value) {
     var bytes = utf8.encode(value);
-    writeUint8List(bytes);
+    writeUint8List(bytes as Uint8List);
   }
 
   @pragma("vm:prefer-inline")

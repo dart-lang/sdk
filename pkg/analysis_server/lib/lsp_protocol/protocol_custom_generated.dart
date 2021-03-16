@@ -10,6 +10,7 @@
 // ignore_for_file: deprecated_member_use
 // ignore_for_file: deprecated_member_use_from_same_package
 // ignore_for_file: unnecessary_brace_in_string_interps
+// ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: unused_import
 // ignore_for_file: unused_shown_name
 
@@ -293,6 +294,7 @@ class DartCompletionItemResolutionInfo
       {@required this.libId,
       @required this.displayUri,
       @required this.rOffset,
+      @required this.iLength,
       @required this.rLength,
       @required this.file,
       @required this.offset}) {
@@ -304,6 +306,9 @@ class DartCompletionItemResolutionInfo
     }
     if (rOffset == null) {
       throw 'rOffset is required but was not provided';
+    }
+    if (iLength == null) {
+      throw 'iLength is required but was not provided';
     }
     if (rLength == null) {
       throw 'rLength is required but was not provided';
@@ -319,6 +324,7 @@ class DartCompletionItemResolutionInfo
     final libId = json['libId'];
     final displayUri = json['displayUri'];
     final rOffset = json['rOffset'];
+    final iLength = json['iLength'];
     final rLength = json['rLength'];
     final file = json['file'];
     final offset = json['offset'];
@@ -326,6 +332,7 @@ class DartCompletionItemResolutionInfo
         libId: libId,
         displayUri: displayUri,
         rOffset: rOffset,
+        iLength: iLength,
         rLength: rLength,
         file: file,
         offset: offset);
@@ -333,6 +340,7 @@ class DartCompletionItemResolutionInfo
 
   final String displayUri;
   final String file;
+  final num iLength;
   final num libId;
   final num offset;
   final num rLength;
@@ -345,6 +353,8 @@ class DartCompletionItemResolutionInfo
         displayUri ?? (throw 'displayUri is required but was not set');
     __result['rOffset'] =
         rOffset ?? (throw 'rOffset is required but was not set');
+    __result['iLength'] =
+        iLength ?? (throw 'iLength is required but was not set');
     __result['rLength'] =
         rLength ?? (throw 'rLength is required but was not set');
     __result['file'] = file ?? (throw 'file is required but was not set');
@@ -399,6 +409,23 @@ class DartCompletionItemResolutionInfo
           return false;
         }
         if (!(obj['rOffset'] is num)) {
+          reporter.reportError('must be of type num');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('iLength');
+      try {
+        if (!obj.containsKey('iLength')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        if (obj['iLength'] == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(obj['iLength'] is num)) {
           reporter.reportError('must be of type num');
           return false;
         }
@@ -470,6 +497,7 @@ class DartCompletionItemResolutionInfo
       return libId == other.libId &&
           displayUri == other.displayUri &&
           rOffset == other.rOffset &&
+          iLength == other.iLength &&
           rLength == other.rLength &&
           file == other.file &&
           offset == other.offset &&
@@ -484,6 +512,7 @@ class DartCompletionItemResolutionInfo
     hash = JenkinsSmiHash.combine(hash, libId.hashCode);
     hash = JenkinsSmiHash.combine(hash, displayUri.hashCode);
     hash = JenkinsSmiHash.combine(hash, rOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, iLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, rLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
@@ -810,7 +839,7 @@ class FlutterOutline implements ToJsonable {
       __result['variableName'] = variableName;
     }
     if (attributes != null) {
-      __result['attributes'] = attributes;
+      __result['attributes'] = attributes.map((item) => item.toJson()).toList();
     }
     if (dartElement != null) {
       __result['dartElement'] = dartElement.toJson();
@@ -820,7 +849,7 @@ class FlutterOutline implements ToJsonable {
     __result['codeRange'] =
         codeRange?.toJson() ?? (throw 'codeRange is required but was not set');
     if (children != null) {
-      __result['children'] = children;
+      __result['children'] = children.map((item) => item.toJson()).toList();
     }
     return __result;
   }
@@ -1150,7 +1179,7 @@ class Outline implements ToJsonable {
     __result['codeRange'] =
         codeRange?.toJson() ?? (throw 'codeRange is required but was not set');
     if (children != null) {
-      __result['children'] = children;
+      __result['children'] = children.map((item) => item.toJson()).toList();
     }
     return __result;
   }
@@ -1281,7 +1310,8 @@ class PublishClosingLabelsParams implements ToJsonable {
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
-    __result['labels'] = labels ?? (throw 'labels is required but was not set');
+    __result['labels'] = labels?.map((item) => item.toJson())?.toList() ??
+        (throw 'labels is required but was not set');
     return __result;
   }
 

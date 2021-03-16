@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class CouldNotInferTest extends PubPackageResolutionTest {
+class CouldNotInferTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_constructors_inferenceFBounded() async {
     await assertErrorsInCode('''
 class C<T> {}
@@ -250,9 +251,10 @@ main() { new C().f(<S>(S s) => s); }
   }
 }
 
+/// TODO(https://github.com/dart-lang/sdk/issues/44078): Add tests with
+/// non-function typedefs.
 @reflectiveTest
-class CouldNotInferWithNullSafetyTest extends PubPackageResolutionTest
-    with WithNullSafetyMixin {
+class CouldNotInferWithNullSafetyTest extends PubPackageResolutionTest {
   test_constructor_nullSafe_fromLegacy() async {
     newFile('$testPackageLibPath/a.dart', content: '''
 class C<T extends Object> {

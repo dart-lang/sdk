@@ -204,7 +204,8 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
 
   Iterable<E> skipWhile(bool test(E element)) => super.skipWhile(test);
 
-  Iterable<E> take(int count) => new SubListIterable<E>(this, 0, count);
+  Iterable<E> take(int count) =>
+      SubListIterable<E>(this, 0, checkNotNullable(count, "count"));
 
   Iterable<E> takeWhile(bool test(E element)) => super.takeWhile(test);
 

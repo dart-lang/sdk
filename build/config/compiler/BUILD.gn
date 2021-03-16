@@ -92,7 +92,7 @@ config("compiler") {
     }
 
     # Enable mitigations for Cortex-A53 Erratum #843419 bug.
-    if (current_cpu == "arm64" && is_clang) {
+    if (current_cpu == "arm64" && is_clang && !is_mac) {
       ldflags += [ "-Wl,--fix-cortex-a53-843419" ]
     }
 
