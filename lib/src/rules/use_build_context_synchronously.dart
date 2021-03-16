@@ -6,11 +6,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
+import '../util/flutter_utils.dart';
 
 const _desc = r'Do not use BuildContexts across async gaps.';
 
@@ -102,13 +101,9 @@ class _AwaitVisitor extends RecursiveAstVisitor {
 }
 
 class _Visitor extends SimpleAstVisitor {
-  static const _nameBuildContext = 'BuildContext';
-  final Uri _uriFramework;
-
   final LintRule rule;
 
-  _Visitor(this.rule)
-      : _uriFramework = Uri.parse('package:flutter/src/widgets/framework.dart');
+  _Visitor(this.rule);
 
   bool accessesContext(ArgumentList argumentList) {
     for (var argument in argumentList.arguments) {
@@ -156,19 +151,6 @@ class _Visitor extends SimpleAstVisitor {
     var visitor = _AwaitVisitor();
     statement.accept(visitor);
     return visitor.hasAwait;
-  }
-
-  /// todo (pq): replace in favor of flutter_utils.isBuildContext
-  bool isBuildContext(DartType? type, {bool skipNullable = false}) {
-    if (type is! InterfaceType) {
-      return false;
-    }
-    if (skipNullable && type.nullabilitySuffix == NullabilitySuffix.question) {
-      return false;
-    }
-    var element = type.element;
-    return element.name == _nameBuildContext &&
-        element.source.uri == _uriFramework;
   }
 
   bool isMountedCheck(Statement statement, {bool positiveCheck = false}) {
