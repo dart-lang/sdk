@@ -307,6 +307,12 @@ class FileEditInformation {
   final List<server.SourceEdit> edits;
   final bool newFile;
 
+  /// The selection offset, relative to the edit.
+  final int selectionOffsetRelative;
+  final int selectionLength;
+
   FileEditInformation(this.doc, this.lineInfo, this.edits,
-      {this.newFile = false});
+      {this.newFile = false,
+      this.selectionOffsetRelative,
+      this.selectionLength});
 }

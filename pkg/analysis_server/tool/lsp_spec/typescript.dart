@@ -124,6 +124,9 @@ String getImprovedType(String interfaceName, String fieldName) {
     },
     'ServerCapabilities': {
       'changeNotifications': 'bool',
+    },
+    'TextDocumentEdit': {
+      'edits': 'TextDocumentEditEdits',
     }
   };
 

@@ -187,7 +187,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
         return fileModifiedError;
       }
 
-      final workspaceEdit = createWorkspaceEdit(server, change.edits);
+      final workspaceEdit = createWorkspaceEdit(server, change);
       return success(workspaceEdit);
     });
   }

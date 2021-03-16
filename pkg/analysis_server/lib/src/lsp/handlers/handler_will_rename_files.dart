@@ -53,7 +53,7 @@ class WillRenameFilesHandler extends MessageHandler<RenameFilesParams, void> {
     }
 
     final change = await refactoring.createChange();
-    final edit = createWorkspaceEdit(server, change.edits);
+    final edit = createWorkspaceEdit(server, change);
 
     return success(edit);
   }

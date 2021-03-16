@@ -78,6 +78,7 @@ class LspClientCapabilities {
   final Set<SymbolKind> workspaceSymbolKinds;
   final Set<CompletionItemKind> completionItemKinds;
   final Set<InsertTextMode> completionInsertTextModes;
+  final bool experimentalSnippetTextEdit;
 
   LspClientCapabilities(this.raw)
       : applyEdit = raw?.workspace?.applyEdit ?? false,
@@ -125,7 +126,10 @@ class LspClientCapabilities {
         workDoneProgress = raw.window?.workDoneProgress ?? false,
         workspaceSymbolKinds = _listToSet(
             raw?.workspace?.symbol?.symbolKind?.valueSet,
-            defaults: defaultSupportedSymbolKinds);
+            defaults: defaultSupportedSymbolKinds),
+        experimentalSnippetTextEdit =
+            raw.experimental is Map<String, dynamic> &&
+                raw.experimental['snippetTextEdit'] == true;
 
   static Set<MarkupKind> _completionDocumentationFormats(
       ClientCapabilities raw) {

@@ -87,7 +87,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
             return fileModifiedError;
           }
 
-          final edit = createWorkspaceEdit(server, change.edits);
+          final edit = createWorkspaceEdit(server, change);
           return await sendWorkspaceEditToClient(edit);
         } on InconsistentAnalysisException {
           return fileModifiedError;
