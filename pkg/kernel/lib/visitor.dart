@@ -884,6 +884,13 @@ mixin VisitorThrowingMixin<R> implements Visitor<R> {
   }
 
   @override
+  R visitExtensionReference(Extension node) {
+    throw new UnimplementedError(
+        'Unimplemented ${runtimeType}.visitExtensionReference for '
+        '${node} (${node.runtimeType})');
+  }
+
+  @override
   R defaultConstantReference(Constant node) {
     throw new UnimplementedError(
         'Unimplemented ${runtimeType}.defaultConstantReference for '
