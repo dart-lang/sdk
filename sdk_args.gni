@@ -20,7 +20,10 @@ declare_args() {
   # file under the git worktree folder.
   # The script run here should take care of everything automatically though.
   default_git_folder = exec_script("$_dart_root/tools/get_dot_git_folder.py",
-                                   [ rebase_path("$_dart_root/.git") ],
+                                   [
+                                     rebase_path("$_dart_root/.git"),
+                                     "$_dart_root/.git",
+                                   ],
                                    "trim string")
 
   # Whether to enable the SDK hash check that will prevent loading a kernel

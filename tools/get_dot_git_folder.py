@@ -14,9 +14,8 @@ import utils
 
 def main():
     try:
-        if len(sys.argv) != 2:
-            raise Exception('Expects exactly 1 argument.')
-
+        if len(sys.argv) != 3:
+            raise Exception('Expects exactly 2 arguments.')
         args = ['git', 'rev-parse', '--resolve-git-dir', sys.argv[1]]
 
         windows = utils.GuessOS() == 'win32'
@@ -40,8 +39,8 @@ def main():
 
         print(outs.strip())
     except:
-        # Fall-back to ".git".
-        print(".git")
+        # Fall back to fall-back path.
+        print(sys.argv[2])
 
 
 if __name__ == '__main__':
