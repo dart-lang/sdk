@@ -138,9 +138,3 @@ ImportElement internal_getImportElementInfo(SimpleIdentifier prefixNode) {
   return internal_getImportElement(
       libraryElement, prefix, usedElement, importElementsMap);
 }
-
-/// Information about [ImportElement] and place where it is referenced using
-/// [PrefixElement].
-class ImportElementInfo {
-  ImportElement element;
-}

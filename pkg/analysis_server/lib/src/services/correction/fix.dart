@@ -881,10 +881,3 @@ class DartFixKindPriority {
   static const int DEFAULT = 50;
   static const int IN_FILE = 40;
 }
-
-/// An enumeration of quick fix kinds for the errors found in an Android
-/// manifest file.
-class ManifestFixKind {}
-
-/// An enumeration of quick fix kinds for the errors found in a pubspec file.
-class PubspecFixKind {}
