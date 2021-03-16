@@ -1,3 +1,6 @@
+## 1.3.0-dev
+* Added `Expression.inConstantContext` to API.
+
 ## 1.2.0
 * Deprecated all setters in API of AST. Use `parseString()` instead.
 * `AnalysisSession.getErrors()` does not return `null`, check its `state`.
