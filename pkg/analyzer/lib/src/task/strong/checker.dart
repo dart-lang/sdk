@@ -21,14 +21,6 @@ import 'package:analyzer/src/error/codes.dart'
     show CompileTimeErrorCode, StrongModeCode;
 import 'package:analyzer/src/task/inference_error.dart';
 
-DartType _elementType(Element? e) {
-  if (e == null) {
-    // Malformed code - just return dynamic.
-    return DynamicTypeImpl.instance;
-  }
-  return (e as dynamic).type;
-}
-
 Element? _getKnownElement(Expression expression) {
   if (expression is ParenthesizedExpression) {
     return _getKnownElement(expression.expression);
@@ -86,7 +78,7 @@ class CodeChecker extends RecursiveAstVisitor {
         // so no need to insert an error for this here.
         continue;
       }
-      checkArgument(arg, _elementType(element));
+      checkArgument(arg, element.type);
     }
   }
 
@@ -244,7 +236,6 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
-  // Check invocations
   /// Check constructor declaration to ensure correct super call placement.
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -270,8 +261,9 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     var field = node.fieldName;
     var element = field.staticElement;
-    DartType staticType = _elementType(element);
-    checkAssignment(node.expression, staticType);
+    if (element != null) {
+      checkAssignment(node.expression, _elementType(element));
+    }
     node.visitChildren(this);
   }
 
@@ -279,9 +271,10 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     // Check that defaults have the proper subtype.
     var parameter = node.parameter;
-    var parameterType = _elementType(parameter.declaredElement);
     var defaultValue = node.defaultValue;
-    if (defaultValue != null) {
+    var element = parameter.declaredElement;
+    if (defaultValue != null && element != null) {
+      var parameterType = _elementType(element);
       checkAssignment(defaultValue, parameterType);
     }
 
@@ -363,7 +356,7 @@ class CodeChecker extends RecursiveAstVisitor {
     var arguments = node.argumentList;
     var element = node.constructorName.staticElement;
     if (element != null) {
-      var type = _elementType(element) as FunctionType;
+      var type = element.type;
       checkArgumentList(arguments, type);
     }
     node.visitChildren(this);
@@ -709,7 +702,7 @@ class CodeChecker extends RecursiveAstVisitor {
     FunctionType functionType;
     var parent = body.parent;
     if (parent is Declaration) {
-      functionType = _elementType(parent.declaredElement) as FunctionType;
+      functionType = _elementType(parent.declaredElement!) as FunctionType;
     } else {
       assert(parent is FunctionExpression);
       functionType = (parent as FunctionExpression).staticType as FunctionType;
@@ -973,6 +966,21 @@ class CodeChecker extends RecursiveAstVisitor {
       _checkImplicitCast(loopVariable,
           to: loopVariableElement.type, from: elementType);
     }
+  }
+
+  static DartType _elementType(Element e) {
+    if (e is ConstructorElement) {
+      return e.type;
+    } else if (e is FieldElement) {
+      return e.type;
+    } else if (e is MethodElement) {
+      return e.type;
+    } else if (e is ParameterElement) {
+      return e.type;
+    } else if (e is PropertyAccessorElement) {
+      return e.type;
+    }
+    throw StateError('${e.runtimeType} is unhandled type');
   }
 }
 
