@@ -11,7 +11,6 @@ import '../common_elements.dart';
 import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact;
 import '../common/resolution.dart' show ResolutionImpact;
-import '../common_elements.dart' show ElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
