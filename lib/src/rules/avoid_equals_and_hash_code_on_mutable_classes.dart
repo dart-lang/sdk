@@ -23,7 +23,7 @@ https://dart.dev/guides/language/effective-dart/design#avoid-defining-custom-equ
 for more information.
 
 **GOOD:**
-```
+```dart
 @immutable
 class A {
   final String key;
@@ -36,7 +36,7 @@ class A {
 ```
 
 **BAD:**
-```
+```dart
 class B {
   String key;
   const B(this.key);
@@ -51,7 +51,7 @@ NOTE: The lint checks the use of the @immutable annotation, and will trigger
 even if the class is otherwise not mutable. Thus:
 
 **BAD:**
-```
+```dart
 class C {
   final String key;
   const C(this.key);

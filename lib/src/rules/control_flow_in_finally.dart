@@ -17,7 +17,7 @@ Using control flow in finally blocks will inevitably cause unexpected behavior
 that is hard to debug.
 
 **GOOD:**
-```
+```dart
 class Ok {
   double compliantMethod() {
     var i = 5;
@@ -32,7 +32,7 @@ class Ok {
 ```
 
 **BAD:**
-```
+```dart
 class BadReturn {
   double nonCompliantMethod() {
     try {
@@ -47,7 +47,7 @@ class BadReturn {
 ```
 
 **BAD:**
-```
+```dart
 class BadContinue {
   double nonCompliantMethod() {
     for (var o in [1, 2]) {
@@ -65,7 +65,7 @@ class BadContinue {
 ```
 
 **BAD:**
-```
+```dart
 class BadBreak {
   double nonCompliantMethod() {
     for (var o in [1, 2]) {

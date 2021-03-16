@@ -18,7 +18,7 @@ const _details = r'''
 Using initializing formals when possible makes your code more terse.
 
 **BAD:**
-```
+```dart
 class Point {
   num x, y;
   Point(num x, num y) {
@@ -29,7 +29,7 @@ class Point {
 ```
 
 **GOOD:**
-```
+```dart
 class Point {
   num x, y;
   Point(this.x, this.y);
@@ -37,7 +37,7 @@ class Point {
 ```
 
 **BAD:**
-```
+```dart
 class Point {
   num x, y;
   Point({num x, num y}) {
@@ -48,7 +48,7 @@ class Point {
 ```
 
 **GOOD:**
-```
+```dart
 class Point {
   num x, y;
   Point({this.x, this.y});
@@ -62,7 +62,7 @@ such a lint would require either renaming the field or renaming the parameter,
 and both of those actions would potentially be a breaking change. For example,
 the following will not generate a lint:
 
-```
+```darts
 class Point {
   bool isEnabled;
   Point({bool enabled}) {

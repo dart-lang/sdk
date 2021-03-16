@@ -19,12 +19,12 @@ compiled out in release mode).  If you don't know whether the type is
 correct, check using `is` (this avoids the exception that `as` raises).
 
 **BAD:**
-```
+```dart
 (pm as Person).firstName = 'Seth';
 ```
 
 **GOOD:**
-```
+```dart
 if (pm is Person)
   pm.firstName = 'Seth';
 ```
@@ -32,7 +32,7 @@ if (pm is Person)
 but certainly not
 
 **BAD:**
-```
+```dart
 try {
    (pm as Person).firstName = 'Seth';
 } on CastError { }
@@ -42,7 +42,7 @@ Note that an exception is made in the case of `dynamic` since the cast has no
 performance impact.
 
 **OK:**
-```
+```dart
 HasScrollDirection scrollable = renderObject as dynamic;
 ```
 

@@ -24,7 +24,7 @@ way is to use `unawaited` from `package:pedantic`. The `// ignore` and
 `// ignore_for_file` comments also work.
 
 **GOOD:**
-```
+```dart
 Future doSomething() => ...;
 
 void main() async {
@@ -35,7 +35,7 @@ void main() async {
 ```
 
 **BAD:**
-```
+```dart
 void main() async {
   doSomething(); // Likely a bug.
 }

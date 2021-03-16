@@ -17,14 +17,14 @@ Calling `toString` on a runtime type is a non-trivial operation that can
 negatively impact performance. It's better to avoid it.
 
 **BAD:**
-```
+```dart
 class A {
   String toString() => '$runtimeType()';
 }
 ```
 
 **GOOD:**
-```
+```dart
 class A {
   String toString() => 'A()';
 }

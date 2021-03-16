@@ -17,7 +17,7 @@ As Dart allows local function declarations, it is a good practice to use them in
 the place of function literals.
 
 **BAD:**
-```
+```dart
 void main() {
   var localFunction = () {
     ...
@@ -26,7 +26,7 @@ void main() {
 ```
 
 **GOOD:**
-```
+```dart
 void main() {
   localFunction() {
     ...

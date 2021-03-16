@@ -14,7 +14,7 @@ When building collections, it is preferable to use `if` elements rather than
 conditionals.
 
 **BAD:**
-```
+```dart
 Widget build(BuildContext context) {
   return Row(
     children: [
@@ -27,7 +27,7 @@ Widget build(BuildContext context) {
 ```
 
 **GOOD:**
-```
+```dart
 Widget build(BuildContext context) {
   return Row(
     children: [

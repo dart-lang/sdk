@@ -23,7 +23,7 @@ generally expected to return non-nullable values.  Thus, returning null where a
 primitive type was expected can lead to runtime exceptions.
 
 **BAD:**
-```
+```dart
 bool getBool() => null;
 num getNum() => null;
 int getInt() => null;
@@ -31,7 +31,7 @@ double getDouble() => null;
 ```
 
 **GOOD:**
-```
+```dart
 bool getBool() => false;
 num getNum() => -1;
 int getInt() => -1;

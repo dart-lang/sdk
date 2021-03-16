@@ -24,14 +24,14 @@ If you have a field that outside code should be able to see but not assign to
 that works in many cases is to just mark it `final`.
 
 **GOOD:**
-```
+```dart
 class Box {
   final contents = [];
 }
 ```
 
 **BAD:**
-```
+```dart
 class Box {
   var _contents;
   get contents => _contents;

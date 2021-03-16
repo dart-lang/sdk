@@ -18,14 +18,14 @@ const _details = r'''
 reference.
 
 **BAD:**
-```
+```dart
 SomeClass someReference = SomeClass();
 someReference.firstMethod();
 someReference.secondMethod();
 ```
 
 **BAD:**
-```
+```dart
 SomeClass someReference = SomeClass();
 ...
 someReference.firstMethod();
@@ -34,7 +34,7 @@ someReference.secondMethod();
 ```
 
 **GOOD:**
-```
+```dart
 SomeClass someReference = SomeClass()
     ..firstMethod()
     ..aProperty = value
@@ -42,7 +42,7 @@ SomeClass someReference = SomeClass()
 ```
 
 **GOOD:**
-```
+```dart
 SomeClass someReference = SomeClass();
 ...
 someReference

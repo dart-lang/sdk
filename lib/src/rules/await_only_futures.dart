@@ -15,14 +15,14 @@ const _details = r'''
 **AVOID** using await on anything other than a future.
 
 **BAD:**
-```
+```dart
 main() async {
   print(await 23);
 }
 ```
 
 **GOOD:**
-```
+```dart
 main() async {
   print(await Future.value(23));
 }

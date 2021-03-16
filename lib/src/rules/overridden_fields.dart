@@ -20,7 +20,7 @@ Overriding fields is almost always done unintentionally.  Regardless, it is a
 bad practice to do so.
 
 **BAD:**
-```
+```dart
 class Base {
   Object field = 'lorem';
 
@@ -39,7 +39,7 @@ class Bad2 extends Base {
 ```
 
 **GOOD:**
-```
+```dart
 class Base {
   Object field = 'lorem';
 
@@ -54,7 +54,7 @@ class Ok extends Base {
 ```
 
 **GOOD:**
-```
+```dart
 abstract class BaseLoggingHandler {
   Base transformer;
 }

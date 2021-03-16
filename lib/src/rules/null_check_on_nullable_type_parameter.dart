@@ -25,7 +25,7 @@ A common mistake is to do so using `x!`. This is almost always incorrect, since
 if `T` is a nullable type, `x` may validly hold `null` as a value of type `T`.
 
 **BAD:**
-```
+```dart
 T run<T>(T callback()) {
   T? result;
    (() { result = callback(); })();
@@ -34,7 +34,7 @@ T run<T>(T callback()) {
 ```
 
 **GOOD:**
-```
+```dart
 T run<T>(T callback()) {
   T? result;
    (() { result = callback(); })();

@@ -31,13 +31,13 @@ Instead, there are faster and more readable getters: `isEmpty` and
 `isNotEmpty`.  Use the one that doesn't require you to negate the result.
 
 **GOOD:**
-```
+```dart
 if (lunchBox.isEmpty) return 'so hungry...';
 if (words.isNotEmpty) return words.join(' ');
 ```
 
 **BAD:**
-```
+```dart
 if (lunchBox.length == 0) return 'so hungry...';
 if (words.length != 0) return words.join(' ');
 ```

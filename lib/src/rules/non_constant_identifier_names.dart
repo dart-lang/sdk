@@ -19,7 +19,7 @@ and named constructors should capitalize the first letter of each word
 except the first word, and use no separators.
 
 **GOOD:**
-```
+```dart
 var item;
 
 HttpRequest httpRequest;

@@ -17,7 +17,7 @@ Forgoing type annotations for uninitialized variables is a bad practice because
 you may accidentally assign them to a type that you didn't originally intend to.
 
 **BAD:**
-```
+```dart
 class BadClass {
   static var bar; // LINT
   var foo; // LINT
@@ -31,7 +31,7 @@ class BadClass {
 ```
 
 **BAD:**
-```
+```dart
 void aFunction() {
   var bar; // LINT
   bar = 5;
@@ -40,7 +40,7 @@ void aFunction() {
 ```
 
 **GOOD:**
-```
+```dart
 class GoodClass {
   static var bar = 7;
   var foo = 42;

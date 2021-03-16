@@ -20,7 +20,7 @@ implementation files in `lib/src`, adding elements explicitly exported with an
 `export` directive.
 
 For example, given `lib/foo.dart`:
-```
+```dart
 export 'src/bar.dart' show Bar;
 export 'src/baz.dart';
 
@@ -37,7 +37,7 @@ its API includes:
 All public API members should be documented with `///` doc-style comments.
 
 **GOOD:**
-```
+```dart
 /// A Foo.
 abstract class Foo {
   /// Start foo-ing.
@@ -48,7 +48,7 @@ abstract class Foo {
 ```
 
 **BAD:**
-```
+```dart
 class Bar {
   void bar();
 }

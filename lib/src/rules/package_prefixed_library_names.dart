@@ -27,7 +27,7 @@ For example, say the package name is `my_package`.  Here are the library names
 for various files in the package:
 
 **GOOD:**
-```
+```dart
 // In lib/my_package.dart
 library my_package;
 

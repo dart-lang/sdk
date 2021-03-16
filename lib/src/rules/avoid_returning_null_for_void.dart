@@ -21,7 +21,7 @@ value. To have a consistent way you should not return `null` and only use an
 empty return.
 
 **BAD:**
-```
+```dart
 void f1() {
   return null;
 }
@@ -31,7 +31,7 @@ Future<void> f2() async {
 ```
 
 **GOOD:**
-```
+```dart
 void f1() {
   return;
 }

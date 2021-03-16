@@ -14,7 +14,7 @@ const _details = r'''
 **AVOID** empty else statements.
 
 **BAD:**
-```
+```dart
 if (x > y)
   print("1");
 else ;

@@ -18,7 +18,7 @@ paths.
 
 **GOOD:**
 
-```
+```dart
 import 'package:foo/bar.dart';
 
 import 'baz.dart';
@@ -28,7 +28,7 @@ import 'baz.dart';
 
 **BAD:**
 
-```
+```dart
 import 'package:foo/bar.dart';
 
 import '../lib/baz.dart';

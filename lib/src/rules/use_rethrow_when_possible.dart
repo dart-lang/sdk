@@ -18,7 +18,7 @@ As Dart provides rethrow as a feature, it should be used to improve terseness
 and readability.
 
 **BAD:**
-```
+```dart
 try {
   somethingRisky();
 } catch(e) {
@@ -28,7 +28,7 @@ try {
 ```
 
 **GOOD:**
-```
+```dart
 try {
   somethingRisky();
 } catch(e) {

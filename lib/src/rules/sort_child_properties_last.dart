@@ -18,7 +18,7 @@ appear clearly associated with the constructor call and separated from the
 children.
 
 **BAD:**
-```
+```dart
 return Scaffold(
   appBar: AppBar(
     title: Text(widget.title),
@@ -47,7 +47,7 @@ return Scaffold(
 ```
 
 **GOOD:**
-```
+```dart
 return Scaffold(
   appBar: AppBar(
     title: Text(widget.title),

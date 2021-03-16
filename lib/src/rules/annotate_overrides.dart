@@ -18,7 +18,7 @@ This practice improves code readability and helps protect against
 unintentionally overriding superclass members.
 
 **GOOD:**
-```
+```dart
 abstract class Dog {
   String get breed;
   void bark() {}
@@ -33,7 +33,7 @@ class Husky extends Dog {
 ```
 
 **BAD:**
-```
+```dart
 class Cat {
   int get lives => 9;
 }

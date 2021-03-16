@@ -23,7 +23,7 @@ Enum-like classes are defined as concrete (non-abstract) classes that have:
 **DO** define default behavior outside switch statements.
 
 **GOOD:**
-```
+```dart
   switch (testEnum) {
     case TestEnum.A:
       return '123';
@@ -35,7 +35,7 @@ Enum-like classes are defined as concrete (non-abstract) classes that have:
 ```
 
 **BAD:**
-```
+```dart
   switch (testEnum) {
     case TestEnum.A:
       return '123';

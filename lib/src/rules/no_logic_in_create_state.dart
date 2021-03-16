@@ -20,7 +20,7 @@ constructor parameters should also be avoided and so further, the State
 constructor is required to be passed no arguments.
 
 **BAD:**
-```
+```dart
 MyState global;
 
 class MyStateful extends StatefulWidget {
@@ -32,14 +32,14 @@ class MyStateful extends StatefulWidget {
 }
 ```
 
-```
+```dart
 class MyStateful extends StatefulWidget {
   @override
   MyState createState() => MyState()..field = 42;
 }
 ```
 
-```
+```dart
 class MyStateful extends StatefulWidget {
   @override
   MyState createState() => MyState(42);
@@ -48,7 +48,7 @@ class MyStateful extends StatefulWidget {
 
 
 **GOOD:**
-```
+```dart
 class MyStateful extends StatefulWidget {
   @override
   MyState createState() {

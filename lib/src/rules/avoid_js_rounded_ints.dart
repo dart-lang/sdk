@@ -22,12 +22,12 @@ For instance `1000000000000000001` cannot be represented exactly as a JavaScript
 Number, so `1000000000000000000` will be used instead.
 
 **BAD:**
-```
+```dart
 int value = 9007199254740995;
 ```
 
 **GOOD:**
-```
+```dart
 BigInt value = BigInt.parse('9007199254740995');
 ```
 

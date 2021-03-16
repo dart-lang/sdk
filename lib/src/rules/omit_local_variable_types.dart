@@ -19,7 +19,7 @@ Usually, the types of local variables can be easily inferred, so it isn't
 necessary to annotate them.
 
 **BAD:**
-```
+```dart
 Map<int, List<Person>> groupByZip(Iterable<Person> people) {
   Map<int, List<Person>> peopleByZip = <int, List<Person>>{};
   for (Person person in people) {
@@ -31,7 +31,7 @@ Map<int, List<Person>> groupByZip(Iterable<Person> people) {
 ```
 
 **GOOD:**
-```
+```dart
 Map<int, List<Person>> groupByZip(Iterable<Person> people) {
   var peopleByZip = <int, List<Person>>{};
   for (var person in people) {

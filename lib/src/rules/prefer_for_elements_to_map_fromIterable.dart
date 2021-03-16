@@ -14,7 +14,7 @@ const _details = r'''
 When building maps from iterables, it is preferable to use for elements.
 
 **BAD:**
-```
+```dart
 Map<String, WidgetBuilder>.fromIterable(
   kAllGalleryDemos,
   key: (demo) => '${demo.routeName}',
@@ -24,7 +24,7 @@ Map<String, WidgetBuilder>.fromIterable(
 ```
 
 **GOOD:**
-```
+```dart
 return {
   for (var demo in kAllGalleryDemos)
     '${demo.routeName}': demo.buildRoute,

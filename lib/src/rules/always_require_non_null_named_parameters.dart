@@ -18,7 +18,7 @@ const _details = r'''
 an `assert(param != null)` is done.
 
 **GOOD:**
-```
+```dart
 m1({@required a}) {
   assert(a != null);
 }
@@ -29,7 +29,7 @@ m2({a: 1}) {
 ```
 
 **BAD:**
-```
+```dart
 m1({a}) {
   assert(a != null);
 }

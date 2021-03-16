@@ -17,7 +17,7 @@ const _details = r'''
 **AVOID** repeating const keyword in a const context.
 
 **BAD:**
-```
+```dart
 class A { const A(); }
 m(){
   const a = const A();
@@ -26,7 +26,7 @@ m(){
 ```
 
 **GOOD:**
-```
+```dart
 class A { const A(); }
 m(){
   const a = A();

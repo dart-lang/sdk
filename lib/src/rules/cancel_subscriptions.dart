@@ -18,7 +18,7 @@ Cancelling instances of StreamSubscription prevents memory leaks and unexpected
 behavior.
 
 **BAD:**
-```
+```dart
 class A {
   StreamSubscription _subscriptionA; // LINT
   void init(Stream stream) {
@@ -28,14 +28,14 @@ class A {
 ```
 
 **BAD:**
-```
+```dart
 void someFunction() {
   StreamSubscription _subscriptionF; // LINT
 }
 ```
 
 **GOOD:**
-```
+```dart
 class B {
   StreamSubscription _subscriptionB; // OK
   void init(Stream stream) {
@@ -49,7 +49,7 @@ class B {
 ```
 
 **GOOD:**
-```
+```dart
 void someFunctionOK() {
   StreamSubscription _subscriptionB; // OK
   _subscriptionB.cancel();

@@ -16,7 +16,7 @@ const _details = r'''
 **DO** use collection literals when possible.
 
 **BAD:**
-```
+```dart
 var points = List();
 var addresses = Map();
 var uniqueNames = Set();
@@ -25,7 +25,7 @@ var coordinates = LinkedHashMap();
 ```
 
 **GOOD:**
-```
+```dart
 var points = [];
 var addresses = <String,String>{};
 var uniqueNames = <String>{};
@@ -38,7 +38,7 @@ var coordinates = <int,int>{};
 There are cases with `LinkedHashSet` or `LinkedHashMap` where a literal constructor
 will trigger a type error so those will be excluded from the lint.
 
-```
+```dart
 void main() {
   LinkedHashSet<int> linkedHashSet =  LinkedHashSet.from([1, 2, 3]); // OK
   LinkedHashMap linkedHashMap = LinkedHashMap(); // OK

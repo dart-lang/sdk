@@ -16,14 +16,14 @@ const _details = r'''
 their body.
 
 **GOOD:**
-```
+```dart
 class A {
   A(int a) : assert(a != null);
 }
 ```
 
 **BAD:**
-```
+```dart
 class A {
   A(int a) {
     assert(a != null);

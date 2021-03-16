@@ -19,7 +19,7 @@ All non-overriding public members should be documented with `///` doc-style
 comments.
 
 **GOOD:**
-```
+```dart
 /// A good thing.
 abstract class Good {
   /// Start doing your thing.
@@ -30,7 +30,7 @@ abstract class Good {
 ```
 
 **BAD:**
-```
+```dart
 class Bad {
   void meh() { }
 }
@@ -41,7 +41,7 @@ to provide documentation.  For example, in the following, `Sub` needn't
 document `init` (though it certainly may, if there's need).
 
 **GOOD:**
-```
+```dart
 /// Base of all things.
 abstract class Base {
   /// Initialize the base.

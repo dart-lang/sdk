@@ -15,7 +15,7 @@ const _details = r'''
 **DO** join return statement with assignment when possible.
 
 **BAD:**
-```
+```dart
 class A {
   B _lazyInstance;
   static B get instance {
@@ -26,7 +26,7 @@ class A {
 ```
 
 **GOOD:**
-```
+```dart
 class A {
   B _lazyInstance;
   static B get instance => _lazyInstance ??= B();

@@ -21,7 +21,7 @@ broken up.
 For example,
 
 **BAD:**
-```
+```dart
 myvar;
 list.clear;
 1 + 2;
@@ -35,7 +35,7 @@ unless there is some magical overload of the + operator.
 Usually code like this indicates an incomplete thought, and is a bug.
 
 **GOOD:**
-```
+```dart
 some.method();
 const SomeClass();
 methodOne();

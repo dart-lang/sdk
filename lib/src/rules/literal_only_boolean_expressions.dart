@@ -24,56 +24,56 @@ Either the condition should be removed or it should be updated so that it does
 not always evaluate to `true` or `false`.
 
 **BAD:**
-```
+```dart
 void bad() {
   if (true) {} // LINT
 }
 ```
 
 **BAD:**
-```
+```dart
 void bad() {
   if (true && 1 != 0) {} // LINT
 }
 ```
 
 **BAD:**
-```
+```dart
 void bad() {
   if (1 != 0 && true) {} // LINT
 }
 ```
 
 **BAD:**
-```
+```dart
 void bad() {
   if (1 < 0 && true) {} // LINT
 }
 ```
 
 **BAD:**
-```
+```dart
 void bad() {
   if (true && false) {} // LINT
 }
 ```
 
 **BAD:**
-```
+```dart
 void bad() {
   if (1 != 0) {} // LINT
 }
 ```
 
 **BAD:**
-```
+```dart
 void bad() {
   if (true && 1 != 0 || 3 < 4) {} // LINT
 }
 ```
 
 **BAD:**
-```
+```dart
 void bad() {
   if (1 != 0 || 3 < 4 && true) {} // LINT
 }

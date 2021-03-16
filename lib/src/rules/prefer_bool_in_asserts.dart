@@ -18,7 +18,7 @@ Not using booleans in assert conditions can lead to code where it isn't clear
 what the intention of the assert statement is.
 
 **BAD:**
-```
+```dart
 assert(() {
   f();
   return true;
@@ -26,7 +26,7 @@ assert(() {
 ```
 
 **GOOD:**
-```
+```dart
 assert(() {
   f();
   return true;

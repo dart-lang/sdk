@@ -19,7 +19,7 @@ Although Dart supports two syntaxes of doc comments (`///` and `/**`), we
 prefer using `///` for doc comments.
 
 **GOOD:**
-```
+```dart
 /// Parses a set of option strings. For each option:
 ///
 /// * If it is `null`, then it is ignored.

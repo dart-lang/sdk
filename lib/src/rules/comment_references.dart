@@ -21,7 +21,7 @@ identifiers in docs wrapped in brackets are in scope.
 For example,
 
 **GOOD:**
-```
+```dart
 /// Return the larger of [a] or [b].
 int max_int(int a, int b) { ... }
 ```
@@ -29,7 +29,7 @@ int max_int(int a, int b) { ... }
 On the other hand, assuming `outOfScopeId` is out of scope:
 
 **BAD:**
-```
+```dart
 /// Return true if [value] is larger than [outOfScopeId].
 bool isOutOfRange(int value) { ... }
 ```

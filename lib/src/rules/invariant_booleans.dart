@@ -30,13 +30,13 @@ not always evaluate to `true` or `false` and does not perform redundant tests.
 This rule will hint to the test conflicting with the linted one.
 
 **BAD:**
-```
+```dart
 // foo can't be both equal and not equal to bar in the same expression
 if(foo == bar && something && foo != bar) {...}
 ```
 
 **BAD:**
-```
+```dart
 void compute(int foo) {
   if (foo == 4) {
     doSomething();
@@ -49,7 +49,7 @@ void compute(int foo) {
 ```
 
 **BAD:**
-```
+```dart
 void compute(bool foo) {
   if (foo) {
     return;
@@ -62,7 +62,7 @@ void compute(bool foo) {
 ```
 
 **GOOD:**
-```
+```dart
 void nestedOK() {
   if (foo == bar) {
     foo = baz;
@@ -72,7 +72,7 @@ void nestedOK() {
 ```
 
 **GOOD:**
-```
+```dart
 void nestedOk2() {
   if (foo == bar) {
     return;
@@ -84,7 +84,7 @@ void nestedOk2() {
 ```
 
 **GOOD:**
-```
+```dart
 void nestedOk5() {
   if (foo != null) {
     if (bar != null) {

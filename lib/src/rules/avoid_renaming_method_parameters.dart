@@ -21,7 +21,7 @@ documentation. If the inherited method contains the name of the parameter (in
 square brackets), then dartdoc cannot link it correctly.
 
 **BAD:**
-```
+```dart
 abstract class A {
   m(a);
 }
@@ -32,7 +32,7 @@ abstract class B extends A {
 ```
 
 **GOOD:**
-```
+```dart
 abstract class A {
   m(a);
 }

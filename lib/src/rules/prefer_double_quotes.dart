@@ -22,7 +22,7 @@ quotes are allowed either within, or containing, an interpolated string literal.
 Arguably strings within string interpolations should be its own type of lint.
 
 **BAD:**
-```
+```dart
 useStrings(
     'should be double quote',
     r'should be double quote',
@@ -30,7 +30,7 @@ useStrings(
 ```
 
 **GOOD:**
-```
+```dart
 useStrings(
     "should be double quote",
     r"should be double quote",

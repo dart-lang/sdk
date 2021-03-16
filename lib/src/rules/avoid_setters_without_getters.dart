@@ -19,7 +19,7 @@ inconsistencies.  Doing this could allow you to set a property to some value,
 but then upon observing the property's value, it could easily be different.
 
 **BAD:**
-```
+```dart
 class Bad {
   int l, r;
 
@@ -30,7 +30,7 @@ class Bad {
 ```
 
 **GOOD:**
-```
+```dart
 class Good {
   int l, r;
 

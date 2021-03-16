@@ -31,14 +31,14 @@ reinforces when the superclass's constructor body is run, and may help
 performance.
 
 **GOOD:**
-```
+```dart
 View(Style style, List children)
     : _children = children,
       super(style) {
 ```
 
 **BAD:**
-```
+```dart
 View(Style style, List children)
     : super(style),
       _children = children {

@@ -18,7 +18,7 @@ Throwing exceptions in finally blocks will inevitably cause unexpected behavior
 that is hard to debug.
 
 **GOOD:**
-```
+```dart
 class Ok {
   double compliantMethod() {
     var i = 5;
@@ -33,7 +33,7 @@ class Ok {
 ```
 
 **BAD:**
-```
+```dart
 class BadThrow {
   double nonCompliantMethod() {
     try {

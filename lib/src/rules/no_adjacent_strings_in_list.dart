@@ -16,7 +16,7 @@ const _details = r'''
 This can be sign of forgotten comma.
 
 **GOOD:**
-```
+```dart
 List<String> list = <String>[
   'a' +
   'b',
@@ -25,7 +25,7 @@ List<String> list = <String>[
 ```
 
 **BAD:**
-```
+```dart
 List<String> list = <String>[
   'a'
   'b',

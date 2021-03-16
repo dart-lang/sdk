@@ -20,14 +20,14 @@ caught and suppressed.  Alternatively, the exception identifier can be named wit
 underscores (e.g., `_`) to indicate that we intend to skip it.
 
 **BAD:**
-```
+```dart
 try {
   ...
 } catch(exception) { }
 ```
 
 **GOOD:**
-```
+```dart
 try {
   ...
 } catch(e) {

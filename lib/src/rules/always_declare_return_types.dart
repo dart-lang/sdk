@@ -20,7 +20,7 @@ analyzer to more adequately check your code for errors that could occur during
 runtime.
 
 **BAD:**
-```
+```dart
 main() { }
 
 _bar() => _Foo();
@@ -31,7 +31,7 @@ class _Foo {
 ```
 
 **GOOD:**
-```
+```dart
 void main() { }
 
 _Foo _bar() => _Foo();

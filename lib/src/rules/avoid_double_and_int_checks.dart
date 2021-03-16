@@ -19,7 +19,7 @@ some unexpected behavior when using either `is` or `is!` where the type is
 either `int` or `double`.
 
 **BAD:**
-```
+```dart
 f(num x) {
   if (x is double) {
     ...
@@ -30,7 +30,7 @@ f(num x) {
 ```
 
 **GOOD:**
-```
+```dart
 f(dynamic x) {
   if (x is num) {
     ...

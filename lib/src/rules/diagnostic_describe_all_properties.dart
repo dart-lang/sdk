@@ -33,7 +33,7 @@ For the purposes of diagnostics, a property `foo` and a prefixed property
 sufficient to refer to one or the other.
 
 **BAD:**
-```
+```dart
 class Absorber extends Widget {
   bool get absorbing => _absorbing;
   bool _absorbing;
@@ -49,7 +49,7 @@ class Absorber extends Widget {
 ```
 
 **GOOD:**
-```
+```dart
 class Absorber extends Widget {
   bool get absorbing => _absorbing;
   bool _absorbing;

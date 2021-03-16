@@ -29,7 +29,7 @@ For code internal to a library (either private, or things like nested functions)
 annotate where you feel it helps, but don't feel that you *must* provide them.
 
 **BAD:**
-```
+```dart
 install(id, destination) {
   // ...
 }
@@ -39,7 +39,7 @@ Here, it's unclear what `id` is.  A string? And what is `destination`? A string
 or a `File` object? Is this method synchronous or asynchronous?
 
 **GOOD:**
-```
+```dart
 Future<bool> install(PackageId id, String destination) {
   // ...
 }

@@ -20,7 +20,7 @@ In existing code that uses `ALL_CAPS_WITH_UNDERSCORES` for constants, you may
 continue to use all caps to stay consistent.
 
 **GOOD:**
-```
+```dart
 const pi = 3.14;
 const defaultTimeout = 1000;
 final urlScheme = RegExp('^([a-z]+):');
@@ -31,7 +31,7 @@ class Dice {
 ```
 
 **BAD:**
-```
+```dart
 const PI = 3.14;
 const kDefaultTimeout = 1000;
 final URL_SCHEME = RegExp('^([a-z]+):');

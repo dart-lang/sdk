@@ -19,7 +19,7 @@ Const declarations are more hot-reload friendly and allow to use const
 constructors if an instantiation references this declaration.
 
 **GOOD:**
-```
+```dart
 const o = <int>[];
 
 class A {
@@ -28,7 +28,7 @@ class A {
 ```
 
 **BAD:**
-```
+```dart
 final o = const <int>[];
 
 class A {

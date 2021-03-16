@@ -20,7 +20,7 @@ Development-mode compilers where code size is not a concern use the full name,
 but release-mode compilers often choose to minify these symbols.
 
 **BAD:**
-```
+```dart
 void bar(Object other) {
   if (other.runtimeType.toString() == 'Bar') {
     doThing();
@@ -33,7 +33,7 @@ Object baz(Thing myThing) {
 ```
 
 **GOOD:**
-```
+```dart
 void bar(Object other) {
   if (other is Bar) {
     doThing();

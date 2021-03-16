@@ -15,13 +15,13 @@ Declare elements in list literals inline, rather than using `add` and
 
 
 **BAD:**
-```
+```dart
 var l = ['a']..add('b')..add('c');
 var l2 = ['a']..addAll(['b', 'c'])
 ```
 
 **GOOD:**
-```
+```dart
 var l = ['a', 'b', 'c'];
 var 2 = ['a', 'b', 'c'];
 ```

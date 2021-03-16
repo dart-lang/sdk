@@ -16,7 +16,7 @@ const _details = r'''
 **AVOID** defining unused parameters in constructors.
 
 **BAD:**
-```
+```dart
 class BadOne {
   BadOne(int unusedParameter, [String unusedPositional]);
 }

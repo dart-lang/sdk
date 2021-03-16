@@ -20,7 +20,7 @@ as the expression, even if it is short.  Doing so makes it unclear that there
 is relevant code there.  This is especially important for early returns.
 
 **GOOD:**
-```
+```dart
 if (notReady)
   return;
 
@@ -34,7 +34,7 @@ while (condition)
 ```
 
 **BAD:**
-```
+```dart
 if (notReady) return;
 
 if (notReady)

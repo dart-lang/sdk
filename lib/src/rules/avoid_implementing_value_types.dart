@@ -24,7 +24,7 @@ nearly impossible to follow the contract of `==`. Classes that override `==`
 typically are usable directly in tests _without_ creating mocks or fakes as
 well. For example, for a given class `Size`:
 
-```
+```dart
 class Size {
   final int inBytes;
   const Size(this.inBytes);
@@ -38,7 +38,7 @@ class Size {
 ```
 
 **BAD**:
-```
+```dart
 class CustomSize implements Size {
   final int inBytes;
   const CustomSize(this.inBytes);
@@ -48,7 +48,7 @@ class CustomSize implements Size {
 ```
 
 **BAD**:
-```
+```dart
 import 'package:test/test.dart';
 import 'size.dart';
 
@@ -64,7 +64,7 @@ void main() {
 ```
 
 **GOOD**:
-```
+```dart
 class ExtendedSize extends Size {
   ExtendedSize(int inBytes) : super(inBytes);
 
@@ -73,7 +73,7 @@ class ExtendedSize extends Size {
 ```
 
 **GOOD**:
-```
+```dart
 import 'package:test/test.dart';
 import 'size.dart';
 

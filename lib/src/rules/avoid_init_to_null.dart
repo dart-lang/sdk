@@ -24,7 +24,7 @@ no concept of "uninitialized memory" in Dart.  Adding `= null` is redundant and
 unneeded.
 
 **GOOD:**
-```
+```dart
 int _nextId;
 
 class LazyId {
@@ -40,7 +40,7 @@ class LazyId {
 ```
 
 **BAD:**
-```
+```dart
 int _nextId = null;
 
 class LazyId {

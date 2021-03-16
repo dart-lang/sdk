@@ -17,7 +17,7 @@ Using catch clauses without on clauses make your code prone to encountering
 unexpected errors that won't be thrown (and thus will go unnoticed).
 
 **BAD:**
-```
+```dart
 try {
  somethingRisky()
 }
@@ -27,7 +27,7 @@ catch(e) {
 ```
 
 **GOOD:**
-```
+```dart
 try {
  somethingRisky()
 }

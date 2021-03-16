@@ -17,7 +17,7 @@ const _details = r'''
 If a const constructor is available, it is preferable to use it.
 
 **GOOD:**
-```
+```dart
 class A {
   const A();
 }
@@ -28,7 +28,7 @@ void accessA() {
 ```
 
 **GOOD:**
-```
+```dart
 class A {
   final int x;
 
@@ -39,7 +39,7 @@ A foo(int x) => new A(x);
 ```
 
 **BAD:**
-```
+```dart
 class A {
   const A();
 }

@@ -14,7 +14,7 @@ Multiline strings are easier to read when they start with a newline (a newline
 starting a multiline string is ignored).
 
 **BAD:**
-```
+```dart
 var s1 = '''{
   "a": 1,
   "b": 2
@@ -22,7 +22,7 @@ var s1 = '''{
 ```
 
 **GOOD:**
-```
+```dart
 var s1 = '''
 {
   "a": 1,

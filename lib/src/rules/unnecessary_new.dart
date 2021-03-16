@@ -15,7 +15,7 @@ const _details = r'''
 **AVOID** new keyword to create instances.
 
 **BAD:**
-```
+```dart
 class A { A(); }
 m(){
   final a = new A();
@@ -23,7 +23,7 @@ m(){
 ```
 
 **GOOD:**
-```
+```dart
 class A { A(); }
 m(){
   final a = A();

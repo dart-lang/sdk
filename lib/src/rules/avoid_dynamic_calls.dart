@@ -38,7 +38,7 @@ to "dynamic", and calls to an object that is typed "Function" will also trigger
 this lint.
 
 **BAD:**
-```
+```dart
 void explicitDynamicType(dynamic object) {
   print(object.foo());
 }
@@ -66,7 +66,7 @@ void functionType(Function function) {
 ```
 
 **GOOD:**
-```
+```dart
 void explicitType(Fooable object) {
   object.foo();
 }

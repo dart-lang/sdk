@@ -17,7 +17,7 @@ Doing this will invoke `==` on its elements and most likely will
 return `false`.
 
 **BAD:**
-```
+```dart
 void someFunction() {
   var list = <int>[];
   if (list.remove('1')) print('someFunction'); // LINT
@@ -25,7 +25,7 @@ void someFunction() {
 ```
 
 **BAD:**
-```
+```dart
 void someFunction3() {
   List<int> list = <int>[];
   if (list.remove('1')) print('someFunction3'); // LINT
@@ -33,7 +33,7 @@ void someFunction3() {
 ```
 
 **BAD:**
-```
+```dart
 void someFunction8() {
   List<DerivedClass2> list = <DerivedClass2>[];
   DerivedClass3 instance;
@@ -42,7 +42,7 @@ void someFunction8() {
 ```
 
 **BAD:**
-```
+```dart
 abstract class SomeList<E> implements List<E> {}
 
 abstract class MyClass implements SomeList<int> {
@@ -51,7 +51,7 @@ abstract class MyClass implements SomeList<int> {
 ```
 
 **GOOD:**
-```
+```dart
 void someFunction10() {
   var list = [];
   if (list.remove(1)) print('someFunction10'); // OK
@@ -59,7 +59,7 @@ void someFunction10() {
 ```
 
 **GOOD:**
-```
+```dart
 void someFunction1() {
   var list = <int>[];
   if (list.remove(1)) print('someFunction1'); // OK
@@ -67,7 +67,7 @@ void someFunction1() {
 ```
 
 **GOOD:**
-```
+```dart
 void someFunction4() {
   List<int> list = <int>[];
   if (list.remove(1)) print('someFunction4'); // OK
@@ -75,7 +75,7 @@ void someFunction4() {
 ```
 
 **GOOD:**
-```
+```dart
 void someFunction5() {
   List<ClassBase> list = <ClassBase>[];
   DerivedClass1 instance;
@@ -88,7 +88,7 @@ class DerivedClass1 extends ClassBase {}
 ```
 
 **GOOD:**
-```
+```dart
 void someFunction6() {
   List<Mixin> list = <Mixin>[];
   DerivedClass2 instance;
@@ -103,7 +103,7 @@ class DerivedClass2 extends ClassBase with Mixin {}
 ```
 
 **GOOD:**
-```
+```dart
 void someFunction7() {
   List<Mixin> list = <Mixin>[];
   DerivedClass3 instance;

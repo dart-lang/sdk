@@ -15,13 +15,13 @@ const _details = r'''
 syntax.
 
 **BAD:**
-```
+```dart
 typedef void _F();
 m(_F f);
 ```
 
 **GOOD:**
-```
+```dart
 m(void Function() f);
 ```
 

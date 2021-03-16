@@ -21,7 +21,7 @@ be non-null. Thus it's clear that the field is not expected to be `null` and it
 avoids null checks.
 
 **BAD:**
-```
+```dart
 int? _i;
 m() {
   _i!.abs();
@@ -29,7 +29,7 @@ m() {
 ```
 
 **GOOD:**
-```
+```dart
 late int _i;
 m() {
   _i.abs();

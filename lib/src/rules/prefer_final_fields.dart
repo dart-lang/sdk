@@ -23,7 +23,7 @@ Declaring fields as final when possible is a good practice because it helps
 avoid accidental reassignments and allows the compiler to do optimizations.
 
 **BAD:**
-```
+```dart
 class BadImmutable {
   var _label = 'hola mundo! BadImmutable'; // LINT
   var label = 'hola mundo! BadImmutable'; // OK
@@ -31,7 +31,7 @@ class BadImmutable {
 ```
 
 **BAD:**
-```
+```dart
 class MultipleMutable {
   var _label = 'hola mundo! GoodMutable', _offender = 'mumble mumble!'; // LINT
   var _someOther; // LINT
@@ -47,7 +47,7 @@ class MultipleMutable {
 ```
 
 **GOOD:**
-```
+```dart
 class GoodImmutable {
   final label = 'hola mundo! BadImmutable', bla = 5; // OK
   final _label = 'hola mundo! BadImmutable', _bla = 5; // OK
@@ -55,7 +55,7 @@ class GoodImmutable {
 ```
 
 **GOOD:**
-```
+```dart
 class GoodMutable {
   var _label = 'hola mundo! GoodMutable';
 
@@ -66,7 +66,7 @@ class GoodMutable {
 ```
 
 **BAD:**
-```
+```dart
 class AssignedInAllConstructors {
   var _label; // LINT
   AssignedInAllConstructors(this._label);
@@ -75,7 +75,7 @@ class AssignedInAllConstructors {
 ```
 
 **GOOD:**
-```
+```dart
 class NotAssignedInAllConstructors {
   var _label; // OK
   NotAssignedInAllConstructors();

@@ -72,12 +72,12 @@ in the following locations:
   * `String.splitMapJoin` at the named parameters `onMatch` and `onNonMatch`
 
 **BAD:**
-```
+```dart
 [1, 3, 5].firstWhere((e) => e.isOdd, orElse: null);
 ```
 
 **GOOD:**
-```
+```dart
 [1, 3, 5].firstWhere((e) => e.isOdd, orElse: () => null);
 ```
 

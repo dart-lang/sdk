@@ -20,21 +20,21 @@ because it helps avoid accidental reassignments and allows the compiler to do
 optimizations.
 
 **BAD:**
-```
+```dart
 for (var element in elements) { // LINT
   print('Element: $element');
 }
 ```
 
 **GOOD:**
-```
+```dart
 for (final element in elements) {
   print('Element: $element');
 }
 ```
 
 **GOOD:**
-```
+```dart
 for (var element in elements) {
   element = element + element;
   print('Element: $element');

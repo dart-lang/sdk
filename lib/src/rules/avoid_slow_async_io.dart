@@ -28,7 +28,7 @@ much slower than their synchronous counterparts.
 * `FileSystemEntity.type`
 
 **BAD:**
-```
+```dart
 import 'dart:io';
 
 Future<Null> someFunction() async {
@@ -39,7 +39,7 @@ Future<Null> someFunction() async {
 ```
 
 **GOOD:**
-```
+```dart
 import 'dart:io';
 
 Future<Null> someFunction() async {

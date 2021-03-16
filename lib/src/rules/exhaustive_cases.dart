@@ -23,7 +23,7 @@ Enum-like classes are defined as concrete (non-abstract) classes that have:
 **DO** define case clauses for all constants in enum-like classes.
 
 **BAD:**
-```
+```dart
 class EnumLike {
   final int i;
   const E._(this.i);
@@ -47,7 +47,7 @@ void bad(EnumLike e) {
 ```
 
 **GOOD:**
-```
+```dart
 class EnumLike {
   final int i;
   const E._(this.i);

@@ -18,7 +18,7 @@ const _details = r'''
 **DON'T** override a method to do a super method invocation with same parameters.
 
 **BAD:**
-```
+```dart
 class A extends B {
   @override
   void foo() {
@@ -28,7 +28,7 @@ class A extends B {
 ```
 
 **GOOD:**
-```
+```dart
 class A extends B {
   @override
   void foo() {

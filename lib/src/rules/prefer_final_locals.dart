@@ -19,7 +19,7 @@ Declaring variables as final when possible is a good practice because it helps
 avoid accidental reassignments and allows the compiler to do optimizations.
 
 **BAD:**
-```
+```dart
 void badMethod() {
   var label = 'hola mundo! badMethod'; // LINT
   print(label);
@@ -27,7 +27,7 @@ void badMethod() {
 ```
 
 **GOOD:**
-```
+```dart
 void goodMethod() {
   final label = 'hola mundo! goodMethod';
   print(label);
@@ -35,7 +35,7 @@ void goodMethod() {
 ```
 
 **GOOD:**
-```
+```dart
 void mutableCase() {
   var label = 'hola mundo! mutableCase';
   print(label);

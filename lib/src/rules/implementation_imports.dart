@@ -28,7 +28,7 @@ directory.  Those files are not part of the package's public API, and they
 might change in ways that could break your code.
 
 **BAD:**
-```
+```dart
 // In 'road_runner'
 import 'package:acme/lib/src/internals.dart;
 ```

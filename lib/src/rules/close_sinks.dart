@@ -17,7 +17,7 @@ const _details = r'''
 Closing instances of Sink prevents memory leaks and unexpected behavior.
 
 **BAD:**
-```
+```dart
 class A {
   IOSink _sinkA;
   void init(filename) {
@@ -27,14 +27,14 @@ class A {
 ```
 
 **BAD:**
-```
+```dart
 void someFunction() {
   IOSink _sinkF; // LINT
 }
 ```
 
 **GOOD:**
-```
+```dart
 class B {
   IOSink _sinkB;
   void init(filename) {
@@ -48,7 +48,7 @@ class B {
 ```
 
 **GOOD:**
-```
+```dart
 void someFunctionOK() {
   IOSink _sinkFOK; // OK
   _sinkFOK.close();

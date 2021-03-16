@@ -27,7 +27,7 @@ Returning `this` is allowed for:
 - methods defined in extensions
 
 **BAD:**
-```
+```dart
 var buffer = StringBuffer()
   .write('one')
   .write('two')
@@ -35,7 +35,7 @@ var buffer = StringBuffer()
 ```
 
 **GOOD:**
-```
+```dart
 var buffer = StringBuffer()
   ..write('one')
   ..write('two')

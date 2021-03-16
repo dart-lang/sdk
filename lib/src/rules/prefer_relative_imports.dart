@@ -21,13 +21,13 @@ that is to ensure you consistently use relative imports for files withing the
 
 **GOOD:**
 
-```
+```dart
 import 'bar.dart';
 ```
 
 **BAD:**
 
-```
+```dart
 import 'package:my_package/bar.dart';
 ```
 

@@ -21,12 +21,14 @@ a valid Dart identifier, which may be helpful if the language later supports
 symbolic imports.
 
 **GOOD:**
-
-* `library peg_parser;`
+```dart
+library peg_parser;
+```
 
 **BAD:**
-
-* `library peg-parser;`
+```dart
+library peg-parser;
+```
 
 The lint `file_names` can be used to enforce the same kind of naming on the
 file.

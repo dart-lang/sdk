@@ -17,7 +17,7 @@ Not testing types might result in null pointer exceptions which will be
 unexpected for consumers of your class.
 
 **GOOD:**
-```
+```dart
 class Field {
 }
 
@@ -43,7 +43,7 @@ class Good {
 ```
 
 **BAD:**
-```
+```dart
 class Field {
 }
 

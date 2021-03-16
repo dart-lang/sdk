@@ -22,13 +22,13 @@ be used for types that are to be mixed in. As a result, this lint will flag any
 uses of a class in a `with` clause.
 
 **BAD:**
-```
+```dart
 class A {}
 class B extends Object with A {}
 ```
 
 **OK:**
-```
+```dart
 mixin M {}
 class C with M {}
 ```

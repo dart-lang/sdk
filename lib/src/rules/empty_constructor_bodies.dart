@@ -20,7 +20,7 @@ semicolon.  This is required for const constructors.  For consistency and
 brevity, other constructors should also do this.
 
 **GOOD:**
-```
+```dart
 class Point {
   int x, y;
   Point(this.x, this.y);
@@ -28,7 +28,7 @@ class Point {
 ```
 
 **BAD:**
-```
+```dart
 class Point {
   int x, y;
   Point(this.x, this.y) {}

@@ -22,12 +22,12 @@ For consistency and readability reasons, it's better to only use one syntax and
 thus prefer generic function type aliases.
 
 **BAD:**
-```
+```dart
 typedef void F();
 ```
 
 **GOOD:**
-```
+```dart
 typedef F = void Function();
 ```
 

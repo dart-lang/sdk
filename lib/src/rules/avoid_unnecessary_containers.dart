@@ -16,7 +16,7 @@ Wrapping a widget in `Container` with no other parameters set has no effect
 and makes code needlessly more complex.
 
 **BAD:**
-```
+```dart
 Widget buildRow() {
   return Container(
       child: Row(
@@ -32,7 +32,7 @@ Widget buildRow() {
 ```
 
 **GOOD:**
-```
+```dart
 Widget buildRow() {
   return Row(
     children: <Widget>[

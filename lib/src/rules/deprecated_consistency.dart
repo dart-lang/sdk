@@ -19,7 +19,7 @@ Do apply `@Deprecated()` consistently:
 - if a constructor parameter pointing to a field is deprecated, the field should also be deprecated.
 
 **BAD:**
-```
+```dart
 @deprecated
 class A {
   A();
@@ -33,7 +33,7 @@ class B {
 ```
 
 **GOOD:**
-```
+```dart
 @deprecated
 class A {
   @deprecated

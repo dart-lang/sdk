@@ -23,12 +23,12 @@ with a meaningless name like `call` or `invoke`, there is a good chance
 you just want a function.
 
 **GOOD:**
-```
+```dart
 typedef Predicate = bool Function(item);
 ```
 
 **BAD:**
-```
+```dart
 abstract class Predicate {
   bool test(item);
 }

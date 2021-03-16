@@ -16,7 +16,7 @@ A `Container` is a heavier Widget than a `SizedBox`, and as bonus, `SizedBox`
 has a `const` constructor.
 
 **BAD:**
-```
+```dart
 Widget buildRow() {
   return Row(
     children: <Widget>[
@@ -31,7 +31,7 @@ Widget buildRow() {
 ```
 
 **GOOD:**
-```
+```dart
 Widget buildRow() {
   return Row(
     children: const <Widget>[

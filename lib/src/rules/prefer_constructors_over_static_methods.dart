@@ -20,7 +20,7 @@ In most cases, it makes more sense to use a named constructor rather than a
 static method because it makes instantiation clearer.
 
 **BAD:**
-```
+```dart
 class Point {
   num x, y;
   Point(this.x, this.y);
@@ -32,7 +32,7 @@ class Point {
 ```
 
 **GOOD:**
-```
+```dart
 class Point {
   num x, y;
   Point(this.x, this.y);

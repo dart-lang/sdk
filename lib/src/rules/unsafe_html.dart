@@ -29,7 +29,7 @@ const _details = r'''
 
 
 **BAD:**
-```
+```dart
 var script = ScriptElement()..src = 'foo.js';
 ```
 ''';

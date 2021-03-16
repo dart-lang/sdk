@@ -15,7 +15,7 @@ const _details = r'''Avoid redundant argument values.
 corresponding parameter.
 
 **BAD:**
-```
+```dart
 void f({bool valWithDefault = true, bool val}) {
   ...
 }
@@ -26,7 +26,7 @@ void main() {
 ```
 
 **GOOD:**
-```
+```dart
 void f({bool valWithDefault = true, bool val}) {
   ...
 }

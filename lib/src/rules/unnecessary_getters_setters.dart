@@ -30,7 +30,7 @@ getter and setter without having to touch any code that uses that field.
 
 **GOOD:**
 
-```
+```dart
 class Box {
   var contents;
 }
@@ -38,7 +38,7 @@ class Box {
 
 **BAD:**
 
-```
+```dart
 class Box {
   var _contents;
   get contents => _contents;
