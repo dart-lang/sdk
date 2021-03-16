@@ -1598,9 +1598,8 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
         StoreInstanceFieldInstr::Kind::kInitializing);
   }
 
-  // The function signature cannot have uninstantiated function type parameters,
-  // because the function cannot be local and have parent generic functions.
-  ASSERT(target.HasInstantiatedSignature(kFunctions));
+  // The function cannot be local and have parent generic functions.
+  ASSERT(!target.HasGenericParent());
 
   // Allocate a context that closes over `this`.
   // Note: this must be kept in sync with ScopeBuilder::BuildScopes.
@@ -2095,8 +2094,6 @@ struct FlowGraphBuilder::ClosureCallInfo {
   LocalVariable* parameter_names = nullptr;
   LocalVariable* parameter_types = nullptr;
   LocalVariable* type_parameters = nullptr;
-  LocalVariable* closure_data = nullptr;
-  LocalVariable* default_tav_info = nullptr;
   LocalVariable* instantiator_type_args = nullptr;
   LocalVariable* parent_function_type_args = nullptr;
 };
@@ -2216,38 +2213,40 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
   // Load the defaults, instantiating or replacing them with the other type
   // arguments as appropriate.
   Fragment store_default;
-  store_default += LoadLocal(info.default_tav_info);
-  static_assert(
-      Function::DefaultTypeArgumentsKindField::shift() == 0,
-      "Need to generate shift for DefaultTypeArgumentsKindField bit field");
-  store_default += IntConstant(Function::DefaultTypeArgumentsKindField::mask());
-  store_default += SmiBinaryOp(Token::kBIT_AND);
+  store_default += LoadLocal(info.closure);
+  store_default += LoadNativeField(Slot::Closure_function());
+  store_default += LoadNativeField(Slot::Function_data());
+  LocalVariable* closure_data = MakeTemporary("closure_data");
+
+  store_default += LoadLocal(closure_data);
+  const auto& slot = Slot::ClosureData_default_type_arguments_kind();
+  store_default += LoadNativeField(slot);
+  store_default += Box(slot.representation());
   LocalVariable* default_tav_kind = MakeTemporary("default_tav_kind");
 
-  // One read-only stack values (default_tav_kind) that must be dropped after
-  // rejoining at done.
+  // Two locals to drop after join, closure_data and default_tav_kind.
   JoinEntryInstr* done = BuildJoinEntry();
 
   store_default += LoadLocal(default_tav_kind);
   TargetEntryInstr *is_instantiated, *is_not_instantiated;
   store_default += IntConstant(static_cast<intptr_t>(
-      Function::DefaultTypeArgumentsKind::kIsInstantiated));
+      ClosureData::DefaultTypeArgumentsKind::kIsInstantiated));
   store_default += BranchIfEqual(&is_instantiated, &is_not_instantiated);
   store_default.current = is_not_instantiated;  // Check next case.
   store_default += LoadLocal(default_tav_kind);
   TargetEntryInstr *needs_instantiation, *can_share;
   store_default += IntConstant(static_cast<intptr_t>(
-      Function::DefaultTypeArgumentsKind::kNeedsInstantiation));
+      ClosureData::DefaultTypeArgumentsKind::kNeedsInstantiation));
   store_default += BranchIfEqual(&needs_instantiation, &can_share);
   store_default.current = can_share;  // Check next case.
   store_default += LoadLocal(default_tav_kind);
   TargetEntryInstr *can_share_instantiator, *can_share_function;
   store_default += IntConstant(static_cast<intptr_t>(
-      Function::DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments));
+      ClosureData::DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments));
   store_default += BranchIfEqual(&can_share_instantiator, &can_share_function);
 
   Fragment instantiated(is_instantiated);
-  instantiated += LoadLocal(info.closure_data);
+  instantiated += LoadLocal(closure_data);
   instantiated += LoadNativeField(Slot::ClosureData_default_type_arguments());
   instantiated += StoreLocal(info.vars->function_type_args);
   instantiated += Drop();
@@ -2260,7 +2259,7 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
   // can be used within the defaults).
   do_instantiation += LoadLocal(info.parent_function_type_args);
   // Load the default type arguments to instantiate.
-  do_instantiation += LoadLocal(info.closure_data);
+  do_instantiation += LoadLocal(closure_data);
   do_instantiation +=
       LoadNativeField(Slot::ClosureData_default_type_arguments());
   do_instantiation += InstantiateDynamicTypeArguments();
@@ -2284,6 +2283,7 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
 
   store_default.current = done;  // Return here after branching.
   store_default += DropTemporary(&default_tav_kind);
+  store_default += DropTemporary(&closure_data);
 
   Fragment store_delayed;
   store_delayed += LoadLocal(info.closure);
@@ -2723,13 +2723,6 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   // full set of function type arguments, then check the local function type
   // arguments against the closure function's type parameter bounds.
   Fragment generic;
-  generic += LoadLocal(info.closure);
-  generic += LoadNativeField(Slot::Closure_function());
-  generic += LoadNativeField(Slot::Function_data());
-  info.closure_data = MakeTemporary("closure_data");
-  generic += LoadLocal(info.closure_data);
-  generic += LoadNativeField(Slot::ClosureData_default_type_arguments_info());
-  info.default_tav_info = MakeTemporary("default_tav_info");
   // Calculate the local function type arguments and store them in
   // info.vars->function_type_args.
   generic += BuildClosureCallDefaultTypeHandling(info);
@@ -2738,13 +2731,10 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   // Load the parent function type args.
   generic += LoadLocal(info.parent_function_type_args);
   // Load the number of parent type parameters.
-  generic += LoadLocal(info.default_tav_info);
-  static_assert(Function::NumParentTypeParametersField::shift() > 0,
-                "No need to shift for NumParentTypeParametersField bit field");
-  generic += IntConstant(Function::NumParentTypeParametersField::shift());
-  generic += SmiBinaryOp(Token::kSHR);
-  generic += IntConstant(Function::NumParentTypeParametersField::mask());
-  generic += SmiBinaryOp(Token::kBIT_AND);
+  generic += LoadLocal(info.signature);
+  generic += BuildExtractUnboxedSlotBitFieldIntoSmi<
+      UntaggedFunctionType::PackedNumParentTypeArguments>(
+      Slot::FunctionType_packed_fields());
   // Load the number of total type parameters.
   LocalVariable* num_parents = MakeTemporary();
   generic += LoadLocal(info.type_parameters);
@@ -2757,8 +2747,6 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
                         PrependTypeArgumentsFunction(), 4, ICData::kStatic);
   generic += StoreLocal(info.vars->function_type_args);
   generic += Drop();
-  generic += DropTemporary(&info.default_tav_info);
-  generic += DropTemporary(&info.closure_data);
 
   // Now that we have the full set of function type arguments, check them
   // against the type parameter bounds. However, if the local function type

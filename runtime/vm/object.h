@@ -2599,7 +2599,7 @@ class Function : public Object {
   // Generic dispatchers only set the number without actual type parameters.
   bool IsGeneric() const { return NumTypeParameters() > 0; }
   // Return true if any parent function of this function is generic.
-  bool HasGenericParent() const;
+  bool HasGenericParent() const { return NumParentTypeArguments() > 0; }
 
   // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
@@ -2677,41 +2677,8 @@ class Function : public Object {
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
 
-  enum class DefaultTypeArgumentsKind : uint8_t {
-    // Only here to make sure it's explicitly set appropriately.
-    kInvalid = 0,
-    // Must instantiate the default type arguments before use.
-    kNeedsInstantiation,
-    // The default type arguments are already instantiated.
-    kIsInstantiated,
-    // Use the instantiator type arguments that would be used to instantiate
-    // the default type arguments, as instantiating produces the same result.
-    kSharesInstantiatorTypeArguments,
-    // Use the function type arguments that would be used to instantiate
-    // the default type arguments, as instantiating produces the same result.
-    kSharesFunctionTypeArguments,
-  };
-  static constexpr intptr_t kDefaultTypeArgumentsKindFieldSize = 3;
-  static_assert(static_cast<uint8_t>(
-                    DefaultTypeArgumentsKind::kSharesFunctionTypeArguments) <
-                    (1 << kDefaultTypeArgumentsKindFieldSize),
-                "Wrong bit size chosen for default TAV kind field");
-
-  // Fields encoded in an integer stored alongside a default TAV. The size of
-  // the integer should be <= the size of a target Smi.
-  using DefaultTypeArgumentsKindField =
-      BitField<intptr_t,
-               DefaultTypeArgumentsKind,
-               0,
-               kDefaultTypeArgumentsKindFieldSize>;
-  // TODO(regis): Rename to NumParentTypeArgumentsField.
-  // Just use the rest of the space for the number of parent type parameters.
-  using NumParentTypeParametersField =
-      BitField<intptr_t,
-               intptr_t,
-               DefaultTypeArgumentsKindField::kNextBit,
-               compiler::target::kSmiBits -
-                   DefaultTypeArgumentsKindField::kNextBit>;
+  using DefaultTypeArgumentsKind =
+      UntaggedClosureData::DefaultTypeArgumentsKind;
 
   // Returns a canonicalized vector of the type parameters instantiated
   // to bounds. If non-generic, the empty type arguments vector is returned.
@@ -3763,9 +3730,12 @@ class ClosureData : public Object {
   static intptr_t default_type_arguments_offset() {
     return OFFSET_OF(UntaggedClosureData, default_type_arguments_);
   }
-  static intptr_t default_type_arguments_info_offset() {
-    return OFFSET_OF(UntaggedClosureData, default_type_arguments_info_);
+  static intptr_t default_type_arguments_kind_offset() {
+    return OFFSET_OF(UntaggedClosureData, default_type_arguments_kind_);
   }
+
+  using DefaultTypeArgumentsKind =
+      UntaggedClosureData::DefaultTypeArgumentsKind;
 
  private:
   ContextScopePtr context_scope() const { return untag()->context_scope_; }
@@ -3785,8 +3755,8 @@ class ClosureData : public Object {
   }
   void set_default_type_arguments(const TypeArguments& value) const;
 
-  intptr_t default_type_arguments_info() const;
-  void set_default_type_arguments_info(intptr_t value) const;
+  DefaultTypeArgumentsKind default_type_arguments_kind() const;
+  void set_default_type_arguments_kind(DefaultTypeArgumentsKind value) const;
 
   static ClosureDataPtr New();
 

@@ -83,7 +83,6 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, function, Function, FINAL)                       \
   V(Closure, UntaggedClosure, context, Context, FINAL)                         \
   V(Closure, UntaggedClosure, hash, Context, VAR)                              \
-  V(ClosureData, UntaggedClosureData, default_type_arguments_info, Smi, FINAL) \
   V(Function, UntaggedFunction, data, Dynamic, FINAL)                          \
   V(FunctionType, UntaggedFunctionType, parameter_names, Array, FINAL)         \
   V(FunctionType, UntaggedFunctionType, parameter_types, Array, FINAL)         \
@@ -125,6 +124,8 @@ class ParsedFunction;
 //
 // Note: As the underlying field is unboxed, these slots cannot be nullable.
 #define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
+  V(ClosureData, UntaggedClosureData, default_type_arguments_kind, Uint8,      \
+    FINAL)                                                                     \
   V(Function, UntaggedFunction, kind_tag, Uint32, FINAL)                       \
   V(Function, UntaggedFunction, packed_fields, Uint32, FINAL)                  \
   V(FunctionType, UntaggedFunctionType, packed_fields, Uint32, FINAL)          \

@@ -1276,7 +1276,7 @@ class Closure : public AllStatic {
 class ClosureData : public AllStatic {
  public:
   static word default_type_arguments_offset();
-  static word default_type_arguments_info_offset();
+  static word default_type_arguments_kind_offset();
   static word InstanceSize();
   static word NextFieldOffset();
 };

@@ -7057,18 +7057,16 @@ void Function::set_accessor_field(const Field& value) const {
 }
 
 FunctionPtr Function::parent_function() const {
-  if (IsClosureFunction()) {
-    const Object& obj = Object::Handle(untag()->data());
-    ASSERT(!obj.IsNull());
-    return ClosureData::Cast(obj).parent_function();
-  }
-  return Function::null();
+  if (!IsClosureFunction()) return Function::null();
+  const Object& obj = Object::Handle(untag()->data());
+  ASSERT(!obj.IsNull());
+  return ClosureData::Cast(obj).parent_function();
 }
 
 void Function::set_parent_function(const Function& value) const {
+  ASSERT(IsClosureFunction());
   const Object& obj = Object::Handle(untag()->data());
   ASSERT(!obj.IsNull());
-  ASSERT(IsClosureFunction());
   ClosureData::Cast(obj).set_parent_function(value);
 }
 
@@ -7150,8 +7148,7 @@ TypeArgumentsPtr Function::default_type_arguments(
       ClosureData::Handle(ClosureData::RawCast(untag()->data()));
   ASSERT(!closure_data.IsNull());
   if (kind_out != nullptr) {
-    *kind_out = DefaultTypeArgumentsKindField::decode(
-        closure_data.default_type_arguments_info());
+    *kind_out = closure_data.default_type_arguments_kind();
   }
   return closure_data.default_type_arguments();
 }
@@ -7163,13 +7160,9 @@ void Function::set_default_type_arguments(const TypeArguments& value) const {
   const auto& closure_data =
       ClosureData::Handle(ClosureData::RawCast(untag()->data()));
   ASSERT(!closure_data.IsNull());
-  intptr_t updated_info = closure_data.default_type_arguments_info();
   auto kind = DefaultTypeArgumentsKindFor(value);
   ASSERT(kind != DefaultTypeArgumentsKind::kInvalid);
-  updated_info = DefaultTypeArgumentsKindField::update(kind, updated_info);
-  updated_info = NumParentTypeParametersField::update(NumParentTypeArguments(),
-                                                      updated_info);
-  closure_data.set_default_type_arguments_info(updated_info);
+  closure_data.set_default_type_arguments_kind(kind);
   // We could just store null for the ksharesFunction/kSharesInstantiator cases,
   // assuming all clients retrieve the DefaultTypeArgumentsKind to distinguish.
   closure_data.set_default_type_arguments(value);
@@ -7202,22 +7195,6 @@ FunctionPtr Function::GetOutermostFunction() const {
     parent = function.parent_function();
   } while (parent != Object::null());
   return function.ptr();
-}
-
-bool Function::HasGenericParent() const {
-  if (IsImplicitClosureFunction()) {
-    // The parent function of an implicit closure function is not the enclosing
-    // function we are asking about here.
-    return false;
-  }
-  Function& parent = Function::Handle(parent_function());
-  while (!parent.IsNull()) {
-    if (parent.IsGeneric()) {
-      return true;
-    }
-    parent = parent.parent_function();
-  }
-  return false;
 }
 
 FunctionPtr Function::implicit_closure_function() const {
@@ -7721,17 +7698,9 @@ intptr_t FunctionType::NumTypeParameters(Thread* thread) const {
 }
 
 intptr_t Function::NumParentTypeArguments() const {
-  if (IsImplicitClosureFunction()) {
-    return 0;
-  }
-  Function& parent = Function::Handle(parent_function());
-  intptr_t num_parent_type_args = 0;
-  while (!parent.IsNull()) {
-    num_parent_type_args += parent.NumTypeParameters();
-    if (parent.IsImplicitClosureFunction()) break;
-    parent = parent.parent_function();
-  }
-  return num_parent_type_args;
+  // Don't allocate handle in cases where we know it is 0.
+  if (!IsClosureFunction()) return 0;
+  return FunctionType::Handle(signature()).NumParentTypeArguments();
 }
 
 TypeParameterPtr Function::LookupTypeParameter(const String& type_name,
@@ -8420,32 +8389,30 @@ AbstractTypePtr FunctionType::InstantiateFrom(
     Heap::Space space,
     TrailPtr trail) const {
   ASSERT(IsFinalized() || IsBeingFinalized());
-  // A FunctionType cannot be part of a cycle (self-referencing typedefs are not
-  // allowed), therefore, the passed in trail does not need to be propagated to
-  // calls instantiating types of the signature.
   Zone* zone = Thread::Current()->zone();
-  // See the comment on kCurrentAndEnclosingFree to understand why we don't
-  // adjust 'num_free_fun_type_params' downward in this case.
   const intptr_t num_parent_type_args = NumParentTypeArguments();
   bool delete_type_parameters = false;
   if (num_free_fun_type_params == kCurrentAndEnclosingFree) {
+    // See the comment on kCurrentAndEnclosingFree to understand why we don't
+    // adjust 'num_free_fun_type_params' downward in this case.
     num_free_fun_type_params = kAllFree;
     delete_type_parameters = true;
   } else {
     ASSERT(!IsInstantiated(kAny, num_free_fun_type_params));
-    if (IsGeneric() || HasGenericParent()) {
-      // We only consider the function type parameters declared by the parents
-      // of this signature function as free.
-      if (num_parent_type_args < num_free_fun_type_params) {
-        num_free_fun_type_params = num_parent_type_args;
-      }
+    // We only consider the function type parameters declared by the parents
+    // of this signature function as free.
+    if (num_parent_type_args < num_free_fun_type_params) {
+      num_free_fun_type_params = num_parent_type_args;
     }
   }
 
-  // TODO(regis): Is this correct to use num_parent_type_args here?
-  // Or should it be 0 after instantiation?
+  // The number of parent type parameters that remain uninstantiated.
+  const intptr_t remaining_parent_type_params =
+      num_free_fun_type_params < num_parent_type_args
+          ? num_parent_type_args - num_free_fun_type_params
+          : 0;
   FunctionType& sig = FunctionType::Handle(
-      FunctionType::New(num_parent_type_args, nullability(), space));
+      FunctionType::New(remaining_parent_type_params, nullability(), space));
   AbstractType& type = AbstractType::Handle(zone);
 
   // Copy the type parameters and instantiate their bounds (if necessary).
@@ -8463,7 +8430,7 @@ AbstractTypePtr FunctionType::InstantiateFrom(
         if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
           type = type.InstantiateFrom(instantiator_type_arguments,
                                       function_type_arguments,
-                                      num_free_fun_type_params, space);
+                                      num_free_fun_type_params, space, trail);
           // A returned null type indicates a failed instantiation in dead code
           // that must be propagated up to the caller, the optimizing compiler.
           if (type.IsNull()) {
@@ -8498,7 +8465,7 @@ AbstractTypePtr FunctionType::InstantiateFrom(
   if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
     type = type.InstantiateFrom(instantiator_type_arguments,
                                 function_type_arguments,
-                                num_free_fun_type_params, space);
+                                num_free_fun_type_params, space, trail);
     // A returned null type indicates a failed instantiation in dead code that
     // must be propagated up to the caller, the optimizing compiler.
     if (type.IsNull()) {
@@ -8517,7 +8484,7 @@ AbstractTypePtr FunctionType::InstantiateFrom(
     if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
       type = type.InstantiateFrom(instantiator_type_arguments,
                                   function_type_arguments,
-                                  num_free_fun_type_params, space);
+                                  num_free_fun_type_params, space, trail);
       // A returned null type indicates a failed instantiation in dead code that
       // must be propagated up to the caller, the optimizing compiler.
       if (type.IsNull()) {
@@ -9090,7 +9057,7 @@ InstancePtr Function::ImplicitInstanceClosure(const Instance& receiver) const {
   if (!HasInstantiatedSignature(kCurrentClass)) {
     instantiator_type_arguments = receiver.GetTypeArguments();
   }
-  ASSERT(HasInstantiatedSignature(kFunctions));  // No generic parent function.
+  ASSERT(!HasGenericParent());  // No generic parent function.
   return Closure::New(instantiator_type_arguments,
                       Object::null_type_arguments(), *this, context);
 }
@@ -9188,13 +9155,18 @@ bool FunctionType::IsInstantiated(Genericity genericity,
   if (num_free_fun_type_params == kCurrentAndEnclosingFree) {
     num_free_fun_type_params = kAllFree;
   } else if (genericity != kCurrentClass) {
-    if (IsGeneric() || HasGenericParent()) {
-      // We only consider the function type parameters declared by the parents
-      // of this signature function as free.
-      const int num_parent_type_args = NumParentTypeArguments();
-      if (num_parent_type_args < num_free_fun_type_params) {
-        num_free_fun_type_params = num_parent_type_args;
-      }
+    const intptr_t num_parent_type_args = NumParentTypeArguments();
+    if (num_parent_type_args > 0 && num_free_fun_type_params > 0) {
+      // The number of parent type arguments is cached in the FunctionType, so
+      // we can't consider any FunctionType with free parent type arguments as
+      // fully instantiated. Instead, the FunctionType must be instantiated to
+      // reduce the number of parent type arguments, even if they're unused in
+      // its component types.
+      return false;
+    }
+    // Don't consider local function type parameters as free.
+    if (num_free_fun_type_params > num_parent_type_args) {
+      num_free_fun_type_params = num_parent_type_args;
     }
   }
   AbstractType& type = AbstractType::Handle(result_type());
@@ -9924,20 +9896,14 @@ void ClosureData::set_default_type_arguments(const TypeArguments& value) const {
   untag()->set_default_type_arguments(value.ptr());
 }
 
-intptr_t ClosureData::default_type_arguments_info() const {
-  const SmiPtr value = untag()->default_type_arguments_info();
-  if (value == Smi::null()) {
-    static_assert(Function::DefaultTypeArgumentsKindField::decode(0) ==
-                      Function::DefaultTypeArgumentsKind::kInvalid,
-                  "Returning valid value for null Smi");
-    return 0;
-  }
-  return Smi::Value(untag()->default_type_arguments_info());
+ClosureData::DefaultTypeArgumentsKind ClosureData::default_type_arguments_kind()
+    const {
+  return LoadNonPointer(&untag()->default_type_arguments_kind_);
 }
 
-void ClosureData::set_default_type_arguments_info(intptr_t value) const {
-  ASSERT(Smi::IsValid(value));
-  untag()->set_default_type_arguments_info(Smi::New(value));
+void ClosureData::set_default_type_arguments_kind(
+    DefaultTypeArgumentsKind value) const {
+  StoreNonPointer(&untag()->default_type_arguments_kind_, value);
 }
 
 ClosureDataPtr ClosureData::New() {

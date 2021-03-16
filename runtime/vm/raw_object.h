@@ -1216,9 +1216,29 @@ class UntaggedClosureData : public UntaggedObject {
                 closure)  // Closure object for static implicit closures.
   // Instantiate-to-bounds TAV for use when no TAV is provided.
   POINTER_FIELD(TypeArgumentsPtr, default_type_arguments)
-  // Additional information about the instantiate-to-bounds TAV.
-  POINTER_FIELD(SmiPtr, default_type_arguments_info)
-  VISIT_TO(ObjectPtr, default_type_arguments_info)
+  VISIT_TO(ObjectPtr, default_type_arguments)
+
+  enum class DefaultTypeArgumentsKind : uint8_t {
+    // Only here to make sure it's explicitly set appropriately.
+    kInvalid = 0,
+    // Must instantiate the default type arguments before use.
+    kNeedsInstantiation,
+    // The default type arguments are already instantiated.
+    kIsInstantiated,
+    // Use the instantiator type arguments that would be used to instantiate
+    // the default type arguments, as instantiating produces the same result.
+    kSharesInstantiatorTypeArguments,
+    // Use the function type arguments that would be used to instantiate
+    // the default type arguments, as instantiating produces the same result.
+    kSharesFunctionTypeArguments,
+  };
+
+  // kernel_to_il.cc assumes we can load the untagged value and box it in a Smi.
+  static_assert(sizeof(DefaultTypeArgumentsKind) * kBitsPerByte <=
+                    compiler::target::kSmiBits,
+                "Default type arguments kind must fit in a Smi");
+
+  DefaultTypeArgumentsKind default_type_arguments_kind_;
 
   friend class Function;
 };
@@ -2348,6 +2368,8 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   static constexpr intptr_t kMaxOptionalParametersBits =
       UntaggedFunction::kMaxOptionalParametersBits;
 
+  // The bit fields are public for use in kernel_to_il.cc.
+ public:
   typedef BitField<uint32_t, uint8_t, 0, kMaxParentTypeArgumentsBits>
       PackedNumParentTypeArguments;
   typedef BitField<uint32_t,
@@ -2378,6 +2400,7 @@ class UntaggedFunctionType : public UntaggedAbstractType {
                 "In-place mask for number of optional parameters cannot fit in "
                 "a Smi on the target architecture");
 
+ private:
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class Function;
