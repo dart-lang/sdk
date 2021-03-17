@@ -677,6 +677,12 @@ extension NativeFunctionPointer<NF extends Function>
 
 class Struct extends NativeType {}
 
+class Packed {
+  final int memberAlignment;
+
+  const Packed(this.memberAlignment);
+}
+
 abstract class DynamicLibrary {}
 
 extension DynamicLibraryExtension on DynamicLibrary {
