@@ -1146,7 +1146,8 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   Code& orig_stub = Code::Handle(zone);
-  orig_stub = isolate->debugger()->GetPatchedStubAddress(caller_frame->pc());
+  orig_stub =
+      isolate->group()->debugger()->GetPatchedStubAddress(caller_frame->pc());
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseBreakpoint());
   ThrowIfError(error);

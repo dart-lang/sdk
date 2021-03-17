@@ -51,6 +51,7 @@ class CodeIndexTable;
 class Debugger;
 class DeoptContext;
 class ExternalTypedData;
+class GroupDebugger;
 class HandleScope;
 class HandleVisitor;
 class Heap;
@@ -343,6 +344,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return background_compiler_.get();
 #endif
   }
+
+#if !defined(PRODUCT)
+  GroupDebugger* debugger() const { return debugger_; }
+#endif
 
   IdleTimeHandler* idle_time_handler() { return &idle_time_handler_; }
 
@@ -938,6 +943,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t active_mutators_ = 0;
   intptr_t waiting_mutators_ = 0;
   intptr_t max_active_mutators_ = 0;
+
+  NOT_IN_PRODUCT(GroupDebugger* debugger_ = nullptr);
 };
 
 // When an isolate sends-and-exits this class represent things that it passed

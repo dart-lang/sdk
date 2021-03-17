@@ -58,6 +58,7 @@ bad_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
 break_on_activation_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_async_function_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_default_constructor_test: SkipByDesign # Debugger is disabled in AOT mode.
+break_on_function_child_isolate_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_function_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_async_break_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_in_package_parts_class_file_uri_test: SkipByDesign # Debugger is disabled in AOT mode.
