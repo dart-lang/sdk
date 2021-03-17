@@ -3413,6 +3413,18 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
     exprEvaluator.env.addVariableValue(node, value);
     return const ProceedStatus();
   }
+
+  @override
+  ExecutionStatus visitWhileStatement(WhileStatement node) {
+    Constant condition = evaluate(node.condition);
+    while (condition is BoolConstant && condition.value) {
+      final ExecutionStatus status = node.body.accept(this);
+      if (status is! ProceedStatus) return status;
+      condition = evaluate(node.condition);
+    }
+    if (condition is AbortConstant) return new AbortStatus(condition);
+    return const ProceedStatus();
+  }
 }
 
 class ConstantCoverage {
