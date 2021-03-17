@@ -109,14 +109,6 @@ import 'util/experiment_environment_getter.dart' show getExperimentEnvironment;
 
 import 'util/textual_outline.dart' show textualOutline;
 
-import 'fasta_codes.dart'
-    show
-        DiagnosticMessageFromJson,
-        templateInitializeFromDillNotSelfContained,
-        templateInitializeFromDillNotSelfContainedNoDump,
-        templateInitializeFromDillUnknownProblem,
-        templateInitializeFromDillUnknownProblemNoDump;
-
 import 'hybrid_file_system.dart' show HybridFileSystem;
 
 import 'kernel/kernel_builder.dart' show ClassHierarchyBuilder;
@@ -126,8 +118,6 @@ import 'kernel/internal_ast.dart' show VariableDeclarationImpl;
 import 'kernel/kernel_target.dart' show KernelTarget;
 
 import 'library_graph.dart' show LibraryGraph;
-
-import 'messages.dart' show Message;
 
 import 'source/source_library_builder.dart' show SourceLibraryBuilder;
 

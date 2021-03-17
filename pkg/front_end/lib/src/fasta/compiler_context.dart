@@ -24,9 +24,6 @@ import '../base/processed_options.dart' show ProcessedOptions;
 
 import 'command_line_reporting.dart' as command_line_reporting;
 
-import 'fasta_codes.dart'
-    show LocatedMessage, Message, messageInternalProblemMissingContext;
-
 final Object compilerContextKey = new Object();
 
 /// Shared context used throughout the compiler.

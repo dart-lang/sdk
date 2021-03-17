@@ -6,8 +6,6 @@
 
 library fasta.stack_listener_impl;
 
-import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Message;
-
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
 
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';

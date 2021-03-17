@@ -41,12 +41,6 @@ import '../builder/member_builder.dart';
 
 import '../fasta_codes.dart';
 
-import '../kernel/internal_ast.dart'
-    show
-        VariableDeclarationImpl,
-        getExplicitTypeArguments,
-        getExtensionTypeParameterCount;
-
 import '../kernel/inference_visitor.dart';
 
 import '../kernel/invalid_type.dart';

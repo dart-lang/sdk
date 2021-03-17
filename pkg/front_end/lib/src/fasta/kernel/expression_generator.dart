@@ -67,18 +67,6 @@ import 'forest.dart';
 
 import 'kernel_api.dart' show NameSystem, printNodeOn, printQualifiedNameOn;
 
-import 'kernel_ast_api.dart'
-    show
-        Arguments,
-        DartType,
-        DynamicType,
-        Expression,
-        Initializer,
-        Member,
-        Name,
-        Procedure,
-        VariableDeclaration;
-
 import 'kernel_builder.dart' show LoadLibraryBuilder;
 
 import 'internal_ast.dart';

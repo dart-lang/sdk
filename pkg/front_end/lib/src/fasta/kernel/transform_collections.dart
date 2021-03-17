@@ -15,8 +15,6 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
-import 'package:kernel/visitor.dart' show Transformer;
-
 import 'collections.dart'
     show
         ControlFlowElement,
