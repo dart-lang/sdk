@@ -93,7 +93,7 @@ class Modifiers {
     return buffer.toString();
   }
 
-  /// If the given [keyword] is not `null`, append it to the given [builder],
+  /// If the given [keyword] is not `null`, append it to the given [buffer],
   /// prefixing it with a space if [needsSpace] is `true`. Return `true` if
   /// subsequent keywords need to be prefixed with a space.
   bool _appendKeyword(StringBuffer buffer, bool needsSpace, Token? keyword) {
