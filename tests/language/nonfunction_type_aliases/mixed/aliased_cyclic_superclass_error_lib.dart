@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-typedef T = C;
+import 'aliased_cyclic_superclass_error_test.dart';
 
-class C extends T {}
-//    ^
-// [analyzer] unspecified
-// [cfe] unspecified
+typedef T = C;
