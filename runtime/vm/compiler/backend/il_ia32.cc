@@ -29,6 +29,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, inline_alloc);
+DECLARE_FLAG(bool, use_slow_path);
+
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register EAX.
 LocationSummary* Instruction::MakeCallSummary(Zone* zone,
@@ -2539,11 +2542,14 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(1).reg() == kLengthReg);
 
   compiler::Label slow_path, done;
-  if (compiler->is_optimizing() && num_elements()->BindsToConstant() &&
-      num_elements()->BoundConstant().IsSmi()) {
-    const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
-    if (Array::IsValidLength(length)) {
-      InlineArrayAllocation(compiler, length, &slow_path, &done);
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    if (compiler->is_optimizing() && num_elements()->BindsToConstant() &&
+        num_elements()->BoundConstant().IsSmi()) {
+      const intptr_t length =
+          Smi::Cast(num_elements()->BoundConstant()).Value();
+      if (Array::IsValidLength(length)) {
+        InlineArrayAllocation(compiler, length, &slow_path, &done);
+      }
     }
   }
 
@@ -2888,15 +2894,19 @@ void AllocateUninitializedContextInstr::EmitNativeCode(
   compiler->AddSlowPathCode(slow_path);
   intptr_t instance_size = Context::InstanceSize(num_context_variables());
 
-  __ TryAllocateArray(kContextCid, instance_size, slow_path->entry_label(),
-                      compiler::Assembler::kFarJump,
-                      result,  // instance
-                      temp,    // end address
-                      temp2);  // temp
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    __ TryAllocateArray(kContextCid, instance_size, slow_path->entry_label(),
+                        compiler::Assembler::kFarJump,
+                        result,  // instance
+                        temp,    // end address
+                        temp2);  // temp
 
-  // Setup up number of context variables field.
-  __ movl(compiler::FieldAddress(result, Context::num_variables_offset()),
-          compiler::Immediate(num_context_variables()));
+    // Setup up number of context variables field.
+    __ movl(compiler::FieldAddress(result, Context::num_variables_offset()),
+            compiler::Immediate(num_context_variables()));
+  } else {
+    __ Jump(slow_path->entry_label());
+  }
 
   __ Bind(slow_path->exit_label());
 }

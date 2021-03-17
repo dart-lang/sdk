@@ -1004,7 +1004,7 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
 //   R2: array length as Smi (must be preserved).
 // The newly allocated object is returned in R0.
 void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     // Compute the size to be allocated, it is based on the array length
     // and is computed as:
@@ -1127,7 +1127,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
     Assembler* assembler) {
   // For test purpose call allocation stub without inline allocation attempt.
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
@@ -1148,7 +1148,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
 void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
     Assembler* assembler) {
   // For test purpose call allocation stub without inline allocation attempt.
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
@@ -1441,7 +1441,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 // Clobbered:
 //   Potentially any since it can go to runtime.
 void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
-  {
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
 
     // Load num. variable in the existing context.
@@ -3432,91 +3432,95 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == R4);
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kResultReg == R0);
 
-  Label call_runtime;
-  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R2, cid));
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(R2, &call_runtime));
-  __ mov(R2, Operand(AllocateTypedDataArrayABI::kLengthReg));
-  /* Check that length is a positive Smi. */
-  /* R2: requested array length argument. */
-  __ tst(R2, Operand(kSmiTagMask));
-  __ b(&call_runtime, NE);
-  __ SmiUntag(R2);
-  /* Check for length >= 0 && length <= max_len. */
-  /* R2: untagged array length. */
-  __ CompareImmediate(R2, max_len);
-  __ b(&call_runtime, HI);
-  __ mov(R2, Operand(R2, LSL, scale_shift));
-  const intptr_t fixed_size_plus_alignment_padding =
-      target::TypedData::InstanceSize() +
-      target::ObjectAlignment::kObjectAlignment - 1;
-  __ AddImmediate(R2, fixed_size_plus_alignment_padding);
-  __ bic(R2, R2, Operand(target::ObjectAlignment::kObjectAlignment - 1));
-  __ ldr(R0, Address(THR, target::Thread::top_offset()));
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    Label call_runtime;
+    NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R2, cid));
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(R2, &call_runtime));
+    __ mov(R2, Operand(AllocateTypedDataArrayABI::kLengthReg));
+    /* Check that length is a positive Smi. */
+    /* R2: requested array length argument. */
+    __ tst(R2, Operand(kSmiTagMask));
+    __ b(&call_runtime, NE);
+    __ SmiUntag(R2);
+    /* Check for length >= 0 && length <= max_len. */
+    /* R2: untagged array length. */
+    __ CompareImmediate(R2, max_len);
+    __ b(&call_runtime, HI);
+    __ mov(R2, Operand(R2, LSL, scale_shift));
+    const intptr_t fixed_size_plus_alignment_padding =
+        target::TypedData::InstanceSize() +
+        target::ObjectAlignment::kObjectAlignment - 1;
+    __ AddImmediate(R2, fixed_size_plus_alignment_padding);
+    __ bic(R2, R2, Operand(target::ObjectAlignment::kObjectAlignment - 1));
+    __ ldr(R0, Address(THR, target::Thread::top_offset()));
 
-  /* R2: allocation size. */
-  __ adds(R1, R0, Operand(R2));
-  __ b(&call_runtime, CS); /* Fail on unsigned overflow. */
+    /* R2: allocation size. */
+    __ adds(R1, R0, Operand(R2));
+    __ b(&call_runtime, CS); /* Fail on unsigned overflow. */
 
-  /* Check if the allocation fits into the remaining space. */
-  /* R0: potential new object start. */
-  /* R1: potential next object start. */
-  /* R2: allocation size. */
-  __ ldr(IP, Address(THR, target::Thread::end_offset()));
-  __ cmp(R1, Operand(IP));
-  __ b(&call_runtime, CS);
+    /* Check if the allocation fits into the remaining space. */
+    /* R0: potential new object start. */
+    /* R1: potential next object start. */
+    /* R2: allocation size. */
+    __ ldr(IP, Address(THR, target::Thread::end_offset()));
+    __ cmp(R1, Operand(IP));
+    __ b(&call_runtime, CS);
 
-  __ str(R1, Address(THR, target::Thread::top_offset()));
-  __ AddImmediate(R0, kHeapObjectTag);
-  /* Initialize the tags. */
-  /* R0: new object start as a tagged pointer. */
-  /* R1: new object end address. */
-  /* R2: allocation size. */
-  {
-    __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
+    __ str(R1, Address(THR, target::Thread::top_offset()));
+    __ AddImmediate(R0, kHeapObjectTag);
+    /* Initialize the tags. */
+    /* R0: new object start as a tagged pointer. */
+    /* R1: new object end address. */
+    /* R2: allocation size. */
+    {
+      __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
+      __ mov(R3,
+             Operand(R2, LSL,
+                     target::UntaggedObject::kTagBitsSizeTagPos -
+                         target::ObjectAlignment::kObjectAlignmentLog2),
+             LS);
+      __ mov(R3, Operand(0), HI);
+
+      /* Get the class index and insert it into the tags. */
+      uword tags =
+          target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+      __ LoadImmediate(TMP, tags);
+      __ orr(R3, R3, Operand(TMP));
+      __ str(R3, FieldAddress(R0, target::Object::tags_offset())); /* Tags. */
+    }
+    /* Set the length field. */
+    /* R0: new object start as a tagged pointer. */
+    /* R1: new object end address. */
+    /* R2: allocation size. */
     __ mov(R3,
-           Operand(R2, LSL,
-                   target::UntaggedObject::kTagBitsSizeTagPos -
-                       target::ObjectAlignment::kObjectAlignmentLog2),
-           LS);
-    __ mov(R3, Operand(0), HI);
+           Operand(AllocateTypedDataArrayABI::kLengthReg)); /* Array length. */
+    __ StoreIntoObjectNoBarrier(
+        R0, FieldAddress(R0, target::TypedDataBase::length_offset()), R3);
+    /* Initialize all array elements to 0. */
+    /* R0: new object start as a tagged pointer. */
+    /* R1: new object end address. */
+    /* R2: allocation size. */
+    /* R3: iterator which initially points to the start of the variable */
+    /* R8, R9: zero. */
+    /* data area to be initialized. */
+    __ LoadImmediate(R8, 0);
+    __ mov(R9, Operand(R8));
+    __ AddImmediate(R3, R0, target::TypedData::InstanceSize() - 1);
+    __ StoreInternalPointer(
+        R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R3);
+    Label init_loop;
+    __ Bind(&init_loop);
+    __ AddImmediate(R3, 2 * target::kWordSize);
+    __ cmp(R3, Operand(R1));
+    __ strd(R8, R9, R3, -2 * target::kWordSize, LS);
+    __ b(&init_loop, CC);
+    __ str(R8, Address(R3, -2 * target::kWordSize), HI);
 
-    /* Get the class index and insert it into the tags. */
-    uword tags = target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
-    __ LoadImmediate(TMP, tags);
-    __ orr(R3, R3, Operand(TMP));
-    __ str(R3, FieldAddress(R0, target::Object::tags_offset())); /* Tags. */
+    __ Ret();
+
+    __ Bind(&call_runtime);
   }
-  /* Set the length field. */
-  /* R0: new object start as a tagged pointer. */
-  /* R1: new object end address. */
-  /* R2: allocation size. */
-  __ mov(R3,
-         Operand(AllocateTypedDataArrayABI::kLengthReg)); /* Array length. */
-  __ StoreIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::TypedDataBase::length_offset()), R3);
-  /* Initialize all array elements to 0. */
-  /* R0: new object start as a tagged pointer. */
-  /* R1: new object end address. */
-  /* R2: allocation size. */
-  /* R3: iterator which initially points to the start of the variable */
-  /* R8, R9: zero. */
-  /* data area to be initialized. */
-  __ LoadImmediate(R8, 0);
-  __ mov(R9, Operand(R8));
-  __ AddImmediate(R3, R0, target::TypedData::InstanceSize() - 1);
-  __ StoreInternalPointer(
-      R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R3);
-  Label init_loop;
-  __ Bind(&init_loop);
-  __ AddImmediate(R3, 2 * target::kWordSize);
-  __ cmp(R3, Operand(R1));
-  __ strd(R8, R9, R3, -2 * target::kWordSize, LS);
-  __ b(&init_loop, CC);
-  __ str(R8, Address(R3, -2 * target::kWordSize), HI);
 
-  __ Ret();
-
-  __ Bind(&call_runtime);
   __ EnterStubFrame();
   __ PushObject(Object::null_object());            // Make room for the result.
   __ PushImmediate(target::ToRawSmi(cid));         // Cid

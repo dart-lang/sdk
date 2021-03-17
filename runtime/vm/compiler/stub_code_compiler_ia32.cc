@@ -804,7 +804,7 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
 // Uses EAX, EBX, ECX, EDI  as temporary registers.
 // The newly allocated object is returned in EAX.
 void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     // Compute the size to be allocated, it is based on the array length
     // and is computed as:
@@ -1223,7 +1223,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 // Clobbered:
 //   EBX, ECX, EDX
 void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
-  {
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
 
     // Load num. variable in the existing context.
@@ -2923,108 +2923,114 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == EAX);
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kResultReg == EAX);
 
-  // Save length argument for possible runtime call, as
-  // EAX is clobbered.
-  Label call_runtime;
-  __ pushl(AllocateTypedDataArrayABI::kLengthReg);
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    // Save length argument for possible runtime call, as
+    // EAX is clobbered.
+    Label call_runtime;
+    __ pushl(AllocateTypedDataArrayABI::kLengthReg);
 
-  NOT_IN_PRODUCT(
-      __ MaybeTraceAllocation(cid, ECX, &call_runtime, Assembler::kFarJump));
-  __ movl(EDI, AllocateTypedDataArrayABI::kLengthReg);
-  /* Check that length is a positive Smi. */
-  /* EDI: requested array length argument. */
-  __ testl(EDI, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &call_runtime);
-  __ SmiUntag(EDI);
-  /* Check for length >= 0 && length <= max_len. */
-  /* EDI: untagged array length. */
-  __ cmpl(EDI, Immediate(max_len));
-  __ j(ABOVE, &call_runtime);
-  /* Special case for scaling by 16. */
-  if (scale_factor == TIMES_16) {
-    /* double length of array. */
-    __ addl(EDI, EDI);
-    /* only scale by 8. */
-    scale_factor = TIMES_8;
-  }
+    NOT_IN_PRODUCT(
+        __ MaybeTraceAllocation(cid, ECX, &call_runtime, Assembler::kFarJump));
+    __ movl(EDI, AllocateTypedDataArrayABI::kLengthReg);
+    /* Check that length is a positive Smi. */
+    /* EDI: requested array length argument. */
+    __ testl(EDI, Immediate(kSmiTagMask));
+    __ j(NOT_ZERO, &call_runtime);
+    __ SmiUntag(EDI);
+    /* Check for length >= 0 && length <= max_len. */
+    /* EDI: untagged array length. */
+    __ cmpl(EDI, Immediate(max_len));
+    __ j(ABOVE, &call_runtime);
+    /* Special case for scaling by 16. */
+    if (scale_factor == TIMES_16) {
+      /* double length of array. */
+      __ addl(EDI, EDI);
+      /* only scale by 8. */
+      scale_factor = TIMES_8;
+    }
 
-  const intptr_t fixed_size_plus_alignment_padding =
-      target::TypedData::InstanceSize() +
-      target::ObjectAlignment::kObjectAlignment - 1;
-  __ leal(EDI, Address(EDI, scale_factor, fixed_size_plus_alignment_padding));
-  __ andl(EDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
-  __ movl(EAX, Address(THR, target::Thread::top_offset()));
-  __ movl(EBX, EAX);
-  /* EDI: allocation size. */
-  __ addl(EBX, EDI);
-  __ j(CARRY, &call_runtime);
+    const intptr_t fixed_size_plus_alignment_padding =
+        target::TypedData::InstanceSize() +
+        target::ObjectAlignment::kObjectAlignment - 1;
+    __ leal(EDI, Address(EDI, scale_factor, fixed_size_plus_alignment_padding));
+    __ andl(EDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
+    __ movl(EAX, Address(THR, target::Thread::top_offset()));
+    __ movl(EBX, EAX);
+    /* EDI: allocation size. */
+    __ addl(EBX, EDI);
+    __ j(CARRY, &call_runtime);
 
-  /* Check if the allocation fits into the remaining space. */
-  /* EAX: potential new object start. */
-  /* EBX: potential next object start. */
-  /* EDI: allocation size. */
-  __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
-  __ j(ABOVE_EQUAL, &call_runtime);
+    /* Check if the allocation fits into the remaining space. */
+    /* EAX: potential new object start. */
+    /* EBX: potential next object start. */
+    /* EDI: allocation size. */
+    __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
+    __ j(ABOVE_EQUAL, &call_runtime);
 
-  /* Successfully allocated the object(s), now update top to point to */
-  /* next object start and initialize the object. */
-  __ movl(Address(THR, target::Thread::top_offset()), EBX);
-  __ addl(EAX, Immediate(kHeapObjectTag));
+    /* Successfully allocated the object(s), now update top to point to */
+    /* next object start and initialize the object. */
+    __ movl(Address(THR, target::Thread::top_offset()), EBX);
+    __ addl(EAX, Immediate(kHeapObjectTag));
 
-  /* Initialize the tags. */
-  /* EAX: new object start as a tagged pointer. */
-  /* EBX: new object end address. */
-  /* EDI: allocation size. */
-  {
-    Label size_tag_overflow, done;
-    __ cmpl(EDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
-    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shll(EDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
-                           target::ObjectAlignment::kObjectAlignmentLog2));
-    __ jmp(&done, Assembler::kNearJump);
-    __ Bind(&size_tag_overflow);
-    __ movl(EDI, Immediate(0));
+    /* Initialize the tags. */
+    /* EAX: new object start as a tagged pointer. */
+    /* EBX: new object end address. */
+    /* EDI: allocation size. */
+    {
+      Label size_tag_overflow, done;
+      __ cmpl(EDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
+      __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+      __ shll(EDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+                             target::ObjectAlignment::kObjectAlignmentLog2));
+      __ jmp(&done, Assembler::kNearJump);
+      __ Bind(&size_tag_overflow);
+      __ movl(EDI, Immediate(0));
+      __ Bind(&done);
+      /* Get the class index and insert it into the tags. */
+      uword tags =
+          target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+      __ orl(EDI, Immediate(tags));
+      __ movl(FieldAddress(EAX, target::Object::tags_offset()),
+              EDI); /* Tags. */
+    }
+
+    /* Set the length field. */
+    /* EAX: new object start as a tagged pointer. */
+    /* EBX: new object end address. */
+    __ popl(EDI); /* Array length. */
+    __ StoreIntoObjectNoBarrier(
+        EAX, FieldAddress(EAX, target::TypedDataBase::length_offset()), EDI);
+
+    /* Initialize all array elements to 0. */
+    /* EAX: new object start as a tagged pointer. */
+    /* EBX: new object end address. */
+    /* EDI: iterator which initially points to the start of the variable */
+    /* ECX: scratch register. */
+    /* data area to be initialized. */
+    __ xorl(ECX, ECX); /* Zero. */
+    __ leal(EDI, FieldAddress(EAX, target::TypedData::InstanceSize()));
+    __ StoreInternalPointer(
+        EAX, FieldAddress(EAX, target::TypedDataBase::data_field_offset()),
+        EDI);
+    Label done, init_loop;
+    __ Bind(&init_loop);
+    __ cmpl(EDI, EBX);
+    __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
+    __ movl(Address(EDI, 0), ECX);
+    __ addl(EDI, Immediate(target::kWordSize));
+    __ jmp(&init_loop, Assembler::kNearJump);
     __ Bind(&done);
-    /* Get the class index and insert it into the tags. */
-    uword tags = target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
-    __ orl(EDI, Immediate(tags));
-    __ movl(FieldAddress(EAX, target::Object::tags_offset()), EDI); /* Tags. */
+
+    __ ret();
+
+    __ Bind(&call_runtime);
+    __ popl(AllocateTypedDataArrayABI::kLengthReg);
   }
 
-  /* Set the length field. */
-  /* EAX: new object start as a tagged pointer. */
-  /* EBX: new object end address. */
-  __ popl(EDI); /* Array length. */
-  __ StoreIntoObjectNoBarrier(
-      EAX, FieldAddress(EAX, target::TypedDataBase::length_offset()), EDI);
-
-  /* Initialize all array elements to 0. */
-  /* EAX: new object start as a tagged pointer. */
-  /* EBX: new object end address. */
-  /* EDI: iterator which initially points to the start of the variable */
-  /* ECX: scratch register. */
-  /* data area to be initialized. */
-  __ xorl(ECX, ECX); /* Zero. */
-  __ leal(EDI, FieldAddress(EAX, target::TypedData::InstanceSize()));
-  __ StoreInternalPointer(
-      EAX, FieldAddress(EAX, target::TypedDataBase::data_field_offset()), EDI);
-  Label done, init_loop;
-  __ Bind(&init_loop);
-  __ cmpl(EDI, EBX);
-  __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
-  __ movl(Address(EDI, 0), ECX);
-  __ addl(EDI, Immediate(target::kWordSize));
-  __ jmp(&init_loop, Assembler::kNearJump);
-  __ Bind(&done);
-
-  __ ret();
-
-  __ Bind(&call_runtime);
-  __ popl(EDI);  // Array length
   __ EnterStubFrame();
   __ PushObject(Object::null_object());  // Make room for the result.
   __ pushl(Immediate(target::ToRawSmi(cid)));
-  __ pushl(EDI);  // Array length
+  __ pushl(AllocateTypedDataArrayABI::kLengthReg);
   __ CallRuntime(kAllocateTypedDataRuntimeEntry, 2);
   __ Drop(2);  // Drop arguments.
   __ popl(AllocateTypedDataArrayABI::kResultReg);
