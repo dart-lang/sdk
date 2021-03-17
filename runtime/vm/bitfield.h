@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_BITFIELD_H_
 #define RUNTIME_VM_BITFIELD_H_
 
+#include <type_traits>
+
 #include "platform/assert.h"
 #include "platform/globals.h"
 
@@ -17,19 +19,22 @@ static const uword kUwordOne = 1U;
 template <typename S,
           typename T,
           int position,
-          int size = (sizeof(S) * kBitsPerByte) - position>
+          int size = (sizeof(S) * kBitsPerByte) - position,
+          bool sign_extend = false>
 class BitField {
  public:
   typedef T Type;
 
   static_assert((sizeof(S) * kBitsPerByte) >= (position + size),
                 "BitField does not fit into the type.");
+  static_assert(!sign_extend || std::is_signed<T>::value,
+                "Should only sign extend signed bitfield types");
 
   static const intptr_t kNextBit = position + size;
 
   // Tells whether the provided value fits into the bit field.
   static constexpr bool is_valid(T value) {
-    return (static_cast<S>(value) & ~((kUwordOne << size) - 1)) == 0;
+    return decode(encode_unchecked(value)) == value;
   }
 
   // Returns a S mask of the bit field.
@@ -37,9 +42,7 @@ class BitField {
 
   // Returns a S mask of the bit field which can be applied directly to
   // to the raw unshifted bits.
-  static constexpr S mask_in_place() {
-    return ((kUwordOne << size) - 1) << position;
-  }
+  static constexpr S mask_in_place() { return mask() << position; }
 
   // Returns the shift count needed to right-shift the bit field to
   // the least-significant bits.
@@ -51,12 +54,22 @@ class BitField {
   // Returns an S with the bit field value encoded.
   static UNLESS_DEBUG(constexpr) S encode(T value) {
     DEBUG_ASSERT(is_valid(value));
-    return static_cast<S>(value) << position;
+    return encode_unchecked(value);
   }
 
   // Extracts the bit field from the value.
   static constexpr T decode(S value) {
-    return static_cast<T>((value >> position) & ((kUwordOne << size) - 1));
+    // Ensure we slide down the sign bit if the value in the bit field is signed
+    // and negative. We use 64-bit ints inside the expression since we can have
+    // both cases: sizeof(S) > sizeof(T) or sizeof(S) < sizeof(T).
+    return static_cast<T>(
+        (sign_extend
+             ? (static_cast<int64_t>(static_cast<uint64_t>(value)
+                                     << (64 - (size + position))) >>
+                (64 - size))
+             : ((static_cast<typename std::make_unsigned<S>::type>(value) >>
+                 position) &
+                mask())));
   }
 
   // Returns an S with the bit field value encoded based on the
@@ -64,7 +77,14 @@ class BitField {
   // will be changed.
   static UNLESS_DEBUG(constexpr) S update(T value, S original) {
     DEBUG_ASSERT(is_valid(value));
-    return (static_cast<S>(value) << position) | (~mask_in_place() & original);
+    return encode_unchecked(value) | (~mask_in_place() & original);
+  }
+
+ private:
+  // Returns an S with the bit field value encoded.
+  static constexpr S encode_unchecked(T value) {
+    return (static_cast<typename std::make_unsigned<S>::type>(value) & mask())
+           << position;
   }
 };
 

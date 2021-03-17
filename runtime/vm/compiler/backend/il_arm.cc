@@ -31,6 +31,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, inline_alloc);
+DECLARE_FLAG(bool, use_slow_path);
+
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed location depending on
 // the return value (R0, Location::Pair(R0, R1) or Q0).
@@ -3172,13 +3175,15 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(kLengthPos).reg() == kLengthReg);
 
   compiler::Label slow_path, done;
-  if (compiler->is_optimizing() && !FLAG_precompiled_mode &&
-      num_elements()->BindsToConstant() &&
-      compiler::target::IsSmi(num_elements()->BoundConstant())) {
-    const intptr_t length =
-        compiler::target::SmiValue(num_elements()->BoundConstant());
-    if (Array::IsValidLength(length)) {
-      InlineArrayAllocation(compiler, length, &slow_path, &done);
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    if (compiler->is_optimizing() && !FLAG_precompiled_mode &&
+        num_elements()->BindsToConstant() &&
+        compiler::target::IsSmi(num_elements()->BoundConstant())) {
+      const intptr_t length =
+          compiler::target::SmiValue(num_elements()->BoundConstant());
+      if (Array::IsValidLength(length)) {
+        InlineArrayAllocation(compiler, length, &slow_path, &done);
+      }
     }
   }
 
@@ -3568,14 +3573,19 @@ void AllocateUninitializedContextInstr::EmitNativeCode(
   compiler->AddSlowPathCode(slow_path);
   intptr_t instance_size = Context::InstanceSize(num_context_variables());
 
-  __ TryAllocateArray(kContextCid, instance_size, slow_path->entry_label(),
-                      result,  // instance
-                      temp0, temp1, temp2);
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    __ TryAllocateArray(kContextCid, instance_size, slow_path->entry_label(),
+                        result,  // instance
+                        temp0, temp1, temp2);
 
-  // Setup up number of context variables field.
-  __ LoadImmediate(temp0, num_context_variables());
-  __ str(temp0, compiler::FieldAddress(
-                    result, compiler::target::Context::num_variables_offset()));
+    // Setup up number of context variables field.
+    __ LoadImmediate(temp0, num_context_variables());
+    __ str(temp0,
+           compiler::FieldAddress(
+               result, compiler::target::Context::num_variables_offset()));
+  } else {
+    __ Jump(slow_path->entry_label());
+  }
 
   __ Bind(slow_path->exit_label());
 }

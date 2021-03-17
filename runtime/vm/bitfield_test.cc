@@ -23,4 +23,51 @@ VM_UNIT_TEST_CASE(BitFields) {
   EXPECT_EQ(2U, TestBitFields::update(1, 16));
 }
 
+template <typename T>
+static void TestSignExtendedBitField() {
+  class F1 : public BitField<T, intptr_t, 0, 8, /*sign_extend=*/true> {};
+  class F2
+      : public BitField<T, uintptr_t, F1::kNextBit, 8, /*sign_extend=*/false> {
+  };
+  class F3
+      : public BitField<T, intptr_t, F2::kNextBit, 8, /*sign_extend=*/true> {};
+  class F4
+      : public BitField<T, uintptr_t, F3::kNextBit, 8, /*sign_extend=*/false> {
+  };
+
+  const uint32_t value =
+      F1::encode(-1) | F2::encode(1) | F3::encode(-2) | F4::encode(2);
+  EXPECT_EQ(0x02fe01ffU, value);
+  EXPECT_EQ(-1, F1::decode(value));
+  EXPECT_EQ(1U, F2::decode(value));
+  EXPECT_EQ(-2, F3::decode(value));
+  EXPECT_EQ(2U, F4::decode(value));
+}
+
+template <typename T>
+static void TestNotSignExtendedBitField() {
+  class F1 : public BitField<T, intptr_t, 0, 8, /*sign_extend=*/false> {};
+  class F2
+      : public BitField<T, uintptr_t, F1::kNextBit, 8, /*sign_extend=*/false> {
+  };
+  class F3
+      : public BitField<T, intptr_t, F2::kNextBit, 8, /*sign_extend=*/false> {};
+  class F4
+      : public BitField<T, uintptr_t, F3::kNextBit, 8, /*sign_extend=*/false> {
+  };
+
+  const uint32_t value =
+      F1::encode(-1) | F2::encode(1) | F3::encode(-2) | F4::encode(2);
+  EXPECT_EQ(0x02fe01ffU, value);
+  EXPECT_EQ(3, F1::decode(value));
+  EXPECT_EQ(1, F2::decode(value));
+  EXPECT_EQ(2, F3::decode(value));
+  EXPECT_EQ(2, F3::decode(value));
+}
+
+VM_UNIT_TEST_CASE(BitFields_SignedField) {
+  TestSignExtendedBitField<uint32_t>();
+  TestSignExtendedBitField<int32_t>();
+}
+
 }  // namespace dart

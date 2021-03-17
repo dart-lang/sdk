@@ -3365,6 +3365,37 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   }
 
   @override
+  ExecutionStatus visitForStatement(ForStatement node) {
+    for (VariableDeclaration variable in node.variables) {
+      final ExecutionStatus status = variable.accept(this);
+      if (status is! ProceedStatus) return status;
+    }
+
+    Constant condition =
+        node.condition != null ? evaluate(node.condition) : null;
+    while (node.condition == null || condition is BoolConstant) {
+      if (condition is BoolConstant && !condition.value) break;
+
+      final ExecutionStatus status = node.body.accept(this);
+      if (status is! ProceedStatus) return status;
+
+      for (Expression update in node.updates) {
+        Constant updateConstant = evaluate(update);
+        if (updateConstant is AbortConstant) {
+          return new AbortStatus(updateConstant);
+        }
+      }
+
+      if (node.condition != null) {
+        condition = evaluate(node.condition);
+      }
+    }
+
+    if (condition is AbortConstant) return new AbortStatus(condition);
+    return const ProceedStatus();
+  }
+
+  @override
   ExecutionStatus visitExpressionStatement(ExpressionStatement node) {
     Constant value = evaluate(node.expression);
     if (value is AbortConstant) return new AbortStatus(value);
