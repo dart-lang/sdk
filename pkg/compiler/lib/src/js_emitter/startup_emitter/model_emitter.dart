@@ -98,6 +98,7 @@ class ModelEmitter {
   final JClosedWorld _closedWorld;
   final ConstantOrdering _constantOrdering;
   final SourceInformationStrategy _sourceInformationStrategy;
+  final FragmentMerger fragmentMerger;
 
   // The full code that is written to each hunk part-file.
   final Map<OutputUnit, CodeOutput> emittedOutputBuffers = {};
@@ -128,7 +129,8 @@ class ModelEmitter {
       this._sourceInformationStrategy,
       RecipeEncoder rtiRecipeEncoder,
       this._shouldGenerateSourceMap)
-      : _constantOrdering = new ConstantOrdering(_closedWorld.sorter) {
+      : _constantOrdering = new ConstantOrdering(_closedWorld.sorter),
+        fragmentMerger = FragmentMerger(_options) {
     this.constantEmitter = new ConstantEmitter(
         _options,
         _namer,
@@ -227,12 +229,11 @@ class ModelEmitter {
       }
     });
 
-    // Attach dependencies to each PreFragment.
-    FragmentMerger.attachDependencies(program.loadMap, preFragmentMap);
-
+    // If we are going to merge, then we attach dependencies to each PreFragment
+    // and merge.
     if (shouldMergeFragments) {
       preDeferredFragments = _task.measureSubtask('merge fragments', () {
-        FragmentMerger fragmentMerger = FragmentMerger(_options);
+        fragmentMerger.attachDependencies(preFragmentMap, preDeferredFragments);
         return fragmentMerger.mergeFragments(preDeferredFragments);
       });
     }
@@ -252,7 +253,7 @@ class ModelEmitter {
       if (fragmentCode != null) {
         deferredFragmentsCode[finalizedFragment] = fragmentCode;
       } else {
-        omittedOutputUnits.add(finalizedFragment.outputUnit);
+        omittedOutputUnits.addAll(finalizedFragment.outputUnits);
       }
     }
 
@@ -419,7 +420,9 @@ class ModelEmitter {
             hunkPrefix, deferredExtension, OutputType.jsPart),
         outputListeners);
 
-    emittedOutputBuffers[fragment.outputUnit] = output;
+    // TODO(joshualitt): This breaks dump_info when we merge, but fixing it will
+    // require updating the schema.
+    emittedOutputBuffers[fragment.canonicalOutputUnit] = output;
 
     // The [code] contains the function that must be invoked when the deferred
     // hunk is loaded.

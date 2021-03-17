@@ -83,17 +83,20 @@ class PreFragment {
     this.lazyInitializers.addAll(that.lazyInitializers);
     this.nativeSupport.addAll(that.nativeSupport);
     this.successors.remove(that);
+    this.predecessors.remove(that);
     that.successors.forEach((fragment) {
+      if (fragment == this) return;
+      this.successors.add(fragment);
       fragment.predecessors.remove(that);
       fragment.predecessors.add(this);
     });
-    this.successors.addAll(that.successors);
-    that.predecessors.remove(this);
     that.predecessors.forEach((fragment) {
+      if (fragment == this) return;
+      this.predecessors.add(fragment);
       fragment.successors.remove(that);
       fragment.successors.add(this);
     });
-    this.predecessors.addAll(that.predecessors);
+    that.clearAll();
     this.size += that.size;
     return this;
   }
@@ -102,6 +105,7 @@ class PreFragment {
       Program program, Map<Fragment, FinalizedFragment> fragmentMap) {
     FinalizedFragment finalizedFragment;
     var seedFragment = fragments.first;
+    var seedOutputUnit = seedFragment.outputUnit;
 
     // If we only have a single fragment, then wen just finalize it by itself.
     // Otherwise, we finalize an entire group of fragments into a single
@@ -109,7 +113,7 @@ class PreFragment {
     if (fragments.length == 1) {
       finalizedFragment = FinalizedFragment(
           seedFragment.outputFileName,
-          seedFragment.outputUnit,
+          [seedOutputUnit],
           seedFragment.libraries,
           classPrototypes.first,
           closurePrototypes.first,
@@ -122,21 +126,22 @@ class PreFragment {
           staticNonFinalFields.first,
           lazyInitializers.first,
           nativeSupport.first,
-          program.metadataTypesForOutputUnit(seedFragment.outputUnit));
+          program.metadataTypesForOutputUnit(seedOutputUnit));
       fragmentMap[seedFragment] = finalizedFragment;
     } else {
+      List<OutputUnit> outputUnits = [seedOutputUnit];
       List<Library> libraries = [];
       for (var fragment in fragments) {
-        if (seedFragment.outputUnit != fragment.outputUnit) {
-          program.mergeOutputUnitMetadata(
-              seedFragment.outputUnit, fragment.outputUnit);
-          seedFragment.outputUnit.merge(fragment.outputUnit);
+        var fragmentOutputUnit = fragment.outputUnit;
+        if (seedOutputUnit != fragmentOutputUnit) {
+          program.mergeOutputUnitMetadata(seedOutputUnit, fragmentOutputUnit);
+          outputUnits.add(fragmentOutputUnit);
         }
         libraries.addAll(fragment.libraries);
       }
       finalizedFragment = FinalizedFragment(
           seedFragment.outputFileName,
-          seedFragment.outputUnit,
+          outputUnits,
           libraries,
           js.Block(classPrototypes),
           js.Block(closurePrototypes),
@@ -149,7 +154,7 @@ class PreFragment {
           js.Block(staticNonFinalFields),
           js.Block(lazyInitializers),
           js.Block(nativeSupport),
-          program.metadataTypesForOutputUnit(seedFragment.outputUnit));
+          program.metadataTypesForOutputUnit(seedOutputUnit));
       for (var fragment in fragments) {
         fragmentMap[fragment] = finalizedFragment;
       }
@@ -183,11 +188,31 @@ class PreFragment {
     }
     return "${outputUnitStrings.join('+')}";
   }
+
+  /// Clears all [PreFragment] data structure and zeros out the size. Should be
+  /// used only after merging to GC internal data structures.
+  void clearAll() {
+    fragments.clear();
+    classPrototypes.clear();
+    closurePrototypes.clear();
+    inheritance.clear();
+    methodAliases.clear();
+    tearOffs.clear();
+    constants.clear();
+    typeRules.clear();
+    variances.clear();
+    staticNonFinalFields.clear();
+    lazyInitializers.clear();
+    nativeSupport.clear();
+    successors.clear();
+    predecessors.clear();
+    size = 0;
+  }
 }
 
 class FinalizedFragment {
   final String outputFileName;
-  final OutputUnit outputUnit;
+  final List<OutputUnit> outputUnits;
   final List<Library> libraries;
   final js.Statement classPrototypes;
   final js.Statement closurePrototypes;
@@ -204,7 +229,7 @@ class FinalizedFragment {
 
   FinalizedFragment(
       this.outputFileName,
-      this.outputUnit,
+      this.outputUnits,
       this.libraries,
       this.classPrototypes,
       this.closurePrototypes,
@@ -247,6 +272,12 @@ class FinalizedFragment {
         isEmptyStatement(lazyInitializers) &&
         isEmptyStatement(nativeSupport);
   }
+
+  // The 'main' [OutputUnit] for this [FinalizedFragment].
+  // TODO(joshualitt): Refactor this to more clearly disambiguate between
+  // [OutputUnits](units of deferred merging), fragments(units of emitted code),
+  // and files.
+  OutputUnit get canonicalOutputUnit => outputUnits.first;
 }
 
 class _Partition {
@@ -261,6 +292,7 @@ class _Partition {
 
 class FragmentMerger {
   final CompilerOptions _options;
+  int totalSize = 0;
 
   FragmentMerger(this._options);
 
@@ -284,16 +316,63 @@ class FragmentMerger {
     return loadMap;
   }
 
-  // Attaches predecessors to each PreFragment. We only care about
-  // direct predecessors.
-  static void attachDependencies(Map<String, List<Fragment>> programLoadMap,
-      Map<Fragment, PreFragment> fragmentMap) {
-    programLoadMap.forEach((loadId, fragments) {
-      for (int i = 0; i < fragments.length - 1; i++) {
-        var fragment = fragmentMap[fragments[i]];
-        var nextFragment = fragmentMap[fragments[i + 1]];
-        fragment.successors.add(nextFragment);
-        nextFragment.predecessors.add(fragment);
+  /// Given a list of OutputUnits sorted by their import entites,
+  /// returns a map of all the direct edges between output units.
+  Map<OutputUnit, Set<OutputUnit>> createDirectEdges(
+      List<OutputUnit> allOutputUnits) {
+    Map<OutputUnit, Set<OutputUnit>> backEdges = {};
+    for (int i = 0; i < allOutputUnits.length; i++) {
+      var a = allOutputUnits[i];
+      var aImports = a.imports;
+      for (int j = i + 1; j < allOutputUnits.length; j++) {
+        var b = allOutputUnits[j];
+        if (b.imports.containsAll(aImports)) {
+          backEdges[b] ??= {};
+
+          // Remove transitive edges from nodes that will reach 'b' from the
+          // edge we just added.
+          // Note: Because we add edges in order (starting from the smallest
+          // sets) we always add transitive edges before the last direct edge.
+          backEdges[b].removeWhere((c) => aImports.containsAll(c.imports));
+
+          // Create an edge to denote that 'b' must be loaded before 'a'.
+          backEdges[b].add(a);
+        }
+      }
+    }
+
+    Map<OutputUnit, Set<OutputUnit>> forwardEdges = {};
+    backEdges.forEach((b, edges) {
+      for (var a in edges) {
+        (forwardEdges[a] ??= {}).add(b);
+      }
+    });
+    return forwardEdges;
+  }
+
+  /// Attachs predecessors and successors to each PreFragment.
+  void attachDependencies(Map<Fragment, PreFragment> fragmentMap,
+      List<PreFragment> preDeferredFragments) {
+    // Create a map of OutputUnit to Fragment.
+    Map<OutputUnit, Fragment> outputUnitMap = {};
+    List<OutputUnit> allOutputUnits = [];
+    for (var preFragment in preDeferredFragments) {
+      var fragment = preFragment.fragments.single;
+      var outputUnit = fragment.outputUnit;
+      outputUnitMap[outputUnit] = fragment;
+      allOutputUnits.add(outputUnit);
+      totalSize += preFragment.size;
+    }
+    allOutputUnits.sort();
+
+    // Get a list of direct edges and then attach them to PreFragments.
+    var allEdges = createDirectEdges(allOutputUnits);
+    allEdges.forEach((outputUnit, edges) {
+      var predecessor = fragmentMap[outputUnitMap[outputUnit]];
+      for (var edge in edges) {
+        var successor = fragmentMap[outputUnitMap[edge]];
+        predecessor.successors.add(successor);
+        successor.predecessors.add(predecessor);
       }
     });
   }
@@ -314,12 +393,6 @@ class FragmentMerger {
           .compareTo(b.fragments.single.outputUnit);
     });
     int desiredNumberOfFragment = _options.mergeFragmentsThreshold;
-
-    // TODO(joshualitt): Precalculate totalSize when computing dependencies.
-    int totalSize = 0;
-    for (var preFragment in preDeferredFragments) {
-      totalSize += preFragment.size;
-    }
 
     int idealFragmentSize = (totalSize / desiredNumberOfFragment).ceil();
     List<_Partition> partitions = [];
