@@ -1,3 +1,11 @@
+# 1.1.0
+
+- fixed `prefer_mixin` to properly make exceptions for `dart.collection` legacy
+  mixins
+- improved formatting of source examples in docs  
+- new lint: `use_build_context_synchronously` (experimental)
+- new lint: `avoid_multiple_declarations_per_line`
+
 # 1.0.0
 
 - full library migration to null-safety
