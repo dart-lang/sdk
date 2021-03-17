@@ -540,7 +540,11 @@ void FlowGraphCompiler::CompileGraph() {
 }
 
 void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
-  __ Call(stub);
+  if (stub.InVMIsolateHeap()) {
+    __ CallVmStub(stub);
+  } else {
+    __ Call(stub);
+  }
   AddStubCallTarget(stub);
 }
 

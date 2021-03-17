@@ -2409,6 +2409,15 @@ void Assembler::Call(const Code& target,
   call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
+void Assembler::CallVmStub(const Code& target) {
+  const Object& target_as_object = CastHandle<Object, Code>(target);
+  ASSERT(target::CanEmbedAsRawPointerInGeneratedCode(target_as_object));
+  call(Address::Absolute(
+      target::ToRawPointer(target_as_object) +
+      target::Code::entry_point_offset(CodeEntryKind::kNormal) -
+      kHeapObjectTag));
+}
+
 void Assembler::CallToRuntime() {
   call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
 }

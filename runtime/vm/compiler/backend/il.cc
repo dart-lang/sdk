@@ -5406,20 +5406,8 @@ LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
 }
 
 void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-#if defined(TARGET_ARCH_IA32)
-  __ PushRegister(AssertSubtypeABI::kInstantiatorTypeArgumentsReg);
-  __ PushRegister(AssertSubtypeABI::kFunctionTypeArgumentsReg);
-  __ PushRegister(AssertSubtypeABI::kSubTypeReg);
-  __ PushRegister(AssertSubtypeABI::kSuperTypeReg);
-  __ PushRegister(AssertSubtypeABI::kDstNameReg);
-  compiler->GenerateRuntimeCall(source(), deopt_id(), kSubtypeCheckRuntimeEntry,
-                                5, locs());
-
-  __ Drop(5);
-#else
   compiler->GenerateStubCall(source(), StubCode::AssertSubtype(),
                              UntaggedPcDescriptors::kOther, locs());
-#endif
 }
 
 LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,

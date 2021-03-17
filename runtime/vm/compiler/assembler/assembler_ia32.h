@@ -770,6 +770,9 @@ class Assembler : public AssemblerBase {
             bool movable_target = false,
             CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void CallToRuntime();
+  // Will not clobber any registers and can therefore be called with 5 live
+  // registers.
+  void CallVmStub(const Code& code);
 
   void Call(Address target) { call(target); }
 
