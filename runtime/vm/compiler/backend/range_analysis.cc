@@ -2914,6 +2914,12 @@ void LoadCodeUnitsInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   }
 }
 
+void Utf8ScanInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  // The input bytes given to the Utf8Scan instruction are in non-negative Smi
+  // range and so is the resulting computed length.
+  *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
+}
+
 void IfThenElseInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const intptr_t min = Utils::Minimum(if_true_, if_false_);
   const intptr_t max = Utils::Maximum(if_true_, if_false_);

@@ -5814,7 +5814,10 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
 // }
 //
 // under these assumptions:
-// - The start and end inputs are within the bounds of bytes and in smi range.
+// - The difference between start and end must be less than 2^30, since the
+//   resulting length can be twice the input length (and the result has to be in
+//   Smi range). This is guaranteed by `_Utf8Decoder.chunkSize` which is set to
+//   `65536`.
 // - The decoder._scanFlags field is unboxed or contains a smi.
 // - The first 128 entries of the table have the value 1.
 class Utf8ScanInstr : public TemplateDefinition<5, NoThrow> {
@@ -5848,6 +5851,7 @@ class Utf8ScanInstr : public TemplateDefinition<5, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
     return kNotSpeculative;
