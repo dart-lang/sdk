@@ -6269,7 +6269,8 @@ DART_EXPORT char* Dart_ServiceSendDataEvent(const char* stream_id,
         "Dart_ServiceSendDataEvent expects argument 'bytes_length' to be >= "
         "0.");
   }
-  Service::SendEmbedderEvent(stream_id, event_kind, bytes, bytes_length);
+  Service::SendEmbedderEvent(Isolate::Current(),  // May be NULL
+                             stream_id, event_kind, bytes, bytes_length);
 #endif
   return nullptr;
 }

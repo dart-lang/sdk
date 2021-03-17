@@ -125,7 +125,8 @@ class Service : public AllStatic {
   static void SendEchoEvent(Isolate* isolate, const char* text);
   static void SendInspectEvent(Isolate* isolate, const Object& inspectee);
 
-  static void SendEmbedderEvent(const char* stream_id,
+  static void SendEmbedderEvent(Isolate* isolate,
+                                const char* stream_id,
                                 const char* event_kind,
                                 const uint8_t* bytes,
                                 intptr_t bytes_len);
