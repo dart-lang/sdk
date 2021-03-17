@@ -98,7 +98,7 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "a1d65dd9c4b83c9702ba409465879b94caeb04ea",
+  "dart_style_tag": "2cf810073e0cc7e7ea05d3de51830e6fa6d62924",
 
   "chromedriver_tag": "83.0.4103.39",
   "dartdoc_rev" : "174021f3d76c2a8500b54977c80f32c5bbc099f1",
