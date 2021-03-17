@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Annotations that developers can use to extend [Future] capabilities.
-library meta_future_extensions;
+/// Tools that developers can use to improve the linter behaviour.
+library meta_linter;
 
-/// Extensions that apply to futures.
-extension FutureExtension<T> on Future<T>? {
+/// Operations on futures which can help with enabling or avoiding lints.
+extension FutureLintExtensions<T> on Future<T>? {
   /// Indicates to tools that the future is intentionally not `await`-ed.
   ///
   /// In an `async` context, it is normally expected that all [Future]s are
