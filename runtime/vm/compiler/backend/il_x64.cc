@@ -3108,39 +3108,6 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 }
 
-LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
-                                                           bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(
-                      InstantiationABI::kInstantiatorTypeArgumentsReg));
-  locs->set_in(1, Location::RegisterLocation(
-                      InstantiationABI::kFunctionTypeArgumentsReg));
-  locs->set_out(0,
-                Location::RegisterLocation(InstantiationABI::kResultTypeReg));
-  return locs;
-}
-
-void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register instantiator_type_args_reg = locs()->in(0).reg();
-  Register function_type_args_reg = locs()->in(1).reg();
-  Register result_reg = locs()->out(0).reg();
-
-  // 'instantiator_type_args_reg' is a TypeArguments object (or null).
-  // 'function_type_args_reg' is a TypeArguments object (or null).
-  // A runtime call to instantiate the type is required.
-  __ PushObject(Object::null_object());  // Make room for the result.
-  __ PushObject(type());
-  __ pushq(instantiator_type_args_reg);  // Push instantiator type arguments.
-  __ pushq(function_type_args_reg);      // Push function type arguments.
-  compiler->GenerateRuntimeCall(source(), deopt_id(),
-                                kInstantiateTypeRuntimeEntry, 3, locs());
-  __ Drop(3);           // Drop 2 type vectors, and uninstantiated type.
-  __ popq(result_reg);  // Pop instantiated type.
-}
-
 LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {

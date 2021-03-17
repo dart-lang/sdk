@@ -126,6 +126,7 @@ namespace dart {
   V(ReThrow)                                                                   \
   V(AssertBoolean)                                                             \
   V(InstanceOf)                                                                \
+  V(InstantiateType)                                                           \
   V(InstantiateTypeArguments)                                                  \
   V(InstantiateTypeArgumentsMayShareInstantiatorTA)                            \
   V(InstantiateTypeArgumentsMayShareFunctionTA)                                \

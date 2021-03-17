@@ -204,6 +204,19 @@ void StubCodeCompiler::GenerateAssertAssignableStub(Assembler* assembler) {
 #endif
 }
 
+void StubCodeCompiler::GenerateInstantiateTypeStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ PushObject(Object::null_object());
+  __ PushRegister(InstantiateTypeABI::kTypeReg);
+  __ PushRegister(InstantiateTypeABI::kInstantiatorTypeArgumentsReg);
+  __ PushRegister(InstantiateTypeABI::kFunctionTypeArgumentsReg);
+  __ CallRuntime(kInstantiateTypeRuntimeEntry, /*argument_count=*/3);
+  __ Drop(3);
+  __ PopRegister(InstantiateTypeABI::kResultTypeReg);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
 void StubCodeCompiler::GenerateInstanceOfStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for the result.

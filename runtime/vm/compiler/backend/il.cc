@@ -5422,6 +5422,28 @@ void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
 }
 
+LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
+                                                           bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(
+                      InstantiateTypeABI::kInstantiatorTypeArgumentsReg));
+  locs->set_in(1, Location::RegisterLocation(
+                      InstantiateTypeABI::kFunctionTypeArgumentsReg));
+  locs->set_out(0,
+                Location::RegisterLocation(InstantiateTypeABI::kResultTypeReg));
+  return locs;
+}
+
+void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ LoadObject(InstantiateTypeABI::kTypeReg, type());
+  compiler->GenerateStubCall(source(), StubCode::InstantiateType(),
+                             UntaggedPcDescriptors::kOther, locs(), deopt_id(),
+                             env());
+}
+
 LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kNoCall);
