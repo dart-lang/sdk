@@ -1,3 +1,10 @@
+## 2.12.2 - 2021-03-17
+
+This is a patch release that fixes crashes reported by Flutter 2 users (issue
+[flutter/flutter#78167][]).
+
+[flutter/flutter#78167]: https://github.com/flutter/flutter/issues/78167
+
 ## 2.12.1 - 2021-03-10
 
 This is a patch release that fixes:
