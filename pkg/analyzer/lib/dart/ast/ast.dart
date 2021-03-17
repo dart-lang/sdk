@@ -2144,6 +2144,29 @@ abstract class ExportDirective implements NamespaceDirective {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Expression implements CollectionElement {
+  /// An expression _e_ is said to _occur in a constant context_,
+  /// * if _e_ is an element of a constant list literal, or a key or value of an
+  ///   entry of a constant map literal.
+  /// * if _e_ is an actual argument of a constant object expression or of a
+  ///   metadata annotation.
+  /// * if _e_ is the initializing expression of a constant variable
+  ///   declaration.
+  /// * if _e_ is a switch case expression.
+  /// * if _e_ is an immediate subexpression of an expression _e1_ which occurs
+  ///   in a constant context, unless _e1_ is a `throw` expression or a function
+  ///   literal.
+  ///
+  /// This roughly means that everything which is inside a syntactically
+  /// constant expression is in a constant context. A `throw` expression is
+  /// currently not allowed in a constant expression, but extensions affecting
+  /// that status may be considered. A similar situation arises for function
+  /// literals.
+  ///
+  /// Note that the default value of an optional formal parameter is _not_ a
+  /// constant context. This choice reserves some freedom to modify the
+  /// semantics of default values.
+  bool get inConstantContext;
+
   /// Return `true` if this expression is syntactically valid for the LHS of an
   /// [AssignmentExpression].
   bool get isAssignable;

@@ -32,6 +32,7 @@ class RangeBoundary : public ValueObject {
 
   enum RangeSize {
     kRangeBoundarySmi,
+    kRangeBoundaryInt16,
     kRangeBoundaryInt32,
     kRangeBoundaryInt64,
   };
@@ -97,6 +98,8 @@ class RangeBoundary : public ValueObject {
     switch (size) {
       case kRangeBoundarySmi:
         return FromConstant(compiler::target::kSmiMin);
+      case kRangeBoundaryInt16:
+        return FromConstant(kMinInt16);
       case kRangeBoundaryInt32:
         return FromConstant(kMinInt32);
       case kRangeBoundaryInt64:
@@ -110,6 +113,8 @@ class RangeBoundary : public ValueObject {
     switch (size) {
       case kRangeBoundarySmi:
         return FromConstant(compiler::target::kSmiMax);
+      case kRangeBoundaryInt16:
+        return FromConstant(kMaxInt16);
       case kRangeBoundaryInt32:
         return FromConstant(kMaxInt32);
       case kRangeBoundaryInt64:

@@ -2768,7 +2768,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kClosure_instantiator_type_arguments:
     case Slot::Kind::kClosure_hash:
     case Slot::Kind::kClosureData_default_type_arguments:
-    case Slot::Kind::kClosureData_default_type_arguments_info:
+    case Slot::Kind::kClosureData_default_type_arguments_kind:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
     case Slot::Kind::kFunction_data:

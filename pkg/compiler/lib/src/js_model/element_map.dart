@@ -15,7 +15,6 @@ import '../inferrer/abstract_value_domain.dart';
 import '../ir/closure.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
-import '../js_model/closure.dart' show JRecordField;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
 import '../serialization/serialization.dart';

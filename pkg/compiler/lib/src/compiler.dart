@@ -20,7 +20,6 @@ import 'common.dart';
 import 'common_elements.dart' show ElementEnvironment;
 import 'deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import 'diagnostics/code_location.dart';
-import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import 'diagnostics/messages.dart' show Message, MessageTemplate;
 import 'dump_info.dart' show DumpInfoTask;
 import 'elements/entities.dart';

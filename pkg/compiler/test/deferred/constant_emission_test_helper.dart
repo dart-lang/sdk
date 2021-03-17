@@ -7,7 +7,6 @@
 // Test that the additional runtime type support is output to the right
 // Files when using deferred loading.
 
-import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/deferred_load.dart';
@@ -17,7 +16,6 @@ import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
-import '../helpers/output_collector.dart';
 import '../helpers/program_lookup.dart';
 
 class OutputUnitDescriptor {

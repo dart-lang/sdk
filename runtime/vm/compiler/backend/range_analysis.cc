@@ -2742,8 +2742,9 @@ static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
   switch (r) {
     case kTagged:
       return RangeBoundary::kRangeBoundarySmi;
+    case kUnboxedUint8:  // Overapproximate Uint8 as Int16.
+      return RangeBoundary::kRangeBoundaryInt16;
     case kUnboxedInt32:
-    case kUnboxedUint8:  // Overapproximate Uint8 as Int32.
       return RangeBoundary::kRangeBoundaryInt32;
     case kUnboxedInt64:
     case kUnboxedUint32:  // Overapproximate Uint32 as Int64.
@@ -2821,6 +2822,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       UNREACHABLE();
       break;
 
+    case Slot::Kind::kClosureData_default_type_arguments_kind:
     case Slot::Kind::kFunction_kind_tag:
     case Slot::Kind::kFunction_packed_fields:
     case Slot::Kind::kTypeParameter_flags:
@@ -2841,9 +2843,6 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kArgumentsDescriptor_size:
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
       break;
-
-    case Slot::Kind::kClosureData_default_type_arguments_info:
-      *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
   }
 }
 

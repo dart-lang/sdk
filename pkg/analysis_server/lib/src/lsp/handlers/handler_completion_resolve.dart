@@ -146,7 +146,8 @@ class CompletionResolveHandler
         // a command that the client will call to apply those edits later.
         Command command;
         if (otherFilesChanges.isNotEmpty) {
-          final workspaceEdit = createWorkspaceEdit(server, otherFilesChanges);
+          final workspaceEdit =
+              createPlainWorkspaceEdit(server, otherFilesChanges);
           command = Command(
               title: 'Add import',
               command: Commands.sendWorkspaceEdit,

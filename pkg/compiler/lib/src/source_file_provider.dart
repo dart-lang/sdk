@@ -11,7 +11,6 @@ import 'dart:typed_data';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
-import '../compiler.dart' as api show Diagnostic;
 import '../compiler_new.dart' as api;
 import '../compiler_new.dart';
 import 'colors.dart' as colors;

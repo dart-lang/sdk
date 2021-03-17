@@ -1424,6 +1424,9 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
                                Object::null_function_type(),
                                type_parameter_count, klass->nnbd_mode());
 
+  T.LoadAndSetupBounds(&active_class_, Object::null_function(), *klass,
+                       Object::null_function_type(), type_parameter_count);
+
   // Set super type.  Some classes (e.g., Object) do not have one.
   Tag type_tag = helper_.ReadTag();  // read super class type (part 1).
   if (type_tag == kSomething) {

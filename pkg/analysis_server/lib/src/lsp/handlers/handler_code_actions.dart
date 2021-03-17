@@ -143,7 +143,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       title: assist.change.message,
       kind: toCodeActionKind(assist.change.id, CodeActionKind.Refactor),
       diagnostics: const [],
-      edit: createWorkspaceEdit(server, assist.change.edits),
+      edit: createWorkspaceEdit(server, assist.change),
     );
   }
 
@@ -156,7 +156,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       title: fix.change.message,
       kind: toCodeActionKind(fix.change.id, CodeActionKind.QuickFix),
       diagnostics: [diagnostic],
-      edit: createWorkspaceEdit(server, fix.change.edits),
+      edit: createWorkspaceEdit(server, fix.change),
     );
   }
 

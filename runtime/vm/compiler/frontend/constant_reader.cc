@@ -122,6 +122,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
   KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
   reader.ReadUInt();  // skip variable-sized int for adjusted constant offset
   reader.SetOffset(reader.ReaderOffset() + constant_offset);
+  // No function types returned as part of any types built should reference
+  // free parent type args, ensured by clearing the enclosing function type.
+  ActiveEnclosingFunctionScope scope(active_class_, nullptr);
   // Construct constant from raw bytes.
   Instance& instance = Instance::Handle(Z);
   const intptr_t constant_tag = reader.ReadByte();

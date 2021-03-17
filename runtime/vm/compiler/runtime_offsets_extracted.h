@@ -113,7 +113,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ClosureData_default_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_info_offset = 20;
+    ClosureData_default_type_arguments_kind_offset = 20;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 20;
 static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     24;
@@ -647,7 +647,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_info_offset = 40;
+    ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     48;
@@ -1186,7 +1186,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ClosureData_default_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_info_offset = 20;
+    ClosureData_default_type_arguments_kind_offset = 20;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 20;
 static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     24;
@@ -1717,7 +1717,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_info_offset = 40;
+    ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     48;
@@ -2257,7 +2257,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_info_offset = 40;
+    ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     48;
@@ -2796,7 +2796,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_info_offset = 40;
+    ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     48;
@@ -3336,7 +3336,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ClosureData_default_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_info_offset = 20;
+    ClosureData_default_type_arguments_kind_offset = 20;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 20;
 static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     24;
@@ -3864,7 +3864,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_info_offset = 40;
+    ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     48;
@@ -4397,7 +4397,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ClosureData_default_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_info_offset = 20;
+    ClosureData_default_type_arguments_kind_offset = 20;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 20;
 static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     24;
@@ -4922,7 +4922,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_info_offset = 40;
+    ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     48;
@@ -5456,7 +5456,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_info_offset = 40;
+    ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     48;
@@ -5989,7 +5989,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_info_offset = 40;
+    ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word Code_saved_instructions_offset =
     48;
@@ -6530,7 +6530,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ClosureData_default_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_info_offset = 20;
+    AOT_ClosureData_default_type_arguments_kind_offset = 20;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset = 20;
 static constexpr dart::compiler::target::word
     AOT_Code_saved_instructions_offset = 24;
@@ -7125,7 +7125,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_info_offset = 40;
+    AOT_ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Code_saved_instructions_offset = 48;
@@ -7726,7 +7726,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_info_offset = 40;
+    AOT_ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Code_saved_instructions_offset = 48;
@@ -8325,7 +8325,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_info_offset = 40;
+    AOT_ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Code_saved_instructions_offset = 48;
@@ -8923,7 +8923,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_info_offset = 40;
+    AOT_ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Code_saved_instructions_offset = 48;
@@ -9521,7 +9521,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ClosureData_default_type_arguments_offset = 16;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_info_offset = 20;
+    AOT_ClosureData_default_type_arguments_kind_offset = 20;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset = 20;
 static constexpr dart::compiler::target::word
     AOT_Code_saved_instructions_offset = 24;
@@ -10109,7 +10109,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_info_offset = 40;
+    AOT_ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Code_saved_instructions_offset = 48;
@@ -10703,7 +10703,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_info_offset = 40;
+    AOT_ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Code_saved_instructions_offset = 48;
@@ -11295,7 +11295,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_info_offset = 40;
+    AOT_ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Code_saved_instructions_offset = 48;
@@ -11886,7 +11886,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_ClosureData_default_type_arguments_offset = 32;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_info_offset = 40;
+    AOT_ClosureData_default_type_arguments_kind_offset = 40;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Code_saved_instructions_offset = 48;

@@ -89,7 +89,7 @@
   FIELD(Closure, hash_offset)                                                  \
   FIELD(Closure, instantiator_type_arguments_offset)                           \
   FIELD(ClosureData, default_type_arguments_offset)                            \
-  FIELD(ClosureData, default_type_arguments_info_offset)                       \
+  FIELD(ClosureData, default_type_arguments_kind_offset)                       \
   FIELD(Code, object_pool_offset)                                              \
   FIELD(Code, saved_instructions_offset)                                       \
   FIELD(Code, owner_offset)                                                    \

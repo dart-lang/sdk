@@ -1069,7 +1069,6 @@ class ClosureDataSerializationCluster : public SerializationCluster {
     s->Push(data->untag()->parent_function_);
     s->Push(data->untag()->closure_);
     s->Push(data->untag()->default_type_arguments_);
-    s->Push(data->untag()->default_type_arguments_info_);
   }
 
   void WriteAlloc(Serializer* s) {
@@ -1093,7 +1092,8 @@ class ClosureDataSerializationCluster : public SerializationCluster {
       WriteField(data, parent_function_);
       WriteField(data, closure_);
       WriteField(data, default_type_arguments_);
-      WriteField(data, default_type_arguments_info_);
+      s->WriteUnsigned(
+          static_cast<intptr_t>(data->untag()->default_type_arguments_kind_));
     }
   }
 
@@ -1134,8 +1134,8 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
       data->untag()->closure_ = static_cast<InstancePtr>(d->ReadRef());
       data->untag()->default_type_arguments_ =
           static_cast<TypeArgumentsPtr>(d->ReadRef());
-      data->untag()->default_type_arguments_info_ =
-          static_cast<SmiPtr>(d->ReadRef());
+      data->untag()->default_type_arguments_kind_ =
+          static_cast<ClosureData::DefaultTypeArgumentsKind>(d->ReadUnsigned());
     }
   }
 };

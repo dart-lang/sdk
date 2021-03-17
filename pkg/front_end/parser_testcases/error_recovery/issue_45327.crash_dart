@@ -1,0 +1,3 @@
+main() {
+  if (n is int or
+}
