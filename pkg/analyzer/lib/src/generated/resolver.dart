@@ -513,16 +513,25 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /// Computes the appropriate set of context messages to report along with an
-  /// error that may have occurred because [receiver] was not type promoted.
+  /// error that may have occurred because [expression] was not type promoted.
+  ///
+  /// If [expression] is `null`, it means the expression that was not type
+  /// promoted was an implicit `this`.
+  ///
+  /// [errorEntity] is the entity whose location will be associated with the
+  /// error.  This is needed for test instrumentation.
+  ///
+  /// [whyNotPromoted] should be the non-promotion details returned by the flow
+  /// analysis engine.
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
-      Expression? receiver,
+      Expression? expression,
       SyntacticEntity errorEntity,
       Map<DartType, NonPromotionReason>? whyNotPromoted) {
     List<DiagnosticMessage> messages = [];
     if (whyNotPromoted != null) {
       for (var entry in whyNotPromoted.entries) {
         var whyNotPromotedVisitor = _WhyNotPromotedVisitor(
-            source, receiver, errorEntity, flowAnalysis!.dataForTesting);
+            source, expression, errorEntity, flowAnalysis!.dataForTesting);
         if (typeSystem.isPotentiallyNullable(entry.key)) continue;
         var message = entry.value.accept(whyNotPromotedVisitor);
         if (message != null) {
@@ -3353,7 +3362,9 @@ class _WhyNotPromotedVisitor
             PromotableElement, DartType> {
   final Source source;
 
-  final Expression? _receiver;
+  /// The expression that was not promoted, or `null` if the thing that was not
+  /// promoted was an implicit `this`.
+  final Expression? _expression;
 
   final SyntacticEntity _errorEntity;
 
@@ -3364,7 +3375,7 @@ class _WhyNotPromotedVisitor
   DartType? propertyType;
 
   _WhyNotPromotedVisitor(
-      this.source, this._receiver, this._errorEntity, this._dataForTesting);
+      this.source, this._expression, this._errorEntity, this._dataForTesting);
 
   @override
   DiagnosticMessage? visitDemoteViaExplicitWrite(
@@ -3410,16 +3421,17 @@ class _WhyNotPromotedVisitor
   @override
   DiagnosticMessage? visitPropertyNotPromoted(
       PropertyNotPromoted<DartType> reason) {
-    var receiver = _receiver;
+    var expression = _expression;
     Element? receiverElement;
-    if (receiver is SimpleIdentifier) {
-      receiverElement = receiver.staticElement;
-    } else if (receiver is PropertyAccess) {
-      receiverElement = receiver.propertyName.staticElement;
-    } else if (receiver is PrefixedIdentifier) {
-      receiverElement = receiver.identifier.staticElement;
+    if (expression is SimpleIdentifier) {
+      receiverElement = expression.staticElement;
+    } else if (expression is PropertyAccess) {
+      receiverElement = expression.propertyName.staticElement;
+    } else if (expression is PrefixedIdentifier) {
+      receiverElement = expression.identifier.staticElement;
     } else {
-      assert(false, 'Unrecognized receiver: ${receiver.runtimeType}');
+      assert(false,
+          'Unrecognized property access expression: ${expression.runtimeType}');
     }
     if (receiverElement is PropertyAccessorElement) {
       propertyReference = receiverElement;
@@ -3427,7 +3439,7 @@ class _WhyNotPromotedVisitor
       return _contextMessageForProperty(receiverElement, reason.propertyName);
     } else {
       assert(receiverElement == null,
-          'Unrecognized receiver element: ${receiverElement.runtimeType}');
+          'Unrecognized property element: ${receiverElement.runtimeType}');
       return null;
     }
   }

@@ -5406,20 +5406,30 @@ LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
 }
 
 void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-#if defined(TARGET_ARCH_IA32)
-  __ PushRegister(AssertSubtypeABI::kInstantiatorTypeArgumentsReg);
-  __ PushRegister(AssertSubtypeABI::kFunctionTypeArgumentsReg);
-  __ PushRegister(AssertSubtypeABI::kSubTypeReg);
-  __ PushRegister(AssertSubtypeABI::kSuperTypeReg);
-  __ PushRegister(AssertSubtypeABI::kDstNameReg);
-  compiler->GenerateRuntimeCall(source(), deopt_id(), kSubtypeCheckRuntimeEntry,
-                                5, locs());
-
-  __ Drop(5);
-#else
   compiler->GenerateStubCall(source(), StubCode::AssertSubtype(),
                              UntaggedPcDescriptors::kOther, locs());
-#endif
+}
+
+LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
+                                                           bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(
+                      InstantiateTypeABI::kInstantiatorTypeArgumentsReg));
+  locs->set_in(1, Location::RegisterLocation(
+                      InstantiateTypeABI::kFunctionTypeArgumentsReg));
+  locs->set_out(0,
+                Location::RegisterLocation(InstantiateTypeABI::kResultTypeReg));
+  return locs;
+}
+
+void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ LoadObject(InstantiateTypeABI::kTypeReg, type());
+  compiler->GenerateStubCall(source(), StubCode::InstantiateType(),
+                             UntaggedPcDescriptors::kOther, locs(), deopt_id(),
+                             env());
 }
 
 LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,
@@ -6515,6 +6525,8 @@ LocationSummary* EnterHandleScopeInstr::MakeLocationSummary(
 }
 
 void EnterHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(kEnterHandleScopeRuntimeEntry.is_leaf());
+
   if (kind_ == Kind::kGetTopHandleScope) {
     __ LoadMemoryValue(CallingConventions::kReturnReg, THR,
                        compiler::target::Thread::api_top_scope_offset());
@@ -6541,6 +6553,8 @@ LocationSummary* ExitHandleScopeInstr::MakeLocationSummary(
 }
 
 void ExitHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(kEnterHandleScopeRuntimeEntry.is_leaf());
+
   Location arg_loc = FirstArgumentLocation();
   __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
   NoTemporaryAllocator no_temp;
@@ -6578,6 +6592,8 @@ Representation AllocateHandleInstr::RequiredInputRepresentation(
 }
 
 void AllocateHandleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(kEnterHandleScopeRuntimeEntry.is_leaf());
+
   Location arg_loc = FirstArgumentLocation();
   __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
   if (arg_loc.IsStackSlot()) {

@@ -2937,11 +2937,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
 
         if (!haveErroneousBounds) {
+          List<TypeBuilder> unboundTypes = [];
+          List<TypeVariableBuilder> unboundTypeVariables = [];
           List<TypeBuilder> calculatedBounds = calculateBounds(
               variables,
               dynamicType,
               isNonNullableByDefault ? bottomType : nullType,
-              objectClass);
+              objectClass,
+              unboundTypes: unboundTypes,
+              unboundTypeVariables: unboundTypeVariables);
+          for (TypeBuilder unboundType in unboundTypes) {
+            currentTypeParameterScopeBuilder
+                .addType(new UnresolvedType(unboundType, -1, null));
+          }
+          boundlessTypeVariables.addAll(unboundTypeVariables);
           for (int i = 0; i < variables.length; ++i) {
             variables[i].defaultType = calculatedBounds[i];
           }

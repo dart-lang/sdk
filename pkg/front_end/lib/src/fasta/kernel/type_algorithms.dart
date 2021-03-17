@@ -378,7 +378,12 @@ TypeBuilder substitute(
 /// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
 /// of the algorithm for details.
 List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
-    TypeBuilder dynamicType, TypeBuilder bottomType, ClassBuilder objectClass) {
+    TypeBuilder dynamicType, TypeBuilder bottomType, ClassBuilder objectClass,
+    {List<TypeBuilder> unboundTypes,
+    List<TypeVariableBuilder> unboundTypeVariables}) {
+  assert(unboundTypes != null);
+  assert(unboundTypeVariables != null);
+
   List<TypeBuilder> bounds =
       new List<TypeBuilder>.filled(variables.length, null);
 
@@ -399,8 +404,12 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     }
     for (int variableIndex in component) {
       TypeVariableBuilder variable = variables[variableIndex];
-      bounds[variableIndex] = substituteRange(bounds[variableIndex],
-          dynamicSubstitution, nullSubstitution, null, null,
+      bounds[variableIndex] = substituteRange(
+          bounds[variableIndex],
+          dynamicSubstitution,
+          nullSubstitution,
+          unboundTypes,
+          unboundTypeVariables,
           variance: variable.variance);
     }
   }
@@ -414,8 +423,8 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     nullSubstitution[variables[i]] = bottomType;
     for (int j = 0; j < variables.length; j++) {
       TypeVariableBuilder variable = variables[j];
-      bounds[j] = substituteRange(
-          bounds[j], substitution, nullSubstitution, null, null,
+      bounds[j] = substituteRange(bounds[j], substitution, nullSubstitution,
+          unboundTypes, unboundTypeVariables,
           variance: variable.variance);
     }
   }
