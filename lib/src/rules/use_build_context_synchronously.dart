@@ -24,14 +24,14 @@ When a `BuildContext` is used from a `StatefulWidget`, the `mounted` property
 must be checked after an asynchronous gap.
 
 **GOOD:**
-```
+```dart
 void onButtonTapped(BuildContext context) {
   Navigator.of(context).pop();
 }
 ```
 
 **BAD:**
-```
+```dart
 void onButtonTapped(BuildContext context) async {
   await Future.delayed(const Duration(seconds: 1));
   Navigator.of(context).pop();
@@ -39,7 +39,7 @@ void onButtonTapped(BuildContext context) async {
 ```
 
 **GOOD:**
-```
+```dart
 class _MyWidgetState extends State<MyWidget> {
   ...
 
