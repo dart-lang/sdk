@@ -213,12 +213,12 @@ void defineSoloRuleTest(String ruleToTest) {
 
 void testRule(String ruleName, File file,
     {bool debug = true, String? analysisOptions}) {
-  registerLintRules(inTestMode: debug);
-
   test('$ruleName', () async {
     if (!file.existsSync()) {
       throw Exception('No rule found defined at: ${file.path}');
     }
+
+    registerLintRules(inTestMode: debug);
 
     var expected = <AnnotationMatcher>[];
 
