@@ -34,8 +34,10 @@ void main() {
       ], LinterOptions());
       expect(
           collectingOut.trim(),
-          stringContainsInOrder(
-              ['class B extends Object with A {} // LINT', '1 file analyzed, 1 issue found, in']));
+          stringContainsInOrder([
+            'class B extends Object with A {} // LINT',
+            '1 file analyzed, 1 issue found, in'
+          ]));
       expect(exitCode, 1);
     });
   });
