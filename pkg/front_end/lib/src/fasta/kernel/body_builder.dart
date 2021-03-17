@@ -5950,16 +5950,28 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // Peek to leave type parameters on top of stack.
     List<TypeVariableBuilder> typeVariables = peek();
 
+    List<TypeBuilder> unboundTypes = [];
+    List<TypeVariableBuilder> unboundTypeVariables = [];
     List<TypeBuilder> calculatedBounds = calculateBounds(
         typeVariables,
         libraryBuilder.loader.target.dynamicType,
         libraryBuilder.loader.target.nullType,
-        libraryBuilder.loader.target.objectClassBuilder);
+        libraryBuilder.loader.target.objectClassBuilder,
+        unboundTypes: unboundTypes,
+        unboundTypeVariables: unboundTypeVariables);
+    assert(unboundTypes.isEmpty,
+        "Found a type not bound to a declaration in BodyBuilder.");
     for (int i = 0; i < typeVariables.length; ++i) {
       typeVariables[i].defaultType = calculatedBounds[i];
       typeVariables[i].defaultType.resolveIn(scope, typeVariables[i].charOffset,
           typeVariables[i].fileUri, libraryBuilder);
       typeVariables[i].finish(
+          libraryBuilder,
+          libraryBuilder.loader.target.objectClassBuilder,
+          libraryBuilder.loader.target.dynamicType);
+    }
+    for (int i = 0; i < unboundTypeVariables.length; ++i) {
+      unboundTypeVariables[i].finish(
           libraryBuilder,
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
