@@ -21,6 +21,7 @@ jobs:
       matrix:
         linter-bot:
           - main
+          - coverage
           - release
           # re-enable when pana CI issues are resolved: https://github.com/dart-lang/linter/issues/2504
           # - pana_baseline
@@ -40,7 +41,7 @@ jobs:
           LINTER_BOT: ${{ matrix.linter-bot }}
         run: ./tool/bot.sh
       - name: upload coverage
-        if: matrix.linter-bot == 'main'
+        if: matrix.linter-bot == 'coverage'
         uses: coverallsapp/github-action@v1.1.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

@@ -44,16 +44,11 @@ elif [ "$LINTER_BOT" = "pana_baseline" ]; then
 
   dart tool/pana_baseline.dart
 
-else
-  echo "Running main linter bot"
-
-  # Verify that the libraries are error free.
-  dart analyze --fatal-infos .
-
-  echo ""
+elif [ "$LINTER_BOT" = "coverage" ]; then
+  echo "Running the coverage bot"
 
   OBS_PORT=9292
-    
+
   # Run the tests setup for coverage reporting.
   dart --disable-service-auth-codes \
     --disable-analytics \
@@ -61,7 +56,7 @@ else
     --pause-isolates-on-exit \
     test/all.dart &
 
-  status=$?  
+  status=$?
 
   pub global activate coverage
 
@@ -84,4 +79,16 @@ else
     --check-ignore
 
   exit $status
+
+else
+  echo "Running main linter bot"
+
+  # Verify that the libraries are error free.
+  dart analyze --fatal-infos .
+
+  echo ""
+
+  # Run tests.
+  dart --disable-analytics \
+    test/all.dart
 fi
