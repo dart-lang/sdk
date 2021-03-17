@@ -2942,7 +2942,7 @@ class TypeInferrerImpl implements TypeInferrer {
         VariableDeclaration variable = receiver.variable;
         TreeNode parent = variable.parent;
         if (parent is FunctionDeclaration) {
-          assert(inferredFunctionType != unknownFunction,
+          assert(!identical(inferredFunctionType, unknownFunction),
               "Unknown function type for local function invocation.");
           expression = new LocalFunctionInvocation(variable, arguments,
               functionType: inferredFunctionType)

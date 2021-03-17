@@ -1070,6 +1070,24 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   @override
+  EvaluationComplexity visitInstanceGetterInvocation(
+      ir.InstanceGetterInvocation node) {
+    node.receiver = _handleExpression(node.receiver);
+    if (node.arguments.types.isNotEmpty) {
+      ir.TreeNode receiver = node.receiver;
+      assert(
+          !(receiver is ir.VariableGet &&
+              receiver.variable.parent is ir.LocalFunction),
+          "Unexpected local function invocation ${node} "
+          "(${node.runtimeType}).");
+      VariableUse usage = new VariableUse.instanceTypeArgument(node);
+      visitNodesInContext(node.arguments.types, usage);
+    }
+    visitArguments(node.arguments);
+    return const EvaluationComplexity.lazy();
+  }
+
+  @override
   EvaluationComplexity visitDynamicInvocation(ir.DynamicInvocation node) {
     node.receiver = _handleExpression(node.receiver);
     if (node.arguments.types.isNotEmpty) {
@@ -1106,6 +1124,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitLocalFunctionInvocation(
       ir.LocalFunctionInvocation node) {
+    _markVariableAsUsed(node.variable, VariableUse.explicit);
     if (node.arguments.types.isNotEmpty) {
       VariableUse usage =
           new VariableUse.localTypeArgument(node.localFunction, node);

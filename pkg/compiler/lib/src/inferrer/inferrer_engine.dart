@@ -651,10 +651,24 @@ class InferrerEngine {
     // mimicks that ast inferrer which return `true` for [ast.Send] and
     // non-const [ast.NewExpression].
     if (initializer is ir.MethodInvocation ||
+        initializer is ir.InstanceInvocation ||
+        initializer is ir.InstanceGetterInvocation ||
+        initializer is ir.DynamicInvocation ||
+        initializer is ir.FunctionInvocation ||
+        initializer is ir.LocalFunctionInvocation ||
+        initializer is ir.EqualsNull ||
+        initializer is ir.EqualsCall ||
         initializer is ir.PropertyGet ||
+        initializer is ir.InstanceGet ||
+        initializer is ir.DynamicGet ||
+        initializer is ir.InstanceTearOff ||
+        initializer is ir.FunctionTearOff ||
         initializer is ir.PropertySet ||
+        initializer is ir.InstanceSet ||
+        initializer is ir.DynamicSet ||
         initializer is ir.StaticInvocation ||
         initializer is ir.StaticGet ||
+        initializer is ir.StaticTearOff ||
         initializer is ir.StaticSet ||
         initializer is ir.Let ||
         initializer is ir.ConstructorInvocation && !initializer.isConst) {
