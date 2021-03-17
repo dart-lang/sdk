@@ -364,7 +364,7 @@ struct InstrAttrs {
     // The instruction is guaranteed to not trigger GC on a non-exceptional
     // path. If the conditions depend on parameters of the instruction, do not
     // use this attribute but overload CanTriggerGC() instead.
-    kNoGC = 1
+    kNoGC = 1,
   };
 };
 
@@ -392,7 +392,7 @@ struct InstrAttrs {
   M(NativeReturn, kNoGC)                                                       \
   M(Throw, kNoGC)                                                              \
   M(ReThrow, kNoGC)                                                            \
-  M(Stop, _)                                                                   \
+  M(Stop, kNoGC)                                                               \
   M(Goto, kNoGC)                                                               \
   M(IndirectGoto, kNoGC)                                                       \
   M(Branch, kNoGC)                                                             \
@@ -402,10 +402,10 @@ struct InstrAttrs {
   M(SpecialParameter, kNoGC)                                                   \
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
-  M(EnterHandleScope, _)                                                       \
-  M(ExitHandleScope, _)                                                        \
-  M(AllocateHandle, _)                                                         \
-  M(RawStoreField, _)                                                          \
+  M(EnterHandleScope, kNoGC)                                                   \
+  M(ExitHandleScope, kNoGC)                                                    \
+  M(AllocateHandle, kNoGC)                                                     \
+  M(RawStoreField, kNoGC)                                                      \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
   M(DispatchTableCall, _)                                                      \
@@ -470,19 +470,19 @@ struct InstrAttrs {
   M(Unbox, kNoGC)                                                              \
   M(BoxInt64, _)                                                               \
   M(UnboxInt64, kNoGC)                                                         \
-  M(CaseInsensitiveCompare, _)                                                 \
+  M(CaseInsensitiveCompare, kNoGC)                                             \
   M(BinaryInt64Op, kNoGC)                                                      \
   M(ShiftInt64Op, kNoGC)                                                       \
   M(SpeculativeShiftInt64Op, kNoGC)                                            \
   M(UnaryInt64Op, kNoGC)                                                       \
   M(CheckArrayBound, kNoGC)                                                    \
   M(GenericCheckBound, kNoGC)                                                  \
-  M(Constraint, _)                                                             \
+  M(Constraint, kNoGC)                                                         \
   M(StringToCharCode, kNoGC)                                                   \
   M(OneByteStringFromCharCode, kNoGC)                                          \
   M(StringInterpolate, _)                                                      \
   M(Utf8Scan, kNoGC)                                                           \
-  M(InvokeMathCFunction, _)                                                    \
+  M(InvokeMathCFunction, kNoGC)                                                \
   M(TruncDivMod, kNoGC)                                                        \
   /*We could be more precise about when these 2 instructions can trigger GC.*/ \
   M(GuardFieldClass, _)                                                        \
@@ -501,9 +501,9 @@ struct InstrAttrs {
   M(UnboxUint32, kNoGC)                                                        \
   M(BoxInt32, _)                                                               \
   M(UnboxInt32, kNoGC)                                                         \
-  M(BoxUint8, _)                                                               \
+  M(BoxUint8, kNoGC)                                                           \
   M(IntConverter, _)                                                           \
-  M(BitCast, _)                                                                \
+  M(BitCast, kNoGC)                                                            \
   M(Deoptimize, kNoGC)                                                         \
   M(SimdOp, kNoGC)
 
@@ -6892,6 +6892,8 @@ class BoxIntegerInstr : public BoxInstr {
   virtual bool RecomputeType();
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool CanTriggerGC() const { return !ValueFitsSmi(); }
 
   DEFINE_INSTRUCTION_TYPE_CHECK(BoxInteger)
 
