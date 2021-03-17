@@ -3054,21 +3054,25 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 
   // Suspend finalization of types inside this one. They will be finalized after
   // the whole function type is constructed.
-  //
-  // TODO(31213): Test further when nested generic function types
-  // are supported by fasta.
   bool finalize = finalize_;
   finalize_ = false;
+  intptr_t type_parameter_count = 0;
 
   if (!simple) {
+    type_parameter_count = helper_->ReadListLength();
     LoadAndSetupTypeParameters(
         active_class_, Object::null_function(), Object::null_class(), signature,
-        helper_->ReadListLength(), active_class_->klass->nnbd_mode());
+        type_parameter_count, active_class_->klass->nnbd_mode());
   }
 
   ActiveTypeParametersScope scope(
       active_class_, &signature,
       TypeArguments::Handle(Z, signature.type_parameters()), Z);
+
+  if (!simple) {
+    LoadAndSetupBounds(active_class_, Object::null_function(),
+                       Object::null_class(), signature, type_parameter_count);
+  }
 
   intptr_t required_count;
   intptr_t all_count;
@@ -3324,7 +3328,6 @@ void TypeTranslator::LoadAndSetupTypeParameters(
                                       ? Nullability::kNonNullable
                                       : Nullability::kLegacy;
 
-  // Step a)
   // - Create array of [TypeParameter] objects (without bound).
   // - Create array of [String] objects.
   type_parameters = TypeArguments::New(type_parameter_count);
@@ -3354,20 +3357,35 @@ void TypeTranslator::LoadAndSetupTypeParameters(
       } else {
         name = H.DartIdentifier(lib, helper.name_index_).ptr();
       }
+      // Bounds are filled later in LoadAndSetupBounds as bound types may
+      // reference type parameters which are not created yet.
       parameter = TypeParameter::New(
           parameterized_class, offset, offset + i, name, null_bound,
           helper.IsGenericCovariantImpl(), nullability);
       type_parameters.SetTypeAt(i, parameter);
     }
   }
+}
 
-  const FunctionType* enclosing = NULL;
-  if (!parameterized_signature.IsNull()) {
-    enclosing = &parameterized_signature;
+void TypeTranslator::LoadAndSetupBounds(
+    ActiveClass* active_class,
+    const Function& function,
+    const Class& parameterized_class,
+    const FunctionType& parameterized_signature,
+    intptr_t type_parameter_count) {
+  ASSERT(parameterized_class.IsNull() != parameterized_signature.IsNull());
+  ASSERT(type_parameter_count >= 0);
+  if (type_parameter_count == 0) {
+    return;
   }
-  ActiveTypeParametersScope scope(active_class, enclosing, type_parameters, Z);
 
-  // Step b) Fill in the bounds and default arguments of all [TypeParameter]s.
+  const TypeArguments& type_parameters =
+      TypeArguments::Handle(Z, !parameterized_class.IsNull()
+                                   ? parameterized_class.type_parameters()
+                                   : parameterized_signature.type_parameters());
+  TypeParameter& parameter = TypeParameter::Handle(Z);
+
+  // Fill in the bounds and default arguments of all [TypeParameter]s.
   for (intptr_t i = 0; i < type_parameter_count; i++) {
     TypeParameterHelper helper(helper_);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
@@ -3389,6 +3407,9 @@ void TypeTranslator::LoadAndSetupTypeParameters(
 
   // Fix bounds and default arguments in all derived type parameters (with
   // different nullabilities).
+  const intptr_t offset = !parameterized_signature.IsNull()
+                              ? parameterized_signature.NumParentTypeArguments()
+                              : 0;
   if (active_class->derived_type_parameters != nullptr) {
     auto& derived = TypeParameter::Handle(Z);
     auto& type = AbstractType::Handle(Z);
@@ -3535,14 +3556,21 @@ void TypeTranslator::SetupFunctionParameters(
 
   const FunctionType& signature = FunctionType::Handle(Z, function.signature());
   ASSERT(!signature.IsNull());
+  intptr_t type_parameter_count = 0;
   if (!is_factory) {
+    type_parameter_count = helper_->ReadListLength();
     LoadAndSetupTypeParameters(active_class_, function, Class::Handle(Z),
-                               signature, helper_->ReadListLength(),
+                               signature, type_parameter_count,
                                function.nnbd_mode());
-    function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
   }
 
   ActiveTypeParametersScope scope(active_class_, function, &signature, Z);
+
+  if (!is_factory) {
+    LoadAndSetupBounds(active_class_, function, Class::Handle(Z), signature,
+                       type_parameter_count);
+    function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
+  }
 
   function_node_helper->ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);

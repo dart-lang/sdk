@@ -21117,10 +21117,12 @@ bool TypeParameter::IsEquivalent(const Instance& other,
         return false;
       }
       // Compare bounds.
+      if (TestAndAddBuddyToTrail(&trail, other_type_param)) {
+        return true;
+      }
       AbstractType& type = AbstractType::Handle(bound());
       AbstractType& other_type = AbstractType::Handle(other_type_param.bound());
-      if (!TestAndAddBuddyToTrail(&trail, other_type_param) &&
-          !type.IsEquivalent(other_type, kind, trail)) {
+      if (!type.IsEquivalent(other_type, kind, trail)) {
         return false;
       }
       if (kind == TypeEquality::kCanonical) {
@@ -21164,11 +21166,13 @@ bool TypeParameter::IsEquivalent(const Instance& other,
       }
     }
     // Compare bounds.
+    if (TestAndAddBuddyToTrail(&trail, other_type_param)) {
+      return true;
+    }
     AbstractType& upper_bound = AbstractType::Handle(bound());
     AbstractType& other_type_param_upper_bound =
         AbstractType::Handle(other_type_param.bound());
-    if (!TestAndAddBuddyToTrail(&trail, other_type_param) &&
-        !upper_bound.IsEquivalent(other_type_param_upper_bound, kind, trail)) {
+    if (!upper_bound.IsEquivalent(other_type_param_upper_bound, kind, trail)) {
       return false;
     }
   }

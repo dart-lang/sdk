@@ -1478,6 +1478,12 @@ class TypeTranslator {
                                   intptr_t type_parameter_count,
                                   const NNBDMode nnbd_mode);
 
+  void LoadAndSetupBounds(ActiveClass* active_class,
+                          const Function& function,
+                          const Class& parameterized_class,
+                          const FunctionType& parameterized_signature,
+                          intptr_t type_parameter_count);
+
   const Type& ReceiverType(const Class& klass);
 
   void SetupFunctionParameters(const Class& klass,
