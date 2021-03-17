@@ -248,8 +248,8 @@ class PubspecValidator {
     if (dependency is YamlMap) {
       var pathEntry = _asString(dependency[PATH_FIELD]);
       if (pathEntry != null) {
-        YamlNode pathKey() => getKey(dependency, PATH_FIELD)!;
-        YamlNode pathValue() => getValue(dependency, PATH_FIELD)!;
+        YamlNode pathKey() => dependency.getKey(PATH_FIELD)!;
+        YamlNode pathValue() => dependency.valueAt(PATH_FIELD)!;
 
         if (pathEntry.contains(r'\')) {
           _reportErrorForNode(reporter, pathValue(),
@@ -280,7 +280,7 @@ class PubspecValidator {
 
       var gitEntry = dependency[GIT_FIELD];
       if (gitEntry != null && checkForPathAndGitDeps) {
-        _reportErrorForNode(reporter, getKey(dependency, GIT_FIELD)!,
+        _reportErrorForNode(reporter, dependency.getKey(GIT_FIELD)!,
             PubspecWarningCode.INVALID_DEPENDENCY, [GIT_FIELD]);
       }
     }

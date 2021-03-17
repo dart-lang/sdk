@@ -4,30 +4,6 @@
 
 import 'package:yaml/yaml.dart';
 
-extension YamlMapExtensions on YamlMap {
-  /// Return the node representing the key that corresponds to the value
-  /// represented by the [value] node.
-  YamlNode keyAtValue(YamlNode value) {
-    for (var entry in nodes.entries) {
-      if (entry.value == value) {
-        return entry.key;
-      }
-    }
-    return null;
-  }
-
-  /// Return the value associated with the key whose value matches the given
-  /// [key], or `null` if there is no matching key.
-  YamlNode valueAt(String key) {
-    for (var keyNode in nodes.keys) {
-      if (keyNode is YamlScalar && keyNode.value == key) {
-        return nodes[key];
-      }
-    }
-    return null;
-  }
-}
-
 extension YamlNodeExtensions on YamlNode {
   /// Return the child of this node that contains the given [offset], or `null`
   /// if none of the children contains the offset.

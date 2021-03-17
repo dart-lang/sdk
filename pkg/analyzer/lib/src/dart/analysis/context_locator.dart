@@ -433,10 +433,10 @@ class ContextLocatorImpl implements ContextLocator {
             .getOptionsFromFile(optionsFile);
 
         if (doc is YamlMap) {
-          var analyzerOptions = getValue(doc, AnalyzerOptions.analyzer);
+          var analyzerOptions = doc.valueAt(AnalyzerOptions.analyzer);
           if (analyzerOptions is YamlMap) {
             var excludeOptions =
-                getValue(analyzerOptions, AnalyzerOptions.exclude);
+                analyzerOptions.valueAt(AnalyzerOptions.exclude);
             if (excludeOptions is YamlList) {
               List<String>? excludeList = toStringList(excludeOptions);
               if (excludeList != null) {

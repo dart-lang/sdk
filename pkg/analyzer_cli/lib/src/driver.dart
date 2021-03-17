@@ -48,8 +48,8 @@ StringSink outSink = io.stdout;
 
 /// Test this option map to see if it specifies lint rules.
 bool containsLintRuleEntry(YamlMap options) {
-  var linterNode = getValue(options, 'linter');
-  return linterNode is YamlMap && getValue(linterNode, 'rules') != null;
+  var linterNode = options.valueAt('linter');
+  return linterNode is YamlMap && linterNode.valueAt('rules') != null;
 }
 
 class Driver implements CommandLineStarter {

@@ -57,7 +57,7 @@ List<AnalysisError> analyzeAnalysisOptions(
       errors.addAll(validationErrors);
     }
 
-    var node = getValue(options, AnalyzerOptions.include);
+    var node = options.valueAt(AnalyzerOptions.include);
     if (node == null) {
       return;
     }
@@ -208,10 +208,9 @@ class EnabledExperimentsValidator extends OptionsValidator {
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
-    var analyzer = getValue(options, AnalyzerOptions.analyzer);
+    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
-      var experimentNames =
-          getValue(analyzer, AnalyzerOptions.enableExperiment);
+      var experimentNames = analyzer.valueAt(AnalyzerOptions.enableExperiment);
       if (experimentNames is YamlList) {
         var flags =
             experimentNames.nodes.map((node) => node.toString()).toList();
@@ -313,9 +312,9 @@ class ErrorFilterOptionValidator extends OptionsValidator {
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
-    var analyzer = getValue(options, AnalyzerOptions.analyzer);
+    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
-      var filters = getValue(analyzer, AnalyzerOptions.errors);
+      var filters = analyzer.valueAt(AnalyzerOptions.errors);
       if (filters is YamlMap) {
         String? value;
         filters.nodes.forEach((k, v) {
@@ -355,9 +354,9 @@ class LanguageOptionValidator extends OptionsValidator {
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
-    var analyzer = getValue(options, AnalyzerOptions.analyzer);
+    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
-      var language = getValue(analyzer, AnalyzerOptions.language);
+      var language = analyzer.valueAt(AnalyzerOptions.language);
       if (language is YamlMap) {
         language.nodes.forEach((k, v) {
           String? key, value;
@@ -414,9 +413,9 @@ class OptionalChecksValueValidator extends OptionsValidator {
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
-    var analyzer = getValue(options, AnalyzerOptions.analyzer);
+    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
-      var v = getValue(analyzer, AnalyzerOptions.optionalChecks);
+      var v = analyzer.valueAt(AnalyzerOptions.optionalChecks);
       if (v is YamlScalar) {
         var value = toLowerCase(v.value);
         if (value != AnalyzerOptions.chromeOsManifestChecks) {
@@ -476,9 +475,9 @@ class StrongModeOptionValueValidator extends OptionsValidator {
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
-    var analyzer = getValue(options, AnalyzerOptions.analyzer);
+    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
-      var v = getValue(analyzer, AnalyzerOptions.strong_mode);
+      var v = analyzer.valueAt(AnalyzerOptions.strong_mode);
       if (v is YamlScalar) {
         var value = toLowerCase(v.value);
         if (!AnalyzerOptions.trueOrFalse.contains(value)) {
@@ -551,7 +550,7 @@ class TopLevelOptionValidator extends OptionsValidator {
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
-    var node = getValue(options, pluginName);
+    var node = options.valueAt(pluginName);
     if (node is YamlMap) {
       node.nodes.forEach((k, v) {
         if (k is YamlScalar) {
@@ -582,19 +581,18 @@ class _OptionsProcessor {
     if (optionMap == null) {
       return;
     }
-    var analyzer = getValue(optionMap, AnalyzerOptions.analyzer);
+    var analyzer = optionMap.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
       // Process strong mode option.
-      var strongMode = getValue(analyzer, AnalyzerOptions.strong_mode);
+      var strongMode = analyzer.valueAt(AnalyzerOptions.strong_mode);
       _applyStrongOptions(options, strongMode);
 
       // Process filters.
-      var filters = getValue(analyzer, AnalyzerOptions.errors);
+      var filters = analyzer.valueAt(AnalyzerOptions.errors);
       _applyProcessors(options, filters);
 
       // Process enabled experiments.
-      var experimentNames =
-          getValue(analyzer, AnalyzerOptions.enableExperiment);
+      var experimentNames = analyzer.valueAt(AnalyzerOptions.enableExperiment);
       if (experimentNames is YamlList) {
         List<String> enabledExperiments = <String>[];
         for (var element in experimentNames.nodes) {
@@ -610,19 +608,19 @@ class _OptionsProcessor {
       }
 
       // Process optional checks options.
-      var optionalChecks = getValue(analyzer, AnalyzerOptions.optionalChecks);
+      var optionalChecks = analyzer.valueAt(AnalyzerOptions.optionalChecks);
       _applyOptionalChecks(options, optionalChecks);
 
       // Process language options.
-      var language = getValue(analyzer, AnalyzerOptions.language);
+      var language = analyzer.valueAt(AnalyzerOptions.language);
       _applyLanguageOptions(options, language);
 
       // Process excludes.
-      var excludes = getValue(analyzer, AnalyzerOptions.exclude);
+      var excludes = analyzer.valueAt(AnalyzerOptions.exclude);
       _applyExcludes(options, excludes);
 
       // Process plugins.
-      var names = getValue(analyzer, AnalyzerOptions.plugins);
+      var names = analyzer.valueAt(AnalyzerOptions.plugins);
       List<String> pluginNames = <String>[];
       var pluginName = _toString(names);
       if (pluginName != null) {
