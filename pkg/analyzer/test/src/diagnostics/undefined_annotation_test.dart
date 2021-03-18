@@ -45,6 +45,26 @@ main() {
     ]);
   }
 
+  test_unresolved_prefix() async {
+    await assertErrorsInCode(r'''
+@p.A(0)
+class B {}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 0, 7),
+    ]);
+  }
+
+  test_unresolved_prefixed() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as p;
+
+@p.A(0)
+class B {}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 26, 7),
+    ]);
+  }
+
   test_unresolved_prefixedIdentifier() async {
     await assertErrorsInCode(r'''
 import 'dart:math' as p;

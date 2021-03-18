@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -23,18 +25,14 @@ class AnnotationResolver {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
+  bool get _genericMetadataIsEnabled =>
+      _definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
+
   void resolve(AnnotationImpl node) {
     AstNode parent = node.parent;
 
-    _resolve1(node);
-
-    node.constructorName?.accept(_resolver);
-    var element = node.element;
-    if (element is ExecutableElement) {
-      InferenceContext.setType(node.arguments, element.type);
-    }
     node.typeArguments?.accept(_resolver);
-    node.arguments?.accept(_resolver);
+    _resolve(node);
 
     var elementAnnotationImpl =
         node.elementAnnotation as ElementAnnotationImpl?;
@@ -46,6 +44,138 @@ class AnnotationResolver {
     }
   }
 
+  void _classGetter(
+    AnnotationImpl node,
+    ClassElement classElement,
+    SimpleIdentifierImpl? getterName,
+  ) {
+    ExecutableElement? getter;
+    if (getterName != null) {
+      getter = classElement.getGetter(getterName.name);
+      getter = _resolver.toLegacyElement(getter);
+      // Recovery, try to find a constructor.
+      getter ??= classElement.getNamedConstructor(getterName.name);
+    } else {
+      getter = classElement.unnamedConstructor;
+    }
+
+    getterName?.staticElement = getter;
+    node.element = getter;
+
+    if (getterName != null && getter is PropertyAccessorElement) {
+      _propertyAccessorElement(node, getterName, getter);
+      _resolveAnnotationElementGetter(node, getter);
+    } else if (getter is! ConstructorElement) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVALID_ANNOTATION,
+        node,
+      );
+    }
+
+    node.arguments?.accept(_resolver);
+  }
+
+  void _constructorInvocation(
+    AnnotationImpl node,
+    ClassElement classElement,
+    SimpleIdentifierImpl? constructorName,
+    ArgumentList argumentList,
+  ) {
+    ConstructorElement? constructorElement;
+    if (constructorName != null) {
+      constructorElement = classElement.getNamedConstructor(
+        constructorName.name,
+      );
+    } else {
+      constructorElement = classElement.unnamedConstructor;
+    }
+
+    constructorElement = _resolver.toLegacyElement(constructorElement);
+    constructorName?.staticElement = constructorElement;
+    node.element = constructorElement;
+
+    if (constructorElement == null) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVALID_ANNOTATION,
+        node,
+      );
+      argumentList.accept(_resolver);
+      return;
+    }
+
+    var typeParameters = classElement.typeParameters;
+
+    // If no type parameters, the elements are correct.
+    if (typeParameters.isEmpty) {
+      InferenceContext.setType(argumentList, constructorElement.type);
+      argumentList.accept(_resolver);
+      // TODO(scheglov) other places?
+      _resolveAnnotationConstructorInvocationArguments(
+        node,
+        constructorElement,
+      );
+      return;
+    }
+
+    void resolveWithFixedTypeArguments(
+      List<DartType> typeArguments,
+      ConstructorElement constructorElement,
+    ) {
+      var type = classElement.instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: _resolver.noneOrStarSuffix,
+      );
+      constructorElement = ConstructorMember.from(constructorElement, type);
+      constructorName?.staticElement = constructorElement;
+      node.element = constructorElement;
+
+      InferenceContext.setType(argumentList, constructorElement.type);
+      argumentList.accept(_resolver);
+    }
+
+    if (!_genericMetadataIsEnabled) {
+      var typeArguments = List.filled(
+        typeParameters.length,
+        DynamicTypeImpl.instance,
+      );
+      resolveWithFixedTypeArguments(typeArguments, constructorElement);
+      return;
+    }
+
+    var typeArgumentList = node.typeArguments;
+    if (typeArgumentList != null) {
+      List<DartType> typeArguments;
+      if (typeArgumentList.arguments.length == typeParameters.length) {
+        typeArguments = typeArgumentList.arguments
+            .map((element) => element.typeOrThrow)
+            .toList();
+      } else {
+        typeArguments = List.filled(
+          typeParameters.length,
+          DynamicTypeImpl.instance,
+        );
+      }
+      resolveWithFixedTypeArguments(typeArguments, constructorElement);
+      return;
+    }
+
+    argumentList.accept(_resolver);
+
+    var constructorRawType = _resolver.typeAnalyzer
+        .constructorToGenericFunctionType(constructorElement);
+
+    var inferred = _resolver.inferenceHelper.inferGenericInvoke(
+        node, constructorRawType, typeArgumentList, argumentList, node,
+        isConst: true)!;
+
+    constructorElement = ConstructorMember.from(
+      constructorElement,
+      inferred.returnType as InterfaceType,
+    );
+    constructorName?.staticElement = constructorElement;
+    node.element = constructorElement;
+  }
+
   /// Return a newly created cloner that can be used to clone constant
   /// expressions.
   ///
@@ -54,86 +184,144 @@ class AnnotationResolver {
     return ConstantAstCloner();
   }
 
-  InterfaceType _instantiateAnnotationClass(ClassElement element) {
-    return element.instantiate(
-      typeArguments: List.filled(
-        element.typeParameters.length,
-        DynamicTypeImpl.instance,
-      ),
-      nullabilitySuffix: _resolver.noneOrStarSuffix,
-    );
+  void _extensionGetter(
+    AnnotationImpl node,
+    ExtensionElement extensionElement,
+    SimpleIdentifierImpl? getterName,
+  ) {
+    ExecutableElement? getter;
+    if (getterName != null) {
+      getter = extensionElement.getGetter(getterName.name);
+      getter = _resolver.toLegacyElement(getter);
+    }
+
+    getterName?.staticElement = getter;
+    node.element = getter;
+
+    if (getterName != null && getter is PropertyAccessorElement) {
+      _propertyAccessorElement(node, getterName, getter);
+      _resolveAnnotationElementGetter(node, getter);
+    } else {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVALID_ANNOTATION,
+        node,
+      );
+    }
+
+    node.arguments?.accept(_resolver);
   }
 
-  void _resolve1(AnnotationImpl node) {
-    var nodeName = node.name;
+  void _propertyAccessorElement(
+    AnnotationImpl node,
+    SimpleIdentifierImpl name,
+    PropertyAccessorElement element,
+  ) {
+    element = _resolver.toLegacyElement(element);
+    name.staticElement = element;
+    node.element = element;
 
-    if (nodeName is PrefixedIdentifierImpl) {
-      var prefix = nodeName.prefix;
-      var identifier = nodeName.identifier;
+    _resolveAnnotationElementGetter(node, element);
+    node.arguments?.accept(_resolver);
+  }
 
-      prefix.accept(_resolver);
-      var prefixElement = prefix.staticElement;
+  void _resolve(AnnotationImpl node) {
+    SimpleIdentifierImpl name1;
+    SimpleIdentifierImpl? name2;
+    SimpleIdentifierImpl? name3;
+    var nameNode = node.name;
+    if (nameNode is PrefixedIdentifierImpl) {
+      name1 = nameNode.prefix;
+      name2 = nameNode.identifier;
+      name3 = node.constructorName;
+    } else {
+      name1 = nameNode as SimpleIdentifierImpl;
+      name2 = node.constructorName;
+    }
+    var argumentList = node.arguments;
 
-      if (prefixElement is ClassElement && node.arguments != null) {
-        var element = prefixElement.getNamedConstructor(identifier.name);
-        element = _resolver.toLegacyElement(element);
+    var element1 = _resolver.nameScope.lookup(name1.name).getter;
+    name1.staticElement = element1;
 
-        identifier.staticElement = element;
-        // TODO(scheglov) error?
-      } else if (prefixElement is PrefixElement) {
-        var resolver = PropertyElementResolver(_resolver);
-        var result = resolver.resolvePrefixedIdentifier(
-          node: nodeName,
-          hasRead: true,
-          hasWrite: false,
-          forAnnotation: true,
-        );
+    if (element1 == null) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.UNDEFINED_ANNOTATION,
+        node,
+        [name1.name],
+      );
+      node.arguments?.accept(_resolver);
+      return;
+    }
 
-        var element = result.readElement;
-        identifier.staticElement = element;
+    // Class(args) or Class.CONST
+    if (element1 is ClassElement) {
+      if (argumentList != null) {
+        _constructorInvocation(node, element1, name2, argumentList);
+      } else {
+        _classGetter(node, element1, name2);
+      }
+      return;
+    }
 
-        if (element == null) {
+    // Extension.CONST
+    if (element1 is ExtensionElement) {
+      _extensionGetter(node, element1, name2);
+      return;
+    }
+
+    // prefix.*
+    if (element1 is PrefixElement) {
+      if (name2 != null) {
+        var element2 = element1.scope.lookup(name2.name).getter;
+        name2.staticElement = element2;
+        // prefix.Class(args) or prefix.Class.CONST
+        if (element2 is ClassElement) {
+          if (argumentList != null) {
+            _constructorInvocation(node, element2, name3, argumentList);
+          } else {
+            _classGetter(node, element2, name3);
+          }
+          return;
+        }
+        // prefix.Extension.CONST
+        if (element2 is ExtensionElement) {
+          _extensionGetter(node, element2, name3);
+          return;
+        }
+        // prefix.CONST
+        if (element2 is PropertyAccessorElement) {
+          _propertyAccessorElement(node, name2, element2);
+          return;
+        }
+        // undefined
+        if (element2 == null) {
           _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_ANNOTATION,
             node,
-            [identifier.name],
+            [name2.name],
           );
+          node.arguments?.accept(_resolver);
+          return;
         }
-      } else {
-        var resolver = PropertyElementResolver(_resolver);
-        var result = resolver.resolvePrefixedIdentifier(
-          node: nodeName,
-          hasRead: true,
-          hasWrite: false,
-          forAnnotation: true,
-        );
-
-        var element = result.readElement;
-        identifier.staticElement = element;
-      }
-    } else {
-      var identifier = nodeName as SimpleIdentifierImpl;
-
-      var resolver = PropertyElementResolver(_resolver);
-      var result = resolver.resolveSimpleIdentifier(
-        node: identifier,
-        hasRead: true,
-        hasWrite: false,
-      );
-
-      var element = result.readElement;
-      identifier.staticElement = element;
-
-      if (element == null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_ANNOTATION,
-          node,
-          [identifier.name],
-        );
       }
     }
 
-    _resolveAnnotationElement(node);
+    // CONST
+    if (element1 is PropertyAccessorElement) {
+      _propertyAccessorElement(node, name1, element1);
+      return;
+    }
+
+    // TODO(scheglov) Must be const.
+    if (element1 is VariableElement) {
+      return;
+    }
+
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.INVALID_ANNOTATION,
+      node,
+    );
+
+    node.arguments?.accept(_resolver);
   }
 
   void _resolveAnnotationConstructorInvocationArguments(
@@ -148,124 +336,6 @@ class AnnotationResolver {
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
-  }
-
-  /// Continues resolution of the given [annotation].
-  void _resolveAnnotationElement(AnnotationImpl annotation) {
-    late final SimpleIdentifier nameNode1;
-    SimpleIdentifierImpl? nameNode2;
-    {
-      Identifier annName = annotation.name;
-      if (annName is PrefixedIdentifierImpl) {
-        nameNode1 = annName.prefix;
-        nameNode2 = annName.identifier;
-      } else {
-        nameNode1 = annName as SimpleIdentifier;
-        nameNode2 = null;
-      }
-    }
-    SimpleIdentifierImpl? nameNode3 = annotation.constructorName;
-    ConstructorElement? constructor;
-    bool undefined = false;
-    //
-    // CONST or Class(args)
-    //
-    if (nameNode2 == null && nameNode3 == null) {
-      var element1 = nameNode1.staticElement;
-      // TODO(scheglov) Must be const.
-      if (element1 is VariableElement) {
-        return;
-      }
-      // CONST
-      if (element1 is PropertyAccessorElement) {
-        _resolveAnnotationElementGetter(annotation, element1);
-        return;
-      }
-      // Class(args)
-      if (element1 is ClassElement) {
-        constructor = _instantiateAnnotationClass(element1)
-            .lookUpConstructor(null, _definingLibrary);
-        constructor = _resolver.toLegacyElement(constructor);
-      } else if (element1 == null) {
-        undefined = true;
-      }
-    }
-    //
-    // prefix.CONST or prefix.Class() or Class.CONST or Class.constructor(args)
-    //
-    if (nameNode2 != null && nameNode3 == null) {
-      var element1 = nameNode1.staticElement;
-      var element2 = nameNode2.staticElement;
-      // Class.CONST - not resolved yet
-      if (element1 is ClassElement) {
-        element2 = element1.lookUpGetter(nameNode2.name, _definingLibrary);
-        element2 = _resolver.toLegacyElement(element2);
-      }
-      // prefix.CONST or Class.CONST
-      if (element2 is PropertyAccessorElement) {
-        nameNode2.staticElement = element2;
-        annotation.element = element2;
-        _resolveAnnotationElementGetter(annotation, element2);
-        return;
-      }
-      // prefix.Class()
-      if (element2 is ClassElement) {
-        constructor = element2.unnamedConstructor;
-        constructor = _resolver.toLegacyElement(constructor);
-      }
-      // Class.constructor(args)
-      if (element1 is ClassElement) {
-        constructor = _instantiateAnnotationClass(element1)
-            .lookUpConstructor(nameNode2.name, _definingLibrary);
-        constructor = _resolver.toLegacyElement(constructor);
-        nameNode2.staticElement = constructor;
-      }
-      if (element1 is PrefixElement && element2 == null) {
-        undefined = true;
-      }
-      if (element1 == null && element2 == null) {
-        undefined = true;
-      }
-    }
-    //
-    // prefix.Class.CONST or prefix.Class.constructor(args)
-    //
-    if (nameNode2 != null && nameNode3 != null) {
-      var element2 = nameNode2.staticElement;
-      // element2 should be ClassElement
-      if (element2 is ClassElement) {
-        String name3 = nameNode3.name;
-        // prefix.Class.CONST
-        var getter = element2.lookUpGetter(name3, _definingLibrary);
-        if (getter != null) {
-          getter = _resolver.toLegacyElement(getter)!;
-          nameNode3.staticElement = getter;
-          annotation.element = getter;
-          _resolveAnnotationElementGetter(annotation, getter);
-          return;
-        }
-        // prefix.Class.constructor(args)
-        constructor = _instantiateAnnotationClass(element2)
-            .lookUpConstructor(name3, _definingLibrary);
-        constructor = _resolver.toLegacyElement(constructor);
-        nameNode3.staticElement = constructor;
-      } else if (element2 == null) {
-        undefined = true;
-      }
-    }
-    // we need constructor
-    if (constructor == null) {
-      if (!undefined) {
-        // If the class was not found then we've already reported the error.
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
-      }
-      return;
-    }
-    // record element
-    annotation.element = constructor;
-    // resolve arguments
-    _resolveAnnotationConstructorInvocationArguments(annotation, constructor);
   }
 
   void _resolveAnnotationElementGetter(

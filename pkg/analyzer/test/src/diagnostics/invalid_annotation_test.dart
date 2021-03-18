@@ -15,6 +15,45 @@ main() {
 
 @reflectiveTest
 class InvalidAnnotationTest extends PubPackageResolutionTest {
+  test_class_noUnnamedConstructor() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A.named();
+}
+
+@A
+void f() {}
+''', [
+      error(CompileTimeErrorCode.INVALID_ANNOTATION, 32, 2),
+    ]);
+  }
+
+  test_class_staticMethod() async {
+    await assertErrorsInCode(r'''
+class A {
+  static int foo() => 0;
+}
+
+@A.foo
+void f() {}
+''', [
+      error(CompileTimeErrorCode.INVALID_ANNOTATION, 38, 6),
+    ]);
+  }
+
+  test_class_staticMethod_arguments() async {
+    await assertErrorsInCode(r'''
+class A {
+  static int foo() => 0;
+}
+
+@A.foo()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.INVALID_ANNOTATION, 38, 8),
+    ]);
+  }
+
   test_getter() async {
     await assertErrorsInCode(r'''
 get V => 0;
@@ -126,6 +165,28 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_ANNOTATION, 13, 2),
+    ]);
+  }
+
+  test_prefix_function() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as p;
+
+@p.sin(0)
+class B {}
+''', [
+      error(CompileTimeErrorCode.INVALID_ANNOTATION, 26, 9),
+    ]);
+  }
+
+  test_prefix_function_unresolved() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as p;
+
+@p.sin.cos(0)
+class B {}
+''', [
+      error(CompileTimeErrorCode.INVALID_ANNOTATION, 26, 13),
     ]);
   }
 

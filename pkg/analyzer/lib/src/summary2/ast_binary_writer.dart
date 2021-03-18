@@ -61,6 +61,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _writeMarker(MarkerTag.Annotation_name);
     _writeNode(node.name);
+    _writeMarker(MarkerTag.Annotation_typeArguments);
+    _writeOptionalNode(node.typeArguments);
     _writeMarker(MarkerTag.Annotation_constructorName);
     _writeOptionalNode(node.constructorName);
 
