@@ -90,6 +90,260 @@ static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
   __ j(NOT_ZERO, not_smi);
 }
 
+void AsmIntrinsifier::Integer_add(Assembler* assembler, Label* normal_ir_body) {
+  TestBothArgumentsSmis(assembler, normal_ir_body);
+  // RAX contains right argument.
+  __ OBJ(add)(RAX, Address(RSP, +2 * target::kWordSize));
+  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+  // Result is in RAX.
+  __ ret();
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::Integer_sub(Assembler* assembler, Label* normal_ir_body) {
+  TestBothArgumentsSmis(assembler, normal_ir_body);
+  // RAX contains right argument, which is the actual subtrahend of subtraction.
+  __ movq(RCX, RAX);
+  __ movq(RAX, Address(RSP, +2 * target::kWordSize));
+  __ OBJ(sub)(RAX, RCX);
+  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+  // Result is in RAX.
+  __ ret();
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::Integer_mul(Assembler* assembler, Label* normal_ir_body) {
+  TestBothArgumentsSmis(assembler, normal_ir_body);
+  // RAX is the right argument.
+  ASSERT(kSmiTag == 0);  // Adjust code below if not the case.
+  __ SmiUntag(RAX);
+  __ OBJ(imul)(RAX, Address(RSP, +2 * target::kWordSize));
+  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+  // Result is in RAX.
+  __ ret();
+  __ Bind(normal_ir_body);
+}
+
+// Optimizations:
+// - result is 0 if:
+//   - left is 0
+//   - left equals right
+// - result is left if
+//   - left > 0 && left < right
+// RAX: Tagged left (dividend).
+// RCX: Tagged right (divisor).
+// Returns:
+//   RAX: Untagged fallthrough result (remainder to be adjusted), or
+//   RAX: Tagged return result (remainder).
+static void EmitRemainderOperation(Assembler* assembler) {
+  Label return_zero, try_modulo, not_32bit, done;
+  // Check for quick zero results.
+  __ OBJ(cmp)(RAX, Immediate(0));
+  __ j(EQUAL, &return_zero, Assembler::kNearJump);
+  __ OBJ(cmp)(RAX, RCX);
+  __ j(EQUAL, &return_zero, Assembler::kNearJump);
+
+  // Check if result equals left.
+  __ OBJ(cmp)(RAX, Immediate(0));
+  __ j(LESS, &try_modulo, Assembler::kNearJump);
+  // left is positive.
+  __ OBJ(cmp)(RAX, RCX);
+  __ j(GREATER, &try_modulo, Assembler::kNearJump);
+  // left is less than right, result is left (RAX).
+  __ ret();
+
+  __ Bind(&return_zero);
+  __ xorq(RAX, RAX);
+  __ ret();
+
+  __ Bind(&try_modulo);
+
+#if !defined(DART_COMPRESSED_POINTERS)
+  // Check if both operands fit into 32bits as idiv with 64bit operands
+  // requires twice as many cycles and has much higher latency. We are checking
+  // this before untagging them to avoid corner case dividing INT_MAX by -1 that
+  // raises exception because quotient is too large for 32bit register.
+  __ movsxd(RBX, RAX);
+  __ cmpq(RBX, RAX);
+  __ j(NOT_EQUAL, &not_32bit, Assembler::kNearJump);
+  __ movsxd(RBX, RCX);
+  __ cmpq(RBX, RCX);
+  __ j(NOT_EQUAL, &not_32bit, Assembler::kNearJump);
+#endif
+
+  // Both operands are 31bit smis. Divide using 32bit idiv.
+  __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
+  __ cdq();
+  __ idivl(RCX);
+  __ movsxd(RAX, RDX);
+#if !defined(DART_COMPRESSED_POINTERS)
+  __ jmp(&done, Assembler::kNearJump);
+
+  // Divide using 64bit idiv.
+  __ Bind(&not_32bit);
+  __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
+  __ cqo();
+  __ idivq(RCX);
+  __ movq(RAX, RDX);
+  __ Bind(&done);
+#endif
+}
+
+// Implementation:
+//  res = left % right;
+//  if (res < 0) {
+//    if (right < 0) {
+//      res = res - right;
+//    } else {
+//      res = res + right;
+//    }
+//  }
+void AsmIntrinsifier::Integer_mod(Assembler* assembler, Label* normal_ir_body) {
+  Label negative_result;
+
+  __ movq(RAX, Address(RSP, +2 * target::kWordSize));
+  __ movq(RCX, Address(RSP, +1 * target::kWordSize));
+  __ orq(RCX, RAX);
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, normal_ir_body);
+  __ movq(RCX, Address(RSP, +1 * target::kWordSize));
+  // RAX: Tagged left (dividend).
+  // RCX: Tagged right (divisor).
+  __ OBJ(cmp)(RCX, Immediate(0));
+  __ j(EQUAL, normal_ir_body);
+  EmitRemainderOperation(assembler);
+  // Untagged remainder result in RAX.
+  __ OBJ(cmp)(RAX, Immediate(0));
+  __ j(LESS, &negative_result, Assembler::kNearJump);
+  __ SmiTag(RAX);
+  __ ret();
+
+  __ Bind(&negative_result);
+  Label subtract;
+  // RAX: Untagged result.
+  // RCX: Untagged right.
+  __ OBJ(cmp)(RCX, Immediate(0));
+  __ j(LESS, &subtract, Assembler::kNearJump);
+  __ OBJ(add)(RAX, RCX);
+  __ SmiTag(RAX);
+  __ ret();
+
+  __ Bind(&subtract);
+  __ OBJ(sub)(RAX, RCX);
+  __ SmiTag(RAX);
+  __ ret();
+
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::Integer_truncDivide(Assembler* assembler,
+                                          Label* normal_ir_body) {
+  Label not_32bit;
+  TestBothArgumentsSmis(assembler, normal_ir_body);
+  // RAX: right argument (divisor)
+  __ OBJ(cmp)(RAX, Immediate(0));
+  __ j(EQUAL, normal_ir_body, Assembler::kNearJump);
+  __ movq(RCX, RAX);
+  __ movq(RAX,
+          Address(RSP, +2 * target::kWordSize));  // Left argument (dividend).
+
+#if !defined(DART_COMPRESSED_POINTERS)
+  // Check if both operands fit into 32bits as idiv with 64bit operands
+  // requires twice as many cycles and has much higher latency. We are checking
+  // this before untagging them to avoid corner case dividing INT_MAX by -1 that
+  // raises exception because quotient is too large for 32bit register.
+  __ movsxd(RBX, RAX);
+  __ cmpq(RBX, RAX);
+  __ j(NOT_EQUAL, &not_32bit);
+  __ movsxd(RBX, RCX);
+  __ cmpq(RBX, RCX);
+  __ j(NOT_EQUAL, &not_32bit);
+
+  // Both operands are 31bit smis. Divide using 32bit idiv.
+  __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
+  __ cdq();
+  __ idivl(RCX);
+  __ movsxd(RAX, RAX);
+  __ SmiTag(RAX);  // Result is guaranteed to fit into a smi.
+  __ ret();
+
+  // Divide using 64bit idiv.
+  __ Bind(&not_32bit);
+  __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
+  __ pushq(RDX);  // Preserve RDX in case of 'fall_through'.
+  __ cqo();
+  __ idivq(RCX);
+  __ popq(RDX);
+  // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
+  // cannot tag the result.
+  __ cmpq(RAX, Immediate(0x4000000000000000));
+  __ j(EQUAL, normal_ir_body);
+  __ SmiTag(RAX);
+  __ ret();
+#else
+  // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
+  // cannot tag the result.
+  __ cmpq(RAX, Immediate(target::ToRawSmi(target::kSmiMin)));
+  __ j(EQUAL, normal_ir_body);
+
+  // Both operands are 31bit smis. Divide using 32bit idiv.
+  __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
+  __ cdq();
+  __ idivl(RCX);
+  __ SmiTag(RAX);  // Result is guaranteed to fit into a smi.
+  __ movsxd(RAX, RAX);
+  __ ret();
+#endif
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::Integer_negate(Assembler* assembler,
+                                     Label* normal_ir_body) {
+  __ movq(RAX, Address(RSP, +1 * target::kWordSize));
+  __ testq(RAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, normal_ir_body, Assembler::kNearJump);  // Non-smi value.
+  __ OBJ(neg)(RAX);
+  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
+  // Result is in RAX.
+  __ ret();
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::Integer_bitAnd(Assembler* assembler,
+                                     Label* normal_ir_body) {
+  TestBothArgumentsSmis(assembler, normal_ir_body);
+  // RAX is the right argument.
+  __ andq(RAX, Address(RSP, +2 * target::kWordSize));
+  // Result is in RAX.
+  __ ret();
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::Integer_bitOr(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  TestBothArgumentsSmis(assembler, normal_ir_body);
+  // RAX is the right argument.
+  __ orq(RAX, Address(RSP, +2 * target::kWordSize));
+  // Result is in RAX.
+  __ ret();
+  __ Bind(normal_ir_body);
+}
+
+void AsmIntrinsifier::Integer_bitXor(Assembler* assembler,
+                                     Label* normal_ir_body) {
+  TestBothArgumentsSmis(assembler, normal_ir_body);
+  // RAX is the right argument.
+  __ xorq(RAX, Address(RSP, +2 * target::kWordSize));
+  // Result is in RAX.
+  __ ret();
+  __ Bind(normal_ir_body);
+}
+
 void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
   ASSERT(kSmiTagShift == 1);
   ASSERT(kSmiTag == 0);
@@ -215,6 +469,43 @@ void AsmIntrinsifier::Integer_equalToInteger(Assembler* assembler,
 void AsmIntrinsifier::Integer_equal(Assembler* assembler,
                                     Label* normal_ir_body) {
   Integer_equalToInteger(assembler, normal_ir_body);
+}
+
+void AsmIntrinsifier::Integer_sar(Assembler* assembler, Label* normal_ir_body) {
+  Label shift_count_ok;
+  TestBothArgumentsSmis(assembler, normal_ir_body);
+#if !defined(DART_COMPRESSED_POINTERS)
+  const Immediate& count_limit = Immediate(0x3F);
+#else
+  const Immediate& count_limit = Immediate(0x1F);
+#endif
+  // Check that the count is not larger than what the hardware can handle.
+  // For shifting right a Smi the result is the same for all numbers
+  // >= count_limit.
+  __ SmiUntag(RAX);
+  // Negative counts throw exception.
+  __ OBJ(cmp)(RAX, Immediate(0));
+  __ j(LESS, normal_ir_body, Assembler::kNearJump);
+  __ OBJ(cmp)(RAX, count_limit);
+  __ j(LESS_EQUAL, &shift_count_ok, Assembler::kNearJump);
+  __ movq(RAX, count_limit);
+  __ Bind(&shift_count_ok);
+  __ movq(RCX, RAX);  // Shift amount must be in RCX.
+  __ movq(RAX, Address(RSP, +2 * target::kWordSize));  // Value.
+  __ SmiUntag(RAX);                                    // Value.
+  __ OBJ(sar)(RAX, RCX);
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(normal_ir_body);
+}
+
+// Argument is Smi (receiver).
+void AsmIntrinsifier::Smi_bitNegate(Assembler* assembler,
+                                    Label* normal_ir_body) {
+  __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // Index.
+  __ OBJ(not )(RAX);
+  __ andq(RAX, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
+  __ ret();
 }
 
 void AsmIntrinsifier::Smi_bitLength(Assembler* assembler,
