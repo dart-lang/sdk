@@ -19576,6 +19576,13 @@ bool AbstractType::IsIntType() const {
          (type_class() == Type::Handle(Type::IntType()).type_class());
 }
 
+bool AbstractType::IsIntegerImplementationType() const {
+  return HasTypeClass() &&
+         (type_class() == IsolateGroup::Current()
+                              ->object_store()
+                              ->integer_implementation_class());
+}
+
 bool AbstractType::IsDoubleType() const {
   return HasTypeClass() &&
          (type_class() == Type::Handle(Type::Double()).type_class());

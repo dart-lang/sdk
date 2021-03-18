@@ -127,8 +127,9 @@ bool IsSameObject(const Object& a, const Object& b);
 // Returns true if [a] and [b] represent the same type (are equal).
 bool IsEqualType(const AbstractType& a, const AbstractType& b);
 
-// Returns true if [type] is the "int" type.
-bool IsIntType(const AbstractType& type);
+// Returns true if [type] is a subtype of the "int" type (_Smi, _Mint, int or
+// _IntegerImplementation).
+bool IsSubtypeOfInt(const AbstractType& type);
 
 // Returns true if [type] is the "double" type.
 bool IsDoubleType(const AbstractType& type);

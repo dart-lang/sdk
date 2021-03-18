@@ -7737,6 +7737,9 @@ class AbstractType : public Instance {
   // Check if this type represents the 'int' type.
   bool IsIntType() const;
 
+  // Check if this type represents the '_IntegerImplementation' type.
+  bool IsIntegerImplementationType() const;
+
   // Check if this type represents the 'double' type.
   bool IsDoubleType() const;
 
@@ -7754,6 +7757,9 @@ class AbstractType : public Instance {
 
   // Check if this type represents the '_Smi' type.
   bool IsSmiType() const { return type_class_id() == kSmiCid; }
+
+  // Check if this type represents the '_Mint' type.
+  bool IsMintType() const { return type_class_id() == kMintCid; }
 
   // Check if this type represents the 'String' type.
   bool IsStringType() const;

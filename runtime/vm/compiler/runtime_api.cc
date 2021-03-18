@@ -70,8 +70,9 @@ bool IsBoolType(const AbstractType& type) {
   return type.IsBoolType();
 }
 
-bool IsIntType(const AbstractType& type) {
-  return type.IsIntType();
+bool IsSubtypeOfInt(const AbstractType& type) {
+  return type.IsIntType() || type.IsIntegerImplementationType() ||
+         type.IsSmiType() || type.IsMintType();
 }
 
 bool IsSmiType(const AbstractType& type) {

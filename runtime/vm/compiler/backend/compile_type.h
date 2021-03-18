@@ -197,8 +197,7 @@ class CompileType : public ZoneAllocated {
       return true;
     }
     if (cid_ == kIllegalCid || cid_ == kDynamicCid) {
-      return type_ != nullptr &&
-             (compiler::IsIntType(*type_) || compiler::IsSmiType(*type_));
+      return type_ != nullptr && compiler::IsSubtypeOfInt(*type_);
     }
     return false;
   }
