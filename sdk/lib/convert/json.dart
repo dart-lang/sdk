@@ -441,7 +441,7 @@ class _JsonEncoderSink extends ChunkedConversionSink<Object?> {
 
 /// Sink returned when starting a chunked conversion from object to bytes.
 class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object?> {
-  /// The byte sink receiveing the encoded chunks.
+  /// The byte sink receiving the encoded chunks.
   final ByteConversionSink _sink;
   final List<int>? _indent;
   final Object? Function(dynamic)? _toEncodable;

@@ -248,7 +248,7 @@ class StdoutException implements IOException {
   /// Message describing cause of the exception.
   final String message;
 
-  /// The underlying OS error, if avaialble.
+  /// The underlying OS error, if available.
   final OSError? osError;
 
   const StdoutException(this.message, [this.osError]);
@@ -263,7 +263,7 @@ class StdinException implements IOException {
   /// Message describing cause of the exception.
   final String message;
 
-  /// The underlying OS error, if avaialble.
+  /// The underlying OS error, if available.
   final OSError? osError;
 
   const StdinException(this.message, [this.osError]);

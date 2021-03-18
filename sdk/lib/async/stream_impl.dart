@@ -476,7 +476,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
   }
 
   // -------------------------------------------------------------------
-  /// Create a subscription object. Called by [subcribe].
+  /// Create a subscription object. Called by [subscribe].
   StreamSubscription<T> _createSubscription(void onData(T data)?,
       Function? onError, void onDone()?, bool cancelOnError) {
     return new _BufferingStreamSubscription<T>(

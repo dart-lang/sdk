@@ -135,7 +135,7 @@ typedef RegisterBinaryCallbackHandler
 ///
 /// The function should return either `null` if it doesn't want
 /// to replace the original error and stack trace,
-/// or an [AsyncError] containg a replacement error and stack trace
+/// or an [AsyncError] containing a replacement error and stack trace
 /// which will be used to replace the originals.
 typedef AsyncError? ErrorCallbackHandler(Zone self, ZoneDelegate parent,
     Zone zone, Object error, StackTrace? stackTrace);
@@ -285,7 +285,7 @@ class _RegisterBinaryZoneFunction {
 /// A zone specification is a parameter object passed to [Zone.fork]
 /// and any underlying [ForkHandler] custom implementations.
 /// The individual handlers, if set to a non-null value,
-/// will be the implementation of the correpsonding [Zone] methods
+/// will be the implementation of the corresponding [Zone] methods
 /// for a forked zone created using this zone specification.
 ///
 /// Handlers have the same signature as the same-named methods on [Zone],
@@ -327,7 +327,7 @@ abstract class ZoneSpecification {
   /// The created zone specification has the handlers of [other]
   /// and any individually provided handlers.
   /// If a handler is provided both through [other] and individually,
-  /// the individually provided handler overries the one from [other].
+  /// the individually provided handler overrides the one from [other].
   factory ZoneSpecification.from(ZoneSpecification other,
       {HandleUncaughtErrorHandler? handleUncaughtError,
       RunHandler? run,
@@ -657,7 +657,7 @@ abstract class Zone {
   /// of this zone and updates them with values from [zoneValues], which either
   /// adds new values or overrides existing ones.
   ///
-  /// Note that the fork operation is interceptible. A zone can thus change
+  /// Note that the fork operation is interceptable. A zone can thus change
   /// the zone specification (or zone values), giving the forking zone full
   /// control over the child zone.
   Zone fork(

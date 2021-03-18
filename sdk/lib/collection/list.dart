@@ -12,9 +12,9 @@ part of dart.collection;
 /// This class implements all read operations using only the `length` and
 /// `operator[]` and members. It implements write operations using those and
 /// `add`, `length=` and `operator[]=`
-/// Classes using this base classs  should implement those five operations.
+/// Classes using this base class should implement those five operations.
 ///
-/// **NOTICE**: For backwards compatability reasons,
+/// **NOTICE**: For backwards compatibility reasons,
 /// there is a default implementation of `add`
 /// which only works for lists with a nullable element type.
 /// For list with a non-nullable element type,
@@ -53,7 +53,7 @@ abstract class ListBase<E> extends Object with ListMixin<E> {
 /// `add`, `length=` and `operator[]=`.
 /// Classes using this mixin should implement those five operations.
 ///
-/// **NOTICE**: For backwards compatability reasons,
+/// **NOTICE**: For backwards compatibility reasons,
 /// there is a default implementation of `add`
 /// which only works for lists with a nullable element type.
 /// For lists with a non-nullable element type,
