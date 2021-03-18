@@ -20,6 +20,7 @@ LanguageFeatures/Triple-Shift/*: Skip # Triple shift is not implemented yet
 LanguageFeatures/nnbd/local_variable_read_A01_t03: Skip # Triple shift is not implemented yet
 LanguageFeatures/nnbd/local_variable_read_A02_t03: Skip # Triple shift is not implemented yet
 LanguageFeatures/nnbd/local_variable_read_A03_t03: Skip # Triple shift is not implemented yet
+LibTest/ffi/Array/PointerArray_A01_t01: Skip # https://github.com/dart-lang/co19/issues/1018
 LibTest/io/RawDatagramSocket/*: Skip # https://github.com/dart-lang/co19/issues/195
 
 [ $compiler == dart2analyzer ]

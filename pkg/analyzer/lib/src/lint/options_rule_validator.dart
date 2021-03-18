@@ -68,9 +68,9 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   @override
   List<AnalysisError> validate(ErrorReporter reporter, YamlMap options) {
     List<AnalysisError> errors = <AnalysisError>[];
-    var node = getValue(options, linter);
+    var node = options.valueAt(linter);
     if (node is YamlMap) {
-      var rules = getValue(node, rulesKey);
+      var rules = node.valueAt(rulesKey);
       validateRules(rules, reporter);
     }
     return errors;

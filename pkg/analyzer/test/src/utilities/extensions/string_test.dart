@@ -32,7 +32,7 @@ class ListOfStringExtensionTest {
   }
 
   void test_commaSeparatedWithAnd_zero() {
-    expect(<String>[].commaSeparatedWithOr, isEmpty);
+    expect(<String>[].commaSeparatedWithAnd, isEmpty);
   }
 
   void test_commaSeparatedWithOr_five() {
@@ -54,5 +54,22 @@ class ListOfStringExtensionTest {
 
   void test_commaSeparatedWithOr_zero() {
     expect(<String>[].commaSeparatedWithOr, isEmpty);
+  }
+
+  void test_quotedAndCommaSeparatedWithAnd_one() {
+    expect(<String>['a'].quotedAndCommaSeparatedWithAnd, "'a'");
+  }
+
+  void test_quotedAndCommaSeparatedWithAnd_three() {
+    expect(<String>['a', 'b', 'c'].quotedAndCommaSeparatedWithAnd,
+        "'a', 'b', and 'c'");
+  }
+
+  void test_quotedAndCommaSeparatedWithAnd_two() {
+    expect(<String>['a', 'b'].quotedAndCommaSeparatedWithAnd, "'a' and 'b'");
+  }
+
+  void test_quotedAndCommaSeparatedWithAnd_zero() {
+    expect(<String>[].quotedAndCommaSeparatedWithAnd, isEmpty);
   }
 }

@@ -209,6 +209,35 @@ class FfiCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  static const FfiCode PACKED_ANNOTATION = FfiCode(
+      name: 'PACKED_ANNOTATION',
+      message: "Structs must have at most one 'Packed' annotation.",
+      correction: "Try removing extra 'Packed' annotations.");
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode PACKED_ANNOTATION_ALIGNMENT = FfiCode(
+      name: 'PACKED_ANNOTATION_ALIGNMENT',
+      message: "Only packing to 1, 2, 4, 8, and 16 bytes is supported.",
+      correction:
+          "Try changing the 'Packed' annotation alignment to 1, 2, 4, 8, or 16.");
+
+  /**
+   * Parameters:
+   * 0: the name of the outer struct
+   * 1: the name of the struct being nested
+   */
+  static const FfiCode PACKED_NESTING_NON_PACKED = FfiCode(
+      name: 'PACKED_NESTING_NON_PACKED',
+      message:
+          "Nesting the non-packed or less tightly packed struct '{0}' in a packed struct '{1}' is not supported.",
+      correction:
+          "Try packing the nested struct or packing the nested struct more tightly.");
+
+  /**
+   * No parameters.
+   */
   static const FfiCode SIZE_ANNOTATION_DIMENSIONS = FfiCode(
       name: 'SIZE_ANNOTATION_DIMENSIONS',
       message:

@@ -8,8 +8,6 @@ import 'package:front_end/src/fasta/dill/dill_member_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:kernel/ast.dart';
 
-import 'package:kernel/type_algebra.dart';
-
 import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/forest.dart';
 import '../kernel/internal_ast.dart';

@@ -80,13 +80,6 @@ class OutputUnit implements Comparable<OutputUnit> {
     return name.compareTo(other.name);
   }
 
-  void merge(OutputUnit that) {
-    assert(this != that);
-    // We don't currently support merging code into the main output unit.
-    assert(!isMainOutput);
-    this.imports.addAll(that.imports);
-  }
-
   @override
   String toString() => "OutputUnit($name, $imports)";
 }

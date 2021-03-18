@@ -636,20 +636,23 @@ static Condition FlipCondition(Condition condition) {
   }
 }
 
-static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
-                                  Condition true_condition,
-                                  BranchLabels labels) {
+static void EmitBranchOnCondition(
+    FlowGraphCompiler* compiler,
+    Condition true_condition,
+    BranchLabels labels,
+    compiler::Assembler::JumpDistance jump_distance =
+        compiler::Assembler::kFarJump) {
   if (labels.fall_through == labels.false_label) {
     // If the next block is the false successor, fall through to it.
-    __ j(true_condition, labels.true_label);
+    __ j(true_condition, labels.true_label, jump_distance);
   } else {
     // If the next block is not the false successor, branch to it.
     Condition false_condition = InvertCondition(true_condition);
-    __ j(false_condition, labels.false_label);
+    __ j(false_condition, labels.false_label, jump_distance);
 
     // Fall through or jump to the true successor.
     if (labels.fall_through != labels.true_label) {
-      __ jmp(labels.true_label);
+      __ jmp(labels.true_label, jump_distance);
     }
   }
 }
@@ -815,7 +818,8 @@ void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   BranchLabels labels = {&is_true, &is_false, &is_false};
   Condition true_condition = EmitComparisonCode(compiler, labels);
   if (true_condition != kInvalidCondition) {
-    EmitBranchOnCondition(compiler, true_condition, labels);
+    EmitBranchOnCondition(compiler, true_condition, labels,
+                          compiler::Assembler::kNearJump);
   }
 
   Register result = locs()->out(0).reg();

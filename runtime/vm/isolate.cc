@@ -386,7 +386,12 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       boxed_field_list_(GrowableObjectArray::null()),
       program_lock_(new SafepointRwLock()),
       active_mutators_monitor_(new Monitor()),
-      max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
+      max_active_mutators_(Scavenger::MaxMutatorThreadCount())
+#if !defined(PRODUCT)
+      ,
+      debugger_(new GroupDebugger(this))
+#endif
+{
   FlagsCopyFrom(api_flags);
   const bool is_vm_isolate = Dart::VmIsolateNameEquals(source_->name);
   if (!is_vm_isolate) {
@@ -425,6 +430,11 @@ IsolateGroup::~IsolateGroup() {
     }
     delete[] obfuscation_map_;
   }
+
+#if !defined(PRODUCT)
+  delete debugger_;
+  debugger_ = nullptr;
+#endif
 }
 
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {
@@ -2528,7 +2538,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   }
 
   // Cache these two fields, since they are no longer available after the
-  // `delete this` further down.
+  // `delete isolate` further down.
   IsolateGroup* isolate_group = isolate->isolate_group_;
   Dart_IsolateCleanupCallback cleanup = isolate->on_cleanup_callback();
   auto callback_data = isolate->init_callback_data_;
@@ -2810,6 +2820,12 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&boxed_field_list_));
 
   NOT_IN_PRECOMPILED(background_compiler()->VisitPointers(visitor));
+
+#if !defined(PRODUCT)
+  if (debugger() != nullptr) {
+    debugger()->VisitObjectPointers(visitor);
+  }
+#endif
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // Visit objects that are being used for isolate reload.

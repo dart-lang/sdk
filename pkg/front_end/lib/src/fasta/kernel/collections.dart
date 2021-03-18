@@ -12,14 +12,6 @@ import 'package:kernel/src/printer.dart';
 
 import 'package:kernel/type_environment.dart' show StaticTypeContext;
 
-import 'package:kernel/visitor.dart'
-    show
-        ExpressionVisitor,
-        ExpressionVisitor1,
-        Transformer,
-        TreeVisitor,
-        Visitor;
-
 import '../messages.dart'
     show noLength, templateExpectedAfterButGot, templateExpectedButGot;
 

@@ -546,15 +546,6 @@ void ScopeBuilder::VisitFunctionNode() {
   }
   function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
 
-  // The :sync_op and :async_op continuations are called multiple times. So we
-  // don't want the parameters from the first invocation to get stored in the
-  // context and reused on later invocations with different parameters.
-  if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    for (intptr_t i = 0; i < function.NumParameters(); i++) {
-      parsed_function_->ParameterVariable(i)->set_is_forced_stack();
-    }
-  }
-
   // Read (but don't visit) the positional and named parameters, because they've
   // already been added to the scope.
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kBody);
@@ -1537,7 +1528,11 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   if (helper.IsCovariant()) {
     variable->set_is_explicit_covariant_parameter();
   }
-  if (variable->name().ptr() == Symbols::IteratorParameter().ptr()) {
+
+  // The :sync_op and :async_op continuations are called multiple times. So we
+  // don't want the parameters from the first invocation to get stored in the
+  // context and reused on later invocations with different parameters.
+  if (current_function_async_marker_ == FunctionNodeHelper::kSyncYielding) {
     variable->set_is_forced_stack();
   }
 

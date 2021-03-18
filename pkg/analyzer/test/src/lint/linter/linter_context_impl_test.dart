@@ -311,6 +311,13 @@ class CanBeConstTypedLiteralTest extends AbstractLinterContextTest {
     expect(context.canBeConst(node), expectedResult);
   }
 
+  void test_listLiteral_false_forElement() async {
+    await resolve('''
+f() => [for (var i = 0; i < 10; i++) i];
+''');
+    assertCanBeConst('[for', false);
+  }
+
   void test_listLiteral_false_methodInvocation() async {
     await resolve('''
 f() => [g()];
@@ -354,11 +361,26 @@ f() => [A()];
     assertCanBeConst('[', true);
   }
 
+  void test_listLiteral_true_ifElement() async {
+    await resolve('''
+const a = true;
+f() => [if (a) 0 else 1];
+''');
+    assertCanBeConst('[if', true);
+  }
+
   void test_listLiteral_true_integerLiteral() async {
     await resolve('''
 f() => [1, 2, 3];
 ''');
     assertCanBeConst('[', true);
+  }
+
+  void test_mapLiteral_false_forElement() async {
+    await resolve('''
+f() => {for (var i = 0; i < 10; i++) i: 0};
+''');
+    assertCanBeConst('{', false);
   }
 
   void test_mapLiteral_false_methodInvocation_key() async {
@@ -377,11 +399,26 @@ int g() => 0;
     assertCanBeConst('{', false);
   }
 
+  void test_mapLiteral_true_ifElement() async {
+    await resolve('''
+const a = true;
+f() => {if (a) 0: 0 else 1: 1};
+''');
+    assertCanBeConst('{', true);
+  }
+
   void test_mapLiteral_true_integerLiteral() async {
     await resolve('''
 f() => {1: 2, 3: 4};
 ''');
     assertCanBeConst('{', true);
+  }
+
+  void test_setLiteral_false_forElement() async {
+    await resolve('''
+f() => {for (var i = 0; i < 10; i++) i};
+''');
+    assertCanBeConst('{for', false);
   }
 
   void test_setLiteral_false_methodInvocation() async {
@@ -390,6 +427,14 @@ f() => {g()};
 int g() => 0;
 ''');
     assertCanBeConst('{', false);
+  }
+
+  void test_setLiteral_true_ifElement() async {
+    await resolve('''
+const a = true;
+f() => {if (a) 0 else 1};
+''');
+    assertCanBeConst('{', true);
   }
 
   void test_setLiteral_true_integerLiteral() async {

@@ -14,8 +14,6 @@ import 'package:kernel/src/legacy_erasure.dart' show legacyErasure;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
-import 'package:kernel/visitor.dart' show Transformer;
-
 import '../source/source_loader.dart' show SourceLoader;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;

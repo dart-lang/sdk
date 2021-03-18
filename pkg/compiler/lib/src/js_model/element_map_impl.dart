@@ -1249,10 +1249,28 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     if (node is ir.PropertyGet) {
       return getGetterSelector(node.name);
     }
+    if (node is ir.InstanceGet) {
+      return getGetterSelector(node.name);
+    }
+    if (node is ir.InstanceTearOff) {
+      return getGetterSelector(node.name);
+    }
+    if (node is ir.DynamicGet) {
+      return getGetterSelector(node.name);
+    }
+    if (node is ir.FunctionTearOff) {
+      return getGetterSelector(ir.Name.callName);
+    }
     if (node is ir.SuperPropertyGet) {
       return getGetterSelector(node.name);
     }
     if (node is ir.PropertySet) {
+      return getSetterSelector(node.name);
+    }
+    if (node is ir.InstanceSet) {
+      return getSetterSelector(node.name);
+    }
+    if (node is ir.DynamicSet) {
       return getSetterSelector(node.name);
     }
     if (node is ir.SuperPropertySet) {

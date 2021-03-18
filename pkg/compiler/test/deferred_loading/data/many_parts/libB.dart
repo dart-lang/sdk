@@ -35,13 +35,11 @@ f_010_01(Set<String> u, int b) => v(u, '01001', b);
 f_010_11(Set<String> u, int b) => v(u, '01011', b);
 
 @pragma('dart2js:noInline')
-/*spec|three-frag.member: f_011_01:member_unit=8{b1, b3, b4}*/
-/*two-frag.member: f_011_01:member_unit=8{b1, b3, b4, b2, b5}*/
+/*member: f_011_01:member_unit=8{b1, b3, b4}*/
 f_011_01(Set<String> u, int b) => v(u, '01101', b);
 
 @pragma('dart2js:noInline')
-/*spec|two-frag.member: f_011_11:member_unit=9{b1, b2, b3, b4}*/
-/*three-frag.member: f_011_11:member_unit=9{b1, b2, b3, b4, b5}*/
+/*member: f_011_11:member_unit=9{b1, b2, b3, b4}*/
 f_011_11(Set<String> u, int b) => v(u, '01111', b);
 
 @pragma('dart2js:noInline')
@@ -105,8 +103,7 @@ f_101_10(Set<String> u, int b) => v(u, '10110', b);
 f_110_10(Set<String> u, int b) => v(u, '11010', b);
 
 @pragma('dart2js:noInline')
-/*spec.member: f_111_10:member_unit=24{b2, b3, b4, b5}*/
-/*two-frag|three-frag.member: f_111_10:member_unit=24{b2, b3, b4, b5, b1}*/
+/*member: f_111_10:member_unit=24{b2, b3, b4, b5}*/
 f_111_10(Set<String> u, int b) => v(u, '11110', b);
 
 @pragma('dart2js:noInline')
@@ -114,8 +111,7 @@ f_111_10(Set<String> u, int b) => v(u, '11110', b);
 f_001_00(Set<String> u, int b) => v(u, '00100', b);
 
 @pragma('dart2js:noInline')
-/*spec|two-frag.member: f_011_00:member_unit=26{b3, b4}*/
-/*three-frag.member: f_011_00:member_unit=26{b3, b4, b2, b5, b1}*/
+/*member: f_011_00:member_unit=26{b3, b4}*/
 f_011_00(Set<String> u, int b) => v(u, '01100', b);
 
 @pragma('dart2js:noInline')

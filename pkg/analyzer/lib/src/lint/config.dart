@@ -9,7 +9,7 @@ import 'package:yaml/yaml.dart';
 /// Return `null` if [optionsMap] is `null` or does not have `linter` map.
 LintConfig? parseConfig(YamlMap? optionsMap) {
   if (optionsMap != null) {
-    var options = getValue(optionsMap, 'linter');
+    var options = optionsMap.valueAt('linter');
     // Quick check of basic contract.
     if (options is YamlMap) {
       return LintConfig.parseMap(options);

@@ -13079,6 +13079,20 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // [Understanding null safety](/null-safety/understanding-null-safety#smarter-null-aware-methods)
   // for more details.
   //
+  // The following code produces this diagnostic because `s` can't be `null`.
+  //
+  // ```dart
+  // void f(Object? o) {
+  //   var s = o as String;
+  //   s[!?.!]length;
+  // }
+  // ```
+  //
+  // The reason `s` can't be null, despite the fact that `o` can be `null`, is
+  // because of the cast to `String`, which is a non-nullable type. If `o` ever
+  // has the value `null`, the cast will fail and the invocation of `length`
+  // will not happen.
+  //
   // #### Common fixes
   //
   // Replace the null-aware operator with a non-null-aware equivalent; for

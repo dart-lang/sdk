@@ -34,9 +34,9 @@ static field core::List<core::int*>* list4 = core::List::generate<core::int*>(10
   return i;
 }, growable: self::someGrowable);
 static field core::List<core::int*>* list5 = core::List::generate<core::int*>(10, (core::int* i) → core::int* {
-  if(i.{core::int::isEven})
-    return i.{core::num::+}(1);
-  return i.{core::num::-}(1);
+  if(i.{core::int::isEven}{core::bool*})
+    return i.{core::num::+}(1){(core::num*) →* core::int*};
+  return i.{core::num::-}(1){(core::num*) →* core::int*};
 });
 static field core::List<core::int*>* list6 = core::List::generate<core::int*>(10, #C1);
 static field core::List<core::int*>* list7 = core::List::generate<core::int*>(10, self::bar);

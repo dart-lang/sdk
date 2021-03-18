@@ -6,8 +6,6 @@
 
 library fasta.named_type_builder;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
 import 'package:kernel/ast.dart';
 
 import '../fasta_codes.dart'
@@ -29,9 +27,6 @@ import '../fasta_codes.dart'
         templateTypeNotFound;
 
 import '../identifiers.dart' show Identifier, QualifiedName, flattenName;
-
-import '../messages.dart'
-    show noLength, templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
 
 import '../problems.dart' show unhandled;
 

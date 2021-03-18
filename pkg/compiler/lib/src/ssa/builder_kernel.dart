@@ -5060,6 +5060,9 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     if (node is ir.MethodInvocation) {
       invoke.isInvariant = node.isInvariant;
       invoke.isBoundsSafe = node.isBoundsSafe;
+    } else if (node is ir.InstanceInvocation) {
+      invoke.isInvariant = node.isInvariant;
+      invoke.isBoundsSafe = node.isBoundsSafe;
     }
     push(invoke);
   }
@@ -5257,6 +5260,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   @override
+  void visitInstanceGetterInvocation(ir.InstanceGetterInvocation node) {
+    _handleMethodInvocation(node, node.receiver, node.arguments);
+  }
+
+  @override
   void visitDynamicInvocation(ir.DynamicInvocation node) {
     _handleMethodInvocation(node, node.receiver, node.arguments);
   }
@@ -5268,8 +5276,27 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   @override
   void visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) {
-    _handleMethodInvocation(
-        node, ir.VariableGet(node.variable), node.arguments);
+    Local local = _localsMap.getLocalVariable(node.variable);
+    stack.add(localsHandler.readLocal(local,
+        sourceInformation: _sourceInformationBuilder.buildGet(node)));
+    HInstruction receiverInstruction = pop();
+    Selector selector = _elementMap.getSelector(node);
+    List<DartType> typeArguments = [];
+    selector =
+        _fillDynamicTypeArguments(selector, node.arguments, typeArguments);
+    _pushDynamicInvocation(
+        node,
+        StaticType(_elementMap.getDartType(node.variable.type),
+            computeClassRelationFromType(node.variable.type)),
+        _typeInferenceMap.receiverTypeOfInvocation(node, _abstractValueDomain),
+        selector,
+        [
+          receiverInstruction,
+          ..._visitArgumentsForDynamicTarget(
+              selector, node.arguments, typeArguments)
+        ],
+        typeArguments,
+        _sourceInformationBuilder.buildCall(node, node));
   }
 
   @override
@@ -5293,8 +5320,28 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   void visitEqualsNull(ir.EqualsNull node) {
     node.expression.accept(this);
     HInstruction receiverInstruction = pop();
-    return _handleEquals(node, node.expression, receiverInstruction,
-        graph.addConstantNull(closedWorld));
+
+    // Hack to detect `null == o`.
+    // TODO(johnniwinther): Remove this after the new method invocation has
+    // landed stably. This is only included to make the transition a no-op.
+    if (node.fileOffset < node.expression.fileOffset) {
+      _pushDynamicInvocation(
+          node,
+          new StaticType(
+              _elementMap.commonElements.nullType, ClassRelation.subtype),
+          _typeInferenceMap.receiverTypeOfInvocation(
+              node, _abstractValueDomain),
+          Selectors.equals,
+          <HInstruction>[
+            graph.addConstantNull(closedWorld),
+            receiverInstruction
+          ],
+          const <DartType>[],
+          _sourceInformationBuilder.buildCall(node.expression, node));
+    } else {
+      _handleEquals(node, node.expression, receiverInstruction,
+          graph.addConstantNull(closedWorld));
+    }
   }
 
   @override
@@ -7357,6 +7404,16 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   @override
   visitInstanceInvocation(ir.InstanceInvocation node) {
+    registerRegularNode();
+    registerReductiveNode();
+    registerCall();
+    visit(node.receiver);
+    skipReductiveNodes(() => visit(node.name));
+    _processArguments(node.arguments, null);
+  }
+
+  @override
+  visitInstanceGetterInvocation(ir.InstanceGetterInvocation node) {
     registerRegularNode();
     registerReductiveNode();
     registerCall();

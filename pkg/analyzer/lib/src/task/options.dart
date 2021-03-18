@@ -21,6 +21,7 @@ import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/plugin/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -57,7 +58,7 @@ List<AnalysisError> analyzeAnalysisOptions(
       errors.addAll(validationErrors);
     }
 
-    var node = getValue(options, AnalyzerOptions.include);
+    var node = options.valueAt(AnalyzerOptions.include);
     if (node == null) {
       return;
     }
@@ -171,10 +172,14 @@ class AnalyzerOptions {
   /// Supported `analyzer` language options.
   static const List<String> languageOptions = [strictInference, strictRawTypes];
 
-  // Supported 'analyzer' optional checks options.
+  /// Supported 'analyzer' optional checks options.
   static const List<String> optionalChecksOptions = [
     chromeOsManifestChecks,
   ];
+
+  /// Proposed values for a `true` or `false` option.
+  static String get trueOrFalseProposal =>
+      AnalyzerOptions.trueOrFalse.quotedAndCommaSeparatedWithAnd;
 }
 
 /// Validates `analyzer` options.
@@ -203,15 +208,11 @@ class CompositeValidator extends OptionsValidator {
 
 /// Validates `analyzer` language configuration options.
 class EnabledExperimentsValidator extends OptionsValidator {
-  ErrorBuilder builder = ErrorBuilder(AnalyzerOptions.languageOptions);
-  ErrorBuilder trueOrFalseBuilder = TrueOrFalseValueErrorBuilder();
-
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
-    var analyzer = getValue(options, AnalyzerOptions.analyzer);
+    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
-      var experimentNames =
-          getValue(analyzer, AnalyzerOptions.enableExperiment);
+      var experimentNames = analyzer.valueAt(AnalyzerOptions.enableExperiment);
       if (experimentNames is YamlList) {
         var flags =
             experimentNames.nodes.map((node) => node.toString()).toList();
@@ -242,34 +243,39 @@ class EnabledExperimentsValidator extends OptionsValidator {
 
 /// Builds error reports with value proposals.
 class ErrorBuilder {
-  String? proposal;
-  late final AnalysisOptionsWarningCode code;
+  static AnalysisOptionsWarningCode get noProposalCode =>
+      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES;
+
+  static AnalysisOptionsWarningCode get pluralProposalCode =>
+      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES;
+
+  static AnalysisOptionsWarningCode get singularProposalCode =>
+      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE;
+
+  final String proposal;
+
+  final AnalysisOptionsWarningCode code;
 
   /// Create a builder for the given [supportedOptions].
-  ErrorBuilder(List<String> supportedOptions) {
+  factory ErrorBuilder(List<String> supportedOptions) {
+    var proposal = supportedOptions.quotedAndCommaSeparatedWithAnd;
     if (supportedOptions.isEmpty) {
-      code = noProposalCode;
+      return ErrorBuilder._(proposal: proposal, code: noProposalCode);
     } else if (supportedOptions.length == 1) {
-      proposal = "'${supportedOptions.join()}'";
-      code = singularProposalCode;
+      return ErrorBuilder._(proposal: proposal, code: singularProposalCode);
     } else {
-      proposal = StringUtilities.printListOfQuotedNames(supportedOptions);
-      code = pluralProposalCode;
+      return ErrorBuilder._(proposal: proposal, code: pluralProposalCode);
     }
   }
 
-  AnalysisOptionsWarningCode get noProposalCode =>
-      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES;
-
-  AnalysisOptionsWarningCode get pluralProposalCode =>
-      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES;
-
-  AnalysisOptionsWarningCode get singularProposalCode =>
-      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE;
+  ErrorBuilder._({
+    required this.proposal,
+    required this.code,
+  });
 
   /// Report an unsupported [node] value, defined in the given [scopeName].
   void reportError(ErrorReporter reporter, String scopeName, YamlNode node) {
-    if (proposal != null) {
+    if (proposal.isNotEmpty) {
       reporter.reportErrorForSpan(
           code, node.span, [scopeName, node.value, proposal]);
     } else {
@@ -313,9 +319,9 @@ class ErrorFilterOptionValidator extends OptionsValidator {
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
-    var analyzer = getValue(options, AnalyzerOptions.analyzer);
+    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
-      var filters = getValue(analyzer, AnalyzerOptions.errors);
+      var filters = analyzer.valueAt(AnalyzerOptions.errors);
       if (filters is YamlMap) {
         String? value;
         filters.nodes.forEach((k, v) {
@@ -350,14 +356,13 @@ class ErrorFilterOptionValidator extends OptionsValidator {
 
 /// Validates `analyzer` language configuration options.
 class LanguageOptionValidator extends OptionsValidator {
-  ErrorBuilder builder = ErrorBuilder(AnalyzerOptions.languageOptions);
-  ErrorBuilder trueOrFalseBuilder = TrueOrFalseValueErrorBuilder();
+  final ErrorBuilder _builder = ErrorBuilder(AnalyzerOptions.languageOptions);
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
-    var analyzer = getValue(options, AnalyzerOptions.analyzer);
+    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
-      var language = getValue(analyzer, AnalyzerOptions.language);
+      var language = analyzer.valueAt(AnalyzerOptions.language);
       if (language is YamlMap) {
         language.nodes.forEach((k, v) {
           String? key, value;
@@ -373,7 +378,7 @@ class LanguageOptionValidator extends OptionsValidator {
                   AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED,
                   k.span);
             } else if (!AnalyzerOptions.languageOptions.contains(key)) {
-              builder.reportError(reporter, AnalyzerOptions.language, k);
+              _builder.reportError(reporter, AnalyzerOptions.language, k);
             } else {
               // If we have a valid key, go on and check the value.
               validKey = true;
@@ -382,7 +387,10 @@ class LanguageOptionValidator extends OptionsValidator {
           if (validKey && v is YamlScalar) {
             value = toLowerCase(v.value);
             if (!AnalyzerOptions.trueOrFalse.contains(value)) {
-              trueOrFalseBuilder.reportError(reporter, key!, v);
+              reporter.reportErrorForSpan(
+                  AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+                  v.span,
+                  [key, v.value, AnalyzerOptions.trueOrFalseProposal]);
             }
           }
         });
@@ -409,18 +417,18 @@ class LinterOptionsValidator extends TopLevelOptionValidator {
 
 /// Validates `analyzer` optional-checks value configuration options.
 class OptionalChecksValueValidator extends OptionsValidator {
-  ErrorBuilder builder = ErrorBuilder(AnalyzerOptions.optionalChecksOptions);
-  ErrorBuilder trueOrFalseBuilder = TrueOrFalseValueErrorBuilder();
+  final ErrorBuilder _builder =
+      ErrorBuilder(AnalyzerOptions.optionalChecksOptions);
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
-    var analyzer = getValue(options, AnalyzerOptions.analyzer);
+    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
-      var v = getValue(analyzer, AnalyzerOptions.optionalChecks);
+      var v = analyzer.valueAt(AnalyzerOptions.optionalChecks);
       if (v is YamlScalar) {
         var value = toLowerCase(v.value);
         if (value != AnalyzerOptions.chromeOsManifestChecks) {
-          builder.reportError(
+          _builder.reportError(
               reporter, AnalyzerOptions.chromeOsManifestChecks, v);
         }
       } else if (v is YamlMap) {
@@ -429,12 +437,15 @@ class OptionalChecksValueValidator extends OptionsValidator {
           if (k is YamlScalar) {
             key = k.value?.toString();
             if (key != AnalyzerOptions.chromeOsManifestChecks) {
-              builder.reportError(
+              _builder.reportError(
                   reporter, AnalyzerOptions.chromeOsManifestChecks, k);
             } else {
               value = toLowerCase(v.value);
               if (!AnalyzerOptions.trueOrFalse.contains(value)) {
-                trueOrFalseBuilder.reportError(reporter, key!, v);
+                reporter.reportErrorForSpan(
+                    AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+                    v.span,
+                    [key!, v.value, AnalyzerOptions.trueOrFalseProposal]);
               }
             }
           }
@@ -471,19 +482,22 @@ class OptionsFileValidator {
 
 /// Validates `analyzer` strong-mode value configuration options.
 class StrongModeOptionValueValidator extends OptionsValidator {
-  ErrorBuilder builder = ErrorBuilder(AnalyzerOptions.strongModeOptions);
-  ErrorBuilder trueOrFalseBuilder = TrueOrFalseValueErrorBuilder();
+  final ErrorBuilder _builder = ErrorBuilder(AnalyzerOptions.strongModeOptions);
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
-    var analyzer = getValue(options, AnalyzerOptions.analyzer);
+    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
-      var v = getValue(analyzer, AnalyzerOptions.strong_mode);
+      var v = analyzer.valueAt(AnalyzerOptions.strong_mode);
       if (v is YamlScalar) {
         var value = toLowerCase(v.value);
         if (!AnalyzerOptions.trueOrFalse.contains(value)) {
-          trueOrFalseBuilder.reportError(
-              reporter, AnalyzerOptions.strong_mode, v);
+          reporter.reportErrorForSpan(
+              AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, v.span, [
+            AnalyzerOptions.strong_mode,
+            v.value,
+            AnalyzerOptions.trueOrFalseProposal
+          ]);
         } else if (value == 'false') {
           reporter.reportErrorForSpan(
               AnalysisOptionsWarningCode.SPEC_MODE_REMOVED, v.span);
@@ -498,7 +512,7 @@ class StrongModeOptionValueValidator extends OptionsValidator {
           if (k is YamlScalar) {
             key = k.value?.toString();
             if (!AnalyzerOptions.strongModeOptions.contains(key)) {
-              builder.reportError(reporter, AnalyzerOptions.strong_mode, k);
+              _builder.reportError(reporter, AnalyzerOptions.strong_mode, k);
             } else if (key == AnalyzerOptions.declarationCasts) {
               reporter.reportErrorForSpan(
                   AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED,
@@ -512,7 +526,10 @@ class StrongModeOptionValueValidator extends OptionsValidator {
           if (validKey && v is YamlScalar) {
             value = toLowerCase(v.value);
             if (!AnalyzerOptions.trueOrFalse.contains(value)) {
-              trueOrFalseBuilder.reportError(reporter, key!, v);
+              reporter.reportErrorForSpan(
+                  AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+                  v.span,
+                  [key!, v.value, AnalyzerOptions.trueOrFalseProposal]);
             }
           }
         });
@@ -533,25 +550,19 @@ class TopLevelAnalyzerOptionsValidator extends TopLevelOptionValidator {
 class TopLevelOptionValidator extends OptionsValidator {
   final String pluginName;
   final List<String> supportedOptions;
-  late final String _valueProposal;
-  late final AnalysisOptionsWarningCode _warningCode;
+  final String _valueProposal;
+  final AnalysisOptionsWarningCode _warningCode;
 
-  TopLevelOptionValidator(this.pluginName, this.supportedOptions) {
-    assert(supportedOptions.isNotEmpty);
-    if (supportedOptions.length > 1) {
-      _valueProposal = StringUtilities.printListOfQuotedNames(supportedOptions);
-      _warningCode =
-          AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES;
-    } else {
-      _valueProposal = "'${supportedOptions.join()}'";
-      _warningCode =
-          AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE;
-    }
-  }
+  TopLevelOptionValidator(this.pluginName, this.supportedOptions)
+      : assert(supportedOptions.isNotEmpty),
+        _valueProposal = supportedOptions.quotedAndCommaSeparatedWithAnd,
+        _warningCode = supportedOptions.length == 1
+            ? AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE
+            : AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES;
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
-    var node = getValue(options, pluginName);
+    var node = options.valueAt(pluginName);
     if (node is YamlMap) {
       node.nodes.forEach((k, v) {
         if (k is YamlScalar) {
@@ -566,15 +577,6 @@ class TopLevelOptionValidator extends OptionsValidator {
   }
 }
 
-/// An error-builder that knows about `true` and `false` legal values.
-class TrueOrFalseValueErrorBuilder extends ErrorBuilder {
-  TrueOrFalseValueErrorBuilder() : super(AnalyzerOptions.trueOrFalse);
-
-  @override
-  AnalysisOptionsWarningCode get pluralProposalCode =>
-      AnalysisOptionsWarningCode.UNSUPPORTED_VALUE;
-}
-
 class _OptionsProcessor {
   /// Apply the options in the given [optionMap] to the given analysis
   /// [options].
@@ -582,19 +584,18 @@ class _OptionsProcessor {
     if (optionMap == null) {
       return;
     }
-    var analyzer = getValue(optionMap, AnalyzerOptions.analyzer);
+    var analyzer = optionMap.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
       // Process strong mode option.
-      var strongMode = getValue(analyzer, AnalyzerOptions.strong_mode);
+      var strongMode = analyzer.valueAt(AnalyzerOptions.strong_mode);
       _applyStrongOptions(options, strongMode);
 
       // Process filters.
-      var filters = getValue(analyzer, AnalyzerOptions.errors);
+      var filters = analyzer.valueAt(AnalyzerOptions.errors);
       _applyProcessors(options, filters);
 
       // Process enabled experiments.
-      var experimentNames =
-          getValue(analyzer, AnalyzerOptions.enableExperiment);
+      var experimentNames = analyzer.valueAt(AnalyzerOptions.enableExperiment);
       if (experimentNames is YamlList) {
         List<String> enabledExperiments = <String>[];
         for (var element in experimentNames.nodes) {
@@ -610,19 +611,19 @@ class _OptionsProcessor {
       }
 
       // Process optional checks options.
-      var optionalChecks = getValue(analyzer, AnalyzerOptions.optionalChecks);
+      var optionalChecks = analyzer.valueAt(AnalyzerOptions.optionalChecks);
       _applyOptionalChecks(options, optionalChecks);
 
       // Process language options.
-      var language = getValue(analyzer, AnalyzerOptions.language);
+      var language = analyzer.valueAt(AnalyzerOptions.language);
       _applyLanguageOptions(options, language);
 
       // Process excludes.
-      var excludes = getValue(analyzer, AnalyzerOptions.exclude);
+      var excludes = analyzer.valueAt(AnalyzerOptions.exclude);
       _applyExcludes(options, excludes);
 
       // Process plugins.
-      var names = getValue(analyzer, AnalyzerOptions.plugins);
+      var names = analyzer.valueAt(AnalyzerOptions.plugins);
       List<String> pluginNames = <String>[];
       var pluginName = _toString(names);
       if (pluginName != null) {

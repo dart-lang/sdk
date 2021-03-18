@@ -62,7 +62,7 @@ class AnalysisOptionsProvider {
   /// Return an empty options map if the file does not exist.
   YamlMap getOptionsFromSource(Source source) {
     YamlMap options = getOptionsFromString(_readAnalysisOptions(source));
-    var node = getValue(options, AnalyzerOptions.include);
+    var node = options.valueAt(AnalyzerOptions.include);
     var sourceFactory = this.sourceFactory;
     if (sourceFactory != null && node is YamlScalar) {
       var path = node.value;

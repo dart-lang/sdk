@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_DEBUGGER_H_
 #define RUNTIME_VM_DEBUGGER_H_
 
+#include <memory>
+
 #include "include/dart_tools_api.h"
 
 #include "vm/kernel_isolate.h"
@@ -15,6 +17,8 @@
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
 #include "vm/stack_trace.h"
+
+#if !defined(PRODUCT)
 
 DECLARE_FLAG(bool, verbose_debug);
 
@@ -120,13 +124,15 @@ class Breakpoint {
 class BreakpointLocation {
  public:
   // Create a new unresolved breakpoint.
-  BreakpointLocation(const Script& script,
+  BreakpointLocation(Debugger* debugger,
+                     const Script& script,
                      TokenPosition token_pos,
                      TokenPosition end_token_pos,
                      intptr_t requested_line_number,
                      intptr_t requested_column_number);
   // Create a new latent breakpoint.
-  BreakpointLocation(const String& url,
+  BreakpointLocation(Debugger* debugger,
+                     const String& url,
                      intptr_t requested_line_number,
                      intptr_t requested_column_number);
 
@@ -154,6 +160,8 @@ class BreakpointLocation {
   bool IsResolved() const { return code_token_pos_.IsReal(); }
   bool IsLatent() const { return !token_pos_.IsReal(); }
 
+  Debugger* debugger() { return debugger_; }
+
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -170,6 +178,7 @@ class BreakpointLocation {
   // Finds the breakpoint we hit at |location|.
   Breakpoint* FindHitBreakpoint(ActivationFrame* top_frame);
 
+  Debugger* debugger_;
   ScriptPtr script_;
   StringPtr url_;
   TokenPosition token_pos_;
@@ -184,12 +193,16 @@ class BreakpointLocation {
   TokenPosition code_token_pos_;
 
   friend class Debugger;
+  friend class GroupDebugger;
   DISALLOW_COPY_AND_ASSIGN(BreakpointLocation);
 };
 
 // CodeBreakpoint represents a location in compiled code.
 // There may be more than one CodeBreakpoint for one BreakpointLocation,
 // e.g. when a function gets compiled as a regular function and as a closure.
+// There may be more than one BreakpointLocation associated with CodeBreakpoint,
+// one for for every isolate in a group that sets a breakpoint at particular
+// code location represented by the CodeBreakpoint.
 class CodeBreakpoint {
  public:
   CodeBreakpoint(const Code& code,
@@ -201,6 +214,11 @@ class CodeBreakpoint {
   FunctionPtr function() const;
   uword pc() const { return pc_; }
   TokenPosition token_pos() const { return token_pos_; }
+  bool HasBreakpointLocation(BreakpointLocation* breakpoint_location);
+  bool FindAndDeleteBreakpointLocation(BreakpointLocation* breakpoint_location);
+  bool HasNoBreakpointLocations() {
+    return breakpoint_locations_.length() == 0;
+  }
 
   ScriptPtr SourceCode();
   StringPtr SourceUrl();
@@ -215,8 +233,10 @@ class CodeBreakpoint {
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  BreakpointLocation* bpt_location() const { return bpt_location_; }
-  void set_bpt_location(BreakpointLocation* value) { bpt_location_ = value; }
+  BreakpointLocation* FindBreakpointForDebugger(Debugger* debugger);
+  void AddBreakpointLocation(BreakpointLocation* value) {
+    breakpoint_locations_.Add(value);
+  }
 
   void set_next(CodeBreakpoint* value) { next_ = value; }
   CodeBreakpoint* next() const { return this->next_; }
@@ -230,13 +250,16 @@ class CodeBreakpoint {
   intptr_t line_number_;
   bool is_enabled_;
 
-  BreakpointLocation* bpt_location_;
+  // Breakpoint locations from different debuggers/isolates that
+  // point to this code breakpoint.
+  MallocGrowableArray<BreakpointLocation*> breakpoint_locations_;
   CodeBreakpoint* next_;
 
   UntaggedPcDescriptors::Kind breakpoint_kind_;
   CodePtr saved_value_;
 
   friend class Debugger;
+  friend class GroupDebugger;
   DISALLOW_COPY_AND_ASSIGN(CodeBreakpoint);
 };
 
@@ -473,6 +496,52 @@ typedef enum {
   kInvalidExceptionPauseInfo
 } Dart_ExceptionPauseInfo;
 
+class GroupDebugger {
+ public:
+  explicit GroupDebugger(IsolateGroup* isolate_group);
+  ~GroupDebugger();
+
+  void MakeCodeBreakpointAt(const Function& func, BreakpointLocation* bpt);
+  // Returns [nullptr] if no breakpoint exists for the given address.
+  CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);
+  BreakpointLocation* GetBreakpointLocationFor(Debugger* debugger,
+                                               uword breakpoint_address,
+                                               CodeBreakpoint** pcbpt);
+  CodePtr GetPatchedStubAddress(uword breakpoint_address);
+
+  void UnlinkCodeBreakpoints(BreakpointLocation* bpt_location);
+
+  // Returns true if the call at address pc is patched to point to
+  // a debugger stub.
+  bool HasActiveBreakpoint(uword pc);
+  bool HasCodeBreakpointInFunction(const Function& func);
+  bool HasCodeBreakpointInCode(const Code& code);
+
+  bool HasBreakpointInFunction(const Function& func);
+  bool HasBreakpointInCode(const Code& code);
+
+  void SyncBreakpointLocation(BreakpointLocation* loc);
+  void DisableCodeBreakpointsFor(BreakpointLocation* loc);
+
+  void Pause();
+
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+ private:
+  IsolateGroup* isolate_group_;
+
+  std::unique_ptr<SafepointRwLock> code_breakpoints_lock_;
+  CodeBreakpoint* code_breakpoints_;
+
+  SafepointRwLock* code_breakpoints_lock() {
+    return code_breakpoints_lock_.get();
+  }
+  void RemoveUnlinkedCodeBreakpoints();
+  void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
+
+  bool needs_breakpoint_cleanup_;
+};
+
 class Debugger {
  public:
   enum ResumeAction {
@@ -560,11 +629,6 @@ class Debugger {
   // This may be called from different threads, therefore do not use the,
   // debugger's zone.
   bool HasBreakpoint(const Function& func, Zone* zone);
-  bool HasBreakpoint(const Code& code);
-
-  // Returns true if the call at address pc is patched to point to
-  // a debugger stub.
-  bool HasActiveBreakpoint(uword pc);
 
   // Returns a stack trace with frames corresponding to invisible functions
   // omitted. CurrentStackTrace always returns a new trace on the current stack.
@@ -595,14 +659,11 @@ class Debugger {
   // Dart.
   void PauseDeveloper(const String& msg);
 
-  CodePtr GetPatchedStubAddress(uword breakpoint_address);
-
   void PrintBreakpointsToJSONArray(JSONArray* jsarr) const;
   void PrintSettingsToJSONObject(JSONObject* jsobj) const;
 
   static bool IsDebuggable(const Function& func);
 
-  // IsolateGroupDebugger::
   static bool IsDebugging(Thread* thread, const Function& func);
 
   intptr_t limitBreakpointId() { return next_id_; }
@@ -621,17 +682,14 @@ class Debugger {
 
   void SendBreakpointEvent(ServiceEvent::EventKind kind, Breakpoint* bpt);
 
-  // IsolateGroupDebugger::
   void FindCompiledFunctions(const Script& script,
                              TokenPosition start_pos,
                              TokenPosition end_pos,
                              GrowableObjectArray* code_function_list);
-  // IsolateGroupDebugger::
   bool FindBestFit(const Script& script,
                    TokenPosition token_pos,
                    TokenPosition last_token_pos,
                    Function* best_fit);
-  // IsolateGroupDebugger::
   void DeoptimizeWorld();
   void NotifySingleStepping(bool value) const;
   BreakpointLocation* SetCodeBreakpoints(const Script& script,
@@ -649,24 +707,17 @@ class Debugger {
                                     const Function& function);
   bool RemoveBreakpointFromTheList(intptr_t bp_id, BreakpointLocation** list);
   Breakpoint* GetBreakpointByIdInTheList(intptr_t id, BreakpointLocation* list);
-  void RemoveUnlinkedCodeBreakpoints();
-  void UnlinkCodeBreakpoints(BreakpointLocation* bpt_location);
   BreakpointLocation* GetLatentBreakpoint(const String& url,
                                           intptr_t line,
                                           intptr_t column);
   void RegisterBreakpointLocation(BreakpointLocation* bpt);
-  void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
   BreakpointLocation* GetBreakpointLocation(
       const Script& script,
       TokenPosition token_pos,
       intptr_t requested_line,
       intptr_t requested_column,
       TokenPosition code_token_pos = TokenPosition::kNoSource);
-  void MakeCodeBreakpointAt(const Function& func, BreakpointLocation* bpt);
-  // Returns NULL if no breakpoint exists for the given address.
-  CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);
 
-  void SyncBreakpointLocation(BreakpointLocation* loc);
   void PrintBreakpointsListToJSONArray(BreakpointLocation* sbpt,
                                        JSONArray* jsarr) const;
 
@@ -702,6 +753,8 @@ class Debugger {
   void SetAsyncSteppingFramePointer(DebuggerStackTrace* stack_trace);
   void SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace);
 
+  GroupDebugger* group_debugger() { return isolate_->group()->debugger(); }
+
   Isolate* isolate_;
 
   // ID number generator.
@@ -709,7 +762,6 @@ class Debugger {
 
   BreakpointLocation* latent_locations_;
   BreakpointLocation* breakpoint_locations_;
-  CodeBreakpoint* code_breakpoints_;
 
   // Tells debugger what to do when resuming execution after a breakpoint.
   ResumeAction resume_action_;
@@ -751,8 +803,6 @@ class Debugger {
   // breakpoint.
   bool skip_next_step_;
 
-  bool needs_breakpoint_cleanup_;
-
   // We keep this breakpoint alive until after the debugger does the step over
   // async continuation machinery so that we can report that we've stopped
   // at the breakpoint.
@@ -786,5 +836,7 @@ class DisableBreakpointsScope : public ValueObject {
 };
 
 }  // namespace dart
+
+#endif  // !defined(PRODUCT)
 
 #endif  // RUNTIME_VM_DEBUGGER_H_

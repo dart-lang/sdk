@@ -498,6 +498,9 @@ import 'override_on_non_overriding_method_test.dart'
     as override_on_non_overriding_method;
 import 'override_on_non_overriding_setter_test.dart'
     as override_on_non_overriding_setter;
+import 'packed_annotation_alignment_test.dart' as packed_annotation_alignment;
+import 'packed_annotation_test.dart' as packed_annotation;
+import 'packed_nesting_non_packed_test.dart' as packed_nesting_non_packed;
 import 'part_of_different_library_test.dart' as part_of_different_library;
 import 'part_of_non_part_test.dart' as part_of_non_part;
 import 'prefix_collides_with_top_level_member_test.dart'
@@ -1000,6 +1003,9 @@ main() {
     override_on_non_overriding_getter.main();
     override_on_non_overriding_method.main();
     override_on_non_overriding_setter.main();
+    packed_annotation.main();
+    packed_annotation_alignment.main();
+    packed_nesting_non_packed.main();
     part_of_different_library.main();
     part_of_non_part.main();
     prefix_collides_with_top_level_member.main();

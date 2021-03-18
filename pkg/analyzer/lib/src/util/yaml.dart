@@ -8,28 +8,6 @@ import 'package:source_span/source_span.dart';
 import 'package:yaml/src/event.dart';
 import 'package:yaml/yaml.dart';
 
-/// Given a [map], return the [YamlNode] associated with the given [key], or
-/// `null` if there is no matching key.
-YamlNode? getKey(YamlMap map, String key) {
-  for (YamlNode k in map.nodes.keys) {
-    if (k is YamlScalar && k.value == key) {
-      return k;
-    }
-  }
-  return null;
-}
-
-/// Given a [map], return the value associated with the key whose value matches
-/// the given [key], or `null` if there is no matching key.
-YamlNode? getValue(YamlMap map, String key) {
-  for (var k in map.nodes.keys) {
-    if (k is YamlScalar && k.value == key) {
-      return map.nodes[k];
-    }
-  }
-  return null;
-}
-
 /// If all of the elements of [list] are strings, return a list of strings
 /// containing the same elements. Otherwise, return `null`.
 List<String>? toStringList(List? list) {
@@ -82,9 +60,9 @@ class Merger {
       return YamlMap.internal(map, o1.span, CollectionStyle.BLOCK);
     }
 
-    if (isListOfString(o1) && isMapToBools(o2)) {
+    if (_isListOfString(o1) && _isMapToBools(o2)) {
       o1 = listToMap(o1 as YamlList);
-    } else if (isMapToBools(o1) && isListOfString(o2)) {
+    } else if (_isMapToBools(o1) && _isListOfString(o2)) {
       o2 = listToMap(o2 as YamlList);
     }
 
@@ -117,11 +95,8 @@ class Merger {
     m1.nodes.forEach((k, v) {
       merged[k] = v;
     });
-    m2.nodes.forEach((k, v) {
-      // TODO(srawlins): The key should always be a [YamlNode], but is not (see
-      // https://pub.dev/documentation/yaml/latest/yaml/YamlMap/nodes.html).
-      // We could write an extension method which does this cast for us.
-      var value = (k as YamlNode).value;
+    m2.nodeMap.forEach((k, v) {
+      var value = k.value;
       var mergedKey =
           merged.keys.firstWhere((key) => key.value == value, orElse: () => k)
               as YamlScalar;
@@ -135,11 +110,49 @@ class Merger {
     return YamlMap.internal(merged, m1.span, CollectionStyle.BLOCK);
   }
 
-  static bool isListOfString(Object? o) =>
+  static bool _isListOfString(Object? o) =>
       o is YamlList &&
       o.nodes.every((e) => e is YamlScalar && e.value is String);
 
-  static bool isMapToBools(Object? o) =>
+  static bool _isMapToBools(Object? o) =>
       o is YamlMap &&
       o.nodes.values.every((v) => v is YamlScalar && v.value is bool);
+}
+
+extension YamlMapExtensions on YamlMap {
+  /// Return the value associated with the key whose value matches the given
+  /// [key], or `null` if there is no matching key.
+  YamlNode? valueAt(String key) {
+    for (var keyNode in nodes.keys) {
+      if (keyNode is YamlScalar && keyNode.value == key) {
+        return nodes[keyNode];
+      }
+    }
+    return null;
+  }
+
+  /// Return the [YamlNode] representing the key that corresponds to the value
+  /// represented by the [value] node.
+  YamlNode? keyAtValue(YamlNode value) {
+    for (var entry in nodes.entries) {
+      if (entry.value == value) {
+        return entry.key;
+      }
+    }
+    return null;
+  }
+
+  /// Return the [YamlNode] associated with the given [key], or `null` if there
+  /// is no matching key.
+  YamlNode? getKey(String key) {
+    for (YamlNode k in nodes.keys) {
+      if (k is YamlScalar && k.value == key) {
+        return k;
+      }
+    }
+    return null;
+  }
+
+  /// Return [nodes] as a Map with [YamlNode] keys.
+  Map<YamlNode, YamlNode> get nodeMap => nodes.cast<YamlNode, YamlNode>();
 }

@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/completion/yaml/producer.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analysis_server/src/utilities/extensions/yaml.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
 /// A completion generator that can produce completion suggestions for files

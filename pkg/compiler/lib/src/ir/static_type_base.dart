@@ -262,6 +262,10 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType>
       node.getStaticType(staticTypeContext);
 
   @override
+  ir.DartType visitInstanceGetterInvocation(ir.InstanceGetterInvocation node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
   ir.DartType visitFunctionTearOff(ir.FunctionTearOff node) =>
       node.getStaticType(staticTypeContext);
 

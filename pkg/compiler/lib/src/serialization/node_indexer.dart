@@ -166,6 +166,12 @@ class _TreeNodeIndexerVisitor extends ir.Visitor<void>
   }
 
   @override
+  void visitInstanceGetterInvocation(ir.InstanceGetterInvocation node) {
+    registerNode(node);
+    super.visitInstanceGetterInvocation(node);
+  }
+
+  @override
   void visitDynamicInvocation(ir.DynamicInvocation node) {
     registerNode(node);
     super.visitDynamicInvocation(node);

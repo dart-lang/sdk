@@ -4309,11 +4309,12 @@ void Service::SendInspectEvent(Isolate* isolate, const Object& inspectee) {
   Service::HandleEvent(&event);
 }
 
-void Service::SendEmbedderEvent(const char* stream_id,
+void Service::SendEmbedderEvent(Isolate* isolate,
+                                const char* stream_id,
                                 const char* event_kind,
                                 const uint8_t* bytes,
                                 intptr_t bytes_len) {
-  ServiceEvent event(ServiceEvent::kEmbedder);
+  ServiceEvent event(isolate, ServiceEvent::kEmbedder);
   event.set_embedder_kind(event_kind);
   event.set_embedder_stream_id(stream_id);
   event.set_bytes(bytes, bytes_len);

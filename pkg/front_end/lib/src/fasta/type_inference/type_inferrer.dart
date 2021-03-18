@@ -41,12 +41,6 @@ import '../builder/member_builder.dart';
 
 import '../fasta_codes.dart';
 
-import '../kernel/internal_ast.dart'
-    show
-        VariableDeclarationImpl,
-        getExplicitTypeArguments,
-        getExtensionTypeParameterCount;
-
 import '../kernel/inference_visitor.dart';
 
 import '../kernel/invalid_type.dart';
@@ -2948,7 +2942,7 @@ class TypeInferrerImpl implements TypeInferrer {
         VariableDeclaration variable = receiver.variable;
         TreeNode parent = variable.parent;
         if (parent is FunctionDeclaration) {
-          assert(inferredFunctionType != unknownFunction,
+          assert(!identical(inferredFunctionType, unknownFunction),
               "Unknown function type for local function invocation.");
           expression = new LocalFunctionInvocation(variable, arguments,
               functionType: inferredFunctionType)
