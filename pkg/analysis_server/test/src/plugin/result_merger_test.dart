@@ -29,7 +29,7 @@ class ResultMergerTest {
     AnalysisError createError(int offset) {
       var severity = AnalysisErrorSeverity.ERROR;
       var type = AnalysisErrorType.HINT;
-      var location = Location('test.dart', offset, 2, 3, 4);
+      var location = Location('test.dart', offset, 2, 3, 4, 5, 6);
       return AnalysisError(severity, type, location, '', '');
     }
 
@@ -68,7 +68,7 @@ class ResultMergerTest {
     AnalysisError createError(int offset) {
       var severity = AnalysisErrorSeverity.ERROR;
       var type = AnalysisErrorType.HINT;
-      var location = Location('test.dart', offset, 2, 3, 4);
+      var location = Location('test.dart', offset, 2, 3, 4, 5, 6);
       return AnalysisError(severity, type, location, '', '');
     }
 
@@ -265,7 +265,7 @@ class ResultMergerTest {
 
   void test_mergeOutline() {
     Element element(ElementKind kind, int offset) {
-      var location = Location('', offset, 0, 0, 0);
+      var location = Location('', offset, 0, 0, 0, 0, 0);
       return Element(kind, '', 0, location: location);
     }
 

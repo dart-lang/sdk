@@ -70,7 +70,9 @@ class A {
       "offset": 6,
       "length": 0,
       "startLine": 1,
-      "startColumn": 7
+      "startColumn": 7,
+      "endLine": 1,
+      "endColumn": 7
     },
     "flags": 0
   },
@@ -93,7 +95,9 @@ class A {
       "offset": 14,
       "length": 0,
       "startLine": 2,
-      "startColumn": 5
+      "startColumn": 5,
+      "endLine": 2,
+      "endColumn": 5
     },
     "flags": 0,
     "parameters": "()",
@@ -140,7 +144,9 @@ class _B extends A {
       "offset": 15,
       "length": 0,
       "startLine": 1,
-      "startColumn": 16
+      "startColumn": 16,
+      "endLine": 1,
+      "endColumn": 16
     },
     "flags": 1
   },
@@ -163,7 +169,9 @@ class _B extends A {
       "offset": 40,
       "length": 0,
       "startLine": 3,
-      "startColumn": 13
+      "startColumn": 13,
+      "endLine": 3,
+      "endColumn": 13
     },
     "flags": 0,
     "parameters": "()",
@@ -209,7 +217,9 @@ class B {}
       "offset": 21,
       "length": 0,
       "startLine": 2,
-      "startColumn": 7
+      "startColumn": 7,
+      "endLine": 2,
+      "endColumn": 7
     },
     "flags": 0
   },
@@ -234,7 +244,9 @@ class B {}
       "offset": 24,
       "length": 0,
       "startLine": 2,
-      "startColumn": 7
+      "startColumn": 7,
+      "endLine": 2,
+      "endColumn": 7
     },
     "flags": 0
   },
@@ -271,7 +283,9 @@ enum MyEnum {
       "offset": 5,
       "length": 0,
       "startLine": 1,
-      "startColumn": 6
+      "startColumn": 6,
+      "endLine": 1,
+      "endColumn": 6
     },
     "flags": 0
   },
@@ -294,7 +308,9 @@ enum MyEnum {
       "offset": 16,
       "length": 0,
       "startLine": 2,
-      "startColumn": 3
+      "startColumn": 3,
+      "endLine": 2,
+      "endColumn": 3
     },
     "flags": 0
   },
@@ -318,7 +334,9 @@ enum MyEnum {
       "offset": 23,
       "length": 0,
       "startLine": 3,
-      "startColumn": 3
+      "startColumn": 3,
+      "endLine": 3,
+      "endColumn": 3
     },
     "flags": 0
   },
@@ -356,7 +374,9 @@ var stringV = 'hi';
       "offset": 4,
       "length": 0,
       "startLine": 1,
-      "startColumn": 5
+      "startColumn": 5,
+      "endLine": 1,
+      "endColumn": 5
     },
     "flags": 0,
     "returnType": ""
@@ -380,7 +400,9 @@ var stringV = 'hi';
       "offset": 23,
       "length": 0,
       "startLine": 2,
-      "startColumn": 5
+      "startColumn": 5,
+      "endLine": 2,
+      "endColumn": 5
     },
     "flags": 0,
     "returnType": ""
@@ -404,7 +426,9 @@ var stringV = 'hi';
       "offset": 37,
       "length": 0,
       "startLine": 3,
-      "startColumn": 5
+      "startColumn": 5,
+      "endLine": 3,
+      "endColumn": 5
     },
     "flags": 0,
     "returnType": ""
@@ -428,7 +452,9 @@ var stringV = 'hi';
       "offset": 56,
       "length": 0,
       "startLine": 4,
-      "startColumn": 5
+      "startColumn": 5,
+      "endLine": 4,
+      "endColumn": 5
     },
     "flags": 0,
     "returnType": ""

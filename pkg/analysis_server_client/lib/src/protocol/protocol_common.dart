@@ -3495,6 +3495,8 @@ class LinkedEditSuggestionKind implements Enum {
 ///   "length": int
 ///   "startLine": int
 ///   "startColumn": int
+///   "endLine": int
+///   "endColumn": int
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -3508,6 +3510,10 @@ class Location implements HasToJson {
   int _startLine;
 
   int _startColumn;
+
+  int _endLine;
+
+  int _endColumn;
 
   /// The file containing the range.
   String get file => _file;
@@ -3558,13 +3564,37 @@ class Location implements HasToJson {
     _startColumn = value;
   }
 
-  Location(
-      String file, int offset, int length, int startLine, int startColumn) {
+  /// The one-based index of the line containing the character immediately
+  /// following the range.
+  int get endLine => _endLine;
+
+  /// The one-based index of the line containing the character immediately
+  /// following the range.
+  set endLine(int value) {
+    assert(value != null);
+    _endLine = value;
+  }
+
+  /// The one-based index of the column containing the character immediately
+  /// following the range.
+  int get endColumn => _endColumn;
+
+  /// The one-based index of the column containing the character immediately
+  /// following the range.
+  set endColumn(int value) {
+    assert(value != null);
+    _endColumn = value;
+  }
+
+  Location(String file, int offset, int length, int startLine, int startColumn,
+      int endLine, int endColumn) {
     this.file = file;
     this.offset = offset;
     this.length = length;
     this.startLine = startLine;
     this.startColumn = startColumn;
+    this.endLine = endLine;
+    this.endColumn = endColumn;
   }
 
   factory Location.fromJson(
@@ -3603,7 +3633,21 @@ class Location implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'startColumn');
       }
-      return Location(file, offset, length, startLine, startColumn);
+      int endLine;
+      if (json.containsKey('endLine')) {
+        endLine = jsonDecoder.decodeInt(jsonPath + '.endLine', json['endLine']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'endLine');
+      }
+      int endColumn;
+      if (json.containsKey('endColumn')) {
+        endColumn =
+            jsonDecoder.decodeInt(jsonPath + '.endColumn', json['endColumn']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'endColumn');
+      }
+      return Location(
+          file, offset, length, startLine, startColumn, endLine, endColumn);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'Location', json);
     }
@@ -3617,6 +3661,8 @@ class Location implements HasToJson {
     result['length'] = length;
     result['startLine'] = startLine;
     result['startColumn'] = startColumn;
+    result['endLine'] = endLine;
+    result['endColumn'] = endColumn;
     return result;
   }
 
@@ -3630,7 +3676,9 @@ class Location implements HasToJson {
           offset == other.offset &&
           length == other.length &&
           startLine == other.startLine &&
-          startColumn == other.startColumn;
+          startColumn == other.startColumn &&
+          endLine == other.endLine &&
+          endColumn == other.endColumn;
     }
     return false;
   }
@@ -3643,6 +3691,8 @@ class Location implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, length.hashCode);
     hash = JenkinsSmiHash.combine(hash, startLine.hashCode);
     hash = JenkinsSmiHash.combine(hash, startColumn.hashCode);
+    hash = JenkinsSmiHash.combine(hash, endLine.hashCode);
+    hash = JenkinsSmiHash.combine(hash, endColumn.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

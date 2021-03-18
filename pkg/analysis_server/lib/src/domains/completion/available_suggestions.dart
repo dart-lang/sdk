@@ -266,6 +266,8 @@ protocol.Element _protocolElement(Declaration declaration) {
       0, // length
       declaration.locationStartLine,
       declaration.locationStartColumn,
+      declaration.locationStartLine, // endLine
+      declaration.locationStartColumn, // endColumn
     ),
     parameters: declaration.parameters,
     returnType: declaration.returnType,

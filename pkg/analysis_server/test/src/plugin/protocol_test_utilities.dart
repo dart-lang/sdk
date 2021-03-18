@@ -79,7 +79,7 @@ class ProtocolTestUtilities {
   Element element(int stringIndex, int intIndex, {ElementKind kind}) =>
       Element(kind ?? ElementKind.CLASS, strings[stringIndex++], intIndex++,
           location: Location(fileName(stringIndex++), intIndex++, intIndex++,
-              intIndex++, intIndex++),
+              intIndex++, intIndex++, intIndex++, intIndex++),
           parameters: strings[stringIndex++],
           returnType: strings[stringIndex++],
           typeParameters: strings[stringIndex++]);
@@ -95,6 +95,8 @@ class ProtocolTestUtilities {
   /// On return, increment [stringIndex] by 1 and [intIndex] by 4.
   Location location(int stringIndex, int intIndex, {String file}) => Location(
       file ?? fileName(stringIndex),
+      intIndex++,
+      intIndex++,
       intIndex++,
       intIndex++,
       intIndex++,
