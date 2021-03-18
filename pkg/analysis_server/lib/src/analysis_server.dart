@@ -132,6 +132,8 @@ class AnalysisServer extends AbstractAnalysisServer {
     RequestStatisticsHelper requestStatistics,
     DiagnosticServer diagnosticServer,
     this.detachableFileSystemManager,
+    // Disable to avoid using this in unit tests.
+    bool enableBazelWatcher = false,
   }) : super(
           options,
           sdkManager,
@@ -142,6 +144,7 @@ class AnalysisServer extends AbstractAnalysisServer {
           httpClient,
           NotificationManager(channel, baseResourceProvider.pathContext),
           requestStatistics: requestStatistics,
+          enableBazelWatcher: enableBazelWatcher,
         ) {
     var contextManagerCallbacks =
         ServerContextManagerCallbacks(this, resourceProvider);

@@ -81,6 +81,7 @@ class SocketServer implements AbstractSocketServer {
       requestStatistics: requestStatistics,
       diagnosticServer: diagnosticServer,
       detachableFileSystemManager: detachableFileSystemManager,
+      enableBazelWatcher: true,
     );
     detachableFileSystemManager?.setAnalysisServer(analysisServer);
   }

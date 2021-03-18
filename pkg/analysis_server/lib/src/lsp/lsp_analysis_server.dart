@@ -137,6 +137,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     InstrumentationService instrumentationService, {
     http.Client httpClient,
     DiagnosticServer diagnosticServer,
+    // Disable to avoid using this in unit tests.
+    bool enableBazelWatcher = false,
   }) : super(
           options,
           sdkManager,
@@ -146,6 +148,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           instrumentationService,
           httpClient,
           LspNotificationManager(channel, baseResourceProvider.pathContext),
+          enableBazelWatcher: enableBazelWatcher,
         ) {
     notificationManager.server = this;
     messageHandler = UninitializedStateMessageHandler(this);

@@ -140,6 +140,7 @@ abstract class AbstractAnalysisServer {
     http.Client httpClient,
     this.notificationManager, {
     this.requestStatistics,
+    bool enableBazelWatcher,
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']) {
@@ -192,6 +193,7 @@ abstract class AbstractAnalysisServer {
       analysisPerformanceLogger,
       analysisDriverScheduler,
       instrumentationService,
+      enableBazelWatcher: enableBazelWatcher,
     );
     searchEngine = SearchEngineImpl(driverMap.values);
   }

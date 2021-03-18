@@ -68,12 +68,14 @@ class LspSocketServer implements AbstractSocketServer {
         stateLocation: analysisServerOptions.cacheFolder);
 
     analysisServer = LspAnalysisServer(
-        serverChannel,
-        resourceProvider,
-        analysisServerOptions,
-        sdkManager,
-        CrashReportingAttachmentsBuilder.empty,
-        instrumentationService,
-        diagnosticServer: diagnosticServer);
+      serverChannel,
+      resourceProvider,
+      analysisServerOptions,
+      sdkManager,
+      CrashReportingAttachmentsBuilder.empty,
+      instrumentationService,
+      diagnosticServer: diagnosticServer,
+      enableBazelWatcher: true,
+    );
   }
 }
