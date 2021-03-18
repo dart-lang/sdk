@@ -1478,7 +1478,7 @@ class InferenceVisitor
                   messageNullableSpreadError, receiver.fileOffset, 1,
                   context: inferrer.getWhyNotPromotedContext(
                       receiver,
-                      inferrer.flowAnalysis?.whyNotPromoted(receiver),
+                      inferrer.flowAnalysis?.whyNotPromoted(receiver)(),
                       element,
                       (type) => !type.isPotentiallyNullable));
             }
@@ -1548,7 +1548,7 @@ class InferenceVisitor
                 messageNullableSpreadError, receiver.fileOffset, 1,
                 context: inferrer.getWhyNotPromotedContext(
                     receiver,
-                    inferrer.flowAnalysis?.whyNotPromoted(receiver),
+                    inferrer.flowAnalysis?.whyNotPromoted(receiver)(),
                     element,
                     (type) => !type.isPotentiallyNullable));
             _copyNonPromotionReasonToReplacement(element, replacement);
@@ -1986,7 +1986,7 @@ class InferenceVisitor
                   messageNullableSpreadError, receiver.fileOffset, 1,
                   context: inferrer.getWhyNotPromotedContext(
                       receiver,
-                      inferrer.flowAnalysis?.whyNotPromoted(receiver),
+                      inferrer.flowAnalysis?.whyNotPromoted(receiver)(),
                       entry,
                       (type) => !type.isPotentiallyNullable));
               _copyNonPromotionReasonToReplacement(entry, problem);
@@ -2006,7 +2006,7 @@ class InferenceVisitor
                 1,
                 context: inferrer.getWhyNotPromotedContext(
                     receiver,
-                    inferrer.flowAnalysis?.whyNotPromoted(receiver),
+                    inferrer.flowAnalysis?.whyNotPromoted(receiver)(),
                     entry,
                     (type) => !type.isPotentiallyNullable));
             _copyNonPromotionReasonToReplacement(entry, problem);
@@ -2117,7 +2117,7 @@ class InferenceVisitor
                 messageNullableSpreadError, receiver.fileOffset, 1,
                 context: inferrer.getWhyNotPromotedContext(
                     receiver,
-                    inferrer.flowAnalysis?.whyNotPromoted(receiver),
+                    inferrer.flowAnalysis?.whyNotPromoted(receiver)(),
                     entry,
                     (type) => !type.isPotentiallyNullable));
             _copyNonPromotionReasonToReplacement(entry, keyError);
@@ -4878,7 +4878,7 @@ class InferenceVisitor
           propertyName.text.length,
           context: inferrer.getWhyNotPromotedContext(
               receiver,
-              inferrer.flowAnalysis?.whyNotPromoted(receiver),
+              inferrer.flowAnalysis?.whyNotPromoted(receiver)(),
               read,
               (type) => !type.isPotentiallyNullable));
     }

@@ -412,6 +412,7 @@ f
 faced
 factor
 factored
+fairly
 fangorn
 fasta
 favored

@@ -925,29 +925,54 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// promotion, to retrieve information about why [target] was not promoted.
   /// This call must be made right after visiting [target].
   ///
-  /// The returned value is a map whose keys are types that the user might have
-  /// been expecting the target to be promoted to, and whose values are reasons
-  /// why the corresponding promotion did not occur.  The caller is expected to
-  /// select which non-promotion reason to report to the user by seeing which
-  /// promotion would have prevented the error.  (For example, if an error
-  /// occurs due to the target having a nullable type, the caller should report
-  /// a non-promotion reason associated with non-promotion to a non-nullable
-  /// type).
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target);
+  /// The returned value is a function yielding a map whose keys are types that
+  /// the user might have been expecting the target to be promoted to, and whose
+  /// values are reasons why the corresponding promotion did not occur.  The
+  /// caller is expected to select which non-promotion reason to report to the
+  /// user by seeing which promotion would have prevented the error.  (For
+  /// example, if an error occurs due to the target having a nullable type, the
+  /// caller should report a non-promotion reason associated with non-promotion
+  /// to a non-nullable type).
+  ///
+  /// This method is expected to execute fairly efficiently; the bulk of the
+  /// expensive computation is deferred to the function it returns.  The reason
+  /// for this is that in certain cases, it's not possible to know whether "why
+  /// not promoted" information will be needed until long after visiting a node.
+  /// (For example, in resolving a call like
+  /// `(x as Future<T>).then(y, onError: z)`, we don't know whether an error
+  /// should be reported at `y` until we've inferred the type argument to
+  /// `then`, which doesn't occur until after visiting `z`).  So the caller may
+  /// freely call this method after any expression for which an error *might*
+  /// need to be generated, and then defer invoking the returned function until
+  /// it is determined that an error actually occurred.
+  Map<Type, NonPromotionReason> Function() whyNotPromoted(Expression target);
 
   /// Call this method when an error occurs that may be due to a lack of type
   /// promotion, to retrieve information about why an implicit reference to
   /// `this` was not promoted.  [staticType] is the (unpromoted) type of `this`.
   ///
-  /// The returned value is a map whose keys are types that the user might have
-  /// been expecting the target to be promoted to, and whose values are reasons
-  /// why the corresponding promotion did not occur.  The caller is expected to
-  /// select which non-promotion reason to report to the user by seeing which
-  /// promotion would have prevented the error.  (For example, if an error
-  /// occurs due to the target having a nullable type, the caller should report
-  /// a non-promotion reason associated with non-promotion to a non-nullable
-  /// type).
-  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType);
+  /// The returned value is a function yielding a map whose keys are types that
+  /// the user might have been expecting `this` to be promoted to, and whose
+  /// values are reasons why the corresponding promotion did not occur.  The
+  /// caller is expected to select which non-promotion reason to report to the
+  /// user by seeing which promotion would have prevented the error.  (For
+  /// example, if an error occurs due to the target having a nullable type, the
+  /// caller should report a non-promotion reason associated with non-promotion
+  /// to a non-nullable type).
+  ///
+  /// This method is expected to execute fairly efficiently; the bulk of the
+  /// expensive computation is deferred to the function it returns.  The reason
+  /// for this is that in certain cases, it's not possible to know whether "why
+  /// not promoted" information will be needed until long after visiting a node.
+  /// (For example, in resolving a call like
+  /// `(x as Future<T>).then(y, onError: z)`, we don't know whether an error
+  /// should be reported at `y` until we've inferred the type argument to
+  /// `then`, which doesn't occur until after visiting `z`).  So the caller may
+  /// freely call this method after any expression for which an error *might*
+  /// need to be generated, and then defer invoking the returned function until
+  /// it is determined that an error actually occurred.
+  Map<Type, NonPromotionReason> Function() whyNotPromotedImplicitThis(
+      Type staticType);
 
   /// Register write of the given [variable] in the current state.
   /// [writtenType] should be the type of the value that was written.
@@ -1467,14 +1492,15 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
+  Map<Type, NonPromotionReason> Function() whyNotPromoted(Expression target) {
     return _wrap(
         'whyNotPromoted($target)', () => _wrapped.whyNotPromoted(target),
         isQuery: true);
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType) {
+  Map<Type, NonPromotionReason> Function() whyNotPromotedImplicitThis(
+      Type staticType) {
     return _wrap('whyNotPromotedImplicitThis($staticType)',
         () => _wrapped.whyNotPromotedImplicitThis(staticType),
         isQuery: true);
@@ -2512,7 +2538,7 @@ abstract class Reference<Variable extends Object, Type extends Object> {
 
   /// Gets a map of non-promotion reasons associated with this reference.  This
   /// is the map that will be returned from [FlowAnalysis.whyNotPromoted].
-  Map<Type, NonPromotionReason> getNonPromotionReasons(
+  Map<Type, NonPromotionReason> Function() getNonPromotionReasons(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo,
       Type staticType,
       TypeOperations<Variable, Type> typeOperations);
@@ -3245,13 +3271,16 @@ class VariableReference<Variable extends Object, Type extends Object>
   VariableReference(this.variable);
 
   @override
-  Map<Type, NonPromotionReason> getNonPromotionReasons(
+  Map<Type, NonPromotionReason> Function() getNonPromotionReasons(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo,
       Type staticType,
       TypeOperations<Variable, Type> typeOperations) {
-    Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
     VariableModel<Variable, Type>? currentVariableInfo = variableInfo[variable];
-    if (currentVariableInfo != null) {
+    if (currentVariableInfo == null) {
+      return () => {};
+    }
+    return () {
+      Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
       Type currentType = currentVariableInfo.promotedTypes?.last ??
           typeOperations.variableType(variable);
       NonPromotionHistory? nonPromotionHistory =
@@ -3263,8 +3292,8 @@ class VariableReference<Variable extends Object, Type extends Object>
         }
         nonPromotionHistory = nonPromotionHistory.previous;
       }
-    }
-    return result;
+      return result;
+    };
   }
 
   @override
@@ -3278,6 +3307,8 @@ class VariableReference<Variable extends Object, Type extends Object>
           Map<Variable?, VariableModel<Variable, Type>> variableInfo) =>
       variableInfo[variable];
 }
+
+class WhyNotPromotedInfo {}
 
 /// [_FlowContext] representing an assert statement or assert initializer.
 class _AssertContext<Variable extends Object, Type extends Object>
@@ -4152,17 +4183,18 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
+  Map<Type, NonPromotionReason> Function() whyNotPromoted(Expression target) {
     ReferenceWithType<Variable, Type>? referenceWithType = _expressionReference;
     if (referenceWithType != null) {
       return referenceWithType.reference.getNonPromotionReasons(
           _current.variableInfo, referenceWithType.type, typeOperations);
     }
-    return {};
+    return () => {};
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType) {
+  Map<Type, NonPromotionReason> Function() whyNotPromotedImplicitThis(
+      Type staticType) {
     return new _ThisReference<Variable, Type>().getNonPromotionReasons(
         _current.variableInfo, staticType, typeOperations);
   }
@@ -4752,13 +4784,14 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void whileStatement_end() {}
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
-    return {};
+  Map<Type, NonPromotionReason> Function() whyNotPromoted(Expression target) {
+    return () => {};
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType) {
-    return {};
+  Map<Type, NonPromotionReason> Function() whyNotPromotedImplicitThis(
+      Type staticType) {
+    return () => {};
   }
 
   @override
@@ -4910,18 +4943,21 @@ class _PropertyGetReference<Variable extends Object, Type extends Object>
   _PropertyGetReference(this.target, this.propertyName);
 
   @override
-  Map<Type, NonPromotionReason> getNonPromotionReasons(
+  Map<Type, NonPromotionReason> Function() getNonPromotionReasons(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo,
       Type staticType,
       TypeOperations<Variable, Type> typeOperations) {
-    Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
     List<Type>? promotedTypes = _getInfo(variableInfo)?.promotedTypes;
     if (promotedTypes != null) {
-      for (Type type in promotedTypes) {
-        result[type] = new PropertyNotPromoted(propertyName, staticType);
-      }
+      return () {
+        Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
+        for (Type type in promotedTypes) {
+          result[type] = new PropertyNotPromoted(propertyName, staticType);
+        }
+        return result;
+      };
     }
-    return result;
+    return () => {};
   }
 
   @override
@@ -4982,18 +5018,21 @@ class _SimpleStatementContext<Variable extends Object, Type extends Object>
 class _ThisReference<Variable extends Object, Type extends Object>
     extends Reference<Variable, Type> {
   @override
-  Map<Type, NonPromotionReason> getNonPromotionReasons(
+  Map<Type, NonPromotionReason> Function() getNonPromotionReasons(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo,
       Type staticType,
       TypeOperations<Variable, Type> typeOperations) {
-    Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
     List<Type>? promotedTypes = _getInfo(variableInfo)?.promotedTypes;
     if (promotedTypes != null) {
-      for (Type type in promotedTypes) {
-        result[type] = new ThisNotPromoted();
-      }
+      return () {
+        Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
+        for (Type type in promotedTypes) {
+          result[type] = new ThisNotPromoted();
+        }
+        return result;
+      };
     }
-    return result;
+    return () => {};
   }
 
   @override
