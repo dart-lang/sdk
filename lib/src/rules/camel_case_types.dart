@@ -46,7 +46,9 @@ class CamelCaseTypes extends LintRule implements NodeLintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     final visitor = _Visitor(this);
+    registry.addGenericTypeAlias(this, visitor);
     registry.addClassDeclaration(this, visitor);
+    registry.addClassTypeAlias(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
   }
 }
@@ -56,17 +58,29 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    if (!isCamelCase(node.name.toString())) {
-      rule.reportLint(node.name);
+  void check(SimpleIdentifier name) {
+    if (!isCamelCase(name.toString())) {
+      rule.reportLint(name);
     }
   }
 
   @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    check(node.name);
+  }
+
+  @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    check(node.name);
+  }
+
+  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (!isCamelCase(node.name.toString())) {
-      rule.reportLint(node.name);
-    }
+    check(node.name);
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    check(node.name);
   }
 }
