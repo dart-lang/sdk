@@ -5,20 +5,20 @@
 // part of "core_patch.dart";
 
 abstract class _IntegerImplementation implements int {
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   num operator +(num other) => other._addFromInteger(this);
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   num operator -(num other) => other._subFromInteger(this);
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   num operator *(num other) => other._mulFromInteger(this);
 
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator ~/(num other) {
@@ -32,7 +32,7 @@ abstract class _IntegerImplementation implements int {
     return this.toDouble() / other.toDouble();
   }
 
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   num operator %(num other) {
@@ -42,7 +42,7 @@ abstract class _IntegerImplementation implements int {
     return other._moduloFromInteger(this);
   }
 
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator -() {
@@ -51,15 +51,15 @@ abstract class _IntegerImplementation implements int {
     return unsafeCast<int>(0 - this);
   }
 
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator &(int other) => other._bitAndFromInteger(this);
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator |(int other) => other._bitOrFromInteger(this);
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator ^(int other) => other._bitXorFromInteger(this);
@@ -96,10 +96,12 @@ abstract class _IntegerImplementation implements int {
     return unsafeCast<int>(other - (other ~/ this) * this);
   }
 
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator >>(int other) => other._shrFromInteger(this);
+  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator >>>(int other) => other._ushrFromInteger(this);
   @pragma("vm:recognized", "asm-intrinsic")
@@ -540,7 +542,7 @@ class _Smi extends _IntegerImplementation {
 
   int get hashCode => this;
   int get _identityHashCode => this;
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator ~() native "Smi_bitNegate";
   @pragma("vm:recognized", "asm-intrinsic")
