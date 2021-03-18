@@ -731,11 +731,12 @@ extension StructPointer<T extends Struct> on Pointer<T> {
 
 extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
   @patch
-  Pointer<T> operator [](int index) => _loadPointer(this, _intPtrSize * index);
+  Pointer<T> operator [](int index) =>
+      _loadPointer(_typedDataBase, _intPtrSize * index);
 
   @patch
   void operator []=(int index, Pointer<T> value) =>
-      _storePointer(this, _intPtrSize * index, value);
+      _storePointer(_typedDataBase, _intPtrSize * index, value);
 }
 
 extension ArrayArray<T extends NativeType> on Array<Array<T>> {
