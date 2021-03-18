@@ -5,7 +5,6 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/package_config_json.dart';
 import 'package:analyzer/src/util/uri.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:package_config/src/packages_file.dart'
     as package_config_packages_file;
 import 'package:pub_semver/pub_semver.dart';

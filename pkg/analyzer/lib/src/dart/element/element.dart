@@ -4337,7 +4337,6 @@ class FunctionTypeAliasElementImpl extends TypeAliasElementImpl
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
-    // ignore: deprecated_member_use_from_same_package
     visitor.visitFunctionTypeAliasElement(this);
     return visitor.visitTypeAliasElement(this);
   }

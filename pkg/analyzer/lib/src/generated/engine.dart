@@ -383,7 +383,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       }
 
       // Append boolean flags.
-      // ignore: deprecated_member_use_from_same_package
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
       buffer.addBool(strictInference);

@@ -44,9 +44,7 @@ void main() {
 
     // ignore: unawaited_futures
     process!.exitCode.then((code) => print('vm exited: ${code}'));
-    // ignore: strong_mode_down_cast_composite
     process!.stdout.transform(utf8.decoder).listen(print);
-    // ignore: strong_mode_down_cast_composite
     process!.stderr.transform(utf8.decoder).listen(print);
 
     await Future.delayed(Duration(milliseconds: 500));
@@ -76,7 +74,6 @@ void main() {
       }
       expect(originalJson, isNotNull, reason: 'Unrecognized event type! $json');
 
-      // ignore: invalid_use_of_visible_for_testing_member
       var instance =
           createServiceObject(originalJson, const ['Event', 'Success']);
       expect(instance, isNotNull,
