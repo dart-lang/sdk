@@ -101,6 +101,7 @@ vars = {
   "dart_style_tag": "2cf810073e0cc7e7ea05d3de51830e6fa6d62924",
 
   "chromedriver_tag": "83.0.4103.39",
+  "browser_launcher_rev": "74949f0c599095e6fac3cb4581ed4769167576c7",
   "dartdoc_rev" : "174021f3d76c2a8500b54977c80f32c5bbc099f1",
   "ffi_rev": "f3346299c55669cc0db48afae85b8110088bf8da",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
@@ -168,6 +169,7 @@ vars = {
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "76931ea1b81ba71e8319330c35285d3e88566315",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
+  "webkit_inspection_protocol_rev": "6b15729292d030f2e5c5861022da4c5a4c11961c",
   "yaml_rev": "b4c4411631bda556ce9a45af1ab0eecaf9f3ac53",
   "zlib_rev": "bf44340d1b6be1af8950bbdf664fec0cf5a831cc",
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
@@ -313,6 +315,9 @@ deps = {
   Var("dart_root") + "/third_party/pkg/boolean_selector":
       Var("dart_git") + "boolean_selector.git" +
       "@" + Var("boolean_selector_rev"),
+  Var("dart_root") + "/third_party/pkg/browser_launcher":
+      Var("dart_git") + "browser_launcher.git" +
+      "@" + Var("browser_launcher_rev"),
   Var("dart_root") + "/third_party/pkg/charcode":
       Var("dart_git") + "charcode.git" + "@" + Var("charcode_rev"),
   Var("dart_root") + "/third_party/pkg/cli_util":
@@ -461,6 +466,9 @@ deps = {
   Var("dart_root") + "/third_party/pkg/webdriver":
       Var("dart_git") + "external/github.com/google/webdriver.dart.git" +
       "@" + Var("webdriver_rev"),
+  Var("dart_root") + "/third_party/pkg/webkit_inspection_protocol":
+      Var("dart_git") + "external/github.com/google/webkit_inspection_protocol.dart.git" +
+      "@" + Var("webkit_inspection_protocol_rev"),
 
   Var("dart_root") + "/third_party/pkg/web_socket_channel":
       Var("dart_git") + "web_socket_channel.git" +

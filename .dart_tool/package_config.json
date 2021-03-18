@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-03-15T10:48:35.022974",
+  "generated": "2021-03-17T11:06:05.181429",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -137,6 +137,12 @@
       "rootUri": "../third_party/pkg/boolean_selector",
       "packageUri": "lib/",
       "languageVersion": "2.10"
+    },
+    {
+      "name": "browser_launcher",
+      "rootUri": "../third_party/pkg/browser_launcher",
+      "packageUri": "lib/",
+      "languageVersion": "2.2"
     },
     {
       "name": "build_integration",
@@ -784,6 +790,12 @@
     {
       "name": "webdriver",
       "rootUri": "../third_party/pkg/webdriver",
+      "packageUri": "lib/",
+      "languageVersion": "2.0"
+    },
+    {
+      "name": "webkit_inspection_protocol",
+      "rootUri": "../third_party/pkg/webkit_inspection_protocol",
       "packageUri": "lib/",
       "languageVersion": "2.0"
     },
