@@ -361,6 +361,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       scope_->InsertParameterAt(pos++, parsed_function_->receiver_var());
 
       // Create all positional and named parameters.
+      current_function_async_marker_ = FunctionNodeHelper::kSync;
       AddPositionalAndNamedParameters(
           pos, kTypeCheckEverythingNotCheckedInNonDynamicallyInvokedMethod,
           attrs);
@@ -706,15 +707,15 @@ void ScopeBuilder::VisitExpression() {
       return;
     case kSuperPropertyGet:
       HandleLoadReceiver();
-      helper_.ReadPosition();                // read position.
-      helper_.SkipName();                    // read name.
+      helper_.ReadPosition();                      // read position.
+      helper_.SkipName();                          // read name.
       helper_.SkipInterfaceMemberNameReference();  // read target_reference.
       return;
     case kSuperPropertySet:
       HandleLoadReceiver();
-      helper_.ReadPosition();                // read position.
-      helper_.SkipName();                    // read name.
-      VisitExpression();                     // read value.
+      helper_.ReadPosition();                      // read position.
+      helper_.SkipName();                          // read name.
+      VisitExpression();                           // read value.
       helper_.SkipInterfaceMemberNameReference();  // read target_reference.
       return;
     case kStaticGet:
