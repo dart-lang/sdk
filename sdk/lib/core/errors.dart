@@ -520,7 +520,7 @@ class UnimplementedError extends Error implements UnsupportedError {
 
 /// The operation was not allowed by the current state of the object.
 ///
-/// Should be used when this particular object is currenty in a state
+/// Should be used when this particular object is currently in a state
 /// which doesn't support the requested operation, but other similar
 /// objects might, or the object might change its state to one which
 /// supports the operation.

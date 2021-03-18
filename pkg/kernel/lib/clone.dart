@@ -13,7 +13,7 @@ import 'type_algebra.dart';
 /// This class does not clone members. For that, use the
 /// [CloneVisitorWithMembers] and setup references properly.
 class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
-  final Map<VariableDeclaration, VariableDeclaration> variables =
+  final Map<VariableDeclaration, VariableDeclaration> _variables =
       <VariableDeclaration, VariableDeclaration>{};
   final Map<LabeledStatement, LabeledStatement> labels =
       <LabeledStatement, LabeledStatement>{};
@@ -41,6 +41,20 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
       return <TypeParameter, DartType>{};
     }
     return map;
+  }
+
+  /// Returns the clone of [variable] or `null` if no clone has been created
+  /// for variable.
+  VariableDeclaration? getVariableClone(VariableDeclaration variable) {
+    return _variables[variable];
+  }
+
+  /// Registers [clone] as the clone for [variable].
+  ///
+  /// Returns the [clone].
+  VariableDeclaration setVariableClone(
+      VariableDeclaration variable, VariableDeclaration clone) {
+    return _variables[variable] = clone;
   }
 
   TreeNode visitLibrary(Library node) {
@@ -140,11 +154,11 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   visitVariableGet(VariableGet node) {
     return new VariableGet(
-        variables[node.variable]!, visitOptionalType(node.promotedType));
+        getVariableClone(node.variable)!, visitOptionalType(node.promotedType));
   }
 
   visitVariableSet(VariableSet node) {
-    return new VariableSet(variables[node.variable]!, clone(node.value));
+    return new VariableSet(getVariableClone(node.variable)!, clone(node.value));
   }
 
   visitPropertyGet(PropertyGet node) {
@@ -454,14 +468,16 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   visitVariableDeclaration(VariableDeclaration node) {
-    return variables[node] = new VariableDeclaration(node.name,
-        initializer: cloneOptional(node.initializer),
-        type: visitType(node.type))
-      ..annotations = cloneAnnotations && !node.annotations.isEmpty
-          ? node.annotations.map(clone).toList()
-          : const <Expression>[]
-      ..flags = node.flags
-      ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset);
+    return setVariableClone(
+        node,
+        new VariableDeclaration(node.name,
+            initializer: cloneOptional(node.initializer),
+            type: visitType(node.type))
+          ..annotations = cloneAnnotations && !node.annotations.isEmpty
+              ? node.annotations.map(clone).toList()
+              : const <Expression>[]
+          ..flags = node.flags
+          ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset));
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
@@ -701,7 +717,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   @override
   TreeNode visitLocalFunctionInvocation(LocalFunctionInvocation node) {
     return new LocalFunctionInvocation(
-        variables[node.variable]!, clone(node.arguments),
+        getVariableClone(node.variable)!, clone(node.arguments),
         functionType: visitType(node.functionType) as FunctionType);
   }
 

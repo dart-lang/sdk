@@ -1029,7 +1029,7 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
           ConstantExpression(IntConstant(length)),
           transformer.intListConstantExpression(nestedDimensions)
         ], types: [
-          dartType
+          typeArgument
         ]))
       ..fileOffset = fileOffset);
   }

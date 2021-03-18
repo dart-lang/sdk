@@ -111,7 +111,7 @@ abstract class int extends num {
   ///
   /// The least significant [shiftAmount] bits are dropped,
   /// the remaining bits (if any) are shifted down,
-  /// and zero-bits are shifted in as the new most signficant bits.
+  /// and zero-bits are shifted in as the new most significant bits.
   ///
   /// The [shiftAmount] must be non-negative.
   int operator >>>(int shiftAmount);

@@ -619,7 +619,7 @@ Future<TestResult<T>> checkCode<T>(
         print('--annotations diff [${uri.pathSegments.last}]-------------');
         AnnotatedCode? annotatedCode = code[uri];
         print(new AnnotatedCode(annotatedCode?.annotatedCode ?? "",
-                annotatedCode?.sourceCode ?? "", annotations[uri]!)
+                annotatedCode?.sourceCode ?? "", annotations[uri] ?? const [])
             .toText());
         print('----------------------------------------------------------');
       }

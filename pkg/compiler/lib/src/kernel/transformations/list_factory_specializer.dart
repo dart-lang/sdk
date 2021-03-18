@@ -283,7 +283,7 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
         type: closureParameter.type)
       ..fileOffset = closureParameter.fileOffset;
     this.argument = argument;
-    variables[closureParameter] = parameter;
+    setVariableClone(closureParameter, parameter);
   }
 
   Statement run() {
@@ -340,17 +340,8 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
   }
 
   @override
-  visitVariableGet(VariableGet node) {
-    // Unmapped variables are from an outer scope.
-    var mapped = variables[node.variable] ?? node.variable;
-    return VariableGet(mapped, visitOptionalType(node.promotedType))
-      ..fileOffset = node.fileOffset;
-  }
-
-  @override
-  visitVariableSet(VariableSet node) {
-    // Unmapped variables are from an outer scope.
-    var mapped = variables[node.variable] ?? node.variable;
-    return VariableSet(mapped, clone(node.value))..fileOffset = node.fileOffset;
+  VariableDeclaration getVariableClone(VariableDeclaration variable) {
+    VariableDeclaration clone = super.getVariableClone(variable);
+    return clone ?? variable;
   }
 }
