@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0
+
+- Update to latest args, path, meta dependency.
+
 ## 0.5.6
 - Fix for flutter/flutter#76313 causing issues with profiles containing
 WSRs serialized as smi-s instead of actual WSR objects.=
