@@ -104,6 +104,19 @@ analyzer:
     expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
   }
 
+  test_configure_excludes_withNonStrings() {
+    configureContext('''
+analyzer:
+  exclude:
+    - foo/bar.dart
+    - 'test/**'
+    - a: b
+''');
+
+    List<String> excludes = analysisOptions.excludePatterns;
+    expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
+  }
+
   test_configure_plugins_list() {
     configureContext('''
 analyzer:

@@ -574,6 +574,8 @@ class TopLevelOptionValidator extends OptionsValidator {
         //TODO(pq): consider an error if the node is not a Scalar.
       });
     }
+    // TODO(srawlins): Report non-Map with
+    //  AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT.
   }
 }
 
@@ -658,11 +660,11 @@ class _OptionsProcessor {
 
   void _applyExcludes(AnalysisOptionsImpl options, YamlNode? excludes) {
     if (excludes is YamlList) {
-      var excludeList = toStringList(excludes);
-      if (excludeList != null) {
-        options.excludePatterns = excludeList;
-      }
+      // TODO(srawlins): Report non-String items
+      options.excludePatterns = excludes.whereType<String>().toList();
     }
+    // TODO(srawlins): Report non-List with
+    //  AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT.
   }
 
   void _applyLanguageOption(
