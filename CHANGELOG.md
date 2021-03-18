@@ -12,8 +12,12 @@
 
 #### Linter
 
-Updated the Linter to `1.0.0`, which includes:
+Updated the Linter to `1.1.0`, which includes:
 
+- fixed `prefer_mixin` to properly make exceptions for `dart.collection`
+  legacy mixins.
+- new lint: `use_build_context_synchronously` (experimental).
+- new lint: `avoid_multiple_declarations_per_line`.
 - full library migration to null-safety.
 - new lint: `use_if_null_to_convert_nulls_to_bools`.
 - new lint: `deprecated_consistency`.
