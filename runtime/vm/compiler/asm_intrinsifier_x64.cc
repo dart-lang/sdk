@@ -1492,7 +1492,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ movzxw(RCX, FieldAddress(RDI, target::Class::num_type_arguments_offset()));
   __ cmpq(RCX, Immediate(0));
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
-  __ movq(RAX, FieldAddress(RDI, target::Class::declaration_type_offset()));
+  __ LoadCompressed(
+      RAX, FieldAddress(RDI, target::Class::declaration_type_offset()));
   __ CompareObject(RAX, NullObject());
   __ j(EQUAL, normal_ir_body, Assembler::kNearJump);  // Not yet set.
   __ ret();
@@ -2233,7 +2234,8 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ xorq(RCX, RCX);
 
   // Tail-call the function.
-  __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
+  __ LoadCompressed(CODE_REG,
+                    FieldAddress(RAX, target::Function::code_offset()));
   __ movq(RDI, FieldAddress(RAX, target::Function::entry_point_offset()));
   __ jmp(RDI);
 }

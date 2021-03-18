@@ -939,6 +939,11 @@ class Assembler : public AssemblerBase {
                            OperandSize sz = kEightBytes) {
     LoadFromOffset(dst, FieldAddress(base, offset), sz);
   }
+  void LoadCompressedFieldFromOffset(Register dst,
+                                     Register base,
+                                     int32_t offset) {
+    LoadCompressed(dst, FieldAddress(base, offset));
+  }
   void LoadIndexedPayload(Register dst,
                           Register base,
                           int32_t payload_offset,

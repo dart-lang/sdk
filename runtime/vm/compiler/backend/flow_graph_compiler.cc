@@ -2536,8 +2536,9 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     // kScratch2 is no longer used, so restore it.
     __ PopRegister(kScratch2Reg);
 #endif
-    __ LoadFieldFromOffset(kScratch1Reg, kScratch1Reg,
-                           compiler::target::Class::super_type_offset());
+    __ LoadCompressedFieldFromOffset(
+        kScratch1Reg, kScratch1Reg,
+        compiler::target::Class::super_type_offset());
     __ LoadFieldFromOffset(kScratch1Reg, kScratch1Reg,
                            compiler::target::Type::type_class_id_offset());
     __ CompareImmediate(kScratch1Reg, Smi::RawValue(type_class.id()));

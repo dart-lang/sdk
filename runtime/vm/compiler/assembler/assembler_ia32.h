@@ -595,6 +595,12 @@ class Assembler : public AssemblerBase {
                            OperandSize type = kFourBytes) {
     LoadFromOffset(reg, base, offset - kHeapObjectTag, type);
   }
+  void LoadCompressedFieldFromOffset(Register reg,
+                                     Register base,
+                                     int32_t offset,
+                                     OperandSize type = kFourBytes) {
+    LoadFieldFromOffset(reg, base, offset, type);
+  }
   void LoadIndexedFieldFromOffset(Register reg,
                                   Register base,
                                   int32_t offset,

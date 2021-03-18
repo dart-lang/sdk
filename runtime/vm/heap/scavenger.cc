@@ -339,8 +339,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       // of this object. Note this could be a publishing store even if the
       // object was promoted by an early invocation of ScavengePointer. Compare
       // Object::Allocate.
-      reinterpret_cast<std::atomic<ObjectPtr>*>(p)->store(
-          new_obj, std::memory_order_release);
+      reinterpret_cast<std::atomic<CompressedObjectPtr>*>(p)->store(
+          static_cast<CompressedObjectPtr>(new_obj), std::memory_order_release);
     } else {
       *p = new_obj;
     }
@@ -907,7 +907,20 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* from,
                                CompressedObjectPtr* to) {
-    UNREACHABLE();  // Store buffer blocks are not compressed.
+    for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
+      ObjectPtr raw_obj = ptr->Decompress(heap_base);
+      if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
+        if (!is_remembered_) {
+          FATAL3(
+              "Old object %#" Px " references new object %#" Px
+              ", but it is not"
+              " in any store buffer. Consider using rr to watch the slot %p and"
+              " reverse-continue to find the store with a missing barrier.\n",
+              static_cast<uword>(visiting_), static_cast<uword>(raw_obj), ptr);
+        }
+        RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
+      }
+    }
   }
 
  private:

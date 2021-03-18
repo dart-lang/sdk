@@ -57,12 +57,12 @@ class StackFrame;
 #define VISIT_NOTHING() int NothingToVisit();
 
 #define ASSERT_UNCOMPRESSED(Type)                                              \
-  ASSERT(SIZE_OF_DEREFERENCED_RETURNED_VALUE(Untagged##Type, from) == kWordSize)
+  ASSERT(SIZE_OF_DEREFERENCED_RETURNED_VALUE(Untagged##Type, from) ==          \
+         sizeof(ObjectPtr))
 
-// For now there are no compressed pointers, so this assert is the same as
-// the above.
 #define ASSERT_COMPRESSED(Type)                                                \
-  ASSERT(SIZE_OF_DEREFERENCED_RETURNED_VALUE(Untagged##Type, from) == kWordSize)
+  ASSERT(SIZE_OF_DEREFERENCED_RETURNED_VALUE(Untagged##Type, from) ==          \
+         sizeof(CompressedObjectPtr))
 
 #define ASSERT_NOTHING_TO_VISIT(Type)                                          \
   ASSERT(SIZE_OF_RETURNED_VALUE(Untagged##Type, NothingToVisit) == sizeof(int))
@@ -542,11 +542,36 @@ class UntaggedObject {
     return reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
         ->load(order);
   }
+  template <typename type,
+            typename compressed_type,
+            std::memory_order order = std::memory_order_relaxed>
+  type LoadCompressedPointer(compressed_type const* addr) const {
+    compressed_type v = reinterpret_cast<std::atomic<compressed_type>*>(
+                            const_cast<compressed_type*>(addr))
+                            ->load(order);
+    return static_cast<type>(v.Decompress(heap_base()));
+  }
+
+  uword heap_base() const {
+    return reinterpret_cast<uword>(this) & kHeapBaseMask;
+  }
 
   template <typename type, std::memory_order order = std::memory_order_relaxed>
   void StorePointer(type const* addr, type value) {
     reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
         ->store(value, order);
+    if (value->IsHeapObject()) {
+      CheckHeapPointerStore(value, Thread::Current());
+    }
+  }
+
+  template <typename type,
+            typename compressed_type,
+            std::memory_order order = std::memory_order_relaxed>
+  void StoreCompressedPointer(compressed_type const* addr, type value) {
+    reinterpret_cast<std::atomic<compressed_type>*>(
+        const_cast<compressed_type*>(addr))
+        ->store(static_cast<compressed_type>(value), order);
     if (value->IsHeapObject()) {
       CheckHeapPointerStore(value, Thread::Current());
     }
@@ -603,11 +628,19 @@ class UntaggedObject {
     }
   }
 
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
-  type LoadSmi(type const* addr) const {
-    return reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
+  template <std::memory_order order = std::memory_order_relaxed>
+  SmiPtr LoadSmi(SmiPtr const* addr) const {
+    return reinterpret_cast<std::atomic<SmiPtr>*>(const_cast<SmiPtr*>(addr))
         ->load(order);
   }
+  template <std::memory_order order = std::memory_order_relaxed>
+  SmiPtr LoadCompressedSmi(CompressedSmiPtr const* addr) const {
+    return static_cast<SmiPtr>(reinterpret_cast<std::atomic<CompressedSmiPtr>*>(
+                                   const_cast<CompressedSmiPtr*>(addr))
+                                   ->load(order)
+                                   .DecompressSmi());
+  }
+
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
   template <std::memory_order order = std::memory_order_relaxed>
@@ -616,6 +649,14 @@ class UntaggedObject {
     ASSERT(reinterpret_cast<uword>(addr) >= UntaggedObject::ToAddr(this));
     reinterpret_cast<std::atomic<SmiPtr>*>(const_cast<SmiPtr*>(addr))
         ->store(value, order);
+  }
+  template <std::memory_order order = std::memory_order_relaxed>
+  void StoreCompressedSmi(CompressedSmiPtr const* addr, SmiPtr value) {
+    // Can't use Contains, as array length is initialized through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= UntaggedObject::ToAddr(this));
+    reinterpret_cast<std::atomic<CompressedSmiPtr>*>(
+        const_cast<CompressedSmiPtr*>(addr))
+        ->store(static_cast<CompressedSmiPtr>(value), order);
   }
 
  private:
@@ -760,6 +801,20 @@ inline intptr_t ObjectPtr::GetClassId() const {
  protected:                                                                    \
   type name##_;
 
+#define COMPRESSED_POINTER_FIELD(type, name)                                   \
+ public:                                                                       \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  type name() const {                                                          \
+    return LoadCompressedPointer<type, Compressed##type, order>(&name##_);     \
+  }                                                                            \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##name(type value) {                                                \
+    StoreCompressedPointer<type, Compressed##type, order>(&name##_, value);    \
+  }                                                                            \
+                                                                               \
+ protected:                                                                    \
+  Compressed##type name##_;
+
 #define ARRAY_POINTER_FIELD(type, name)                                        \
  public:                                                                       \
   template <std::memory_order order = std::memory_order_relaxed>               \
@@ -793,7 +848,7 @@ inline intptr_t ObjectPtr::GetClassId() const {
  public:                                                                       \
   template <std::memory_order order = std::memory_order_relaxed>               \
   type name() const {                                                          \
-    type result = LoadSmi<type, order>(&name##_);                              \
+    type result = LoadSmi<order>(&name##_);                                    \
     ASSERT(!result.IsHeapObject());                                            \
     return result;                                                             \
   }                                                                            \
@@ -805,6 +860,23 @@ inline intptr_t ObjectPtr::GetClassId() const {
                                                                                \
  protected:                                                                    \
   type name##_;
+
+#define COMPRESSED_SMI_FIELD(type, name)                                       \
+ public:                                                                       \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  type name() const {                                                          \
+    type result = LoadCompressedSmi<order>(&name##_);                          \
+    ASSERT(!result.IsHeapObject());                                            \
+    return result;                                                             \
+  }                                                                            \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##name(type value) {                                                \
+    ASSERT(!value.IsHeapObject());                                             \
+    StoreCompressedSmi(&name##_, value);                                       \
+  }                                                                            \
+                                                                               \
+ protected:                                                                    \
+  Compressed##type name##_;
 
 class UntaggedClass : public UntaggedObject {
  public:
@@ -831,39 +903,43 @@ class UntaggedClass : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Class);
 
-  VISIT_FROM(ObjectPtr, name)
-  POINTER_FIELD(StringPtr, name)
-  POINTER_FIELD(StringPtr, user_name)
-  POINTER_FIELD(ArrayPtr, functions)
-  POINTER_FIELD(ArrayPtr, functions_hash_table)
-  POINTER_FIELD(ArrayPtr, fields)
-  POINTER_FIELD(ArrayPtr, offset_in_words_to_field)
-  POINTER_FIELD(ArrayPtr, interfaces)  // Array of AbstractType.
-  POINTER_FIELD(ScriptPtr, script)
-  POINTER_FIELD(LibraryPtr, library)
-  POINTER_FIELD(TypeArgumentsPtr, type_parameters)  // Array of TypeParameter.
-  POINTER_FIELD(AbstractTypePtr, super_type)
-  POINTER_FIELD(ArrayPtr,
-                constants)  // Canonicalized const instances of this class.
-  POINTER_FIELD(TypePtr, declaration_type)  // Declaration type for this class.
-  POINTER_FIELD(ArrayPtr,
-                invocation_dispatcher_cache)  // Cache for dispatcher functions.
-  POINTER_FIELD(CodePtr,
-                allocation_stub)  // Stub code for allocation of instances.
-  POINTER_FIELD(GrowableObjectArrayPtr,
-                direct_implementors)                        // Array of Class.
-  POINTER_FIELD(GrowableObjectArrayPtr, direct_subclasses)  // Array of Class.
-  POINTER_FIELD(ArrayPtr, dependent_code)  // CHA optimized codes.
-  VISIT_TO(ObjectPtr, dependent_code)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
+  VISIT_FROM(CompressedObjectPtr, name)
+  COMPRESSED_POINTER_FIELD(StringPtr, name)
+  COMPRESSED_POINTER_FIELD(StringPtr, user_name)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, functions)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, functions_hash_table)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, fields)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, offset_in_words_to_field)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, interfaces)  // Array of AbstractType.
+  COMPRESSED_POINTER_FIELD(ScriptPtr, script)
+  COMPRESSED_POINTER_FIELD(LibraryPtr, library)
+  // Array of TypeParameter.
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_parameters)
+  COMPRESSED_POINTER_FIELD(AbstractTypePtr, super_type)
+  // Canonicalized const instances of this class.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, constants)
+  // Declaration type for this class.
+  COMPRESSED_POINTER_FIELD(TypePtr, declaration_type)
+  // Cache for dispatcher functions.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, invocation_dispatcher_cache)
+  // Stub code for allocation of instances.
+  COMPRESSED_POINTER_FIELD(CodePtr, allocation_stub)
+  // Array of Class.
+  COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, direct_implementors)
+  // Array of Class.
+  COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, direct_subclasses)
+  // CHA optimized codes.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, dependent_code)
+  VISIT_TO(CompressedObjectPtr, dependent_code)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&allocation_stub_);
+        return reinterpret_cast<CompressedObjectPtr*>(&allocation_stub_);
       case Snapshot::kFull:
       case Snapshot::kFullCore:
-        return reinterpret_cast<ObjectPtr*>(&direct_subclasses_);
+        return reinterpret_cast<CompressedObjectPtr*>(&direct_subclasses_);
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&dependent_code_);
+        return reinterpret_cast<CompressedObjectPtr*>(&dependent_code_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -922,21 +998,21 @@ class UntaggedPatchClass : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(PatchClass);
 
-  VISIT_FROM(ObjectPtr, patched_class)
-  POINTER_FIELD(ClassPtr, patched_class)
-  POINTER_FIELD(ClassPtr, origin_class)
-  POINTER_FIELD(ScriptPtr, script)
-  POINTER_FIELD(ExternalTypedDataPtr, library_kernel_data)
-  VISIT_TO(ObjectPtr, library_kernel_data)
+  VISIT_FROM(CompressedObjectPtr, patched_class)
+  COMPRESSED_POINTER_FIELD(ClassPtr, patched_class)
+  COMPRESSED_POINTER_FIELD(ClassPtr, origin_class)
+  COMPRESSED_POINTER_FIELD(ScriptPtr, script)
+  COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, library_kernel_data)
+  VISIT_TO(CompressedObjectPtr, library_kernel_data)
 
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&script_);
+        return reinterpret_cast<CompressedObjectPtr*>(&script_);
       case Snapshot::kFull:
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&library_kernel_data_);
+        return reinterpret_cast<CompressedObjectPtr*>(&library_kernel_data_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1106,22 +1182,22 @@ class UntaggedFunction : public UntaggedObject {
   uword entry_point_;            // Accessed from generated code.
   uword unchecked_entry_point_;  // Accessed from generated code.
 
-  VISIT_FROM(ObjectPtr, name)
-  POINTER_FIELD(StringPtr, name)
-  POINTER_FIELD(ObjectPtr, owner)  // Class or patch class or mixin class
-                                   // where this function is defined.
-  POINTER_FIELD(ArrayPtr, parameter_names)
-  POINTER_FIELD(FunctionTypePtr, signature)
-  POINTER_FIELD(ObjectPtr,
-                data)  // Additional data specific to the function kind. See
-                       // Function::set_data() for details.
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
+  VISIT_FROM(CompressedObjectPtr, name)
+  COMPRESSED_POINTER_FIELD(StringPtr, name)
+  // Class or patch class or mixin class where this function is defined.
+  COMPRESSED_POINTER_FIELD(ObjectPtr, owner)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_names)
+  COMPRESSED_POINTER_FIELD(FunctionTypePtr, signature)
+  // Additional data specific to the function kind. See Function::set_data()
+  // for details.
+  COMPRESSED_POINTER_FIELD(ObjectPtr, data)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
       case Snapshot::kFull:
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&data_);
+        return reinterpret_cast<CompressedObjectPtr*>(&data_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1130,19 +1206,16 @@ class UntaggedFunction : public UntaggedObject {
     UNREACHABLE();
     return NULL;
   }
-  POINTER_FIELD(ArrayPtr, ic_data_array);  // ICData of unoptimized code.
-  ObjectPtr* to_no_code() {
-    return reinterpret_cast<ObjectPtr*>(&ic_data_array_);
-  }
-  POINTER_FIELD(CodePtr,
-                code);  // Currently active code. Accessed from generated code.
-  NOT_IN_PRECOMPILED(
-      POINTER_FIELD(CodePtr, unoptimized_code));  // Unoptimized code, keep it
-                                                  // after optimization.
+  // ICData of unoptimized code.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, ic_data_array);
+  // Currently active code. Accessed from generated code.
+  COMPRESSED_POINTER_FIELD(CodePtr, code);
+  // Unoptimized code, keep it after optimization.
+  NOT_IN_PRECOMPILED(COMPRESSED_POINTER_FIELD(CodePtr, unoptimized_code));
 #if defined(DART_PRECOMPILED_RUNTIME)
-  VISIT_TO(ObjectPtr, code);
+  VISIT_TO(CompressedObjectPtr, code);
 #else
-  VISIT_TO(ObjectPtr, unoptimized_code);
+  VISIT_TO(CompressedObjectPtr, unoptimized_code);
 #endif
 
   NOT_IN_PRECOMPILED(UnboxedParameterBitmap unboxed_parameters_info_);
@@ -1208,15 +1281,15 @@ class UntaggedClosureData : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ClosureData);
 
-  VISIT_FROM(ObjectPtr, context_scope)
-  POINTER_FIELD(ContextScopePtr, context_scope)
-  POINTER_FIELD(FunctionPtr,
-                parent_function)  // Enclosing function of this local function.
-  POINTER_FIELD(InstancePtr,
-                closure)  // Closure object for static implicit closures.
+  VISIT_FROM(CompressedObjectPtr, context_scope)
+  COMPRESSED_POINTER_FIELD(ContextScopePtr, context_scope)
+  // Enclosing function of this local function.
+  COMPRESSED_POINTER_FIELD(FunctionPtr, parent_function)
+  // Closure object for static implicit closures.
+  COMPRESSED_POINTER_FIELD(InstancePtr, closure)
   // Instantiate-to-bounds TAV for use when no TAV is provided.
-  POINTER_FIELD(TypeArgumentsPtr, default_type_arguments)
-  VISIT_TO(ObjectPtr, default_type_arguments)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, default_type_arguments)
+  VISIT_TO(CompressedObjectPtr, default_type_arguments)
 
   enum class DefaultTypeArgumentsKind : uint8_t {
     // Only here to make sure it's explicitly set appropriately.
@@ -1247,18 +1320,18 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData);
 
-  VISIT_FROM(ObjectPtr, signature_type)
-  POINTER_FIELD(TypePtr, signature_type)
-  POINTER_FIELD(FunctionTypePtr, c_signature)
+  VISIT_FROM(CompressedObjectPtr, signature_type)
+  COMPRESSED_POINTER_FIELD(TypePtr, signature_type)
+  COMPRESSED_POINTER_FIELD(FunctionTypePtr, c_signature)
 
   // Target Dart method for callbacks, otherwise null.
-  POINTER_FIELD(FunctionPtr, callback_target)
+  COMPRESSED_POINTER_FIELD(FunctionPtr, callback_target)
 
   // For callbacks, value to return if Dart target throws an exception.
-  POINTER_FIELD(InstancePtr, callback_exceptional_return)
+  COMPRESSED_POINTER_FIELD(InstancePtr, callback_exceptional_return)
 
-  VISIT_TO(ObjectPtr, callback_exceptional_return)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_TO(CompressedObjectPtr, callback_exceptional_return)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Callback id for callbacks.
   //
@@ -1275,26 +1348,26 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
 class UntaggedField : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Field);
 
-  VISIT_FROM(ObjectPtr, name)
-  POINTER_FIELD(StringPtr, name)
-  POINTER_FIELD(ObjectPtr, owner)  // Class or patch class or mixin class
-  // where this field is defined or original field.
-  POINTER_FIELD(AbstractTypePtr, type)
-  POINTER_FIELD(FunctionPtr,
-                initializer_function)  // Static initializer function.
-
+  VISIT_FROM(CompressedObjectPtr, name)
+  COMPRESSED_POINTER_FIELD(StringPtr, name)
+  // Class or patch class or mixin class where this field is defined or original
+  // field.
+  COMPRESSED_POINTER_FIELD(ObjectPtr, owner)
+  COMPRESSED_POINTER_FIELD(AbstractTypePtr, type)
+  // Static initializer function.
+  COMPRESSED_POINTER_FIELD(FunctionPtr, initializer_function)
   // - for instance fields: offset in words to the value in the class instance.
   // - for static fields: index into field_table.
-  SMI_FIELD(SmiPtr, host_offset_or_field_id)
-  SMI_FIELD(SmiPtr, guarded_list_length)
-  POINTER_FIELD(ArrayPtr, dependent_code)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
+  COMPRESSED_POINTER_FIELD(SmiPtr, host_offset_or_field_id)
+  COMPRESSED_POINTER_FIELD(SmiPtr, guarded_list_length)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, dependent_code)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&initializer_function_);
+        return reinterpret_cast<CompressedObjectPtr*>(&initializer_function_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1304,11 +1377,11 @@ class UntaggedField : public UntaggedObject {
     return NULL;
   }
 #if defined(DART_PRECOMPILED_RUNTIME)
-  VISIT_TO(ObjectPtr, dependent_code);
+  VISIT_TO(CompressedObjectPtr, dependent_code);
 #else
-  POINTER_FIELD(SubtypeTestCachePtr,
-                type_test_cache);  // For type test in implicit setter.
-  VISIT_TO(ObjectPtr, type_test_cache);
+  // For type test in implicit setter.
+  COMPRESSED_POINTER_FIELD(SubtypeTestCachePtr, type_test_cache);
+  VISIT_TO(CompressedObjectPtr, type_test_cache);
 #endif
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
@@ -1346,26 +1419,26 @@ class UntaggedField : public UntaggedObject {
 class alignas(8) UntaggedScript : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Script);
 
-  VISIT_FROM(ObjectPtr, url)
-  POINTER_FIELD(StringPtr, url)
-  POINTER_FIELD(StringPtr, resolved_url)
-  POINTER_FIELD(ArrayPtr, compile_time_constants)
-  POINTER_FIELD(TypedDataPtr, line_starts)
+  VISIT_FROM(CompressedObjectPtr, url)
+  COMPRESSED_POINTER_FIELD(StringPtr, url)
+  COMPRESSED_POINTER_FIELD(StringPtr, resolved_url)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, compile_time_constants)
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, line_starts)
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  POINTER_FIELD(ExternalTypedDataPtr, constant_coverage)
+  COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, constant_coverage)
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  POINTER_FIELD(ArrayPtr, debug_positions)
-  POINTER_FIELD(KernelProgramInfoPtr, kernel_program_info)
-  POINTER_FIELD(StringPtr, source)
-  VISIT_TO(ObjectPtr, source)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
+  COMPRESSED_POINTER_FIELD(ArrayPtr, debug_positions)
+  COMPRESSED_POINTER_FIELD(KernelProgramInfoPtr, kernel_program_info)
+  COMPRESSED_POINTER_FIELD(StringPtr, source)
+  VISIT_TO(CompressedObjectPtr, source)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&url_);
+        return reinterpret_cast<CompressedObjectPtr*>(&url_);
       case Snapshot::kFull:
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&kernel_program_info_);
+        return reinterpret_cast<CompressedObjectPtr*>(&kernel_program_info_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1434,29 +1507,32 @@ class UntaggedLibrary : public UntaggedObject {
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Library);
 
-  VISIT_FROM(ObjectPtr, name)
-  POINTER_FIELD(StringPtr, name)
-  POINTER_FIELD(StringPtr, url)
-  POINTER_FIELD(StringPtr, private_key)
-  POINTER_FIELD(ArrayPtr, dictionary)  // Top-level names in this library.
-  POINTER_FIELD(ArrayPtr, metadata)    // Metadata on classes, methods etc.
-  POINTER_FIELD(ClassPtr,
-                toplevel_class)  // Class containing top-level elements.
-  POINTER_FIELD(GrowableObjectArrayPtr, used_scripts)
-  POINTER_FIELD(LoadingUnitPtr, loading_unit)
-  POINTER_FIELD(ArrayPtr,
-                imports)  // List of Namespaces imported without prefix.
-  POINTER_FIELD(ArrayPtr, exports)  // List of re-exported Namespaces.
-  POINTER_FIELD(ArrayPtr, dependencies)
-  POINTER_FIELD(ExternalTypedDataPtr, kernel_data)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
+  VISIT_FROM(CompressedObjectPtr, name)
+  COMPRESSED_POINTER_FIELD(StringPtr, name)
+  COMPRESSED_POINTER_FIELD(StringPtr, url)
+  COMPRESSED_POINTER_FIELD(StringPtr, private_key)
+  // Top-level names in this library.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, dictionary)
+  // Metadata on classes, methods etc.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, metadata)
+  // Class containing top-level elements.
+  COMPRESSED_POINTER_FIELD(ClassPtr, toplevel_class)
+  COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, used_scripts)
+  COMPRESSED_POINTER_FIELD(LoadingUnitPtr, loading_unit)
+  // List of Namespaces imported without prefix.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, imports)
+  // List of re-exported Namespaces.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, exports)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, dependencies)
+  COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, kernel_data)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&exports_);
+        return reinterpret_cast<CompressedObjectPtr*>(&exports_);
       case Snapshot::kFull:
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&kernel_data_);
+        return reinterpret_cast<CompressedObjectPtr*>(&kernel_data_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1465,13 +1541,13 @@ class UntaggedLibrary : public UntaggedObject {
     UNREACHABLE();
     return NULL;
   }
-  POINTER_FIELD(ArrayPtr,
-                resolved_names);  // Cache of resolved names in library scope.
-  POINTER_FIELD(ArrayPtr,
-                exported_names);  // Cache of exported names by library.
-  POINTER_FIELD(ArrayPtr,
-                loaded_scripts);  // Array of scripts loaded in this library.
-  VISIT_TO(ObjectPtr, loaded_scripts);
+  // Cache of resolved names in library scope.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, resolved_names);
+  // Cache of exported names by library.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, exported_names);
+  // Array of scripts loaded in this library.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, loaded_scripts);
+  VISIT_TO(CompressedObjectPtr, loaded_scripts);
 
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
@@ -1491,20 +1567,23 @@ class UntaggedLibrary : public UntaggedObject {
 class UntaggedNamespace : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Namespace);
 
-  VISIT_FROM(ObjectPtr, target)
-  POINTER_FIELD(LibraryPtr, target)    // library with name dictionary.
-  POINTER_FIELD(ArrayPtr, show_names)  // list of names that are exported.
-  POINTER_FIELD(ArrayPtr, hide_names)  // list of names that are hidden.
-  POINTER_FIELD(LibraryPtr, owner)
-  VISIT_TO(ObjectPtr, owner)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
+  VISIT_FROM(CompressedObjectPtr, target)
+  // library with name dictionary.
+  COMPRESSED_POINTER_FIELD(LibraryPtr, target)
+  // list of names that are exported.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, show_names)
+  // list of names that are hidden.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, hide_names)
+  COMPRESSED_POINTER_FIELD(LibraryPtr, owner)
+  VISIT_TO(CompressedObjectPtr, owner)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&target_);
+        return reinterpret_cast<CompressedObjectPtr*>(&target_);
       case Snapshot::kFull:
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&owner_);
+        return reinterpret_cast<CompressedObjectPtr*>(&owner_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -1518,36 +1597,36 @@ class UntaggedNamespace : public UntaggedObject {
 class UntaggedKernelProgramInfo : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(KernelProgramInfo);
 
-  VISIT_FROM(ObjectPtr, string_offsets)
-  POINTER_FIELD(TypedDataPtr, string_offsets)
-  POINTER_FIELD(ExternalTypedDataPtr, string_data)
-  POINTER_FIELD(TypedDataPtr, canonical_names)
-  POINTER_FIELD(ExternalTypedDataPtr, metadata_payloads)
-  POINTER_FIELD(ExternalTypedDataPtr, metadata_mappings)
-  POINTER_FIELD(ArrayPtr, scripts)
-  POINTER_FIELD(ArrayPtr, constants)
-  POINTER_FIELD(GrowableObjectArrayPtr, potential_natives)
-  POINTER_FIELD(GrowableObjectArrayPtr, potential_pragma_functions)
-  POINTER_FIELD(ExternalTypedDataPtr, constants_table)
-  POINTER_FIELD(ArrayPtr, libraries_cache)
-  POINTER_FIELD(ArrayPtr, classes_cache)
-  POINTER_FIELD(ObjectPtr, retained_kernel_blob)
-  VISIT_TO(ObjectPtr, retained_kernel_blob)
+  VISIT_FROM(CompressedObjectPtr, string_offsets)
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, string_offsets)
+  COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, string_data)
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, canonical_names)
+  COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, metadata_payloads)
+  COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, metadata_mappings)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, scripts)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, constants)
+  COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, potential_natives)
+  COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, potential_pragma_functions)
+  COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, constants_table)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, libraries_cache)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, classes_cache)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, retained_kernel_blob)
+  VISIT_TO(CompressedObjectPtr, retained_kernel_blob)
 
   uint32_t kernel_binary_version_;
 
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
-    return reinterpret_cast<ObjectPtr*>(&constants_table_);
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
+    return reinterpret_cast<CompressedObjectPtr*>(&constants_table_);
   }
 };
 
 class UntaggedWeakSerializationReference : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakSerializationReference);
 
-  VISIT_FROM(ObjectPtr, target)
-  POINTER_FIELD(ObjectPtr, target)
-  POINTER_FIELD(ObjectPtr, replacement)
-  VISIT_TO(ObjectPtr, replacement)
+  VISIT_FROM(CompressedObjectPtr, target)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, target)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, replacement)
+  VISIT_TO(CompressedObjectPtr, replacement)
 };
 
 class UntaggedCode : public UntaggedObject {
@@ -1992,13 +2071,21 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
   // platforms.
   uword num_entries_;
 
-  ObjectPtr* from() { return reinterpret_cast<ObjectPtr*>(&names()[0]); }
-  StringPtr* names() {
-    // Array of [num_entries_] variable names.
-    OPEN_ARRAY_START(StringPtr, StringPtr);
+  CompressedObjectPtr* from() {
+    return reinterpret_cast<CompressedObjectPtr*>(&names()[0]);
   }
-  StringPtr* nameAddrAt(intptr_t i) { return &(names()[i]); }
-  VISIT_TO_LENGTH(ObjectPtr, nameAddrAt(length - 1));
+  CompressedStringPtr* names() {
+    // Array of [num_entries_] variable names.
+    OPEN_ARRAY_START(CompressedStringPtr, CompressedStringPtr);
+  }
+  CompressedStringPtr* nameAddrAt(intptr_t i) { return &(names()[i]); }
+  StringPtr name(intptr_t i) {
+    return LoadCompressedPointer<StringPtr>(nameAddrAt(i));
+  }
+  void set_name(intptr_t i, StringPtr value) {
+    StoreCompressedPointer(nameAddrAt(i), value);
+  }
+  VISIT_TO_LENGTH(CompressedObjectPtr, nameAddrAt(length - 1));
 
   // Variable info with [num_entries_] entries.
   VarInfo* data() {
@@ -2017,9 +2104,9 @@ class UntaggedExceptionHandlers : public UntaggedObject {
 
   // Array with [num_entries_] entries. Each entry is an array of all handled
   // exception types.
-  VISIT_FROM(ObjectPtr, handled_types_data)
-  POINTER_FIELD(ArrayPtr, handled_types_data)
-  VISIT_TO_LENGTH(ObjectPtr, &handled_types_data_)
+  VISIT_FROM(CompressedObjectPtr, handled_types_data)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, handled_types_data)
+  VISIT_TO_LENGTH(CompressedObjectPtr, &handled_types_data_)
 
   // Exception handler info of length [num_entries_].
   const ExceptionHandlerInfo* data() const {
@@ -2053,42 +2140,64 @@ class UntaggedContextScope : public UntaggedObject {
   // TODO(iposva): Switch to conventional enum offset based structure to avoid
   // alignment mishaps.
   struct VariableDesc {
-    SmiPtr declaration_token_pos;
-    SmiPtr token_pos;
-    StringPtr name;
-    SmiPtr flags;
+    CompressedSmiPtr declaration_token_pos;
+    CompressedSmiPtr token_pos;
+    CompressedStringPtr name;
+    CompressedSmiPtr flags;
     static constexpr intptr_t kIsFinal = 0x1;
     static constexpr intptr_t kIsConst = 0x2;
     static constexpr intptr_t kIsLate = 0x4;
-    SmiPtr late_init_offset;
+    CompressedSmiPtr late_init_offset;
     union {
-      AbstractTypePtr type;
-      InstancePtr value;  // iff is_const is true
+      CompressedAbstractTypePtr type;
+      CompressedInstancePtr value;  // iff is_const is true
     };
-    SmiPtr context_index;
-    SmiPtr context_level;
+    CompressedSmiPtr context_index;
+    CompressedSmiPtr context_level;
   };
 
   int32_t num_variables_;
   bool is_implicit_;  // true, if this context scope is for an implicit closure.
 
-  ObjectPtr* from() {
+  CompressedObjectPtr* from() {
     VariableDesc* begin = const_cast<VariableDesc*>(VariableDescAddr(0));
-    return reinterpret_cast<ObjectPtr*>(begin);
+    return reinterpret_cast<CompressedObjectPtr*>(begin);
   }
   // Variable length data follows here.
-  ObjectPtr const* data() const { OPEN_ARRAY_START(ObjectPtr, ObjectPtr); }
+  CompressedObjectPtr const* data() const {
+    OPEN_ARRAY_START(CompressedObjectPtr, CompressedObjectPtr);
+  }
   const VariableDesc* VariableDescAddr(intptr_t index) const {
     ASSERT((index >= 0) && (index < num_variables_ + 1));
     // data() points to the first component of the first descriptor.
     return &(reinterpret_cast<const VariableDesc*>(data())[index]);
   }
-  ObjectPtr* to(intptr_t num_vars) {
+
+#define DEFINE_ACCESSOR(type, name)                                            \
+  type name##_at(intptr_t index) {                                             \
+    return LoadCompressedPointer<type>(&VariableDescAddr(index)->name);        \
+  }                                                                            \
+  void set_##name##_at(intptr_t index, type value) {                           \
+    StoreCompressedPointer(&VariableDescAddr(index)->name, value);             \
+  }
+  DEFINE_ACCESSOR(SmiPtr, declaration_token_pos)
+  DEFINE_ACCESSOR(SmiPtr, token_pos)
+  DEFINE_ACCESSOR(StringPtr, name)
+  DEFINE_ACCESSOR(SmiPtr, flags)
+  DEFINE_ACCESSOR(SmiPtr, late_init_offset)
+  DEFINE_ACCESSOR(AbstractTypePtr, type)
+  DEFINE_ACCESSOR(InstancePtr, value)
+  DEFINE_ACCESSOR(SmiPtr, context_index)
+  DEFINE_ACCESSOR(SmiPtr, context_level)
+#undef DEFINE_ACCESSOR
+
+  CompressedObjectPtr* to(intptr_t num_vars) {
     uword end = reinterpret_cast<uword>(VariableDescAddr(num_vars));
     // 'end' is the address just beyond the last descriptor, so step back.
-    return reinterpret_cast<ObjectPtr*>(end - kWordSize);
+    return reinterpret_cast<CompressedObjectPtr*>(end -
+                                                  sizeof(CompressedObjectPtr));
   }
-  ObjectPtr* to_snapshot(Snapshot::Kind kind, intptr_t num_vars) {
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind, intptr_t num_vars) {
     return to(num_vars);
   }
 
@@ -2190,10 +2299,10 @@ class UntaggedSubtypeTestCache : public UntaggedObject {
 class UntaggedLoadingUnit : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LoadingUnit);
 
-  VISIT_FROM(ObjectPtr, parent)
-  POINTER_FIELD(LoadingUnitPtr, parent)
-  POINTER_FIELD(ArrayPtr, base_objects)
-  VISIT_TO(ObjectPtr, base_objects)
+  VISIT_FROM(CompressedObjectPtr, parent)
+  COMPRESSED_POINTER_FIELD(LoadingUnitPtr, parent)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, base_objects)
+  VISIT_TO(CompressedObjectPtr, base_objects)
   int32_t id_;
   bool load_outstanding_;
   bool loaded_;
@@ -2206,44 +2315,44 @@ class UntaggedError : public UntaggedObject {
 class UntaggedApiError : public UntaggedError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ApiError);
 
-  VISIT_FROM(ObjectPtr, message)
-  POINTER_FIELD(StringPtr, message)
-  VISIT_TO(ObjectPtr, message)
+  VISIT_FROM(CompressedObjectPtr, message)
+  COMPRESSED_POINTER_FIELD(StringPtr, message)
+  VISIT_TO(CompressedObjectPtr, message)
 };
 
 class UntaggedLanguageError : public UntaggedError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LanguageError);
 
-  VISIT_FROM(ObjectPtr, previous_error)
-  POINTER_FIELD(ErrorPtr, previous_error)  // May be null.
-  POINTER_FIELD(ScriptPtr, script)
-  POINTER_FIELD(StringPtr, message)
-  POINTER_FIELD(StringPtr,
-                formatted_message)  // Incl. previous error's formatted message.
-  VISIT_TO(ObjectPtr, formatted_message)
+  VISIT_FROM(CompressedObjectPtr, previous_error)
+  COMPRESSED_POINTER_FIELD(ErrorPtr, previous_error)  // May be null.
+  COMPRESSED_POINTER_FIELD(ScriptPtr, script)
+  COMPRESSED_POINTER_FIELD(StringPtr, message)
+  // Incl. previous error's formatted message.
+  COMPRESSED_POINTER_FIELD(StringPtr, formatted_message)
+  VISIT_TO(CompressedObjectPtr, formatted_message)
   TokenPosition token_pos_;  // Source position in script_.
   bool report_after_token_;  // Report message at or after the token.
   int8_t kind_;              // Of type Report::Kind.
 
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class UntaggedUnhandledException : public UntaggedError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnhandledException);
 
-  VISIT_FROM(ObjectPtr, exception)
-  POINTER_FIELD(InstancePtr, exception)
-  POINTER_FIELD(InstancePtr, stacktrace)
-  VISIT_TO(ObjectPtr, stacktrace)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_FROM(CompressedObjectPtr, exception)
+  COMPRESSED_POINTER_FIELD(InstancePtr, exception)
+  COMPRESSED_POINTER_FIELD(InstancePtr, stacktrace)
+  VISIT_TO(CompressedObjectPtr, stacktrace)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class UntaggedUnwindError : public UntaggedError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnwindError);
 
-  VISIT_FROM(ObjectPtr, message)
-  POINTER_FIELD(StringPtr, message)
-  VISIT_TO(ObjectPtr, message)
+  VISIT_FROM(CompressedObjectPtr, message)
+  COMPRESSED_POINTER_FIELD(StringPtr, message)
+  VISIT_TO(CompressedObjectPtr, message)
   bool is_user_initiated_;
 };
 

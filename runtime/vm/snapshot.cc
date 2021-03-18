@@ -625,7 +625,8 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
     instance_size = cls_.host_instance_size();
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
-    *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew);
+    *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew,
+                                /*compressed*/ false);
   } else {
     cls_ ^= ReadObjectImpl(kAsInlinedObject);
     ASSERT(!cls_.IsNull());
@@ -1339,7 +1340,7 @@ void SnapshotWriter::WriteClassId(UntaggedClass* cls) {
   // Write out the library url and class name.
   LibraryPtr library = cls->library();
   ASSERT(library != Library::null());
-  WriteObjectImpl(library->untag()->url_, kAsInlinedObject);
+  WriteObjectImpl(library->untag()->url(), kAsInlinedObject);
   WriteObjectImpl(cls->name(), kAsInlinedObject);
 }
 
@@ -1443,7 +1444,7 @@ ClassPtr SnapshotWriter::GetFunctionOwner(FunctionPtr func) {
     return static_cast<ClassPtr>(owner);
   }
   ASSERT(class_id == kPatchClassCid);
-  return static_cast<PatchClassPtr>(owner)->untag()->patched_class_;
+  return static_cast<PatchClassPtr>(owner)->untag()->patched_class();
 }
 
 void SnapshotWriter::CheckForNativeFields(ClassPtr cls) {

@@ -613,7 +613,10 @@ class Object {
   cpp_vtable vtable() const { return bit_copy<cpp_vtable>(*this); }
   void set_vtable(cpp_vtable value) { *vtable_address() = value; }
 
-  static ObjectPtr Allocate(intptr_t cls_id, intptr_t size, Heap::Space space);
+  static ObjectPtr Allocate(intptr_t cls_id,
+                            intptr_t size,
+                            Heap::Space space,
+                            bool compressed);
 
   static intptr_t RoundedAllocationSize(intptr_t size) {
     return Utils::RoundUp(size, kObjectAlignment);
@@ -635,6 +638,13 @@ class Object {
   template <typename type, std::memory_order order = std::memory_order_relaxed>
   void StorePointer(type const* addr, type value) const {
     ptr()->untag()->StorePointer<type, order>(addr, value);
+  }
+  template <typename type,
+            typename compressed_type,
+            std::memory_order order = std::memory_order_relaxed>
+  void StoreCompressedPointer(compressed_type const* addr, type value) const {
+    ptr()->untag()->StoreCompressedPointer<type, compressed_type, order>(addr,
+                                                                         value);
   }
 
   // Use for storing into an explicitly Smi-typed field of an object
@@ -725,7 +735,10 @@ class Object {
     return -kWordSize;
   }
 
-  static void InitializeObject(uword address, intptr_t id, intptr_t size);
+  static void InitializeObject(uword address,
+                               intptr_t id,
+                               intptr_t size,
+                               bool compressed);
 
   static void RegisterClass(const Class& cls,
                             const String& name,
@@ -3738,11 +3751,11 @@ class ClosureData : public Object {
       UntaggedClosureData::DefaultTypeArgumentsKind;
 
  private:
-  ContextScopePtr context_scope() const { return untag()->context_scope_; }
+  ContextScopePtr context_scope() const { return untag()->context_scope(); }
   void set_context_scope(const ContextScope& value) const;
 
   // Enclosing function of this local function.
-  FunctionPtr parent_function() const { return untag()->parent_function_; }
+  FunctionPtr parent_function() const { return untag()->parent_function(); }
   void set_parent_function(const Function& value) const;
 
   InstancePtr implicit_static_closure() const {
@@ -3751,7 +3764,7 @@ class ClosureData : public Object {
   void set_implicit_static_closure(const Instance& closure) const;
 
   TypeArgumentsPtr default_type_arguments() const {
-    return untag()->default_type_arguments_;
+    return untag()->default_type_arguments();
   }
   void set_default_type_arguments(const TypeArguments& value) const;
 
@@ -10998,6 +11011,7 @@ class RegExp : public Instance {
                     bool sticky,
                     const TypedData& bytecode) const;
 
+  void set_num_bracket_expressions(SmiPtr value) const;
   void set_num_bracket_expressions(intptr_t value) const;
   void set_capture_name_map(const Array& array) const;
   void set_is_global() const {
@@ -11242,7 +11256,7 @@ inline intptr_t Field::TargetOffsetOf(const FieldPtr field) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   return field->untag()->target_offset_;
 #else
-  return Smi::Value(field->untag()->host_offset_or_field_id_);
+  return Smi::Value(field->untag()->host_offset_or_field_id());
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -11391,7 +11405,7 @@ inline intptr_t FunctionType::Hash() const {
 inline void FunctionType::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
-  StoreSmi(&untag()->hash_, Smi::New(value));
+  untag()->set_hash(Smi::New(value));
 }
 
 inline intptr_t TypeParameter::Hash() const {

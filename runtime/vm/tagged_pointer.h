@@ -189,6 +189,7 @@ class ObjectPtr {
   }
 
   ObjectPtr Decompress(uword heap_base) const { return *this; }
+  ObjectPtr DecompressSmi() const { return *this; }
   uword heap_base() const {
     ASSERT(IsHeapObject());
     ASSERT(!IsInstructions());
@@ -222,23 +223,36 @@ class CompressedObjectPtr {
  public:
   explicit CompressedObjectPtr(ObjectPtr uncompressed)
       : compressed_pointer_(
-            static_cast<int32_t>(static_cast<uword>(uncompressed))) {}
+            static_cast<uint32_t>(static_cast<uword>(uncompressed))) {}
 
   ObjectPtr Decompress(uword heap_base) const {
-    return static_cast<ObjectPtr>(
-        static_cast<uword>(static_cast<word>(compressed_pointer_)) + heap_base);
+    return static_cast<ObjectPtr>(static_cast<uword>(compressed_pointer_) +
+                                  heap_base);
+  }
+
+  ObjectPtr DecompressSmi() const {
+    ASSERT((compressed_pointer_ & kSmiTagMask) != kHeapObjectTag);
+    return static_cast<ObjectPtr>(static_cast<uword>(compressed_pointer_));
   }
 
   const ObjectPtr& operator=(const ObjectPtr& other) {
-    compressed_pointer_ = static_cast<int32_t>(static_cast<uword>(other));
+    compressed_pointer_ = static_cast<uint32_t>(static_cast<uword>(other));
     return other;
   }
 
  protected:
-  int32_t compressed_pointer_;
+  uint32_t compressed_pointer_;
 };
 #define DEFINE_COMPRESSED_POINTER(klass, base)                                 \
-  class Compressed##klass##Ptr : public Compressed##base##Ptr {};
+  class Compressed##klass##Ptr : public Compressed##base##Ptr {                \
+   public:                                                                     \
+    explicit Compressed##klass##Ptr(klass##Ptr uncompressed)                   \
+        : Compressed##base##Ptr(uncompressed) {}                               \
+    const klass##Ptr& operator=(const klass##Ptr& other) {                     \
+      compressed_pointer_ = static_cast<uint32_t>(static_cast<uword>(other));  \
+      return other;                                                            \
+    }                                                                          \
+  };
 #endif
 
 #define DEFINE_TAGGED_POINTER(klass, base)                                     \

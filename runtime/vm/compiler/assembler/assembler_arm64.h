@@ -1687,6 +1687,11 @@ class Assembler : public AssemblerBase {
                            OperandSize sz = kEightBytes) {
     LoadFromOffset(dest, base, offset - kHeapObjectTag, sz);
   }
+  void LoadCompressedFieldFromOffset(Register dest,
+                                     Register base,
+                                     int32_t offset) {
+    LoadCompressed(dest, FieldAddress(base, offset));
+  }
   // For loading indexed payloads out of tagged objects like Arrays. If the
   // payload objects are word-sized, use TIMES_HALF_WORD_SIZE if the contents of
   // [index] is a Smi, otherwise TIMES_WORD_SIZE if unboxed.

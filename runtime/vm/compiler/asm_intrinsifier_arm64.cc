@@ -1569,7 +1569,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ CompareImmediate(R3, 0);
   __ b(normal_ir_body, NE);
 
-  __ ldr(R0, FieldAddress(R2, target::Class::declaration_type_offset()));
+  __ LoadCompressed(R0,
+                    FieldAddress(R2, target::Class::declaration_type_offset()));
   __ CompareObject(R0, NullObject());
   __ b(normal_ir_body, EQ);
   __ ret();
@@ -2311,7 +2312,8 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ eor(R5, R5, Operand(R5));
 
   // Tail-call the function.
-  __ ldr(CODE_REG, FieldAddress(R0, target::Function::code_offset()));
+  __ LoadCompressed(CODE_REG,
+                    FieldAddress(R0, target::Function::code_offset()));
   __ ldr(R1, FieldAddress(R0, target::Function::entry_point_offset()));
   __ br(R1);
 }
