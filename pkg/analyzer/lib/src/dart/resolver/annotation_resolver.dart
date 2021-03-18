@@ -107,13 +107,9 @@ class AnnotationResolver {
 
     // If no type parameters, the elements are correct.
     if (typeParameters.isEmpty) {
+      _resolveConstructorInvocationArguments(node);
       InferenceContext.setType(argumentList, constructorElement.type);
       argumentList.accept(_resolver);
-      // TODO(scheglov) other places?
-      _resolveAnnotationConstructorInvocationArguments(
-        node,
-        constructorElement,
-      );
       return;
     }
 
@@ -128,6 +124,7 @@ class AnnotationResolver {
       constructorElement = ConstructorMember.from(constructorElement, type);
       constructorName?.staticElement = constructorElement;
       node.element = constructorElement;
+      _resolveConstructorInvocationArguments(node);
 
       InferenceContext.setType(argumentList, constructorElement.type);
       argumentList.accept(_resolver);
@@ -174,6 +171,7 @@ class AnnotationResolver {
     );
     constructorName?.staticElement = constructorElement;
     node.element = constructorElement;
+    _resolveConstructorInvocationArguments(node);
   }
 
   /// Return a newly created cloner that can be used to clone constant
@@ -324,20 +322,6 @@ class AnnotationResolver {
     node.arguments?.accept(_resolver);
   }
 
-  void _resolveAnnotationConstructorInvocationArguments(
-      AnnotationImpl annotation, ConstructorElement constructor) {
-    var argumentList = annotation.arguments;
-    // error will be reported in ConstantVerifier
-    if (argumentList == null) {
-      return;
-    }
-    // resolve arguments to parameters
-    var parameters = _resolveArgumentsToFunction(argumentList, constructor);
-    if (parameters != null) {
-      argumentList.correspondingStaticParameters = parameters;
-    }
-  }
-
   void _resolveAnnotationElementGetter(
       Annotation annotation, PropertyAccessorElement accessorElement) {
     // The accessor should be synthetic, the variable should be constant, and
@@ -378,5 +362,21 @@ class AnnotationResolver {
       ArgumentList argumentList, List<ParameterElement> parameters) {
     return ResolverVisitor.resolveArgumentsToParameters(
         argumentList, parameters, _errorReporter.reportErrorForNode);
+  }
+
+  void _resolveConstructorInvocationArguments(AnnotationImpl node) {
+    var argumentList = node.arguments;
+    // error will be reported in ConstantVerifier
+    if (argumentList == null) {
+      return;
+    }
+    // resolve arguments to parameters
+    var constructor = node.element;
+    if (constructor is ConstructorElement) {
+      var parameters = _resolveArgumentsToFunction(argumentList, constructor);
+      if (parameters != null) {
+        argumentList.correspondingStaticParameters = parameters;
+      }
+    }
   }
 }
