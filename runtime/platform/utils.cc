@@ -5,6 +5,7 @@
 #include "platform/utils.h"
 
 #include "platform/allocation.h"
+#include "platform/globals.h"
 
 namespace dart {
 
@@ -212,31 +213,103 @@ void Utils::CalculateMagicAndShiftForDivRem(int64_t divisor,
   *shift = p - 64;
 }
 
+// This implementation is based on the public domain MurmurHash
+// version 2.0. The constants M and R have been determined
+// to work well experimentally.
+static constexpr uint32_t kStringHashM = 0x5bd1e995;
+static constexpr int kStringHashR = 24;
+
+// hash and part must be lvalues.
+#define MIX(hash, part)                                                        \
+  {                                                                            \
+    (part) *= kStringHashM;                                                    \
+    (part) ^= (part) >> kStringHashR;                                          \
+    (part) *= kStringHashM;                                                    \
+    (hash) *= kStringHashM;                                                    \
+    (hash) ^= (part);                                                          \
+  }
+
 uint32_t Utils::StringHash(const char* data, int length) {
-  // This implementation is based on the public domain MurmurHash
-  // version 2.0. It assumes that the underlying CPU can read from
-  // unaligned addresses. The constants M and R have been determined
-  // to work well experimentally.
-  // TODO(3158902): need to account for unaligned address access on ARM.
-  const uint32_t M = 0x5bd1e995;
-  const int R = 24;
   int size = length;
   uint32_t hash = size;
 
-  // Mix four bytes at a time into the hash.
-  const uint8_t* cursor = reinterpret_cast<const uint8_t*>(data);
-  while (size >= 4) {
-    uint32_t part = *reinterpret_cast<const uint32_t*>(cursor);
-    part *= M;
-    part ^= part >> R;
-    part *= M;
-    hash *= M;
-    hash ^= part;
-    cursor += 4;
-    size -= 4;
+  auto cursor = reinterpret_cast<const uint8_t*>(data);
+
+  if (size >= kInt32Size) {
+    const intptr_t misalignment =
+        reinterpret_cast<intptr_t>(cursor) % kInt32Size;
+    if (misalignment > 0) {
+      // Stores 4-byte values starting from the start of the string to mimic
+      // the algorithm on aligned data.
+      uint32_t data_window = 0;
+
+      // Shift sizes for adjusting the data window when adding the next aligned
+      // piece of data.
+      const uint32_t sr = misalignment * kBitsPerByte;
+      const uint32_t sl = kBitsPerInt32 - sr;
+
+      const intptr_t pre_alignment_length = kInt32Size - misalignment;
+      switch (pre_alignment_length) {
+        case 3:
+          data_window |= cursor[2] << 16;
+          FALL_THROUGH;
+        case 2:
+          data_window |= cursor[1] << 8;
+          FALL_THROUGH;
+        case 1:
+          data_window |= cursor[0];
+      }
+      cursor += pre_alignment_length;
+      size -= pre_alignment_length;
+
+      // Mix four bytes at a time now that we're at an aligned spot.
+      for (; size >= kInt32Size; cursor += kInt32Size, size -= kInt32Size) {
+        uint32_t aligned_part = *reinterpret_cast<const uint32_t*>(cursor);
+        data_window |= (aligned_part << sl);
+        MIX(hash, data_window);
+        data_window = aligned_part >> sr;
+      }
+
+      if (size >= misalignment) {
+        // There's one more full window in the data. We'll let the normal tail
+        // code handle any partial window.
+        switch (misalignment) {
+          case 3:
+            data_window |= cursor[2] << (16 + sl);
+            FALL_THROUGH;
+          case 2:
+            data_window |= cursor[1] << (8 + sl);
+            FALL_THROUGH;
+          case 1:
+            data_window |= cursor[0] << sl;
+        }
+        MIX(hash, data_window);
+        cursor += misalignment;
+        size -= misalignment;
+      } else {
+        // This is a partial window, so just xor and multiply by M.
+        switch (size) {
+          case 2:
+            data_window |= cursor[1] << (8 + sl);
+            FALL_THROUGH;
+          case 1:
+            data_window |= cursor[0] << sl;
+        }
+        hash ^= data_window;
+        hash *= kStringHashM;
+        cursor += size;
+        size = 0;
+      }
+    } else {
+      // Mix four bytes at a time into the hash.
+      for (; size >= kInt32Size; size -= kInt32Size, cursor += kInt32Size) {
+        uint32_t part = *reinterpret_cast<const uint32_t*>(cursor);
+        MIX(hash, part);
+      }
+    }
   }
 
-  // Handle the last few bytes of the string.
+  // Handle the last few bytes of the string if any.
   switch (size) {
     case 3:
       hash ^= cursor[2] << 16;
@@ -246,16 +319,18 @@ uint32_t Utils::StringHash(const char* data, int length) {
       FALL_THROUGH;
     case 1:
       hash ^= cursor[0];
-      hash *= M;
+      hash *= kStringHashM;
   }
 
   // Do a few final mixes of the hash to ensure the last few bytes are
   // well-incorporated.
   hash ^= hash >> 13;
-  hash *= M;
+  hash *= kStringHashM;
   hash ^= hash >> 15;
   return hash;
 }
+
+#undef MIX
 
 uint32_t Utils::WordHash(intptr_t key) {
   // TODO(iposva): Need to check hash spreading.
