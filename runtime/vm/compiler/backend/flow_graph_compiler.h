@@ -436,7 +436,6 @@ class FlowGraphCompiler : public ValueObject {
   ~FlowGraphCompiler();
 
   static bool SupportsUnboxedDoubles();
-  static bool SupportsUnboxedInt64();
   static bool SupportsUnboxedSimd128();
   static bool SupportsHardwareDivision();
   static bool CanConvertInt64ToDouble();

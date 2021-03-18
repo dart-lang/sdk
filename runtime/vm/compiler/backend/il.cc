@@ -2474,10 +2474,9 @@ Definition* CheckedSmiComparisonInstr::Canonicalize(FlowGraph* flow_graph) {
 
   if ((left_type->ToCid() == kSmiCid) && (right_type->ToCid() == kSmiCid)) {
     op_cid = kSmiCid;
-  } else if (FlowGraphCompiler::SupportsUnboxedInt64() &&
-             // TODO(dartbug.com/30480): handle nullable types here
-             left_type->IsNullableInt() && !left_type->is_nullable() &&
-             right_type->IsNullableInt() && !right_type->is_nullable()) {
+  } else if (  // TODO(dartbug.com/30480): handle nullable types here
+      left_type->IsNullableInt() && !left_type->is_nullable() &&
+      right_type->IsNullableInt() && !right_type->is_nullable()) {
     op_cid = kMintCid;
     speculative_mode = kNotSpeculative;
   }
