@@ -7111,8 +7111,17 @@ class Instance : public Object {
 
   // Return true if the null instance can be assigned to a variable of [other]
   // type. Return false if null cannot be assigned or we cannot tell (if
-  // [other] is a type parameter in NNBD strong mode).
+  // [other] is a type parameter in NNBD strong mode). Only used for checks at
+  // compile time.
   static bool NullIsAssignableTo(const AbstractType& other);
+
+  // Return true if the null instance can be assigned to a variable of [other]
+  // type. Return false if null cannot be assigned. Used for checks at runtime,
+  // when the instantiator and function type argument vectors are available.
+  static bool NullIsAssignableTo(
+      const AbstractType& other,
+      const TypeArguments& other_instantiator_type_arguments,
+      const TypeArguments& other_function_type_arguments);
 
   bool IsValidNativeIndex(int index) const {
     return ((index >= 0) && (index < clazz()->untag()->num_native_fields_));

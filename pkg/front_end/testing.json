@@ -134,7 +134,8 @@
       "path": "testcases/",
       "status": "testcases/weak.status",
       "pattern": [
-        "\\.dart$"
+        "\\.dart$",
+        "\\.crash_dart$"
       ],
       "exclude": [
         "/testcases/.*_part[0-9]*\\.dart$",

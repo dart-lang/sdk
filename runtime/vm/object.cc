@@ -8241,7 +8241,8 @@ ObjectPtr Function::DoArgumentTypesMatch(
     // If the argument type is the top type, no need to check.
     if (type.IsTopTypeForSubtyping()) return true;
     if (argument.IsNull()) {
-      return Instance::NullIsAssignableTo(type);
+      return Instance::NullIsAssignableTo(type, instantiator_type_args,
+                                          function_type_args);
     }
     return argument.IsAssignableTo(type, instantiator_type_args,
                                    function_type_args);
@@ -8304,6 +8305,11 @@ ObjectPtr Function::DoArgumentTypesMatch(
       if (!check_argument(argument, type, instantiator_type_arguments,
                           function_type_arguments)) {
         auto& name = String::Handle(zone, ParameterNameAt(param_index));
+        if (!type.IsInstantiated()) {
+          type = type.InstantiateFrom(instantiator_type_arguments,
+                                      function_type_arguments, kAllFree,
+                                      Heap::kNew);
+        }
         return ThrowTypeError(token_pos(), argument, type, name);
       }
       break;
@@ -18821,7 +18827,26 @@ bool Instance::NullIsAssignableTo(const AbstractType& other) {
     return NullIsAssignableTo(
         AbstractType::Handle(thread->zone(), other.UnwrapFutureOr()));
   }
+  // Since the TAVs are not available, for non-nullable type parameters
+  // this returns a conservative approximation of "not assignable" .
   return false;
+}
+
+// Must be kept in sync with GenerateNullIsAssignableToType in
+// stub_code_compiler.cc if any changes are made.
+bool Instance::NullIsAssignableTo(
+    const AbstractType& other,
+    const TypeArguments& other_instantiator_type_arguments,
+    const TypeArguments& other_function_type_arguments) {
+  // Do checks that don't require instantiation first.
+  if (NullIsAssignableTo(other)) return true;
+  if (!other.IsTypeParameter()) return false;
+  const auto& type = AbstractType::Handle(other.InstantiateFrom(
+      other_instantiator_type_arguments, other_function_type_arguments,
+      kAllFree, Heap::kNew));
+  // At runtime, uses of TypeRef should not occur.
+  ASSERT(!type.IsTypeRef());
+  return NullIsAssignableTo(type);
 }
 
 bool Instance::RuntimeTypeIsSubtypeOf(
