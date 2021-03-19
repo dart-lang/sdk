@@ -41,7 +41,6 @@ import '../util/helpers.dart' show DelayedActionPerformer;
 
 import 'builder.dart';
 import 'class_builder.dart';
-import 'declaration_builder.dart';
 import 'extension_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
@@ -507,20 +506,8 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers) {
     if (!_hasBuiltOutlineExpressions) {
-      DeclarationBuilder classOrExtensionBuilder =
-          isClassMember || isExtensionMember ? parent : null;
       MetadataBuilder.buildAnnotations(
-          member, metadata, library, classOrExtensionBuilder, this, fileUri);
-      if (typeVariables != null) {
-        for (int i = 0; i < typeVariables.length; i++) {
-          typeVariables[i].buildOutlineExpressions(
-              library,
-              classOrExtensionBuilder,
-              this,
-              coreTypes,
-              delayedActionPerformers);
-        }
-      }
+          member, metadata, library, isClassMember ? parent : null, this);
 
       if (formals != null) {
         // For const constructors we need to include default parameter values

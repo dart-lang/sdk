@@ -23,7 +23,6 @@ group("most") {
     testonly = true
   }
   deps = [
-    ":analysis_server",
     ":create_sdk",
     ":dart2js",
     ":dartanalyzer",
@@ -31,6 +30,9 @@ group("most") {
     ":runtime",
     ":samples",
   ]
+  if (dart_target_arch != "arm") {
+    deps += [ ":analysis_server" ]
+  }
 }
 
 group("runtime") {

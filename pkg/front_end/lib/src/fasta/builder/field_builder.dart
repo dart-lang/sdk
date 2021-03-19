@@ -389,7 +389,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     ClassBuilder classBuilder = isClassMember ? parent : null;
     for (Annotatable annotatable in _fieldEncoding.annotatables) {
       MetadataBuilder.buildAnnotations(
-          annotatable, metadata, library, classBuilder, this, fileUri);
+          annotatable, metadata, library, classBuilder, this);
     }
 
     // For modular compilation we need to include initializers of all const

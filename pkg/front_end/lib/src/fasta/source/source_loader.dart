@@ -25,6 +25,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         ScannerResult,
         Token,
         scan;
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import 'package:kernel/ast.dart'
     show
@@ -58,7 +59,6 @@ import 'package:kernel/type_environment.dart';
 
 import 'package:package_config/package_config.dart';
 
-import '../../api_prototype/experimental_flags.dart';
 import '../../api_prototype/file_system.dart';
 
 import '../../base/common.dart';
@@ -71,7 +71,6 @@ import '../denylisted_classes.dart' show denylistedCoreClasses;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
@@ -79,8 +78,6 @@ import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
-import '../builder/never_type_declaration_builder.dart';
-import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
@@ -1156,16 +1153,6 @@ class SourceLoader extends Loader {
           } else if (declaration is MemberBuilder) {
             declaration.buildOutlineExpressions(
                 library, coreTypes, delayedActionPerformers);
-          } else if (declaration is TypeAliasBuilder) {
-            declaration.buildOutlineExpressions(
-                library, coreTypes, delayedActionPerformers);
-          } else {
-            assert(
-                declaration is PrefixBuilder ||
-                    declaration is DynamicTypeDeclarationBuilder ||
-                    declaration is NeverTypeDeclarationBuilder,
-                "Unexpected builder in library: ${declaration} "
-                "(${declaration.runtimeType}");
           }
         }
       }

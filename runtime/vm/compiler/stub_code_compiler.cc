@@ -376,14 +376,12 @@ void StubCodeCompiler::GenerateTypeIsTopTypeForSubtypingNullSafeStub(
                                     /*null_safety=*/true);
 }
 
-// Version of Instance::NullIsAssignableTo(other, inst_tav, fun_tav) used when
-// the destination type was not known at compile time. Must be kept in sync.
+// Version of Instance::NullIsAssignableTo() used when the destination type is
+// not known at compile time. Must be kept in sync.
 //
 // Inputs:
 // - TypeTestABI::kInstanceReg: Object to check for assignability.
 // - TypeTestABI::kDstTypeReg: Destination type.
-// - TypeTestABI::kInstantiatorTypeArgumentsReg: Instantiator TAV.
-// - TypeTestABI::kFunctionTypeArgumentsReg: Function TAV.
 //
 // Non-preserved non-output scratch registers:
 // - TypeTestABI::kScratchReg (only on non-IA32 architectures)
@@ -398,120 +396,85 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
   // The only case where the original value of kSubtypeTestCacheReg is needed
   // after the stub call is on IA32, where it's currently preserved on the stack
   // before calling the stub (as it's also CODE_REG on that architecture), so we
-  // both use it as a scratch to hold the current type to inspect and also
-  // clobber it for the return value.
-  const Register kCurrentTypeReg = TypeTestABI::kSubtypeTestCacheReg;
+  // both use it as a scratch and clobber it for the return value.
+  const Register scratch1_reg = TypeTestABI::kSubtypeTestCacheReg;
   // We reuse the first scratch register as the output register because we're
-  // always guaranteed to have a type in it (starting with the contents of
-  // kDstTypeReg), and all non-Smi ObjectPtrs are non-zero values.
-  const Register kOutputReg = kCurrentTypeReg;
+  // always guaranteed to have a type in it (starting with kDstType), and all
+  // non-Smi ObjectPtrs are non-zero values.
+  const Register output_reg = scratch1_reg;
 #if defined(TARGET_ARCH_IA32)
   // The remaining scratch registers are preserved and restored before exit on
   // IA32. Because  we have few registers to choose from (which are all used in
   // TypeTestABI), use specific TestTypeABI registers.
-  const Register kScratchReg = TypeTestABI::kFunctionTypeArgumentsReg;
+  const Register scratch2_reg = TypeTestABI::kFunctionTypeArgumentsReg;
   // Preserve non-output scratch registers.
-  __ PushRegister(kScratchReg);
+  __ PushRegister(scratch2_reg);
 #else
-  const Register kScratchReg = TypeTestABI::kScratchReg;
+  const Register scratch2_reg = TypeTestABI::kScratchReg;
 #endif
-  static_assert(kCurrentTypeReg != kScratchReg,
+  static_assert(scratch1_reg != scratch2_reg,
                 "code assumes distinct scratch registers");
 
   compiler::Label is_assignable, done;
   // Initialize the first scratch register (and thus the output register) with
   // the destination type. We do this before the check to ensure the output
   // register has a non-zero value if !null_safety and kInstanceReg is not null.
-  __ MoveRegister(kCurrentTypeReg, TypeTestABI::kDstTypeReg);
+  __ MoveRegister(scratch1_reg, TypeTestABI::kDstTypeReg);
   __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
   if (null_safety) {
     compiler::Label check_null_assignable;
     // Skip checking the type if not null.
-    __ BranchIf(NOT_EQUAL, &done);
+    __ BranchIf(NOT_EQUAL, &done, compiler::Assembler::kNearJump);
     __ Bind(&check_null_assignable);
     // scratch1_reg: Current type to check.
-    EnsureIsTypeOrFunctionTypeOrTypeParameter(assembler, kCurrentTypeReg,
-                                              kScratchReg);
+    EnsureIsTypeOrFunctionTypeOrTypeParameter(assembler, scratch1_reg,
+                                              scratch2_reg);
     compiler::Label is_not_type;
-    __ CompareClassId(kCurrentTypeReg, kTypeCid, kScratchReg);
+    __ CompareClassId(scratch1_reg, kTypeCid, scratch2_reg);
     __ BranchIf(NOT_EQUAL, &is_not_type, compiler::Assembler::kNearJump);
     __ CompareTypeNullabilityWith(
-        kCurrentTypeReg, static_cast<int8_t>(Nullability::kNonNullable));
-    __ BranchIf(NOT_EQUAL, &is_assignable);
+        scratch1_reg, static_cast<int8_t>(Nullability::kNonNullable));
+    __ BranchIf(NOT_EQUAL, &is_assignable, compiler::Assembler::kNearJump);
     // FutureOr is a special case because it may have the non-nullable bit set,
     // but FutureOr<T> functions as the union of T and Future<T>, so it must be
     // unwrapped to see if T is nullable.
     __ LoadField(
-        kScratchReg,
-        compiler::FieldAddress(kCurrentTypeReg,
+        scratch2_reg,
+        compiler::FieldAddress(scratch1_reg,
                                compiler::target::Type::type_class_id_offset()));
-    __ SmiUntag(kScratchReg);
-    __ CompareImmediate(kScratchReg, kFutureOrCid);
-    __ BranchIf(NOT_EQUAL, &done);
-    __ LoadField(kScratchReg, compiler::FieldAddress(
-                                  kCurrentTypeReg,
-                                  compiler::target::Type::arguments_offset()));
-    __ CompareObject(kScratchReg, Object::null_object());
+    __ SmiUntag(scratch2_reg);
+    __ CompareImmediate(scratch2_reg, kFutureOrCid);
+    __ BranchIf(NOT_EQUAL, &done, compiler::Assembler::kNearJump);
+    __ LoadField(scratch2_reg,
+                 compiler::FieldAddress(
+                     scratch1_reg, compiler::target::Type::arguments_offset()));
+    __ CompareObject(scratch2_reg, Object::null_object());
     // If the arguments are null, then unwrapping gives the dynamic type,
     // which can take null.
-    __ BranchIf(EQUAL, &is_assignable);
+    __ BranchIf(EQUAL, &is_assignable, compiler::Assembler::kNearJump);
     __ LoadField(
-        kCurrentTypeReg,
+        scratch1_reg,
         compiler::FieldAddress(
-            kScratchReg, compiler::target::TypeArguments::type_at_offset(0)));
+            scratch2_reg, compiler::target::TypeArguments::type_at_offset(0)));
     __ Jump(&check_null_assignable, compiler::Assembler::kNearJump);
     __ Bind(&is_not_type);
-    // Null is assignable to a type parameter only if it is nullable or if the
-    // instantiation is nullable.
+    // Null is assignable to a type parameter only if it is nullable.
     __ LoadFieldFromOffset(
-        kScratchReg, kCurrentTypeReg,
+        scratch2_reg, scratch1_reg,
         compiler::target::TypeParameter::nullability_offset(), kByte);
-    __ CompareImmediate(kScratchReg,
+    __ CompareImmediate(scratch2_reg,
                         static_cast<int8_t>(Nullability::kNonNullable));
-    __ BranchIf(NOT_EQUAL, &is_assignable);
-
-    // Don't set kScratchReg in here as on IA32, that's the function TAV reg.
-    auto handle_case = [&](Register tav) {
-      // We can reuse kCurrentTypeReg to hold the index because we no longer
-      // need the type parameter afterwards.
-      auto const kIndexReg = kCurrentTypeReg;
-      // If the TAV is null, resolving gives the (nullable) dynamic type.
-      __ CompareObject(tav, NullObject());
-      __ BranchIf(EQUAL, &is_assignable, Assembler::kNearJump);
-      // Resolve the type parameter to its instantiated type and loop.
-      __ LoadFieldFromOffset(kIndexReg, kCurrentTypeReg,
-                             target::TypeParameter::index_offset(), kTwoBytes);
-      __ LoadIndexedPayload(kCurrentTypeReg, tav,
-                            target::TypeArguments::types_offset(), kIndexReg,
-                            TIMES_WORD_SIZE);
-      __ Jump(&check_null_assignable);
-    };
-
-    Label function_type_param;
-    __ LoadFieldFromOffset(
-        kScratchReg, kCurrentTypeReg,
-        target::TypeParameter::parameterized_class_id_offset(),
-        kUnsignedTwoBytes);
-    __ CompareImmediate(kScratchReg, kFunctionCid);
-    __ BranchIf(EQUAL, &function_type_param, Assembler::kNearJump);
-    handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
-    __ Bind(&function_type_param);
-#if defined(TARGET_ARCH_IA32)
-    // Function TAV is on top of stack because we're using that register as
-    // kScratchReg.
-    __ LoadFromStack(TypeTestABI::kFunctionTypeArgumentsReg, 0);
-#endif
-    handle_case(TypeTestABI::kFunctionTypeArgumentsReg);
+    __ BranchIf(EQUAL, &done, compiler::Assembler::kNearJump);
   } else {
     // Null in non-null-safe mode is always assignable.
     __ BranchIf(NOT_EQUAL, &done, compiler::Assembler::kNearJump);
   }
   __ Bind(&is_assignable);
-  __ LoadImmediate(kOutputReg, 0);
+  __ LoadImmediate(output_reg, 0);
   __ Bind(&done);
 #if defined(TARGET_ARCH_IA32)
   // Restore preserved scratch registers.
-  __ PopRegister(kScratchReg);
+  __ PopRegister(scratch2_reg);
 #endif
   __ Ret();
 }

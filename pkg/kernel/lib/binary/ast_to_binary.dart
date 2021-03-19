@@ -2420,7 +2420,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.Extension);
     writeNonNullCanonicalNameReference(getCanonicalNameOfExtension(node));
     writeStringReference(node.name);
-    writeAnnotationList(node.annotations);
     writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
 

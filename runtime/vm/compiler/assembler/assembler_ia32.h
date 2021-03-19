@@ -584,40 +584,29 @@ class Assembler : public AssemblerBase {
     j(ZERO, label, distance);
   }
 
-  // Arch-specific LoadFromOffset to choose the right operation for [sz].
-  void LoadFromOffset(Register dst,
-                      const Address& address,
-                      OperandSize sz = kFourBytes);
-  void LoadFromOffset(Register dst,
+  void LoadFromOffset(Register reg,
                       Register base,
                       int32_t offset,
-                      OperandSize sz = kFourBytes) {
-    LoadFromOffset(dst, Address(base, offset), sz);
-  }
-  void LoadField(Register dst,
-                 const FieldAddress& address,
-                 OperandSize sz = kFourBytes) {
-    LoadFromOffset(dst, address, sz);
-  }
+                      OperandSize type = kFourBytes);
+  void LoadField(Register dst, FieldAddress address) { movl(dst, address); }
   void LoadFieldFromOffset(Register reg,
                            Register base,
                            int32_t offset,
-                           OperandSize sz = kFourBytes) {
-    LoadFromOffset(reg, FieldAddress(base, offset), sz);
+                           OperandSize type = kFourBytes) {
+    LoadFromOffset(reg, base, offset - kHeapObjectTag, type);
   }
   void LoadCompressedFieldFromOffset(Register reg,
                                      Register base,
                                      int32_t offset,
-                                     OperandSize sz = kFourBytes) {
-    LoadFieldFromOffset(reg, base, offset, sz);
+                                     OperandSize type = kFourBytes) {
+    LoadFieldFromOffset(reg, base, offset, type);
   }
-  void LoadIndexedPayload(Register dst,
-                          Register base,
-                          int32_t payload_offset,
-                          Register index,
-                          ScaleFactor scale,
-                          OperandSize sz = kFourBytes) {
-    LoadFromOffset(dst, FieldAddress(base, index, scale, payload_offset), sz);
+  void LoadIndexedFieldFromOffset(Register reg,
+                                  Register base,
+                                  int32_t offset,
+                                  Register index,
+                                  ScaleFactor scale) {
+    LoadField(reg, FieldAddress(base, index, scale, offset));
   }
   void LoadFromStack(Register dst, intptr_t depth);
   void StoreToStack(Register src, intptr_t depth);

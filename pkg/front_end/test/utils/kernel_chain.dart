@@ -84,9 +84,7 @@ abstract class MatchContext implements ChainContext {
       expectationSet["ExpectationFileMissing"];
 
   Future<Result<O>> match<O>(String suffix, String actual, Uri uri, O output,
-      {Expectation onMismatch, bool overwriteUpdateExpectationsWith}) async {
-    bool updateExpectations =
-        overwriteUpdateExpectationsWith ?? this.updateExpectations;
+      {Expectation onMismatch}) async {
     actual = actual.trim();
     if (actual.isNotEmpty) {
       actual += "\n";
@@ -340,8 +338,7 @@ class MatchExpectation
     return context.match<ComponentResult>(suffix, actual, uri, result,
         onMismatch: serializeFirst
             ? context.expectationFileMismatchSerialized
-            : context.expectationFileMismatch,
-        overwriteUpdateExpectationsWith: serializeFirst ? false : null);
+            : context.expectationFileMismatch);
   }
 }
 

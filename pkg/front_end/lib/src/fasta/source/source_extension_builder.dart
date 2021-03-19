@@ -5,7 +5,6 @@
 // @dart = 2.9
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/common.dart';
@@ -31,8 +30,6 @@ import '../fasta_codes.dart'
 import '../problems.dart';
 
 import '../scope.dart';
-
-import '../util/helpers.dart';
 
 import 'source_library_builder.dart';
 
@@ -260,26 +257,5 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
         assert(false, "Unexpected member: $builder.");
       }
     });
-  }
-
-  @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
-    MetadataBuilder.buildAnnotations(isPatch ? origin.extension : extension,
-        metadata, library, this, null, fileUri);
-    if (typeParameters != null) {
-      for (int i = 0; i < typeParameters.length; i++) {
-        typeParameters[i].buildOutlineExpressions(
-            library, this, null, coreTypes, delayedActionPerformers);
-      }
-    }
-
-    void build(String ignore, Builder declaration) {
-      MemberBuilder member = declaration;
-      member.buildOutlineExpressions(
-          library, coreTypes, delayedActionPerformers);
-    }
-
-    scope.forEach(build);
   }
 }

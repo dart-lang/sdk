@@ -8,7 +8,7 @@ library fasta.metadata_builder;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' show Annotatable, Class, Library;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
@@ -16,7 +16,7 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../scope.dart' show Scope;
 
-import 'declaration_builder.dart';
+import 'class_builder.dart';
 import 'member_builder.dart';
 
 class MetadataBuilder {
@@ -30,19 +30,16 @@ class MetadataBuilder {
       Annotatable parent,
       List<MetadataBuilder> metadata,
       SourceLibraryBuilder library,
-      DeclarationBuilder classOrExtensionBuilder,
-      MemberBuilder member,
-      Uri fileUri) {
+      ClassBuilder classBuilder,
+      MemberBuilder member) {
     if (metadata == null) return;
-    Scope scope = parent is Library ||
-            parent is Class ||
-            parent is Extension ||
-            classOrExtensionBuilder == null
+    Uri fileUri = member?.fileUri ?? classBuilder?.fileUri ?? library.fileUri;
+    Scope scope = parent is Library || parent is Class || classBuilder == null
         ? library.scope
-        : classOrExtensionBuilder.scope;
+        : classBuilder.scope;
     BodyBuilder bodyBuilder = library.loader
         .createBodyBuilderForOutlineExpression(
-            library, classOrExtensionBuilder, member, scope, fileUri);
+            library, classBuilder, member, scope, fileUri);
     for (int i = 0; i < metadata.length; ++i) {
       MetadataBuilder annotationBuilder = metadata[i];
       parent.addAnnotation(

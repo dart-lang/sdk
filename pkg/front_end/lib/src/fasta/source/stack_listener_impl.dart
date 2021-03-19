@@ -13,7 +13,8 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart'
+    show AsyncMarker, Expression, FunctionNode, TreeNode;
 
 import '../fasta_codes.dart';
 
@@ -61,7 +62,7 @@ abstract class StackListenerImpl extends StackListener {
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  List<Expression> finishMetadata(Annotatable parent) {
+  List<Expression> finishMetadata(TreeNode parent) {
     return problems.unsupported("finishMetadata", -1, uri);
   }
 

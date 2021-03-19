@@ -1608,7 +1608,6 @@ class OutlineBuilder extends StackListenerImpl {
         typeVariables,
         formals,
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
-        uri,
         functionToken.charOffset));
   }
 
@@ -1622,13 +1621,8 @@ class OutlineBuilder extends StackListenerImpl {
     if (!libraryBuilder.isNonNullableByDefault) {
       reportErrorIfNullableType(question);
     }
-    push(libraryBuilder.addFunctionType(
-        returnType,
-        typeVariables,
-        formals,
-        libraryBuilder.nullableBuilderIfTrue(question != null),
-        uri,
-        formalsOffset));
+    push(libraryBuilder.addFunctionType(returnType, typeVariables, formals,
+        libraryBuilder.nullableBuilderIfTrue(question != null), formalsOffset));
   }
 
   @override
@@ -1659,7 +1653,7 @@ class OutlineBuilder extends StackListenerImpl {
           hasMembers: false);
       // TODO(dmitryas): Make sure that RHS of typedefs can't have '?'.
       aliasedType = libraryBuilder.addFunctionType(returnType, null, formals,
-          const NullabilityBuilder.omitted(), uri, charOffset);
+          const NullabilityBuilder.omitted(), charOffset);
     } else {
       Object type = pop();
       typeVariables = pop();
@@ -1839,11 +1833,13 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("beginTypeVariable");
     int charOffset = pop();
     Object name = pop();
-    List<MetadataBuilder> metadata = pop();
+    // TODO(paulberry): type variable metadata should not be ignored.  See
+    // dartbug.com/28981.
+    /* List<MetadataBuilder<TypeBuilder>> metadata = */ pop();
     if (name is ParserRecovery) {
       push(name);
     } else {
-      push(libraryBuilder.addTypeVariable(metadata, name, null, charOffset));
+      push(libraryBuilder.addTypeVariable(name, null, charOffset));
     }
   }
 

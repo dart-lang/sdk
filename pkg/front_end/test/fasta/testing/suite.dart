@@ -162,8 +162,6 @@ import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:vm/transformations/type_flow/transformer.dart' as type_flow;
 import 'package:vm/transformations/pragma.dart' as type_flow;
 
-import '../../testing_utils.dart' show checkEnvironment;
-
 import '../../utils/kernel_chain.dart'
     show
         ComponentResult,
@@ -378,11 +376,13 @@ class FastaContext extends ChainContext with MatchContext {
       steps.add(new MatchExpectation(
           fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
           serializeFirst: false,
-          isLastMatchStep: false));
-      steps.add(new MatchExpectation(
-          fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
-          serializeFirst: true,
-          isLastMatchStep: true));
+          isLastMatchStep: updateExpectations));
+      if (!updateExpectations) {
+        steps.add(new MatchExpectation(
+            fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
+            serializeFirst: true,
+            isLastMatchStep: true));
+      }
     }
     steps.add(const TypeCheck());
     steps.add(const EnsureNoErrors());
@@ -723,23 +723,6 @@ class FastaContext extends ChainContext with MatchContext {
 
   static Future<FastaContext> create(
       Chain suite, Map<String, String> environment) async {
-    const Set<String> knownEnvironmentKeys = {
-      "enableExtensionMethods",
-      "enableNonNullable",
-      "soundNullSafety",
-      "onlyCrashes",
-      "ignoreExpectations",
-      UPDATE_EXPECTATIONS,
-      UPDATE_COMMENTS,
-      "skipVm",
-      "semiFuzz",
-      "verify",
-      KERNEL_TEXT_SERIALIZATION,
-      "platformBinaries",
-      ENABLE_FULL_COMPILE,
-    };
-    checkEnvironment(environment, knownEnvironmentKeys);
-
     String resolvedExecutable = Platform.environment['resolvedExecutable'] ??
         Platform.resolvedExecutable;
     Uri vm = Uri.base.resolveUri(new Uri.file(resolvedExecutable));

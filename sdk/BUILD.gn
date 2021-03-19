@@ -115,10 +115,6 @@ _scripts = [ "dartdoc" ]
 # Snapshots that go under bin/snapshots
 _platform_sdk_snapshots = [
   [
-    "analysis_server",
-    "../utils/analysis_server",
-  ],
-  [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
   ],
@@ -153,6 +149,12 @@ if (create_kernel_service_snapshot) {
   _platform_sdk_snapshots += [ [
         "kernel-service",
         "../utils/kernel-service:kernel-service_snapshot",
+      ] ]
+}
+if (dart_target_arch != "arm") {
+  _platform_sdk_snapshots += [ [
+        "analysis_server",
+        "../utils/analysis_server",
       ] ]
 }
 

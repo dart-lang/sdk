@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 59;
+  UInt32 formatVersion = 58;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -337,7 +337,6 @@ type Extension extends Node {
   Byte tag = 115;
   CanonicalNameReference canonicalName;
   StringReference name;
-  List<Expression> annotations;
   UriReference fileUri;
   FileOffset fileOffset;
   List<TypeParameter> typeParameters;

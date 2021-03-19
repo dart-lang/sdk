@@ -1763,19 +1763,20 @@ void Assembler::CompareRegisters(Register a, Register b) {
 }
 
 void Assembler::LoadFromOffset(Register reg,
-                               const Address& address,
+                               Register base,
+                               int32_t offset,
                                OperandSize type) {
   switch (type) {
     case kByte:
-      return movsxb(reg, address);
+      return movsxb(reg, Address(base, offset));
     case kUnsignedByte:
-      return movzxb(reg, address);
+      return movzxb(reg, Address(base, offset));
     case kTwoBytes:
-      return movsxw(reg, address);
+      return movsxw(reg, Address(base, offset));
     case kUnsignedTwoBytes:
-      return movzxw(reg, address);
+      return movzxw(reg, Address(base, offset));
     case kFourBytes:
-      return movl(reg, address);
+      return movl(reg, Address(base, offset));
     default:
       UNREACHABLE();
       break;
