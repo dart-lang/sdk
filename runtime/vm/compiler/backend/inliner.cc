@@ -2385,12 +2385,6 @@ static bool CanUnboxDouble() {
   return FlowGraphCompiler::SupportsUnboxedDoubles();
 }
 
-static bool CanUnboxInt32() {
-  // Int32/Uint32 can be unboxed if it fits into a smi or the platform
-  // supports unboxed mints.
-  return (compiler::target::kSmiBits >= 32);
-}
-
 // Quick access to the current one.
 #undef Z
 #define Z (flow_graph->zone())
@@ -3667,9 +3661,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                               call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kInt32ArrayGetIndexed:
     case MethodRecognizer::kUint32ArrayGetIndexed:
-      if (!CanUnboxInt32()) {
-        return false;
-      }
       return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
                               call, receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kInt64ArrayGetIndexed:
@@ -3772,16 +3763,10 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                                      kTypedDataUint16ArrayCid, graph_entry,
                                      entry, last, result);
     case MethodRecognizer::kByteArrayBaseGetInt32:
-      if (!CanUnboxInt32()) {
-        return false;
-      }
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
                                      kTypedDataInt32ArrayCid, graph_entry,
                                      entry, last, result);
     case MethodRecognizer::kByteArrayBaseGetUint32:
-      if (!CanUnboxInt32()) {
-        return false;
-      }
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
                                      kTypedDataUint32ArrayCid, graph_entry,
                                      entry, last, result);
