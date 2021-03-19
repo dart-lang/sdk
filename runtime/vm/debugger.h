@@ -203,6 +203,12 @@ class BreakpointLocation {
 // There may be more than one BreakpointLocation associated with CodeBreakpoint,
 // one for for every isolate in a group that sets a breakpoint at particular
 // code location represented by the CodeBreakpoint.
+// Each BreakpointLocation might be enabled/disabled based on whether it has
+// any actual breakpoints associated with it.
+// The CodeBreakpoint is enabled if it has any such BreakpointLocations
+// associated with it.
+// The class is not thread-safe - users of this class need to ensure the access
+// is synchronized, guarded by mutexes.
 class CodeBreakpoint {
  public:
   CodeBreakpoint(const Code& code,
@@ -226,7 +232,7 @@ class CodeBreakpoint {
 
   void Enable();
   void Disable();
-  bool IsEnabled() const { return is_enabled_; }
+  bool IsEnabled() const { return enabled_count_ > 0; }
 
   CodePtr OrigStubAddress() const;
 
@@ -248,7 +254,7 @@ class CodeBreakpoint {
   TokenPosition token_pos_;
   uword pc_;
   intptr_t line_number_;
-  bool is_enabled_;
+  int enabled_count_;  // incremented for every enabled breakpoint location
 
   // Breakpoint locations from different debuggers/isolates that
   // point to this code breakpoint.
@@ -521,7 +527,6 @@ class GroupDebugger {
   bool HasBreakpointInCode(const Code& code);
 
   void SyncBreakpointLocation(BreakpointLocation* loc);
-  void DisableCodeBreakpointsFor(BreakpointLocation* loc);
 
   void Pause();
 
