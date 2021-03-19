@@ -2525,10 +2525,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       NullabilityBuilder nullabilityBuilder,
+      Uri fileUri,
       int charOffset) {
     FunctionTypeBuilder builder = new FunctionTypeBuilder(returnType,
         typeVariables, formals, nullabilityBuilder, fileUri, charOffset);
     checkTypeVariables(typeVariables, null);
+    if (typeVariables != null) {
+      for (TypeVariableBuilder builder in typeVariables) {
+        if (builder.metadata != null) {
+          if (!enableGenericMetadataInLibrary) {
+            addProblem(messageAnnotationOnFunctionTypeTypeVariable,
+                builder.charOffset, builder.name.length, builder.fileUri);
+          }
+        }
+      }
+    }
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
     endNestedDeclaration(TypeParameterScopeKind.functionType, "#function_type")
@@ -2555,17 +2566,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return formal;
   }
 
-  TypeVariableBuilder addTypeVariable(
+  TypeVariableBuilder addTypeVariable(List<MetadataBuilder> metadata,
       String name, TypeBuilder bound, int charOffset) {
-    TypeVariableBuilder builder =
-        new TypeVariableBuilder(name, this, charOffset, bound: bound);
+    TypeVariableBuilder builder = new TypeVariableBuilder(
+        name, this, charOffset,
+        bound: bound, metadata: metadata);
     boundlessTypeVariables.add(builder);
     return builder;
   }
 
   @override
   void buildOutlineExpressions() {
-    MetadataBuilder.buildAnnotations(library, metadata, this, null, null);
+    MetadataBuilder.buildAnnotations(
+        library, metadata, this, null, null, fileUri);
   }
 
   /// Builds the core AST structures for [declaration] needed for the outline.

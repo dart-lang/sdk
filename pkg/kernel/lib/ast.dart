@@ -577,9 +577,10 @@ class Library extends NamedNode
 ///     export <url>;
 ///
 /// optionally with metadata and [Combinators].
-class LibraryDependency extends TreeNode {
+class LibraryDependency extends TreeNode implements Annotatable {
   int flags;
 
+  @override
   final List<Expression> annotations;
 
   Reference importedLibraryReference;
@@ -630,6 +631,7 @@ class LibraryDependency extends TreeNode {
   bool get isImport => !isExport;
   bool get isDeferred => flags & DeferredFlag != 0;
 
+  @override
   void addAnnotation(Expression annotation) {
     annotations.add(annotation..parent = this);
   }
@@ -675,14 +677,17 @@ class LibraryDependency extends TreeNode {
 ///     part <url>;
 ///
 /// optionally with metadata.
-class LibraryPart extends TreeNode {
+class LibraryPart extends TreeNode implements Annotatable {
+  @override
   final List<Expression> annotations;
+
   final String partUri;
 
   LibraryPart(this.annotations, this.partUri) {
     setParents(annotations, this);
   }
 
+  @override
   void addAnnotation(Expression annotation) {
     annotations.add(annotation..parent = this);
   }
@@ -760,12 +765,14 @@ class Combinator extends TreeNode {
 }
 
 /// Declaration of a type alias.
-class Typedef extends NamedNode implements FileUriNode {
+class Typedef extends NamedNode implements FileUriNode, Annotatable {
   /// The URI of the source file that contains the declaration of this typedef.
   @override
   Uri? fileUri;
 
+  @override
   List<Expression> annotations = const <Expression>[];
+
   String name;
   final List<TypeParameter> typeParameters;
   // TODO(johnniwinther): Make this non-nullable.
@@ -834,6 +841,7 @@ class Typedef extends NamedNode implements FileUriNode {
     }
   }
 
+  @override
   void addAnnotation(Expression node) {
     if (annotations.isEmpty) {
       annotations = <Expression>[];
@@ -1412,7 +1420,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 ///
 /// The members are converted into top-level procedures and only accessible
 /// by reference in the [Extension] node.
-class Extension extends NamedNode implements FileUriNode {
+class Extension extends NamedNode implements Annotatable, FileUriNode {
   /// Name of the extension.
   ///
   /// If unnamed, the extension will be given a synthesized name by the
@@ -1439,6 +1447,18 @@ class Extension extends NamedNode implements FileUriNode {
   /// The members are converted into top-level members and only accessible
   /// by reference through [ExtensionMemberDescriptor].
   final List<ExtensionMemberDescriptor> members;
+
+  @override
+  List<Expression> annotations = const <Expression>[];
+
+  @override
+  void addAnnotation(Expression node) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(node);
+    node.parent = this;
+  }
 
   Extension(
       {required this.name,
@@ -9843,7 +9863,7 @@ class YieldStatement extends Statement {
 /// When this occurs as a statement, it must be a direct child of a [Block].
 //
 // DESIGN TODO: Should we remove the 'final' modifier from variables?
-class VariableDeclaration extends Statement {
+class VariableDeclaration extends Statement implements Annotatable {
   /// Offset of the equals sign in the source file it comes from.
   ///
   /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset])
@@ -9855,6 +9875,7 @@ class VariableDeclaration extends Statement {
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
   /// annotations if needed.
+  @override
   List<Expression> annotations = const <Expression>[];
 
   /// For named parameters, this is the name of the parameter. No two named
@@ -10024,6 +10045,7 @@ class VariableDeclaration extends Statement {
     annotations = const <Expression>[];
   }
 
+  @override
   void addAnnotation(Expression annotation) {
     if (annotations.isEmpty) {
       annotations = <Expression>[];
@@ -11909,13 +11931,14 @@ class Variance {
 /// Type parameters declared by a [FunctionType] are orphans and have a `null`
 /// parent pointer.  [TypeParameter] objects should not be shared between
 /// different [FunctionType] objects.
-class TypeParameter extends TreeNode {
+class TypeParameter extends TreeNode implements Annotatable {
   int flags = 0;
 
   /// List of metadata annotations on the type parameter.
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
   /// annotations if needed.
+  @override
   List<Expression> annotations = const <Expression>[];
 
   String? name; // Cosmetic name.
@@ -11970,6 +11993,7 @@ class TypeParameter extends TreeNode {
         : (flags & ~FlagGenericCovariantImpl);
   }
 
+  @override
   void addAnnotation(Expression annotation) {
     if (annotations.isEmpty) {
       annotations = <Expression>[];

@@ -6,7 +6,9 @@
 
 library fasta.dill_typedef_builder;
 
+import 'package:front_end/src/fasta/util/helpers.dart';
 import 'package:kernel/ast.dart' show DartType, InvalidType, NullType, Typedef;
+import 'package:kernel/core_types.dart';
 
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -92,4 +94,10 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   bool get isNullAlias => typedef.type is NullType;
+
+  @override
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    // TODO(johnniwinther): Remove the need for this.
+  }
 }

@@ -1,0 +1,13 @@
+class A<T> {
+  const A(o);
+}
+
+void Function<@A<int>() T>(T)? f;
+typedef F = void Function<@A<bool>() T>(T);
+typedef void G<@A<dynamic>() T>(T t);
+void method1<@A<String>() T>(T t) {}
+void method2(void Function<@A<num>() T>(T) f) {}
+
+class Class<T extends void Function<@A<void>() S>(S)> {}
+
+main() {}

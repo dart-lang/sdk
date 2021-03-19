@@ -1359,6 +1359,8 @@ class BinaryBuilder {
       return true;
     }());
 
+    node.annotations = readAnnotationList(node);
+
     Uri? fileUri = readUriReference();
     node.fileOffset = readOffset();
 
