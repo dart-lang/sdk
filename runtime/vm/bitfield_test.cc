@@ -70,4 +70,16 @@ VM_UNIT_TEST_CASE(BitFields_SignedField) {
   TestSignExtendedBitField<int32_t>();
 }
 
+#if defined(DEBUG)
+#define DEBUG_CRASH "Crash"
+#else
+#define DEBUG_CRASH "Pass"
+#endif
+
+VM_UNIT_TEST_CASE_WITH_EXPECTATION(BitFields_Assert, DEBUG_CRASH) {
+  class F : public BitField<uint32_t, uint32_t, 0, 8, /*sign_extend=*/false> {};
+  const uint32_t value = F::encode(kMaxUint32);
+  EXPECT_EQ(kMaxUint8, value);
+}
+
 }  // namespace dart

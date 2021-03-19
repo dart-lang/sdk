@@ -153,7 +153,7 @@ class UntaggedObject {
     static constexpr intptr_t kMaxSizeTag =
         kMaxSizeTagInUnitsOfAlignment * kObjectAlignment;
 
-    static UNLESS_DEBUG(constexpr) uword encode(intptr_t size) {
+    static constexpr uword encode(intptr_t size) {
       return SizeBits::encode(SizeToTagValue(size));
     }
 
@@ -161,11 +161,11 @@ class UntaggedObject {
       return TagValueToSize(SizeBits::decode(tag));
     }
 
-    static UNLESS_DEBUG(constexpr) uword update(intptr_t size, uword tag) {
+    static constexpr uword update(intptr_t size, uword tag) {
       return SizeBits::update(SizeToTagValue(size), tag);
     }
 
-    static UNLESS_DEBUG(constexpr) bool SizeFits(intptr_t size) {
+    static constexpr bool SizeFits(intptr_t size) {
       DEBUG_ASSERT(Utils::IsAligned(size, kObjectAlignment));
       return (size <= kMaxSizeTag);
     }
@@ -175,8 +175,8 @@ class UntaggedObject {
     class SizeBits
         : public BitField<uword, intptr_t, kSizeTagPos, kSizeTagSize> {};
 
-    static UNLESS_DEBUG(constexpr) intptr_t SizeToTagValue(intptr_t size) {
-      DEBUG_ASSERT(Utils::IsAligned(size, kObjectAlignment));
+    static constexpr intptr_t SizeToTagValue(intptr_t size) {
+      assert(Utils::IsAligned(size, kObjectAlignment));
       return !SizeFits(size) ? 0 : (size >> kObjectAlignmentLog2);
     }
     static constexpr intptr_t TagValueToSize(intptr_t value) {

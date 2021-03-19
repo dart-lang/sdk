@@ -557,7 +557,7 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
   }
 }
 
-static UNLESS_DEBUG(constexpr) const uword kReadOnlyGCBits =
+static constexpr uword kReadOnlyGCBits =
     UntaggedObject::OldBit::encode(true) |
     UntaggedObject::OldAndNotMarkedBit::encode(false) |
     UntaggedObject::OldAndNotRememberedBit::encode(true) |

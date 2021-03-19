@@ -7,7 +7,6 @@
 
 #include <type_traits>
 
-#include "platform/assert.h"
 #include "platform/globals.h"
 
 namespace dart {
@@ -52,8 +51,8 @@ class BitField {
   static constexpr int bitsize() { return size; }
 
   // Returns an S with the bit field value encoded.
-  static UNLESS_DEBUG(constexpr) S encode(T value) {
-    DEBUG_ASSERT(is_valid(value));
+  static constexpr S encode(T value) {
+    assert(is_valid(value));
     return encode_unchecked(value);
   }
 
@@ -62,29 +61,28 @@ class BitField {
     // Ensure we slide down the sign bit if the value in the bit field is signed
     // and negative. We use 64-bit ints inside the expression since we can have
     // both cases: sizeof(S) > sizeof(T) or sizeof(S) < sizeof(T).
-    return static_cast<T>(
-        (sign_extend
-             ? (static_cast<int64_t>(static_cast<uint64_t>(value)
-                                     << (64 - (size + position))) >>
-                (64 - size))
-             : ((static_cast<typename std::make_unsigned<S>::type>(value) >>
-                 position) &
-                mask())));
+    if constexpr (sign_extend) {
+      auto const u = static_cast<uint64_t>(value);
+      return static_cast<T>((static_cast<int64_t>(u << (64 - kNextBit))) >>
+                            (64 - size));
+    } else {
+      auto const u = static_cast<typename std::make_unsigned<S>::type>(value);
+      return static_cast<T>((u >> position) & mask());
+    }
   }
 
   // Returns an S with the bit field value encoded based on the
   // original value. Only the bits corresponding to this bit field
   // will be changed.
-  static UNLESS_DEBUG(constexpr) S update(T value, S original) {
-    DEBUG_ASSERT(is_valid(value));
-    return encode_unchecked(value) | (~mask_in_place() & original);
+  static constexpr S update(T value, S original) {
+    return encode(value) | (~mask_in_place() & original);
   }
 
  private:
   // Returns an S with the bit field value encoded.
   static constexpr S encode_unchecked(T value) {
-    return (static_cast<typename std::make_unsigned<S>::type>(value) & mask())
-           << position;
+    auto const u = static_cast<typename std::make_unsigned<S>::type>(value);
+    return (u & mask()) << position;
   }
 };
 

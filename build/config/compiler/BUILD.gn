@@ -271,15 +271,12 @@ config("compiler") {
     cflags += [ "-fcolor-diagnostics" ]
   }
 
-  # C++11 compiler flags setup.
+  # C++ standard compiler flags setup.
   # ---------------------------
   if (is_win) {
-    # Up-to-date toolchain MSVC doesn't support c++11 flag any longer.
-    cc_std = [ "/std:c++14" ]
-  } else if (is_fuchsia) {
-    cc_std = [ "-std=c++17" ]
+    cc_std = [ "/std:c++17" ]
   } else {
-    cc_std = [ "-std=c++11" ]
+    cc_std = [ "-std=c++17" ]
   }
   cflags_cc += cc_std
   cflags_objcc += cc_std
