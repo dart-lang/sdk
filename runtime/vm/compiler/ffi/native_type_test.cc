@@ -214,6 +214,61 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_packed) {
   EXPECT(struct_type.ContainsUnalignedMembers());
 }
 
+UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_packed_array) {
+  const auto& uint8_type = *new (Z) NativePrimitiveType(kUint8);
+  const auto& uint16_type = *new (Z) NativePrimitiveType(kUint16);
+
+  auto& inner_members = *new (Z) NativeTypes(Z, 2);
+  inner_members.Add(&uint16_type);
+  inner_members.Add(&uint8_type);
+  const intptr_t packing = 1;
+  const auto& inner_struct_type =
+      NativeCompoundType::FromNativeTypes(Z, inner_members, packing);
+
+  EXPECT_EQ(3, inner_struct_type.SizeInBytes());
+  // Non-windows x64 considers this struct as all members aligned, even though
+  // its size is not a multiple of its individual member alignment.
+  EXPECT(!inner_struct_type.ContainsUnalignedMembers());
+
+  const auto& array_type = *new (Z) NativeArrayType(inner_struct_type, 2);
+
+  auto& members = *new (Z) NativeTypes(Z, 1);
+  members.Add(&array_type);
+  const auto& struct_type = NativeCompoundType::FromNativeTypes(Z, members);
+
+  EXPECT_EQ(6, struct_type.SizeInBytes());
+  // Non-windows x64 passes this as a struct with unaligned members, because
+  // the second element of the array contains unaligned members.
+  EXPECT(struct_type.ContainsUnalignedMembers());
+}
+
+UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_packed_nested) {
+  const auto& uint8_type = *new (Z) NativePrimitiveType(kUint8);
+  const auto& uint32_type = *new (Z) NativePrimitiveType(kUint32);
+
+  auto& inner_members = *new (Z) NativeTypes(Z, 2);
+  inner_members.Add(&uint32_type);
+  inner_members.Add(&uint8_type);
+  const intptr_t packing = 1;
+  const auto& inner_struct_type =
+      NativeCompoundType::FromNativeTypes(Z, inner_members, packing);
+
+  EXPECT_EQ(5, inner_struct_type.SizeInBytes());
+  // Non-windows x64 considers this struct as all members aligned, even though
+  // its size is not a multiple of its individual member alignment.
+  EXPECT(!inner_struct_type.ContainsUnalignedMembers());
+
+  auto& members = *new (Z) NativeTypes(Z, 2);
+  members.Add(&uint8_type);
+  members.Add(&inner_struct_type);
+  const auto& struct_type = NativeCompoundType::FromNativeTypes(Z, members);
+
+  EXPECT_EQ(6, struct_type.SizeInBytes());
+  // Non-windows x64 passes this as a struct with unaligned members, even
+  // though the nested struct itself has all its members aligned in isolation.
+  EXPECT(struct_type.ContainsUnalignedMembers());
+}
+
 }  // namespace ffi
 }  // namespace compiler
 }  // namespace dart

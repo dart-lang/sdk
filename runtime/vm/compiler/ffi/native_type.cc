@@ -736,23 +736,32 @@ intptr_t NativeCompoundType::NumberOfWordSizeChunksNotOnlyFloat() const {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-bool NativePrimitiveType::ContainsUnalignedMembers() const {
+bool NativePrimitiveType::ContainsUnalignedMembers(intptr_t offset) const {
+  return offset % AlignmentInBytesField() != 0;
+}
+
+bool NativeArrayType::ContainsUnalignedMembers(intptr_t offset) const {
+  const intptr_t element_size = element_type_.SizeInBytes();
+  // We're only checking the first two elements of the array.
+  //
+  // If the element size is divisible by the alignment of the largest type
+  // contained within the element type, the alignment of all elements is the
+  // same. If not, either the first or the second element is unaligned.
+  const intptr_t max_check = 2;
+  for (intptr_t i = 0; i < Utils::Minimum(length_, max_check); i++) {
+    const intptr_t element_offset = i * element_size;
+    if (element_type_.ContainsUnalignedMembers(offset + element_offset)) {
+      return true;
+    }
+  }
   return false;
 }
 
-bool NativeArrayType::ContainsUnalignedMembers() const {
-  return element_type_.ContainsUnalignedMembers();
-}
-
-bool NativeCompoundType::ContainsUnalignedMembers() const {
+bool NativeCompoundType::ContainsUnalignedMembers(intptr_t offset) const {
   for (intptr_t i = 0; i < members_.length(); i++) {
     const auto& member = *members_.At(i);
     const intptr_t member_offset = member_offsets_.At(i);
-    const intptr_t member_alignment = member.AlignmentInBytesField();
-    if (member_offset % member_alignment != 0) {
-      return true;
-    }
-    if (member.ContainsUnalignedMembers()) {
+    if (member.ContainsUnalignedMembers(offset + member_offset)) {
       return true;
     }
   }
