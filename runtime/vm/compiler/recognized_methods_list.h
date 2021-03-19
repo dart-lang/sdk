@@ -176,7 +176,9 @@ namespace dart {
   V(::, _loadUint64, FfiLoadUint64, 0x0505fdcc)                                \
   V(::, _loadIntPtr, FfiLoadIntPtr, 0xebd9b43e)                                \
   V(::, _loadFloat, FfiLoadFloat, 0xf8d9845d)                                  \
+  V(::, _loadFloatUnaligned, FfiLoadFloatUnaligned, 0xc8c8dfff)                \
   V(::, _loadDouble, FfiLoadDouble, 0xf70cc619)                                \
+  V(::, _loadDoubleUnaligned, FfiLoadDoubleUnaligned, 0xc99ebd39)              \
   V(::, _loadPointer, FfiLoadPointer, 0x4e79d0fc)                              \
   V(::, _storeInt8, FfiStoreInt8, 0xdf50af0c)                                  \
   V(::, _storeInt16, FfiStoreInt16, 0xd84df332)                                \
@@ -188,7 +190,9 @@ namespace dart {
   V(::, _storeUint64, FfiStoreUint64, 0xe2d93239)                              \
   V(::, _storeIntPtr, FfiStoreIntPtr, 0x080266a8)                              \
   V(::, _storeFloat, FfiStoreFloat, 0x6484f07e)                                \
+  V(::, _storeFloatUnaligned, FfiStoreFloatUnaligned, 0x600a9203)              \
   V(::, _storeDouble, FfiStoreDouble, 0x42998c64)                              \
+  V(::, _storeDoubleUnaligned, FfiStoreDoubleUnaligned, 0x3dced75b)            \
   V(::, _storePointer, FfiStorePointer, 0xea6b7751)                            \
   V(::, _fromAddress, FfiFromAddress, 0xfd8cb1cc)                              \
   V(Pointer, get:address, FfiGetAddress, 0x7cde87be)                           \

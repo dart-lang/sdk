@@ -1113,4 +1113,15 @@ DART_EXPORT uint64_t Regress43693(Struct43693* my_struct) {
   return my_struct->someValue;
 }
 
+#pragma pack(push, 1)
+struct Struct3BytesPackedIntCopy {
+  int8_t a0;
+  int16_t a1;
+};
+#pragma pack(pop)
+
+DART_EXPORT uint64_t SizeOfStruct3BytesPackedInt() {
+  return sizeof(Struct3BytesPackedIntCopy);
+}
+
 }  // namespace dart

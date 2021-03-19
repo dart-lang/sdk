@@ -16,7 +16,10 @@ class _FfiStructLayout {
   @pragma("vm:entry-point")
   final List<Object> fieldTypes;
 
-  const _FfiStructLayout(this.fieldTypes);
+  @pragma("vm:entry-point")
+  final int? packing;
+
+  const _FfiStructLayout(this.fieldTypes, this.packing);
 }
 
 @pragma("vm:entry-point")

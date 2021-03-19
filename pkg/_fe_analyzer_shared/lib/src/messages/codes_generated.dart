@@ -3904,6 +3904,68 @@ Message _withArgumentsFfiNotStatic(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateFfiPackedAnnotation =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Struct '#name' must have at most one 'Packed' annotation.""",
+        withArguments: _withArgumentsFfiPackedAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiPackedAnnotation =
+    const Code<Message Function(String name)>(
+  "FfiPackedAnnotation",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiPackedAnnotation(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiPackedAnnotation,
+      message:
+          """Struct '${name}' must have at most one 'Packed' annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiPackedAnnotationAlignment =
+    messageFfiPackedAnnotationAlignment;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiPackedAnnotationAlignment = const MessageCode(
+    "FfiPackedAnnotationAlignment",
+    message: r"""Only packing to 1, 2, 4, 8, and 16 bytes is supported.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateFfiPackedNestingNonPacked = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""Nesting the non-packed or less tightly packed struct '#name' in a packed struct '#name2' is not supported.""",
+    withArguments: _withArgumentsFfiPackedNestingNonPacked);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeFfiPackedNestingNonPacked =
+    const Code<Message Function(String name, String name2)>(
+  "FfiPackedNestingNonPacked",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiPackedNestingNonPacked(String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeFfiPackedNestingNonPacked,
+      message:
+          """Nesting the non-packed or less tightly packed struct '${name}' in a packed struct '${name2}' is not supported.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateFfiSizeAnnotation =
     const Template<Message Function(String name)>(
         messageTemplate:

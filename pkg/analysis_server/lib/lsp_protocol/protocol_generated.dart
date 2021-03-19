@@ -7,11 +7,7 @@
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
 // ignore_for_file: annotate_overrides
-// ignore_for_file: deprecated_member_use
-// ignore_for_file: deprecated_member_use_from_same_package
-// ignore_for_file: unnecessary_brace_in_string_interps
 // ignore_for_file: unnecessary_parenthesis
-// ignore_for_file: unused_import
 // ignore_for_file: unused_shown_name
 
 import 'dart:core' hide deprecated;
@@ -9537,7 +9533,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
                     item != null
                         ? TextDocumentContentChangeEvent2.fromJson(item)
                         : null)
-                : (throw '''${item} was not one of (TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2)''')))
+                : (throw '''$item was not one of (TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2)''')))
         ?.cast<Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>>()
         ?.toList();
     return DidChangeTextDocumentParams(
@@ -30675,7 +30671,7 @@ class TextDocumentEdit implements ToJsonable {
                 : (TextEdit.canParse(item, nullLspJsonReporter)
                     ? Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t3(
                         item != null ? TextEdit.fromJson(item) : null)
-                    : (throw '''${item} was not one of (SnippetTextEdit, AnnotatedTextEdit, TextEdit)'''))))
+                    : (throw '''$item was not one of (SnippetTextEdit, AnnotatedTextEdit, TextEdit)'''))))
         ?.cast<Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>>()
         ?.toList();
     return TextDocumentEdit(textDocument: textDocument, edits: edits);
@@ -33645,7 +33641,7 @@ class WorkspaceEdit implements ToJsonable {
                         item != null ? TextDocumentEdit.fromJson(item) : null)
                     : (CreateFile.canParse(item, nullLspJsonReporter)
                         ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(item != null ? CreateFile.fromJson(item) : null)
-                        : (RenameFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(item != null ? RenameFile.fromJson(item) : null) : (DeleteFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(item != null ? DeleteFile.fromJson(item) : null) : (item == null ? null : (throw '''${item} was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)'''))))))
+                        : (RenameFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(item != null ? RenameFile.fromJson(item) : null) : (DeleteFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(item != null ? DeleteFile.fromJson(item) : null) : (item == null ? null : (throw '''$item was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)'''))))))
                 ?.cast<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>()
                 ?.toList())
             : (json['documentChanges'] == null ? null : (throw '''${json['documentChanges']} was not one of (List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>)''')));

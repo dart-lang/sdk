@@ -260,6 +260,14 @@ double _loadDouble(Object typedDataBase, int offsetInBytes)
     native "Ffi_loadDouble";
 
 @pragma("vm:recognized", "other")
+double _loadFloatUnaligned(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadFloatUnaligned";
+
+@pragma("vm:recognized", "other")
+double _loadDoubleUnaligned(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadDoubleUnaligned";
+
+@pragma("vm:recognized", "other")
 Pointer<S> _loadPointer<S extends NativeType>(
     Object typedDataBase, int offsetInBytes) native "Ffi_loadPointer";
 
@@ -306,6 +314,14 @@ void _storeFloat(Object typedDataBase, int offsetInBytes, double value)
 @pragma("vm:recognized", "other")
 void _storeDouble(Object typedDataBase, int offsetInBytes, double value)
     native "Ffi_storeDouble";
+
+@pragma("vm:recognized", "other")
+void _storeFloatUnaligned(Object typedDataBase, int offsetInBytes, double value)
+    native "Ffi_storeFloatUnaligned";
+
+@pragma("vm:recognized", "other")
+void _storeDoubleUnaligned(Object typedDataBase, int offsetInBytes,
+    double value) native "Ffi_storeDoubleUnaligned";
 
 @pragma("vm:recognized", "other")
 void _storePointer<S extends NativeType>(Object typedDataBase,

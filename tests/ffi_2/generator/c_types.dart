@@ -155,20 +155,24 @@ List<Member> generateMemberNames(List<CType> memberTypes) {
 class StructType extends CType {
   final List<Member> members;
 
+  final int? packing;
+
   /// To disambiguate same size structs.
   final String suffix;
 
   /// To override names.
   final String overrideName;
 
-  StructType(List<CType> memberTypes)
+  StructType(List<CType> memberTypes, {int? this.packing})
       : this.members = generateMemberNames(memberTypes),
         this.suffix = "",
         this.overrideName = "";
-  StructType.disambiguate(List<CType> memberTypes, this.suffix)
+  StructType.disambiguate(List<CType> memberTypes, this.suffix,
+      {int? this.packing})
       : this.members = generateMemberNames(memberTypes),
         this.overrideName = "";
-  StructType.override(List<CType> memberTypes, this.overrideName)
+  StructType.override(List<CType> memberTypes, this.overrideName,
+      {int? this.packing})
       : this.members = generateMemberNames(memberTypes),
         this.suffix = "";
 
@@ -183,9 +187,19 @@ class StructType extends CType {
       !memberTypes.map((e) => e.hasSize).contains(false) && !hasPadding;
   int get size => memberTypes.fold(0, (int acc, e) => acc + e.size);
 
-  /// Rough approximation, to not redo all ABI logic here.
-  bool get hasPadding =>
-      members.length < 2 ? false : members[0].type.size < members[1].type.size;
+  bool get hasPacking => packing != null;
+
+  bool get hasPadding {
+    if (members.length < 2) {
+      return false;
+    }
+    if (packing == 1) {
+      return false;
+    }
+
+    /// Rough approximation, to not redo all ABI logic here.
+    return members[0].type.size < members[1].type.size;
+  }
 
   bool get hasNestedStructs =>
       members.map((e) => e.type is StructType).contains(true);
@@ -216,6 +230,12 @@ class StructType extends CType {
     }
     if (hasSize) {
       result += "${size}Byte" + (size != 1 ? "s" : "");
+    }
+    if (hasPacking) {
+      result += "Packed";
+      if (packing! > 1) {
+        result += "$packing";
+      }
     }
     if (hasNestedStructs) {
       result += "Nested";

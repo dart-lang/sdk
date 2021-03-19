@@ -57,6 +57,31 @@ classid_t RecognizedMethodTypeArgCid(MethodRecognizer::Kind kind) {
     CLASS_LIST_FFI_NUMERIC(LOAD_STORE)
     LOAD_STORE(Pointer)
 #undef LOAD_STORE
+    case MethodRecognizer::kFfiLoadFloatUnaligned:
+    case MethodRecognizer::kFfiStoreFloatUnaligned:
+      return kFfiFloatCid;
+    case MethodRecognizer::kFfiLoadDoubleUnaligned:
+    case MethodRecognizer::kFfiStoreDoubleUnaligned:
+      return kFfiDoubleCid;
+    default:
+      UNREACHABLE();
+  }
+}
+
+AlignmentType RecognizedMethodAlignment(MethodRecognizer::Kind kind) {
+  switch (kind) {
+#define LOAD_STORE(type)                                                       \
+  case MethodRecognizer::kFfiLoad##type:                                       \
+  case MethodRecognizer::kFfiStore##type:                                      \
+    return kAlignedAccess;
+    CLASS_LIST_FFI_NUMERIC(LOAD_STORE)
+    LOAD_STORE(Pointer)
+#undef LOAD_STORE
+    case MethodRecognizer::kFfiLoadFloatUnaligned:
+    case MethodRecognizer::kFfiStoreFloatUnaligned:
+    case MethodRecognizer::kFfiLoadDoubleUnaligned:
+    case MethodRecognizer::kFfiStoreDoubleUnaligned:
+      return kUnalignedAccess;
     default:
       UNREACHABLE();
   }

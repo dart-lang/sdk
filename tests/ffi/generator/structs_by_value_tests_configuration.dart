@@ -328,6 +328,36 @@ Test multi dimensional inline array struct as argument."""),
       uint32,
       """
 Test struct in multi dimensional inline array."""),
+  FunctionType(List.filled(10, struct3bytesPacked), int64, """
+Small struct with mis-aligned member."""),
+  FunctionType(List.filled(10, struct8bytesPacked), int64, """
+Struct with mis-aligned member."""),
+  FunctionType(
+      [...List.filled(10, struct9bytesPacked), double_, int32],
+      double_,
+      """
+Struct with mis-aligned member.
+Tests backfilling of CPU and FPU registers."""),
+  FunctionType(
+      [struct5bytesPacked],
+      double_,
+      """
+This packed struct happens to have only aligned members."""),
+  FunctionType(
+      [struct6bytesPacked],
+      double_,
+      """
+Check alignment of packed struct in non-packed struct."""),
+  FunctionType(
+      [struct6bytesPacked2],
+      double_,
+      """
+Check alignment of packed struct array in non-packed struct."""),
+  FunctionType(
+      [struct15bytesPacked],
+      double_,
+      """
+Check alignment of packed struct array in non-packed struct."""),
   FunctionType(struct1byteInt.memberTypes, struct1byteInt, """
 Smallest struct with data."""),
   FunctionType(struct3bytesInt.memberTypes, struct3bytesInt, """
@@ -383,6 +413,13 @@ Return value in FPU registers on arm64."""),
 Return value too big to go in FPU registers on arm64."""),
   FunctionType(struct1024bytesInt.memberTypes, struct1024bytesInt, """
 Test 1kb struct."""),
+  FunctionType(struct3bytesPacked.memberTypes, struct3bytesPacked, """
+Small struct with mis-aligned member."""),
+  FunctionType(struct8bytesPacked.memberTypes, struct8bytesPacked, """
+Struct with mis-aligned member."""),
+  FunctionType(struct9bytesPacked.memberTypes, struct9bytesPacked, """
+Struct with mis-aligned member.
+Tests backfilling of CPU and FPU registers."""),
   FunctionType(
       [struct1byteInt],
       struct1byteInt,
@@ -529,6 +566,14 @@ final structs = [
   struct32bytesInlineArrayMultiDimesional,
   struct64bytesInlineArrayMultiDimesional,
   structMultiDimensionalStruct,
+  struct3bytesPacked,
+  struct3bytesPackedMembersAligned,
+  struct5bytesPacked,
+  struct6bytesPacked,
+  struct6bytesPacked2,
+  struct8bytesPacked,
+  struct9bytesPacked,
+  struct15bytesPacked,
 ];
 
 final struct1byteInt = StructType([int8]);
@@ -672,3 +717,27 @@ final struct64bytesInlineArrayMultiDimesional = StructType([
 final structMultiDimensionalStruct = StructType([
   FixedLengthArrayType.multi(struct1byteInt, [2, 2])
 ]);
+
+final struct3bytesPacked = StructType([int8, int16], packing: 1);
+
+final struct3bytesPackedMembersAligned =
+    StructType.disambiguate([int8, int16], "MembersAligned", packing: 1);
+
+final struct5bytesPacked = StructType([float, uint8], packing: 1);
+
+/// The float in the nested struct is not aligned.
+final struct6bytesPacked = StructType([uint8, struct5bytesPacked]);
+
+/// The second element in the array has a nested misaligned int16.
+final struct6bytesPacked2 =
+    StructType([FixedLengthArrayType(struct3bytesPackedMembersAligned, 2)]);
+
+final struct8bytesPacked =
+    StructType([uint8, uint32, uint8, uint8, uint8], packing: 1);
+
+final struct9bytesPacked = StructType([uint8, double_], packing: 1);
+
+/// The float in the nested struct is aligned in the first element in the
+/// inline array, but not in the subsequent ones.
+final struct15bytesPacked =
+    StructType([FixedLengthArrayType(struct5bytesPacked, 3)]);

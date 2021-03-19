@@ -455,6 +455,7 @@ extension on List<Member> {
 
 extension on StructType {
   String dartClass(bool nnbd) {
+    final packingAnnotation = hasPacking ? "@Packed(${packing})" : "";
     String dartFields = "";
     for (final member in members) {
       dartFields += "${member.dartStructField(nnbd)}\n\n";
@@ -477,6 +478,7 @@ extension on StructType {
       return "\$\{${m.name}\}";
     }).join(", ");
     return """
+    $packingAnnotation
     class $name extends Struct {
       $dartFields
 
@@ -486,14 +488,19 @@ extension on StructType {
   }
 
   String get cDefinition {
+    final packingPragmaPush =
+        hasPacking ? "#pragma pack(push, ${packing})" : "";
+    final packingPragmaPop = hasPacking ? "#pragma pack(pop)" : "";
     String cFields = "";
     for (final member in members) {
       cFields += "  ${member.cStructField}\n";
     }
     return """
+    $packingPragmaPush
     struct $name {
       $cFields
     };
+    $packingPragmaPop
 
     """;
   }

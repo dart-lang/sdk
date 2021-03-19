@@ -98,7 +98,7 @@ class NativeType : public ZoneAllocated {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // True iff any members are misaligned recursively due to packing.
-  virtual bool ContainsUnalignedMembers() const = 0;
+  virtual bool ContainsUnalignedMembers(intptr_t offset = 0) const = 0;
 
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
   // NativeTypes which are available as unboxed Representations.
@@ -188,7 +188,7 @@ class NativePrimitiveType : public NativeType {
   virtual bool ContainsOnlyFloats(Range range) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  virtual bool ContainsUnalignedMembers() const;
+  virtual bool ContainsUnalignedMembers(intptr_t offset = 0) const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
   virtual bool IsExpressibleAsRepresentation() const;
@@ -239,7 +239,7 @@ class NativeArrayType : public NativeType {
   virtual bool ContainsOnlyFloats(Range range) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  virtual bool ContainsUnalignedMembers() const;
+  virtual bool ContainsUnalignedMembers(intptr_t offset = 0) const;
 
   virtual bool Equals(const NativeType& other) const;
 
@@ -298,7 +298,7 @@ class NativeCompoundType : public NativeType {
   intptr_t NumberOfWordSizeChunksNotOnlyFloat() const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  virtual bool ContainsUnalignedMembers() const;
+  virtual bool ContainsUnalignedMembers(intptr_t offset = 0) const;
 
   // Whether this type has only same-size floating point members.
   //

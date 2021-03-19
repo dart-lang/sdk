@@ -57,7 +57,7 @@ class Utils {
   }
 
   template <typename T>
-  static inline bool IsPowerOfTwo(T x) {
+  static constexpr bool IsPowerOfTwo(T x) {
     return ((x & (x - 1)) == 0) && (x != 0);
   }
 
@@ -73,13 +73,13 @@ class Utils {
   }
 
   template <typename T>
-  static inline bool IsAligned(T x, intptr_t n) {
-    ASSERT(IsPowerOfTwo(n));
+  static constexpr bool IsAligned(T x, intptr_t n) {
+    assert(IsPowerOfTwo(n));
     return (x & (n - 1)) == 0;
   }
 
   template <typename T>
-  static inline bool IsAligned(T* x, intptr_t n) {
+  static constexpr bool IsAligned(T* x, intptr_t n) {
     return IsAligned(reinterpret_cast<uword>(x), n);
   }
 
