@@ -151,12 +151,6 @@ abstract class B3 extends A3 {}
 
 bool takesB3(B3 b) => b.contains('a'); // OK
 
-abstract class A2 implements Iterable<String> {}
-
-abstract class B2 extends A2 {}
-
-bool takesB2(B2 b) => b.contains('a'); // OK
-
 abstract class AddlInterface {}
 
 abstract class SomeIterable<E> implements Iterable<E>, AddlInterface {}
@@ -172,9 +166,8 @@ abstract class MyDerivedClass extends MyClass {
 }
 
 abstract class MyMixedClass extends Object with MyClass {
-  // No lint since is not iterable.
-  bool myConcreteBadMethod(String thing) => this.contains(thing); // OK
-  bool myConcreteBadMethod1(String thing) => contains(thing); // OK
+  bool myConcreteBadMethod(String thing) => this.contains(thing); // LINT
+  bool myConcreteBadMethod1(String thing) => contains(thing); // LINT
 }
 
 abstract class MyIterableMixedClass extends Object

@@ -161,9 +161,8 @@ abstract class MyDerivedClass extends MyClass {
 }
 
 abstract class MyMixedClass extends Object with MyClass {
-  // No lint since is not List.
-  bool myConcreteBadMethod(String thing) => this.remove(thing); // OK
-  bool myConcreteBadMethod1(String thing) => remove(thing); // OK
+  bool myConcreteBadMethod(String thing) => this.remove(thing); // LINT
+  bool myConcreteBadMethod1(String thing) => remove(thing); // LINT
 }
 
 abstract class MyListMixedClass extends Object

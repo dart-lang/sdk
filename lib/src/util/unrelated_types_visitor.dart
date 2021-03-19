@@ -20,18 +20,6 @@ _InterfaceTypePredicate _buildImplementsDefinitionPredicate(
         interface.element.name == definition.name &&
         interface.element.library.name == definition.library;
 
-/// Returns all implemented interfaces of [type].
-///
-/// This flattens all of the super-interfaces of [type] into one list.
-List<InterfaceType> _findImplementedInterfaces(InterfaceType type,
-        {List<InterfaceType> accumulator = const []}) =>
-    accumulator.contains(type)
-        ? accumulator
-        : type.interfaces.fold(
-            <InterfaceType>[type],
-            (List<InterfaceType> acc, InterfaceType e) => List.from(acc)
-              ..addAll(_findImplementedInterfaces(e, accumulator: acc)));
-
 /// Returns the first type argument on [definition], as implemented by [type].
 ///
 /// In the simplest case, [type] is the same class as [definition]. For
@@ -57,7 +45,7 @@ DartType? _findIterableTypeArgument(
     return type.typeArguments.first;
   }
 
-  final implementedInterfaces = _findImplementedInterfaces(type);
+  final implementedInterfaces = type.allSupertypes;
   final interface = implementedInterfaces.firstWhereOrNull(predicate);
   if (interface != null && interface.typeArguments.isNotEmpty) {
     return interface.typeArguments.first;
