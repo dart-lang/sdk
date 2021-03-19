@@ -77,7 +77,7 @@ void VirtualMemory::Init() {
 #if defined(DART_COMPRESSED_POINTERS)
   if (VirtualMemoryCompressedHeap::GetRegion() == nullptr) {
     void* address = GenericMapAligned(
-        PROT_READ | PROT_WRITE, kCompressedHeapSize, kCompressedHeapAlignment,
+        PROT_NONE, kCompressedHeapSize, kCompressedHeapAlignment,
         kCompressedHeapSize + kCompressedHeapAlignment,
         MAP_PRIVATE | MAP_ANONYMOUS);
     if (address == nullptr) {

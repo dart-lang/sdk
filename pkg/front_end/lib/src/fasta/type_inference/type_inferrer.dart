@@ -627,7 +627,7 @@ class TypeInferrerImpl implements TypeInferrer {
                     declaredContextType ?? contextType, isNonNullableByDefault),
                 context: getWhyNotPromotedContext(
                     expression,
-                    flowAnalysis?.whyNotPromoted(expression),
+                    flowAnalysis?.whyNotPromoted(expression)(),
                     expression,
                     (type) => typeSchemaEnvironment.isSubtypeOf(type,
                         contextType, SubtypeCheckMode.withNullabilities)));
@@ -2838,7 +2838,7 @@ class TypeInferrerImpl implements TypeInferrer {
         //   }
         List<LocatedMessage> context = getWhyNotPromotedContext(
             receiver,
-            flowAnalysis?.whyNotPromoted(receiver),
+            flowAnalysis?.whyNotPromoted(receiver)(),
             staticInvocation,
             (type) => !type.isPotentiallyNullable);
         result = wrapExpressionInferenceResultInProblem(
@@ -2870,7 +2870,7 @@ class TypeInferrerImpl implements TypeInferrer {
       if (!isTopLevel && target.isNullable) {
         List<LocatedMessage> context = getWhyNotPromotedContext(
             receiver,
-            flowAnalysis?.whyNotPromoted(receiver),
+            flowAnalysis?.whyNotPromoted(receiver)(),
             staticInvocation,
             (type) => !type.isPotentiallyNullable);
         if (isImplicitCall) {
@@ -2969,7 +2969,7 @@ class TypeInferrerImpl implements TypeInferrer {
     if (!isTopLevel && target.isNullableCallFunction) {
       List<LocatedMessage> context = getWhyNotPromotedContext(
           receiver,
-          flowAnalysis?.whyNotPromoted(receiver),
+          flowAnalysis?.whyNotPromoted(receiver)(),
           expression,
           (type) => !type.isPotentiallyNullable);
       if (isImplicitCall) {
@@ -3144,7 +3144,7 @@ class TypeInferrerImpl implements TypeInferrer {
     if (!isTopLevel && target.isNullable) {
       List<LocatedMessage> context = getWhyNotPromotedContext(
           receiver,
-          flowAnalysis?.whyNotPromoted(receiver),
+          flowAnalysis?.whyNotPromoted(receiver)(),
           expression,
           (type) => !type.isPotentiallyNullable);
       if (isImplicitCall) {
@@ -3305,7 +3305,7 @@ class TypeInferrerImpl implements TypeInferrer {
       //   }
       List<LocatedMessage> context = getWhyNotPromotedContext(
           receiver,
-          flowAnalysis?.whyNotPromoted(receiver),
+          flowAnalysis?.whyNotPromoted(receiver)(),
           invocationResult.expression,
           (type) => !type.isPotentiallyNullable);
       invocationResult = wrapExpressionInferenceResultInProblem(
@@ -3411,7 +3411,7 @@ class TypeInferrerImpl implements TypeInferrer {
       receiver = _hoist(receiver, receiverType, hoistedExpressions);
     }
 
-    Map<DartType, NonPromotionReason> whyNotPromotedInfo;
+    Map<DartType, NonPromotionReason> Function() whyNotPromotedInfo;
     if (!isTopLevel && target.isNullable) {
       // We won't report the error until later (after we have an
       // invocationResult), but we need to gather "why not promoted" info now,
@@ -3502,7 +3502,7 @@ class TypeInferrerImpl implements TypeInferrer {
       // in this scenario?
       List<LocatedMessage> context = getWhyNotPromotedContext(
           receiver,
-          whyNotPromotedInfo,
+          whyNotPromotedInfo(),
           invocationResult.expression,
           (type) => !type.isPotentiallyNullable);
       invocationResult = wrapExpressionInferenceResultInProblem(

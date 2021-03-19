@@ -299,7 +299,7 @@ class ClassSerializationCluster : public SerializationCluster {
 
  private:
   void WriteClass(Serializer* s, ClassPtr cls) {
-    AutoTraceObjectName(cls, cls->untag()->name_);
+    AutoTraceObjectName(cls, cls->untag()->name());
     WriteFromTo(cls);
     intptr_t class_id = cls->untag()->id_;
     if (class_id == kIllegalCid) {
@@ -338,7 +338,7 @@ class ClassSerializationCluster : public SerializationCluster {
     // unsound nullability mode.
     if (cls->untag()->host_type_arguments_field_offset_in_words_ ==
             Class::kNoTypeArguments ||
-        cls->untag()->constants_ == Array::null()) {
+        cls->untag()->constants() == Array::null()) {
       return false;
     }
     Zone* zone = Thread::Current()->zone();
@@ -885,11 +885,11 @@ class FunctionSerializationCluster : public SerializationCluster {
 
     PushFromTo(func);
     if (kind == Snapshot::kFullAOT) {
-      s->Push(func->untag()->code_);
+      s->Push(func->untag()->code());
     } else if (kind == Snapshot::kFullJIT) {
-      NOT_IN_PRECOMPILED(s->Push(func->untag()->unoptimized_code_));
-      s->Push(func->untag()->code_);
-      s->Push(func->untag()->ic_data_array_);
+      NOT_IN_PRECOMPILED(s->Push(func->untag()->unoptimized_code()));
+      s->Push(func->untag()->code());
+      s->Push(func->untag()->ic_data_array());
     }
   }
 
@@ -911,11 +911,11 @@ class FunctionSerializationCluster : public SerializationCluster {
       AutoTraceObjectName(func, MakeDisambiguatedFunctionName(s, func));
       WriteFromTo(func);
       if (kind == Snapshot::kFullAOT) {
-        WriteField(func, code_);
+        WriteField(func, code());
       } else if (s->kind() == Snapshot::kFullJIT) {
-        NOT_IN_PRECOMPILED(WriteField(func, unoptimized_code_));
-        WriteField(func, code_);
-        WriteField(func, ic_data_array_);
+        NOT_IN_PRECOMPILED(WriteField(func, unoptimized_code()));
+        WriteField(func, code());
+        WriteField(func, ic_data_array());
       }
 
       if (kind != Snapshot::kFullAOT) {
@@ -1019,12 +1019,12 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       Function& func = Function::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         func ^= refs.At(i);
-        ASSERT(func.ptr()->untag()->code_->IsCode());
-        uword entry_point = func.ptr()->untag()->code_->untag()->entry_point_;
+        ASSERT(func.ptr()->untag()->code()->IsCode());
+        uword entry_point = func.ptr()->untag()->code()->untag()->entry_point_;
         ASSERT(entry_point != 0);
         func.ptr()->untag()->entry_point_ = entry_point;
         uword unchecked_entry_point =
-            func.ptr()->untag()->code_->untag()->unchecked_entry_point_;
+            func.ptr()->untag()->code()->untag()->unchecked_entry_point_;
         ASSERT(unchecked_entry_point != 0);
         func.ptr()->untag()->unchecked_entry_point_ = unchecked_entry_point;
       }
@@ -1064,11 +1064,11 @@ class ClosureDataSerializationCluster : public SerializationCluster {
     objects_.Add(data);
 
     if (s->kind() != Snapshot::kFullAOT) {
-      s->Push(data->untag()->context_scope_);
+      s->Push(data->untag()->context_scope());
     }
-    s->Push(data->untag()->parent_function_);
-    s->Push(data->untag()->closure_);
-    s->Push(data->untag()->default_type_arguments_);
+    s->Push(data->untag()->parent_function());
+    s->Push(data->untag()->closure());
+    s->Push(data->untag()->default_type_arguments());
   }
 
   void WriteAlloc(Serializer* s) {
@@ -1087,11 +1087,11 @@ class ClosureDataSerializationCluster : public SerializationCluster {
       ClosureDataPtr data = objects_[i];
       AutoTraceObject(data);
       if (s->kind() != Snapshot::kFullAOT) {
-        WriteField(data, context_scope_);
+        WriteField(data, context_scope());
       }
-      WriteField(data, parent_function_);
-      WriteField(data, closure_);
-      WriteField(data, default_type_arguments_);
+      WriteField(data, parent_function());
+      WriteField(data, closure());
+      WriteField(data, default_type_arguments());
       s->WriteUnsigned(
           static_cast<intptr_t>(data->untag()->default_type_arguments_kind_));
     }
@@ -1175,7 +1175,7 @@ class FfiTrampolineDataSerializationCluster : public SerializationCluster {
         s->WriteUnsigned(data->untag()->callback_id_);
       } else {
         // FFI callbacks can only be written to AOT snapshots.
-        ASSERT(data->untag()->callback_target_ == Object::null());
+        ASSERT(data->untag()->callback_target() == Object::null());
       }
     }
   }
@@ -1229,22 +1229,22 @@ class FieldSerializationCluster : public SerializationCluster {
 
     Snapshot::Kind kind = s->kind();
 
-    s->Push(field->untag()->name_);
-    s->Push(field->untag()->owner_);
-    s->Push(field->untag()->type_);
+    s->Push(field->untag()->name());
+    s->Push(field->untag()->owner());
+    s->Push(field->untag()->type());
     // Write out the initializer function
-    s->Push(field->untag()->initializer_function_);
+    s->Push(field->untag()->initializer_function());
 
     if (kind != Snapshot::kFullAOT) {
-      s->Push(field->untag()->guarded_list_length_);
+      s->Push(field->untag()->guarded_list_length());
     }
     if (kind == Snapshot::kFullJIT) {
-      s->Push(field->untag()->dependent_code_);
+      s->Push(field->untag()->dependent_code());
     }
     // Write out either the initial static value or field offset.
     if (Field::StaticBit::decode(field->untag()->kind_bits_)) {
       const intptr_t field_id =
-          Smi::Value(field->untag()->host_offset_or_field_id_);
+          Smi::Value(field->untag()->host_offset_or_field_id());
       s->Push(s->initial_field_table()->At(field_id));
     } else {
       s->Push(Smi::New(Field::TargetOffsetOf(field)));
@@ -1266,18 +1266,18 @@ class FieldSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       FieldPtr field = objects_[i];
-      AutoTraceObjectName(field, field->untag()->name_);
+      AutoTraceObjectName(field, field->untag()->name());
 
-      WriteField(field, name_);
-      WriteField(field, owner_);
-      WriteField(field, type_);
+      WriteField(field, name());
+      WriteField(field, owner());
+      WriteField(field, type());
       // Write out the initializer function and initial value if not in AOT.
-      WriteField(field, initializer_function_);
+      WriteField(field, initializer_function());
       if (kind != Snapshot::kFullAOT) {
-        WriteField(field, guarded_list_length_);
+        WriteField(field, guarded_list_length());
       }
       if (kind == Snapshot::kFullJIT) {
-        WriteField(field, dependent_code_);
+        WriteField(field, dependent_code());
       }
 
       if (kind != Snapshot::kFullAOT) {
@@ -1293,7 +1293,7 @@ class FieldSerializationCluster : public SerializationCluster {
       // Write out either the initial static value or field offset.
       if (Field::StaticBit::decode(field->untag()->kind_bits_)) {
         const intptr_t field_id =
-            Smi::Value(field->untag()->host_offset_or_field_id_);
+            Smi::Value(field->untag()->host_offset_or_field_id());
         WriteFieldValue("static value", s->initial_field_table()->At(field_id));
         s->WriteUnsigned(field_id);
       } else {
@@ -1373,7 +1373,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
             Smi::RawCast(value_or_offset);
 #if !defined(DART_PRECOMPILED_RUNTIME)
         field->untag()->target_offset_ =
-            Smi::Value(field->untag()->host_offset_or_field_id_);
+            Smi::Value(field->untag()->host_offset_or_field_id());
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
       }
     }
@@ -1429,7 +1429,7 @@ class ScriptSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       ScriptPtr script = objects_[i];
-      AutoTraceObjectName(script, script->untag()->url_);
+      AutoTraceObjectName(script, script->untag()->url());
       WriteFromTo(script);
       s->Write<int32_t>(script->untag()->line_offset_);
       s->Write<int32_t>(script->untag()->col_offset_);
@@ -1513,7 +1513,7 @@ class LibrarySerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       LibraryPtr lib = objects_[i];
-      AutoTraceObjectName(lib, lib->untag()->url_);
+      AutoTraceObjectName(lib, lib->untag()->url());
       WriteFromTo(lib);
       s->Write<int32_t>(lib->untag()->index_);
       s->Write<uint16_t>(lib->untag()->num_imports_);
@@ -2789,7 +2789,7 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
     ExceptionHandlersPtr handlers = ExceptionHandlers::RawCast(object);
     objects_.Add(handlers);
 
-    s->Push(handlers->untag()->handled_types_data_);
+    s->Push(handlers->untag()->handled_types_data());
   }
 
   void WriteAlloc(Serializer* s) {
@@ -2814,7 +2814,7 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
       AutoTraceObject(handlers);
       const intptr_t length = handlers->untag()->num_entries_;
       s->WriteUnsigned(length);
-      WriteField(handlers, handled_types_data_);
+      WriteField(handlers, handled_types_data());
       for (intptr_t j = 0; j < length; j++) {
         const ExceptionHandlerInfo& info = handlers->untag()->data()[j];
         s->Write<uint32_t>(info.handler_pc_offset);
@@ -3344,7 +3344,7 @@ class LoadingUnitSerializationCluster : public SerializationCluster {
   void Trace(Serializer* s, ObjectPtr object) {
     LoadingUnitPtr unit = LoadingUnit::RawCast(object);
     objects_.Add(unit);
-    s->Push(unit->untag()->parent_);
+    s->Push(unit->untag()->parent());
   }
 
   void WriteAlloc(Serializer* s) {
@@ -3362,7 +3362,7 @@ class LoadingUnitSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       LoadingUnitPtr unit = objects_[i];
       AutoTraceObject(unit);
-      WriteField(unit, parent_);
+      WriteField(unit, parent());
       s->Write<int32_t>(unit->untag()->id_);
     }
   }
@@ -3854,7 +3854,7 @@ class TypeSerializationCluster
     SmiPtr raw_type_class_id = Smi::RawCast(type->untag()->type_class_id_);
     ClassPtr type_class =
         s->isolate_group()->class_table()->At(Smi::Value(raw_type_class_id));
-    if (type_class->untag()->declaration_type_ != type) {
+    if (type_class->untag()->declaration_type() != type) {
       return true;
     }
 
@@ -6226,28 +6226,28 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
       name = FunctionSerializationCluster::MakeDisambiguatedFunctionName(this,
                                                                          func);
       owner_ref_name = "owner_";
-      owner = func->untag()->owner_;
+      owner = func->untag()->owner();
       break;
     }
     case kClassCid: {
       ClassPtr cls = static_cast<ClassPtr>(obj);
       type = "Class";
-      name_string = cls->untag()->name_;
+      name_string = cls->untag()->name();
       owner_ref_name = "library_";
-      owner = cls->untag()->library_;
+      owner = cls->untag()->library();
       break;
     }
     case kPatchClassCid: {
       PatchClassPtr patch_cls = static_cast<PatchClassPtr>(obj);
       type = "PatchClass";
       owner_ref_name = "patched_class_";
-      owner = patch_cls->untag()->patched_class_;
+      owner = patch_cls->untag()->patched_class();
       break;
     }
     case kLibraryCid: {
       LibraryPtr lib = static_cast<LibraryPtr>(obj);
       type = "Library";
-      name_string = lib->untag()->url_;
+      name_string = lib->untag()->url();
       break;
     }
     default:

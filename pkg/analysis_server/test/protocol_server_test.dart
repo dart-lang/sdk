@@ -71,7 +71,9 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: 3,
-        START_COLUMN: 2
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
       MESSAGE: 'my message',
       CODE: 'ambiguous_export',
@@ -84,7 +86,9 @@ class AnalysisErrorTest {
             OFFSET: 30,
             LENGTH: 5,
             START_LINE: 4,
-            START_COLUMN: 11
+            START_COLUMN: 11,
+            END_LINE: 4,
+            END_COLUMN: 16,
           }
         }
       ],
@@ -103,7 +107,9 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: 3,
-        START_COLUMN: 2
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
       MESSAGE: 'my message',
       CORRECTION: 'my correction',
@@ -129,7 +135,9 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: 3,
-        START_COLUMN: 2
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
       MESSAGE: 'my message',
       CODE: 'test_error',
@@ -154,7 +162,9 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: 3,
-        START_COLUMN: 2
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
       MESSAGE: 'my message',
       CODE: 'my_lint',
@@ -174,7 +184,9 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: 3,
-        START_COLUMN: 2
+        START_COLUMN: 2,
+        END_LINE: 4,
+        END_COLUMN: 11,
       },
       MESSAGE: 'my message',
       CODE: 'ambiguous_export',
@@ -197,7 +209,9 @@ class AnalysisErrorTest {
         OFFSET: 10,
         LENGTH: 20,
         START_LINE: -1,
-        START_COLUMN: -1
+        START_COLUMN: -1,
+        END_LINE: -1,
+        END_COLUMN: -1,
       },
       MESSAGE: 'my message',
       CODE: 'ambiguous_export',

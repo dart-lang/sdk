@@ -262,7 +262,7 @@ abstract class File implements FileSystemEntity {
   /// the file when it has been created.
   ///
   /// If [recursive] is `false`, the default, the file is created only if
-  /// all directories in its path alredy exist. If [recursive] is `true`, any
+  /// all directories in its path already exist. If [recursive] is `true`, any
   /// non-existing parent paths are created first.
   ///
   /// Existing files are left untouched by [create]. Calling [create] on an

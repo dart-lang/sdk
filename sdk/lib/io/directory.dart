@@ -20,7 +20,7 @@ part of dart.io;
 /// ```dart
 /// var myDir = Directory('myDir');
 /// ```
-/// Most intance methods of [Directory] exist in both synchronous
+/// Most instance methods of [Directory] exist in both synchronous
 /// and asynchronous variants, for example, [create] and [createSync].
 /// Unless you have a specific reason for using the synchronous version
 /// of a method, prefer the asynchronous version to avoid blocking your program.
@@ -63,7 +63,7 @@ part of dart.io;
 ///   }
 /// }
 /// ```
-/// ## The use of asynchronnous methods
+/// ## The use of asynchronous methods
 ///
 /// I/O operations can block a program for some period of time while it waits for
 /// the operation to complete. To avoid this, all

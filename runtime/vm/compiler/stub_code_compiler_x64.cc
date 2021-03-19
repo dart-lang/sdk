@@ -2404,7 +2404,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ Comment("Call target (via specified entry point)");
   __ Bind(&call_target_function);
   // RAX: Target function.
-  __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
+  __ LoadCompressed(CODE_REG,
+                    FieldAddress(RAX, target::Function::code_offset()));
   if (save_entry_point) {
     __ addq(R8, RAX);
     __ jmp(Address(R8, 0));
@@ -2421,7 +2422,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     }
     __ Comment("Call target (via unchecked entry point)");
     __ movq(RAX, Address(R13, target_offset));
-    __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
+    __ LoadCompressed(CODE_REG,
+                      FieldAddress(RAX, target::Function::code_offset()));
     __ jmp(FieldAddress(
         RAX, target::Function::entry_point_offset(CodeEntryKind::kUnchecked)));
   }
@@ -2602,7 +2604,8 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
 
   // Get function and call it, if possible.
   __ movq(RAX, Address(R12, target_offset));
-  __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
+  __ LoadCompressed(CODE_REG,
+                    FieldAddress(RAX, target::Function::code_offset()));
 
   __ addq(R8, RAX);
   __ jmp(Address(R8, 0));
@@ -2653,7 +2656,8 @@ void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
   __ popq(R10);  // Restore arguments descriptor array.
   __ LeaveStubFrame();
 
-  __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
+  __ LoadCompressed(CODE_REG,
+                    FieldAddress(RAX, target::Function::code_offset()));
   __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
   __ jmp(RCX);
 }
@@ -3056,7 +3060,8 @@ void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ popq(RAX);  // Get Code object.
   __ popq(R10);  // Restore argument descriptor.
   __ LeaveStubFrame();
-  __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
+  __ LoadCompressed(CODE_REG,
+                    FieldAddress(RAX, target::Function::code_offset()));
   __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
   __ jmp(RCX);
   __ int3();
@@ -3212,7 +3217,8 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
     __ movq(R10, FieldAddress(
                      RBX, target::CallSiteData::arguments_descriptor_offset()));
     __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
-    __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
+    __ LoadCompressed(CODE_REG,
+                      FieldAddress(RAX, target::Function::code_offset()));
     __ jmp(RCX);
   }
 

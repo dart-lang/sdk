@@ -19,7 +19,7 @@ class Point<T extends num> {
   /// Whether [other] is a point with the same coordinates as this point.
   ///
   /// Returns `true` if [other] is a [Point] with [x] and [y]
-  /// coordinates equal to the corresponding coordiantes of this point,
+  /// coordinates equal to the corresponding coordinates of this point,
   /// and `false` otherwise.
   bool operator ==(Object other) =>
       other is Point && x == other.x && y == other.y;

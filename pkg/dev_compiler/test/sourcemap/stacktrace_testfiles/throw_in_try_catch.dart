@@ -13,6 +13,6 @@ void test() {
     /*2:test*/ throw '>ExceptionMarker<';
     // ignore: UNUSED_CATCH_CLAUSE
   } on Error catch (e) {
-    // ignore: EMPTY_CATCHES
+    // Ignored.
   }
 }

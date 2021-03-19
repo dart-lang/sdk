@@ -521,8 +521,8 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // R0: Function.
   ASSERT(locs()->in(0).reg() == R0);
   if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
-    __ LoadFieldFromOffset(CODE_REG, R0,
-                           compiler::target::Function::code_offset());
+    __ LoadCompressedFieldFromOffset(CODE_REG, R0,
+                                     compiler::target::Function::code_offset());
   }
   __ LoadFieldFromOffset(
       R2, R0, compiler::target::Function::entry_point_offset(entry_kind()));
@@ -2314,8 +2314,9 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
            compiler::FieldAddress(
                field_reg, Field::guarded_list_length_in_object_offset_offset()),
            compiler::kByte);
-    __ ldr(length_reg, compiler::FieldAddress(
-                           field_reg, Field::guarded_list_length_offset()));
+    __ LoadCompressed(
+        length_reg,
+        compiler::FieldAddress(field_reg, Field::guarded_list_length_offset()));
 
     __ tst(offset_reg, compiler::Operand(offset_reg));
     __ b(&ok, MI);
@@ -2626,6 +2627,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&store_pointer);
   }
 
+  ASSERT(!slot().is_compressed());  // Unimplemented.
   if (ShouldEmitStoreBarrier()) {
     const Register value_reg = locs()->in(1).reg();
     __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
@@ -3016,7 +3018,11 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&load_pointer);
   }
 
-  __ LoadFieldFromOffset(result_reg, instance_reg, OffsetInBytes());
+  if (slot().is_compressed()) {
+    __ LoadCompressedFieldFromOffset(result_reg, instance_reg, OffsetInBytes());
+  } else {
+    __ LoadFieldFromOffset(result_reg, instance_reg, OffsetInBytes());
+  }
 
   if (calls_initializer()) {
     EmitNativeCodeForInitializerCall(compiler);

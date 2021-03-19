@@ -58,6 +58,7 @@ import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -154,7 +155,7 @@ class InferenceContext {
 
 /// Instances of the class `ResolverVisitor` are used to resolve the nodes
 /// within a single compilation unit.
-class ResolverVisitor extends ScopedVisitor {
+class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   /// The manager for the inheritance mappings.
   final InheritanceManager3 inheritance;
 
@@ -203,6 +204,7 @@ class ResolverVisitor extends ScopedVisitor {
   late final StaticTypeAnalyzer typeAnalyzer;
 
   /// The type system in use during resolution.
+  @override
   final TypeSystemImpl typeSystem;
 
   /// The class declaration representing the class containing the current node,
@@ -417,6 +419,19 @@ class ResolverVisitor extends ScopedVisitor {
   /// Return `true` if NNBD is enabled for this compilation unit.
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
+
+  /// Verify that the arguments in the given [argumentList] can be assigned to
+  /// their corresponding parameters.
+  ///
+  /// This method corresponds to
+  /// [BestPracticesVerifier.checkForArgumentTypesNotAssignableInList].
+  ///
+  /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
+  void checkForArgumentTypesNotAssignableInList(ArgumentList argumentList) {
+    for (Expression argument in argumentList.arguments) {
+      checkForArgumentTypeNotAssignableForArgument(argument);
+    }
+  }
 
   void checkForBodyMayCompleteNormally({
     required DartType? returnType,
@@ -877,6 +892,10 @@ class ResolverVisitor extends ScopedVisitor {
       return;
     }
     AnnotationResolver(this).resolve(node);
+    var arguments = node.arguments;
+    if (arguments != null) {
+      checkForArgumentTypesNotAssignableInList(arguments);
+    }
   }
 
   @override
@@ -1533,6 +1552,7 @@ class ResolverVisitor extends ScopedVisitor {
     _functionExpressionInvocationResolver
         .resolve(node as FunctionExpressionInvocationImpl);
     nullShortingTermination(node);
+    checkForArgumentTypesNotAssignableInList(node.argumentList);
   }
 
   @override
@@ -1679,6 +1699,7 @@ class ResolverVisitor extends ScopedVisitor {
     node.argumentList.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+    checkForArgumentTypesNotAssignableInList(node.argumentList);
   }
 
   @override
@@ -1770,6 +1791,7 @@ class ResolverVisitor extends ScopedVisitor {
     } else {
       nullShortingTermination(node);
     }
+    checkForArgumentTypesNotAssignableInList(node.argumentList);
   }
 
   @override
@@ -1886,6 +1908,7 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setType(node.argumentList, node.staticElement?.type);
     node.argumentList.accept(this);
     node.accept(typeAnalyzer);
+    checkForArgumentTypesNotAssignableInList(node.argumentList);
   }
 
   @override
@@ -1943,6 +1966,7 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setType(node.argumentList, node.staticElement?.type);
     node.argumentList.accept(this);
     node.accept(typeAnalyzer);
+    checkForArgumentTypesNotAssignableInList(node.argumentList);
   }
 
   @override

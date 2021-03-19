@@ -7158,6 +7158,14 @@ class UnboxInt64Instr : public UnboxIntegerInstr {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
+  virtual bool ComputeCanDeoptimize() const {
+    if (SpeculativeModeOfInputs() == kNotSpeculative) {
+      return false;
+    }
+
+    return !value()->Type()->IsInt();
+  }
+
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxInt64)
 
  private:

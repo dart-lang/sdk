@@ -70,7 +70,7 @@ main() {
     var fixes = plugin.AnalysisErrorFixes(AnalysisError(
         AnalysisErrorSeverity.ERROR,
         AnalysisErrorType.HINT,
-        Location('', 0, 0, 0, 0),
+        Location('', 0, 0, 0, 0, 0, 0),
         'message',
         'code'));
     var result = plugin.EditGetFixesResult(<plugin.AnalysisErrorFixes>[fixes]);

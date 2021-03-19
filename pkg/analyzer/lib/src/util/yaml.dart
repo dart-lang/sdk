@@ -8,23 +8,6 @@ import 'package:source_span/source_span.dart';
 import 'package:yaml/src/event.dart';
 import 'package:yaml/yaml.dart';
 
-/// If all of the elements of [list] are strings, return a list of strings
-/// containing the same elements. Otherwise, return `null`.
-List<String>? toStringList(List? list) {
-  if (list == null) {
-    return null;
-  }
-  List<String> stringList = <String>[];
-  for (var element in list) {
-    if (element is String) {
-      stringList.add(element);
-    } else {
-      return null;
-    }
-  }
-  return stringList;
-}
-
 bool _contains(YamlList l1, YamlNode n2) {
   for (YamlNode n1 in l1.nodes) {
     if (n1.value == n2.value) {

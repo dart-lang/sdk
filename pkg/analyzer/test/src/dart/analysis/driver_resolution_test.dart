@@ -427,7 +427,7 @@ main() {}
     expect(prefixed.prefix.staticType, isNull);
 
     expect(annotation.constructorName!.staticElement, aGetter);
-    expect(annotation.constructorName!.staticType, typeProvider.intType);
+    assertTypeNull(annotation.constructorName!);
 
     expect(annotation.arguments, isNull);
   }
@@ -508,7 +508,7 @@ main() {}
 
     var constructorName = annotation.constructorName as SimpleIdentifier;
     expect(constructorName.staticElement, same(constructor));
-    assertType(constructorName.staticType, 'A Function(int, {int b})');
+    assertTypeNull(constructorName);
 
     var arguments = annotation.arguments!.arguments;
     var parameters = constructor.parameters;

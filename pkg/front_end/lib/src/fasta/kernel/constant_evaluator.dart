@@ -3342,6 +3342,10 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   }
 
   @override
+  ExecutionStatus visitBreakStatement(BreakStatement node) =>
+      new BreakStatus(node.target);
+
+  @override
   ExecutionStatus visitIfStatement(IfStatement node) {
     Constant condition = evaluate(node.condition);
     if (condition is AbortConstant) return new AbortStatus(condition);
@@ -3400,6 +3404,15 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
     Constant value = evaluate(node.expression);
     if (value is AbortConstant) return new AbortStatus(value);
     return const ProceedStatus();
+  }
+
+  @override
+  ExecutionStatus visitLabeledStatement(LabeledStatement node) {
+    final ExecutionStatus status = node.body.accept(this);
+    if (status is BreakStatus && status.target == node) {
+      return const ProceedStatus();
+    }
+    return status;
   }
 
   @override
@@ -3598,6 +3611,12 @@ class ReturnStatus extends ExecutionStatus {
 class AbortStatus extends ExecutionStatus {
   final AbortConstant error;
   AbortStatus(this.error);
+}
+
+/// Status that the statement breaks out of an enclosing [LabeledStatement].
+class BreakStatus extends ExecutionStatus {
+  final LabeledStatement target;
+  BreakStatus(this.target);
 }
 
 /// An intermediate result that is used within the [ConstantEvaluator].

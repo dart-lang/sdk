@@ -8,7 +8,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// A computer for [CompilationUnit] outline.
@@ -80,10 +79,14 @@ class DartUnitOutlineComputer {
   }
 
   Location _getLocationOffsetLength(int offset, int length) {
-    CharacterLocation lineLocation = resolvedUnit.lineInfo.getLocation(offset);
-    var startLine = lineLocation.lineNumber;
-    var startColumn = lineLocation.columnNumber;
-    return Location(resolvedUnit.path, offset, length, startLine, startColumn);
+    var startLocation = resolvedUnit.lineInfo.getLocation(offset);
+    var startLine = startLocation.lineNumber;
+    var startColumn = startLocation.columnNumber;
+    var endLocation = resolvedUnit.lineInfo.getLocation(offset + length);
+    var endLine = endLocation.lineNumber;
+    var endColumn = endLocation.columnNumber;
+    return Location(resolvedUnit.path, offset, length, startLine, startColumn,
+        endLine, endColumn);
   }
 
   Outline _newClassOutline(ClassDeclaration node, List<Outline> classContents) {

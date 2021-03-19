@@ -348,20 +348,21 @@ class Serializer : public ThreadStackResource {
 
   template <typename T, typename... P>
   void WriteFromTo(T obj, P&&... args) {
-    ObjectPtr* from = obj->untag()->from();
-    ObjectPtr* to = obj->untag()->to_snapshot(kind(), args...);
-    for (ObjectPtr* p = from; p <= to; p++) {
-      WriteOffsetRef(*p, (p - reinterpret_cast<ObjectPtr*>(obj->untag())) *
-                             sizeof(ObjectPtr));
+    auto* from = obj->untag()->from();
+    auto* to = obj->untag()->to_snapshot(kind(), args...);
+    for (auto* p = from; p <= to; p++) {
+      WriteOffsetRef(
+          p->Decompress(obj->heap_base()),
+          reinterpret_cast<uword>(p) - reinterpret_cast<uword>(obj->untag()));
     }
   }
 
   template <typename T, typename... P>
   void PushFromTo(T obj, P&&... args) {
-    ObjectPtr* from = obj->untag()->from();
-    ObjectPtr* to = obj->untag()->to_snapshot(kind(), args...);
-    for (ObjectPtr* p = from; p <= to; p++) {
-      Push(*p);
+    auto* from = obj->untag()->from();
+    auto* to = obj->untag()->to_snapshot(kind(), args...);
+    for (auto* p = from; p <= to; p++) {
+      Push(p->Decompress(obj->heap_base()));
     }
   }
 
@@ -625,17 +626,17 @@ class Deserializer : public ThreadStackResource {
 
   template <typename T, typename... P>
   void ReadFromTo(T obj, P&&... params) {
-    ObjectPtr* from = obj->untag()->from();
-    ObjectPtr* to_snapshot = obj->untag()->to_snapshot(kind(), params...);
-    ObjectPtr* to = obj->untag()->to(params...);
-    for (ObjectPtr* p = from; p <= to_snapshot; p++) {
+    auto* from = obj->untag()->from();
+    auto* to_snapshot = obj->untag()->to_snapshot(kind(), params...);
+    auto* to = obj->untag()->to(params...);
+    for (auto* p = from; p <= to_snapshot; p++) {
       *p = ReadRef();
     }
     // This is necessary because, unlike Object::Allocate, the clustered
     // deserializer allocates object without null-initializing them. Instead,
     // each deserialization cluster is responsible for initializing every field,
     // ensuring that every field is written to exactly once.
-    for (ObjectPtr* p = to_snapshot + 1; p <= to; p++) {
+    for (auto* p = to_snapshot + 1; p <= to; p++) {
       *p = Object::null();
     }
   }

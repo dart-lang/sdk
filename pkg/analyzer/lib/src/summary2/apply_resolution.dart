@@ -84,6 +84,8 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
   void visitAnnotation(covariant AnnotationImpl node) {
     _expectMarker(MarkerTag.Annotation_name);
     node.name.accept(this);
+    _expectMarker(MarkerTag.Annotation_typeArguments);
+    node.typeArguments?.accept(this);
     _expectMarker(MarkerTag.Annotation_constructorName);
     node.constructorName?.accept(this);
     _expectMarker(MarkerTag.Annotation_arguments);

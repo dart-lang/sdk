@@ -2343,8 +2343,9 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         offset_reg,
         compiler::FieldAddress(
             field_reg, Field::guarded_list_length_in_object_offset_offset()));
-    __ movq(length_reg, compiler::FieldAddress(
-                            field_reg, Field::guarded_list_length_offset()));
+    __ LoadCompressed(
+        length_reg,
+        compiler::FieldAddress(field_reg, Field::guarded_list_length_offset()));
 
     __ cmpq(offset_reg, compiler::Immediate(0));
     __ j(NEGATIVE, &ok);
@@ -2696,6 +2697,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&store_pointer);
   }
 
+  ASSERT(!slot().is_compressed());  // Unimplemented.
   if (ShouldEmitStoreBarrier()) {
     Register value_reg = locs()->in(1).reg();
     __ StoreIntoObject(instance_reg,
@@ -3099,7 +3101,12 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&load_pointer);
   }
 
-  __ movq(result, compiler::FieldAddress(instance_reg, OffsetInBytes()));
+  if (slot().is_compressed()) {
+    __ LoadCompressed(result,
+                      compiler::FieldAddress(instance_reg, OffsetInBytes()));
+  } else {
+    __ movq(result, compiler::FieldAddress(instance_reg, OffsetInBytes()));
+  }
 
   if (calls_initializer()) {
     EmitNativeCodeForInitializerCall(compiler);
@@ -7327,8 +7334,9 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Function in RAX.
   ASSERT(locs()->in(0).reg() == RAX);
   if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
-    __ movq(CODE_REG, compiler::FieldAddress(
-                          RAX, compiler::target::Function::code_offset()));
+    __ LoadCompressed(
+        CODE_REG,
+        compiler::FieldAddress(RAX, compiler::target::Function::code_offset()));
   }
   __ movq(
       RCX,

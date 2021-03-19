@@ -79,12 +79,12 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
       InitInstanceFieldABI::kResultReg == CallingConventions::kReturnReg,
       "Result is a return value from initializer");
 
-  __ LoadField(kFunctionReg,
-               FieldAddress(InitInstanceFieldABI::kFieldReg,
-                            target::Field::initializer_function_offset()));
+  __ LoadCompressedFieldFromOffset(
+      kFunctionReg, InitInstanceFieldABI::kFieldReg,
+      target::Field::initializer_function_offset());
   if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
-    __ LoadField(CODE_REG,
-                 FieldAddress(kFunctionReg, target::Function::code_offset()));
+    __ LoadCompressedFieldFromOffset(CODE_REG, kFunctionReg,
+                                     target::Function::code_offset());
     // Load a GC-safe value for the arguments descriptor (unused but tagged).
     __ LoadImmediate(ARGS_DESC_REG, 0);
   }
@@ -92,9 +92,14 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
   __ Drop(1);  // Drop argument.
 
   __ PopRegisterPair(kInstanceReg, kFieldReg);
-  __ LoadField(
-      kScratchReg,
-      FieldAddress(kFieldReg, target::Field::host_offset_or_field_id_offset()));
+  __ LoadCompressedFieldFromOffset(
+      kScratchReg, kFieldReg, target::Field::host_offset_or_field_id_offset());
+#if defined(DART_COMPRESSED_POINTERS)
+  // TODO(compressed-pointers): Variant of LoadFieldAddressForRegOffset that
+  // ignores upper bits?
+  __ SmiUntag(kScratchReg);
+  __ SmiTag(kScratchReg);
+#endif
   __ LoadFieldAddressForRegOffset(kAddressReg, kInstanceReg, kScratchReg);
 
   Label throw_exception;

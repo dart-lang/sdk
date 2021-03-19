@@ -286,8 +286,7 @@ bool AotCallSpecializer::IsSupportedIntOperandForStaticDoubleOp(
       return true;
     }
 
-    if (FlowGraphCompiler::SupportsUnboxedInt64() &&
-        FlowGraphCompiler::CanConvertInt64ToDouble()) {
+    if (FlowGraphCompiler::CanConvertInt64ToDouble()) {
       return true;
     }
   }
@@ -315,8 +314,7 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
 
     if (input->Type()->ToNullableCid() == kSmiCid) {
       conversion = new (Z) SmiToDoubleInstr(input, call->source());
-    } else if (FlowGraphCompiler::SupportsUnboxedInt64() &&
-               FlowGraphCompiler::CanConvertInt64ToDouble()) {
+    } else if (FlowGraphCompiler::CanConvertInt64ToDouble()) {
       conversion = new (Z) Int64ToDoubleInstr(input, DeoptId::kNone,
                                               Instruction::kNotSpeculative);
     } else {
@@ -506,11 +504,8 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
       case Token::kLTE:
       case Token::kGT:
       case Token::kGTE: {
-        const bool supports_unboxed_int =
-            FlowGraphCompiler::SupportsUnboxedInt64();
         const bool can_use_equality_compare =
-            supports_unboxed_int && is_equality_op && left_type->IsInt() &&
-            right_type->IsInt();
+            is_equality_op && left_type->IsInt() && right_type->IsInt();
 
         // We prefer equality compare, since it doesn't require boxing.
         if (!can_use_equality_compare && can_use_strict_compare) {
@@ -522,33 +517,23 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
           break;
         }
 
-        if (supports_unboxed_int) {
-          if (can_use_equality_compare) {
-            replacement = new (Z) EqualityCompareInstr(
-                instr->source(), op_kind, left_value->CopyWithType(Z),
-                right_value->CopyWithType(Z), kMintCid, DeoptId::kNone,
-                Instruction::kNotSpeculative);
-            break;
-          } else if (Token::IsRelationalOperator(op_kind)) {
-            left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-            right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-            replacement = new (Z) RelationalOpInstr(
-                instr->source(), op_kind, left_value, right_value, kMintCid,
-                DeoptId::kNone, Instruction::kNotSpeculative);
-            break;
-          } else {
-            // TODO(dartbug.com/30480): Figure out how to handle null in
-            // equality comparisons.
-            replacement = new (Z)
-                CheckedSmiComparisonInstr(op_kind, left_value->CopyWithType(Z),
-                                          right_value->CopyWithType(Z), instr);
-            break;
-          }
+        if (can_use_equality_compare) {
+          replacement = new (Z) EqualityCompareInstr(
+              instr->source(), op_kind, left_value->CopyWithType(Z),
+              right_value->CopyWithType(Z), kMintCid, DeoptId::kNone,
+              Instruction::kNotSpeculative);
+        } else if (Token::IsRelationalOperator(op_kind)) {
+          left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+          replacement = new (Z) RelationalOpInstr(
+              instr->source(), op_kind, left_value, right_value, kMintCid,
+              DeoptId::kNone, Instruction::kNotSpeculative);
         } else {
+          // TODO(dartbug.com/30480): Figure out how to handle null in
+          // equality comparisons.
           replacement = new (Z)
               CheckedSmiComparisonInstr(op_kind, left_value->CopyWithType(Z),
                                         right_value->CopyWithType(Z), instr);
-          break;
         }
         break;
       }
@@ -580,28 +565,18 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
       case Token::kSUB:
         FALL_THROUGH;
       case Token::kMUL: {
-        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-          if (op_kind == Token::kSHL || op_kind == Token::kSHR ||
-              op_kind == Token::kUSHR) {
-            left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-            right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-            replacement = new (Z) ShiftInt64OpInstr(
-                op_kind, left_value, right_value, DeoptId::kNone);
-            break;
-          } else {
-            left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-            right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-            replacement = new (Z) BinaryInt64OpInstr(
-                op_kind, left_value, right_value, DeoptId::kNone,
-                Instruction::kNotSpeculative);
-            break;
-          }
-        }
-        if (op_kind != Token::kMOD && op_kind != Token::kTRUNCDIV) {
-          replacement =
-              new (Z) CheckedSmiOpInstr(op_kind, left_value->CopyWithType(Z),
-                                        right_value->CopyWithType(Z), instr);
-          break;
+        if (op_kind == Token::kSHL || op_kind == Token::kSHR ||
+            op_kind == Token::kUSHR) {
+          left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+          replacement = new (Z) ShiftInt64OpInstr(op_kind, left_value,
+                                                  right_value, DeoptId::kNone);
+        } else {
+          left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+          replacement = new (Z)
+              BinaryInt64OpInstr(op_kind, left_value, right_value,
+                                 DeoptId::kNone, Instruction::kNotSpeculative);
         }
         break;
       }
@@ -618,12 +593,10 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
       return false;
     }
 
-    if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-      if (op_kind == Token::kNEGATE || op_kind == Token::kBIT_NOT) {
-        left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-        replacement = new (Z) UnaryInt64OpInstr(
-            op_kind, left_value, DeoptId::kNone, Instruction::kNotSpeculative);
-      }
+    if (op_kind == Token::kNEGATE || op_kind == Token::kBIT_NOT) {
+      left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+      replacement = new (Z) UnaryInt64OpInstr(
+          op_kind, left_value, DeoptId::kNone, Instruction::kNotSpeculative);
     }
   }
 

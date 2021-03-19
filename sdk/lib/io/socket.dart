@@ -936,7 +936,7 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
 
   /// Leaves a multicast group.
   ///
-  /// If an error occur when trying to join the multicase group, an
+  /// If an error occur when trying to join the multicast group, an
   /// exception is thrown.
   void leaveMulticast(InternetAddress group, [NetworkInterface? interface]);
 

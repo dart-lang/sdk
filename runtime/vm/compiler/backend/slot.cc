@@ -124,6 +124,9 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
     Slot* new_value = new Slot[kNativeSlotsCount]{
 #define NULLABLE_FIELD_FINAL                                                   \
   (IsNullableBit::encode(true) | IsImmutableBit::encode(true))
+#define NULLABLE_FIELD_FINAL_COMPRESSED                                        \
+  (IsNullableBit::encode(true) | IsImmutableBit::encode(true) |                \
+   IsCompressedBit::encode(true))
 #define NULLABLE_FIELD_VAR (IsNullableBit::encode(true))
 #define DEFINE_NULLABLE_BOXED_NATIVE_FIELD(ClassName, UnderlyingType,          \
                                            FieldName, cid, mutability)         \
@@ -138,6 +141,8 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
 #undef NULLABLE_FIELD_VAR
 
 #define NONNULLABLE_FIELD_FINAL (Slot::IsImmutableBit::encode(true))
+#define NONNULLABLE_FIELD_FINAL_COMPRESSED                                     \
+  (Slot::IsImmutableBit::encode(true) | Slot::IsCompressedBit::encode(true))
 #define NONNULLABLE_FIELD_VAR (0)
 #define DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD(ClassName, UnderlyingType,       \
                                               FieldName, cid, mutability)      \

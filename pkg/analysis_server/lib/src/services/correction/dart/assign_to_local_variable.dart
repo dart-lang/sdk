@@ -19,7 +19,6 @@ class AssignToLocalVariable extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     // prepare enclosing ExpressionStatement
     ExpressionStatement expressionStatement;
-    // ignore: unnecessary_this
     for (var node = this.node; node != null; node = node.parent) {
       if (node is ExpressionStatement) {
         expressionStatement = node;

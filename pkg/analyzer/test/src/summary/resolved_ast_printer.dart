@@ -71,6 +71,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNode('constructorName', node.constructorName);
       _writeElement('element', node.element);
       _writeNode('name', node.name);
+      _writeNode('typeArguments', node.typeArguments);
     });
   }
 

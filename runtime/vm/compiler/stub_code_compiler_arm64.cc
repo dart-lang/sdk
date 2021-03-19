@@ -2468,7 +2468,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ Comment("Call target");
   __ Bind(&call_target_function);
   // R0: target function.
-  __ LoadFieldFromOffset(CODE_REG, R0, target::Function::code_offset());
+  __ LoadCompressedFieldFromOffset(CODE_REG, R0,
+                                   target::Function::code_offset());
   if (save_entry_point) {
     __ add(R2, R0, Operand(R8));
     __ ldr(R2, Address(R2, 0));
@@ -2649,7 +2650,8 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
 
   // Get function and call it, if possible.
   __ LoadFromOffset(R0, R6, target_offset);
-  __ LoadFieldFromOffset(CODE_REG, R0, target::Function::code_offset());
+  __ LoadCompressedFieldFromOffset(CODE_REG, R0,
+                                   target::Function::code_offset());
   __ add(R2, R0, Operand(R8));
   __ ldr(R2, Address(R2, 0));
   __ br(R2);
@@ -2703,7 +2705,8 @@ void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
   __ Pop(R4);  // Restore arg desc.
   __ LeaveStubFrame();
 
-  __ LoadFieldFromOffset(CODE_REG, R0, target::Function::code_offset());
+  __ LoadCompressedFieldFromOffset(CODE_REG, R0,
+                                   target::Function::code_offset());
   __ LoadFieldFromOffset(R2, R0, target::Function::entry_point_offset());
   __ br(R2);
 }
@@ -3103,7 +3106,8 @@ void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ Pop(R0);  // Discard argument.
   __ Pop(R0);  // Get Function object
   __ Pop(R4);  // Restore argument descriptor.
-  __ LoadFieldFromOffset(CODE_REG, R0, target::Function::code_offset());
+  __ LoadCompressedFieldFromOffset(CODE_REG, R0,
+                                   target::Function::code_offset());
   __ LoadFieldFromOffset(R1, R0, target::Function::entry_point_offset());
   __ LeaveStubFrame();
   __ br(R1);
@@ -3263,7 +3267,8 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
     __ ldr(
         ARGS_DESC_REG,
         FieldAddress(R5, target::CallSiteData::arguments_descriptor_offset()));
-    __ ldr(CODE_REG, FieldAddress(R0, target::Function::code_offset()));
+    __ LoadCompressed(CODE_REG,
+                      FieldAddress(R0, target::Function::code_offset()));
   }
   __ br(R1);
 

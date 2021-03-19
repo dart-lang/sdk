@@ -33,12 +33,12 @@ String b = "Test";
     final pluginError = plugin.AnalysisError(
       plugin.AnalysisErrorSeverity.ERROR,
       plugin.AnalysisErrorType.STATIC_TYPE_WARNING,
-      plugin.Location(pluginAnalyzedFilePath, 0, 6, 0, 0),
+      plugin.Location(pluginAnalyzedFilePath, 0, 6, 0, 0, 0, 6),
       'Test error from plugin',
       'ERR1',
       contextMessages: [
         plugin.DiagnosticMessage('Related error',
-            plugin.Location(pluginAnalyzedFilePath, 31, 4, 1, 12))
+            plugin.Location(pluginAnalyzedFilePath, 31, 4, 1, 12, 1, 16))
       ],
     );
     final pluginResult =

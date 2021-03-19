@@ -3456,9 +3456,7 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
   if (param_pos < function.maximum_unboxed_parameter_count()) {
     switch (metadata->unboxed_args_info[param_index]) {
       case UnboxingInfoMetadata::kUnboxedIntCandidate:
-        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-          function.set_unboxed_integer_parameter_at(param_pos);
-        }
+        function.set_unboxed_integer_parameter_at(param_pos);
         break;
       case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
         if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
@@ -3482,9 +3480,7 @@ static void SetupUnboxingInfoOfReturnValue(
     const UnboxingInfoMetadata* metadata) {
   switch (metadata->return_info) {
     case UnboxingInfoMetadata::kUnboxedIntCandidate:
-      if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-        function.set_unboxed_integer_return();
-      }
+      function.set_unboxed_integer_return();
       break;
     case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
       if (FlowGraphCompiler::SupportsUnboxedDoubles()) {

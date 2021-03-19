@@ -61,14 +61,26 @@ public class Location {
   private final int startColumn;
 
   /**
+   * The one-based index of the line containing the character immediately following the range.
+   */
+  private final int endLine;
+
+  /**
+   * The one-based index of the column containing the character immediately following the range.
+   */
+  private final int endColumn;
+
+  /**
    * Constructor for {@link Location}.
    */
-  public Location(String file, int offset, int length, int startLine, int startColumn) {
+  public Location(String file, int offset, int length, int startLine, int startColumn, int endLine, int endColumn) {
     this.file = file;
     this.offset = offset;
     this.length = length;
     this.startLine = startLine;
     this.startColumn = startColumn;
+    this.endLine = endLine;
+    this.endColumn = endColumn;
   }
 
   @Override
@@ -80,7 +92,9 @@ public class Location {
         other.offset == offset &&
         other.length == length &&
         other.startLine == startLine &&
-        other.startColumn == startColumn;
+        other.startColumn == startColumn &&
+        other.endLine == endLine &&
+        other.endColumn == endColumn;
     }
     return false;
   }
@@ -91,7 +105,9 @@ public class Location {
     int length = jsonObject.get("length").getAsInt();
     int startLine = jsonObject.get("startLine").getAsInt();
     int startColumn = jsonObject.get("startColumn").getAsInt();
-    return new Location(file, offset, length, startLine, startColumn);
+    int endLine = jsonObject.get("endLine").getAsInt();
+    int endColumn = jsonObject.get("endColumn").getAsInt();
+    return new Location(file, offset, length, startLine, startColumn, endLine, endColumn);
   }
 
   public static List<Location> fromJsonArray(JsonArray jsonArray) {
@@ -104,6 +120,20 @@ public class Location {
       list.add(fromJson(iterator.next().getAsJsonObject()));
     }
     return list;
+  }
+
+  /**
+   * The one-based index of the column containing the character immediately following the range.
+   */
+  public int getEndColumn() {
+    return endColumn;
+  }
+
+  /**
+   * The one-based index of the line containing the character immediately following the range.
+   */
+  public int getEndLine() {
+    return endLine;
   }
 
   /**
@@ -149,6 +179,8 @@ public class Location {
     builder.append(length);
     builder.append(startLine);
     builder.append(startColumn);
+    builder.append(endLine);
+    builder.append(endColumn);
     return builder.toHashCode();
   }
 
@@ -159,6 +191,8 @@ public class Location {
     jsonObject.addProperty("length", length);
     jsonObject.addProperty("startLine", startLine);
     jsonObject.addProperty("startColumn", startColumn);
+    jsonObject.addProperty("endLine", endLine);
+    jsonObject.addProperty("endColumn", endColumn);
     return jsonObject;
   }
 
@@ -175,7 +209,11 @@ public class Location {
     builder.append("startLine=");
     builder.append(startLine + ", ");
     builder.append("startColumn=");
-    builder.append(startColumn);
+    builder.append(startColumn + ", ");
+    builder.append("endLine=");
+    builder.append(endLine + ", ");
+    builder.append("endColumn=");
+    builder.append(endColumn);
     builder.append("]");
     return builder.toString();
   }

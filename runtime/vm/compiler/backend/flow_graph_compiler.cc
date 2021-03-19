@@ -2536,8 +2536,9 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     // kScratch2 is no longer used, so restore it.
     __ PopRegister(kScratch2Reg);
 #endif
-    __ LoadFieldFromOffset(kScratch1Reg, kScratch1Reg,
-                           compiler::target::Class::super_type_offset());
+    __ LoadCompressedFieldFromOffset(
+        kScratch1Reg, kScratch1Reg,
+        compiler::target::Class::super_type_offset());
     __ LoadFieldFromOffset(kScratch1Reg, kScratch1Reg,
                            compiler::target::Type::type_class_id_offset());
     __ CompareImmediate(kScratch1Reg, Smi::RawValue(type_class.id()));
@@ -2748,7 +2749,6 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   return SubtypeTestCache::null();
 }
 
-#if !defined(TARGET_ARCH_IA32)
 // If instanceof type test cannot be performed successfully at compile time and
 // therefore eliminated, optimize it by adding inlined tests for:
 // - Null -> see comment below.
@@ -2810,6 +2810,7 @@ void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
   __ Bind(&done);
 }
 
+#if !defined(TARGET_ARCH_IA32)
 // Expected inputs (from TypeTestABI):
 // - kInstanceReg: instance (preserved).
 // - kDstTypeReg: destination type (for test_kind != kTestTypeOneArg).

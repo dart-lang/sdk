@@ -29,12 +29,18 @@ class AnalyzerConverter {
     var offset = error.offset;
     var startLine = -1;
     var startColumn = -1;
+    var endLine = -1;
+    var endColumn = -1;
     if (lineInfo != null) {
-      var lineLocation =
-          lineInfo.getLocation(offset) as analyzer.CharacterLocation;
-      if (lineLocation != null) {
-        startLine = lineLocation.lineNumber;
-        startColumn = lineLocation.columnNumber;
+      var startLocation = lineInfo.getLocation(offset);
+      if (startLocation != null) {
+        startLine = startLocation.lineNumber;
+        startColumn = startLocation.columnNumber;
+      }
+      var endLocation = lineInfo.getLocation(offset + error.length);
+      if (endLocation != null) {
+        endLine = endLocation.lineNumber;
+        endColumn = endLocation.columnNumber;
       }
     }
     List<plugin.DiagnosticMessage> contextMessages;
@@ -48,7 +54,7 @@ class AnalyzerConverter {
         convertErrorSeverity(severity),
         convertErrorType(errorCode.type),
         plugin.Location(error.source.fullName, offset, error.length, startLine,
-            startColumn),
+            startColumn, endLine, endColumn),
         error.message,
         errorCode.name.toLowerCase(),
         contextMessages: contextMessages,
@@ -94,16 +100,24 @@ class AnalyzerConverter {
     var length = message.length;
     var startLine = -1;
     var startColumn = -1;
+    var endLine = -1;
+    var endColumn = -1;
     if (lineInfo != null) {
-      var lineLocation =
-          lineInfo.getLocation(offset) as analyzer.CharacterLocation;
+      var lineLocation = lineInfo.getLocation(offset);
       if (lineLocation != null) {
         startLine = lineLocation.lineNumber;
         startColumn = lineLocation.columnNumber;
       }
+      var endLocation = lineInfo.getLocation(offset + length);
+      if (endLocation != null) {
+        endLine = endLocation.lineNumber;
+        endColumn = endLocation.columnNumber;
+      }
     }
-    return plugin.DiagnosticMessage(message.message,
-        plugin.Location(file, offset, length, startLine, startColumn));
+    return plugin.DiagnosticMessage(
+        message.message,
+        plugin.Location(
+            file, offset, length, startLine, startColumn, endLine, endColumn));
   }
 
   /// Convert the given [element] from the 'analyzer' package to an element
@@ -382,18 +396,24 @@ class AnalyzerConverter {
       analyzer.CompilationUnitElement unitElement, analyzer.SourceRange range) {
     var startLine = 0;
     var startColumn = 0;
+    var endLine = 0;
+    var endColumn = 0;
     try {
       var lineInfo = unitElement.lineInfo;
       if (lineInfo != null) {
-        var offsetLocation =
-            lineInfo.getLocation(range.offset) as analyzer.CharacterLocation;
+        var offsetLocation = lineInfo.getLocation(range.offset);
         startLine = offsetLocation.lineNumber;
         startColumn = offsetLocation.columnNumber;
+      }
+      var endLocation = lineInfo.getLocation(range.offset + range.length);
+      if (endLocation != null) {
+        endLine = endLocation.lineNumber;
+        endColumn = endLocation.columnNumber;
       }
     } on analyzer.AnalysisException {
       // Ignore exceptions
     }
     return plugin.Location(unitElement.source.fullName, range.offset,
-        range.length, startLine, startColumn);
+        range.length, startLine, startColumn, endLine, endColumn);
   }
 }

@@ -154,10 +154,10 @@ protocol.Element createLocalElement(
   if (id != null) {
     name = id.name;
     // TODO(danrubel) use lineInfo to determine startLine and startColumn
-    location = Location(source.fullName, id.offset, id.length, 0, 0);
+    location = Location(source.fullName, id.offset, id.length, 0, 0, 0, 0);
   } else {
     name = '';
-    location = Location(source.fullName, -1, 0, 1, 0);
+    location = Location(source.fullName, -1, 0, 1, 0, 1, 0);
   }
   var flags = protocol.Element.makeFlags(
       isAbstract: isAbstract,

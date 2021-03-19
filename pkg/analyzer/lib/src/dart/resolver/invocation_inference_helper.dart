@@ -114,7 +114,7 @@ class InvocationInferenceHelper {
   /// This takes into account both the context type, as well as information from
   /// the argument types.
   FunctionType? inferGenericInvoke(
-      Expression node,
+      AstNode node,
       DartType? fnType,
       TypeArgumentList? typeArguments,
       ArgumentList argumentList,

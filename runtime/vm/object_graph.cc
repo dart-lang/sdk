@@ -960,7 +960,7 @@ class Pass2Visitor : public ObjectVisitor,
           Smi::Value(static_cast<ExternalTypedDataPtr>(obj)->untag()->length_));
     } else if (cid == kFunctionCid) {
       writer_->WriteUnsigned(kNameData);
-      ScrubAndWriteUtf8(static_cast<FunctionPtr>(obj)->untag()->name_);
+      ScrubAndWriteUtf8(static_cast<FunctionPtr>(obj)->untag()->name());
     } else if (cid == kCodeCid) {
       ObjectPtr owner = static_cast<CodePtr>(obj)->untag()->owner_;
       if (!owner->IsHeapObject()) {
@@ -969,25 +969,25 @@ class Pass2Visitor : public ObjectVisitor,
         writer_->WriteUnsigned(kNoData);
       } else if (owner->IsFunction()) {
         writer_->WriteUnsigned(kNameData);
-        ScrubAndWriteUtf8(static_cast<FunctionPtr>(owner)->untag()->name_);
+        ScrubAndWriteUtf8(static_cast<FunctionPtr>(owner)->untag()->name());
       } else if (owner->IsClass()) {
         writer_->WriteUnsigned(kNameData);
-        ScrubAndWriteUtf8(static_cast<ClassPtr>(owner)->untag()->name_);
+        ScrubAndWriteUtf8(static_cast<ClassPtr>(owner)->untag()->name());
       } else {
         writer_->WriteUnsigned(kNoData);
       }
     } else if (cid == kFieldCid) {
       writer_->WriteUnsigned(kNameData);
-      ScrubAndWriteUtf8(static_cast<FieldPtr>(obj)->untag()->name_);
+      ScrubAndWriteUtf8(static_cast<FieldPtr>(obj)->untag()->name());
     } else if (cid == kClassCid) {
       writer_->WriteUnsigned(kNameData);
-      ScrubAndWriteUtf8(static_cast<ClassPtr>(obj)->untag()->name_);
+      ScrubAndWriteUtf8(static_cast<ClassPtr>(obj)->untag()->name());
     } else if (cid == kLibraryCid) {
       writer_->WriteUnsigned(kNameData);
-      ScrubAndWriteUtf8(static_cast<LibraryPtr>(obj)->untag()->url_);
+      ScrubAndWriteUtf8(static_cast<LibraryPtr>(obj)->untag()->url());
     } else if (cid == kScriptCid) {
       writer_->WriteUnsigned(kNameData);
-      ScrubAndWriteUtf8(static_cast<ScriptPtr>(obj)->untag()->url_);
+      ScrubAndWriteUtf8(static_cast<ScriptPtr>(obj)->untag()->url());
     } else {
       writer_->WriteUnsigned(kNoData);
     }

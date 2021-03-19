@@ -1713,7 +1713,7 @@ class _WhyNotPromoted extends Expression {
     var type = target._visit(h, flow);
     flow.forwardExpression(this, target);
     Type.withComparisonsAllowed(() {
-      callback(flow.whyNotPromoted(this));
+      callback(flow.whyNotPromoted(this)());
     });
     return type;
   }
@@ -1736,7 +1736,7 @@ class _WhyNotPromoted_ImplicitThis extends Statement {
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     Type.withComparisonsAllowed(() {
-      callback(flow.whyNotPromotedImplicitThis(staticType));
+      callback(flow.whyNotPromotedImplicitThis(staticType)());
     });
   }
 }

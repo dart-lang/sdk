@@ -227,7 +227,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
             uriNode.offset,
             uriNode.length,
             protocol.ElementKind.LIBRARY,
-            protocol.Location(source.fullName, 0, 0, 0, 0));
+            protocol.Location(source.fullName, 0, 0, 0, 0, 0, 0));
       }
     }
     super.visitConfiguration(node);
