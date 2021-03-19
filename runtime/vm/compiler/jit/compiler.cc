@@ -612,9 +612,11 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // breakpoint.
           if (!result->IsNull()) {
             if (!function.HasOptimizedCode()) {
-              thread()->isolate_group()->ForEachIsolate([&](Isolate* isolate) {
-                isolate->debugger()->NotifyCompilation(function);
-              });
+              thread()->isolate_group()->ForEachIsolate(
+                  [&](Isolate* isolate) {
+                    isolate->debugger()->NotifyCompilation(function);
+                  },
+                  /*at_safepoint=*/true);
             }
           }
 #endif
