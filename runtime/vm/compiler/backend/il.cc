@@ -5431,6 +5431,67 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                              env());
 }
 
+LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
+    Zone* zone,
+    bool opt) const {
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(
+                      InstantiationABI::kInstantiatorTypeArgumentsReg));
+  locs->set_in(1, Location::RegisterLocation(
+                      InstantiationABI::kFunctionTypeArgumentsReg));
+  locs->set_in(2, Location::RegisterLocation(
+                      InstantiationABI::kUninstantiatedTypeArgumentsReg));
+  locs->set_out(
+      0, Location::RegisterLocation(InstantiationABI::kResultTypeArgumentsReg));
+  return locs;
+}
+
+void InstantiateTypeArgumentsInstr::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+  // We should never try and instantiate a TAV known at compile time to be null,
+  // so we can use a null value below for the dynamic case.
+  ASSERT(!type_arguments()->BindsToConstant() ||
+         !type_arguments()->BoundConstant().IsNull());
+  const auto& type_args =
+      type_arguments()->BindsToConstant()
+          ? TypeArguments::Cast(type_arguments()->BoundConstant())
+          : Object::null_type_arguments();
+  const intptr_t len = type_args.Length();
+  const bool can_function_type_args_be_null =
+      function_type_arguments()->CanBe(Object::null_object());
+
+  compiler::Label type_arguments_instantiated;
+  if (type_args.IsNull()) {
+    // Currently we only create dynamic InstantiateTypeArguments instructions
+    // in cases where we know the type argument is uninstantiated at runtime,
+    // so there are no extra checks needed to call the stub successfully.
+  } else if (type_args.IsRawWhenInstantiatedFromRaw(len) &&
+             can_function_type_args_be_null) {
+    // If both the instantiator and function type arguments are null and if the
+    // type argument vector instantiated from null becomes a vector of dynamic,
+    // then use null as the type arguments.
+    compiler::Label non_null_type_args;
+    __ LoadObject(InstantiationABI::kResultTypeArgumentsReg,
+                  Object::null_object());
+    __ CompareRegisters(InstantiationABI::kInstantiatorTypeArgumentsReg,
+                        InstantiationABI::kResultTypeArgumentsReg);
+    if (!function_type_arguments()->BindsToConstant()) {
+      __ BranchIf(NOT_EQUAL, &non_null_type_args);
+      __ CompareRegisters(InstantiationABI::kFunctionTypeArgumentsReg,
+                          InstantiationABI::kResultTypeArgumentsReg);
+    }
+    __ BranchIf(EQUAL, &type_arguments_instantiated);
+    __ Bind(&non_null_type_args);
+  }
+
+  compiler->GenerateStubCall(source(), GetStub(), UntaggedPcDescriptors::kOther,
+                             locs(), deopt_id());
+  __ Bind(&type_arguments_instantiated);
+}
+
 LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kNoCall);
