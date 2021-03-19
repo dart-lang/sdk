@@ -8,6 +8,7 @@ library fasta.type_variable_builder;
 
 import 'package:kernel/ast.dart'
     show DartType, Nullability, TypeParameter, TypeParameterType;
+import 'package:kernel/core_types.dart';
 
 import '../fasta_codes.dart'
     show
@@ -16,9 +17,13 @@ import '../fasta_codes.dart'
         templateTypeArgumentsOnTypeVariable;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../util/helpers.dart';
 
 import 'class_builder.dart';
+import 'declaration_builder.dart';
 import 'library_builder.dart';
+import 'member_builder.dart';
+import 'metadata_builder.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
@@ -37,11 +42,14 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
 
   TypeVariableBuilder(
       String name, SourceLibraryBuilder compilationUnit, int charOffset,
-      {this.bound, this.isExtensionTypeParameter: false, int variableVariance})
+      {this.bound,
+      this.isExtensionTypeParameter: false,
+      int variableVariance,
+      List<MetadataBuilder> metadata})
       : actualParameter = new TypeParameter(name, null)
           ..fileOffset = charOffset
           ..variance = variableVariance,
-        super(null, 0, name, compilationUnit, charOffset);
+        super(metadata, 0, name, compilationUnit, charOffset);
 
   TypeVariableBuilder.fromKernel(
       TypeParameter parameter, LibraryBuilder compilationUnit)
@@ -236,6 +244,16 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     // is declared on.
     return new TypeVariableBuilder(name, parent, charOffset,
         bound: bound.clone(newTypes), variableVariance: variance);
+  }
+
+  void buildOutlineExpressions(
+      LibraryBuilder libraryBuilder,
+      DeclarationBuilder classOrExtensionBuilder,
+      MemberBuilder memberBuilder,
+      CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    MetadataBuilder.buildAnnotations(parameter, metadata, libraryBuilder,
+        classOrExtensionBuilder, memberBuilder, fileUri);
   }
 
   @override

@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart'
         Nullability,
         TypeParameter,
         Typedef;
+import 'package:kernel/core_types.dart';
 
 import 'package:kernel/type_algebra.dart' show substitute, uniteNullabilities;
 import 'package:kernel/src/legacy_erasure.dart';
@@ -27,6 +28,7 @@ import '../fasta_codes.dart'
         messageTypedefTypeVariableNotConstructorCause;
 
 import '../problems.dart' show unhandled;
+import '../util/helpers.dart';
 
 import 'class_builder.dart';
 import 'library_builder.dart';
@@ -114,6 +116,9 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   /// arguments for passing to the [ClassBuilder] which is the end of the
   /// unaliasing chain.
   List<TypeBuilder> unaliasTypeArguments(List<TypeBuilder> typeArguments);
+
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers);
 }
 
 abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl

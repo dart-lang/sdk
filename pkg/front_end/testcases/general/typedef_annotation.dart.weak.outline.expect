@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+@self::A::•()
+typedef F = () → void;
+@self::A::•()
+typedef G = () → void;
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///typedef_annotation.dart:9:2 -> InstanceConstant(const A{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///typedef_annotation.dart:12:2 -> InstanceConstant(const A{})
+Extra constant evaluation: evaluated: 2, effectively constant: 2

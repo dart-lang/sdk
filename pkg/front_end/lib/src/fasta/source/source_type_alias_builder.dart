@@ -17,6 +17,8 @@ import 'package:kernel/ast.dart'
         VariableDeclaration,
         getAsTypeArguments;
 
+import 'package:kernel/core_types.dart';
+
 import 'package:kernel/type_algebra.dart'
     show FreshTypeParameters, getFreshTypeParameters;
 
@@ -38,6 +40,8 @@ import '../builder/type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
+
+import '../util/helpers.dart';
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -242,5 +246,18 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         typeEnvironment, typedef.typeParameters, fileUri);
     library.checkBoundsInType(
         typedef.type, typeEnvironment, fileUri, type?.charOffset ?? charOffset);
+  }
+
+  @override
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    MetadataBuilder.buildAnnotations(
+        typedef, metadata, library, null, null, fileUri);
+    if (typeVariables != null) {
+      for (int i = 0; i < typeVariables.length; i++) {
+        typeVariables[i].buildOutlineExpressions(
+            library, null, null, coreTypes, delayedActionPerformers);
+      }
+    }
   }
 }

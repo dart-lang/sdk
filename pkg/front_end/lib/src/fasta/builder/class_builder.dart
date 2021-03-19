@@ -361,7 +361,14 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
 
     MetadataBuilder.buildAnnotations(
-        isPatch ? origin.cls : cls, metadata, library, this, null);
+        isPatch ? origin.cls : cls, metadata, library, this, null, fileUri);
+    if (typeVariables != null) {
+      for (int i = 0; i < typeVariables.length; i++) {
+        typeVariables[i].buildOutlineExpressions(
+            library, this, null, coreTypes, delayedActionPerformers);
+      }
+    }
+
     constructors.forEach(build);
     scope.forEach(build);
   }

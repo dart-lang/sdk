@@ -1401,7 +1401,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  List<Expression> finishMetadata(TreeNode parent) {
+  List<Expression> finishMetadata(Annotatable parent) {
     List<Expression> expressions = pop();
     inferAnnotations(parent, expressions);
 
@@ -1412,35 +1412,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // used.
     ListLiteral temporaryParent;
 
-    if (parent is Class) {
-      for (Expression expression in expressions) {
-        parent.addAnnotation(expression);
-      }
-    } else if (parent is Library) {
-      for (Expression expression in expressions) {
-        parent.addAnnotation(expression);
-      }
-    } else if (parent is LibraryDependency) {
-      for (Expression expression in expressions) {
-        parent.addAnnotation(expression);
-      }
-    } else if (parent is LibraryPart) {
-      for (Expression expression in expressions) {
-        parent.addAnnotation(expression);
-      }
-    } else if (parent is Member) {
-      for (Expression expression in expressions) {
-        parent.addAnnotation(expression);
-      }
-    } else if (parent is Typedef) {
-      for (Expression expression in expressions) {
-        parent.addAnnotation(expression);
-      }
-    } else if (parent is TypeParameter) {
-      for (Expression expression in expressions) {
-        parent.addAnnotation(expression);
-      }
-    } else if (parent is VariableDeclaration) {
+    if (parent != null) {
       for (Expression expression in expressions) {
         parent.addAnnotation(expression);
       }
@@ -3471,8 +3443,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (typeVariables != null) {
       for (TypeVariableBuilder builder in typeVariables) {
         if (builder.parameter.annotations.isNotEmpty) {
-          addProblem(fasta.messageAnnotationOnFunctionTypeTypeVariable,
-              builder.charOffset, builder.name.length);
+          if (!libraryBuilder.enableGenericMetadataInLibrary) {
+            addProblem(fasta.messageAnnotationOnFunctionTypeTypeVariable,
+                builder.charOffset, builder.name.length);
+          }
+          // Annotations on function types are not constant evaluated and are
+          // not included in the generated AST so we clear them here.
           builder.parameter.annotations = const <Expression>[];
         }
       }

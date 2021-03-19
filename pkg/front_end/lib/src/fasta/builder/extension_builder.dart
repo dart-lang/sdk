@@ -205,20 +205,4 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
 
   @override
   String get debugName => "ExtensionBuilder";
-
-  @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
-    void build(String ignore, Builder declaration) {
-      MemberBuilder member = declaration;
-      member.buildOutlineExpressions(
-          library, coreTypes, delayedActionPerformers);
-    }
-
-    // TODO(johnniwinther): Handle annotations on the extension declaration.
-    //MetadataBuilder.buildAnnotations(
-    //    isPatch ? origin.extension : extension,
-    //    metadata, library, this, null);
-    scope.forEach(build);
-  }
 }
