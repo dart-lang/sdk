@@ -1,0 +1,6 @@
+analyzer:
+  enable-experiment:
+    - nonfunction-type-aliases
+linter:
+  rules:
+    - public_member_api_docs

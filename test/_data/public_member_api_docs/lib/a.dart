@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
+
 
 mixin M { //LINT
   static const Z = 1; //LINT
@@ -29,9 +29,9 @@ abstract class A //LINT
   A(); //LINT
   A.named(); //LINT
   A._(); //OK
-  int x; //LINT
-  int _y; //OK
-  int z, //LINT
+  int? x; //LINT
+  int? _y; //OK
+  int? z, //LINT
       _z; //OK
   /// Doc.
   a() {
@@ -89,11 +89,11 @@ foo() => null; //LINT
 /// Bar.
 bar() => null; //OK
 
-int g; //LINT
+int g = 1; //LINT
 
-int _h; //OK
+int _h = 1; //OK
 
-int gg, //LINT
+int? gg, //LINT
     _gg; //OK
 
 /// ZZ.
@@ -130,3 +130,6 @@ extension on Object { // OK
 }
 
 typedef T = void Function(); // LINT
+
+class C = Object with M; // LINT
+typedef td = Object; //LINT
