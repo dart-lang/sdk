@@ -43,6 +43,8 @@ Future run(List<String> args) async {
   await runLinter(args, LinterOptions());
 }
 
+/// todo (pq): consider using `dart analyze` where possible
+/// see: https://github.com/dart-lang/linter/pull/2537
 Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
   // Force the rule registry to be populated.
   registerLintRules();
