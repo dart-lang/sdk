@@ -160,11 +160,7 @@ String generatedFileHeader(int year, {bool importCustom = false}) => '''
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
 // ignore_for_file: annotate_overrides
-// ignore_for_file: deprecated_member_use
-// ignore_for_file: deprecated_member_use_from_same_package
-// ignore_for_file: unnecessary_brace_in_string_interps
 // ignore_for_file: unnecessary_parenthesis
-// ignore_for_file: unused_import
 // ignore_for_file: unused_shown_name
 
 import 'dart:core' hide deprecated;
