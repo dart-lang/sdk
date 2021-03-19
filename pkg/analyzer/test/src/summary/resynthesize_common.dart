@@ -11327,6 +11327,18 @@ mixin M on Object {
 ''');
   }
 
+  test_mixin_first() async {
+    var library = await checkLibrary(r'''
+mixin M {}
+''');
+
+    // We intentionally ask `mixins` directly, to check that we can ask them
+    // separately, without asking classes.
+    var mixins = library.definingCompilationUnit.mixins;
+    expect(mixins, hasLength(1));
+    expect(mixins[0].name, 'M');
+  }
+
   test_mixin_implicitObjectSuperclassConstraint() async {
     var library = await checkLibrary(r'''
 mixin M {}

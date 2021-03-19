@@ -1235,9 +1235,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
     if (linkedNode != null) {
       var containerRef = reference!.getChild('@enum');
-      var linkedNode = this.linkedNode as CompilationUnit;
       _enums =
-          linkedNode.declarations.whereType<EnumDeclarationImpl>().map((node) {
+          _linkedUnitDeclarations.whereType<EnumDeclarationImpl>().map((node) {
         var name = node.name.name;
         var reference = containerRef.getChild(name);
         var element = node.declaredElement;
@@ -1264,11 +1263,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     }
 
     if (linkedNode != null) {
-      var linkedNode = this.linkedNode as CompilationUnit;
       var containerRef = reference!.getChild('@extension');
       _extensions = <ExtensionElement>[];
       var nextUnnamedExtensionId = 0;
-      for (var node in linkedNode.declarations) {
+      for (var node in _linkedUnitDeclarations) {
         if (node is ExtensionDeclarationImpl) {
           var nameIdentifier = node.name;
           var refName = nameIdentifier != null
@@ -1303,7 +1301,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
     if (linkedNode != null) {
       var containerRef = reference!.getChild('@function');
-      return _functions = linkedContext!.unit_withDeclarations.declarations
+      return _functions = _linkedUnitDeclarations
           .whereType<FunctionDeclarationImpl>()
           .where((node) => !node.isGetter && !node.isSetter)
           .map((node) {
@@ -1373,9 +1371,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     }
 
     if (linkedNode != null) {
-      var linkedNode = this.linkedNode as CompilationUnit;
       var containerRef = reference!.getChild('@mixin');
-      var declarations = linkedNode.declarations;
+      var declarations = _linkedUnitDeclarations;
       return _mixins =
           declarations.whereType<MixinDeclarationImpl>().map((node) {
         var name = node.name.name;
@@ -1432,7 +1429,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     if (linkedNode != null) {
       var containerRef = reference!.getChild('@typeAlias');
       _typeAliases = <TypeAliasElement>[];
-      for (var node in linkedContext!.unit_withDeclarations.declarations) {
+      for (var node in _linkedUnitDeclarations) {
         String name;
         if (node is FunctionTypeAlias) {
           name = node.name.name;
@@ -1473,7 +1470,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     if (linkedNode != null) {
       var containerRef = reference!.getChild('@class');
       _types = <ClassElement>[];
-      for (var node in linkedContext!.unit_withDeclarations.declarations) {
+      var declarations = _linkedUnitDeclarations;
+      for (var node in declarations) {
         if (node is ClassDeclaration) {
           var name = node.name.name;
           var reference = containerRef.getChild(name);
@@ -1506,6 +1504,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       }
     }
     _types = types;
+  }
+
+  List<CompilationUnitMember> get _linkedUnitDeclarations {
+    return linkedContext!.unit_withDeclarations.declarations;
   }
 
   @override
