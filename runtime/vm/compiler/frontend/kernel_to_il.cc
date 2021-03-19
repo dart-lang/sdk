@@ -831,7 +831,9 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiLoadUint64:
     case MethodRecognizer::kFfiLoadIntPtr:
     case MethodRecognizer::kFfiLoadFloat:
+    case MethodRecognizer::kFfiLoadFloatUnaligned:
     case MethodRecognizer::kFfiLoadDouble:
+    case MethodRecognizer::kFfiLoadDoubleUnaligned:
     case MethodRecognizer::kFfiLoadPointer:
     case MethodRecognizer::kFfiStoreInt8:
     case MethodRecognizer::kFfiStoreInt16:
@@ -843,7 +845,9 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiStoreUint64:
     case MethodRecognizer::kFfiStoreIntPtr:
     case MethodRecognizer::kFfiStoreFloat:
+    case MethodRecognizer::kFfiStoreFloatUnaligned:
     case MethodRecognizer::kFfiStoreDouble:
+    case MethodRecognizer::kFfiStoreDoubleUnaligned:
     case MethodRecognizer::kFfiStorePointer:
     case MethodRecognizer::kFfiFromAddress:
     case MethodRecognizer::kFfiGetAddress:
@@ -1288,10 +1292,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFfiLoadUint64:
     case MethodRecognizer::kFfiLoadIntPtr:
     case MethodRecognizer::kFfiLoadFloat:
+    case MethodRecognizer::kFfiLoadFloatUnaligned:
     case MethodRecognizer::kFfiLoadDouble:
+    case MethodRecognizer::kFfiLoadDoubleUnaligned:
     case MethodRecognizer::kFfiLoadPointer: {
       const classid_t ffi_type_arg_cid =
           compiler::ffi::RecognizedMethodTypeArgCid(kind);
+      const AlignmentType alignment =
+          compiler::ffi::RecognizedMethodAlignment(kind);
       const classid_t typed_data_cid =
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
       const auto& native_rep = compiler::ffi::NativeType::FromTypedDataClassId(
@@ -1314,10 +1322,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(arg_offset_not_null);
       body += UnboxTruncate(kUnboxedFfiIntPtr);
       body += LoadIndexed(typed_data_cid, /*index_scale=*/1,
-                          /*index_unboxed=*/true);
+                          /*index_unboxed=*/true, alignment);
       if (kind == MethodRecognizer::kFfiLoadFloat ||
-          kind == MethodRecognizer::kFfiLoadDouble) {
-        if (kind == MethodRecognizer::kFfiLoadFloat) {
+          kind == MethodRecognizer::kFfiLoadFloatUnaligned ||
+          kind == MethodRecognizer::kFfiLoadDouble ||
+          kind == MethodRecognizer::kFfiLoadDoubleUnaligned) {
+        if (kind == MethodRecognizer::kFfiLoadFloat ||
+            kind == MethodRecognizer::kFfiLoadFloatUnaligned) {
           body += FloatToDouble();
         }
         body += Box(kUnboxedDouble);
@@ -1369,10 +1380,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFfiStoreUint64:
     case MethodRecognizer::kFfiStoreIntPtr:
     case MethodRecognizer::kFfiStoreFloat:
+    case MethodRecognizer::kFfiStoreFloatUnaligned:
     case MethodRecognizer::kFfiStoreDouble:
+    case MethodRecognizer::kFfiStoreDoubleUnaligned:
     case MethodRecognizer::kFfiStorePointer: {
       const classid_t ffi_type_arg_cid =
           compiler::ffi::RecognizedMethodTypeArgCid(kind);
+      const AlignmentType alignment =
+          compiler::ffi::RecognizedMethodAlignment(kind);
       const classid_t typed_data_cid =
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
       const auto& native_rep = compiler::ffi::NativeType::FromTypedDataClassId(
@@ -1439,16 +1454,19 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         body += LoadUntagged(compiler::target::Pointer::data_field_offset());
         body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
       } else if (kind == MethodRecognizer::kFfiStoreFloat ||
-                 kind == MethodRecognizer::kFfiStoreDouble) {
+                 kind == MethodRecognizer::kFfiStoreFloatUnaligned ||
+                 kind == MethodRecognizer::kFfiStoreDouble ||
+                 kind == MethodRecognizer::kFfiStoreDoubleUnaligned) {
         body += UnboxTruncate(kUnboxedDouble);
-        if (kind == MethodRecognizer::kFfiStoreFloat) {
+        if (kind == MethodRecognizer::kFfiStoreFloat ||
+            kind == MethodRecognizer::kFfiStoreFloatUnaligned) {
           body += DoubleToFloat();
         }
       } else {
         body += UnboxTruncate(native_rep.AsRepresentationOverApprox(zone_));
       }
       body += StoreIndexedTypedData(typed_data_cid, /*index_scale=*/1,
-                                    /*index_unboxed=*/true);
+                                    /*index_unboxed=*/true, alignment);
       body += Drop();  // Drop [arg_value].
       body += Drop();  // Drop [arg_offset].
       body += NullConstant();

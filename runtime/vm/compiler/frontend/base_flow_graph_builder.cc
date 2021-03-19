@@ -370,7 +370,8 @@ Fragment BaseFlowGraphBuilder::TestAnyTypeArgs(Fragment present,
 
 Fragment BaseFlowGraphBuilder::LoadIndexed(classid_t class_id,
                                            intptr_t index_scale,
-                                           bool index_unboxed) {
+                                           bool index_unboxed,
+                                           AlignmentType alignment) {
   Value* index = Pop();
   // A C pointer if index_unboxed, otherwise a boxed Dart value.
   Value* array = Pop();
@@ -379,7 +380,7 @@ Fragment BaseFlowGraphBuilder::LoadIndexed(classid_t class_id,
   // all cases.
   LoadIndexedInstr* instr = new (Z)
       LoadIndexedInstr(array, index, index_unboxed, index_scale, class_id,
-                       kAlignedAccess, DeoptId::kNone, InstructionSource());
+                       alignment, DeoptId::kNone, InstructionSource());
   Push(instr);
   return Fragment(instr);
 }
@@ -636,10 +637,8 @@ Fragment BaseFlowGraphBuilder::StoreIndexed(classid_t class_id) {
 
 Fragment BaseFlowGraphBuilder::StoreIndexedTypedData(classid_t class_id,
                                                      intptr_t index_scale,
-                                                     bool index_unboxed) {
-  // We use C behavior when dereferencing pointers, we assume alignment.
-  const AlignmentType alignment = kAlignedAccess;
-
+                                                     bool index_unboxed,
+                                                     AlignmentType alignment) {
   Value* value = Pop();
   Value* index = Pop();
   Value* c_pointer = Pop();

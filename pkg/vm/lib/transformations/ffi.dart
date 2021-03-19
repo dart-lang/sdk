@@ -182,6 +182,11 @@ const List<NativeType> optimizedTypes = [
   NativeType.kPointer,
 ];
 
+const List<NativeType> unalignedLoadsStores = [
+  NativeType.kFloat,
+  NativeType.kDouble,
+];
+
 /// [FfiTransformer] contains logic which is shared between
 /// _FfiUseSiteTransformer and _FfiDefinitionTransformer.
 class FfiTransformer extends Transformer {
@@ -225,9 +230,12 @@ class FfiTransformer extends Transformer {
   final Class structClass;
   final Class ffiStructLayoutClass;
   final Field ffiStructLayoutTypesField;
+  final Field ffiStructLayoutPackingField;
   final Class ffiInlineArrayClass;
   final Field ffiInlineArrayElementTypeField;
   final Field ffiInlineArrayLengthField;
+  final Class packedClass;
+  final Field packedMemberAlignmentField;
   final Procedure allocateMethod;
   final Procedure allocatorAllocateMethod;
   final Procedure castMethod;
@@ -260,7 +268,9 @@ class FfiTransformer extends Transformer {
   final Procedure pointerFromFunctionProcedure;
   final Procedure nativeCallbackFunctionProcedure;
   final Map<NativeType, Procedure> loadMethods;
+  final Map<NativeType, Procedure> loadUnalignedMethods;
   final Map<NativeType, Procedure> storeMethods;
+  final Map<NativeType, Procedure> storeUnalignedMethods;
   final Map<NativeType, Procedure> elementAtMethods;
   final Procedure memCopy;
   final Procedure allocationTearoff;
@@ -319,11 +329,16 @@ class FfiTransformer extends Transformer {
         ffiStructLayoutClass = index.getClass('dart:ffi', '_FfiStructLayout'),
         ffiStructLayoutTypesField =
             index.getMember('dart:ffi', '_FfiStructLayout', 'fieldTypes'),
+        ffiStructLayoutPackingField =
+            index.getMember('dart:ffi', '_FfiStructLayout', 'packing'),
         ffiInlineArrayClass = index.getClass('dart:ffi', '_FfiInlineArray'),
         ffiInlineArrayElementTypeField =
             index.getMember('dart:ffi', '_FfiInlineArray', 'elementType'),
         ffiInlineArrayLengthField =
             index.getMember('dart:ffi', '_FfiInlineArray', 'length'),
+        packedClass = index.getClass('dart:ffi', 'Packed'),
+        packedMemberAlignmentField =
+            index.getMember('dart:ffi', 'Packed', 'memberAlignment'),
         allocateMethod = index.getMember('dart:ffi', 'AllocatorAlloc', 'call'),
         allocatorAllocateMethod =
             index.getMember('dart:ffi', 'Allocator', 'allocate'),
@@ -379,9 +394,19 @@ class FfiTransformer extends Transformer {
           final name = nativeTypeClassNames[t.index];
           return index.getTopLevelMember('dart:ffi', "_load$name");
         }),
+        loadUnalignedMethods =
+            Map.fromIterable(unalignedLoadsStores, value: (t) {
+          final name = nativeTypeClassNames[t.index];
+          return index.getTopLevelMember('dart:ffi', "_load${name}Unaligned");
+        }),
         storeMethods = Map.fromIterable(optimizedTypes, value: (t) {
           final name = nativeTypeClassNames[t.index];
           return index.getTopLevelMember('dart:ffi', "_store$name");
+        }),
+        storeUnalignedMethods =
+            Map.fromIterable(unalignedLoadsStores, value: (t) {
+          final name = nativeTypeClassNames[t.index];
+          return index.getTopLevelMember('dart:ffi', "_store${name}Unaligned");
         }),
         elementAtMethods = Map.fromIterable(optimizedTypes, value: (t) {
           final name = nativeTypeClassNames[t.index];

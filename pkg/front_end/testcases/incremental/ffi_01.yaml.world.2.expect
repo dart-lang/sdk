@@ -3,9 +3,9 @@ library from "org-dartlang-test:///lib.dart" as lib {
 
   import "dart:ffi";
 
-  @#C6
+  @#C7
   class Coordinate extends dart.ffi::Struct {
-    static final field dart.core::int* #sizeOf = (#C9).{dart.core::List::[]}(dart.ffi::_abi());
+    static final field dart.core::int* #sizeOf = (#C10).{dart.core::List::[]}(dart.ffi::_abi());
     @#C12
     constructor #fromTypedDataBase(dynamic #pointer) → dynamic
       : super dart.ffi::Struct::_fromPointer(#pointer)
@@ -58,14 +58,14 @@ constants  {
   #C2 = TypeLiteralConstant(dart.ffi::Double)
   #C3 = TypeLiteralConstant(dart.ffi::Pointer<dart.ffi::NativeType>)
   #C4 = <dart.core::Type>[#C2, #C2, #C3]
-  #C5 = dart.ffi::_FfiStructLayout {fieldTypes:#C4}
-  #C6 = dart.core::pragma {name:#C1, options:#C5}
-  #C7 = 24
-  #C8 = 20
-  #C9 = <dart.core::int*>[#C7, #C8, #C7]
-  #C10 = "vm:entry-point"
-  #C11 = null
-  #C12 = dart.core::pragma {name:#C10, options:#C11}
+  #C5 = null
+  #C6 = dart.ffi::_FfiStructLayout {fieldTypes:#C4, packing:#C5}
+  #C7 = dart.core::pragma {name:#C1, options:#C6}
+  #C8 = 24
+  #C9 = 20
+  #C10 = <dart.core::int*>[#C8, #C9, #C8]
+  #C11 = "vm:entry-point"
+  #C12 = dart.core::pragma {name:#C11, options:#C5}
   #C13 = 0
   #C14 = <dart.core::int*>[#C13, #C13, #C13]
   #C15 = 8

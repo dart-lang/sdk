@@ -4279,6 +4279,21 @@ FfiExtendsOrImplementsSealedClass:
   template: "Class '#name' cannot be extended or implemented."
   external: test/ffi_test.dart
 
+FfiPackedAnnotation:
+  # Used by dart:ffi
+  template: "Struct '#name' must have at most one 'Packed' annotation."
+  external: test/ffi_test.dart
+
+FfiPackedAnnotationAlignment:
+  # Used by dart:ffi
+  template: "Only packing to 1, 2, 4, 8, and 16 bytes is supported."
+  external: test/ffi_test.dart
+
+FfiPackedNestingNonPacked:
+  # Used by dart:ffi
+  template: "Nesting the non-packed or less tightly packed struct '#name' in a packed struct '#name2' is not supported."
+  external: test/ffi_test.dart
+
 FfiSizeAnnotation:
   # Used by dart:ffi
   template: "Field '#name' must have exactly one 'Array' annotation."

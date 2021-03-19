@@ -58,3 +58,13 @@ abstract class Struct extends NativeType {
 
   Struct._fromPointer(this._addressOf);
 }
+
+/// Annotation to specify on `Struct` subtypes to indicate that its members
+/// need to be packed.
+///
+/// Valid values for [memberAlignment] are 1, 2, 4, 8, and 16.
+class Packed {
+  final int memberAlignment;
+
+  const Packed(this.memberAlignment);
+}

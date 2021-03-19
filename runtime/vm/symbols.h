@@ -125,6 +125,7 @@ class ObjectPointerVisitor;
   V(FfiDouble, "Double")                                                       \
   V(FfiDynamicLibrary, "DynamicLibrary")                                       \
   V(FfiElementType, "elementType")                                             \
+  V(FfiFieldPacking, "packing")                                                \
   V(FfiFieldTypes, "fieldTypes")                                               \
   V(FfiFloat, "Float")                                                         \
   V(FfiInt16, "Int16")                                                         \

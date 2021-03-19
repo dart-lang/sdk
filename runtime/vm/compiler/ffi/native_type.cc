@@ -399,12 +399,21 @@ NativeType& NativeType::FromAbstractType(Zone* zone, const AbstractType& type) {
              .Equals(Symbols::FfiStructLayout()));
   ASSERT(String::Handle(zone, library.url()).Equals(Symbols::DartFfi()));
   const auto& struct_layout_fields = Array::Handle(zone, clazz.fields());
-  ASSERT(struct_layout_fields.Length() == 1);
-  const auto& field =
+  ASSERT(struct_layout_fields.Length() == 2);
+  const auto& types_field =
       Field::Handle(zone, Field::RawCast(struct_layout_fields.At(0)));
-  ASSERT(String::Handle(zone, field.name()).Equals(Symbols::FfiFieldTypes()));
+  ASSERT(String::Handle(zone, types_field.name())
+             .Equals(Symbols::FfiFieldTypes()));
   const auto& field_types =
-      Array::Handle(zone, Array::RawCast(struct_layout.GetField(field)));
+      Array::Handle(zone, Array::RawCast(struct_layout.GetField(types_field)));
+  const auto& packed_field =
+      Field::Handle(zone, Field::RawCast(struct_layout_fields.At(1)));
+  ASSERT(String::Handle(zone, packed_field.name())
+             .Equals(Symbols::FfiFieldPacking()));
+  const auto& packed_value = Integer::Handle(
+      zone, Integer::RawCast(struct_layout.GetField(packed_field)));
+  const intptr_t member_packing =
+      packed_value.IsNull() ? kMaxInt32 : packed_value.AsInt64Value();
 
   auto& field_instance = Instance::Handle(zone);
   auto& field_type = AbstractType::Handle(zone);
@@ -445,7 +454,8 @@ NativeType& NativeType::FromAbstractType(Zone* zone, const AbstractType& type) {
     }
   }
 
-  return NativeCompoundType::FromNativeTypes(zone, field_native_types);
+  return NativeCompoundType::FromNativeTypes(zone, field_native_types,
+                                             member_packing);
 }
 #endif
 

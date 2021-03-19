@@ -11,6 +11,7 @@
 
 #include <platform/globals.h>
 
+#include "vm/compiler/backend/il.h"
 #include "vm/compiler/method_recognizer.h"
 
 namespace dart {
@@ -24,6 +25,8 @@ classid_t ElementTypedDataCid(classid_t class_id);
 
 // Returns the kFFi<type>Cid for the recognized load/store method [kind].
 classid_t RecognizedMethodTypeArgCid(MethodRecognizer::Kind kind);
+
+AlignmentType RecognizedMethodAlignment(MethodRecognizer::Kind kind);
 
 }  // namespace ffi
 
