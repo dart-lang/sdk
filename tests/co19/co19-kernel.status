@@ -30,28 +30,7 @@ LibTest/core/List/List_class_A01_t02: Slow, Pass # Does many calls
 LibTest/io/RawDatagramSocket/*: Skip # RawDatagramSocket are flacky. Skip them all until rewritten
 
 [ $fasta ]
-Language/Classes/Instance_Methods/Operators/allowed_names_t01: Skip # triple-shift flag
-Language/Classes/Instance_Methods/Operators/allowed_names_t23: Skip # triple-shift flag
-Language/Classes/Instance_Methods/Operators/arity_1_t19: Skip # triple-shift flag
 Language/Enums/restrictions_t10: Crash
-Language/Expressions/Assignment/Compound_Assignment/expression_assignment_t12: Skip # triple-shift flag
-Language/Expressions/Assignment/Compound_Assignment/indexed_expression_assignment_t12: Skip # triple-shift flag
-Language/Expressions/Assignment/Compound_Assignment/null_aware_compound_assignment_static_t12: Skip # triple-shift flag
-Language/Expressions/Assignment/Compound_Assignment/null_aware_compound_assignment_t12: Skip # triple-shift flag
-Language/Expressions/Assignment/Compound_Assignment/setter_assignment_t12: Skip # triple-shift flag
-Language/Expressions/Assignment/Compound_Assignment/variable_assignment_t12: Skip # triple-shift flag
-Language/Expressions/Bitwise_Expressions/syntax_t01: Skip # triple-shift flag
-Language/Expressions/Constants/bitwise_operators_t01: Skip # triple-shift flag
-Language/Expressions/Constants/bitwise_operators_t07: Skip # triple-shift flag
-Language/Expressions/Constants/bitwise_operators_t08: Skip # triple-shift flag
-Language/Expressions/Equality/syntax_t01: Skip # triple-shift flag
-Language/Expressions/Lists/syntax_t01: Skip # triple-shift flag
-Language/Expressions/Maps/syntax_t01: Skip # triple-shift flag
-Language/Expressions/Relational_Expressions/syntax_t01: Skip # triple-shift experiment flag
-Language/Expressions/Shift/allowed_characters_t02: Skip # triple-shift flag
-Language/Expressions/Shift/equivalent_super_t02: Skip # triple-shift flag
-Language/Expressions/Shift/equivalent_t02: Skip # triple-shift flag
-Language/Expressions/Shift/integer_t03: Skip # triple-shift flag
 Language/Expressions/Shift/integer_t04/01: Crash
 Language/Expressions/Shift/integer_t04/02: Crash
 Language/Expressions/Shift/integer_t04/03: Crash
@@ -60,22 +39,6 @@ Language/Expressions/Shift/integer_t04/05: Crash
 Language/Expressions/Shift/integer_t04/06: Crash
 Language/Expressions/Shift/integer_t04/07: Crash
 Language/Expressions/Shift/integer_t04/none: Crash
-Language/Expressions/Shift/syntax_t01: Skip # triple-shift experiment flag
-Language/Expressions/Shift/syntax_t15: Skip # triple-shift experiment flag
-Language/Expressions/Shift/syntax_t17: Skip # triple-shift experiment flag
-Language/Expressions/Shift/syntax_t18: Skip # triple-shift experiment flag
-Language/Expressions/Shift/syntax_t19: Skip # triple-shift experiment flag
-Language/Expressions/Shift/syntax_t21: Skip # triple-shift experiment flag
-Language/Expressions/Shift/syntax_t22: Skip # triple-shift experiment flag
-Language/Expressions/Shift/syntax_t23: Skip # triple-shift experiment flag
-Language/Expressions/Shift/syntax_t24: Skip # triple-shift experiment flag
-Language/Expressions/Shift/syntax_t25: Skip # triple-shift experiment flag
-Language/Expressions/Shift/syntax_t26: Skip # triple-shift experiment flag
-Language/Expressions/Shift/syntax_t27: Skip # triple-shift experiment flag
-Language/Expressions/Strings/String_Interpolation/syntax_t01: Skip # triple-shift experiment flag
-Language/Expressions/Symbols/syntax_t02: Skip # triple-shift experiment flag
-Language/Expressions/parentheses_t01: Skip # triple-shift experiment flag
-Language/Functions/syntax_t03: Skip # triple-shift experiment flag
 Language/Mixins/Mixin_Application/abstract_t09: Crash
 Language/Mixins/Mixin_Application/abstract_t10: Crash
 Language/Mixins/Mixin_Application/abstract_t11: Crash
@@ -100,10 +63,6 @@ Language/Mixins/Mixin_Application/warning_t04: Crash
 Language/Mixins/Mixin_Application/wrong_mixin_type_t09: Crash
 Language/Mixins/Mixin_Composition/order_t02: Crash
 Language/Mixins/declaring_constructor_t11: Crash
-Language/Reference/Operator_Precedence/precedence_01_assignment_t14: Skip # triple-shift experimental flag
-Language/Reference/Operator_Precedence/precedence_12_Shift_t04: Skip # triple-shift experimental flag
-Language/Reference/Operator_Precedence/precedence_t05: Skip # triple-shift experimental flag
-Language/Statements/Expression_Statements/syntax_t06: Skip # triple-shift experimental flag
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t01: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t02: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t03/01: Crash
