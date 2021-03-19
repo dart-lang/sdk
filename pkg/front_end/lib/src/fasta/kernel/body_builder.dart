@@ -5881,8 +5881,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("beginTypeVariable");
     Identifier name = pop();
     List<Expression> annotations = pop();
-    TypeVariableBuilder variable =
-        new TypeVariableBuilder(name.name, libraryBuilder, name.charOffset);
+    TypeVariableBuilder variable = new TypeVariableBuilder(
+        name.name, libraryBuilder, name.charOffset, uri);
     if (annotations != null) {
       inferAnnotations(variable.parameter, annotations);
       for (Expression annotation in annotations) {
@@ -5952,9 +5952,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
     }
-    TypeVariableBuilder.finishNullabilities(
-        libraryBuilder, libraryBuilder.pendingNullabilities);
-    libraryBuilder.pendingNullabilities.clear();
+    libraryBuilder.processPendingNullabilities();
   }
 
   @override

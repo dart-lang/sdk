@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+part issue45330_lib.dart;
+static method genericMethod<T extends core::Object? = dynamic>() → void
+  ;
+static method testInMain() → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///issue45330_lib.dart */ testInPart() → dynamic
+  ;

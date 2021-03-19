@@ -203,7 +203,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   // default nullability of the corresponding type-parameter types.  This list
   // is used to collect such type-parameter types in order to set the
   // nullability after the bounds are built.
-  final List<TypeParameterType> pendingNullabilities = <TypeParameterType>[];
+  final List<PendingNullability> _pendingNullabilities = <PendingNullability>[];
 
   // A library to use for Names generated when compiling code in this library.
   // This allows code generated in one library to use the private namespace of
@@ -2567,9 +2567,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   TypeVariableBuilder addTypeVariable(List<MetadataBuilder> metadata,
-      String name, TypeBuilder bound, int charOffset) {
+      String name, TypeBuilder bound, int charOffset, Uri fileUri) {
     TypeVariableBuilder builder = new TypeVariableBuilder(
-        name, this, charOffset,
+        name, this, charOffset, fileUri,
         bound: bound, metadata: metadata);
     boundlessTypeVariables.add(builder);
     return builder;
@@ -2878,7 +2878,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     List<TypeVariableBuilder> copy = <TypeVariableBuilder>[];
     for (TypeVariableBuilder variable in original) {
       TypeVariableBuilder newVariable = new TypeVariableBuilder(
-          variable.name, this, variable.charOffset,
+          variable.name, this, variable.charOffset, variable.fileUri,
           bound: variable.bound?.clone(newTypes),
           isExtensionTypeParameter: isExtensionTypeParameter,
           variableVariance:
@@ -2902,10 +2902,80 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     boundlessTypeVariables.clear();
 
-    TypeVariableBuilder.finishNullabilities(this, pendingNullabilities);
-    pendingNullabilities.clear();
+    processPendingNullabilities();
 
     return count;
+  }
+
+  /// Assigns nullabilities to types in [_pendingNullabilities].
+  ///
+  /// It's a helper function to assign the nullabilities to type-parameter types
+  /// after the corresponding type parameters have their bounds set or changed.
+  /// The function takes into account that some of the types in the input list
+  /// may be bounds to some of the type parameters of other types from the input
+  /// list.
+  void processPendingNullabilities() {
+    // The bounds of type parameters may be type-parameter types of other
+    // parameters from the same declaration.  In this case we need to set the
+    // nullability for them first.  To preserve the ordering, we implement a
+    // depth-first search over the types.  We use the fact that a nullability
+    // of a type parameter type can't ever be 'nullable' if computed from the
+    // bound. It allows us to use 'nullable' nullability as the marker in the
+    // DFS implementation.
+    Nullability marker = Nullability.nullable;
+    List<TypeParameterType> stack =
+        new List<TypeParameterType>.filled(_pendingNullabilities.length, null);
+    int stackTop = 0;
+    for (PendingNullability pendingNullability in _pendingNullabilities) {
+      pendingNullability.type.declaredNullability = null;
+    }
+    for (PendingNullability pendingNullability in _pendingNullabilities) {
+      TypeParameterType type = pendingNullability.type;
+      if (type.declaredNullability != null) {
+        // Nullability for [type] was already computed on one of the branches
+        // of the depth-first search.  Continue to the next one.
+        continue;
+      }
+      if (type.parameter.bound is TypeParameterType) {
+        TypeParameterType current = type;
+        TypeParameterType next = current.parameter.bound;
+        while (next != null && next.declaredNullability == null) {
+          stack[stackTop++] = current;
+          current.declaredNullability = marker;
+
+          current = next;
+          if (current.parameter.bound is TypeParameterType) {
+            next = current.parameter.bound;
+            if (next.declaredNullability == marker) {
+              next.declaredNullability = Nullability.undetermined;
+              current.parameter.bound = const InvalidType();
+              current.parameter.defaultType = const InvalidType();
+              addProblem(
+                  templateCycleInTypeVariables.withArguments(
+                      next.parameter.name, current.parameter.name),
+                  pendingNullability.charOffset,
+                  next.parameter.name.length,
+                  pendingNullability.fileUri);
+              next = null;
+            }
+          } else {
+            next = null;
+          }
+        }
+        current.declaredNullability =
+            TypeParameterType.computeNullabilityFromBound(current.parameter);
+        while (stackTop != 0) {
+          --stackTop;
+          current = stack[stackTop];
+          current.declaredNullability =
+              TypeParameterType.computeNullabilityFromBound(current.parameter);
+        }
+      } else {
+        type.declaredNullability =
+            TypeParameterType.computeNullabilityFromBound(type.parameter);
+      }
+    }
+    _pendingNullabilities.clear();
   }
 
   int computeVariances() {
@@ -3750,6 +3820,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           referencesFromIndexed.lookupIndexedClass(name);
     }
   }
+
+  void registerPendingNullability(
+      Uri fileUri, int charOffset, TypeParameterType type) {
+    _pendingNullabilities
+        .add(new PendingNullability(fileUri, charOffset, type));
+  }
 }
 
 // The kind of type parameter scope built by a [TypeParameterScopeBuilder]
@@ -4207,4 +4283,12 @@ void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
       _sortTypeVariablesTopologicallyFromRoot(type, unhandled, result);
     }
   }
+}
+
+class PendingNullability {
+  final Uri fileUri;
+  final int charOffset;
+  final TypeParameterType type;
+
+  PendingNullability(this.fileUri, this.charOffset, this.type);
 }

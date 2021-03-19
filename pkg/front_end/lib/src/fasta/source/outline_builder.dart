@@ -1843,7 +1843,8 @@ class OutlineBuilder extends StackListenerImpl {
     if (name is ParserRecovery) {
       push(name);
     } else {
-      push(libraryBuilder.addTypeVariable(metadata, name, null, charOffset));
+      push(libraryBuilder.addTypeVariable(
+          metadata, name, null, charOffset, uri));
     }
   }
 
