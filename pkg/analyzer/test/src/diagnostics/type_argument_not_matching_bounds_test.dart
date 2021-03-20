@@ -451,6 +451,26 @@ main() {
 ''');
   }
 
+  test_genericFunctionTypeArgument_invariant() async {
+    await assertErrorsInCode(r'''
+typedef F = T Function<T>(T);
+typedef FB<T extends F> = S Function<S extends T>(S);
+class CB<T extends F> {}
+void f(CB<FB<F>> a) {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 119, 5),
+    ]);
+  }
+
+  test_genericFunctionTypeArgument_regularBounded() async {
+    await assertNoErrorsInCode(r'''
+typedef F1 = T Function<T>(T);
+typedef F2 = S Function<S>(S);
+class CB<T extends F1> {}
+void f(CB<F2> a) {}
+''');
+  }
+
   test_nonFunctionTypeAlias_interfaceType_parameter() async {
     await assertErrorsInCode(r'''
 class A {}

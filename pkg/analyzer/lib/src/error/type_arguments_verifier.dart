@@ -222,8 +222,8 @@ class TypeArgumentsVerifier {
             CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
             _typeArgumentErrorNode(typeName, i),
           );
+          continue;
         }
-        continue;
       }
 
       var bound = typeParameter.bound;
