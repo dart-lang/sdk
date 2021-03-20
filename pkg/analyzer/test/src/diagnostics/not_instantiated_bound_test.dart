@@ -94,6 +94,14 @@ class C<T extends A> {} // points to a cyclical type
     ]);
   }
 
+  test_class_recursion_notInstantiated_genericFunctionType() async {
+    await assertErrorsInCode(r'''
+class A<T extends void Function(A)> {}
+''', [
+      error(CompileTimeErrorCode.NOT_INSTANTIATED_BOUND, 32, 1),
+    ]);
+  }
+
   test_class_recursion_typedef_notInstantiated() async {
     await assertErrorsInCode(r'''
 typedef F(C value);

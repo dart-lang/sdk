@@ -84,7 +84,9 @@ class DefaultTypesBuilder {
     for (var cycle in allCycles) {
       for (var element in cycle) {
         var boundNode = element.parameter.bound;
-        if (boundNode is TypeNameImpl) {
+        if (boundNode is GenericFunctionTypeImpl) {
+          boundNode.type = DynamicTypeImpl.instance;
+        } else if (boundNode is TypeNameImpl) {
           boundNode.type = DynamicTypeImpl.instance;
         } else {
           throw UnimplementedError('(${boundNode.runtimeType}) $boundNode');

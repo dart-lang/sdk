@@ -1765,6 +1765,19 @@ notSimplyBounded class C<T extends U, U> {
 ''');
   }
 
+  test_class_typeParameters_defaultType_cycle_genericFunctionType() async {
+    var library = await checkLibrary(r'''
+class A<T extends void Function(A)> {}
+''');
+    checkElementText(
+        library,
+        r'''
+notSimplyBounded class A<covariant T extends void Function(A<dynamic>)> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
   test_class_typeParameters_defaultType_functionTypeAlias_contravariant_legacy() async {
     featureSet = FeatureSets.beforeNullSafe;
     var library = await checkLibrary(r'''
