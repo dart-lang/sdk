@@ -66,17 +66,17 @@ class _State {
   static const int HEADER_FIELD = 11;
   static const int HEADER_VALUE_START = 12;
   static const int HEADER_VALUE = 13;
-  static const int HEADER_VALUE_FOLDING_OR_ENDING = 14;
+  static const int HEADER_VALUE_FOLD_OR_END_CR = 14;
   static const int HEADER_VALUE_FOLD_OR_END = 15;
   static const int HEADER_ENDING = 16;
 
   static const int CHUNK_SIZE_STARTING_CR = 17;
-  static const int CHUNK_SIZE_STARTING_LF = 18;
+  static const int CHUNK_SIZE_STARTING = 18;
   static const int CHUNK_SIZE = 19;
   static const int CHUNK_SIZE_EXTENSION = 20;
   static const int CHUNK_SIZE_ENDING = 21;
   static const int CHUNKED_BODY_DONE_CR = 22;
-  static const int CHUNKED_BODY_DONE_LF = 23;
+  static const int CHUNKED_BODY_DONE = 23;
   static const int BODY = 24;
   static const int CLOSED = 25;
   static const int UPGRADED = 26;
@@ -418,6 +418,10 @@ class _HttpParser extends Stream<_HttpIncoming> {
   // Request-Line    = Method SP Request-URI SP HTTP-Version CRLF
   // Status-Line     = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
   // message-header  = field-name ":" [ field-value ]
+  //
+  // Per section 19.3 "Tolerant Applications" CRLF treats LF as a terminator
+  // and leading CR is ignored. Use of standalone CR is not allowed.
+
   void _doParse() {
     assert(!_parserCalled);
     _parserCalled = true;
@@ -570,10 +574,9 @@ class _HttpParser extends Stream<_HttpIncoming> {
           } else {
             if (byte == _CharCode.CR) {
               _state = _State.REQUEST_LINE_ENDING;
-            } else {
-              _expect(byte, _CharCode.LF);
-              _messageType = _MessageType.REQUEST;
-              _state = _State.HEADER_START;
+            } else if (byte == _CharCode.LF) {
+              _state = _State.REQUEST_LINE_ENDING;
+              _index = _index - 1; // Make the new state see the LF again.
             }
           }
           break;
@@ -588,9 +591,12 @@ class _HttpParser extends Stream<_HttpIncoming> {
           if (byte == _CharCode.SP) {
             _state = _State.RESPONSE_LINE_REASON_PHRASE;
           } else if (byte == _CharCode.CR) {
-            // Some HTTP servers does not follow the spec. and send
-            // \r\n right after the status code.
+            // Some HTTP servers do not follow the spec and send
+            // \r?\n right after the status code.
             _state = _State.RESPONSE_LINE_ENDING;
+          } else if (byte == _CharCode.LF) {
+            _state = _State.RESPONSE_LINE_ENDING;
+            _index = _index - 1; // Make the new state see the LF again.
           } else {
             _statusCodeLength++;
             if (byte < 0x30 || byte > 0x39) {
@@ -607,11 +613,10 @@ class _HttpParser extends Stream<_HttpIncoming> {
         case _State.RESPONSE_LINE_REASON_PHRASE:
           if (byte == _CharCode.CR) {
             _state = _State.RESPONSE_LINE_ENDING;
+          } else if (byte == _CharCode.LF) {
+            _state = _State.RESPONSE_LINE_ENDING;
+            _index = _index - 1; // Make the new state see the LF again.
           } else {
-            if (byte == _CharCode.CR || byte == _CharCode.LF) {
-              throw HttpException(
-                  "Invalid response, unexpected $byte in reason phrase");
-            }
             _addWithValidation(_uriOrReasonPhrase, byte);
           }
           break;
@@ -653,7 +658,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
         case _State.HEADER_VALUE_START:
           if (byte == _CharCode.CR) {
-            _state = _State.HEADER_VALUE_FOLDING_OR_ENDING;
+            _state = _State.HEADER_VALUE_FOLD_OR_END_CR;
           } else if (byte == _CharCode.LF) {
             _state = _State.HEADER_VALUE_FOLD_OR_END;
           } else if (byte != _CharCode.SP && byte != _CharCode.HT) {
@@ -665,7 +670,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
         case _State.HEADER_VALUE:
           if (byte == _CharCode.CR) {
-            _state = _State.HEADER_VALUE_FOLDING_OR_ENDING;
+            _state = _State.HEADER_VALUE_FOLD_OR_END_CR;
           } else if (byte == _CharCode.LF) {
             _state = _State.HEADER_VALUE_FOLD_OR_END;
           } else {
@@ -673,7 +678,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
           }
           break;
 
-        case _State.HEADER_VALUE_FOLDING_OR_ENDING:
+        case _State.HEADER_VALUE_FOLD_OR_END_CR:
           _expect(byte, _CharCode.LF);
           _state = _State.HEADER_VALUE_FOLD_OR_END;
           break;
@@ -748,11 +753,16 @@ class _HttpParser extends Stream<_HttpIncoming> {
           break;
 
         case _State.CHUNK_SIZE_STARTING_CR:
+          if (byte == _CharCode.LF) {
+            _state = _State.CHUNK_SIZE_STARTING;
+            _index = _index - 1; // Make the new state see the LF again.
+            break;
+          }
           _expect(byte, _CharCode.CR);
-          _state = _State.CHUNK_SIZE_STARTING_LF;
+          _state = _State.CHUNK_SIZE_STARTING;
           break;
 
-        case _State.CHUNK_SIZE_STARTING_LF:
+        case _State.CHUNK_SIZE_STARTING:
           _expect(byte, _CharCode.LF);
           _state = _State.CHUNK_SIZE;
           break;
@@ -760,6 +770,9 @@ class _HttpParser extends Stream<_HttpIncoming> {
         case _State.CHUNK_SIZE:
           if (byte == _CharCode.CR) {
             _state = _State.CHUNK_SIZE_ENDING;
+          } else if (byte == _CharCode.LF) {
+            _state = _State.CHUNK_SIZE_ENDING;
+            _index = _index - 1; // Make the new state see the LF again.
           } else if (byte == _CharCode.SEMI_COLON) {
             _state = _State.CHUNK_SIZE_EXTENSION;
           } else {
@@ -775,6 +788,9 @@ class _HttpParser extends Stream<_HttpIncoming> {
         case _State.CHUNK_SIZE_EXTENSION:
           if (byte == _CharCode.CR) {
             _state = _State.CHUNK_SIZE_ENDING;
+          } else if (byte == _CharCode.LF) {
+            _state = _State.CHUNK_SIZE_ENDING;
+            _index = _index - 1; // Make the new state see the LF again.
           }
           break;
 
@@ -788,11 +804,15 @@ class _HttpParser extends Stream<_HttpIncoming> {
           break;
 
         case _State.CHUNKED_BODY_DONE_CR:
+          if (byte == _CharCode.LF) {
+            _state = _State.CHUNKED_BODY_DONE;
+            _index = _index - 1; // Make the new state see the LF again.
+            break;
+          }
           _expect(byte, _CharCode.CR);
-          _state = _State.CHUNKED_BODY_DONE_LF;
           break;
 
-        case _State.CHUNKED_BODY_DONE_LF:
+        case _State.CHUNKED_BODY_DONE:
           _expect(byte, _CharCode.LF);
           _reset();
           _closeIncoming();
