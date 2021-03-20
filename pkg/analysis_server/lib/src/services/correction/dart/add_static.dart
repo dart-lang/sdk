@@ -15,6 +15,9 @@ class AddStatic extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var declaration = node.thisOrAncestorOfType<FieldDeclaration>();
+    if (declaration == null) {
+      return;
+    }
     await builder.addDartFileEdit(file, (builder) {
       var offset = declaration.firstTokenAfterCommentAndMetadata.offset;
       builder.addSimpleInsertion(offset, 'static ');
