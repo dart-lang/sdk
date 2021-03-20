@@ -299,8 +299,8 @@ TypeBuilder substituteRange(
             variance: Variance.invariant);
         if (bound != variable.bound) {
           TypeVariableBuilder newTypeVariableBuilder = variables[i] =
-              new TypeVariableBuilder(
-                  variable.name, variable.parent, variable.charOffset,
+              new TypeVariableBuilder(variable.name, variable.parent,
+                  variable.charOffset, variable.fileUri,
                   bound: bound);
           unboundTypeVariables.add(newTypeVariableBuilder);
           if (functionTypeUpperSubstitution == null) {

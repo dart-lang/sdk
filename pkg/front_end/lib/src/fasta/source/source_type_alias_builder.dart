@@ -195,7 +195,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         // otherwise it's a compiled library loaded from a dill file, and the
         // bounds should have been assigned.
         SourceLibraryBuilder parentLibrary = parent;
-        parentLibrary.pendingNullabilities.add(asTypeArguments[i]);
+        parentLibrary.registerPendingNullability(_typeVariables[i].fileUri,
+            _typeVariables[i].charOffset, asTypeArguments[i]);
       }
     }
     return result;

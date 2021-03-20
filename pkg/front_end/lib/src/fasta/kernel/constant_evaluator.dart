@@ -1169,7 +1169,10 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     } else {
       bool sentinelInserted = false;
       if (nodeCache.containsKey(node)) {
-        if (nodeCache[node] == null) {
+        bool isRecursiveFunctionCall =
+            node is MethodInvocation || node is StaticInvocation;
+        if (nodeCache[node] == null &&
+            !(enableConstFunctions && isRecursiveFunctionCall)) {
           // recursive call
           return createErrorConstant(node, messageConstEvalCircularity);
         }

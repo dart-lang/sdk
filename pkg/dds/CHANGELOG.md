@@ -1,3 +1,6 @@
+# 1.7.6
+- Update dependencies.
+
 # 1.7.5
 - Add 30 second keep alive period for SSE connections.
 

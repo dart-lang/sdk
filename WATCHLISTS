@@ -18,6 +18,9 @@
         '^tools/buildtools/'
       )
     },
+    'experimental_features': {
+      'filepath': 'tools/experimental_features\\.yaml',
+    },
     'front_end': {
       'filepath': '^pkg/front_end',
     },
@@ -75,6 +78,7 @@
   'WATCHLISTS': {
     'dart2js': [ 'dart2js-team+reviews@google.com' ],
     'dartdevc': [ 'dart-dc-team+reviews@google.com' ],
+    'experimental_features': [ 'scheglov@google.com' ],
     'front_end': [ 'dart-fe-team+reviews@google.com' ],
     'kernel': [ 'jensj@google.com', 'alexmarkov@google.com' ],
     'messages_review': [ 'dart-uxr+reviews@google.com' ],

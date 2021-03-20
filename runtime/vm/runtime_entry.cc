@@ -3011,10 +3011,7 @@ void DeoptimizeAt(Thread* mutator_thread,
   ASSERT(!unoptimized_code.IsNull());
   // The switch to unoptimized code may have already occurred.
   if (function.HasOptimizedCode()) {
-    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-    if (function.HasOptimizedCode()) {
-      function.SwitchToUnoptimizedCode();
-    }
+    function.SwitchToUnoptimizedCode();
   }
 
   if (frame->IsMarkedForLazyDeopt()) {
@@ -3048,23 +3045,29 @@ void DeoptimizeAt(Thread* mutator_thread,
 // Currently checks only that all optimized frames have kDeoptIndex
 // and unoptimized code has the kDeoptAfter.
 void DeoptimizeFunctionsOnStack() {
-  auto isolate_group = IsolateGroup::Current();
+  auto thread = Thread::Current();
+  // Have to grab program_lock before stopping everybody else.
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
+  auto isolate_group = thread->isolate_group();
   isolate_group->RunWithStoppedMutators([&]() {
     Code& optimized_code = Code::Handle();
-    isolate_group->ForEachIsolate([&](Isolate* isolate) {
-      auto mutator_thread = isolate->mutator_thread();
-      DartFrameIterator iterator(
-          mutator_thread, StackFrameIterator::kAllowCrossThreadIteration);
-      StackFrame* frame = iterator.NextFrame();
-      while (frame != nullptr) {
-        optimized_code = frame->LookupDartCode();
-        if (optimized_code.is_optimized() &&
-            !optimized_code.is_force_optimized()) {
-          DeoptimizeAt(mutator_thread, optimized_code, frame);
-        }
-        frame = iterator.NextFrame();
-      }
-    });
+    isolate_group->ForEachIsolate(
+        [&](Isolate* isolate) {
+          auto mutator_thread = isolate->mutator_thread();
+          DartFrameIterator iterator(
+              mutator_thread, StackFrameIterator::kAllowCrossThreadIteration);
+          StackFrame* frame = iterator.NextFrame();
+          while (frame != nullptr) {
+            optimized_code = frame->LookupDartCode();
+            if (optimized_code.is_optimized() &&
+                !optimized_code.is_force_optimized()) {
+              DeoptimizeAt(mutator_thread, optimized_code, frame);
+            }
+            frame = iterator.NextFrame();
+          }
+        },
+        /*at_safepoint=*/true);
   });
 }
 
