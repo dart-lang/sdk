@@ -26,14 +26,25 @@ part "../../../sdk/lib/_http/http_headers.dart";
 part "../../../sdk/lib/_http/http_session.dart";
 
 class HttpParserTest {
+  final String Function(String) transform;
+  HttpParserTest(this.transform);
+
   static void runAllTests() {
-    testParseRequest();
-    testParseResponse();
-    testParseInvalidRequest();
-    testParseInvalidResponse();
+    final testCRLF = HttpParserTest((String s) => s);
+    testCRLF.testParseRequest();
+    testCRLF.testParseResponse();
+    testCRLF.testParseInvalidRequest();
+    testCRLF.testParseInvalidResponse();
+
+    // Ensure http parser is CR?LF tolerant.
+    final testLF = HttpParserTest((String s) => s.replaceAll('\r', ''));
+    testLF.testParseRequest();
+    testLF.testParseResponse();
+    testLF.testParseInvalidRequest();
+    testLF.testParseInvalidResponse();
   }
 
-  static void _testParseRequest(
+  void _testParseRequest(
       String request, String expectedMethod, String expectedUri,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
@@ -118,13 +129,14 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> requestData = new Uint8List.fromList(request.codeUnits);
+    List<int> requestData =
+        new Uint8List.fromList(transform(request).codeUnits);
     testWrite(requestData);
     testWrite(requestData, 10);
     testWrite(requestData, 1);
   }
 
-  static void _testParseRequestLean(
+  void _testParseRequestLean(
       String request, String expectedMethod, String expectedUri,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
@@ -155,7 +167,7 @@ class HttpParserTest {
         expectedVersion: expectedVersion);
   }
 
-  static void _testParseInvalidRequest(String request) {
+  void _testParseInvalidRequest(String request) {
     _HttpParser httpParser;
     bool errorCalled = false;
     late StreamController<Uint8List> controller;
@@ -192,13 +204,14 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> requestData = new Uint8List.fromList(request.codeUnits);
+    List<int> requestData =
+        new Uint8List.fromList(transform(request).codeUnits);
     testWrite(requestData);
     testWrite(requestData, 10);
     testWrite(requestData, 1);
   }
 
-  static void _testParseResponse(
+  void _testParseResponse(
       String response, int expectedStatusCode, String expectedReasonPhrase,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
@@ -286,13 +299,14 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> responseData = new Uint8List.fromList(response.codeUnits);
+    List<int> responseData =
+        new Uint8List.fromList(transform(response).codeUnits);
     testWrite(responseData);
     testWrite(responseData, 10);
     testWrite(responseData, 1);
   }
 
-  static void _testParseInvalidResponse(String response, [bool close = false]) {
+  void _testParseInvalidResponse(String response, [bool close = false]) {
     void testWrite(List<int> requestData, [int chunkSize = -1]) {
       _HttpParser httpParser = new _HttpParser.responseParser();
       StreamController<Uint8List> controller = new StreamController(sync: true);
@@ -329,13 +343,14 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> responseData = new Uint8List.fromList(response.codeUnits);
+    List<int> responseData =
+        new Uint8List.fromList(transform(response).codeUnits);
     testWrite(responseData);
     testWrite(responseData, 10);
     testWrite(responseData, 1);
   }
 
-  static void testParseRequest() {
+  void testParseRequest() {
     String request;
     Map<String, String> headers;
     var methods = [
@@ -552,7 +567,7 @@ Sec-WebSocket-Version: 13\r
         expectedHeaders: headers, upgrade: true, unparsedLength: 7);
   }
 
-  static void testParseResponse() {
+  void testParseResponse() {
     String response;
     Map<String, String> headers;
     response = "HTTP/1.1 100 Continue\r\nContent-Length: 0\r\n\r\n";
@@ -714,7 +729,7 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r
         expectedHeaders: headers, upgrade: true, unparsedLength: 4);
   }
 
-  static void testParseInvalidRequest() {
+  void testParseInvalidRequest() {
     String request;
     request = "GET /\r\n\r\n";
     _testParseInvalidRequest(request);
@@ -770,7 +785,7 @@ Content-Length: 7\r
     _testParseInvalidRequest(request);
   }
 
-  static void testParseInvalidResponse() {
+  void testParseInvalidResponse() {
     String response;
 
     response = "HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
