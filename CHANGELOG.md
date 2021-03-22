@@ -4,6 +4,18 @@
 
 ### Core libraries
 
+#### `dart:collection`
+
+- The `SplayTreeMap` was changed to allow `null` as key if the `compare`
+  function allows it. It now checks that a new key can be used as an
+  argument to the `compare` function when the member is added,
+  *even if the map is empty* (in which case it just compares the key
+  to itself).
+- The `SplayTreeSet` was changed to checks that a new element can be used as an
+  argument to the `compare` function when the member is added,
+  *even if the set is empty* (in which case it just compares the element
+  to itself).
+
 ### Dart VM
 
 ### Tools

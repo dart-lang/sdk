@@ -28,7 +28,6 @@ main() {
   for (var v in ["first", "second", "third", "fourth", "fifth"]) {
     Expect.isTrue(tree.containsValue(v));
   }
-  ;
   Expect.isFalse(tree.containsValue("sixth"));
 
   tree[7] = "seventh";
@@ -55,6 +54,7 @@ main() {
   regressRemoveWhere();
   regressRemoveWhere2();
   regressFromCompare();
+  regressIncomparable();
 }
 
 void regressRemoveWhere() {
@@ -130,6 +130,63 @@ void regressFromCompare() {
   map[key(5)] = 42;
   Expect.equals(4, map.length);
   Expect.equals(42, map[key(5)]);
+}
+
+// Incomparable keys throw when added, even on an empty collection.
+void regressIncomparable() {
+  var set = SplayTreeSet();
+  Expect.throws(() => set.add(IncomparableKey(0)));
+  Expect.throws(() => set.lookup(IncomparableKey(0)));
+  set.add(1);
+  Expect.throws(() => set.add(IncomparableKey(0)));
+  Expect.throws(() => set.lookup(IncomparableKey(0)));
+
+  var map = SplayTreeMap();
+  Expect.throws(() => map[IncomparableKey(0)] = 0);
+  Expect.throws(() => map.putIfAbsent(IncomparableKey(0), () => 0));
+  map[1] = 1;
+  Expect.throws(() => map[IncomparableKey(0)] = 0);
+  Expect.throws(() => map.putIfAbsent(IncomparableKey(0), () => 0));
+
+  // But not if the compare function allows them.
+  // This now includes `null`.
+  int compare(Object o1, Object o2) {
+    if (o1 == null) return o2 == null ? 0 : -1;
+    if (o2 == null) return 1;
+    if (o1 is IncomparableKey && o2 is IncomparableKey) {
+      return o1.id - o2.id;
+    }
+    throw UnsupportedError("Nope");
+  }
+  for (var key in [null, IncomparableKey(0)]) {
+    set = SplayTreeSet<Object>(compare);
+    set.add(key);
+    Expect.equals(1, set.length);
+    set.clear();
+    Expect.isNull(set.lookup(key));
+    set.clear();
+    set.add(IncomparableKey(1));
+    set.add(key);
+    Expect.identical(key, set.first);
+    Expect.identical(key, set.lookup(key));
+
+    map = SplayTreeMap<Object, Object>(compare);
+    map[key] = 0;
+    Expect.isTrue(map.containsKey(key));
+    map.clear();
+    map.putIfAbsent(key, () => 0);
+    Expect.isTrue(map.containsKey(key));
+    map.clear();
+    map[IncomparableKey(1)] = 0;
+    map[key] = 0;
+    Expect.isTrue(map.containsKey(key));
+    map.remove(key);
+    Expect.isFalse(map.containsKey(key));
+    map.putIfAbsent(key, () => 0);
+    Expect.isTrue(map.containsKey(key));
+    map.remove(key);
+    Expect.isFalse(map.containsKey(key));
+  }
 }
 
 class IncomparableKey {
