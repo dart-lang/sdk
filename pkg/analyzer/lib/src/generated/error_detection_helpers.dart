@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -28,7 +31,8 @@ mixin ErrorDetectionHelpers {
       Expression expression,
       DartType? expectedStaticType,
       DartType actualStaticType,
-      ErrorCode errorCode) {
+      ErrorCode errorCode,
+      {Map<DartType, NonPromotionReason> Function()? whyNotPromotedInfo}) {
     // Warning case: test static type information
     if (expectedStaticType != null) {
       if (!expectedStaticType.isVoid && checkForUseOfVoidResult(expression)) {
@@ -36,7 +40,8 @@ mixin ErrorDetectionHelpers {
       }
 
       checkForAssignableExpressionAtType(
-          expression, actualStaticType, expectedStaticType, errorCode);
+          expression, actualStaticType, expectedStaticType, errorCode,
+          whyNotPromotedInfo: whyNotPromotedInfo);
     }
   }
 
@@ -48,11 +53,13 @@ mixin ErrorDetectionHelpers {
   ///
   /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void checkForArgumentTypeNotAssignableForArgument(Expression argument,
-      {bool promoteParameterToNullable = false}) {
+      {bool promoteParameterToNullable = false,
+      Map<DartType, NonPromotionReason> Function()? whyNotPromotedInfo}) {
     checkForArgumentTypeNotAssignableForArgument2(
       argument: argument,
       parameter: argument.staticParameterElement,
       promoteParameterToNullable: promoteParameterToNullable,
+      whyNotPromotedInfo: whyNotPromotedInfo,
     );
   }
 
@@ -60,21 +67,26 @@ mixin ErrorDetectionHelpers {
     required Expression argument,
     required ParameterElement? parameter,
     required bool promoteParameterToNullable,
+    Map<DartType, NonPromotionReason> Function()? whyNotPromotedInfo,
   }) {
     var staticParameterType = parameter?.type;
     if (promoteParameterToNullable && staticParameterType != null) {
       staticParameterType =
           typeSystem.makeNullable(staticParameterType as TypeImpl);
     }
-    _checkForArgumentTypeNotAssignableWithExpectedTypes(argument,
-        staticParameterType, CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    _checkForArgumentTypeNotAssignableWithExpectedTypes(
+        argument,
+        staticParameterType,
+        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        whyNotPromotedInfo);
   }
 
   bool checkForAssignableExpressionAtType(
       Expression expression,
       DartType actualStaticType,
       DartType expectedStaticType,
-      ErrorCode errorCode) {
+      ErrorCode errorCode,
+      {Map<DartType, NonPromotionReason> Function()? whyNotPromotedInfo}) {
     if (!typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
       AstNode getErrorNode(AstNode node) {
         if (node is CascadeExpression) {
@@ -90,6 +102,8 @@ mixin ErrorDetectionHelpers {
         errorCode,
         getErrorNode(expression),
         [actualStaticType, expectedStaticType],
+        computeWhyNotPromotedMessages(
+            expression, expression, whyNotPromotedInfo?.call()),
       );
       return false;
     }
@@ -118,6 +132,22 @@ mixin ErrorDetectionHelpers {
     return true;
   }
 
+  /// Computes the appropriate set of context messages to report along with an
+  /// error that may have occurred because [expression] was not type promoted.
+  ///
+  /// If [expression] is `null`, it means the expression that was not type
+  /// promoted was an implicit `this`.
+  ///
+  /// [errorEntity] is the entity whose location will be associated with the
+  /// error.  This is needed for test instrumentation.
+  ///
+  /// [whyNotPromoted] should be the non-promotion details returned by the flow
+  /// analysis engine.
+  List<DiagnosticMessage> computeWhyNotPromotedMessages(
+      Expression? expression,
+      SyntacticEntity errorEntity,
+      Map<DartType, NonPromotionReason>? whyNotPromoted);
+
   /// Verify that the given [expression] can be assigned to its corresponding
   /// parameters.
   ///
@@ -131,8 +161,10 @@ mixin ErrorDetectionHelpers {
   void _checkForArgumentTypeNotAssignableWithExpectedTypes(
       Expression expression,
       DartType? expectedStaticType,
-      ErrorCode errorCode) {
+      ErrorCode errorCode,
+      Map<DartType, NonPromotionReason> Function()? whyNotPromotedInfo) {
     checkForArgumentTypeNotAssignable(
-        expression, expectedStaticType, expression.typeOrThrow, errorCode);
+        expression, expectedStaticType, expression.typeOrThrow, errorCode,
+        whyNotPromotedInfo: whyNotPromotedInfo);
   }
 }

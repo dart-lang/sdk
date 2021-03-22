@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -28,11 +29,12 @@ class AnnotationResolver {
   bool get _genericMetadataIsEnabled =>
       _definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
 
-  void resolve(AnnotationImpl node) {
+  void resolve(AnnotationImpl node,
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo) {
     AstNode parent = node.parent;
 
     node.typeArguments?.accept(_resolver);
-    _resolve(node);
+    _resolve(node, whyNotPromotedInfo);
 
     var elementAnnotationImpl =
         node.elementAnnotation as ElementAnnotationImpl?;
@@ -48,6 +50,7 @@ class AnnotationResolver {
     AnnotationImpl node,
     ClassElement classElement,
     SimpleIdentifierImpl? getterName,
+    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo,
   ) {
     ExecutableElement? getter;
     if (getterName != null) {
@@ -63,7 +66,7 @@ class AnnotationResolver {
     node.element = getter;
 
     if (getterName != null && getter is PropertyAccessorElement) {
-      _propertyAccessorElement(node, getterName, getter);
+      _propertyAccessorElement(node, getterName, getter, whyNotPromotedInfo);
       _resolveAnnotationElementGetter(node, getter);
     } else if (getter is! ConstructorElement) {
       _errorReporter.reportErrorForNode(
@@ -72,7 +75,7 @@ class AnnotationResolver {
       );
     }
 
-    node.arguments?.accept(_resolver);
+    _visitArguments(node, whyNotPromotedInfo);
   }
 
   void _constructorInvocation(
@@ -80,6 +83,7 @@ class AnnotationResolver {
     ClassElement classElement,
     SimpleIdentifierImpl? constructorName,
     ArgumentList argumentList,
+    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo,
   ) {
     ConstructorElement? constructorElement;
     if (constructorName != null) {
@@ -99,7 +103,8 @@ class AnnotationResolver {
         CompileTimeErrorCode.INVALID_ANNOTATION,
         node,
       );
-      argumentList.accept(_resolver);
+      _resolver.visitArgumentList(argumentList,
+          whyNotPromotedInfo: whyNotPromotedInfo);
       return;
     }
 
@@ -109,7 +114,8 @@ class AnnotationResolver {
     if (typeParameters.isEmpty) {
       _resolveConstructorInvocationArguments(node);
       InferenceContext.setType(argumentList, constructorElement.type);
-      argumentList.accept(_resolver);
+      _resolver.visitArgumentList(argumentList,
+          whyNotPromotedInfo: whyNotPromotedInfo);
       return;
     }
 
@@ -127,7 +133,8 @@ class AnnotationResolver {
       _resolveConstructorInvocationArguments(node);
 
       InferenceContext.setType(argumentList, constructorElement.type);
-      argumentList.accept(_resolver);
+      _resolver.visitArgumentList(argumentList,
+          whyNotPromotedInfo: whyNotPromotedInfo);
     }
 
     if (!_genericMetadataIsEnabled) {
@@ -156,7 +163,8 @@ class AnnotationResolver {
       return;
     }
 
-    argumentList.accept(_resolver);
+    _resolver.visitArgumentList(argumentList,
+        whyNotPromotedInfo: whyNotPromotedInfo);
 
     var constructorRawType = _resolver.typeAnalyzer
         .constructorToGenericFunctionType(constructorElement);
@@ -186,6 +194,7 @@ class AnnotationResolver {
     AnnotationImpl node,
     ExtensionElement extensionElement,
     SimpleIdentifierImpl? getterName,
+    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo,
   ) {
     ExecutableElement? getter;
     if (getterName != null) {
@@ -197,7 +206,7 @@ class AnnotationResolver {
     node.element = getter;
 
     if (getterName != null && getter is PropertyAccessorElement) {
-      _propertyAccessorElement(node, getterName, getter);
+      _propertyAccessorElement(node, getterName, getter, whyNotPromotedInfo);
       _resolveAnnotationElementGetter(node, getter);
     } else {
       _errorReporter.reportErrorForNode(
@@ -206,23 +215,25 @@ class AnnotationResolver {
       );
     }
 
-    node.arguments?.accept(_resolver);
+    _visitArguments(node, whyNotPromotedInfo);
   }
 
   void _propertyAccessorElement(
     AnnotationImpl node,
     SimpleIdentifierImpl name,
     PropertyAccessorElement element,
+    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo,
   ) {
     element = _resolver.toLegacyElement(element);
     name.staticElement = element;
     node.element = element;
 
     _resolveAnnotationElementGetter(node, element);
-    node.arguments?.accept(_resolver);
+    _visitArguments(node, whyNotPromotedInfo);
   }
 
-  void _resolve(AnnotationImpl node) {
+  void _resolve(AnnotationImpl node,
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo) {
     SimpleIdentifierImpl name1;
     SimpleIdentifierImpl? name2;
     SimpleIdentifierImpl? name3;
@@ -246,23 +257,24 @@ class AnnotationResolver {
         node,
         [name1.name],
       );
-      node.arguments?.accept(_resolver);
+      _visitArguments(node, whyNotPromotedInfo);
       return;
     }
 
     // Class(args) or Class.CONST
     if (element1 is ClassElement) {
       if (argumentList != null) {
-        _constructorInvocation(node, element1, name2, argumentList);
+        _constructorInvocation(
+            node, element1, name2, argumentList, whyNotPromotedInfo);
       } else {
-        _classGetter(node, element1, name2);
+        _classGetter(node, element1, name2, whyNotPromotedInfo);
       }
       return;
     }
 
     // Extension.CONST
     if (element1 is ExtensionElement) {
-      _extensionGetter(node, element1, name2);
+      _extensionGetter(node, element1, name2, whyNotPromotedInfo);
       return;
     }
 
@@ -274,20 +286,21 @@ class AnnotationResolver {
         // prefix.Class(args) or prefix.Class.CONST
         if (element2 is ClassElement) {
           if (argumentList != null) {
-            _constructorInvocation(node, element2, name3, argumentList);
+            _constructorInvocation(
+                node, element2, name3, argumentList, whyNotPromotedInfo);
           } else {
-            _classGetter(node, element2, name3);
+            _classGetter(node, element2, name3, whyNotPromotedInfo);
           }
           return;
         }
         // prefix.Extension.CONST
         if (element2 is ExtensionElement) {
-          _extensionGetter(node, element2, name3);
+          _extensionGetter(node, element2, name3, whyNotPromotedInfo);
           return;
         }
         // prefix.CONST
         if (element2 is PropertyAccessorElement) {
-          _propertyAccessorElement(node, name2, element2);
+          _propertyAccessorElement(node, name2, element2, whyNotPromotedInfo);
           return;
         }
         // undefined
@@ -297,7 +310,7 @@ class AnnotationResolver {
             node,
             [name2.name],
           );
-          node.arguments?.accept(_resolver);
+          _visitArguments(node, whyNotPromotedInfo);
           return;
         }
       }
@@ -305,7 +318,7 @@ class AnnotationResolver {
 
     // CONST
     if (element1 is PropertyAccessorElement) {
-      _propertyAccessorElement(node, name1, element1);
+      _propertyAccessorElement(node, name1, element1, whyNotPromotedInfo);
       return;
     }
 
@@ -319,7 +332,7 @@ class AnnotationResolver {
       node,
     );
 
-    node.arguments?.accept(_resolver);
+    _visitArguments(node, whyNotPromotedInfo);
   }
 
   void _resolveAnnotationElementGetter(
@@ -377,6 +390,15 @@ class AnnotationResolver {
       if (parameters != null) {
         argumentList.correspondingStaticParameters = parameters;
       }
+    }
+  }
+
+  void _visitArguments(AnnotationImpl node,
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo) {
+    var arguments = node.arguments;
+    if (arguments != null) {
+      _resolver.visitArgumentList(arguments,
+          whyNotPromotedInfo: whyNotPromotedInfo);
     }
   }
 }
