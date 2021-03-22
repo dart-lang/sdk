@@ -3263,9 +3263,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode EXTENDS_DEFERRED_CLASS =
       CompileTimeErrorCode(
-          'EXTENDS_DEFERRED_CLASS', "Classes can't extend deferred classes.",
+          'SUBTYPE_OF_DEFERRED_CLASS', "Classes can't extend deferred classes.",
           correction: "Try specifying a different superclass, or "
-              "removing the extends clause.");
+              "removing the extends clause.",
+          uniqueName: 'EXTENDS_DEFERRED_CLASS');
 
   /**
    * Parameters:
@@ -4772,11 +4773,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * See [EXTENDS_DEFERRED_CLASS], and [MIXIN_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode IMPLEMENTS_DEFERRED_CLASS =
-      CompileTimeErrorCode('IMPLEMENTS_DEFERRED_CLASS',
+      CompileTimeErrorCode('SUBTYPE_OF_DEFERRED_CLASS',
           "Classes and mixins can't implement deferred classes.",
           correction: "Try specifying a different interface, "
               "removing the class from the list, or "
-              "changing the import to not be deferred.");
+              "changing the import to not be deferred.",
+          uniqueName: 'IMPLEMENTS_DEFERRED_CLASS');
 
   /**
    * Parameters:
@@ -7199,8 +7201,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * See [EXTENDS_DEFERRED_CLASS], and [IMPLEMENTS_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode MIXIN_DEFERRED_CLASS = CompileTimeErrorCode(
-      'MIXIN_DEFERRED_CLASS', "Classes can't mixin deferred classes.",
-      correction: "Try changing the import to not be deferred.");
+      'SUBTYPE_OF_DEFERRED_CLASS', "Classes can't mixin deferred classes.",
+      correction: "Try changing the import to not be deferred.",
+      uniqueName: 'MIXIN_DEFERRED_CLASS');
 
   static const CompileTimeErrorCode
       MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES = CompileTimeErrorCode(
