@@ -28,7 +28,7 @@ extension E<T> on T {
 typedef FB<T extends F> = S Function<S extends T>(S);
 
 // For a class:
-class CB<T extends F> {
+class CB<T extends FB<F>> {
   final T function;
   const CB(this.function);
 }
