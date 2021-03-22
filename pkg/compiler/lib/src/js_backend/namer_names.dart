@@ -146,6 +146,9 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
   CompoundName.from(List<jsAst.Name> parts) : this(<_NamerName>[...parts]);
 
   @override
+  bool get isFinalized => _parts.every((name) => name.isFinalized);
+
+  @override
   String get name {
     if (_cachedName == null) {
       _cachedName = _parts.map((jsAst.Name name) => name.name).join();
