@@ -8,7 +8,6 @@
 
 // ignore_for_file: annotate_overrides
 // ignore_for_file: unnecessary_parenthesis
-// ignore_for_file: unused_shown_name
 
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
@@ -16,8 +15,7 @@ import 'dart:convert' show JsonEncoder;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart'
-    show listEqual, mapEqual;
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
 
