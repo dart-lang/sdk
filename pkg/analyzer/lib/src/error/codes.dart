@@ -3263,9 +3263,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode EXTENDS_DEFERRED_CLASS =
       CompileTimeErrorCode(
-          'EXTENDS_DEFERRED_CLASS', "Classes can't extend deferred classes.",
+          'SUBTYPE_OF_DEFERRED_CLASS', "Classes can't extend deferred classes.",
           correction: "Try specifying a different superclass, or "
-              "removing the extends clause.");
+              "removing the extends clause.",
+          uniqueName: 'EXTENDS_DEFERRED_CLASS');
 
   /**
    * Parameters:
@@ -4772,11 +4773,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * See [EXTENDS_DEFERRED_CLASS], and [MIXIN_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode IMPLEMENTS_DEFERRED_CLASS =
-      CompileTimeErrorCode('IMPLEMENTS_DEFERRED_CLASS',
+      CompileTimeErrorCode('SUBTYPE_OF_DEFERRED_CLASS',
           "Classes and mixins can't implement deferred classes.",
           correction: "Try specifying a different interface, "
               "removing the class from the list, or "
-              "changing the import to not be deferred.");
+              "changing the import to not be deferred.",
+          uniqueName: 'IMPLEMENTS_DEFERRED_CLASS');
 
   /**
    * Parameters:
@@ -7199,8 +7201,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * See [EXTENDS_DEFERRED_CLASS], and [IMPLEMENTS_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode MIXIN_DEFERRED_CLASS = CompileTimeErrorCode(
-      'MIXIN_DEFERRED_CLASS', "Classes can't mixin deferred classes.",
-      correction: "Try changing the import to not be deferred.");
+      'SUBTYPE_OF_DEFERRED_CLASS', "Classes can't mixin deferred classes.",
+      correction: "Try changing the import to not be deferred.",
+      uniqueName: 'MIXIN_DEFERRED_CLASS');
 
   static const CompileTimeErrorCode
       MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES = CompileTimeErrorCode(
@@ -8171,11 +8174,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode
       NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY = CompileTimeErrorCode(
-          'NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY',
+          'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library can't be used as values in "
               "a 'const' list.",
-          correction:
-              "Try removing the keyword 'const' from the list literal.");
+          correction: "Try removing the keyword 'const' from the list literal.",
+          uniqueName: 'NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY');
 
   /**
    * No parameters.
@@ -8275,10 +8278,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY =
       CompileTimeErrorCode(
-          'NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY',
+          'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library can't be used as keys in a "
               "const map literal.",
-          correction: "Try removing the keyword 'const' from the map literal.");
+          correction: "Try removing the keyword 'const' from the map literal.",
+          uniqueName: 'NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY');
 
   /**
    * No parameters.
@@ -8328,10 +8332,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode
       NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY = CompileTimeErrorCode(
-          'NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY',
+          'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library can't be used as values in "
               "a const map literal.",
-          correction: "Try removing the keyword 'const' from the map literal.");
+          correction: "Try removing the keyword 'const' from the map literal.",
+          uniqueName: 'NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY');
 
   /**
    * No parameters.
@@ -10412,10 +10417,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   static const CompileTimeErrorCode SET_ELEMENT_FROM_DEFERRED_LIBRARY =
       CompileTimeErrorCode(
-          'SET_ELEMENT_FROM_DEFERRED_LIBRARY',
+          'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library can't be used as values in "
               "a const set.",
-          correction: "Try making the deferred import non-deferred.");
+          correction: "Try making the deferred import non-deferred.",
+          uniqueName: 'SET_ELEMENT_FROM_DEFERRED_LIBRARY');
 
   /**
    * Parameters:

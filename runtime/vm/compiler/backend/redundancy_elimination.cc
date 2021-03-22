@@ -1348,6 +1348,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   } else if (auto check = current->AsGenericCheckBound()) {
     ASSERT(CompilerState::Current().is_aot());  // non-speculative in AOT only
     // Does not deopt, so no need for licm_hoisted flag.
+    USE(check);
   } else if (auto check = current->AsTestCids()) {
     check->set_licm_hoisted(true);
   } else if (auto check = current->AsAssertAssignable()) {

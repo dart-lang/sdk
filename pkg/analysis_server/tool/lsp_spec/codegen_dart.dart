@@ -385,7 +385,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..outdent()
     ..writeIndentedln('}');
   namespace.members.whereType<Const>().forEach((cons) {
-    // We don't use any deprecated enum values, so ommit them entirely.
+    // We don't use any deprecated enum values, so omit them entirely.
     if (cons.isDeprecated) {
       return;
     }
