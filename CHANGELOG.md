@@ -1,3 +1,10 @@
+# 1.2.0
+
+- improvements to `iterable_contains_unrelated_type` to better support `List`
+  content checks
+- fixes to `camel_case_types` and `prefer_mixin` to support non-function
+  type aliases
+
 # 1.1.0
 
 - fixed `prefer_mixin` to properly make exceptions for `dart.collection` legacy
