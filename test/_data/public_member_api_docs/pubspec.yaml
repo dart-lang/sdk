@@ -1,1 +1,4 @@
 name: public_member_api_docs
+
+environment:
+  sdk: '>=2.13.0-0 <3.0.0'
