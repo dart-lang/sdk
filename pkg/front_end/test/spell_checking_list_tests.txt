@@ -738,6 +738,7 @@ timer
 timings
 tinv
 told
+touch
 tpt
 transitively
 translators

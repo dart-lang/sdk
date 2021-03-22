@@ -237,6 +237,11 @@ const String experimentalFlagOptions = '--enable-experiment=';
 const String overwriteCurrentSdkVersion = '--overwrite-current-sdk-version=';
 const String noVerifyCmd = '--no-verify';
 
+final ExpectationSet staticExpectationSet =
+    new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
+final Expectation semiFuzzFailure = staticExpectationSet["SemiFuzzFailure"];
+final Expectation semiFuzzCrash = staticExpectationSet["SemiFuzzCrash"];
+
 /// Options used for all tests within a given folder.
 ///
 /// This is used for instance for defining target, mode, and experiment specific
@@ -332,8 +337,7 @@ class FastaContext extends ChainContext with MatchContext {
   bool get canBeFixWithUpdateExpectations => true;
 
   @override
-  final ExpectationSet expectationSet =
-      new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
+  final ExpectationSet expectationSet = staticExpectationSet;
 
   Map<Uri, Component> _platforms = {};
 
@@ -404,10 +408,16 @@ class FastaContext extends ChainContext with MatchContext {
       steps.add(const EnsureNoErrors());
       if (!skipVm) {
         steps.add(const WriteDill());
-        steps.add(const Run());
       }
       if (semiFuzz) {
         steps.add(const FuzzCompiles());
+      }
+
+      // Notice: The below steps will run async, i.e. the next test will run
+      // intertwined with this/these step(s). That for instance means that they
+      // should not touch any ASTs!
+      if (!skipVm) {
+        steps.add(const Run());
       }
     }
   }
@@ -716,6 +726,11 @@ class FastaContext extends ChainContext with MatchContext {
       Set<Expectation> outcomes, TestDescription description) {
     if (skipVm && outcomes.length == 1 && outcomes.single == runtimeError) {
       return new Set<Expectation>.from([Expectation.Pass]);
+    } else if (!semiFuzz &&
+        outcomes.length == 1 &&
+        (outcomes.single == semiFuzzFailure ||
+            outcomes.single == semiFuzzCrash)) {
+      return new Set<Expectation>.from([Expectation.Pass]);
     } else {
       return outcomes;
     }
@@ -795,9 +810,8 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
 
   String get name => "run";
 
+  /// WARNING: Every subsequent step in this test will run async as well!
   bool get isAsync => true;
-
-  bool get isRuntime => true;
 
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
@@ -1188,7 +1202,7 @@ class FuzzCompiles
         userLibraries.length != result.userLibraries.length) {
       return new Result<ComponentResult>(
           result,
-          context.expectationSet["SemiFuzzFailure"],
+          semiFuzzFailure,
           "Got a different amount of user libraries on first compile "
           "compared to 'original' compilation:\n\n"
           "This compile:\n"
@@ -1213,7 +1227,7 @@ class FuzzCompiles
               originalErrors.map((error) => error.join('\n')).join('\n\n');
           return new Result<ComponentResult>(
               result,
-              context.expectationSet["SemiFuzzFailure"],
+              semiFuzzFailure,
               "Expected these errors:\n${errorsString}\n\n"
               "but didn't get any after invalidating $importUri");
         } else {
@@ -1222,7 +1236,7 @@ class FuzzCompiles
               .join('\n\n');
           return new Result<ComponentResult>(
               result,
-              context.expectationSet["SemiFuzzFailure"],
+              semiFuzzFailure,
               "Unexpected errors:\n${errorsString}\n\n"
               "after invalidating $importUri");
         }
@@ -1234,7 +1248,7 @@ class FuzzCompiles
           newUserLibraries.length != userLibraries.length) {
         return new Result<ComponentResult>(
             result,
-            context.expectationSet["SemiFuzzFailure"],
+            semiFuzzFailure,
             "Got a different amount of user libraries on recompile "
             "compared to 'original' compilation after having invalidated "
             "$importUri.\n\n"
@@ -1303,8 +1317,18 @@ class FuzzCompiles
         continue;
       }
       Uint8List orgData = fs.data[uri];
-      FuzzAstVisitorSorter fuzzAstVisitorSorter =
-          new FuzzAstVisitorSorter(orgData, builder.isNonNullableByDefault);
+      FuzzAstVisitorSorter fuzzAstVisitorSorter;
+      try {
+        fuzzAstVisitorSorter =
+            new FuzzAstVisitorSorter(orgData, builder.isNonNullableByDefault);
+      } on FormatException catch (e, st) {
+        // UTF-16-LE formatted test crashes `utf8.decode(bytes)` --- catch that
+        return new Result<ComponentResult>(
+            result,
+            semiFuzzCrash,
+            "$e\n\n"
+            "$st");
+      }
 
       // Sort ascending and then compile. Then sort descending and try again.
       for (void Function() sorter in [
@@ -1325,7 +1349,7 @@ class FuzzCompiles
         } catch (e, st) {
           return new Result<ComponentResult>(
               result,
-              context.expectationSet["SemiFuzzCrash"],
+              semiFuzzCrash,
               "Crashed with '$e' after reordering '$uri' to\n\n"
               "$sb\n\n"
               "$st");
@@ -1345,7 +1369,7 @@ class FuzzCompiles
                 originalErrors.map((error) => error.join('\n')).join('\n\n');
             return new Result<ComponentResult>(
                 result,
-                context.expectationSet["SemiFuzzFailure"],
+                semiFuzzFailure,
                 "Expected these errors:\n${errorsString}\n\n"
                 "but didn't get any after reordering $uri "
                 "to have this content:\n\n"
@@ -1353,7 +1377,7 @@ class FuzzCompiles
           } else {
             return new Result<ComponentResult>(
                 result,
-                context.expectationSet["SemiFuzzFailure"],
+                semiFuzzFailure,
                 "Unexpected errors:\n${errorsString}\n\n"
                 "after reordering $uri to have this content:\n\n"
                 "$sb");

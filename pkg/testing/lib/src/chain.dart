@@ -322,11 +322,28 @@ abstract class Step<I, O, C extends ChainContext> {
 
   String get name;
 
+  /// Sets this (*and effectively subsequent*) test step(s) as async.
+  ///
+  /// TL;DR: Either set to false, or only set to true when this and all
+  /// subsequent steps can run intertwined with another test.
+  ///
+  /// Details:
+  ///
+  /// A single test (TestDescription) can have several steps (Step).
+  /// When running a test the first step is executed, and when that step is done
+  /// the next step is executed by the now-ending step.
+  ///
+  /// When isAsync is false each step returns a future which is awaited,
+  /// effectivly meaning that only a single test is run at a time.
+  ///
+  /// When isAsync is true that step doesn't return a future (but adds it's
+  /// future to a list which is awaited before sending an 'entire suite done'
+  /// message), meaning that the next test can start before the step is
+  /// finished. As the next step in the test only starts after the current
+  /// step finishes, that also means that the next test can start - and run
+  /// intertwined with - a subsequent step even if such a subsequent step has
+  /// isAsync set to false.
   bool get isAsync => false;
-
-  bool get isCompiler => false;
-
-  bool get isRuntime => false;
 
   Future<Result<O>> run(I input, C context);
 
