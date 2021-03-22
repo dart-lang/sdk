@@ -125,16 +125,6 @@ class _MigrationCliRunner extends MigrationCliRunner {
   }
 
   @override
-  void listenForSignalInterrupt() {
-    if (_runWhilePreviewServerActive == null) {
-      fail('Preview server not expected to have been started');
-    }
-    sigIntSignalled = Completer();
-    _runWhilePreviewServerActive.call().then((_) => sigIntSignalled.complete());
-    _runWhilePreviewServerActive = null;
-  }
-
-  @override
   Object computeBindAddress() {
     var address = super.computeBindAddress();
     if (Platform.environment.containsKey('FORCE_IPV6') &&
@@ -174,6 +164,16 @@ class _MigrationCliRunner extends MigrationCliRunner {
           summaryPath: summaryPath,
           sdkPath: sdkPath);
     }
+  }
+
+  @override
+  void listenForSignalInterrupt() {
+    if (_runWhilePreviewServerActive == null) {
+      fail('Preview server not expected to have been started');
+    }
+    sigIntSignalled = Completer();
+    _runWhilePreviewServerActive.call().then((_) => sigIntSignalled.complete());
+    _runWhilePreviewServerActive = null;
   }
 
   Future<void> runWithPreviewServer(Future<void> Function() callback) async {
