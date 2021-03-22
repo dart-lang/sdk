@@ -86,8 +86,6 @@ DEFINE_FLAG(charp,
 //
 // Locking notes:
 // The following locks are used by the timeline system:
-// - |Timeline::recorder_lock_| This lock is held whenever Timeline::recorder()
-// is accessed or modified.
 // - |TimelineEventRecorder::lock_| This lock is held whenever a
 // |TimelineEventBlock| is being requested or reclaimed.
 // - |Thread::timeline_block_lock_| This lock is held whenever a |Thread|'s
@@ -96,10 +94,9 @@ DEFINE_FLAG(charp,
 // |Thread|s.
 //
 // Locks must always be taken in the following order:
-//   |Timeline::recorder_lock_|
-//     |Thread::thread_list_lock_|
-//       |Thread::timeline_block_lock_|
-//         |TimelineEventRecorder::lock_|
+//   |Thread::thread_list_lock_|
+//     |Thread::timeline_block_lock_|
+//       |TimelineEventRecorder::lock_|
 //
 
 static TimelineEventRecorder* CreateTimelineRecorder() {
@@ -208,10 +205,6 @@ static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
 }
 
 void Timeline::Init() {
-  if (recorder_lock_ == nullptr) {
-    recorder_lock_ = new Mutex();
-  }
-  MutexLocker ml(recorder_lock_);
   ASSERT(recorder_ == NULL);
   recorder_ = CreateTimelineRecorder();
   ASSERT(recorder_ != NULL);
@@ -224,8 +217,6 @@ void Timeline::Init() {
 }
 
 void Timeline::Cleanup() {
-  ASSERT(recorder_lock_ != nullptr);
-  MutexLocker ml(recorder_lock_);
   ASSERT(recorder_ != NULL);
 
 #ifndef PRODUCT
@@ -252,12 +243,6 @@ TimelineEventRecorder* Timeline::recorder() {
 }
 
 void Timeline::ReclaimCachedBlocksFromThreads() {
-  ASSERT(recorder_lock_ != nullptr);
-  MutexLocker ml(recorder_lock_);
-  ReclaimCachedBlocksFromThreadsLocked();
-}
-
-void Timeline::ReclaimCachedBlocksFromThreadsLocked() {
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (recorder == NULL) {
     return;
@@ -289,8 +274,6 @@ void Timeline::PrintFlagsToJSONArray(JSONArray* arr) {
 }
 
 void Timeline::PrintFlagsToJSON(JSONStream* js) {
-  ASSERT(recorder_lock_ != nullptr);
-  MutexLocker ml(recorder_lock_);
   JSONObject obj(js);
   obj.AddProperty("type", "TimelineFlags");
   TimelineEventRecorder* recorder = Timeline::recorder();
@@ -318,13 +301,11 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
 #endif
 
 void Timeline::Clear() {
-  ASSERT(recorder_lock_ != nullptr);
-  MutexLocker ml(recorder_lock_);
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (recorder == NULL) {
     return;
   }
-  ReclaimCachedBlocksFromThreadsLocked();
+  ReclaimCachedBlocksFromThreads();
   recorder->Clear();
 }
 
@@ -409,7 +390,6 @@ void TimelineEventArguments::Free() {
 
 TimelineEventRecorder* Timeline::recorder_ = NULL;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
-Mutex* Timeline::recorder_lock_ = nullptr;
 
 #define TIMELINE_STREAM_DEFINE(name, fuchsia_name)                             \
   TimelineStream Timeline::stream_##name##_(#name, fuchsia_name, false);
@@ -576,8 +556,6 @@ void TimelineEvent::FormatArgument(intptr_t i,
 }
 
 void TimelineEvent::Complete() {
-  ASSERT(Timeline::recorder_lock() != nullptr);
-  MutexLocker ml(Timeline::recorder_lock());
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (recorder != NULL) {
     recorder->CompleteEvent(this);
@@ -797,10 +775,6 @@ TimelineStream::TimelineStream(const char* name,
 }
 
 TimelineEvent* TimelineStream::StartEvent() {
-  if (Timeline::recorder_lock() == nullptr) {
-    return nullptr;
-  }
-  MutexLocker ml(Timeline::recorder_lock());
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (!enabled() || (recorder == NULL)) {
     return NULL;
@@ -1163,7 +1137,6 @@ TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
 }
 
 TimelineEventFixedBufferRecorder::~TimelineEventFixedBufferRecorder() {
-  MutexLocker ml(&lock_);
   // Delete all blocks.
   for (intptr_t i = 0; i < num_blocks_; i++) {
     blocks_[i].Reset();
@@ -1361,7 +1334,6 @@ TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
     : head_(nullptr), tail_(nullptr), block_index_(0) {}
 
 TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {
-  MutexLocker ml(&lock_);
   TimelineEventBlock* current = head_;
   head_ = tail_ = nullptr;
 
@@ -1452,9 +1424,6 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
 #endif
 
 void TimelineEventEndlessRecorder::Clear() {
-  OSThread* thread = OSThread::Current();
-  MutexLocker ml(thread->timeline_block_lock());
-  MutexLocker ml2(&lock_);
   TimelineEventBlock* current = head_;
   while (current != NULL) {
     TimelineEventBlock* next = current->next();
@@ -1462,8 +1431,8 @@ void TimelineEventEndlessRecorder::Clear() {
     current = next;
   }
   head_ = NULL;
-  tail_ = NULL;
   block_index_ = 0;
+  OSThread* thread = OSThread::Current();
   thread->set_timeline_block(NULL);
 }
 

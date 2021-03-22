@@ -23,7 +23,7 @@
 #if defined(__MAC_10_14) || defined (__IPHONE_12_0)
 #define HOST_OS_SUPPORTS_SIGNPOST 1
 #endif
-// signpost.h exists in macOS 10.14, iOS 12 or above
+//signpost.h exists in macOS 10.14, iOS 12 or above
 #if defined(HOST_OS_SUPPORTS_SIGNPOST)
 #include <os/signpost.h>
 #else
@@ -123,17 +123,14 @@ class TimelineStream {
 
 class Timeline : public AllStatic {
  public:
-  // Initialize timeline system.
+  // Initialize timeline system. Not thread safe.
   static void Init();
 
-  // Cleanup timeline system.
+  // Cleanup timeline system. Not thread safe.
   static void Cleanup();
 
-  // Access the global recorder. recorder_lock() must be held when accessing
-  // the returned |TimelineEventRecorder|.
+  // Access the global recorder. Not thread safe.
   static TimelineEventRecorder* recorder();
-
-  static Mutex* recorder_lock() { return recorder_lock_; }
 
   // Reclaim all |TimelineEventBlocks|s that are cached by threads.
   static void ReclaimCachedBlocksFromThreads();
@@ -161,13 +158,8 @@ class Timeline : public AllStatic {
 #undef TIMELINE_STREAM_FLAGS
 
  private:
-  // Reclaims all |TimelineEventBlocks|s that are cached by threads, assuming
-  // that lock_ is held.
-  static void ReclaimCachedBlocksFromThreadsLocked();
-
   static TimelineEventRecorder* recorder_;
   static MallocGrowableArray<char*>* enabled_streams_;
-  static Mutex* recorder_lock_;
 
 #define TIMELINE_STREAM_DECLARE(name, fuchsia_name)                            \
   static TimelineStream stream_##name##_;
