@@ -497,8 +497,16 @@ class PreviewSite extends Site
       if (!file.path.endsWith('.dart')) {
         continue;
       }
+      var unitInfo = unitInfoMap[file.path];
+      if (unitInfo == null) {
+        // No disk content was recorded for this path at the time migration was
+        // performed.  This usually happens because the file is an unreferenced
+        // part (and therefore it didn't contribute to the migration at all). So
+        // just skip this file.
+        continue;
+      }
       var code = file.exists ? file.readAsStringSync() : '';
-      if (!unitInfoMap[file.path].hadDiskContent(code)) {
+      if (!unitInfo.hadDiskContent(code)) {
         throw StateError('Cannot apply migration. Files on disk do not match'
             ' the expected pre-migration state. Press the "rerun from sources"'
             ' button and then try again. (Changed file path is ${file.path})');

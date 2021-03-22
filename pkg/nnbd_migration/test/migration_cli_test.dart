@@ -1002,6 +1002,31 @@ void call_g() => g(null);
     });
   }
 
+  test_lifecycle_preview_apply_changes_unreferenced_part() async {
+    var projectContents = simpleProject()
+      ..['lib/unreferenced_part.dart'] = '''
+part of foo;
+
+int f() => null;
+''';
+    var projectDir = createProjectDir(projectContents);
+    var cli = _createCli();
+    bool applyHookCalled = false;
+    cli._onApplyHook = () {
+      expect(applyHookCalled, false);
+      applyHookCalled = true;
+      // Changes should have been made
+      assertProjectContents(projectDir, simpleProject(migrated: true));
+    };
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      expect(
+          logger.stdoutBuffer.toString(), contains('No analysis issues found'));
+      await assertPreviewServerResponsive(url);
+      await _tellPreviewToApplyChanges(url);
+      expect(applyHookCalled, true);
+    });
+  }
+
   test_lifecycle_preview_extra_forward_slash() async {
     var projectDir = createProjectDir(simpleProject());
     var cli = _createCli();
