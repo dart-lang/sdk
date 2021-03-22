@@ -1,3 +1,7 @@
+# 1.2.1
+
+- fix: adjusted SDK lower bound to 2.12.0-0 (from 2.13.0-0)
+
 # 1.2.0
 
 - improvements to `iterable_contains_unrelated_type` to better support `List`
