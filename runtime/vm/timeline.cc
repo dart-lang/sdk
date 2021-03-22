@@ -225,30 +225,26 @@ void Timeline::Init() {
 
 void Timeline::Cleanup() {
   ASSERT(recorder_lock_ != nullptr);
-  TimelineEventRecorder* temp = recorder_;
-  {
-    MutexLocker ml(recorder_lock_);
-    ASSERT(recorder_ != NULL);
+  MutexLocker ml(recorder_lock_);
+  ASSERT(recorder_ != NULL);
 
 #ifndef PRODUCT
-    if (FLAG_timeline_dir != NULL) {
-      recorder_->WriteTo(FLAG_timeline_dir);
-    }
+  if (FLAG_timeline_dir != NULL) {
+    recorder_->WriteTo(FLAG_timeline_dir);
+  }
 #endif
 
-    // Disable global streams.
+// Disable global streams.
 #define TIMELINE_STREAM_DISABLE(name, fuchsia_name)                            \
   Timeline::stream_##name##_.set_enabled(false);
-    TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
+  TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
-    recorder_ = NULL;
-    if (enabled_streams_ != NULL) {
-      FreeEnabledByDefaultTimelineStreams(enabled_streams_);
-      enabled_streams_ = NULL;
-    }
+  delete recorder_;
+  recorder_ = NULL;
+  if (enabled_streams_ != NULL) {
+    FreeEnabledByDefaultTimelineStreams(enabled_streams_);
+    enabled_streams_ = NULL;
   }
-  // We need to release the recorder lock to finish cleanup.
-  delete temp;
 }
 
 TimelineEventRecorder* Timeline::recorder() {
@@ -262,23 +258,23 @@ void Timeline::ReclaimCachedBlocksFromThreads() {
 }
 
 void Timeline::ReclaimCachedBlocksFromThreadsLocked() {
-  ASSERT(recorder_lock_->IsOwnedByCurrentThread());
   TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder == NULL) {
+    return;
+  }
+
   // Iterate over threads.
   OSThreadIterator it;
   while (it.HasNext()) {
     OSThread* thread = it.Next();
-    // TODO(johnmccutchan): Consider dropping the timeline_block_lock here
-    // if we can do it everywhere. This would simplify the lock ordering
-    // requirements.
-
     MutexLocker ml(thread->timeline_block_lock());
     // Grab block and clear it.
     TimelineEventBlock* block = thread->timeline_block();
     thread->set_timeline_block(NULL);
-    if (recorder != nullptr) {
-      recorder->FinishBlock(block);
-    }
+    // TODO(johnmccutchan): Consider dropping the timeline_block_lock here
+    // if we can do it everywhere. This would simplify the lock ordering
+    // requirements.
+    recorder->FinishBlock(block);
   }
 }
 
@@ -1365,9 +1361,15 @@ TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
     : head_(nullptr), tail_(nullptr), block_index_(0) {}
 
 TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {
-  // Ensures block state is cleared for each thread.
-  Timeline::ReclaimCachedBlocksFromThreads();
-  Clear();
+  MutexLocker ml(&lock_);
+  TimelineEventBlock* current = head_;
+  head_ = tail_ = nullptr;
+
+  while (current != nullptr) {
+    TimelineEventBlock* next = current->next();
+    delete current;
+    current = next;
+  }
 }
 
 #ifndef PRODUCT
@@ -1450,7 +1452,9 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
 #endif
 
 void TimelineEventEndlessRecorder::Clear() {
-  MutexLocker ml(&lock_);
+  OSThread* thread = OSThread::Current();
+  MutexLocker ml(thread->timeline_block_lock());
+  MutexLocker ml2(&lock_);
   TimelineEventBlock* current = head_;
   while (current != NULL) {
     TimelineEventBlock* next = current->next();
@@ -1460,6 +1464,7 @@ void TimelineEventEndlessRecorder::Clear() {
   head_ = NULL;
   tail_ = NULL;
   block_index_ = 0;
+  thread->set_timeline_block(NULL);
 }
 
 TimelineEventBlock::TimelineEventBlock(intptr_t block_index)
