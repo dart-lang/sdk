@@ -2063,21 +2063,13 @@ class IntState extends NumState {
       var rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
-      } else if (rightValue.bitLength > 31) {
-        return UNKNOWN_VALUE;
-      }
-      if (rightValue >= 0) {
-        // TODO(brianwilkerson) After the analyzer package has a minimum SDK
-        // constraint that includes support for the real operator, consider
-        // changing the line below to
-        //   return new IntState(value >>> rightValue);
-        int divisor = 1 << rightValue;
-        if (divisor == 0) {
-          // The `rightValue` is large enough to cause all of the non-zero bits
-          // in the left operand to be shifted out of the value.
-          return IntState(0);
-        }
-        return IntState(value! ~/ divisor);
+      } else if (rightValue >= 64) {
+        return IntState(0);
+      } else if (rightValue >= 0) {
+        // TODO(srawlins): Replace with real operator once stable, like:
+        //     return new IntState(value >>> rightValue);
+        return IntState(
+            (value! >> rightValue) & ((1 << (64 - rightValue)) - 1));
       }
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
