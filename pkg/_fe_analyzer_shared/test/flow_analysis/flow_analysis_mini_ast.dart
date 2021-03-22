@@ -782,6 +782,7 @@ class _CheckAssigned extends Statement {
 class _CheckPromoted extends Statement {
   final Var variable;
   final String? expectedTypeStr;
+  final StackTrace _creationTrace = StackTrace.current;
 
   _CheckPromoted(this.variable, this.expectedTypeStr) : super._();
 
@@ -800,11 +801,7 @@ class _CheckPromoted extends Statement {
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     var promotedType = flow.promotedType(variable);
-    if (expectedTypeStr == null) {
-      expect(promotedType, isNull);
-    } else {
-      expect(promotedType?.type, expectedTypeStr);
-    }
+    expect(promotedType?.type, expectedTypeStr, reason: '$_creationTrace');
   }
 }
 

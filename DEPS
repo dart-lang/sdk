@@ -44,7 +44,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "1abf208ef6428aac8fee6f3175d65b1c59cd15c8",
+  "co19_rev": "ae818220b12ec9c2470519db2c7167cbe4745e12",
   "co19_2_rev": "cf6eed0535e45413672bb5bb6e65df9f59846372",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
@@ -654,8 +654,6 @@ deps_os = {
   }
 }
 
-# TODO(iposva): Move the necessary tools so that hooks can be run
-# without the runtime being available.
 hooks = [
   {
     "name": "firefox_jsshell",

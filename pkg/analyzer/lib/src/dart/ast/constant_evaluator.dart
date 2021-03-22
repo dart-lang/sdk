@@ -179,6 +179,14 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
         if (leftOperand is int && rightOperand is int) {
           return leftOperand >> rightOperand;
         }
+      } else if (node.operator.type == TokenType.GT_GT_GT) {
+        if (leftOperand is int && rightOperand is int) {
+          // TODO(srawlins): Replace with native VM implementation once stable.
+          return rightOperand >= 64
+              ? 0
+              : (leftOperand >> rightOperand) &
+                  ((1 << (64 - rightOperand)) - 1);
+        }
       } else if (node.operator.type == TokenType.LT) {
         // numeric or {@code null}
         if (leftOperand is num && rightOperand is num) {

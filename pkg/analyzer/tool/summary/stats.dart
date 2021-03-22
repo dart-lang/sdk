@@ -66,6 +66,9 @@ class Stats {
           value == false ||
           value == '' ||
           value is List && value.isEmpty ||
+          // TODO(srawlins): Remove this and enumerate each enum which may
+          // be encountered.
+          // ignore: avoid_dynamic_calls
           reflect(value).type.isEnum && (value as dynamic).index == 0) {
         return;
       }

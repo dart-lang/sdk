@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -207,6 +208,8 @@ class InvocationInferenceHelper {
   void resolveFunctionExpressionInvocation({
     required FunctionExpressionInvocationImpl node,
     required FunctionType rawType,
+    required List<Map<DartType, NonPromotionReason> Function()>
+        whyNotPromotedInfo,
   }) {
     _resolveInvocation(
       rawType: rawType,
@@ -215,6 +218,7 @@ class InvocationInferenceHelper {
       contextType: InferenceContext.getContext(node),
       isConst: false,
       errorNode: node.function,
+      whyNotPromotedInfo: whyNotPromotedInfo,
     );
 
     node.typeArgumentTypes = _typeArgumentTypes;
@@ -229,6 +233,8 @@ class InvocationInferenceHelper {
   void resolveMethodInvocation({
     required MethodInvocationImpl node,
     required FunctionType rawType,
+    required List<Map<DartType, NonPromotionReason> Function()>
+        whyNotPromotedInfo,
   }) {
     _resolveInvocation(
       rawType: rawType,
@@ -237,6 +243,7 @@ class InvocationInferenceHelper {
       contextType: InferenceContext.getContext(node),
       isConst: false,
       errorNode: node.function,
+      whyNotPromotedInfo: whyNotPromotedInfo,
     );
 
     node.typeArgumentTypes = _typeArgumentTypes;
@@ -325,9 +332,11 @@ class InvocationInferenceHelper {
     return false;
   }
 
-  void _resolveArguments(ArgumentList argumentList) {
+  void _resolveArguments(ArgumentList argumentList,
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo) {
     _resolver.visitArgumentList(argumentList,
-        isIdentical: _isCallToIdentical(argumentList.parent));
+        isIdentical: _isCallToIdentical(argumentList.parent),
+        whyNotPromotedInfo: whyNotPromotedInfo);
   }
 
   void _resolveInvocation({
@@ -337,12 +346,15 @@ class InvocationInferenceHelper {
     required ArgumentListImpl argumentList,
     required bool isConst,
     required AstNode errorNode,
+    required List<Map<DartType, NonPromotionReason> Function()>
+        whyNotPromotedInfo,
   }) {
     if (typeArgumentList != null) {
       _resolveInvocationWithTypeArguments(
         rawType: rawType,
         typeArgumentList: typeArgumentList,
         argumentList: argumentList,
+        whyNotPromotedInfo: whyNotPromotedInfo,
       );
     } else {
       _resolveInvocationWithoutTypeArguments(
@@ -351,6 +363,7 @@ class InvocationInferenceHelper {
         argumentList: argumentList,
         isConst: isConst,
         errorNode: errorNode,
+        whyNotPromotedInfo: whyNotPromotedInfo,
       );
     }
     _setCorrespondingParameters(argumentList, _invokeType!);
@@ -362,12 +375,14 @@ class InvocationInferenceHelper {
     required ArgumentList argumentList,
     required bool isConst,
     required AstNode errorNode,
+    required List<Map<DartType, NonPromotionReason> Function()>
+        whyNotPromotedInfo,
   }) {
     var typeParameters = rawType.typeFormals;
 
     if (typeParameters.isEmpty) {
       InferenceContext.setType(argumentList, rawType);
-      _resolveArguments(argumentList);
+      _resolveArguments(argumentList, whyNotPromotedInfo);
 
       _typeArgumentTypes = const <DartType>[];
       _invokeType = rawType;
@@ -384,7 +399,7 @@ class InvocationInferenceHelper {
       var downwardsInvokeType = rawType.instantiate(downwardsTypeArguments);
       InferenceContext.setType(argumentList, downwardsInvokeType);
 
-      _resolveArguments(argumentList);
+      _resolveArguments(argumentList, whyNotPromotedInfo);
 
       _typeArgumentTypes = _inferUpwards(
         rawType: rawType,
@@ -401,6 +416,8 @@ class InvocationInferenceHelper {
     required FunctionType rawType,
     required TypeArgumentList typeArgumentList,
     required ArgumentList argumentList,
+    required List<Map<DartType, NonPromotionReason> Function()>
+        whyNotPromotedInfo,
   }) {
     var typeParameters = rawType.typeFormals;
 
@@ -428,7 +445,7 @@ class InvocationInferenceHelper {
     var invokeType = rawType.instantiate(typeArguments);
     InferenceContext.setType(argumentList, invokeType);
 
-    _resolveArguments(argumentList);
+    _resolveArguments(argumentList, whyNotPromotedInfo);
 
     _typeArgumentTypes = typeArguments;
     _invokeType = invokeType;

@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -13,6 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -307,6 +309,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   bool get _isNonNullableByDefault =>
       _featureSet?.isEnabled(Feature.non_nullable) ?? false;
+
+  @override
+  List<DiagnosticMessage> computeWhyNotPromotedMessages(
+      Expression? expression,
+      SyntacticEntity errorEntity,
+      Map<DartType, NonPromotionReason>? whyNotPromoted) {
+    return [];
+  }
 
   @override
   void visitAnnotation(Annotation node) {

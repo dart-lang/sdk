@@ -6,6 +6,7 @@
 #define RUNTIME_PLATFORM_UTILS_FUCHSIA_H_
 
 #include <endian.h>
+#include <memory>
 
 namespace sys {
 
@@ -13,6 +14,13 @@ namespace sys {
 class ComponentContext;
 
 }  // namespace sys
+
+namespace inspect {
+
+// From Fuchsia SDK.
+class Node;
+
+}  // namespace inspect
 
 namespace dart {
 
@@ -56,6 +64,18 @@ inline char* Utils::StrError(int err, char* buffer, size_t bufsize) {
 // during the lifetime of the program.  If you use this function, you MUST NOT
 // call sys::ComponentContext::Create().
 sys::ComponentContext* ComponentContext();
+
+// Sets the inspect node set to be used in the dart vm
+//
+// This method will take ownership of the node
+void SetDartVmNode(std::unique_ptr<inspect::Node> node);
+
+// Returns the inspect node set in SetDartVmNode().
+//
+// The caller should take ownership of the returned node because
+// the value will be set to null after this call.
+// This call may return null if no node is provided.
+std::unique_ptr<inspect::Node> TakeDartVmNode();
 
 }  // namespace dart
 

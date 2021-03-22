@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import '../../deferred_load.dart' show OutputUnit;
 import '../../js/js.dart' as js;
 import '../../js/size_estimator.dart';
@@ -283,6 +284,7 @@ class FinalizedFragment {
 class _Partition {
   int size = 0;
   List<PreFragment> fragments = [];
+  bool isClosed = false;
 
   void add(PreFragment that) {
     size += that.size;
@@ -377,6 +379,38 @@ class FragmentMerger {
     });
   }
 
+  /// Given a list of [PreFragments], returns a list of lists of [PreFragments]
+  /// where each list represents a component in the graph.
+  List<List<PreFragment>> separateComponents(
+      List<PreFragment> preDeferredFragments) {
+    List<List<PreFragment>> components = [];
+    Set<PreFragment> visited = {};
+
+    // Starting from each 'root' in the graph, use bfs to find a component.
+    for (var preFragment in preDeferredFragments) {
+      if (preFragment.predecessors.isEmpty && visited.add(preFragment)) {
+        List<PreFragment> component = [];
+        var queue = Queue<PreFragment>();
+        queue.add(preFragment);
+        while (queue.isNotEmpty) {
+          var preFragment = queue.removeFirst();
+          component.add(preFragment);
+          preFragment.predecessors.where(visited.add).forEach(queue.add);
+          preFragment.successors.where(visited.add).forEach(queue.add);
+        }
+
+        // Sort the fragments in the component so they will be in a canonical
+        // order.
+        component.sort((a, b) {
+          return a.fragments.single.outputUnit
+              .compareTo(b.fragments.single.outputUnit);
+        });
+        components.add(component);
+      }
+    }
+    return components;
+  }
+
   /// A trivial greedy merge that uses the sorted order of the output units to
   /// merge contiguous runs of fragments without creating cycles.
   /// ie, if our sorted output units look like:
@@ -386,28 +420,26 @@ class FragmentMerger {
   /// fragment size of 5. Our final partitions would look like:
   ///   {a}, {b}, {c}+{a, b}, {b, c}+{a, b, c}.
   List<PreFragment> mergeFragments(List<PreFragment> preDeferredFragments) {
-    // Sort PreFragments by their initial OutputUnit so they are in canonical
-    // order.
-    preDeferredFragments.sort((a, b) {
-      return a.fragments.single.outputUnit
-          .compareTo(b.fragments.single.outputUnit);
-    });
+    var components = separateComponents(preDeferredFragments);
     int desiredNumberOfFragment = _options.mergeFragmentsThreshold;
-
     int idealFragmentSize = (totalSize / desiredNumberOfFragment).ceil();
     List<_Partition> partitions = [];
     void add(PreFragment next) {
       // Create a new partition if the current one grows too large, otherwise
       // just add to the most recent partition.
       if (partitions.isEmpty ||
+          partitions.last.isClosed ||
           partitions.last.size + next.size > idealFragmentSize) {
         partitions.add(_Partition());
       }
       partitions.last.add(next);
     }
 
-    // Greedily group fragments into partitions.
-    preDeferredFragments.forEach(add);
+    // Greedily group fragments into partitions, but only within each component.
+    for (var component in components) {
+      component.forEach(add);
+      partitions.last.isClosed = true;
+    }
 
     // Reduce fragments by merging fragments with fewer imports into fragments
     // with more imports.

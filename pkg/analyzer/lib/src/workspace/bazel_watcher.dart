@@ -435,9 +435,13 @@ class _BazelInvocationWatcher implements PollTrigger {
   /// Determines how often do we check for `command.log` changes.
   static const _pollInterval = Duration(seconds: 1);
 
-  /// To confirm that a build finished, we check for this message in the
+  /// To confirm that a build finished, we check for these messages in the
   /// `command.log`.
-  static const _buildCompletedMsg = 'Build completed successfully';
+  static const _buildCompletedMsgs = [
+    'Build completed successfully',
+    'Build completed',
+    'Build did NOT complete successfully',
+  ];
 
   final _controller = StreamController<WatchEvent>.broadcast();
   final ResourceProvider _provider;
@@ -459,7 +463,7 @@ class _BazelInvocationWatcher implements PollTrigger {
   bool _buildFinished(String contents) {
     // Only look at the last 100 characters.
     var offset = max(0, contents.length - 100);
-    return contents.contains(_buildCompletedMsg, offset);
+    return _buildCompletedMsgs.any((msg) => contents.contains(msg, offset));
   }
 
   Future<String?> _getCommandLogPath() async {
