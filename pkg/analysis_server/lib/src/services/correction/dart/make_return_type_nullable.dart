@@ -22,18 +22,12 @@ class MakeReturnTypeNullable extends CorrectionProducer {
       return;
     }
     var body = node.thisOrAncestorOfType<FunctionBody>();
-    TypeAnnotation returnType;
-    var function = body.parent;
-    if (function is FunctionExpression) {
-      function = function.parent;
-    }
-    if (function is MethodDeclaration) {
-      returnType = function.returnType;
-    } else if (function is FunctionDeclaration) {
-      returnType = function.returnType;
-    } else {
+
+    var returnType = _getReturnTypeNode(body);
+    if (returnType == null) {
       return;
     }
+
     if (body.isAsynchronous || body.isGenerator) {
       if (returnType is! NamedType) {
         return null;
@@ -60,4 +54,17 @@ class MakeReturnTypeNullable extends CorrectionProducer {
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
   static MakeReturnTypeNullable newInstance() => MakeReturnTypeNullable();
+
+  static TypeAnnotation _getReturnTypeNode(FunctionBody body) {
+    var function = body.parent;
+    if (function is FunctionExpression) {
+      function = function.parent;
+    }
+    if (function is MethodDeclaration) {
+      return function.returnType;
+    } else if (function is FunctionDeclaration) {
+      return function.returnType;
+    }
+    return null;
+  }
 }
