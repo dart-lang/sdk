@@ -41,7 +41,6 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_UnboxInt64Phi) {
   Definition* v0;
   PhiInstr* loop_var;
   Definition* add1;
-  ReturnInstr* ret;
 
   {
     BlockBuilder builder(H.flow_graph(), normal_entry);
@@ -70,7 +69,7 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_UnboxInt64Phi) {
 
   {
     BlockBuilder builder(H.flow_graph(), loop_exit);
-    ret = builder.AddReturn(new Value(loop_var));
+    builder.AddReturn(new Value(loop_var));
   }
 
   H.FinishGraph();

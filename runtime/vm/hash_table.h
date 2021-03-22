@@ -14,7 +14,7 @@ namespace dart {
 // Default ArrayStorageTraits use an Array to store HashTable contents.
 struct ArrayStorageTraits {
   using ArrayHandle = Array;
-  using ArrayPtr = ArrayPtr;
+  using ArrayPtr = dart::ArrayPtr;
 
   static ArrayHandle& PtrToHandle(ArrayPtr ptr) { return Array::Handle(ptr); }
 
