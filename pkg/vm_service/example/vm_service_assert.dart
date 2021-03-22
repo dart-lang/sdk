@@ -605,6 +605,7 @@ vms.InstanceRef assertInstanceRef(vms.InstanceRef obj) {
   assertNotNull(obj);
   assertString(obj.id!);
   assertInstanceKind(obj.kind!);
+  assertInt(obj.identityHashCode!);
   assertClassRef(obj.classRef!);
   return obj;
 }
@@ -620,6 +621,7 @@ vms.Instance assertInstance(vms.Instance obj) {
   assertNotNull(obj);
   assertString(obj.id!);
   assertInstanceKind(obj.kind!);
+  assertInt(obj.identityHashCode!);
   assertClassRef(obj.classRef!);
   return obj;
 }
@@ -831,6 +833,7 @@ vms.NullValRef assertNullValRef(vms.NullValRef obj) {
   assertNotNull(obj);
   assertString(obj.id!);
   assertInstanceKind(obj.kind!);
+  assertInt(obj.identityHashCode!);
   assertClassRef(obj.classRef!);
   assertString(obj.valueAsString!);
   return obj;
@@ -847,6 +850,7 @@ vms.NullVal assertNullVal(vms.NullVal obj) {
   assertNotNull(obj);
   assertString(obj.id!);
   assertInstanceKind(obj.kind!);
+  assertInt(obj.identityHashCode!);
   assertClassRef(obj.classRef!);
   assertString(obj.valueAsString!);
   return obj;

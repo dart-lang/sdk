@@ -1,6 +1,7 @@
 # Changelog
 ## 6.1.1
 - Callsite `StackTrace`s are now attached to `RPCError`s and `SentinelException`s.
+- Added `identityHashCode` property to `InstanceRef` and `Instance`.
 
 ## 6.1.0+1
 - Documentation update.

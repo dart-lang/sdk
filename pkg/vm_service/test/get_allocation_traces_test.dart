@@ -86,6 +86,18 @@ final tests = <IsolateTest>[
     expect(profileResponse, isNotNull);
     expect(profileResponse.samples!.length, 1);
     expect(profileResponse.samples!.first.identityHashCode != 0, true);
+
+    final instances = await service.getInstances(
+      isolate.id!,
+      fooClass.id!,
+      1,
+    );
+    expect(instances.totalCount, 1);
+    final instance = instances.instances!.first as InstanceRef;
+    expect(instance.identityHashCode != 0, isTrue);
+    expect(instance.identityHashCode,
+        profileResponse.samples!.first.identityHashCode);
+
     await service.setTraceClassAllocation(isolate.id!, fooClass.id!, false);
 
     fooClass = await service.getObject(isolate.id!, fooClass.id!) as Class;

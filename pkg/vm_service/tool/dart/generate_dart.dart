@@ -1488,6 +1488,7 @@ class Type extends Member {
     } else if (name!.contains('NullVal')) {
       gen.writeln(' : super(');
       gen.writeln("id: 'instance/null',");
+      gen.writeln('identityHashCode: 0,');
       gen.writeln('kind: InstanceKind.kNull,');
       gen.writeln("classRef: ClassRef(id: 'class/null',");
       gen.writeln("name: 'Null',),");

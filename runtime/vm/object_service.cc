@@ -7,6 +7,7 @@
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/debugger.h"
 #include "vm/object.h"
+#include "vm/object_graph.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/stub_code.h"
@@ -998,6 +999,12 @@ void UnwindError::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
   AddCommonObjectProperties(jsobj, "Instance", ref);
+  {
+    NoSafepointScope safepoint_scope;
+    uint32_t hash_code = HeapSnapshotWriter::GetHeapSnapshotIdentityHash(
+        Thread::Current(), ptr());
+    jsobj->AddProperty64("identityHashCode", hash_code);
+  }
   if (ref) {
     return;
   }
