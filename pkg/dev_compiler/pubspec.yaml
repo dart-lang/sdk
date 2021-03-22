@@ -28,7 +28,7 @@ dependencies:
     path: ../vm
 
 dev_dependencies:
-  browser_launcher: ^0.1.5
+  browser_launcher: ^0.1.9
   expect:
     path: ../expect
   js:

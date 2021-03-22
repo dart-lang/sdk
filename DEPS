@@ -101,7 +101,7 @@ vars = {
   "dart_style_tag": "2cf810073e0cc7e7ea05d3de51830e6fa6d62924",
 
   "chromedriver_tag": "83.0.4103.39",
-  "browser_launcher_rev": "74949f0c599095e6fac3cb4581ed4769167576c7",
+  "browser_launcher_rev": "12ab9f351a44ac803de9bc17bb2180bb312a9dd7",
   "dartdoc_rev" : "174021f3d76c2a8500b54977c80f32c5bbc099f1",
   "ffi_rev": "f3346299c55669cc0db48afae85b8110088bf8da",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
