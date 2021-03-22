@@ -3985,6 +3985,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kMathAcos:
     case MethodRecognizer::kMathAtan:
     case MethodRecognizer::kMathAtan2:
+    case MethodRecognizer::kMathExp:
+    case MethodRecognizer::kMathLog:
       return InlineMathCFunction(flow_graph, call, kind, graph_entry, entry,
                                  last, result);
 

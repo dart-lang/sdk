@@ -962,20 +962,24 @@ bool GraphIntrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
   return true;
 }
 
-static bool BuildInvokeMathCFunction(BlockBuilder* builder,
+static bool BuildInvokeMathCFunction(FlowGraph* flow_graph,
                                      MethodRecognizer::Kind kind,
-                                     FlowGraph* flow_graph,
                                      intptr_t num_parameters = 1) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) {
     return false;
   }
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  auto normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
   ZoneGrowableArray<Value*>* args =
       new ZoneGrowableArray<Value*>(num_parameters);
 
   for (intptr_t i = 0; i < num_parameters; i++) {
-    Definition* value = builder->AddParameter(i, /*with_frame=*/false);
+    Definition* value = builder.AddParameter(i, /*with_frame=*/false);
     Definition* unboxed_value = ConvertOrUnboxDoubleParameter(
-        builder, value, i, /* is_checked = */ false);
+        &builder, value, i, /* is_checked = */ false);
     if (unboxed_value == nullptr) {
       return false;
     }
@@ -983,156 +987,84 @@ static bool BuildInvokeMathCFunction(BlockBuilder* builder,
   }
 
   Definition* unboxed_result =
-      builder->AddDefinition(new InvokeMathCFunctionInstr(
-          args, DeoptId::kNone, kind, builder->Source()));
+      builder.AddDefinition(new InvokeMathCFunctionInstr(
+          args, DeoptId::kNone, kind, builder.Source()));
   Definition* result =
-      CreateBoxedResultIfNeeded(builder, unboxed_result, kUnboxedDouble);
-  builder->AddReturn(new Value(result));
+      CreateBoxedResultIfNeeded(&builder, unboxed_result, kUnboxedDouble);
+  builder.AddReturn(new Value(result));
 
   return true;
 }
 
 bool GraphIntrinsifier::Build_MathSin(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
-
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathSin,
-                                  flow_graph);
+  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kMathSin);
 }
 
 bool GraphIntrinsifier::Build_MathCos(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
-
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathCos,
-                                  flow_graph);
+  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kMathCos);
 }
 
 bool GraphIntrinsifier::Build_MathTan(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
-
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathTan,
-                                  flow_graph);
+  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kMathTan);
 }
 
 bool GraphIntrinsifier::Build_MathAsin(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
-
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAsin,
-                                  flow_graph);
+  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kMathAsin);
 }
 
 bool GraphIntrinsifier::Build_MathAcos(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
-
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAcos,
-                                  flow_graph);
+  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kMathAcos);
 }
 
 bool GraphIntrinsifier::Build_MathAtan(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
-
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAtan,
-                                  flow_graph);
+  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kMathAtan);
 }
 
 bool GraphIntrinsifier::Build_MathAtan2(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
-
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kMathAtan2,
-                                  flow_graph,
+  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kMathAtan2,
                                   /* num_parameters = */ 2);
 }
 
+bool GraphIntrinsifier::Build_MathExp(FlowGraph* flow_graph) {
+  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kMathExp);
+}
+
+bool GraphIntrinsifier::Build_MathLog(FlowGraph* flow_graph) {
+  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kMathLog);
+}
+
 bool GraphIntrinsifier::Build_DoubleMod(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
-
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleMod,
-                                  flow_graph,
+  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kDoubleMod,
                                   /* num_parameters = */ 2);
 }
 
 bool GraphIntrinsifier::Build_DoubleCeil(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
   // TODO(johnmccutchan): On X86 this intrinsic can be written in a different
   // way.
   if (TargetCPUFeatures::double_truncate_round_supported()) return false;
 
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleCeil,
-                                  flow_graph);
+  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kDoubleCeil);
 }
 
 bool GraphIntrinsifier::Build_DoubleFloor(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
   // TODO(johnmccutchan): On X86 this intrinsic can be written in a different
   // way.
   if (TargetCPUFeatures::double_truncate_round_supported()) return false;
 
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleFloor,
-                                  flow_graph);
+  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kDoubleFloor);
 }
 
 bool GraphIntrinsifier::Build_DoubleTruncate(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
   // TODO(johnmccutchan): On X86 this intrinsic can be written in a different
   // way.
   if (TargetCPUFeatures::double_truncate_round_supported()) return false;
 
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleTruncate,
-                                  flow_graph);
+  return BuildInvokeMathCFunction(flow_graph,
+                                  MethodRecognizer::kDoubleTruncate);
 }
 
 bool GraphIntrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
-  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
-
-  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
-  auto normal_entry = graph_entry->normal_entry();
-  BlockBuilder builder(flow_graph, normal_entry);
-
-  return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleRound,
-                                  flow_graph);
+  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kDoubleRound);
 }
 
 bool GraphIntrinsifier::Build_ImplicitGetter(FlowGraph* flow_graph) {

@@ -289,6 +289,8 @@ namespace dart {
   V(::, acos, MathAcos, 0xffb03167)                                            \
   V(::, atan, MathAtan, 0xf1ecb41a)                                            \
   V(::, atan2, MathAtan2, 0xff585505)                                          \
+  V(::, exp, MathExp, 0xbb87ac43)                                              \
+  V(::, log, MathLog, 0x27ec861f)                                              \
 
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                    \
   V(_Int8List, [], Int8ArrayGetIndexed, 0x281e2e42)                            \
