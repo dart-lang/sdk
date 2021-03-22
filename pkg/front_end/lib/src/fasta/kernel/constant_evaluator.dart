@@ -3363,6 +3363,29 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
       new BreakStatus(node.target);
 
   @override
+  ExecutionStatus visitDoStatement(DoStatement node) {
+    Constant condition;
+    do {
+      ExecutionStatus status = node.body.accept(this);
+      if (status is! ProceedStatus) return status;
+      condition = evaluate(node.condition);
+    } while (condition is BoolConstant && condition.value);
+
+    if (condition is AbortConstant) {
+      return new AbortStatus(condition);
+    } else if (condition is! BoolConstant) {
+      return new AbortStatus(exprEvaluator.createErrorConstant(
+          node.condition,
+          templateConstEvalInvalidType.withArguments(
+              condition,
+              exprEvaluator.typeEnvironment.coreTypes.boolLegacyRawType,
+              condition.getType(exprEvaluator._staticTypeContext),
+              exprEvaluator.isNonNullableByDefault)));
+    }
+    return const ProceedStatus();
+  }
+
+  @override
   ExecutionStatus visitIfStatement(IfStatement node) {
     Constant condition = evaluate(node.condition);
     if (condition is AbortConstant) return new AbortStatus(condition);
