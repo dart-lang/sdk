@@ -132,7 +132,7 @@ void main() { my_fun(); }
     // error again.
     await resetCompleterAndErrors();
     writeFile(generatedFilePath, 'different_fun() {}');
-    writeFile(commandLogPath, 'Build completed successfully');
+    writeFile(commandLogPath, 'Build completed');
 
     await processedNotification.future;
     expect(errors, isNotEmpty);
@@ -140,7 +140,7 @@ void main() { my_fun(); }
     // Now delete the file completely.
     await resetCompleterAndErrors();
     File(generatedFilePath).deleteSync();
-    writeFile(commandLogPath, 'Build completed successfully');
+    writeFile(commandLogPath, 'Build did NOT complete successfully');
 
     await processedNotification.future;
     expect(errors, isNotEmpty);
