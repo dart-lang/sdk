@@ -88,7 +88,7 @@ String toClassName(String ruleName) =>
     ruleName.split('_').map(capitalize).join();
 
 void updateRuleRegistry(String ruleName) {
-  print("Don't forget to update lib/rules.dart with a line like:");
+  print("Don't forget to update lib/src/rules.dart with a line like:");
   print('  ..register(${toClassName(ruleName)}())');
   print('and add your rule to `example/all.yaml`.');
   print('Then run your test like so:');
@@ -124,7 +124,7 @@ const _details = r'''
 ''';
 
 class $className extends LintRule implements NodeLintRule {
-  $className() 
+  $className()
       : super(
             name: '$ruleName',
             description: _desc,
