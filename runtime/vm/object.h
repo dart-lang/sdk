@@ -2724,6 +2724,10 @@ class Function : public Object {
   void set_saved_args_desc(const Array& array) const;
   ArrayPtr saved_args_desc() const;
 
+  bool HasSavedArgumentsDescriptor() const {
+    return IsInvokeFieldDispatcher() || IsNoSuchMethodDispatcher();
+  }
+
   void set_accessor_field(const Field& value) const;
   FieldPtr accessor_field() const;
 
@@ -3328,8 +3332,13 @@ class Function : public Object {
     return IsImplicitClosureFunction() && !is_static();
   }
 
-  // Returns true if this function represents a local function.
-  bool IsLocalFunction() const { return parent_function() != Function::null(); }
+  // Returns true if this function has a parent function.
+  bool HasParent() const { return parent_function() != Function::null(); }
+
+  // Returns true if this function is a local function.
+  bool IsLocalFunction() const {
+    return !IsImplicitClosureFunction() && HasParent();
+  }
 
   // Returns true if this function represents an ffi trampoline.
   bool IsFfiTrampoline() const {
@@ -3438,7 +3447,7 @@ class Function : public Object {
   //      }
   //   }
   bool IsSyncGenClosure() const {
-    return (parent_function() != Function::null()) &&
+    return is_generated_body() &&
            Function::Handle(parent_function()).IsSyncGenClosureMaker();
   }
 

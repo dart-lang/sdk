@@ -911,11 +911,11 @@ class FunctionSerializationCluster : public SerializationCluster {
       AutoTraceObjectName(func, MakeDisambiguatedFunctionName(s, func));
       WriteFromTo(func);
       if (kind == Snapshot::kFullAOT) {
-        WriteField(func, code());
+        WriteCompressedField(func, code);
       } else if (s->kind() == Snapshot::kFullJIT) {
-        NOT_IN_PRECOMPILED(WriteField(func, unoptimized_code()));
-        WriteField(func, code());
-        WriteField(func, ic_data_array());
+        NOT_IN_PRECOMPILED(WriteCompressedField(func, unoptimized_code));
+        WriteCompressedField(func, code);
+        WriteCompressedField(func, ic_data_array);
       }
 
       if (kind != Snapshot::kFullAOT) {
@@ -1087,11 +1087,11 @@ class ClosureDataSerializationCluster : public SerializationCluster {
       ClosureDataPtr data = objects_[i];
       AutoTraceObject(data);
       if (s->kind() != Snapshot::kFullAOT) {
-        WriteField(data, context_scope());
+        WriteCompressedField(data, context_scope);
       }
-      WriteField(data, parent_function());
-      WriteField(data, closure());
-      WriteField(data, default_type_arguments());
+      WriteCompressedField(data, parent_function);
+      WriteCompressedField(data, closure);
+      WriteCompressedField(data, default_type_arguments);
       s->WriteUnsigned(
           static_cast<intptr_t>(data->untag()->default_type_arguments_kind_));
     }
@@ -1268,16 +1268,16 @@ class FieldSerializationCluster : public SerializationCluster {
       FieldPtr field = objects_[i];
       AutoTraceObjectName(field, field->untag()->name());
 
-      WriteField(field, name());
-      WriteField(field, owner());
-      WriteField(field, type());
+      WriteCompressedField(field, name);
+      WriteCompressedField(field, owner);
+      WriteCompressedField(field, type);
       // Write out the initializer function and initial value if not in AOT.
-      WriteField(field, initializer_function());
+      WriteCompressedField(field, initializer_function);
       if (kind != Snapshot::kFullAOT) {
-        WriteField(field, guarded_list_length());
+        WriteCompressedField(field, guarded_list_length);
       }
       if (kind == Snapshot::kFullJIT) {
-        WriteField(field, dependent_code());
+        WriteCompressedField(field, dependent_code);
       }
 
       if (kind != Snapshot::kFullAOT) {
@@ -2814,7 +2814,7 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
       AutoTraceObject(handlers);
       const intptr_t length = handlers->untag()->num_entries_;
       s->WriteUnsigned(length);
-      WriteField(handlers, handled_types_data());
+      WriteCompressedField(handlers, handled_types_data);
       for (intptr_t j = 0; j < length; j++) {
         const ExceptionHandlerInfo& info = handlers->untag()->data()[j];
         s->Write<uint32_t>(info.handler_pc_offset);
@@ -3362,7 +3362,7 @@ class LoadingUnitSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       LoadingUnitPtr unit = objects_[i];
       AutoTraceObject(unit);
-      WriteField(unit, parent());
+      WriteCompressedField(unit, parent);
       s->Write<int32_t>(unit->untag()->id_);
     }
   }

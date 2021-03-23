@@ -50,6 +50,12 @@ class C {
   }
 }
 
+class D {
+  static dynamic tornOff() sync* {
+    yield const K(5);
+  }
+}
+
 @pragma('vm:never-inline')
 Function tearOff(dynamic o) {
   return o.tornOff;
@@ -61,6 +67,7 @@ void main(List<String> args) {
   }
   print(tearOff(args.isEmpty ? A() : B()));
   print(C.tornOff);
+  print(D.tornOff);
 }
 """
 };
@@ -107,6 +114,12 @@ class C {
   }
 }
 
+class D {
+  static dynamic tornOff() sync* {
+    yield const K(5);
+  }
+}
+
 @pragma('vm:never-inline')
 Function tearOff(dynamic o) {
   return o.tornOff;
@@ -116,6 +129,7 @@ void main(List<String> args) {
   // modified
   print(tearOff(args.isEmpty ? A() : B()));
   print(C.tornOff);
+  print(D.tornOff);
 }
 """
 };
@@ -154,6 +168,12 @@ class C {
   }
 }
 
+class D {
+  static dynamic tornOff() sync* {
+    yield const K(5);
+  }
+}
+
 @pragma('vm:never-inline')
 Function tearOff(dynamic o) {
   return o.tornOff;
@@ -165,6 +185,7 @@ void main(List<String> args) {
   }
   print(tearOff(args.isEmpty ? A() : B()));
   print(C.tornOff);
+  print(D.tornOff);
 }
 """
 };
@@ -285,6 +306,10 @@ void main() async {
         // with {body}.
         expect(inputDartSymbolNames['C'], contains('[tear-off] tornOff'));
 
+        // Presence of sync* modifier should not cause tear-off name to end
+        // with {body}.
+        expect(inputDartSymbolNames['D'], contains('[tear-off] tornOff'));
+
         // Check that output does not contain '[unknown stub]'
         expect(symbolRawNames[''][''], isNot(contains('[unknown stub]')),
             reason: 'All stubs must be named');
@@ -306,6 +331,7 @@ void main() async {
         expect(inputLib.children, contains('A'));
         expect(inputLib.children, contains('B'));
         expect(inputLib.children, contains('C'));
+        expect(inputLib.children, contains('D'));
 
         final topLevel = inputLib.children[''];
         expect(topLevel.children, contains('makeSomeClosures'));
@@ -336,6 +362,16 @@ void main() async {
           expect(inputLib.children['C'].children, contains(name));
           expect(inputLib.children['C'].children[name].children, isEmpty);
         }
+
+        for (var name in [
+          'tornOff{body}',
+          'tornOff{body depth 2}',
+          'tornOff',
+          '[tear-off] tornOff'
+        ]) {
+          expect(inputLib.children['D'].children, contains(name));
+          expect(inputLib.children['D'].children[name].children, isEmpty);
+        }
       });
     });
 
@@ -356,6 +392,10 @@ void main() async {
             bySymbol.buckets,
             contains(bySymbol.bucketFor(
                 'package:input', 'package:input/input.dart', 'C', 'tornOff')));
+        expect(
+            bySymbol.buckets,
+            contains(bySymbol.bucketFor(
+                'package:input', 'package:input/input.dart', 'D', 'tornOff')));
 
         final byClass = computeHistogram(info, HistogramType.byClass);
         expect(
@@ -370,6 +410,10 @@ void main() async {
             byClass.buckets,
             contains(byClass.bucketFor('package:input',
                 'package:input/input.dart', 'C', 'does-not-matter')));
+        expect(
+            byClass.buckets,
+            contains(byClass.bucketFor('package:input',
+                'package:input/input.dart', 'D', 'does-not-matter')));
 
         final byLibrary = computeHistogram(info, HistogramType.byLibrary);
         expect(
@@ -538,6 +582,21 @@ void main() async {
             .where((n) => n.type == 'Class')
             .map((n) => n.name);
         expect(classesOwnedByC, equals(['C']));
+
+        final classD = inputLib.children['D'];
+        expect(classD.children, contains('tornOff'));
+        for (var name in ['tornOff{body}', '[tear-off] tornOff']) {
+          expect(classD.children['tornOff'].children, contains(name));
+        }
+        expect(classD.children['tornOff'].children['tornOff{body}'].children,
+            contains('tornOff{body depth 2}'));
+
+        // Verify that [ProgramInfoNode] owns its corresponding snapshot [Node].
+        final classesOwnedByD = info.snapshotInfo.snapshot.nodes
+            .where((n) => info.snapshotInfo.ownerOf(n) == classD)
+            .where((n) => n.type == 'Class')
+            .map((n) => n.name);
+        expect(classesOwnedByD, equals(['D']));
       });
     });
 
@@ -592,6 +651,10 @@ void main() async {
             bySymbol.buckets,
             contains(bySymbol.bucketFor(
                 'package:input', 'package:input/input.dart', 'C', 'tornOff')));
+        expect(
+            bySymbol.buckets,
+            contains(bySymbol.bucketFor(
+                'package:input', 'package:input/input.dart', 'D', 'tornOff')));
 
         final byClass = computeHistogram(info, HistogramType.byClass);
         expect(
@@ -606,6 +669,10 @@ void main() async {
             byClass.buckets,
             contains(byClass.bucketFor('package:input',
                 'package:input/input.dart', 'C', 'does-not-matter')));
+        expect(
+            byClass.buckets,
+            contains(byClass.bucketFor('package:input',
+                'package:input/input.dart', 'D', 'does-not-matter')));
 
         final byLibrary = computeHistogram(info, HistogramType.byLibrary);
         expect(

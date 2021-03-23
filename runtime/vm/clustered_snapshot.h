@@ -502,6 +502,8 @@ class Serializer : public ThreadStackResource {
 #define PushFromTo(obj, ...) s->PushFromTo(obj, ##__VA_ARGS__);
 
 #define WriteField(obj, field) s->WritePropertyRef(obj->untag()->field, #field)
+#define WriteCompressedField(obj, name)                                        \
+  s->WritePropertyRef(obj->untag()->name(), #name "_")
 
 class SerializerWritingObjectScope {
  public:

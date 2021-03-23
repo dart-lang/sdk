@@ -412,24 +412,28 @@ ArrayPtr ArgumentsDescriptor::GetArgumentNames() const {
   return names.ptr();
 }
 
-void ArgumentsDescriptor::PrintTo(BaseTextBuffer* buffer) const {
-  buffer->Printf("%" Pd " arg%s", Count(), Count() == 1 ? "" : "s");
+void ArgumentsDescriptor::PrintTo(BaseTextBuffer* buffer,
+                                  bool show_named_positions) const {
   if (TypeArgsLen() > 0) {
-    buffer->Printf(", %" Pd " type arg%s", TypeArgsLen(),
-                   TypeArgsLen() == 1 ? "" : "s");
+    buffer->Printf("<%" Pd ">", TypeArgsLen());
   }
+  buffer->Printf("(%" Pd "", Count());
   if (NamedCount() > 0) {
-    buffer->AddString(", names [");
+    buffer->AddString(" {");
     auto& str = String::Handle();
     for (intptr_t i = 0; i < NamedCount(); i++) {
       if (i != 0) {
         buffer->AddString(", ");
       }
       str = NameAt(i);
-      buffer->Printf("'%s' (%" Pd ")", str.ToCString(), PositionAt(i));
+      buffer->Printf("%s", str.ToCString());
+      if (show_named_positions) {
+        buffer->Printf(" (%" Pd ")", PositionAt(i));
+      }
     }
-    buffer->Printf("]");
+    buffer->Printf("}");
   }
+  buffer->Printf(")");
 }
 
 const char* ArgumentsDescriptor::ToCString() const {
