@@ -1,6 +1,6 @@
 # Garbage Collection
 
-The Dart VM has a generational garbage collector with two generations. The new generation is collected by a stop-the-world semispace [scavenger](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/scavenger.h). The old generation is collected by concurrent-[mark](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/marker.h)-concurrent-[sweep](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/sweeper.h) or by concurrent-mark-parallel-[compact](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/compactor.h).
+The Dart VM has a generational garbage collector with two generations. The new generation is collected by a parallel, stop-the-world semispace [scavenger](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/scavenger.h). The old generation is collected by concurrent-[mark](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/marker.h)-concurrent-[sweep](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/sweeper.h) or by concurrent-mark-parallel-[compact](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/compactor.h).
 
 ## Object representation
 
@@ -10,7 +10,7 @@ A tag of 0 allows many operations to be performed on Smis without untagging and 
 
 A tag of 1 has no penalty on heap object access because removing the tag can be folded into the offset used by load and store instructions.
 
-Heap objects are always allocated in double-word increments. Objects in old-space are kept at double-word alignment, and objects in new-space are kept offset from double-word alignment. This allows checking an object's age without comparing to a boundry address, avoiding restrictions on heap placement and avoiding loading the boundry from thread-local storage. Additionally, the scavenger can quickly skip over both immediates and old objects with a single branch.
+Heap objects are always allocated in double-word increments. Objects in old-space are kept at double-word alignment (address % double-word == 0), and objects in new-space are kept offset from double-word alignment (address % double-word == word). This allows checking an object's age without comparing to a boundry address, avoiding restrictions on heap placement and avoiding loading the boundry from thread-local storage. Additionally, the scavenger can quickly skip over both immediates and old objects with a single branch.
 
 | Pointer    | Referent                                |
 | ---        | ---                                     |
@@ -21,7 +21,29 @@ Heap objects are always allocated in double-word increments. Objects in old-spac
 
 Heap objects have a single-word header, which encodes the object's class, size, and some status flags.
 
-On 64-bit architectures, the header of heap objects also contains a 32-bit identity hash field. On 32-bit architectures, the identity hash for heap objects is kept in a side table.
+On 64-bit architectures, the header of heap objects also contains a 32-bit identity hash field. On 32-bit architectures, the identity hash for heap objects is kept in a separate hash table.
+
+## Handles
+
+The Dart VM's GC is precise and moving.
+
+A GC is said to be "precise" if when a collection happens it knows exactly what is and is not a pointer into the heap. For example, in compiled Dart code the VM tracks which stack slots contain object pointers and which contain unboxed values. This is opposed to a "conservative" collector that considers any pointer-sized value might be a pointer into the heap, though it might just be an unboxed value.
+
+In a "moving" GC, the address of an object might change, requiring pointers to that object to be updated. In the Dart VM, objects can move during a scavenge or a compaction. A moving GC must be a precise GC: if a conservative GC updates a value that is not guarenteed to be a pointer, it will corrupt execution when the value was not in fact a pointer.
+
+The VM does not know which stack slots, globals or object fields in foreign languages contain pointers into the Dart heap, including the VM's own runtime implemented in C++. For the GC to remain precise, foreign languages reference Dart objects indirectly through "handles". Handles can be thought of as pointers to pointers. They are allocated from the VM, and the GC will visit (and possibly update) the pointers contained in handles during collections.
+
+## Safepoints
+
+Any non-GC thread or task that can allocate, read or write to the heap is called a "mutator" (because it can mutate the object graph).
+
+Some phases of GC require that the heap is not being used by a mutator; we call these "[safepoint](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/safepoint.h) operations". Examples of safepoint operations include marking roots at the beginning of concurrent marking and the entirety of a scavenge.
+
+To perform these operations, all mutators need to temporarily stop accessing the heap; we say that these mutators have reached a "safepoint". A mutator that has reached a safepoint will not resume accessing the heap (leave the safepoint) until the safepoint operation is complete. In addition to not accessing the heap, a mutator at a safepoint must not hold any pointers into the heap unless these pointers can be visited by the GC. For code in the VM runtime, this last property means holding only handles and no ObjectPtr nor UntaggedObject. Examples of places that might enter a safepoint include allocations, stack overflow checks, and transitions between compiled code and the runtime and native code.
+
+Note that a mutator can be at a safepoint without being suspended. It might be performing a long task that doesn't access the heap. It will, however, need to wait for any safepoint operation to complete in order to leave its safepoint and resume accessing the heap.
+
+Because a safepoint operation excludes execution of Dart code, it is sometimes used for non-GC tasks that requires only this property. For example, when a background compilation has completed and wants to install its result, it uses a safepoint operation to ensure no Dart execution sees the intermediate states during installation.
 
 ## Scavenge
 
@@ -29,7 +51,7 @@ See [Cheney's algorithm](https://en.wikipedia.org/wiki/Cheney's_algorithm).
 
 ## Parallel Scavenge
 
-FLAG_scavenger_tasks (default 2) workers are started on separate threads. Each worker competes to process parts of the root set (including the remembered set). When a worker copies an object to to-space, it allocates from a worker-local bump allocation region. The same worker will process the copied object. When a worker promotes an object to old-space, it allocates from a worker-local freelist, which uses bump allocation for large free blocks. The promoted object is added to a work list that implements work stealing, so some other worker may process the promoted object. After the object is evacuated, the worker using a compare-and-swap to install the forwarding pointer into the from-space object's header. If it loses the race, it un-allocates the to-space or old-space object it just allocated, and uses the winner's object to update the pointer it was processing. Workers run until all of the work set have been processed, and every worker have processed its to-space objects and local part of the promoted work list.
+FLAG_scavenger_tasks (default 2) workers are started on separate threads. Each worker competes to process parts of the root set (including the remembered set). When a worker copies an object to to-space, it allocates from a worker-local bump allocation region. The same worker will process the copied object. When a worker promotes an object to old-space, it allocates from a worker-local freelist, which uses bump allocation for large free blocks. The promoted object is added to a work list that implements work stealing, so some other worker may process the promoted object. After the object is evacuated, the worker uses a compare-and-swap to install the forwarding pointer into the from-space object's header. If it loses the race, it un-allocates the to-space or old-space object it just allocated, and uses the winner's object to update the pointer it was processing. Workers run until all of the work sets have been processed, and every worker has processed its to-space objects and its local part of the promoted work list.
 
 ## Mark-Sweep
 
@@ -44,18 +66,6 @@ Note that because we do not mark new-space objects, we treat every object in new
 ## Mark-Compact
 
 The Dart VM includes a sliding compactor. The forwarding table is compactly represented by dividing the heap into blocks and for each block recording its target address and the bitvector for each surviving double-word. The table is accessed in constant time by keeping heap pages aligned so the page header of any object can be accessed by masking the object.
-
-## Safepoints
-
-Any thread or task that can allocate, read or write to the heap is called a "mutator" (because it can mutate the object graph).
-
-Some phases of GC require that the heap is not being used by a mutator; we call these "[safepoint](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/safepoint.h) operations". Examples of safepoint operations include marking roots at the beginning of concurrent marking and the entirety of a scavenge.
-
-To perform these operations, all mutators need to temporarily stop accessing the heap; we say that these mutators have reached a "safepoint". A mutator that has reached a safepoint will not resume accessing the heap (leave the safepoint) until the safepoint operation is complete. In addition to not accessing the heap, a mutator at a safepoint must not hold any pointers into the heap unless these pointers can be visited by the GC. For code in the VM runtime, this last property means holding only handles and no RawObject pointers. Examples of places that might enter a safepoint include allocations, stack overflow checks, and transitions between compiled code and the runtime and native code.
-
-Note that a mutator can be at a safepoint without being suspended. It might be performing a long task that doesn't access the heap. It will, however, need to wait for any safepoint operation to complete in order to leave its safepoint and resume accessing the heap.
-
-Because a safepoint operation excludes excution of Dart code, it is sometimes used for non-GC tasks that requires only this property. For example, when a background compilation has completed and wants to install its result, it uses a safepoint operation to ensure no Dart execution sees the intermediate states during installation.
 
 ## Concurrent Marking
 
@@ -140,7 +150,7 @@ The concurrent marker starts with an acquire-release operation, so all writes by
 
 For old-space objects created before marking started, in each slot the marker can see either its value at the time marking started or any subsequent value sorted in the slot. Any slot that contained a pointer continues to continue a valid pointer for the object's lifetime, so no matter which value the marker sees, it won't interpret a non-pointer as a pointer. (The one interesting case here is array truncation, where some slot in the array will become the header of a filler object. We ensure this is safe for concurrent marking by ensuring the header for the filler object looks like a Smi.) If the marker sees an old value, we may lose some precision and retain a dead object, but we remain correct because the new value has been marked by the mutator.
 
-For old-space objects created after marking started, the marker may see uninitialized values because operations on slots are not synchronized. To prevent this, during marking we allocate old-space objects black (marked) so the marker will not visit them.
+For old-space objects created after marking started, the marker may see uninitialized values because operations on slots are not synchronized. To prevent this, during marking we allocate old-space objects [black (marked)](https://en.wikipedia.org/wiki/Tracing_garbage_collection#TRI-COLOR) so the marker will not visit them.
 
 New-space objects and roots are only visited during a safepoint, and safepoints establish synchronization.
 
