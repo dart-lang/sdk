@@ -1304,24 +1304,9 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
 
 void FlowGraph::AttachEnvironment(Instruction* instr,
                                   GrowableArray<Definition*>* env) {
-  Environment* deopt_env =
-      Environment::From(zone(), *env, num_direct_parameters_, parsed_function_);
-  if (instr->IsClosureCall() || instr->IsLoadField()) {
-    // Trim extra inputs of ClosureCall and LoadField instructions from
-    // the environment. Inputs of those instructions are not pushed onto
-    // the stack at the point where deoptimization can occur.
-    // Note that in case of LoadField there can be two possible situations,
-    // the code here handles LoadField to LoadField lazy deoptimization in
-    // which we are transitioning from position after the call to initialization
-    // stub in optimized code to a similar position after the call to
-    // initialization stub in unoptimized code. There is another variant
-    // (LoadField deoptimizing into a position after a getter call) which is
-    // handled in a different way (see
-    // CallSpecializer::InlineImplicitInstanceGetter).
-    deopt_env =
-        deopt_env->DeepCopy(zone(), deopt_env->Length() - instr->InputCount() +
-                                        instr->ArgumentCount());
-  }
+  auto deopt_env = Environment::From(zone(), *env, num_direct_parameters_,
+                                     instr->NumberOfInputsConsumedBeforeCall(),
+                                     parsed_function_);
   instr->SetEnvironment(deopt_env);
   for (Environment::DeepIterator it(deopt_env); !it.Done(); it.Advance()) {
     Value* use = it.CurrentValue();
@@ -2308,6 +2293,7 @@ void FlowGraph::EliminateEnvironments() {
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
       if (!current->ComputeCanDeoptimize() &&
+          !current->ComputeCanDeoptimizeAfterCall() &&
           (!current->MayThrow() || !current->GetBlock()->InsideTryBlock())) {
         // Instructions that can throw need an environment for optimized
         // try-catch.

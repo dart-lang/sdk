@@ -1351,8 +1351,6 @@ void LICM::Hoist(ForwardInstructionIterator* it,
     USE(check);
   } else if (auto check = current->AsTestCids()) {
     check->set_licm_hoisted(true);
-  } else if (auto check = current->AsAssertAssignable()) {
-    check->set_licm_hoisted(true);
   }
   if (FLAG_trace_optimization) {
     THR_Print("Hoisting instruction %s:%" Pd " from B%" Pd " to B%" Pd "\n",

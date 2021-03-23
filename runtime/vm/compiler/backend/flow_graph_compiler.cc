@@ -910,6 +910,9 @@ CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
   if (env == nullptr) {
     env = pending_deoptimization_env_;
   }
+  if (env != nullptr) {
+    env = env->GetLazyDeoptEnv(zone());
+  }
   CompilerDeoptInfo* info =
       new (zone()) CompilerDeoptInfo(deopt_id, ICData::kDeoptAtCall,
                                      0,  // No flags.
@@ -1108,7 +1111,8 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
     return nullptr;
   }
 
-  Environment* slow_path_env = env->DeepCopy(zone());
+  Environment* slow_path_env =
+      env->DeepCopy(zone(), env->Length() - env->LazyDeoptPruneCount());
   // 1. Iterate the registers in the order they will be spilled to compute
   //    the slots they will be spilled to.
   intptr_t next_slot = StackSize() + slow_path_env->CountArgsPushed();
@@ -2938,21 +2942,7 @@ void FlowGraphCompiler::GenerateTTSCall(const InstructionSource& source,
     GenerateIndirectTTSCall(assembler(), reg_with_type, sub_type_cache_index);
   }
 
-  // Lazy deopt to after the call should not have the inputs to AssertAssignable
-  // because those are poped before doing the call.
-  auto pruned_env = pending_deoptimization_env_;
-  if (pruned_env != nullptr) {
-    // If the AssertAssignable was licm hoisted, a lazy-deopt will not continue
-    // after the TTS call inside the assert assignable. Rather the lazy-deopt
-    // will continue at the instruction it was hoisted above (e.g. continue at a
-    // Goto branch) and will later on re-do the AssertAssignable (again).
-    if (!was_licm_hoisted) {
-      pruned_env = pruned_env->DeepCopy(
-          zone(), pruned_env->Length() - AssertAssignableInstr::kNumInputs);
-    }
-  }
-  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kOther, locs,
-                       pruned_env);
+  EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kOther, locs);
 }
 
 // Optimize assignable type check by adding inlined tests for:

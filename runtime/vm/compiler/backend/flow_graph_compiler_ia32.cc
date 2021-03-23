@@ -113,7 +113,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
     builder->AddReturnAddress(current->function(),
-                              DeoptId::ToDeoptAfter(current->deopt_id()),
+                              DeoptId::ToDeoptAfter(current->GetDeoptId()),
                               slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
