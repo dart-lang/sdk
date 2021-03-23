@@ -2132,10 +2132,18 @@ class BinaryBuilder {
     InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
     int flags = readByte();
     int offset = readOffset();
+    Expression receiver = readExpression();
+    Name name = readName();
+    Arguments arguments = readArguments();
+    DartType functionType = readDartType();
+    // `const DynamicType()` is used to encode a missing function type.
+    assert(functionType is FunctionType || functionType is DynamicType,
+        "Unexpected function type $functionType for InstanceGetterInvocation");
+    Reference interfaceTargetReference = readNonNullInstanceMemberReference();
     return new InstanceGetterInvocation.byReference(
-        kind, readExpression(), readName(), readArguments(),
-        functionType: readDartType() as FunctionType,
-        interfaceTargetReference: readNonNullInstanceMemberReference())
+        kind, receiver, name, arguments,
+        functionType: functionType is FunctionType ? functionType : null,
+        interfaceTargetReference: interfaceTargetReference)
       ..fileOffset = offset
       ..flags = flags;
   }

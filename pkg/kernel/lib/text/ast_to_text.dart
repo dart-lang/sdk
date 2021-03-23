@@ -1498,6 +1498,19 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('}');
   }
 
+  visitInstanceGetterInvocation(InstanceGetterInvocation node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.');
+    writeInterfaceTarget(node.name, node.interfaceTargetReference);
+    _writeInstanceAccessKind(node.kind);
+    writeNode(node.arguments);
+    if (node.functionType != null) {
+      writeSymbol('{');
+      writeType(node.functionType!);
+      writeSymbol('}');
+    }
+  }
+
   visitEqualsCall(EqualsCall node) {
     int precedence = Precedence.EQUALITY;
     writeExpression(node.left, precedence);
