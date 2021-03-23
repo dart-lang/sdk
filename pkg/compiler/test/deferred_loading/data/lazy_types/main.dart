@@ -5,15 +5,13 @@
 /*spec.library: 
  output_units=[
   f1: {units: [3{libA, libB, libC}], usedBy: [], needs: []},
-  f2: {units: [4{libA, libC}], usedBy: [], needs: []},
-  f3: {units: [6{libA}], usedBy: [], needs: []},
-  f4: {units: [5{libB, libC}], usedBy: [], needs: []},
-  f5: {units: [1{libB}], usedBy: [], needs: []},
-  f6: {units: [2{libC}], usedBy: [], needs: []}],
+  f2: {units: [6{libA}], usedBy: [], needs: []},
+  f3: {units: [1{libB}], usedBy: [], needs: []},
+  f4: {units: [2{libC}], usedBy: [], needs: []}],
  steps=[
-  libA=(f1, f2, f3),
-  libB=(f1, f4, f5),
-  libC=(f1, f4, f2, f6)]
+  libA=(f1, f2),
+  libB=(f1, f3),
+  libC=(f1, f4)]
 */
 
 /*two-frag.library: 

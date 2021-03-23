@@ -15,7 +15,6 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
-import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_emitter/startup_emitter/fragment_merger.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:expect/expect.dart';
@@ -87,23 +86,18 @@ String outputUnitString(OutputUnit unit) {
 }
 
 Map<String, List<PreFragment>> buildPreFragmentMap(
-    Map<String, List<Fragment>> loadMap,
+    Map<String, List<FinalizedFragment>> fragmentsToLoad,
     List<PreFragment> preDeferredFragments) {
-  Map<DeferredFragment, PreFragment> fragmentMap = {};
+  Map<FinalizedFragment, PreFragment> fragmentMap = {};
   for (var preFragment in preDeferredFragments) {
-    for (var fragment in preFragment.fragments) {
-      assert(!fragmentMap.containsKey(fragment));
-      fragmentMap[fragment] = preFragment;
-    }
+    fragmentMap[preFragment.finalizedFragment] = preFragment;
   }
-
   Map<String, List<PreFragment>> preFragmentMap = {};
-  loadMap.forEach((loadId, fragments) {
-    Set<PreFragment> preFragments = {};
+  fragmentsToLoad.forEach((loadId, fragments) {
+    List<PreFragment> preFragments = [];
     for (var fragment in fragments) {
       preFragments.add(fragmentMap[fragment]);
     }
-    assert(!preFragmentMap.containsKey(loadId));
     preFragmentMap[loadId] = preFragments.toList();
   });
   return preFragmentMap;
@@ -160,10 +154,10 @@ class OutputUnitDataComputer extends DataComputer<Features> {
     ir.Library node = frontendStrategy.elementMap.getLibraryNode(library);
     List<PreFragment> preDeferredFragments = compiler
         .backendStrategy.emitterTask.emitter.preDeferredFragmentsForTesting;
-    Program program =
-        compiler.backendStrategy.emitterTask.emitter.programForTesting;
+    Map<String, List<FinalizedFragment>> fragmentsToLoad =
+        compiler.backendStrategy.emitterTask.emitter.fragmentsToLoad;
     Map<String, List<PreFragment>> preFragmentMap =
-        buildPreFragmentMap(program.loadMap, preDeferredFragments);
+        buildPreFragmentMap(fragmentsToLoad, preDeferredFragments);
     PreFragmentsIrComputer(compiler.reporter, actualMap, preFragmentMap)
         .computeForLibrary(node);
   }
@@ -208,13 +202,15 @@ class PreFragmentsIrComputer extends IrDataExtractor<Features> {
       List<OutputUnit> supplied = [];
       List<int> usedBy = [];
       for (var dependent in preFragment.successors) {
-        assert(preFragmentIndices.containsKey(dependent));
-        usedBy.add(preFragmentIndices[dependent]);
+        if (preFragmentIndices.containsKey(dependent)) {
+          usedBy.add(preFragmentIndices[dependent]);
+        }
       }
 
       for (var dependency in preFragment.predecessors) {
-        assert(preFragmentIndices.containsKey(dependency));
-        needs.add(preFragmentIndices[dependency]);
+        if (preFragmentIndices.containsKey(dependency)) {
+          needs.add(preFragmentIndices[dependency]);
+        }
       }
 
       for (var fragment in preFragment.fragments) {

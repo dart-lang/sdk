@@ -4,27 +4,24 @@
 
 // @dart = 2.7
 
+import 'dart:convert';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/world.dart';
-import '../helpers/memory_source_file_helper.dart';
 import '../helpers/memory_compiler.dart';
 
 void testLoadMap() async {
   var collector = new OutputCollector();
-  CompilationResult result = await runCompiler(
+  await runCompiler(
       memorySourceFiles: MEMORY_SOURCE_FILES,
       options: ['--deferred-map=deferred_map.json'],
       outputProvider: collector);
-  CompilerImpl compiler = result.compiler;
-  JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   // Ensure a mapping file is output.
-  Expect.isNotNull(
-      collector.getOutput("deferred_map.json", OutputType.deferredMap));
+  var deferredMap =
+      collector.getOutput("deferred_map.json", OutputType.deferredMap);
+  Expect.isNotNull(deferredMap);
+  var mapping = jsonDecode(deferredMap);
 
-  Map mapping = closedWorld.outputUnitData
-      .computeDeferredMap(compiler.options, closedWorld.elementEnvironment);
   // Test structure of mapping.
   Expect.equals("<unnamed>", mapping["main.dart"]["name"]);
   Expect.equals(2, mapping["main.dart"]["imports"]["lib1"].length);

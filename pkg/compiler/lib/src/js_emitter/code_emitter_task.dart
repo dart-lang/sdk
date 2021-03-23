@@ -5,6 +5,7 @@
 library dart2js.js_emitter.code_emitter_task;
 
 import '../common.dart';
+import '../common/metrics.dart' show Metric, Metrics, CountMetric;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
@@ -49,6 +50,9 @@ class CodeEmitterTask extends CompilerTask {
   // The field is set after the program has been emitted.
   /// Contains a list of all classes that are emitted.
   Set<ClassEntity> neededClasses;
+
+  @override
+  final _EmitterMetrics metrics = _EmitterMetrics();
 
   CodeEmitterTask(this._compiler, this._generateSourceMap)
       : super(_compiler.measurer);
@@ -209,6 +213,12 @@ abstract class Emitter implements ModularEmitter {
 
   List<fragment_merger.PreFragment> get preDeferredFragmentsForTesting;
 
+  /// A map of loadId to list of [FinalizedFragments].
+  Map<String, List<fragment_merger.FinalizedFragment>> get fragmentsToLoad;
+
+  /// The [FragmentMerger] itself.
+  fragment_merger.FragmentMerger get fragmentMerger;
+
   /// Uses the [programBuilder] to generate a model of the program, emits
   /// the program, and returns the size of the generated output.
   int emitProgram(ProgramBuilder programBuilder, CodegenWorld codegenWorld);
@@ -227,4 +237,17 @@ abstract class Emitter implements ModularEmitter {
 
   /// Returns the size of the code generated for a given output [unit].
   int generatedSize(OutputUnit unit);
+}
+
+class _EmitterMetrics implements Metrics {
+  @override
+  String get namespace => 'emitter';
+
+  CountMetric hunkListElements = CountMetric('hunkListElements');
+
+  @override
+  Iterable<Metric> get primary => [];
+
+  @override
+  Iterable<Metric> get secondary => [hunkListElements];
 }

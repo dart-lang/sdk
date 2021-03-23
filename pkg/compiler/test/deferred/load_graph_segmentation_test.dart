@@ -11,8 +11,17 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/deferred_load.dart';
+import 'package:compiler/src/js_emitter/startup_emitter/fragment_merger.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
+
+List<OutputUnit> collectOutputUnits(List<FinalizedFragment> fragments) {
+  List<OutputUnit> outputUnits = [];
+  for (var fragment in fragments) {
+    outputUnits.addAll(fragment.outputUnits);
+  }
+  return outputUnits;
+}
 
 void main() {
   asyncTest(() async {
@@ -59,12 +68,11 @@ void main() {
     // InputElement is native, so it should be in the mainOutputUnit.
     Expect.equals(mainOutputUnit, outputUnitForClass(inputElement));
 
-    var hunksToLoad = closedWorld.outputUnitData.hunksToLoad;
-
-    var hunksLib1 = hunksToLoad["lib1"];
-    var hunksLib2 = hunksToLoad["lib2"];
-    var hunksLib4_1 = hunksToLoad["lib4_1"];
-    var hunksLib4_2 = hunksToLoad["lib4_2"];
+    var hunksToLoad = backendStrategy.emitterTask.emitter.fragmentsToLoad;
+    var hunksLib1 = collectOutputUnits(hunksToLoad["lib1"]);
+    var hunksLib2 = collectOutputUnits(hunksToLoad["lib2"]);
+    var hunksLib4_1 = collectOutputUnits(hunksToLoad["lib4_1"]);
+    var hunksLib4_2 = collectOutputUnits(hunksToLoad["lib4_2"]);
     Expect.listEquals([ou_lib1_lib2, ou_lib1], hunksLib1);
     Expect.listEquals([ou_lib1_lib2, ou_lib2], hunksLib2);
     Expect.listEquals([ou_lib4_1], hunksLib4_1);
