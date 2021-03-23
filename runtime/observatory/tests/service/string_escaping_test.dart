@@ -9,20 +9,35 @@ import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 import 'test_helper.dart';
 
+@pragma("vm:entry-point") // Prevent obfuscation
 var ascii;
+@pragma("vm:entry-point") // Prevent obfuscation
 var latin1;
+@pragma("vm:entry-point") // Prevent obfuscation
 var unicode;
+@pragma("vm:entry-point") // Prevent obfuscation
 var hebrew;
+@pragma("vm:entry-point") // Prevent obfuscation
 var singleQuotes;
+@pragma("vm:entry-point") // Prevent obfuscation
 var doubleQuotes;
+@pragma("vm:entry-point") // Prevent obfuscation
 var newLines;
+@pragma("vm:entry-point") // Prevent obfuscation
 var tabs;
+@pragma("vm:entry-point") // Prevent obfuscation
 var suggrogatePairs;
+@pragma("vm:entry-point") // Prevent obfuscation
 var nullInTheMiddle;
+@pragma("vm:entry-point") // Prevent obfuscation
 var escapedUnicodeEscape;
+@pragma("vm:entry-point") // Prevent obfuscation
 var longStringEven;
+@pragma("vm:entry-point") // Prevent obfuscation
 var longStringOdd;
+@pragma("vm:entry-point") // Prevent obfuscation
 var malformedWithLeadSurrogate;
+@pragma("vm:entry-point") // Prevent obfuscation
 var malformedWithTrailSurrogate;
 
 void script() {

@@ -10,13 +10,15 @@ import 'service_test_common.dart';
 
 class Pair {
   // Make sure these fields are not removed by the tree shaker.
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   dynamic x;
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   dynamic y;
 }
 
+@pragma("vm:entry-point") // Prevent obfuscation
 dynamic p1;
+@pragma("vm:entry-point") // Prevent obfuscation
 dynamic p2;
 
 buildGraph() {

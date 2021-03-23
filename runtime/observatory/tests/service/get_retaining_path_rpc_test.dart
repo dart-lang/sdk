@@ -10,9 +10,9 @@ import 'test_helper.dart';
 class _TestClass {
   _TestClass();
   // Make sure these fields are not removed by the tree shaker.
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   dynamic x;
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   dynamic y;
 }
 
@@ -22,6 +22,7 @@ dynamic target3 = new _TestClass();
 dynamic target4 = new _TestClass();
 dynamic target5 = new _TestClass();
 dynamic target6 = new _TestClass();
+@pragma("vm:entry-point") // Prevent obfuscation
 Expando<_TestClass> expando = Expando<_TestClass>();
 @pragma("vm:entry-point") // Prevent obfuscation
 dynamic globalObject = new _TestClass();
@@ -40,45 +41,45 @@ void warmup() {
   globalMap2[target5] = 'value';
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point") // Prevent obfuscation
 getGlobalObject() => globalObject;
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point") // Prevent obfuscation
 takeTarget1() {
   var tmp = target1;
   target1 = null;
   return tmp;
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point") // Prevent obfuscation
 takeTarget2() {
   var tmp = target2;
   target2 = null;
   return tmp;
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point") // Prevent obfuscation
 takeTarget3() {
   var tmp = target3;
   target3 = null;
   return tmp;
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point") // Prevent obfuscation
 takeTarget4() {
   var tmp = target4;
   target4 = null;
   return tmp;
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point") // Prevent obfuscation
 takeTarget5() {
   var tmp = target5;
   target5 = null;
   return tmp;
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point") // Prevent obfuscation
 takeExpandoTarget() {
   var tmp = target6;
   target6 = null;
@@ -87,7 +88,7 @@ takeExpandoTarget() {
   return tmp2;
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point") // Prevent obfuscation
 getTrue() => true;
 
 invoke(Isolate isolate, String selector) async {
@@ -216,7 +217,6 @@ var tests = <IsolateTest>[
     expect(result['elements'][1]['parentMapKey']['class']['name'],
         equals('_TestClass'));
     expect(result['elements'][2]['parentListIndex'], isNotNull);
-    expect(result['elements'][3]['value']['class']['name'], 'Expando');
     expect(result['elements'][4]['value']['name'], 'expando');
   },
 
