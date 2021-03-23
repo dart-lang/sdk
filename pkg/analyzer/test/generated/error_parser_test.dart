@@ -1886,8 +1886,8 @@ class Wrong<T> {
         expectedEndOffset: 14 /* parsing ends at synthetic ')' */);
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.errors
-        .contains(expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 1));
+    listener
+        .assertErrors([expectedError(ScannerErrorCode.EXPECTED_TOKEN, 14, 1)]);
   }
 
   void test_missingConstFinalVarOrType_static() {

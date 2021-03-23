@@ -24,8 +24,12 @@
 
 #### Linter
 
-Updated the Linter to `1.1.0`, which includes:
+Updated the Linter to `1.2.1`, which includes:
 
+- improvements to `iterable_contains_unrelated_type` to better support `List`
+  content checks.
+- fixes to `camel_case_types` and `prefer_mixin` to support non-function
+  type aliases.
 - fixed `prefer_mixin` to properly make exceptions for `dart.collection`
   legacy mixins.
 - new lint: `use_build_context_synchronously` (experimental).
@@ -35,6 +39,34 @@ Updated the Linter to `1.1.0`, which includes:
 - new lint: `deprecated_consistency`.
 - new lint: `use_named_constants`.
 - deprecation of `avoid_as`.
+
+### Pub
+
+* `dart pub publish` now respects `.pubignore` files with gitignore-style rules.
+ `.gitignore` files in the repo are still respected if they are not
+  overridden by a `.pubignore` in the same directory.
+
+  pub no longer queries git for listing the files. This implies:
+  * Checked in files will now be ignored if they are included by a `.gitignore`
+    rule.
+  * Global ignores are no longer taken into account.
+  * Even packages that are not in git source control will have their
+    `.gitignore` files respected.
+
+* New flag `dart pub deps --json` gives a machine parsable overview of the
+  current dependencies.
+* New command: `dart pub cache clean`. Will delete everything in your current
+  pub cache.
+* Commands related to a single package now takes a `--directory` option to
+  operate on a package in the given directory instead of the working directory.
+* git dependencies with a relative repo url would previously be interpreted
+  relative to the current package, even for transitive dependencies. This now
+  fails instead.
+
+* Pub now uses a Dart library to read and write tar files.
+  This should fix several issues we had with incompatibilities between different
+  system `tar`s.
+* `PUB_HOSTED_URL` can now include a trailing slash.
 
 ## 2.12.2 - 2021-03-17
 

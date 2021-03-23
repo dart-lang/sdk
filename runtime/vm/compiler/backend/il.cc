@@ -1580,11 +1580,15 @@ void Instruction::UnuseAllInputs() {
 }
 
 void Instruction::RepairPushArgsInEnvironment() const {
+  // Some calls (e.g. closure calls) have more inputs than actual arguments.
+  // Those extra inputs will be consumed from the stack before the call.
+  const intptr_t after_args_input_count = env()->LazyDeoptPruneCount();
   PushArgumentsArray* push_arguments = GetPushArguments();
   ASSERT(push_arguments != nullptr);
   const intptr_t arg_count = ArgumentCount();
-  ASSERT(arg_count <= env()->Length());
-  const intptr_t env_base = env()->Length() - arg_count;
+  ASSERT((arg_count + after_args_input_count) <= env()->Length());
+  const intptr_t env_base =
+      env()->Length() - arg_count - after_args_input_count;
   for (intptr_t i = 0; i < arg_count; ++i) {
     env()->ValueAt(env_base + i)->BindToEnvironment(push_arguments->At(i));
   }
@@ -4429,9 +4433,6 @@ void LoadFieldInstr::EmitNativeCodeForInitializerCall(
     UNREACHABLE();
   }
 
-  // Instruction inputs are popped from the stack at this point,
-  // so deoptimization environment has to be adjusted.
-  // This adjustment is done in FlowGraph::AttachEnvironment.
   compiler->GenerateStubCall(source(), stub,
                              /*kind=*/UntaggedPcDescriptors::kOther, locs(),
                              deopt_id());
@@ -5379,7 +5380,7 @@ intptr_t AssertAssignableInstr::statistics_tag() const {
 
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateAssertAssignable(value()->Type(), source(), deopt_id(),
-                                     dst_name(), locs(), licm_hoisted());
+                                     dst_name(), locs());
   ASSERT(locs()->in(kInstancePos).reg() == locs()->out(0).reg());
 }
 
@@ -5406,7 +5407,7 @@ LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
 
 void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateStubCall(source(), StubCode::AssertSubtype(),
-                             UntaggedPcDescriptors::kOther, locs());
+                             UntaggedPcDescriptors::kOther, locs(), deopt_id());
 }
 
 LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
@@ -5707,9 +5708,11 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 Environment* Environment::From(Zone* zone,
                                const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
+                               intptr_t lazy_deopt_pruning_count,
                                const ParsedFunction& parsed_function) {
-  Environment* env = new (zone) Environment(
-      definitions.length(), fixed_parameter_count, parsed_function, NULL);
+  Environment* env =
+      new (zone) Environment(definitions.length(), fixed_parameter_count,
+                             lazy_deopt_pruning_count, parsed_function, NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
     env->values_.Add(new (zone) Value(definitions[i]));
   }
@@ -5722,10 +5725,10 @@ void Environment::PushValue(Value* value) {
 
 Environment* Environment::DeepCopy(Zone* zone, intptr_t length) const {
   ASSERT(length <= values_.length());
-  Environment* copy =
-      new (zone) Environment(length, fixed_parameter_count_, parsed_function_,
-                             (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
-  copy->deopt_id_ = this->deopt_id_;
+  Environment* copy = new (zone) Environment(
+      length, fixed_parameter_count_, LazyDeoptPruneCount(), parsed_function_,
+      (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
+  copy->SetDeoptId(DeoptIdBits::decode(bitfield_));
   if (locations_ != NULL) {
     Location* new_locations = zone->Alloc<Location>(length);
     copy->set_locations(new_locations);
@@ -5762,7 +5765,9 @@ void Environment::DeepCopyAfterTo(Zone* zone,
     it.CurrentValue()->RemoveFromUseList();
   }
 
-  Environment* copy = DeepCopy(zone, values_.length() - argc);
+  Environment* copy =
+      DeepCopy(zone, values_.length() - argc - LazyDeoptPruneCount());
+  copy->SetLazyDeoptPruneCount(0);
   for (intptr_t i = 0; i < argc; i++) {
     copy->values_.Add(new (zone) Value(dead));
   }
@@ -5784,11 +5789,13 @@ void Environment::DeepCopyToOuter(Zone* zone,
   ASSERT(this != NULL);
   ASSERT(instr->env()->outer() == NULL);
   intptr_t argument_count = instr->env()->fixed_parameter_count();
-  Environment* copy = DeepCopy(zone, values_.length() - argument_count);
-  copy->deopt_id_ = outer_deopt_id;
-  instr->env()->outer_ = copy;
+  Environment* outer =
+      DeepCopy(zone, values_.length() - argument_count - LazyDeoptPruneCount());
+  outer->SetDeoptId(outer_deopt_id);
+  outer->SetLazyDeoptPruneCount(0);
+  instr->env()->outer_ = outer;
   intptr_t use_index = instr->env()->Length();  // Start index after inner.
-  for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
+  for (Environment::DeepIterator it(outer); !it.Done(); it.Advance()) {
     Value* value = it.CurrentValue();
     value->set_instruction(instr);
     value->set_use_index(use_index++);

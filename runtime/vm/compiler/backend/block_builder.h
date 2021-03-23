@@ -25,7 +25,7 @@ class BlockBuilder : public ValueObject {
         entry_(entry),
         current_(entry),
         dummy_env_(
-            new Environment(0, 0, flow_graph->parsed_function(), nullptr)) {
+            new Environment(0, 0, 0, flow_graph->parsed_function(), nullptr)) {
     // Some graph transformations use environments from block entries.
     entry->SetEnvironment(dummy_env_);
   }
@@ -50,6 +50,7 @@ class BlockBuilder : public ValueObject {
   template <typename T>
   T* AddInstruction(T* instr) {
     if (instr->ComputeCanDeoptimize() ||
+        instr->ComputeCanDeoptimizeAfterCall() ||
         instr->CanBecomeDeoptimizationTarget()) {
       // All instructions that can deoptimize must have an environment attached
       // to them.

@@ -591,8 +591,7 @@ class FlowGraphCompiler : public ValueObject {
                                 const InstructionSource& source,
                                 intptr_t deopt_id,
                                 const String& dst_name,
-                                LocationSummary* locs,
-                                bool was_licm_hoisted);
+                                LocationSummary* locs);
 
 #if !defined(TARGET_ARCH_IA32)
   void GenerateCallerChecksForAssertAssignable(CompileType* receiver_type,
@@ -604,8 +603,7 @@ class FlowGraphCompiler : public ValueObject {
                        Register reg_with_type,
                        const AbstractType& dst_type,
                        const String& dst_name,
-                       LocationSummary* locs,
-                       bool was_licm_hoisted);
+                       LocationSummary* locs);
 
   static void GenerateIndirectTTSCall(compiler::Assembler* assembler,
                                       Register reg_with_type,

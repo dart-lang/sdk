@@ -502,7 +502,7 @@ struct InstrAttrs {
   M(BoxInt32, _)                                                               \
   M(UnboxInt32, kNoGC)                                                         \
   M(BoxUint8, kNoGC)                                                           \
-  M(IntConverter, _)                                                           \
+  M(IntConverter, kNoGC)                                                       \
   M(BitCast, kNoGC)                                                            \
   M(Deoptimize, kNoGC)                                                         \
   M(SimdOp, kNoGC)
@@ -775,10 +775,6 @@ class Instruction : public ZoneAllocated {
   explicit Instruction(const InstructionSource& source,
                        intptr_t deopt_id = DeoptId::kNone)
       : deopt_id_(deopt_id),
-        previous_(NULL),
-        next_(NULL),
-        env_(NULL),
-        locs_(NULL),
         inlining_id_(source.inlining_id) {}
 
   explicit Instruction(intptr_t deopt_id = DeoptId::kNone)
@@ -791,7 +787,8 @@ class Instruction : public ZoneAllocated {
   virtual intptr_t statistics_tag() const { return tag(); }
 
   intptr_t deopt_id() const {
-    ASSERT(ComputeCanDeoptimize() || CanBecomeDeoptimizationTarget() ||
+    ASSERT(ComputeCanDeoptimize() || ComputeCanDeoptimizeAfterCall() ||
+           CanBecomeDeoptimizationTarget() ||
            CompilerState::Current().is_aot());
     return GetDeoptId();
   }
@@ -851,9 +848,19 @@ class Instruction : public ZoneAllocated {
   // the type or the range of input operands during compilation.
   virtual bool ComputeCanDeoptimize() const = 0;
 
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    // TODO(dartbug.com/45213): Incrementally migrate IR instructions from using
+    // [ComputeCanDeoptimze] to either [ComputeCanDeoptimizeAfterCall] if they
+    // can only lazy deoptimize.
+    return false;
+  }
+
   // Once we removed the deopt environment, we assume that this
   // instruction can't deoptimize.
-  bool CanDeoptimize() const { return env() != NULL && ComputeCanDeoptimize(); }
+  bool CanDeoptimize() const {
+    return env() != nullptr &&
+           (ComputeCanDeoptimize() || ComputeCanDeoptimizeAfterCall());
+  }
 
   // Visiting support.
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
@@ -972,6 +979,8 @@ class Instruction : public ZoneAllocated {
   void RemoveEnvironment();
   void ReplaceInEnvironment(Definition* current, Definition* replacement);
 
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const { return 0; }
+
   // Different compiler passes can assign pass specific ids to the instruction.
   // Only one id can be stored at a time.
   intptr_t GetPassSpecificId(CompilerPass::Id pass) const {
@@ -1089,8 +1098,8 @@ class Instruction : public ZoneAllocated {
   virtual void InheritDeoptTarget(Zone* zone, Instruction* other);
 
   bool NeedsEnvironment() const {
-    return ComputeCanDeoptimize() || CanBecomeDeoptimizationTarget() ||
-           MayThrow();
+    return ComputeCanDeoptimize() || ComputeCanDeoptimizeAfterCall() ||
+           CanBecomeDeoptimizationTarget() || MayThrow();
   }
 
   virtual bool CanBecomeDeoptimizationTarget() const { return false; }
@@ -1179,12 +1188,12 @@ class Instruction : public ZoneAllocated {
                   "Pass Id does not fit into the bit field");
   };
 
-  intptr_t deopt_id_;
+  intptr_t deopt_id_ = DeoptId::kNone;
   intptr_t pass_specific_id_ = PassSpecificId::kNoId;
-  Instruction* previous_;
-  Instruction* next_;
-  Environment* env_;
-  LocationSummary* locs_;
+  Instruction* previous_ = nullptr;
+  Instruction* next_ = nullptr;
+  Environment* env_ = nullptr;
+  LocationSummary* locs_ = nullptr;
   intptr_t inlining_id_;
 
   DISALLOW_COPY_AND_ASSIGN(Instruction);
@@ -3628,8 +3637,12 @@ class AssertSubtypeInstr : public TemplateInstruction<5, Throws, Pure> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
@@ -3704,8 +3717,20 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   const String& dst_name() const { return dst_name_; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+#if !defined(TARGET_ARCH_IA32)
+    return InputCount();
+#else
+    // The ia32 implementation calls the stub by pushing the input registers
+    // in the same order onto the stack thereby making the deopt-env correct.
+    // (Due to lack of registers we cannot use all-argument calling convention
+    // as in other architectures.)
+    return 0;
+#endif
   }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
@@ -3718,9 +3743,6 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
-  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
-  bool licm_hoisted() const { return licm_hoisted_; }
-
   virtual Value* RedefinedValue() const;
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -3729,7 +3751,6 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
   const TokenPosition token_pos_;
   const String& dst_name_;
   const Kind kind_;
-  bool licm_hoisted_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableInstr);
 };
@@ -3749,8 +3770,12 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
@@ -3875,6 +3900,13 @@ class TemplateDartCall : public Definition {
 
   virtual intptr_t InputCount() const { return inputs_->length(); }
   virtual Value* InputAt(intptr_t i) const { return inputs_->At(i); }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return kExtraInputs;
+  }
 
   intptr_t FirstArgIndex() const { return type_args_len_ > 0 ? 1 : 0; }
   Value* Receiver() const { return this->ArgumentValueAt(FirstArgIndex()); }
@@ -3958,10 +3990,6 @@ class ClosureCallInstr : public TemplateDartCall<1> {
   // TODO(kmillikin): implement exact call counts for closure calls.
   virtual intptr_t CallCount() const { return 1; }
 
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
-
   virtual bool HasUnknownSideEffects() const { return true; }
 
   Code::EntryKind entry_kind() const { return entry_kind_; }
@@ -4033,10 +4061,6 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   void set_has_unique_selector(bool b) { has_unique_selector_ = b; }
 
   virtual CompileType ComputeType() const;
-
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     // Instance calls that are specialized by the optimizer need a
@@ -4330,8 +4354,6 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
   Value* class_id() const { return InputAt(InputCount() - 1); }
 
   virtual CompileType ComputeType() const;
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -6546,8 +6568,12 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(LoadField)
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return calls_initializer() && !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual bool HasUnknownSideEffects() const {
@@ -6624,8 +6650,12 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -6669,8 +6699,12 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
   const Function& function() const { return function_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -9413,6 +9447,7 @@ class Environment : public ZoneAllocated {
   static Environment* From(Zone* zone,
                            const GrowableArray<Definition*>& definitions,
                            intptr_t fixed_parameter_count,
+                           intptr_t lazy_deopt_pruning_count,
                            const ParsedFunction& parsed_function);
 
   void set_locations(Location* locations) {
@@ -9423,9 +9458,19 @@ class Environment : public ZoneAllocated {
   // Get deopt_id associated with this environment.
   // Note that only outer environments have deopt id associated with
   // them (set by DeepCopyToOuter).
-  intptr_t deopt_id() const {
-    ASSERT(deopt_id_ != DeoptId::kNone);
-    return deopt_id_;
+  intptr_t GetDeoptId() const {
+    ASSERT(DeoptIdBits::decode(bitfield_) != DeoptId::kNone);
+    return DeoptIdBits::decode(bitfield_);
+  }
+
+  intptr_t LazyDeoptPruneCount() const {
+    return LazyDeoptPruningBits::decode(bitfield_);
+  }
+
+  Environment* GetLazyDeoptEnv(Zone* zone) {
+    const intptr_t num_args_to_prune = LazyDeoptPruneCount();
+    if (num_args_to_prune == 0) return this;
+    return DeepCopy(zone, Length() - num_args_to_prune);
   }
 
   Environment* outer() const { return outer_; }
@@ -9499,21 +9544,39 @@ class Environment : public ZoneAllocated {
   friend class compiler::BlockBuilder;  // For Environment constructor.
   friend class FlowGraphDeserializer;   // For constructor and deopt_id_.
 
+  class LazyDeoptPruningBits : public BitField<uintptr_t, uintptr_t, 0, 8> {};
+  class DeoptIdBits
+      : public BitField<uintptr_t,
+                        intptr_t,
+                        LazyDeoptPruningBits::kNextBit,
+                        kBitsPerWord - LazyDeoptPruningBits::kNextBit,
+                        /*sign_extend=*/true> {};
+
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,
+              intptr_t lazy_deopt_pruning_count,
               const ParsedFunction& parsed_function,
               Environment* outer)
       : values_(length),
         fixed_parameter_count_(fixed_parameter_count),
+        bitfield_(DeoptIdBits::encode(DeoptId::kNone) |
+                  LazyDeoptPruningBits::encode(lazy_deopt_pruning_count)),
         parsed_function_(parsed_function),
         outer_(outer) {}
+
+  void SetDeoptId(intptr_t deopt_id) {
+    bitfield_ = DeoptIdBits::update(deopt_id, bitfield_);
+  }
+  void SetLazyDeoptPruneCount(intptr_t value) {
+    bitfield_ = LazyDeoptPruningBits::update(value, bitfield_);
+  }
 
   GrowableArray<Value*> values_;
   Location* locations_ = nullptr;
   const intptr_t fixed_parameter_count_;
   // Deoptimization id associated with this environment. Only set for
   // outer environments.
-  intptr_t deopt_id_ = DeoptId::kNone;
+  uintptr_t bitfield_;
   const ParsedFunction& parsed_function_;
   Environment* outer_;
 

@@ -118,8 +118,11 @@ static void AssertArgumentsInEnv(FlowGraph* flow_graph, Definition* call) {
     // correspond directly with the arguments.
     const intptr_t env_count = env->Length();
     const intptr_t arg_count = call->ArgumentCount();
-    ASSERT(arg_count <= env_count);
-    const intptr_t env_base = env_count - arg_count;
+    // Some calls (e.g. closure calls) have more inputs than actual arguments.
+    // Those extra inputs will be consumed from the stack before the call.
+    const intptr_t after_args_input_count = call->env()->LazyDeoptPruneCount();
+    ASSERT((arg_count + after_args_input_count) <= env_count);
+    const intptr_t env_base = env_count - arg_count - after_args_input_count;
     for (intptr_t i = 0; i < arg_count; i++) {
       if (call->HasPushArguments()) {
         ASSERT(call->ArgumentAt(i) == env->ValueAt(env_base + i)

@@ -3070,6 +3070,25 @@ void DeoptimizeFunctionsOnStack() {
   });
 }
 
+static void DeoptimizeLastDartFrameIfOptimized() {
+  auto thread = Thread::Current();
+  // Have to grab program_lock before stopping everybody else.
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
+  auto isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
+  isolate_group->RunWithStoppedMutators([&]() {
+    auto mutator_thread = isolate->mutator_thread();
+    DartFrameIterator iterator(mutator_thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
+    StackFrame* frame = iterator.NextFrame();
+    const auto& optimized_code = Code::Handle(frame->LookupDartCode());
+    if (optimized_code.is_optimized() && !optimized_code.is_force_optimized()) {
+      DeoptimizeAt(mutator_thread, optimized_code, frame);
+    }
+  });
+}
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 static const intptr_t kNumberOfSavedCpuRegisters = kNumberOfCpuRegisters;
 static const intptr_t kNumberOfSavedFpuRegisters = kNumberOfFpuRegisters;
@@ -3278,13 +3297,15 @@ void OnEveryRuntimeEntryCall(Thread* thread, const char* runtime_call_name) {
     return;
   }
   if (FLAG_deoptimize_on_runtime_call_name_filter != nullptr &&
-      strstr(runtime_call_name, FLAG_deoptimize_on_runtime_call_name_filter) ==
-          0) {
+      (strlen(runtime_call_name) !=
+           strlen(FLAG_deoptimize_on_runtime_call_name_filter) ||
+       strstr(runtime_call_name, FLAG_deoptimize_on_runtime_call_name_filter) ==
+           0)) {
     return;
   }
   const uint32_t count = thread->IncrementAndGetRuntimeCallCount();
   if ((count % FLAG_deoptimize_on_runtime_call_every) == 0) {
-    DeoptimizeFunctionsOnStack();
+    DeoptimizeLastDartFrameIfOptimized();
   }
 }
 

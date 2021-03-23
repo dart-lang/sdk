@@ -323,8 +323,8 @@ class ErrorFilterOptionValidator extends OptionsValidator {
     if (analyzer is YamlMap) {
       var filters = analyzer.valueAt(AnalyzerOptions.errors);
       if (filters is YamlMap) {
-        String? value;
         filters.nodes.forEach((k, v) {
+          String? value;
           if (k is YamlScalar) {
             value = toUpperCase(k.value);
             if (!errorCodes.contains(value) && !lintCodes.contains(value)) {
@@ -347,8 +347,18 @@ class ErrorFilterOptionValidator extends OptionsValidator {
                     legalValueString
                   ]);
             }
+          } else {
+            reporter.reportErrorForSpan(
+                AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+                v.span,
+                [AnalyzerOptions.enableExperiment]);
           }
         });
+      } else if (filters != null) {
+        reporter.reportErrorForSpan(
+            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+            filters.span,
+            [AnalyzerOptions.enableExperiment]);
       }
     }
   }
@@ -450,6 +460,11 @@ class OptionalChecksValueValidator extends OptionsValidator {
             }
           }
         });
+      } else if (v != null) {
+        reporter.reportErrorForSpan(
+            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+            v.span,
+            [AnalyzerOptions.enableExperiment]);
       }
     }
   }
@@ -533,6 +548,11 @@ class StrongModeOptionValueValidator extends OptionsValidator {
             }
           }
         });
+      } else if (v != null) {
+        reporter.reportErrorForSpan(
+            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+            v.span,
+            [AnalyzerOptions.enableExperiment]);
       }
     }
   }

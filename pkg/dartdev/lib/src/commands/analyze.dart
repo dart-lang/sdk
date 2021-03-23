@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:cli_util/cli_logging.dart';
@@ -47,12 +48,13 @@ class AnalyzeCommand extends DartdevCommand {
         'format',
         valueHelp: 'value',
         help: 'Specifies the format to display errors.',
-        allowed: ['default', 'machine'],
+        allowed: ['default', 'json', 'machine'],
         allowedHelp: {
           'default':
               'The default output format. This format is intended to be user '
                   'consumable.\nThe format is not specified and can change '
                   'between releases.',
+          'json': 'A machine readable output in a JSON format.',
           'machine': 'A machine readable output. The format is:\n\n'
               'SEVERITY|TYPE|ERROR_CODE|FILE_PATH|LINE|COLUMN|LENGTH|ERROR_MESSAGE\n\n'
               'Note that the pipe character is escaped with backslashes for '
@@ -93,6 +95,7 @@ class AnalyzeCommand extends DartdevCommand {
     final List<AnalysisError> errors = <AnalysisError>[];
 
     final machineFormat = argResults['format'] == 'machine';
+    final jsonFormat = argResults['format'] == 'json';
 
     var progress = machineFormat
         ? null
@@ -138,6 +141,8 @@ class AnalyzeCommand extends DartdevCommand {
 
     if (machineFormat) {
       emitMachineFormat(log, errors);
+    } else if (jsonFormat) {
+      emitJsonFormat(log, errors);
     } else {
       emitDefaultFormat(log, errors,
           relativeToDir: relativeToDir, verbose: verbose);
@@ -232,6 +237,67 @@ class AnalyzeCommand extends DartdevCommand {
 
     final errorCount = errors.length;
     log.stdout('$errorCount ${pluralize('issue', errorCount)} found.');
+  }
+
+  @visibleForTesting
+  static void emitJsonFormat(Logger log, List<AnalysisError> errors) {
+    Map<String, dynamic> location(
+            String filePath, Map<String, dynamic> range) =>
+        {
+          'file': filePath,
+          'range': range,
+        };
+
+    Map<String, dynamic> position(int offset, int line, int column) => {
+          'offset': offset,
+          'line': line,
+          'column': column,
+        };
+
+    Map<String, dynamic> range(
+            Map<String, dynamic> start, Map<String, dynamic> end) =>
+        {
+          'start': start,
+          'end': end,
+        };
+
+    var diagnostics = <Map<String, dynamic>>[];
+    for (final AnalysisError error in errors) {
+      var contextMessages = [];
+      for (var contextMessage in error.contextMessages) {
+        var startOffset = contextMessage.offset;
+        contextMessages.add({
+          'location': location(
+              contextMessage.filePath,
+              range(
+                  position(
+                      startOffset, contextMessage.line, contextMessage.column),
+                  position(startOffset + contextMessage.length,
+                      contextMessage.endLine, contextMessage.endColumn))),
+          'message': contextMessage.message,
+        });
+      }
+      var startOffset = error.offset;
+      diagnostics.add({
+        'code': error.code,
+        'severity': error.severity,
+        'type': error.type,
+        'location': location(
+            error.file,
+            range(
+                position(startOffset, error.startLine, error.startColumn),
+                position(startOffset + error.length, error.endLine,
+                    error.endColumn))),
+        'problemMessage': error.message,
+        if (error.correction != null) 'correctionMessage': error.correction,
+        if (contextMessages.isNotEmpty) 'contextMessages': contextMessages,
+        if (error.url != null) 'documentation': error.url,
+      });
+    }
+    log.stdout(json.encode({
+      'version': 1,
+      'diagnostics': diagnostics,
+    }));
   }
 
   /// Return a relative path if it is a shorter reference than the given dir.
