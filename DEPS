@@ -156,7 +156,6 @@ vars = {
   "stream_channel_tag": "d7251e61253ec389ee6e045ee1042311bced8f1d",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",
   "sync_http_rev": "b59c134f2e34d12acac110d4f17f83e5a7db4330",
-  "tar_rev": "b59c134f2e34d12acac110d4f17f83e5a7db4330",
   "test_descriptor_tag": "2.0.0",
   "test_process_tag": "2.0.0",
   "term_glyph_rev": "6a0f9b6fb645ba75e7a00a4e20072678327a0347",
