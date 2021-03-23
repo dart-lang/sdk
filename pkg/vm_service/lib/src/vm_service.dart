@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.43.0';
+const String vmServiceVersion = '3.44.0';
 
 /// @optional
 const String optional = 'optional';
@@ -4412,6 +4412,11 @@ class InstanceRef extends ObjRef {
   /// What kind of instance is this?
   /*InstanceKind*/ String? kind;
 
+  /// The identityHashCode assigned to the allocated object. This hash code is
+  /// the same as the hash code provided in HeapSnapshot and CpuSample's
+  /// returned by getAllocationTraces().
+  int? identityHashCode;
+
   /// Instance references always include their class.
   ClassRef? classRef;
 
@@ -4528,6 +4533,7 @@ class InstanceRef extends ObjRef {
 
   InstanceRef({
     required this.kind,
+    required this.identityHashCode,
     required this.classRef,
     required String id,
     this.valueAsString,
@@ -4548,6 +4554,7 @@ class InstanceRef extends ObjRef {
 
   InstanceRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'] ?? '';
+    identityHashCode = json['identityHashCode'] ?? -1;
     classRef =
         createServiceObject(json['class']!, const ['ClassRef']) as ClassRef;
     valueAsString = json['valueAsString'];
@@ -4583,6 +4590,7 @@ class InstanceRef extends ObjRef {
     json['type'] = type;
     json.addAll({
       'kind': kind,
+      'identityHashCode': identityHashCode,
       'class': classRef?.toJson(),
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
@@ -4604,8 +4612,9 @@ class InstanceRef extends ObjRef {
 
   operator ==(other) => other is InstanceRef && id == other.id;
 
-  String toString() =>
-      '[InstanceRef id: ${id}, kind: ${kind}, classRef: ${classRef}]';
+  String toString() => '[InstanceRef ' //
+      'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
+      'classRef: ${classRef}]';
 }
 
 /// An `Instance` represents an instance of the Dart language class `Obj`.
@@ -4615,6 +4624,11 @@ class Instance extends Obj implements InstanceRef {
 
   /// What kind of instance is this?
   /*InstanceKind*/ String? kind;
+
+  /// The identityHashCode assigned to the allocated object. This hash code is
+  /// the same as the hash code provided in HeapSnapshot and CpuSample's
+  /// returned by getAllocationTraces().
+  int? identityHashCode;
 
   /// Instance references always include their class.
   @override
@@ -4887,6 +4901,7 @@ class Instance extends Obj implements InstanceRef {
 
   Instance({
     required this.kind,
+    required this.identityHashCode,
     required this.classRef,
     required String id,
     this.valueAsString,
@@ -4923,6 +4938,7 @@ class Instance extends Obj implements InstanceRef {
 
   Instance._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'] ?? '';
+    identityHashCode = json['identityHashCode'] ?? -1;
     classRef =
         createServiceObject(json['class']!, const ['ClassRef']) as ClassRef;
     valueAsString = json['valueAsString'];
@@ -4992,6 +5008,7 @@ class Instance extends Obj implements InstanceRef {
     json['type'] = type;
     json.addAll({
       'kind': kind,
+      'identityHashCode': identityHashCode,
       'class': classRef?.toJson(),
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
@@ -5029,8 +5046,9 @@ class Instance extends Obj implements InstanceRef {
 
   operator ==(other) => other is Instance && id == other.id;
 
-  String toString() =>
-      '[Instance id: ${id}, kind: ${kind}, classRef: ${classRef}]';
+  String toString() => '[Instance ' //
+      'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
+      'classRef: ${classRef}]';
 }
 
 /// `IsolateRef` is a reference to an `Isolate` object.
@@ -5985,6 +6003,7 @@ class NullValRef extends InstanceRef {
     required this.valueAsString,
   }) : super(
           id: 'instance/null',
+          identityHashCode: 0,
           kind: InstanceKind.kNull,
           classRef: ClassRef(
             id: 'class/null',
@@ -6014,7 +6033,8 @@ class NullValRef extends InstanceRef {
   operator ==(other) => other is NullValRef && id == other.id;
 
   String toString() => '[NullValRef ' //
-      'id: ${id}, kind: ${kind}, classRef: ${classRef}, valueAsString: ${valueAsString}]';
+      'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
+      'classRef: ${classRef}, valueAsString: ${valueAsString}]';
 }
 
 /// A `NullVal` object represents the Dart language value null.
@@ -6030,6 +6050,7 @@ class NullVal extends Instance implements NullValRef {
     required this.valueAsString,
   }) : super(
           id: 'instance/null',
+          identityHashCode: 0,
           kind: InstanceKind.kNull,
           classRef: ClassRef(
             id: 'class/null',
@@ -6059,7 +6080,8 @@ class NullVal extends Instance implements NullValRef {
   operator ==(other) => other is NullVal && id == other.id;
 
   String toString() => '[NullVal ' //
-      'id: ${id}, kind: ${kind}, classRef: ${classRef}, valueAsString: ${valueAsString}]';
+      'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
+      'classRef: ${classRef}, valueAsString: ${valueAsString}]';
 }
 
 /// `ObjRef` is a reference to a `Obj`.

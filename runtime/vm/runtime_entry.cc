@@ -616,8 +616,7 @@ static void PrintTypeCheck(const char* message,
   }
   const Function& function =
       Function::Handle(caller_frame->LookupDartFunction());
-  if (function.IsInvokeFieldDispatcher() ||
-      function.IsNoSuchMethodDispatcher()) {
+  if (function.HasSavedArgumentsDescriptor()) {
     const auto& args_desc_array = Array::Handle(function.saved_args_desc());
     const ArgumentsDescriptor args_desc(args_desc_array);
     OS::PrintErr(" -> Function %s [%s]\n", function.ToFullyQualifiedCString(),
@@ -3439,6 +3438,18 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     1,
     true /* is_float */,
     reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&atan)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    LibcExp,
+    1,
+    true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&exp)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    LibcLog,
+    1,
+    true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&log)));
 
 extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
   CHECK_STACK_ALIGNMENT;

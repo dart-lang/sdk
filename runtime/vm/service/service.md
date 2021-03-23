@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.43
+# Dart VM Service Protocol 3.44
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.43_ of the Dart VM Service Protocol. This
+This document describes of _version 3.44_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -2409,6 +2409,11 @@ class @Instance extends @Object {
   // What kind of instance is this?
   InstanceKind kind;
 
+  // The identityHashCode assigned to the allocated object. This hash
+  // code is the same as the hash code provided in HeapSnapshot and
+  // CpuSample's returned by getAllocationTraces().
+  int identityHashCode;
+
   // Instance references always include their class.
   @Class class;
 
@@ -2520,6 +2525,11 @@ _@Instance_ is a reference to an _Instance_.
 class Instance extends Object {
   // What kind of instance is this?
   InstanceKind kind;
+
+  // The identityHashCode assigned to the allocated object. This hash
+  // code is the same as the hash code provided in HeapSnapshot and
+  // CpuSample's returned by getAllocationTraces().
+  int identityHashCode;
 
   // Instance references always include their class.
   @Class class;
@@ -3997,5 +4007,6 @@ version | comments
 3.41 | Added `PortList` object, `ReceivePort` `InstanceKind`, and `getPorts` RPC.
 3.42 | Added `limit` optional parameter to `getStack` RPC.
 3.43 | Updated heap snapshot format to include identity hash codes. Added `getAllocationTraces` and `setTraceClassAllocation` RPCs, updated `CpuSample` to include `identityHashCode` and `classId` properties, updated `Class` to include `traceAllocations` property.
+3.44 | Added `identityHashCode` property to `@Instance` and `Instance`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

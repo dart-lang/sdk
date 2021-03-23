@@ -1012,16 +1012,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     // effectively final variable types and type promotion.
     ir.DartType functionType = _computeInstanceInvocationType(
         receiverType, interfaceTarget, node.arguments, argumentTypes);
-    if (functionType != node.functionType) {
+    if (functionType is ir.FunctionType && functionType != node.functionType) {
       node.functionType = functionType;
-      // TODO(johnniwinther): To provide the static guarantee that arguments
-      // of a statically typed call have been checked against the parameter
-      // types we need to call [_updateMethodInvocationTarget]. This can create
-      // uses of type variables are not registered with the closure model so
-      // we skip it for now. Note that this invariant is not currently used
-      // in later phases since it wasn't provided for function invocations in
-      // the old method invocation encoding.
-      //_updateMethodInvocationTarget(node, argumentTypes, functionType);
+      _updateMethodInvocationTarget(node, argumentTypes, functionType);
     }
     ir.DartType returnType = _getFunctionReturnType(functionType);
     receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
@@ -1046,10 +1039,14 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
           (interfaceTarget is ir.Procedure && interfaceTarget.isGetter)) {
         // This should actually be a function invocation of an instance get but
         // this doesn't work for invocation of js-interop properties. We
-        // therefore use [ir.MethodInvocation] instead.
-        // TODO(johnniwinther): Use [ir.InstanceGetterInvocation] instead.
-        replacement = ir.MethodInvocation(
-            node.receiver, node.name, node.arguments, interfaceTarget)
+        // therefore use [ir.InstanceGetterInvocation] instead.
+        replacement = ir.InstanceGetterInvocation(
+            ir.InstanceAccessKind.Instance,
+            node.receiver,
+            node.name,
+            node.arguments,
+            interfaceTarget: interfaceTarget,
+            functionType: functionType is ir.FunctionType ? functionType : null)
           ..fileOffset = node.fileOffset;
       } else {
         replacement = ir.InstanceInvocation(ir.InstanceAccessKind.Instance,

@@ -5253,7 +5253,7 @@ class InstanceGetterInvocation extends InvocationExpression {
 
   int flags = 0;
 
-  /// The static type of the invocation.
+  /// The static type of the invocation, or `dynamic` is of the type is unknown.
   ///
   /// This includes substituted type parameters from the static receiver type
   /// and generic type arguments.
@@ -5261,19 +5261,21 @@ class InstanceGetterInvocation extends InvocationExpression {
   /// For instance
   ///
   ///    class A<T> {
-  ///      Map<T, S> map<S>(S s) { ... }
+  ///      Map<T, S> Function<S>(S) get map => ...
+  ///      dynamic get dyn => ...
   ///    }
   ///    m(A<String> a) {
   ///      a.map(0); // The function type is `Map<String, int> Function(int)`.
+  ///      a.dyn(0); // The function type is `null`.
   ///    }
   ///
-  FunctionType functionType;
+  FunctionType? functionType;
 
   Reference interfaceTargetReference;
 
   InstanceGetterInvocation(InstanceAccessKind kind, Expression receiver,
       Name name, Arguments arguments,
-      {required Procedure interfaceTarget, required FunctionType functionType})
+      {required Member interfaceTarget, required FunctionType? functionType})
       : this.byReference(kind, receiver, name, arguments,
             interfaceTargetReference:
                 getNonNullableMemberReferenceGetter(interfaceTarget),
@@ -5284,14 +5286,12 @@ class InstanceGetterInvocation extends InvocationExpression {
       {required this.interfaceTargetReference, required this.functionType})
       // ignore: unnecessary_null_comparison
       : assert(interfaceTargetReference != null),
-        // ignore: unnecessary_null_comparison
-        assert(functionType != null),
-        assert(functionType.typeParameters.isEmpty) {
+        assert(functionType == null || functionType.typeParameters.isEmpty) {
     receiver.parent = this;
     arguments.parent = this;
   }
 
-  Member get interfaceTarget => interfaceTargetReference.asProcedure;
+  Member get interfaceTarget => interfaceTargetReference.asMember;
 
   void set interfaceTarget(Member target) {
     interfaceTargetReference = getNonNullableMemberReferenceGetter(target);
@@ -5334,7 +5334,7 @@ class InstanceGetterInvocation extends InvocationExpression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) =>
-      functionType.returnType;
+      functionType?.returnType ?? const DynamicType();
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceGetterInvocation(this);

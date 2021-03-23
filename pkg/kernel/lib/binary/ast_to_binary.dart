@@ -1653,7 +1653,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNode(node.receiver);
     writeName(node.name);
     writeArgumentsNode(node.arguments);
-    writeDartType(node.functionType);
+    // `const DynamicType()` is used to encode a missing function type.
+    writeDartType(node.functionType ?? const DynamicType());
     writeNonNullInstanceMemberReference(node.interfaceTargetReference);
   }
 

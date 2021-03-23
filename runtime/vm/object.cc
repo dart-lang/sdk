@@ -7382,11 +7382,11 @@ void Function::set_data(const Object& value) const {
 }
 
 bool Function::IsInFactoryScope() const {
-  if (!IsLocalFunction()) {
+  if (!HasParent()) {
     return IsFactory();
   }
   Function& outer_function = Function::Handle(parent_function());
-  while (outer_function.IsLocalFunction()) {
+  while (outer_function.HasParent()) {
     outer_function = outer_function.parent_function();
   }
   return outer_function.IsFactory();
@@ -9408,15 +9408,30 @@ const char* Function::QualifiedUserVisibleNameCString() const {
   return printer.buffer();
 }
 
-void Function::PrintName(const NameFormattingParams& params,
-                         BaseTextBuffer* printer) const {
-  // If |this| is the generated asynchronous body closure, use the
-  // name of the parent function.
-  Function& fun = Function::Handle(ptr());
-
+static void FunctionPrintNameHelper(const Function& fun,
+                                    const NameFormattingParams& params,
+                                    BaseTextBuffer* printer) {
+  if (fun.IsLocalFunction()) {
+    if (params.include_parent_name) {
+      const auto& parent = Function::Handle(fun.parent_function());
+      parent.PrintName(params, printer);
+      // A function's scrubbed name and its user visible name are identical.
+      printer->AddString(".");
+    }
+    if (params.disambiguate_names &&
+        fun.name() == Symbols::AnonymousClosure().ptr()) {
+      printer->Printf("<anonymous closure @%" Pd ">", fun.token_pos().Pos());
+    } else {
+      printer->AddString(fun.NameCString(params.name_visibility));
+    }
+    return;
+  }
   if (params.disambiguate_names) {
     if (fun.IsInvokeFieldDispatcher()) {
       printer->AddString("[invoke-field] ");
+    }
+    if (fun.IsNoSuchMethodDispatcher()) {
+      printer->AddString("[no-such-method] ");
     }
     if (fun.IsImplicitClosureFunction()) {
       printer->AddString("[tear-off] ");
@@ -9426,53 +9441,13 @@ void Function::PrintName(const NameFormattingParams& params,
     }
   }
 
-  if (fun.IsNonImplicitClosureFunction()) {
-    // Sniff the parent function.
-    fun = fun.parent_function();
-    ASSERT(!fun.IsNull());
-    if (!fun.IsAsyncGenerator() && !fun.IsAsyncFunction() &&
-        !fun.IsSyncGenerator()) {
-      // Parent function is not the generator of an asynchronous body closure,
-      // start at |this|.
-      fun = ptr();
-    }
-  }
-  if (IsClosureFunction()) {
-    if (fun.IsLocalFunction() && !fun.IsImplicitClosureFunction()) {
-      Function& parent = Function::Handle(fun.parent_function());
-      if (parent.IsAsyncClosure() || parent.IsSyncGenClosureMaker() ||
-          parent.IsAsyncGenClosure()) {
-        // Skip the closure and use the real function name found in
-        // the parent.
-        parent = parent.parent_function();
-      }
-      if (params.include_parent_name) {
-        parent.PrintName(params, printer);
-        // A function's scrubbed name and its user visible name are identical.
-        printer->AddString(".");
-      }
-      if (params.disambiguate_names &&
-          fun.name() == Symbols::AnonymousClosure().ptr()) {
-        printer->Printf("<anonymous closure @%" Pd ">", fun.token_pos().Pos());
-      } else {
-        printer->AddString(fun.NameCString(params.name_visibility));
-      }
-      // If we skipped rewritten async/async*/sync* body then append a suffix
-      // to the end of the name.
-      if (fun.ptr() != ptr() && params.disambiguate_names) {
-        printer->AddString("{body}");
-      }
-      return;
-    }
-  }
-
   if (fun.kind() == UntaggedFunction::kConstructor) {
     printer->AddString("new ");
   } else if (params.include_class_name) {
-    const Class& cls = Class::Handle(Owner());
+    const Class& cls = Class::Handle(fun.Owner());
     if (!cls.IsTopLevel()) {
       const Class& mixin = Class::Handle(cls.Mixin());
-      printer->AddString(params.name_visibility == kUserVisibleName
+      printer->AddString(params.name_visibility == Object::kUserVisibleName
                              ? mixin.UserVisibleNameCString()
                              : cls.NameCString(params.name_visibility));
       printer->AddString(".");
@@ -9481,35 +9456,37 @@ void Function::PrintName(const NameFormattingParams& params,
 
   printer->AddString(fun.NameCString(params.name_visibility));
 
-  // If we skipped rewritten async/async*/sync* body then append a suffix
-  // to the end of the name.
-  if (fun.ptr() != ptr() && params.disambiguate_names) {
-    printer->AddString("{body}");
+  // Dispatchers that are created with an arguments descriptor need both the
+  // name and the saved arguments descriptor to disambiguate.
+  if (params.disambiguate_names && fun.HasSavedArgumentsDescriptor()) {
+    const auto& args_desc_array = Array::Handle(fun.saved_args_desc());
+    const ArgumentsDescriptor args_desc(args_desc_array);
+    args_desc.PrintTo(printer);
   }
+}
 
-  // Field dispatchers are specialized for an argument descriptor so there
-  // might be multiples of them with the same name but different argument
-  // descriptors. Add a suffix to disambiguate.
-  if (params.disambiguate_names && fun.IsInvokeFieldDispatcher()) {
-    printer->AddString(" ");
-    if (NumTypeParameters() != 0) {
-      printer->Printf("<%" Pd ">", fun.NumTypeParameters());
+void Function::PrintName(const NameFormattingParams& params,
+                         BaseTextBuffer* printer) const {
+  if (!IsLocalFunction()) {
+    FunctionPrintNameHelper(*this, params, printer);
+    return;
+  }
+  auto& fun = Function::Handle(ptr());
+  intptr_t fun_depth = 0;
+  // If |this| is a generated body closure, start with the closest
+  // non-generated parent function.
+  while (fun.is_generated_body()) {
+    fun = fun.parent_function();
+    fun_depth++;
+  }
+  FunctionPrintNameHelper(fun, params, printer);
+  // If we skipped generated bodies then append a suffix to the end.
+  if (fun_depth > 0 && params.disambiguate_names) {
+    printer->AddString("{body");
+    if (fun_depth > 1) {
+      printer->Printf(" depth %" Pd "", fun_depth);
     }
-    printer->AddString("(");
-    printer->Printf("%" Pd "", fun.num_fixed_parameters());
-    if (fun.NumOptionalPositionalParameters() != 0) {
-      printer->Printf(" [%" Pd "]", fun.NumOptionalPositionalParameters());
-    }
-    if (fun.HasOptionalNamedParameters()) {
-      printer->AddString(" {");
-      String& name = String::Handle();
-      for (intptr_t i = 0; i < fun.NumOptionalNamedParameters(); i++) {
-        name = fun.ParameterNameAt(fun.num_fixed_parameters() + i);
-        printer->Printf("%s%s", i > 0 ? ", " : "", name.ToCString());
-      }
-      printer->AddString("}");
-    }
-    printer->AddString(")");
+    printer->AddString("}");
   }
 }
 
@@ -9800,7 +9777,7 @@ bool Function::HasDynamicCallers(Zone* zone) const {
 bool Function::PrologueNeedsArgumentsDescriptor() const {
   // These functions have a saved compile-time arguments descriptor that is
   // used in lieu of the runtime arguments descriptor in generated IL.
-  if (IsInvokeFieldDispatcher() || IsNoSuchMethodDispatcher()) {
+  if (HasSavedArgumentsDescriptor()) {
     return false;
   }
   // The prologue of those functions need to examine the arg descriptor for
@@ -9890,7 +9867,7 @@ const char* Function::ToCString() const {
     default:
       UNREACHABLE();
   }
-  if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher()) {
+  if (HasSavedArgumentsDescriptor()) {
     const auto& args_desc_array = Array::Handle(zone, saved_args_desc());
     const ArgumentsDescriptor args_desc(args_desc_array);
     buffer.AddChar('[');

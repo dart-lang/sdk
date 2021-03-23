@@ -2981,13 +2981,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   int computeVariances() {
     int count = 0;
     for (Builder declaration in libraryDeclaration.members.values) {
-      if (declaration is TypeAliasBuilder &&
-          declaration.typeVariablesCount > 0) {
-        for (TypeVariableBuilder typeParameter in declaration.typeVariables) {
-          typeParameter.variance = computeTypeVariableBuilderVariance(
-              typeParameter, declaration.type, this);
-          ++count;
+      while (declaration != null) {
+        if (declaration is TypeAliasBuilder &&
+            declaration.typeVariablesCount > 0) {
+          for (TypeVariableBuilder typeParameter in declaration.typeVariables) {
+            typeParameter.variance = computeTypeVariableBuilderVariance(
+                typeParameter, declaration.type, this);
+            ++count;
+          }
         }
+        declaration = declaration.next;
       }
     }
     return count;

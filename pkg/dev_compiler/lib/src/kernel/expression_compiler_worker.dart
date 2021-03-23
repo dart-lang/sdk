@@ -7,6 +7,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
@@ -54,7 +55,7 @@ import 'target.dart';
 ///
 ///    - debugger creates an isolate using dartdevc's main method with
 ///      '--experimental-expression-compiler' flag and passes a send port
-///      to dartdevc for sending responces from the service to the debugger.
+///      to dartdevc for sending responses from the service to the debugger.
 ///
 ///    - dartdevc creates a new send port to receive requests on, and sends
 ///      it back to the debugger, for sending requests to the service.
@@ -95,6 +96,48 @@ class ExpressionCompilerWorker {
     this.requestStream,
     this.sendResponse,
   );
+
+  /// Create expression compiler worker from [args] and start it.
+  ///
+  /// If [sendPort] is provided, creates a `receivePort` and sends it to
+  /// the consumer to establish communication. Otherwise, uses stdin/stdout
+  /// for communication with the consumer.
+  ///
+  /// Details:
+  ///
+  /// Consumer uses (`consumerSendPort`, `consumerReceivePort`) pair to
+  /// send requests and receive responses:
+  ///
+  /// `consumerReceivePort.sendport` = [sendPort]
+  /// `consumerSendPort = receivePort.sendport`
+  ///
+  /// Worker uses the opposite ports connected to the consumer ports -
+  /// (`receivePort`, [sendPort]) to receive requests and send responses.
+  ///
+  /// The worker stops on start failure or after the consumer closes its
+  /// receive port corresponding to [sendPort].
+  static Future<void> createAndStart(List<String> args,
+      {SendPort sendPort}) async {
+    if (sendPort != null) {
+      var receivePort = ReceivePort();
+      sendPort.send(receivePort.sendPort);
+      try {
+        var worker = await createFromArgs(args,
+            requestStream: receivePort.cast<Map<String, dynamic>>(),
+            sendResponse: sendPort.send);
+        await worker.start();
+      } catch (e, s) {
+        sendPort
+            .send({'exception': '$e', 'stackTrace': '$s', 'succeeded': false});
+        rethrow;
+      } finally {
+        receivePort.close();
+      }
+    } else {
+      var worker = await createFromArgs(args);
+      await worker.start();
+    }
+  }
 
   static Future<ExpressionCompilerWorker> createFromArgs(
     List<String> args, {
@@ -193,6 +236,9 @@ class ExpressionCompilerWorker {
       return processedOptions.loadSdkSummary(null);
     });
 
+    if (sdkComponent == null) {
+      throw Exception('Could not load SDK component: $sdkSummary');
+    }
     return ExpressionCompilerWorker._(processedOptions, compilerOptions,
         moduleFormat, sdkComponent, requestStream, sendResponse)
       .._updateCache(sdkComponent, dartSdkModule, true);

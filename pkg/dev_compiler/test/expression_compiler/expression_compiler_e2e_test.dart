@@ -55,9 +55,10 @@ class DevelopmentIncrementalCompiler extends fe.IncrementalCompiler {
 
 class SetupCompilerOptions {
   static final sdkRoot = fe.computePlatformBinariesLocation();
-  static final sdkUnsoundSummaryPath = p.join(sdkRoot.path, 'ddc_sdk.dill');
+  static final sdkUnsoundSummaryPath =
+      p.join(sdkRoot.toFilePath(), 'ddc_sdk.dill');
   static final sdkSoundSummaryPath =
-      p.join(sdkRoot.path, 'ddc_outline_sound.dill');
+      p.join(sdkRoot.toFilePath(), 'ddc_outline_sound.dill');
   static final librariesSpecificationUri =
       p.join(p.dirname(p.dirname(getSdkPath())), 'libraries.json');
   static final String dartUnsoundComment = '// @dart = 2.9';
@@ -75,10 +76,10 @@ class SetupCompilerOptions {
       ..verbose = false // set to true for debugging
       ..sdkRoot = sdkRoot
       ..target = DevCompilerTarget(TargetFlags())
-      ..librariesSpecificationUri = Uri.base.resolve('sdk/lib/libraries.json')
+      ..librariesSpecificationUri = p.toUri('sdk/lib/libraries.json')
       ..omitPlatform = true
-      ..sdkSummary = sdkRoot.resolve(
-          soundNullSafety ? sdkSoundSummaryPath : sdkUnsoundSummaryPath)
+      ..sdkSummary =
+          p.toUri(soundNullSafety ? sdkSoundSummaryPath : sdkUnsoundSummaryPath)
       ..environmentDefines = const {}
       ..nnbdMode = soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak;
     return options;
@@ -119,7 +120,6 @@ class TestCompiler {
     // TODO: extend this for multi-module compilations by storing separate
     // compilers/components/names per module.
     setup.options.packagesFileUri = packages;
-
     var compiler = DevelopmentIncrementalCompiler(setup.options, input);
     component = await compiler.computeDelta();
     component.computeCanonicalNames();
@@ -243,7 +243,7 @@ class TestDriver {
 
     // Start Chrome on an empty page with a single empty tab.
     chrome = await browser.Chrome.startWithDebugPort(['about:blank'],
-        userDataDir: chromeDir.path, headless: true);
+        userDataDir: chromeDir.uri.toFilePath(), headless: true);
 
     // Connect to the first 'normal' tab.
     var tab = await chrome.chromeConnection
@@ -261,17 +261,16 @@ class TestDriver {
     this.source = source;
     testDir = await chromeDir.createTemp('ddc_eval_test');
     var buildDir = p.dirname(p.dirname(p.dirname(Platform.resolvedExecutable)));
-    var scriptPath =
-        Platform.script.normalizePath().toFilePath(windows: Platform.isWindows);
+    var scriptPath = Platform.script.normalizePath().toFilePath();
     var ddcPath = p.dirname(p.dirname(p.dirname(scriptPath)));
     output = testDir.uri.resolve('test.js');
     input = testDir.uri.resolve('test.dart');
-    File.fromUri(input)
+    File(input.toFilePath())
       ..createSync()
       ..writeAsStringSync(source);
 
     packagesFile = testDir.uri.resolve('package_config.json');
-    File.fromUri(packagesFile)
+    File(packagesFile.toFilePath())
       ..createSync()
       ..writeAsStringSync('''
       {
@@ -291,27 +290,28 @@ class TestDriver {
         .init(input: input, output: output, packages: packagesFile);
 
     htmlBootstrapper = testDir.uri.resolve('bootstrapper.html');
-    var bootstrapFile = File.fromUri(htmlBootstrapper)..createSync();
+    var bootstrapFile = File(htmlBootstrapper.toFilePath())..createSync();
     var moduleName = compiler.metadata.name;
     var mainLibraryName = compiler.metadataForLibraryUri(input).name;
 
     switch (setup.moduleFormat) {
       case ModuleFormat.ddc:
         moduleFormatString = 'ddc';
-        var dartSdkPath = p.join(
+        var dartSdkPath = escaped(p.join(
             buildDir,
             'gen',
             'utils',
             'dartdevc',
             setup.soundNullSafety ? 'sound' : 'kernel',
             'legacy',
-            'dart_sdk.js');
+            'dart_sdk.js'));
         var dartLibraryPath =
-            p.join(ddcPath, 'lib', 'js', 'legacy', 'dart_library.js');
+            escaped(p.join(ddcPath, 'lib', 'js', 'legacy', 'dart_library.js'));
+        var outputPath = escaped(output.toFilePath());
         bootstrapFile.writeAsStringSync('''
 <script src='$dartLibraryPath'></script>
 <script src='$dartSdkPath'></script>
-<script src='${p.absolute(output.path)}'></script>
+<script src='$outputPath'></script>
 <script>
   'use strict';
   var sound = ${setup.soundNullSafety};
@@ -330,17 +330,18 @@ class TestDriver {
         break;
       case ModuleFormat.amd:
         moduleFormatString = 'amd';
-        var dartSdkPath = p.join(buildDir, 'gen', 'utils', 'dartdevc',
-            setup.soundNullSafety ? 'sound' : 'kernel', 'amd', 'dart_sdk');
-        var requirePath = p.join(buildDir, 'dart-sdk', 'lib', 'dev_compiler',
-            'kernel', 'amd', 'require.js');
+        var dartSdkPath = escaped(p.join(buildDir, 'gen', 'utils', 'dartdevc',
+            setup.soundNullSafety ? 'sound' : 'kernel', 'amd', 'dart_sdk'));
+        var requirePath = escaped(p.join(buildDir, 'dart-sdk', 'lib',
+            'dev_compiler', 'kernel', 'amd', 'require.js'));
+        var outputPath = escaped(p.withoutExtension(output.toFilePath()));
         bootstrapFile.writeAsStringSync('''
 <script src='$requirePath'></script>
 <script>
   require.config({
     paths: {
         'dart_sdk': '$dartSdkPath',
-        '$moduleName': '${p.withoutExtension(p.absolute(output.path))}'
+        '$moduleName': '${outputPath}'
     },
     waitSeconds: 15
   });
@@ -361,6 +362,7 @@ class TestDriver {
   });
 </script>
 ''');
+
         break;
       default:
         throw Exception(
@@ -377,8 +379,10 @@ class TestDriver {
     });
   }
 
-  void finish() {
-    chrome?.close();
+  void finish() async {
+    await chrome?.close();
+    // Chrome takes a while to free its claim on chromeDir, so wait a bit.
+    await Future.delayed(const Duration(milliseconds: 500));
     chromeDir?.deleteSync(recursive: true);
   }
 
@@ -403,7 +407,7 @@ class TestDriver {
     // Navigate from the empty page and immediately pause on the preemptive
     // breakpoint.
     await connection.page.navigate('$htmlBootstrapper');
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 500));
 
     // TODO: We use lastWhere since the debugger accumulates scriptIds across
     // tests. We can use firstWhere if we clear debugger.scripts - perhaps by
@@ -441,7 +445,7 @@ class TestDriver {
       expect(
           result,
           const TypeMatcher<TestCompilationResult>()
-              .having((r) => result.result, 'result', _matches(expectedError)));
+              .having((_) => result.result, 'result', _matches(expectedError)));
       setup.diagnosticMessages.clear();
       setup.errors.clear();
       return;
@@ -545,4 +549,359 @@ List<wip.WipScope> filterScopes(wip.WipCallFrame frame) {
   return scopes;
 }
 
-void main() async => {};
+String escaped(String path) => path.replaceAll('\\', '\\\\');
+
+void main() async {
+  group('Unsound null safety:', () {
+    var setup = SetupCompilerOptions(soundNullSafety: false);
+    TestDriver driver;
+
+    setUpAll(() async {
+      driver = await TestDriver.init(setup);
+    });
+
+    tearDownAll(() {
+      driver.finish();
+    });
+
+    group('Expression compiler extension symbols tests', () {
+      var source = '''
+        ${setup.dartLangComment}
+
+        main() {
+          List<int> list = [];
+          list.add(0);
+          // Breakpoint: bp
+        }
+        ''';
+
+      setUpAll(() async {
+        await driver.initSource(setup, source);
+      });
+
+      tearDownAll(() async {
+        await driver.cleanupTest();
+      });
+
+      test('extension symbol used only in expression compilation', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'list.first', expectedResult: '0');
+      });
+
+      test('extension symbol used in original compilation', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: '() { list.add(1); return list.last; }()',
+            expectedResult: '1');
+      });
+    });
+
+    group('Expression compiler scope collection tests', () {
+      var source = '''
+        ${setup.dartLangComment}
+
+        class C {
+          C(this.field);
+
+          void methodFieldAccess(int x) {
+            var inScope = 1;
+            {
+              var innerInScope = global + staticField + field;
+              // Breakpoint: bp
+              var innerNotInScope = 2;
+            }
+            var notInScope = 3;
+          }
+
+          static int staticField = 0;
+          int field;
+        }
+
+        int global = 42;
+        main() => C(4).methodFieldAccess(5);
+        ''';
+
+      setUpAll(() async {
+        await driver.initSource(setup, source);
+      });
+
+      tearDownAll(() async {
+        await driver.cleanupTest();
+      });
+
+      test('local in scope', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'inScope', expectedResult: '1');
+      });
+
+      test('local in inner scope', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'innerInScope',
+            expectedResult: '46');
+      });
+
+      test('global in scope', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'global', expectedResult: '42');
+      });
+
+      test('static field in scope', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'staticField', expectedResult: '0');
+      });
+
+      test('field in scope', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'field', expectedResult: '4');
+      });
+
+      test('parameter in scope', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'x', expectedResult: '5');
+      });
+
+      test('local not in scope', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'notInScope',
+            expectedError:
+                "Error: The getter 'notInScope' isn't defined for the"
+                " class 'C'.");
+      });
+
+      test('local not in inner scope', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'innerNotInScope',
+            expectedError:
+                "Error: The getter 'innerNotInScope' isn't defined for the"
+                " class 'C'.");
+      });
+    });
+
+    group('Expression compiler tests in extension method:', () {
+      var source = '''
+        ${setup.dartLangComment}
+        extension NumberParsing on String {
+          int parseInt() {
+            var ret = int.parse(this);
+            // Breakpoint: bp
+            return ret;
+          }
+        }
+        main() => "1234".parseInt();
+      ''';
+
+      setUpAll(() async {
+        await driver.initSource(setup, source);
+      });
+
+      tearDownAll(() {
+        driver.cleanupTest();
+      });
+
+      test('compilation error', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'typo',
+            expectedError: "Error: Getter not found: 'typo'");
+      });
+
+      test('local (trimmed scope)', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'ret', expectedResult: '1234');
+      });
+
+      test('this (full scope)', () async {
+        // Note: this currently fails due to
+        // - incremental compiler not mapping 'this' from user input to '#this'
+        // - incremental compiler not allowing #this as a parameter name
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'this',
+            expectedError: "Error: Expected identifier, but got 'this'");
+      });
+    });
+
+    group('Expression compiler tests in static function:', () {
+      var source = '''
+        ${setup.dartLangComment}
+        int foo(int x, {int y}) {
+          int z = 3;
+          // Breakpoint: bp
+          return x + y + z;
+        }
+
+        main() => foo(1, y: 2);
+        ''';
+
+      setUpAll(() async {
+        await driver.initSource(setup, source);
+      });
+
+      tearDownAll(() {
+        driver.cleanupTest();
+      });
+
+      test('compilation error', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'typo',
+            expectedError: "Getter not found: \'typo\'");
+      });
+
+      test('local', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'x', expectedResult: '1');
+      });
+
+      test('formal', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'y', expectedResult: '2');
+      });
+
+      test('named formal', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'z', expectedResult: '3');
+      });
+
+      test('function', () async {
+        await driver
+            .check(breakpointId: 'bp', expression: 'main', expectedResult: '''
+              function main() {
+                return test.foo(1, {y: 2});
+              }''');
+      });
+    });
+  });
+
+  group('Sound null safety:', () {
+    var setup = SetupCompilerOptions(soundNullSafety: false);
+    TestDriver driver;
+
+    setUpAll(() async {
+      driver = await TestDriver.init(setup);
+    });
+
+    tearDownAll(() {
+      driver.finish();
+    });
+
+    group('Expression compiler extension symbols tests', () {
+      var source = '''
+        ${setup.dartLangComment}
+
+        main() {
+          List<int> list = [];
+          list.add(0);
+          // Breakpoint: bp
+        }
+        ''';
+
+      setUpAll(() async {
+        await driver.initSource(setup, source);
+      });
+
+      tearDownAll(() async {
+        await driver.cleanupTest();
+      });
+
+      test('extension symbol used only in expression compilation', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'list.first', expectedResult: '0');
+      });
+
+      test('extension symbol used in original compilation', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: '() { list.add(1); return list.last; }()',
+            expectedResult: '1');
+      });
+    });
+
+    group('Expression compiler scope collection tests', () {
+      var source = '''
+        ${setup.dartLangComment}
+
+        class C {
+          C(this.field);
+
+          void methodFieldAccess(int x) {
+            var inScope = 1;
+            {
+              var innerInScope = global + staticField + field;
+              // Breakpoint: bp
+              var innerNotInScope = 2;
+            }
+            var notInScope = 3;
+          }
+
+          static int staticField = 0;
+          int field;
+        }
+
+        int global = 42;
+        main() => C(4).methodFieldAccess(5);
+        ''';
+
+      setUpAll(() async {
+        await driver.initSource(setup, source);
+      });
+
+      tearDownAll(() async {
+        await driver.cleanupTest();
+      });
+
+      test('local in scope', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'inScope', expectedResult: '1');
+      });
+
+      test('local in inner scope', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'innerInScope',
+            expectedResult: '46');
+      });
+
+      test('global in scope', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'global', expectedResult: '42');
+      });
+
+      test('static field in scope', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'staticField', expectedResult: '0');
+      });
+
+      test('field in scope', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'field', expectedResult: '4');
+      });
+
+      test('parameter in scope', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'x', expectedResult: '5');
+      });
+
+      test('local not in scope', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'notInScope',
+            expectedError:
+                "Error: The getter 'notInScope' isn't defined for the"
+                " class 'C'.");
+      });
+
+      test('local not in inner scope', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'innerNotInScope',
+            expectedError:
+                "Error: The getter 'innerNotInScope' isn't defined for the"
+                " class 'C'.");
+      });
+    });
+  });
+}

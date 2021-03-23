@@ -4452,6 +4452,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"_vmType\":\"Bool\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"bool\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"Bool\","
         "\"fixedId\":true,"
         "\"id\":\"objects\\/bool-true\",\"valueAsString\":\"true\"}",
@@ -4470,6 +4471,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_Smi\","
         "\"_vmName\":\"\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"Int\","
         "\"fixedId\":true,"
         "\"id\":\"objects\\/int-7\",\"valueAsString\":\"7\"}",
@@ -4488,6 +4490,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"_vmType\":\"Mint\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_Mint\",\"_vmName\":\"\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"Int\","
         "\"id\":\"\",\"valueAsString\":\"-9223372036854775808\"}",
         buffer);
@@ -4505,6 +4508,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"_vmType\":\"Double\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_Double\",\"_vmName\":\"\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"Double\","
         "\"id\":\"\",\"valueAsString\":\"0.1234\"}",
         buffer);
@@ -4522,6 +4526,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"_vmType\":\"String\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_OneByteString\",\"_vmName\":\"\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"String\","
         "\"id\":\"\",\"length\":2,\"valueAsString\":\"dw\"}",
         buffer);
@@ -4539,6 +4544,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"_vmType\":\"Array\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_List\",\"_vmName\":\"\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"List\","
         "\"id\":\"\",\"length\":0}",
         buffer);
@@ -4558,6 +4564,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_GrowableList\","
         "\"_vmName\":\"\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"List\","
         "\"id\":\"\",\"length\":0}",
         buffer);
@@ -4576,6 +4583,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"_vmType\":\"LinkedHashMap\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_InternalLinkedHashMap\",\"_vmName\":\"\"},"
+        "\"identityHashCode\":0,"
         "\"kind\":\"Map\","
         "\"id\":\"\","
         "\"length\":0}",
@@ -4589,11 +4597,15 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("classes", js.ToCString(), buffer);
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("_UserTag@", buffer, buffer);
-    EXPECT_STREQ(
+    EXPECT_SUBSTRING(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"UserTag\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_UserTag\",\"_vmName\":\"\"},"
+        // Handle non-zero identity hash.
+        "\"identityHashCode\":",
+        buffer);
+    EXPECT_SUBSTRING(
         "\"kind\":\"PlainInstance\","
         "\"id\":\"\"}",
         buffer);
@@ -4608,11 +4620,15 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("classes", js.ToCString(), buffer);
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("_Type@", buffer, buffer);
-    EXPECT_STREQ(
+    EXPECT_SUBSTRING(
         "{\"type\":\"@Instance\","
         "\"_vmType\":\"Type\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_Type\",\"_vmName\":\"\"},"
+        // Handle non-zero identity hash.
+        "\"identityHashCode\":",
+        buffer);
+    EXPECT_SUBSTRING(
         "\"kind\":\"Type\","
         "\"fixedId\":true,\"id\":\"\","
         "\"typeClass\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","

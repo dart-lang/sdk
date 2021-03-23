@@ -84,6 +84,8 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitSuperPropertySet(SuperPropertySet _) => "set-super";
   String visitMethodInvocation(MethodInvocation _) => "invoke-method";
   String visitInstanceInvocation(InstanceInvocation _) => "invoke-instance";
+  String visitInstanceGetterInvocation(InstanceGetterInvocation _) =>
+      "invoke-instance-getter";
   String visitDynamicInvocation(DynamicInvocation _) => "invoke-dynamic";
   String visitFunctionInvocation(FunctionInvocation _) => "invoke-function";
   String visitLocalFunctionInvocation(LocalFunctionInvocation _) =>
@@ -654,6 +656,43 @@ InstanceInvocation wrapInstanceInvocation(
       tuple.first, tuple.second, tuple.third, tuple.fourth,
       interfaceTargetReference: tuple.fifth.reference,
       functionType: tuple.sixth as FunctionType);
+}
+
+TextSerializer<
+    InstanceGetterInvocation> instanceGetterInvocationSerializer = new Wrapped<
+        Tuple6<InstanceAccessKind, Expression, Name, Arguments, CanonicalName,
+            DartType?>,
+        InstanceGetterInvocation>(
+    unwrapInstanceGetterInvocation,
+    wrapInstanceGetterInvocation,
+    new Tuple6Serializer(
+        instanceAccessKindSerializer,
+        expressionSerializer,
+        nameSerializer,
+        argumentsSerializer,
+        const CanonicalNameSerializer(),
+        Optional(dartTypeSerializer)));
+
+Tuple6<InstanceAccessKind, Expression, Name, Arguments, CanonicalName,
+        DartType?>
+    unwrapInstanceGetterInvocation(InstanceGetterInvocation expression) {
+  return new Tuple6(
+      expression.kind,
+      expression.receiver,
+      expression.name,
+      expression.arguments,
+      expression.interfaceTargetReference.canonicalName!,
+      expression.functionType);
+}
+
+InstanceGetterInvocation wrapInstanceGetterInvocation(
+    Tuple6<InstanceAccessKind, Expression, Name, Arguments, CanonicalName,
+            DartType?>
+        tuple) {
+  return new InstanceGetterInvocation.byReference(
+      tuple.first, tuple.second, tuple.third, tuple.fourth,
+      interfaceTargetReference: tuple.fifth.reference,
+      functionType: tuple.sixth as FunctionType?);
 }
 
 const Map<DynamicAccessKind, String> dynamicAccessKindToName = const {
@@ -2513,6 +2552,7 @@ void initializeSerializers() {
     "set-super": superPropertySetSerializer,
     "invoke-method": methodInvocationSerializer,
     "invoke-instance": instanceInvocationSerializer,
+    "invoke-instance-getter": instanceGetterInvocationSerializer,
     "invoke-dynamic": dynamicInvocationSerializer,
     "invoke-function": functionInvocationSerializer,
     "invoke-local-function": localFunctionInvocationSerializer,

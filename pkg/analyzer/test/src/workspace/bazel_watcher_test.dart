@@ -160,10 +160,10 @@ class BazelWatcherTest with ResourceProviderMixin {
     _MockPollTrigger? trigger1;
     _MockPollTrigger? trigger2;
     var triggerFactory = (String workspace) {
-      if (workspace == '/workspace1') {
+      if (workspace == convertPath('/workspace1')) {
         trigger1 = _MockPollTrigger();
         return trigger1!;
-      } else if (workspace == '/workspace2') {
+      } else if (workspace == convertPath('/workspace2')) {
         trigger2 = _MockPollTrigger();
         return trigger2!;
       } else {

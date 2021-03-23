@@ -238,7 +238,7 @@ ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
     return GetCallerInFutureImpl(future_);
   }
 
-  if (receiver_function_.IsLocalFunction()) {
+  if (receiver_function_.HasParent()) {
     parent_function_ = receiver_function_.parent_function();
     if (parent_function_.recognized_kind() ==
         MethodRecognizer::kFutureTimeout) {

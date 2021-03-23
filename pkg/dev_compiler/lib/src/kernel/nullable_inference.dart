@@ -145,6 +145,11 @@ class NullableInference extends ExpressionVisitor<bool> {
           node.interfaceTarget, node.name.text, node, node.receiver);
 
   @override
+  bool visitInstanceGetterInvocation(InstanceGetterInvocation node) =>
+      _invocationIsNullable(
+          node.interfaceTarget, node.name.text, node, node.receiver);
+
+  @override
   bool visitDynamicInvocation(DynamicInvocation node) =>
       _invocationIsNullable(null, node.name.text, node, node.receiver);
 

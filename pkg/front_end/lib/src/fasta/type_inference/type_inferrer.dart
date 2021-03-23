@@ -3330,24 +3330,38 @@ class TypeInferrerImpl implements TypeInferrer {
               ..fileOffset = nullAwareAction.fileOffset);
       } else if (nullAwareAction is InstanceInvocation &&
           nullAwareAction.receiver == originalPropertyGet) {
+        // TODO(johnniwinther): Remove this when [MethodInvocation] is no longer
+        // used and [originalPropertyGet] can be an [InstanceGet].
+        InstanceGet instanceGet = originalPropertyGet;
         invocationResult = new ExpressionInferenceResult(
             invocationResult.inferredType,
-            new MethodInvocation(originalReceiver, originalName,
-                nullAwareAction.arguments, originalTarget)
+            new InstanceGetterInvocation(instanceGet.kind, originalReceiver,
+                originalName, nullAwareAction.arguments,
+                interfaceTarget: originalTarget,
+                functionType: nullAwareAction.functionType)
               ..fileOffset = nullAwareAction.fileOffset);
       } else if (nullAwareAction is DynamicInvocation &&
           nullAwareAction.receiver == originalPropertyGet) {
+        // TODO(johnniwinther): Remove this when [MethodInvocation] is no longer
+        // used and [originalPropertyGet] can be an [InstanceGet].
+        InstanceGet instanceGet = originalPropertyGet;
         invocationResult = new ExpressionInferenceResult(
             invocationResult.inferredType,
-            new MethodInvocation(originalReceiver, originalName,
-                nullAwareAction.arguments, originalTarget)
+            new InstanceGetterInvocation(instanceGet.kind, originalReceiver,
+                originalName, nullAwareAction.arguments,
+                interfaceTarget: originalTarget, functionType: null)
               ..fileOffset = nullAwareAction.fileOffset);
       } else if (nullAwareAction is FunctionInvocation &&
           nullAwareAction.receiver == originalPropertyGet) {
+        // TODO(johnniwinther): Remove this when [MethodInvocation] is no longer
+        // used and [originalPropertyGet] can be an [InstanceGet].
+        InstanceGet instanceGet = originalPropertyGet;
         invocationResult = new ExpressionInferenceResult(
             invocationResult.inferredType,
-            new MethodInvocation(originalReceiver, originalName,
-                nullAwareAction.arguments, originalTarget)
+            new InstanceGetterInvocation(instanceGet.kind, originalReceiver,
+                originalName, nullAwareAction.arguments,
+                interfaceTarget: originalTarget,
+                functionType: nullAwareAction.functionType)
               ..fileOffset = nullAwareAction.fileOffset);
       }
     }

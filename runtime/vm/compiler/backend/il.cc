@@ -6202,6 +6202,8 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     case MethodRecognizer::kMathAsin:
     case MethodRecognizer::kMathSin:
     case MethodRecognizer::kMathCos:
+    case MethodRecognizer::kMathExp:
+    case MethodRecognizer::kMathLog:
       return 1;
     case MethodRecognizer::kDoubleMod:
     case MethodRecognizer::kMathDoublePow:
@@ -6241,6 +6243,10 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
       return kLibcAtanRuntimeEntry;
     case MethodRecognizer::kMathAtan2:
       return kLibcAtan2RuntimeEntry;
+    case MethodRecognizer::kMathExp:
+      return kLibcExpRuntimeEntry;
+    case MethodRecognizer::kMathLog:
+      return kLibcLogRuntimeEntry;
     default:
       UNREACHABLE();
   }

@@ -81,7 +81,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     enclosing_scope->set_context_level(0);
     enclosing_scope->AddVariable(receiver_variable);
     enclosing_scope->AddContextVariable(receiver_variable);
-  } else if (function.IsLocalFunction()) {
+  } else if (function.HasParent()) {
     enclosing_scope = LocalScope::RestoreOuterScope(
         ContextScope::Handle(Z, function.context_scope()));
   }

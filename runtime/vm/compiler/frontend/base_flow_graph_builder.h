@@ -434,8 +434,7 @@ class BaseFlowGraphBuilder {
 
   // Returns whether this function has a saved arguments descriptor array.
   bool has_saved_args_desc_array() {
-    return function_.IsInvokeFieldDispatcher() ||
-           function_.IsNoSuchMethodDispatcher();
+    return function_.HasSavedArgumentsDescriptor();
   }
 
   // Returns the saved arguments descriptor array for functions that have them.

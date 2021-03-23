@@ -440,6 +440,12 @@ class _CovarianceTransformer extends RecursiveVisitor {
   }
 
   @override
+  void visitInstanceGetterInvocation(InstanceGetterInvocation node) {
+    _checkTarget(node.receiver, node.interfaceTarget);
+    super.visitInstanceGetterInvocation(node);
+  }
+
+  @override
   void visitInstanceTearOff(InstanceTearOff node) {
     _checkTearoff(node.interfaceTarget);
     super.visitInstanceTearOff(node);
