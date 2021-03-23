@@ -669,7 +669,16 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
     if (range.endEnd(node.functionDefinition, node).contains(offset)) {
       var parent = node.parent;
       if (parent is MethodDeclaration) {
-        return BodyInferenceContext.of(parent.body).contextType;
+        var bodyContext = BodyInferenceContext.of(parent.body);
+        // TODO(scheglov) https://github.com/dart-lang/sdk/issues/45429
+        if (bodyContext == null) {
+          throw StateError('''
+Expected body context.
+Method: $parent
+Class: ${parent.parent}
+''');
+        }
+        return bodyContext.contextType;
       } else if (parent is FunctionExpression) {
         var grandparent = parent.parent;
         if (grandparent is FunctionDeclaration) {
