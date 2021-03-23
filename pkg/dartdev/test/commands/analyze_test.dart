@@ -234,6 +234,8 @@ int f() {
       'type': 'TODO',
       'code': 'dead_code',
       'location': {
+        'endLine': 16,
+        'endColumn': 12,
         'file': 'lib/test.dart',
         'offset': 362,
         'length': 72,
@@ -242,6 +244,37 @@ int f() {
       },
       'message': 'Foo bar baz.',
       'hasFix': false,
+    };
+    final fullDiagnosticJson = {
+      'severity': 'ERROR',
+      'type': 'COMPILE_TIME_ERROR',
+      'location': {
+        'file': 'lib/test.dart',
+        'offset': 19,
+        'length': 1,
+        'startLine': 2,
+        'startColumn': 9
+      },
+      'message':
+          "Local variable 's' can't be referenced before it is declared.",
+      'correction':
+          "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope.",
+      'code': 'referenced_before_declaration',
+      'url':
+          'https:://dart.dev/tools/diagnostic-messages#referenced_before_declaration',
+      'contextMessages': [
+        {
+          'message': "The declaration of 's' is on line 3.",
+          'location': {
+            'file': 'lib/test.dart',
+            'offset': 29,
+            'length': 1,
+            'startLine': 3,
+            'startColumn': 7
+          }
+        }
+      ],
+      'hasFix': false
     };
 
     test('default', () {
@@ -256,6 +289,49 @@ int f() {
       expect(stdout, contains('lib/test.dart:15:4'));
       expect(stdout, contains('Foo bar baz.'));
       expect(stdout, contains('dead_code'));
+    });
+
+    group('json', () {
+      test('short', () {
+        final logger = TestLogger(false);
+        final errors = [AnalysisError(sampleInfoJson)];
+
+        AnalyzeCommand.emitJsonFormat(logger, errors);
+
+        expect(logger.stderrBuffer, isEmpty);
+        final stdout = logger.stdoutBuffer.toString().trim();
+        expect(
+            stdout,
+            '{"version":1,"diagnostics":[{"code":"dead_code","severity":"INFO",'
+            '"type":"TODO","location":{"file":"lib/test.dart","range":{'
+            '"start":{"offset":362,"line":15,"column":4},"end":{"offset":434,'
+            '"line":16,"column":12}}},"problemMessage":"Foo bar baz."}]}');
+      });
+      test('full', () {
+        final logger = TestLogger(false);
+        final errors = [AnalysisError(fullDiagnosticJson)];
+
+        AnalyzeCommand.emitJsonFormat(logger, errors);
+
+        expect(logger.stderrBuffer, isEmpty);
+        final stdout = logger.stdoutBuffer.toString().trim();
+        expect(
+            stdout,
+            '{"version":1,"diagnostics":[{'
+            '"code":"referenced_before_declaration","severity":"ERROR",'
+            '"type":"COMPILE_TIME_ERROR","location":{"file":"lib/test.dart",'
+            '"range":{"start":{"offset":19,"line":2,"column":9},"end":{'
+            '"offset":20,"line":null,"column":null}}},"problemMessage":'
+            '"Local variable \'s\' can\'t be referenced before it is declared.",'
+            '"correctionMessage":"Try moving the declaration to before the'
+            ' first use, or renaming the local variable so that it doesn\'t hide'
+            ' a name from an enclosing scope.","contextMessages":[{"location":{'
+            '"file":"lib/test.dart","range":{"start":{"offset":29,"line":3,'
+            '"column":7},"end":{"offset":30,"line":null,"column":null}}},'
+            '"message":"The declaration of \'s\' is on line 3."}],'
+            '"documentation":'
+            '"https:://dart.dev/tools/diagnostic-messages#referenced_before_declaration"}]}');
+      });
     });
 
     test('machine', () {

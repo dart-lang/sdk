@@ -251,6 +251,10 @@ class AnalysisError implements Comparable<AnalysisError> {
 
   String get correction => json['correction'] as String;
 
+  int get endColumn => json['location']['endColumn'] as int;
+
+  int get endLine => json['location']['endLine'] as int;
+
   String get file => json['location']['file'] as String;
 
   int get startLine => json['location']['startLine'] as int;
@@ -307,11 +311,19 @@ class DiagnosticMessage {
 
   int get column => json['location']['startColumn'] as int;
 
+  int get endColumn => json['location']['endColumn'] as int;
+
+  int get endLine => json['location']['endLine'] as int;
+
   String get filePath => json['location']['file'] as String;
+
+  int get length => json['location']['length'] as int;
 
   int get line => json['location']['startLine'] as int;
 
   String get message => json['message'] as String;
+
+  int get offset => json['location']['offset'] as int;
 }
 
 class FileAnalysisErrors {
