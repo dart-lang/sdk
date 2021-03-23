@@ -164,7 +164,7 @@ bool canBeNegativeZero(HInstruction input) {
     return canBeNegativeZero(input.left) && canBePositiveZero(input.right);
   }
   if (input is HPhi) {
-    if (input.inputs.any((phiInput) => phiInput.block.id > input.block.id)) {
+    if (input.inputs.any((phiInput) => phiInput.block.id >= input.block.id)) {
       return true; // Assume back-edge may be negative zero.
     }
     return input.inputs.any(canBeNegativeZero);
