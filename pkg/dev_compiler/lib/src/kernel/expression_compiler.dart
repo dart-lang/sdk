@@ -16,7 +16,6 @@ import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/compiler/js_names.dart' as js_ast;
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:dev_compiler/src/js_ast/js_ast.dart' as js_ast;
-import 'package:dev_compiler/src/kernel/compiler.dart';
 
 import 'package:front_end/src/api_unstable/ddc.dart';
 

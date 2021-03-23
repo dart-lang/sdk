@@ -14,7 +14,6 @@ import 'package:browser_launcher/browser_launcher.dart' as browser;
 import 'package:cli_util/cli_util.dart';
 import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/compiler/module_builder.dart';
-import 'package:dev_compiler/src/kernel/command.dart';
 import 'package:dev_compiler/src/kernel/module_metadata.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:front_end/src/compute_platform_binaries_location.dart' as fe;

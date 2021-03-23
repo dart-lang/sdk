@@ -12,7 +12,6 @@ import 'dart:isolate';
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:dev_compiler/dev_compiler.dart';
-import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/ast.dart' show Component, Library;
@@ -25,11 +24,7 @@ import 'package:meta/meta.dart';
 import 'package:vm/http_filesystem.dart';
 
 import '../compiler/js_names.dart';
-import '../compiler/shared_command.dart';
 import 'command.dart';
-import 'compiler.dart';
-import 'expression_compiler.dart';
-import 'target.dart';
 
 /// The service that handles expression compilation requests from
 /// the debugger.
