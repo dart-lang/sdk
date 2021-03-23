@@ -7,6 +7,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Directory, File, Platform, Process, stderr, stdout;
+import 'dart:isolate';
 
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
@@ -216,6 +217,55 @@ void main() async {
     group('$moduleFormat module format -', () {
       for (var soundNullSafety in [true, false]) {
         group('${soundNullSafety ? "sound" : "unsound"} null safety -', () {
+          group('expression compiler worker on startup', () {
+            Directory tempDir;
+            ReceivePort receivePort;
+
+            setUp(() async {
+              tempDir = Directory.systemTemp.createTempSync('foo bar');
+              receivePort = ReceivePort();
+            });
+
+            tearDown(() async {
+              tempDir.deleteSync(recursive: true);
+              receivePort.close();
+            });
+
+            test('reports failure to consumer', () async {
+              expect(
+                  receivePort,
+                  emitsInOrder([
+                    equals(isA<SendPort>()),
+                    equals({
+                      'succeeded': false,
+                      'stackTrace': isNotNull,
+                      'exception': contains('Could not load SDK component'),
+                    }),
+                  ]));
+
+              try {
+                var badPath = 'file:///path/does/not/exist';
+                await ExpressionCompilerWorker.createAndStart(
+                  [
+                    '--libraries-file',
+                    badPath,
+                    '--dart-sdk-summary',
+                    badPath,
+                    '--module-format',
+                    moduleFormat,
+                    soundNullSafety
+                        ? '--sound-null-safety'
+                        : '--no-sound-null-safety',
+                    if (verbose) '--verbose',
+                  ],
+                  sendPort: receivePort.sendPort,
+                );
+              } catch (e) {
+                throwsA(contains('Could not load SDK component'));
+              }
+            });
+          });
+
           for (var summarySupport in [true, false]) {
             group('${summarySupport ? "" : "no "}debugger summary support -',
                 () {
