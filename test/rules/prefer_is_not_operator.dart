@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N prefer_is_not_operator`
+// test w/ `dart test -N prefer_is_not_operator`
 
 class Foo {}
 var _a;

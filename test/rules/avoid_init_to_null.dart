@@ -4,7 +4,7 @@
 
 // @dart=2.9
 
-// test w/ `pub run test -N avoid_init_to_null`
+// test w/ `dart test -N avoid_init_to_null`
 
 var x = null; //LINT
 var y; //OK

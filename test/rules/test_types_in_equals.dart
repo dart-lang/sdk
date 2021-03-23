@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N test_types_in_equals`
+// test w/ `dart test -N test_types_in_equals`
 
 class Field {}
 

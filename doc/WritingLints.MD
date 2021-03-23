@@ -93,7 +93,7 @@ The test suite run during the linter's CI, can be run locally like so:
 
 alternatively, tests can be run using `pub`:
 
-    $ pub run test
+    $ dart test
     
 Running a single test can be done using the `rule_debug` helper:
 
@@ -103,7 +103,7 @@ would only test `always_declare_return_types`.  (This can be very handy if you w
 
 If you simply want to verify a test, you can run it solo in `pub`:
 
-    $ pub run test -N always_declare_return_types
+    $ dart test -N always_declare_return_types
 
 ### Utilities
 

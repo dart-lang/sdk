@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N avoid_field_initializers_in_const_classes`
+// test w/ `dart test -N avoid_field_initializers_in_const_classes`
 
 class A {
   final a = const []; // LINT

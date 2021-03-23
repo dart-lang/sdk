@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N do_not_use_environment`
+// test w/ `dart test -N do_not_use_environment`
 
 void f() {
   int.fromEnvironment('key'); // LINT

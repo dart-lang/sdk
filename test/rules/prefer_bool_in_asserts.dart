@@ -4,7 +4,7 @@
 
 // @dart=2.9
 
-// test w/ `pub run test -N prefer_bool_in_asserts`
+// test w/ `dart test -N prefer_bool_in_asserts`
 
 main() {
   assert(true); // OK

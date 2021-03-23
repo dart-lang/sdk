@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N null_check_on_nullable_type_parameter`
+// test w/ `dart test -N null_check_on_nullable_type_parameter`
 
 T m1<T>(T p) => p!; // OK
 T m2a<T>(T? p) => p!; // LINT

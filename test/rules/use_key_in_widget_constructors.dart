@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N use_key_in_widget_constructors`
+// test w/ `dart test -N use_key_in_widget_constructors`
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';

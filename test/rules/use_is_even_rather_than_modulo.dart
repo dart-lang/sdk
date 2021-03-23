@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N use_is_even_rather_than_modulo`
+// test w/ `dart test -N use_is_even_rather_than_modulo`
 
 bool isEven = 1 % 2 == 0; //LINT
 bool isOdd = 13 % 2 == 1; //LINT

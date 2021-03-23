@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N use_build_context_synchronously`
+// test w/ `dart test -N use_build_context_synchronously`
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';

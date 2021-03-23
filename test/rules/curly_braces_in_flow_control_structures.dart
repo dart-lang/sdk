@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N curly_braces_in_flow_control_structures`
+// test w/ `dart test -N curly_braces_in_flow_control_structures`
 
 testIfElse() {
   if (false) return; // OK

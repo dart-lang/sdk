@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N avoid_escaping_inner_quotes`
+// test w/ `dart test -N avoid_escaping_inner_quotes`
 
 f(o) {
   f(""); // OK

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N unnecessary_lambdas`
+// test w/ `dart test -N unnecessary_lambdas`
 
 // ignore_for_file: always_declare_return_types
 // ignore_for_file: omit_local_variable_types

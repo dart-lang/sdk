@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N tighten_type_of_initializing_formals`
+// test w/ `dart test -N tighten_type_of_initializing_formals`
 
 class A {
   A.c1(this.p) : assert(p != null); // LINT

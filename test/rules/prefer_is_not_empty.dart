@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N prefer_is_not_empty`
+// test w/ `dart test -N prefer_is_not_empty`
 
 bool lne = ![1].isEmpty; // LINT [12:12]
 bool mne = !{2: 'a'}.isEmpty; // LINT

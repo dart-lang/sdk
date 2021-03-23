@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N non_constant_identifier_names`
+// test w/ `dart test -N non_constant_identifier_names`
 
 String YO = ''; //LINT
 const Z = 4; //OK

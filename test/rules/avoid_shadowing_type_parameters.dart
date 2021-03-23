@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N avoid_shadowing_type_parameters`
+// test w/ `dart test -N avoid_shadowing_type_parameters`
 void fn1<T>() {
   void fn2<T>() {} // LINT
   void fn3<U>() {} // OK

@@ -4,7 +4,7 @@
 
 // @dart=2.9
 
-// test w/ `pub run test -N avoid_private_typedef_functions`
+// test w/ `dart test -N avoid_private_typedef_functions`
 
 part of 'lib.dart';
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N use_to_and_as_if_applicable`
+// test w/ `dart test -N use_to_and_as_if_applicable`
 
 class A {
   A.from(B);

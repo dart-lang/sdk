@@ -92,7 +92,7 @@ void updateRuleRegistry(String ruleName) {
   print('  ..register(${toClassName(ruleName)}())');
   print('and add your rule to `example/all.yaml`.');
   print('Then run your test like so:');
-  print('  pub run test -N $ruleName');
+  print('  dart test -N $ruleName');
 }
 
 String _generateClass(String ruleName, String className) => """
@@ -155,7 +155,7 @@ String _generateTest(String libName, String className) => '''
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N $libName`
+// test w/ `dart test -N $libName`
 
 ''';
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N diagnostic_describe_all_properties`
+// test w/ `dart test -N diagnostic_describe_all_properties`
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';

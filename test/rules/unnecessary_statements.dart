@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N unnecessary_statements`
+// test w/ `dart test -N unnecessary_statements`
 
 String f(Object o) {
   // See: https://github.com/dart-lang/linter/issues/2163

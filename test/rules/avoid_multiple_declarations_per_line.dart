@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N avoid_multiple_declarations_per_line`
+// test w/ `dart test -N avoid_multiple_declarations_per_line`
 
 // ignore_for_file: unused_local_variable
 

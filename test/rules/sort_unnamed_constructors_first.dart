@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `pub run test -N sort_unnamed_constructors_first`
+// test w/ `dart test -N sort_unnamed_constructors_first`
 
 class A {
   A();
