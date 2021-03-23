@@ -24,8 +24,12 @@
 
 #### Linter
 
-Updated the Linter to `1.1.0`, which includes:
+Updated the Linter to `1.2.1`, which includes:
 
+- improvements to `iterable_contains_unrelated_type` to better support `List`
+  content checks.
+- fixes to `camel_case_types` and `prefer_mixin` to support non-function
+  type aliases.
 - fixed `prefer_mixin` to properly make exceptions for `dart.collection`
   legacy mixins.
 - new lint: `use_build_context_synchronously` (experimental).
