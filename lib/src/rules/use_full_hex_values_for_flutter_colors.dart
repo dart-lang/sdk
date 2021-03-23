@@ -42,7 +42,7 @@ class UseFullHexValuesForFlutterColors extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -57,11 +57,11 @@ class _Visitor extends SimpleAstVisitor {
     var element = node.constructorName.staticElement;
     if (DartTypeUtilities.isConstructorElement(element,
         uriStr: 'dart.ui', className: 'Color', constructorName: '')) {
-      final arguments = node.argumentList.arguments;
+      var arguments = node.argumentList.arguments;
       if (arguments.isNotEmpty) {
-        final argument = arguments.first;
+        var argument = arguments.first;
         if (argument is IntegerLiteral) {
-          final value = argument.literal.lexeme;
+          var value = argument.literal.lexeme;
           if (!value.startsWith('0x') || value.length != 10) {
             rule.reportLint(argument);
           }

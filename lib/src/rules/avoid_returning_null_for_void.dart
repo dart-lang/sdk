@@ -53,7 +53,7 @@ class AvoidReturningNullForVoid extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addExpressionFunctionBody(this, visitor);
     registry.addReturnStatement(this, visitor);
   }
@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final parent = node.thisOrAncestorMatching(
+    var parent = node.thisOrAncestorMatching(
         (e) => e is FunctionExpression || e is MethodDeclaration);
     if (parent == null) return;
 

@@ -15,8 +15,8 @@ import 'util/score_utils.dart';
 const benchmarkRuns = 10;
 
 String getLineContents(int? lineNumber, AnalysisError error) {
-  final path = error.source.fullName;
-  final file = File(path);
+  var path = error.source.fullName;
+  var file = File(path);
   String failureDetails;
   if (!file.existsSync()) {
     failureDetails = 'file at $path does not exist';
@@ -43,12 +43,12 @@ String shorten(String? fileRoot, String fullName) {
 
 Future writeBenchmarks(
     IOSink out, List<File> filesToLint, LinterOptions lintOptions) async {
-  final timings = <String, int>{};
+  var timings = <String, int>{};
   for (var i = 0; i < benchmarkRuns; ++i) {
     await lintFiles(DartLinter(lintOptions), filesToLint);
     lintRegistry.timers.forEach((n, t) {
-      final timing = t.elapsedMilliseconds;
-      final previous = timings[n];
+      var timing = t.elapsedMilliseconds;
+      var previous = timings[n];
       if (previous == null) {
         timings[n] = timing;
       } else {
@@ -57,9 +57,9 @@ Future writeBenchmarks(
     });
   }
 
-  final pedanticRuleset = await pedanticRules;
-  final stats = timings.keys.map((t) {
-    final details = pedanticRuleset.contains(t) ? ' [pedantic]' : '';
+  var pedanticRuleset = await pedanticRules;
+  var stats = timings.keys.map((t) {
+    var details = pedanticRuleset.contains(t) ? ' [pedantic]' : '';
     return _Stat('$t$details', timings[t] ?? 0);
   }).toList();
   _writeTimings(out, stats, 0);
@@ -77,14 +77,14 @@ String _escapePipe(String input) {
 }
 
 void _writeTimings(IOSink out, List<_Stat> timings, int summaryLength) {
-  final names = timings.map((s) => s.name).toList();
+  var names = timings.map((s) => s.name).toList();
 
   var longestName =
       names.fold<int>(0, (prev, element) => max(prev, element.length));
-  final longestTime = 8;
-  final tableWidth = max(summaryLength, longestName + longestTime);
-  final pad = tableWidth - longestName;
-  final line = ''.padLeft(tableWidth, '-');
+  var longestTime = 8;
+  var tableWidth = max(summaryLength, longestName + longestTime);
+  var pad = tableWidth - longestName;
+  var line = ''.padLeft(tableWidth, '-');
 
   out
     ..writeln()
@@ -298,8 +298,8 @@ class SimpleFormatter implements ReportFormatter {
   }
 
   void writeTimings() {
-    final timers = lintRegistry.timers;
-    final timings = timers.keys
+    var timers = lintRegistry.timers;
+    var timings = timers.keys
         .map((t) => _Stat(t, timers[t]?.elapsedMilliseconds ?? 0))
         .toList();
     _writeTimings(out, timings, _summaryLength);

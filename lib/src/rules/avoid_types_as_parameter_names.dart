@@ -37,7 +37,7 @@ class AvoidTypesAsParameterNames extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addFormalParameterList(this, visitor);
     registry.addCatchClause(this, visitor);
   }
@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    final parameter = node.exceptionParameter;
+    var parameter = node.exceptionParameter;
     if (parameter != null && _isTypeName(node, parameter)) {
       rule.reportLint(parameter);
     }
@@ -61,7 +61,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFormalParameterList(FormalParameterList node) {
     if (node.parent is GenericFunctionType) return;
 
-    for (final parameter in node.parameters) {
+    for (var parameter in node.parameters) {
       var declaredElement = parameter.declaredElement;
       var identifier = parameter.identifier;
       if (declaredElement != null &&
@@ -74,9 +74,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isTypeName(AstNode scope, SimpleIdentifier node) {
-    final result = context.resolveNameInScope(node.name, false, scope);
+    var result = context.resolveNameInScope(node.name, false, scope);
     if (result.isRequestedName) {
-      final element = result.element;
+      var element = result.element;
       return element is ClassElement || element is TypeAliasElement;
     }
     return false;

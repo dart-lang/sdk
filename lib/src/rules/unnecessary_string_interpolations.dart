@@ -38,7 +38,7 @@ class UnnecessaryStringInterpolations extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addStringInterpolation(this, visitor);
   }
 }
@@ -52,9 +52,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitStringInterpolation(StringInterpolation node) {
     if (node.parent is AdjacentStrings) return;
     if (node.elements.length == 3) {
-      final start = node.elements[0] as InterpolationString;
-      final interpolation = node.elements[1] as InterpolationExpression;
-      final end = node.elements[2] as InterpolationString;
+      var start = node.elements[0] as InterpolationString;
+      var interpolation = node.elements[1] as InterpolationExpression;
+      var end = node.elements[2] as InterpolationString;
       if (start.value.isEmpty && end.value.isEmpty) {
         var staticType = interpolation.expression.staticType;
         if (staticType != null && staticType.isDartCoreString) {

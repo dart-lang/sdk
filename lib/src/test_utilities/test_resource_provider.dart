@@ -16,18 +16,18 @@ import '../analyzer.dart';
 /// Builds the [DartLinter] with appropriate mock SDK, resource providers, and
 /// package config path.
 DartLinter buildDriver(LintRule? rule, File file, {String? analysisOptions}) {
-  final memoryResourceProvider = MemoryResourceProvider(
+  var memoryResourceProvider = MemoryResourceProvider(
       context: PhysicalResourceProvider.INSTANCE.pathContext);
-  final resourceProvider = TestResourceProvider(memoryResourceProvider);
+  var resourceProvider = TestResourceProvider(memoryResourceProvider);
 
-  final pathContext = memoryResourceProvider.pathContext;
+  var pathContext = memoryResourceProvider.pathContext;
   String? packageConfigPath = memoryResourceProvider.convertPath(pathContext
       .join(pathContext.dirname(file.absolute.path), '.mock_packages'));
   if (!resourceProvider.getFile(packageConfigPath).exists) {
     packageConfigPath = null;
   }
 
-  final options = LinterOptions([rule!], analysisOptions)
+  var options = LinterOptions([rule!], analysisOptions)
     ..mockSdk = MockSdk(resourceProvider: memoryResourceProvider)
     ..resourceProvider = resourceProvider
     ..packageConfigPath = packageConfigPath;
@@ -47,19 +47,19 @@ class TestResourceProvider extends file_system.ResourceProvider {
 
   @override
   file_system.File getFile(String path) {
-    final file = memoryResourceProvider.getFile(path);
+    var file = memoryResourceProvider.getFile(path);
     return file.exists ? file : physicalResourceProvider.getFile(path);
   }
 
   @override
   file_system.Folder getFolder(String path) {
-    final folder = memoryResourceProvider.getFolder(path);
+    var folder = memoryResourceProvider.getFolder(path);
     return folder.exists ? folder : physicalResourceProvider.getFolder(path);
   }
 
   @override
   file_system.Resource getResource(String path) {
-    final resource = memoryResourceProvider.getResource(path);
+    var resource = memoryResourceProvider.getResource(path);
     return resource.exists
         ? resource
         : physicalResourceProvider.getResource(path);

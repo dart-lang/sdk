@@ -12,8 +12,8 @@ import '../mocks.dart';
 
 void main() {
   group('sort_pub_dependencies', () {
-    final currentOut = outSink;
-    final collectingOut = CollectingSink();
+    var currentOut = outSink;
+    var collectingOut = CollectingSink();
 
     setUp(() {
       exitCode = 0;

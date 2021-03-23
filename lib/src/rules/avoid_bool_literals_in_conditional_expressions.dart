@@ -43,7 +43,7 @@ class AvoidBoolLiteralsInConditionalExpressions extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addConditionalExpression(this, visitor);
   }
 }
@@ -57,9 +57,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    final typeProvider = context.typeProvider;
-    final thenExp = node.thenExpression;
-    final elseExp = node.elseExpression;
+    var typeProvider = context.typeProvider;
+    var thenExp = node.thenExpression;
+    var elseExp = node.elseExpression;
 
     if (thenExp.staticType == typeProvider.boolType &&
         elseExp.staticType == typeProvider.boolType) {

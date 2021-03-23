@@ -95,7 +95,7 @@ class ControlFlowInFinally extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addBreakStatement(this, visitor);
     registry.addContinueStatement(this, visitor);
     registry.addReturnStatement(this, visitor);
@@ -110,8 +110,8 @@ abstract class ControlFlowInFinallyBlockReporterMixin {
   LintRule get rule;
 
   void reportIfFinallyAncestorExists(AstNode node, {AstNode? ancestor}) {
-    final tryStatement = node.thisOrAncestorOfType<TryStatement>();
-    final finallyBlock = tryStatement?.finallyBlock;
+    var tryStatement = node.thisOrAncestorOfType<TryStatement>();
+    var finallyBlock = tryStatement?.finallyBlock;
     bool finallyBlockAncestorPredicate(AstNode n) => n == finallyBlock;
     if (tryStatement == null ||
         finallyBlock == null ||
@@ -119,7 +119,7 @@ abstract class ControlFlowInFinallyBlockReporterMixin {
       return;
     }
 
-    final enablerNode = _findEnablerNode(
+    var enablerNode = _findEnablerNode(
         ancestor, finallyBlockAncestorPredicate, node, tryStatement);
     if (enablerNode == null) {
       rule.reportLint(node);

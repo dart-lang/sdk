@@ -49,7 +49,7 @@ class UnnecessaryFinal extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry
       ..addFormalParameterList(this, visitor)
       ..addForStatement(this, visitor)
@@ -82,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // second case, notice `a` is not actually declared from within the
     // loop. `a` is a variable declared outside the loop.
     if (forLoopParts is ForEachPartsWithDeclaration) {
-      final loopVariable = forLoopParts.loopVariable;
+      var loopVariable = forLoopParts.loopVariable;
 
       if (loopVariable.isFinal) {
         rule.reportLintForToken(loopVariable.keyword);

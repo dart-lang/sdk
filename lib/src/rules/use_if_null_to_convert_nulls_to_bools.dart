@@ -48,7 +48,7 @@ class UseIfNullToConvertNullsToBools extends LintRule implements NodeLintRule {
       NodeLintRegistry registry, LinterContext context) {
     if (!context.isEnabled(Feature.non_nullable)) return;
 
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addBinaryExpression(this, visitor);
   }
 }

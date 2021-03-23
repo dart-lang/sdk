@@ -61,7 +61,7 @@ class UnnecessaryGettersSetters extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
 }
@@ -73,14 +73,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    final getters = <String, MethodDeclaration>{};
-    final setters = <String, MethodDeclaration>{};
+    var getters = <String, MethodDeclaration>{};
+    var setters = <String, MethodDeclaration>{};
 
     // Build getter/setter maps
     var members = node.members.where(isMethod);
 
     for (var member in members) {
-      final method = member as MethodDeclaration;
+      var method = member as MethodDeclaration;
       if (method.isGetter) {
         getters[method.name.toString()] = method;
       } else if (method.isSetter) {

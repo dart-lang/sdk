@@ -55,7 +55,7 @@ class PreferForeach extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addForStatement(this, visitor);
   }
 }
@@ -81,9 +81,9 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
 
   @override
   void visitForStatement(ForStatement node) {
-    final loopParts = node.forLoopParts;
+    var loopParts = node.forLoopParts;
     if (loopParts is ForEachPartsWithDeclaration) {
-      final element = loopParts.loopVariable.declaredElement;
+      var element = loopParts.loopVariable.declaredElement;
       if (element != null) {
         forEachStatement = node;
         this.element = element;
@@ -94,7 +94,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    final arguments = node.argumentList.arguments;
+    var arguments = node.argumentList.arguments;
     if (arguments.length == 1 &&
         DartTypeUtilities.getCanonicalElementFromIdentifier(arguments.first) ==
             element) {
@@ -104,7 +104,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    final arguments = node.argumentList.arguments;
+    var arguments = node.argumentList.arguments;
     var target = node.target;
     if (arguments.length == 1 &&
         DartTypeUtilities.getCanonicalElementFromIdentifier(arguments.first) ==
@@ -131,9 +131,9 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitForStatement(ForStatement node) {
-    final loopParts = node.forLoopParts;
+    var loopParts = node.forLoopParts;
     if (loopParts is ForEachParts) {
-      final visitor = _PreferForEachVisitor(rule);
+      var visitor = _PreferForEachVisitor(rule);
       node.accept(visitor);
     }
   }

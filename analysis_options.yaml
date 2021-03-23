@@ -98,6 +98,7 @@ linter:
     - throw_in_finally
 #    - type_annotate_public_apis
     - unnecessary_brace_in_string_interps
+    - unnecessary_final
     - unnecessary_getters_setters
     - unnecessary_lambdas
     - unnecessary_null_aware_assignments

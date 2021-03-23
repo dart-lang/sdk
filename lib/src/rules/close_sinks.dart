@@ -74,7 +74,7 @@ class CloseSinks extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
   }

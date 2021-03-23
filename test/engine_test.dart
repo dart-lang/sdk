@@ -32,7 +32,7 @@ void defineLinterEngineTests() {
           String label, String expected, Function(PrintingReporter r) report) {
         test(label, () {
           String? msg;
-          final reporter = PrintingReporter((m) => msg = m);
+          var reporter = PrintingReporter((m) => msg = m);
           report(reporter);
           expect(msg, expected);
         });
@@ -106,7 +106,7 @@ void defineLinterEngineTests() {
         errorSink = stderr;
       });
       test('smoke', () async {
-        final firstRuleTest =
+        var firstRuleTest =
             Directory(ruleDir).listSync().firstWhere(isDartFile);
         await cli.run([firstRuleTest.path]);
         expect(cli.isLinterErrorCode(exitCode), isFalse);
@@ -126,7 +126,7 @@ void defineLinterEngineTests() {
       });
       test('custom sdk path', () async {
         // Smoke test to ensure a custom sdk path doesn't sink the ship
-        final firstRuleTest =
+        var firstRuleTest =
             Directory(ruleDir).listSync().firstWhere(isDartFile);
         var sdk = getSdkPath();
         await cli.run(['--dart-sdk', sdk, firstRuleTest.path]);
@@ -137,11 +137,11 @@ void defineLinterEngineTests() {
     group('dtos', () {
       group('hyperlink', () {
         test('html', () {
-          final link = Hyperlink('dart', 'http://dart.dev');
+          var link = Hyperlink('dart', 'http://dart.dev');
           expect(link.html, '<a href="http://dart.dev">dart</a>');
         });
         test('html - strong', () {
-          final link = Hyperlink('dart', 'http://dart.dev', bold: true);
+          var link = Hyperlink('dart', 'http://dart.dev', bold: true);
           expect(
               link.html, '<a href="http://dart.dev"><strong>dart</strong></a>');
         });
@@ -160,8 +160,8 @@ void defineLinterEngineTests() {
       group('maturity', () {
         test('comparing', () {
           // Custom
-          final m1 = Maturity('foo', ordinal: 0);
-          final m2 = Maturity('bar', ordinal: 1);
+          var m1 = Maturity('foo', ordinal: 0);
+          var m2 = Maturity('bar', ordinal: 1);
           expect(m1.compareTo(m2), -1);
           // Builtin
           expect(Maturity.stable.compareTo(Maturity.experimental), -1);

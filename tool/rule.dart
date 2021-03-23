@@ -9,7 +9,7 @@ import 'package:args/args.dart';
 /// Generates rule and rule test stub files (into `src/rules` and `test/rules`
 /// respectively), as well as the rule index (`rules.dart`).
 void main(List<String> args) {
-  final parser = ArgParser()
+  var parser = ArgParser()
     ..addOption('out', abbr: 'o', help: 'Specifies project root.')
     ..addOption('name',
         abbr: 'n', help: 'Specifies lower_underscore rule name.');
@@ -22,17 +22,17 @@ void main(List<String> args) {
     return;
   }
 
-  final outDir = options['out'];
+  var outDir = options['out'];
 
   if (outDir != null) {
-    final d = Directory(outDir as String);
+    var d = Directory(outDir as String);
     if (!d.existsSync()) {
       print("Directory '${d.path}' does not exist");
       return;
     }
   }
 
-  final ruleName = options['name'];
+  var ruleName = options['name'];
 
   if (ruleName == null) {
     printUsage(parser);
@@ -60,10 +60,10 @@ void generateRule(String ruleName, {String? outDir}) {
 
 void generateStub(String ruleName, String stubPath, _Generator generator,
     {String? outDir}) {
-  final generated = generator(ruleName, toClassName(ruleName));
+  var generated = generator(ruleName, toClassName(ruleName));
   if (outDir != null) {
-    final outPath = '$outDir/$stubPath/$ruleName.dart';
-    final outFile = File(outPath);
+    var outPath = '$outDir/$stubPath/$ruleName.dart';
+    var outFile = File(outPath);
     if (outFile.existsSync()) {
       print('Warning: stub already exists at $outPath; skipping');
       return;
@@ -76,7 +76,7 @@ void generateStub(String ruleName, String stubPath, _Generator generator,
 }
 
 void printUsage(ArgParser parser, [String? error]) {
-  final message = error ?? 'Generates rule stubs.';
+  var message = error ?? 'Generates rule stubs.';
 
   stdout.write('''$message
 Usage: rule
@@ -133,7 +133,7 @@ class $className extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addSimpleIdentifier(this, visitor);
   }
 }

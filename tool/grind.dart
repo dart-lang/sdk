@@ -26,8 +26,8 @@ Iterable<FileSystemEntity> get sources => existingSourceDirs.expand((dir) {
 
 @Task('Generate lint rule docs.')
 void docs() {
-  final args = context.invocation.arguments;
-  final dir = args.getOption('dir');
+  var args = context.invocation.arguments;
+  var dir = args.getOption('dir');
   generateDocs(dir);
 }
 
@@ -39,8 +39,8 @@ void format() {
 
 @Task('Generate a lint rule stub.')
 void rule() {
-  final args = context.invocation.arguments;
-  final name = args.getOption('name')!;
+  var args = context.invocation.arguments;
+  var name = args.getOption('name')!;
   generateRule(name, outDir: Directory.current.path);
 }
 

@@ -52,7 +52,7 @@ class PreferIsNotEmpty extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addSimpleIdentifier(this, visitor);
   }
 }
@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     late AstNode isEmptyAccess;
     SimpleIdentifier? isEmptyIdentifier;
 
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is PropertyAccess) {
       isEmptyIdentifier = parent.propertyName;
       isEmptyAccess = parent;
@@ -81,12 +81,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // Should be "isEmpty".
-    final propertyElement = isEmptyIdentifier.staticElement;
+    var propertyElement = isEmptyIdentifier.staticElement;
     if (propertyElement == null || 'isEmpty' != propertyElement.name) {
       return;
     }
     // Should have "isNotEmpty".
-    final propertyTarget = propertyElement.enclosingElement;
+    var propertyTarget = propertyElement.enclosingElement;
     if (propertyTarget == null ||
         getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
       return;

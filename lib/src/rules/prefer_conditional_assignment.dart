@@ -53,7 +53,7 @@ bool _checkStatement(Statement statement, Expression condition) {
 }
 
 Expression? _getExpressionCondition(Expression rawExpression) {
-  final expression = rawExpression.unParenthesized;
+  var expression = rawExpression.unParenthesized;
   if (expression is BinaryExpression &&
       expression.operator.type == TokenType.EQ_EQ) {
     if (DartTypeUtilities.isNullLiteral(expression.rightOperand)) {
@@ -77,7 +77,7 @@ class PreferConditionalAssignment extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addIfStatement(this, visitor);
   }
 }
@@ -92,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.elseStatement != null) {
       return;
     }
-    final expressionInCondition = _getExpressionCondition(node.condition);
+    var expressionInCondition = _getExpressionCondition(node.condition);
     if (expressionInCondition != null &&
         _checkStatement(node.thenStatement, expressionInCondition)) {
       rule.reportLint(node);

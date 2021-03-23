@@ -39,7 +39,7 @@ class AvoidMultipleDeclarationsPerLine extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addVariableDeclarationList(this, visitor);
   }
 }
@@ -51,10 +51,10 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    final variables = node.variables;
+    var variables = node.variables;
 
     if (variables.length > 1) {
-      final secondVariable = variables[1];
+      var secondVariable = variables[1];
       rule.reportLint(secondVariable.name);
     }
   }

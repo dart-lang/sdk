@@ -34,7 +34,7 @@ class AvoidEmptyElse extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addIfStatement(this, visitor);
   }
 }
@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitIfStatement(IfStatement node) {
-    final elseStatement = node.elseStatement;
+    var elseStatement = node.elseStatement;
     if (elseStatement is EmptyStatement &&
         !elseStatement.semicolon.isSynthetic) {
       rule.reportLint(elseStatement);

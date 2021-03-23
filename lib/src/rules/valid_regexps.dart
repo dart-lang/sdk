@@ -40,7 +40,7 @@ class ValidRegExps extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -52,16 +52,16 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    final element = node.constructorName.staticElement?.enclosingElement;
+    var element = node.constructorName.staticElement?.enclosingElement;
     if (element?.name == 'RegExp' && element?.library.name == 'dart.core') {
-      final args = node.argumentList.arguments;
+      var args = node.argumentList.arguments;
       if (args.isEmpty) {
         return;
       }
 
-      final sourceExpression = args.first;
+      var sourceExpression = args.first;
       if (sourceExpression is StringLiteral) {
-        final source = sourceExpression.stringValue;
+        var source = sourceExpression.stringValue;
         if (source != null) {
           try {
             RegExp(source);

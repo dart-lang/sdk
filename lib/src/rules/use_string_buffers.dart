@@ -63,7 +63,7 @@ class UseStringBuffers extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addWhileStatement(this, visitor);
@@ -129,7 +129,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
         rule.reportLint(node);
       }
       if (node.operator.type == TokenType.EQ) {
-        final visitor = _IdentifierIsPrefixVisitor(rule, left);
+        var visitor = _IdentifierIsPrefixVisitor(rule, left);
         node.rightHandSide.accept(visitor);
       }
     }
@@ -152,7 +152,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    for (final variable in node.variables.variables) {
+    for (var variable in node.variables.variables) {
       localElements.add(variable.declaredElement);
     }
   }
@@ -165,19 +165,19 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitDoStatement(DoStatement node) {
-    final visitor = _UseStringBufferVisitor(rule);
+    var visitor = _UseStringBufferVisitor(rule);
     node.body.accept(visitor);
   }
 
   @override
   void visitForStatement(ForStatement node) {
-    final visitor = _UseStringBufferVisitor(rule);
+    var visitor = _UseStringBufferVisitor(rule);
     node.body.accept(visitor);
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    final visitor = _UseStringBufferVisitor(rule);
+    var visitor = _UseStringBufferVisitor(rule);
     node.body.accept(visitor);
   }
 }

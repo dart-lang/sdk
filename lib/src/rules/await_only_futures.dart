@@ -41,7 +41,7 @@ class AwaitOnlyFutures extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addAwaitExpression(this, visitor);
   }
 }
@@ -58,7 +58,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitAwaitExpression(AwaitExpression node) {
     if (node.expression is NullLiteral) return;
 
-    final type = node.expression.staticType;
+    var type = node.expression.staticType;
     if (!(type == null ||
         type.isDartAsyncFuture ||
         type.isDynamic ||

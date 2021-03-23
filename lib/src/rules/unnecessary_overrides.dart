@@ -60,7 +60,7 @@ class UnnecessaryOverrides extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }
@@ -156,8 +156,8 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
       return false;
     }
     for (var i = 0; i < inheritedMethod.parameters.length; i++) {
-      final superParam = inheritedMethod.parameters[i];
-      final param = declaredElement.parameters[i];
+      var superParam = inheritedMethod.parameters[i];
+      var param = declaredElement.parameters[i];
       if (param.type != superParam.type) return false;
       if (param.name != superParam.name) return false;
       if (param.isCovariant != superParam.isCovariant) return false;
@@ -225,14 +225,14 @@ class _UnnecessaryOperatorOverrideVisitor
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    final parameters = declaration.parameters?.parameters;
+    var parameters = declaration.parameters?.parameters;
     if (node.operator.type == declaration.name.token.type &&
         parameters != null &&
         parameters.length == 1 &&
         parameters.first.identifier?.staticElement ==
             DartTypeUtilities.getCanonicalElementFromIdentifier(
                 node.rightOperand)) {
-      final leftPart = node.leftOperand.unParenthesized;
+      var leftPart = node.leftOperand.unParenthesized;
       if (leftPart is SuperExpression) {
         visitSuperExpression(leftPart);
       }
@@ -241,11 +241,11 @@ class _UnnecessaryOperatorOverrideVisitor
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    final parameters = declaration.parameters?.parameters;
+    var parameters = declaration.parameters?.parameters;
     if (parameters != null &&
         node.operator.type == declaration.name.token.type &&
         parameters.isEmpty) {
-      final operand = node.operand.unParenthesized;
+      var operand = node.operand.unParenthesized;
       if (operand is SuperExpression) {
         visitSuperExpression(operand);
       }
@@ -263,13 +263,13 @@ class _UnnecessarySetterOverrideVisitor
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    final parameters = declaration.parameters?.parameters;
+    var parameters = declaration.parameters?.parameters;
     if (parameters != null &&
         parameters.length == 1 &&
         parameters.first.identifier?.staticElement ==
             DartTypeUtilities.getCanonicalElementFromIdentifier(
                 node.rightHandSide)) {
-      final leftPart = node.leftHandSide.unParenthesized;
+      var leftPart = node.leftHandSide.unParenthesized;
       if (leftPart is PropertyAccess) {
         if (node.writeElement == inheritedMethod) {
           leftPart.target?.accept(this);
@@ -290,16 +290,16 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (node.operatorKeyword != null) {
-      final visitor = _UnnecessaryOperatorOverrideVisitor(rule);
+      var visitor = _UnnecessaryOperatorOverrideVisitor(rule);
       visitor.visitMethodDeclaration(node);
     } else if (node.isGetter) {
-      final visitor = _UnnecessaryGetterOverrideVisitor(rule);
+      var visitor = _UnnecessaryGetterOverrideVisitor(rule);
       visitor.visitMethodDeclaration(node);
     } else if (node.isSetter) {
-      final visitor = _UnnecessarySetterOverrideVisitor(rule);
+      var visitor = _UnnecessarySetterOverrideVisitor(rule);
       visitor.visitMethodDeclaration(node);
     } else {
-      final visitor = _UnnecessaryMethodOverrideVisitor(rule);
+      var visitor = _UnnecessaryMethodOverrideVisitor(rule);
       visitor.visitMethodDeclaration(node);
     }
   }

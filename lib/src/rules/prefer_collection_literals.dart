@@ -68,7 +68,7 @@ class PreferCollectionLiterals extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);
   }
@@ -91,7 +91,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    final constructorName = node.constructorName.name?.name;
+    var constructorName = node.constructorName.name?.name;
 
     // Lists, Maps.
     if (_isList(node) || _isMap(node) || _isHashMap(node)) {
@@ -161,7 +161,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Skip: function(LinkedHashSet()); when function(LinkedHashSet mySet) or
       // function(LinkedHashMap()); when function(LinkedHashMap myMap)
       if (parent is ArgumentList) {
-        final paramType = node.staticParameterElement?.type;
+        var paramType = node.staticParameterElement?.type;
         if (paramType == null || typeCheck(paramType)) {
           return true;
         }

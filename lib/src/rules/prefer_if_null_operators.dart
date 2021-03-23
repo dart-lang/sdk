@@ -38,7 +38,7 @@ class PreferIfNullOperators extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addConditionalExpression(this, visitor);
   }
 }
@@ -50,7 +50,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    final condition = node.condition;
+    var condition = node.condition;
     if (condition is BinaryExpression &&
         (condition.operator.type == TokenType.EQ_EQ ||
             condition.operator.type == TokenType.BANG_EQ)) {
@@ -64,7 +64,7 @@ class _Visitor extends SimpleAstVisitor {
         return;
       }
 
-      final exp = condition.operator.type == TokenType.EQ_EQ
+      var exp = condition.operator.type == TokenType.EQ_EQ
           ? node.elseExpression
           : node.thenExpression;
       if (exp.toString() == expression.toString()) {

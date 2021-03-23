@@ -94,7 +94,7 @@ class UnnecessaryNullChecks extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addPostfixExpression(this, visitor);
   }
 }
@@ -109,7 +109,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitPostfixExpression(PostfixExpression node) {
     if (node.operator.type != TokenType.BANG) return;
 
-    final expectedType = getExpectedType(node);
+    var expectedType = getExpectedType(node);
     if (expectedType != null && context.typeSystem.isNullable(expectedType)) {
       rule.reportLintForToken(node.operator);
     }

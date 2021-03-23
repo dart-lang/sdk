@@ -55,7 +55,7 @@ someReference
 
 Element? _getElementFromVariableDeclarationStatement(
     VariableDeclarationStatement statement) {
-  final variables = statement.variables.variables;
+  var variables = statement.variables.variables;
   if (variables.length == 1) {
     var variable = variables.single;
     if (variable.initializer is AwaitExpression) {
@@ -74,7 +74,7 @@ Element? _getElementFromVariableDeclarationStatement(
 ExecutableElement? _getExecutableElementFromMethodInvocation(
     MethodInvocation node) {
   if (_isInvokedWithoutNullAwareOperator(node.operator)) {
-    final executableElement =
+    var executableElement =
         DartTypeUtilities.getCanonicalElementFromIdentifier(node.methodName);
     if (executableElement is ExecutableElement) {
       return executableElement;
@@ -84,7 +84,7 @@ ExecutableElement? _getExecutableElementFromMethodInvocation(
 }
 
 Element? _getPrefixElementFromExpression(Expression rawExpression) {
-  final expression = rawExpression.unParenthesized;
+  var expression = rawExpression.unParenthesized;
   if (expression is PrefixedIdentifier) {
     return DartTypeUtilities.getCanonicalElementFromIdentifier(
         expression.prefix);
@@ -120,7 +120,7 @@ class CascadeInvocations extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addBlock(this, visitor);
   }
 }
@@ -152,7 +152,7 @@ class _CascadableExpression {
 
   factory _CascadableExpression.fromExpressionStatement(
       ExpressionStatement statement) {
-    final expression = statement.expression.unParenthesized;
+    var expression = statement.expression.unParenthesized;
     if (expression is AssignmentExpression) {
       return _CascadableExpression._fromAssignmentExpression(expression);
     }
@@ -174,14 +174,14 @@ class _CascadableExpression {
 
   factory _CascadableExpression.fromVariableDeclarationStatement(
       VariableDeclarationStatement node) {
-    final element = _getElementFromVariableDeclarationStatement(node);
+    var element = _getElementFromVariableDeclarationStatement(node);
     return _CascadableExpression._internal(element, [],
         canReceive: true, isCritical: true);
   }
 
   factory _CascadableExpression._fromAssignmentExpression(
       AssignmentExpression node) {
-    final leftExpression = node.leftHandSide.unParenthesized;
+    var leftExpression = node.leftHandSide.unParenthesized;
     if (leftExpression is SimpleIdentifier) {
       return _CascadableExpression._internal(
           DartTypeUtilities.getCanonicalElement(leftExpression.staticElement),
@@ -190,8 +190,8 @@ class _CascadableExpression {
           isCritical: true);
     }
     // setters
-    final variable = _getPrefixElementFromExpression(leftExpression);
-    final canReceive = node.operator.type != TokenType.QUESTION_QUESTION_EQ &&
+    var variable = _getPrefixElementFromExpression(leftExpression);
+    var canReceive = node.operator.type != TokenType.QUESTION_QUESTION_EQ &&
         variable is VariableElement &&
         !variable.isStatic;
     return _CascadableExpression._internal(variable, [node.rightHandSide],
@@ -205,10 +205,10 @@ class _CascadableExpression {
           canJoin: true, canReceive: true, canBeCascaded: true);
 
   factory _CascadableExpression._fromMethodInvocation(MethodInvocation node) {
-    final executableElement = _getExecutableElementFromMethodInvocation(node);
-    final isNonStatic = executableElement?.isStatic == false;
+    var executableElement = _getExecutableElementFromMethodInvocation(node);
+    var isNonStatic = executableElement?.isStatic == false;
     if (isNonStatic) {
-      final isSimpleIdentifier = node.target is SimpleIdentifier;
+      var isSimpleIdentifier = node.target is SimpleIdentifier;
       return _CascadableExpression._internal(
           _getTargetElementFromMethodInvocation(node), [node.argumentList],
           canJoin: isSimpleIdentifier,
@@ -294,7 +294,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     var previousExpressionBox = _CascadableExpression.nullCascadableExpression;
-    for (final statement in node.statements) {
+    for (var statement in node.statements) {
       var currentExpressionBox = _CascadableExpression.nullCascadableExpression;
       if (statement is VariableDeclarationStatement) {
         currentExpressionBox =

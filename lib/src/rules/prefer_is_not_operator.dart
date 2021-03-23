@@ -40,7 +40,7 @@ class PreferIsNotOperator extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addIsExpression(this, visitor);
   }
 }
@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var parent = node.parent;
     // Check whether is expression is inside parenthesis
     if (parent is ParenthesizedExpression) {
-      final prefixExpression = parent.parent;
+      var prefixExpression = parent.parent;
       // Check for NOT (!) operator
       if (prefixExpression is PrefixExpression &&
           prefixExpression.operator.type == TokenType.BANG) {

@@ -44,7 +44,7 @@ class SortConstructorsFirst extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
 }
@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     // Sort members by offset.
-    final members = node.members.toList()
+    var members = node.members.toList()
       ..sort((ClassMember m1, ClassMember m2) => m1.offset - m2.offset);
 
     var other = false;

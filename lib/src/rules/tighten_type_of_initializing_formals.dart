@@ -54,7 +54,7 @@ class TightenTypeOfInitializingFormals extends LintRule
       return;
     }
 
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
   }
 }

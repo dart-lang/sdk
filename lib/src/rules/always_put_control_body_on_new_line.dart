@@ -57,7 +57,7 @@ class AlwaysPutControlBodyOnNewLine extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addIfStatement(this, visitor);
@@ -98,8 +98,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkNodeOnNextLine(AstNode? node, int controlEnd) {
     if (node == null || node is Block && node.statements.isEmpty) return;
 
-    final unit = node.root as CompilationUnit;
-    final offsetFirstStatement =
+    var unit = node.root as CompilationUnit;
+    var offsetFirstStatement =
         node is Block ? node.statements.first.offset : node.offset;
     var lineInfo = unit.lineInfo;
     if (lineInfo == null) {

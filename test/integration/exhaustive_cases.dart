@@ -12,8 +12,8 @@ import '../mocks.dart';
 
 void main() {
   group('exhaustive_cases', () {
-    final currentOut = outSink;
-    final collectingOut = CollectingSink();
+    var currentOut = outSink;
+    var collectingOut = CollectingSink();
     setUp(() => outSink = collectingOut);
     tearDown(() {
       collectingOut.buffer.clear();

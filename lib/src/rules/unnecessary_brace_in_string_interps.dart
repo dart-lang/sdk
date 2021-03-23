@@ -45,7 +45,7 @@ class UnnecessaryBraceInStringInterps extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addStringInterpolation(this, visitor);
   }
 }
@@ -61,8 +61,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var expression in expressions) {
       var exp = expression.expression;
       if (exp is SimpleIdentifier) {
-        final identifier = exp;
-        final bracket = expression.rightBracket;
+        var identifier = exp;
+        var bracket = expression.rightBracket;
         if (bracket != null &&
             !isIdentifierPart(bracket.next) &&
             !identifier.name.contains('\$')) {

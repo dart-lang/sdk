@@ -55,7 +55,7 @@ class PreferIsEmpty extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addSimpleIdentifier(this, visitor);
   }
 
@@ -85,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier identifier) {
     // Should be "length".
-    final propertyElement = identifier.staticElement;
+    var propertyElement = identifier.staticElement;
     if (propertyElement?.name != 'length') {
       return;
     }
@@ -93,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     AstNode? lengthAccess;
     InterfaceType? type;
 
-    final parent = identifier.parent;
+    var parent = identifier.parent;
     if (parent is PropertyAccess && identifier == parent.propertyName) {
       lengthAccess = parent;
       var parentType = parent.target?.staticType;
@@ -129,13 +129,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (search is! BinaryExpression) {
       return;
     }
-    final binaryExpression = search;
+    var binaryExpression = search;
 
     // Don't lint if we're in a const constructor initializer.
-    final constructorInitializer =
+    var constructorInitializer =
         search.thisOrAncestorOfType<ConstructorInitializer>();
     if (constructorInitializer != null) {
-      final constructorDecl = constructorInitializer.parent;
+      var constructorDecl = constructorInitializer.parent;
       if (constructorDecl is! ConstructorDeclaration ||
           constructorDecl.constKeyword != null) {
         return;
@@ -144,12 +144,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Or in a const context.
     // See: https://github.com/dart-lang/linter/issues/1719
-    final impl = binaryExpression as ExpressionImpl;
+    var impl = binaryExpression as ExpressionImpl;
     if (impl.inConstantContext) {
       return;
     }
 
-    final operator = binaryExpression.operator;
+    var operator = binaryExpression.operator;
 
     // Comparing constants with length.
     var value = _getIntValue(binaryExpression.rightOperand);

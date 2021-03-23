@@ -83,7 +83,7 @@ class AvoidNullChecksInEqualityOperators extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }
@@ -95,12 +95,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    final parameters = node.parameters?.parameters;
+    var parameters = node.parameters?.parameters;
     if (parameters == null) {
       return;
     }
     if (node.name.token.type == TokenType.EQ_EQ && parameters.length == 1) {
-      final parameter = DartTypeUtilities.getCanonicalElementFromIdentifier(
+      var parameter = DartTypeUtilities.getCanonicalElementFromIdentifier(
           parameters.first.identifier);
       bool checkIfParameterIsNull(AstNode node) =>
           _isParameterWithQuestion(node, parameter) ||

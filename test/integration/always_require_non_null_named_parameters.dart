@@ -13,8 +13,8 @@ import '../mocks.dart';
 
 void main() {
   group('always_require_non_null_named_parameters', () {
-    final currentOut = outSink;
-    final collectingOut = CollectingSink();
+    var currentOut = outSink;
+    var collectingOut = CollectingSink();
     setUp(() {
       exitCode = 0;
       outSink = collectingOut;

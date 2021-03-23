@@ -53,7 +53,7 @@ class LinesLongerThan80Chars extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
 }
@@ -83,12 +83,12 @@ class _AllowedCommentVisitor extends SimpleAstVisitor {
   }
 
   void _visitComment(Token comment) {
-    final content = comment.lexeme;
-    final lines = <String>[];
+    var content = comment.lexeme;
+    var lines = <String>[];
     if (content.startsWith('///')) {
       lines.add(content.substring(3));
     } else if (content.startsWith('//')) {
-      final commentContent = content.substring(2);
+      var commentContent = content.substring(2);
       if (commentContent.trimLeft().startsWith('ignore:')) {
         allowedLines.add(lineInfo.getLocation(comment.offset).lineNumber);
       } else {
@@ -103,9 +103,9 @@ class _AllowedCommentVisitor extends SimpleAstVisitor {
           .expand((e) => e.split(_lf)));
     }
     for (var i = 0; i < lines.length; i++) {
-      final value = lines[i];
+      var value = lines[i];
       if (_looksLikeUriOrPath(value)) {
-        final line = lineInfo.getLocation(comment.offset).lineNumber + i;
+        var line = lineInfo.getLocation(comment.offset).lineNumber + i;
         allowedLines.add(line);
       }
     }
@@ -132,7 +132,7 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor {
     if (node.isMultiline) {
       _handleMultilines(node);
     } else {
-      final value = node.elements.map((e) {
+      var value = node.elements.map((e) {
         if (e is InterpolationString) return e.value;
         if (e is InterpolationExpression) return ' ' * e.length;
         throw ArgumentError(
@@ -143,8 +143,8 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor {
   }
 
   void _handleMultilines(SingleStringLiteral node) {
-    final startLine = lineInfo.getLocation(node.offset).lineNumber;
-    final endLine = lineInfo.getLocation(node.end).lineNumber;
+    var startLine = lineInfo.getLocation(node.offset).lineNumber;
+    var endLine = lineInfo.getLocation(node.end).lineNumber;
     for (var i = startLine; i <= endLine; i++) {
       allowedLines.add(i);
     }
@@ -152,7 +152,7 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor {
 
   void _handleSingleLine(AstNode node, String value) {
     if (_looksLikeUriOrPath(value)) {
-      final line = lineInfo.getLocation(node.offset).lineNumber;
+      var line = lineInfo.getLocation(node.offset).lineNumber;
       allowedLines.add(line);
     }
   }
@@ -175,20 +175,20 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    final lineInfo = node.lineInfo;
+    var lineInfo = node.lineInfo;
     if (lineInfo == null) {
       return;
     }
-    final lineCount = lineInfo.lineCount;
-    final longLines = <_LineInfo>[];
+    var lineCount = lineInfo.lineCount;
+    var longLines = <_LineInfo>[];
     for (var i = 0; i < lineCount; i++) {
-      final start = lineInfo.getOffsetOfLine(i);
+      var start = lineInfo.getOffsetOfLine(i);
       int end;
       if (i == lineCount - 1) {
         end = node.end;
       } else {
         end = lineInfo.getOffsetOfLine(i + 1) - 1;
-        final length = end - start;
+        var length = end - start;
         if (length > 80) {
           if (context.currentUnit.content[end] == _lf &&
               context.currentUnit.content[end - 1] == _cr) {
@@ -196,26 +196,26 @@ class _Visitor extends SimpleAstVisitor {
           }
         }
       }
-      final length = end - start;
+      var length = end - start;
       if (length > 80) {
-        final line = _LineInfo(index: i, offset: start, end: end);
+        var line = _LineInfo(index: i, offset: start, end: end);
         longLines.add(line);
       }
     }
 
     if (longLines.isEmpty) return;
 
-    final allowedLineVisitor = _AllowedLongLineVisitor(lineInfo);
+    var allowedLineVisitor = _AllowedLongLineVisitor(lineInfo);
     node.accept(allowedLineVisitor);
-    final allowedCommentVisitor = _AllowedCommentVisitor(lineInfo);
+    var allowedCommentVisitor = _AllowedCommentVisitor(lineInfo);
     node.accept(allowedCommentVisitor);
 
-    final allowedLines = [
+    var allowedLines = [
       ...allowedLineVisitor.allowedLines,
       ...allowedCommentVisitor.allowedLines
     ];
 
-    for (final line in longLines) {
+    for (var line in longLines) {
       if (allowedLines.contains(line.index + 1)) continue;
       rule.reporter
           .reportErrorForOffset(rule.lintCode, line.offset, line.length);

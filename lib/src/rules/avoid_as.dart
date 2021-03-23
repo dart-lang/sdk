@@ -65,7 +65,7 @@ class AvoidAs extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addAsExpression(this, visitor);
   }
 }
@@ -77,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAsExpression(AsExpression node) {
-    final typeAnnotation = node.type;
+    var typeAnnotation = node.type;
     if (typeAnnotation is NamedType && typeAnnotation.name.name != 'dynamic') {
       rule.reportLint(typeAnnotation);
     }

@@ -14,8 +14,8 @@ import '../mocks.dart';
 
 void main() {
   group('p5', () {
-    final currentOut = outSink;
-    final collectingOut = CollectingSink();
+    var currentOut = outSink;
+    var collectingOut = CollectingSink();
     setUp(() {
       exitCode = 0;
       outSink = collectingOut;

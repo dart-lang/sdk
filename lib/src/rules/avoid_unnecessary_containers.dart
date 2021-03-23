@@ -57,7 +57,7 @@ class AvoidUnnecessaryContainers extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
 
     registry.addInstanceCreationExpression(this, visitor);
   }
@@ -73,11 +73,11 @@ class _Visitor extends SimpleAstVisitor {
     if (!isWidgetType(node.staticType)) {
       return;
     }
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is NamedExpression && parent.name.label.name == 'child') {
-      final args = parent.thisOrAncestorOfType<ArgumentList>();
+      var args = parent.thisOrAncestorOfType<ArgumentList>();
       if (args?.arguments.length == 1) {
-        final parentCreation =
+        var parentCreation =
             parent.thisOrAncestorOfType<InstanceCreationExpression>();
         if (parentCreation != null) {
           if (isExactWidgetTypeContainer(parentCreation.staticType)) {

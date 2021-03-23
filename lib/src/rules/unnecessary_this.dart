@@ -82,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitThisExpression(ThisExpression node) {
-    final parent = node.parent;
+    var parent = node.parent;
 
     Element? element;
     if (parent is PropertyAccess && !parent.isNullAware) {

@@ -51,7 +51,7 @@ class UnsafeHtml extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addAssignmentExpression(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addFunctionExpressionInvocation(this, visitor);
@@ -93,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    final leftPart = node.leftHandSide.unParenthesized;
+    var leftPart = node.leftHandSide.unParenthesized;
     if (leftPart is SimpleIdentifier) {
       var leftPartElement = node.writeElement;
       if (leftPartElement == null) return;

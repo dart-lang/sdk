@@ -165,7 +165,7 @@ class DirectivesOrdering extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 
@@ -221,7 +221,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    final lintedNodes = <AstNode>{};
+    var lintedNodes = <AstNode>{};
     _checkDartDirectiveGoFirst(lintedNodes, node);
     _checkPackageDirectiveBeforeRelative(lintedNodes, node);
     _checkExportDirectiveAfterImportDirective(lintedNodes, node);
@@ -255,14 +255,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _checkDirectiveSectionOrderedAlphabetically(
       Set<AstNode> lintedNodes, CompilationUnit node) {
-    final importDirectives = _getImportDirectives(node);
-    final exportDirectives = _getExportDirectives(node);
+    var importDirectives = _getImportDirectives(node);
+    var exportDirectives = _getExportDirectives(node);
 
-    final dartImports = importDirectives.where(_isDartDirective);
-    final dartExports = exportDirectives.where(_isDartDirective);
+    var dartImports = importDirectives.where(_isDartDirective);
+    var dartExports = exportDirectives.where(_isDartDirective);
 
-    final relativeImports = importDirectives.where(_isRelativeDirective);
-    final relativeExports = exportDirectives.where(_isRelativeDirective);
+    var relativeImports = importDirectives.where(_isRelativeDirective);
+    var relativeExports = exportDirectives.where(_isRelativeDirective);
 
     _checkSectionInOrder(lintedNodes, dartImports);
     _checkSectionInOrder(lintedNodes, dartExports);
@@ -272,16 +272,16 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var projectName = project?.name;
     if (projectName != null) {
-      final packageBox = _PackageBox(projectName);
+      var packageBox = _PackageBox(projectName);
 
-      final thirdPartyPackageImports =
+      var thirdPartyPackageImports =
           importDirectives.where(packageBox._isNotOwnPackageDirective);
-      final thirdPartyPackageExports =
+      var thirdPartyPackageExports =
           exportDirectives.where(packageBox._isNotOwnPackageDirective);
 
-      final ownPackageImports =
+      var ownPackageImports =
           importDirectives.where(packageBox._isOwnPackageDirective);
-      final ownPackageExports =
+      var ownPackageExports =
           exportDirectives.where(packageBox._isOwnPackageDirective);
 
       _checkSectionInOrder(lintedNodes, thirdPartyPackageImports);

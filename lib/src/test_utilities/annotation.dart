@@ -6,20 +6,20 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 
 Annotation? extractAnnotation(int lineNumber, String line) {
-  final regexp =
+  var regexp =
       RegExp(r'(//|#) ?LINT( \[([\-+]\d+)?(,?(\d+):(\d+))?\])?( (.*))?$');
-  final match = regexp.firstMatch(line);
+  var match = regexp.firstMatch(line);
   if (match == null) return null;
 
   // ignore lints on commented out lines
-  final index = match.start;
-  final comment = match[1]!;
+  var index = match.start;
+  var comment = match[1]!;
   if (line.indexOf(comment) != index) return null;
 
-  final relativeLine = match[3].toInt() ?? 0;
-  final column = match[5].toInt();
-  final length = match[6].toInt();
-  final message = match[8].toNullIfBlank();
+  var relativeLine = match[3].toInt() ?? 0;
+  var column = match[5].toInt();
+  var length = match[6].toInt();
+  var message = match[8].toNullIfBlank();
   return Annotation.forLint(message, column, length)
     ..lineNumber = lineNumber + relativeLine;
 }

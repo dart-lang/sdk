@@ -79,7 +79,7 @@ class DiagnosticsDescribeAllProperties extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addClassDeclaration(this, visitor);
   }
 }
@@ -123,12 +123,12 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     // We only care about Diagnosticables.
-    final type = node.declaredElement?.thisType;
+    var type = node.declaredElement?.thisType;
     if (!DartTypeUtilities.implementsInterface(type, 'Diagnosticable', '')) {
       return;
     }
 
-    final properties = <SimpleIdentifier>[];
+    var properties = <SimpleIdentifier>[];
     for (var member in node.members) {
       if (member is MethodDeclaration && member.isGetter) {
         if (!member.isStatic &&
@@ -159,8 +159,8 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    final debugFillProperties = node.getMethod('debugFillProperties');
-    final debugDescribeChildren = node.getMethod('debugDescribeChildren');
+    var debugFillProperties = node.getMethod('debugFillProperties');
+    var debugDescribeChildren = node.getMethod('debugDescribeChildren');
 
     // Remove any defined in debugFillProperties.
     removeReferences(debugFillProperties, properties);
@@ -177,7 +177,7 @@ class _Visitor extends SimpleAstVisitor {
       return false;
     }
 
-    final classElement = member.thisOrAncestorOfType<ClassElement>();
+    var classElement = member.thisOrAncestorOfType<ClassElement>();
     if (classElement == null) {
       return false;
     }
@@ -186,7 +186,7 @@ class _Visitor extends SimpleAstVisitor {
       return false;
     }
 
-    final libraryUri = classElement.library.source.uri;
+    var libraryUri = classElement.library.source.uri;
     return context.inheritanceManager
             .getInherited(classElement.thisType, Name(libraryUri, name)) !=
         null;

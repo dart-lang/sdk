@@ -41,7 +41,7 @@ class VoidChecks extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addMethodInvocation(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addAssignmentExpression(this, visitor);
@@ -82,15 +82,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    final type = node.writeType;
+    var type = node.writeType;
     _check(type, node.rightHandSide.staticType, node,
         checkedNode: node.rightHandSide);
   }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    final args = node.argumentList.arguments;
-    final parameters = node.constructorName.staticElement?.parameters;
+    var args = node.argumentList.arguments;
+    var parameters = node.constructorName.staticElement?.parameters;
     if (parameters != null) {
       _checkArgs(args, parameters);
     }
@@ -98,22 +98,22 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    final type = node.staticInvokeType;
+    var type = node.staticInvokeType;
     if (type is FunctionType) {
-      final args = node.argumentList.arguments;
-      final parameters = type.parameters;
+      var args = node.argumentList.arguments;
+      var parameters = type.parameters;
       _checkArgs(args, parameters);
     }
   }
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    final parent = node.thisOrAncestorMatching((e) =>
+    var parent = node.thisOrAncestorMatching((e) =>
         e is FunctionExpression ||
         e is MethodDeclaration ||
         e is FunctionDeclaration);
     if (parent is FunctionExpression) {
-      final type = parent.staticType;
+      var type = parent.staticType;
       if (type is FunctionType) {
         _check(type.returnType, node.expression?.staticType, node,
             checkedNode: node.expression);
@@ -152,11 +152,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _checkArgs(
       NodeList<Expression> args, List<ParameterElement> parameters) {
-    for (final arg in args) {
-      final parameterElement = arg.staticParameterElement;
+    for (var arg in args) {
+      var parameterElement = arg.staticParameterElement;
       if (parameterElement != null) {
-        final type = parameterElement.type;
-        final expression = arg is NamedExpression ? arg.expression : arg;
+        var type = parameterElement.type;
+        var expression = arg is NamedExpression ? arg.expression : arg;
         _check(type, expression.staticType, expression);
       }
     }

@@ -57,7 +57,7 @@ class UnnecessaryStatements extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(_ReportNoClearEffectVisitor(this));
+    var visitor = _Visitor(_ReportNoClearEffectVisitor(this));
     registry.addAsExpression(this, visitor);
     registry.addExpressionStatement(this, visitor);
     registry.addForStatement(this, visitor);
@@ -221,7 +221,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitForStatement(ForStatement node) {
-    final loopParts = node.forLoopParts;
+    var loopParts = node.forLoopParts;
     if (loopParts is ForPartsWithExpression) {
       loopParts.initialization?.accept(reportNoClearEffect);
       loopParts.updaters.forEach((u) {

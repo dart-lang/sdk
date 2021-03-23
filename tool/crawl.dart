@@ -181,8 +181,8 @@ Future<String?> _fetchLinterForVersion(String version) async {
 }
 
 Future<List<String>> _fetchSdkTags() async {
-  final github = GitHub();
-  final slug = RepositorySlug('dart-lang', 'sdk');
+  var github = GitHub();
+  var slug = RepositorySlug('dart-lang', 'sdk');
 
   print('list repository tags: $slug');
 
@@ -215,7 +215,7 @@ Future<List<String>> _fetchSdkTags() async {
 
 Future<int> _readLatestMinorVersion() async {
   var contents = await File('pubspec.yaml').readAsString();
-  final pubspec = loadYamlNode(contents) as YamlMap;
+  var pubspec = loadYamlNode(contents) as YamlMap;
   // 0.1.79 or 0.1.79-dev or 0.1.97+1
   return int.parse((pubspec['version'] as String)
       .split('.')

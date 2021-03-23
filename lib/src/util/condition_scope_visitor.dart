@@ -14,7 +14,7 @@ Element? _getLeftElement(AssignmentExpression assignment) =>
     DartTypeUtilities.getCanonicalElement(assignment.writeElement);
 
 List<Expression?> _splitConjunctions(Expression? rawExpression) {
-  final expression = rawExpression?.unParenthesized;
+  var expression = rawExpression?.unParenthesized;
   if (expression is BinaryExpression &&
       expression.operator.type == TokenType.AMPERSAND_AMPERSAND) {
     return _splitConjunctions(expression.leftOperand)
@@ -57,7 +57,7 @@ class ConditionScope {
 
   Iterable<Expression> getExpressions(Iterable<Element?> elements,
       {bool? value}) {
-    final expressions = <Expression>[];
+    var expressions = <Expression>[];
     _recursiveGetExpressions(expressions, elements, value);
     return expressions;
   }
@@ -67,7 +67,7 @@ class ConditionScope {
 
   void _recursiveGetExpressions(
       List<Expression?> expressions, Iterable<Element?> elements, bool? value) {
-    for (final element in environment.reversed) {
+    for (var element in environment.reversed) {
       if (element.haveToStop(elements)) {
         return;
       }
@@ -184,7 +184,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   @override
   void visitForStatement(ForStatement node) {
     _addScope();
-    final loopParts = node.forLoopParts;
+    var loopParts = node.forLoopParts;
     if (loopParts is ForParts) {
       _addTrueCondition(loopParts.condition);
 
@@ -214,15 +214,13 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
 
   @override
   void visitIfStatement(IfStatement node) {
-    final elseScope = _visitElseStatement(node.elseStatement, node.condition);
+    var elseScope = _visitElseStatement(node.elseStatement, node.condition);
     _visitIfStatement(node);
     if (elseScope != null) {
       _propagateUndefinedExpressions(elseScope);
     }
-    final addFalseCondition =
-        _isLastStatementAnExitStatement(node.thenStatement);
-    final addTrueCondition =
-        _isLastStatementAnExitStatement(node.elseStatement);
+    var addFalseCondition = _isLastStatementAnExitStatement(node.thenStatement);
+    var addTrueCondition = _isLastStatementAnExitStatement(node.elseStatement);
     // If addTrueCondition and addFalseCondition are true at the same time,
     // then the rest of the block is dead code.
     if (addTrueCondition && addFalseCondition) {
@@ -239,7 +237,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    final operand = node.operand;
+    var operand = node.operand;
     if (operand is SimpleIdentifier) {
       _addElementToEnvironment(
           _UndefinedExpression.forElement(operand.staticElement));
@@ -249,7 +247,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    final operand = node.operand;
+    var operand = node.operand;
     if (operand is SimpleIdentifier) {
       _addElementToEnvironment(
           _UndefinedExpression.forElement(operand.staticElement));
@@ -345,7 +343,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
       return false;
     }
 
-    final loopParts = node.forLoopParts;
+    var loopParts = node.forLoopParts;
     if (loopParts is ForParts) {
       var condition = loopParts.condition;
       if (condition == null) {
@@ -376,7 +374,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   }
 
   ConditionScope? _removeLastScope() {
-    final deletedScope = outerScope;
+    var deletedScope = outerScope;
     outerScope = outerScope?.outer;
     return deletedScope;
   }
@@ -428,7 +426,7 @@ class _UndefinedExpression extends _ExpressionBox {
   Element element;
 
   static _UndefinedExpression? forElement(Element? element) {
-    final canonicalElement = DartTypeUtilities.getCanonicalElement(element);
+    var canonicalElement = DartTypeUtilities.getCanonicalElement(element);
     if (canonicalElement == null) return null;
     return _UndefinedExpression._internal(canonicalElement);
   }

@@ -16,7 +16,7 @@ import 'utils.dart';
 
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String? name]) {
-  final children = <Element>[];
+  var children = <Element>[];
   visitChildren(parent, (Element element) {
     if (name == null || element.displayName == name) {
       children.add(element);
@@ -43,7 +43,7 @@ SimpleIdentifier? getFieldIdentifier(FieldDeclaration decl, String name) {
 
 /// Returns the most specific AST node appropriate for associating errors.
 AstNode getNodeToAnnotate(Declaration node) {
-  final mostSpecific = _getNodeToAnnotate(node);
+  var mostSpecific = _getNodeToAnnotate(node);
   return mostSpecific ?? node;
 }
 
@@ -65,7 +65,7 @@ bool hasConstantError(LinterContext context, Expression node) {
 
 /// Returns `true` if this [element] has a `@literal` annotation.
 bool hasLiteralAnnotation(Element element) {
-  final metadata = element.metadata;
+  var metadata = element.metadata;
   for (var i = 0; i < metadata.length; i++) {
     if (metadata[i].isLiteral) {
       return true;
@@ -76,7 +76,7 @@ bool hasLiteralAnnotation(Element element) {
 
 /// Returns `true` if this [element] has an `@override` annotation.
 bool hasOverrideAnnotation(Element element) {
-  final metadata = element.metadata;
+  var metadata = element.metadata;
   for (var i = 0; i < metadata.length; i++) {
     if (metadata[i].isOverride) {
       return true;
@@ -88,7 +88,7 @@ bool hasOverrideAnnotation(Element element) {
 /// Returns `true` if this [node] is the child of a private compilation unit
 /// member.
 bool inPrivateMember(AstNode node) {
-  final parent = node.parent;
+  var parent = node.parent;
   if (parent is NamedCompilationUnitMember) {
     return isPrivate(parent.name);
   }
@@ -123,9 +123,9 @@ bool isHashCode(ClassMember element) =>
 /// [package]'s `lib/` directory tree.
 bool isInLibDir(CompilationUnit node, WorkspacePackage? package) {
   if (package == null) return false;
-  final cuPath = node.declaredElement?.library.source.fullName;
+  var cuPath = node.declaredElement?.library.source.fullName;
   if (cuPath == null) return false;
-  final libDir = path.join(package.root, 'lib');
+  var libDir = path.join(package.root, 'lib');
   return path.isWithin(libDir, cuPath);
 }
 
@@ -171,7 +171,7 @@ bool isSimpleGetter(MethodDeclaration declaration) {
   if (body is ExpressionFunctionBody) {
     return _checkForSimpleGetter(declaration, body.expression);
   } else if (body is BlockFunctionBody) {
-    final block = body.block;
+    var block = body.block;
     if (block.statements.length == 1) {
       var statement = block.statements[0];
       if (statement is ReturnStatement) {
@@ -201,7 +201,7 @@ bool isSimpleSetter(MethodDeclaration setter) {
   if (body is ExpressionFunctionBody) {
     return _checkForSimpleSetter(setter, body.expression);
   } else if (body is BlockFunctionBody) {
-    final block = body.block;
+    var block = body.block;
     if (block.statements.length == 1) {
       var statement = block.statements[0];
       if (statement is ExpressionStatement) {
@@ -221,22 +221,22 @@ bool isVar(Token token) => isKeyword(token, Keyword.VAR);
 
 /// Return the nearest enclosing pubspec file.
 File? locatePubspecFile(CompilationUnit compilationUnit) {
-  final fullName = compilationUnit.declaredElement?.source.fullName;
+  var fullName = compilationUnit.declaredElement?.source.fullName;
   if (fullName == null) {
     return null;
   }
 
-  final resourceProvider =
+  var resourceProvider =
       compilationUnit.declaredElement?.session.resourceProvider;
   if (resourceProvider == null) {
     return null;
   }
 
-  final file = resourceProvider.getFile(fullName);
+  var file = resourceProvider.getFile(fullName);
 
   // Look for a pubspec.yaml file.
   for (var folder in file.parent2.withAncestors) {
-    final pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
+    var pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
     if (pubspecFile.exists) {
       return pubspecFile;
     }
@@ -270,7 +270,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   if (expression is! AssignmentExpression) {
     return false;
   }
-  final assignment = expression;
+  var assignment = expression;
 
   var leftHandSide = assignment.leftHandSide;
   var rightHandSide = assignment.rightHandSide;
@@ -378,7 +378,7 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor {
 
   @override
   void visitElement(Element element) {
-    final visitChildren = processor(element);
+    var visitChildren = processor(element);
     if (visitChildren == true) {
       element.visitChildren(this);
     }

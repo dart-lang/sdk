@@ -33,7 +33,7 @@ class AvoidPrint extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }
 }
@@ -45,7 +45,7 @@ class _Visitor extends SimpleAstVisitor {
 
   void _validateArgument(Expression expression) {
     if (expression is SimpleIdentifier) {
-      final element = expression.staticElement;
+      var element = expression.staticElement;
       if (element is FunctionElement &&
           element.name == 'print' &&
           element.library.isDartCore) {

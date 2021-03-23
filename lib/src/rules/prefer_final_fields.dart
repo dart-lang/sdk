@@ -85,7 +85,7 @@ class NotAssignedInAllConstructors {
 ''';
 
 bool _containedInFormal(Element element, FormalParameter formal) {
-  final formalField = formal.identifier?.staticElement;
+  var formalField = formal.identifier?.staticElement;
   return formalField is FieldFormalParameterElement &&
       formalField.field == element;
 }
@@ -108,7 +108,7 @@ class PreferFinalFields extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
     registry.addFieldDeclaration(this, visitor);
   }
@@ -133,7 +133,7 @@ class _MutatedFieldsCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    final operator = node.operator;
+    var operator = node.operator;
     if (operator.type == TokenType.MINUS_MINUS ||
         operator.type == TokenType.PLUS_PLUS) {
       _addMutatedFieldElement(node);
@@ -142,7 +142,7 @@ class _MutatedFieldsCollector extends RecursiveAstVisitor<void> {
   }
 
   void _addMutatedFieldElement(CompoundAssignmentExpression assignment) {
-    final element =
+    var element =
         DartTypeUtilities.getCanonicalElement(assignment.writeElement);
     if (element is FieldElement) {
       _mutatedFields.add(element);
@@ -164,13 +164,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    final fields = node.fields;
+    var fields = node.fields;
     if (fields.isFinal || fields.isConst) {
       return;
     }
 
     for (var variable in fields.variables) {
-      final element = variable.declaredElement;
+      var element = variable.declaredElement;
 
       if (element is PropertyInducingElement &&
           element.isPrivate &&
@@ -181,12 +181,12 @@ class _Visitor extends SimpleAstVisitor<void> {
             constructor.parameters.parameters.any((FormalParameter formal) =>
                 _containedInFormal(element, formal));
 
-        final classDeclaration = node.parent;
-        final constructors = classDeclaration is ClassDeclaration
+        var classDeclaration = node.parent;
+        var constructors = classDeclaration is ClassDeclaration
             ? classDeclaration.members.whereType<ConstructorDeclaration>()
             : <ConstructorDeclaration>[];
-        final isFieldInConstructors = constructors.any(fieldInConstructor);
-        final isFieldInAllConstructors = constructors.every(fieldInConstructor);
+        var isFieldInConstructors = constructors.any(fieldInConstructor);
+        var isFieldInAllConstructors = constructors.every(fieldInConstructor);
 
         if (isFieldInConstructors) {
           if (isFieldInAllConstructors) {

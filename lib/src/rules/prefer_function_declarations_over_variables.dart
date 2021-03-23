@@ -48,7 +48,7 @@ class PreferFunctionDeclarationsOverVariables extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addVariableDeclaration(this, visitor);
   }
 }
@@ -61,7 +61,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.initializer is FunctionExpression) {
-      final function = node.thisOrAncestorOfType<FunctionBody>();
+      var function = node.thisOrAncestorOfType<FunctionBody>();
       var declaredElement = node.declaredElement;
       if (function == null ||
           (declaredElement != null &&

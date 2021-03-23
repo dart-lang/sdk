@@ -51,7 +51,7 @@ class PreferIfElementsToConditionalExpressions extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addConditionalExpression(this, visitor);
   }
 }

@@ -61,7 +61,7 @@ class PreferConstConstructorsInImmutables extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
   }
 }
@@ -75,11 +75,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    final element = node.declaredElement;
+    var element = node.declaredElement;
     if (element == null) {
       return;
     }
-    final isRedirected =
+    var isRedirected =
         element.isFactory && element.redirectedConstructor != null;
     if (node.body is EmptyFunctionBody &&
         !element.isConst &&
@@ -98,16 +98,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declaredElement == null) {
       return false;
     }
-    final clazz = declaredElement.enclosingElement;
+    var clazz = declaredElement.enclosingElement;
     // construct with super
-    final superInvocation = node.initializers
+    var superInvocation = node.initializers
             .firstWhereOrNull((e) => e is SuperConstructorInvocation)
         as SuperConstructorInvocation?;
     if (superInvocation != null) {
       return superInvocation.staticElement?.isConst == true;
     }
     // construct with this
-    final redirectInvocation = node.initializers
+    var redirectInvocation = node.initializers
             .firstWhereOrNull((e) => e is RedirectingConstructorInvocation)
         as RedirectingConstructorInvocation?;
     if (redirectInvocation != null) {
@@ -120,8 +120,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _hasImmutableAnnotation(ClassElement clazz) {
-    final selfAndInheritedClasses = _getSelfAndInheritedClasses(clazz);
-    final selfAndInheritedAnnotations =
+    var selfAndInheritedClasses = _getSelfAndInheritedClasses(clazz);
+    var selfAndInheritedAnnotations =
         selfAndInheritedClasses.expand((c) => c.metadata).map((m) => m.element);
     return selfAndInheritedAnnotations.any(_isImmutable);
   }
@@ -131,7 +131,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   static Iterable<ClassElement> _getSelfAndInheritedClasses(
       ClassElement self) sync* {
     ClassElement? current = self;
-    final seenElements = <ClassElement>{};
+    var seenElements = <ClassElement>{};
     while (current != null && seenElements.add(current)) {
       yield current;
       current = current.supertype?.element;

@@ -39,7 +39,7 @@ class UnnecessaryStringEscapes extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addSimpleStringLiteral(this, visitor);
     registry.addStringInterpolation(this, visitor);
   }
@@ -86,10 +86,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     // For multiline string we keep the list on pending quotes.
     // Starting from 3 consecutive quotes, we allow escaping.
     // index -> escaped
-    final pendingQuotes = <int, bool>{};
+    var pendingQuotes = <int, bool>{};
     void checkPendingQuotes() {
       if (isMultiline && pendingQuotes.length < 3) {
-        final escapeIndexes =
+        var escapeIndexes =
             pendingQuotes.entries.where((e) => e.value).map((e) => e.key);
         for (var index in escapeIndexes) {
           // case for '''___\'''' : without last backslash it leads a parsing error
@@ -99,7 +99,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    final lexeme = token.lexeme
+    var lexeme = token.lexeme
         .substring(contentsOffset - token.offset, contentsEnd - token.offset);
     for (var i = 0; i < lexeme.length; i++) {
       var current = lexeme[i];

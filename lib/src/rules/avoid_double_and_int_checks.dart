@@ -53,7 +53,7 @@ class AvoidDoubleAndIntChecks extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addIfStatement(this, visitor);
   }
 }
@@ -67,14 +67,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitIfStatement(IfStatement node) {
-    final elseStatement = node.elseStatement;
+    var elseStatement = node.elseStatement;
     if (elseStatement is IfStatement) {
-      final ifCondition = node.condition;
-      final elseCondition = elseStatement.condition;
+      var ifCondition = node.condition;
+      var elseCondition = elseStatement.condition;
       if (ifCondition is IsExpression && elseCondition is IsExpression) {
-        final typeProvider = context.typeProvider;
-        final ifExpression = ifCondition.expression;
-        final elseIsExpression = elseCondition.expression;
+        var typeProvider = context.typeProvider;
+        var ifExpression = ifCondition.expression;
+        var elseIsExpression = elseCondition.expression;
         if (ifExpression is SimpleIdentifier &&
             elseIsExpression is SimpleIdentifier &&
             ifExpression.name == elseIsExpression.name &&

@@ -62,7 +62,7 @@ class NullCheckOnNullableTypeParameter extends LintRule
       return;
     }
 
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.addPostfixExpression(this, visitor);
   }
@@ -78,8 +78,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitPostfixExpression(PostfixExpression node) {
     if (node.operator.type != TokenType.BANG) return;
 
-    final expectedType = getExpectedType(node);
-    final type = node.operand.staticType;
+    var expectedType = getExpectedType(node);
+    var type = node.operand.staticType;
     if (type is TypeParameterType &&
         context.typeSystem.isNullable(type) &&
         expectedType != null &&

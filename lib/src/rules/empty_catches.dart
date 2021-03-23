@@ -60,7 +60,7 @@ class EmptyCatches extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addCatchClause(this, visitor);
   }
 }
@@ -73,13 +73,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitCatchClause(CatchClause node) {
     // Skip exceptions named with underscores.
-    final exceptionParameter = node.exceptionParameter;
+    var exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null &&
         isJustUnderscores(exceptionParameter.name)) {
       return;
     }
 
-    final body = node.body;
+    var body = node.body;
     if (node.body.statements.isEmpty &&
         body.rightBracket.precedingComments == null) {
       rule.reportLint(body);

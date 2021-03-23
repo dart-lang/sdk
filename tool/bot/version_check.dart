@@ -9,9 +9,9 @@ import 'package:http/http.dart' as http;
 
 void main() async {
   print('Getting latest linter package info from pub...');
-  final packageInfo =
+  var packageInfo =
       jsonDecode(await getBody('https://pub.dev/api/packages/linter'));
-  final latestVersion = packageInfo['latest']['pubspec']['version'];
+  var latestVersion = packageInfo['latest']['pubspec']['version'];
   print('Found: $latestVersion.');
   print('Checking for a git release tag corresponding to $latestVersion...');
 

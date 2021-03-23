@@ -68,7 +68,7 @@ class AvoidInitToNull extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addVariableDeclaration(this, visitor);
     registry.addDefaultFormalParameter(this, visitor);
   }

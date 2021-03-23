@@ -54,7 +54,7 @@ class FileNames extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 }
@@ -68,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitCompilationUnit(CompilationUnit node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null) {
-      final fileName = declaredElement.source.shortName;
+      var fileName = declaredElement.source.shortName;
       if (!isValidDartFileName(fileName)) {
         rule.reportLint(node);
       }

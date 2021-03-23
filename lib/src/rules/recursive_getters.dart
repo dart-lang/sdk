@@ -48,7 +48,7 @@ class RecursiveGetters extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -92,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final element = node.declaredElement;
+    var element = node.declaredElement;
     _verifyElement(node.functionExpression, element);
   }
 
@@ -103,12 +103,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final element = node.declaredElement;
+    var element = node.declaredElement;
     _verifyElement(node.body, element);
   }
 
   void _verifyElement(AstNode node, ExecutableElement? element) {
-    final nodes = DartTypeUtilities.traverseNodesInDFS(node);
+    var nodes = DartTypeUtilities.traverseNodesInDFS(node);
     nodes
         .where((n) =>
             n is SimpleIdentifier &&

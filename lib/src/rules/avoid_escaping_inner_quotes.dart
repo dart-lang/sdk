@@ -36,7 +36,7 @@ class AvoidEscapingInnerQuotes extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addSimpleStringLiteral(this, visitor);
     registry.addStringInterpolation(this, visitor);
   }
@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitStringInterpolation(StringInterpolation node) {
     if (node.isRaw || node.isMultiline) return;
 
-    final text = node.elements
+    var text = node.elements
         .whereType<InterpolationString>()
         .map((e) => e.value)
         .reduce((a, b) => '$a$b');

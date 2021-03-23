@@ -67,7 +67,7 @@ String _metaLibName = 'meta';
 String _optionalTypeArgsVarName = 'optionalTypeArgs';
 
 bool _isOptionallyParameterized(InterfaceType type) {
-  final metadata = type.element.metadata;
+  var metadata = type.element.metadata;
   return metadata.any((ElementAnnotation a) => _isOptionalTypeArgs(a.element));
 }
 
@@ -90,7 +90,7 @@ class AlwaysSpecifyTypes extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addDeclaredIdentifier(this, visitor);
     registry.addListLiteral(this, visitor);
     registry.addSetOrMapLiteral(this, visitor);
@@ -124,7 +124,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void visitNamedType(NamedType namedType) {
-    final type = namedType.type;
+    var type = namedType.type;
     if (type is InterfaceType) {
       if (type.element.typeParameters.isNotEmpty &&
           namedType.typeArguments == null &&

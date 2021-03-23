@@ -52,7 +52,7 @@ class NoDuplicateCaseValues extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addSwitchStatement(this, visitor);
   }
 
@@ -83,16 +83,16 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var member in node.members) {
       if (member is SwitchCase) {
-        final expression = member.expression;
+        var expression = member.expression;
 
-        final result = context.evaluateConstant(expression);
-        final value = result.value;
+        var result = context.evaluateConstant(expression);
+        var value = result.value;
 
         if (value == null || !value.hasKnownValue) {
           continue;
         }
 
-        final duplicateValue = values[value];
+        var duplicateValue = values[value];
         if (duplicateValue != null) {
           rule.reportLintWithDescription(member,
               message(duplicateValue.toString(), expression.toString()));

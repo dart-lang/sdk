@@ -76,8 +76,8 @@ Iterable<InterfaceType> _findAllSupertypesAndMixins(
   }
 
   accumulator.add(interface);
-  final superclass = interface.superclass;
-  final interfaces = <InterfaceType>[];
+  var superclass = interface.superclass;
+  var interfaces = <InterfaceType>[];
   if (superclass != null) {
     interfaces.add(superclass);
   }
@@ -88,8 +88,8 @@ Iterable<InterfaceType> _findAllSupertypesAndMixins(
 }
 
 Iterable<InterfaceType> _findAllSupertypesInMixin(ClassElement classElement) {
-  final supertypes = <InterfaceType>[];
-  final accumulator = <InterfaceType>[];
+  var supertypes = <InterfaceType>[];
+  var accumulator = <InterfaceType>[];
   for (var type in classElement.superclassConstraints) {
     supertypes.add(type);
     supertypes.addAll(_findAllSupertypesAndMixins(type, accumulator));
@@ -108,7 +108,7 @@ class OverriddenFields extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
   }
 }
@@ -127,7 +127,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     node.fields.variables.forEach((VariableDeclaration variable) {
       var declaredElement = variable.declaredElement;
       if (declaredElement != null) {
-        final field = _getOverriddenMember(declaredElement);
+        var field = _getOverriddenMember(declaredElement);
         if (field != null && !field.isAbstract) {
           rule.reportLint(variable.name);
         }
@@ -136,8 +136,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   PropertyAccessorElement? _getOverriddenMember(Element member) {
-    final memberName = member.name;
-    final library = member.library;
+    var memberName = member.name;
+    var library = member.library;
     bool isOverriddenMember(PropertyAccessorElement a) {
       if (memberName != null && a.isSynthetic && a.name == memberName) {
         // Ensure that private members are overriding a member of the same library.
@@ -151,11 +151,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     bool containsOverriddenMember(InterfaceType i) =>
         i.accessors.any(isOverriddenMember);
-    final enclosingElement = member.enclosingElement;
+    var enclosingElement = member.enclosingElement;
     if (enclosingElement is! ClassElement) {
       return null;
     }
-    final classElement = enclosingElement;
+    var classElement = enclosingElement;
 
     Iterable<InterfaceType> interfaces;
     if (classElement.isMixin) {
@@ -164,7 +164,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       interfaces =
           _findAllSupertypesAndMixins(classElement.thisType, <InterfaceType>[]);
     }
-    final interface = interfaces.firstWhereOrNull(containsOverriddenMember);
+    var interface = interfaces.firstWhereOrNull(containsOverriddenMember);
     return interface?.accessors.firstWhere(isOverriddenMember);
   }
 }

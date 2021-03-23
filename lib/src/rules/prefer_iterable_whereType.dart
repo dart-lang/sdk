@@ -38,7 +38,7 @@ class PreferIterableWhereType extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }
 }
@@ -51,26 +51,26 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.methodName.name != 'where') return;
-    final target = node.realTarget;
+    var target = node.realTarget;
     if (target == null ||
         !DartTypeUtilities.implementsInterface(
             target.staticType, 'Iterable', 'dart.core')) {
       return;
     }
 
-    final args = node.argumentList.arguments;
+    var args = node.argumentList.arguments;
     if (args.length != 1) return;
 
-    final arg = args.first;
+    var arg = args.first;
     if (arg is FunctionExpression) {
       if (arg.parameters?.parameters.length != 1) return;
 
-      final body = arg.body;
+      var body = arg.body;
       Expression? expression;
       if (body is BlockFunctionBody) {
-        final statements = body.block.statements;
+        var statements = body.block.statements;
         if (statements.length != 1) return;
-        final statement = body.block.statements.first;
+        var statement = body.block.statements.first;
         if (statement is ReturnStatement) {
           expression = statement.expression;
         }
@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
       expression = expression?.unParenthesized;
       if (expression is IsExpression && expression.notOperator == null) {
-        final target = expression.expression;
+        var target = expression.expression;
         if (target is SimpleIdentifier &&
             target.name == arg.parameters?.parameters.first.identifier?.name) {
           rule.reportLint(node.methodName);

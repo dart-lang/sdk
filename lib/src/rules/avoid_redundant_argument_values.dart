@@ -49,7 +49,7 @@ class AvoidRedundantArgumentValues extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);
   }
@@ -62,25 +62,25 @@ class _Visitor extends SimpleAstVisitor {
   _Visitor(this.rule, this.context);
 
   void check(ArgumentList argumentList) {
-    final arguments = argumentList.arguments;
+    var arguments = argumentList.arguments;
     if (arguments.isEmpty) {
       return;
     }
 
     for (var i = arguments.length - 1; i >= 0; --i) {
       var arg = arguments[i];
-      final param = arg.staticParameterElement;
+      var param = arg.staticParameterElement;
       if (param == null || param.hasRequired || param.isRequiredNamed) {
         continue;
       } else if (param.isRequiredPositional) {
         break;
       }
-      final value = param.computeConstantValue();
+      var value = param.computeConstantValue();
       if (value != null) {
         if (arg is NamedExpression) {
           arg = arg.expression;
         }
-        final expressionValue = context.evaluateConstant(arg);
+        var expressionValue = context.evaluateConstant(arg);
         if (expressionValue.value == value) {
           rule.reportLint(arg);
         }

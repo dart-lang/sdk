@@ -87,7 +87,7 @@ class AvoidOperatorEqualsOnMutableClasses extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addMethodDeclaration(this, visitor);
   }
 }
@@ -102,7 +102,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.name.token.type == TokenType.EQ_EQ || isHashCode(node)) {
-      final classElement = _getClassForMethod(node);
+      var classElement = _getClassForMethod(node);
       if (classElement != null && !_hasImmutableAnnotation(classElement)) {
         rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
       }
@@ -114,11 +114,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       node.thisOrAncestorOfType<ClassDeclaration>()?.declaredElement;
 
   bool _hasImmutableAnnotation(ClassElement clazz) {
-    final inheritedAndSelfElements = <ClassElement>[
+    var inheritedAndSelfElements = <ClassElement>[
       ...clazz.allSupertypes.map((t) => t.element),
       clazz,
     ];
-    final inheritedAndSelfAnnotations = inheritedAndSelfElements
+    var inheritedAndSelfAnnotations = inheritedAndSelfElements
         .expand((c) => c.metadata)
         .map((m) => m.element);
     return inheritedAndSelfAnnotations.any(_isImmutable);

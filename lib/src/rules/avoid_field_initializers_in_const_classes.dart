@@ -48,7 +48,7 @@ class AvoidFieldInitializersInConstClasses extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addConstructorFieldInitializer(this, visitor);
   }
@@ -78,18 +78,18 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    final declaration = node.parent;
+    var declaration = node.parent;
     if (declaration is ConstructorDeclaration) {
       if (declaration.constKeyword == null) return;
       // no lint if several constructors
-      final constructorCount = declaration
+      var constructorCount = declaration
           .thisOrAncestorOfType<ClassDeclaration>()!
           .members
           .whereType<ConstructorDeclaration>()
           .length;
       if (constructorCount > 1) return;
 
-      final visitor = HasParameterReferenceVisitor(
+      var visitor = HasParameterReferenceVisitor(
           declaration.parameters.parameterElements);
       node.expression.accept(visitor);
       if (!visitor.useParameter) {
@@ -103,7 +103,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return;
     if (!node.fields.isFinal) return;
     // only const class
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is ClassDeclaration) {
       var declaredElement = parent.declaredElement;
       if (declaredElement == null) {
@@ -112,7 +112,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (declaredElement.constructors.every((e) => !e.isConst)) {
         return;
       }
-      for (final variable in node.fields.variables) {
+      for (var variable in node.fields.variables) {
         if (variable.initializer != null) {
           rule.reportLint(variable);
         }

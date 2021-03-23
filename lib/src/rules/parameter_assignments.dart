@@ -119,7 +119,7 @@ class ParameterAssignments extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -132,7 +132,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    final parameters = node.functionExpression.parameters;
+    var parameters = node.functionExpression.parameters;
     if (parameters != null) {
       // Getter do not have formal parameters.
       parameters.parameters.forEach((e) {
@@ -148,7 +148,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    final parameterList = node.parameters;
+    var parameterList = node.parameters;
     if (parameterList != null) {
       // Getters don't have parameters.
       parameterList.parameters.forEach((e) {
@@ -163,12 +163,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _reportIfSimpleParameterOrWithDefaultValue(
       FormalParameter parameter, AstNode functionOrMethodDeclaration) {
-    final nodes =
+    var nodes =
         DartTypeUtilities.traverseNodesInDFS(functionOrMethodDeclaration);
 
     if (parameter is SimpleFormalParameter ||
         _isDefaultFormalParameterWithDefaultValue(parameter)) {
-      final mutatedNodes = nodes.where((n) =>
+      var mutatedNodes = nodes.where((n) =>
           (n is AssignmentExpression &&
               _isFormalParameterReassigned(parameter, n)) ||
           _preOrPostFixExpressionMutation(parameter, n));
@@ -176,20 +176,20 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final assignmentsNodes = nodes
+    var assignmentsNodes = nodes
         .where((n) =>
             n is AssignmentExpression &&
             _isDefaultFormalParameterWithoutDefaultValueReassigned(
                 parameter, n))
         .toList();
 
-    final nonNullCoalescingAssignments = assignmentsNodes.where((n) =>
+    var nonNullCoalescingAssignments = assignmentsNodes.where((n) =>
         (n as AssignmentExpression).operator.type !=
         TokenType.QUESTION_QUESTION_EQ);
 
     if (assignmentsNodes.length > 1 ||
         nonNullCoalescingAssignments.isNotEmpty) {
-      final node = assignmentsNodes.length > 1
+      var node = assignmentsNodes.length > 1
           ? assignmentsNodes.last
           : nonNullCoalescingAssignments.isNotEmpty
               ? nonNullCoalescingAssignments.first

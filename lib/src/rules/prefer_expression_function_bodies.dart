@@ -63,7 +63,7 @@ class PreferExpressionFunctionBodies extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addBlockFunctionBody(this, visitor);
   }
 }
@@ -75,11 +75,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
-    final statements = node.block.statements;
+    var statements = node.block.statements;
     if (statements.length != 1) {
       return;
     }
-    final uniqueStatement = node.block.statements.single;
+    var uniqueStatement = node.block.statements.single;
     if (uniqueStatement is! ReturnStatement) {
       return;
     }

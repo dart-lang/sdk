@@ -50,7 +50,7 @@ class PreferContainsOverIndexOf extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addSimpleIdentifier(this, visitor);
   }
 
@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     // Should be "indexOf".
-    final propertyElement = node.staticElement;
+    var propertyElement = node.staticElement;
     if (propertyElement?.name != 'indexOf') {
       return;
     }
@@ -89,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     MethodInvocation indexOfAccess;
     InterfaceType type;
 
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is MethodInvocation && node == parent.methodName) {
       indexOfAccess = parent;
       var parentType = parent.target?.staticType;
@@ -128,13 +128,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final binaryExpression = search;
-    final operator = binaryExpression.operator;
+    var binaryExpression = search;
+    var operator = binaryExpression.operator;
 
     // Comparing constants with result of indexOf.
 
-    final rightOperand = binaryExpression.rightOperand;
-    final rightValue = context.evaluateConstant(rightOperand).value;
+    var rightOperand = binaryExpression.rightOperand;
+    var rightValue = context.evaluateConstant(rightOperand).value;
 
     if (rightValue != null && rightValue.type?.isDartCoreInt == true) {
       // Constant is on right side of comparison operator
@@ -142,8 +142,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final leftOperand = binaryExpression.leftOperand;
-    final leftValue = context.evaluateConstant(leftOperand).value;
+    var leftOperand = binaryExpression.leftOperand;
+    var leftValue = context.evaluateConstant(leftOperand).value;
     if (leftValue != null && leftValue.type?.isDartCoreInt == true) {
       // Constants is on left side of comparison operator
       _checkConstant(binaryExpression, leftValue.toIntValue(),

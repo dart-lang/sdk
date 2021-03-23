@@ -58,7 +58,7 @@ class OmitLocalVariableTypes extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addForStatement(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
   }
@@ -71,18 +71,18 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitForStatement(ForStatement node) {
-    final loopParts = node.forLoopParts;
+    var loopParts = node.forLoopParts;
     if (loopParts is ForPartsWithDeclarations) {
       _visitVariableDeclarationList(loopParts.variables);
     } else if (loopParts is ForEachPartsWithDeclaration) {
-      final loopVariableType = loopParts.loopVariable.type;
-      final staticType = loopVariableType?.type;
+      var loopVariableType = loopParts.loopVariable.type;
+      var staticType = loopVariableType?.type;
       if (staticType == null || staticType.isDynamic) {
         return;
       }
-      final iterableType = loopParts.iterable.staticType;
+      var iterableType = loopParts.iterable.staticType;
       if (iterableType is InterfaceType) {
-        final iterableInterfaces = DartTypeUtilities.getImplementedInterfaces(
+        var iterableInterfaces = DartTypeUtilities.getImplementedInterfaces(
                 iterableType)
             .where((type) =>
                 DartTypeUtilities.isInterface(type, 'Iterable', 'dart.core'));
@@ -100,11 +100,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _visitVariableDeclarationList(VariableDeclarationList node) {
-    final staticType = node.type?.type;
+    var staticType = node.type?.type;
     if (staticType == null || staticType.isDynamic) {
       return;
     }
-    for (final child in node.variables) {
+    for (var child in node.variables) {
       if (child.initializer?.staticType != staticType) {
         return;
       }

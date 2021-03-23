@@ -13,8 +13,8 @@ import '../mocks.dart';
 
 void main() {
   group('prefer_const_constructors_in_immutables', () {
-    final currentOut = outSink;
-    final collectingOut = CollectingSink();
+    var currentOut = outSink;
+    var collectingOut = CollectingSink();
     setUp(() {
       exitCode = 0;
       outSink = collectingOut;

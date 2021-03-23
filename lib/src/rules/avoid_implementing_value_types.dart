@@ -97,7 +97,7 @@ class AvoidImplementingValueTypes extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
 }
@@ -114,7 +114,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     for (var interface in implementsClause.interfaces) {
-      final element = interface.type?.element;
+      var element = interface.type?.element;
       if (element is ClassElement && _overridesEquals(element)) {
         rule.reportLint(interface);
       }

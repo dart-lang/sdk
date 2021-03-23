@@ -48,7 +48,7 @@ class PreferRelativeImports extends LintRule implements NodeLintRule {
       return;
     }
 
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addImportDirective(this, visitor);
   }
 }
@@ -61,14 +61,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool isPackageSelfReference(ImportDirective node) {
     // Is it a package: import?
-    final importUriContent = node.uriContent;
+    var importUriContent = node.uriContent;
     if (importUriContent?.startsWith('package:') != true) return false;
 
-    final source = node.uriSource;
+    var source = node.uriSource;
     if (source == null) return false;
 
-    final importUri = node.uriSource?.uri;
-    final sourceUri = node.element?.source.uri;
+    var importUri = node.uriSource?.uri;
+    var sourceUri = node.element?.source.uri;
     if (!samePackage(importUri, sourceUri)) return false;
 
     // todo (pq): context.package.contains(source) should work (but does not)

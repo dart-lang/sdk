@@ -44,7 +44,7 @@ class PreferForElementsToMapFromIterable extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression creation) {
-    final element = creation.constructorName.staticElement;
+    var element = creation.constructorName.staticElement;
     if (element == null ||
         element.name != 'fromIterable' ||
         element.enclosingElement != context.typeProvider.mapElement) {
@@ -67,22 +67,22 @@ class _Visitor extends SimpleAstVisitor<void> {
     //
     // Ensure that the arguments have the right form.
     //
-    final arguments = creation.argumentList.arguments;
+    var arguments = creation.argumentList.arguments;
     if (arguments.length != 3) {
       return;
     }
 
-    final secondArg = arguments[1];
-    final thirdArg = arguments[2];
+    var secondArg = arguments[1];
+    var thirdArg = arguments[2];
 
     Expression? extractBody(FunctionExpression expression) {
-      final body = expression.body;
+      var body = expression.body;
       if (body is ExpressionFunctionBody) {
         return body.expression;
       } else if (body is BlockFunctionBody) {
-        final statements = body.block.statements;
+        var statements = body.block.statements;
         if (statements.length == 1) {
-          final statement = statements[0];
+          var statement = statements[0];
           if (statement is ReturnStatement) {
             return statement.expression;
           }
@@ -93,9 +93,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     FunctionExpression? extractClosure(String name, Expression argument) {
       if (argument is NamedExpression && argument.name.label.name == name) {
-        final expression = argument.expression.unParenthesized;
+        var expression = argument.expression.unParenthesized;
         if (expression is FunctionExpression) {
-          final parameters = expression.parameters?.parameters;
+          var parameters = expression.parameters?.parameters;
           if (parameters != null &&
               parameters.length == 1 &&
               parameters[0].isRequired) {
@@ -108,9 +108,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       return null;
     }
 
-    final keyClosure =
+    var keyClosure =
         extractClosure('key', secondArg) ?? extractClosure('key', thirdArg);
-    final valueClosure =
+    var valueClosure =
         extractClosure('value', thirdArg) ?? extractClosure('value', secondArg);
     if (keyClosure == null || valueClosure == null) {
       return;

@@ -42,7 +42,7 @@ class UseSettersToChangeAProperty extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }
@@ -64,22 +64,21 @@ class _Visitor extends SimpleAstVisitor<void> {
     void _visitExpression(Expression expression) {
       if (expression is AssignmentExpression &&
           expression.operator.type == TokenType.EQ) {
-        final leftOperand =
+        var leftOperand =
             DartTypeUtilities.getCanonicalElement(expression.writeElement);
-        final rightOperand =
-            DartTypeUtilities.getCanonicalElementFromIdentifier(
-                expression.rightHandSide);
-        final parameterElement = node.declaredElement?.parameters.first;
+        var rightOperand = DartTypeUtilities.getCanonicalElementFromIdentifier(
+            expression.rightHandSide);
+        var parameterElement = node.declaredElement?.parameters.first;
         if (rightOperand == parameterElement && leftOperand is FieldElement) {
           rule.reportLint(node);
         }
       }
     }
 
-    final body = node.body;
+    var body = node.body;
     if (body is BlockFunctionBody) {
       if (body.block.statements.length == 1) {
-        final statement = body.block.statements.first;
+        var statement = body.block.statements.first;
         if (statement is ExpressionStatement) {
           _visitExpression(statement.expression);
         }

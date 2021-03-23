@@ -39,7 +39,7 @@ class UseNamedConstants extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -53,9 +53,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      final element = node.staticType?.element;
+      var element = node.staticType?.element;
       if (element is ClassElement) {
-        final nodeField =
+        var nodeField =
             node.thisOrAncestorOfType<VariableDeclaration>()?.declaredElement;
 
         // avoid diagnostic for fields in the same class having the same value
@@ -66,9 +66,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         // }
         if (nodeField?.enclosingElement == element) return;
 
-        final library = (node.root as CompilationUnit).declaredElement?.library;
-        final value = context.evaluateConstant(node).value;
-        for (final field
+        var library = (node.root as CompilationUnit).declaredElement?.library;
+        var value = context.evaluateConstant(node).value;
+        for (var field
             in element.fields.where((e) => e.isStatic && e.isConst)) {
           if (field.isAccessibleIn(library) &&
               field.computeConstantValue() == value) {

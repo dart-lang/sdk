@@ -16,12 +16,12 @@ Future<List<String>> get pedanticRules async =>
     _pedanticRules ??= await _fetchPedanticRules();
 
 Future<List<String>> fetchRules(Uri optionsUrl) async {
-  final config = await _fetchConfig(optionsUrl);
+  var config = await _fetchConfig(optionsUrl);
   if (config == null) {
     print('no config found for: $optionsUrl (SKIPPED)');
     return <String>[];
   }
-  final rules = <String>[];
+  var rules = <String>[];
   for (var ruleConfig in config.ruleConfigs) {
     var name = ruleConfig.name;
     if (name != null) {
@@ -33,14 +33,13 @@ Future<List<String>> fetchRules(Uri optionsUrl) async {
 
 Future<LintConfig?> _fetchConfig(Uri url) async {
   print('loading $url...');
-  final req = await http.get(url);
+  var req = await http.get(url);
   return processAnalysisOptionsFile(req.body);
 }
 
 Future<List<String>> _fetchPedanticRules() async {
   print('loading $_pedanticOptionsUrl...');
-  final req = await http.get(_pedanticOptionsUrl);
-  final includedOptions =
-      req.body.split('include: package:pedantic/')[1].trim();
+  var req = await http.get(_pedanticOptionsUrl);
+  var includedOptions = req.body.split('include: package:pedantic/')[1].trim();
   return fetchRules(_pedanticOptionsRootUrl.resolve(includedOptions));
 }

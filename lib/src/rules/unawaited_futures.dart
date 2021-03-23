@@ -54,7 +54,7 @@ class UnawaitedFutures extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addExpressionStatement(this, visitor);
     registry.addCascadeExpression(this, visitor);
   }
@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    for (final expr in node.cascadeSections) {
+    for (var expr in node.cascadeSections) {
       if (expr.staticType?.isDartAsyncFuture == true &&
           _isEnclosedInAsyncFunctionBody(expr) &&
           expr is! AssignmentExpression) {
@@ -101,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isEnclosedInAsyncFunctionBody(AstNode node) {
-    final enclosingFunctionBody = node.thisOrAncestorOfType<FunctionBody>();
+    var enclosingFunctionBody = node.thisOrAncestorOfType<FunctionBody>();
     return enclosingFunctionBody?.isAsynchronous == true;
   }
 

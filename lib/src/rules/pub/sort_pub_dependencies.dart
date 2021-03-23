@@ -55,13 +55,13 @@ class Visitor extends PubspecVisitor<void> {
       return lc1.compareTo(lc2);
     }
 
-    final depsByLocation = dependencies.toList()
+    var depsByLocation = dependencies.toList()
       ..sort((d1, d2) => compare(d1.name?.span.start, d2.name?.span.start));
     var previousName = '';
-    for (final dep in depsByLocation) {
-      final name = dep.name;
+    for (var dep in depsByLocation) {
+      var name = dep.name;
       if (name != null) {
-        final text = name.text;
+        var text = name.text;
         if (text != null) {
           if (text.compareTo(previousName) < 0) {
             rule.reportPubLint(name);

@@ -54,9 +54,9 @@ _VisitVariableDeclaration _buildVariableReporter(
         return;
       }
 
-      final containerNodes = DartTypeUtilities.traverseNodesInDFS(container);
+      var containerNodes = DartTypeUtilities.traverseNodesInDFS(container);
 
-      final validators = <Iterable<AstNode>>[];
+      var validators = <Iterable<AstNode>>[];
       predicateBuilders.forEach((f) {
         validators.add(containerNodes.where(f(variable)));
       });
@@ -82,7 +82,7 @@ _VisitVariableDeclaration _buildVariableReporter(
 
 Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
     VariableDeclaration variable, Map<DartTypePredicate, String> predicates) {
-  final prefixedIdentifiers = containerNodes.whereType<PrefixedIdentifier>();
+  var prefixedIdentifiers = containerNodes.whereType<PrefixedIdentifier>();
   return prefixedIdentifiers.where((n) {
     var declaredElement = variable.declaredElement;
     return declaredElement != null &&
@@ -93,7 +93,7 @@ Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
 
 Iterable<AstNode> _findMethodInvocationsWithVariableAsArgument(
     Iterable<AstNode> containerNodes, VariableDeclaration variable) {
-  final prefixedIdentifiers = containerNodes.whereType<MethodInvocation>();
+  var prefixedIdentifiers = containerNodes.whereType<MethodInvocation>();
   return prefixedIdentifiers.where((n) => n.argumentList.arguments
       .whereType<SimpleIdentifier>()
       .map((e) => e.staticElement)
@@ -158,9 +158,9 @@ bool _isInvocationThroughCascadeExpression(
     return false;
   }
 
-  final identifier = invocation.realTarget;
+  var identifier = invocation.realTarget;
   if (identifier is SimpleIdentifier) {
-    final element = identifier.staticElement;
+    var element = identifier.staticElement;
     if (element is PropertyAccessorElement) {
       return element.variable == variable.declaredElement;
     }
@@ -212,7 +212,7 @@ abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    final unit = getCompilationUnit(node);
+    var unit = getCompilationUnit(node);
     if (unit != null) {
       node.fields.variables.forEach(_buildVariableReporter(
           unit, _fieldPredicateBuilders, rule, predicates));
@@ -221,7 +221,7 @@ abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    final function = node.thisOrAncestorOfType<FunctionBody>();
+    var function = node.thisOrAncestorOfType<FunctionBody>();
     if (function != null) {
       node.variables.variables.forEach(_buildVariableReporter(
           function, _variablePredicateBuilders, rule, predicates));

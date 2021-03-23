@@ -18,7 +18,7 @@ void _addNodeComparisons(Expression node, Set<Expression> comparisons) {
 }
 
 Set<Expression> _extractComparisons(BinaryExpression node) {
-  final Set<Expression> comparisons = HashSet<Expression>.identity();
+  Set<Expression> comparisons = HashSet<Expression>.identity();
   if (_isComparison(node)) {
     comparisons.add(node);
   }
@@ -43,25 +43,24 @@ bool _isComparison(Expression expression) =>
 
 bool _isNegationOrComparison(
     TokenType cOperatorType, TokenType eOperatorType, TokenType tokenType) {
-  final isNegationOperation =
+  var isNegationOperation =
       cOperatorType == BooleanExpressionUtilities.NEGATIONS[eOperatorType] ||
           BooleanExpressionUtilities.IMPLICATIONS[cOperatorType] ==
               BooleanExpressionUtilities.NEGATIONS[eOperatorType];
 
-  final isTrichotomyConjunction = BooleanExpressionUtilities
-          .TRICHOTOMY_OPERATORS
+  var isTrichotomyConjunction = BooleanExpressionUtilities.TRICHOTOMY_OPERATORS
           .contains(eOperatorType) &&
       BooleanExpressionUtilities.TRICHOTOMY_OPERATORS.contains(cOperatorType) &&
       tokenType == TokenType.AMPERSAND_AMPERSAND;
-  final isNegationOrComparison = isNegationOperation || isTrichotomyConjunction;
+  var isNegationOrComparison = isNegationOperation || isTrichotomyConjunction;
   return isNegationOrComparison;
 }
 
 bool _sameOperands(String eLeftOperand, String bcLeftOperand,
     String eRightOperand, String bcRightOperand) {
-  final sameOperandsSameOrder =
+  var sameOperandsSameOrder =
       eLeftOperand == bcLeftOperand && eRightOperand == bcRightOperand;
-  final sameOperandsInverted =
+  var sameOperandsInverted =
       eRightOperand == bcLeftOperand && eLeftOperand == bcRightOperand;
   return sameOperandsSameOrder || sameOperandsInverted;
 }
@@ -90,7 +89,7 @@ class TestedExpressions {
 
     var testingExpression = this.testingExpression;
 
-    final binaryExpression =
+    var binaryExpression =
         testingExpression is BinaryExpression ? testingExpression : null;
 
     Iterable<Expression> facts;
@@ -107,7 +106,7 @@ class TestedExpressions {
             : TokenType.AMPERSAND_AMPERSAND);
 
     if (_contradictions?.isEmpty == true) {
-      final set = (binaryExpression != null
+      var set = (binaryExpression != null
           ? _extractComparisons(testingExpression as BinaryExpression)
           : {testingExpression})
         ..addAll(truths.whereType<Expression>())
@@ -128,9 +127,9 @@ class TestedExpressions {
   /// laws https://en.wikipedia.org/wiki/De_Morgan%27s_laws
   LinkedHashSet<ContradictoryComparisons> _findContradictoryComparisons(
       Set<Expression> comparisons, TokenType tokenType) {
-    final Iterable<Expression> binaryExpressions =
+    Iterable<Expression> binaryExpressions =
         comparisons.whereType<BinaryExpression>().toSet();
-    final contradictions = LinkedHashSet<ContradictoryComparisons>.identity();
+    var contradictions = LinkedHashSet<ContradictoryComparisons>.identity();
 
     var testingExpression = this.testingExpression;
     if (testingExpression is SimpleIdentifier) {
@@ -138,7 +137,7 @@ class TestedExpressions {
           n is SimpleIdentifier &&
           testingExpression.staticElement == n.staticElement;
       if (negations.any(sameIdentifier)) {
-        final otherIdentifier =
+        var otherIdentifier =
             negations.firstWhere(sameIdentifier) as SimpleIdentifier?;
         contradictions
             .add(ContradictoryComparisons(otherIdentifier, testingExpression));
@@ -150,10 +149,10 @@ class TestedExpressions {
         return;
       }
 
-      final expression = ex as BinaryExpression;
-      final eLeftOperand = expression.leftOperand.toString();
-      final eRightOperand = expression.rightOperand.toString();
-      final eOperatorType = expression.operator.type;
+      var expression = ex as BinaryExpression;
+      var eLeftOperand = expression.leftOperand.toString();
+      var eRightOperand = expression.rightOperand.toString();
+      var eOperatorType = expression.operator.type;
       comparisons
           .where((comparison) =>
               comparison.offset < expression.offset &&
@@ -163,19 +162,19 @@ class TestedExpressions {
           return;
         }
 
-        final otherExpression = c as BinaryExpression;
+        var otherExpression = c as BinaryExpression;
 
-        final bcLeftOperand = otherExpression.leftOperand.toString();
-        final bcRightOperand = otherExpression.rightOperand.toString();
-        final sameOperands = _sameOperands(
+        var bcLeftOperand = otherExpression.leftOperand.toString();
+        var bcRightOperand = otherExpression.rightOperand.toString();
+        var sameOperands = _sameOperands(
             eLeftOperand, bcLeftOperand, eRightOperand, bcRightOperand);
 
-        final cOperatorType = negations.contains(c)
+        var cOperatorType = negations.contains(c)
             ? BooleanExpressionUtilities
                 .NEGATIONS[otherExpression.operator.type]
             : otherExpression.operator.type;
         if (cOperatorType != null) {
-          final isNegationOrComparison =
+          var isNegationOrComparison =
               _isNegationOrComparison(cOperatorType, eOperatorType, tokenType);
           if (isNegationOrComparison && sameOperands) {
             contradictions
@@ -195,12 +194,12 @@ class TestedExpressions {
   _RecurseCallback _recurseOnChildNodes(
           LinkedHashSet<ContradictoryComparisons> expressions) =>
       (Expression e) {
-        final ex = e as BinaryExpression;
+        var ex = e as BinaryExpression;
         if (ex.operator.type != TokenType.AMPERSAND_AMPERSAND) {
           return;
         }
 
-        final set = _findContradictoryComparisons(
+        var set = _findContradictoryComparisons(
             HashSet.from([ex.leftOperand, ex.rightOperand]), ex.operator.type);
         expressions.addAll(set);
       };

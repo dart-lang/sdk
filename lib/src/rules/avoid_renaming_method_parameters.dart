@@ -59,7 +59,7 @@ class AvoidRenamingMethodParameters extends LintRule implements NodeLintRule {
       return;
     }
 
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addMethodDeclaration(this, visitor);
   }
 }
@@ -75,21 +75,21 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return;
     if (node.documentationComment != null) return;
 
-    final parentNode = node.parent;
+    var parentNode = node.parent;
     if (parentNode is! Declaration) {
       return;
     }
-    final parentElement = parentNode.declaredElement;
+    var parentElement = parentNode.declaredElement;
     // Note: there are no override semantics with extension methods.
     if (parentElement is! ClassElement) {
       return;
     }
 
-    final classElement = parentElement;
+    var classElement = parentElement;
 
     if (classElement.isPrivate) return;
 
-    final parentMethod = classElement.lookUpInheritedMethod(
+    var parentMethod = classElement.lookUpInheritedMethod(
         node.name.name, classElement.library);
 
     if (parentMethod == null) return;
@@ -99,10 +99,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final parameters = nodeParams.parameters.where((p) => !p.isNamed).toList();
-    final parentParameters =
+    var parameters = nodeParams.parameters.where((p) => !p.isNamed).toList();
+    var parentParameters =
         parentMethod.parameters.where((p) => !p.isNamed).toList();
-    final count = math.min(parameters.length, parentParameters.length);
+    var count = math.min(parameters.length, parentParameters.length);
     for (var i = 0; i < count; i++) {
       if (parentParameters.length <= i) break;
       var paramIdentifier = parameters[i].identifier;

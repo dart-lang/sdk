@@ -36,7 +36,7 @@ import 'package:acme/lib/src/internals.dart;
 ''';
 
 bool isImplementation(Uri? uri) {
-  final segments = uri?.pathSegments ?? const <String>[];
+  var segments = uri?.pathSegments ?? const <String>[];
   if (segments.length > 2) {
     if (segments[1] == 'src') {
       return true;
@@ -70,7 +70,7 @@ class ImplementationImports extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addImportDirective(this, visitor);
   }
 }
@@ -82,8 +82,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    final importUri = node.uriSource?.uri;
-    final sourceUri = node.element?.source.uri;
+    var importUri = node.uriSource?.uri;
+    var sourceUri = node.element?.source.uri;
 
     // Test for 'package:*/src/'.
     if (!isImplementation(importUri)) {

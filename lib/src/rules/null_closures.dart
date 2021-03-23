@@ -217,7 +217,7 @@ class NullClosures extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);
   }
@@ -245,9 +245,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    final target = node.target;
-    final methodName = node.methodName.name;
-    final element = target is Identifier ? target.staticElement : null;
+    var target = node.target;
+    var methodName = node.methodName.name;
+    var element = target is Identifier ? target.staticElement : null;
     if (element is ClassElement) {
       // Static function called, "target" is the class.
       for (var function in _staticFunctionsWithNonNullableArguments) {
@@ -260,7 +260,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     } else {
       // Instance method called, "target" is the instance.
-      final targetType = target?.staticType;
+      var targetType = target?.staticType;
       var method = _getInstanceMethod(targetType, methodName);
       if (method == null) {
         return;
@@ -272,9 +272,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _checkNullArgForClosure(
       ArgumentList node, List<int> positions, List<String> names) {
-    final args = node.arguments;
+    var args = node.arguments;
     for (var i = 0; i < args.length; i++) {
-      final arg = args[i];
+      var arg = args[i];
 
       if (arg is NamedExpression) {
         if (arg.expression is NullLiteral &&
@@ -308,7 +308,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return method;
     }
 
-    final element = type.element;
+    var element = type.element;
     if (element.isSynthetic) {
       return null;
     }

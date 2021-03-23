@@ -57,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Determine if the given literal can be replaced by an int literal.
   bool canReplaceWithIntLiteral(DoubleLiteral literal) {
     // TODO(danrubel): Consider moving this into analyzer
-    final parent = literal.parent;
+    var parent = literal.parent;
     if (parent is PrefixExpression) {
       if (parent.operator.lexeme == '-') {
         return hasTypeDouble(parent);
@@ -70,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool hasReturnTypeDouble(AstNode? node) {
     if (node is FunctionExpression) {
-      final functionDeclaration = node.parent;
+      var functionDeclaration = node.parent;
       if (functionDeclaration is FunctionDeclaration) {
         return _isDartCoreDoubleTypeAnnotation(functionDeclaration.returnType);
       }
@@ -81,25 +81,25 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool hasTypeDouble(Expression expression) {
-    final parent = expression.parent;
+    var parent = expression.parent;
     if (parent is ArgumentList) {
       return _isDartCoreDouble(expression.staticParameterElement?.type);
     } else if (parent is ListLiteral) {
-      final typeArguments = parent.typeArguments?.arguments;
+      var typeArguments = parent.typeArguments?.arguments;
       return typeArguments?.length == 1 &&
           _isDartCoreDoubleTypeAnnotation(typeArguments![0]);
     } else if (parent is NamedExpression) {
-      final argList = parent.parent;
+      var argList = parent.parent;
       if (argList is ArgumentList) {
         return _isDartCoreDouble(parent.staticParameterElement?.type);
       }
     } else if (parent is ExpressionFunctionBody) {
       return hasReturnTypeDouble(parent.parent);
     } else if (parent is ReturnStatement) {
-      final body = parent.thisOrAncestorOfType<BlockFunctionBody>();
+      var body = parent.thisOrAncestorOfType<BlockFunctionBody>();
       return body != null && hasReturnTypeDouble(body.parent);
     } else if (parent is VariableDeclaration) {
-      final varList = parent.parent;
+      var varList = parent.parent;
       if (varList is VariableDeclarationList) {
         return _isDartCoreDoubleTypeAnnotation(varList.type);
       }
@@ -111,7 +111,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitDoubleLiteral(DoubleLiteral node) {
     // Check if the double can be represented as an int
     try {
-      final value = node.value;
+      var value = node.value;
       if (value != value.truncate()) {
         return;
       }

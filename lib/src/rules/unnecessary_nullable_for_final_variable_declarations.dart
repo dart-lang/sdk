@@ -45,7 +45,7 @@ class UnnecessaryNullableForFinalVariableDeclarations extends LintRule
       return;
     }
 
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.addFieldDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);

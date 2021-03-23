@@ -49,7 +49,7 @@ class PreferAssertsWithMessage extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addAssertInitializer(this, visitor);
     registry.addAssertStatement(this, visitor);
   }

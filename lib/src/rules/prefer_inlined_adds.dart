@@ -38,7 +38,7 @@ class PreferInlinedAdds extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }
 }
@@ -50,16 +50,16 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitMethodInvocation(MethodInvocation invocation) {
-    final addAll = invocation.methodName.name == 'addAll';
+    var addAll = invocation.methodName.name == 'addAll';
     if ((invocation.methodName.name != 'add' && !addAll) ||
         !invocation.isCascaded ||
         invocation.argumentList.arguments.length != 1) {
       return;
     }
 
-    final cascade = invocation.thisOrAncestorOfType<CascadeExpression>();
-    final sections = cascade?.cascadeSections;
-    final target = cascade?.target;
+    var cascade = invocation.thisOrAncestorOfType<CascadeExpression>();
+    var sections = cascade?.cascadeSections;
+    var target = cascade?.target;
     if (target is! ListLiteral ||
         (sections != null && sections[0] != invocation)) {
       // todo (pq): consider extending to handle set literals.

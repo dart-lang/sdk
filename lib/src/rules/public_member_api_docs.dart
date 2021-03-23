@@ -82,7 +82,7 @@ class PublicMemberApiDocs extends LintRule implements NodeLintRule {
       return;
     }
 
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addClassDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);
     registry.addCompilationUnit(this, visitor);
@@ -117,7 +117,7 @@ class _Visitor extends SimpleAstVisitor {
       return null;
     }
 
-    final classElement = member.thisOrAncestorOfType<ClassElement>();
+    var classElement = member.thisOrAncestorOfType<ClassElement>();
     if (classElement == null) {
       return null;
     }
@@ -126,7 +126,7 @@ class _Visitor extends SimpleAstVisitor {
       return null;
     }
 
-    final libraryUri = classElement.library.source.uri;
+    var libraryUri = classElement.library.source.uri;
     return context.inheritanceManager.getInherited(
       classElement.thisType,
       Name(libraryUri, name),
@@ -150,13 +150,13 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    final getters = <String, FunctionDeclaration>{};
-    final setters = <FunctionDeclaration>[];
+    var getters = <String, FunctionDeclaration>{};
+    var setters = <FunctionDeclaration>[];
 
     // Check functions.
 
     // Non-getters/setters.
-    final functions = <FunctionDeclaration>[];
+    var functions = <FunctionDeclaration>[];
 
     // Identify getter/setter pairs.
     for (var member in node.declarations) {
@@ -175,7 +175,7 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     // Check all getters, and collect offenders along the way.
-    final missingDocs = <FunctionDeclaration>{};
+    var missingDocs = <FunctionDeclaration>{};
     for (var getter in getters.values) {
       if (check(getter)) {
         missingDocs.add(getter);
@@ -184,7 +184,7 @@ class _Visitor extends SimpleAstVisitor {
 
     // But only setters whose getter is missing a doc.
     for (var setter in setters) {
-      final getter = getters[setter.name.name];
+      var getter = getters[setter.name.name];
       if (getter != null && missingDocs.contains(getter)) {
         check(setter);
       }
@@ -227,11 +227,11 @@ class _Visitor extends SimpleAstVisitor {
 
     // Check methods
 
-    final getters = <String, MethodDeclaration>{};
-    final setters = <MethodDeclaration>[];
+    var getters = <String, MethodDeclaration>{};
+    var setters = <MethodDeclaration>[];
 
     // Non-getters/setters.
-    final methods = <MethodDeclaration>[];
+    var methods = <MethodDeclaration>[];
 
     // Identify getter/setter pairs.
     for (var member in node.members) {
@@ -247,7 +247,7 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     // Check all getters, and collect offenders along the way.
-    final missingDocs = <MethodDeclaration>{};
+    var missingDocs = <MethodDeclaration>{};
     for (var getter in getters.values) {
       if (check(getter)) {
         missingDocs.add(getter);
@@ -256,7 +256,7 @@ class _Visitor extends SimpleAstVisitor {
 
     // But only setters whose getter is missing a doc.
     for (var setter in setters) {
-      final getter = getters[setter.name.name];
+      var getter = getters[setter.name.name];
       if (getter != null && missingDocs.contains(getter)) {
         check(setter);
       }
@@ -312,11 +312,11 @@ class _Visitor extends SimpleAstVisitor {
 
     // Check methods
 
-    final getters = <String, MethodDeclaration>{};
-    final setters = <MethodDeclaration>[];
+    var getters = <String, MethodDeclaration>{};
+    var setters = <MethodDeclaration>[];
 
     // Non-getters/setters.
-    final methods = <MethodDeclaration>[];
+    var methods = <MethodDeclaration>[];
 
     // Identify getter/setter pairs.
     for (var member in node.members) {
@@ -332,7 +332,7 @@ class _Visitor extends SimpleAstVisitor {
     }
 
     // Check all getters, and collect offenders along the way.
-    final missingDocs = <MethodDeclaration>{};
+    var missingDocs = <MethodDeclaration>{};
     for (var getter in getters.values) {
       if (check(getter)) {
         missingDocs.add(getter);
@@ -346,9 +346,9 @@ class _Visitor extends SimpleAstVisitor {
 
     // But only setters whose getter is missing a doc.
     for (var setter in setters) {
-      final getter = getters[setter.name.name];
+      var getter = getters[setter.name.name];
       if (getter == null) {
-        final libraryUri = declaredElement.library.source.uri;
+        var libraryUri = declaredElement.library.source.uri;
         // Look for an inherited getter.
         Element? getter = context.inheritanceManager.getMember(
           declaredElement.thisType,

@@ -47,7 +47,7 @@ class UnnecessaryConst extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addListLiteral(this, visitor);
     registry.addSetOrMapLiteral(this, visitor);

@@ -36,7 +36,7 @@ class A {
 ''';
 
 Expression? _getExpressionFromAssignmentStatement(Statement node) {
-  final visitor = _AssignmentStatementVisitor();
+  var visitor = _AssignmentStatementVisitor();
   node.accept(visitor);
   return visitor.expression;
 }
@@ -55,7 +55,7 @@ class JoinReturnWithAssignment extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addBlock(this, visitor);
   }
 }
@@ -95,16 +95,16 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
-    final statements = node.statements;
-    final length = statements.length;
+    var statements = node.statements;
+    var length = statements.length;
     if (length < 2) {
       return;
     }
-    final secondLastStatement = statements[length - 2];
-    final lastStatement = statements.last;
-    final secondLastExpression =
+    var secondLastStatement = statements[length - 2];
+    var lastStatement = statements.last;
+    var secondLastExpression =
         _getExpressionFromAssignmentStatement(secondLastStatement);
-    final lastExpression = _getExpressionFromReturnStatement(lastStatement);
+    var lastExpression = _getExpressionFromReturnStatement(lastStatement);
 
     // In this case, the last statement was not a return statement with a
     // simple target.
@@ -114,7 +114,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     Expression? thirdLastExpression;
     if (length >= 3) {
-      final thirdLastStatement = statements[length - 3];
+      var thirdLastStatement = statements[length - 3];
       thirdLastExpression =
           _getExpressionFromAssignmentStatement(thirdLastStatement);
     }

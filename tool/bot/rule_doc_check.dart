@@ -12,13 +12,13 @@ import '../crawl.dart';
 void main() async {
   print('Getting latest linter package info from pub...');
 
-  final packageInfo =
+  var packageInfo =
       jsonDecode(await getBody('https://pub.dev/api/packages/linter'));
-  final latestVersion = packageInfo['latest']['pubspec']['version'];
+  var latestVersion = packageInfo['latest']['pubspec']['version'];
   print('Found: $latestVersion.');
   if (latestVersion is String) {
-    final minor = latestVersion.split('.').last;
-    final latestRules = await fetchRulesForVersion('0.1.$minor');
+    var minor = latestVersion.split('.').last;
+    var latestRules = await fetchRulesForVersion('0.1.$minor');
     print('Checking to ensure rules have published docs...');
     print('');
 
@@ -27,7 +27,7 @@ void main() async {
         test(rule, () async {
           // todo (pq): consider replacing w/ lintCode.url
           // see: https://github.com/dart-lang/linter/issues/2034
-          final response = await http.head(
+          var response = await http.head(
               Uri.parse('https://dart-lang.github.io/linter/lints/$rule.html'));
           expect(response.statusCode, 200);
         });

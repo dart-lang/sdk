@@ -18,14 +18,14 @@ void main() {
       if (entry is! Directory) continue;
 
       group(p.basename(entry.path), () {
-        final analysisOptionsFile =
+        var analysisOptionsFile =
             File(p.join(entry.path, 'analysis_options.yaml'));
-        final analysisOptions = analysisOptionsFile.readAsStringSync();
-        final ruleTestDir = Directory(p.join(entry.path, 'rules'));
+        var analysisOptions = analysisOptionsFile.readAsStringSync();
+        var ruleTestDir = Directory(p.join(entry.path, 'rules'));
         for (var test in ruleTestDir.listSync()) {
           if (test is! File) continue;
-          final testFile = test;
-          final ruleName = p.basenameWithoutExtension(test.path);
+          var testFile = test;
+          var ruleName = p.basenameWithoutExtension(test.path);
           testRule(ruleName, testFile, analysisOptions: analysisOptions);
         }
       });

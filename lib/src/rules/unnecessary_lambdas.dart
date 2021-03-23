@@ -57,7 +57,7 @@ class UnnecessaryLambdas extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addFunctionExpression(this, visitor);
   }
 }
@@ -121,9 +121,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.declaredElement?.name != '' || node.body.keyword != null) {
       return;
     }
-    final body = node.body;
+    var body = node.body;
     if (body is BlockFunctionBody && body.block.statements.length == 1) {
-      final statement = body.block.statements.single;
+      var statement = body.block.statements.single;
 
       if (statement is ExpressionStatement &&
           statement.expression is InvocationExpression) {
@@ -164,7 +164,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return true;
     }
 
-    final parameters = nodeToLintParams.map((e) => e.declaredElement).toSet();
+    var parameters = nodeToLintParams.map((e) => e.declaredElement).toSet();
     if (node is FunctionExpressionInvocation) {
       // todo (pq): consider checking for assignability
       // see: https://github.com/dart-lang/linter/issues/1561

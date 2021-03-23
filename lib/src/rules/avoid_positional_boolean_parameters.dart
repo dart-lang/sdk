@@ -49,7 +49,7 @@ class AvoidPositionalBooleanParameters extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null && !declaredElement.isPrivate) {
-      final parametersToLint =
+      var parametersToLint =
           node.parameters.parameters.where(_isFormalParameterToLint);
       if (parametersToLint.isNotEmpty == true) {
         rule.reportLint(parametersToLint.first);
@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null && !declaredElement.isPrivate) {
-      final parametersToLint = node.functionExpression.parameters?.parameters
+      var parametersToLint = node.functionExpression.parameters?.parameters
           .where(_isFormalParameterToLint);
       if (parametersToLint != null && parametersToLint.isNotEmpty) {
         rule.reportLint(parametersToLint.first);
@@ -96,7 +96,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         !node.isOperator &&
         !DartTypeUtilities.hasInheritedMethod(node) &&
         !_isOverridingMember(declaredElement)) {
-      final parametersToLint =
+      var parametersToLint =
           node.parameters?.parameters.where(_isFormalParameterToLint);
       if (parametersToLint != null && parametersToLint.isNotEmpty) {
         rule.reportLint(parametersToLint.first);
@@ -114,7 +114,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return false;
     }
 
-    final classElement = member.thisOrAncestorOfType<ClassElement>();
+    var classElement = member.thisOrAncestorOfType<ClassElement>();
     if (classElement == null) {
       return false;
     }
@@ -122,7 +122,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (name == null) {
       return false;
     }
-    final libraryUri = classElement.library.source.uri;
+    var libraryUri = classElement.library.source.uri;
     return context.inheritanceManager
             .getInherited(classElement.thisType, Name(libraryUri, name)) !=
         null;

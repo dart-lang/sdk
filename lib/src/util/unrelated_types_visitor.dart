@@ -40,13 +40,13 @@ DartType? _findIterableTypeArgument(
     return null;
   }
 
-  final predicate = _buildImplementsDefinitionPredicate(definition);
+  var predicate = _buildImplementsDefinitionPredicate(definition);
   if (predicate(type)) {
     return type.typeArguments.first;
   }
 
-  final implementedInterfaces = type.allSupertypes;
-  final interface = implementedInterfaces.firstWhereOrNull(predicate);
+  var implementedInterfaces = type.allSupertypes;
+  var interface = implementedInterfaces.firstWhereOrNull(predicate);
   if (interface != null && interface.typeArguments.isNotEmpty) {
     return interface.typeArguments.first;
   }
@@ -98,7 +98,7 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
     if (target != null) {
       targetType = target.staticType;
     } else {
-      final classDeclaration =
+      var classDeclaration =
           node.thisOrAncestorOfType<ClassOrMixinDeclaration>();
       if (classDeclaration == null) {
         targetType = null;
@@ -108,7 +108,7 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
         targetType = classDeclaration.declaredElement?.thisType;
       }
     }
-    final argument = node.argumentList.arguments.first;
+    var argument = node.argumentList.arguments.first;
 
     // Finally, determine whether the type of the argument is related to the
     // type of the method target.

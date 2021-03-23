@@ -12,8 +12,8 @@ import '../mocks.dart';
 
 void main() {
   group('only_throw_errors', () {
-    final currentOut = outSink;
-    final collectingOut = CollectingSink();
+    var currentOut = outSink;
+    var collectingOut = CollectingSink();
     setUp(() {
       exitCode = 0;
       outSink = collectingOut;

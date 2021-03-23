@@ -62,7 +62,7 @@ class AvoidTypeToString extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor =
+    var visitor =
         _Visitor(this, context.typeSystem, context.typeProvider.typeType);
     // Gathering meta information at these nodes.
     // Nodes visited in DFS, so this will be called before
@@ -111,7 +111,7 @@ class _Visitor extends SimpleAstVisitor {
     visitArgumentList(node.argumentList);
 
     var staticType = node.realTarget?.staticType;
-    final targetType = staticType is InterfaceType ? staticType : thisType;
+    var targetType = staticType is InterfaceType ? staticType : thisType;
     _reportIfToStringOnCoreTypeClass(targetType, node.methodName);
   }
 
@@ -123,11 +123,11 @@ class _Visitor extends SimpleAstVisitor {
   void _validateArgument(Expression expression) {
     if (expression is PropertyAccess) {
       var expressionType = expression.realTarget.staticType;
-      final targetType =
+      var targetType =
           (expressionType is InterfaceType) ? expressionType : thisType;
       _reportIfToStringOnCoreTypeClass(targetType, expression.propertyName);
     } else if (expression is PrefixedIdentifier) {
-      final prefixType = expression.prefix.staticType;
+      var prefixType = expression.prefix.staticType;
       if (prefixType is InterfaceType) {
         _reportIfToStringOnCoreTypeClass(prefixType, expression.identifier);
       }
@@ -151,7 +151,7 @@ class _Visitor extends SimpleAstVisitor {
       typeSystem.isSubtypeOf(targetType, typeType);
 
   bool _isSimpleIdDeclByCoreObj(SimpleIdentifier simpleIdentifier) {
-    final encloser = simpleIdentifier.staticElement?.enclosingElement;
+    var encloser = simpleIdentifier.staticElement?.enclosingElement;
     return encloser is ClassElement && encloser.isDartCoreObject;
   }
 }

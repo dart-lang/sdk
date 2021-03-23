@@ -62,7 +62,7 @@ class CurlyBracesInFlowControlStructures extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addIfStatement(this, visitor);
@@ -91,7 +91,7 @@ class _Visitor extends SimpleAstVisitor {
     if (elseStatement == null) {
       if (node.thenStatement is Block) return;
 
-      final unit = node.root as CompilationUnit;
+      var unit = node.root as CompilationUnit;
       var lineInfo = unit.lineInfo;
       if (lineInfo != null &&
           lineInfo.getLocation(node.rightParenthesis.end).lineNumber !=

@@ -41,7 +41,7 @@ class CamelCaseExtensions extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addExtensionDeclaration(this, visitor);
   }
 }
@@ -53,7 +53,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    final name = node.name;
+    var name = node.name;
     if (name != null && !isCamelCase(name.name)) {
       rule.reportLint(name);
     }

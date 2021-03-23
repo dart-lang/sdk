@@ -69,7 +69,7 @@ class NoLogicInCreateState extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }
@@ -85,17 +85,17 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is! ClassDeclaration ||
         !isStatefulWidget(parent.declaredElement)) {
       return;
     }
-    final body = node.body;
+    var body = node.body;
     Expression? expressionToTest;
     if (body is BlockFunctionBody) {
-      final statements = body.block.statements;
+      var statements = body.block.statements;
       if (statements.length == 1) {
-        final statement = statements[0];
+        var statement = statements[0];
         if (statement is ReturnStatement) {
           expressionToTest = statement.expression;
         }

@@ -68,7 +68,7 @@ class PackagePrefixedLibraryNames extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addLibraryDirective(this, visitor);
   }
 
@@ -87,23 +87,23 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitLibraryDirective(LibraryDirective node) {
     // If no project info is set, bail early.
     // https://github.com/dart-lang/linter/issues/154
-    final project = rule.project;
-    final element = node.element;
+    var project = rule.project;
+    var element = node.element;
     if (project == null || element == null) {
       return;
     }
 
-    final source = element.source;
+    var source = element.source;
     if (source == null) {
       return;
     }
 
-    final prefix = Analyzer.facade.createLibraryNamePrefix(
+    var prefix = Analyzer.facade.createLibraryNamePrefix(
         libraryPath: source.fullName,
         projectRoot: project.root.absolute.path,
         packageName: project.name);
 
-    final name = element.name;
+    var name = element.name;
     if (name == null || !matchesOrIsPrefixedBy(name, prefix)) {
       rule.reportLint(node.name);
     }

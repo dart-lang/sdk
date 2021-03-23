@@ -54,7 +54,7 @@ class CastNullableToNonNullable extends LintRule implements NodeLintRule {
       return;
     }
 
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addAsExpression(this, visitor);
   }
 }
@@ -67,8 +67,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAsExpression(AsExpression node) {
-    final expressionType = node.expression.staticType;
-    final type = node.type.type;
+    var expressionType = node.expression.staticType;
+    var type = node.type.type;
     if (expressionType != null &&
         type != null &&
         !expressionType.isDynamic &&

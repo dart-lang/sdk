@@ -29,7 +29,7 @@ otherwise, imports of `dart:html`, `dart:js` and  `dart:js_util` are disallowed.
 /// todo (pq): consider making a utility and sharing w/ `prefer_relative_imports`
 YamlMap _parseYaml(String content) {
   try {
-    final doc = loadYamlNode(content);
+    var doc = loadYamlNode(content);
     if (doc is YamlMap) {
       return doc;
     }
@@ -52,7 +52,7 @@ class AvoidWebLibrariesInFlutter extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
     registry.addImportDirective(this, visitor);
   }
@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     YamlMap parsedPubspec;
     try {
-      final content = file.readAsStringSync();
+      var content = file.readAsStringSync();
       parsedPubspec = _parseYaml(content);
       // ignore: avoid_catches_without_on_clauses
     } catch (_) {
@@ -96,7 +96,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool isWebUri(String uri) {
-    final uriLength = uri.length;
+    var uriLength = uri.length;
     return (uriLength == 9 && uri == 'dart:html') ||
         (uriLength == 7 && uri == 'dart:js') ||
         (uriLength == 12 && uri == 'dart:js_util');

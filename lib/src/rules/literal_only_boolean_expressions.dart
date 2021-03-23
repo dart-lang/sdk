@@ -82,7 +82,7 @@ void bad() {
 ''';
 
 bool _onlyLiterals(Expression? rawExpression) {
-  final expression = rawExpression?.unParenthesized;
+  var expression = rawExpression?.unParenthesized;
   if (expression is Literal) {
     return true;
   }
@@ -110,7 +110,7 @@ class LiteralOnlyBooleanExpressions extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addIfStatement(this, visitor);
@@ -132,7 +132,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitForStatement(ForStatement node) {
-    final loopParts = node.forLoopParts;
+    var loopParts = node.forLoopParts;
     if (loopParts is ForParts) {
       if (_onlyLiterals(loopParts.condition)) {
         rule.reportLint(node);

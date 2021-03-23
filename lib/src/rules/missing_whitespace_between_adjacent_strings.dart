@@ -45,7 +45,7 @@ class MissingWhitespaceBetweenAdjacentStrings extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 }
@@ -60,7 +60,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     // skip regexp
     var parent = node.parent;
     if (parent is ArgumentList) {
-      final parentParent = parent.parent;
+      var parentParent = parent.parent;
       if (_isRegExpInstanceCreation(parentParent) ||
           parentParent is MethodInvocation &&
               parentParent.realTarget == null &&
@@ -71,8 +71,8 @@ class _Visitor extends RecursiveAstVisitor<void> {
     }
 
     for (var i = 0; i < node.strings.length - 1; i++) {
-      final current = node.strings[i];
-      final next = node.strings[i + 1];
+      var current = node.strings[i];
+      var next = node.strings[i + 1];
       if (_visit(current, (l) => _endsWithWhitespace(l.last)) ||
           _visit(next, (l) => _startsWithWhitespace(l.first))) {
         continue;

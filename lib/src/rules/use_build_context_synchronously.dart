@@ -78,7 +78,7 @@ class UseBuildContextSynchronously extends LintRule implements NodeLintRule {
       NodeLintRegistry registry, LinterContext context) {
     var unit = context.currentUnit.unit;
     if (inTestMode || !inTestDir(unit)) {
-      final visitor = _Visitor(this);
+      var visitor = _Visitor(this);
       registry.addMethodInvocation(this, visitor);
       registry.addInstanceCreationExpression(this, visitor);
       registry.addFunctionExpressionInvocation(this, visitor);

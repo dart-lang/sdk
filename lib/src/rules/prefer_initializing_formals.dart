@@ -75,8 +75,8 @@ class Point {
 
 Iterable<AssignmentExpression> _getAssignmentExpressionsInConstructorBody(
     ConstructorDeclaration node) {
-  final body = node.body;
-  final statements =
+  var body = node.body;
+  var statements =
       (body is BlockFunctionBody) ? body.block.statements : <Statement>[];
   return statements
       .whereType<ExpressionStatement>()
@@ -110,7 +110,7 @@ class PreferInitializingFormals extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
 }
@@ -122,13 +122,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    final parameters = _getParameters(node);
-    final parametersUsedOnce = <Element?>{};
-    final parametersUsedMoreThanOnce = <Element?>{};
+    var parameters = _getParameters(node);
+    var parametersUsedOnce = <Element?>{};
+    var parametersUsedMoreThanOnce = <Element?>{};
 
     bool isAssignmentExpressionToLint(AssignmentExpression assignment) {
-      final leftElement = _getLeftElement(assignment);
-      final rightElement = _getRightElement(assignment);
+      var leftElement = _getLeftElement(assignment);
+      var rightElement = _getRightElement(assignment);
       return leftElement != null &&
           rightElement != null &&
           !leftElement.isPrivate &&
@@ -144,7 +144,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     bool isConstructorFieldInitializerToLint(
         ConstructorFieldInitializer constructorFieldInitializer) {
-      final expression = constructorFieldInitializer.expression;
+      var expression = constructorFieldInitializer.expression;
       if (expression is SimpleIdentifier) {
         var staticElement = expression.staticElement;
         return staticElement is ParameterElement &&

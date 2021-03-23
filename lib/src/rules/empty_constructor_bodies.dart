@@ -48,7 +48,7 @@ class EmptyConstructorBodies extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
 }
@@ -62,7 +62,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var body = node.body;
     if (body is BlockFunctionBody) {
-      final block = body.block;
+      var block = body.block;
       if (block.statements.isEmpty) {
         if (block.endToken.precedingComments == null) {
           rule.reportLint(block);

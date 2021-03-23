@@ -69,7 +69,7 @@ void defineRuleTests() {
       }
     });
     group('format', () {
-      for (final rule in Registry.ruleRegistry.rules) {
+      for (var rule in Registry.ruleRegistry.rules) {
         test('`${rule.name}` description', () {
           expect(rule.description.endsWith('.'), isTrue,
               reason:
@@ -189,8 +189,8 @@ void defineSanityTests() {
   group('reporting', () {
     // https://github.com/dart-lang/linter/issues/193
     group('ignore synthetic nodes', () {
-      final path = p.join('test', '_data', 'synthetic', 'synthetic.dart');
-      final file = File(path);
+      var path = p.join('test', '_data', 'synthetic', 'synthetic.dart');
+      var file = File(path);
       testRule('non_constant_identifier_names', file);
     });
   });
@@ -231,16 +231,16 @@ void testRule(String ruleName, File file,
       ++lineNumber;
     }
 
-    final rule = Registry.ruleRegistry[ruleName];
+    var rule = Registry.ruleRegistry[ruleName];
     if (rule == null) {
       fail('rule `$ruleName` is not registered; unable to test.');
     }
 
-    final driver = buildDriver(rule, file, analysisOptions: analysisOptions);
+    var driver = buildDriver(rule, file, analysisOptions: analysisOptions);
 
-    final lints = await driver.lintFiles([file]);
+    var lints = await driver.lintFiles([file]);
 
-    final actual = <Annotation>[];
+    var actual = <Annotation>[];
     lints.forEach((AnalysisErrorInfo info) {
       info.errors.forEach((AnalysisError error) {
         if (error.errorCode.type == ErrorType.LINT) {
@@ -257,11 +257,11 @@ void testRule(String ruleName, File file,
         // Dump results for debugging purposes.
 
         // AST
-        final optionsProvider = AnalysisOptionsProvider();
-        final optionMap = optionsProvider.getOptionsFromString(analysisOptions);
-        final optionsImpl = AnalysisOptionsImpl();
+        var optionsProvider = AnalysisOptionsProvider();
+        var optionMap = optionsProvider.getOptionsFromString(analysisOptions);
+        var optionsImpl = AnalysisOptionsImpl();
         applyToAnalysisOptions(optionsImpl, optionMap);
-        final featureSet = optionsImpl.contextFeatures;
+        var featureSet = optionsImpl.contextFeatures;
         Spelunker(file.absolute.path, featureSet: featureSet).spelunk();
         print('');
         // Lints.

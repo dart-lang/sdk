@@ -34,9 +34,9 @@ bool isValidDartFileName(String name) {
     return true;
   }
 
-  final length = name.length - 5;
+  var length = name.length - 5;
   for (var i = 1; i < length - 1; ++i) {
-    final character = name.codeUnitAt(i);
+    var character = name.codeUnitAt(i);
     // Indicates a prefixed suffix (like `.g.dart`) which is considered a
     // non-strict Dart filename.
     if (isDot(character)) {
@@ -45,7 +45,7 @@ bool isValidDartFileName(String name) {
   }
 
   for (var i = 0; i < length; ++i) {
-    final character = name.codeUnitAt(i);
+    var character = name.codeUnitAt(i);
     if (!isLowerCase(character) && !isUnderScore(character)) {
       if (isNumber(character)) {
         if (i == 0) {

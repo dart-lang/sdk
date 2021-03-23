@@ -56,7 +56,7 @@ class PreferVoidToNull extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addSimpleIdentifier(this, visitor);
     registry.addTypeName(this, visitor);
   }
@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final parent = node.parent;
+    var parent = node.parent;
 
     // Null Function()
     if (parent is GenericFunctionType) {
@@ -90,7 +90,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // <Null>[] or <Null, Null>{}
     if (parent is TypeArgumentList) {
-      final literal = parent.parent;
+      var literal = parent.parent;
       if (literal is ListLiteral && literal.elements.isEmpty) {
         return;
       } else if (literal is SetOrMapLiteral && literal.elements.isEmpty) {

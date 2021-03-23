@@ -57,8 +57,8 @@ void main() {
 void coreTests() {
   group('core', () {
     group('config', () {
-      final currentOut = outSink;
-      final collectingOut = CollectingSink();
+      var currentOut = outSink;
+      var collectingOut = CollectingSink();
       setUp(() {
         exitCode = 0;
         outSink = collectingOut;
@@ -92,8 +92,8 @@ void coreTests() {
     });
 
     group('pubspec', () {
-      final currentOut = outSink;
-      final collectingOut = CollectingSink();
+      var currentOut = outSink;
+      var collectingOut = CollectingSink();
       setUp(() => outSink = collectingOut);
       tearDown(() {
         collectingOut.buffer.clear();
@@ -107,8 +107,8 @@ void coreTests() {
     });
 
     group('canonicalization', () {
-      final currentOut = outSink;
-      final collectingOut = CollectingSink();
+      var currentOut = outSink;
+      var collectingOut = CollectingSink();
       setUp(() => outSink = collectingOut);
       tearDown(() {
         collectingOut.buffer.clear();
@@ -125,9 +125,9 @@ void coreTests() {
 
     group('examples', () {
       test('all.yaml', () {
-        final src = readFile('example/all.yaml');
+        var src = readFile('example/all.yaml');
 
-        final options = _getOptionsFromString(src);
+        var options = _getOptionsFromString(src);
         var configuredLints =
             // ignore: cast_nullable_to_non_nullable
             (options['linter'] as YamlMap)['rules'] as YamlList;
@@ -191,12 +191,12 @@ void ruleTests() {
 
 /// Provide the options found in [optionsSource].
 Map<String, YamlNode> _getOptionsFromString(String? optionsSource) {
-  final options = <String, YamlNode>{};
+  var options = <String, YamlNode>{};
   if (optionsSource == null) {
     return options;
   }
 
-  final doc = loadYamlNode(optionsSource);
+  var doc = loadYamlNode(optionsSource);
 
   // Empty options.
   if (doc is YamlScalar && doc.value == null) {

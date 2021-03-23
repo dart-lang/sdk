@@ -49,7 +49,7 @@ class Bar {
 ''';
 
 bool _beginsWithAsOrTo(String name) {
-  final regExp = RegExp(r'(to|as|_to|_as)[A-Z]');
+  var regExp = RegExp(r'(to|as|_to|_as)[A-Z]');
   return regExp.matchAsPrefix(name) != null;
 }
 
@@ -67,7 +67,7 @@ class UseToAndAsIfApplicable extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }
@@ -95,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (body is ExpressionFunctionBody) {
       return _checkExpression(body.expression);
     } else if (body is BlockFunctionBody && body.block.statements.length == 1) {
-      final statement = body.block.statements.first;
+      var statement = body.block.statements.first;
       if (statement is ReturnStatement) {
         return _checkExpression(statement.expression);
       }
@@ -104,7 +104,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _checkExpression(Expression? rawExpression) {
-    final expression = rawExpression?.unParenthesized;
+    var expression = rawExpression?.unParenthesized;
     return expression is InstanceCreationExpression &&
         expression.argumentList.arguments.length == 1 &&
         expression.argumentList.arguments.first is ThisExpression;

@@ -80,7 +80,7 @@ class PreferSpreadCollections extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }
 }
@@ -98,9 +98,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final cascade = invocation.thisOrAncestorOfType<CascadeExpression>();
-    final sections = cascade?.cascadeSections;
-    final target = cascade?.target;
+    var cascade = invocation.thisOrAncestorOfType<CascadeExpression>();
+    var sections = cascade?.cascadeSections;
+    var target = cascade?.target;
     // todo (pq): add support for Set literals.
     if (target is! ListLiteral ||
         (target is ListLiteralImpl && target.inConstantContext) ||
@@ -108,7 +108,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final argument = invocation.argumentList.arguments[0];
+    var argument = invocation.argumentList.arguments[0];
     if (argument is ListLiteral) {
       // Handled by: prefer_inlined_adds
       return;

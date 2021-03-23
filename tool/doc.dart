@@ -159,13 +159,13 @@ Future<void> fetchSinceInfo() async {
 Future<void> generateDocs(String? dir) async {
   var outDir = dir;
   if (outDir != null) {
-    final d = Directory(outDir);
+    var d = Directory(outDir);
     if (!d.existsSync()) {
       print("Directory '${d.path}' does not exist");
       return;
     }
     if (!File('$outDir/options').existsSync()) {
-      final lintsChildDir = Directory('$outDir/lints');
+      var lintsChildDir = Directory('$outDir/lints');
       if (lintsChildDir.existsSync()) {
         outDir = lintsChildDir.path;
       }
@@ -351,7 +351,7 @@ class MarkdownIndexer {
   MarkdownIndexer(this.rules);
 
   void generate({String? filePath}) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
 
     buffer.writeln('# Linter for Dart');
     buffer.writeln();
@@ -440,7 +440,7 @@ class OptionsSample {
   }
 
   String generateOptions() {
-    final sb = StringBuffer('''
+    var sb = StringBuffer('''
 ```
 linter:
   rules:
@@ -520,7 +520,7 @@ class RuleHtmlGenerator {
   String get humanReadableName => rule.name;
 
   String get incompatibleRuleDetails {
-    final sb = StringBuffer();
+    var sb = StringBuffer();
     var incompatibleRules = rule.incompatibleRules;
     if (incompatibleRules.isNotEmpty) {
       sb.writeln('<p>');
@@ -639,7 +639,7 @@ class RuleMarkdownGenerator {
   }
 
   void generate({String? filePath}) {
-    final buffer = StringBuffer();
+    var buffer = StringBuffer();
 
     buffer.writeln('# Rule $name');
     buffer.writeln();
@@ -670,7 +670,7 @@ class RuleMarkdownGenerator {
     buffer.writeln('${details.trim()}');
 
     // incompatible rules
-    final incompatibleRules = rule.incompatibleRules;
+    var incompatibleRules = rule.incompatibleRules;
     if (incompatibleRules.isNotEmpty) {
       buffer.writeln('## Incompatible With');
       buffer.writeln();

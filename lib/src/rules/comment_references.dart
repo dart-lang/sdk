@@ -57,7 +57,7 @@ class CommentReferences extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addComment(this, visitor);
     registry.addCommentReference(this, visitor);
   }
@@ -75,14 +75,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Note that no special care is taken to handle embedded code blocks.
     for (var token in node.tokens) {
       if (!token.isSynthetic) {
-        final comment = token.lexeme;
+        var comment = token.lexeme;
         var leftIndex = comment.indexOf('[');
         while (leftIndex >= 0) {
           var rightIndex = comment.indexOf(']', leftIndex);
           if (rightIndex >= 0) {
-            final reference = comment.substring(leftIndex + 1, rightIndex);
+            var reference = comment.substring(leftIndex + 1, rightIndex);
             if (_isParserSpecialCase(reference)) {
-              final nameOffset = token.offset + leftIndex + 1;
+              var nameOffset = token.offset + leftIndex + 1;
               rule.reporter.reportErrorForOffset(
                   rule.lintCode, nameOffset, reference.length);
             }
@@ -95,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCommentReference(CommentReference node) {
-    final identifier = node.identifier;
+    var identifier = node.identifier;
     if (!identifier.isSynthetic && identifier.staticElement == null) {
       rule.reportLint(identifier);
     }

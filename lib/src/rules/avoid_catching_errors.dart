@@ -48,7 +48,7 @@ class AvoidCatchingErrors extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addCatchClause(this, visitor);
   }
 }
@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    final exceptionType = node.exceptionType?.type;
+    var exceptionType = node.exceptionType?.type;
     if (DartTypeUtilities.implementsInterface(
         exceptionType, 'Error', 'dart.core')) {
       rule.reportLint(node);

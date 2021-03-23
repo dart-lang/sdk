@@ -13,8 +13,8 @@ import '../mocks.dart';
 
 void main() {
   group('prefer_asserts_in_initializer_lists', () {
-    final currentOut = outSink;
-    final collectingOut = CollectingSink();
+    var currentOut = outSink;
+    var collectingOut = CollectingSink();
     setUp(() {
       exitCode = 0;
       outSink = collectingOut;

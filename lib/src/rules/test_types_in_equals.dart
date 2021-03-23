@@ -79,7 +79,7 @@ class TestTypesInEquals extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addAsExpression(this, visitor);
   }
 }
@@ -91,15 +91,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAsExpression(AsExpression node) {
-    final declaration = node.thisOrAncestorOfType<MethodDeclaration>();
+    var declaration = node.thisOrAncestorOfType<MethodDeclaration>();
     if (!_isEqualsOverride(declaration) ||
         node.expression is! SimpleIdentifier) {
       return;
     }
 
-    final identifier = node.expression as SimpleIdentifier;
+    var identifier = node.expression as SimpleIdentifier;
     var parameters = declaration?.parameters;
-    final parameterName = parameters?.parameterElements.first?.name;
+    var parameterName = parameters?.parameterElements.first?.name;
     if (identifier.name == parameterName) {
       rule.reportLint(node);
     }

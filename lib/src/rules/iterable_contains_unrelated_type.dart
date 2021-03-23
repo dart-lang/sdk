@@ -130,7 +130,7 @@ class IterableContainsUnrelatedType extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context.typeSystem);
+    var visitor = _Visitor(this, context.typeSystem);
     registry.addMethodInvocation(this, visitor);
   }
 }

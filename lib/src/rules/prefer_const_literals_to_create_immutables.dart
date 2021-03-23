@@ -60,7 +60,7 @@ class PreferConstLiteralsToCreateImmutables extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addListLiteral(this, visitor);
     registry.addSetOrMapLiteral(this, visitor);
   }
@@ -97,8 +97,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       // that cannot be resolved.
       return false;
     }
-    final inheritedAndSelfTypes = _getSelfAndInheritedTypes(type);
-    final inheritedAndSelfAnnotations = inheritedAndSelfTypes
+    var inheritedAndSelfTypes = _getSelfAndInheritedTypes(type);
+    var inheritedAndSelfAnnotations = inheritedAndSelfTypes
         .map((type) => type.element)
         .expand((c) => c.metadata)
         .map((m) => m.element);

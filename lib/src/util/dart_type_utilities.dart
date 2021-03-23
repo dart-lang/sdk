@@ -97,8 +97,8 @@ class DartTypeUtilities {
       Expression? rawExpression1, Expression? rawExpression2) {
     if (rawExpression1 == null || rawExpression2 == null) return false;
 
-    final expression1 = rawExpression1.unParenthesized;
-    final expression2 = rawExpression2.unParenthesized;
+    var expression1 = rawExpression1.unParenthesized;
+    var expression2 = rawExpression2.unParenthesized;
 
     if (expression1 is SimpleIdentifier) {
       return expression2 is SimpleIdentifier &&
@@ -116,8 +116,8 @@ class DartTypeUtilities {
     }
 
     if (expression1 is PropertyAccess && expression2 is PropertyAccess) {
-      final target1 = expression1.target;
-      final target2 = expression2.target;
+      var target1 = expression1.target;
+      var target2 = expression2.target;
       return canonicalElementsFromIdentifiersAreEqual(target1, target2) &&
           canonicalElementsAreEqual(
               getWriteOrReadElement(expression1.propertyName),
@@ -133,7 +133,7 @@ class DartTypeUtilities {
 
   static Element? getCanonicalElement(Element? element) {
     if (element is PropertyAccessorElement) {
-      final variable = element.variable;
+      var variable = element.variable;
       if (variable is FieldMember) {
         // A field element defined in a parameterized type where the values of
         // the type parameters are known.
@@ -153,7 +153,7 @@ class DartTypeUtilities {
 
   static Element? getCanonicalElementFromIdentifier(AstNode? rawNode) {
     if (rawNode is Expression) {
-      final node = rawNode.unParenthesized;
+      var node = rawNode.unParenthesized;
       if (node is Identifier) {
         return getCanonicalElement(node.staticElement);
       } else if (node is PropertyAccess) {
@@ -171,15 +171,15 @@ class DartTypeUtilities {
       }
       interfaceTypes.add(type);
       recursiveCall(type.superclass, alreadyVisited, interfaceTypes);
-      for (final interface in type.interfaces) {
+      for (var interface in type.interfaces) {
         recursiveCall(interface, alreadyVisited, interfaceTypes);
       }
-      for (final mixin in type.mixins) {
+      for (var mixin in type.mixins) {
         recursiveCall(mixin, alreadyVisited, interfaceTypes);
       }
     }
 
-    final interfaceTypes = <InterfaceType>[];
+    var interfaceTypes = <InterfaceType>[];
     recursiveCall(type, <ClassElement>{}, interfaceTypes);
     return interfaceTypes;
   }
@@ -188,7 +188,7 @@ class DartTypeUtilities {
     if (node.statements.isEmpty) {
       return null;
     }
-    final lastStatement = node.statements.last;
+    var lastStatement = node.statements.last;
     if (lastStatement is Block) {
       return getLastStatementInBlock(lastStatement);
     }
@@ -203,10 +203,10 @@ class DartTypeUtilities {
     if (type is! InterfaceType) {
       return false;
     }
-    final interfaceType = type;
+    var interfaceType = type;
     bool predicate(InterfaceType i) =>
         definitions.any((d) => isInterface(i, d.name, d.library));
-    final element = interfaceType.element;
+    var element = interfaceType.element;
     return predicate(interfaceType) ||
         !element.isSynthetic && element.allSupertypes.any(predicate);
   }
@@ -216,9 +216,9 @@ class DartTypeUtilities {
     if (type is! InterfaceType) {
       return false;
     }
-    final interfaceType = type;
+    var interfaceType = type;
     bool predicate(InterfaceType i) => isInterface(i, interface, library);
-    final element = interfaceType.element;
+    var element = interfaceType.element;
     return predicate(interfaceType) ||
         !element.isSynthetic && element.allSupertypes.any(predicate);
   }
@@ -257,7 +257,7 @@ class DartTypeUtilities {
     if (declaredElement == null) {
       return null;
     }
-    final parent = declaredElement.enclosingElement;
+    var parent = declaredElement.enclosingElement;
     if (parent is ClassElement) {
       return parent.lookUpGetter(node.name.name, declaredElement.library);
     }
@@ -273,7 +273,7 @@ class DartTypeUtilities {
     if (declaredElement == null) {
       return null;
     }
-    final parent = declaredElement.enclosingElement;
+    var parent = declaredElement.enclosingElement;
     if (parent is ClassElement) {
       return parent.lookUpInheritedConcreteGetter(
           node.name.name, declaredElement.library);
@@ -285,7 +285,7 @@ class DartTypeUtilities {
   static MethodElement? lookUpInheritedConcreteMethod(MethodDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null) {
-      final parent = declaredElement.enclosingElement;
+      var parent = declaredElement.enclosingElement;
       if (parent is ClassElement) {
         return parent.lookUpInheritedConcreteMethod(
             node.name.name, declaredElement.library);
@@ -299,7 +299,7 @@ class DartTypeUtilities {
       MethodDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null) {
-      final parent = declaredElement.enclosingElement;
+      var parent = declaredElement.enclosingElement;
       if (parent is ClassElement) {
         return parent.lookUpInheritedConcreteSetter(
             node.name.name, declaredElement.library);
@@ -312,7 +312,7 @@ class DartTypeUtilities {
   static MethodElement? lookUpInheritedMethod(MethodDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null) {
-      final parent = declaredElement.enclosingElement;
+      var parent = declaredElement.enclosingElement;
       if (parent is ClassElement) {
         return parent.lookUpInheritedMethod(
             node.name.name, declaredElement.library);
@@ -324,7 +324,7 @@ class DartTypeUtilities {
   static PropertyAccessorElement? lookUpSetter(MethodDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null) {
-      final parent = declaredElement.enclosingElement;
+      var parent = declaredElement.enclosingElement;
       if (parent is ClassElement) {
         return parent.lookUpSetter(node.name.name, declaredElement.library);
       }
@@ -337,11 +337,11 @@ class DartTypeUtilities {
 
   static bool matchesArgumentsWithParameters(
       NodeList<Expression> arguments, NodeList<FormalParameter> parameters) {
-    final namedParameters = <String, Element?>{};
-    final namedArguments = <String, Element>{};
-    final positionalParameters = <Element?>[];
-    final positionalArguments = <Element>[];
-    for (final parameter in parameters) {
+    var namedParameters = <String, Element?>{};
+    var namedArguments = <String, Element>{};
+    var positionalParameters = <Element?>[];
+    var positionalArguments = <Element>[];
+    for (var parameter in parameters) {
       var identifier = parameter.identifier;
       if (identifier != null) {
         if (parameter.isNamed) {
@@ -351,16 +351,16 @@ class DartTypeUtilities {
         }
       }
     }
-    for (final argument in arguments) {
+    for (var argument in arguments) {
       if (argument is NamedExpression) {
-        final element = DartTypeUtilities.getCanonicalElementFromIdentifier(
+        var element = DartTypeUtilities.getCanonicalElementFromIdentifier(
             argument.expression);
         if (element == null) {
           return false;
         }
         namedArguments[argument.name.label.name] = element;
       } else {
-        final element =
+        var element =
             DartTypeUtilities.getCanonicalElementFromIdentifier(argument);
         if (element == null) {
           return false;
@@ -378,7 +378,7 @@ class DartTypeUtilities {
       }
     }
 
-    for (final key in namedParameters.keys) {
+    for (var key in namedParameters.keys) {
       if (namedParameters[key] != namedArguments[key]) {
         return false;
       }
@@ -388,20 +388,20 @@ class DartTypeUtilities {
   }
 
   static bool overridesMethod(MethodDeclaration node) {
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is! ClassOrMixinDeclaration) {
       return false;
     }
-    final name = node.declaredElement?.name;
+    var name = node.declaredElement?.name;
     if (name == null) {
       return false;
     }
-    final clazz = parent;
-    final classElement = clazz.declaredElement;
+    var clazz = parent;
+    var classElement = clazz.declaredElement;
     if (classElement == null) {
       return false;
     }
-    final library = classElement.library;
+    var library = classElement.library;
     return classElement.allSupertypes
         .map(node.isGetter
             ? (InterfaceType t) => t.lookUpGetter2
@@ -416,7 +416,7 @@ class DartTypeUtilities {
   /// predicate returns true, if not provided, all is included.
   static Iterable<AstNode> traverseNodesInDFS(AstNode node,
       {AstNodePredicate? excludeCriteria}) {
-    final nodes = <AstNode>{};
+    var nodes = <AstNode>{};
     void recursiveCall(node) {
       if (node is AstNode &&
           (excludeCriteria == null || !excludeCriteria(node))) {
@@ -528,7 +528,7 @@ class DartTypeUtilities {
     if (type2 is FunctionType) {
       return false;
     }
-    final element2 = type2.element;
+    var element2 = type2.element;
     if (element2 is ClassElement &&
         element2.lookUpConcreteMethod('call', element2.library) != null) {
       return false;

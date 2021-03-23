@@ -60,7 +60,7 @@ class UseLateForPrivateFieldsAndVariables extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
 }
@@ -90,11 +90,11 @@ class _Visitor extends UnifyingAstVisitor<void> {
 
       super.visitCompilationUnit(node);
 
-      final unitsInContext =
+      var unitsInContext =
           context.allUnits.map((e) => e.unit.declaredElement).toSet();
-      final libraryUnitsInContext =
+      var libraryUnitsInContext =
           declaredElement.library.units.where(unitsInContext.contains).toSet();
-      final areAllLibraryUnitsVisited =
+      var areAllLibraryUnitsVisited =
           libraryUnitsInContext.every(lateables.containsKey);
       if (areAllLibraryUnitsVisited) {
         _checkAccess(libraryUnitsInContext);
@@ -111,7 +111,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (var variable in node.fields.variables) {
-      final parent = node.parent;
+      var parent = node.parent;
       // see https://github.com/dart-lang/linter/pull/2189#issuecomment-660115569
       // We could also include public members in private classes but to do that
       // we'd need to ensure that there are no instances of either the
@@ -170,9 +170,9 @@ class _Visitor extends UnifyingAstVisitor<void> {
   }
 
   void _checkAccess(Iterable<CompilationUnitElement> units) {
-    final allNullableAccess =
+    var allNullableAccess =
         units.expand((unit) => nullableAccess[unit] ?? const {}).toSet();
-    for (final unit in units) {
+    for (var unit in units) {
       for (var variable in lateables[unit] ?? const <VariableDeclaration>[]) {
         if (!allNullableAccess.contains(variable.declaredElement)) {
           rule.reporter.reportError(AnalysisError(

@@ -40,7 +40,7 @@ class AvoidTypesOnClosureParameters extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addFunctionExpression(this, visitor);
   }
 }
@@ -62,7 +62,7 @@ class AvoidTypesOnClosureParametersVisitor extends SimpleAstVisitor {
     }
     var parameterList = node.parameters?.parameters;
     if (parameterList != null) {
-      for (final parameter in parameterList) {
+      for (var parameter in parameterList) {
         parameter.accept(this);
       }
     }
@@ -75,7 +75,7 @@ class AvoidTypesOnClosureParametersVisitor extends SimpleAstVisitor {
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    final type = node.type;
+    var type = node.type;
     if (type is TypeName && type.name.name != 'dynamic') {
       rule.reportLint(node.type);
     }
@@ -89,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    final visitor = AvoidTypesOnClosureParametersVisitor(rule);
+    var visitor = AvoidTypesOnClosureParametersVisitor(rule);
     visitor.visitFunctionExpression(node);
   }
 }

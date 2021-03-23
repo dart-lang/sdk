@@ -44,7 +44,7 @@ class AvoidUnusedConstructorParameters extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
 }
@@ -56,7 +56,7 @@ class _ConstructorVisitor extends RecursiveAstVisitor {
 
   _ConstructorVisitor(this.rule, this.element)
       : unusedParameters = element.parameters.parameters.where((p) {
-          final element = p.declaredElement;
+          var element = p.declaredElement;
           return element != null &&
               element is! FieldFormalParameterElement &&
               !element.hasDeprecated &&
@@ -80,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.redirectedConstructor != null) return;
     if (node.externalKeyword != null) return;
 
-    final _constructorVisitor = _ConstructorVisitor(rule, node);
+    var _constructorVisitor = _ConstructorVisitor(rule, node);
     node.body.visitChildren(_constructorVisitor);
     node.initializers.forEach((i) => i.visitChildren(_constructorVisitor));
 

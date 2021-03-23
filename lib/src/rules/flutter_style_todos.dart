@@ -38,7 +38,7 @@ class FlutterStyleTodos extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 }
@@ -72,7 +72,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _visitComment(Token node) {
-    final content = node.lexeme;
+    var content = node.lexeme;
     if (content.startsWith(_todoRegExp) &&
         !content.startsWith(_todoExpectedRegExp)) {
       rule.reportLintForToken(node);

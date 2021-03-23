@@ -36,7 +36,7 @@ class UseRawStrings extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addSimpleStringLiteral(this, visitor);
   }
 }
@@ -50,7 +50,7 @@ class _Visitor extends SimpleAstVisitor {
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     if (node.isRaw) return;
 
-    final lexeme = node.literal.lexeme.substring(
+    var lexeme = node.literal.lexeme.substring(
         node.contentsOffset - node.literal.offset,
         node.contentsEnd - node.literal.offset);
     var hasEscape = false;

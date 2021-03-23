@@ -36,7 +36,7 @@ class UnnecessaryParenthesis extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addParenthesizedExpression(this, visitor);
   }
 }
@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final parent = node.parent;
+    var parent = node.parent;
 
     if (parent is ParenthesizedExpression) {
       rule.reportLint(node);
@@ -133,7 +133,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _containsFunctionExpression(ParenthesizedExpression node) {
-    final containsFunctionExpressionVisitor =
+    var containsFunctionExpressionVisitor =
         _ContainsFunctionExpressionVisitor();
     node.accept(containsFunctionExpressionVisitor);
     return containsFunctionExpressionVisitor.hasFunctionExpression;

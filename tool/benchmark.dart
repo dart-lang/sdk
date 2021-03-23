@@ -55,7 +55,7 @@ class DotScanBenchmark extends BaseBenchmark {
   bool hasOneDot(String name) {
     var count = 0;
     for (var i = 0; i < name.length; ++i) {
-      final character = name.codeUnitAt(i);
+      var character = name.codeUnitAt(i);
       count += isDot(character) ? 1 : 0;
       if (count > 1) {
         return false;

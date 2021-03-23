@@ -12,8 +12,8 @@ import '../mocks.dart';
 
 void main() {
   group('unnecessary_string_escapes', () {
-    final currentOut = outSink;
-    final collectingOut = CollectingSink();
+    var currentOut = outSink;
+    var collectingOut = CollectingSink();
     setUp(() => outSink = collectingOut);
     tearDown(() {
       collectingOut.buffer.clear();

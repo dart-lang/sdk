@@ -62,7 +62,7 @@ class AvoidReturningThis extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }
@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isOperator) return;
 
-    final parent = node.parent;
+    var parent = node.parent;
     if (parent is ClassOrMixinDeclaration) {
       if (DartTypeUtilities.overridesMethod(node)) {
         return;
@@ -93,9 +93,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final body = node.body;
+    var body = node.body;
     if (body is BlockFunctionBody) {
-      final returnStatements = DartTypeUtilities.traverseNodesInDFS(body.block,
+      var returnStatements = DartTypeUtilities.traverseNodesInDFS(body.block,
               excludeCriteria: _isFunctionExpression)
           .where(_isReturnStatement);
       if (returnStatements.isNotEmpty && returnStatements.every(_returnsThis)) {

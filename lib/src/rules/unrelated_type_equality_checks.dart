@@ -151,7 +151,7 @@ bool _isFixNumIntX(DartType type) {
   if (type is! InterfaceType) {
     return false;
   }
-  final Element element = type.element;
+  Element element = type.element;
   return (element.name == 'Int32' || element.name == 'Int64') &&
       element.library?.name == 'fixnum';
 }
@@ -167,7 +167,7 @@ class UnrelatedTypeEqualityChecks extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context.typeSystem);
+    var visitor = _Visitor(this, context.typeSystem);
     registry.addBinaryExpression(this, visitor);
   }
 }
@@ -180,7 +180,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    final isDartCoreBoolean = node.staticType?.isDartCoreBool ?? false;
+    var isDartCoreBoolean = node.staticType?.isDartCoreBool ?? false;
     if (!isDartCoreBoolean ||
         (node.operator.type != TokenType.EQ_EQ &&
             node.operator.type != TokenType.BANG_EQ)) {

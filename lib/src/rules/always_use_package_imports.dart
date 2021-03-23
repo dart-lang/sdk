@@ -61,7 +61,7 @@ class AlwaysUsePackageImports extends LintRule implements NodeLintRule {
       return;
     }
 
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addImportDirective(this, visitor);
   }
 }
@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool isRelativeImport(ImportDirective node) {
     var uriContent = node.uriContent;
     if (uriContent != null) {
-      final uri = Uri.tryParse(uriContent);
+      var uri = Uri.tryParse(uriContent);
       return uri != null && uri.scheme.isEmpty;
     }
     return false;

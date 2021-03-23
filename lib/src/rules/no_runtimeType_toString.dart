@@ -52,7 +52,7 @@ class NoRuntimeTypeToString extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addInterpolationExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);
   }
@@ -103,7 +103,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (n is ExtensionDeclaration) {
           var declaredElement = n.declaredElement;
           if (declaredElement != null) {
-            final extendedElement = declaredElement.extendedType.element;
+            var extendedElement = declaredElement.extendedType.element;
             return !(extendedElement is ClassElement &&
                 !extendedElement.isAbstract);
           }

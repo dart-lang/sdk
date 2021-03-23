@@ -106,7 +106,7 @@ class AvoidDynamicCalls extends LintRule implements NodeLintRule {
     NodeLintRegistry registry,
     LinterContext context,
   ) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry
       ..addAssignmentExpression(this, visitor)
       ..addBinaryExpression(this, visitor)
@@ -195,7 +195,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    final methodName = node.methodName.name;
+    var methodName = node.methodName.name;
     if (node.target != null) {
       if (methodName == 'noSuchMethod' &&
           node.argumentList.arguments.length == 1 &&
@@ -208,7 +208,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
     }
-    final receiverWasDynamic = _lintIfDynamic(node.realTarget);
+    var receiverWasDynamic = _lintIfDynamic(node.realTarget);
     if (!receiverWasDynamic) {
       var target = node.target;
       // The ".call" method is special, where "a.call()" is treated ~as "a()".
@@ -232,7 +232,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     if (root is CompoundAssignmentExpression) {
       // Not promoted by "is" since the type would lose capabilities.
-      final rootAsAssignment = root as CompoundAssignmentExpression;
+      var rootAsAssignment = root as CompoundAssignmentExpression;
       if (rootAsAssignment.readType?.isDynamic == true) {
         // An assignment expression can only be a dynamic call if it is a
         // "compound assignment" (i.e. such as `x += 1`); so if `readType` is
@@ -249,7 +249,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    final property = node.identifier.name;
+    var property = node.identifier.name;
     if (const {
       'hashCode',
       'noSuchMethod',

@@ -49,7 +49,7 @@ class AvoidRelativeLibImports extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addImportDirective(this, visitor);
   }
 }
@@ -65,7 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // See: https://github.com/dart-lang/linter/issues/2419
     var uriContent = node.uriContent;
     if (uriContent != null) {
-      final uri = Uri.tryParse(uriContent);
+      var uri = Uri.tryParse(uriContent);
       if (uri != null && uri.scheme.isEmpty) {
         return uri.path.contains('/lib/');
       }

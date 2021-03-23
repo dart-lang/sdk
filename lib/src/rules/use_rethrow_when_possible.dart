@@ -50,7 +50,7 @@ class UseRethrowWhenPossible extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addThrowExpression(this, visitor);
   }
 }
@@ -62,11 +62,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitThrowExpression(ThrowExpression node) {
-    final element =
+    var element =
         DartTypeUtilities.getCanonicalElementFromIdentifier(node.expression);
     if (element != null) {
-      final catchClause = node.thisOrAncestorOfType<CatchClause>();
-      final exceptionParameter =
+      var catchClause = node.thisOrAncestorOfType<CatchClause>();
+      var exceptionParameter =
           DartTypeUtilities.getCanonicalElementFromIdentifier(
               catchClause?.exceptionParameter);
       if (element == exceptionParameter) {

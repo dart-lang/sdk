@@ -80,7 +80,7 @@ class AvoidSlowAsyncIo extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }
 }
@@ -93,7 +93,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.argumentList.arguments.isEmpty) {
-      final type = node.target?.staticType;
+      var type = node.target?.staticType;
       _checkFileMethods(node, type);
       _checkDirectoryMethods(node, type);
       return;
@@ -120,9 +120,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _checkFileSystemEntityMethods(MethodInvocation node) {
-    final target = node.target;
+    var target = node.target;
     if (target is Identifier) {
-      final elem = target.staticElement;
+      var elem = target.staticElement;
       if (elem is ClassElement && elem.name == 'FileSystemEntity') {
         if (_fileSystemEntityMethodNames.contains(node.methodName.name)) {
           rule.reportLint(node);

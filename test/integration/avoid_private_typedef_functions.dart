@@ -12,8 +12,8 @@ import '../mocks.dart';
 
 void main() {
   group('avoid_private_typedef_functions', () {
-    final currentOut = outSink;
-    final collectingOut = CollectingSink();
+    var currentOut = outSink;
+    var collectingOut = CollectingSink();
 
     setUp(() {
       exitCode = 0;

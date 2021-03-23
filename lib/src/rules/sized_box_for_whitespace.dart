@@ -57,7 +57,7 @@ class SizedBoxForWhitespace extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    var visitor = _Visitor(this);
 
     registry.addInstanceCreationExpression(this, visitor);
   }
@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    final visitor = _WidthOrHeightArgumentVisitor();
+    var visitor = _WidthOrHeightArgumentVisitor();
     node.visitChildren(visitor);
     if (visitor.seenIncompatibleParams) {
       return;
@@ -94,7 +94,7 @@ class _WidthOrHeightArgumentVisitor extends SimpleAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
-    for (final name in node.arguments
+    for (var name in node.arguments
         .cast<NamedExpression>()
         .map((arg) => arg.name.label.name)) {
       if (name == 'width') {

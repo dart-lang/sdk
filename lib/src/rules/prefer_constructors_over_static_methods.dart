@@ -63,7 +63,7 @@ class PreferConstructorsInsteadOfStaticMethods extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this, context);
+    var visitor = _Visitor(this, context);
     registry.addMethodDeclaration(this, visitor);
   }
 }
@@ -76,8 +76,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    final returnType = node.returnType?.type;
-    final parent = node.parent;
+    var returnType = node.returnType?.type;
+    var parent = node.parent;
     if (node.isStatic &&
         parent is ClassOrMixinDeclaration &&
         returnType is InterfaceType &&
