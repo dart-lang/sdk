@@ -162,7 +162,7 @@ vars = {
   "test_reflective_loader_rev": "54e930a11c372683792e22bddad79197728c91ce",
   "test_rev": "e673623f45d75ccec750d35271b0b4d1423e9fac",
   "typed_data_tag": "f94fc57b8e8c0e4fe4ff6cfd8290b94af52d3719",
-  "usage_rev": "6c64d9e7b6b3758d06d030efcb5afe20bfc04dde",
+  "usage_rev": "5b7317ba89166f3cf1af98cb280a4cc8e78f25f9",
   "vector_math_rev": "0c9f5d68c047813a6dcdeb88ba7a42daddf25025",
   "watcher_rev": "3924194385fb215cef483193ed2879a618a3d69c",
   "webdriver_rev": "ff5ccb1522edf4bed578ead4d65e0cbc1f2c4f02",
