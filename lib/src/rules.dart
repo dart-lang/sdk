@@ -79,6 +79,7 @@ import 'rules/join_return_with_assignment.dart';
 import 'rules/leading_newlines_in_multiline_strings.dart';
 import 'rules/library_names.dart';
 import 'rules/library_prefixes.dart';
+import 'rules/library_private_types_in_public_api.dart';
 import 'rules/lines_longer_than_80_chars.dart';
 import 'rules/list_remove_unrelated_type.dart';
 import 'rules/literal_only_boolean_expressions.dart';
@@ -269,6 +270,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(LeadingNewlinesInMultilineStrings())
     ..register(LibraryNames())
     ..register(LibraryPrefixes())
+    ..register(LibraryPrivateTypesInPublicAPI())
     ..register(LinesLongerThan80Chars())
     ..register(ListRemoveUnrelatedType())
     ..register(LiteralOnlyBooleanExpressions())
