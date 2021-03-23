@@ -51,7 +51,7 @@ class LibraryPrivateTypesInPublicAPI extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = Visitor(this);
+    var visitor = Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 }
