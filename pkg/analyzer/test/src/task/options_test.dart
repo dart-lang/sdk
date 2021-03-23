@@ -261,6 +261,24 @@ analyzer:
     ''', [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
   }
 
+  test_analyzer_errors_notAMap() {
+    validate('''
+analyzer:
+  errors:
+    - invalid_annotation
+    - unused_import
+    ''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+  }
+
+  test_analyzer_errors_valueNotAScalar() {
+    validate('''
+analyzer:
+  errors:
+    invalid_annotation: ignore
+    unused_import: [1, 2, 3]
+    ''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+  }
+
   test_analyzer_language_bad_format_list() {
     validate('''
 analyzer:
@@ -297,14 +315,14 @@ analyzer:
 analyzer:
   errors:
     fantastic_test_rule: ignore
-    ''', []);
+''', []);
   }
 
   test_analyzer_strong_mode_deprecated() {
     validate('''
 analyzer:
   strong-mode: true
-    ''', [AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED]);
+''', [AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED]);
   }
 
   test_analyzer_strong_mode_deprecated_key() {
@@ -327,7 +345,15 @@ analyzer:
     validate('''
 analyzer:
   strong-mode: false
-    ''', [AnalysisOptionsWarningCode.SPEC_MODE_REMOVED]);
+''', [AnalysisOptionsWarningCode.SPEC_MODE_REMOVED]);
+  }
+
+  test_analyzer_strong_mode_notAMap() {
+    validate('''
+analyzer:
+  strong-mode:
+    - implicit_casts
+''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
   }
 
   test_analyzer_strong_mode_unsupported_key() {
@@ -351,21 +377,21 @@ analyzer:
 analyzer:
   exclude:
     - test/_data/p4/lib/lib1.dart
-    ''', []);
+''', []);
   }
 
   test_analyzer_supported_strong_mode_supported_bad_value() {
     validate('''
 analyzer:
   strong-mode: w00t
-    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
   test_analyzer_unsupported_option() {
     validate('''
 analyzer:
   not_supported: true
-    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
   test_chromeos_manifest_checks() {
@@ -382,6 +408,14 @@ analyzer:
   optional-checks:
     chromeos-manifest
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
+  }
+
+  test_chromeos_manifest_checks_notAMap() {
+    validate('''
+analyzer:
+  optional-checks:
+    - chrome-os-manifest-checks
+''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
   }
 
   test_linter_supported_rules() {
