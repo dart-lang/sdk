@@ -3637,8 +3637,12 @@ class AssertSubtypeInstr : public TemplateInstruction<5, Throws, Pure> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
@@ -3739,9 +3743,6 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
-  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
-  bool licm_hoisted() const { return licm_hoisted_; }
-
   virtual Value* RedefinedValue() const;
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -3750,7 +3751,6 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
   const TokenPosition token_pos_;
   const String& dst_name_;
   const Kind kind_;
-  bool licm_hoisted_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableInstr);
 };
@@ -3770,8 +3770,12 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
@@ -6646,8 +6650,12 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -6691,8 +6699,12 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
   const Function& function() const { return function_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }

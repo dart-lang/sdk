@@ -2868,8 +2868,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(
     const InstructionSource& source,
     intptr_t deopt_id,
     const String& dst_name,
-    LocationSummary* locs,
-    bool was_licm_hoisted) {
+    LocationSummary* locs) {
   ASSERT(!source.token_pos.IsClassifying());
   ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
 
@@ -2900,8 +2899,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(
     }
   }
 
-  GenerateTTSCall(source, deopt_id, type_reg, dst_type, dst_name, locs,
-                  was_licm_hoisted);
+  GenerateTTSCall(source, deopt_id, type_reg, dst_type, dst_name, locs);
   __ Bind(&done);
 }
 
@@ -2913,8 +2911,7 @@ void FlowGraphCompiler::GenerateTTSCall(const InstructionSource& source,
                                         Register reg_with_type,
                                         const AbstractType& dst_type,
                                         const String& dst_name,
-                                        LocationSummary* locs,
-                                        bool was_licm_hoisted) {
+                                        LocationSummary* locs) {
   ASSERT(!dst_name.IsNull());
   // We use 2 consecutive entries in the pool for the subtype cache and the
   // destination name.  The second entry, namely [dst_name] seems to be unused,

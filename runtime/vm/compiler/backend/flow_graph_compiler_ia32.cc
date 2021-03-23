@@ -265,8 +265,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(
     const InstructionSource& source,
     intptr_t deopt_id,
     const String& dst_name,
-    LocationSummary* locs,
-    bool was_licm_hoisted) {
+    LocationSummary* locs) {
   ASSERT(!source.token_pos.IsClassifying());
   ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
 

@@ -5380,7 +5380,7 @@ intptr_t AssertAssignableInstr::statistics_tag() const {
 
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateAssertAssignable(value()->Type(), source(), deopt_id(),
-                                     dst_name(), locs(), licm_hoisted());
+                                     dst_name(), locs());
   ASSERT(locs()->in(kInstancePos).reg() == locs()->out(0).reg());
 }
 
@@ -5407,7 +5407,7 @@ LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
 
 void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateStubCall(source(), StubCode::AssertSubtype(),
-                             UntaggedPcDescriptors::kOther, locs());
+                             UntaggedPcDescriptors::kOther, locs(), deopt_id());
 }
 
 LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
