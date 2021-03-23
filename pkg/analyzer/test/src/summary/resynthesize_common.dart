@@ -43,7 +43,7 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
         DartUriResolver(sdk),
         PackageMapUriResolver(resourceProvider, {
           'test': [
-            resourceProvider.getFolder('/home/test/lib'),
+            getFolder('/home/test/lib'),
           ],
         }),
         ResourceUriResolver(resourceProvider),
