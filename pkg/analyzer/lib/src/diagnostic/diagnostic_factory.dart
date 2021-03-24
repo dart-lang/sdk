@@ -76,13 +76,10 @@ class DiagnosticFactory {
     List<DiagnosticMessage>? contextMessages;
     int declarationOffset = staticElement.nameOffset;
     if (declarationOffset >= 0) {
-      CompilationUnitElement unit = staticElement.thisOrAncestorOfType()!;
-      var location = unit.lineInfo!.getLocation(declarationOffset);
       contextMessages = [
         DiagnosticMessageImpl(
             filePath: source.fullName,
-            message:
-                "The declaration of '$name' is on line ${location.lineNumber}.",
+            message: "The declaration of '$name' is here.",
             offset: declarationOffset,
             length: staticElement.nameLength)
       ];
