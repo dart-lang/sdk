@@ -36,7 +36,7 @@ class AnalyzeCommand extends DartdevCommand {
   static final int _return = '\r'.codeUnitAt(0);
 
   AnalyzeCommand({bool verbose = false})
-      : super(cmdName, "Analyze Dart code in a directory.") {
+      : super(cmdName, 'Analyze Dart code in a directory.') {
     argParser
       ..addFlag('fatal-infos',
           help: 'Treat info level issues as fatal.', negatable: false)
