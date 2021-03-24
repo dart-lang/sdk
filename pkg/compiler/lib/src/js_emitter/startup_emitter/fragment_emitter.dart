@@ -730,7 +730,9 @@ class FragmentEmitter {
   }
 
   js.Statement emitMainFragment(
-      Program program, DeferredLoadingState deferredLoadingState) {
+      Program program,
+      Map<String, List<FinalizedFragment>> fragmentsToLoad,
+      DeferredLoadingState deferredLoadingState) {
     MainFragment fragment = program.fragments.first;
 
     Iterable<Holder> nonStaticStateHolders =
@@ -778,8 +780,8 @@ class FragmentEmitter {
       'constants': emitConstants(fragment),
       'staticNonFinalFields': emitStaticNonFinalFields(fragment),
       'lazyStatics': emitLazilyInitializedStatics(fragment),
-      'embeddedGlobalsPart1':
-          emitEmbeddedGlobalsPart1(program, deferredLoadingState),
+      'embeddedGlobalsPart1': emitEmbeddedGlobalsPart1(
+          program, fragmentsToLoad, deferredLoadingState),
       'embeddedGlobalsPart2':
           emitEmbeddedGlobalsPart2(program, deferredLoadingState),
       'typeRules': emitTypeRules(fragment),
@@ -1874,10 +1876,10 @@ class FragmentEmitter {
   // array of hashes indexed by part.
   // [deferredLoadHashes] may have missing entries to indicate empty parts.
   void finalizeDeferredLoadingData(
-      Map<String, List<FinalizedFragment>> loadMap,
+      Map<String, List<FinalizedFragment>> fragmentsToLoad,
       Map<FinalizedFragment, String> deferredLoadHashes,
       DeferredLoadingState deferredLoadingState) {
-    if (loadMap.isEmpty) return;
+    if (fragmentsToLoad.isEmpty) return;
 
     Map<FinalizedFragment, int> fragmentIndexes = {};
     List<String> fragmentUris = [];
@@ -1885,7 +1887,8 @@ class FragmentEmitter {
 
     List<js.Property> libraryPartsMapEntries = [];
 
-    loadMap.forEach((String loadId, List<FinalizedFragment> fragmentList) {
+    fragmentsToLoad
+        .forEach((String loadId, List<FinalizedFragment> fragmentList) {
       List<js.Expression> indexes = [];
       for (FinalizedFragment fragment in fragmentList) {
         String fragmentHash = deferredLoadHashes[fragment];
@@ -1971,10 +1974,12 @@ class FragmentEmitter {
 
   /// Emits all embedded globals.
   js.Statement emitEmbeddedGlobalsPart1(
-      Program program, DeferredLoadingState deferredLoadingState) {
+      Program program,
+      Map<String, List<FinalizedFragment>> fragmentsToLoad,
+      DeferredLoadingState deferredLoadingState) {
     List<js.Property> globals = [];
 
-    if (program.loadMap.isNotEmpty) {
+    if (fragmentsToLoad.isNotEmpty) {
       globals
           .addAll(emitEmbeddedGlobalsForDeferredLoading(deferredLoadingState));
     }

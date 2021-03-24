@@ -273,8 +273,8 @@ class ProgramBuilder {
       finalizers.add(namingFinalizer as js.TokenFinalizer);
     }
 
-    return new Program(fragments, holders, _buildLoadMap(),
-        _buildTypeToInterceptorMap(), _task.metadataCollector, finalizers,
+    return new Program(fragments, holders, _buildTypeToInterceptorMap(),
+        _task.metadataCollector, finalizers,
         needsNativeSupport: needsNativeSupport,
         outputContainsConstantList: collector.outputContainsConstantList,
         hasSoftDeferredClasses: _notSoftDeferred != null);
@@ -346,18 +346,6 @@ class ProgramBuilder {
       });
       _notSoftDeferred = allocatedClasses;
     }
-  }
-
-  /// Builds a map from loadId to outputs-to-load.
-  Map<String, List<Fragment>> _buildLoadMap() {
-    Map<String, List<Fragment>> loadMap = <String, List<Fragment>>{};
-    _closedWorld.outputUnitData.hunksToLoad
-        .forEach((String loadId, List<OutputUnit> outputUnits) {
-      loadMap[loadId] = outputUnits
-          .map((OutputUnit unit) => _outputs[unit])
-          .toList(growable: false);
-    });
-    return loadMap;
   }
 
   js.Expression _buildTypeToInterceptorMap() {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -296,26 +294,14 @@ class ErrorFilterOptionValidator extends OptionsValidator {
   static final String legalValueString =
       StringUtilities.printListOfQuotedNames(legalValues);
 
-  /// Lazily populated set of error codes (hashed for speedy lookup).
-  static HashSet<String>? _errorCodes;
-
-  /// Legal error code names.
-  static Set<String> get errorCodes {
-    if (_errorCodes == null) {
-      _errorCodes = HashSet<String>();
-      // Engine codes.
-      _errorCodes!.addAll(errorCodeValues.map((ErrorCode code) => code.name));
-    }
-    return _errorCodes!;
-  }
+  /// Lazily populated set of error codes.
+  static final Set<String> _errorCodes =
+      errorCodeValues.map((ErrorCode code) => code.name).toSet();
 
   /// Lazily populated set of lint codes.
-  Set<String>? _lintCodes;
-
-  Set<String> get lintCodes {
-    return _lintCodes ??= Set.from(
-        Registry.ruleRegistry.rules.map((rule) => rule.name.toUpperCase()));
-  }
+  late final Set<String> _lintCodes = Registry.ruleRegistry.rules
+      .map((rule) => rule.name.toUpperCase())
+      .toSet();
 
   @override
   void validate(ErrorReporter reporter, YamlMap options) {
@@ -327,7 +313,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
           String? value;
           if (k is YamlScalar) {
             value = toUpperCase(k.value);
-            if (!errorCodes.contains(value) && !lintCodes.contains(value)) {
+            if (!_errorCodes.contains(value) && !_lintCodes.contains(value)) {
               reporter.reportErrorForSpan(
                   AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
                   k.span,

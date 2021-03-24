@@ -13,6 +13,11 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../support/integration_tests.dart';
 
 void main() {
+  // Skip on Windows.
+  if (Platform.isWindows) {
+    return;
+  }
+
   defineReflectiveSuite(() {
     defineReflectiveTests(BazelChangesTest);
   });

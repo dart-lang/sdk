@@ -3,6 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import '../../common_elements.dart' show ElementEnvironment;
+import '../../deferred_load.dart'
+    show ImportDescription, OutputUnit, OutputUnitData, deferredPartFileName;
+import '../../elements/entities.dart';
 import '../../deferred_load.dart' show OutputUnit;
 import '../../js/js.dart' as js;
 import '../../js/size_estimator.dart';
@@ -24,6 +28,7 @@ class PreFragment {
   final List<js.Statement> nativeSupport = [];
   final Set<PreFragment> successors = {};
   final Set<PreFragment> predecessors = {};
+  FinalizedFragment finalizedFragment;
   int size = 0;
 
   PreFragment(
@@ -103,8 +108,8 @@ class PreFragment {
   }
 
   FinalizedFragment finalize(
-      Program program, Map<Fragment, FinalizedFragment> fragmentMap) {
-    FinalizedFragment finalizedFragment;
+      Program program, Map<OutputUnit, FinalizedFragment> outputUnitMap) {
+    assert(finalizedFragment == null);
     var seedFragment = fragments.first;
     var seedOutputUnit = seedFragment.outputUnit;
 
@@ -128,7 +133,7 @@ class PreFragment {
           lazyInitializers.first,
           nativeSupport.first,
           program.metadataTypesForOutputUnit(seedOutputUnit));
-      fragmentMap[seedFragment] = finalizedFragment;
+      outputUnitMap[seedOutputUnit] = finalizedFragment;
     } else {
       List<OutputUnit> outputUnits = [seedOutputUnit];
       List<Library> libraries = [];
@@ -156,8 +161,8 @@ class PreFragment {
           js.Block(lazyInitializers),
           js.Block(nativeSupport),
           program.metadataTypesForOutputUnit(seedOutputUnit));
-      for (var fragment in fragments) {
-        fragmentMap[fragment] = finalizedFragment;
+      for (var outputUnit in outputUnits) {
+        outputUnitMap[outputUnit] = finalizedFragment;
       }
     }
     return finalizedFragment;
@@ -294,28 +299,32 @@ class _Partition {
 
 class FragmentMerger {
   final CompilerOptions _options;
+  final ElementEnvironment _elementEnvironment;
+  final OutputUnitData outputUnitData;
   int totalSize = 0;
 
-  FragmentMerger(this._options);
+  FragmentMerger(this._options, this._elementEnvironment, this.outputUnitData);
 
-  // Converts a map of (loadId, List<fragments>) to a map of
+  // Converts a map of (loadId, List<OutputUnit>) to a map of
   // (loadId, List<FinalizedFragment>).
-  static Map<String, List<FinalizedFragment>> processLoadMap(
-      Map<String, List<Fragment>> programLoadMap,
-      Map<Fragment, FinalizedFragment> fragmentMap) {
-    Map<String, List<FinalizedFragment>> loadMap = {};
-    programLoadMap.forEach((loadId, fragments) {
+  Map<String, List<FinalizedFragment>> computeFragmentsToLoad(
+      Map<String, List<OutputUnit>> outputUnitsToLoad,
+      Map<OutputUnit, FinalizedFragment> outputUnitMap,
+      Set<OutputUnit> omittedOutputUnits) {
+    Map<String, List<FinalizedFragment>> fragmentsToLoad = {};
+    outputUnitsToLoad.forEach((loadId, outputUnits) {
       Set<FinalizedFragment> unique = {};
       List<FinalizedFragment> finalizedFragments = [];
-      loadMap[loadId] = finalizedFragments;
-      for (var fragment in fragments) {
-        var finalizedFragment = fragmentMap[fragment];
+      fragmentsToLoad[loadId] = finalizedFragments;
+      for (var outputUnit in outputUnits) {
+        if (omittedOutputUnits.contains(outputUnit)) continue;
+        var finalizedFragment = outputUnitMap[outputUnit];
         if (unique.add(finalizedFragment)) {
           finalizedFragments.add(finalizedFragment);
         }
       }
     });
-    return loadMap;
+    return fragmentsToLoad;
   }
 
   /// Given a list of OutputUnits sorted by their import entites,
@@ -353,22 +362,22 @@ class FragmentMerger {
   }
 
   /// Attachs predecessors and successors to each PreFragment.
-  void attachDependencies(Map<Fragment, PreFragment> fragmentMap,
+  /// Expects outputUnits to be sorted.
+  void attachDependencies(
+      List<OutputUnit> outputUnits,
+      Map<Fragment, PreFragment> fragmentMap,
       List<PreFragment> preDeferredFragments) {
     // Create a map of OutputUnit to Fragment.
     Map<OutputUnit, Fragment> outputUnitMap = {};
-    List<OutputUnit> allOutputUnits = [];
     for (var preFragment in preDeferredFragments) {
       var fragment = preFragment.fragments.single;
       var outputUnit = fragment.outputUnit;
       outputUnitMap[outputUnit] = fragment;
-      allOutputUnits.add(outputUnit);
       totalSize += preFragment.size;
     }
-    allOutputUnits.sort();
 
     // Get a list of direct edges and then attach them to PreFragments.
-    var allEdges = createDirectEdges(allOutputUnits);
+    var allEdges = createDirectEdges(outputUnits);
     allEdges.forEach((outputUnit, edges) {
       var predecessor = fragmentMap[outputUnitMap[outputUnit]];
       for (var edge in edges) {
@@ -448,5 +457,80 @@ class FragmentMerger {
       merged.add(partition.fragments.reduce((a, b) => b.mergeAfter(a)));
     }
     return merged;
+  }
+
+  /// Computes load lists using a list of sorted OutputUnits.
+  Map<String, List<OutputUnit>> computeOutputUnitsToLoad(
+      List<OutputUnit> outputUnits) {
+    // Sort the output units in descending order of the number of imports they
+    // include.
+
+    // The loading of the output units must be ordered because a superclass
+    // needs to be initialized before its subclass.
+    // But a class can only depend on another class in an output unit shared by
+    // a strict superset of the imports:
+    // By contradiction: Assume a class C in output unit shared by imports in
+    // the set S1 = (lib1,.., lib_n) depends on a class D in an output unit
+    // shared by S2 such that S2 not a superset of S1. Let lib_s be a library in
+    // S1 not in S2. lib_s must depend on C, and then in turn on D. Therefore D
+    // is not in the right output unit.
+    List<OutputUnit> sortedOutputUnits = outputUnits.reversed.toList();
+
+    Map<String, List<OutputUnit>> outputUnitsToLoad = {};
+    for (var import in outputUnitData.deferredImportDescriptions.keys) {
+      var loadId = outputUnitData.importDeferName[import];
+      List<OutputUnit> loadList = [];
+      for (var outputUnit in sortedOutputUnits) {
+        assert(!outputUnit.isMainOutput);
+        if (outputUnit.imports.contains(import)) {
+          loadList.add(outputUnit);
+        }
+      }
+      outputUnitsToLoad[loadId] = loadList;
+    }
+    return outputUnitsToLoad;
+  }
+
+  /// Returns a json-style map for describing what files that are loaded by a
+  /// given deferred import.
+  /// The mapping is structured as:
+  /// library uri -> {"name": library name, "files": (prefix -> list of files)}
+  /// Where
+  ///
+  /// - <library uri> is the import uri of the library making a deferred
+  ///   import.
+  /// - <library name> is the name of the library, or "<unnamed>" if it is
+  ///   unnamed.
+  /// - <prefix> is the `as` prefix used for a given deferred import.
+  /// - <list of files> is a list of the filenames the must be loaded when that
+  ///   import is loaded.
+  /// TODO(joshualitt): the library name is unused and should be removed. This
+  /// will be a breaking change.
+  Map<String, Map<String, dynamic>> computeDeferredMap(
+      Map<String, List<FinalizedFragment>> fragmentsToLoad) {
+    Map<String, Map<String, dynamic>> mapping = {};
+
+    outputUnitData.deferredImportDescriptions.keys
+        .forEach((ImportEntity import) {
+      var importDeferName = outputUnitData.importDeferName[import];
+      List<FinalizedFragment> fragments = fragmentsToLoad[importDeferName];
+      ImportDescription description =
+          outputUnitData.deferredImportDescriptions[import];
+      String getName(LibraryEntity library) {
+        var name = _elementEnvironment.getLibraryName(library);
+        return name == '' ? '<unnamed>' : name;
+      }
+
+      Map<String, dynamic> libraryMap = mapping.putIfAbsent(
+          description.importingUri,
+          () => {"name": getName(description.importingLibrary), "imports": {}});
+
+      List<String> partFileNames = fragments
+          .map((fragment) =>
+              deferredPartFileName(_options, fragment.canonicalOutputUnit.name))
+          .toList();
+      libraryMap["imports"][importDeferName] = partFileNames;
+    });
+    return mapping;
   }
 }

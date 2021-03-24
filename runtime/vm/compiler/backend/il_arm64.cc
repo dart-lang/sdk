@@ -3062,13 +3062,18 @@ class AllocateContextSlowPath
 
     compiler->SaveLiveRegisters(locs);
 
+    auto slow_path_env = compiler->SlowPathEnvironmentFor(
+        instruction(), /*num_slow_path_args=*/0);
+    ASSERT(slow_path_env != nullptr);
+
     auto object_store = compiler->isolate_group()->object_store();
     const auto& allocate_context_stub = Code::ZoneHandle(
         compiler->zone(), object_store->allocate_context_stub());
 
     __ LoadImmediate(R1, instruction()->num_context_variables());
     compiler->GenerateStubCall(instruction()->source(), allocate_context_stub,
-                               UntaggedPcDescriptors::kOther, locs);
+                               UntaggedPcDescriptors::kOther, locs,
+                               instruction()->deopt_id(), slow_path_env);
     ASSERT(instruction()->locs()->out(0).reg() == R0);
     compiler->RestoreLiveRegisters(instruction()->locs());
     __ b(exit_label());
@@ -3122,7 +3127,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Code::ZoneHandle(compiler->zone(), object_store->allocate_context_stub());
   __ LoadImmediate(R1, num_context_variables());
   compiler->GenerateStubCall(source(), allocate_context_stub,
-                             UntaggedPcDescriptors::kOther, locs());
+                             UntaggedPcDescriptors::kOther, locs(), deopt_id());
 }
 
 LocationSummary* CloneContextInstr::MakeLocationSummary(Zone* zone,
@@ -3144,7 +3149,8 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const auto& clone_context_stub =
       Code::ZoneHandle(compiler->zone(), object_store->clone_context_stub());
   compiler->GenerateStubCall(source(), clone_context_stub,
-                             /*kind=*/UntaggedPcDescriptors::kOther, locs());
+                             /*kind=*/UntaggedPcDescriptors::kOther, locs(),
+                             deopt_id());
 }
 
 LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
@@ -6905,7 +6911,7 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
-                             locs());
+                             locs(), deopt_id());
 }
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {

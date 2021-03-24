@@ -325,7 +325,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
       resolver: this,
     );
     boolExpressionVerifier = BoolExpressionVerifier(
-      typeSystem: typeSystem,
+      resolver: this,
       errorReporter: errorReporter,
       nullableDereferenceVerifier: nullableDereferenceVerifier,
     );
@@ -993,6 +993,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
       errorCode: CompileTimeErrorCode.NON_BOOL_EXPRESSION,
+      whyNotPromoted: flowAnalysis?.flow?.whyNotPromoted(node.condition),
     );
     flowAnalysis?.flow?.assert_afterCondition(node.condition);
     node.message?.accept(this);
@@ -1007,6 +1008,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
       errorCode: CompileTimeErrorCode.NON_BOOL_EXPRESSION,
+      whyNotPromoted: flowAnalysis?.flow?.whyNotPromoted(node.condition),
     );
     flowAnalysis?.flow?.assert_afterCondition(node.condition);
     node.message?.accept(this);
@@ -1187,7 +1189,9 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     // TODO(scheglov) Do we need these checks for null?
     condition.accept(this);
     condition = node.condition;
-    boolExpressionVerifier.checkForNonBoolCondition(condition);
+    var whyNotPromoted = flowAnalysis?.flow?.whyNotPromoted(condition);
+    boolExpressionVerifier.checkForNonBoolCondition(condition,
+        whyNotPromoted: whyNotPromoted);
 
     Expression thenExpression = node.thenExpression;
     InferenceContext.setTypeFromNode(thenExpression, node);
@@ -1295,6 +1299,11 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     node.expression.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+    var enclosingConstructor = enclosingFunction as ConstructorElement;
+    if (fieldElement != null) {
+      checkForFieldInitializerNotAssignable(node, fieldElement,
+          isConstConstructor: enclosingConstructor.isConst);
+    }
   }
 
   @override
@@ -1349,7 +1358,9 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     InferenceContext.setType(condition, typeProvider.boolType);
     condition.accept(this);
     condition = node.condition;
-    boolExpressionVerifier.checkForNonBoolCondition(condition);
+    var whyNotPromoted = flowAnalysis?.flow?.whyNotPromoted(condition);
+    boolExpressionVerifier.checkForNonBoolCondition(condition,
+        whyNotPromoted: whyNotPromoted);
 
     flowAnalysis?.flow?.doStatement_end(condition);
   }
@@ -1598,8 +1609,10 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     InferenceContext.setType(condition, typeProvider.boolType);
     condition.accept(this);
     condition = node.condition;
+    var whyNotPromoted = flowAnalysis?.flow?.whyNotPromoted(condition);
 
-    boolExpressionVerifier.checkForNonBoolCondition(condition);
+    boolExpressionVerifier.checkForNonBoolCondition(condition,
+        whyNotPromoted: whyNotPromoted);
 
     CollectionElement thenElement = node.thenElement;
     if (flowAnalysis != null) {
@@ -1637,8 +1650,10 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     InferenceContext.setType(condition, typeProvider.boolType);
     condition.accept(this);
     condition = node.condition;
+    var whyNotPromoted = flowAnalysis?.flow?.whyNotPromoted(condition);
 
-    boolExpressionVerifier.checkForNonBoolCondition(condition);
+    boolExpressionVerifier.checkForNonBoolCondition(condition,
+        whyNotPromoted: whyNotPromoted);
 
     Statement thenStatement = node.thenStatement;
     if (flowAnalysis != null) {
@@ -1837,6 +1852,10 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   void visitNamedExpression(NamedExpression node) {
     InferenceContext.setTypeFromNode(node.expression, node);
     super.visitNamedExpression(node);
+    // Any "why not promoted" information that flow analysis had associated with
+    // `node.expression` now needs to be forwarded to `node`, so that when
+    // `visitArgumentList` iterates through the arguments, it will find it.
+    flowAnalysis?.flow?.forwardExpression(node, node.expression);
   }
 
   @override
@@ -2141,6 +2160,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
             isFinal: parent.isFinal, isLate: parent.isLate);
       }
     }
+    checkForInvalidAssignment(node.name, node.initializer);
   }
 
   @override
@@ -2168,8 +2188,11 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
       flowAnalysis?.flow?.whileStatement_conditionBegin(node);
       condition.accept(this);
+      condition = node.condition;
+      var whyNotPromoted = flowAnalysis?.flow?.whyNotPromoted(condition);
 
-      boolExpressionVerifier.checkForNonBoolCondition(node.condition);
+      boolExpressionVerifier.checkForNonBoolCondition(node.condition,
+          whyNotPromoted: whyNotPromoted);
 
       Statement body = node.body;
       flowAnalysis?.flow?.whileStatement_bodyBegin(node, condition);

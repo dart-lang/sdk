@@ -45,7 +45,7 @@ vars = {
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
   "co19_rev": "fddb1dce948cec277bf3dc23b45ee95e761b89fe",
-  "co19_2_rev": "cf6eed0535e45413672bb5bb6e65df9f59846372",
+  "co19_2_rev": "6b71fed8c0f6cf396c085ba2d405d5a9af1daf45",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "076df10d9b77af337f2d8029725787155eb1cd52",
@@ -70,7 +70,7 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_rev": "eb2deca5b4489709acd001a5c7fd2df4f1eed19d",
   "async_rev": "376d418b1b535030fbe3369938d2ffdbb0340a77",
-  "bazel_worker_rev": "060c55a933d39798681a4f533b161b81dc48d77e",
+  "bazel_worker_rev": "0885637b037979afbf5bcd05fd748b309fd669c0",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
   "boringssl_gen_rev": "7322fc15cc065d8d2957fccce6b62a509dc4d641",
@@ -128,7 +128,7 @@ vars = {
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache_rev": "664737ecad027e6b96d0d1e627257efa0e46fcb1",
   "oauth2_rev": "7cd3284049fe5badbec9f2bea2afc41d14c01057",
-  "package_config_rev": "249af482de9ebabfc781bf10d6152c938e5ce45e",
+  "package_config_rev": "a84c0d45401f215fbe9384df923a38f4022a3c45",
   "path_rev": "407ab76187fade41c31e39c745b39661b710106c",
   "pedantic_rev": "df177f6ae531426aaf7bbf0121c90dc89d9c57bf",
   "platform_rev": "c20e6fa315e9f8820e51c0ae721f63aff33b8e17",
@@ -136,7 +136,7 @@ vars = {
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "0d03fd588df69e9863e2a2efc0059dee8f18d5b2",
-  "pub_rev": "255a3091fc278b04be74d246a3bec8743ef4d0b7",
+  "pub_rev": "0e657414a472e74ca5dd76ae0db50cc060251dec",
   "pub_semver_rev": "f50d80ef10c4b2fa5f4c8878036a4d9342c0cc82",
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "7e5ec82c99677a2e5b95ce296c4d68b0d3378ed8",

@@ -689,6 +689,23 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  @override
+  void visitTypeName(TypeName node) {
+    if (node.question != null) {
+      var name = node.name.name;
+      var type = node.typeOrThrow;
+      // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
+      // not report synthetic `dynamic` in place of an unresolved type.
+      if ((type.element == _nullType.element ||
+              (type.isDynamic && name == 'dynamic')) &&
+          type.aliasElement == null) {
+        _errorReporter.reportErrorForNode(
+            HintCode.UNNECESSARY_QUESTION_MARK, node, [name]);
+      }
+    }
+    super.visitTypeName(node);
+  }
+
   /// Check for the passed is expression for the unnecessary type check hint
   /// codes as well as null checks expressed using an is expression.
   ///

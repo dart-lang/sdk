@@ -90,11 +90,6 @@ class TimelineTestHelper : public AllStatic {
     event->Complete();
   }
 
-  static void Clear(TimelineEventRecorder* recorder) {
-    ASSERT(recorder != NULL);
-    recorder->Clear();
-  }
-
   static void FinishBlock(TimelineEventBlock* block) { block->Finish(); }
 };
 
@@ -335,6 +330,7 @@ TEST_CASE(TimelineEventCallbackRecorderBasic) {
   event->Complete();
   EXPECT_EQ(1, recorder->CountFor(TimelineEvent::kAsyncEnd));
 
+  Timeline::Clear();
   delete recorder;
 }
 
@@ -458,7 +454,7 @@ TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
     EXPECT(!it.HasNext());
   }
 
-  TimelineTestHelper::Clear(recorder);
+  Timeline::Clear();
   delete recorder;
 }
 
@@ -495,7 +491,7 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
   const char* beta = strstr(js.ToCString(), "Beta");
   EXPECT(alpha < beta);
 
-  TimelineTestHelper::Clear(recorder);
+  Timeline::Clear();
   delete recorder;
 }
 
@@ -520,8 +516,9 @@ TEST_CASE(TimelinePauses_Basic) {
     EXPECT_EQ(10, pauses.MaxInclusiveTime("a"));
     EXPECT_EQ(10, pauses.MaxExclusiveTime("a"));
   }
-  TimelineTestHelper::Clear(recorder);
-
+  Timeline::Clear();
+  delete recorder;
+  recorder = new TimelineEventEndlessRecorder();
   // Test case.
   TimelineTestHelper::FakeDuration(recorder, "a", 0, 10);
   TimelineTestHelper::FakeDuration(recorder, "b", 0, 10);
@@ -539,7 +536,9 @@ TEST_CASE(TimelinePauses_Basic) {
     EXPECT_EQ(10, pauses.MaxInclusiveTime("b"));
     EXPECT_EQ(10, pauses.MaxExclusiveTime("b"));
   }
-  TimelineTestHelper::Clear(recorder);
+  Timeline::Clear();
+  delete recorder;
+  recorder = new TimelineEventEndlessRecorder();
 
   // Test case.
   TimelineTestHelper::FakeDuration(recorder, "a", 0, 10);
@@ -558,7 +557,9 @@ TEST_CASE(TimelinePauses_Basic) {
     EXPECT_EQ(7, pauses.MaxInclusiveTime("b"));
     EXPECT_EQ(7, pauses.MaxExclusiveTime("b"));
   }
-  TimelineTestHelper::Clear(recorder);
+  Timeline::Clear();
+  delete recorder;
+  recorder = new TimelineEventEndlessRecorder();
 
   // Test case.
   TimelineTestHelper::FakeDuration(recorder, "a", 0, 10);
@@ -586,7 +587,9 @@ TEST_CASE(TimelinePauses_Basic) {
     EXPECT_EQ(1, pauses.MaxInclusiveTime("b"));
     EXPECT_EQ(1, pauses.MaxExclusiveTime("b"));
   }
-  TimelineTestHelper::Clear(recorder);
+  Timeline::Clear();
+  delete recorder;
+  recorder = new TimelineEventEndlessRecorder();
 
   // Test case.
   TimelineTestHelper::FakeDuration(recorder, "a", 0, 10);
@@ -616,7 +619,9 @@ TEST_CASE(TimelinePauses_Basic) {
     EXPECT_EQ(5, pauses.MaxInclusiveTime("d"));
     EXPECT_EQ(5, pauses.MaxExclusiveTime("d"));
   }
-  TimelineTestHelper::Clear(recorder);
+  Timeline::Clear();
+  delete recorder;
+  recorder = new TimelineEventEndlessRecorder();
 
   // Test case.
   TimelineTestHelper::FakeDuration(recorder, "a", 0, 10);
@@ -651,7 +656,9 @@ TEST_CASE(TimelinePauses_Basic) {
     EXPECT_EQ(2, pauses.MaxInclusiveTime("e"));
     EXPECT_EQ(2, pauses.MaxExclusiveTime("e"));
   }
-  TimelineTestHelper::Clear(recorder);
+  Timeline::Clear();
+  delete recorder;
+  recorder = new TimelineEventEndlessRecorder();
 
   // Test case.
   TimelineTestHelper::FakeDuration(recorder, "a", 0, 10);
@@ -667,8 +674,7 @@ TEST_CASE(TimelinePauses_Basic) {
     EXPECT_EQ(10, pauses.MaxInclusiveTime("a"));
     EXPECT_EQ(8, pauses.MaxExclusiveTime("a"));
   }
-  TimelineTestHelper::Clear(recorder);
-
+  Timeline::Clear();
   delete recorder;
 }
 
@@ -695,7 +701,9 @@ TEST_CASE(TimelinePauses_BeginEnd) {
     EXPECT_EQ(10, pauses.MaxInclusiveTime("a"));
     EXPECT_EQ(10, pauses.MaxExclusiveTime("a"));
   }
-  TimelineTestHelper::Clear(recorder);
+  Timeline::Clear();
+  delete recorder;
+  recorder = new TimelineEventEndlessRecorder();
 
   // Test case.
   TimelineTestHelper::FakeBegin(recorder, "a", 0);
@@ -717,7 +725,9 @@ TEST_CASE(TimelinePauses_BeginEnd) {
     EXPECT_EQ(10, pauses.MaxInclusiveTime("b"));
     EXPECT_EQ(10, pauses.MaxExclusiveTime("b"));
   }
-  TimelineTestHelper::Clear(recorder);
+  Timeline::Clear();
+  delete recorder;
+  recorder = new TimelineEventEndlessRecorder();
 
   // Test case.
   TimelineTestHelper::FakeBegin(recorder, "a", 0);
@@ -739,7 +749,9 @@ TEST_CASE(TimelinePauses_BeginEnd) {
     EXPECT_EQ(7, pauses.MaxInclusiveTime("b"));
     EXPECT_EQ(7, pauses.MaxExclusiveTime("b"));
   }
-  TimelineTestHelper::Clear(recorder);
+  Timeline::Clear();
+  delete recorder;
+  recorder = new TimelineEventEndlessRecorder();
 
   // Test case.
   TimelineTestHelper::FakeBegin(recorder, "a", 0);
@@ -772,7 +784,9 @@ TEST_CASE(TimelinePauses_BeginEnd) {
     EXPECT_EQ(1, pauses.MaxInclusiveTime("b"));
     EXPECT_EQ(1, pauses.MaxExclusiveTime("b"));
   }
-  TimelineTestHelper::Clear(recorder);
+  Timeline::Clear();
+  delete recorder;
+  recorder = new TimelineEventEndlessRecorder();
 
   // Test case.
   TimelineTestHelper::FakeBegin(recorder, "a", 0);
@@ -806,7 +820,9 @@ TEST_CASE(TimelinePauses_BeginEnd) {
     EXPECT_EQ(5, pauses.MaxInclusiveTime("d"));
     EXPECT_EQ(5, pauses.MaxExclusiveTime("d"));
   }
-  TimelineTestHelper::Clear(recorder);
+  Timeline::Clear();
+  delete recorder;
+  recorder = new TimelineEventEndlessRecorder();
 
   // Test case.
   TimelineTestHelper::FakeBegin(recorder, "a", 0);
@@ -846,7 +862,9 @@ TEST_CASE(TimelinePauses_BeginEnd) {
     EXPECT_EQ(2, pauses.MaxInclusiveTime("e"));
     EXPECT_EQ(2, pauses.MaxExclusiveTime("e"));
   }
-  TimelineTestHelper::Clear(recorder);
+  Timeline::Clear();
+  delete recorder;
+  recorder = new TimelineEventEndlessRecorder();
 
   // Test case.
   TimelineTestHelper::FakeBegin(recorder, "a", 0);
@@ -864,7 +882,9 @@ TEST_CASE(TimelinePauses_BeginEnd) {
     EXPECT_EQ(10, pauses.MaxInclusiveTime("a"));
     EXPECT_EQ(8, pauses.MaxExclusiveTime("a"));
   }
-  TimelineTestHelper::Clear(recorder);
+  Timeline::Clear();
+  delete recorder;
+  recorder = new TimelineEventEndlessRecorder();
 
   // Test case.
   TimelineTestHelper::FakeBegin(recorder, "a", 0);
@@ -878,8 +898,7 @@ TEST_CASE(TimelinePauses_BeginEnd) {
     pauses.CalculatePauseTimesForThread(tid);
     EXPECT(pauses.has_error());
   }
-  TimelineTestHelper::Clear(recorder);
-
+  Timeline::Clear();
   delete recorder;
 }
 

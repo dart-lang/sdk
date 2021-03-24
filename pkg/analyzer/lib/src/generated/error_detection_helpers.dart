@@ -39,7 +39,7 @@ mixin ErrorDetectionHelpers {
         return;
       }
 
-      checkForAssignableExpressionAtType(
+      _checkForAssignableExpressionAtType(
           expression, actualStaticType, expectedStaticType, errorCode,
           whyNotPromotedInfo: whyNotPromotedInfo);
     }
@@ -81,33 +81,99 @@ mixin ErrorDetectionHelpers {
         whyNotPromotedInfo);
   }
 
-  bool checkForAssignableExpressionAtType(
-      Expression expression,
-      DartType actualStaticType,
-      DartType expectedStaticType,
-      ErrorCode errorCode,
-      {Map<DartType, NonPromotionReason> Function()? whyNotPromotedInfo}) {
-    if (!typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
-      AstNode getErrorNode(AstNode node) {
-        if (node is CascadeExpression) {
-          return getErrorNode(node.target);
-        }
-        if (node is ParenthesizedExpression) {
-          return getErrorNode(node.expression);
-        }
-        return node;
+  /// Verify that the given constructor field [initializer] has compatible field
+  /// and initializer expression types. The [fieldElement] is the static element
+  /// from the name in the [ConstructorFieldInitializer].
+  ///
+  /// See [CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE], and
+  /// [StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
+  void checkForFieldInitializerNotAssignable(
+      ConstructorFieldInitializer initializer, FieldElement fieldElement,
+      {required bool isConstConstructor}) {
+    // prepare field type
+    DartType fieldType = fieldElement.type;
+    // prepare expression type
+    Expression expression = initializer.expression;
+    // test the static type of the expression
+    DartType staticType = expression.typeOrThrow;
+    if (typeSystem.isAssignableTo(staticType, fieldType)) {
+      if (!fieldType.isVoid) {
+        checkForUseOfVoidResult(expression);
       }
-
-      errorReporter.reportErrorForNode(
-        errorCode,
-        getErrorNode(expression),
-        [actualStaticType, expectedStaticType],
-        computeWhyNotPromotedMessages(
-            expression, expression, whyNotPromotedInfo?.call()),
-      );
-      return false;
+      return;
     }
-    return true;
+    // report problem
+    if (isConstConstructor) {
+      // TODO(paulberry): this error should be based on the actual type of the
+      // constant, not the static type.  See dartbug.com/21119.
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+          expression,
+          [staticType, fieldType]);
+    }
+    errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+        expression,
+        [staticType, fieldType]);
+    // TODO(brianwilkerson) Define a hint corresponding to these errors and
+    // report it if appropriate.
+//        // test the propagated type of the expression
+//        Type propagatedType = expression.getPropagatedType();
+//        if (propagatedType != null && propagatedType.isAssignableTo(fieldType)) {
+//          return false;
+//        }
+//        // report problem
+//        if (isEnclosingConstructorConst) {
+//          errorReporter.reportTypeErrorForNode(
+//              CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+//              expression,
+//              propagatedType == null ? staticType : propagatedType,
+//              fieldType);
+//        } else {
+//          errorReporter.reportTypeErrorForNode(
+//              StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+//              expression,
+//              propagatedType == null ? staticType : propagatedType,
+//              fieldType);
+//        }
+//        return true;
+  }
+
+  /// Verify that the given left hand side ([lhs]) and right hand side ([rhs])
+  /// represent a valid assignment.
+  ///
+  /// See [CompileTimeErrorCode.INVALID_ASSIGNMENT].
+  void checkForInvalidAssignment(Expression? lhs, Expression? rhs) {
+    if (lhs == null || rhs == null) {
+      return;
+    }
+
+    if (lhs is IndexExpression &&
+            identical(lhs.realTarget.staticType, NeverTypeImpl.instance) ||
+        lhs is PrefixedIdentifier &&
+            identical(lhs.prefix.staticType, NeverTypeImpl.instance) ||
+        lhs is PropertyAccess &&
+            identical(lhs.realTarget.staticType, NeverTypeImpl.instance)) {
+      return;
+    }
+
+    DartType leftType;
+    var parent = lhs.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == lhs) {
+      leftType = parent.writeType!;
+    } else {
+      var leftVariableElement = getVariableElement(lhs);
+      leftType = (leftVariableElement == null)
+          ? lhs.typeOrThrow
+          : leftVariableElement.type;
+    }
+
+    if (!leftType.isVoid && checkForUseOfVoidResult(rhs)) {
+      return;
+    }
+
+    _checkForAssignableExpression(
+        rhs, leftType, CompileTimeErrorCode.INVALID_ASSIGNMENT);
   }
 
   /// Check for situations where the result of a method or function is used,
@@ -148,6 +214,18 @@ mixin ErrorDetectionHelpers {
       SyntacticEntity errorEntity,
       Map<DartType, NonPromotionReason>? whyNotPromoted);
 
+  /// Return the variable element represented by the given [expression], or
+  /// `null` if there is no such element.
+  VariableElement? getVariableElement(Expression? expression) {
+    if (expression is Identifier) {
+      var element = expression.staticElement;
+      if (element is VariableElement) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   /// Verify that the given [expression] can be assigned to its corresponding
   /// parameters.
   ///
@@ -166,5 +244,41 @@ mixin ErrorDetectionHelpers {
     checkForArgumentTypeNotAssignable(
         expression, expectedStaticType, expression.typeOrThrow, errorCode,
         whyNotPromotedInfo: whyNotPromotedInfo);
+  }
+
+  bool _checkForAssignableExpression(
+      Expression expression, DartType expectedStaticType, ErrorCode errorCode) {
+    DartType actualStaticType = expression.typeOrThrow;
+    return _checkForAssignableExpressionAtType(
+        expression, actualStaticType, expectedStaticType, errorCode);
+  }
+
+  bool _checkForAssignableExpressionAtType(
+      Expression expression,
+      DartType actualStaticType,
+      DartType expectedStaticType,
+      ErrorCode errorCode,
+      {Map<DartType, NonPromotionReason> Function()? whyNotPromotedInfo}) {
+    if (!typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
+      AstNode getErrorNode(AstNode node) {
+        if (node is CascadeExpression) {
+          return getErrorNode(node.target);
+        }
+        if (node is ParenthesizedExpression) {
+          return getErrorNode(node.expression);
+        }
+        return node;
+      }
+
+      errorReporter.reportErrorForNode(
+        errorCode,
+        getErrorNode(expression),
+        [actualStaticType, expectedStaticType],
+        computeWhyNotPromotedMessages(
+            expression, expression, whyNotPromotedInfo?.call()),
+      );
+      return false;
+    }
+    return true;
   }
 }

@@ -41,7 +41,7 @@ Usage: pub run test [files or directories...]
     final result = p.runSync(['help', 'test']);
 
     expect(result.exitCode, 0);
-    expect(result.stdout, contains(' tests in this package'));
+    expect(result.stdout, contains(' tests for a project'));
     expect(result.stderr, isEmpty);
   });
 
@@ -64,7 +64,7 @@ No pubspec.yaml file found - run this command in your project folder.
     expect(resultHelp.stdout, '''
 No pubspec.yaml file found - run this command in your project folder.
 
-Run tests in this package.
+Run tests for a project.
 
 Usage: dart test [arguments]
 

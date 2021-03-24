@@ -33,7 +33,7 @@ class CreateCommand extends DartdevCommand {
       stagehand.getGenerator(templateId);
 
   CreateCommand({bool verbose = false})
-      : super(cmdName, 'Create a new project.') {
+      : super(cmdName, 'Create a new Dart project.') {
     argParser.addOption(
       'template',
       allowed: legalTemplateIds,

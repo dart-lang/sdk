@@ -350,7 +350,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         operatorType == TokenType.QUESTION_QUESTION_EQ) {
       // Already handled in the assignment resolver.
       if (lhs is! SimpleIdentifier) {
-        _checkForInvalidAssignment(lhs, rhs);
+        checkForInvalidAssignment(lhs, rhs);
       }
     } else {
       checkForArgumentTypeNotAssignableForArgument(rhs);
@@ -388,13 +388,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     TokenType type = operator.type;
     if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
       checkForUseOfVoidResult(node.rightOperand);
-    } else if (type == TokenType.EQ_EQ || type == TokenType.BANG_EQ) {
-      checkForArgumentTypeNotAssignableForArgument(node.rightOperand,
-          promoteParameterToNullable: true);
-    } else if (type != TokenType.QUESTION_QUESTION) {
-      checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
     } else {
-      checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
+      // Assignability checking is done by the resolver.
     }
 
     if (type == TokenType.QUESTION_QUESTION) {
@@ -552,7 +547,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var staticElement = fieldName.staticElement;
       _checkForInvalidField(node, fieldName, staticElement);
       if (staticElement is FieldElement) {
-        _checkForFieldInitializerNotAssignable(node, staticElement);
         _checkForAbstractOrExternalFieldConstructorInitializer(
             node.fieldName, staticElement);
       }
@@ -577,7 +571,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    _checkForInvalidAssignment(node.identifier, node.defaultValue);
+    checkForInvalidAssignment(node.identifier, node.defaultValue);
     super.visitDefaultFormalParameter(node);
   }
 
@@ -1254,7 +1248,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     SimpleIdentifier nameNode = node.name;
     var initializerNode = node.initializer;
     // do checks
-    _checkForInvalidAssignment(nameNode, initializerNode);
     _checkForImplicitDynamicIdentifier(node, nameNode);
     _checkForAbstractOrExternalVariableInitializer(node);
     // visit name
@@ -1528,13 +1521,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.reportErrorForNode(CompileTimeErrorCode.AMBIGUOUS_IMPORT,
           node, [name, StringUtilities.printListOfQuotedNames(libraryNames)]);
     }
-  }
-
-  bool _checkForAssignableExpression(
-      Expression expression, DartType expectedStaticType, ErrorCode errorCode) {
-    DartType actualStaticType = expression.typeOrThrow;
-    return checkForAssignableExpressionAtType(
-        expression, actualStaticType, expectedStaticType, errorCode);
   }
 
   /// Verify that the given [expression] is not final.
@@ -2401,63 +2387,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Verify that the given constructor field [initializer] has compatible field
-  /// and initializer expression types. The [fieldElement] is the static element
-  /// from the name in the [ConstructorFieldInitializer].
-  ///
-  /// See [CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE], and
-  /// [StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
-  void _checkForFieldInitializerNotAssignable(
-      ConstructorFieldInitializer initializer, FieldElement fieldElement) {
-    // prepare field type
-    DartType fieldType = fieldElement.type;
-    // prepare expression type
-    Expression expression = initializer.expression;
-    // test the static type of the expression
-    DartType staticType = expression.typeOrThrow;
-    if (typeSystem.isAssignableTo(staticType, fieldType)) {
-      if (!fieldType.isVoid) {
-        checkForUseOfVoidResult(expression);
-      }
-      return;
-    }
-    // report problem
-    if (_enclosingExecutable.isConstConstructor) {
-      // TODO(paulberry): this error should be based on the actual type of the
-      // constant, not the static type.  See dartbug.com/21119.
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
-          expression,
-          [staticType, fieldType]);
-    }
-    errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
-        expression,
-        [staticType, fieldType]);
-    // TODO(brianwilkerson) Define a hint corresponding to these errors and
-    // report it if appropriate.
-//        // test the propagated type of the expression
-//        Type propagatedType = expression.getPropagatedType();
-//        if (propagatedType != null && propagatedType.isAssignableTo(fieldType)) {
-//          return false;
-//        }
-//        // report problem
-//        if (isEnclosingConstructorConst) {
-//          errorReporter.reportTypeErrorForNode(
-//              CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
-//              expression,
-//              propagatedType == null ? staticType : propagatedType,
-//              fieldType);
-//        } else {
-//          errorReporter.reportTypeErrorForNode(
-//              StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
-//              expression,
-//              propagatedType == null ? staticType : propagatedType,
-//              fieldType);
-//        }
-//        return true;
-  }
-
   /// Verify that the given field formal [parameter] is in a constructor
   /// declaration.
   ///
@@ -2756,43 +2685,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
           annotation.name);
     }
-  }
-
-  /// Verify that the given left hand side ([lhs]) and right hand side ([rhs])
-  /// represent a valid assignment.
-  ///
-  /// See [CompileTimeErrorCode.INVALID_ASSIGNMENT].
-  void _checkForInvalidAssignment(Expression? lhs, Expression? rhs) {
-    if (lhs == null || rhs == null) {
-      return;
-    }
-
-    if (lhs is IndexExpression &&
-            identical(lhs.realTarget.staticType, NeverTypeImpl.instance) ||
-        lhs is PrefixedIdentifier &&
-            identical(lhs.prefix.staticType, NeverTypeImpl.instance) ||
-        lhs is PropertyAccess &&
-            identical(lhs.realTarget.staticType, NeverTypeImpl.instance)) {
-      return;
-    }
-
-    DartType leftType;
-    var parent = lhs.parent;
-    if (parent is AssignmentExpression && parent.leftHandSide == lhs) {
-      leftType = parent.writeType!;
-    } else {
-      var leftVariableElement = getVariableElement(lhs);
-      leftType = (leftVariableElement == null)
-          ? lhs.typeOrThrow
-          : leftVariableElement.type;
-    }
-
-    if (!leftType.isVoid && checkForUseOfVoidResult(rhs)) {
-      return;
-    }
-
-    _checkForAssignableExpression(
-        rhs, leftType, CompileTimeErrorCode.INVALID_ASSIGNMENT);
   }
 
   /// Check the given [initializer] to ensure that the field being initialized
@@ -5171,18 +5063,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     return fields.toList();
-  }
-
-  /// Return the variable element represented by the given [expression], or
-  /// `null` if there is no such element.
-  static VariableElement? getVariableElement(Expression? expression) {
-    if (expression is Identifier) {
-      var element = expression.staticElement;
-      if (element is VariableElement) {
-        return element;
-      }
-    }
-    return null;
   }
 }
 

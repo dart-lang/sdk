@@ -230,6 +230,7 @@ void Timeline::Cleanup() {
   Timeline::stream_##name##_.set_enabled(false);
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
+  Timeline::Clear();
   delete recorder_;
   recorder_ = NULL;
   if (enabled_streams_ != NULL) {
@@ -1137,6 +1138,7 @@ TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
 }
 
 TimelineEventFixedBufferRecorder::~TimelineEventFixedBufferRecorder() {
+  MutexLocker ml(&lock_);
   // Delete all blocks.
   for (intptr_t i = 0; i < num_blocks_; i++) {
     blocks_[i].Reset();
@@ -1333,16 +1335,7 @@ void TimelineEventPlatformRecorder::CompleteEvent(TimelineEvent* event) {
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
     : head_(nullptr), tail_(nullptr), block_index_(0) {}
 
-TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {
-  TimelineEventBlock* current = head_;
-  head_ = tail_ = nullptr;
-
-  while (current != nullptr) {
-    TimelineEventBlock* next = current->next();
-    delete current;
-    current = next;
-  }
-}
+TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {}
 
 #ifndef PRODUCT
 void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
@@ -1424,6 +1417,7 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
 #endif
 
 void TimelineEventEndlessRecorder::Clear() {
+  MutexLocker ml(&lock_);
   TimelineEventBlock* current = head_;
   while (current != NULL) {
     TimelineEventBlock* next = current->next();
@@ -1431,9 +1425,8 @@ void TimelineEventEndlessRecorder::Clear() {
     current = next;
   }
   head_ = NULL;
+  tail_ = NULL;
   block_index_ = 0;
-  OSThread* thread = OSThread::Current();
-  thread->set_timeline_block(NULL);
 }
 
 TimelineEventBlock::TimelineEventBlock(intptr_t block_index)

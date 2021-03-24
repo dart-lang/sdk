@@ -1488,10 +1488,7 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (abstractKeyword != null) {
-      return abstractKeyword!;
-    }
-    return classKeyword;
+    return abstractKeyword ?? classKeyword;
   }
 
   @override
@@ -1727,10 +1724,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (abstractKeyword != null) {
-      return abstractKeyword!;
-    }
-    return typedefKeyword;
+    return abstractKeyword ?? typedefKeyword;
   }
 
   @override
@@ -2478,12 +2472,9 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    Token? leftMost =
-        Token.lexicallyFirst([externalKeyword, constKeyword, factoryKeyword]);
-    if (leftMost != null) {
-      return leftMost;
-    }
-    return _returnType.beginToken;
+    return Token.lexicallyFirst(
+            externalKeyword, constKeyword, factoryKeyword) ??
+        _returnType.beginToken;
   }
 
   @override
@@ -2810,12 +2801,7 @@ class DeclaredIdentifierImpl extends DeclarationImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (keyword != null) {
-      return keyword!;
-    } else if (_type != null) {
-      return _type!.beginToken;
-    }
-    return _identifier.beginToken;
+    return keyword ?? _type?.beginToken ?? _identifier.beginToken;
   }
 
   @override
@@ -3938,16 +3924,9 @@ class FieldDeclarationImpl extends ClassMemberImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (abstractKeyword != null) {
-      return abstractKeyword!;
-    } else if (externalKeyword != null) {
-      return externalKeyword!;
-    } else if (covariantKeyword != null) {
-      return covariantKeyword!;
-    } else if (staticKeyword != null) {
-      return staticKeyword!;
-    }
-    return _fieldList.beginToken;
+    return Token.lexicallyFirst(abstractKeyword, externalKeyword,
+            covariantKeyword, staticKeyword) ??
+        _fieldList.beginToken;
   }
 
   @override
@@ -4782,14 +4761,10 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (externalKeyword != null) {
-      return externalKeyword!;
-    } else if (_returnType != null) {
-      return _returnType!.beginToken;
-    } else if (propertyKeyword != null) {
-      return propertyKeyword!;
-    }
-    return _name.beginToken;
+    return externalKeyword ??
+        _returnType?.beginToken ??
+        propertyKeyword ??
+        _name.beginToken;
   }
 
   @override
@@ -6906,18 +6881,10 @@ class MethodDeclarationImpl extends ClassMemberImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (externalKeyword != null) {
-      return externalKeyword!;
-    } else if (modifierKeyword != null) {
-      return modifierKeyword!;
-    } else if (_returnType != null) {
-      return _returnType!.beginToken;
-    } else if (propertyKeyword != null) {
-      return propertyKeyword!;
-    } else if (operatorKeyword != null) {
-      return operatorKeyword!;
-    }
-    return _name.beginToken;
+    return Token.lexicallyFirst(externalKeyword, modifierKeyword) ??
+        _returnType?.beginToken ??
+        Token.lexicallyFirst(propertyKeyword, operatorKeyword) ??
+        _name.beginToken;
   }
 
   @override
@@ -10510,14 +10477,9 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (lateKeyword != null) {
-      return lateKeyword!;
-    } else if (keyword != null) {
-      return keyword!;
-    } else if (_type != null) {
-      return _type!.beginToken;
-    }
-    return _variables.beginToken!;
+    return Token.lexicallyFirst(lateKeyword, keyword) ??
+        _type?.beginToken ??
+        _variables.beginToken!;
   }
 
   @override

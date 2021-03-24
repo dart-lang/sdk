@@ -2812,10 +2812,15 @@ class AllocateContextSlowPath
 
     compiler->SaveLiveRegisters(locs);
 
+    auto slow_path_env = compiler->SlowPathEnvironmentFor(
+        instruction(), /*num_slow_path_args=*/0);
+    ASSERT(slow_path_env != nullptr);
+
     __ movl(EDX, compiler::Immediate(instruction()->num_context_variables()));
     compiler->GenerateStubCall(instruction()->source(),
                                StubCode::AllocateContext(),
-                               UntaggedPcDescriptors::kOther, locs);
+                               UntaggedPcDescriptors::kOther, locs,
+                               instruction()->deopt_id(), slow_path_env);
     ASSERT(instruction()->locs()->out(0).reg() == EAX);
     compiler->RestoreLiveRegisters(instruction()->locs());
     __ jmp(exit_label());
@@ -2867,7 +2872,7 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ movl(EDX, compiler::Immediate(num_context_variables()));
   compiler->GenerateStubCall(source(), StubCode::AllocateContext(),
-                             UntaggedPcDescriptors::kOther, locs());
+                             UntaggedPcDescriptors::kOther, locs(), deopt_id());
 }
 
 LocationSummary* CloneContextInstr::MakeLocationSummary(Zone* zone,
@@ -2886,7 +2891,8 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->out(0).reg() == EAX);
 
   compiler->GenerateStubCall(source(), StubCode::CloneContext(),
-                             /*kind=*/UntaggedPcDescriptors::kOther, locs());
+                             /*kind=*/UntaggedPcDescriptors::kOther, locs(),
+                             deopt_id());
 }
 
 LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
@@ -6797,7 +6803,7 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
-                             locs());
+                             locs(), deopt_id());
 }
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {

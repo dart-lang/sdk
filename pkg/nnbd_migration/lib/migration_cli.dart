@@ -142,7 +142,7 @@ class MigrateCommand extends Command<int> {
   static const String cmdName = 'migrate';
 
   static const String cmdDescription =
-      'Perform a null safety migration on a project or package.';
+      'Perform null safety migration on a project.';
 
   static const String migrationGuideLink =
       'See https://dart.dev/go/null-safety-migration for a migration guide.';
@@ -225,7 +225,7 @@ class MigrationCli {
               defaultsTo: false,
               negatable: false,
               help:
-                  'Attempt to perform null safety analysis even if the package has '
+                  'Attempt to perform null safety analysis even if the project has '
                   'analysis errors.',
             )),
     MigrationCliOption(
@@ -428,7 +428,7 @@ class MigrationCli {
   }
 
   void _showUsage(bool isVerbose) {
-    logger.stderr('Usage: $binaryName [options...] [<package directory>]');
+    logger.stderr('Usage: $binaryName [options...] [<project directory>]');
 
     logger.stderr('');
     logger.stderr(createParser(hide: !isVerbose).usage);

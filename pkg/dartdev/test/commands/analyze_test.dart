@@ -14,7 +14,7 @@ void main() {
   group('analyze', defineAnalyze, timeout: longTimeout);
 }
 
-const String _analyzeDescriptionText = "Analyze the project's Dart code.";
+const String _analyzeDescriptionText = 'Analyze Dart code in a directory.';
 
 const String _analyzeUsageText =
     'Usage: dart analyze [arguments] [<directory>]';

@@ -16,15 +16,18 @@ class Foo {
     x = DateTime.now().millisecond;
   }
   /*member: Foo.method:member_unit=1{libB}*/
+  @pragma('dart2js:noInline')
   int method() => x;
 }
 
 /*member: isFoo:member_unit=3{libA, libB, libC}*/
+@pragma('dart2js:noInline')
 bool isFoo(o) {
   return o is Foo;
 }
 
 /*member: callFooMethod:member_unit=1{libB}*/
+@pragma('dart2js:noInline')
 int callFooMethod() {
   return Foo().method();
 }
@@ -33,6 +36,7 @@ typedef int FunFoo(Foo a);
 typedef int FunFunFoo(FunFoo b, int c);
 
 /*member: isFunFunFoo:member_unit=3{libA, libB, libC}*/
+@pragma('dart2js:noInline')
 bool isFunFunFoo(o) {
   return o is FunFunFoo;
 }
@@ -64,6 +68,7 @@ class Coo<T> {}
 class Doo<T> extends Coo<T> with Boo<T> {}
 
 /*member: createDooFunFunFoo:member_unit=2{libC}*/
+@pragma('dart2js:noInline')
 createDooFunFunFoo() => Doo<FunFunFoo>();
 
 /*class: B:
@@ -120,6 +125,7 @@ class D2 {}
 class D3 = D2 with D1;
 
 /*member: isMega:member_unit=6{libA}*/
+@pragma('dart2js:noInline')
 bool isMega(o) {
   return o is B2 || o is C3 || o is D3;
 }

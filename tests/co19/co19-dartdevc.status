@@ -72,6 +72,7 @@ Language/Functions/External_Functions/not_connected_to_a_body_t01: SkipByDesign 
 Language/Libraries_and_Scripts/Scripts/top_level_syntax_t01: SkipByDesign # External variables are not supported
 Language/Libraries_and_Scripts/top_level_syntax_t01: SkipByDesign # External variables are not supported
 Language/Metadata/before*: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/523.
+Language/Metadata/syntax_t10: SkipByDesign # dart:mirrors is not supported
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
 Language/Types/Interface_Types/subtype_t27: Skip # Times out
 Language/Types/Interface_Types/subtype_t28: Skip # Times out

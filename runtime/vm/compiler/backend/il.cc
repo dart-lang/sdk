@@ -995,8 +995,9 @@ Representation LoadFieldInstr::representation() const {
 
 AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
     const InstructionSource& source,
-    intptr_t num_context_variables)
-    : TemplateAllocation(source),
+    intptr_t num_context_variables,
+    intptr_t deopt_id)
+    : TemplateAllocation(source, deopt_id),
       num_context_variables_(num_context_variables) {
   // This instruction is not used in AOT for code size reasons.
   ASSERT(!CompilerState::Current().is_aot());
@@ -1019,7 +1020,7 @@ void AllocateTypedDataInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForTypedData(class_id()));
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
-                             locs());
+                             locs(), deopt_id());
 }
 
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
@@ -1131,7 +1132,7 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
 }
 
 bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
-  ASSERT(IsFieldInitialized());
+  ASSERT(AllowsCSE());
   return field().ptr() == other->AsLoadStaticField()->field().ptr();
 }
 
@@ -5480,11 +5481,13 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
     __ CompareRegisters(InstantiationABI::kInstantiatorTypeArgumentsReg,
                         InstantiationABI::kResultTypeArgumentsReg);
     if (!function_type_arguments()->BindsToConstant()) {
-      __ BranchIf(NOT_EQUAL, &non_null_type_args);
+      __ BranchIf(NOT_EQUAL, &non_null_type_args,
+                  compiler::AssemblerBase::kNearJump);
       __ CompareRegisters(InstantiationABI::kFunctionTypeArgumentsReg,
                           InstantiationABI::kResultTypeArgumentsReg);
     }
-    __ BranchIf(EQUAL, &type_arguments_instantiated);
+    __ BranchIf(EQUAL, &type_arguments_instantiated,
+                compiler::AssemblerBase::kNearJump);
     __ Bind(&non_null_type_args);
   }
 

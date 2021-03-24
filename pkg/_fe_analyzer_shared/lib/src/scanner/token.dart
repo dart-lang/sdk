@@ -1077,24 +1077,23 @@ abstract class Token implements SyntacticEntity {
   Object value();
 
   /**
-   * Compare the given [tokens] to find the token that appears first in the
+   * Compare the given tokens to find the token that appears first in the
    * source being parsed. That is, return the left-most of all of the tokens.
-   * The list must be non-`null`, but the elements of the list are allowed to be
-   * `null`. Return the token with the smallest offset, or `null` if the list is
-   * empty or if all of the elements of the list are `null`.
+   * Return the token with the smallest offset, or `null` if all of the
+   * tokens are `null`.
    */
-  static Token? lexicallyFirst(List<Token?> tokens) {
-    Token? first = null;
-    int offset = -1;
-    int length = tokens.length;
-    for (int i = 0; i < length; i++) {
-      Token? token = tokens[i];
-      if (token != null && (offset < 0 || token.offset < offset)) {
-        first = token;
-        offset = token.offset;
-      }
+  static Token? lexicallyFirst([Token? t1, Token? t2, Token? t3, Token? t4]) {
+    Token? result = t1;
+    if (result == null || t2 != null && t2.offset < result.offset) {
+      result = t2;
     }
-    return first;
+    if (result == null || t3 != null && t3.offset < result.offset) {
+      result = t3;
+    }
+    if (result == null || t4 != null && t4.offset < result.offset) {
+      result = t4;
+    }
+    return result;
   }
 }
 

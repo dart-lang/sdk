@@ -31,9 +31,9 @@ import 'lib2.dart' deferred as lib2;
 /*member: main:member_unit=main{}*/
 void main() {
   lib1.loadLibrary().then(/*closure_unit=main{}*/ (_) {
-    new lib1.C1();
+    print(new lib1.C1());
     lib2.loadLibrary().then(/*closure_unit=main{}*/ (_) {
-      new lib2.C2();
+      print(new lib2.C2());
     });
   });
 }

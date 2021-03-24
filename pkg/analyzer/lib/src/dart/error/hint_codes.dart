@@ -2662,6 +2662,14 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Parameters:
+   * 0: the name of the type
+   */
+  static const HintCode UNNECESSARY_QUESTION_MARK = HintCode(
+      'UNNECESSARY_QUESTION_MARK',
+      "The '?' is unnecessary because '{0}' is nullable without it.");
+
+  /**
    * No parameters.
    */
   // #### Description

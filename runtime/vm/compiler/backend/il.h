@@ -788,7 +788,7 @@ class Instruction : public ZoneAllocated {
 
   intptr_t deopt_id() const {
     ASSERT(ComputeCanDeoptimize() || ComputeCanDeoptimizeAfterCall() ||
-           CanBecomeDeoptimizationTarget() ||
+           CanBecomeDeoptimizationTarget() || MayThrow() ||
            CompilerState::Current().is_aot());
     return GetDeoptId();
   }
@@ -5522,9 +5522,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
   bool calls_initializer() const { return calls_initializer_; }
   void set_calls_initializer(bool value) { calls_initializer_ = value; }
 
-  virtual bool AllowsCSE() const {
-    return field().is_final() && !FLAG_fields_may_be_reset;
-  }
+  virtual bool AllowsCSE() const { return field().is_final(); }
 
   virtual bool ComputeCanDeoptimize() const {
     return calls_initializer() && !CompilerState::Current().is_aot();
@@ -6061,6 +6059,21 @@ class AllocationInstr : public Definition {
   // is added.
   virtual bool WillAllocateNewOrRemembered() const = 0;
 
+  virtual bool MayThrow() const {
+    // Any allocation instruction may throw an OutOfMemory error.
+    return true;
+  }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    // We test that allocation instructions have correct deopt environment
+    // (which is needed in case OOM is thrown) by actually deoptimizing
+    // optimized code in allocation slow paths.
+    return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
+  }
+
   DEFINE_INSTRUCTION_TYPE_CHECK(Allocation);
 
  private:
@@ -6070,17 +6083,15 @@ class AllocationInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(AllocationInstr);
 };
 
-template <intptr_t N, typename ThrowsTrait>
+template <intptr_t N>
 class TemplateAllocation : public AllocationInstr {
  public:
   explicit TemplateAllocation(const InstructionSource& source,
-                              intptr_t deopt_id = DeoptId::kNone)
+                              intptr_t deopt_id)
       : AllocationInstr(source, deopt_id), inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-
-  virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -6096,8 +6107,9 @@ class AllocateObjectInstr : public AllocationInstr {
  public:
   AllocateObjectInstr(const InstructionSource& source,
                       const Class& cls,
+                      intptr_t deopt_id,
                       Value* type_arguments = nullptr)
-      : AllocationInstr(source),
+      : AllocationInstr(source, deopt_id),
         cls_(cls),
         type_arguments_(type_arguments),
         closure_function_(Function::ZoneHandle()) {
@@ -6126,10 +6138,6 @@ class AllocateObjectInstr : public AllocationInstr {
     return type_arguments_;
   }
 
-  virtual bool MayThrow() const { return false; }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
@@ -6156,18 +6164,16 @@ class AllocateObjectInstr : public AllocationInstr {
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
 
-class AllocateUninitializedContextInstr
-    : public TemplateAllocation<0, NoThrow> {
+class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
  public:
   AllocateUninitializedContextInstr(const InstructionSource& source,
-                                    intptr_t num_context_variables);
+                                    intptr_t num_context_variables,
+                                    intptr_t deopt_id);
 
   DECLARE_INSTRUCTION(AllocateUninitializedContext)
   virtual CompileType ComputeType() const;
 
   intptr_t num_context_variables() const { return num_context_variables_; }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -6290,7 +6296,7 @@ class ArrayAllocationInstr : public AllocationInstr {
   DISALLOW_COPY_AND_ASSIGN(ArrayAllocationInstr);
 };
 
-template <intptr_t N, typename ThrowsTrait>
+template <intptr_t N>
 class TemplateArrayAllocation : public ArrayAllocationInstr {
  public:
   explicit TemplateArrayAllocation(const InstructionSource& source,
@@ -6300,8 +6306,6 @@ class TemplateArrayAllocation : public ArrayAllocationInstr {
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
 
-  virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
-
  protected:
   EmbeddedArray<Value*, N> inputs_;
 
@@ -6309,7 +6313,7 @@ class TemplateArrayAllocation : public ArrayAllocationInstr {
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
 
-class CreateArrayInstr : public TemplateArrayAllocation<2, Throws> {
+class CreateArrayInstr : public TemplateArrayAllocation<2> {
  public:
   CreateArrayInstr(const InstructionSource& source,
                    Value* element_type,
@@ -6328,12 +6332,6 @@ class CreateArrayInstr : public TemplateArrayAllocation<2, Throws> {
   Value* element_type() const { return inputs_[kElementTypePos]; }
   virtual Value* num_elements() const { return inputs_[kLengthPos]; }
 
-  // Throw needs environment, which is created only if instruction can
-  // deoptimize.
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
-
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
@@ -6347,7 +6345,7 @@ class CreateArrayInstr : public TemplateArrayAllocation<2, Throws> {
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
 };
 
-class AllocateTypedDataInstr : public TemplateArrayAllocation<1, Throws> {
+class AllocateTypedDataInstr : public TemplateArrayAllocation<1> {
  public:
   AllocateTypedDataInstr(const InstructionSource& source,
                          classid_t class_id,
@@ -6364,12 +6362,6 @@ class AllocateTypedDataInstr : public TemplateArrayAllocation<1, Throws> {
 
   classid_t class_id() const { return class_id_; }
   virtual Value* num_elements() const { return inputs_[kLengthPos]; }
-
-  // Throw needs environment, which is created only if instruction can
-  // deoptimize.
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -6758,11 +6750,12 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
 
 // [AllocateContext] instruction allocates a new Context object with the space
 // for the given [context_variables].
-class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
+class AllocateContextInstr : public TemplateAllocation<0> {
  public:
   AllocateContextInstr(const InstructionSource& source,
-                       const ZoneGrowableArray<const Slot*>& context_slots)
-      : TemplateAllocation(source), context_slots_(context_slots) {}
+                       const ZoneGrowableArray<const Slot*>& context_slots,
+                       intptr_t deopt_id)
+      : TemplateAllocation(source, deopt_id), context_slots_(context_slots) {}
 
   DECLARE_INSTRUCTION(AllocateContext)
   virtual CompileType ComputeType() const;
@@ -6792,7 +6785,7 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
 
 // [CloneContext] instruction clones the given Context object assuming that
 // it contains exactly the provided [context_variables].
-class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
+class CloneContextInstr : public TemplateDefinition<1, Throws> {
  public:
   CloneContextInstr(const InstructionSource& source,
                     Value* context_value,
@@ -6814,8 +6807,15 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
   DECLARE_INSTRUCTION(CloneContext)
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    // We test that allocation instructions have correct deopt environment
+    // (which is needed in case OOM is thrown) by actually deoptimizing
+    // optimized code in allocation slow paths.
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }

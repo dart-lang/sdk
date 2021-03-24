@@ -10404,33 +10404,113 @@ const dynamic a = null;
   }
 
   test_metadata_enumConstantDeclaration() async {
-    var library = await checkLibrary('const a = null; enum E { @a v }');
-    checkElementText(library, r'''
+    var library = await checkLibrary('const a = 42; enum E { @a v }');
+    checkElementText(
+        library,
+        r'''
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
-  @
-        a/*location: test.dart;a?*/
   static const E v;
+    metadata
+      Annotation
+        element: self::@getter::a
+        name: SimpleIdentifier
+          staticElement: self::@getter::a
+          staticType: null
+          token: a
   String toString() {}
 }
-const dynamic a = null;
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_enumConstantDeclaration_instanceCreation() async {
+    var library = await checkLibrary('''
+class A {
+  final dynamic value;
+  const A(this.value);
+}
+
+enum E {
+  @A(100) a,
+  b,
+  @A(300) c,
+}
 ''');
+    checkElementText(
+        library,
+        r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E a;
+    metadata
+      Annotation
+        arguments: ArgumentList
+          arguments
+            IntegerLiteral
+              literal: 100
+              staticType: int
+        element: self::@class::A::@constructor::•
+        name: SimpleIdentifier
+          staticElement: self::@class::A
+          staticType: null
+          token: A
+  static const E b;
+  static const E c;
+    metadata
+      Annotation
+        arguments: ArgumentList
+          arguments
+            IntegerLiteral
+              literal: 300
+              staticType: int
+        element: self::@class::A::@constructor::•
+        name: SimpleIdentifier
+          staticElement: self::@class::A
+          staticType: null
+          token: A
+  String toString() {}
+}
+class A {
+  final dynamic value;
+  const A(dynamic this.value);
+}
+''',
+        withFullyResolvedAst: true);
   }
 
   test_metadata_enumDeclaration() async {
-    var library = await checkLibrary('const a = null; @a enum E { v }');
-    checkElementText(library, r'''
-@
-        a/*location: test.dart;a?*/
+    var library = await checkLibrary('const a = 42; @a enum E { v }');
+    checkElementText(
+        library,
+        r'''
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
   String toString() {}
 }
-const dynamic a = null;
-''');
+  metadata
+    Annotation
+      element: self::@getter::a
+      name: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: null
+        token: a
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withFullyResolvedAst: true);
   }
 
   test_metadata_exportDirective() async {
