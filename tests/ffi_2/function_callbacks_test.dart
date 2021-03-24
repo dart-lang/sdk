@@ -25,6 +25,13 @@ int simpleAddition(int x, int y) {
   return x + y;
 }
 
+class Foo {
+  static int simpleAddition(int x, int y) {
+    print("Foo.simpleAddition($x, $y)");
+    return x + y;
+  }
+}
+
 typedef IntComputationType = Int64 Function(Int8, Int16, Int32, Int64);
 int intComputation(int a, int b, int c, int d) {
   print("intComputation($a, $b, $c, $d)");
@@ -190,6 +197,8 @@ int returnMaxUint8v2() {
 final testcases = [
   CallbackTest("SimpleAddition",
       Pointer.fromFunction<SimpleAdditionType>(simpleAddition, 0)),
+  CallbackTest("SimpleAddition",
+      Pointer.fromFunction<SimpleAdditionType>(Foo.simpleAddition, 0)),
   CallbackTest("IntComputation",
       Pointer.fromFunction<IntComputationType>(intComputation, 0)),
   CallbackTest("UintComputation",
