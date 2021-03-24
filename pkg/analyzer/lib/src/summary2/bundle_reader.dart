@@ -489,12 +489,6 @@ class LinkedContext implements AstLinkedContext {
     }
     _isApplied = true;
 
-    // EnumConstantDeclaration has no separate resolution.
-    // Its metadata is resolved during EnumDeclaration resolution.
-    if (_resolutionIndex == -1) {
-      return;
-    }
-
     var localElements = <Element>[];
     var resolutionReader = LinkedResolutionReader(
       _unitReader,

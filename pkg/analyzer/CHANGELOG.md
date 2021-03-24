@@ -1,6 +1,9 @@
 ## 1.3.0-dev
 * Added `Expression.inConstantContext` to API.
 * Updated documentation comments for some getters that don't return `null`.
+* Fixed an issue with accessing `CompilationUnitElement.mixins` before `types`.
+* Implemented metadata resolution with type arguments and inference.
+* Fixed issue with metadata on enum constants.
 
 ## 1.2.0
 * Deprecated all setters in API of AST. Use `parseString()` instead.

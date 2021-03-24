@@ -614,7 +614,7 @@ class AstBinaryReader {
       node,
       codeOffset: codeOffset,
       codeLength: codeLength,
-      resolutionIndex: -1,
+      resolutionIndex: _readUInt30(),
       documentationTokenIndexList: documentationTokenIndexList,
     );
 
