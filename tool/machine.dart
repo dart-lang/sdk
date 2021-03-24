@@ -27,7 +27,7 @@ void main(List<String> args) {
 
 String getMachineListing(Iterable<LintRule> ruleRegistry,
     {bool pretty = true}) {
-  var rules = List<LintRule>.from(ruleRegistry, growable: false)..sort();
+  var rules = List<LintRule>.of(ruleRegistry, growable: false)..sort();
   var encoder = pretty ? JsonEncoder.withIndent('  ') : JsonEncoder();
 
   var json = encoder.convert([

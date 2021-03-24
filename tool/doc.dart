@@ -69,7 +69,7 @@ final pedanticRules = <String?>[];
 
 /// Sorted list of contributed lint rules.
 final List<LintRule> rules =
-    List<LintRule>.from(Registry.ruleRegistry, growable: false)..sort();
+    List<LintRule>.of(Registry.ruleRegistry, growable: false)..sort();
 
 late Map<String, SinceInfo> sinceInfo;
 
