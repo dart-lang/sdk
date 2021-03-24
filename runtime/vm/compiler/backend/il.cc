@@ -5480,11 +5480,13 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
     __ CompareRegisters(InstantiationABI::kInstantiatorTypeArgumentsReg,
                         InstantiationABI::kResultTypeArgumentsReg);
     if (!function_type_arguments()->BindsToConstant()) {
-      __ BranchIf(NOT_EQUAL, &non_null_type_args);
+      __ BranchIf(NOT_EQUAL, &non_null_type_args,
+                  compiler::AssemblerBase::kNearJump);
       __ CompareRegisters(InstantiationABI::kFunctionTypeArgumentsReg,
                           InstantiationABI::kResultTypeArgumentsReg);
     }
-    __ BranchIf(EQUAL, &type_arguments_instantiated);
+    __ BranchIf(EQUAL, &type_arguments_instantiated,
+                compiler::AssemblerBase::kNearJump);
     __ Bind(&non_null_type_args);
   }
 
