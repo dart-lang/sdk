@@ -8,8 +8,6 @@ import 'dart:convert' show json;
 
 import 'package:kernel/ast.dart';
 
-import 'package:kernel/visitor.dart' show ConstantVisitor, DartTypeVisitor;
-
 import '../denylisted_classes.dart' show denylistedCoreClasses;
 
 import '../fasta_codes.dart'
