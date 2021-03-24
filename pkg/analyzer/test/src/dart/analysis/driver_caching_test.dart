@@ -22,6 +22,21 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
     return driver.test.libraryContext.linkedCycles;
   }
 
+  test_change_factoryConstructor_addEqNothing() async {
+    await resolveTestCode(r'''
+class A {
+  factory A();
+}
+''');
+
+    driverFor(testFilePath).changeFile(testFilePath);
+    await resolveTestCode(r'''
+class A {
+  factory A() =;
+}
+''');
+  }
+
   test_change_factoryConstructor_moveStaticToken() async {
     await resolveTestCode(r'''
 class A {
