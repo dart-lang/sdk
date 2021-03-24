@@ -235,7 +235,7 @@ class TestDriver {
   /// Initializes a Chrome browser instance, tab connection, and debugger.
   ///
   /// Should be called once after creating TestDriver.
-  void initChrome() async {
+  Future<void> initChrome() async {
     // Create a temporary directory for holding Chrome tests.
     var systemTempDir = Directory.systemTemp;
     chromeDir = await systemTempDir.createTemp('ddc_eval_test_anchor');
@@ -248,14 +248,14 @@ class TestDriver {
     var tab = await chrome.chromeConnection
         .getTab((tab) => !tab.isBackgroundPage && !tab.isChromeExtension);
     connection = await tab.connect();
-    debugger = (await connection).debugger;
+    debugger = connection.debugger;
   }
 
   /// Must be called when testing a new Dart program.
   ///
   /// Depends on SDK artifacts (such as the sound and unsound dart_sdk.js
   /// files) generated from the 'dartdevc_test' target.
-  void initSource(SetupCompilerOptions setup, String source) async {
+  Future<void> initSource(SetupCompilerOptions setup, String source) async {
     this.setup = setup;
     this.source = source;
     testDir = await chromeDir.createTemp('ddc_eval_test');
@@ -340,7 +340,7 @@ class TestDriver {
   require.config({
     paths: {
         'dart_sdk': '$dartSdkPath',
-        '$moduleName': '${outputPath}'
+        '$moduleName': '$outputPath'
     },
     waitSeconds: 15
   });
@@ -385,13 +385,13 @@ class TestDriver {
     chromeDir?.deleteSync(recursive: true);
   }
 
-  void cleanupTest() async {
+  Future<void> cleanupTest() async {
     setup.diagnosticMessages.clear();
     setup.errors.clear();
     await debugger.disable();
   }
 
-  void check(
+  Future<void> check(
       {String breakpointId,
       String expression,
       String expectedError,
@@ -417,7 +417,7 @@ class TestDriver {
                 'Unable to find JS script corresponding to test file $output in ${debugger.scripts}.'))
         .value;
 
-    // Breakpoint at the frst WIP location mapped from its Dart line.
+    // Breakpoint at the first WIP location mapped from its Dart line.
     var dartLine = _findBreakpointLine(breakpointId);
     var location = await _jsLocationFromDartLine(script, dartLine);
     var bp = await debugger.setBreakpoint(location);
@@ -510,7 +510,7 @@ class TestDriver {
         lines.indexWhere((l) => l.endsWith('// Breakpoint: $breakpointId'));
     if (lineNumber == -1) {
       throw StateError(
-          'Unable to find breakpoint in ${input} with id: $breakpointId');
+          'Unable to find breakpoint in $input with id: $breakpointId');
     }
     return lineNumber + 1;
   }

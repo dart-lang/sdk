@@ -760,7 +760,7 @@ class DDCKernelGenerator {
     var dartdevc =
         p.join(p.dirname(dart), 'snapshots', 'dartdevc.dart.snapshot');
 
-    Directory.fromUri(config.outputPath)..createSync();
+    Directory.fromUri(config.outputPath).createSync();
 
     // generate test_library3.full.dill
     var args = [

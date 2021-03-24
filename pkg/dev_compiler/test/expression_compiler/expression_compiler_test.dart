@@ -274,7 +274,7 @@ class TestDriver {
     tempDir.delete(recursive: true);
   }
 
-  void check(
+  Future<void> check(
       {Map<String, String> scope,
       String expression,
       String expectedError,

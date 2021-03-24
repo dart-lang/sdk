@@ -246,11 +246,11 @@ class _RenameVisitor extends VariableDeclarationVisitor {
       // If collisions become common we need a better search.
       // TODO(jmesserly): what's the most readable scheme here? Maybe 1-letter
       // names in some cases?
-      candidate = name == 'function' ? 'func' : '${name}\$';
+      candidate = name == 'function' ? 'func' : '$name\$';
       for (var i = 0;
           scopes.any((scope) => scope.used.contains(candidate));
           i++) {
-        candidate = '${name}\$$i';
+        candidate = '$name\$$i';
       }
     }
     return candidate;
