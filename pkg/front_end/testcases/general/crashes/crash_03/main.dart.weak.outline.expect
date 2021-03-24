@@ -1,0 +1,53 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/crashes/crash_03/main.dart:7:57: Error: Type 'MouseTrackerAnnotation' not found.
+// mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
+//                                                         ^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class Offset extends core::Object {
+  synthetic constructor •() → self::Offset
+    ;
+}
+abstract class _PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin = mai::RenderBox with self::_PlatformViewGestureMixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin
+    : super mai::RenderBox::•()
+    ;
+  mixin-super-stub method hitTestSelf(self::Offset position) → core::bool
+    return super.{self::_PlatformViewGestureMixin::hitTestSelf}(position);
+}
+class PlatformViewRenderBox extends self::_PlatformViewRenderBox&RenderBox&_PlatformViewGestureMixin {
+  synthetic constructor •() → self::PlatformViewRenderBox
+    ;
+}
+abstract class _PlatformViewGestureMixin extends mai::RenderBox /*isMixinDeclaration*/  {
+  method hitTestSelf(self::Offset position) → core::bool
+    ;
+}
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/crashes/crash_03/main_lib.dart:2:20: Error: Type 'Offset' not found.
+//   bool hitTestSelf(Offset position) => false;
+//                    ^^^^^^
+//
+import self as mai;
+import "dart:core" as core;
+
+abstract class RenderBox extends core::Object {
+  synthetic constructor •() → mai::RenderBox
+    ;
+  method hitTestSelf(invalid-type position) → core::bool
+    ;
+}

@@ -10,6 +10,8 @@ extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized
 general/abstract_members: TypeCheckError
 general/bug30695: TypeCheckError
 general/covariant_field: TypeCheckError
+general/crashes/crash_02/main: Crash
+general/crashes/crash_04/main: Crash
 general/getter_vs_setter_type: TypeCheckError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError

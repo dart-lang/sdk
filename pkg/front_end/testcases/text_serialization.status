@@ -29,6 +29,8 @@ general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError
 general/covariant_field: TypeCheckError
 general/covariant_generic: RuntimeError
+general/crashes/crash_02/main: Crash
+general/crashes/crash_04/main: Crash
 general/duplicated_declarations: TypeCheckError
 general/duplicated_field_initializer: RuntimeError
 general/error_locations/error_location_01: RuntimeError

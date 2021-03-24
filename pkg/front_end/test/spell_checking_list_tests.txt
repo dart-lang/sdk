@@ -19,6 +19,7 @@ aa
 aaa
 abc
 abcompile
+adapter
 adaptor
 adopted
 albeit
@@ -337,6 +338,7 @@ gamma
 gave
 gc
 gcd
+gesture
 getter1c
 getter1d
 getter1e
@@ -506,6 +508,7 @@ mod
 modelled
 month
 moo
+mouse
 mul
 mx
 mxn
@@ -672,6 +675,7 @@ sigint
 signalled
 sigwinch
 slight
+sliver
 smoke
 snull
 somehow
@@ -742,6 +746,7 @@ touch
 tpt
 transitively
 translators
+transparent
 triangle
 triggers
 trimming
