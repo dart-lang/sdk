@@ -1,4 +1,4 @@
-## 1.3.0-dev
+## 1.3.0
 * Added `Expression.inConstantContext` to API.
 * Updated documentation comments for some getters that don't return `null`.
 * Fixed an issue with accessing `CompilationUnitElement.mixins` before `types`.
