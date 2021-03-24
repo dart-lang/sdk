@@ -127,6 +127,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_boolean_wit
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_const.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_final_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_new_with_const.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type_future.dart';
@@ -954,6 +955,15 @@ class FixProcessor extends BaseProcessor {
         ],
       )
     ],
+    LintNames.unnecessary_final: [
+      FixInfo(
+        canBeAppliedToFile: true,
+        canBeBulkApplied: true,
+        generators: [
+          ReplaceFinalWithVar.newInstance,
+        ],
+      )
+    ],
     LintNames.unnecessary_lambdas: [
       FixInfo(
         canBeAppliedToFile: true,
@@ -1252,6 +1262,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_const: [
       RemoveUnnecessaryConst.newInstance,
+    ],
+    LintNames.unnecessary_final: [
+      ReplaceFinalWithVar.newInstance,
     ],
     LintNames.unnecessary_lambdas: [
       ReplaceWithTearOff.newInstance,

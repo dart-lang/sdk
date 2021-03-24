@@ -746,6 +746,12 @@ class DartFixKind {
       'dart.fix.replace.nullWithClosure.multi',
       DartFixKindPriority.IN_FILE,
       "Replace 'null's with closures where possible in file");
+  static const REPLACE_FINAL_WITH_VAR = FixKind('dart.fix.replace.finalWithVar',
+      DartFixKindPriority.DEFAULT, "Replace 'final' with 'var'");
+  static const REPLACE_FINAL_WITH_VAR_MULTI = FixKind(
+      'dart.fix.replace.finalWithVar.multi',
+      DartFixKindPriority.IN_FILE,
+      "Replace 'final' with 'var' where possible in file");
   static const REPLACE_RETURN_TYPE_FUTURE = FixKind(
       'dart.fix.replace.returnTypeFuture',
       DartFixKindPriority.DEFAULT,

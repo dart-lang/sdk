@@ -147,6 +147,7 @@ import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
 import 'replace_cascade_with_dot_test.dart' as replace_cascade_with_dot;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
+import 'replace_final_with_var_test.dart' as replace_final_with_var;
 import 'replace_new_with_const_test.dart' as replace_new_with_const;
 import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
@@ -306,6 +307,7 @@ void main() {
     replace_cascade_with_dot.main();
     replace_colon_with_equals.main();
     replace_final_with_const.main();
+    replace_final_with_var.main();
     replace_new_with_const.main();
     replace_null_with_closure.main();
     replace_return_type_future.main();
