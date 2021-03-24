@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -86,11 +87,13 @@ class BinaryExpressionResolver {
     _inferenceHelper.recordStaticType(node, staticType);
   }
 
-  void _checkNonBoolOperand(Expression operand, String operator) {
+  void _checkNonBoolOperand(Expression operand, String operator,
+      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     _resolver.boolExpressionVerifier.checkForNonBoolExpression(
       operand,
       errorCode: CompileTimeErrorCode.NON_BOOL_OPERAND,
       arguments: [operator],
+      whyNotPromoted: whyNotPromoted,
     );
   }
 
@@ -173,13 +176,16 @@ class BinaryExpressionResolver {
     flow?.logicalBinaryOp_begin();
     left.accept(_resolver);
     left = node.leftOperand;
+    var leftWhyNotPromoted = _resolver.flowAnalysis?.flow?.whyNotPromoted(left);
 
+    Map<DartType, NonPromotionReason> Function()? rightWhyNotPromoted;
     if (_resolver.flowAnalysis != null) {
       flow?.logicalBinaryOp_rightBegin(left, node, isAnd: true);
       _resolver.checkUnreachableNode(right);
 
       right.accept(_resolver);
       right = node.rightOperand;
+      rightWhyNotPromoted = _resolver.flowAnalysis!.flow?.whyNotPromoted(right);
 
       _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
       flow?.logicalBinaryOp_end(node, right, isAnd: true);
@@ -194,8 +200,8 @@ class BinaryExpressionResolver {
       );
     }
 
-    _checkNonBoolOperand(left, '&&');
-    _checkNonBoolOperand(right, '&&');
+    _checkNonBoolOperand(left, '&&', whyNotPromoted: leftWhyNotPromoted);
+    _checkNonBoolOperand(right, '&&', whyNotPromoted: rightWhyNotPromoted);
 
     _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
   }
@@ -211,18 +217,21 @@ class BinaryExpressionResolver {
     flow?.logicalBinaryOp_begin();
     left.accept(_resolver);
     left = node.leftOperand;
+    var leftWhyNotPromoted = _resolver.flowAnalysis?.flow?.whyNotPromoted(left);
 
     flow?.logicalBinaryOp_rightBegin(left, node, isAnd: false);
     _resolver.checkUnreachableNode(right);
 
     right.accept(_resolver);
     right = node.rightOperand;
+    var rightWhyNotPromoted =
+        _resolver.flowAnalysis?.flow?.whyNotPromoted(right);
 
     _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
     flow?.logicalBinaryOp_end(node, right, isAnd: false);
 
-    _checkNonBoolOperand(left, '||');
-    _checkNonBoolOperand(right, '||');
+    _checkNonBoolOperand(left, '||', whyNotPromoted: leftWhyNotPromoted);
+    _checkNonBoolOperand(right, '||', whyNotPromoted: rightWhyNotPromoted);
 
     _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
   }

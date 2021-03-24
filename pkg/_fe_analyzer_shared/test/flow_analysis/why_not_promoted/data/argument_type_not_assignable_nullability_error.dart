@@ -132,3 +132,35 @@ equalRhs(C10 c, D10 d) {
   c.f(d == c.bad);
   c.f(d != c.bad);
 }
+
+class C11 {
+  bool? bad;
+  f(bool b) {}
+}
+
+andOperand(C11 c, bool b) {
+  if (c.bad == null) return;
+  c.f(
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C11.bad, type: bool?))*/ c
+              . /*cfe.notPromoted(propertyNotPromoted(target: member:C11.bad, type: bool?))*/ bad &&
+          b);
+  c.f(b &&
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C11.bad, type: bool?))*/ c
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C11.bad, type: bool?))*/ bad);
+}
+
+class C12 {
+  bool? bad;
+  f(bool b) {}
+}
+
+orOperand(C12 c, bool b) {
+  if (c.bad == null) return;
+  c.f(
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C12.bad, type: bool?))*/ c
+              . /*cfe.notPromoted(propertyNotPromoted(target: member:C12.bad, type: bool?))*/ bad ||
+          b);
+  c.f(b ||
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C12.bad, type: bool?))*/ c
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C12.bad, type: bool?))*/ bad);
+}

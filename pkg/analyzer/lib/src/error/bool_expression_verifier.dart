@@ -2,32 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for verifying expression that should be of type bool.
 class BoolExpressionVerifier {
-  final TypeSystemImpl _typeSystem;
+  final ResolverVisitor _resolver;
   final ErrorReporter _errorReporter;
   final NullableDereferenceVerifier _nullableDereferenceVerifier;
 
   final InterfaceType _boolType;
 
   BoolExpressionVerifier({
-    required TypeSystemImpl typeSystem,
+    required ResolverVisitor resolver,
     required ErrorReporter errorReporter,
     required NullableDereferenceVerifier nullableDereferenceVerifier,
-  })   : _typeSystem = typeSystem,
+  })   : _resolver = resolver,
         _errorReporter = errorReporter,
         _nullableDereferenceVerifier = nullableDereferenceVerifier,
-        _boolType = typeSystem.typeProvider.boolType;
+        _boolType = resolver.typeSystem.typeProvider.boolType;
 
   /// Check to ensure that the [condition] is of type bool, are. Otherwise an
   /// error is reported on the expression.
@@ -43,14 +44,18 @@ class BoolExpressionVerifier {
   /// Verify that the given [expression] is of type 'bool', and report
   /// [errorCode] if not, or a nullability error if its improperly nullable.
   void checkForNonBoolExpression(Expression expression,
-      {required ErrorCode errorCode, List<Object>? arguments}) {
+      {required ErrorCode errorCode,
+      List<Object>? arguments,
+      Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     var type = expression.typeOrThrow;
     if (!_checkForUseOfVoidResult(expression) &&
-        !_typeSystem.isAssignableTo(type, _boolType)) {
+        !_resolver.typeSystem.isAssignableTo(type, _boolType)) {
       if (type.isDartCoreBool) {
         _nullableDereferenceVerifier.report(expression, type,
             errorCode: CompileTimeErrorCode
-                .UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION);
+                .UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+            messages: _resolver.computeWhyNotPromotedMessages(
+                expression, expression, whyNotPromoted?.call()));
       } else {
         _errorReporter.reportErrorForNode(errorCode, expression, arguments);
       }

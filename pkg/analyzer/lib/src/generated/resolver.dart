@@ -325,7 +325,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
       resolver: this,
     );
     boolExpressionVerifier = BoolExpressionVerifier(
-      typeSystem: typeSystem,
+      resolver: this,
       errorReporter: errorReporter,
       nullableDereferenceVerifier: nullableDereferenceVerifier,
     );
