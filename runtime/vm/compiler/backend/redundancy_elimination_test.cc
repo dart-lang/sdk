@@ -262,7 +262,7 @@ static void TestAliasingViaRedefinition(
     BlockBuilder builder(H.flow_graph(), b1);
     auto& slot = Slot::Get(field, &H.flow_graph()->parsed_function());
     v0 = builder.AddDefinition(
-        new AllocateObjectInstr(InstructionSource(), cls));
+        new AllocateObjectInstr(InstructionSource(), cls, S.GetNextDeoptId()));
     v1 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, InstructionSource()));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v0));
@@ -435,9 +435,9 @@ static void TestAliasingViaStore(
     BlockBuilder builder(H.flow_graph(), b1);
     auto& slot = Slot::Get(field, &H.flow_graph()->parsed_function());
     v0 = builder.AddDefinition(
-        new AllocateObjectInstr(InstructionSource(), cls));
+        new AllocateObjectInstr(InstructionSource(), cls, S.GetNextDeoptId()));
     v5 = builder.AddDefinition(
-        new AllocateObjectInstr(InstructionSource(), cls));
+        new AllocateObjectInstr(InstructionSource(), cls, S.GetNextDeoptId()));
     if (!make_host_escape) {
       builder.AddInstruction(
           new StoreInstanceFieldInstr(slot, new Value(v5), new Value(v0),

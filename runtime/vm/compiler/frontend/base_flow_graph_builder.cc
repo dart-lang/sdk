@@ -896,8 +896,8 @@ Fragment BaseFlowGraphBuilder::BooleanNegate() {
 
 Fragment BaseFlowGraphBuilder::AllocateContext(
     const ZoneGrowableArray<const Slot*>& context_slots) {
-  AllocateContextInstr* allocate =
-      new (Z) AllocateContextInstr(InstructionSource(), context_slots);
+  AllocateContextInstr* allocate = new (Z) AllocateContextInstr(
+      InstructionSource(), context_slots, GetNextDeoptId());
   Push(allocate);
   return Fragment(allocate);
 }
@@ -906,8 +906,8 @@ Fragment BaseFlowGraphBuilder::AllocateClosure(
     TokenPosition position,
     const Function& closure_function) {
   const Class& cls = Class::ZoneHandle(Z, IG->object_store()->closure_class());
-  AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(InstructionSource(position), cls);
+  AllocateObjectInstr* allocate = new (Z)
+      AllocateObjectInstr(InstructionSource(position), cls, GetNextDeoptId());
   allocate->set_closure_function(closure_function);
   Push(allocate);
   return Fragment(allocate);
@@ -983,8 +983,8 @@ Fragment BaseFlowGraphBuilder::AllocateObject(TokenPosition position,
                                               intptr_t argument_count) {
   ASSERT((argument_count == 0) || (argument_count == 1));
   Value* type_arguments = (argument_count > 0) ? Pop() : nullptr;
-  AllocateObjectInstr* allocate = new (Z)
-      AllocateObjectInstr(InstructionSource(position), klass, type_arguments);
+  AllocateObjectInstr* allocate = new (Z) AllocateObjectInstr(
+      InstructionSource(position), klass, GetNextDeoptId(), type_arguments);
   Push(allocate);
   return Fragment(allocate);
 }

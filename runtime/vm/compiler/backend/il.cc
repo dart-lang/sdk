@@ -995,8 +995,9 @@ Representation LoadFieldInstr::representation() const {
 
 AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
     const InstructionSource& source,
-    intptr_t num_context_variables)
-    : TemplateAllocation(source),
+    intptr_t num_context_variables,
+    intptr_t deopt_id)
+    : TemplateAllocation(source, deopt_id),
       num_context_variables_(num_context_variables) {
   // This instruction is not used in AOT for code size reasons.
   ASSERT(!CompilerState::Current().is_aot());

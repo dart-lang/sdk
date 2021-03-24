@@ -224,8 +224,8 @@ void JitCallSpecializer::LowerContextAllocation(
   ASSERT(alloc->IsAllocateContext() || alloc->IsCloneContext());
 
   AllocateUninitializedContextInstr* replacement =
-      new AllocateUninitializedContextInstr(alloc->source(),
-                                            context_variables.length());
+      new AllocateUninitializedContextInstr(
+          alloc->source(), context_variables.length(), alloc->deopt_id());
   alloc->ReplaceWith(replacement, current_iterator());
 
   Instruction* cursor = replacement;

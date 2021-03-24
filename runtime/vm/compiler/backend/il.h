@@ -6077,7 +6077,7 @@ template <intptr_t N>
 class TemplateAllocation : public AllocationInstr {
  public:
   explicit TemplateAllocation(const InstructionSource& source,
-                              intptr_t deopt_id = DeoptId::kNone)
+                              intptr_t deopt_id)
       : AllocationInstr(source, deopt_id), inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
@@ -6097,8 +6097,9 @@ class AllocateObjectInstr : public AllocationInstr {
  public:
   AllocateObjectInstr(const InstructionSource& source,
                       const Class& cls,
+                      intptr_t deopt_id,
                       Value* type_arguments = nullptr)
-      : AllocationInstr(source),
+      : AllocationInstr(source, deopt_id),
         cls_(cls),
         type_arguments_(type_arguments),
         closure_function_(Function::ZoneHandle()) {
@@ -6158,7 +6159,8 @@ class AllocateObjectInstr : public AllocationInstr {
 class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
  public:
   AllocateUninitializedContextInstr(const InstructionSource& source,
-                                    intptr_t num_context_variables);
+                                    intptr_t num_context_variables,
+                                    intptr_t deopt_id);
 
   DECLARE_INSTRUCTION(AllocateUninitializedContext)
   virtual CompileType ComputeType() const;
@@ -6757,8 +6759,9 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
 class AllocateContextInstr : public TemplateAllocation<0> {
  public:
   AllocateContextInstr(const InstructionSource& source,
-                       const ZoneGrowableArray<const Slot*>& context_slots)
-      : TemplateAllocation(source), context_slots_(context_slots) {}
+                       const ZoneGrowableArray<const Slot*>& context_slots,
+                       intptr_t deopt_id)
+      : TemplateAllocation(source, deopt_id), context_slots_(context_slots) {}
 
   DECLARE_INSTRUCTION(AllocateContext)
   virtual CompileType ComputeType() const;
