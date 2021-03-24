@@ -4184,10 +4184,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   Map<Type, NonPromotionReason> Function() whyNotPromoted(Expression target) {
-    ReferenceWithType<Variable, Type>? referenceWithType = _expressionReference;
-    if (referenceWithType != null) {
-      return referenceWithType.reference.getNonPromotionReasons(
-          _current.variableInfo, referenceWithType.type, typeOperations);
+    if (identical(target, _expressionWithReference)) {
+      ReferenceWithType<Variable, Type>? referenceWithType =
+          _expressionReference;
+      if (referenceWithType != null) {
+        return referenceWithType.reference.getNonPromotionReasons(
+            _current.variableInfo, referenceWithType.type, typeOperations);
+      }
     }
     return () => {};
   }

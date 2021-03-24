@@ -108,6 +108,8 @@ class BinaryExpressionResolver {
     var right = node.rightOperand;
     right.accept(_resolver);
     right = node.rightOperand;
+    var whyNotPromotedInfo =
+        _resolver.flowAnalysis?.flow?.whyNotPromoted(right);
 
     if (!leftExtensionOverride) {
       flow?.equalityOp_end(node, right, right.typeOrThrow, notEqual: notEqual);
@@ -119,6 +121,9 @@ class BinaryExpressionResolver {
       promoteLeftTypeToNonNull: true,
     );
     _resolveUserDefinableType(node);
+    _resolver.checkForArgumentTypeNotAssignableForArgument(node.rightOperand,
+        promoteParameterToNullable: true,
+        whyNotPromotedInfo: whyNotPromotedInfo);
   }
 
   void _resolveIfNull(BinaryExpressionImpl node) {
@@ -154,6 +159,7 @@ class BinaryExpressionResolver {
     } else {
       _analyzeLeastUpperBoundTypes(node, leftType, rightType);
     }
+    _resolver.checkForArgumentTypeNotAssignableForArgument(right);
   }
 
   void _resolveLogicalAnd(BinaryExpressionImpl node) {
@@ -259,8 +265,13 @@ class BinaryExpressionResolver {
     }
 
     right.accept(_resolver);
+    right = node.rightOperand;
+    var whyNotPromotedInfo =
+        _resolver.flowAnalysis?.flow?.whyNotPromoted(right);
 
     _resolveUserDefinableType(node);
+    _resolver.checkForArgumentTypeNotAssignableForArgument(right,
+        whyNotPromotedInfo: whyNotPromotedInfo);
   }
 
   void _resolveUserDefinableElement(

@@ -388,13 +388,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     TokenType type = operator.type;
     if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
       checkForUseOfVoidResult(node.rightOperand);
-    } else if (type == TokenType.EQ_EQ || type == TokenType.BANG_EQ) {
-      checkForArgumentTypeNotAssignableForArgument(node.rightOperand,
-          promoteParameterToNullable: true);
-    } else if (type != TokenType.QUESTION_QUESTION) {
-      checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
     } else {
-      checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
+      // Assignability checking is done by the resolver.
     }
 
     if (type == TokenType.QUESTION_QUESTION) {

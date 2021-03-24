@@ -89,3 +89,46 @@ C7 constructor_with_explicit_new(C7 c) {
       /*analyzer.notPromoted(propertyNotPromoted(target: member:C7.bad, type: int?))*/ c
           . /*cfe.notPromoted(propertyNotPromoted(target: member:C7.bad, type: int?))*/ bad);
 }
+
+class C8 {
+  int? bad;
+}
+
+userDefinableBinaryOpRhs(C8 c) {
+  if (c.bad == null) return;
+  1 +
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C8.bad, type: int?))*/ c
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C8.bad, type: int?))*/ bad;
+}
+
+class C9 {
+  int? bad;
+  f(int i) {}
+}
+
+questionQuestionRhs(C9 c, int? i) {
+  // Note: "why not supported" functionality is currently not supported for the
+  // RHS of `??` because it requires more clever reasoning than we currently do:
+  // we would have to understand that the reason `i ?? c.bad` has a type of
+  // `int?` rather than `int` is because `c.bad` was not promoted.  We currently
+  // only support detecting non-promotion when the expression that had the wrong
+  // type *is* the expression that wasn't promoted.
+  if (c.bad == null) return;
+  c.f(i ?? c.bad);
+}
+
+class C10 {
+  D10? bad;
+  f(bool b) {}
+}
+
+class D10 {
+  bool operator ==(covariant D10 other) => true;
+}
+
+equalRhs(C10 c, D10 d) {
+  if (c.bad == null) return;
+  // Note: we don't report an error here because `==` always accepts `null`.
+  c.f(d == c.bad);
+  c.f(d != c.bad);
+}

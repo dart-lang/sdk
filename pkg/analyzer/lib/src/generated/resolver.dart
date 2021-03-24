@@ -1837,6 +1837,10 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   void visitNamedExpression(NamedExpression node) {
     InferenceContext.setTypeFromNode(node.expression, node);
     super.visitNamedExpression(node);
+    // Any "why not promoted" information that flow analysis had associated with
+    // `node.expression` now needs to be forwarded to `node`, so that when
+    // `visitArgumentList` iterates through the arguments, it will find it.
+    flowAnalysis?.flow?.forwardExpression(node, node.expression);
   }
 
   @override
