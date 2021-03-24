@@ -70,7 +70,7 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_rev": "eb2deca5b4489709acd001a5c7fd2df4f1eed19d",
   "async_rev": "376d418b1b535030fbe3369938d2ffdbb0340a77",
-  "bazel_worker_rev": "060c55a933d39798681a4f533b161b81dc48d77e",
+  "bazel_worker_rev": "0885637b037979afbf5bcd05fd748b309fd669c0",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
   "boringssl_gen_rev": "7322fc15cc065d8d2957fccce6b62a509dc4d641",
