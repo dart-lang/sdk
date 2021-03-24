@@ -5522,9 +5522,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
   bool calls_initializer() const { return calls_initializer_; }
   void set_calls_initializer(bool value) { calls_initializer_ = value; }
 
-  virtual bool AllowsCSE() const {
-    return field().is_final() && !FLAG_fields_may_be_reset;
-  }
+  virtual bool AllowsCSE() const { return field().is_final(); }
 
   virtual bool ComputeCanDeoptimize() const {
     return calls_initializer() && !CompilerState::Current().is_aot();

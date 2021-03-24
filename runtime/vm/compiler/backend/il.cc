@@ -1131,7 +1131,7 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
 }
 
 bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
-  ASSERT(IsFieldInitialized());
+  ASSERT(AllowsCSE());
   return field().ptr() == other->AsLoadStaticField()->field().ptr();
 }
 
