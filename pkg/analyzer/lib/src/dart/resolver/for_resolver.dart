@@ -159,7 +159,10 @@ class ForResolver {
       InferenceContext.setType(condition, _resolver.typeProvider.boolType);
       condition.accept(_resolver);
       condition = forParts.condition!;
-      _resolver.boolExpressionVerifier.checkForNonBoolCondition(condition);
+      var whyNotPromoted =
+          _resolver.flowAnalysis?.flow?.whyNotPromoted(condition);
+      _resolver.boolExpressionVerifier
+          .checkForNonBoolCondition(condition, whyNotPromoted: whyNotPromoted);
     }
 
     _resolver.flowAnalysis?.for_bodyBegin(node, condition);

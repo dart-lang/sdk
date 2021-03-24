@@ -34,10 +34,12 @@ class BoolExpressionVerifier {
   /// error is reported on the expression.
   ///
   /// See [CompileTimeErrorCode.NON_BOOL_CONDITION].
-  void checkForNonBoolCondition(Expression condition) {
+  void checkForNonBoolCondition(Expression condition,
+      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     checkForNonBoolExpression(
       condition,
       errorCode: CompileTimeErrorCode.NON_BOOL_CONDITION,
+      whyNotPromoted: whyNotPromoted,
     );
   }
 
@@ -46,7 +48,7 @@ class BoolExpressionVerifier {
   void checkForNonBoolExpression(Expression expression,
       {required ErrorCode errorCode,
       List<Object>? arguments,
-      Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
+      required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     var type = expression.typeOrThrow;
     if (!_checkForUseOfVoidResult(expression) &&
         !_resolver.typeSystem.isAssignableTo(type, _boolType)) {
@@ -63,10 +65,12 @@ class BoolExpressionVerifier {
   }
 
   /// Checks to ensure that the given [expression] is assignable to bool.
-  void checkForNonBoolNegationExpression(Expression expression) {
+  void checkForNonBoolNegationExpression(Expression expression,
+      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     checkForNonBoolExpression(
       expression,
       errorCode: CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION,
+      whyNotPromoted: whyNotPromoted,
     );
   }
 

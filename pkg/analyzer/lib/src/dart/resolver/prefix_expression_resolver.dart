@@ -226,8 +226,10 @@ class PrefixExpressionResolver {
 
     operand.accept(_resolver);
     operand = node.operand;
+    var whyNotPromoted = _resolver.flowAnalysis?.flow?.whyNotPromoted(operand);
 
-    _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(operand);
+    _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(operand,
+        whyNotPromoted: whyNotPromoted);
 
     _recordStaticType(node, _typeProvider.boolType);
 

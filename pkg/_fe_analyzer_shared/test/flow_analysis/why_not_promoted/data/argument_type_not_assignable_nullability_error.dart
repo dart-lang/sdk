@@ -164,3 +164,129 @@ orOperand(C12 c, bool b) {
       /*analyzer.notPromoted(propertyNotPromoted(target: member:C12.bad, type: bool?))*/ c
           . /*cfe.notPromoted(propertyNotPromoted(target: member:C12.bad, type: bool?))*/ bad);
 }
+
+class C13 {
+  bool? bad;
+}
+
+assertStatementCondition(C13 c) {
+  if (c.bad == null) return;
+  assert(
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C13.bad, type: bool?))*/ c
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C13.bad, type: bool?))*/ bad);
+}
+
+class C14 {
+  bool? bad;
+  C14.assertInitializerCondition(C14 c)
+      : bad = c.bad!,
+        assert(
+            /*analyzer.notPromoted(propertyNotPromoted(target: member:C14.bad, type: bool?))*/ c
+                . /*cfe.notPromoted(propertyNotPromoted(target: member:C14.bad, type: bool?))*/ bad);
+}
+
+class C15 {
+  bool? bad;
+  f(bool b) {}
+}
+
+notOperand(C15 c) {
+  if (c.bad == null) return;
+  c.f(!
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C15.bad, type: bool?))*/ c
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C15.bad, type: bool?))*/ bad);
+}
+
+class C16 {
+  bool? bad;
+  f(bool b) {}
+}
+
+forLoopCondition(C16 c) {
+  if (c.bad == null) return;
+  for (;
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C16.bad, type: bool?))*/ c
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C16.bad, type: bool?))*/ bad;) {}
+  [
+    for (;
+        /*analyzer.notPromoted(propertyNotPromoted(target: member:C16.bad, type: bool?))*/ c
+            . /*cfe.notPromoted(propertyNotPromoted(target: member:C16.bad, type: bool?))*/ bad;)
+      null
+  ];
+  ({
+    for (;
+        /*analyzer.notPromoted(propertyNotPromoted(target: member:C16.bad, type: bool?))*/ c
+            . /*cfe.notPromoted(propertyNotPromoted(target: member:C16.bad, type: bool?))*/ bad;)
+      null
+  });
+  ({
+    for (;
+        /*analyzer.notPromoted(propertyNotPromoted(target: member:C16.bad, type: bool?))*/ c
+            . /*cfe.notPromoted(propertyNotPromoted(target: member:C16.bad, type: bool?))*/ bad;)
+      null: null
+  });
+}
+
+class C17 {
+  bool? bad;
+  f(int i) {}
+}
+
+conditionalExpressionCondition(C17 c) {
+  if (c.bad == null) return;
+  c.f(
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C17.bad, type: bool?))*/ c
+              . /*cfe.notPromoted(propertyNotPromoted(target: member:C17.bad, type: bool?))*/ bad
+          ? 1
+          : 2);
+}
+
+class C18 {
+  bool? bad;
+}
+
+doLoopCondition(C18 c) {
+  if (c.bad == null) return;
+  do {} while (
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C18.bad, type: bool?))*/ c
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C18.bad, type: bool?))*/ bad);
+}
+
+class C19 {
+  bool? bad;
+}
+
+ifCondition(C19 c) {
+  if (c.bad == null) return;
+  if (
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C19.bad, type: bool?))*/ c
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C19.bad, type: bool?))*/ bad) {}
+  [
+    if (
+    /*analyzer.notPromoted(propertyNotPromoted(target: member:C19.bad, type: bool?))*/ c
+        . /*cfe.notPromoted(propertyNotPromoted(target: member:C19.bad, type: bool?))*/ bad)
+      null
+  ];
+  ({
+    if (
+    /*analyzer.notPromoted(propertyNotPromoted(target: member:C19.bad, type: bool?))*/ c
+        . /*cfe.notPromoted(propertyNotPromoted(target: member:C19.bad, type: bool?))*/ bad)
+      null
+  });
+  ({
+    if (
+    /*analyzer.notPromoted(propertyNotPromoted(target: member:C19.bad, type: bool?))*/ c
+        . /*cfe.notPromoted(propertyNotPromoted(target: member:C19.bad, type: bool?))*/ bad)
+      null: null
+  });
+}
+
+class C20 {
+  bool? bad;
+}
+
+whileCondition(C20 c) {
+  if (c.bad == null) return;
+  while (/*analyzer.notPromoted(propertyNotPromoted(target: member:C20.bad, type: bool?))*/ c
+      . /*cfe.notPromoted(propertyNotPromoted(target: member:C20.bad, type: bool?))*/ bad) {}
+}
