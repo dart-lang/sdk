@@ -116,6 +116,7 @@ class AnalyzerOptions {
   static const String enableSuperMixins = 'enableSuperMixins';
   static const String enablePreviewDart2 = 'enablePreviewDart2';
 
+  static const String cannotIgnore = 'cannot-ignore';
   static const String enableExperiment = 'enable-experiment';
   static const String errors = 'errors';
   static const String exclude = 'exclude';
@@ -151,6 +152,7 @@ class AnalyzerOptions {
 
   /// Supported top-level `analyzer` options.
   static const List<String> topLevel = [
+    cannotIgnore,
     enableExperiment,
     errors,
     exclude,
@@ -189,8 +191,67 @@ class AnalyzerOptionsValidator extends CompositeValidator {
           ErrorFilterOptionValidator(),
           EnabledExperimentsValidator(),
           LanguageOptionValidator(),
-          OptionalChecksValueValidator()
+          OptionalChecksValueValidator(),
+          CannotIgnoreOptionValidator(),
         ]);
+}
+
+/// Validates the `analyzer` `cannot-ignore` option.
+///
+/// This includes the format of the `cannot-ignore` section, the format of
+/// values in the section, and whether each value is a valid string.
+class CannotIgnoreOptionValidator extends OptionsValidator {
+  /// Lazily populated set of error codes.
+  static final Set<String> _errorCodes =
+      errorCodeValues.map((ErrorCode code) => code.name).toSet();
+
+  /// Lazily populated set of lint codes.
+  late final Set<String> _lintCodes = Registry.ruleRegistry.rules
+      .map((rule) => rule.name.toUpperCase())
+      .toSet();
+
+  @override
+  void validate(ErrorReporter reporter, YamlMap options) {
+    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
+    if (analyzer is YamlMap) {
+      var unignorableNames = analyzer.valueAt(AnalyzerOptions.cannotIgnore);
+      if (unignorableNames is YamlList) {
+        var listedNames = <String>{};
+        for (var unignorableNameNode in unignorableNames.nodes) {
+          var unignorableName = unignorableNameNode.value;
+          if (unignorableName is String) {
+            if (AnalyzerOptions.severities.contains(unignorableName)) {
+              listedNames.add(unignorableName);
+              continue;
+            }
+            var upperCaseName = unignorableName.toUpperCase();
+            if (!_errorCodes.contains(upperCaseName) &&
+                !_lintCodes.contains(upperCaseName)) {
+              reporter.reportErrorForSpan(
+                  AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
+                  unignorableNameNode.span,
+                  [unignorableName]);
+            } else if (listedNames.contains(upperCaseName)) {
+              // TODO(srawlins): Create a "duplicate value" code and report it
+              // here.
+            } else {
+              listedNames.add(upperCaseName);
+            }
+          } else {
+            reporter.reportErrorForSpan(
+                AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+                unignorableNameNode.span,
+                [AnalyzerOptions.cannotIgnore]);
+          }
+        }
+      } else if (unignorableNames != null) {
+        reporter.reportErrorForSpan(
+            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+            unignorableNames.span,
+            [AnalyzerOptions.cannotIgnore]);
+      }
+    }
+  }
 }
 
 /// Convenience class for composing validators.
@@ -630,6 +691,9 @@ class _OptionsProcessor {
       var excludes = analyzer.valueAt(AnalyzerOptions.exclude);
       _applyExcludes(options, excludes);
 
+      var cannotIgnore = analyzer.valueAt(AnalyzerOptions.cannotIgnore);
+      _applyUnignorables(options, cannotIgnore);
+
       // Process plugins.
       var names = analyzer.valueAt(AnalyzerOptions.plugins);
       List<String> pluginNames = <String>[];
@@ -747,6 +811,39 @@ class _OptionsProcessor {
           _applyStrongModeOption(options, k.value?.toString(), v.value);
         }
       });
+    }
+  }
+
+  void _applyUnignorables(AnalysisOptionsImpl options, YamlNode? cannotIgnore) {
+    if (cannotIgnore is YamlList) {
+      var names = <String>{};
+      var stringValues = cannotIgnore.whereType<String>().toSet();
+      for (var severity in AnalyzerOptions.severities) {
+        if (stringValues.contains(severity)) {
+          // [severity] is a marker denoting all error codes with severity
+          // equal to [severity].
+          stringValues.remove(severity);
+          // Replace name like 'error' with error codes with this named
+          // severity.
+          for (var e in errorCodeValues) {
+            // If the severity of [error] is also changed in this options file
+            // to be [severity], we add [error] to the un-ignorable list.
+            var processors = options.errorProcessors
+                .where((processor) => processor.code == e.name);
+            if (processors.isNotEmpty &&
+                processors.first.severity?.displayName == severity) {
+              names.add(e.name);
+              continue;
+            }
+            // Otherwise, add [error] if its default severity is [severity].
+            if (e.errorSeverity.displayName == severity) {
+              names.add(e.name);
+            }
+          }
+        }
+      }
+      names.addAll(stringValues.map((name) => name.toUpperCase()));
+      options.unignorableNames = names;
     }
   }
 

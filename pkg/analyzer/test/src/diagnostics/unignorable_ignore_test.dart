@@ -15,23 +15,39 @@ main() {
 
 @reflectiveTest
 class UnignorableIgnoreTest extends PubPackageResolutionTest {
-  @failingTest
-  test_file() async {
+  test_file_lowerCase() async {
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(unignorableNames: ['undefined_annotation']),
+    );
     await assertErrorsInCode(r'''
-// ignore_for_file: top_level_cycle
-var x = 0;
+// ignore_for_file: undefined_annotation
+@x int a = 0;
 ''', [
-      error(HintCode.UNIGNORABLE_IGNORE, 20, 15),
+      error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 41, 2),
     ]);
   }
 
-  @failingTest
-  test_line() async {
+  test_file_upperCase() async {
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(unignorableNames: ['UNDEFINED_ANNOTATION']),
+    );
     await assertErrorsInCode(r'''
-// ignore: top_level_cycle
-var x = 0;
+// ignore_for_file: UNDEFINED_ANNOTATION
+@x int a = 0;
 ''', [
-      error(HintCode.UNIGNORABLE_IGNORE, 11, 15),
+      error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 41, 2),
+    ]);
+  }
+
+  test_line() async {
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(unignorableNames: ['undefined_annotation']),
+    );
+    await assertErrorsInCode(r'''
+// ignore: undefined_annotation
+@x int a = 0;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 32, 2),
     ]);
   }
 }

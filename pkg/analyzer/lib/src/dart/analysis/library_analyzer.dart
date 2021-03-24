@@ -176,9 +176,13 @@ class LibraryAnalyzer {
     // before the list of diagnostics has been filtered.
     for (var file in _library.libraryFiles) {
       if (file.source != null) {
-        IgnoreValidator(_getErrorReporter(file), _getErrorListener(file).errors,
-                _fileToIgnoreInfo[file]!, _fileToLineInfo[file]!)
-            .reportErrors();
+        IgnoreValidator(
+          _getErrorReporter(file),
+          _getErrorListener(file).errors,
+          _fileToIgnoreInfo[file]!,
+          _fileToLineInfo[file]!,
+          _analysisOptions.unignorableNames,
+        ).reportErrors();
       }
     }
 
@@ -425,10 +429,13 @@ class LibraryAnalyzer {
 
     LineInfo lineInfo = _fileToLineInfo[file]!;
 
+    var unignorableCodes = _analysisOptions.unignorableNames;
+
     bool isIgnored(AnalysisError error) {
       var code = error.errorCode;
-      // Don't allow error severity issues to be ignored.
-      if (!IgnoreValidator.isIgnorable(file.path!, code)) {
+      // Don't allow un-ignorable codes to be ignored.
+      if (unignorableCodes.contains(code.name) ||
+          unignorableCodes.contains(code.uniqueName)) {
         return false;
       }
 

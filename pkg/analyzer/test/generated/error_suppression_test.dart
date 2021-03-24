@@ -17,23 +17,6 @@ main() {
 class ErrorSuppressionTest extends PubPackageResolutionTest {
   String get ignoredCode => 'unused_element';
 
-  test_does_not_ignore_errors() async {
-    await assertErrorsInCode('''
-int x = ''; // ignore: invalid_assignment
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 2),
-    ]);
-  }
-
-  test_error_cannot_be_ignored() async {
-    await assertErrorsInCode('''
-// ignore: unused_import, undefined_function
-f() => g();
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 52, 1),
-    ]);
-  }
-
   test_error_code_mismatch() async {
     await assertErrorsInCode('''
 // ignore: $ignoredCode

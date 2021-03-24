@@ -43,6 +43,43 @@ class ContextConfigurationTest {
   YamlMap parseOptions(String source) =>
       optionsProvider.getOptionsFromString(source);
 
+  test_configure_cannotIgnore() {
+    configureContext('''
+analyzer:
+  cannot-ignore:
+    - one_error_code
+    - another
+''');
+
+    var unignorableNames = analysisOptions.unignorableNames;
+    expect(unignorableNames, unorderedEquals(['ONE_ERROR_CODE', 'ANOTHER']));
+  }
+
+  test_configure_cannotIgnore_severity() {
+    configureContext('''
+analyzer:
+  cannot-ignore:
+    - error
+''');
+
+    var unignorableNames = analysisOptions.unignorableNames;
+    expect(unignorableNames, contains('INVALID_ANNOTATION'));
+    expect(unignorableNames.length, greaterThan(500));
+  }
+
+  test_configure_cannotIgnore_severity_withProcessor() {
+    configureContext('''
+analyzer:
+  errors:
+    unused_import: error
+  cannot-ignore:
+    - error
+''');
+
+    var unignorableNames = analysisOptions.unignorableNames;
+    expect(unignorableNames, contains('UNUSED_IMPORT'));
+  }
+
   test_configure_chromeos_checks() {
     configureContext('''
 analyzer:
@@ -217,6 +254,47 @@ class ErrorProcessorMatcher extends Matcher {
 class OptionsFileValidatorTest {
   final OptionsFileValidator validator = OptionsFileValidator(TestSource());
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
+
+  test_analyzer_cannotIgnore_badValue() {
+    validate('''
+analyzer:
+  cannot-ignore:
+    - not_an_error_code
+''', [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
+  }
+
+  test_analyzer_cannotIgnore_goodValue() {
+    validate('''
+analyzer:
+  cannot-ignore:
+    - invalid_annotation
+''', []);
+  }
+
+  test_analyzer_cannotIgnore_notAList() {
+    validate('''
+analyzer:
+  cannot-ignore:
+    one_error_code: true
+''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+  }
+
+  test_analyzer_cannotIgnore_severity() {
+    validate('''
+analyzer:
+  cannot-ignore:
+    - error
+''', []);
+  }
+
+  test_analyzer_cannotIgnore_valueNotAString() {
+    validate('''
+analyzer:
+  cannot-ignore:
+    one_error_code:
+      foo: bar
+''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
+  }
 
   test_analyzer_enableExperiment_badValue() {
     validate('''

@@ -37,6 +37,7 @@ class AnalysisOptionsFileConfig {
   final List<String> lints;
   final bool strictInference;
   final bool strictRawTypes;
+  final List<String> unignorableNames;
 
   AnalysisOptionsFileConfig({
     this.experiments = const [],
@@ -45,6 +46,7 @@ class AnalysisOptionsFileConfig {
     this.lints = const [],
     this.strictInference = false,
     this.strictRawTypes = false,
+    this.unignorableNames = const [],
   });
 
   String toContent() {
@@ -61,6 +63,10 @@ class AnalysisOptionsFileConfig {
     buffer.writeln('  strong-mode:');
     buffer.writeln('    implicit-casts: $implicitCasts');
     buffer.writeln('    implicit-dynamic: $implicitDynamic');
+    buffer.writeln('  cannot-ignore:');
+    for (var name in unignorableNames) {
+      buffer.writeln('    - $name');
+    }
 
     buffer.writeln('linter:');
     buffer.writeln('  rules:');
