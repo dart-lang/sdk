@@ -195,12 +195,12 @@ import 'dart:collection'
     show HashMap, HashSet, Queue, ListQueue, MapBase, UnmodifiableMapView;
 import 'dart:convert';
 import 'dart:developer' hide log;
-import 'dart:_http' show HttpClient;
+import 'dart:_http' show HttpClient, HttpProfiler;
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
 
-export 'dart:_http';
+export 'dart:_http' hide HttpProfiler;
 @Deprecated("Import BytesBuilder from dart:typed_data instead")
 export 'dart:_internal' show BytesBuilder;
 export 'dart:_internal' show HttpStatus;

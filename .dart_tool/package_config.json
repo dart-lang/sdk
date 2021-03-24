@@ -740,6 +740,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "uuid",
+      "rootUri": "../third_party/pkg/uuid",
+      "packageUri": "lib/",
+      "languageVersion": "2.0"
+    },
+    {
       "name": "vector_math",
       "rootUri": "../third_party/pkg/vector_math",
       "packageUri": "lib/",

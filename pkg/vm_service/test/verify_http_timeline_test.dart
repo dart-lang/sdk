@@ -8,11 +8,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:expect/expect.dart';
-import 'package:observatory/service_io.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
 
-import 'test_helper.dart';
+import 'common/test_helper.dart';
 
 final rng = Random();
 
@@ -32,7 +31,7 @@ void randomlyAddCookie(HttpResponse response) {
 Future<bool> randomlyRedirect(HttpServer server, HttpResponse response) async {
   if (shouldTestRedirects && rng.nextInt(5) == 0) {
     final redirectUri = Uri(host: 'www.google.com', port: 80);
-    response.redirect(redirectUri);
+    await response.redirect(redirectUri);
     return true;
   }
   return false;
@@ -76,16 +75,13 @@ Future<HttpServer> startServer() async {
     // Randomly delay response.
     await Future.delayed(
         Duration(milliseconds: rng.nextInt(maxResponseDelayMs)));
-    response.close();
+    await response.close();
   });
   return server;
 }
 
 Future<void> testMain() async {
-  // Ensure there's a chance some requests will be interrupted.
-  Expect.isTrue(maxRequestDelayMs > serverShutdownDelayMs);
-  Expect.isTrue(maxResponseDelayMs < serverShutdownDelayMs);
-
+  print('starting');
   final server = await startServer();
   HttpClient.enableTimelineLogging = true;
   final client = HttpClient();
@@ -171,19 +167,20 @@ Future<void> testMain() async {
 
   // Ensure all requests complete before finishing.
   await Future.wait(requests);
+  print('done');
 }
 
 bool isStartEvent(Map event) => (event['ph'] == 'b');
 bool isFinishEvent(Map event) => (event['ph'] == 'e');
 
-bool hasCompletedEvents(List traceEvents) {
+bool hasCompletedEvents(List<TimelineEvent> traceEvents) {
   final events = <String, int>{};
   for (final event in traceEvents) {
-    final id = event['id'];
+    final id = event.json!['id'];
     events.putIfAbsent(id, () => 0);
-    if (isStartEvent(event)) {
+    if (isStartEvent(event.json!)) {
       events[id] = events[id]! + 1;
-    } else if (isFinishEvent(event)) {
+    } else if (isFinishEvent(event.json!)) {
       events[id] = events[id]! - 1;
     }
   }
@@ -196,15 +193,17 @@ bool hasCompletedEvents(List traceEvents) {
   return valid;
 }
 
-List filterEventsByName(List traceEvents, String name) =>
-    traceEvents.where((e) => e['name'].contains(name)).toList();
+List<TimelineEvent> filterEventsByName(
+        List<TimelineEvent> traceEvents, String name) =>
+    traceEvents.where((e) => e.json!.containsKey(name)).toList();
 
-List filterEventsByIdAndName(List traceEvents, String id, String name) =>
+List<TimelineEvent> filterEventsByIdAndName(
+        List<TimelineEvent> traceEvents, String id, String name) =>
     traceEvents
-        .where((e) => e['id'] == id && e['name'].contains(name))
+        .where((e) => e.json!['id'] == id && e.json!['name'].contains(name))
         .toList();
 
-void hasValidHttpConnections(List traceEvents) {
+void hasValidHttpConnections(List<TimelineEvent> traceEvents) {
   final events = filterEventsByName(traceEvents, 'HTTP Connection');
   expect(hasCompletedEvents(events), isTrue);
 }
@@ -244,15 +243,31 @@ void validateHttpFinishEvent(Map event) {
   }
 }
 
-void hasValidHttpRequests(List traceEvents, String method) {
+void hasValidHttpRequests(
+    HttpProfile profile, List<TimelineEvent> traceEvents, String method) {
+  final requests = profile.requests
+      .where(
+        (element) => element.method == method,
+      )
+      .toList();
+  expect(requests.length, 10);
+
   var events = filterEventsByName(traceEvents, 'HTTP CLIENT $method');
   for (final event in events) {
-    if (isStartEvent(event)) {
-      validateHttpStartEvent(event, method);
-    } else if (isFinishEvent(event)) {
-      validateHttpFinishEvent(event);
+    final json = event.json!;
+    if (isStartEvent(json)) {
+      validateHttpStartEvent(event.json!, method);
+      final id = json['id'];
+
+      // HttpProfile request IDs should match up with their corresponding
+      // timeline event IDS.
+      final httpProfileRequest =
+          requests.singleWhere((element) => element.id == id);
+      expect(httpProfileRequest.id, id);
+    } else if (isFinishEvent(json)) {
+      validateHttpFinishEvent(json);
     } else {
-      fail('unexpected event type: ${event["ph"]}');
+      fail('unexpected event type: ${json["ph"]}');
     }
   }
 
@@ -263,50 +278,66 @@ void hasValidHttpRequests(List traceEvents, String method) {
     expect(hasCompletedEvents(events), isTrue);
   }
   for (final event in events) {
+    final json = event.json!;
     // Each response will be associated with a request.
-    if (isFinishEvent(event)) {
+    if (isFinishEvent(json)) {
       continue;
     }
-    final id = event['id'];
+    final id = json['id'];
     final data = filterEventsByIdAndName(traceEvents, id, 'Response body');
-    if (data.length != 0) {
-      Expect.equals(1, data.length);
-      Expect.listEquals(utf8.encode(method), data[0]['args']['data']);
+    if (data.isNotEmpty) {
+      expect(data.length, 1);
+      expect(utf8.encode(method), data[0].json!['args']['data']);
     }
   }
 }
 
-void hasValidHttpCONNECTs(List traceEvents) =>
-    hasValidHttpRequests(traceEvents, 'CONNECT');
-void hasValidHttpDELETEs(List traceEvents) =>
-    hasValidHttpRequests(traceEvents, 'DELETE');
-void hasValidHttpGETs(List traceEvents) =>
-    hasValidHttpRequests(traceEvents, 'GET');
-void hasValidHttpHEADs(List traceEvents) =>
-    hasValidHttpRequests(traceEvents, 'HEAD');
-void hasValidHttpPATCHs(List traceEvents) =>
-    hasValidHttpRequests(traceEvents, 'PATCH');
-void hasValidHttpPOSTs(List traceEvents) =>
-    hasValidHttpRequests(traceEvents, 'POST');
-void hasValidHttpPUTs(List traceEvents) =>
-    hasValidHttpRequests(traceEvents, 'PUT');
+void hasValidHttpProfile(HttpProfile profile, String method) {
+  expect(profile.requests.where((e) => e.method == method).length, 10);
+}
+
+void hasValidHttpCONNECTs(
+        HttpProfile profile, List<TimelineEvent> traceEvents) =>
+    hasValidHttpRequests(profile, traceEvents, 'CONNECT');
+void hasValidHttpDELETEs(
+        HttpProfile profile, List<TimelineEvent> traceEvents) =>
+    hasValidHttpRequests(profile, traceEvents, 'DELETE');
+void hasValidHttpGETs(HttpProfile profile, List<TimelineEvent> traceEvents) =>
+    hasValidHttpRequests(profile, traceEvents, 'GET');
+void hasValidHttpHEADs(HttpProfile profile, List<TimelineEvent> traceEvents) =>
+    hasValidHttpRequests(profile, traceEvents, 'HEAD');
+void hasValidHttpPATCHs(HttpProfile profile, List<TimelineEvent> traceEvents) =>
+    hasValidHttpRequests(profile, traceEvents, 'PATCH');
+void hasValidHttpPOSTs(HttpProfile profile, List<TimelineEvent> traceEvents) =>
+    hasValidHttpRequests(profile, traceEvents, 'POST');
+void hasValidHttpPUTs(HttpProfile profile, List<TimelineEvent> traceEvents) =>
+    hasValidHttpRequests(profile, traceEvents, 'PUT');
 
 var tests = <IsolateTest>[
-  (Isolate isolate) async {
-    final result = await isolate.vm.invokeRpcNoUpgrade('getVMTimeline', {});
-    expect(result['type'], 'Timeline');
-    expect(result.containsKey('traceEvents'), isTrue);
-    final traceEvents = result['traceEvents'];
-    expect(traceEvents.length > 0, isTrue);
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+
+    final httpProfile = await service.getHttpProfile(isolateId);
+    expect(httpProfile.requests.length, 70);
+
+    // Verify timeline events.
+    final result = await service.getVMTimeline();
+    final traceEvents = result.traceEvents!;
+    expect(traceEvents.isNotEmpty, isTrue);
     hasValidHttpConnections(traceEvents);
-    hasValidHttpCONNECTs(traceEvents);
-    hasValidHttpDELETEs(traceEvents);
-    hasValidHttpGETs(traceEvents);
-    hasValidHttpHEADs(traceEvents);
-    hasValidHttpPATCHs(traceEvents);
-    hasValidHttpPOSTs(traceEvents);
-    hasValidHttpPUTs(traceEvents);
+    hasValidHttpCONNECTs(httpProfile, traceEvents);
+    hasValidHttpDELETEs(httpProfile, traceEvents);
+    hasValidHttpGETs(httpProfile, traceEvents);
+    hasValidHttpHEADs(httpProfile, traceEvents);
+    hasValidHttpPATCHs(httpProfile, traceEvents);
+    hasValidHttpPOSTs(httpProfile, traceEvents);
+    hasValidHttpPUTs(httpProfile, traceEvents);
   },
 ];
 
-main(args) async => runIsolateTests(args, tests, testeeBefore: testMain);
+main(args) async => runIsolateTests(
+      args,
+      tests,
+      'verify_http_timeline_test.dart',
+      testeeBefore: testMain,
+    );

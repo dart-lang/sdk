@@ -1,4 +1,4 @@
-# Dart VM Service Protocol Extension 1.5
+# Dart VM Service Protocol Extension 1.6
 
 This protocol describes service extensions that are made available through
 the Dart core libraries, but are not part of the core
@@ -10,7 +10,7 @@ invoked by prepending the service extension name (e.g.,
 
 ## dart:io Extensions
 
-This section describes _version 1.5_ of the dart:io service protocol extensions.
+This section describes _version 1.6_ of the dart:io service protocol extensions.
 
 ### getVersion
 
@@ -165,9 +165,50 @@ If the value of `HttpClient.enableTimelineLogging` is changed, a
 
 See [HttpTimelineLoggingState](#httptimelineloggingstate).
 
+### getHttpProfile
+
+```
+HttpProfile getHttpProfile(string isolateId, int updatedSince [optional])
+```
+
+The `getHttpProfile` RPC is used to retrieve HTTP profiling information
+for requests made via `dart:io`'s `HttpClient`.
+
+The returned `HttpProfile` will only include requests issued after
+`httpTimelineLogging` has been enabled or after the last
+`clearHttpProfile` invocation.
+
+If `updatedSince` is provided, only requests started or updated since
+the specified time will be reported.
+
+See [HttpProfile](#httpprofile).
+
+### getHttpProfileRequest
+
+```
+HttpProfileRequest getHttpProfileRequest(string isolateId, int id)
+```
+
+The `getHttpProfileRequest` RPC is used to retrieve an instance of `HttpProfileRequest`,
+which includes request and response body data.
+
+See [HttpProfileRequest](#httprofilerequest).
+
+### clearHttpProfile
+
+```
+Success clearHttpProfile(string isolateId)
+```
+
+The `clearHttpProfile` RPC is used to clear previously recorded HTTP
+requests from the HTTP profiler state. Requests still in-flight after
+clearing the profiler state will be ignored by the profiler.
+
+See [Success](#success).
+
 ## Public Types
 
-### File
+### OpenFile
 
 ```
 class @OpenFile extends Response {
@@ -213,6 +254,15 @@ class OpenFile extends Response {
 
 A _OpenFile_ contains information about reads and writes to a currently opened file.
 
+### OpenFileList
+
+```
+class OpenFileList extends Response {
+  // A list of all files opened through dart:io.
+  @OpenFile[] files;
+}
+```
+
 ### HttpTimelineLoggingState
 
 ```
@@ -224,14 +274,215 @@ class HttpTimelineLoggingState extends Response {
 
 See [httpEnableTimelineLogging](#httpenabletimelinelogging).
 
-### OpenFileList
+### HttpProfile
 
 ```
-class OpenFileList extends Response {
-  // A list of all files opened through dart:io.
-  @OpenFile[] files;
+class HttpProfile extends Response {
+  // The time at which this HTTP profile was built, in microseconds.
+  int timestamp;
+
+  // The set of recorded HTTP requests.
+  @HttpProfileRequest[] requests;
 }
 ```
+
+A collection of HTTP request data collected by the profiler.
+
+See [getHttpProfile](#gethttpprofile).
+
+### HttpProfileRequest
+
+```
+class @HttpProfileRequest extends Response {
+  // The ID associated with this request.
+  //
+  // This ID corresponds to the ID of the timeline event for this request.
+  int id;
+
+  // The ID of the isolate this request was issued from.
+  string isolateId;
+
+  // The HTTP request method associated with this request.
+  string method;
+
+  // The URI for this HTTP request.
+  string uri;
+
+  // The time at which this request was initiated, in microseconds.
+  final int startTime;
+
+  // The time at which this request was completed, in microseconds.
+  int endTime [optional];
+
+  // Information sent as part of the initial HTTP request.
+  //
+  // Will not be provided if the initial request has not yet completed.
+  HttpProfileRequestData request [optional];
+
+  // Information received in response to the initial HTTP request.
+  //
+  // Will not be provided if the request has not yet been responded to.
+  HttpProfileResponseData response [optional];
+}
+```
+
+```
+class HttpProfileRequest extends @HttpProfileRequest {
+  // The body sent as part of this request.
+  //
+  // Data written to a request body before encountering an error will be
+  // reported.
+  int[] requestBody [optional];
+
+  // The body received in response to the request.
+  int[] responseBody [optional];
+}
+```
+
+Profiling information for a single HTTP request.
+
+See [HttpProfile](#httpprofile).
+
+### HttpProfileRequestData
+
+```
+class HttpProfileRequestData {
+  // Information about the client connection.
+  //
+  // This property can be null, regardless of error state.
+  map<string, dynamic> connectionInfo [optional];
+
+  // The content length of the request, in bytes.
+  int contentLength [optional];
+
+  // Cookies presented to the server (in the 'cookie' header).
+  string[] cookies;
+
+  // Events that has occurred while issuing this HTTP request.
+  //
+  // Events which occurred before encountering an error will be reported.
+  HttpProfileRequestEvent[] events;
+
+  // The error associated with the failed request.
+  string error [optional];
+
+  // Whether to redirects are followed automatically.
+  bool followRedirects [optional];
+
+  // Returns the client request headers.
+  map<string, dynamic> headers [optional];
+
+  // The maximum number of redirects to follow when `followRedirects` is true.
+  int maxRedirects [optional];
+
+  // The method of the request.
+  string method [optional];
+
+  // The requested persistent connection state.
+  bool persistentConnection [optional];
+
+  // Proxy authentication details for this request.
+  HttpProfileProxyData proxyDetails [optional];
+}
+```
+
+Information sent as part of the initial HTTP request. If `error` is present,
+other properties will be null. If `error` is not present, all other properties
+will be provided unless otherwise specified.
+
+See [HttpProfileRequest](#httpprofilerequest).
+
+### HttpProfileResponseData
+
+```
+class HttpProfileResponseData {
+  // Returns the series of redirects this connection has been through.
+  //
+  // The list will be empty if no redirects were followed. redirects will be
+  // updated both in the case of an automatic and a manual redirect.
+  map<string, dynamic>[] redirects;
+
+  // Cookies set by the server (from the 'set-cookie' header).
+  string[] cookies;
+
+  // Information about the client connection.
+  map<string, dynamic> connectionInfo [optional];
+
+  // Returns the client response headers.
+  map<string, dynamic> headers;
+
+  // The compression state of the response.
+  //
+  // This specifies whether the response bytes were compressed when they were
+  // received across the wire and whether callers will receive compressed or
+  // uncompressed bytes when they listed to this response's byte stream.
+  string compressionState;
+
+  // Returns the reason phrase associated with the status code.
+  string reasonPhrase;
+
+  // Returns whether the status code is one of the normal redirect codes.
+  bool isRedirect;
+
+  // The persistent connection state returned by the server.
+  bool persistentConnection;
+
+  // Returns the content length of the response body.
+  //
+  // Returns -1 if the size of the response body is not known in advance.
+  int contentLength;
+
+  // Returns the status code.
+  int statusCode;
+
+  // The time at which the initial response was received, in microseconds.
+  int startTime;
+
+  // The time at which the response was completed, in microseconds.
+  int endTime [optional];
+
+  // The error associated with the failed request.
+  string error [optional];
+}
+```
+
+Information received in response to an initial HTTP request.
+
+See [HttpProfileRequest](#httpprofilerequest).
+
+### HttpProfileProxyData
+
+```
+class HttpProfileProxyData {
+  string host [optional];
+  string username [optional];
+  bool isDirect;
+  int port [optional];
+}
+```
+
+Proxy authentication details associated with a HTTP request.
+
+See [HttpProfileRequestData](#httpprofilerequestdata).
+
+### HttpProfileRequestEvent
+
+```
+class HttpProfileRequestEvent {
+  // The title of the recorded event.
+  string event;
+
+  // The time at which the event occurred, in microseconds.
+  int timestamp;
+
+  // Any arguments recorded for the event.
+  map<string, dynamic> arguments [optional];
+}
+```
+
+Describes an event that has occurred while issuing a HTTP request.
+
+See [HttpProfileRequestData](#httpprofilerequestdata).
 
 ### SocketProfilingState
 
