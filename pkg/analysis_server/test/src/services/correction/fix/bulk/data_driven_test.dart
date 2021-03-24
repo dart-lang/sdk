@@ -511,7 +511,9 @@ class NoProducerOverlapsTest {
         .map((e) => e.key);
     final nonDataDrivenCodes = <String>{
       ...bulkFixCodes,
-      ...BulkFixProcessor.nonLintProducerMap.keys.map((c) => c.uniqueName),
+      ...FixProcessor.nonLintProducerMap2.entries
+          .where((e) => e.value.where((fix) => fix.canBeBulkApplied).isNotEmpty)
+          .map((e) => e.key.uniqueName),
     };
 
     for (final code in BulkFixProcessor.nonLintMultiProducerMap.keys) {

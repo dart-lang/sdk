@@ -369,6 +369,16 @@ class FixProcessor extends BaseProcessor {
         ],
       ),
     ],
+    StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION: [
+      FixInfo(
+        // todo (pq): consider adding
+        canBeAppliedToFile: false,
+        canBeBulkApplied: true,
+        generators: [
+          RemoveNonNullAssertion.newInstance,
+        ],
+      ),
+    ],
   };
 
   /// todo (pq): to replace lintProducerMap.
