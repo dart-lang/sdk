@@ -271,6 +271,15 @@ analyzer:
 ''', []);
   }
 
+  test_analyzer_cannotIgnore_lintRule() {
+    Registry.ruleRegistry.register(TestRule());
+    validate('''
+analyzer:
+  cannot-ignore:
+    - fantastic_test_rule
+''', []);
+  }
+
   test_analyzer_cannotIgnore_notAList() {
     validate('''
 analyzer:

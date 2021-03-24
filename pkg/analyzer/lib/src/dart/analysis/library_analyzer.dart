@@ -435,7 +435,9 @@ class LibraryAnalyzer {
       var code = error.errorCode;
       // Don't allow un-ignorable codes to be ignored.
       if (unignorableCodes.contains(code.name) ||
-          unignorableCodes.contains(code.uniqueName)) {
+          unignorableCodes.contains(code.uniqueName) ||
+          // Lint rules have lower case names.
+          unignorableCodes.contains(code.name.toUpperCase())) {
         return false;
       }
 
