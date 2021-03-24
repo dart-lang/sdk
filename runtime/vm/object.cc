@@ -7381,17 +7381,6 @@ void Function::set_data(const Object& value) const {
   untag()->set_data(value.ptr());
 }
 
-bool Function::IsInFactoryScope() const {
-  if (!HasParent()) {
-    return IsFactory();
-  }
-  Function& outer_function = Function::Handle(parent_function());
-  while (outer_function.HasParent()) {
-    outer_function = outer_function.parent_function();
-  }
-  return outer_function.IsFactory();
-}
-
 void Function::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   untag()->set_name(value.ptr());
