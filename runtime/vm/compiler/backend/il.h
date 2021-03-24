@@ -788,7 +788,7 @@ class Instruction : public ZoneAllocated {
 
   intptr_t deopt_id() const {
     ASSERT(ComputeCanDeoptimize() || ComputeCanDeoptimizeAfterCall() ||
-           CanBecomeDeoptimizationTarget() ||
+           CanBecomeDeoptimizationTarget() || MayThrow() ||
            CompilerState::Current().is_aot());
     return GetDeoptId();
   }
@@ -6059,6 +6059,11 @@ class AllocationInstr : public Definition {
   // is added.
   virtual bool WillAllocateNewOrRemembered() const = 0;
 
+  virtual bool MayThrow() const {
+    // Any allocation instruction may throw an OutOfMemory error.
+    return true;
+  }
+
   DEFINE_INSTRUCTION_TYPE_CHECK(Allocation);
 
  private:
@@ -6068,7 +6073,7 @@ class AllocationInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(AllocationInstr);
 };
 
-template <intptr_t N, typename ThrowsTrait>
+template <intptr_t N>
 class TemplateAllocation : public AllocationInstr {
  public:
   explicit TemplateAllocation(const InstructionSource& source,
@@ -6077,8 +6082,6 @@ class TemplateAllocation : public AllocationInstr {
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-
-  virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -6124,8 +6127,6 @@ class AllocateObjectInstr : public AllocationInstr {
     return type_arguments_;
   }
 
-  virtual bool MayThrow() const { return false; }
-
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -6154,8 +6155,7 @@ class AllocateObjectInstr : public AllocationInstr {
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
 
-class AllocateUninitializedContextInstr
-    : public TemplateAllocation<0, NoThrow> {
+class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
  public:
   AllocateUninitializedContextInstr(const InstructionSource& source,
                                     intptr_t num_context_variables);
@@ -6288,7 +6288,7 @@ class ArrayAllocationInstr : public AllocationInstr {
   DISALLOW_COPY_AND_ASSIGN(ArrayAllocationInstr);
 };
 
-template <intptr_t N, typename ThrowsTrait>
+template <intptr_t N>
 class TemplateArrayAllocation : public ArrayAllocationInstr {
  public:
   explicit TemplateArrayAllocation(const InstructionSource& source,
@@ -6298,8 +6298,6 @@ class TemplateArrayAllocation : public ArrayAllocationInstr {
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
 
-  virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
-
  protected:
   EmbeddedArray<Value*, N> inputs_;
 
@@ -6307,7 +6305,7 @@ class TemplateArrayAllocation : public ArrayAllocationInstr {
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
 
-class CreateArrayInstr : public TemplateArrayAllocation<2, Throws> {
+class CreateArrayInstr : public TemplateArrayAllocation<2> {
  public:
   CreateArrayInstr(const InstructionSource& source,
                    Value* element_type,
@@ -6345,7 +6343,7 @@ class CreateArrayInstr : public TemplateArrayAllocation<2, Throws> {
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
 };
 
-class AllocateTypedDataInstr : public TemplateArrayAllocation<1, Throws> {
+class AllocateTypedDataInstr : public TemplateArrayAllocation<1> {
  public:
   AllocateTypedDataInstr(const InstructionSource& source,
                          classid_t class_id,
@@ -6756,7 +6754,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
 
 // [AllocateContext] instruction allocates a new Context object with the space
 // for the given [context_variables].
-class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
+class AllocateContextInstr : public TemplateAllocation<0> {
  public:
   AllocateContextInstr(const InstructionSource& source,
                        const ZoneGrowableArray<const Slot*>& context_slots)
@@ -6790,7 +6788,7 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
 
 // [CloneContext] instruction clones the given Context object assuming that
 // it contains exactly the provided [context_variables].
-class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
+class CloneContextInstr : public TemplateDefinition<1, Throws> {
  public:
   CloneContextInstr(const InstructionSource& source,
                     Value* context_value,

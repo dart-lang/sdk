@@ -273,7 +273,10 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
 #if !defined(DART_PRECOMPILER)
   // In JIT mode, any instruction which may throw must have a deopt-id, except
   // tail-call because it replaces the stack frame.
+  // TODO(dartbug.com/45213): Remove allocation instructions here once they have
+  // deopt-ids.
   ASSERT(!instruction->MayThrow() || instruction->IsTailCall() ||
+         instruction->IsAllocation() || instruction->IsCloneContext() ||
          instruction->deopt_id() != DeoptId::kNone);
 #endif  // !defined(DART_PRECOMPILER)
 
