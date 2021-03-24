@@ -6063,6 +6063,16 @@ class AllocationInstr : public Definition {
     // Any allocation instruction may throw an OutOfMemory error.
     return true;
   }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    // We test that allocation instructions have correct deopt environment
+    // (which is needed in case OOM is thrown) by actually deoptimizing
+    // optimized code in allocation slow paths.
+    return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
+  }
 
   DEFINE_INSTRUCTION_TYPE_CHECK(Allocation);
 
@@ -6128,8 +6138,6 @@ class AllocateObjectInstr : public AllocationInstr {
     return type_arguments_;
   }
 
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
@@ -6166,8 +6174,6 @@ class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
   virtual CompileType ComputeType() const;
 
   intptr_t num_context_variables() const { return num_context_variables_; }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -6326,12 +6332,6 @@ class CreateArrayInstr : public TemplateArrayAllocation<2> {
   Value* element_type() const { return inputs_[kElementTypePos]; }
   virtual Value* num_elements() const { return inputs_[kLengthPos]; }
 
-  // Throw needs environment, which is created only if instruction can
-  // deoptimize.
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
-
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
@@ -6362,12 +6362,6 @@ class AllocateTypedDataInstr : public TemplateArrayAllocation<1> {
 
   classid_t class_id() const { return class_id_; }
   virtual Value* num_elements() const { return inputs_[kLengthPos]; }
-
-  // Throw needs environment, which is created only if instruction can
-  // deoptimize.
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -6813,8 +6807,15 @@ class CloneContextInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(CloneContext)
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    // We test that allocation instructions have correct deopt environment
+    // (which is needed in case OOM is thrown) by actually deoptimizing
+    // optimized code in allocation slow paths.
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
