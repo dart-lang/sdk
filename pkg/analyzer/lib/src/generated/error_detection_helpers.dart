@@ -81,6 +81,64 @@ mixin ErrorDetectionHelpers {
         whyNotPromotedInfo);
   }
 
+  /// Verify that the given constructor field [initializer] has compatible field
+  /// and initializer expression types. The [fieldElement] is the static element
+  /// from the name in the [ConstructorFieldInitializer].
+  ///
+  /// See [CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE], and
+  /// [StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
+  void checkForFieldInitializerNotAssignable(
+      ConstructorFieldInitializer initializer, FieldElement fieldElement,
+      {required bool isConstConstructor}) {
+    // prepare field type
+    DartType fieldType = fieldElement.type;
+    // prepare expression type
+    Expression expression = initializer.expression;
+    // test the static type of the expression
+    DartType staticType = expression.typeOrThrow;
+    if (typeSystem.isAssignableTo(staticType, fieldType)) {
+      if (!fieldType.isVoid) {
+        checkForUseOfVoidResult(expression);
+      }
+      return;
+    }
+    // report problem
+    if (isConstConstructor) {
+      // TODO(paulberry): this error should be based on the actual type of the
+      // constant, not the static type.  See dartbug.com/21119.
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+          expression,
+          [staticType, fieldType]);
+    }
+    errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+        expression,
+        [staticType, fieldType]);
+    // TODO(brianwilkerson) Define a hint corresponding to these errors and
+    // report it if appropriate.
+//        // test the propagated type of the expression
+//        Type propagatedType = expression.getPropagatedType();
+//        if (propagatedType != null && propagatedType.isAssignableTo(fieldType)) {
+//          return false;
+//        }
+//        // report problem
+//        if (isEnclosingConstructorConst) {
+//          errorReporter.reportTypeErrorForNode(
+//              CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+//              expression,
+//              propagatedType == null ? staticType : propagatedType,
+//              fieldType);
+//        } else {
+//          errorReporter.reportTypeErrorForNode(
+//              StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+//              expression,
+//              propagatedType == null ? staticType : propagatedType,
+//              fieldType);
+//        }
+//        return true;
+  }
+
   /// Verify that the given left hand side ([lhs]) and right hand side ([rhs])
   /// represent a valid assignment.
   ///

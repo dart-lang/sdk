@@ -1299,6 +1299,11 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     node.expression.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+    var enclosingConstructor = enclosingFunction as ConstructorElement;
+    if (fieldElement != null) {
+      checkForFieldInitializerNotAssignable(node, fieldElement,
+          isConstConstructor: enclosingConstructor.isConst);
+    }
   }
 
   @override
