@@ -39,7 +39,7 @@ mixin ErrorDetectionHelpers {
         return;
       }
 
-      checkForAssignableExpressionAtType(
+      _checkForAssignableExpressionAtType(
           expression, actualStaticType, expectedStaticType, errorCode,
           whyNotPromotedInfo: whyNotPromotedInfo);
     }
@@ -81,33 +81,41 @@ mixin ErrorDetectionHelpers {
         whyNotPromotedInfo);
   }
 
-  bool checkForAssignableExpressionAtType(
-      Expression expression,
-      DartType actualStaticType,
-      DartType expectedStaticType,
-      ErrorCode errorCode,
-      {Map<DartType, NonPromotionReason> Function()? whyNotPromotedInfo}) {
-    if (!typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
-      AstNode getErrorNode(AstNode node) {
-        if (node is CascadeExpression) {
-          return getErrorNode(node.target);
-        }
-        if (node is ParenthesizedExpression) {
-          return getErrorNode(node.expression);
-        }
-        return node;
-      }
-
-      errorReporter.reportErrorForNode(
-        errorCode,
-        getErrorNode(expression),
-        [actualStaticType, expectedStaticType],
-        computeWhyNotPromotedMessages(
-            expression, expression, whyNotPromotedInfo?.call()),
-      );
-      return false;
+  /// Verify that the given left hand side ([lhs]) and right hand side ([rhs])
+  /// represent a valid assignment.
+  ///
+  /// See [CompileTimeErrorCode.INVALID_ASSIGNMENT].
+  void checkForInvalidAssignment(Expression? lhs, Expression? rhs) {
+    if (lhs == null || rhs == null) {
+      return;
     }
-    return true;
+
+    if (lhs is IndexExpression &&
+            identical(lhs.realTarget.staticType, NeverTypeImpl.instance) ||
+        lhs is PrefixedIdentifier &&
+            identical(lhs.prefix.staticType, NeverTypeImpl.instance) ||
+        lhs is PropertyAccess &&
+            identical(lhs.realTarget.staticType, NeverTypeImpl.instance)) {
+      return;
+    }
+
+    DartType leftType;
+    var parent = lhs.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == lhs) {
+      leftType = parent.writeType!;
+    } else {
+      var leftVariableElement = getVariableElement(lhs);
+      leftType = (leftVariableElement == null)
+          ? lhs.typeOrThrow
+          : leftVariableElement.type;
+    }
+
+    if (!leftType.isVoid && checkForUseOfVoidResult(rhs)) {
+      return;
+    }
+
+    _checkForAssignableExpression(
+        rhs, leftType, CompileTimeErrorCode.INVALID_ASSIGNMENT);
   }
 
   /// Check for situations where the result of a method or function is used,
@@ -148,6 +156,18 @@ mixin ErrorDetectionHelpers {
       SyntacticEntity errorEntity,
       Map<DartType, NonPromotionReason>? whyNotPromoted);
 
+  /// Return the variable element represented by the given [expression], or
+  /// `null` if there is no such element.
+  VariableElement? getVariableElement(Expression? expression) {
+    if (expression is Identifier) {
+      var element = expression.staticElement;
+      if (element is VariableElement) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   /// Verify that the given [expression] can be assigned to its corresponding
   /// parameters.
   ///
@@ -166,5 +186,41 @@ mixin ErrorDetectionHelpers {
     checkForArgumentTypeNotAssignable(
         expression, expectedStaticType, expression.typeOrThrow, errorCode,
         whyNotPromotedInfo: whyNotPromotedInfo);
+  }
+
+  bool _checkForAssignableExpression(
+      Expression expression, DartType expectedStaticType, ErrorCode errorCode) {
+    DartType actualStaticType = expression.typeOrThrow;
+    return _checkForAssignableExpressionAtType(
+        expression, actualStaticType, expectedStaticType, errorCode);
+  }
+
+  bool _checkForAssignableExpressionAtType(
+      Expression expression,
+      DartType actualStaticType,
+      DartType expectedStaticType,
+      ErrorCode errorCode,
+      {Map<DartType, NonPromotionReason> Function()? whyNotPromotedInfo}) {
+    if (!typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
+      AstNode getErrorNode(AstNode node) {
+        if (node is CascadeExpression) {
+          return getErrorNode(node.target);
+        }
+        if (node is ParenthesizedExpression) {
+          return getErrorNode(node.expression);
+        }
+        return node;
+      }
+
+      errorReporter.reportErrorForNode(
+        errorCode,
+        getErrorNode(expression),
+        [actualStaticType, expectedStaticType],
+        computeWhyNotPromotedMessages(
+            expression, expression, whyNotPromotedInfo?.call()),
+      );
+      return false;
+    }
+    return true;
   }
 }

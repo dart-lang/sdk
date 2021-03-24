@@ -2155,6 +2155,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
             isFinal: parent.isFinal, isLate: parent.isLate);
       }
     }
+    checkForInvalidAssignment(node.name, node.initializer);
   }
 
   @override
