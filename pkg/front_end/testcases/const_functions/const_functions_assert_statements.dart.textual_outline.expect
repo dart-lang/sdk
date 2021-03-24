@@ -1,0 +1,5 @@
+import "package:expect/expect.dart";
+
+const var1 = fn();
+int fn() {}
+void main() {}
