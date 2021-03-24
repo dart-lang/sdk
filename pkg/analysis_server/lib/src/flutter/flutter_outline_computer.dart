@@ -153,7 +153,31 @@ class FlutterOutlineComputer {
           childrenExpression = argument;
         }
 
-        if (isWidgetArgument) {
+        void addChildrenFrom(CollectionElement element) {
+          if (element is ConditionalExpression) {
+            addChildrenFrom(element.thenExpression);
+            addChildrenFrom(element.elseExpression);
+          } else if (element is Expression) {
+            var child = _createOutline(element, true);
+            if (child != null) {
+              children.add(child);
+            }
+          } else if (element is IfElement) {
+            addChildrenFrom(element.thenElement);
+            addChildrenFrom(element.elseElement);
+          } else if (element is ForElement) {
+            addChildrenFrom(element.body);
+          } else if (element is SpreadElement) {
+            // Ignored. It's possible that we might be able to extract
+            // some information from some spread expressions, but it seems
+            // unlikely enough that we're not handling it at the moment.
+          }
+        }
+
+        if (isWidgetArgument && childrenExpression is ConditionalExpression) {
+          addChildrenFrom(childrenExpression.thenExpression);
+          addChildrenFrom(childrenExpression.elseExpression);
+        } else if (isWidgetArgument) {
           var child = _createOutline(childrenExpression, true);
           if (child != null) {
             child.parentAssociationLabel = parentAssociationLabel;
@@ -162,24 +186,6 @@ class FlutterOutlineComputer {
         } else if (isWidgetListArgument) {
           if (childrenExpression is ListLiteral) {
             for (var element in childrenExpression.elements) {
-              void addChildrenFrom(CollectionElement element) {
-                if (element is Expression) {
-                  var child = _createOutline(element, true);
-                  if (child != null) {
-                    children.add(child);
-                  }
-                } else if (element is IfElement) {
-                  addChildrenFrom(element.thenElement);
-                  addChildrenFrom(element.elseElement);
-                } else if (element is ForElement) {
-                  addChildrenFrom(element.body);
-                } else if (element is SpreadElement) {
-                  // Ignored. It's possible that we might be able to extract
-                  // some information from some spread expressions, but it seems
-                  // unlikely enough that we're not handling it at the moment.
-                }
-              }
-
               addChildrenFrom(element);
             }
           }
