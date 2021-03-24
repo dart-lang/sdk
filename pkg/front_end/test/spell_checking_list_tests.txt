@@ -22,6 +22,7 @@ abcompile
 adapter
 adaptor
 adopted
+advantages
 albeit
 allocations
 allowlist
@@ -145,6 +146,7 @@ compiler's
 complement
 completers
 complicated
+concurrently
 confidence
 confident
 confirm
@@ -229,6 +231,7 @@ donly
 doo
 downstream
 draw
+dsemi
 dumping
 dumps
 dupe
@@ -369,6 +372,7 @@ hurray
 i'm
 ia
 ideal
+identification
 idle
 ikg
 illustrate
@@ -527,6 +531,7 @@ numerator
 ob
 obool
 observable
+offers
 oh
 okay
 ol
@@ -572,6 +577,8 @@ preliminary
 prematurely
 press
 pretends
+processes
+processors
 producer
 profile
 profiler
