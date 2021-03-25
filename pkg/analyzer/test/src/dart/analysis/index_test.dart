@@ -552,6 +552,20 @@ main() {
     assertThat(element).isReferencedAt('A();', false);
   }
 
+  test_isReferencedBy_ClassElement_inGenericAnnotation() async {
+    await _indexTestUnit('''
+class A<T> {
+  const A();
+}
+
+@A<A>()
+void f() {}
+''');
+    assertThat(findElement.class_('A'))
+      ..isReferencedAt('A<A', false)
+      ..isReferencedAt('A>()', false);
+  }
+
   test_isReferencedBy_ClassElement_inTypeAlias() async {
     await _indexTestUnit('''
 class A<T> {}

@@ -197,6 +197,53 @@ AAA aaa;
     assertHasRegionTarget('AAA aaa;', 'AAA {}');
   }
 
+  Future<void> test_annotation_generic_typeArguments_class() async {
+    addTestFile('''
+class A<T> {
+  const A();
+}
+
+@A<int>()
+void f() {}
+''');
+    await prepareNavigation();
+    assertHasRegion('int>()');
+  }
+
+  Future<void> test_annotationConstructor_generic_named() async {
+    addTestFile('''
+class A<T> {
+  const A.named(_);
+}
+
+@A<int>.named(0)
+void f() {}
+''');
+    await prepareNavigation();
+    {
+      assertHasRegion('A<int>.named(0)');
+      assertHasTarget('named(_);');
+    }
+    {
+      assertHasRegion('named(0)');
+      assertHasTarget('named(_);');
+    }
+  }
+
+  Future<void> test_annotationConstructor_generic_unnamed() async {
+    addTestFile('''
+class A<T> {
+  const A(_);
+}
+
+@A<int>(0)
+void f() {}
+''');
+    await prepareNavigation();
+    assertHasRegionString('A<int>(0)', 'A'.length);
+    assertHasTarget('A(_);', 0);
+  }
+
   Future<void> test_annotationConstructor_implicit() async {
     addTestFile('''
 class A {

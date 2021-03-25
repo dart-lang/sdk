@@ -35,6 +35,21 @@ class AAA {
     assertHasRegion(HighlightRegionType.ANNOTATION, ') main', ')'.length);
   }
 
+  Future<void> test_ANNOTATION_hasTypeArguments_hasArguments() async {
+    addTestFile('''
+class AAA<T> {
+  const AAA(a, b, c);
+}
+
+@AAA<int>(1, 2, 3) void f() {}
+''');
+    await prepareHighlights();
+    assertHasRegion(
+        HighlightRegionType.ANNOTATION, '@AAA', '@AAA<int>('.length);
+    assertHasRegion(HighlightRegionType.ANNOTATION, ') void', ')'.length);
+    assertHasRegion(HighlightRegionType.CLASS, 'int>');
+  }
+
   Future<void> test_ANNOTATION_noArguments() async {
     addTestFile('''
 const AAA = 42;
