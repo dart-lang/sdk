@@ -4530,9 +4530,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 noLength));
       }
       type = aliasBuilder.unaliasDeclaration(null,
-          isInvocation: true,
-          invocationCharOffset: nameToken.charOffset,
-          invocationFileUri: uri);
+          isUsedAsClass: true,
+          usedAsClassCharOffset: nameToken.charOffset,
+          usedAsClassFileUri: uri);
       List<TypeBuilder> typeArgumentBuilders = [];
       if (typeArguments != null) {
         for (UnresolvedType unresolvedType in typeArguments) {

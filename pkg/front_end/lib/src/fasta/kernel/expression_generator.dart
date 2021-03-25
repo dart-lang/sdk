@@ -3061,9 +3061,9 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
     if (declarationBuilder is TypeAliasBuilder) {
       TypeAliasBuilder aliasBuilder = declarationBuilder;
       declarationBuilder = aliasBuilder.unaliasDeclaration(null,
-          isInvocation: true,
-          invocationCharOffset: this.fileOffset,
-          invocationFileUri: _uri);
+          isUsedAsClass: true,
+          usedAsClassCharOffset: this.fileOffset,
+          usedAsClassFileUri: _uri);
     }
     if (declarationBuilder is DeclarationBuilder) {
       DeclarationBuilder declaration = declarationBuilder;

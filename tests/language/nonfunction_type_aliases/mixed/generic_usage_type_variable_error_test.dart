@@ -23,22 +23,45 @@ abstract class C {
   // [cfe] unspecified
 }
 
-class D1<X> extends T<X> {}
-//                  ^
+class D {}
+mixin M {}
+
+abstract class D1<X> extends T<D> {}
+//                           ^
 // [analyzer] unspecified
 // [cfe] unspecified
 
-abstract class D2 extends C with T<int> {}
+abstract class D2 extends C with T<M> {}
 //                               ^
 // [analyzer] unspecified
 // [cfe] unspecified
 
-abstract class D3<X, Y> implements T<T> {}
+abstract class D3<X, Y> implements T<T<D>> {}
 //                                 ^
 // [analyzer] unspecified
 // [cfe] unspecified
 
-abstract class D4 = C with T<void>;
+abstract class D4 = C with T<D>;
+//                         ^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+class D5<X> extends T<X> {}
+//                  ^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+abstract class D6 extends C with T<int> {}
+//                               ^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+abstract class D7<X, Y> implements T<T> {}
+//                                 ^
+// [analyzer] unspecified
+// [cfe] unspecified
+
+abstract class D8 = C with T<void>;
 //                         ^
 // [analyzer] unspecified
 // [cfe] unspecified
