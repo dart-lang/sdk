@@ -3928,18 +3928,19 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intptr_t left_cid = this->left()->Type()->ToCid();
   intptr_t right_cid = this->right()->Type()->ToCid();
   bool combined_smi_check = false;
-  if (this->left()->definition() == this->right()->definition()) {
-    __ tst(left, compiler::Operand(kSmiTagMask));
+  if (FLAG_use_slow_path) {
+    __ b(slow_path->entry_label());
+  } else if (this->left()->definition() == this->right()->definition()) {
+    __ BranchIfNotSmi(left, slow_path->entry_label());
   } else if (left_cid == kSmiCid) {
-    __ tst(right, compiler::Operand(kSmiTagMask));
+    __ BranchIfNotSmi(right, slow_path->entry_label());
   } else if (right_cid == kSmiCid) {
-    __ tst(left, compiler::Operand(kSmiTagMask));
+    __ BranchIfNotSmi(left, slow_path->entry_label());
   } else {
     combined_smi_check = true;
     __ orr(result, left, compiler::Operand(right));
-    __ tst(result, compiler::Operand(kSmiTagMask));
+    __ BranchIfNotSmi(result, slow_path->entry_label());
   }
-  __ b(slow_path->entry_label(), NE);
   switch (op_kind()) {
     case Token::kADD:
       __ adds(result, left, compiler::Operand(right));
@@ -4148,17 +4149,18 @@ Condition CheckedSmiComparisonInstr::EmitComparisonCode(
   Register temp = locs()->temp(0).reg();                                       \
   intptr_t left_cid = this->left()->Type()->ToCid();                           \
   intptr_t right_cid = this->right()->Type()->ToCid();                         \
-  if (this->left()->definition() == this->right()->definition()) {             \
-    __ tst(left, compiler::Operand(kSmiTagMask));                              \
+  if (FLAG_use_slow_path) {                                                    \
+    __ b(slow_path->entry_label());                                            \
+  } else if (this->left()->definition() == this->right()->definition()) {      \
+    __ BranchIfNotSmi(left, slow_path->entry_label());                         \
   } else if (left_cid == kSmiCid) {                                            \
-    __ tst(right, compiler::Operand(kSmiTagMask));                             \
+    __ BranchIfNotSmi(right, slow_path->entry_label());                        \
   } else if (right_cid == kSmiCid) {                                           \
-    __ tst(left, compiler::Operand(kSmiTagMask));                              \
+    __ BranchIfNotSmi(left, slow_path->entry_label());                         \
   } else {                                                                     \
     __ orr(temp, left, compiler::Operand(right));                              \
-    __ tst(temp, compiler::Operand(kSmiTagMask));                              \
-  }                                                                            \
-  __ b(slow_path->entry_label(), NE)
+    __ BranchIfNotSmi(temp, slow_path->entry_label());                         \
+  }
 
 void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                                BranchInstr* branch) {

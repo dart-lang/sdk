@@ -3492,7 +3492,9 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intptr_t left_cid = this->left()->Type()->ToCid();
   intptr_t right_cid = this->right()->Type()->ToCid();
   bool combined_smi_check = false;
-  if (this->left()->definition() == this->right()->definition()) {
+  if (FLAG_use_slow_path) {
+    __ b(slow_path->entry_label());
+  } else if (this->left()->definition() == this->right()->definition()) {
     __ BranchIfNotSmi(left, slow_path->entry_label());
   } else if (left_cid == kSmiCid) {
     __ BranchIfNotSmi(right, slow_path->entry_label());
@@ -3672,7 +3674,9 @@ Condition CheckedSmiComparisonInstr::EmitComparisonCode(
   Register temp = locs()->temp(0).reg();                                       \
   intptr_t left_cid = this->left()->Type()->ToCid();                           \
   intptr_t right_cid = this->right()->Type()->ToCid();                         \
-  if (this->left()->definition() == this->right()->definition()) {             \
+  if (FLAG_use_slow_path) {                                                    \
+    __ b(slow_path->entry_label());                                            \
+  } else if (this->left()->definition() == this->right()->definition()) {      \
     __ BranchIfNotSmi(left, slow_path->entry_label());                         \
   } else if (left_cid == kSmiCid) {                                            \
     __ BranchIfNotSmi(right, slow_path->entry_label());                        \
