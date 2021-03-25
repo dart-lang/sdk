@@ -80,7 +80,7 @@ class AstCloner implements AstVisitor<AstNode> {
       if (_lastClonedOffset <= token.offset) {
         _cloneTokens(_nextToClone ?? token, token.offset);
       }
-      return _clonedTokens[token]!;
+      return _clonedTokens[token];
     } else {
       return token;
     }
