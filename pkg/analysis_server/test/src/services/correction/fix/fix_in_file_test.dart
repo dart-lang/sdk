@@ -121,6 +121,7 @@ class VerificationTests {
     verify_fixInFileFixesHaveBulkFixTests();
     verify_fixInFileFixKindsHaveMultiFixes();
     verify_fixInFileFixesHaveUniqueBulkFixes();
+    verify_lintProducerMap2_coverage();
   }
 
   static void verify_fixInFileFixesHaveBulkFixTests() {
@@ -129,7 +130,7 @@ class VerificationTests {
         var errorCode = fixEntry.key;
         for (var fixInfo in fixEntry.value) {
           if (fixInfo.canBeAppliedToFile) {
-            test(errorCode, () {
+            test('$errorCode |', () {
               expect(fixInfo.canBeBulkApplied, isTrue);
             });
           }
@@ -184,6 +185,19 @@ class VerificationTests {
             });
           }
         }
+      }
+    });
+  }
+
+  static void verify_lintProducerMap2_coverage() {
+    // todo (pq): remove when lintProducerMap is deleted.
+    group('VerificationTests | lintProducerMap2_coverage |', () {
+      // ignore: deprecated_member_use_from_same_package
+      for (var entry in FixProcessor.lintProducerMap.entries) {
+        var errorCode = entry.key;
+        test('$errorCode |', () {
+          expect(FixProcessor.lintProducerMap2, contains(errorCode));
+        });
       }
     });
   }

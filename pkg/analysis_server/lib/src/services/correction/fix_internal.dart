@@ -1080,6 +1080,7 @@ class FixProcessor extends BaseProcessor {
   /// A map from the names of lint rules to a list of generators used to create
   /// the correction producers used to build fixes for those diagnostics. The
   /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
+  @Deprecated('To be replaced w/ lintProducerMap2')
   static const Map<String, List<ProducerGenerator>> lintProducerMap = {
     LintNames.always_declare_return_types: [
       AddReturnType.newInstance,
@@ -1447,7 +1448,7 @@ class FixProcessor extends BaseProcessor {
 
   /// A map from error codes to a list of generators used to create the
   /// correction producers used to build fixes for those diagnostics. The
-  /// generators used for lint rules are in the [lintProducerMap].
+  /// generators used for lint rules are in the [lintProducerMap2].
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
       MakeFieldNotFinal.newInstance,
@@ -2006,9 +2007,9 @@ class FixProcessor extends BaseProcessor {
 
     var errorCode = error.errorCode;
     if (errorCode is LintCode) {
-      var generators = lintProducerMap[errorCode.name];
-      if (generators != null) {
-        for (var generator in generators) {
+      var fixes = lintProducerMap2[errorCode.name] ?? [];
+      for (var fix in fixes) {
+        for (var generator in fix.generators) {
           await compute(generator());
         }
       }
