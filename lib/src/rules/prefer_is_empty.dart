@@ -6,8 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/ast.dart' show ExpressionImpl;
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -144,8 +142,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Or in a const context.
     // See: https://github.com/dart-lang/linter/issues/1719
-    var impl = binaryExpression as ExpressionImpl;
-    if (impl.inConstantContext) {
+    if (binaryExpression.inConstantContext) {
       return;
     }
 

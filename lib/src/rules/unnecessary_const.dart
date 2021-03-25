@@ -5,8 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/ast.dart';
 
 import '../analyzer.dart';
 
@@ -62,8 +60,7 @@ class _Visitor extends SimpleAstVisitor {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.keyword?.type != Keyword.CONST) return;
 
-    // todo (pq): remove cast when `inConstantContext` is public on Expression
-    if ((node as ExpressionImpl).inConstantContext) {
+    if (node.inConstantContext) {
       rule.reportLint(node);
     }
   }
@@ -79,8 +76,7 @@ class _Visitor extends SimpleAstVisitor {
   void _visitTypedLiteral(TypedLiteral node) {
     if (node.constKeyword?.type != Keyword.CONST) return;
 
-    // todo (pq): remove cast when `inConstantContext` is public on Expression
-    if ((node as ExpressionImpl).inConstantContext) {
+    if (node.inConstantContext) {
       rule.reportLint(node);
     }
   }
