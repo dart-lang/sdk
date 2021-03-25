@@ -1,14 +1,14 @@
 Problems reported:
 
-parser/error_recovery/issue_45251_list:3:32: Unexpected token 'List'.
+parser/error_recovery/issue_45251_list:3:32: A list literal can't be prefixed by 'List'.
   final List<Undefined> foo1 = List<List<int>>[];
                                ^^^^
 
-parser/error_recovery/issue_45251_list:9:32: Unexpected token 'List'.
+parser/error_recovery/issue_45251_list:9:32: A list literal can't be prefixed by 'List'.
   final List<Undefined> foo3 = List[];
                                ^^^^
 
-parser/error_recovery/issue_45251_list:18:32: Unexpected token 'List'.
+parser/error_recovery/issue_45251_list:18:32: A list literal can't be prefixed by 'List'.
   final List<Undefined> foo6 = List<List<int>>[null];
                                ^^^^
 
@@ -38,7 +38,7 @@ beginCompilationUnit(class)
             handleType(List, null)
             handleIdentifier(foo1, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'List'., null, {lexeme: List}], List, List)
+              handleRecoverableError(Message[LiteralWithClass, A list literal can't be prefixed by 'List'., Try removing 'List', {string: list, lexeme: List}], List, List)
               beginTypeArguments(<)
                 handleIdentifier(List, typeReference)
                 beginTypeArguments(<)
@@ -91,7 +91,7 @@ beginCompilationUnit(class)
             handleType(List, null)
             handleIdentifier(foo3, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'List'., null, {lexeme: List}], List, List)
+              handleRecoverableError(Message[LiteralWithClass, A list literal can't be prefixed by 'List'., Try removing 'List', {string: list, lexeme: List}], List, List)
               handleNoTypeArguments([])
               handleLiteralList(0, [, null, ])
             endFieldInitializer(=, ;)
@@ -160,7 +160,7 @@ beginCompilationUnit(class)
             handleType(List, null)
             handleIdentifier(foo6, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'List'., null, {lexeme: List}], List, List)
+              handleRecoverableError(Message[LiteralWithClass, A list literal can't be prefixed by 'List'., Try removing 'List', {string: list, lexeme: List}], List, List)
               beginTypeArguments(<)
                 handleIdentifier(List, typeReference)
                 beginTypeArguments(<)

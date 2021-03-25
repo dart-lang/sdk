@@ -1,18 +1,18 @@
 Problems reported:
 
-parser/error_recovery/issue_45251_set:3:31: Unexpected token 'Set'.
+parser/error_recovery/issue_45251_set:3:31: A set literal can't be prefixed by 'Set'.
   final Set<Undefined> foo1 = Set<List<int>>{};
                               ^^^
 
-parser/error_recovery/issue_45251_set:9:31: Unexpected token 'Set'.
+parser/error_recovery/issue_45251_set:9:31: A set literal can't be prefixed by 'Set'.
   final Set<Undefined> foo3 = Set{};
                               ^^^
 
-parser/error_recovery/issue_45251_set:18:31: Unexpected token 'Set'.
+parser/error_recovery/issue_45251_set:18:31: A set literal can't be prefixed by 'Set'.
   final Set<Undefined> foo6 = Set<List<int>>{null};
                               ^^^
 
-parser/error_recovery/issue_45251_set:21:31: Unexpected token 'Set'.
+parser/error_recovery/issue_45251_set:21:31: A set literal can't be prefixed by 'Set'.
   final Set<Undefined> foo7 = Set{null};
                               ^^^
 
@@ -42,7 +42,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo1, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Set'., null, {lexeme: Set}], Set, Set)
+              handleRecoverableError(Message[LiteralWithClass, A set literal can't be prefixed by 'Set'., Try removing 'Set', {string: set, lexeme: Set}], Set, Set)
               beginTypeArguments(<)
                 handleIdentifier(List, typeReference)
                 beginTypeArguments(<)
@@ -95,7 +95,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo3, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Set'., null, {lexeme: Set}], Set, Set)
+              handleRecoverableError(Message[LiteralWithClass, A set literal can't be prefixed by 'Set'., Try removing 'Set', {string: set, lexeme: Set}], Set, Set)
               handleNoTypeArguments({)
               handleLiteralSetOrMap(0, {, null, }, false)
             endFieldInitializer(=, ;)
@@ -164,7 +164,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo6, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Set'., null, {lexeme: Set}], Set, Set)
+              handleRecoverableError(Message[LiteralWithClass, A set literal can't be prefixed by 'Set'., Try removing 'Set', {string: set, lexeme: Set}], Set, Set)
               beginTypeArguments(<)
                 handleIdentifier(List, typeReference)
                 beginTypeArguments(<)
@@ -192,7 +192,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo7, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Set'., null, {lexeme: Set}], Set, Set)
+              handleRecoverableError(Message[LiteralWithClass, A set literal can't be prefixed by 'Set'., Try removing 'Set', {string: set, lexeme: Set}], Set, Set)
               handleNoTypeArguments({)
               handleLiteralNull(null)
               handleLiteralSetOrMap(1, {, null, }, true)

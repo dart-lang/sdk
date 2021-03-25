@@ -122,6 +122,9 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   _BINARY_OPERATOR_WRITTEN_OUT,
   _EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
   _ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED,
+  _LITERAL_WITH_CLASS_AND_NEW,
+  _LITERAL_WITH_CLASS,
+  _LITERAL_WITH_NEW,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
@@ -473,6 +476,20 @@ const ParserErrorCode _LIBRARY_DIRECTIVE_NOT_FIRST = ParserErrorCode(
     r"The library directive must appear before all other directives.",
     correction:
         "Try moving the library directive before any other directives.");
+
+const ParserErrorCode _LITERAL_WITH_CLASS = ParserErrorCode(
+    'LITERAL_WITH_CLASS',
+    r"The name of the class '#lexeme' can't be included in a #string literal.",
+    correction: "Try removing '#lexeme'");
+
+const ParserErrorCode _LITERAL_WITH_CLASS_AND_NEW = ParserErrorCode(
+    'LITERAL_WITH_CLASS_AND_NEW',
+    r"Neither 'new' nor the name of the class '#lexeme' can be included in a #string literal.",
+    correction: "Try removing 'new' and '#lexeme'");
+
+const ParserErrorCode _LITERAL_WITH_NEW = ParserErrorCode(
+    'LITERAL_WITH_NEW', r"A literal can't use 'new'.",
+    correction: "Try removing 'new'");
 
 const ParserErrorCode _MEMBER_WITH_CLASS_NAME = ParserErrorCode(
     'MEMBER_WITH_CLASS_NAME',

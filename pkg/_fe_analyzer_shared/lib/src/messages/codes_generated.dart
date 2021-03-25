@@ -6308,6 +6308,65 @@ const MessageCode messageListLiteralTooManyTypeArguments = const MessageCode(
     message: r"""List literal requires exactly one type argument.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, Token token)>
+    templateLiteralWithClass =
+    const Template<Message Function(String string, Token token)>(
+        messageTemplate:
+            r"""A #string literal can't be prefixed by '#lexeme'.""",
+        tipTemplate: r"""Try removing '#lexeme'""",
+        withArguments: _withArgumentsLiteralWithClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, Token token)> codeLiteralWithClass =
+    const Code<Message Function(String string, Token token)>("LiteralWithClass",
+        index: 116);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLiteralWithClass(String string, Token token) {
+  if (string.isEmpty) throw 'No string provided';
+  String lexeme = token.lexeme;
+  return new Message(codeLiteralWithClass,
+      message: """A ${string} literal can't be prefixed by '${lexeme}'.""",
+      tip: """Try removing '${lexeme}'""",
+      arguments: {'string': string, 'lexeme': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string, Token token)>
+    templateLiteralWithClassAndNew =
+    const Template<Message Function(String string, Token token)>(
+        messageTemplate:
+            r"""A #string literal can't be prefixed by 'new #lexeme'.""",
+        tipTemplate: r"""Try removing 'new' and '#lexeme'""",
+        withArguments: _withArgumentsLiteralWithClassAndNew);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, Token token)>
+    codeLiteralWithClassAndNew =
+    const Code<Message Function(String string, Token token)>(
+        "LiteralWithClassAndNew",
+        index: 115);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLiteralWithClassAndNew(String string, Token token) {
+  if (string.isEmpty) throw 'No string provided';
+  String lexeme = token.lexeme;
+  return new Message(codeLiteralWithClassAndNew,
+      message: """A ${string} literal can't be prefixed by 'new ${lexeme}'.""",
+      tip: """Try removing 'new' and '${lexeme}'""",
+      arguments: {'string': string, 'lexeme': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLiteralWithNew = messageLiteralWithNew;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLiteralWithNew = const MessageCode("LiteralWithNew",
+    index: 117,
+    message: r"""A literal can't be prefixed by 'new'.""",
+    tip: r"""Try removing 'new'""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeLoadLibraryTakesNoArguments =
     messageLoadLibraryTakesNoArguments;
 

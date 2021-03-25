@@ -1,46 +1,30 @@
 Problems reported:
 
-parser/error_recovery/issue_45251_new:3:39: Unexpected token 'new'.
+parser/error_recovery/issue_45251_new:3:39: A map literal can't be prefixed by 'new Map'.
   final Map<String, Undefined> foo1 = new Map<String, List<int>>{};
-                                      ^^^
+                                      ^^^^^^^
 
-parser/error_recovery/issue_45251_new:3:43: Unexpected token 'Map'.
-  final Map<String, Undefined> foo1 = new Map<String, List<int>>{};
-                                          ^^^
-
-parser/error_recovery/issue_45251_new:6:39: Unexpected token 'new'.
+parser/error_recovery/issue_45251_new:6:39: A literal can't be prefixed by 'new'.
   final Map<String, Undefined> foo2 = new <String, List<int>>{};
                                       ^^^
 
-parser/error_recovery/issue_45251_new:9:39: Unexpected token 'new'.
+parser/error_recovery/issue_45251_new:9:39: A map literal can't be prefixed by 'new Map'.
   final Map<String, Undefined> foo3 = new Map{};
-                                      ^^^
+                                      ^^^^^^^
 
-parser/error_recovery/issue_45251_new:9:43: Unexpected token 'Map'.
-  final Map<String, Undefined> foo3 = new Map{};
-                                          ^^^
-
-parser/error_recovery/issue_45251_new:18:39: Unexpected token 'new'.
+parser/error_recovery/issue_45251_new:18:39: A map literal can't be prefixed by 'new Map'.
   final Map<String, Undefined> foo6 = new Map<String, List<int>>{"a": null};
-                                      ^^^
+                                      ^^^^^^^
 
-parser/error_recovery/issue_45251_new:18:43: Unexpected token 'Map'.
-  final Map<String, Undefined> foo6 = new Map<String, List<int>>{"a": null};
-                                          ^^^
-
-parser/error_recovery/issue_45251_new:21:39: Unexpected token 'new'.
+parser/error_recovery/issue_45251_new:21:39: A map literal can't be prefixed by 'new Map'.
   final Map<String, Undefined> foo7 = new Map{"a": null};
-                                      ^^^
+                                      ^^^^^^^
 
-parser/error_recovery/issue_45251_new:21:43: Unexpected token 'Map'.
-  final Map<String, Undefined> foo7 = new Map{"a": null};
-                                          ^^^
-
-parser/error_recovery/issue_45251_new:24:39: Unexpected token 'new'.
+parser/error_recovery/issue_45251_new:24:39: A literal can't be prefixed by 'new'.
   final Map<String, Undefined> foo8 = new <String, List<int>>{"a": null};
                                       ^^^
 
-parser/error_recovery/issue_45251_new:27:39: Unexpected token 'new'.
+parser/error_recovery/issue_45251_new:27:39: A literal can't be prefixed by 'new'.
   final Map<String, Undefined> foo9 = new {"a": null};
                                       ^^^
 
@@ -73,8 +57,7 @@ beginCompilationUnit(class)
             handleType(Map, null)
             handleIdentifier(foo1, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Map'., null, {lexeme: Map}], Map, Map)
+              handleRecoverableError(Message[LiteralWithClassAndNew, A map literal can't be prefixed by 'new Map'., Try removing 'new' and 'Map', {string: map, lexeme: Map}], new, Map)
               beginTypeArguments(<)
                 handleIdentifier(String, typeReference)
                 handleNoTypeArguments(,)
@@ -107,7 +90,7 @@ beginCompilationUnit(class)
             handleType(Map, null)
             handleIdentifier(foo2, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
+              handleRecoverableError(LiteralWithNew, new, new)
               beginTypeArguments(<)
                 handleIdentifier(String, typeReference)
                 handleNoTypeArguments(,)
@@ -140,8 +123,7 @@ beginCompilationUnit(class)
             handleType(Map, null)
             handleIdentifier(foo3, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Map'., null, {lexeme: Map}], Map, Map)
+              handleRecoverableError(Message[LiteralWithClassAndNew, A map literal can't be prefixed by 'new Map'., Try removing 'new' and 'Map', {string: map, lexeme: Map}], new, Map)
               handleNoTypeArguments({)
               handleLiteralSetOrMap(0, {, null, }, false)
             endFieldInitializer(=, ;)
@@ -230,8 +212,7 @@ beginCompilationUnit(class)
             handleType(Map, null)
             handleIdentifier(foo6, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Map'., null, {lexeme: Map}], Map, Map)
+              handleRecoverableError(Message[LiteralWithClassAndNew, A map literal can't be prefixed by 'new Map'., Try removing 'new' and 'Map', {string: map, lexeme: Map}], new, Map)
               beginTypeArguments(<)
                 handleIdentifier(String, typeReference)
                 handleNoTypeArguments(,)
@@ -268,8 +249,7 @@ beginCompilationUnit(class)
             handleType(Map, null)
             handleIdentifier(foo7, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Map'., null, {lexeme: Map}], Map, Map)
+              handleRecoverableError(Message[LiteralWithClassAndNew, A map literal can't be prefixed by 'new Map'., Try removing 'new' and 'Map', {string: map, lexeme: Map}], new, Map)
               handleNoTypeArguments({)
               beginLiteralString("a")
               endLiteralString(0, :)
@@ -295,7 +275,7 @@ beginCompilationUnit(class)
             handleType(Map, null)
             handleIdentifier(foo8, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
+              handleRecoverableError(LiteralWithNew, new, new)
               beginTypeArguments(<)
                 handleIdentifier(String, typeReference)
                 handleNoTypeArguments(,)
@@ -332,7 +312,7 @@ beginCompilationUnit(class)
             handleType(Map, null)
             handleIdentifier(foo9, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
+              handleRecoverableError(LiteralWithNew, new, new)
               handleNoTypeArguments({)
               beginLiteralString("a")
               endLiteralString(0, :)

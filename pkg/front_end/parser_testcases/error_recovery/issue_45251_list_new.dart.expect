@@ -1,46 +1,30 @@
 Problems reported:
 
-parser/error_recovery/issue_45251_list_new:3:32: Unexpected token 'new'.
+parser/error_recovery/issue_45251_list_new:3:32: A list literal can't be prefixed by 'new List'.
   final List<Undefined> foo1 = new List<List<int>>[];
-                               ^^^
+                               ^^^^^^^^
 
-parser/error_recovery/issue_45251_list_new:3:36: Unexpected token 'List'.
-  final List<Undefined> foo1 = new List<List<int>>[];
-                                   ^^^^
-
-parser/error_recovery/issue_45251_list_new:6:32: Unexpected token 'new'.
+parser/error_recovery/issue_45251_list_new:6:32: A literal can't be prefixed by 'new'.
   final List<Undefined> foo2 = new <List<int>>[];
                                ^^^
 
-parser/error_recovery/issue_45251_list_new:9:32: Unexpected token 'new'.
+parser/error_recovery/issue_45251_list_new:9:32: A list literal can't be prefixed by 'new List'.
   final List<Undefined> foo3 = new List[];
-                               ^^^
+                               ^^^^^^^^
 
-parser/error_recovery/issue_45251_list_new:9:36: Unexpected token 'List'.
-  final List<Undefined> foo3 = new List[];
-                                   ^^^^
-
-parser/error_recovery/issue_45251_list_new:18:32: Unexpected token 'new'.
+parser/error_recovery/issue_45251_list_new:18:32: A list literal can't be prefixed by 'new List'.
   final List<Undefined> foo6 = new List<List<int>>[null];
-                               ^^^
+                               ^^^^^^^^
 
-parser/error_recovery/issue_45251_list_new:18:36: Unexpected token 'List'.
-  final List<Undefined> foo6 = new List<List<int>>[null];
-                                   ^^^^
-
-parser/error_recovery/issue_45251_list_new:22:32: Unexpected token 'new'.
+parser/error_recovery/issue_45251_list_new:22:32: A list literal can't be prefixed by 'new List'.
   final List<Undefined> foo7 = new List[null];
-                               ^^^
+                               ^^^^^^^^
 
-parser/error_recovery/issue_45251_list_new:22:36: Unexpected token 'List'.
-  final List<Undefined> foo7 = new List[null];
-                                   ^^^^
-
-parser/error_recovery/issue_45251_list_new:25:32: Unexpected token 'new'.
+parser/error_recovery/issue_45251_list_new:25:32: A literal can't be prefixed by 'new'.
   final List<Undefined> foo8 = new <List<int>>[null];
                                ^^^
 
-parser/error_recovery/issue_45251_list_new:28:32: Unexpected token 'new'.
+parser/error_recovery/issue_45251_list_new:28:32: A literal can't be prefixed by 'new'.
   final List<Undefined> foo9 = new [null];
                                ^^^
 
@@ -70,8 +54,7 @@ beginCompilationUnit(class)
             handleType(List, null)
             handleIdentifier(foo1, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'List'., null, {lexeme: List}], List, List)
+              handleRecoverableError(Message[LiteralWithClassAndNew, A list literal can't be prefixed by 'new List'., Try removing 'new' and 'List', {string: list, lexeme: List}], new, List)
               beginTypeArguments(<)
                 handleIdentifier(List, typeReference)
                 beginTypeArguments(<)
@@ -98,7 +81,7 @@ beginCompilationUnit(class)
             handleType(List, null)
             handleIdentifier(foo2, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
+              handleRecoverableError(LiteralWithNew, new, new)
               beginTypeArguments(<)
                 handleIdentifier(List, typeReference)
                 beginTypeArguments(<)
@@ -125,8 +108,7 @@ beginCompilationUnit(class)
             handleType(List, null)
             handleIdentifier(foo3, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'List'., null, {lexeme: List}], List, List)
+              handleRecoverableError(Message[LiteralWithClassAndNew, A list literal can't be prefixed by 'new List'., Try removing 'new' and 'List', {string: list, lexeme: List}], new, List)
               handleNoTypeArguments([])
               handleLiteralList(0, [, null, ])
             endFieldInitializer(=, ;)
@@ -203,8 +185,7 @@ beginCompilationUnit(class)
             handleType(List, null)
             handleIdentifier(foo6, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'List'., null, {lexeme: List}], List, List)
+              handleRecoverableError(Message[LiteralWithClassAndNew, A list literal can't be prefixed by 'new List'., Try removing 'new' and 'List', {string: list, lexeme: List}], new, List)
               beginTypeArguments(<)
                 handleIdentifier(List, typeReference)
                 beginTypeArguments(<)
@@ -232,8 +213,7 @@ beginCompilationUnit(class)
             handleType(List, null)
             handleIdentifier(foo7, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'List'., null, {lexeme: List}], List, List)
+              handleRecoverableError(Message[LiteralWithClassAndNew, A list literal can't be prefixed by 'new List'., Try removing 'new' and 'List', {string: list, lexeme: List}], new, List)
               handleNoTypeArguments([)
               handleLiteralNull(null)
               handleLiteralList(1, [, null, ])
@@ -253,7 +233,7 @@ beginCompilationUnit(class)
             handleType(List, null)
             handleIdentifier(foo8, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
+              handleRecoverableError(LiteralWithNew, new, new)
               beginTypeArguments(<)
                 handleIdentifier(List, typeReference)
                 beginTypeArguments(<)
@@ -281,7 +261,7 @@ beginCompilationUnit(class)
             handleType(List, null)
             handleIdentifier(foo9, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
+              handleRecoverableError(LiteralWithNew, new, new)
               handleNoTypeArguments([)
               handleLiteralNull(null)
               handleLiteralList(1, [, null, ])

@@ -555,6 +555,13 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST =
       _LIBRARY_DIRECTIVE_NOT_FIRST;
 
+  static const ParserErrorCode LITERAL_WITH_CLASS_AND_NEW =
+      _LITERAL_WITH_CLASS_AND_NEW;
+
+  static const ParserErrorCode LITERAL_WITH_CLASS = _LITERAL_WITH_CLASS;
+
+  static const ParserErrorCode LITERAL_WITH_NEW = _LITERAL_WITH_NEW;
+
   static const ParserErrorCode LOCAL_FUNCTION_DECLARATION_MODIFIER =
       ParserErrorCode('LOCAL_FUNCTION_DECLARATION_MODIFIER',
           "Local function declarations can't specify any modifiers.",

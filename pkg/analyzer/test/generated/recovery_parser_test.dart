@@ -1034,7 +1034,13 @@ class C<K extends L<T {
 
   void test_invalidMapLiteral() {
     parseCompilationUnit("class C { var f = Map<A, B> {}; }", codes: [
-      ParserErrorCode.UNEXPECTED_TOKEN,
+      ParserErrorCode.LITERAL_WITH_CLASS,
+    ]);
+    parseCompilationUnit("class C { var f = new Map<A, B> {}; }", codes: [
+      ParserErrorCode.LITERAL_WITH_CLASS_AND_NEW,
+    ]);
+    parseCompilationUnit("class C { var f = new <A, B> {}; }", codes: [
+      ParserErrorCode.LITERAL_WITH_NEW,
     ]);
   }
 
