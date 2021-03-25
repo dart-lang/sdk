@@ -1284,7 +1284,12 @@ class UntaggedClosureData : public UntaggedObject {
   VISIT_FROM(CompressedObjectPtr, context_scope)
   COMPRESSED_POINTER_FIELD(ContextScopePtr, context_scope)
   // Enclosing function of this local function.
+#if defined(DART_PRECOMPILER)
+  // Can be wrapped by a WSR in the precompiler.
+  COMPRESSED_POINTER_FIELD(ObjectPtr, parent_function)
+#else
   COMPRESSED_POINTER_FIELD(FunctionPtr, parent_function)
+#endif
   // Closure object for static implicit closures.
   COMPRESSED_POINTER_FIELD(InstancePtr, closure)
   // Instantiate-to-bounds TAV for use when no TAV is provided.

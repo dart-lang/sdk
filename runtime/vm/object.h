@@ -3726,6 +3726,8 @@ class Function : public Object {
   void set_eval_script(const Script& value) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(uint32_t value) const;
+
+  ObjectPtr data() const { return untag()->data(); }
   void set_data(const Object& value) const;
 
   static FunctionPtr New(Heap::Space space = Heap::kOld);
@@ -3739,6 +3741,7 @@ class Function : public Object {
   friend class UntaggedFunction;
   friend class ClassFinalizer;  // To reset parent_function.
   friend class Type;            // To adjust parent_function.
+  friend class Precompiler;     // To access closure data.
   friend class ProgramVisitor;  // For set_parameter_types/names.
 };
 
@@ -3763,8 +3766,14 @@ class ClosureData : public Object {
   void set_context_scope(const ContextScope& value) const;
 
   // Enclosing function of this local function.
+#if defined(DART_PRECOMPILER)
+  // Can be WSR wrapped in the precompiler.
+  ObjectPtr parent_function() const { return untag()->parent_function(); }
+  void set_parent_function(const Object& value) const;
+#else
   FunctionPtr parent_function() const { return untag()->parent_function(); }
   void set_parent_function(const Function& value) const;
+#endif
 
   InstancePtr implicit_static_closure() const {
     return untag()->closure<std::memory_order_acquire>();
@@ -3785,6 +3794,7 @@ class ClosureData : public Object {
   friend class Class;
   friend class Function;
   friend class HeapProfiler;
+  friend class Precompiler;  // To wrap parent functions in WSRs.
 };
 
 enum class EntryPointPragma {

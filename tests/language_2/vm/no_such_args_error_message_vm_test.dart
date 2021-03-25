@@ -15,10 +15,11 @@ testClosureMessage() {
   try {
     call_with_bar(() {});
   } catch (e) {
-    final expectedStrings = [
-      'Tried calling: testClosureMessage.<anonymous closure>("bar")',
-    ];
-    Expect.stringContainsInOrder(e.toString(), expectedStrings);
+    // The latter may happen if in --dwarf-stack-traces mode.
+    final possibleNames = ['testClosureMessage', '<optimized out>'];
+    Expect.containsOneOf(
+        possibleNames.map((s) => s + '.<anonymous closure>("bar")'),
+        e.toString());
   }
 }
 
