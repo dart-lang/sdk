@@ -4620,6 +4620,23 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           }
         }
       }
+
+      List<DartType> typeArgumentsToCheck = const <DartType>[];
+      if (typeArgumentBuilders != null && typeArgumentBuilders.isNotEmpty) {
+        typeArgumentsToCheck = new List.filled(
+            typeArgumentBuilders.length, const DynamicType(),
+            growable: false);
+        for (int i = 0; i < typeArgumentsToCheck.length; ++i) {
+          typeArgumentsToCheck[i] =
+              typeArgumentBuilders[i].build(libraryBuilder);
+        }
+      }
+      DartType typeToCheck = new TypedefType(
+          aliasBuilder.typedef, Nullability.nonNullable, typeArgumentsToCheck);
+      libraryBuilder.checkBoundsInType(
+          typeToCheck, typeEnvironment, uri, charOffset,
+          allowSuperBounded: false);
+
       if (type is ClassBuilder) {
         if (typeArguments != null) {
           int numberOfTypeParameters = aliasBuilder.typeVariables?.length ?? 0;

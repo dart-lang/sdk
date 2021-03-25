@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef A<X extends core::num = core::num, unrelated Y extends core::Object? = dynamic> = self::C<X>;
+class C<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::X%>
+    ;
+}
+static method foo() → dynamic
+  ;
+static method main() → dynamic
+  ;

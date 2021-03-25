@@ -1,0 +1,3 @@
+import './unaliased_bounds_checks_in_constructor_calls_with_parts_lib.dart';
+
+main() {}
