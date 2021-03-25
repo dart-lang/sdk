@@ -371,7 +371,8 @@ class Variables {
   /// Creates a decorated type for the given [element], which should come from
   /// an already-migrated library (or the SDK).
   DecoratedType _createDecoratedElementType(Element element) {
-    if (_graph.isBeingMigrated(element.library.source)) {
+    if (_graph.isBeingMigrated(element.library.source) &&
+        !_isLoadLibraryElement(element)) {
       var description;
       if (ElementTypeProvider.current is MigrationResolutionHooksImpl) {
         // Don't attempt to call toString() on element, or we will overflow.
@@ -428,6 +429,12 @@ class Variables {
     }
     return result;
   }
+
+  bool _isLoadLibraryElement(Element element) =>
+      element.isSynthetic &&
+      element is FunctionElement &&
+      element.enclosingElement is LibraryElement &&
+      element.name == 'loadLibrary';
 
   /// Inverts the logic of [uniqueIdentifierForSpan], producing an (offset, end)
   /// pair.
