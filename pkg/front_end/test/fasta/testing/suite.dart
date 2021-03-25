@@ -724,16 +724,35 @@ class FastaContext extends ChainContext with MatchContext {
   @override
   Set<Expectation> processExpectedOutcomes(
       Set<Expectation> outcomes, TestDescription description) {
-    if (skipVm && outcomes.length == 1 && outcomes.single == runtimeError) {
-      return new Set<Expectation>.from([Expectation.Pass]);
-    } else if (!semiFuzz &&
-        outcomes.length == 1 &&
-        (outcomes.single == semiFuzzFailure ||
-            outcomes.single == semiFuzzCrash)) {
-      return new Set<Expectation>.from([Expectation.Pass]);
-    } else {
-      return outcomes;
+    // Remove outcomes related to phases not currently in effect.
+
+    Set<Expectation> result;
+
+    // If skipping VM we can't get a runtime error.
+    if (skipVm && outcomes.contains(runtimeError)) {
+      result ??= new Set.from(outcomes);
+      result.remove(runtimeError);
     }
+
+    // If not semi-fuzzing we can't get semi-fuzz errors.
+    if (!semiFuzz &&
+        (outcomes.contains(semiFuzzFailure) ||
+            outcomes.contains(semiFuzzCrash))) {
+      result ??= new Set.from(outcomes);
+      result.remove(semiFuzzFailure);
+      result.remove(semiFuzzCrash);
+    }
+
+    // Fast-path: no changes made.
+    if (result == null) return outcomes;
+
+    // Changes made: No expectations left. This happens when all expected
+    // outcomes are removed above.
+    // We have to put in the implicit assumption that it will pass then.
+    if (result.isEmpty) return {Expectation.Pass};
+
+    // Changes made with at least one expectation left. That's out result!
+    return result;
   }
 
   static Future<FastaContext> create(
