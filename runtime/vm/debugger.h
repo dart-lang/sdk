@@ -138,8 +138,14 @@ class BreakpointLocation {
 
   ~BreakpointLocation();
 
-  FunctionPtr function() const { return function_; }
   TokenPosition token_pos() const { return token_pos_; }
+  intptr_t line_number() {
+    // Compute line number lazily since it causes scanning of the script.
+    if (line_number_ < 0) {
+      Script::Handle(script()).GetTokenLocation(token_pos(), &line_number_);
+    }
+    return line_number_;
+  }
   TokenPosition end_token_pos() const { return end_token_pos_; }
 
   ScriptPtr script() const { return script_; }
@@ -159,6 +165,9 @@ class BreakpointLocation {
   bool AnyEnabled() const;
   bool IsResolved() const { return code_token_pos_.IsReal(); }
   bool IsLatent() const { return !token_pos_.IsReal(); }
+
+  bool EnsureIsResolved(const Function& target_function,
+                        TokenPosition exact_token_pos);
 
   Debugger* debugger() { return debugger_; }
 
@@ -181,6 +190,7 @@ class BreakpointLocation {
   Debugger* debugger_;
   ScriptPtr script_;
   StringPtr url_;
+  intptr_t line_number_;  // lazily computed for token_pos_
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
   BreakpointLocation* next_;
@@ -189,7 +199,6 @@ class BreakpointLocation {
   intptr_t requested_column_number_;
 
   // Valid for resolved breakpoints:
-  FunctionPtr function_;
   TokenPosition code_token_pos_;
 
   friend class Debugger;
@@ -211,24 +220,26 @@ class BreakpointLocation {
 // is synchronized, guarded by mutexes.
 class CodeBreakpoint {
  public:
+  // Unless CodeBreakpoint is unlinked and is no longer used there should be at
+  // least one BreakpointLocation associated with CodeBreakpoint. If there are
+  // more BreakpointLocation added assumption is is that all of them point to
+  // the same source so have the same token pos.
   CodeBreakpoint(const Code& code,
-                 TokenPosition token_pos,
+                 BreakpointLocation* loc,
                  uword pc,
                  UntaggedPcDescriptors::Kind kind);
   ~CodeBreakpoint();
 
-  FunctionPtr function() const;
+  // Used by GroupDebugger to find CodeBreakpoint associated with
+  // particular function.
+  FunctionPtr function() const { return Code::Handle(code_).function(); }
+
   uword pc() const { return pc_; }
-  TokenPosition token_pos() const { return token_pos_; }
   bool HasBreakpointLocation(BreakpointLocation* breakpoint_location);
   bool FindAndDeleteBreakpointLocation(BreakpointLocation* breakpoint_location);
   bool HasNoBreakpointLocations() {
     return breakpoint_locations_.length() == 0;
   }
-
-  ScriptPtr SourceCode();
-  StringPtr SourceUrl();
-  intptr_t LineNumber();
 
   void Enable();
   void Disable();
@@ -236,12 +247,23 @@ class CodeBreakpoint {
 
   CodePtr OrigStubAddress() const;
 
+  const char* ToCString() const;
+
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
+  // Finds right BreakpointLocation for a given Isolate's debugger.
   BreakpointLocation* FindBreakpointForDebugger(Debugger* debugger);
-  void AddBreakpointLocation(BreakpointLocation* value) {
-    breakpoint_locations_.Add(value);
+  // Adds new BreakpointLocation for another isolate that wants to
+  // break at the same function/code location that this CodeBreakpoint
+  // represents.
+  void AddBreakpointLocation(BreakpointLocation* breakpoint_location) {
+    ASSERT(breakpoint_locations_.length() == 0 ||
+           (breakpoint_location->token_pos() ==
+                breakpoint_locations_.At(0)->token_pos() &&
+            breakpoint_location->script() ==
+                breakpoint_locations_.At(0)->script()));
+    breakpoint_locations_.Add(breakpoint_location);
   }
 
   void set_next(CodeBreakpoint* value) { next_ = value; }
@@ -251,9 +273,7 @@ class CodeBreakpoint {
   void RestoreCode();
 
   CodePtr code_;
-  TokenPosition token_pos_;
   uword pc_;
-  intptr_t line_number_;
   int enabled_count_;  // incremented for every enabled breakpoint location
 
   // Breakpoint locations from different debuggers/isolates that
@@ -716,6 +736,9 @@ class Debugger {
                                           intptr_t line,
                                           intptr_t column);
   void RegisterBreakpointLocation(BreakpointLocation* bpt);
+  BreakpointLocation* GetResolvedBreakpointLocation(
+      const Script& script,
+      TokenPosition code_token_pos);
   BreakpointLocation* GetBreakpointLocation(
       const Script& script,
       TokenPosition token_pos,
