@@ -8,10 +8,10 @@ import 'dart:io' as io;
 import 'dart:math' as math;
 
 import 'package:path/path.dart' as p;
-import 'package:stagehand/stagehand.dart' as stagehand;
 
 import '../core.dart';
 import '../sdk.dart';
+import '../templates.dart';
 
 /// A command to create a new project from a set of templates.
 class CreateCommand extends DartdevCommand {
@@ -19,18 +19,8 @@ class CreateCommand extends DartdevCommand {
 
   static String defaultTemplateId = 'console-simple';
 
-  static List<String> legalTemplateIds = [
-    'console-simple',
-    'console-full',
-    'package-simple',
-    'web-simple'
-  ];
-
-  static Iterable<stagehand.Generator> get generators =>
-      legalTemplateIds.map(retrieveTemplateGenerator);
-
-  static stagehand.Generator retrieveTemplateGenerator(String templateId) =>
-      stagehand.getGenerator(templateId);
+  static final List<String> legalTemplateIds =
+      generators.map((generator) => generator.id).toList();
 
   CreateCommand({bool verbose = false})
       : super(cmdName, 'Create a new Dart project.') {
@@ -91,8 +81,8 @@ class CreateCommand extends DartdevCommand {
     );
     log.stdout('');
 
-    var generator = retrieveTemplateGenerator(templateId);
-    await generator.generate(
+    var generator = getGenerator(templateId);
+    generator.generate(
       p.basename(dir),
       DirectoryGeneratorTarget(generator, io.Directory(dir)),
     );
@@ -151,7 +141,7 @@ class CreateCommand extends DartdevCommand {
   }
 
   String _availableTemplatesJson() {
-    var items = generators.map((stagehand.Generator generator) {
+    var items = generators.map((Generator generator) {
       var m = {
         'name': generator.id,
         'label': generator.label,
@@ -171,8 +161,8 @@ class CreateCommand extends DartdevCommand {
   }
 }
 
-class DirectoryGeneratorTarget extends stagehand.GeneratorTarget {
-  final stagehand.Generator generator;
+class DirectoryGeneratorTarget extends GeneratorTarget {
+  final Generator generator;
   final io.Directory dir;
 
   DirectoryGeneratorTarget(this.generator, this.dir) {
@@ -180,13 +170,13 @@ class DirectoryGeneratorTarget extends stagehand.GeneratorTarget {
   }
 
   @override
-  Future createFile(String path, List<int> contents) async {
+  void createFile(String path, List<int> contents) {
     io.File file = io.File(p.join(dir.path, path));
 
     String name = p.relative(file.path, from: dir.path);
     log.stdout('  $name');
 
-    await file.create(recursive: true);
-    await file.writeAsBytes(contents);
+    file.createSync(recursive: true);
+    file.writeAsBytesSync(contents);
   }
 }

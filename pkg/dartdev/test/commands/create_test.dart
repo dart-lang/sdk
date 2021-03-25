@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dartdev/src/commands/create.dart';
+import 'package:dartdev/src/templates.dart' as templates;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -77,14 +78,19 @@ void defineCreateTests() {
     test('create $templateId', () {
       p = project();
 
-      ProcessResult result = p
-          .runSync(['create', '--force', '--template', templateId, p.dir.path]);
+      ProcessResult result = p.runSync([
+        'create',
+        '--force',
+        '--no-pub',
+        '--template',
+        templateId,
+        p.dir.path,
+      ]);
       expect(result.exitCode, 0);
 
       String projectName = path.basename(p.dir.path);
 
-      String entry =
-          CreateCommand.retrieveTemplateGenerator(templateId).entrypoint.path;
+      String entry = templates.getGenerator(templateId).entrypoint.path;
       entry = entry.replaceAll('__projectName__', projectName);
       File entryFile = File(path.join(p.dir.path, entry));
 

@@ -152,7 +152,6 @@ vars = {
   "source_span_rev": "1be3c44045a06dff840d2ed3a13e6082d7a03a23",
   "sse_tag": "5da8fedcdc56f306933d202e2d204753eecefd36",
   "stack_trace_tag": "6788afc61875079b71b3d1c3e65aeaa6a25cbc2f",
-  "stagehand_rev": "e64ac90cac508981011299c4ceb819149e71f1bd",
   "stream_channel_tag": "d7251e61253ec389ee6e045ee1042311bced8f1d",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",
   "sync_http_rev": "b59c134f2e34d12acac110d4f17f83e5a7db4330",
@@ -430,8 +429,6 @@ deps = {
       Var("dart_git") + "sse.git" + "@" + Var("sse_tag"),
   Var("dart_root") + "/third_party/pkg/stack_trace":
       Var("dart_git") + "stack_trace.git" + "@" + Var("stack_trace_tag"),
-  Var("dart_root") + "/third_party/pkg/stagehand":
-      Var("dart_git") + "stagehand.git" + "@" + Var("stagehand_rev"),
   Var("dart_root") + "/third_party/pkg/stream_channel":
       Var("dart_git") + "stream_channel.git" +
       "@" + Var("stream_channel_tag"),

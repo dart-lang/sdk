@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
-
 import 'package:test/test.dart';
 
 /// A long [Timeout] is provided for tests that start a process on
@@ -54,7 +53,7 @@ class TestProject {
       this.name = _defaultProjectName,
       this.logAnalytics = false,
       this.sdkConstraint}) {
-    dir = Directory.systemTemp.createTempSync(name);
+    dir = Directory.systemTemp.createTempSync('a');
     file('pubspec.yaml', '''
 name: $name
 environment:
