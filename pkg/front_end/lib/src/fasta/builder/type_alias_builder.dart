@@ -6,14 +6,7 @@
 
 library fasta.function_type_alias_builder;
 
-import 'package:kernel/ast.dart'
-    show
-        DartType,
-        DynamicType,
-        InvalidType,
-        Nullability,
-        TypeParameter,
-        Typedef;
+import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
 import 'package:kernel/type_algebra.dart' show substitute, uniteNullabilities;
@@ -28,11 +21,13 @@ import '../fasta_codes.dart'
         messageTypedefTypeVariableNotConstructorCause;
 
 import '../problems.dart' show unhandled;
+import '../source/source_library_builder.dart';
 import '../util/helpers.dart';
 
 import 'class_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
+import 'function_type_builder.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
@@ -145,6 +140,17 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
     for (int i = 0; i < typedef.typeParameters.length; i++) {
       substitution[typedef.typeParameters[i]] = arguments[i];
+    }
+    // The following adds the built type to the list of unchecked typedef types
+    // of the client library. It is needed because the type is built unaliased,
+    // and at the time of the check it wouldn't be possible to see if the type
+    // arguments to the generic typedef conform to the bounds without preserving
+    // the TypedefType for the delayed check.
+    if (library is SourceLibraryBuilder &&
+        arguments.isNotEmpty &&
+        type is! FunctionTypeBuilder) {
+      library.uncheckedTypedefTypes.add(new UncheckedTypedefType(
+          new TypedefType(typedef, nullability, arguments)));
     }
     return substitute(result, substitution);
   }
