@@ -5,8 +5,8 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:test/test.dart';
 
+import '../mini_ast.dart';
 import '../mini_types.dart';
-import 'flow_analysis_mini_ast.dart';
 
 main() {
   group('API', () {
