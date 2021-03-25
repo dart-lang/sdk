@@ -219,10 +219,10 @@ Future<BuildSearchResult> searchForBuild(String builder, String commit) async {
   request.headers.add(HttpHeaders.contentTypeHeader, ContentType.json.mimeType);
   request.write(requestBody);
   var response = await request.close();
-  var responseString =
-      await response.cast<List<int>>().transform(const Utf8Decoder()).join();
+  var responseString = await const Utf8Decoder().bind(response).join();
   client.close();
-  var object = jsonDecode(responseString.substring(4)) as Map<String, dynamic>;
+  // Remove XSSI protection prefix )]}'\n before parsing the response.
+  var object = jsonDecode(responseString.substring(5)) as Map<String, dynamic>;
   var builds = object["builds"] as List<dynamic>;
   if (builds == null || builds.isEmpty) {
     throw NoResultsForCommitException(
