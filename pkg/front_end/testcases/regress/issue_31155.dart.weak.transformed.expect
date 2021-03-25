@@ -2,7 +2,8 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/regress/issue_31155.dart:11:11: Error: Unexpected token 'Map'.
+// pkg/front_end/testcases/regress/issue_31155.dart:11:11: Error: A map literal can't be prefixed by 'Map'.
+// Try removing 'Map'
 //   var f = Map<A, B> {};
 //           ^^^
 //

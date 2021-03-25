@@ -1,18 +1,18 @@
 Problems reported:
 
-parser/error_recovery/issue_45251:3:39: Unexpected token 'Map'.
+parser/error_recovery/issue_45251:3:39: A map literal can't be prefixed by 'Map'.
   final Map<String, Undefined> foo1 = Map<String, List<int>>{};
                                       ^^^
 
-parser/error_recovery/issue_45251:9:39: Unexpected token 'Map'.
+parser/error_recovery/issue_45251:9:39: A map literal can't be prefixed by 'Map'.
   final Map<String, Undefined> foo3 = Map{};
                                       ^^^
 
-parser/error_recovery/issue_45251:18:39: Unexpected token 'Map'.
+parser/error_recovery/issue_45251:18:39: A map literal can't be prefixed by 'Map'.
   final Map<String, Undefined> foo6 = Map<String, List<int>>{"a": null};
                                       ^^^
 
-parser/error_recovery/issue_45251:21:39: Unexpected token 'Map'.
+parser/error_recovery/issue_45251:21:39: A map literal can't be prefixed by 'Map'.
   final Map<String, Undefined> foo7 = Map{"a": null};
                                       ^^^
 
@@ -45,7 +45,7 @@ beginCompilationUnit(class)
             handleType(Map, null)
             handleIdentifier(foo1, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Map'., null, {lexeme: Map}], Map, Map)
+              handleRecoverableError(Message[LiteralWithClass, A map literal can't be prefixed by 'Map'., Try removing 'Map', {string: map, lexeme: Map}], Map, Map)
               beginTypeArguments(<)
                 handleIdentifier(String, typeReference)
                 handleNoTypeArguments(,)
@@ -110,7 +110,7 @@ beginCompilationUnit(class)
             handleType(Map, null)
             handleIdentifier(foo3, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Map'., null, {lexeme: Map}], Map, Map)
+              handleRecoverableError(Message[LiteralWithClass, A map literal can't be prefixed by 'Map'., Try removing 'Map', {string: map, lexeme: Map}], Map, Map)
               handleNoTypeArguments({)
               handleLiteralSetOrMap(0, {, null, }, false)
             endFieldInitializer(=, ;)
@@ -191,7 +191,7 @@ beginCompilationUnit(class)
             handleType(Map, null)
             handleIdentifier(foo6, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Map'., null, {lexeme: Map}], Map, Map)
+              handleRecoverableError(Message[LiteralWithClass, A map literal can't be prefixed by 'Map'., Try removing 'Map', {string: map, lexeme: Map}], Map, Map)
               beginTypeArguments(<)
                 handleIdentifier(String, typeReference)
                 handleNoTypeArguments(,)
@@ -228,7 +228,7 @@ beginCompilationUnit(class)
             handleType(Map, null)
             handleIdentifier(foo7, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Map'., null, {lexeme: Map}], Map, Map)
+              handleRecoverableError(Message[LiteralWithClass, A map literal can't be prefixed by 'Map'., Try removing 'Map', {string: map, lexeme: Map}], Map, Map)
               handleNoTypeArguments({)
               beginLiteralString("a")
               endLiteralString(0, :)

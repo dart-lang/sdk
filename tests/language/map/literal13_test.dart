@@ -6,12 +6,9 @@
 
 main() {
   var map = new Map<int>{ "a": 1, "b": 2, "c": 3 };
-  //        ^^^
-  // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
-  // [cfe] Unexpected token 'new'.
-  //            ^^^
-  // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
-  // [cfe] Unexpected token 'Map'.
+  //        ^^^^^^^
+  // [analyzer] SYNTACTIC_ERROR.LITERAL_WITH_CLASS_AND_NEW
+  // [cfe] A map literal can't be prefixed by 'new Map'.
   //                      ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MAP_ENTRY_NOT_IN_MAP
   //                         ^

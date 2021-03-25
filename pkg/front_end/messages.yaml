@@ -1248,6 +1248,54 @@ UnexpectedToken:
   script:
     - "import 'b.dart' d as b;"
 
+LiteralWithClassAndNew:
+  template: "A #string literal can't be prefixed by 'new #lexeme'."
+  tip: "Try removing 'new' and '#lexeme'"
+  analyzerCode: ParserErrorCode.LITERAL_WITH_CLASS_AND_NEW
+  index: 115
+  script:
+    - "var x = new Map{};"
+    - "var x = new Set{};"
+    - "var x = new List[];"
+    - "var x = new Map{1: 2};"
+    - "var x = new Set{1};"
+    - "var x = new List[1];"
+
+LiteralWithClass:
+  template: "A #string literal can't be prefixed by '#lexeme'."
+  tip: "Try removing '#lexeme'"
+  analyzerCode: ParserErrorCode.LITERAL_WITH_CLASS
+  index: 116
+  script:
+    - "var x = Map{};"
+    - "var x = Set{};"
+    - "var x = List<String>[];"
+    - "var x = Map{1: 2};"
+    - "var x = Set{1};"
+    - "var x = List<int>[1];"
+    - "var x = const Map{};"
+    - "var x = const Set{};"
+    - "var x = const List[];"
+    - "var x = const Map{1: 2};"
+    - "var x = const Set{1};"
+    - "var x = const List[1];"
+
+LiteralWithNew:
+  template: "A literal can't be prefixed by 'new'."
+  tip: "Try removing 'new'"
+  analyzerCode: ParserErrorCode.LITERAL_WITH_NEW
+  index: 117
+  script:
+    - "var x = new <String, String>{};"
+    - "var x = new <String>{};"
+    - "var x = new {};"
+    - "var x = new [];"
+    - "var x = new <String, String>{'a': 'b'};"
+    - "var x = new <String>{'a'};"
+    - "var x = new {'a': 'b'};"
+    - "var x = new {'a'};"
+    - "var x = new ['a'];"
+
 UnmatchedToken:
   template: "Can't find '#string' to match '#lexeme'."
   analyzerCode: EXPECTED_TOKEN

@@ -1,46 +1,30 @@
 Problems reported:
 
-parser/error_recovery/issue_45251_set_new:3:31: Unexpected token 'new'.
+parser/error_recovery/issue_45251_set_new:3:31: A set literal can't be prefixed by 'new Set'.
   final Set<Undefined> foo1 = new Set<List<int>>{};
-                              ^^^
+                              ^^^^^^^
 
-parser/error_recovery/issue_45251_set_new:3:35: Unexpected token 'Set'.
-  final Set<Undefined> foo1 = new Set<List<int>>{};
-                                  ^^^
-
-parser/error_recovery/issue_45251_set_new:6:31: Unexpected token 'new'.
+parser/error_recovery/issue_45251_set_new:6:31: A literal can't be prefixed by 'new'.
   final Set<Undefined> foo2 = new <List<int>>{};
                               ^^^
 
-parser/error_recovery/issue_45251_set_new:9:31: Unexpected token 'new'.
+parser/error_recovery/issue_45251_set_new:9:31: A set literal can't be prefixed by 'new Set'.
   final Set<Undefined> foo3 = new Set{};
-                              ^^^
+                              ^^^^^^^
 
-parser/error_recovery/issue_45251_set_new:9:35: Unexpected token 'Set'.
-  final Set<Undefined> foo3 = new Set{};
-                                  ^^^
-
-parser/error_recovery/issue_45251_set_new:18:31: Unexpected token 'new'.
+parser/error_recovery/issue_45251_set_new:18:31: A set literal can't be prefixed by 'new Set'.
   final Set<Undefined> foo6 = new Set<List<int>>{null};
-                              ^^^
+                              ^^^^^^^
 
-parser/error_recovery/issue_45251_set_new:18:35: Unexpected token 'Set'.
-  final Set<Undefined> foo6 = new Set<List<int>>{null};
-                                  ^^^
-
-parser/error_recovery/issue_45251_set_new:21:31: Unexpected token 'new'.
+parser/error_recovery/issue_45251_set_new:21:31: A set literal can't be prefixed by 'new Set'.
   final Set<Undefined> foo7 = new Set{null};
-                              ^^^
+                              ^^^^^^^
 
-parser/error_recovery/issue_45251_set_new:21:35: Unexpected token 'Set'.
-  final Set<Undefined> foo7 = new Set{null};
-                                  ^^^
-
-parser/error_recovery/issue_45251_set_new:24:31: Unexpected token 'new'.
+parser/error_recovery/issue_45251_set_new:24:31: A literal can't be prefixed by 'new'.
   final Set<Undefined> foo8 = new <List<int>>{null};
                               ^^^
 
-parser/error_recovery/issue_45251_set_new:27:31: Unexpected token 'new'.
+parser/error_recovery/issue_45251_set_new:27:31: A literal can't be prefixed by 'new'.
   final Set<Undefined> foo9 = new {null};
                               ^^^
 
@@ -70,8 +54,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo1, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Set'., null, {lexeme: Set}], Set, Set)
+              handleRecoverableError(Message[LiteralWithClassAndNew, A set literal can't be prefixed by 'new Set'., Try removing 'new' and 'Set', {string: set, lexeme: Set}], new, Set)
               beginTypeArguments(<)
                 handleIdentifier(List, typeReference)
                 beginTypeArguments(<)
@@ -98,7 +81,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo2, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
+              handleRecoverableError(LiteralWithNew, new, new)
               beginTypeArguments(<)
                 handleIdentifier(List, typeReference)
                 beginTypeArguments(<)
@@ -125,8 +108,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo3, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Set'., null, {lexeme: Set}], Set, Set)
+              handleRecoverableError(Message[LiteralWithClassAndNew, A set literal can't be prefixed by 'new Set'., Try removing 'new' and 'Set', {string: set, lexeme: Set}], new, Set)
               handleNoTypeArguments({)
               handleLiteralSetOrMap(0, {, null, }, false)
             endFieldInitializer(=, ;)
@@ -203,8 +185,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo6, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Set'., null, {lexeme: Set}], Set, Set)
+              handleRecoverableError(Message[LiteralWithClassAndNew, A set literal can't be prefixed by 'new Set'., Try removing 'new' and 'Set', {string: set, lexeme: Set}], new, Set)
               beginTypeArguments(<)
                 handleIdentifier(List, typeReference)
                 beginTypeArguments(<)
@@ -232,8 +213,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo7, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Set'., null, {lexeme: Set}], Set, Set)
+              handleRecoverableError(Message[LiteralWithClassAndNew, A set literal can't be prefixed by 'new Set'., Try removing 'new' and 'Set', {string: set, lexeme: Set}], new, Set)
               handleNoTypeArguments({)
               handleLiteralNull(null)
               handleLiteralSetOrMap(1, {, null, }, true)
@@ -253,7 +233,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo8, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
+              handleRecoverableError(LiteralWithNew, new, new)
               beginTypeArguments(<)
                 handleIdentifier(List, typeReference)
                 beginTypeArguments(<)
@@ -281,7 +261,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo9, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'new'., null, {lexeme: new}], new, new)
+              handleRecoverableError(LiteralWithNew, new, new)
               handleNoTypeArguments({)
               handleLiteralNull(null)
               handleLiteralSetOrMap(1, {, null, }, true)

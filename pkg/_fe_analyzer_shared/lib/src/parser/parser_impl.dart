@@ -2412,13 +2412,7 @@ class Parser {
 
   /// Checks whether the next token is (directly) an identifier. If this returns
   /// true a call to [ensureIdentifier] will return the next token.
-  bool isNextIdentifier(Token token) {
-    Token identifier = token.next!;
-    if (identifier.kind != IDENTIFIER_TOKEN) {
-      return false;
-    }
-    return true;
-  }
+  bool isNextIdentifier(Token token) => token.next?.kind == IDENTIFIER_TOKEN;
 
   /// Parse a simple identifier at the given [token], and return the identifier
   /// that was parsed.
@@ -5771,10 +5765,11 @@ class Parser {
         if (optional('{', afterToken)) {
           // Recover by ignoring both the `new` and the `Map`/`Set` and parse as
           // a literal map/set.
-          reportRecoverableErrorWithToken(
-              newKeyword, codes.templateUnexpectedToken);
-          reportRecoverableErrorWithToken(
-              identifier, codes.templateUnexpectedToken);
+          reportRecoverableErrorWithEnd(
+              newKeyword,
+              identifier,
+              codes.templateLiteralWithClassAndNew
+                  .withArguments(value.toLowerCase(), identifier));
           return parsePrimary(identifier, IdentifierContext.expression);
         }
       } else if (value == "List" && !optional('.', identifier.next!)) {
@@ -5783,10 +5778,11 @@ class Parser {
         if (optional('[', afterToken) || optional('[]', afterToken)) {
           // Recover by ignoring both the `new` and the `List` and parse as
           // a literal list.
-          reportRecoverableErrorWithToken(
-              newKeyword, codes.templateUnexpectedToken);
-          reportRecoverableErrorWithToken(
-              identifier, codes.templateUnexpectedToken);
+          reportRecoverableErrorWithEnd(
+              newKeyword,
+              identifier,
+              codes.templateLiteralWithClassAndNew
+                  .withArguments(value.toLowerCase(), identifier));
           return parsePrimary(identifier, IdentifierContext.expression);
         }
       }
@@ -5804,14 +5800,12 @@ class Parser {
             optional('[', afterToken) ||
             optional('[]', afterToken)) {
           // Recover by ignoring the `new` and parse as a literal map/set/list.
-          reportRecoverableErrorWithToken(
-              newKeyword, codes.templateUnexpectedToken);
+          reportRecoverableError(newKeyword, codes.messageLiteralWithNew);
           return parsePrimary(newKeyword, IdentifierContext.expression);
         }
       } else if (value == "{" || value == "[" || value == "[]") {
         // Recover by ignoring the `new` and parse as a literal map/set/list.
-        reportRecoverableErrorWithToken(
-            newKeyword, codes.templateUnexpectedToken);
+        reportRecoverableError(newKeyword, codes.messageLiteralWithNew);
         return parsePrimary(newKeyword, IdentifierContext.expression);
       }
     }
@@ -5886,7 +5880,10 @@ class Parser {
         final String? nextValue = nextNext.stringValue;
         if (identical(nextValue, '{')) {
           // Recover by ignoring the `Map`/`Set` and parse as a literal map/set.
-          reportRecoverableErrorWithToken(next, codes.templateUnexpectedToken);
+          reportRecoverableError(
+              next,
+              codes.templateLiteralWithClass
+                  .withArguments(lexeme.toLowerCase(), next));
           listener.beginConstLiteral(nextNext);
           listener.handleNoTypeArguments(nextNext);
           token = parseLiteralSetOrMapSuffix(next, constKeyword);
@@ -5895,7 +5892,11 @@ class Parser {
         }
         if (identical(nextValue, '<')) {
           // Recover by ignoring the `Map`/`Set` and parse as a literal map/set.
-          reportRecoverableErrorWithToken(next, codes.templateUnexpectedToken);
+          reportRecoverableError(
+              next,
+              codes.templateLiteralWithClass
+                  .withArguments(lexeme.toLowerCase(), next));
+
           listener.beginConstLiteral(nextNext);
           token = parseLiteralListSetMapOrFunction(next, constKeyword);
           listener.endConstLiteral(token.next!);
@@ -5911,7 +5912,10 @@ class Parser {
         final String? nextValue = nextNext.stringValue;
         if (identical(nextValue, '[') || identical(nextValue, '[]')) {
           // Recover by ignoring the `List` and parse as a literal list.
-          reportRecoverableErrorWithToken(next, codes.templateUnexpectedToken);
+          reportRecoverableError(
+              next,
+              codes.templateLiteralWithClass
+                  .withArguments(lexeme.toLowerCase(), next));
           listener.beginConstLiteral(nextNext);
           listener.handleNoTypeArguments(nextNext);
           token = parseLiteralListSuffix(next, constKeyword);
@@ -5920,7 +5924,10 @@ class Parser {
         }
         if (identical(nextValue, '<')) {
           // Recover by ignoring the `List` and parse as a literal list.
-          reportRecoverableErrorWithToken(next, codes.templateUnexpectedToken);
+          reportRecoverableError(
+              next,
+              codes.templateLiteralWithClass
+                  .withArguments(lexeme.toLowerCase(), next));
           listener.beginConstLiteral(nextNext);
           token = parseLiteralListSetMapOrFunction(next, constKeyword);
           listener.endConstLiteral(token.next!);
@@ -6100,8 +6107,10 @@ class Parser {
         afterToken = potentialTypeArg.skip(identifier).next!;
         if (optional('{', afterToken)) {
           // Recover by ignoring the `Map`/`Set` and parse as a literal map/set.
-          reportRecoverableErrorWithToken(
-              identifier, codes.templateUnexpectedToken);
+          reportRecoverableError(
+              identifier,
+              codes.templateLiteralWithClass
+                  .withArguments(value.toLowerCase(), identifier));
           return parsePrimary(identifier, context);
         }
       } else if (value == "List") {
@@ -6114,8 +6123,10 @@ class Parser {
           // Note that we here require the `<...>` for `[` as `List[` would be
           // an indexed expression. `List[]` wouldn't though, so we don't
           // require it there.
-          reportRecoverableErrorWithToken(
-              identifier, codes.templateUnexpectedToken);
+          reportRecoverableError(
+              identifier,
+              codes.templateLiteralWithClass
+                  .withArguments(value.toLowerCase(), identifier));
           return parsePrimary(identifier, context);
         }
       }

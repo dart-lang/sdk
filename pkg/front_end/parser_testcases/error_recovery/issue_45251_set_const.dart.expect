@@ -1,18 +1,18 @@
 Problems reported:
 
-parser/error_recovery/issue_45251_set_const:3:37: Unexpected token 'Set'.
+parser/error_recovery/issue_45251_set_const:3:37: A set literal can't be prefixed by 'Set'.
   final Set<Undefined> foo1 = const Set<List<int>>{};
                                     ^^^
 
-parser/error_recovery/issue_45251_set_const:9:37: Unexpected token 'Set'.
+parser/error_recovery/issue_45251_set_const:9:37: A set literal can't be prefixed by 'Set'.
   final Set<Undefined> foo3 = const Set{};
                                     ^^^
 
-parser/error_recovery/issue_45251_set_const:18:37: Unexpected token 'Set'.
+parser/error_recovery/issue_45251_set_const:18:37: A set literal can't be prefixed by 'Set'.
   final Set<Undefined> foo6 = const Set<List<int>>{null};
                                     ^^^
 
-parser/error_recovery/issue_45251_set_const:21:37: Unexpected token 'Set'.
+parser/error_recovery/issue_45251_set_const:21:37: A set literal can't be prefixed by 'Set'.
   final Set<Undefined> foo7 = const Set{null};
                                     ^^^
 
@@ -42,7 +42,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo1, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Set'., null, {lexeme: Set}], Set, Set)
+              handleRecoverableError(Message[LiteralWithClass, A set literal can't be prefixed by 'Set'., Try removing 'Set', {string: set, lexeme: Set}], Set, Set)
               beginConstLiteral(<)
                 beginTypeArguments(<)
                   handleIdentifier(List, typeReference)
@@ -99,7 +99,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo3, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Set'., null, {lexeme: Set}], Set, Set)
+              handleRecoverableError(Message[LiteralWithClass, A set literal can't be prefixed by 'Set'., Try removing 'Set', {string: set, lexeme: Set}], Set, Set)
               beginConstLiteral({)
                 handleNoTypeArguments({)
                 handleLiteralSetOrMap(0, {, const, }, false)
@@ -178,7 +178,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo6, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Set'., null, {lexeme: Set}], Set, Set)
+              handleRecoverableError(Message[LiteralWithClass, A set literal can't be prefixed by 'Set'., Try removing 'Set', {string: set, lexeme: Set}], Set, Set)
               beginConstLiteral(<)
                 beginTypeArguments(<)
                   handleIdentifier(List, typeReference)
@@ -208,7 +208,7 @@ beginCompilationUnit(class)
             handleType(Set, null)
             handleIdentifier(foo7, fieldDeclaration)
             beginFieldInitializer(=)
-              handleRecoverableError(Message[UnexpectedToken, Unexpected token 'Set'., null, {lexeme: Set}], Set, Set)
+              handleRecoverableError(Message[LiteralWithClass, A set literal can't be prefixed by 'Set'., Try removing 'Set', {string: set, lexeme: Set}], Set, Set)
               beginConstLiteral({)
                 handleNoTypeArguments({)
                 handleLiteralNull(null)
