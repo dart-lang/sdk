@@ -187,18 +187,18 @@ class Variables {
         {})[uniqueIdentifierForSpan(node.offset, node.end)];
   }
 
-  /// If the given [node] is preceded by a `/*required*/` hint, returns the
-  /// HintComment for it; otherwise returns `null`.  See [recordRequiredHint].
-  HintComment getRequiredHint(Source source, FormalParameter node) {
-    return (_requiredHints[source] ?? {})[node.offset];
-  }
-
   /// If the given [expression] is followed by a null check hint (`/*!*/`),
   /// returns the HintComment for it; otherwise returns `null`.  See
   /// [recordNullCheckHint].
   HintComment getNullCheckHint(Source source, Expression expression) {
     return (_nullCheckHints[source] ??
         {})[(uniqueIdentifierForSpan(expression.offset, expression.end))];
+  }
+
+  /// If the given [node] is preceded by a `/*required*/` hint, returns the
+  /// HintComment for it; otherwise returns `null`.  See [recordRequiredHint].
+  HintComment getRequiredHint(Source source, FormalParameter node) {
+    return (_requiredHints[source] ?? {})[node.offset];
   }
 
   /// Records conditional discard information for the given AST node (which is
@@ -268,12 +268,6 @@ class Variables {
         {})[uniqueIdentifierForSpan(node.offset, node.end)] = hintComment;
   }
 
-  /// Records that the given [node] was preceded by a `/*required*/` hint.
-  void recordRequiredHint(
-      Source source, FormalParameter node, HintComment hint) {
-    (_requiredHints[source] ??= {})[node.offset] = hint;
-  }
-
   /// Records that the given [expression] is followed by a null check hint
   /// (`/*!*/`), for later recall by [hasNullCheckHint].
   void recordNullCheckHint(
@@ -281,6 +275,12 @@ class Variables {
     (_nullCheckHints[source] ??=
             {})[uniqueIdentifierForSpan(expression.offset, expression.end)] =
         hintComment;
+  }
+
+  /// Records that the given [node] was preceded by a `/*required*/` hint.
+  void recordRequiredHint(
+      Source source, FormalParameter node, HintComment hint) {
+    (_requiredHints[source] ??= {})[node.offset] = hint;
   }
 
   /// Records the fact that prior to migration, an unnecessary cast existed at
