@@ -149,6 +149,24 @@ dynamic callConstructor(Object constr, List<Object?>? arguments) {
   //     return _wrapToDart(jsObj);
 }
 
+/// Exception for when the promise is rejected with a `null` or `undefined`
+/// value.
+///
+/// This is public to allow users to catch when the promise is rejected with
+/// `null` or `undefined` versus some other value.
+class NullRejectionException implements Exception {
+  // Indicates whether the value is `undefined` or `null`.
+  final bool isUndefined;
+
+  NullRejectionException._(this.isUndefined);
+
+  @override
+  String toString() {
+    var value = this.isUndefined ? 'undefined' : 'null';
+    return 'Promise was rejected with a value of `$value`.';
+  }
+}
+
 /// Converts a JavaScript Promise to a Dart [Future].
 ///
 /// ```dart
@@ -163,7 +181,16 @@ Future<T> promiseToFuture<T>(Object jsPromise) {
   final completer = Completer<T>();
 
   final success = convertDartClosureToJS((r) => completer.complete(r), 1);
-  final error = convertDartClosureToJS((e) => completer.completeError(e), 1);
+  final error = convertDartClosureToJS((e) {
+    // Note that `completeError` expects a non-nullable error regardless of
+    // whether null-safety is enabled, so a `NullRejectionException` is always
+    // provided if the error is `null` or `undefined`.
+    if (e == null) {
+      return completer.completeError(
+          NullRejectionException._(JS('bool', '# === undefined', e)));
+    }
+    return completer.completeError(e);
+  }, 1);
 
   JS('', '#.then(#, #)', jsPromise, success, error);
   return completer.future;
