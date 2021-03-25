@@ -8,8 +8,10 @@ import 'dart:html';
 
 /*spec.class: global#Event:checkedInstance,checkedTypeArgument,checks=[$isEvent],instance,typeArgument*/
 /*prod.class: global#Event:checkedTypeArgument,checks=[$isEvent],instance,typeArgument*/
-/*class: global#MouseEvent:checks=[$isMouseEvent],instance,typeArgument*/
-/*class: global#KeyboardEvent:checks=[$isKeyboardEvent],instance,typeArgument*/
+/*spec.class: global#MouseEvent:checkedInstance,checks=[$isMouseEvent],instance,typeArgument*/
+/*prod.class: global#MouseEvent:checks=[$isMouseEvent],instance,typeArgument*/
+/*spec.class: global#KeyboardEvent:checkedInstance,checks=[$isKeyboardEvent],instance,typeArgument*/
+/*prod.class: global#KeyboardEvent:checks=[$isKeyboardEvent],instance,typeArgument*/
 
 void main() {
   print('InputElement');
