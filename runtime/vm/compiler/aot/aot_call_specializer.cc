@@ -224,33 +224,6 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
   return false;
 }
 
-static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
-  ASSERT(instr->type_args_len() == 0);
-
-  // If Smi is not assignable to the interface target of the call, the receiver
-  // is definitely not a Smi.
-  if (!instr->CanReceiverBeSmiBasedOnInterfaceTarget(
-          Thread::Current()->zone())) {
-    return false;
-  }
-
-  // Phis with at least one known smi are // guessed to be likely smi as well.
-  for (intptr_t i = 0; i < instr->ArgumentCount(); ++i) {
-    PhiInstr* phi = instr->ArgumentAt(i)->AsPhi();
-    if (phi != NULL) {
-      for (intptr_t j = 0; j < phi->InputCount(); ++j) {
-        if (phi->InputAt(j)->Type()->ToCid() == kSmiCid) return true;
-      }
-    }
-  }
-  // If all of the inputs are known smis or the result of CheckedSmiOp,
-  // we guess the operand to be likely smi.
-  for (intptr_t i = 0; i < instr->ArgumentCount(); ++i) {
-    if (!instr->ArgumentAt(i)->IsCheckedSmiOp()) return false;
-  }
-  return true;
-}
-
 bool AotCallSpecializer::TryInlineFieldAccess(InstanceCallInstr* call) {
   const Token::Kind op_kind = call->token_kind();
   if ((op_kind == Token::kGET) && TryInlineInstanceGetter(call)) {
@@ -796,53 +769,6 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
       instr->ReplaceWith(call, current_iterator());
       return;
     }
-  }
-
-  switch (instr->token_kind()) {
-    case Token::kEQ:
-    case Token::kNE:
-    case Token::kLT:
-    case Token::kLTE:
-    case Token::kGT:
-    case Token::kGTE: {
-      if (instr->BinaryFeedback().OperandsAre(kSmiCid) ||
-          HasLikelySmiOperand(instr)) {
-        ASSERT(receiver_idx == 0);
-        Definition* left = instr->ArgumentAt(0);
-        Definition* right = instr->ArgumentAt(1);
-        CheckedSmiComparisonInstr* smi_op = new (Z)
-            CheckedSmiComparisonInstr(instr->token_kind(), new (Z) Value(left),
-                                      new (Z) Value(right), instr);
-        ReplaceCall(instr, smi_op);
-        return;
-      }
-      break;
-    }
-    case Token::kSHL:
-    case Token::kSHR:
-    case Token::kUSHR:
-    case Token::kBIT_OR:
-    case Token::kBIT_XOR:
-    case Token::kBIT_AND:
-    case Token::kADD:
-    case Token::kSUB:
-    case Token::kMUL: {
-      if (instr->BinaryFeedback().OperandsAre(kSmiCid) ||
-          HasLikelySmiOperand(instr)) {
-        ASSERT(receiver_idx == 0);
-        Definition* left = instr->ArgumentAt(0);
-        Definition* right = instr->ArgumentAt(1);
-        CheckedSmiOpInstr* smi_op =
-            new (Z) CheckedSmiOpInstr(instr->token_kind(), new (Z) Value(left),
-                                      new (Z) Value(right), instr);
-
-        ReplaceCall(instr, smi_op);
-        return;
-      }
-      break;
-    }
-    default:
-      break;
   }
 
   // No IC data checks. Try resolve target using the propagated cid.

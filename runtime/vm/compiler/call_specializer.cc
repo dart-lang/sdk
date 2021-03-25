@@ -111,16 +111,7 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   const Token::Kind op_kind = call->token_kind();
-  if (FLAG_guess_icdata_cid) {
-    if (CompilerState::Current().is_aot()) {
-      // In precompiler speculate that both sides of bitwise operation
-      // are Smi-s.
-      if (Token::IsBinaryBitwiseOperator(op_kind) &&
-          call->CanReceiverBeSmiBasedOnInterfaceTarget(zone())) {
-        class_ids[0] = kSmiCid;
-        class_ids[1] = kSmiCid;
-      }
-    }
+  if (FLAG_guess_icdata_cid && !CompilerState::Current().is_aot()) {
     if (Token::IsRelationalOperator(op_kind) ||
         Token::IsEqualityOperator(op_kind) ||
         Token::IsBinaryOperator(op_kind)) {
