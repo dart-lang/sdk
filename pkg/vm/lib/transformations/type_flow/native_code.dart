@@ -233,6 +233,19 @@ class NativeCodeOracle {
         (expectedTypes == null || expectedTypes.contains(type));
   }
 
+  bool hasDisableUnboxedParameters(Member member) {
+    for (var annotation in member.annotations) {
+      ParsedPragma pragma = _matcher.parsePragma(annotation);
+      if (pragma is ParsedDisableUnboxedParameters) {
+        if (member.enclosingLibrary.importUri.scheme != "dart") {
+          throw "ERROR: Cannot use @pragma(vm:disable-unboxed-parameters) outside core libraries.";
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// Simulate the execution of a native method by adding its entry points
   /// using [entryPointsListener]. Returns result type of the native method.
   TypeExpr handleNativeProcedure(
