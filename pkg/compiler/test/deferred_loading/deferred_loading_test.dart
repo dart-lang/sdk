@@ -155,7 +155,7 @@ class OutputUnitDataComputer extends DataComputer<Features> {
     List<PreFragment> preDeferredFragments = compiler
         .backendStrategy.emitterTask.emitter.preDeferredFragmentsForTesting;
     Map<String, List<FinalizedFragment>> fragmentsToLoad =
-        compiler.backendStrategy.emitterTask.emitter.fragmentsToLoad;
+        compiler.backendStrategy.emitterTask.emitter.finalizedFragmentsToLoad;
     Map<String, List<PreFragment>> preFragmentMap =
         buildPreFragmentMap(fragmentsToLoad, preDeferredFragments);
     PreFragmentsIrComputer(compiler.reporter, actualMap, preFragmentMap)
@@ -213,8 +213,8 @@ class PreFragmentsIrComputer extends IrDataExtractor<Features> {
         }
       }
 
-      for (var fragment in preFragment.fragments) {
-        supplied.add(fragment.outputUnit);
+      for (var emittedOutputUnit in preFragment.emittedOutputUnits) {
+        supplied.add(emittedOutputUnit.outputUnit);
       }
       var suppliedString = '[${supplied.map(outputUnitString).join(', ')}]';
       features.addElement(Tags.outputUnits,

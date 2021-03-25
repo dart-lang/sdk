@@ -18,7 +18,9 @@ import '../helpers/memory_compiler.dart';
 List<OutputUnit> collectOutputUnits(List<FinalizedFragment> fragments) {
   List<OutputUnit> outputUnits = [];
   for (var fragment in fragments) {
-    outputUnits.addAll(fragment.outputUnits);
+    for (var codeFragment in fragment.codeFragments) {
+      outputUnits.addAll(codeFragment.outputUnits);
+    }
   }
   return outputUnits;
 }
@@ -68,7 +70,8 @@ void main() {
     // InputElement is native, so it should be in the mainOutputUnit.
     Expect.equals(mainOutputUnit, outputUnitForClass(inputElement));
 
-    var hunksToLoad = backendStrategy.emitterTask.emitter.fragmentsToLoad;
+    var hunksToLoad =
+        backendStrategy.emitterTask.emitter.finalizedFragmentsToLoad;
     var hunksLib1 = collectOutputUnits(hunksToLoad["lib1"]);
     var hunksLib2 = collectOutputUnits(hunksToLoad["lib2"]);
     var hunksLib4_1 = collectOutputUnits(hunksToLoad["lib4_1"]);

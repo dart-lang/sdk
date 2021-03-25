@@ -21,7 +21,7 @@ import '../universe/codegen_world_builder.dart';
 import '../world.dart' show JClosedWorld;
 import 'program_builder/program_builder.dart';
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
-import 'startup_emitter/fragment_merger.dart' as fragment_merger;
+import 'startup_emitter/fragment_merger.dart';
 
 import 'metadata_collector.dart' show MetadataCollector;
 import 'model.dart';
@@ -211,13 +211,13 @@ abstract class ModularEmitter {
 abstract class Emitter implements ModularEmitter {
   Program get programForTesting;
 
-  List<fragment_merger.PreFragment> get preDeferredFragmentsForTesting;
+  List<PreFragment> get preDeferredFragmentsForTesting;
 
   /// A map of loadId to list of [FinalizedFragments].
-  Map<String, List<fragment_merger.FinalizedFragment>> get fragmentsToLoad;
+  Map<String, List<FinalizedFragment>> get finalizedFragmentsToLoad;
 
   /// The [FragmentMerger] itself.
-  fragment_merger.FragmentMerger get fragmentMerger;
+  FragmentMerger get fragmentMerger;
 
   /// Uses the [programBuilder] to generate a model of the program, emits
   /// the program, and returns the size of the generated output.

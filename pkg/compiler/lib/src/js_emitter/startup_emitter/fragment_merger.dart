@@ -9,85 +9,172 @@ import '../../deferred_load.dart'
 import '../../elements/entities.dart';
 import '../../deferred_load.dart' show OutputUnit;
 import '../../js/js.dart' as js;
-import '../../js/size_estimator.dart';
 import '../../options.dart';
 import '../model.dart';
 
+/// This file contains a number of abstractions used by dart2js for emitting and
+/// merging deferred fragments.
+///
+/// The initial deferred loading algorithm breaks a program up into multiple
+/// [OutputUnits] where each [OutputUnit] represents part of the user's
+/// program. [OutputUnits] are represented by a unique intersection of imports
+/// known as an import set. Thus, each [OutputUnit] is a node in a deferred
+/// graph. Edges in this graph are dependencies between [OutputUnits].
+///
+/// [OutputUnits] have a notion of successors and predecessors, that is a
+/// successor to an [OutputUnit] is an [OutputUnit] that must be loaded first. A
+/// predecessor to an [OutputUnit] is an [OutputUnit] that must be loaded later.
+///
+/// To load some given deferred library, a list of [OutputUnits] must be loaded
+/// in the correct order, with their successors loaded first, then the given
+/// [OutputUnit], then the [OutputUnits] predecessors.
+///
+/// To give a concrete example, say our graph looks like:
+///    {a}   {b}   {c}
+///
+///     {a, b} {b, c}
+///
+///       {a, b, c}
+///
+/// Where each set above is the import set of an [OutputUnit]. We say that
+/// {a}, {b}, and {c} are root [OutputUnits], i.e. [OutputUnits] with no
+/// predecessors, and {a, b, c} is a leaf [OutputUnit], i.e. [OutputUnits]
+/// with no successors.
+///
+/// We then have three load lists:
+///   a: {a, b, c}, {a, b}, {a}
+///   b: {a, b, c}, {a, b}, {b, c}, {b}
+///   c: {a, b, c}, {b, c}, {c}
+///
+/// In all 3 load lists, {a, b, c} must be loaded first. All of the other
+/// [OutputUnits] are predecessors of {a, b, c}. {a, b, c} is a successor to all
+/// other [OutputUnits].
+///
+/// However, the dart2js deferred loading algorithm generates a very granular
+/// sparse graph of [OutputUnits] and in many cases it is desireable to coalesce
+/// smaller [OutputUnits] together into larger chunks of code to reduce the
+/// number of files which have to be sent to the client. To do this
+/// cleanly, we use various abstractions to merge [OutputUnits].
+///
+/// First, we emit the code for each [OutputUnit] into an [EmittedOutputUnit].
+/// An [EmittedOutputUnit] is the Javascript representation of an [OutputUnit].
+/// [EmittedOutputUnits] map 1:1 to [OutputUnits].
+///
+/// We wrap each [EmittedOutputUnit] in a [PreFragment], which is just a wrapper
+/// to facilitate merging of [EmittedOutputUnits]. Then, we run a merge
+/// algorithm on these [PreFragments], merging them together until some
+/// threshold.
+///
+/// Once we are finished merging [PreFragments], we must now decide on their
+/// final representation in Javascript.
+///
+/// Depending on the results of the merge, we chose one of two representations.
+/// For example, say we merge {a, b} and {a} into {a, b}+{a}. In this case our
+/// new load lists look like:
+///
+///   a: {a, b, c}, {a, b}+{a}
+///   b: {a, b, c}, {a, b}+{a}, {b, c}, {b}
+///   c: {a, b, c}, {b, c}, {c}
+///
+/// This adds a bit of extra code to the 'b' load list, but otherwise there are
+/// no problems. In this case, we will interleave [EmittedOutputUnits] into a
+/// single [CodeFragment], with a single top level initialization function. This
+/// approach results in lower overhead, because the runtime can initialize the
+/// {a, b}+{a} [CodeFragment] with a single invocation of a top level function.
+///
+/// Ideally we would interleave all [EmittedOutputUnits] in each [PreFragment]
+/// into a single [CodeFragment]. We would then write this single
+/// [CodeFragment] into a single [FinalizedFragment], where a
+/// [FinalizedFragment] is just an abstraction representing a single file on
+/// disk. Unfortunately this is not always possible to do efficiently.
+///
+/// Specifically, lets say we decide to merge {a} and {c} into {a}+{c}
+/// In this case, our load lists now look like:
+///
+///   a: {a, b, c}, {a, b}, {a}+{c}
+///   b: {a, b, c}, {a, b}, {b, c}, {b}
+///   c: {a, b, c}, {b, c}, {a}+{c}
+///
+/// Now, load lists 'a' and 'c' are invalid. Specifically, load list 'a' is
+/// missing {c}'s dependency {b, c} and load list 'c' is missing {a}'s
+/// dependency {a, b}. We could bloat both load lists with the necessary
+/// dependencies, but this would negate any performance benefit from
+/// interleaving.
+///
+/// Instead, when this happens we emit {a} and {c} into separate
+/// [CodeFragments], with separate top level initalization functions that are
+/// only called when the necessary dependencies for initialization are
+/// present. These [CodeFragments] end up in a single [FinalizedFragment].
+/// While this approach doesn't have the performance benefits of
+/// interleaving, it at least reduces the total number of files which need to be
+/// sent to the client.
+
+class EmittedOutputUnit {
+  final OutputUnit outputUnit;
+  final List<Library> libraries;
+  final js.Statement classPrototypes;
+  final js.Statement closurePrototypes;
+  final js.Statement inheritance;
+  final js.Statement methodAliases;
+  final js.Statement tearOffs;
+  final js.Statement constants;
+  final js.Statement typeRules;
+  final js.Statement variances;
+  final js.Statement staticNonFinalFields;
+  final js.Statement lazyInitializers;
+  final js.Statement nativeSupport;
+
+  EmittedOutputUnit(
+      this.outputUnit,
+      this.libraries,
+      this.classPrototypes,
+      this.closurePrototypes,
+      this.inheritance,
+      this.methodAliases,
+      this.tearOffs,
+      this.constants,
+      this.typeRules,
+      this.variances,
+      this.staticNonFinalFields,
+      this.lazyInitializers,
+      this.nativeSupport);
+
+  CodeFragment toCodeFragment(Program program) {
+    return CodeFragment(
+        [outputUnit],
+        libraries,
+        classPrototypes,
+        closurePrototypes,
+        inheritance,
+        methodAliases,
+        tearOffs,
+        constants,
+        typeRules,
+        variances,
+        staticNonFinalFields,
+        lazyInitializers,
+        nativeSupport,
+        program.metadataTypesForOutputUnit(outputUnit));
+  }
+}
+
 class PreFragment {
-  final List<DeferredFragment> fragments = [];
-  final List<js.Statement> classPrototypes = [];
-  final List<js.Statement> closurePrototypes = [];
-  final List<js.Statement> inheritance = [];
-  final List<js.Statement> methodAliases = [];
-  final List<js.Statement> tearOffs = [];
-  final List<js.Statement> constants = [];
-  final List<js.Statement> typeRules = [];
-  final List<js.Statement> variances = [];
-  final List<js.Statement> staticNonFinalFields = [];
-  final List<js.Statement> lazyInitializers = [];
-  final List<js.Statement> nativeSupport = [];
+  final String outputFileName;
+  final List<EmittedOutputUnit> emittedOutputUnits = [];
   final Set<PreFragment> successors = {};
   final Set<PreFragment> predecessors = {};
   FinalizedFragment finalizedFragment;
   int size = 0;
+  bool shouldInterleave = true;
 
   PreFragment(
-      Fragment fragment,
-      js.Statement classPrototypes,
-      js.Statement closurePrototypes,
-      js.Statement inheritance,
-      js.Statement methodAliases,
-      js.Statement tearOffs,
-      js.Statement constants,
-      js.Statement typeRules,
-      js.Statement variances,
-      js.Statement staticNonFinalFields,
-      js.Statement lazyInitializers,
-      js.Statement nativeSupport,
-      bool estimateSize) {
-    this.fragments.add(fragment);
-    this.classPrototypes.add(classPrototypes);
-    this.closurePrototypes.add(closurePrototypes);
-    this.inheritance.add(inheritance);
-    this.methodAliases.add(methodAliases);
-    this.tearOffs.add(tearOffs);
-    this.constants.add(constants);
-    this.typeRules.add(typeRules);
-    this.variances.add(variances);
-    this.staticNonFinalFields.add(staticNonFinalFields);
-    this.lazyInitializers.add(lazyInitializers);
-    this.nativeSupport.add(nativeSupport);
-    if (estimateSize) {
-      var estimator = SizeEstimator();
-      estimator.visit(classPrototypes);
-      estimator.visit(closurePrototypes);
-      estimator.visit(inheritance);
-      estimator.visit(methodAliases);
-      estimator.visit(tearOffs);
-      estimator.visit(constants);
-      estimator.visit(typeRules);
-      estimator.visit(variances);
-      estimator.visit(staticNonFinalFields);
-      estimator.visit(lazyInitializers);
-      estimator.visit(nativeSupport);
-      size = estimator.charCount;
-    }
+      this.outputFileName, EmittedOutputUnit emittedOutputUnit, this.size) {
+    emittedOutputUnits.add(emittedOutputUnit);
   }
 
   PreFragment mergeAfter(PreFragment that) {
     assert(this != that);
-    this.fragments.addAll(that.fragments);
-    this.classPrototypes.addAll(that.classPrototypes);
-    this.closurePrototypes.addAll(that.closurePrototypes);
-    this.inheritance.addAll(that.inheritance);
-    this.methodAliases.addAll(that.methodAliases);
-    this.tearOffs.addAll(that.tearOffs);
-    this.constants.addAll(that.constants);
-    this.typeRules.addAll(that.typeRules);
-    this.variances.addAll(that.variances);
-    this.staticNonFinalFields.addAll(that.staticNonFinalFields);
-    this.lazyInitializers.addAll(that.lazyInitializers);
-    this.nativeSupport.addAll(that.nativeSupport);
+    this.emittedOutputUnits.addAll(that.emittedOutputUnits);
     this.successors.remove(that);
     this.predecessors.remove(that);
     that.successors.forEach((fragment) {
@@ -107,46 +194,46 @@ class PreFragment {
     return this;
   }
 
-  FinalizedFragment finalize(
-      Program program, Map<OutputUnit, FinalizedFragment> outputUnitMap) {
-    assert(finalizedFragment == null);
-    var seedFragment = fragments.first;
-    var seedOutputUnit = seedFragment.outputUnit;
-
-    // If we only have a single fragment, then wen just finalize it by itself.
-    // Otherwise, we finalize an entire group of fragments into a single
-    // merged and finalized fragment.
-    if (fragments.length == 1) {
-      finalizedFragment = FinalizedFragment(
-          seedFragment.outputFileName,
-          [seedOutputUnit],
-          seedFragment.libraries,
-          classPrototypes.first,
-          closurePrototypes.first,
-          inheritance.first,
-          methodAliases.first,
-          tearOffs.first,
-          constants.first,
-          typeRules.first,
-          variances.first,
-          staticNonFinalFields.first,
-          lazyInitializers.first,
-          nativeSupport.first,
-          program.metadataTypesForOutputUnit(seedOutputUnit));
-      outputUnitMap[seedOutputUnit] = finalizedFragment;
+  /// Interleaves the [EmittedOutputUnits] into a single [CodeFragment].
+  CodeFragment interleaveEmittedOutputUnits(Program program) {
+    var seedEmittedOutputUnit = emittedOutputUnits.first;
+    if (emittedOutputUnits.length == 1) {
+      return seedEmittedOutputUnit.toCodeFragment(program);
     } else {
-      List<OutputUnit> outputUnits = [seedOutputUnit];
+      var seedOutputUnit = seedEmittedOutputUnit.outputUnit;
       List<Library> libraries = [];
-      for (var fragment in fragments) {
-        var fragmentOutputUnit = fragment.outputUnit;
-        if (seedOutputUnit != fragmentOutputUnit) {
-          program.mergeOutputUnitMetadata(seedOutputUnit, fragmentOutputUnit);
-          outputUnits.add(fragmentOutputUnit);
+      List<OutputUnit> outputUnits = [seedOutputUnit];
+      List<js.Statement> classPrototypes = [];
+      List<js.Statement> closurePrototypes = [];
+      List<js.Statement> inheritance = [];
+      List<js.Statement> methodAliases = [];
+      List<js.Statement> tearOffs = [];
+      List<js.Statement> constants = [];
+      List<js.Statement> typeRules = [];
+      List<js.Statement> variances = [];
+      List<js.Statement> staticNonFinalFields = [];
+      List<js.Statement> lazyInitializers = [];
+      List<js.Statement> nativeSupport = [];
+      for (var emittedOutputUnit in emittedOutputUnits) {
+        var thatOutputUnit = emittedOutputUnit.outputUnit;
+        if (seedOutputUnit != thatOutputUnit) {
+          program.mergeOutputUnitMetadata(seedOutputUnit, thatOutputUnit);
+          outputUnits.add(thatOutputUnit);
         }
-        libraries.addAll(fragment.libraries);
+        libraries.addAll(emittedOutputUnit.libraries);
+        classPrototypes.add(emittedOutputUnit.classPrototypes);
+        closurePrototypes.add(emittedOutputUnit.closurePrototypes);
+        inheritance.add(emittedOutputUnit.inheritance);
+        methodAliases.add(emittedOutputUnit.methodAliases);
+        tearOffs.add(emittedOutputUnit.tearOffs);
+        constants.add(emittedOutputUnit.constants);
+        typeRules.add(emittedOutputUnit.typeRules);
+        variances.add(emittedOutputUnit.variances);
+        staticNonFinalFields.add(emittedOutputUnit.staticNonFinalFields);
+        lazyInitializers.add(emittedOutputUnit.lazyInitializers);
+        nativeSupport.add(emittedOutputUnit.nativeSupport);
       }
-      finalizedFragment = FinalizedFragment(
-          seedFragment.outputFileName,
+      return CodeFragment(
           outputUnits,
           libraries,
           js.Block(classPrototypes),
@@ -161,10 +248,36 @@ class PreFragment {
           js.Block(lazyInitializers),
           js.Block(nativeSupport),
           program.metadataTypesForOutputUnit(seedOutputUnit));
-      for (var outputUnit in outputUnits) {
-        outputUnitMap[outputUnit] = finalizedFragment;
-      }
     }
+  }
+
+  /// Bundles [EmittedOutputUnits] into multiple [CodeFragments].
+  List<CodeFragment> bundleEmittedOutputUnits(Program program) {
+    List<CodeFragment> codeFragments = [];
+    for (var emittedOutputUnit in emittedOutputUnits) {
+      codeFragments.add(emittedOutputUnit.toCodeFragment(program));
+    }
+    return codeFragments;
+  }
+
+  /// Finalizes this [PreFragment] into a single [FinalizedFragment] by either
+  /// interleaving [EmittedOutputUnits] into a single [CodeFragment] or by
+  /// bundling [EmittedOutputUnits] into multiple [CodeFragments].
+  FinalizedFragment finalize(
+      Program program,
+      Map<OutputUnit, CodeFragment> outputUnitMap,
+      Map<CodeFragment, FinalizedFragment> codeFragmentMap) {
+    assert(finalizedFragment == null);
+    List<CodeFragment> codeFragments = shouldInterleave
+        ? [interleaveEmittedOutputUnits(program)]
+        : bundleEmittedOutputUnits(program);
+    finalizedFragment = FinalizedFragment(outputFileName, codeFragments);
+    codeFragments.forEach((codeFragment) {
+      codeFragmentMap[codeFragment] = finalizedFragment;
+      codeFragment.outputUnits.forEach((outputUnit) {
+        outputUnitMap[outputUnit] = codeFragment;
+      });
+    });
     return finalizedFragment;
   }
 
@@ -181,13 +294,10 @@ class PreFragment {
   }
 
   String debugName() {
-    List<String> names = [];
-    this.fragments.forEach(
-        (fragment) => names.add(fragment.outputUnit.imports.toString()));
     var outputUnitStrings = [];
-    for (var fragment in fragments) {
+    for (var emittedOutputUnit in emittedOutputUnits) {
       var importString = [];
-      for (var import in fragment.outputUnit.imports) {
+      for (var import in emittedOutputUnit.outputUnit.imports) {
         importString.add(import.name);
       }
       outputUnitStrings.add('{${importString.join(', ')}}');
@@ -198,26 +308,14 @@ class PreFragment {
   /// Clears all [PreFragment] data structure and zeros out the size. Should be
   /// used only after merging to GC internal data structures.
   void clearAll() {
-    fragments.clear();
-    classPrototypes.clear();
-    closurePrototypes.clear();
-    inheritance.clear();
-    methodAliases.clear();
-    tearOffs.clear();
-    constants.clear();
-    typeRules.clear();
-    variances.clear();
-    staticNonFinalFields.clear();
-    lazyInitializers.clear();
-    nativeSupport.clear();
+    emittedOutputUnits.clear();
     successors.clear();
     predecessors.clear();
     size = 0;
   }
 }
 
-class FinalizedFragment {
-  final String outputFileName;
+class CodeFragment {
   final List<OutputUnit> outputUnits;
   final List<Library> libraries;
   final js.Statement classPrototypes;
@@ -233,8 +331,7 @@ class FinalizedFragment {
   final js.Statement nativeSupport;
   final js.Expression deferredTypes;
 
-  FinalizedFragment(
-      this.outputFileName,
+  CodeFragment(
       this.outputUnits,
       this.libraries,
       this.classPrototypes,
@@ -279,11 +376,40 @@ class FinalizedFragment {
         isEmptyStatement(nativeSupport);
   }
 
+  @override
+  String toString() {
+    List<String> outputUnitStrings = [];
+    for (var outputUnit in outputUnits) {
+      List<String> importStrings = [];
+      for (var import in outputUnit.imports) {
+        importStrings.add(import.name);
+      }
+      outputUnitStrings.add('{${importStrings.join(', ')}}');
+    }
+    return outputUnitStrings.join('+');
+  }
+}
+
+class FinalizedFragment {
+  final String outputFileName;
+  final List<CodeFragment> codeFragments;
+
+  FinalizedFragment(this.outputFileName, this.codeFragments);
+
   // The 'main' [OutputUnit] for this [FinalizedFragment].
   // TODO(joshualitt): Refactor this to more clearly disambiguate between
   // [OutputUnits](units of deferred merging), fragments(units of emitted code),
   // and files.
-  OutputUnit get canonicalOutputUnit => outputUnits.first;
+  OutputUnit get canonicalOutputUnit => codeFragments.first.outputUnits.first;
+
+  @override
+  String toString() {
+    List<String> strings = [];
+    for (var codeFragment in codeFragments) {
+      strings.add(codeFragment.toString());
+    }
+    return 'FinalizedFragment([${strings.join(', ')}])';
+  }
 }
 
 class _Partition {
@@ -305,26 +431,37 @@ class FragmentMerger {
 
   FragmentMerger(this._options, this._elementEnvironment, this.outputUnitData);
 
-  // Converts a map of (loadId, List<OutputUnit>) to a map of
-  // (loadId, List<FinalizedFragment>).
-  Map<String, List<FinalizedFragment>> computeFragmentsToLoad(
+  // Converts a map of (loadId, List<OutputUnit>) to two maps.
+  // The first is a map of (loadId, List<FinalizedFragment>), which is used to
+  // compute which files need to be loaded for a given loadId.
+  // The second is a map of (loadId, List<CodeFragment>) which is used to
+  // compute which CodeFragments need to be loaded for a given loadId.
+  void computeFragmentsToLoad(
       Map<String, List<OutputUnit>> outputUnitsToLoad,
-      Map<OutputUnit, FinalizedFragment> outputUnitMap,
-      Set<OutputUnit> omittedOutputUnits) {
-    Map<String, List<FinalizedFragment>> fragmentsToLoad = {};
+      Map<OutputUnit, CodeFragment> outputUnitMap,
+      Map<CodeFragment, FinalizedFragment> codeFragmentMap,
+      Set<OutputUnit> omittedOutputUnits,
+      Map<String, List<CodeFragment>> codeFragmentsToLoad,
+      Map<String, List<FinalizedFragment>> finalizedFragmentsToLoad) {
     outputUnitsToLoad.forEach((loadId, outputUnits) {
-      Set<FinalizedFragment> unique = {};
+      Set<CodeFragment> uniqueCodeFragments = {};
+      Set<FinalizedFragment> uniqueFinalizedFragments = {};
       List<FinalizedFragment> finalizedFragments = [];
-      fragmentsToLoad[loadId] = finalizedFragments;
+      List<CodeFragment> codeFragments = [];
       for (var outputUnit in outputUnits) {
         if (omittedOutputUnits.contains(outputUnit)) continue;
-        var finalizedFragment = outputUnitMap[outputUnit];
-        if (unique.add(finalizedFragment)) {
+        var codeFragment = outputUnitMap[outputUnit];
+        if (uniqueCodeFragments.add(codeFragment)) {
+          codeFragments.add(codeFragment);
+        }
+        var finalizedFragment = codeFragmentMap[codeFragment];
+        if (uniqueFinalizedFragments.add(finalizedFragment)) {
           finalizedFragments.add(finalizedFragment);
         }
       }
+      codeFragmentsToLoad[loadId] = codeFragments;
+      finalizedFragmentsToLoad[loadId] = finalizedFragments;
     });
-    return fragmentsToLoad;
   }
 
   /// Given a list of OutputUnits sorted by their import entites,
@@ -364,24 +501,21 @@ class FragmentMerger {
   /// Attachs predecessors and successors to each PreFragment.
   /// Expects outputUnits to be sorted.
   void attachDependencies(
-      List<OutputUnit> outputUnits,
-      Map<Fragment, PreFragment> fragmentMap,
-      List<PreFragment> preDeferredFragments) {
+      List<OutputUnit> outputUnits, List<PreFragment> preDeferredFragments) {
     // Create a map of OutputUnit to Fragment.
-    Map<OutputUnit, Fragment> outputUnitMap = {};
+    Map<OutputUnit, PreFragment> outputUnitMap = {};
     for (var preFragment in preDeferredFragments) {
-      var fragment = preFragment.fragments.single;
-      var outputUnit = fragment.outputUnit;
-      outputUnitMap[outputUnit] = fragment;
+      var outputUnit = preFragment.emittedOutputUnits.single.outputUnit;
+      outputUnitMap[outputUnit] = preFragment;
       totalSize += preFragment.size;
     }
 
     // Get a list of direct edges and then attach them to PreFragments.
     var allEdges = createDirectEdges(outputUnits);
     allEdges.forEach((outputUnit, edges) {
-      var predecessor = fragmentMap[outputUnitMap[outputUnit]];
+      var predecessor = outputUnitMap[outputUnit];
       for (var edge in edges) {
-        var successor = fragmentMap[outputUnitMap[edge]];
+        var successor = outputUnitMap[edge];
         predecessor.successors.add(successor);
         successor.predecessors.add(predecessor);
       }
@@ -411,8 +545,8 @@ class FragmentMerger {
         // Sort the fragments in the component so they will be in a canonical
         // order.
         component.sort((a, b) {
-          return a.fragments.single.outputUnit
-              .compareTo(b.fragments.single.outputUnit);
+          return a.emittedOutputUnits.single.outputUnit
+              .compareTo(b.emittedOutputUnits.single.outputUnit);
         });
         components.add(component);
       }
