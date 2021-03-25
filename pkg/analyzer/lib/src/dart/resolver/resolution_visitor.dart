@@ -1193,6 +1193,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     visitTypeName(typeName);
     _typeNameResolver.classHierarchy_typeName = null;
 
+    if (_typeNameResolver.hasErrorReported) {
+      return;
+    }
+
     DartType type = typeName.typeOrThrow;
     if (type is InterfaceType) {
       ClassElement element = type.element;

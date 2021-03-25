@@ -154,6 +154,8 @@ import 'expression_in_map_test.dart' as expression_in_map;
 import 'extends_deferred_class_test.dart' as extends_deferred_class;
 import 'extends_disallowed_class_test.dart' as extends_disallowed_class;
 import 'extends_non_class_test.dart' as extends_non_class;
+import 'extends_type_alias_expands_to_type_parameter_test.dart'
+    as extends_type_alias_expands_to_type_parameter;
 import 'extension_as_expression_test.dart' as extension_as_expression;
 import 'extension_conflicting_static_and_instance_test.dart'
     as extension_conflicting_static_and_instance;
@@ -229,6 +231,8 @@ import 'implements_deferred_class_test.dart' as implements_deferred_class;
 import 'implements_disallowed_class_test.dart' as implements_disallowed_class;
 import 'implements_non_class_test.dart' as implements_non_class;
 import 'implements_super_class_test.dart' as implements_super_class;
+import 'implements_type_alias_expands_to_type_parameter_test.dart'
+    as implements_type_alias_expands_to_type_parameter;
 import 'implicit_this_reference_in_initializer_test.dart'
     as implicit_this_reference_in_initializer;
 import 'import_deferred_library_with_load_function_test.dart'
@@ -391,7 +395,11 @@ import 'mixin_inherits_from_not_object_test.dart'
     as mixin_inherits_from_not_object;
 import 'mixin_of_disallowed_class_test.dart' as mixin_of_disallowed_class;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
+import 'mixin_of_type_alias_expands_to_type_parameter_test.dart'
+    as mixin_of_type_alias_expands_to_type_parameter;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
+import 'mixin_on_type_alias_expands_to_type_parameter_test.dart'
+    as mixin_on_type_alias_expands_to_type_parameter;
 import 'mixin_super_class_constraint_non_interface_test.dart'
     as mixin_super_class_constraint_non_interface;
 import 'mixin_with_non_class_superclass_test.dart'
@@ -783,6 +791,7 @@ main() {
     extends_deferred_class.main();
     extends_disallowed_class.main();
     extends_non_class.main();
+    extends_type_alias_expands_to_type_parameter.main();
     extension_as_expression.main();
     extension_conflicting_static_and_instance.main();
     extension_declares_abstract_method.main();
@@ -828,6 +837,7 @@ main() {
     implements_disallowed_class.main();
     implements_non_class.main();
     implements_super_class.main();
+    implements_type_alias_expands_to_type_parameter.main();
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
     import_internal_library.main();
@@ -931,7 +941,9 @@ main() {
     mixin_inherits_from_not_object.main();
     mixin_of_disallowed_class.main();
     mixin_of_non_class.main();
+    mixin_of_type_alias_expands_to_type_parameter.main();
     mixin_on_sealed_class.main();
+    mixin_on_type_alias_expands_to_type_parameter.main();
     mixin_super_class_constraint_non_interface.main();
     mixin_with_non_class_superclass.main();
     mixins_super_class.main();
