@@ -111,6 +111,8 @@ struct RetainReasons : public AllStatic {
   static constexpr const char* kImplicitClosure = "implicit closure";
   // The object is a local closure.
   static constexpr const char* kLocalClosure = "local closure";
+  // The object is a sync or async function or in the parent chain of one.
+  static constexpr const char* kIsSyncAsyncFunction = "sync or async function";
   // The object is the initializer for a static field.
   static constexpr const char* kStaticFieldInitializer =
       "static field initializer";
@@ -810,9 +812,16 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
   for (auto& view : static_calls) {
     entry = view.Get<Code::kSCallTableFunctionTarget>();
     if (entry.IsFunction()) {
-      AddFunction(Function::Cast(entry), FLAG_retain_function_objects
-                                             ? RetainReasons::kForcedRetain
-                                             : nullptr);
+      // Since generally function objects are retained when symbolic stack
+      // traces are enabled, only return kForcedRetain to mark that retention
+      // was otherwise forced.
+      const char* const reason =
+          FLAG_retain_function_objects
+              ? (!FLAG_dwarf_stack_traces_mode
+                     ? RetainReasons::kSymbolicStackTraces
+                     : RetainReasons::kForcedRetain)
+              : nullptr;
+      AddFunction(Function::Cast(entry), reason);
       ASSERT(view.Get<Code::kSCallTableCodeOrTypeTarget>() == Code::null());
       continue;
     }
@@ -960,12 +969,13 @@ void Precompiler::AddRetainReason(const Object& obj, const char* reason) {
 
 void Precompiler::AddTypesOf(const Function& function) {
   if (function.IsNull()) return;
+  if (functions_to_retain_.ContainsKey(function)) return;
+  functions_to_retain_.Insert(function);
+
   if (retained_reasons_writer_ != nullptr &&
       !retained_reasons_writer_->HasReason(function)) {
     FATAL("no retaining reasons given");
   }
-  if (functions_to_retain_.ContainsKey(function)) return;
-  functions_to_retain_.Insert(function);
 
   if (function.NeedsMonomorphicCheckedEntry(Z) ||
       Function::IsDynamicInvocationForwarderName(function.name())) {
@@ -983,16 +993,51 @@ void Precompiler::AddTypesOf(const Function& function) {
     ASSERT(defaults.IsCanonical());
     AddTypeArguments(defaults);
   }
-  // A function can always be inlined and have only a nested local function
-  // remain.
-  const Function& parent = Function::Handle(Z, function.parent_function());
-  if (!parent.IsNull()) {
-    AddRetainReason(parent, RetainReasons::kLocalParent);
-    AddTypesOf(parent);
-  }
+
   // A class may have all functions inlined except a local function.
   const Class& owner = Class::Handle(Z, function.Owner());
   AddTypesOf(owner);
+
+  const auto& parent_function = Function::Handle(Z, function.parent_function());
+  if (parent_function.IsNull()) {
+    return;
+  }
+
+  // It can happen that all uses of a function are inlined, leaving
+  // a compiled local function with an uncompiled parent. Retain such
+  // parents and their enclosing classes and libraries when needed.
+
+  // We always retain parents if symbolic stack traces are enabled.
+  if (!FLAG_dwarf_stack_traces_mode) {
+    AddRetainReason(parent_function, RetainReasons::kSymbolicStackTraces);
+    AddTypesOf(parent_function);
+    return;
+  }
+
+  // Special case to allow walking of lazy async stacks to work.
+  // Should match parent checks in CallerClosureFinder::FindCaller.
+  if (parent_function.recognized_kind() == MethodRecognizer::kFutureTimeout ||
+      parent_function.recognized_kind() == MethodRecognizer::kFutureWait) {
+    AddRetainReason(parent_function, RetainReasons::kIsSyncAsyncFunction);
+    AddTypesOf(parent_function);
+    return;
+  }
+
+  // Preserve parents for generated bodies in async/async*/sync* functions,
+  // since predicates like Function::IsAsyncClosure(), etc. need that info.
+  if (function.is_generated_body()) {
+    AddRetainReason(parent_function, RetainReasons::kIsSyncAsyncFunction);
+    AddTypesOf(parent_function);
+    return;
+  }
+
+  // We're not retaining the parent due to this function, so wrap it with
+  // a weak serialization reference.
+  const auto& data = ClosureData::CheckedHandle(Z, function.data());
+  const auto& wsr = WeakSerializationReference::Handle(
+      Z, WeakSerializationReference::New(parent_function,
+                                         Object::null_function()));
+  data.set_parent_function(wsr);
 }
 
 void Precompiler::AddType(const AbstractType& abstype) {
@@ -1792,8 +1837,7 @@ void Precompiler::TraceForRetainedFunctions() {
         if (fields_to_retain_.HasKey(&field) &&
             field.HasInitializerFunction()) {
           function = field.InitializerFunction();
-          bool retain = possibly_retained_functions_.ContainsKey(function);
-          if (retain) {
+          if (possibly_retained_functions_.ContainsKey(function)) {
             AddTypesOf(function);
           }
         }
@@ -1814,24 +1858,9 @@ void Precompiler::TraceForRetainedFunctions() {
     }
   }
 
-  auto& parent_function = Function::Handle(Z);
   ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& function) {
-    bool retain = possibly_retained_functions_.ContainsKey(function);
-    if (retain) {
+    if (possibly_retained_functions_.ContainsKey(function)) {
       AddTypesOf(function);
-
-      cls = function.Owner();
-      AddTypesOf(cls);
-
-      // It can happen that all uses of a function are inlined, leaving
-      // a compiled local function with an uncompiled parent. Retain such
-      // parents and their enclosing classes and libraries.
-      parent_function = function.parent_function();
-      while (!parent_function.IsNull()) {
-        AddRetainReason(parent_function, RetainReasons::kLocalParent);
-        AddTypesOf(parent_function);
-        parent_function = parent_function.parent_function();
-      }
     }
     return true;  // Continue iteration.
   });

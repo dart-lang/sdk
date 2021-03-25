@@ -5523,7 +5523,14 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
   void set_calls_initializer(bool value) { calls_initializer_ = value; }
 
   virtual bool AllowsCSE() const {
-    return field().is_final() && !FLAG_fields_may_be_reset;
+    // If two loads of a static-final-late field call the initializer and one
+    // dominates another, we can remove the dominated load with the result of
+    // the dominating load.
+    //
+    // Though if the field is final-late there can be stores into it via
+    // load/compare-with-sentinel/store. Those loads have `!calls_initializer()`
+    // and we won't allow CSE for them.
+    return field().is_final() && (!field().is_late() || calls_initializer());
   }
 
   virtual bool ComputeCanDeoptimize() const {

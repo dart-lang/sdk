@@ -7082,9 +7082,16 @@ void Function::set_accessor_field(const Field& value) const {
 
 FunctionPtr Function::parent_function() const {
   if (!IsClosureFunction()) return Function::null();
-  const Object& obj = Object::Handle(untag()->data());
+  Object& obj = Object::Handle(untag()->data());
   ASSERT(!obj.IsNull());
+#if defined(DART_PRECOMPILER)
+  obj = ClosureData::Cast(obj).parent_function();
+  obj = WeakSerializationReference::Unwrap(obj);
+  if (!obj.IsFunction()) return Function::null();
+  return Function::RawCast(obj.ptr());
+#else
   return ClosureData::Cast(obj).parent_function();
+#endif
 }
 
 void Function::set_parent_function(const Function& value) const {
@@ -7168,8 +7175,7 @@ TypeArgumentsPtr Function::default_type_arguments(
   if (!CachesDefaultTypeArguments()) {
     UNREACHABLE();
   }
-  const auto& closure_data =
-      ClosureData::Handle(ClosureData::RawCast(untag()->data()));
+  const auto& closure_data = ClosureData::Handle(ClosureData::RawCast(data()));
   ASSERT(!closure_data.IsNull());
   if (kind_out != nullptr) {
     *kind_out = closure_data.default_type_arguments_kind();
@@ -7181,8 +7187,7 @@ void Function::set_default_type_arguments(const TypeArguments& value) const {
   if (!CachesDefaultTypeArguments()) {
     UNREACHABLE();
   }
-  const auto& closure_data =
-      ClosureData::Handle(ClosureData::RawCast(untag()->data()));
+  const auto& closure_data = ClosureData::Handle(ClosureData::RawCast(data()));
   ASSERT(!closure_data.IsNull());
   auto kind = DefaultTypeArgumentsKindFor(value);
   ASSERT(kind != DefaultTypeArgumentsKind::kInvalid);
@@ -7226,7 +7231,7 @@ FunctionPtr Function::implicit_closure_function() const {
       IsFieldInitializer() || IsFfiTrampoline()) {
     return Function::null();
   }
-  const Object& obj = Object::Handle(untag()->data());
+  const Object& obj = Object::Handle(data());
   ASSERT(obj.IsNull() || obj.IsScript() || obj.IsFunction() || obj.IsArray());
   if (obj.IsNull() || obj.IsScript()) {
     return Function::null();
@@ -7242,7 +7247,7 @@ FunctionPtr Function::implicit_closure_function() const {
 
 void Function::set_implicit_closure_function(const Function& value) const {
   ASSERT(!IsClosureFunction());
-  const Object& old_data = Object::Handle(untag()->data());
+  const Object& old_data = Object::Handle(data());
   if (is_native()) {
     ASSERT(old_data.IsArray());
     ASSERT((Array::Cast(old_data).At(1) == Object::null()) || value.IsNull());
@@ -7261,14 +7266,14 @@ void Function::set_implicit_closure_function(const Function& value) const {
 
 void Function::SetFfiCSignature(const FunctionType& sig) const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(untag()->data());
+  const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_c_signature(sig);
 }
 
 FunctionTypePtr Function::FfiCSignature() const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(untag()->data());
+  const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   return FfiTrampolineData::Cast(obj).c_signature();
 }
@@ -7299,42 +7304,42 @@ bool Function::FfiCSignatureReturnsStruct() const {
 
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(untag()->data());
+  const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   return FfiTrampolineData::Cast(obj).callback_id();
 }
 
 void Function::SetFfiCallbackId(int32_t value) const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(untag()->data());
+  const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_callback_id(value);
 }
 
 FunctionPtr Function::FfiCallbackTarget() const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(untag()->data());
+  const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   return FfiTrampolineData::Cast(obj).callback_target();
 }
 
 void Function::SetFfiCallbackTarget(const Function& target) const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(untag()->data());
+  const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_callback_target(target);
 }
 
 InstancePtr Function::FfiCallbackExceptionalReturn() const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(untag()->data());
+  const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   return FfiTrampolineData::Cast(obj).callback_exceptional_return();
 }
 
 void Function::SetFfiCallbackExceptionalReturn(const Instance& value) const {
   ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(untag()->data());
+  const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_callback_exceptional_return(value);
 }
@@ -7346,7 +7351,7 @@ const char* Function::KindToCString(UntaggedFunction::Kind kind) {
 FunctionPtr Function::ForwardingTarget() const {
   ASSERT(kind() == UntaggedFunction::kDynamicInvocationForwarder);
   Array& checks = Array::Handle();
-  checks ^= untag()->data();
+  checks ^= data();
   return Function::RawCast(checks.At(0));
 }
 
@@ -7393,7 +7398,7 @@ void Function::set_owner(const Object& value) const {
 
 RegExpPtr Function::regexp() const {
   ASSERT(kind() == UntaggedFunction::kIrregexpFunction);
-  const Array& pair = Array::Cast(Object::Handle(untag()->data()));
+  const Array& pair = Array::Cast(Object::Handle(data()));
   return RegExp::RawCast(pair.At(0));
 }
 
@@ -7404,13 +7409,13 @@ class StringSpecializationCid
 
 intptr_t Function::string_specialization_cid() const {
   ASSERT(kind() == UntaggedFunction::kIrregexpFunction);
-  const Array& pair = Array::Cast(Object::Handle(untag()->data()));
+  const Array& pair = Array::Cast(Object::Handle(data()));
   return StringSpecializationCid::decode(Smi::Value(Smi::RawCast(pair.At(1))));
 }
 
 bool Function::is_sticky_specialization() const {
   ASSERT(kind() == UntaggedFunction::kIrregexpFunction);
-  const Array& pair = Array::Cast(Object::Handle(untag()->data()));
+  const Array& pair = Array::Cast(Object::Handle(data()));
   return StickySpecialization::decode(Smi::Value(Smi::RawCast(pair.At(1))));
 }
 
@@ -7419,7 +7424,7 @@ void Function::SetRegExpData(const RegExp& regexp,
                              bool sticky) const {
   ASSERT(kind() == UntaggedFunction::kIrregexpFunction);
   ASSERT(IsStringClassId(string_specialization_cid));
-  ASSERT(untag()->data() == Object::null());
+  ASSERT(data() == Object::null());
   const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
   pair.SetAt(0, regexp);
   pair.SetAt(1, Smi::Handle(Smi::New(StickySpecialization::encode(sticky) |
@@ -7430,7 +7435,7 @@ void Function::SetRegExpData(const RegExp& regexp,
 
 StringPtr Function::native_name() const {
   ASSERT(is_native());
-  const Object& obj = Object::Handle(untag()->data());
+  const Object& obj = Object::Handle(data());
   ASSERT(obj.IsArray());
   return String::RawCast(Array::Cast(obj).At(0));
 }
@@ -7447,7 +7452,7 @@ void Function::set_native_name(const String& value) const {
   // closure function.
   //
   // We therefore handle both cases.
-  const Object& old_data = Object::Handle(zone, untag()->data());
+  const Object& old_data = Object::Handle(zone, data());
   ASSERT(old_data.IsNull() ||
          (old_data.IsFunction() &&
           Function::Handle(zone, Function::RawCast(old_data.ptr()))
@@ -9260,7 +9265,7 @@ void Function::SetKernelDataAndScript(const Script& script,
 ScriptPtr Function::script() const {
   // NOTE(turnidge): If you update this function, you probably want to
   // update Class::PatchFieldsAndFunctions() at the same time.
-  const Object& data = Object::Handle(untag()->data());
+  const Object& data = Object::Handle(this->data());
   if (IsDynamicInvocationForwarder()) {
     const auto& forwarding_target = Function::Handle(ForwardingTarget());
     return forwarding_target.script();
@@ -9288,14 +9293,18 @@ ScriptPtr Function::script() const {
     return PatchClass::Cast(obj).script();
   }
   if (IsClosureFunction()) {
-    return Function::Handle(parent_function()).script();
+    const Function& function = Function::Handle(parent_function());
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (function.IsNull()) return Script::null();
+#endif
+    return function.script();
   }
   ASSERT(obj.IsClass());
   return Class::Cast(obj).script();
 }
 
 ExternalTypedDataPtr Function::KernelData() const {
-  Object& data = Object::Handle(untag()->data());
+  Object& data = Object::Handle(this->data());
   if (data.IsArray()) {
     Object& script = Object::Handle(Array::Cast(data).At(0));
     if (script.IsScript()) {
@@ -9322,7 +9331,7 @@ intptr_t Function::KernelDataProgramOffset() const {
       IsFfiTrampoline()) {
     return 0;
   }
-  Object& data = Object::Handle(untag()->data());
+  Object& data = Object::Handle(this->data());
   if (data.IsArray()) {
     Object& script = Object::Handle(Array::Cast(data).At(0));
     if (script.IsScript()) {
@@ -9400,10 +9409,14 @@ const char* Function::QualifiedUserVisibleNameCString() const {
 static void FunctionPrintNameHelper(const Function& fun,
                                     const NameFormattingParams& params,
                                     BaseTextBuffer* printer) {
-  if (fun.IsLocalFunction()) {
+  if (fun.IsNonImplicitClosureFunction()) {
     if (params.include_parent_name) {
       const auto& parent = Function::Handle(fun.parent_function());
-      parent.PrintName(params, printer);
+      if (parent.IsNull()) {
+        printer->AddString(Symbols::OptimizedOut().ToCString());
+      } else {
+        parent.PrintName(params, printer);
+      }
       // A function's scrubbed name and its user visible name are identical.
       printer->AddString(".");
     }
@@ -9919,10 +9932,10 @@ const char* ClosureData::ToCString() const {
   buffer.Printf("ClosureData: context_scope: 0x%" Px "",
                 static_cast<uword>(context_scope()));
   buffer.AddString(" parent_function: ");
-  if (parent_function() == Function::null()) {
+  if (parent_function() == Object::null()) {
     buffer.AddString("null");
   } else {
-    buffer.AddString(Function::Handle(zone, parent_function()).ToCString());
+    buffer.AddString(Object::Handle(parent_function()).ToCString());
   }
   buffer.Printf(" implicit_static_closure: 0x%" Px "",
                 static_cast<uword>(implicit_static_closure()));
@@ -10061,9 +10074,15 @@ void ClosureData::set_implicit_static_closure(const Instance& closure) const {
   untag()->set_closure<std::memory_order_release>(closure.ptr());
 }
 
+#if defined(DART_PRECOMPILER)
+void ClosureData::set_parent_function(const Object& value) const {
+  untag()->set_parent_function(value.ptr());
+}
+#else
 void ClosureData::set_parent_function(const Function& value) const {
   untag()->set_parent_function(value.ptr());
 }
+#endif
 
 void FfiTrampolineData::set_c_signature(const FunctionType& value) const {
   untag()->set_c_signature(value.ptr());

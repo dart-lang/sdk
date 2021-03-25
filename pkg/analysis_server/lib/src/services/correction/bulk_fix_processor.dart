@@ -28,6 +28,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:collection/collection.dart';
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
 /// one or more files.
@@ -233,7 +234,7 @@ class BulkFixProcessor {
         if (fix.canBeBulkApplied) {
           final generators = fix.generators;
           if (generators != null) {
-            yield* generators.map((g) => g().fixKind).where((k) => k != null);
+            yield* generators.map((g) => g().fixKind).whereNotNull();
           }
         }
       }
@@ -245,7 +246,7 @@ class BulkFixProcessor {
       if (fix.canBeBulkApplied) {
         final generators = fix.generators;
         if (generators != null) {
-          yield* generators.map((g) => g().fixKind).where((k) => k != null);
+          yield* generators.map((g) => g().fixKind).whereNotNull();
         }
       }
     }
