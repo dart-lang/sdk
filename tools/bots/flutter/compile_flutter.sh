@@ -9,6 +9,7 @@ set -e
 
 prepareOnly=false
 leakTest=false
+weeklyTest=false
 
 REMAINING_ARGS=()
 while [[ $# -gt 0 ]]; do
@@ -19,6 +20,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --leakTest|--leak-test|--leak_test)
       leakTest=true
+      shift
+      ;;
+    --weeklyTest|--weekly-test|--weekly_test)
+      weeklyTest=true
       shift
       ;;
     *)
@@ -115,6 +120,12 @@ elif $leakTest; then
       --enable-asserts \
       pkg/front_end/test/flutter_gallery_leak_tester.dart \
       --path=$tmpdir
+elif $weeklyTest; then
+  $dart \
+      --enable-asserts \
+      pkg/front_end/test/weekly_tester.dart \
+      --path=$tmpdir \
+      $@
 else
   $dart \
       --enable-asserts \

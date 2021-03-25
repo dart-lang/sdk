@@ -174,6 +174,7 @@ reload_sources_test: SkipByDesign #  Hot reload is disabled in AOT mode.
 rewind_optimized_out_test: SkipByDesign # Debugger is disabled in AOT mode.
 rewind_test: SkipByDesign # Debugger is disabled in AOT mode.
 set_library_debuggable_test: SkipByDesign # Debugger is disabled in AOT mode.
+sigquit_starts_service_test: SkipByDesign # Spawns a secondary process using Platform.executable.
 simple_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
 steal_breakpoint_test: SkipByDesign # Debugger is disabled in AOT mode.
 step_into_async_no_await_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -300,6 +301,7 @@ reload_sources_test: Skip # Times out.
 rewind_optimized_out_test: RuntimeError # Issue #34736
 rewind_test: Pass, RuntimeError
 set_name_rpc_test: RuntimeError # Please triage.
+sigquit_starts_service_test: SkipByDesign # Spawns a secondary process using Platform.executable.
 simple_reload_test: RuntimeError, Timeout
 valid_source_locations_test: Skip # Issue 34736, too slow.
 

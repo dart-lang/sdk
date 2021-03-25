@@ -3884,7 +3884,7 @@ const Template<
     Message Function(String name)> templateFfiNotStatic = const Template<
         Message Function(String name)>(
     messageTemplate:
-        r"""#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code.""",
+        r"""#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context.""",
     withArguments: _withArgumentsFfiNotStatic);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3899,7 +3899,7 @@ Message _withArgumentsFfiNotStatic(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeFfiNotStatic,
       message:
-          """${name} expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code.""",
+          """${name} expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context.""",
       arguments: {'name': name});
 }
 

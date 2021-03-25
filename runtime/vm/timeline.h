@@ -166,6 +166,7 @@ class Timeline : public AllStatic {
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DECLARE)
 #undef TIMELINE_STREAM_DECLARE
 
+  template <class>
   friend class TimelineRecorderOverride;
   friend class ReclaimBlocksIsolateVisitor;
 };

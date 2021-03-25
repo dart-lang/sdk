@@ -36,7 +36,7 @@ dev_dependencies:
   modular_test:
     path: ../modular_test
   package_config: any
-  pedantic: ^1.8.0
+  pedantic: ^1.11.0
   sourcemap_testing:
     path: ../sourcemap_testing
   stack_trace: any

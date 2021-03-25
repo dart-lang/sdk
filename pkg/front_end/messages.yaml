@@ -4265,7 +4265,7 @@ FfiFieldCyclic:
 
 FfiNotStatic:
   # Used by dart:ffi
-  template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code."
+  template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context."
   external: test/ffi_test.dart
 
 FfiFieldInitializer:

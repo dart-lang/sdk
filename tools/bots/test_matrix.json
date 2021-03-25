@@ -610,6 +610,18 @@
         ]
       }
     },
+    "dart2js-minified-csp-max-fragments-(linux|mac|win)-chrome": {
+      "options": {
+        "minified": true,
+        "csp": true,
+        "timeout": 240,
+        "dart2js-options": [
+          "--libraries-spec=sdk/lib/libraries.json",
+          "--platform-binaries=out/ReleaseX64/",
+          "--merge-fragments-threshold=3"
+        ]
+      }
+    },
     "dart2js-minified-(linux|mac|win)-d8": {
       "options": {
         "minified": true,
@@ -622,6 +634,19 @@
         "use-sdk": true,
         "dart2js-options": [
           "--no-sound-null-safety"
+        ]
+      }
+    },
+    "dart2js-minified-hostasserts-weak-max-fragments-(linux|win)-x64-d8": {
+      "options": {
+        "minified": true,
+        "host-checked": true,
+        "timeout": 240,
+        "builder-tag": "dart2js-weak",
+        "dart2js-options": [
+          "--libraries-spec=sdk/lib/libraries.json",
+          "--platform-binaries=out/ReleaseX64/",
+          "--merge-fragments-threshold=3"
         ]
       }
     },
@@ -2576,6 +2601,16 @@
             "--dart2js-batch",
             "dart2js_2"
           ]
+        },
+        {
+          "name": "dart2js d8 fragment merging tests",
+          "arguments": [
+            "-ndart2js-minified-hostasserts-weak-max-fragments-linux-x64-d8",
+            "--dart2js-batch",
+            "web/deferred/"
+          ],
+          "shards": 1,
+          "fileset": "web_platform_hostasserts"
         }
       ]
     },
@@ -2629,6 +2664,14 @@
             "-ndart2js-minified-csp-linux-chrome",
             "--dart2js-batch",
             "web_2"
+          ]
+        },
+        {
+          "name": "dart2js d8 fragment merging tests",
+          "arguments": [
+            "-ndart2js-minified-csp-max-fragments-linux-chrome",
+            "--dart2js-batch",
+            "web/deferred/"
           ]
         }
       ]
@@ -3605,7 +3648,7 @@
           "name": "run tests",
           "script": "tools/bots/flutter/compile_flutter.sh",
           "arguments": [
-            "--leakTest"
+            "--weeklyTest"
           ]
         }
       ]

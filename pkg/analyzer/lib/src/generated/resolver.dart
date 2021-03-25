@@ -1297,12 +1297,14 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     var fieldElement = enclosingClass!.getField(node.fieldName.name);
     InferenceContext.setType(node.expression, fieldElement?.type);
     node.expression.accept(this);
+    var whyNotPromoted = flowAnalysis?.flow?.whyNotPromoted(node.expression);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     var enclosingConstructor = enclosingFunction as ConstructorElement;
     if (fieldElement != null) {
       checkForFieldInitializerNotAssignable(node, fieldElement,
-          isConstConstructor: enclosingConstructor.isConst);
+          isConstConstructor: enclosingConstructor.isConst,
+          whyNotPromoted: whyNotPromoted);
     }
   }
 
@@ -2160,7 +2162,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
             isFinal: parent.isFinal, isLate: parent.isLate);
       }
     }
-    checkForInvalidAssignment(node.name, node.initializer);
   }
 
   @override

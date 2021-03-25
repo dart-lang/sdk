@@ -5,7 +5,6 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
@@ -28,16 +27,13 @@ class IgnoreValidator {
   /// be ignored. Note that this list is incomplete. Plugins might well define
   /// diagnostics with a severity of `ERROR`, but we won't be able to flag their
   /// use because we have no visibility of them here.
-  late final Set<String> _unignorableNames;
+  final Set<String> _unignorableNames;
 
   /// Initialize a newly created validator to report any issues with ignore
   /// comments in the file being analyzed. The diagnostics will be reported to
   /// the [_errorReporter].
   IgnoreValidator(this._errorReporter, this._reportedErrors, this._ignoreInfo,
-      this._lineInfo) {
-    var filePath = _errorReporter.source.fullName;
-    _unignorableNames = _UnignorableNames.forFile(filePath);
-  }
+      this._lineInfo, this._unignorableNames);
 
   /// Report any issues with ignore comments in the file being analyzed.
   void reportErrors() {
@@ -128,99 +124,6 @@ class IgnoreValidator {
     //       HintCode.UNNECESSARY_IGNORE, ignoredName.offset, name.length,
     //       [name]);
     // }
-  }
-
-  static bool isIgnorable(String filePath, ErrorCode code) {
-    return _UnignorableNames.isIgnorable(
-      code,
-      isFlutter: filePath.contains('flutter'),
-      isDart2jsTest: filePath.contains('tests/compiler/dart2js') ||
-          filePath.contains('pkg/compiler/test'),
-    );
-  }
-}
-
-/// Helper for caching unignorable names.
-class _UnignorableNames {
-  static Set<String>? _forFlutter;
-  static Set<String>? _forDart2jsTest;
-  static Set<String>? _forOther;
-
-  static Set<String> forFile(String filePath) {
-    var isFlutter = filePath.contains('flutter');
-    var isDart2jsTest = filePath.contains('tests/compiler/dart2js') ||
-        filePath.contains('pkg/compiler/test');
-
-    if (isFlutter) {
-      if (_forFlutter != null) {
-        return _forFlutter!;
-      }
-    } else if (isDart2jsTest) {
-      if (_forDart2jsTest != null) {
-        return _forDart2jsTest!;
-      }
-    } else {
-      if (_forOther != null) {
-        return _forOther!;
-      }
-    }
-
-    var unignorableNames = <String>{};
-    for (var code in errorCodeValues) {
-      if (!isIgnorable(code,
-          isFlutter: isFlutter, isDart2jsTest: isDart2jsTest)) {
-        unignorableNames.add(code.name.toLowerCase());
-        unignorableNames.add(code.uniqueName.toLowerCase());
-      }
-    }
-
-    if (isFlutter) {
-      _forFlutter = unignorableNames;
-    } else if (isDart2jsTest) {
-      _forDart2jsTest = unignorableNames;
-    } else {
-      _forOther = unignorableNames;
-    }
-
-    return unignorableNames;
-  }
-
-  static bool isIgnorable(
-    ErrorCode code, {
-    required bool isFlutter,
-    required bool isDart2jsTest,
-  }) {
-    if (code.isIgnorable) {
-      return true;
-    }
-    // The [code] is not ignorable, but we've allowed a few "privileged"
-    // cases. Each is annotated with an issue which represents technical
-    // debt. Once cleaned up, we may remove this notion of "privileged".
-    // In the case of [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY], we may
-    // just decide that it happens enough in tests that it can be declared
-    // an ignorable error, and in practice other back ends will prevent
-    // non-internal code from importing internal code.
-    if (code == CompileTimeErrorCode.UNDEFINED_FUNCTION ||
-        code == CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME) {
-      // Special case a small number of errors in Flutter code which are
-      // ignored. The erroneous code is found in a conditionally imported
-      // library, which uses a special version of the "dart:ui" library
-      // which the Analyzer does not use during analysis. See
-      // https://github.com/flutter/flutter/issues/52899.
-      if (isFlutter) {
-        return true;
-      }
-    }
-
-    if ((code == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY ||
-            code == CompileTimeErrorCode.UNDEFINED_ANNOTATION ||
-            code == ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE) &&
-        isDart2jsTest) {
-      // Special case the dart2js language tests. Some of these import
-      // various internal libraries.
-      return true;
-    }
-    return false;
   }
 }
 

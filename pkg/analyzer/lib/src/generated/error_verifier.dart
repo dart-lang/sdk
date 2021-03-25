@@ -348,10 +348,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     Expression rhs = node.rightHandSide;
     if (operatorType == TokenType.EQ ||
         operatorType == TokenType.QUESTION_QUESTION_EQ) {
-      // Already handled in the assignment resolver.
-      if (lhs is! SimpleIdentifier) {
-        checkForInvalidAssignment(lhs, rhs);
-      }
     } else {
       checkForArgumentTypeNotAssignableForArgument(rhs);
     }

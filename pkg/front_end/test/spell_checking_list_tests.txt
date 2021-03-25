@@ -19,8 +19,10 @@ aa
 aaa
 abc
 abcompile
+adapter
 adaptor
 adopted
+advantages
 albeit
 allocations
 allowlist
@@ -144,6 +146,7 @@ compiler's
 complement
 completers
 complicated
+concurrently
 confidence
 confident
 confirm
@@ -228,6 +231,7 @@ donly
 doo
 downstream
 draw
+dsemi
 dumping
 dumps
 dupe
@@ -337,6 +341,7 @@ gamma
 gave
 gc
 gcd
+gesture
 getter1c
 getter1d
 getter1e
@@ -367,6 +372,7 @@ hurray
 i'm
 ia
 ideal
+identification
 idle
 ikg
 illustrate
@@ -506,6 +512,7 @@ mod
 modelled
 month
 moo
+mouse
 mul
 mx
 mxn
@@ -524,6 +531,7 @@ numerator
 ob
 obool
 observable
+offers
 oh
 okay
 ol
@@ -569,6 +577,8 @@ preliminary
 prematurely
 press
 pretends
+processes
+processors
 producer
 profile
 profiler
@@ -672,6 +682,7 @@ sigint
 signalled
 sigwinch
 slight
+sliver
 smoke
 snull
 somehow
@@ -742,6 +753,7 @@ touch
 tpt
 transitively
 translators
+transparent
 triangle
 triggers
 trimming

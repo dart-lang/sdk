@@ -303,6 +303,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool chromeOsManifestChecks = false;
 
+  /// The set of "un-ignorable" error names, as parsed in [AnalyzerOptions] from
+  /// an analysis options file.
+  Set<String> unignorableNames = {};
+
   /// Initialize a newly created set of analysis options to have their default
   /// values.
   AnalysisOptionsImpl();

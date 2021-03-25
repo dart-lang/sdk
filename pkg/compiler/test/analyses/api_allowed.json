@@ -172,15 +172,19 @@
     "Dynamic invocation of 'toLowerCase'.": 1
   },
   "org-dartlang-sdk:///lib/_http/http_impl.dart": {
+    "Dynamic access of 'headers'.": 1,
+    "Dynamic invocation of 'forEach'.": 1,
+    "Dynamic access of 'connectionInfo'.": 4,
+    "Dynamic access of 'localPort'.": 1,
+    "Dynamic access of 'remoteAddress'.": 2,
+    "Dynamic access of 'address'.": 3,
+    "Dynamic access of 'remotePort'.": 2,
     "Dynamic access of 'message'.": 3,
     "Dynamic invocation of 'call'.": 1,
     "Dynamic invocation of 'destroy'.": 2,
     "Dynamic invocation of 'setOption'.": 1,
-    "Dynamic access of 'address'.": 2,
     "Dynamic access of 'host'.": 2,
     "Dynamic access of 'port'.": 2,
-    "Dynamic access of 'remoteAddress'.": 1,
-    "Dynamic access of 'remotePort'.": 1,
     "Dynamic invocation of 'dart._http::_toJSON'.": 3,
     "Dynamic invocation of 'listen'.": 1,
     "Dynamic invocation of 'close'.": 1

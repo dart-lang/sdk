@@ -1835,7 +1835,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
-    return handleInterceptedCall(node);
+    throw StateError('Should not see HOneShotInterceptor in simplifier: $node');
   }
 
   @override

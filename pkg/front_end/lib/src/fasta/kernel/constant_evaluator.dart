@@ -3348,6 +3348,16 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   }
 
   @override
+  ExecutionStatus visitAssertBlock(AssertBlock node) => defaultStatement(node);
+
+  @override
+  ExecutionStatus visitAssertStatement(AssertStatement node) {
+    AbortConstant error = exprEvaluator.checkAssert(node);
+    if (error != null) return new AbortStatus(error);
+    return const ProceedStatus();
+  }
+
+  @override
   ExecutionStatus visitBlock(Block node) {
     return exprEvaluator.withNewEnvironment(() {
       for (Statement statement in node.statements) {

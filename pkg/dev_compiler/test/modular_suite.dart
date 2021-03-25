@@ -48,7 +48,7 @@ const txtId = DataId('txt');
 String _packageConfigEntry(String name, Uri root,
     {Uri packageRoot, LanguageVersion version}) {
   var fields = [
-    '"name": "${name}"',
+    '"name": "$name"',
     '"rootUri": "$root"',
     if (packageRoot != null) '"packageUri": "$packageRoot"',
     if (version != null) '"languageVersion": "$version"'

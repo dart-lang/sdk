@@ -2028,6 +2028,7 @@ odd
 odds
 of
 off
+offs
 offset
 offsets
 often

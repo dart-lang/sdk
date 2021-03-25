@@ -4,6 +4,287 @@
 
 part of dart._http;
 
+abstract class HttpProfiler {
+  static const _kType = 'HttpProfile';
+
+  static Map<int, _HttpProfileData> _profile = {};
+
+  static _HttpProfileData startRequest(
+    String method,
+    Uri uri, {
+    _HttpProfileData? parentRequest,
+  }) {
+    final data = _HttpProfileData(method, uri, parentRequest?._timeline);
+    _profile[data.id] = data;
+    return data;
+  }
+
+  static _HttpProfileData? getHttpProfileRequest(int id) => _profile[id];
+
+  static void clear() => _profile.clear();
+
+  static String toJson(int? updatedSince) {
+    return json.encode({
+      'type': _kType,
+      'timestamp': Timeline.now,
+      'requests': [
+        for (final request in _profile.values.where(
+          (e) {
+            return (updatedSince == null) || e.lastUpdateTime >= updatedSince;
+          },
+        ))
+          request.toJson(),
+      ],
+    });
+  }
+}
+
+class _HttpProfileEvent {
+  _HttpProfileEvent(this.name, this.arguments);
+  final int timestamp = Timeline.now;
+  final String name;
+  final Map? arguments;
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'timestamp': timestamp,
+      'event': name,
+      if (arguments != null) 'arguments': arguments,
+    };
+  }
+}
+
+class _HttpProfileData {
+  _HttpProfileData(String method, this.uri, TimelineTask? parent)
+      : method = method.toUpperCase(),
+        _timeline = TimelineTask(
+          filterKey: 'HTTP/client',
+          parent: parent,
+        ) {
+    // Grab the ID from the timeline event so HTTP profile IDs can be matched
+    // to the timeline.
+    id = _timeline.pass();
+    requestInProgress = true;
+    requestStartTimestamp = Timeline.now;
+    _timeline.start('HTTP CLIENT $method', arguments: {
+      'method': method.toUpperCase(),
+      'uri': uri.toString(),
+    });
+    _updated();
+  }
+
+  void requestEvent(String name, {Map? arguments}) {
+    _timeline.instant(name, arguments: arguments);
+    requestEvents.add(_HttpProfileEvent(name, arguments));
+    _updated();
+  }
+
+  void proxyEvent(_Proxy proxy) {
+    proxyDetails = {
+      if (proxy.host != null) 'host': proxy.host,
+      if (proxy.port != null) 'port': proxy.port,
+      if (proxy.username != null) 'username': proxy.username,
+    };
+    _timeline.instant('Establishing proxy tunnel', arguments: {
+      'proxyDetails': proxyDetails,
+    });
+    _updated();
+  }
+
+  void appendRequestData(Uint8List data) {
+    requestBody.addAll(data);
+    _updated();
+  }
+
+  Map formatHeaders(r) {
+    final headers = <String, List<String>>{};
+    r.headers.forEach((name, values) {
+      headers[name] = values;
+    });
+    return headers;
+  }
+
+  Map? formatConnectionInfo(r) => r.connectionInfo == null
+      ? null
+      : {
+          'localPort': r.connectionInfo?.localPort,
+          'remoteAddress': r.connectionInfo?.remoteAddress.address,
+          'remotePort': r.connectionInfo?.remotePort,
+        };
+
+  void finishRequest({
+    required HttpClientRequest request,
+  }) {
+    // TODO(bkonyi): include encoding?
+    requestInProgress = false;
+    requestEndTimestamp = Timeline.now;
+    requestDetails = <String, dynamic>{
+      // TODO(bkonyi): consider exposing certificate information?
+      // 'certificate': response.certificate,
+      'headers': formatHeaders(request),
+      'connectionInfo': formatConnectionInfo(request),
+      'contentLength': request.contentLength,
+      'cookies': [
+        for (final cookie in request.cookies) cookie.toString(),
+      ],
+      'followRedirects': request.followRedirects,
+      'maxRedirects': request.maxRedirects,
+      'method': request.method,
+      'persistentConnection': request.persistentConnection,
+      'uri': request.uri.toString(),
+    };
+    _timeline.finish(
+      arguments: requestDetails,
+    );
+    _updated();
+  }
+
+  void startResponse({required HttpClientResponse response}) {
+    List<Map<String, dynamic>> formatRedirectInfo() {
+      final redirects = <Map<String, dynamic>>[];
+      for (final redirect in response.redirects) {
+        redirects.add({
+          'location': redirect.location.toString(),
+          'method': redirect.method,
+          'statusCode': redirect.statusCode,
+        });
+      }
+      return redirects;
+    }
+
+    responseDetails = <String, dynamic>{
+      'headers': formatHeaders(response),
+      'compressionState': response.compressionState.toString(),
+      'connectionInfo': formatConnectionInfo(response),
+      'contentLength': response.contentLength,
+      'cookies': [
+        for (final cookie in response.cookies) cookie.toString(),
+      ],
+      'isRedirect': response.isRedirect,
+      'persistentConnection': response.persistentConnection,
+      'reasonPhrase': response.reasonPhrase,
+      'redirects': formatRedirectInfo(),
+      'statusCode': response.statusCode,
+    };
+
+    assert(!requestInProgress);
+    responseInProgress = true;
+    _responseTimeline = TimelineTask(
+      parent: _timeline,
+      filterKey: 'HTTP/client',
+    );
+
+    responseStartTimestamp = Timeline.now;
+    _responseTimeline.start(
+      'HTTP CLIENT response of $method',
+      arguments: {
+        'requestUri': uri.toString(),
+        ...responseDetails!,
+      },
+    );
+    _updated();
+  }
+
+  void finishRequestWithError(String error) {
+    requestInProgress = false;
+    requestEndTimestamp = Timeline.now;
+    requestError = error;
+    _timeline.finish(arguments: {
+      'error': error,
+    });
+    _updated();
+  }
+
+  void finishResponse() {
+    responseInProgress = false;
+    responseEndTimestamp = Timeline.now;
+    requestEvent('Content Download');
+    _responseTimeline.finish();
+    _updated();
+  }
+
+  void finishResponseWithError(String error) {
+    // Return if finishResponseWithError has already been called. Can happen if
+    // the response stream is listened to with `cancelOnError: false`.
+    if (!responseInProgress!) return;
+    responseInProgress = false;
+    responseEndTimestamp = Timeline.now;
+    responseError = error;
+    _responseTimeline.finish(arguments: {
+      'error': error,
+    });
+    _updated();
+  }
+
+  void appendResponseData(Uint8List data) {
+    responseBody.addAll(data);
+    _updated();
+  }
+
+  Map<String, dynamic> toJson({bool ref = true}) {
+    return <String, dynamic>{
+      'type': '${ref ? '@' : ''}HttpProfileRequest',
+      'id': id,
+      'isolateId': isolateId,
+      'method': method,
+      'uri': uri.toString(),
+      'startTime': requestStartTimestamp,
+      if (!requestInProgress) 'endTime': requestEndTimestamp,
+      if (!requestInProgress)
+        'request': {
+          'events': <Map<String, dynamic>>[
+            for (final event in requestEvents) event.toJson(),
+          ],
+          if (proxyDetails != null) 'proxyDetails': proxyDetails!,
+          if (requestDetails != null) ...requestDetails!,
+          if (requestError != null) 'error': requestError,
+        },
+      if (responseInProgress != null)
+        'response': <String, dynamic>{
+          'startTime': responseStartTimestamp,
+          ...responseDetails!,
+          if (!responseInProgress!) 'endTime': responseEndTimestamp,
+          if (responseError != null) 'error': responseError,
+        },
+      if (!ref) ...{
+        if (!requestInProgress) 'requestBody': requestBody,
+        if (responseInProgress != null) 'responseBody': responseBody,
+      }
+    };
+  }
+
+  void _updated() => _lastUpdateTime = Timeline.now;
+
+  static final String isolateId = Service.getIsolateID(Isolate.current)!;
+
+  bool requestInProgress = true;
+  bool? responseInProgress;
+
+  late final int id;
+  final String method;
+  final Uri uri;
+
+  late final int requestStartTimestamp;
+  late final int requestEndTimestamp;
+  Map<String, dynamic>? requestDetails;
+  Map<String, dynamic>? proxyDetails;
+  final requestBody = <int>[];
+  String? requestError;
+  final requestEvents = <_HttpProfileEvent>[];
+
+  late final int responseStartTimestamp;
+  late final int responseEndTimestamp;
+  Map<String, dynamic>? responseDetails;
+  final responseBody = <int>[];
+  String? responseError;
+
+  int get lastUpdateTime => _lastUpdateTime;
+  int _lastUpdateTime = 0;
+
+  TimelineTask _timeline;
+  late TimelineTask _responseTimeline;
+}
+
 int _nextServiceId = 1;
 
 // TODO(ajohnsen): Use other way of getting a unique id.
@@ -303,10 +584,10 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
   // The compression state of this response.
   final HttpClientResponseCompressionState compressionState;
 
-  final TimelineTask? _timeline;
+  final _HttpProfileData? _profileData;
 
   _HttpClientResponse(_HttpIncoming _incoming, this._httpRequest,
-      this._httpClient, this._timeline)
+      this._httpClient, this._profileData)
       : compressionState = _getCompressionState(_httpClient, _incoming.headers),
         super(_incoming) {
     // Set uri for potential exceptions.
@@ -395,16 +676,10 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
     });
   }
 
-  void _timelineFinishWithError(String error) {
-    _timeline?.finish(arguments: {
-      'error': error,
-    });
-  }
-
   StreamSubscription<Uint8List> listen(void onData(Uint8List event)?,
       {Function? onError, void onDone()?, bool? cancelOnError}) {
     if (_incoming.upgraded) {
-      _timelineFinishWithError('Connection was upgraded');
+      _profileData?.finishResponseWithError('Connection was upgraded');
       // If upgraded, the connection is already 'removed' form the client.
       // Since listening to upgraded data is 'bogus', simply close and
       // return empty stream subscription.
@@ -418,19 +693,15 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
           .transform(gzip.decoder)
           .transform(const _ToUint8List());
     }
-    if (_timeline != null) {
+    if (_profileData != null) {
       // If _timeline is not set up, don't add unnecessary map() to the stream.
       stream = stream.map((data) {
-        _timeline?.instant('Response body', arguments: {
-          'data': data,
-        });
+        _profileData?.appendResponseData(data);
         return data;
       });
     }
     return stream.listen(onData, onError: (e, st) {
-      _timeline?.instant('Error response', arguments: {
-        'error': e.toString(),
-      });
+      _profileData?.finishResponseWithError(e.toString());
       if (onError == null) {
         return;
       }
@@ -441,7 +712,7 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
         onError(e, st);
       }
     }, onDone: () {
-      _timeline?.finish();
+      _profileData?.finishResponse();
       if (onDone != null) {
         onDone();
       }
@@ -449,7 +720,7 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
   }
 
   Future<Socket> detachSocket() {
-    _timelineFinishWithError('Socket has been detached');
+    _profileData?.finishResponseWithError('Socket has been detached');
     _httpClient._connectionClosed(_httpRequest._httpClientConnection);
     return _httpRequest._httpClientConnection.detachSocket();
   }
@@ -473,9 +744,9 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
   }
 
   Future<HttpClientResponse> _authenticate(bool proxyAuth) {
-    _httpRequest._timeline?.instant('Authentication');
+    _httpRequest._profileData?.requestEvent('Authentication');
     Future<HttpClientResponse> retry() {
-      _httpRequest._timeline?.instant('Retrying');
+      _httpRequest._profileData?.requestEvent('Retrying');
       // Drain body and retry.
       return drain().then((_) {
         return _httpClient
@@ -753,8 +1024,9 @@ class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
   Encoding _encoding;
   bool _encodingMutable = true;
 
-  final TimelineTask? _timeline;
-  _IOSinkImpl(StreamConsumer<List<int>> target, this._encoding, this._timeline)
+  final _HttpProfileData? _profileData;
+  _IOSinkImpl(
+      StreamConsumer<List<int>> target, this._encoding, this._profileData)
       : super(target);
 
   Encoding get encoding => _encoding;
@@ -769,9 +1041,11 @@ class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
   void write(Object? obj) {
     String string = '$obj';
     if (string.isEmpty) return;
-    _timeline?.instant('Request body', arguments: {
-      'data': string,
-    });
+    _profileData?.appendRequestData(
+      Uint8List.fromList(
+        utf8.encode(string),
+      ),
+    );
     super.add(_encoding.encode(string));
   }
 
@@ -814,7 +1088,7 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
   final _HttpHeaders headers;
 
   _HttpOutboundMessage(Uri uri, String protocolVersion, _HttpOutgoing outgoing,
-      TimelineTask? timeline,
+      _HttpProfileData? profileData,
       {_HttpHeaders? initialHeaders})
       : _uri = uri,
         headers = new _HttpHeaders(protocolVersion,
@@ -823,7 +1097,7 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
                 : HttpClient.defaultHttpPort,
             initialHeaders: initialHeaders),
         _outgoing = outgoing,
-        super(outgoing, latin1, timeline) {
+        super(outgoing, latin1, profileData) {
     _outgoing.outbound = this;
     _encodingMutable = false;
   }
@@ -860,20 +1134,16 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
 
   void add(List<int> data) {
     if (data.length == 0) return;
-    _timeline?.instant('Request body', arguments: {
-      'encodedData': data,
-    });
+    _profileData?.appendRequestData(Uint8List.fromList(data));
     super.add(data);
   }
 
   Future addStream(Stream<List<int>> s) {
-    if (_timeline == null) {
+    if (_profileData == null) {
       return super.addStream(s);
     }
     return super.addStream(s.map((data) {
-      _timeline?.instant('Request body', arguments: {
-        'encodedData': data,
-      });
+      _profileData?.appendRequestData(Uint8List.fromList(data));
       return data;
     }));
   }
@@ -1122,8 +1392,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   // The HttpClient this request belongs to.
   final _HttpClient _httpClient;
   final _HttpClientConnection _httpClientConnection;
-  final TimelineTask? _timeline;
-  final TimelineTask? _responseTimeline;
+  final _HttpProfileData? _profileData;
 
   final Completer<HttpClientResponse> _responseCompleter =
       new Completer<HttpClientResponse>();
@@ -1142,17 +1411,16 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   bool _aborted = false;
 
   _HttpClientRequest(
-      _HttpOutgoing outgoing,
-      Uri uri,
-      this.method,
-      this._proxy,
-      this._httpClient,
-      this._httpClientConnection,
-      this._timeline,
-      this._responseTimeline)
-      : uri = uri,
-        super(uri, "1.1", outgoing, _responseTimeline) {
-    _timeline?.instant('Request initiated');
+    _HttpOutgoing outgoing,
+    Uri uri,
+    this.method,
+    this._proxy,
+    this._httpClient,
+    this._httpClientConnection,
+    this._profileData,
+  )   : uri = uri,
+        super(uri, "1.1", outgoing, _profileData) {
+    _profileData?.requestEvent('Request sent');
     // GET and HEAD have 'content-length: 0' by default.
     if (method == "GET" || method == "HEAD") {
       contentLength = 0;
@@ -1160,58 +1428,15 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
       headers.chunkedTransferEncoding = true;
     }
 
+    _profileData?.finishRequest(request: this);
+
     _responseCompleter.future.then((response) {
-      _timeline?.instant('Response received');
-      Map formatConnectionInfo() => {
-            'localPort': response.connectionInfo?.localPort,
-            'remoteAddress': response.connectionInfo?.remoteAddress.address,
-            'remotePort': response.connectionInfo?.remotePort,
-          };
-
-      Map formatHeaders() {
-        final headers = <String, List<String>>{};
-        response.headers.forEach((name, values) {
-          headers[name] = values;
-        });
-        return headers;
-      }
-
-      List<Map<String, dynamic>> formatRedirectInfo() {
-        final redirects = <Map<String, dynamic>>[];
-        for (final redirect in response.redirects) {
-          redirects.add({
-            'location': redirect.location.toString(),
-            'method': redirect.method,
-            'statusCode': redirect.statusCode,
-          });
-        }
-        return redirects;
-      }
-
-      _timeline?.finish(arguments: {
+      _profileData?.requestEvent('Waiting (TTFB)');
+      _profileData?.startResponse(
         // TODO(bkonyi): consider exposing certificate information?
         // 'certificate': response.certificate,
-        'requestHeaders': outgoing.outbound!.headers._headers,
-        'compressionState': response.compressionState.toString(),
-        'connectionInfo': formatConnectionInfo(),
-        'contentLength': response.contentLength,
-        'cookies': [for (final cookie in response.cookies) cookie.toString()],
-        'responseHeaders': formatHeaders(),
-        'isRedirect': response.isRedirect,
-        'persistentConnection': response.persistentConnection,
-        'reasonPhrase': response.reasonPhrase,
-        'redirects': formatRedirectInfo(),
-        'statusCode': response.statusCode,
-      });
-
-      // Start the timeline for response.
-      _responseTimeline?.start(
-          'HTTP CLIENT response of ${method.toUpperCase()}',
-          arguments: {
-            'requestUri': uri.toString(),
-            'statusCode': response.statusCode,
-            'reasonPhrase': response.reasonPhrase,
-          });
+        response: response,
+      );
     }, onError: (e) {});
   }
 
@@ -1247,7 +1472,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
       return;
     }
     final response =
-        _HttpClientResponse(incoming, this, _httpClient, _responseTimeline);
+        _HttpClientResponse(incoming, this, _httpClient, _profileData);
     Future<HttpClientResponse> future;
     if (followRedirects && response.isRedirect) {
       if (response.redirects.length < maxRedirects) {
@@ -1855,8 +2080,8 @@ class _HttpClientConnection {
     });
   }
 
-  _HttpClientRequest send(
-      Uri uri, int port, String method, _Proxy proxy, TimelineTask? timeline) {
+  _HttpClientRequest send(Uri uri, int port, String method, _Proxy proxy,
+      _HttpProfileData? profileData) {
     if (closed) {
       throw new HttpException("Socket closed before request was sent",
           uri: uri);
@@ -1872,15 +2097,9 @@ class _HttpClientConnection {
     _SiteCredentials? creds; // Credentials used to authorize this request.
     var outgoing = new _HttpOutgoing(_socket);
 
-    final responseTimeline = timeline == null
-        ? null
-        : TimelineTask(
-            parent: timeline,
-            filterKey: 'HTTP/client',
-          );
     // Create new request object, wrapping the outgoing connection.
-    var request = new _HttpClientRequest(outgoing, uri, method, proxy,
-        _httpClient, this, timeline, responseTimeline);
+    var request = new _HttpClientRequest(
+        outgoing, uri, method, proxy, _httpClient, this, profileData);
     // For the Host header an IPv6 address must be enclosed in []'s.
     var host = uri.host;
     if (host.contains(':')) host = "[$host]";
@@ -2034,24 +2253,23 @@ class _HttpClientConnection {
       int port,
       _Proxy proxy,
       bool callback(X509Certificate certificate),
-      TimelineTask? timeline) {
-    timeline?.instant('Establishing proxy tunnel', arguments: {
-      'proxyInfo': {
-        if (proxy.host != null) 'host': proxy.host,
-        if (proxy.port != null) 'port': proxy.port,
-        if (proxy.username != null) 'username': proxy.username,
-        // TODO(bkonyi): is this something we would want to surface? Initial
-        // thought is no.
-        // if (proxy.password != null)
-        //   'password': proxy.password,
-        'isDirect': proxy.isDirect,
-      }
-    });
+      _HttpProfileData? profileData) {
     final method = "CONNECT";
     final uri = Uri(host: host, port: port);
-    _HttpClient._startRequestTimelineEvent(timeline, method, uri);
-    _HttpClientRequest request =
-        send(Uri(host: host, port: port), port, method, proxy, timeline);
+
+    profileData?.proxyEvent(proxy);
+
+    // Notify the profiler that we're starting a sub request.
+    _HttpProfileData? proxyProfileData;
+    if (profileData != null) {
+      proxyProfileData = HttpProfiler.startRequest(
+        method,
+        uri,
+        parentRequest: profileData,
+      );
+    }
+    _HttpClientRequest request = send(
+        Uri(host: host, port: port), port, method, proxy, proxyProfileData);
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
@@ -2063,7 +2281,7 @@ class _HttpClientConnection {
       if (response.statusCode != HttpStatus.ok) {
         final error = "Proxy failed to establish tunnel "
             "(${response.statusCode} ${response.reasonPhrase})";
-        timeline?.instant(error);
+        profileData?.requestEvent(error);
         throw new HttpException(error, uri: request.uri);
       }
       var socket = (response as _HttpClientResponse)
@@ -2074,7 +2292,7 @@ class _HttpClientConnection {
           host: host, context: _context, onBadCertificate: callback);
     }).then((secureSocket) {
       String key = _HttpClientConnection.makeKey(true, host, port);
-      timeline?.instant('Proxy tunnel established');
+      profileData?.requestEvent('Proxy tunnel established');
       return new _HttpClientConnection(
           key, secureSocket, request._httpClient, true);
     });
@@ -2187,7 +2405,7 @@ class _ConnectionTarget {
   }
 
   Future<_ConnectionInfo> connect(String uriHost, int uriPort, _Proxy proxy,
-      _HttpClient client, TimelineTask? timeline) {
+      _HttpClient client, _HttpProfileData? profileData) {
     if (hasIdle) {
       var connection = takeIdle();
       client._connectionsChanged();
@@ -2198,7 +2416,8 @@ class _ConnectionTarget {
         _active.length + _connecting >= maxConnectionsPerHost) {
       var completer = new Completer<_ConnectionInfo>();
       _pending.add(() {
-        completer.complete(connect(uriHost, uriPort, proxy, client, timeline));
+        completer
+            .complete(connect(uriHost, uriPort, proxy, client, profileData));
       });
       return completer.future;
     }
@@ -2229,7 +2448,7 @@ class _ConnectionTarget {
         if (isSecure && !proxy.isDirect) {
           connection._dispose = true;
           return connection
-              .createProxyTunnel(uriHost, uriPort, proxy, callback, timeline)
+              .createProxyTunnel(uriHost, uriPort, proxy, callback, profileData)
               .then((tunnel) {
             client
                 ._getConnectionTarget(uriHost, uriPort, true)
@@ -2401,14 +2620,6 @@ class _HttpClient implements HttpClient {
 
   set findProxy(String f(Uri uri)?) => _findProxy = f;
 
-  static void _startRequestTimelineEvent(
-      TimelineTask? timeline, String method, Uri uri) {
-    timeline?.start('HTTP CLIENT ${method.toUpperCase()}', arguments: {
-      'method': method.toUpperCase(),
-      'uri': uri.toString(),
-    });
-  }
-
   Future<_HttpClientRequest> _openUrl(String method, Uri uri) {
     if (_closing) {
       throw new StateError("Client is closed");
@@ -2450,31 +2661,27 @@ class _HttpClient implements HttpClient {
         return new Future.error(error, stackTrace);
       }
     }
-    TimelineTask? timeline;
-    // TODO(bkonyi): do we want this to be opt-in?
+    _HttpProfileData? profileData;
     if (HttpClient.enableTimelineLogging) {
-      timeline = TimelineTask(filterKey: 'HTTP/client');
-      _startRequestTimelineEvent(timeline, method, uri);
+      profileData = HttpProfiler.startRequest(method, uri);
     }
-    return _getConnection(uri.host, port, proxyConf, isSecure, timeline).then(
-        (_ConnectionInfo info) {
+    return _getConnection(uri.host, port, proxyConf, isSecure, profileData)
+        .then((_ConnectionInfo info) {
       _HttpClientRequest send(_ConnectionInfo info) {
-        timeline?.instant('Connection established');
+        profileData?.requestEvent('Connection established');
         return info.connection
-            .send(uri, port, method.toUpperCase(), info.proxy, timeline);
+            .send(uri, port, method.toUpperCase(), info.proxy, profileData);
       }
 
       // If the connection was closed before the request was sent, create
       // and use another connection.
       if (info.connection.closed) {
-        return _getConnection(uri.host, port, proxyConf, isSecure, timeline)
+        return _getConnection(uri.host, port, proxyConf, isSecure, profileData)
             .then(send);
       }
       return send(info);
     }, onError: (error) {
-      timeline?.finish(arguments: {
-        'error': error.toString(),
-      });
+      profileData?.finishRequestWithError(error.toString());
       throw error;
     });
   }
@@ -2555,8 +2762,12 @@ class _HttpClient implements HttpClient {
   }
 
   // Get a new _HttpClientConnection, from the matching _ConnectionTarget.
-  Future<_ConnectionInfo> _getConnection(String uriHost, int uriPort,
-      _ProxyConfiguration proxyConf, bool isSecure, TimelineTask? timeline) {
+  Future<_ConnectionInfo> _getConnection(
+      String uriHost,
+      int uriPort,
+      _ProxyConfiguration proxyConf,
+      bool isSecure,
+      _HttpProfileData? profileData) {
     Iterator<_Proxy> proxies = proxyConf.proxies.iterator;
 
     Future<_ConnectionInfo> connect(error) {
@@ -2565,7 +2776,7 @@ class _HttpClient implements HttpClient {
       String host = proxy.isDirect ? uriHost : proxy.host!;
       int port = proxy.isDirect ? uriPort : proxy.port!;
       return _getConnectionTarget(host, port, isSecure)
-          .connect(uriHost, uriPort, proxy, this, timeline)
+          .connect(uriHost, uriPort, proxy, this, profileData)
           // On error, continue with next proxy.
           .catchError(connect);
     }

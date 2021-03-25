@@ -68,7 +68,7 @@ vars = {
   "gperftools_revision": "180bfa10d7cb38e8b3784d60943d50e8fcef0dcb",
 
   # Revisions of /third_party/* dependencies.
-  "args_rev": "eb2deca5b4489709acd001a5c7fd2df4f1eed19d",
+  "args_rev": "d8fea36c10ef96797be02e3d132d572445cd86f4",
   "async_rev": "376d418b1b535030fbe3369938d2ffdbb0340a77",
   "bazel_worker_rev": "0885637b037979afbf5bcd05fd748b309fd669c0",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
@@ -130,7 +130,7 @@ vars = {
   "oauth2_rev": "7cd3284049fe5badbec9f2bea2afc41d14c01057",
   "package_config_rev": "a84c0d45401f215fbe9384df923a38f4022a3c45",
   "path_rev": "407ab76187fade41c31e39c745b39661b710106c",
-  "pedantic_rev": "df177f6ae531426aaf7bbf0121c90dc89d9c57bf",
+  "pedantic_rev": "66f2f6c27581c7936482e83be80b27be2719901c",
   "platform_rev": "c20e6fa315e9f8820e51c0ae721f63aff33b8e17",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
@@ -613,7 +613,7 @@ deps = {
               "version": "ebF5aRXKDananlaN4Y8b0bbCNHT1MnkGbWqfpCpiND4C",
           },
       ],
-      "dep_type": "cipd",
+          "dep_type": "cipd",
   },
   Var("dart_root") + "/third_party/browsers/chrome": {
       "packages": [

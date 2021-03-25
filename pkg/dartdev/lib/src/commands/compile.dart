@@ -193,14 +193,23 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
   }
 
   @override
-  String get invocation => '${super.invocation} <dart entry point>';
+  String get invocation {
+    String msg = '${super.invocation} <dart entry point>';
+    if (isJitSnapshot) {
+      msg += ' [<training arguments>]';
+    }
+    return msg;
+  }
+
+  bool get isJitSnapshot => commandName == jitSnapshotCmdName;
 
   @override
   FutureOr<int> run() async {
-    // We expect a single rest argument; the dart entry point.
-    if (argResults.rest.length != 1) {
+    if (argResults.rest.isEmpty) {
       // This throws.
       usageException('Missing Dart entry point.');
+    } else if (!isJitSnapshot && argResults.rest.length > 1) {
+      usageException('Unexpected arguments after Dart entry point.');
     }
 
     final String sourcePath = argResults.rest[0];
@@ -231,6 +240,11 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
       args.add('-v');
     }
     args.add(path.canonicalize(sourcePath));
+
+    // Add the training arguments.
+    if (argResults.rest.length > 1) {
+      args.addAll(argResults.rest.sublist(1));
+    }
 
     log.stdout('Compiling $sourcePath to $commandName file $outputFile.');
     // TODO(bkonyi): perform compilation in same process.

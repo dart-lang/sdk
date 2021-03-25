@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-03-20T17:09:47.020685",
+  "generated": "2021-03-24T12:15:31.538873",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -738,6 +738,12 @@
       "rootUri": "../third_party/pkg/usage",
       "packageUri": "lib/",
       "languageVersion": "2.12"
+    },
+    {
+      "name": "uuid",
+      "rootUri": "../third_party/pkg/uuid",
+      "packageUri": "lib/",
+      "languageVersion": "2.0"
     },
     {
       "name": "vector_math",

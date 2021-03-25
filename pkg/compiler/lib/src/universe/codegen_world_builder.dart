@@ -14,6 +14,7 @@ import '../js_backend/annotations.dart' show AnnotationsData;
 import '../js_backend/interceptor_data.dart' show OneShotInterceptorData;
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../js_model/elements.dart';
+import '../universe/class_hierarchy.dart';
 import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart';
@@ -675,6 +676,9 @@ class CodegenWorldImpl implements CodegenWorld {
 
   @override
   AnnotationsData get annotationsData => _closedWorld.annotationsData;
+
+  @override
+  ClassHierarchy get classHierarchy => _closedWorld.classHierarchy;
 
   @override
   void forEachStaticField(void Function(FieldEntity) f) {

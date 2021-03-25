@@ -244,9 +244,13 @@ class LibraryAnalyzer {
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
     for (var file in _library.libraryFiles) {
-      IgnoreValidator(_getErrorReporter(file), _getErrorListener(file).errors,
-              _fileToIgnoreInfo[file]!, _fileToLineInfo[file]!)
-          .reportErrors();
+      IgnoreValidator(
+        _getErrorReporter(file),
+        _getErrorListener(file).errors,
+        _fileToIgnoreInfo[file]!,
+        _fileToLineInfo[file]!,
+        _analysisOptions.unignorableNames,
+      ).reportErrors();
     }
   }
 

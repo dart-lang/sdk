@@ -2875,7 +2875,6 @@ class Function : public Object {
         return false;
     }
   }
-  bool IsInFactoryScope() const;
 
   bool NeedsTypeArgumentTypeChecks() const {
     return !(is_static() || (kind() == UntaggedFunction::kConstructor));

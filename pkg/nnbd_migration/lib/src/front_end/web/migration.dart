@@ -233,10 +233,45 @@ Future<T> doRequest<T>(HttpRequest xhr, [Object body]) async {
   try {
     await completer.future;
   } catch (e, st) {
-    // Handle refused connection and make it user-presentable.
-    throw AsyncError('Error reaching migration preview server.', st);
+    if (xhr.readyState == HttpRequest.DONE && xhr.status == 0) {
+      // Request completed with error, and no status information.  Most likely
+      // the server has terminated.
+      throw UserError('Error reaching migration preview server', '''
+This usually happens because the migration preview server has exited.  For
+example it may have been aborted with Ctrl-C, or you may have completed this
+migration, or an exception may have occurred.  Please check the console where
+you invoked `dart migrate` to verify that the preview server is still running.
+''');
+    } else {
+      // The attempt to connect to the server failed in an unexpected way.
+      // Report as many details as possible so that the user's bug report will
+      // be easier to address.
+      var details = [
+        'readyState=${xhr.readyState}',
+        'responseText=${jsonEncode(xhr.responseText)}',
+        'responseType=${jsonEncode(xhr.responseType)}',
+        'responseUrl=${jsonEncode(xhr.responseUrl)}',
+        'status=${xhr.status}',
+        'statusText=${jsonEncode(xhr.statusText)}',
+      ]
+          .map((detail) =>
+              detail.length > 40 ? detail.substring(0, 40) + '...' : detail)
+          .join(', ');
+      throw AsyncError('Error reaching migration preview server: $details', st);
+    }
   }
 
+  if (xhr.status == 401) {
+    // Server returned "unauthorized".  It's not useful to try to decode the
+    // response text (since it's in HTML, not JSON).  Just tell the user what
+    // happened.
+    throw UserError('Unauthorized response from migration preview server', '''
+The migration preview server has detected a mismatch between the authToken in
+your URL and the token that was generated at the time that `dart migrate` was
+run.  Have you restarted the migration server recently?  If so, you'll need to
+check its output for a fresh URL, and use that URL to perform your migration.
+''');
+  }
   final json = jsonDecode(xhr.responseText);
   if (xhr.status == 200) {
     // Request OK.
@@ -329,19 +364,27 @@ void handleAddHintLinkClick(MouseEvent event) async {
 
 void handleError(String header, Object exception, Object stackTrace) {
   String subheader;
+  Object details;
   if (exception is Map<String, Object> &&
       exception['success'] == false &&
       exception.containsKey('exception') &&
       exception.containsKey('stackTrace')) {
     subheader = exception['exception'] as String;
     stackTrace = exception['stackTrace'];
+  } else if (exception is UserError) {
+    subheader = exception.message;
+    // Don't show the user a stacktrace; show them the detailed error message
+    // text instead.
+    details = exception.details;
   } else {
     subheader = exception.toString();
   }
+  // If there was no detailed error message, use the stacktrace instead.
+  details ??= stackTrace;
   final popupPane = document.querySelector('.popup-pane');
   popupPane.querySelector('h2').innerText = header;
   popupPane.querySelector('p').innerText = subheader;
-  popupPane.querySelector('pre').innerText = stackTrace.toString();
+  popupPane.querySelector('pre').innerText = details.toString();
   var bottom = popupPane.querySelector('a.bottom') as AnchorElement;
   bottom
     ..href = getGitHubErrorUri(header, subheader, stackTrace).toString()
@@ -1021,6 +1064,16 @@ void _scrollContentTo(int top) =>
 String _stripQuery(String path) =>
     path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
 
+class UserError extends Error implements Exception {
+  final String message;
+
+  final String details;
+
+  UserError(this.message, this.details);
+
+  String toString() => '$message:\n$details';
+}
+
 class _PermissiveNodeValidator implements NodeValidator {
   static _PermissiveNodeValidator instance = _PermissiveNodeValidator();
 
@@ -1039,20 +1092,6 @@ class _PermissiveNodeValidator implements NodeValidator {
   }
 }
 
-/// An extension on Element that fits into cascades.
-extension on Element {
-  /// Append [text] to this, inserting a word break before each '.' character.
-  void appendTextWithBreaks(String text) {
-    var textParts = text.split('.');
-    append(Text(textParts.first));
-    for (var substring in textParts.skip(1)) {
-      // Replace the '.' with a zero-width space and a '.'.
-      appendHtml('&#8203;.');
-      append(Text(substring));
-    }
-  }
-}
-
 extension on List<NavigationTreeNode> {
   /// Finds the node with path equal to [path], recursively, or `null`.
   NavigationTreeNode find(String path) {
@@ -1066,5 +1105,19 @@ extension on List<NavigationTreeNode> {
       }
     }
     return null;
+  }
+}
+
+/// An extension on Element that fits into cascades.
+extension on Element {
+  /// Append [text] to this, inserting a word break before each '.' character.
+  void appendTextWithBreaks(String text) {
+    var textParts = text.split('.');
+    append(Text(textParts.first));
+    for (var substring in textParts.skip(1)) {
+      // Replace the '.' with a zero-width space and a '.'.
+      appendHtml('&#8203;.');
+      append(Text(substring));
+    }
   }
 }
