@@ -147,6 +147,7 @@ import 'expected_one_set_type_arguments_test.dart'
     as expected_one_set_type_arguments;
 import 'expected_two_map_type_arguments_test.dart'
     as expected_two_map_type_arguments;
+import 'experiment_not_enabled_test.dart' as experiment_not_enabled;
 import 'export_internal_library_test.dart' as export_internal_library;
 import 'export_legacy_symbol_test.dart' as export_legacy_symbol;
 import 'export_of_non_library_test.dart' as export_of_non_library;
@@ -784,6 +785,7 @@ main() {
     expected_one_list_type_arguments.main();
     expected_one_set_type_arguments.main();
     expected_two_map_type_arguments.main();
+    experiment_not_enabled.main();
     export_internal_library.main();
     export_legacy_symbol.main();
     export_of_non_library.main();

@@ -3311,7 +3311,7 @@ main(p) {
   p is F;
 }
 ''', [
-      error(ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, 10, 1),
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 10, 1),
     ]);
   }
 

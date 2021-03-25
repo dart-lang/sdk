@@ -26,7 +26,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageOperatorWithTypeParameters,
-        messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
         templateExpectedButGot,
         templateExpectedIdentifier,
@@ -1549,7 +1548,15 @@ class AstBuilder extends StackListener {
       var metadata = pop() as List<Annotation>?;
       var comment = _findComment(metadata, typedefKeyword);
       if (type is! GenericFunctionType && !enableNonFunctionTypeAliases) {
-        handleRecoverableError(messageTypedefNotFunction, equals, equals);
+        var feature = Feature.nonfunction_type_aliases;
+        handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          equals,
+          equals,
+        );
       }
       declarations.add(ast.genericTypeAlias(comment, metadata, typedefKeyword,
           name, templateParameters, equals, type, semicolon));
