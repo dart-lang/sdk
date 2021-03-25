@@ -290,3 +290,102 @@ whileCondition(C20 c) {
   while (/*analyzer.notPromoted(propertyNotPromoted(target: member:C20.bad, type: bool?))*/ c
       . /*cfe.notPromoted(propertyNotPromoted(target: member:C20.bad, type: bool?))*/ bad) {}
 }
+
+class C21 {
+  int? bad;
+}
+
+assignmentRhs(C21 c, int i) {
+  if (c.bad == null) return;
+  i =
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C21.bad, type: int?))*/ c
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C21.bad, type: int?))*/ bad;
+}
+
+class C22 {
+  int? bad;
+}
+
+variableInitializer(C22 c) {
+  if (c.bad == null) return;
+  int i =
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C22.bad, type: int?))*/ c
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C22.bad, type: int?))*/ bad;
+}
+
+class C23 {
+  int? bad;
+  final int x;
+  final int y;
+  C23.constructorInitializer(C23 c)
+      : x = c.bad!,
+        y =
+            /*analyzer.notPromoted(propertyNotPromoted(target: member:C23.bad, type: int?))*/ c
+                . /*cfe.notPromoted(propertyNotPromoted(target: member:C23.bad, type: int?))*/ bad;
+}
+
+class C24 {
+  int? bad;
+}
+
+forVariableInitializer(C24 c) {
+  if (c.bad == null) return;
+  for (int i =
+          /*analyzer.notPromoted(propertyNotPromoted(target: member:C24.bad, type: int?))*/ c
+              . /*cfe.notPromoted(propertyNotPromoted(target: member:C24.bad, type: int?))*/ bad;
+      false;) {}
+  [
+    for (int i =
+            /*analyzer.notPromoted(propertyNotPromoted(target: member:C24.bad, type: int?))*/ c
+                . /*cfe.notPromoted(propertyNotPromoted(target: member:C24.bad, type: int?))*/ bad;
+        false;)
+      null
+  ];
+  ({
+    for (int i =
+            /*analyzer.notPromoted(propertyNotPromoted(target: member:C24.bad, type: int?))*/ c
+                . /*cfe.notPromoted(propertyNotPromoted(target: member:C24.bad, type: int?))*/ bad;
+        false;)
+      null
+  });
+  ({
+    for (int i =
+            /*analyzer.notPromoted(propertyNotPromoted(target: member:C24.bad, type: int?))*/ c
+                . /*cfe.notPromoted(propertyNotPromoted(target: member:C24.bad, type: int?))*/ bad;
+        false;)
+      null: null
+  });
+}
+
+class C25 {
+  int? bad;
+}
+
+forAssignmentInitializer(C25 c, int i) {
+  if (c.bad == null) return;
+  for (i =
+          /*analyzer.notPromoted(propertyNotPromoted(target: member:C25.bad, type: int?))*/ c
+              . /*cfe.notPromoted(propertyNotPromoted(target: member:C25.bad, type: int?))*/ bad;
+      false;) {}
+  [
+    for (i =
+            /*analyzer.notPromoted(propertyNotPromoted(target: member:C25.bad, type: int?))*/ c
+                . /*cfe.notPromoted(propertyNotPromoted(target: member:C25.bad, type: int?))*/ bad;
+        false;)
+      null
+  ];
+  ({
+    for (i =
+            /*analyzer.notPromoted(propertyNotPromoted(target: member:C25.bad, type: int?))*/ c
+                . /*cfe.notPromoted(propertyNotPromoted(target: member:C25.bad, type: int?))*/ bad;
+        false;)
+      null
+  });
+  ({
+    for (i =
+            /*analyzer.notPromoted(propertyNotPromoted(target: member:C25.bad, type: int?))*/ c
+                . /*cfe.notPromoted(propertyNotPromoted(target: member:C25.bad, type: int?))*/ bad;
+        false;)
+      null: null
+  });
+}

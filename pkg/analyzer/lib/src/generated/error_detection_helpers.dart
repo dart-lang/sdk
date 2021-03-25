@@ -41,7 +41,7 @@ mixin ErrorDetectionHelpers {
 
       _checkForAssignableExpressionAtType(
           expression, actualStaticType, expectedStaticType, errorCode,
-          whyNotPromotedInfo: whyNotPromotedInfo);
+          whyNotPromoted: whyNotPromotedInfo);
     }
   }
 
@@ -89,7 +89,8 @@ mixin ErrorDetectionHelpers {
   /// [StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
   void checkForFieldInitializerNotAssignable(
       ConstructorFieldInitializer initializer, FieldElement fieldElement,
-      {required bool isConstConstructor}) {
+      {required bool isConstConstructor,
+      required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     // prepare field type
     DartType fieldType = fieldElement.type;
     // prepare expression type
@@ -102,6 +103,8 @@ mixin ErrorDetectionHelpers {
       }
       return;
     }
+    var messages = computeWhyNotPromotedMessages(
+        expression, expression, whyNotPromoted?.call());
     // report problem
     if (isConstConstructor) {
       // TODO(paulberry): this error should be based on the actual type of the
@@ -109,12 +112,14 @@ mixin ErrorDetectionHelpers {
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
           expression,
-          [staticType, fieldType]);
+          [staticType, fieldType],
+          messages);
     }
     errorReporter.reportErrorForNode(
         CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
         expression,
-        [staticType, fieldType]);
+        [staticType, fieldType],
+        messages);
     // TODO(brianwilkerson) Define a hint corresponding to these errors and
     // report it if appropriate.
 //        // test the propagated type of the expression
@@ -143,7 +148,8 @@ mixin ErrorDetectionHelpers {
   /// represent a valid assignment.
   ///
   /// See [CompileTimeErrorCode.INVALID_ASSIGNMENT].
-  void checkForInvalidAssignment(Expression? lhs, Expression? rhs) {
+  void checkForInvalidAssignment(Expression? lhs, Expression? rhs,
+      {Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     if (lhs == null || rhs == null) {
       return;
     }
@@ -173,7 +179,8 @@ mixin ErrorDetectionHelpers {
     }
 
     _checkForAssignableExpression(
-        rhs, leftType, CompileTimeErrorCode.INVALID_ASSIGNMENT);
+        rhs, leftType, CompileTimeErrorCode.INVALID_ASSIGNMENT,
+        whyNotPromoted: whyNotPromoted);
   }
 
   /// Check for situations where the result of a method or function is used,
@@ -247,10 +254,12 @@ mixin ErrorDetectionHelpers {
   }
 
   bool _checkForAssignableExpression(
-      Expression expression, DartType expectedStaticType, ErrorCode errorCode) {
+      Expression expression, DartType expectedStaticType, ErrorCode errorCode,
+      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     DartType actualStaticType = expression.typeOrThrow;
     return _checkForAssignableExpressionAtType(
-        expression, actualStaticType, expectedStaticType, errorCode);
+        expression, actualStaticType, expectedStaticType, errorCode,
+        whyNotPromoted: whyNotPromoted);
   }
 
   bool _checkForAssignableExpressionAtType(
@@ -258,7 +267,7 @@ mixin ErrorDetectionHelpers {
       DartType actualStaticType,
       DartType expectedStaticType,
       ErrorCode errorCode,
-      {Map<DartType, NonPromotionReason> Function()? whyNotPromotedInfo}) {
+      {Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     if (!typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
       AstNode getErrorNode(AstNode node) {
         if (node is CascadeExpression) {
@@ -275,7 +284,7 @@ mixin ErrorDetectionHelpers {
         getErrorNode(expression),
         [actualStaticType, expectedStaticType],
         computeWhyNotPromotedMessages(
-            expression, expression, whyNotPromotedInfo?.call()),
+            expression, expression, whyNotPromoted?.call()),
       );
       return false;
     }
