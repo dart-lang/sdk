@@ -248,6 +248,11 @@ class AssignmentExpressionResolver {
       assignedType,
       whyNotPromoted: operator == TokenType.EQ ? whyNotPromoted : null,
     );
+    if (operator != TokenType.EQ &&
+        operator != TokenType.QUESTION_QUESTION_EQ) {
+      _resolver.checkForArgumentTypeNotAssignableForArgument(node.rightHandSide,
+          whyNotPromoted: whyNotPromoted);
+    }
   }
 
   void _setRhsContext(AssignmentExpressionImpl node, DartType leftType,
