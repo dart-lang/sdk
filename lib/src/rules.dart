@@ -132,6 +132,7 @@ import 'rules/prefer_is_not_empty.dart';
 import 'rules/prefer_is_not_operator.dart';
 import 'rules/prefer_iterable_whereType.dart';
 import 'rules/prefer_mixin.dart';
+import 'rules/prefer_null_aware_method_calls.dart';
 import 'rules/prefer_null_aware_operators.dart';
 import 'rules/prefer_relative_imports.dart';
 import 'rules/prefer_single_quotes.dart';
@@ -324,6 +325,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(PreferIterableWhereType())
     ..register(PreferMixin())
     ..register(PreferNullAwareOperators())
+    ..register(PreferNullAwareMethodCalls())
     ..register(PreferRelativeImports())
     ..register(PreferSingleQuotes())
     ..register(PreferSpreadCollections())

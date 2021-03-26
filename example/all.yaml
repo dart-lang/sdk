@@ -130,6 +130,7 @@ linter:
     - prefer_is_not_operator
     - prefer_iterable_whereType
     - prefer_mixin
+    - prefer_null_aware_method_calls
     - prefer_null_aware_operators
     - prefer_relative_imports
     - prefer_single_quotes
