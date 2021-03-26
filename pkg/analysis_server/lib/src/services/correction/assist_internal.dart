@@ -297,7 +297,7 @@ class AssistProcessor extends BaseProcessor {
   /// being offered as a fix.
   static Map<ProducerGenerator, Set<String>> createLintRuleMap() {
     var map = <ProducerGenerator, Set<String>>{};
-    for (var entry in FixProcessor.lintProducerMap2.entries) {
+    for (var entry in FixProcessor.lintProducerMap.entries) {
       var lintName = entry.key;
       for (var fix in entry.value) {
         for (var generator in fix.generators) {

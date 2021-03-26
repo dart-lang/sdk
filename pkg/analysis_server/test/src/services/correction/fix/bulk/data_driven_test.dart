@@ -506,7 +506,7 @@ class NoProducerOverlapsTest {
     // action accidentally executing data-driven fixes.
 
     final dataDrivenCodes = <String>{};
-    final bulkFixCodes = FixProcessor.lintProducerMap2.entries
+    final bulkFixCodes = FixProcessor.lintProducerMap.entries
         .where((e) => e.value.where((fix) => fix.canBeBulkApplied).isNotEmpty)
         .map((e) => e.key);
     final nonDataDrivenCodes = <String>{
