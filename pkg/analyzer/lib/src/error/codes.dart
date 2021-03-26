@@ -3384,6 +3384,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       hasPublishedDocs: true,
       isUnresolvedIdentifier: true);
 
+  static const CompileTimeErrorCode
+      EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
+          'EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+          "Type aliases that expand to a type parameter can't be used as "
+              "superclasses.",
+          correction:
+              "Try specifying a different superclass, or removing the extends "
+              "clause.");
+
   /**
    * Parameters:
    * 0: the name of the extension
@@ -4912,6 +4921,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "'{0}' can't be used in both the 'extends' and 'implements' clauses.",
           correction: "Try removing one of the occurrences.",
           hasPublishedDocs: true);
+
+  static const CompileTimeErrorCode
+      IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
+          'IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+          "Type aliases that expand to a type parameter can't be implemented.",
+          correction: "Try specifying a class or mixin, or removing the list.");
 
   /**
    * Parameters:
@@ -7291,6 +7306,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode MIXIN_OF_NON_CLASS = CompileTimeErrorCode(
       'MIXIN_OF_NON_CLASS', "Classes can only mix in mixins and classes.",
       hasPublishedDocs: true);
+
+  static const CompileTimeErrorCode
+      MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
+          'MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+          "Type aliases that expand to a type parameter can't be mixed in.");
+
+  static const CompileTimeErrorCode
+      MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
+          'MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+          "Type aliases that expand to a type parameter can't be used as"
+              "superclass constraints.");
 
   /**
    * No parameters.

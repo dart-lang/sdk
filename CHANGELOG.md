@@ -40,6 +40,18 @@ Updated the Linter to `1.2.1`, which includes:
 - new lint: `use_named_constants`.
 - deprecation of `avoid_as`.
 
+### Other libraries
+
+#### `package:js`
+
+*   **Breaking change:** It is no longer valid to use `String`s that match
+    an `@Native` annotation in an `@JS()` annotation for a non-anonymous JS
+    interop class. This led to erroneous behavior due to the way interceptors
+    work. If you need to work with a native class, prefer `dart:html`, an
+    `@anonymous` class, or `js_util`. See issue [#44211][] for more details.
+
+[#44211]: https://github.com/dart-lang/sdk/issues/44211
+
 ## 2.12.2 - 2021-03-17
 
 This is a patch release that fixes crashes reported by Flutter 2 users (issue

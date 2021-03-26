@@ -32,6 +32,34 @@ mixin ImportedReferenceContributorMixin on DartCompletionContributorTest {
 @reflectiveTest
 class ImportedReferenceContributorTest extends DartCompletionContributorTest
     with ImportedReferenceContributorMixin {
+  Future<void> test_Annotation_typeArguments() async {
+    addSource('/home/test/lib/a.dart', '''
+class C {}
+typedef T1 = void Function();
+typedef T2 = List<int>;
+''');
+
+    addTestSource('''
+import 'a.dart';
+
+class A<T> {
+  const A();
+}
+
+@A<^>()
+void f() {}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('C');
+    assertSuggestTypeAlias('T1',
+        aliasedType: 'void Function()', returnType: 'void');
+    assertSuggestTypeAlias('T2', aliasedType: 'List<int>');
+    assertNotSuggested('identical');
+  }
+
   /// Sanity check.  Permutations tested in local_ref_contributor.
   Future<void> test_ArgDefaults_function_with_required_named() async {
     writeTestPackageConfig(meta: true);

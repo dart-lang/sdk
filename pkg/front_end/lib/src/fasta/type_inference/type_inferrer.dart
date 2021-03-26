@@ -3425,12 +3425,12 @@ class TypeInferrerImpl implements TypeInferrer {
       receiver = _hoist(receiver, receiverType, hoistedExpressions);
     }
 
-    Map<DartType, NonPromotionReason> Function() whyNotPromotedInfo;
+    Map<DartType, NonPromotionReason> Function() whyNotPromoted;
     if (!isTopLevel && target.isNullable) {
       // We won't report the error until later (after we have an
       // invocationResult), but we need to gather "why not promoted" info now,
       // before we tell flow analysis about the property get.
-      whyNotPromotedInfo = flowAnalysis?.whyNotPromoted(receiver);
+      whyNotPromoted = flowAnalysis?.whyNotPromoted(receiver);
     }
 
     Name originalName = field.name;
@@ -3516,7 +3516,7 @@ class TypeInferrerImpl implements TypeInferrer {
       // in this scenario?
       List<LocatedMessage> context = getWhyNotPromotedContext(
           receiver,
-          whyNotPromotedInfo(),
+          whyNotPromoted(),
           invocationResult.expression,
           (type) => !type.isPotentiallyNullable);
       invocationResult = wrapExpressionInferenceResultInProblem(

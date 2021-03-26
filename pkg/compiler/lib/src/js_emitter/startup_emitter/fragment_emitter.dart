@@ -713,8 +713,25 @@ class FragmentEmitter {
     var lazyInitializers = emitLazilyInitializedStatics(fragment);
     // TODO(floitsch): only call emitNativeSupport if we need native.
     var nativeSupport = emitNativeSupport(fragment);
-    return PreFragment(
-        fragment,
+    int size = 0;
+    if (estimateSize) {
+      var estimator = SizeEstimator();
+      estimator.visit(classPrototypes);
+      estimator.visit(closurePrototypes);
+      estimator.visit(inheritance);
+      estimator.visit(methodAliases);
+      estimator.visit(tearOffs);
+      estimator.visit(constants);
+      estimator.visit(typeRules);
+      estimator.visit(variances);
+      estimator.visit(staticNonFinalFields);
+      estimator.visit(lazyInitializers);
+      estimator.visit(nativeSupport);
+      size = estimator.charCount;
+    }
+    var emittedOutputUnit = EmittedOutputUnit(
+        fragment.outputUnit,
+        fragment.libraries,
         classPrototypes,
         closurePrototypes,
         inheritance,
@@ -725,8 +742,8 @@ class FragmentEmitter {
         variances,
         staticNonFinalFields,
         lazyInitializers,
-        nativeSupport,
-        estimateSize);
+        nativeSupport);
+    return PreFragment(fragment.outputFileName, emittedOutputUnit, size);
   }
 
   js.Statement emitMainFragment(
@@ -832,8 +849,7 @@ class FragmentEmitter {
     return new js.Block(holderInits);
   }
 
-  js.Expression emitDeferredFragment(
-      FinalizedFragment fragment, List<Holder> holders) {
+  js.Expression emitCodeFragment(CodeFragment fragment, List<Holder> holders) {
     HolderCode holderCode =
         emitHolders(holders, fragment.libraries, initializeEmptyHolders: false);
 
@@ -1876,10 +1892,11 @@ class FragmentEmitter {
   // array of hashes indexed by part.
   // [deferredLoadHashes] may have missing entries to indicate empty parts.
   void finalizeDeferredLoadingData(
-      Map<String, List<FinalizedFragment>> fragmentsToLoad,
+      Map<String, List<CodeFragment>> codeFragmentsToLoad,
+      Map<CodeFragment, FinalizedFragment> codeFragmentMap,
       Map<FinalizedFragment, String> deferredLoadHashes,
       DeferredLoadingState deferredLoadingState) {
-    if (fragmentsToLoad.isEmpty) return;
+    if (codeFragmentsToLoad.isEmpty) return;
 
     Map<FinalizedFragment, int> fragmentIndexes = {};
     List<String> fragmentUris = [];
@@ -1887,10 +1904,11 @@ class FragmentEmitter {
 
     List<js.Property> libraryPartsMapEntries = [];
 
-    fragmentsToLoad
-        .forEach((String loadId, List<FinalizedFragment> fragmentList) {
+    codeFragmentsToLoad
+        .forEach((String loadId, List<CodeFragment> codeFragments) {
       List<js.Expression> indexes = [];
-      for (FinalizedFragment fragment in fragmentList) {
+      for (var codeFragment in codeFragments) {
+        var fragment = codeFragmentMap[codeFragment];
         String fragmentHash = deferredLoadHashes[fragment];
         if (fragmentHash == null) continue;
         int index = fragmentIndexes[fragment];

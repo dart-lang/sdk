@@ -29,8 +29,8 @@ abstract class Symbol {
   /// * such an identifier followed by "=" (a setter name),
   /// * the name of a declarable operator
   ///   (one of "`+`", "`-`", "`*`", "`/`", "`%`", "`~/`", "`&`", "`|`",
-  ///   "`^`", "`~`", "`<<`", "`>>`", "`<`", "`<=`", "`>`", "`>=`", "`==`",
-  ///   "`[]`", "`[]=`", or "`unary-`"),
+  ///   "`^`", "`~`", "`<<`", "`>>`", "`>>>`", "`<`", "`<=`", "`>`", "`>=`",
+  ///   "`==`", "`[]`", "`[]=`", or "`unary-`"),
   /// * any of the above preceded by any number of qualifiers,
   ///   where a qualifier is a non-private identifier followed by '`.`',
   /// * or the empty string (the default name of a library with no library

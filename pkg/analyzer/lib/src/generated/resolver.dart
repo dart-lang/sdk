@@ -428,12 +428,12 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   ///
   /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void checkForArgumentTypesNotAssignableInList(ArgumentList argumentList,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo) {
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
     var arguments = argumentList.arguments;
     for (int i = 0; i < arguments.length; i++) {
       checkForArgumentTypeNotAssignableForArgument(arguments[i],
-          whyNotPromotedInfo:
-              flowAnalysis?.flow == null ? null : whyNotPromotedInfo[i]);
+          whyNotPromoted:
+              flowAnalysis?.flow == null ? null : whyNotPromotedList[i]);
     }
   }
 
@@ -882,25 +882,25 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
-    var whyNotPromotedInfo = <Map<DartType, NonPromotionReason> Function()>[];
+    var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     AstNode parent = node.parent;
     if (identical(parent, _enclosingClassDeclaration) ||
         identical(parent, _enclosingFunctionTypeAlias) ||
         identical(parent, _enclosingMixinDeclaration)) {
       return;
     }
-    AnnotationResolver(this).resolve(node, whyNotPromotedInfo);
+    AnnotationResolver(this).resolve(node, whyNotPromotedList);
     var arguments = node.arguments;
     if (arguments != null) {
-      checkForArgumentTypesNotAssignableInList(arguments, whyNotPromotedInfo);
+      checkForArgumentTypesNotAssignableInList(arguments, whyNotPromotedList);
     }
   }
 
   @override
   void visitArgumentList(ArgumentList node,
       {bool isIdentical = false,
-      List<Map<DartType, NonPromotionReason> Function()>? whyNotPromotedInfo}) {
-    whyNotPromotedInfo ??= [];
+      List<Map<DartType, NonPromotionReason> Function()>? whyNotPromotedList}) {
+    whyNotPromotedList ??= [];
     var callerType = InferenceContext.getContext(node);
     NodeList<Expression> arguments = node.arguments;
     if (callerType is FunctionType) {
@@ -967,7 +967,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
       }
       arguments[i].accept(this);
       if (flow != null) {
-        whyNotPromotedInfo.add(flow.whyNotPromoted(arguments[i]));
+        whyNotPromotedList.add(flow.whyNotPromoted(arguments[i]));
       }
     }
     if (isIdentical && length > 1) {
@@ -1444,13 +1444,13 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
   @override
   void visitExtensionOverride(ExtensionOverride node) {
-    var whyNotPromotedInfo = <Map<DartType, NonPromotionReason> Function()>[];
+    var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     node.extensionName.accept(this);
     node.typeArguments?.accept(this);
 
     ExtensionMemberResolver(this).setOverrideReceiverContextType(node);
     visitArgumentList(node.argumentList,
-        whyNotPromotedInfo: whyNotPromotedInfo);
+        whyNotPromotedList: whyNotPromotedList);
 
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -1567,13 +1567,13 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var whyNotPromotedInfo = <Map<DartType, NonPromotionReason> Function()>[];
+    var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     node.function.accept(this);
     _functionExpressionInvocationResolver.resolve(
-        node as FunctionExpressionInvocationImpl, whyNotPromotedInfo);
+        node as FunctionExpressionInvocationImpl, whyNotPromotedList);
     nullShortingTermination(node);
     checkForArgumentTypesNotAssignableInList(
-        node.argumentList, whyNotPromotedInfo);
+        node.argumentList, whyNotPromotedList);
   }
 
   @override
@@ -1719,15 +1719,15 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitInstanceCreationExpression(
       covariant InstanceCreationExpressionImpl node) {
-    var whyNotPromotedInfo = <Map<DartType, NonPromotionReason> Function()>[];
+    var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     node.constructorName.accept(this);
     _inferArgumentTypesForInstanceCreate(node);
     visitArgumentList(node.argumentList,
-        whyNotPromotedInfo: whyNotPromotedInfo);
+        whyNotPromotedList: whyNotPromotedList);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     checkForArgumentTypesNotAssignableInList(
-        node.argumentList, whyNotPromotedInfo);
+        node.argumentList, whyNotPromotedList);
   }
 
   @override
@@ -1792,7 +1792,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
   @override
   void visitMethodInvocation(covariant MethodInvocationImpl node) {
-    var whyNotPromotedInfo = <Map<DartType, NonPromotionReason> Function()>[];
+    var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     var target = node.target;
     target?.accept(this);
 
@@ -1812,18 +1812,18 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
     node.typeArguments?.accept(this);
     elementResolver.visitMethodInvocation(node,
-        whyNotPromotedInfo: whyNotPromotedInfo);
+        whyNotPromotedList: whyNotPromotedList);
 
     var functionRewrite = MethodInvocationResolver.getRewriteResult(node);
     if (functionRewrite != null) {
       nullShortingTermination(node, discardType: true);
       _resolveRewrittenFunctionExpressionInvocation(
-          functionRewrite, whyNotPromotedInfo);
+          functionRewrite, whyNotPromotedList);
     } else {
       nullShortingTermination(node);
     }
     checkForArgumentTypesNotAssignableInList(
-        node.argumentList, whyNotPromotedInfo);
+        node.argumentList, whyNotPromotedList);
   }
 
   @override
@@ -1940,14 +1940,14 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     // because it needs to be visited in the context of the constructor
     // invocation.
     //
-    var whyNotPromotedInfo = <Map<DartType, NonPromotionReason> Function()>[];
+    var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     node.accept(elementResolver);
     InferenceContext.setType(node.argumentList, node.staticElement?.type);
     visitArgumentList(node.argumentList,
-        whyNotPromotedInfo: whyNotPromotedInfo);
+        whyNotPromotedList: whyNotPromotedList);
     node.accept(typeAnalyzer);
     checkForArgumentTypesNotAssignableInList(
-        node.argumentList, whyNotPromotedInfo);
+        node.argumentList, whyNotPromotedList);
   }
 
   @override
@@ -2001,14 +2001,14 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     // because it needs to be visited in the context of the constructor
     // invocation.
     //
-    var whyNotPromotedInfo = <Map<DartType, NonPromotionReason> Function()>[];
+    var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     node.accept(elementResolver);
     InferenceContext.setType(node.argumentList, node.staticElement?.type);
     visitArgumentList(node.argumentList,
-        whyNotPromotedInfo: whyNotPromotedInfo);
+        whyNotPromotedList: whyNotPromotedList);
     node.accept(typeAnalyzer);
     checkForArgumentTypesNotAssignableInList(
-        node.argumentList, whyNotPromotedInfo);
+        node.argumentList, whyNotPromotedList);
   }
 
   @override
@@ -2316,7 +2316,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   /// as for method invocations.
   void _resolveRewrittenFunctionExpressionInvocation(
     FunctionExpressionInvocation node,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo,
+    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
   ) {
     var function = node.function;
 
@@ -2334,7 +2334,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     }
 
     _functionExpressionInvocationResolver.resolve(
-        node as FunctionExpressionInvocationImpl, whyNotPromotedInfo);
+        node as FunctionExpressionInvocationImpl, whyNotPromotedList);
 
     nullShortingTermination(node);
   }

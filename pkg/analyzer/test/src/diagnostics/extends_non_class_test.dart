@@ -10,13 +10,19 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtendsNonClassTest);
-    defineReflectiveTests(ExtendsNonClassWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ExtendsNonClassTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+class ExtendsNonClassTest extends PubPackageResolutionTest {
+  test_Never() async {
+    await assertErrorsInCode('''
+class A extends Never {}
+''', [
+      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 5),
+    ]);
+  }
+
   test_undefined() async {
     await assertErrorsInCode(r'''
 class C extends A {}
@@ -120,18 +126,6 @@ import 'dart:math' as p;
 class C extends p.A {}
 ''', [
       error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 42, 3),
-    ]);
-  }
-}
-
-@reflectiveTest
-class ExtendsNonClassWithNullSafetyTest extends ExtendsNonClassTest
-    with WithNullSafetyMixin {
-  test_Never() async {
-    await assertErrorsInCode('''
-class A extends Never {}
-''', [
-      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 5),
     ]);
   }
 }

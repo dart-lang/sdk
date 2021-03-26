@@ -675,7 +675,10 @@ class KernelTarget extends TargetImplementation {
     if (supertype is TypeAliasBuilder) {
       TypeAliasBuilder aliasBuilder = supertype;
       NamedTypeBuilder namedBuilder = type;
-      supertype = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+      supertype = aliasBuilder.unaliasDeclaration(namedBuilder.arguments,
+          isUsedAsClass: true,
+          usedAsClassCharOffset: namedBuilder.charOffset,
+          usedAsClassFileUri: namedBuilder.fileUri);
     }
     if (supertype is SourceClassBuilder && supertype.isMixinApplication) {
       installForwardingConstructors(supertype);

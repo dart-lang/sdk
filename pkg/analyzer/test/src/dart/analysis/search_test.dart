@@ -303,6 +303,25 @@ class B extends Object with A {} // with
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_ClassElement_typeArgument_ofGenericAnnotation() async {
+    await resolveTestCode('''
+class A<T> {
+  const A();
+}
+
+class B {}
+
+@A<B>()
+void f() {}
+''');
+
+    var element = findElement.class_('B');
+    var f = findElement.topFunction('f');
+    await _verifyReferences(element, [
+      _expectId(f, SearchResultKind.REFERENCE, 'B>()'),
+    ]);
+  }
+
   test_searchReferences_CompilationUnitElement() async {
     newFile('$testPackageLibPath/foo.dart');
     await resolveTestCode('''

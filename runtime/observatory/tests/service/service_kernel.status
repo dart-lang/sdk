@@ -31,6 +31,7 @@ get_object_rpc_test: SkipByDesign # App-JIT snapshots don't contain script sourc
 pause_on_exceptions_test: SkipByDesign # No incremental compiler available.
 rewind_optimized_out_test: SkipByDesign # No incremental compiler available.
 rewind_test: SkipByDesign # No incremental compiler available.
+sigquit_starts_service_test: SkipByDesign # Spawns a secondary process using Platform.executable.
 
 [ $compiler == dartk ]
 bad_reload_test: RuntimeError # Issue 34025

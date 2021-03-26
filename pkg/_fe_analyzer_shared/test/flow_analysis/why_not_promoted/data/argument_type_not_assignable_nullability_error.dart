@@ -389,3 +389,15 @@ forAssignmentInitializer(C25 c, int i) {
       null: null
   });
 }
+
+class C26 {
+  int? bad;
+}
+
+compoundAssignmentRhs(C26 c) {
+  int i = 0;
+  if (c.bad == null) return;
+  i +=
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C26.bad, type: int?))*/ c
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C26.bad, type: int?))*/ bad;
+}

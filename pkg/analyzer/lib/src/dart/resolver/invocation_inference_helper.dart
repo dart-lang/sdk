@@ -209,7 +209,7 @@ class InvocationInferenceHelper {
     required FunctionExpressionInvocationImpl node,
     required FunctionType rawType,
     required List<Map<DartType, NonPromotionReason> Function()>
-        whyNotPromotedInfo,
+        whyNotPromotedList,
   }) {
     _resolveInvocation(
       rawType: rawType,
@@ -218,7 +218,7 @@ class InvocationInferenceHelper {
       contextType: InferenceContext.getContext(node),
       isConst: false,
       errorNode: node.function,
-      whyNotPromotedInfo: whyNotPromotedInfo,
+      whyNotPromotedList: whyNotPromotedList,
     );
 
     node.typeArgumentTypes = _typeArgumentTypes;
@@ -234,7 +234,7 @@ class InvocationInferenceHelper {
     required MethodInvocationImpl node,
     required FunctionType rawType,
     required List<Map<DartType, NonPromotionReason> Function()>
-        whyNotPromotedInfo,
+        whyNotPromotedList,
   }) {
     _resolveInvocation(
       rawType: rawType,
@@ -243,7 +243,7 @@ class InvocationInferenceHelper {
       contextType: InferenceContext.getContext(node),
       isConst: false,
       errorNode: node.function,
-      whyNotPromotedInfo: whyNotPromotedInfo,
+      whyNotPromotedList: whyNotPromotedList,
     );
 
     node.typeArgumentTypes = _typeArgumentTypes;
@@ -333,10 +333,10 @@ class InvocationInferenceHelper {
   }
 
   void _resolveArguments(ArgumentList argumentList,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo) {
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
     _resolver.visitArgumentList(argumentList,
         isIdentical: _isCallToIdentical(argumentList.parent),
-        whyNotPromotedInfo: whyNotPromotedInfo);
+        whyNotPromotedList: whyNotPromotedList);
   }
 
   void _resolveInvocation({
@@ -347,14 +347,14 @@ class InvocationInferenceHelper {
     required bool isConst,
     required AstNode errorNode,
     required List<Map<DartType, NonPromotionReason> Function()>
-        whyNotPromotedInfo,
+        whyNotPromotedList,
   }) {
     if (typeArgumentList != null) {
       _resolveInvocationWithTypeArguments(
         rawType: rawType,
         typeArgumentList: typeArgumentList,
         argumentList: argumentList,
-        whyNotPromotedInfo: whyNotPromotedInfo,
+        whyNotPromotedList: whyNotPromotedList,
       );
     } else {
       _resolveInvocationWithoutTypeArguments(
@@ -363,7 +363,7 @@ class InvocationInferenceHelper {
         argumentList: argumentList,
         isConst: isConst,
         errorNode: errorNode,
-        whyNotPromotedInfo: whyNotPromotedInfo,
+        whyNotPromotedList: whyNotPromotedList,
       );
     }
     _setCorrespondingParameters(argumentList, _invokeType!);
@@ -376,13 +376,13 @@ class InvocationInferenceHelper {
     required bool isConst,
     required AstNode errorNode,
     required List<Map<DartType, NonPromotionReason> Function()>
-        whyNotPromotedInfo,
+        whyNotPromotedList,
   }) {
     var typeParameters = rawType.typeFormals;
 
     if (typeParameters.isEmpty) {
       InferenceContext.setType(argumentList, rawType);
-      _resolveArguments(argumentList, whyNotPromotedInfo);
+      _resolveArguments(argumentList, whyNotPromotedList);
 
       _typeArgumentTypes = const <DartType>[];
       _invokeType = rawType;
@@ -399,7 +399,7 @@ class InvocationInferenceHelper {
       var downwardsInvokeType = rawType.instantiate(downwardsTypeArguments);
       InferenceContext.setType(argumentList, downwardsInvokeType);
 
-      _resolveArguments(argumentList, whyNotPromotedInfo);
+      _resolveArguments(argumentList, whyNotPromotedList);
 
       _typeArgumentTypes = _inferUpwards(
         rawType: rawType,
@@ -417,7 +417,7 @@ class InvocationInferenceHelper {
     required TypeArgumentList typeArgumentList,
     required ArgumentList argumentList,
     required List<Map<DartType, NonPromotionReason> Function()>
-        whyNotPromotedInfo,
+        whyNotPromotedList,
   }) {
     var typeParameters = rawType.typeFormals;
 
@@ -445,7 +445,7 @@ class InvocationInferenceHelper {
     var invokeType = rawType.instantiate(typeArguments);
     InferenceContext.setType(argumentList, invokeType);
 
-    _resolveArguments(argumentList, whyNotPromotedInfo);
+    _resolveArguments(argumentList, whyNotPromotedList);
 
     _typeArgumentTypes = typeArguments;
     _invokeType = invokeType;

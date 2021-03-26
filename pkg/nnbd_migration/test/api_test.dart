@@ -4695,6 +4695,46 @@ void f() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_loadLibrary_call() async {
+    var testPath = convertPath('$testsPath/lib/test.dart');
+    var otherPath = convertPath('$testsPath/lib/other.dart');
+    var content = {
+      testPath: '''
+import 'other.dart' deferred as other;
+Future<Object> f() => other.loadLibrary();
+''',
+      otherPath: ''
+    };
+    var expected = {
+      testPath: '''
+import 'other.dart' deferred as other;
+Future<Object?> f() => other.loadLibrary();
+''',
+      otherPath: ''
+    };
+    await _checkMultipleFileChanges(content, expected);
+  }
+
+  Future<void> test_loadLibrary_tearOff() async {
+    var testPath = convertPath('$testsPath/lib/test.dart');
+    var otherPath = convertPath('$testsPath/lib/other.dart');
+    var content = {
+      testPath: '''
+import 'other.dart' deferred as other;
+Future<Object> Function() f() => other.loadLibrary;
+''',
+      otherPath: ''
+    };
+    var expected = {
+      testPath: '''
+import 'other.dart' deferred as other;
+Future<Object?> Function() f() => other.loadLibrary;
+''',
+      otherPath: ''
+    };
+    await _checkMultipleFileChanges(content, expected);
+  }
+
   Future<void> test_local_function() async {
     var content = '''
 int f(int i) {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // VMOptions=--deterministic
+// VMOptions=--deterministic --use_slow_path
 
 // Unit tests on DIV and MOV operations by various constants.
 

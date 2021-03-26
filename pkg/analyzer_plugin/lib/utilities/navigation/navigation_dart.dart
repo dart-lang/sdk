@@ -182,6 +182,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       computer._addRegionForNode(name, element);
     }
     computer._addRegionForNode(node.constructorName, element);
+    // type arguments
+    node.typeArguments?.accept(this);
     // arguments
     node.arguments?.accept(this);
   }

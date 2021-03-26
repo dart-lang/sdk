@@ -397,10 +397,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node,
       {List<Map<DartType, NonPromotionReason> Function()>?
-          whyNotPromotedInfo}) {
-    whyNotPromotedInfo ??= [];
+          whyNotPromotedList}) {
+    whyNotPromotedList ??= [];
     _methodInvocationResolver.resolve(
-        node as MethodInvocationImpl, whyNotPromotedInfo);
+        node as MethodInvocationImpl, whyNotPromotedList);
   }
 
   @override

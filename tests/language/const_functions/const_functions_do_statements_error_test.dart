@@ -33,3 +33,15 @@ int fn2() {
   } while (x as dynamic);
   return 2;
 }
+
+const var3 = fn3();
+//           ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [cfe] Constant evaluation error:
+int fn3() {
+  dynamic x = 0;
+  do {
+    x++;
+  } while (x);
+  return 2;
+}

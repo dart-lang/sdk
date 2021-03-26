@@ -652,7 +652,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
 
     var fragmentsToLoad =
-        compiler.backendStrategy.emitterTask.emitter.fragmentsToLoad;
+        compiler.backendStrategy.emitterTask.emitter.finalizedFragmentsToLoad;
     var fragmentMerger =
         compiler.backendStrategy.emitterTask.emitter.fragmentMerger;
     result.deferredFiles = fragmentMerger.computeDeferredMap(fragmentsToLoad);

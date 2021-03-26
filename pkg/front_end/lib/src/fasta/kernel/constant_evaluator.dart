@@ -3383,15 +3383,8 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
 
     if (condition is AbortConstant) {
       return new AbortStatus(condition);
-    } else if (condition is! BoolConstant) {
-      return new AbortStatus(exprEvaluator.createErrorConstant(
-          node.condition,
-          templateConstEvalInvalidType.withArguments(
-              condition,
-              exprEvaluator.typeEnvironment.coreTypes.boolLegacyRawType,
-              condition.getType(exprEvaluator._staticTypeContext),
-              exprEvaluator.isNonNullableByDefault)));
     }
+    assert(condition is BoolConstant);
     return const ProceedStatus();
   }
 
@@ -3399,23 +3392,13 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   ExecutionStatus visitIfStatement(IfStatement node) {
     Constant condition = evaluate(node.condition);
     if (condition is AbortConstant) return new AbortStatus(condition);
-    if (condition is BoolConstant) {
-      if (condition.value) {
-        return node.then.accept(this);
-      } else if (node.otherwise != null) {
-        return node.otherwise.accept(this);
-      } else {
-        return const ProceedStatus();
-      }
-    } else {
-      return new AbortStatus(exprEvaluator.createErrorConstant(
-          node.condition,
-          templateConstEvalInvalidType.withArguments(
-              condition,
-              exprEvaluator.typeEnvironment.coreTypes.boolLegacyRawType,
-              condition.getType(exprEvaluator._staticTypeContext),
-              exprEvaluator.isNonNullableByDefault)));
+    assert(condition is BoolConstant);
+    if ((condition as BoolConstant).value) {
+      return node.then.accept(this);
+    } else if (node.otherwise != null) {
+      return node.otherwise.accept(this);
     }
+    return const ProceedStatus();
   }
 
   @override
@@ -3446,6 +3429,7 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
     }
 
     if (condition is AbortConstant) return new AbortStatus(condition);
+    assert(condition is BoolConstant);
     return const ProceedStatus();
   }
 
@@ -3486,6 +3470,7 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
       condition = evaluate(node.condition);
     }
     if (condition is AbortConstant) return new AbortStatus(condition);
+    assert(condition is BoolConstant);
     return const ProceedStatus();
   }
 }

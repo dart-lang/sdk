@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-03-24T12:15:31.538873",
+  "generated": "2021-03-24T13:42:28.071470",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -636,12 +636,6 @@
       "rootUri": "../third_party/pkg/stack_trace",
       "packageUri": "lib/",
       "languageVersion": "2.12"
-    },
-    {
-      "name": "stagehand",
-      "rootUri": "../third_party/pkg/stagehand",
-      "packageUri": "lib/",
-      "languageVersion": "2.10"
     },
     {
       "name": "status_file",

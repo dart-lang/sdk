@@ -1081,6 +1081,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     resolveRedirectingFactoryTargets();
     finishVariableMetadata();
+    libraryBuilder.checkUncheckedTypedefTypes(typeEnvironment);
   }
 
   void checkAsyncReturnType(AsyncMarker asyncModifier, DartType returnType,
@@ -4530,9 +4531,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 noLength));
       }
       type = aliasBuilder.unaliasDeclaration(null,
-          isInvocation: true,
-          invocationCharOffset: nameToken.charOffset,
-          invocationFileUri: uri);
+          isUsedAsClass: true,
+          usedAsClassCharOffset: nameToken.charOffset,
+          usedAsClassFileUri: uri);
       List<TypeBuilder> typeArgumentBuilders = [];
       if (typeArguments != null) {
         for (UnresolvedType unresolvedType in typeArguments) {
@@ -4620,6 +4621,23 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           }
         }
       }
+
+      List<DartType> typeArgumentsToCheck = const <DartType>[];
+      if (typeArgumentBuilders != null && typeArgumentBuilders.isNotEmpty) {
+        typeArgumentsToCheck = new List.filled(
+            typeArgumentBuilders.length, const DynamicType(),
+            growable: false);
+        for (int i = 0; i < typeArgumentsToCheck.length; ++i) {
+          typeArgumentsToCheck[i] =
+              typeArgumentBuilders[i].build(libraryBuilder);
+        }
+      }
+      DartType typeToCheck = new TypedefType(
+          aliasBuilder.typedef, Nullability.nonNullable, typeArgumentsToCheck);
+      libraryBuilder.checkBoundsInType(
+          typeToCheck, typeEnvironment, uri, charOffset,
+          allowSuperBounded: false);
+
       if (type is ClassBuilder) {
         if (typeArguments != null) {
           int numberOfTypeParameters = aliasBuilder.typeVariables?.length ?? 0;

@@ -345,12 +345,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitAssignmentExpression(AssignmentExpression node) {
     TokenType operatorType = node.operator.type;
     Expression lhs = node.leftHandSide;
-    Expression rhs = node.rightHandSide;
-    if (operatorType == TokenType.EQ ||
-        operatorType == TokenType.QUESTION_QUESTION_EQ) {
-    } else {
-      checkForArgumentTypeNotAssignableForArgument(rhs);
-    }
     if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
       _checkForDeadNullCoalesce(node.readType as TypeImpl, node.rightHandSide);
     }

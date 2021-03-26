@@ -589,8 +589,11 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (declarationBuilder is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declarationBuilder;
         NamedTypeBuilder namedBuilder = supertype;
-        declarationBuilder =
-            aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+        declarationBuilder = aliasBuilder.unaliasDeclaration(
+            namedBuilder.arguments,
+            isUsedAsClass: true,
+            usedAsClassCharOffset: namedBuilder.charOffset,
+            usedAsClassFileUri: namedBuilder.fileUri);
         result[declarationBuilder] = aliasBuilder;
       } else {
         result[declarationBuilder] = null;
@@ -606,8 +609,11 @@ class SourceClassBuilder extends ClassBuilderImpl
         if (declarationBuilder is TypeAliasBuilder) {
           TypeAliasBuilder aliasBuilder = declarationBuilder;
           NamedTypeBuilder namedBuilder = interface;
-          declarationBuilder =
-              aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+          declarationBuilder = aliasBuilder.unaliasDeclaration(
+              namedBuilder.arguments,
+              isUsedAsClass: true,
+              usedAsClassCharOffset: namedBuilder.charOffset,
+              usedAsClassFileUri: namedBuilder.fileUri);
           result[declarationBuilder] = aliasBuilder;
         } else {
           result[declarationBuilder] = null;
@@ -621,8 +627,11 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (declarationBuilder is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declarationBuilder;
         NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
-        declarationBuilder =
-            aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+        declarationBuilder = aliasBuilder.unaliasDeclaration(
+            namedBuilder.arguments,
+            isUsedAsClass: true,
+            usedAsClassCharOffset: namedBuilder.charOffset,
+            usedAsClassFileUri: namedBuilder.fileUri);
         result[declarationBuilder] = aliasBuilder;
       } else {
         result[declarationBuilder] = null;

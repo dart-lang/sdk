@@ -50,7 +50,7 @@ class Symbol implements core.Symbol {
    * is "unary-".
    */
   static const String operatorRE =
-      r'(?:[\-+*/%&|^]|\[\]=?|==|~/?|<[<=]?|>[>=]?|unary-)';
+      r'(?:[\-+*/%&|^]|\[\]=?|==|~/?|<[<=]?|>(?:|=|>>?)|unary-)';
 
   // Grammar if symbols:
   //    symbol ::= qualifiedName | <empty>

@@ -907,7 +907,10 @@ class SourceLoader extends Loader {
         if (builder is TypeAliasBuilder) {
           TypeAliasBuilder aliasBuilder = builder;
           NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
-          builder = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+          builder = aliasBuilder.unaliasDeclaration(namedBuilder.arguments,
+              isUsedAsClass: true,
+              usedAsClassCharOffset: namedBuilder.charOffset,
+              usedAsClassFileUri: namedBuilder.fileUri);
           if (builder is! ClassBuilder) {
             cls.addProblem(
                 templateIllegalMixin.withArguments(builder.fullNameForErrors),
