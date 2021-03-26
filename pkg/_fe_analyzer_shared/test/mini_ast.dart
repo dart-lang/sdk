@@ -39,10 +39,6 @@ Statement break_(BranchTargetPlaceholder branchTargetPlaceholder) =>
 SwitchCase case_(List<Statement> body, {bool hasLabel = false}) =>
     SwitchCase._(hasLabel, body);
 
-CatchClause catch_(
-        {Var? exception, Var? stackTrace, required List<Statement> body}) =>
-    CatchClause._(body, exception, stackTrace);
-
 /// Creates a pseudo-statement whose function is to verify that flow analysis
 /// considers [variable]'s assigned state to be [expectedAssignedState].
 Statement checkAssigned(Var variable, bool expectedAssignedState) =>
@@ -167,11 +163,7 @@ Expression thisOrSuperPropertyGet(String name, {String type = 'Object?'}) =>
 
 Expression throw_(Expression operand) => new _Throw(operand);
 
-Statement tryCatch(List<Statement> body, List<CatchClause> catches) =>
-    new _TryCatch(body, catches);
-
-Statement tryFinally(List<Statement> body, List<Statement> finally_) =>
-    new _TryFinally(body, finally_);
+TryBuilder try_(List<Statement> body) => new _TryStatement(body, [], null);
 
 Statement while_(Expression condition, List<Statement> body) =>
     new _While(condition, body);
@@ -182,39 +174,6 @@ class BranchTargetPlaceholder {
   late Statement _target;
 
   BranchTargetPlaceholder._();
-}
-
-/// Representation of a single catch clause in a try/catch statement.  Use
-/// [catch_] to create instances of this class.
-class CatchClause implements _Visitable<void> {
-  final List<Statement> _body;
-  final Var? _exception;
-  final Var? _stackTrace;
-
-  CatchClause._(this._body, this._exception, this._stackTrace);
-
-  String toString() {
-    String initialPart;
-    if (_stackTrace != null) {
-      initialPart = 'catch (${_exception!.name}, ${_stackTrace!.name})';
-    } else if (_exception != null) {
-      initialPart = 'catch (${_exception!.name})';
-    } else {
-      initialPart = 'on ...';
-    }
-    return '$initialPart ${block(_body)}';
-  }
-
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    _body._preVisit(assignedVariables);
-  }
-
-  void _visit(
-      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    flow.tryCatchStatement_catchBegin(_exception, _stackTrace);
-    _body._visit(h, flow);
-    flow.tryCatchStatement_catchEnd();
-  }
 }
 
 /// Representation of an expression in the pseudo-Dart language used for flow
@@ -628,6 +587,17 @@ class SwitchCase implements _Visitable<void> {
   }
 }
 
+abstract class TryBuilder {
+  TryStatement catch_(
+      {Var? exception, Var? stackTrace, required List<Statement> body});
+
+  Statement finally_(List<Statement> statements);
+}
+
+abstract class TryStatement extends Statement implements TryBuilder {
+  TryStatement._() : super._();
+}
+
 /// Representation of a local variable in the pseudo-Dart language used for flow
 /// analysis testing.
 class Var {
@@ -757,6 +727,39 @@ class _Break extends Statement {
     // ignore: unnecessary_null_comparison
     assert(branchTargetPlaceholder._target != null);
     flow.handleBreak(branchTargetPlaceholder._target);
+  }
+}
+
+/// Representation of a single catch clause in a try/catch statement.  Use
+/// [catch_] to create instances of this class.
+class _CatchClause implements _Visitable<void> {
+  final List<Statement> _body;
+  final Var? _exception;
+  final Var? _stackTrace;
+
+  _CatchClause(this._body, this._exception, this._stackTrace);
+
+  String toString() {
+    String initialPart;
+    if (_stackTrace != null) {
+      initialPart = 'catch (${_exception!.name}, ${_stackTrace!.name})';
+    } else if (_exception != null) {
+      initialPart = 'catch (${_exception!.name})';
+    } else {
+      initialPart = 'on ...';
+    }
+    return '$initialPart ${block(_body)}';
+  }
+
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    _body._preVisit(assignedVariables);
+  }
+
+  void _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    flow.tryCatchStatement_catchBegin(_exception, _stackTrace);
+    _body._visit(h, flow);
+    flow.tryCatchStatement_catchEnd();
   }
 }
 
@@ -1573,60 +1576,68 @@ class _Throw extends Expression {
   }
 }
 
-class _TryCatch extends Statement {
-  final List<Statement> body;
-  final List<CatchClause> catches;
+class _TryStatement extends TryStatement {
+  final List<Statement> _body;
+  final List<_CatchClause> _catches;
+  final List<Statement>? _finally;
+  final _bodyNode = Node._();
 
-  _TryCatch(this.body, this.catches) : super._();
+  _TryStatement(this._body, this._catches, this._finally) : super._();
 
   @override
-  String toString() => 'try ${block(body)} ${catches.join(' ')}';
-
-  @override
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    assignedVariables.beginNode();
-    body._preVisit(assignedVariables);
-    assignedVariables.endNode(this);
-    catches._preVisit(assignedVariables);
+  TryStatement catch_(
+      {Var? exception, Var? stackTrace, required List<Statement> body}) {
+    assert(_finally == null, 'catch after finally');
+    return _TryStatement(
+        _body, [..._catches, _CatchClause(body, exception, stackTrace)], null);
   }
 
   @override
-  void _visit(
-      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    flow.tryCatchStatement_bodyBegin();
-    body._visit(h, flow);
-    flow.tryCatchStatement_bodyEnd(this);
-    catches._visit(h, flow);
-    flow.tryCatchStatement_end();
+  Statement finally_(List<Statement> statements) {
+    assert(_finally == null, 'multiple finally clauses');
+    return _TryStatement(_body, _catches, statements);
   }
-}
-
-class _TryFinally extends Statement {
-  final List<Statement> body;
-  final List<Statement> finally_;
-  final Node _bodyNode = Node._();
-
-  _TryFinally(this.body, this.finally_) : super._();
-
-  @override
-  String toString() => 'try ${block(body)} finally ${block(finally_)}';
 
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    assignedVariables.beginNode();
-    body._preVisit(assignedVariables);
+    if (_finally != null) {
+      assignedVariables.beginNode();
+    }
+    if (_catches.isNotEmpty) {
+      assignedVariables.beginNode();
+    }
+    _body._preVisit(assignedVariables);
     assignedVariables.endNode(_bodyNode);
-    finally_._preVisit(assignedVariables);
+    _catches._preVisit(assignedVariables);
+    if (_finally != null) {
+      if (_catches.isNotEmpty) {
+        assignedVariables.endNode(this);
+      }
+      _finally!._preVisit(assignedVariables);
+    }
   }
 
   @override
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    flow.tryFinallyStatement_bodyBegin();
-    body._visit(h, flow);
-    flow.tryFinallyStatement_finallyBegin(_bodyNode);
-    finally_._visit(h, flow);
-    flow.tryFinallyStatement_end();
+    if (_finally != null) {
+      flow.tryFinallyStatement_bodyBegin();
+    }
+    if (_catches.isNotEmpty) {
+      flow.tryCatchStatement_bodyBegin();
+    }
+    _body._visit(h, flow);
+    if (_catches.isNotEmpty) {
+      flow.tryCatchStatement_bodyEnd(_bodyNode);
+      _catches._visit(h, flow);
+      flow.tryCatchStatement_end();
+    }
+    if (_finally != null) {
+      flow.tryFinallyStatement_finallyBegin(
+          _catches.isNotEmpty ? this : _bodyNode);
+      _finally!._visit(h, flow);
+      flow.tryFinallyStatement_end();
+    }
   }
 }
 

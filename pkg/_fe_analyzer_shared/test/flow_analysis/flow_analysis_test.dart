@@ -2007,15 +2007,13 @@ main() {
         declare(x, initialized: true),
         declare(y, initialized: true),
         y.read.as_('int').stmt,
-        tryCatch([
+        try_([
           x.read.as_('int').stmt,
           checkPromoted(x, 'int'),
           checkPromoted(y, 'int'),
-        ], [
-          catch_(body: [
-            checkNotPromoted(x),
-            checkPromoted(y, 'int'),
-          ])
+        ]).catch_(body: [
+          checkNotPromoted(x),
+          checkPromoted(y, 'int'),
         ]),
       ]);
     });
@@ -2029,16 +2027,14 @@ main() {
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
-        tryCatch([
+        try_([
           x.write(expr('int?')).stmt,
           x.read.as_('int').stmt,
           checkPromoted(x, 'int'),
           getSsaNodes((nodes) => ssaAfterTry = nodes[x]!),
-        ], [
-          catch_(body: [
-            checkNotPromoted(x),
-            getSsaNodes((nodes) => expect(nodes[x], isNot(ssaAfterTry))),
-          ]),
+        ]).catch_(body: [
+          checkNotPromoted(x),
+          getSsaNodes((nodes) => expect(nodes[x], isNot(ssaAfterTry))),
         ]),
       ]);
     });
@@ -2053,16 +2049,14 @@ main() {
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
-        tryCatch([
+        try_([
           localFunction([
             x.write(expr('int?')).stmt,
           ]),
           return_(),
-        ], [
-          catch_(body: [
-            x.read.as_('int').stmt,
-            checkNotPromoted(x),
-          ])
+        ]).catch_(body: [
+          x.read.as_('int').stmt,
+          checkNotPromoted(x),
         ]),
       ]);
     });
@@ -2073,14 +2067,11 @@ main() {
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
-        tryCatch([], [
-          catch_(body: [
-            x.read.as_('int').stmt,
-            checkPromoted(x, 'int'),
-          ]),
-          catch_(body: [
-            checkNotPromoted(x),
-          ]),
+        try_([]).catch_(body: [
+          x.read.as_('int').stmt,
+          checkPromoted(x, 'int'),
+        ]).catch_(body: [
+          checkNotPromoted(x),
         ]),
       ]);
     });
@@ -2090,11 +2081,9 @@ main() {
       var e = Var('e', 'int');
       var st = Var('st', 'StackTrace');
       h.run([
-        tryCatch([], [
-          catch_(exception: e, stackTrace: st, body: [
-            checkAssigned(e, true),
-            checkAssigned(st, true),
-          ]),
+        try_([]).catch_(exception: e, stackTrace: st, body: [
+          checkAssigned(e, true),
+          checkAssigned(st, true),
         ]),
       ]);
     });
@@ -2108,14 +2097,12 @@ main() {
       h.run([
         declare(x, initialized: true), declare(y, initialized: true),
         declare(z, initialized: true),
-        tryCatch([
+        try_([
           x.read.as_('int').stmt,
           y.read.as_('int').stmt,
-        ], [
-          catch_(body: [
-            x.read.as_('int').stmt,
-            z.read.as_('int').stmt,
-          ]),
+        ]).catch_(body: [
+          x.read.as_('int').stmt,
+          z.read.as_('int').stmt,
         ]),
         // Only x should be promoted, because it's the only variable
         // promoted in both the try body and the catch handler.
@@ -2131,17 +2118,14 @@ main() {
       h.run([
         declare(x, initialized: true), declare(y, initialized: true),
         declare(z, initialized: true),
-        tryCatch([
+        try_([
           return_(),
-        ], [
-          catch_(body: [
-            x.read.as_('int').stmt,
-            y.read.as_('int').stmt,
-          ]),
-          catch_(body: [
-            x.read.as_('int').stmt,
-            z.read.as_('int').stmt,
-          ]),
+        ]).catch_(body: [
+          x.read.as_('int').stmt,
+          y.read.as_('int').stmt,
+        ]).catch_(body: [
+          x.read.as_('int').stmt,
+          z.read.as_('int').stmt,
         ]),
         // Only x should be promoted, because it's the only variable promoted
         // in both catch handlers.
@@ -2157,11 +2141,11 @@ main() {
         declare(x, initialized: true),
         declare(y, initialized: true),
         y.read.as_('int').stmt,
-        tryFinally([
+        try_([
           x.read.as_('int').stmt,
           checkPromoted(x, 'int'),
           checkPromoted(y, 'int'),
-        ], [
+        ]).finally_([
           checkNotPromoted(x),
           checkPromoted(y, 'int'),
         ]),
@@ -2179,13 +2163,13 @@ main() {
         declare(x, initialized: true),
         x.read.as_('int').stmt,
         checkPromoted(x, 'int'),
-        tryFinally([
+        try_([
           getSsaNodes((nodes) => ssaAtStartOfTry = nodes[x]!),
           x.write(expr('int?')).stmt,
           x.read.as_('int').stmt,
           checkPromoted(x, 'int'),
           getSsaNodes((nodes) => ssaAfterTry = nodes[x]!),
-        ], [
+        ]).finally_([
           checkNotPromoted(x),
           // The SSA node for X should be different from what it was at any time
           // during the try block, because there is no telling at what point an
@@ -2207,12 +2191,12 @@ main() {
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
-        tryFinally([
+        try_([
           localFunction([
             x.write(expr('int?')).stmt,
           ]),
           return_(),
-        ], [
+        ]).finally_([
           x.read.as_('int').stmt,
           checkNotPromoted(x),
         ]),
@@ -2225,10 +2209,10 @@ main() {
       var y = Var('y', 'int?');
       h.run([
         declare(x, initialized: true), declare(y, initialized: true),
-        tryFinally([
+        try_([
           x.read.as_('int').stmt,
           checkPromoted(x, 'int'),
-        ], [
+        ]).finally_([
           checkNotPromoted(x),
           y.read.as_('int').stmt,
           checkPromoted(y, 'int'),
@@ -2248,10 +2232,10 @@ main() {
       late SsaNode<Var, Type> ySsaAtEndOfFinally;
       h.run([
         declare(x, initialized: true), declare(y, initialized: true),
-        tryFinally([
+        try_([
           x.read.as_('int').stmt,
           checkPromoted(x, 'int'),
-        ], [
+        ]).finally_([
           checkNotPromoted(x),
           x.write(expr('int?')).stmt,
           y.write(expr('int?')).stmt,
@@ -2289,14 +2273,14 @@ main() {
         late SsaNode<Var, Type> ySsaAtEndOfFinally;
         h.run([
           declare(x, initialized: true), declare(y, initialized: true),
-          tryFinally([
+          try_([
             x.write(expr('int?')).stmt,
             y.write(expr('int?')).stmt,
             getSsaNodes((nodes) {
               xSsaAtEndOfTry = nodes[x]!;
               ySsaAtEndOfTry = nodes[y]!;
             }),
-          ], [
+          ]).finally_([
             if_(expr('bool'), [
               x.write(expr('int?')).stmt,
             ]),
@@ -2329,10 +2313,10 @@ main() {
           'unreachable', () {
         var h = Harness();
         h.run([
-          tryFinally([
+          try_([
             return_(),
             checkReachable(false),
-          ], [
+          ]).finally_([
             checkReachable(true),
           ]),
           checkReachable(false),
@@ -2344,9 +2328,9 @@ main() {
           'unreachable', () {
         var h = Harness();
         h.run([
-          tryFinally([
+          try_([
             checkReachable(true),
-          ], [
+          ]).finally_([
             return_(),
             checkReachable(false),
           ]),
@@ -2360,9 +2344,9 @@ main() {
         var h = Harness();
         var x = Var('x', 'int?');
         h.run([
-          tryFinally([
+          try_([
             declare(x, initialized: true),
-          ], []),
+          ]).finally_([]),
         ]);
       });
 
@@ -2372,7 +2356,7 @@ main() {
         var h = Harness();
         var x = Var('x', 'int?');
         h.run([
-          tryFinally([], [
+          try_([]).finally_([
             declare(x, initialized: true),
           ]),
         ]);
@@ -2385,11 +2369,11 @@ main() {
         var x = Var('x', 'int?');
         h.run([
           declare(x, initialized: true),
-          tryFinally([
+          try_([
             localFunction([
               x.write(expr('int?')).stmt,
             ]),
-          ], []),
+          ]).finally_([]),
           if_(x.read.notEq(nullLiteral), [
             checkNotPromoted(x),
           ]),
@@ -2403,7 +2387,7 @@ main() {
         var x = Var('x', 'int?');
         h.run([
           declare(x, initialized: true),
-          tryFinally([], [
+          try_([]).finally_([
             localFunction([
               x.write(expr('int?')).stmt,
             ]),
@@ -2421,12 +2405,12 @@ main() {
         var x = Var('x', 'int?');
         h.run([
           declare(x, initialized: true),
-          tryFinally([
+          try_([
             if_(x.read.eq(nullLiteral), [
               return_(),
             ]),
             checkPromoted(x, 'int'),
-          ], [
+          ]).finally_([
             localFunction([
               x.write(expr('int?')).stmt,
             ]),
@@ -2447,12 +2431,12 @@ main() {
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: true),
-          tryFinally([
+          try_([
             if_(x.read.is_('num', isInverted: true), [
               return_(),
             ]),
             checkPromoted(x, 'num'),
-          ], [
+          ]).finally_([
             if_(x.read.is_('int', isInverted: true), [
               return_(),
             ]),
@@ -2471,12 +2455,12 @@ main() {
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: true),
-          tryFinally([
+          try_([
             if_(x.read.is_('String', isInverted: true), [
               return_(),
             ]),
             checkPromoted(x, 'String'),
-          ], [
+          ]).finally_([
             x.write(expr('Object')).stmt,
             if_(x.read.is_('int', isInverted: true), [
               return_(),
@@ -2493,10 +2477,10 @@ main() {
         var x = Var('x', 'Object');
         h.run([
           declare(x, initialized: true),
-          tryFinally([
+          try_([
             if_(x.read.is_('String', isInverted: true), []),
             checkNotPromoted(x),
-          ], [
+          ]).finally_([
             if_(x.read.is_('int', isInverted: true), []),
             checkNotPromoted(x),
           ]),
@@ -2519,12 +2503,12 @@ main() {
         h.run([
           declare(x, initialized: false),
           checkAssigned(x, false),
-          tryFinally([
+          try_([
             if_(expr('bool'), [
               x.write(expr('Object')).stmt,
             ]),
             checkAssigned(x, false),
-          ], [
+          ]).finally_([
             if_(expr('bool'), [
               x.write(expr('Object')).stmt,
             ]),
@@ -2542,10 +2526,10 @@ main() {
         h.run([
           declare(x, initialized: false),
           checkAssigned(x, false),
-          tryFinally([
+          try_([
             x.write(expr('Object')).stmt,
             checkAssigned(x, true),
-          ], [
+          ]).finally_([
             if_(expr('bool'), [
               x.write(expr('Object')).stmt,
             ]),
@@ -2563,12 +2547,12 @@ main() {
         h.run([
           declare(x, initialized: false),
           checkAssigned(x, false),
-          tryFinally([
+          try_([
             if_(expr('bool'), [
               x.write(expr('Object')).stmt,
             ]),
             checkAssigned(x, false),
-          ], [
+          ]).finally_([
             x.write(expr('Object')).stmt,
             checkAssigned(x, true),
           ]),
@@ -2584,9 +2568,9 @@ main() {
         h.run([
           declare(x, initialized: false),
           checkUnassigned(x, true),
-          tryFinally([
+          try_([
             checkUnassigned(x, true),
-          ], [
+          ]).finally_([
             checkUnassigned(x, true),
           ]),
           checkUnassigned(x, true),
@@ -2601,9 +2585,9 @@ main() {
         h.run([
           declare(x, initialized: false),
           checkUnassigned(x, true),
-          tryFinally([
+          try_([
             checkUnassigned(x, true),
-          ], [
+          ]).finally_([
             if_(expr('bool'), [
               x.write(expr('Object')).stmt,
             ]),
@@ -2621,12 +2605,12 @@ main() {
         h.run([
           declare(x, initialized: false),
           checkUnassigned(x, true),
-          tryFinally([
+          try_([
             if_(expr('bool'), [
               x.write(expr('Object')).stmt,
             ]),
             checkUnassigned(x, false),
-          ], [
+          ]).finally_([
             checkUnassigned(x, false),
           ]),
           checkUnassigned(x, false),
