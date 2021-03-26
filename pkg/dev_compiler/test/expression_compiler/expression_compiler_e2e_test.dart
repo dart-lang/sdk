@@ -256,6 +256,8 @@ class TestDriver {
   /// Depends on SDK artifacts (such as the sound and unsound dart_sdk.js
   /// files) generated from the 'dartdevc_test' target.
   Future<void> initSource(SetupCompilerOptions setup, String source) async {
+    // Prepend Dart nullability comment.
+    source = '${setup.dartLangComment}\n\n$source';
     this.setup = setup;
     this.source = source;
     testDir = await chromeDir.createTemp('ddc_eval_test');
@@ -460,15 +462,47 @@ class TestDriver {
         returnByValue: false);
 
     await debugger.removeBreakpoint(bp.breakpointId);
-
-    var value = evalResult.type == 'function'
-        ? evalResult.description
-        : evalResult.value;
+    var value = await stringifyRemoteObject(evalResult);
 
     expect(
         result,
         const TypeMatcher<TestCompilationResult>()
             .having((_) => '$value', 'result', _matches(expectedResult)));
+  }
+
+  /// Generate simple string representation of a RemoteObject that closely
+  /// resembles Chrome's console output.
+  ///
+  /// Examples:
+  /// Class: t.C.new {Symbol(C.field): 5, Symbol(_field): 7}
+  /// Function: function main() {
+  ///             return test.foo(1, {y: 2});
+  ///           }
+  Future<String> stringifyRemoteObject(wip.RemoteObject obj) async {
+    String str;
+    switch (obj.type) {
+      case 'function':
+        str = obj.description;
+        break;
+      case 'object':
+        if (obj.subtype == 'null') {
+          return 'null';
+        }
+        var properties =
+            await connection.runtime.getProperties(obj, ownProperties: true);
+        var filteredProps = <String, String>{};
+        for (var prop in properties) {
+          if (prop.value != null && prop.name != '__proto__') {
+            filteredProps[prop.name] = await stringifyRemoteObject(prop.value);
+          }
+        }
+        str = '${obj.description} $filteredProps';
+        break;
+      default:
+        str = '${obj.value}';
+        break;
+    }
+    return str;
   }
 
   /// Collects local JS variables visible at a breakpoint during evaluation.
@@ -565,8 +599,6 @@ void main() async {
 
     group('Expression compiler extension symbols tests', () {
       var source = '''
-        ${setup.dartLangComment}
-
         main() {
           List<int> list = [];
           list.add(0);
@@ -597,9 +629,10 @@ void main() async {
 
     group('Expression compiler scope collection tests', () {
       var source = '''
-        ${setup.dartLangComment}
-
         class C {
+          static int staticField = 0;
+          int field;
+
           C(this.field);
 
           void methodFieldAccess(int x) {
@@ -611,9 +644,6 @@ void main() async {
             }
             var notInScope = 3;
           }
-
-          static int staticField = 0;
-          int field;
         }
 
         int global = 42;
@@ -681,7 +711,6 @@ void main() async {
 
     group('Expression compiler tests in extension method:', () {
       var source = '''
-        ${setup.dartLangComment}
         extension NumberParsing on String {
           int parseInt() {
             var ret = int.parse(this);
@@ -725,7 +754,6 @@ void main() async {
 
     group('Expression compiler tests in static function:', () {
       var source = '''
-        ${setup.dartLangComment}
         int foo(int x, {int y}) {
           int z = 3;
           // Breakpoint: bp
@@ -773,6 +801,216 @@ void main() async {
               }''');
       });
     });
+
+    group('Expression compiler tests in method:', () {
+      var source = '''
+          extension NumberParsing on String {
+            int parseInt() {
+              return int.parse(this) + 1;
+            }
+          }
+
+          class C {
+            static int staticField = 1;
+            static int _staticField = 2;
+            static int _unusedStaticField = 3;
+            int field;
+            int _field;
+            int _unusedField = 4;
+
+            C(this.field, this._field);
+
+            int methodFieldAccess(int x) {
+              // Breakpoint: bp
+              return x + _field + _staticField;
+            }
+          }
+
+          void entrypoint() {
+            var c = C(5, 7);
+            // Breakpoint: bp1
+            c.methodFieldAccess(10);
+          }
+
+          int global = 42;
+          main() => entrypoint();
+          ''';
+
+      setUpAll(() async {
+        await driver.initSource(setup, source);
+      });
+
+      tearDownAll(() {
+        driver.cleanupTest();
+      });
+
+      test('compilation error', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'typo',
+            expectedError: "The getter 'typo' isn't defined for the class 'C'");
+      });
+
+      test('local', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'x', expectedResult: '10');
+      });
+
+      test('this', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'this',
+            expectedResult:
+                'test.C.new {Symbol(_unusedField): 4, Symbol(C.field): 5,'
+                ' Symbol(_field): 7}');
+      });
+
+      test('expression using locals', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'x + 1', expectedResult: '11');
+      });
+
+      test('expression using static fields', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'x + staticField',
+            expectedResult: '11');
+      });
+
+      test('expression using private static fields', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'x + _staticField',
+            expectedResult: '12');
+      });
+
+      test('expression using fields', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'x + field', expectedResult: '15');
+      });
+
+      test('expression using private fields', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'x + _field', expectedResult: '17');
+      });
+
+      test('expression using globals', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'x + global', expectedResult: '52');
+      });
+
+      test('expression using fields not referred to in the original  code',
+          () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: '_unusedField + _unusedStaticField',
+            expectedResult: '7');
+      });
+
+      test('method call', () async {
+        await driver.check(
+            breakpointId: 'bp1',
+            expression: 'c.methodFieldAccess(2)',
+            expectedResult: '11');
+      });
+
+      test('extension method call', () async {
+        await driver.check(
+            breakpointId: 'bp1',
+            expression: '"1234".parseInt()',
+            expectedResult: '1235');
+      });
+
+      test('private field modification', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: '() {_field = 2; return _field;}()',
+            expectedResult: '2');
+      });
+
+      test('field modification', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: '() {field = 3; return field;}()',
+            expectedResult: '3');
+      });
+
+      test('private static field modification', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: '() {_staticField = 4; return _staticField;}()',
+            expectedResult: '4');
+      });
+
+      test('static field modification', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: '() {staticField = 5; return staticField;}()',
+            expectedResult: '5');
+      });
+    });
+
+    group('Expression compiler tests in async method:', () {
+      var source = '''
+        class C {
+          static int staticField = 1;
+          static int _staticField = 2;
+          int _field;
+          int field;
+
+          C(this.field, this._field);
+          Future<int> asyncMethod(int x) async {
+            // Breakpoint: bp
+            return x + global + _field + field + staticField + _staticField;
+          }
+        }
+
+        void entrypoint() async {
+          var c = C(5, 7);
+          // Breakpoint: bp1
+          var nop;
+          await c.asyncMethod(1);
+        }
+
+        int global = 42;
+        main() async => await entrypoint();
+        ''';
+
+      setUpAll(() async {
+        await driver.initSource(setup, source);
+      });
+
+      tearDownAll(() {
+        driver.cleanupTest();
+      });
+
+      test('compilation error', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'typo',
+            expectedError: "The getter 'typo' isn't defined for the class 'C'");
+      });
+
+      test('local', () async {
+        await driver.check(
+            breakpointId: 'bp', expression: 'x', expectedResult: '1');
+      });
+
+      test('this', () async {
+        await driver.check(
+            breakpointId: 'bp',
+            expression: 'this',
+            expectedResult:
+                'test.C.new {Symbol(C.field): 5, Symbol(_field): 7}');
+      });
+
+      test('async method call', () async {
+        await driver.check(
+            breakpointId: 'bp1',
+            expression: 'await c.asyncMethod(1)',
+            expectedResult: '58');
+      }, skip: "'await' is not yet supported in expression evaluation.");
+    });
   });
 
   group('Sound null safety:', () {
@@ -789,8 +1027,6 @@ void main() async {
 
     group('Expression compiler extension symbols tests', () {
       var source = '''
-        ${setup.dartLangComment}
-
         main() {
           List<int> list = [];
           list.add(0);
@@ -821,8 +1057,6 @@ void main() async {
 
     group('Expression compiler scope collection tests', () {
       var source = '''
-        ${setup.dartLangComment}
-
         class C {
           C(this.field);
 
