@@ -281,7 +281,7 @@ class FixInFileProcessor {
       ErrorCode errorCode, CorrectionProducerContext context) {
     var producers = <ProducerGenerator>[];
     if (errorCode is LintCode) {
-      var fixInfos = FixProcessor.lintProducerMap2[errorCode.name] ?? [];
+      var fixInfos = FixProcessor.lintProducerMap[errorCode.name] ?? [];
       for (var fixInfo in fixInfos) {
         if (fixInfo.canBeAppliedToFile) {
           producers.addAll(fixInfo.generators);
@@ -381,8 +381,10 @@ class FixProcessor extends BaseProcessor {
     ],
   };
 
-  /// todo (pq): to replace lintProducerMap.
-  static const Map<String, List<FixInfo>> lintProducerMap2 = {
+  /// A map from the names of lint rules to a list of generators used to create
+  /// the correction producers used to build fixes for those diagnostics. The
+  /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
+  static const Map<String, List<FixInfo>> lintProducerMap = {
     LintNames.always_declare_return_types: [
       FixInfo(
         // todo (pq): enable when tested
@@ -1077,241 +1079,6 @@ class FixProcessor extends BaseProcessor {
     ],
   };
 
-  /// A map from the names of lint rules to a list of generators used to create
-  /// the correction producers used to build fixes for those diagnostics. The
-  /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
-  @Deprecated('To be replaced w/ lintProducerMap2')
-  static const Map<String, List<ProducerGenerator>> lintProducerMap = {
-    LintNames.always_declare_return_types: [
-      AddReturnType.newInstance,
-    ],
-    LintNames.always_require_non_null_named_parameters: [
-      AddRequired.newInstance,
-    ],
-    LintNames.always_specify_types: [
-      AddTypeAnnotation.newInstance,
-    ],
-    LintNames.annotate_overrides: [
-      AddOverride.newInstance,
-    ],
-    LintNames.avoid_annotating_with_dynamic: [
-      RemoveTypeAnnotation.newInstance,
-    ],
-    LintNames.avoid_empty_else: [
-      RemoveEmptyElse.newInstance,
-    ],
-    LintNames.avoid_init_to_null: [
-      RemoveInitializer.newInstance,
-    ],
-    LintNames.avoid_private_typedef_functions: [
-      InlineTypedef.newInstance,
-    ],
-    LintNames.avoid_redundant_argument_values: [
-      RemoveArgument.newInstance,
-    ],
-    LintNames.avoid_relative_lib_imports: [
-      ConvertToPackageImport.newInstance,
-    ],
-    LintNames.avoid_return_types_on_setters: [
-      RemoveTypeAnnotation.newInstance,
-    ],
-    LintNames.avoid_returning_null_for_future: [
-      AddAsync.newInstance,
-      WrapInFuture.newInstance,
-    ],
-    LintNames.avoid_single_cascade_in_expression_statements: [
-      // TODO(brianwilkerson) This fix should be applied to some non-lint
-      //  diagnostics and should also be available as an assist.
-      ReplaceCascadeWithDot.newInstance,
-    ],
-    LintNames.avoid_types_as_parameter_names: [
-      ConvertToOnType.newInstance,
-    ],
-    LintNames.avoid_types_on_closure_parameters: [
-      ReplaceWithIdentifier.newInstance,
-      RemoveTypeAnnotation.newInstance,
-    ],
-    LintNames.avoid_unused_constructor_parameters: [
-      RemoveUnusedParameter.newInstance,
-    ],
-    LintNames.await_only_futures: [
-      RemoveAwait.newInstance,
-    ],
-    LintNames.curly_braces_in_flow_control_structures: [
-      UseCurlyBraces.newInstance,
-    ],
-    LintNames.diagnostic_describe_all_properties: [
-      AddDiagnosticPropertyReference.newInstance,
-    ],
-    LintNames.directives_ordering: [
-      OrganizeImports.newInstance,
-    ],
-    LintNames.empty_catches: [
-      RemoveEmptyCatch.newInstance,
-    ],
-    LintNames.empty_constructor_bodies: [
-      RemoveEmptyConstructorBody.newInstance,
-    ],
-    LintNames.empty_statements: [
-      RemoveEmptyStatement.newInstance,
-      ReplaceWithBrackets.newInstance,
-    ],
-    LintNames.hash_and_equals: [
-      CreateMethod.equalsOrHashCode,
-    ],
-    LintNames.no_duplicate_case_values: [
-      RemoveDuplicateCase.newInstance,
-    ],
-    LintNames.non_constant_identifier_names: [
-      RenameToCamelCase.newInstance,
-    ],
-    LintNames.null_closures: [
-      ReplaceNullWithClosure.newInstance,
-    ],
-    LintNames.omit_local_variable_types: [
-      ReplaceWithVar.newInstance,
-    ],
-    LintNames.prefer_adjacent_string_concatenation: [
-      RemoveOperator.newInstance,
-    ],
-    LintNames.prefer_collection_literals: [
-      ConvertToListLiteral.newInstance,
-      ConvertToMapLiteral.newInstance,
-      ConvertToSetLiteral.newInstance,
-    ],
-    LintNames.prefer_conditional_assignment: [
-      ReplaceWithConditionalAssignment.newInstance,
-    ],
-    LintNames.prefer_const_constructors: [
-      AddConst.newInstance,
-      ReplaceNewWithConst.newInstance,
-    ],
-    LintNames.prefer_const_constructors_in_immutables: [
-      AddConst.newInstance,
-    ],
-    LintNames.prefer_const_declarations: [
-      ReplaceFinalWithConst.newInstance,
-    ],
-    LintNames.prefer_contains: [
-      ConvertToContains.newInstance,
-    ],
-    LintNames.prefer_equal_for_default_values: [
-      ReplaceColonWithEquals.newInstance,
-    ],
-    LintNames.prefer_expression_function_bodies: [
-      ConvertToExpressionFunctionBody.newInstance,
-    ],
-    LintNames.prefer_final_fields: [
-      MakeFinal.newInstance,
-    ],
-    LintNames.prefer_final_in_for_each: [
-      MakeFinal.newInstance,
-    ],
-    LintNames.prefer_final_locals: [
-      MakeFinal.newInstance,
-    ],
-    LintNames.prefer_for_elements_to_map_fromIterable: [
-      ConvertMapFromIterableToForLiteral.newInstance,
-    ],
-    LintNames.prefer_generic_function_type_aliases: [
-      ConvertToGenericFunctionSyntax.newInstance,
-    ],
-    LintNames.prefer_if_elements_to_conditional_expressions: [
-      ConvertConditionalExpressionToIfElement.newInstance,
-    ],
-    LintNames.prefer_is_empty: [
-      ReplaceWithIsEmpty.newInstance,
-    ],
-    LintNames.prefer_is_not_empty: [
-      UseIsNotEmpty.newInstance,
-    ],
-    LintNames.prefer_if_null_operators: [
-      ConvertToIfNull.newInstance,
-    ],
-    LintNames.prefer_inlined_adds: [
-      ConvertAddAllToSpread.newInstance,
-      InlineInvocation.newInstance,
-    ],
-    LintNames.prefer_int_literals: [
-      ConvertToIntLiteral.newInstance,
-    ],
-    LintNames.prefer_interpolation_to_compose_strings: [
-      ReplaceWithInterpolation.newInstance,
-    ],
-    LintNames.prefer_iterable_whereType: [
-      ConvertToWhereType.newInstance,
-    ],
-    LintNames.prefer_null_aware_operators: [
-      ConvertToNullAware.newInstance,
-    ],
-    LintNames.prefer_relative_imports: [
-      ConvertToRelativeImport.newInstance,
-    ],
-    LintNames.prefer_single_quotes: [
-      ConvertToSingleQuotes.newInstance,
-    ],
-    LintNames.prefer_spread_collections: [
-      ConvertAddAllToSpread.newInstance,
-    ],
-    LintNames.slash_for_doc_comments: [
-      ConvertDocumentationIntoLine.newInstance,
-    ],
-    LintNames.sort_child_properties_last: [
-      SortChildPropertyLast.newInstance,
-    ],
-    LintNames.type_annotate_public_apis: [
-      AddTypeAnnotation.newInstance,
-    ],
-    LintNames.type_init_formals: [
-      RemoveTypeAnnotation.newInstance,
-    ],
-    LintNames.unawaited_futures: [
-      AddAwait.newInstance,
-    ],
-    LintNames.unnecessary_brace_in_string_interps: [
-      RemoveInterpolationBraces.newInstance,
-    ],
-    LintNames.unnecessary_const: [
-      RemoveUnnecessaryConst.newInstance,
-    ],
-    LintNames.unnecessary_final: [
-      ReplaceFinalWithVar.newInstance,
-    ],
-    LintNames.unnecessary_lambdas: [
-      ReplaceWithTearOff.newInstance,
-    ],
-    LintNames.unnecessary_new: [
-      RemoveUnnecessaryNew.newInstance,
-    ],
-    LintNames.unnecessary_null_in_if_null_operators: [
-      RemoveIfNullOperator.newInstance,
-    ],
-    LintNames.unnecessary_nullable_for_final_variable_declarations: [
-      RemoveQuestionMark.newInstance,
-    ],
-    LintNames.unnecessary_overrides: [
-      RemoveMethodDeclaration.newInstance,
-    ],
-    LintNames.unnecessary_parenthesis: [
-      RemoveUnnecessaryParentheses.newInstance,
-    ],
-    LintNames.unnecessary_string_interpolations: [
-      RemoveUnnecessaryStringInterpolation.newInstance,
-    ],
-    LintNames.unnecessary_this: [
-      RemoveThisExpression.newInstance,
-    ],
-    LintNames.use_full_hex_values_for_flutter_colors: [
-      ReplaceWithEightDigitHex.newInstance,
-    ],
-    LintNames.use_function_type_syntax_for_parameters: [
-      ConvertToGenericFunctionSyntax.newInstance,
-    ],
-    LintNames.use_rethrow_when_possible: [
-      UseRethrow.newInstance,
-    ],
-  };
-
   /// A map from error codes to a list of generators used to create multiple
   /// correction producers used to build fixes for those diagnostics. The
   /// generators used for lint rules are in the [lintMultiProducerMap].
@@ -1448,7 +1215,7 @@ class FixProcessor extends BaseProcessor {
 
   /// A map from error codes to a list of generators used to create the
   /// correction producers used to build fixes for those diagnostics. The
-  /// generators used for lint rules are in the [lintProducerMap2].
+  /// generators used for lint rules are in the [lintProducerMap].
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
       MakeFieldNotFinal.newInstance,
@@ -2007,7 +1774,7 @@ class FixProcessor extends BaseProcessor {
 
     var errorCode = error.errorCode;
     if (errorCode is LintCode) {
-      var fixes = lintProducerMap2[errorCode.name] ?? [];
+      var fixes = lintProducerMap[errorCode.name] ?? [];
       for (var fix in fixes) {
         for (var generator in fix.generators) {
           await compute(generator());

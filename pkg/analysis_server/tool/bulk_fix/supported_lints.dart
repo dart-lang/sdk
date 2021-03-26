@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/fix_internal.dart';
 /// Print lints that are bulk-fixable in a format that can be included in
 /// analysis options.
 void main() {
-  final bulkFixCodes = FixProcessor.lintProducerMap2.entries
+  final bulkFixCodes = FixProcessor.lintProducerMap.entries
       .where((e) => e.value.where((fix) => fix.canBeBulkApplied).isNotEmpty)
       .map((e) => e.key);
   print('    # bulk-fixable lints');

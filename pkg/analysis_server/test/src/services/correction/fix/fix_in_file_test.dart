@@ -121,12 +121,11 @@ class VerificationTests {
     verify_fixInFileFixesHaveBulkFixTests();
     verify_fixInFileFixKindsHaveMultiFixes();
     verify_fixInFileFixesHaveUniqueBulkFixes();
-    verify_lintProducerMap2_coverage();
   }
 
   static void verify_fixInFileFixesHaveBulkFixTests() {
     group('VerificationTests | fixInFileFixesHaveBulkFixTests |', () {
-      for (var fixEntry in FixProcessor.lintProducerMap2.entries) {
+      for (var fixEntry in FixProcessor.lintProducerMap.entries) {
         var errorCode = fixEntry.key;
         for (var fixInfo in fixEntry.value) {
           if (fixInfo.canBeAppliedToFile) {
@@ -141,7 +140,7 @@ class VerificationTests {
 
   static void verify_fixInFileFixesHaveUniqueBulkFixes() {
     group('VerificationTests | fixInFileFixesHaveUniqueBulkFixes | lint |', () {
-      for (var fixEntry in FixProcessor.lintProducerMap2.entries) {
+      for (var fixEntry in FixProcessor.lintProducerMap.entries) {
         var errorCode = fixEntry.key;
         for (var fixInfo in fixEntry.value) {
           if (fixInfo.canBeAppliedToFile) {
@@ -167,7 +166,7 @@ class VerificationTests {
     var dynamicProducerTypes = ['ReplaceWithIsEmpty'];
 
     group('VerificationTests | fixInFileFixKindsHaveMultiFixes | lint |', () {
-      for (var fixEntry in FixProcessor.lintProducerMap2.entries) {
+      for (var fixEntry in FixProcessor.lintProducerMap.entries) {
         var errorCode = fixEntry.key;
         for (var fixInfo in fixEntry.value) {
           // At least one generator should have a multiFix.
@@ -185,19 +184,6 @@ class VerificationTests {
             });
           }
         }
-      }
-    });
-  }
-
-  static void verify_lintProducerMap2_coverage() {
-    // todo (pq): remove when lintProducerMap is deleted.
-    group('VerificationTests | lintProducerMap2_coverage |', () {
-      // ignore: deprecated_member_use_from_same_package
-      for (var entry in FixProcessor.lintProducerMap.entries) {
-        var errorCode = entry.key;
-        test('$errorCode |', () {
-          expect(FixProcessor.lintProducerMap2, contains(errorCode));
-        });
       }
     });
   }
