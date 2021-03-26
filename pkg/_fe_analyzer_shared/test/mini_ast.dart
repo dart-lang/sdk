@@ -13,6 +13,8 @@ import 'mini_types.dart';
 
 Expression get nullLiteral => new _NullLiteral();
 
+Expression get this_ => new _This();
+
 Statement assert_(Expression condition, [Expression? message]) =>
     new _Assert(condition, message);
 
@@ -159,8 +161,6 @@ Statement return_() => new _Return();
 Statement switch_(Expression expression, List<SwitchCase> cases,
         {required bool isExhaustive}) =>
     new _Switch(expression, cases, isExhaustive);
-
-Expression this_(String type) => new _This(Type(type));
 
 Expression thisOrSuperPropertyGet(String name, {String type = 'Object?'}) =>
     new _ThisOrSuperPropertyGet(name, Type(type));
@@ -427,6 +427,8 @@ class Harness extends TypeOperations<Var, Type> {
 
   final bool legacy;
 
+  final Type? thisType;
+
   final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
 
   final Map<String, Type> _factorResults = Map.of(_coreFactors);
@@ -435,7 +437,8 @@ class Harness extends TypeOperations<Var, Type> {
 
   Map<String, Map<String, String>> _promotionExceptions = {};
 
-  Harness({this.legacy = false});
+  Harness({this.legacy = false, String? thisType})
+      : thisType = thisType == null ? null : Type(thisType);
 
   /// Updates the harness so that when a [factor] query is invoked on types
   /// [from] and [what], [result] will be returned.
@@ -1515,10 +1518,6 @@ class _Switch extends Statement {
 }
 
 class _This extends Expression {
-  final Type type;
-
-  _This(this.type);
-
   @override
   String toString() => 'this';
 
@@ -1528,8 +1527,9 @@ class _This extends Expression {
   @override
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    flow.thisOrSuper(this, type);
-    return type;
+    var thisType = h.thisType!;
+    flow.thisOrSuper(this, thisType);
+    return thisType;
   }
 }
 

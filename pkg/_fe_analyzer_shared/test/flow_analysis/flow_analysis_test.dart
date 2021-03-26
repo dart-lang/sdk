@@ -519,13 +519,13 @@ main() {
     });
 
     test('equalityOp_end does not set reachability for `this`', () {
-      var h = Harness()
+      var h = Harness(thisType: 'C')
         ..addSubtype('Null', 'C', false)
         ..addFactor('C', 'Null', 'C');
       h.addSubtype('C', 'Object', true);
       h.run([
-        if_(this_('C').is_('Null'), [
-          if_(this_('C').eq(nullLiteral), [
+        if_(this_.is_('Null'), [
+          if_(this_.eq(nullLiteral), [
             checkReachable(true),
           ], [
             checkReachable(true),
@@ -564,10 +564,10 @@ main() {
       });
 
       test('on explicit this', () {
-        var h = Harness();
+        var h = Harness(thisType: 'C');
         h.run([
-          if_(this_('C').propertyGet('f').is_('Null'), [
-            if_(this_('C').propertyGet('f').eq(nullLiteral), [
+          if_(this_.propertyGet('f').is_('Null'), [
+            if_(this_.propertyGet('f').eq(nullLiteral), [
               checkReachable(true),
             ], [
               checkReachable(true),
@@ -1464,11 +1464,11 @@ main() {
     });
 
     test('isExpression_end() does not set reachability for `this`', () {
-      var h = Harness()
+      var h = Harness(thisType: 'C')
         ..addSubtype('Never', 'C', true)
         ..addFactor('C', 'Never', 'C');
       h.run([
-        if_(this_('C').is_('Never'), [
+        if_(this_.is_('Never'), [
           checkReachable(true),
         ], [
           checkReachable(true),
@@ -1502,9 +1502,9 @@ main() {
       });
 
       test('on explicit this', () {
-        var h = Harness();
+        var h = Harness(thisType: 'C');
         h.run([
-          if_(this_('C').propertyGet('f').is_('Never'), [
+          if_(this_.propertyGet('f').is_('Never'), [
             checkReachable(true),
           ], [
             checkReachable(true),
@@ -5622,12 +5622,12 @@ main() {
 
     group('because property', () {
       test('via explicit this', () {
-        var h = Harness();
+        var h = Harness(thisType: 'C');
         h.run([
-          if_(this_('C').propertyGet('field').eq(nullLiteral), [
+          if_(this_.propertyGet('field').eq(nullLiteral), [
             return_(),
           ]),
-          this_('C').propertyGet('field').whyNotPromoted((reasons) {
+          this_.propertyGet('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason = reasons.values.single;
             expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
@@ -5668,14 +5668,14 @@ main() {
 
     group('because this', () {
       test('explicit', () {
-        var h = Harness()
+        var h = Harness(thisType: 'C')
           ..addSubtype('D', 'C', true)
           ..addFactor('C', 'D', 'C');
         h.run([
-          if_(this_('C').isNot('D'), [
+          if_(this_.isNot('D'), [
             return_(),
           ]),
-          this_('C').whyNotPromoted((reasons) {
+          this_.whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('D')]));
             var nonPromotionReason = reasons.values.single;
             expect(nonPromotionReason, TypeMatcher<ThisNotPromoted>());
@@ -5684,11 +5684,11 @@ main() {
       });
 
       test('implicit', () {
-        var h = Harness()
+        var h = Harness(thisType: 'C')
           ..addSubtype('D', 'C', true)
           ..addFactor('C', 'D', 'C');
         h.run([
-          if_(this_('C').isNot('D'), [
+          if_(this_.isNot('D'), [
             return_(),
           ]),
           implicitThis_whyNotPromoted('C', (reasons) {
