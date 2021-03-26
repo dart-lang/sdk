@@ -42,8 +42,8 @@ main() {
     test('assert_end joins previous and ifTrue states', () {
       var h = Harness();
       var x = Var('x', 'int?');
-      var y = Var('x', 'int?');
-      var z = Var('x', 'int?');
+      var y = Var('y', 'int?');
+      var z = Var('z', 'int?');
       h.run([
         x.read.as_('int').stmt,
         z.read.as_('int').stmt,
