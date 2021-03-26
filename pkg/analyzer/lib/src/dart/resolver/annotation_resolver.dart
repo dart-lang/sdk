@@ -30,11 +30,11 @@ class AnnotationResolver {
       _definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
 
   void resolve(AnnotationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo) {
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
     AstNode parent = node.parent;
 
     node.typeArguments?.accept(_resolver);
-    _resolve(node, whyNotPromotedInfo);
+    _resolve(node, whyNotPromotedList);
 
     var elementAnnotationImpl =
         node.elementAnnotation as ElementAnnotationImpl?;
@@ -50,7 +50,7 @@ class AnnotationResolver {
     AnnotationImpl node,
     ClassElement classElement,
     SimpleIdentifierImpl? getterName,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo,
+    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
   ) {
     ExecutableElement? getter;
     if (getterName != null) {
@@ -66,7 +66,7 @@ class AnnotationResolver {
     node.element = getter;
 
     if (getterName != null && getter is PropertyAccessorElement) {
-      _propertyAccessorElement(node, getterName, getter, whyNotPromotedInfo);
+      _propertyAccessorElement(node, getterName, getter, whyNotPromotedList);
       _resolveAnnotationElementGetter(node, getter);
     } else if (getter is! ConstructorElement) {
       _errorReporter.reportErrorForNode(
@@ -75,7 +75,7 @@ class AnnotationResolver {
       );
     }
 
-    _visitArguments(node, whyNotPromotedInfo);
+    _visitArguments(node, whyNotPromotedList);
   }
 
   void _constructorInvocation(
@@ -83,7 +83,7 @@ class AnnotationResolver {
     ClassElement classElement,
     SimpleIdentifierImpl? constructorName,
     ArgumentList argumentList,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo,
+    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
   ) {
     ConstructorElement? constructorElement;
     if (constructorName != null) {
@@ -104,7 +104,7 @@ class AnnotationResolver {
         node,
       );
       _resolver.visitArgumentList(argumentList,
-          whyNotPromotedInfo: whyNotPromotedInfo);
+          whyNotPromotedList: whyNotPromotedList);
       return;
     }
 
@@ -115,7 +115,7 @@ class AnnotationResolver {
       _resolveConstructorInvocationArguments(node);
       InferenceContext.setType(argumentList, constructorElement.type);
       _resolver.visitArgumentList(argumentList,
-          whyNotPromotedInfo: whyNotPromotedInfo);
+          whyNotPromotedList: whyNotPromotedList);
       return;
     }
 
@@ -134,7 +134,7 @@ class AnnotationResolver {
 
       InferenceContext.setType(argumentList, constructorElement.type);
       _resolver.visitArgumentList(argumentList,
-          whyNotPromotedInfo: whyNotPromotedInfo);
+          whyNotPromotedList: whyNotPromotedList);
     }
 
     if (!_genericMetadataIsEnabled) {
@@ -164,7 +164,7 @@ class AnnotationResolver {
     }
 
     _resolver.visitArgumentList(argumentList,
-        whyNotPromotedInfo: whyNotPromotedInfo);
+        whyNotPromotedList: whyNotPromotedList);
 
     var constructorRawType = _resolver.typeAnalyzer
         .constructorToGenericFunctionType(constructorElement);
@@ -194,7 +194,7 @@ class AnnotationResolver {
     AnnotationImpl node,
     ExtensionElement extensionElement,
     SimpleIdentifierImpl? getterName,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo,
+    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
   ) {
     ExecutableElement? getter;
     if (getterName != null) {
@@ -206,7 +206,7 @@ class AnnotationResolver {
     node.element = getter;
 
     if (getterName != null && getter is PropertyAccessorElement) {
-      _propertyAccessorElement(node, getterName, getter, whyNotPromotedInfo);
+      _propertyAccessorElement(node, getterName, getter, whyNotPromotedList);
       _resolveAnnotationElementGetter(node, getter);
     } else {
       _errorReporter.reportErrorForNode(
@@ -215,25 +215,25 @@ class AnnotationResolver {
       );
     }
 
-    _visitArguments(node, whyNotPromotedInfo);
+    _visitArguments(node, whyNotPromotedList);
   }
 
   void _propertyAccessorElement(
     AnnotationImpl node,
     SimpleIdentifierImpl name,
     PropertyAccessorElement element,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo,
+    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
   ) {
     element = _resolver.toLegacyElement(element);
     name.staticElement = element;
     node.element = element;
 
     _resolveAnnotationElementGetter(node, element);
-    _visitArguments(node, whyNotPromotedInfo);
+    _visitArguments(node, whyNotPromotedList);
   }
 
   void _resolve(AnnotationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo) {
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
     SimpleIdentifierImpl name1;
     SimpleIdentifierImpl? name2;
     SimpleIdentifierImpl? name3;
@@ -257,7 +257,7 @@ class AnnotationResolver {
         node,
         [name1.name],
       );
-      _visitArguments(node, whyNotPromotedInfo);
+      _visitArguments(node, whyNotPromotedList);
       return;
     }
 
@@ -265,16 +265,16 @@ class AnnotationResolver {
     if (element1 is ClassElement) {
       if (argumentList != null) {
         _constructorInvocation(
-            node, element1, name2, argumentList, whyNotPromotedInfo);
+            node, element1, name2, argumentList, whyNotPromotedList);
       } else {
-        _classGetter(node, element1, name2, whyNotPromotedInfo);
+        _classGetter(node, element1, name2, whyNotPromotedList);
       }
       return;
     }
 
     // Extension.CONST
     if (element1 is ExtensionElement) {
-      _extensionGetter(node, element1, name2, whyNotPromotedInfo);
+      _extensionGetter(node, element1, name2, whyNotPromotedList);
       return;
     }
 
@@ -287,20 +287,20 @@ class AnnotationResolver {
         if (element2 is ClassElement) {
           if (argumentList != null) {
             _constructorInvocation(
-                node, element2, name3, argumentList, whyNotPromotedInfo);
+                node, element2, name3, argumentList, whyNotPromotedList);
           } else {
-            _classGetter(node, element2, name3, whyNotPromotedInfo);
+            _classGetter(node, element2, name3, whyNotPromotedList);
           }
           return;
         }
         // prefix.Extension.CONST
         if (element2 is ExtensionElement) {
-          _extensionGetter(node, element2, name3, whyNotPromotedInfo);
+          _extensionGetter(node, element2, name3, whyNotPromotedList);
           return;
         }
         // prefix.CONST
         if (element2 is PropertyAccessorElement) {
-          _propertyAccessorElement(node, name2, element2, whyNotPromotedInfo);
+          _propertyAccessorElement(node, name2, element2, whyNotPromotedList);
           return;
         }
         // undefined
@@ -310,7 +310,7 @@ class AnnotationResolver {
             node,
             [name2.name],
           );
-          _visitArguments(node, whyNotPromotedInfo);
+          _visitArguments(node, whyNotPromotedList);
           return;
         }
       }
@@ -318,7 +318,7 @@ class AnnotationResolver {
 
     // CONST
     if (element1 is PropertyAccessorElement) {
-      _propertyAccessorElement(node, name1, element1, whyNotPromotedInfo);
+      _propertyAccessorElement(node, name1, element1, whyNotPromotedList);
       return;
     }
 
@@ -332,7 +332,7 @@ class AnnotationResolver {
       node,
     );
 
-    _visitArguments(node, whyNotPromotedInfo);
+    _visitArguments(node, whyNotPromotedList);
   }
 
   void _resolveAnnotationElementGetter(
@@ -394,11 +394,11 @@ class AnnotationResolver {
   }
 
   void _visitArguments(AnnotationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo) {
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
     var arguments = node.arguments;
     if (arguments != null) {
       _resolver.visitArgumentList(arguments,
-          whyNotPromotedInfo: whyNotPromotedInfo);
+          whyNotPromotedList: whyNotPromotedList);
     }
   }
 }

@@ -111,8 +111,7 @@ class BinaryExpressionResolver {
     var right = node.rightOperand;
     right.accept(_resolver);
     right = node.rightOperand;
-    var whyNotPromotedInfo =
-        _resolver.flowAnalysis?.flow?.whyNotPromoted(right);
+    var whyNotPromoted = _resolver.flowAnalysis?.flow?.whyNotPromoted(right);
 
     if (!leftExtensionOverride) {
       flow?.equalityOp_end(node, right, right.typeOrThrow, notEqual: notEqual);
@@ -125,8 +124,7 @@ class BinaryExpressionResolver {
     );
     _resolveUserDefinableType(node);
     _resolver.checkForArgumentTypeNotAssignableForArgument(node.rightOperand,
-        promoteParameterToNullable: true,
-        whyNotPromotedInfo: whyNotPromotedInfo);
+        promoteParameterToNullable: true, whyNotPromoted: whyNotPromoted);
   }
 
   void _resolveIfNull(BinaryExpressionImpl node) {
@@ -275,12 +273,11 @@ class BinaryExpressionResolver {
 
     right.accept(_resolver);
     right = node.rightOperand;
-    var whyNotPromotedInfo =
-        _resolver.flowAnalysis?.flow?.whyNotPromoted(right);
+    var whyNotPromoted = _resolver.flowAnalysis?.flow?.whyNotPromoted(right);
 
     _resolveUserDefinableType(node);
     _resolver.checkForArgumentTypeNotAssignableForArgument(right,
-        whyNotPromotedInfo: whyNotPromotedInfo);
+        whyNotPromoted: whyNotPromoted);
   }
 
   void _resolveUserDefinableElement(

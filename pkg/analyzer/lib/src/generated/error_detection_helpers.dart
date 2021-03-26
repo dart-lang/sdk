@@ -32,7 +32,7 @@ mixin ErrorDetectionHelpers {
       DartType? expectedStaticType,
       DartType actualStaticType,
       ErrorCode errorCode,
-      {Map<DartType, NonPromotionReason> Function()? whyNotPromotedInfo}) {
+      {Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     // Warning case: test static type information
     if (expectedStaticType != null) {
       if (!expectedStaticType.isVoid && checkForUseOfVoidResult(expression)) {
@@ -41,7 +41,7 @@ mixin ErrorDetectionHelpers {
 
       _checkForAssignableExpressionAtType(
           expression, actualStaticType, expectedStaticType, errorCode,
-          whyNotPromoted: whyNotPromotedInfo);
+          whyNotPromoted: whyNotPromoted);
     }
   }
 
@@ -54,12 +54,12 @@ mixin ErrorDetectionHelpers {
   /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void checkForArgumentTypeNotAssignableForArgument(Expression argument,
       {bool promoteParameterToNullable = false,
-      Map<DartType, NonPromotionReason> Function()? whyNotPromotedInfo}) {
+      Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     checkForArgumentTypeNotAssignableForArgument2(
       argument: argument,
       parameter: argument.staticParameterElement,
       promoteParameterToNullable: promoteParameterToNullable,
-      whyNotPromotedInfo: whyNotPromotedInfo,
+      whyNotPromoted: whyNotPromoted,
     );
   }
 
@@ -67,7 +67,7 @@ mixin ErrorDetectionHelpers {
     required Expression argument,
     required ParameterElement? parameter,
     required bool promoteParameterToNullable,
-    Map<DartType, NonPromotionReason> Function()? whyNotPromotedInfo,
+    Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     var staticParameterType = parameter?.type;
     if (promoteParameterToNullable && staticParameterType != null) {
@@ -78,7 +78,7 @@ mixin ErrorDetectionHelpers {
         argument,
         staticParameterType,
         CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        whyNotPromotedInfo);
+        whyNotPromoted);
   }
 
   /// Verify that the given constructor field [initializer] has compatible field
@@ -247,10 +247,10 @@ mixin ErrorDetectionHelpers {
       Expression expression,
       DartType? expectedStaticType,
       ErrorCode errorCode,
-      Map<DartType, NonPromotionReason> Function()? whyNotPromotedInfo) {
+      Map<DartType, NonPromotionReason> Function()? whyNotPromoted) {
     checkForArgumentTypeNotAssignable(
         expression, expectedStaticType, expression.typeOrThrow, errorCode,
-        whyNotPromotedInfo: whyNotPromotedInfo);
+        whyNotPromoted: whyNotPromoted);
   }
 
   bool _checkForAssignableExpression(

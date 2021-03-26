@@ -37,11 +37,11 @@ class FunctionExpressionInvocationResolver {
       _resolver.nullableDereferenceVerifier;
 
   void resolve(FunctionExpressionInvocationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo) {
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
     var function = node.function;
 
     if (function is ExtensionOverrideImpl) {
-      _resolveReceiverExtensionOverride(node, function, whyNotPromotedInfo);
+      _resolveReceiverExtensionOverride(node, function, whyNotPromotedList);
       return;
     }
 
@@ -52,12 +52,12 @@ class FunctionExpressionInvocationResolver {
       // `_resolveReceiverInterfaceType` calls `TypePropertyResolver.resolve`,
       // which does the necessary null checking.
       _resolveReceiverInterfaceType(
-          node, function, receiverType, whyNotPromotedInfo);
+          node, function, receiverType, whyNotPromotedList);
       return;
     }
 
     if (_checkForUseOfVoidResult(function, receiverType)) {
-      _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedInfo);
+      _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList);
       return;
     }
 
@@ -65,18 +65,18 @@ class FunctionExpressionInvocationResolver {
         errorCode: CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE);
 
     if (receiverType is FunctionType) {
-      _resolve(node, receiverType, whyNotPromotedInfo);
+      _resolve(node, receiverType, whyNotPromotedList);
       return;
     }
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
       _errorReporter.reportErrorForNode(
           HintCode.RECEIVER_OF_TYPE_NEVER, function);
-      _unresolved(node, NeverTypeImpl.instance, whyNotPromotedInfo);
+      _unresolved(node, NeverTypeImpl.instance, whyNotPromotedList);
       return;
     }
 
-    _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedInfo);
+    _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList);
   }
 
   /// Check for situations where the result of a method or function is used,
@@ -104,11 +104,11 @@ class FunctionExpressionInvocationResolver {
   }
 
   void _resolve(FunctionExpressionInvocationImpl node, FunctionType rawType,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo) {
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
     _inferenceHelper.resolveFunctionExpressionInvocation(
       node: node,
       rawType: rawType,
-      whyNotPromotedInfo: whyNotPromotedInfo,
+      whyNotPromotedList: whyNotPromotedList,
     );
 
     var returnType = _inferenceHelper.computeInvokeReturnType(
@@ -118,15 +118,15 @@ class FunctionExpressionInvocationResolver {
   }
 
   void _resolveArguments(FunctionExpressionInvocationImpl node,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo) {
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
     _resolver.visitArgumentList(node.argumentList,
-        whyNotPromotedInfo: whyNotPromotedInfo);
+        whyNotPromotedList: whyNotPromotedList);
   }
 
   void _resolveReceiverExtensionOverride(
     FunctionExpressionInvocationImpl node,
     ExtensionOverride function,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo,
+    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
   ) {
     var result = _extensionResolver.getOverrideMember(
       function,
@@ -141,7 +141,7 @@ class FunctionExpressionInvocationResolver {
         function,
         [function.extensionName.name],
       );
-      return _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedInfo);
+      return _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList);
     }
 
     if (callElement.isStatic) {
@@ -152,14 +152,14 @@ class FunctionExpressionInvocationResolver {
     }
 
     var rawType = callElement.type;
-    _resolve(node, rawType, whyNotPromotedInfo);
+    _resolve(node, rawType, whyNotPromotedList);
   }
 
   void _resolveReceiverInterfaceType(
     FunctionExpressionInvocationImpl node,
     Expression function,
     InterfaceType receiverType,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo,
+    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
   ) {
     var result = _typePropertyResolver.resolve(
       receiver: function,
@@ -177,7 +177,7 @@ class FunctionExpressionInvocationResolver {
           function,
         );
       }
-      _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedInfo);
+      _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList);
       return;
     }
 
@@ -186,19 +186,19 @@ class FunctionExpressionInvocationResolver {
         CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
         function,
       );
-      _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedInfo);
+      _unresolved(node, DynamicTypeImpl.instance, whyNotPromotedList);
       return;
     }
 
     node.staticElement = callElement;
     var rawType = callElement.type;
-    _resolve(node, rawType, whyNotPromotedInfo);
+    _resolve(node, rawType, whyNotPromotedList);
   }
 
   void _unresolved(FunctionExpressionInvocationImpl node, DartType type,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedInfo) {
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
     _setExplicitTypeArgumentTypes(node);
-    _resolveArguments(node, whyNotPromotedInfo);
+    _resolveArguments(node, whyNotPromotedList);
     node.staticInvokeType = DynamicTypeImpl.instance;
     node.staticType = type;
   }
