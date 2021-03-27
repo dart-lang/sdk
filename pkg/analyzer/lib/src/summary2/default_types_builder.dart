@@ -289,6 +289,19 @@ class DefaultTypesBuilder {
           visited,
         ),
       );
+      for (var typeParameter in startType.typeFormals) {
+        var bound = typeParameter.bound;
+        if (bound != null) {
+          paths.addAll(
+            _findRawTypePathsToDeclaration(
+              startParameter,
+              bound,
+              end,
+              visited,
+            ),
+          );
+        }
+      }
       for (var formalParameter in startType.parameters) {
         paths.addAll(
           _findRawTypePathsToDeclaration(
