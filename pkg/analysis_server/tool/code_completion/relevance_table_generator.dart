@@ -75,34 +75,12 @@ Future<void> main(List<String> args) async {
     var rootPath = result.rest[0];
     print('Analyzing root: "$rootPath"');
 
-    File uniqueDataFile() {
-      var dataDir = result['mapDir'];
-      var baseFileName = provider.pathContext.basename(rootPath);
-      var index = 1;
-      while (index < 10000) {
-        var suffix = (index++).toString();
-        suffix = '0000'.substring(suffix.length) + suffix + '.json';
-        var fileName = baseFileName + suffix;
-        var filePath = provider.pathContext.join(dataDir, fileName);
-        var file = provider.getFile(filePath);
-        if (!file.exists) {
-          return file;
-        }
-      }
-
-      /// If there are more than 10000 directories with the same name, just
-      /// overwrite a previously generated file.
-      var fileName = baseFileName + '9999';
-      var filePath = provider.pathContext.join(dataDir, fileName);
-      return provider.getFile(filePath);
-    }
-
     var computer = RelevanceMetricsComputer();
     var stopwatch = Stopwatch()..start();
     await computer.compute(rootPath, verbose: result['verbose']);
-    if (result.wasParsed('mapDir')) {
-      var dataFile = uniqueDataFile();
-      dataFile.writeAsStringSync(computer.data.toJson());
+    if (result.wasParsed('mapFile')) {
+      var mapFile = provider.getFile(result['mapFile'] as String);
+      mapFile.writeAsStringSync(computer.data.toJson());
     } else {
       writeRelevanceTable(computer.data);
     }
@@ -123,9 +101,9 @@ ArgParser createArgParser() {
     negatable: false,
   );
   parser.addOption(
-    'mapDir',
-    help: 'The absolute path of the directory to which the relevance data will '
-        'be written. Using this option will prevent the relevance table from '
+    'mapFile',
+    help: 'The absolute path of the file to which the relevance data will be '
+        'written. Using this option will prevent the relevance table from '
         'being written.',
   );
   parser.addOption(
@@ -167,8 +145,15 @@ bool validArguments(ArgParser parser, ArgResults result) {
     printUsage(parser, error: 'No package path specified.');
     return false;
   }
-  if (result.wasParsed('mapDir')) {
-    return validateDir(parser, result['mapDir']);
+  if (result.wasParsed('mapFile')) {
+    var mapFilePath = result['mapFile'];
+    if (mapFilePath is! String ||
+        !PhysicalResourceProvider.INSTANCE.pathContext
+            .isAbsolute(mapFilePath)) {
+      printUsage(parser,
+          error: 'The path "$mapFilePath" must be an absolute path.');
+      return false;
+    }
   }
   return validateDir(parser, result.rest[0]);
 }

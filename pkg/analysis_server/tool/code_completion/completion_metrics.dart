@@ -106,33 +106,11 @@ Future<void> main(List<String> args) async {
   print('');
   print('Metrics computed in $duration');
 
-  File uniqueDataFile() {
-    var dataDir = result['mapDir'];
-    var baseFileName = provider.pathContext.basename(rootPath);
-    var index = 1;
-    while (index < 10000) {
-      var suffix = (index++).toString();
-      suffix = '0000'.substring(suffix.length) + suffix + '.json';
-      var fileName = baseFileName + suffix;
-      var filePath = provider.pathContext.join(dataDir, fileName);
-      var file = provider.getFile(filePath);
-      if (!file.exists) {
-        return file;
-      }
-    }
-
-    /// If there are more than 10000 directories with the same name, just
-    /// overwrite a previously generated file.
-    var fileName = baseFileName + '9999';
-    var filePath = provider.pathContext.join(dataDir, fileName);
-    return provider.getFile(filePath);
-  }
-
-  if (result.wasParsed('mapDir')) {
-    var dataFile = uniqueDataFile();
+  if (result.wasParsed('mapFile')) {
+    var mapFile = provider.getFile(result['mapFile'] as String);
     var map =
         computer.targetMetrics.map((metrics) => metrics.toJson()).toList();
-    dataFile.writeAsStringSync(json.encode(map));
+    mapFile.writeAsStringSync(json.encode(map));
   } else {
     computer.printResults();
   }
@@ -210,10 +188,10 @@ ArgParser createArgParser() {
             'worst mrr scores.',
         negatable: false)
     ..addOption(
-      'mapDir',
-      help: 'The absolute path of the directory to which the completion '
-          'metrics data will be written. Using this option will prevent the '
-          'completion results from being written in a textual form.',
+      'mapFile',
+      help: 'The absolute path of the file to which the completion metrics '
+          'data will be written. Using this option will prevent the completion '
+          'results from being written in a textual form.',
     )
     ..addOption(
       'reduceDir',
@@ -247,8 +225,15 @@ bool validArguments(ArgParser parser, ArgResults result) {
     printUsage(parser, error: 'No package path specified.');
     return false;
   }
-  if (result.wasParsed('mapDir')) {
-    return validateDir(parser, result['mapDir']);
+  if (result.wasParsed('mapFile')) {
+    var mapFilePath = result['mapFile'];
+    if (mapFilePath is! String ||
+        !PhysicalResourceProvider.INSTANCE.pathContext
+            .isAbsolute(mapFilePath)) {
+      printUsage(parser,
+          error: 'The path "$mapFilePath" must be an absolute path.');
+      return false;
+    }
   }
   return validateDir(parser, result.rest[0]);
 }
