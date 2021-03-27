@@ -363,8 +363,8 @@ class TypeArgumentsVerifier {
                   .GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
               typeArgumentList[i],
             );
+            continue;
           }
-          continue;
         }
 
         var fnTypeParam = fnTypeParams[i];
