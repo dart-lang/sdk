@@ -38,6 +38,12 @@ class DocumentationValidator {
     'CompileTimeErrorCode.AMBIGUOUS_IMPORT',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
+    // Produces two diagnostics when it should only produce one.
+    'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
+    // Has code in the example section that needs to be skipped (because it's
+    // part of the explanitory text not part of the example), but there's
+    // currently no way to do that.
+    'CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE',
     // Produces two diagnostics when it should only produce one. We could get
     // rid of the invalid error by adding a declaration of a top-level variable
     // (such as `JSBool b;`), but that would complicate the example.
@@ -46,6 +52,8 @@ class DocumentationValidator {
     'CompileTimeErrorCode.INVALID_URI',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE',
+    // No example, by design.
+    'CompileTimeErrorCode.MISSING_DART_LIBRARY',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.NON_SYNC_FACTORY',
     // Need a way to make auxiliary files that (a) are not included in the
