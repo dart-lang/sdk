@@ -471,6 +471,30 @@ void f(CB<F2> a) {}
 ''');
   }
 
+  test_methodInvocation_genericFunctionTypeArgument_match() async {
+    await assertNoErrorsInCode(r'''
+typedef F = void Function<T extends num>();
+void f<T extends void Function<X extends num>()>() {}
+void g() {
+  f<F>();
+}
+''');
+  }
+
+  test_methodInvocation_genericFunctionTypeArgument_mismatch() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+typedef F = void Function<T extends A>();
+void f<T extends void Function<U extends B>()>() {}
+void g() {
+  f<F>();
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 131, 1),
+    ]);
+  }
+
   test_nonFunctionTypeAlias_interfaceType_parameter() async {
     await assertErrorsInCode(r'''
 class A {}
