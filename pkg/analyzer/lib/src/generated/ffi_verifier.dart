@@ -853,10 +853,10 @@ extension on ElementAnnotation {
         element.enclosingElement.name == 'Packed';
   }
 
-  int get packedMemberAlignment {
+  int? get packedMemberAlignment {
     assert(isPacked);
     final value = computeConstantValue();
-    return value!.getField('memberAlignment')!.toIntValue()!;
+    return value?.getField('memberAlignment')?.toIntValue();
   }
 }
 
