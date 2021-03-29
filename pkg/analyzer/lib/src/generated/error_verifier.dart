@@ -2356,9 +2356,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_currentLibrary.source.isInSystemLibrary) {
       return false;
     }
-    return typeName.type is InterfaceType &&
-        _typeProvider.nonSubtypableClasses
-            .contains(typeName.typeOrThrow.element);
+    var type = typeName.type;
+    return type is InterfaceType &&
+        _typeProvider.isNonSubtypableClass(type.element);
   }
 
   void _checkForExtensionDeclaresMemberOfObject(MethodDeclaration node) {
@@ -3322,7 +3322,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 
-    if (!_typeProvider.nonSubtypableClasses.contains(superType.element)) {
+    if (!_typeProvider.isNonSubtypableClass(superType.element)) {
       // Don't report this diagnostic for non-subtypable classes because the
       // real problem was already reported.
       errorReporter.reportErrorForNode(
