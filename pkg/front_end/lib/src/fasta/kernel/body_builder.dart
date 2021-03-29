@@ -1081,7 +1081,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     resolveRedirectingFactoryTargets();
     finishVariableMetadata();
-    libraryBuilder.checkUncheckedTypedefTypes(typeEnvironment);
   }
 
   void checkAsyncReturnType(AsyncMarker asyncModifier, DartType returnType,
