@@ -1,3 +1,7 @@
+## 1.4.0-dev
+* Deprecated `TypeProvider.nonSubtypableClasses`.
+  Use `TypeProvider.isNonSubtypableClass` instead.
+
 ## 1.3.0
 * Added `Expression.inConstantContext` to API.
 * Updated documentation comments for some getters that don't return `null`.
