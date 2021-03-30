@@ -19,6 +19,7 @@ import '../inferrer/types.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/js_world.dart';
+import '../js_model/element_map_impl.dart';
 import '../js_model/locals.dart';
 import '../options.dart';
 import '../util/sink_adapter.dart';
@@ -30,31 +31,10 @@ void serializeGlobalTypeInferenceResultsToSink(
   JsClosedWorld closedWorld = results.closedWorld;
   GlobalLocalsMap globalLocalsMap = results.globalLocalsMap;
   InferredData inferredData = results.inferredData;
-  closedWorld.writeToDataSink(sink);
   globalLocalsMap.writeToDataSink(sink);
   inferredData.writeToDataSink(sink);
   results.writeToDataSink(sink, closedWorld.elementMap);
   sink.close();
-}
-
-GlobalTypeInferenceResults deserializeGlobalAnalysisFromSource(
-    CompilerOptions options,
-    DiagnosticReporter reporter,
-    Environment environment,
-    AbstractValueStrategy abstractValueStrategy,
-    ir.Component component,
-    JsClosedWorld newClosedWorld,
-    DataSource source) {
-  GlobalLocalsMap newGlobalLocalsMap = GlobalLocalsMap.readFromDataSource(
-      newClosedWorld.closureDataLookup.getEnclosingMember, source);
-  InferredData newInferredData =
-      InferredData.readFromDataSource(source, newClosedWorld);
-  return GlobalTypeInferenceResults.readFromDataSource(
-      source,
-      newClosedWorld.elementMap,
-      newClosedWorld,
-      newGlobalLocalsMap,
-      newInferredData);
 }
 
 GlobalTypeInferenceResults deserializeGlobalTypeInferenceResultsFromSource(
@@ -63,7 +43,38 @@ GlobalTypeInferenceResults deserializeGlobalTypeInferenceResultsFromSource(
     Environment environment,
     AbstractValueStrategy abstractValueStrategy,
     ir.Component component,
+    JsClosedWorld closedWorld,
     DataSource source) {
+  source.registerComponentLookup(ComponentLookup(component));
+  source.registerEntityLookup(ClosedEntityLookup(closedWorld.elementMap));
+  GlobalLocalsMap globalLocalsMap = GlobalLocalsMap.readFromDataSource(
+      closedWorld.closureDataLookup.getEnclosingMember, source);
+  InferredData inferredData =
+      InferredData.readFromDataSource(source, closedWorld);
+  return GlobalTypeInferenceResults.readFromDataSource(source,
+      closedWorld.elementMap, closedWorld, globalLocalsMap, inferredData);
+}
+
+void serializeGlobalTypeInferenceResultsToSinkLegacy(
+    GlobalTypeInferenceResults results, DataSink sink) {
+  JsClosedWorld closedWorld = results.closedWorld;
+  GlobalLocalsMap globalLocalsMap = results.globalLocalsMap;
+  InferredData inferredData = results.inferredData;
+  closedWorld.writeToDataSink(sink);
+  globalLocalsMap.writeToDataSink(sink);
+  inferredData.writeToDataSink(sink);
+  results.writeToDataSink(sink, closedWorld.elementMap);
+  sink.close();
+}
+
+GlobalTypeInferenceResults
+    deserializeGlobalTypeInferenceResultsFromSourceLegacy(
+        CompilerOptions options,
+        DiagnosticReporter reporter,
+        Environment environment,
+        AbstractValueStrategy abstractValueStrategy,
+        ir.Component component,
+        DataSource source) {
   JsClosedWorld newClosedWorld = new JsClosedWorld.readFromDataSource(
       options, reporter, environment, abstractValueStrategy, component, source);
   GlobalLocalsMap newGlobalLocalsMap = GlobalLocalsMap.readFromDataSource(
@@ -213,23 +224,7 @@ class SerializationTask extends CompilerTask {
     });
   }
 
-  Future<GlobalTypeInferenceResults> deserializeGlobalTypeInference(
-      Environment environment,
-      AbstractValueStrategy abstractValueStrategy) async {
-    ir.Component component = await deserializeComponentAndUpdateOptions();
-
-    return await measureIoSubtask('deserialize data', () async {
-      _reporter.log('Reading data from ${_options.readDataUri}');
-      api.Input<List<int>> dataInput = await _provider
-          .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
-      DataSource source =
-          BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
-      return deserializeGlobalTypeInferenceResultsFromSource(_options,
-          _reporter, environment, abstractValueStrategy, component, source);
-    });
-  }
-
-  Future<GlobalTypeInferenceResults> deserializeGlobalAnalysis(
+  Future<GlobalTypeInferenceResults> deserializeGlobalTypeInferenceResults(
       Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
@@ -240,8 +235,45 @@ class SerializationTask extends CompilerTask {
           .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
       DataSource source =
           BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
-      return deserializeGlobalAnalysisFromSource(_options, _reporter,
-          environment, abstractValueStrategy, component, closedWorld, source);
+      return deserializeGlobalTypeInferenceResultsFromSource(
+          _options,
+          _reporter,
+          environment,
+          abstractValueStrategy,
+          component,
+          closedWorld,
+          source);
+    });
+  }
+
+  // TODO(joshualitt) get rid of legacy functions after Google3 roll.
+  void serializeGlobalTypeInferenceLegacy(GlobalTypeInferenceResults results) {
+    JsClosedWorld closedWorld = results.closedWorld;
+    ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
+    serializeComponent(component);
+
+    measureSubtask('serialize data', () {
+      _reporter.log('Writing data to ${_options.writeDataUri}');
+      api.BinaryOutputSink dataOutput =
+          _outputProvider.createBinarySink(_options.writeDataUri);
+      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
+      serializeGlobalTypeInferenceResultsToSinkLegacy(results, sink);
+    });
+  }
+
+  Future<GlobalTypeInferenceResults> deserializeGlobalTypeInferenceLegacy(
+      Environment environment,
+      AbstractValueStrategy abstractValueStrategy) async {
+    ir.Component component = await deserializeComponentAndUpdateOptions();
+
+    return await measureIoSubtask('deserialize data', () async {
+      _reporter.log('Reading data from ${_options.readDataUri}');
+      api.Input<List<int>> dataInput = await _provider
+          .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
+      DataSource source =
+          BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
+      return deserializeGlobalTypeInferenceResultsFromSourceLegacy(_options,
+          _reporter, environment, abstractValueStrategy, component, source);
     });
   }
 

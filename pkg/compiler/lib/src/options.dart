@@ -77,6 +77,11 @@ class CompilerOptions implements DiagnosticOptions {
   /// If this is set, the compilation stops after type inference.
   Uri writeDataUri;
 
+  /// Serialize data without the closed world.
+  /// TODO(joshualitt) make this the default right after landing in Google3 and
+  /// clean up.
+  bool noClosedWorldInData = false;
+
   /// Location from which the serialized closed world is read.
   ///
   /// If this is set, the [entryPoint] is expected to be a .dill file and the
@@ -542,6 +547,7 @@ class CompilerOptions implements DiagnosticOptions {
           _extractUriListOption(options, '${Flags.dillDependencies}')
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
       ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
+      ..noClosedWorldInData = _hasOption(options, Flags.noClosedWorldInData)
       ..readClosedWorldUri =
           _extractUriOption(options, '${Flags.readClosedWorld}=')
       ..writeClosedWorldUri =
