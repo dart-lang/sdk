@@ -349,13 +349,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForDeadNullCoalesce(node.readType as TypeImpl, node.rightHandSide);
     }
     _checkForAssignmentToFinal(lhs);
-    if (lhs is IndexExpression) {
-      _checkIndexExpressionIndex(
-        lhs.index,
-        readElement: node.readElement as ExecutableElement?,
-        writeElement: node.writeElement as ExecutableElement?,
-      );
-    }
     super.visitAssignmentExpression(node);
   }
 
@@ -830,12 +823,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    _checkIndexExpressionIndex(
-      node.index,
-      readElement: node.staticElement,
-      writeElement: null,
-    );
-
     if (node.isNullAware) {
       _checkForUnnecessaryNullAware(
         node.realTarget,
@@ -1006,13 +993,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForAssignmentToFinal(operand);
       _checkForIntNotAssignable(operand);
     }
-    if (operand is IndexExpression) {
-      _checkIndexExpressionIndex(
-        operand.index,
-        readElement: node.readElement as ExecutableElement?,
-        writeElement: node.writeElement as ExecutableElement?,
-      );
-    }
     super.visitPostfixExpression(node);
   }
 
@@ -1037,13 +1017,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       checkForUseOfVoidResult(operand);
       _checkForIntNotAssignable(operand);
-    }
-    if (operand is IndexExpression) {
-      _checkIndexExpressionIndex(
-        operand.index,
-        readElement: node.readElement as ExecutableElement?,
-        writeElement: node.writeElement as ExecutableElement?,
-      );
     }
     super.visitPrefixExpression(node);
   }
@@ -4589,34 +4562,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
           interfaceNode,
           [superElement],
-        );
-      }
-    }
-  }
-
-  void _checkIndexExpressionIndex(
-    Expression index, {
-    required ExecutableElement? readElement,
-    required ExecutableElement? writeElement,
-  }) {
-    if (readElement is MethodElement) {
-      var parameters = readElement.parameters;
-      if (parameters.isNotEmpty) {
-        checkForArgumentTypeNotAssignableForArgument2(
-          argument: index,
-          parameter: parameters[0],
-          promoteParameterToNullable: false,
-        );
-      }
-    }
-
-    if (writeElement is MethodElement) {
-      var parameters = writeElement.parameters;
-      if (parameters.isNotEmpty) {
-        checkForArgumentTypeNotAssignableForArgument2(
-          argument: index,
-          parameter: parameters[0],
-          promoteParameterToNullable: false,
         );
       }
     }

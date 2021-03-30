@@ -709,6 +709,11 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
       InferenceContext.setType(node.index, result.indexContextType);
       node.index.accept(this);
+      checkIndexExpressionIndex(
+        node.index,
+        readElement: result.readElement as ExecutableElement?,
+        writeElement: result.writeElement as ExecutableElement?,
+      );
 
       return result;
     } else if (node is PrefixedIdentifier) {
@@ -1702,6 +1707,11 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
     InferenceContext.setType(node.index, result.indexContextType);
     node.index.accept(this);
+    checkIndexExpressionIndex(
+      node.index,
+      readElement: result.readElement as ExecutableElement?,
+      writeElement: null,
+    );
 
     DartType type;
     if (identical(node.realTarget.staticType, NeverTypeImpl.instance)) {
