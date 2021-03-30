@@ -30,7 +30,9 @@ general/annotation_eof: FormatterCrash
 general/bad_setter_abstract: FormatterCrash
 general/bug31124: FormatterCrash
 general/clone_function_type: FormatterCrash
+general/constants/js_semantics/issue45376: FormatterCrash
 general/constants/js_semantics/number_folds: FormatterCrash
+general/constants/js_semantics/on_double: FormatterCrash
 general/constants/number_folds: FormatterCrash
 general/constants/various: FormatterCrash
 general/constructor_initializer_invalid: FormatterCrash
