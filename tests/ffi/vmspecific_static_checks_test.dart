@@ -58,6 +58,7 @@ void main() {
   testRefStruct();
   testSizeOfGeneric();
   testSizeOfNativeType();
+  testSizeOfHandle();
   testElementAtGeneric();
   testElementAtNativeType();
 }
@@ -636,11 +637,11 @@ void testSizeOfGeneric() {
 }
 
 void testSizeOfNativeType() {
-  try {
-    sizeOf(); //# 1301: compile-time error
-  } catch (e) {
-    print(e);
-  }
+  sizeOf(); //# 1301: compile-time error
+}
+
+void testSizeOfHandle() {
+  sizeOf<Handle>(); //# 1302: compile-time error
 }
 
 void testElementAtGeneric() {

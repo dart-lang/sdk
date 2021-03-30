@@ -269,13 +269,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return false;
       }
       if (!_isValidFfiNativeType(nativeType.returnType,
-          allowVoid: true, allowEmptyStruct: false)) {
+          allowVoid: true, allowEmptyStruct: false, allowHandle: true)) {
         return false;
       }
 
       for (final DartType typeArg in nativeType.normalParameterTypes) {
         if (!_isValidFfiNativeType(typeArg,
-            allowVoid: false, allowEmptyStruct: false)) {
+            allowVoid: false, allowEmptyStruct: false, allowHandle: true)) {
           return false;
         }
       }
@@ -288,13 +288,21 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   bool _isValidFfiNativeType(DartType? nativeType,
       {bool allowVoid = false,
       bool allowEmptyStruct = false,
-      bool allowArray = false}) {
+      bool allowArray = false,
+      bool allowHandle = false}) {
     if (nativeType is InterfaceType) {
-      // Is it a primitive integer/double type (or ffi.Void if we allow it).
       final primitiveType = _primitiveNativeType(nativeType);
-      if (primitiveType != _PrimitiveDartType.none &&
-          (primitiveType != _PrimitiveDartType.void_ || allowVoid)) {
-        return true;
+      switch (primitiveType) {
+        case _PrimitiveDartType.void_:
+          return allowVoid;
+        case _PrimitiveDartType.handle:
+          return allowHandle;
+        case _PrimitiveDartType.double:
+        case _PrimitiveDartType.int:
+          return true;
+        case _PrimitiveDartType.none:
+          // These are the cases below.
+          break;
       }
       if (nativeType.isNativeFunction) {
         return _isValidFfiNativeFunctionType(nativeType.typeArguments.single);
@@ -302,7 +310,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (nativeType.isPointer) {
         final nativeArgumentType = nativeType.typeArguments.single;
         return _isValidFfiNativeType(nativeArgumentType,
-                allowVoid: true, allowEmptyStruct: true) ||
+                allowVoid: true, allowEmptyStruct: true, allowHandle: true) ||
             nativeArgumentType.isStructSubtype ||
             nativeArgumentType.isNativeType;
       }
