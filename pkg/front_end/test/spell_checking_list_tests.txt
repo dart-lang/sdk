@@ -57,6 +57,12 @@ background
 bail
 bailing
 bailout
+bar1a
+bar1b
+bar2a
+bar2b
+bar3a
+bar3b
 barbar
 bash
 bat
