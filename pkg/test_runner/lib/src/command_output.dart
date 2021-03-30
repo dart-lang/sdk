@@ -552,7 +552,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
   static void parseErrors(String stderr, List<StaticError> errors,
       [List<StaticError> warnings]) {
     for (var error in AnalyzerError.parseStderr(stderr)) {
-      var staticError = StaticError({ErrorSource.analyzer: error.errorCode},
+      var staticError = StaticError(ErrorSource.analyzer, error.errorCode,
           line: error.line, column: error.column, length: error.length);
 
       if (error.severity == 'ERROR') {
@@ -1315,8 +1315,7 @@ mixin _StaticErrorOutput on CommandOutput {
       var line = int.parse(match.group(2));
       var column = int.parse(match.group(3));
       var message = match.group(4);
-      errors
-          .add(StaticError({errorSource: message}, line: line, column: column));
+      errors.add(StaticError(errorSource, message, line: line, column: column));
     }
   }
 
@@ -1417,7 +1416,7 @@ mixin _StaticErrorOutput on CommandOutput {
     assert(errorSource != null);
 
     var expected = testCase.testFile.expectedErrors
-        .where((error) => error.hasError(errorSource));
+        .where((error) => error.source == errorSource);
 
     var validation = StaticError.validateExpectations(
       expected,

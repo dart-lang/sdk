@@ -53,31 +53,15 @@ int third = "boo";
 
 int last = "oops";
 """, errors: [
-    makeError(
-        line: 1,
-        column: 9,
-        length: 5,
-        analyzerError: "some.error",
-        cfeError: "Bad."),
-    makeError(
-        line: 3,
-        column: 15,
-        length: 7,
-        cfeError: "Another bad.",
-        webError: "Web.\nError."),
-    makeError(
-        line: 5,
-        column: 13,
-        length: 5,
-        analyzerError: "third.error",
-        webError: "Web error."),
-    makeError(
-        line: 7,
-        column: 12,
-        length: 6,
-        analyzerError: "last.error",
-        cfeError: "Final.\nError.",
-        webError: "Web error."),
+    makeError(line: 1, column: 9, length: 5, analyzerError: "some.error"),
+    makeError(line: 1, column: 9, length: 5, cfeError: "Bad."),
+    makeError(line: 3, column: 15, length: 7, cfeError: "Another bad."),
+    makeError(line: 3, column: 15, length: 7, webError: "Web.\nError."),
+    makeError(line: 5, column: 13, length: 5, analyzerError: "third.error"),
+    makeError(line: 5, column: 13, length: 5, webError: "Web error."),
+    makeError(line: 7, column: 12, length: 6, analyzerError: "last.error"),
+    makeError(line: 7, column: 12, length: 6, cfeError: "Final.\nError."),
+    makeError(line: 7, column: 12, length: 6, webError: "Web error."),
   ], expected: """
 int i = "bad";
 /\/      ^^^^^
@@ -215,12 +199,9 @@ int i = "bad";
     /\/    ^^
     /\/ [analyzer] previous.error
 """, errors: [
+    makeError(line: 1, column: 9, length: 5, analyzerError: "updated.error"),
     makeError(
-        line: 1,
-        column: 9,
-        length: 5,
-        analyzerError: "updated.error",
-        cfeError: "Long.\nError.\nMessage."),
+        line: 1, column: 9, length: 5, cfeError: "Long.\nError.\nMessage."),
   ], expected: """
 int i = "bad";
     /\/  ^^^^^
@@ -387,6 +368,28 @@ someBadCode();
 /\/ [cfe] Wrong 2.
 /\/      ^^^^^
 /\/ [cfe] Wrong 1.
+""");
+
+  // Shared locations between errors with and without length.
+  expectUpdate("""
+someBadCode(arg);
+
+moreBadCode(arg);
+""", errors: [
+    makeError(line: 1, column: 13, length: 3, analyzerError: "Error.CODE"),
+    makeError(line: 1, column: 13, cfeError: "Wrong 1."),
+    makeError(line: 3, column: 13, cfeError: "Wrong 2."),
+    makeError(line: 3, column: 13, length: 3, webError: "Web error."),
+  ], expected: """
+someBadCode(arg);
+/\/          ^^^
+/\/ [analyzer] Error.CODE
+/\/ [cfe] Wrong 1.
+
+moreBadCode(arg);
+/\/          ^^^
+/\/ [web] Web error.
+/\/ [cfe] Wrong 2.
 """);
 
   // Doesn't crash with RangeError.

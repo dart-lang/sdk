@@ -203,8 +203,6 @@ Future<void> _processFile(File file,
     }
   }
 
-  errors = StaticError.simplify(errors);
-
   var result = updateErrorExpectations(source, errors, remove: remove);
 
   stdout.writeln("\r${file.path} (Updated with ${errors.length} errors)");
@@ -291,8 +289,7 @@ Future<List<StaticError>> runDart2js(
       return dart2jsError.line == cfeError.line &&
           dart2jsError.column == cfeError.column &&
           dart2jsError.length == cfeError.length &&
-          dart2jsError.errorFor(ErrorSource.web) ==
-              cfeError.errorFor(ErrorSource.cfe);
+          dart2jsError.message == cfeError.message;
     });
   });
 

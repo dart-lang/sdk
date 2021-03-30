@@ -78,7 +78,7 @@ abstract class _TestFileBase {
   /// These tests exist to validate that a Dart web compiler reports the right
   /// expected errors.
   bool get isWebStaticErrorTest =>
-      expectedErrors.any((error) => error.hasError(ErrorSource.web));
+      expectedErrors.any((error) => error.source == ErrorSource.web);
 
   /// If the tests has no static error expectations, or all of the expectations
   /// are warnings, then the test tests runtime semantics.
