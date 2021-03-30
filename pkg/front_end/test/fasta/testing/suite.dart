@@ -874,7 +874,6 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
             result, runResult.outcome, runResult.error);
       case "aot":
       case "none":
-      case "noneWithJs":
       case "dart2js":
       case "dartdevc":
         // TODO(johnniwinther): Support running vm aot, dart2js and/or dartdevc.
@@ -1725,9 +1724,6 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
     case "none":
       target = new NoneTarget(targetFlags);
       break;
-    case "noneWithJs":
-      target = new NoneWithJsTarget(targetFlags);
-      break;
     case "dart2js":
       target = new TestDart2jsTarget('dart2js', targetFlags);
       break;
@@ -2138,14 +2134,6 @@ class UriConfiguration {
         librariesSpecificationUri == other.librariesSpecificationUri &&
         packageConfigUri == other.packageConfigUri;
   }
-}
-
-class NoneWithJsTarget extends NoneTarget {
-  NoneWithJsTarget(TargetFlags flags) : super(flags);
-
-  @override
-  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      const NoneConstantsBackendWithJs(supportsUnevaluatedConstants: true);
 }
 
 class NoneConstantsBackendWithJs extends NoneConstantsBackend {

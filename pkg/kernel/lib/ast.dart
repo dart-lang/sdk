@@ -84,6 +84,7 @@ import 'core_types.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
 import 'src/assumptions.dart';
+import 'src/non_null.dart';
 import 'src/printer.dart';
 import 'src/text_util.dart';
 
@@ -10394,6 +10395,14 @@ abstract class DartType extends Node {
   /// `void`, or `bottom`.
   DartType withDeclaredNullability(Nullability declaredNullability);
 
+  /// Creates the type corresponding to this type without null, if possible.
+  ///
+  /// Note that not all types, for instance `dynamic`, have a corresponding
+  /// non-nullable type. For these, the type itself is returned.
+  ///
+  /// This corresponds to the `NonNull` function of the nnbd specification.
+  DartType toNonNull() => computeNonNull(this);
+
   /// Checks if the type is potentially nullable.
   ///
   /// A type is potentially nullable if it's nullable or if its nullability is
@@ -11577,9 +11586,6 @@ class TypeParameterType extends DartType {
     if (declaredNullability == this.declaredNullability) {
       return this;
     }
-    // TODO(dmitryas): Consider removing the assert.
-    assert(promotedBound == null,
-        "Can't change the nullability attribute of an intersection type.");
     return new TypeParameterType(parameter, declaredNullability, promotedBound);
   }
 

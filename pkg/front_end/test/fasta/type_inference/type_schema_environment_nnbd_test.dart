@@ -383,13 +383,9 @@ class TypeSchemaEnvironmentTest {
     parseTestLibrary("");
 
     checkLowerBound(
-        type1: "Object",
-        type2: "FutureOr<Null>",
-        lowerBound: "FutureOr<Never>");
+        type1: "Object", type2: "FutureOr<Null>", lowerBound: "Never");
     checkLowerBound(
-        type1: "FutureOr<Null>",
-        type2: "Object",
-        lowerBound: "FutureOr<Never>");
+        type1: "FutureOr<Null>", type2: "Object", lowerBound: "Never");
 
     // FutureOr<dynamic> is top.
     checkLowerBound(
@@ -1329,6 +1325,59 @@ class TypeSchemaEnvironmentTest {
         type2: "T",
         upperBound: "List<Object?>",
         typeParameters: "T extends List<T>, U extends List<Never>");
+    checkUpperBound(
+        type1: "T",
+        type2: "T",
+        upperBound: "T",
+        typeParameters: "T extends Object?");
+
+    // These cases are observed through `a ?? b`. Here the resulting type
+    // is `UP(NonNull(a),b)`, if `b` is `null`, is `NonNull(a)?`.
+
+    // We have
+    //
+    //     NonNull(T extends Object?) = T & Object
+    //
+    // resulting in
+    //
+    //     (T & Object)? = T? & Object
+    //
+    checkUpperBound(
+        type1: "T",
+        type2: "Null",
+        upperBound: "T? & Object",
+        typeParameters: "T extends Object?",
+        nonNull1: true);
+
+    // We have
+    //
+    //     NonNull(T extends bool?) = T & bool
+    //
+    // resulting in
+    //
+    //     (T & bool)? = T? & bool
+    //
+    checkUpperBound(
+        type1: "T",
+        type2: "Null",
+        upperBound: "T? & bool",
+        typeParameters: "T extends bool?",
+        nonNull1: true);
+
+    // We have
+    //
+    //     NonNull(T extends bool) = T
+    //
+    // resulting in
+    //
+    //     (T)? = T?
+    //
+    checkUpperBound(
+        type1: "T",
+        type2: "Null",
+        upperBound: "T?",
+        typeParameters: "T extends bool",
+        nonNull1: true);
   }
 
   void test_upper_bound_unknown() {
@@ -1521,16 +1570,29 @@ class TypeSchemaEnvironmentTest {
   }
 
   void checkUpperBound(
-      {String type1, String type2, String upperBound, String typeParameters}) {
+      {String type1,
+      String type2,
+      String upperBound,
+      String typeParameters,
+      bool nonNull1: false,
+      bool nonNull2: false}) {
     assert(type1 != null);
     assert(type2 != null);
     assert(upperBound != null);
 
     typeParserEnvironment.withTypeParameters(typeParameters,
         (List<TypeParameter> typeParameterNodes) {
+      DartType dartType1 = parseType(type1);
+      DartType dartType2 = parseType(type2);
+      if (nonNull1) {
+        dartType1 = dartType1.toNonNull();
+      }
+      if (nonNull2) {
+        dartType2 = dartType2.toNonNull();
+      }
       expect(
           typeSchemaEnvironment.getStandardUpperBound(
-              parseType(type1), parseType(type2), testLibrary),
+              dartType1, dartType2, testLibrary),
           parseType(upperBound));
     });
   }

@@ -1249,7 +1249,7 @@ class InferenceVisitor
     //   UP(t0, t1)
     // - Then the inferred type is T.
     DartType originalLhsType = lhsResult.inferredType;
-    DartType nonNullableLhsType = inferrer.computeNonNullable(originalLhsType);
+    DartType nonNullableLhsType = originalLhsType.toNonNull();
     DartType inferredType = inferrer.typeSchemaEnvironment
         .getStandardUpperBound(nonNullableLhsType, rhsResult.inferredType,
             inferrer.library.library);
@@ -2725,7 +2725,7 @@ class InferenceVisitor
     reportNonNullableInNullAwareWarningIfNeeded(
         operandType, "!", node.operand.fileOffset);
     inferrer.flowAnalysis.nonNullAssert_end(node.operand);
-    DartType nonNullableResultType = inferrer.computeNonNullable(operandType);
+    DartType nonNullableResultType = operandType.toNonNull();
     return inferrer.createNullAwareExpressionInferenceResult(
         nonNullableResultType, node, nullAwareGuards);
   }
@@ -2967,7 +2967,7 @@ class InferenceVisitor
         .findInterfaceMember(readType, equalsName, node.fileOffset)
         .member;
 
-    DartType nonNullableReadType = inferrer.computeNonNullable(readType);
+    DartType nonNullableReadType = readType.toNonNull();
     DartType inferredType = inferrer.typeSchemaEnvironment
         .getStandardUpperBound(
             nonNullableReadType, writeType, inferrer.library.library);
@@ -3032,8 +3032,7 @@ class InferenceVisitor
         .member;
 
     DartType originalReadType = readType;
-    DartType nonNullableReadType =
-        inferrer.computeNonNullable(originalReadType);
+    DartType nonNullableReadType = originalReadType.toNonNull();
     DartType inferredType = inferrer.typeSchemaEnvironment
         .getStandardUpperBound(nonNullableReadType, writeResult.inferredType,
             inferrer.library.library);
@@ -3411,7 +3410,7 @@ class InferenceVisitor
     Expression value = inferrer.ensureAssignableResult(valueType, valueResult);
     inferrer.flowAnalysis.ifNullExpression_end();
 
-    DartType nonNullableReadType = inferrer.computeNonNullable(readType);
+    DartType nonNullableReadType = readType.toNonNull();
     DartType inferredType = inferrer.typeSchemaEnvironment
         .getStandardUpperBound(nonNullableReadType, valueResult.inferredType,
             inferrer.library.library);
@@ -3592,7 +3591,7 @@ class InferenceVisitor
     Expression value = inferrer.ensureAssignableResult(valueType, valueResult);
     inferrer.flowAnalysis.ifNullExpression_end();
 
-    DartType nonNullableReadType = inferrer.computeNonNullable(readType);
+    DartType nonNullableReadType = readType.toNonNull();
     DartType inferredType = inferrer.typeSchemaEnvironment
         .getStandardUpperBound(nonNullableReadType, valueResult.inferredType,
             inferrer.library.library);
@@ -3767,7 +3766,7 @@ class InferenceVisitor
     Expression value = inferrer.ensureAssignableResult(valueType, valueResult);
     inferrer.flowAnalysis.ifNullExpression_end();
 
-    DartType nonNullableReadType = inferrer.computeNonNullable(readType);
+    DartType nonNullableReadType = readType.toNonNull();
     DartType inferredType = inferrer.typeSchemaEnvironment
         .getStandardUpperBound(nonNullableReadType, valueResult.inferredType,
             inferrer.library.library);
@@ -5211,7 +5210,7 @@ class InferenceVisitor
         inferrer.createNullAwareGuard(receiverVariable);
     Expression readReceiver = createVariableGet(receiverVariable);
     Expression writeReceiver = createVariableGet(receiverVariable);
-    DartType nonNullReceiverType = inferrer.computeNonNullable(receiverType);
+    DartType nonNullReceiverType = receiverType.toNonNull();
 
     ExpressionInferenceResult readResult = _computePropertyGet(
         node.readOffset,
@@ -5747,7 +5746,7 @@ class InferenceVisitor
         inferrer.createNullAwareGuard(receiverVariable);
     Expression readReceiver = createVariableGet(receiverVariable);
     Expression writeReceiver = createVariableGet(receiverVariable);
-    DartType nonNullReceiverType = inferrer.computeNonNullable(receiverType);
+    DartType nonNullReceiverType = receiverType.toNonNull();
 
     ExpressionInferenceResult readResult = _computePropertyGet(node.readOffset,
         readReceiver, nonNullReceiverType, node.name, typeContext,
@@ -5783,7 +5782,7 @@ class InferenceVisitor
 
     inferrer.flowAnalysis.ifNullExpression_end();
 
-    DartType nonNullableReadType = inferrer.computeNonNullable(readType);
+    DartType nonNullableReadType = readType.toNonNull();
     DartType inferredType = inferrer.typeSchemaEnvironment
         .getStandardUpperBound(nonNullableReadType, valueResult.inferredType,
             inferrer.library.library);
@@ -6710,7 +6709,7 @@ class InferenceVisitor
       inferrer.flowAnalysis.thisOrSuper(node, variable.type);
     } else if (inferrer.isNonNullableByDefault) {
       if (node.forNullGuardedAccess) {
-        DartType nonNullableType = inferrer.computeNonNullable(variable.type);
+        DartType nonNullableType = variable.type.toNonNull();
         if (nonNullableType != variable.type) {
           promotedType = nonNullableType;
         }

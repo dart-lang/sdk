@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  const constructor doubleShift(dynamic i1, dynamic i2) → self::Class
+    : self::Class::a = i1{dynamic}.>>(i2) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int, super core::Object::•()
+    ;
+  const constructor tripleShift(dynamic i1, dynamic i2) → self::Class
+    : self::Class::a = i1{dynamic}.>>>(i2) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int, super core::Object::•()
+    ;
+}
+static const field dynamic a = 1.0;
+static const field dynamic b = 1.5;
+static const field dynamic c0 = self::a{dynamic}.>>(1);
+static const field dynamic c1 = self::b{dynamic}.>>(1);
+static const field dynamic c2 = self::a{dynamic}.>>>(1);
+static const field dynamic c3 = self::b{dynamic}.>>>(1);
+static const field dynamic d0 = 1.{core::int::>>}(self::a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int){(core::int) → core::int};
+static const field dynamic d1 = 1.{core::int::>>}(self::b as{TypeError,ForDynamic,ForNonNullableByDefault} core::int){(core::int) → core::int};
+static const field dynamic d2 = 1.{core::int::>>>}(self::a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int){(core::int) → core::int};
+static const field dynamic d3 = 1.{core::int::>>>}(self::b as{TypeError,ForDynamic,ForNonNullableByDefault} core::int){(core::int) → core::int};
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: DynamicInvocation @ org-dartlang-testcase:///on_double.dart:8:22 -> DoubleConstant(0.0)
+Evaluated: StaticGet @ org-dartlang-testcase:///on_double.dart:9:20 -> DoubleConstant(1.5)
+Evaluated: DynamicInvocation @ org-dartlang-testcase:///on_double.dart:10:22 -> DoubleConstant(0.0)
+Evaluated: StaticGet @ org-dartlang-testcase:///on_double.dart:11:20 -> DoubleConstant(1.5)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///on_double.dart:13:22 -> DoubleConstant(0.0)
+Evaluated: StaticGet @ org-dartlang-testcase:///on_double.dart:14:25 -> DoubleConstant(1.5)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///on_double.dart:15:22 -> DoubleConstant(0.0)
+Evaluated: StaticGet @ org-dartlang-testcase:///on_double.dart:16:26 -> DoubleConstant(1.5)
+Extra constant evaluation: evaluated: 22, effectively constant: 8

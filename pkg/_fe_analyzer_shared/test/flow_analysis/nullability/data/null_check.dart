@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 void bang_promotes(int? x) {
   x!;
   /*nonNullable*/ x;
@@ -32,4 +34,19 @@ void bang_promotesNullableTypeVariableWithNonNullableBound<E extends int>(
     E? x) {
   x!;
   /*nonNullable*/ x;
+}
+
+void bang_promotesNullableFutureInt(FutureOr<int>? x) {
+  x!;
+  /*nonNullable*/ x;
+}
+
+void bang_promotesFutureNullableInt(FutureOr<int?> x) {
+  x!;
+  x;
+}
+
+void bang_promotesNullableFutureNullableInt(FutureOr<int?>? x) {
+  x!;
+  x;
 }
