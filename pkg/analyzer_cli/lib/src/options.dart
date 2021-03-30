@@ -74,7 +74,10 @@ class CommandLineOptions {
   /// Whether to log additional analysis messages and exceptions
   final bool log;
 
-  /// Whether to use machine format for error display
+  /// Whether to use 'json' format for error display
+  final bool jsonFormat;
+
+  /// Whether to use 'machine' format for error display
   final bool machineFormat;
 
   /// The path to a file to write a performance log.
@@ -131,6 +134,7 @@ class CommandLineOptions {
         displayVersion = cast(args['version']),
         ignoreUnrecognizedFlags = cast(args[_ignoreUnrecognizedFlagsFlag]),
         log = cast(args['log']),
+        jsonFormat = args['format'] == 'json',
         machineFormat = args['format'] == 'machine',
         perfReport = cast(args['x-perf-report']),
         batchMode = cast(args['batch']),
@@ -454,7 +458,7 @@ class CommandLineOptions {
     parser
       ..addOption('format',
           help: 'Specifies the format in which errors are displayed; the only '
-              'currently allowed value is \'machine\'.')
+              'currently recognized values are \'json\' and \'machine\'.')
       ..addFlag('version',
           help: 'Print the analyzer version.',
           defaultsTo: false,

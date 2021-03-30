@@ -27,44 +27,70 @@ void main() {
       options = MockCommandLineOptions();
       options.enableTypeChecks = false;
       options.infosAreFatal = false;
+      options.jsonFormat = false;
       options.machineFormat = false;
       options.verbose = false;
       options.color = false;
-
-      reporter = HumanErrorFormatter(out, options, stats);
     });
 
     tearDown(() {
       ansi.runningTests = false;
     });
 
-    test('error', () {
-      var error = mockResult(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
-      reporter.formatErrors([error]);
-      reporter.flush();
+    group('human', () {
+      setUp(() {
+        reporter = HumanErrorFormatter(out, options, stats);
+      });
 
-      expect(out.toString().trim(),
-          'error • MSG • /foo/bar/baz.dart:3:3 • mock_code');
+      test('error', () {
+        var error = mockResult(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
+        reporter.formatErrors([error]);
+        reporter.flush();
+
+        expect(out.toString().trim(),
+            'error • MSG • /foo/bar/baz.dart:3:3 • mock_code');
+      });
+
+      test('hint', () {
+        var error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
+        reporter.formatErrors([error]);
+        reporter.flush();
+
+        expect(out.toString().trim(),
+            'hint • MSG • /foo/bar/baz.dart:3:3 • mock_code');
+      });
+
+      test('stats', () {
+        var error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
+        reporter.formatErrors([error]);
+        reporter.flush();
+        stats.print(out);
+        expect(
+            out.toString().trim(),
+            'hint • MSG • /foo/bar/baz.dart:3:3 • mock_code\n'
+            '1 hint found.');
+      });
     });
 
-    test('hint', () {
-      var error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
-      reporter.formatErrors([error]);
-      reporter.flush();
+    group('json', () {
+      setUp(() {
+        reporter = JsonErrorFormatter(out, options, stats);
+      });
 
-      expect(out.toString().trim(),
-          'hint • MSG • /foo/bar/baz.dart:3:3 • mock_code');
-    });
+      test('error', () {
+        var error = mockResult(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
+        reporter.formatErrors([error]);
+        reporter.flush();
 
-    test('stats', () {
-      var error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
-      reporter.formatErrors([error]);
-      reporter.flush();
-      stats.print(out);
-      expect(
-          out.toString().trim(),
-          'hint • MSG • /foo/bar/baz.dart:3:3 • mock_code\n'
-          '1 hint found.');
+        expect(
+            out.toString().trim(),
+            '{"version":1,"diagnostics":[{'
+            '"code":"mock_code","severity":"ERROR","type":"SYNTACTIC_ERROR",'
+            '"location":{"file":"/foo/bar/baz.dart","range":{'
+            '"start":{"offset":20,"line":3,"column":3},'
+            '"end":{"offset":23,"line":3,"column":3}}},'
+            '"problemMessage":"MSG"}]}');
+      });
     });
   });
 }
