@@ -444,6 +444,7 @@ class TypeArgumentsVerifier {
     if (parent is WithClause) return false;
     if (parent is ConstructorName) return false;
     if (parent is ImplementsClause) return false;
+    if (parent is GenericTypeAlias) return false;
     return true;
   }
 

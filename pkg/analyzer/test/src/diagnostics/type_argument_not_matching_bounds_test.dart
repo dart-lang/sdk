@@ -495,6 +495,60 @@ void g() {
     ]);
   }
 
+  test_nonFunctionTypeAlias_body_typeArgument_mismatch() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<T extends A> {}
+typedef X = G<B>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 60, 1),
+    ]);
+  }
+
+  test_nonFunctionTypeAlias_body_typeArgument_regularBounded() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+class G<T extends A> {}
+typedef X = G<B>;
+''');
+  }
+
+  test_nonFunctionTypeAlias_body_typeArgument_superBounded() async {
+    await assertNoErrorsInCode(r'''
+class A<T extends A<T>> {}
+typedef X = List<A>;
+''');
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_body_mismatch() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class G<T extends A> {}
+typedef X = G<B>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 60, 1),
+    ]);
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_body_regularBounded() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+typedef X<T> = A;
+''');
+  }
+
+  test_nonFunctionTypeAlias_interfaceType_body_superBounded() async {
+    await assertErrorsInCode(r'''
+class A<T extends A<T>> {}
+typedef X<T> = A;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 42, 1),
+    ]);
+  }
+
   test_nonFunctionTypeAlias_interfaceType_parameter() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -514,15 +568,7 @@ void f(X<B> a) {}
 ''');
   }
 
-  test_nonFunctionTypeAlias_interfaceType_parameter_superBounded() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-typedef X<T extends A> = Map<int, T>;
-void f(X<Never> a) {}
-''');
-  }
-
-  test_notRegularBounded_notSuperBounded_invariant() async {
+  test_notRegularBounded_notSuperBounded_parameter_invariant() async {
     await assertErrorsInCode(r'''
 typedef A<X> = X Function(X);
 typedef G<X extends A<X>> = void Function<Y extends X>();
