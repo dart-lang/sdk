@@ -8,7 +8,7 @@ import "dart:_internal" show patch;
 import 'dart:typed_data';
 import 'dart:isolate';
 
-DynamicLibrary _open(String name) native "Ffi_dl_open";
+DynamicLibrary _open(String path) native "Ffi_dl_open";
 DynamicLibrary _processLibrary() native "Ffi_dl_processLibrary";
 DynamicLibrary _executableLibrary() native "Ffi_dl_executableLibrary";
 
@@ -16,8 +16,8 @@ DynamicLibrary _executableLibrary() native "Ffi_dl_executableLibrary";
 @pragma("vm:entry-point")
 class DynamicLibrary {
   @patch
-  factory DynamicLibrary.open(String name) {
-    return _open(name);
+  factory DynamicLibrary.open(String path) {
+    return _open(path);
   }
 
   @patch
