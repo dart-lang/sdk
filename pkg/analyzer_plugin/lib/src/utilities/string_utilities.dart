@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/src/utilities/charcodes.dart';
 ///
 /// 'getCamelWords' => ['get', 'Camel', 'Words']
 /// 'getHTMLText' => ['get', 'HTML', 'Text']
-List<String> getCamelWords(String string) {
+List<String> getCamelWords(String? string) {
   if (string == null || string.isEmpty) {
     return const <String>[];
   }
@@ -44,7 +44,7 @@ List<String> getCamelWords(String string) {
 }
 
 /// Return `true` if the given [string] is either `null` or empty.
-bool isEmpty(String string) => string == null || string.isEmpty;
+bool isEmpty(String? string) => string == null || string.isEmpty;
 
 /// Return `true` if the given [character] is a lowercase ASCII character.
 bool isLowerCase(int character) => character >= $a && character <= $z;
@@ -55,8 +55,11 @@ bool isUpperCase(int character) => character >= $A && character <= $Z;
 /// If the given [string] starts with the text to [remove], then return the
 /// portion of the string after the text to remove. Otherwise, return the
 /// original string unmodified.
-String removeStart(String string, String remove) {
-  if (isEmpty(string) || isEmpty(remove)) {
+String? removeStart(String? string, String? remove) {
+  if (string == null || string.isEmpty) {
+    return string;
+  }
+  if (remove == null || remove.isEmpty) {
     return string;
   }
   if (string.startsWith(remove)) {

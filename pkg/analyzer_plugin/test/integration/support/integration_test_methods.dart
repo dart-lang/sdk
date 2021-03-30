@@ -112,10 +112,10 @@ abstract class IntegrationTestMixin {
   ///
   ///   The stack trace associated with the generation of the error, used for
   ///   debugging the plugin.
-  Stream<PluginErrorParams> onPluginError;
+  late Stream<PluginErrorParams> onPluginError;
 
   /// Stream controller for [onPluginError].
-  StreamController<PluginErrorParams> _onPluginError;
+  late StreamController<PluginErrorParams> _onPluginError;
 
   /// Return the navigation information associated with the given region of the
   /// given file. If the navigation information for the given file has not yet
@@ -257,7 +257,7 @@ abstract class IntegrationTestMixin {
   ///
   ///   A table mapping the files whose content has changed to a description of
   ///   the content change.
-  Future sendAnalysisUpdateContent(Map<String, dynamic> files) async {
+  Future sendAnalysisUpdateContent(Map<String, Object> files) async {
     var params = AnalysisUpdateContentParams(files).toJson();
     var result = await server.send('analysis.updateContent', params);
     outOfTestExpect(result, isNull);
@@ -277,10 +277,10 @@ abstract class IntegrationTestMixin {
   /// errors: List<AnalysisError>
   ///
   ///   The errors contained in the file.
-  Stream<AnalysisErrorsParams> onAnalysisErrors;
+  late Stream<AnalysisErrorsParams> onAnalysisErrors;
 
   /// Stream controller for [onAnalysisErrors].
-  StreamController<AnalysisErrorsParams> _onAnalysisErrors;
+  late StreamController<AnalysisErrorsParams> _onAnalysisErrors;
 
   /// Used to report the folding regions associated with a given file. Folding
   /// regions can be nested, but cannot be overlapping. Nesting occurs when a
@@ -304,10 +304,10 @@ abstract class IntegrationTestMixin {
   /// regions: List<FoldingRegion>
   ///
   ///   The folding regions contained in the file.
-  Stream<AnalysisFoldingParams> onAnalysisFolding;
+  late Stream<AnalysisFoldingParams> onAnalysisFolding;
 
   /// Stream controller for [onAnalysisFolding].
-  StreamController<AnalysisFoldingParams> _onAnalysisFolding;
+  late StreamController<AnalysisFoldingParams> _onAnalysisFolding;
 
   /// Used to report the highlight regions associated with a given file. Each
   /// highlight region represents a particular syntactic or semantic meaning
@@ -328,10 +328,10 @@ abstract class IntegrationTestMixin {
   /// regions: List<HighlightRegion>
   ///
   ///   The highlight regions contained in the file.
-  Stream<AnalysisHighlightsParams> onAnalysisHighlights;
+  late Stream<AnalysisHighlightsParams> onAnalysisHighlights;
 
   /// Stream controller for [onAnalysisHighlights].
-  StreamController<AnalysisHighlightsParams> _onAnalysisHighlights;
+  late StreamController<AnalysisHighlightsParams> _onAnalysisHighlights;
 
   /// Used to report the navigation regions associated with a given file. Each
   /// navigation region represents a list of targets associated with some
@@ -369,10 +369,10 @@ abstract class IntegrationTestMixin {
   ///
   ///   The files containing navigation targets referenced in the file. They
   ///   are referenced by NavigationTargets by their index in this array.
-  Stream<AnalysisNavigationParams> onAnalysisNavigation;
+  late Stream<AnalysisNavigationParams> onAnalysisNavigation;
 
   /// Stream controller for [onAnalysisNavigation].
-  StreamController<AnalysisNavigationParams> _onAnalysisNavigation;
+  late StreamController<AnalysisNavigationParams> _onAnalysisNavigation;
 
   /// Used to report the occurrences of references to elements within a single
   /// file. None of the occurrence regions should overlap.
@@ -395,10 +395,10 @@ abstract class IntegrationTestMixin {
   /// occurrences: List<Occurrences>
   ///
   ///   The occurrences of references to elements within the file.
-  Stream<AnalysisOccurrencesParams> onAnalysisOccurrences;
+  late Stream<AnalysisOccurrencesParams> onAnalysisOccurrences;
 
   /// Stream controller for [onAnalysisOccurrences].
-  StreamController<AnalysisOccurrencesParams> _onAnalysisOccurrences;
+  late StreamController<AnalysisOccurrencesParams> _onAnalysisOccurrences;
 
   /// Used to report the outline fragments associated with a single file.
   ///
@@ -419,10 +419,10 @@ abstract class IntegrationTestMixin {
   /// outline: List<Outline>
   ///
   ///   The outline fragments associated with the file.
-  Stream<AnalysisOutlineParams> onAnalysisOutline;
+  late Stream<AnalysisOutlineParams> onAnalysisOutline;
 
   /// Stream controller for [onAnalysisOutline].
-  StreamController<AnalysisOutlineParams> _onAnalysisOutline;
+  late StreamController<AnalysisOutlineParams> _onAnalysisOutline;
 
   /// Used to request that completion suggestions for the given offset in the
   /// given file be returned.
@@ -642,7 +642,7 @@ abstract class IntegrationTestMixin {
   ///   the refactoring.
   Future<EditGetRefactoringResult> sendEditGetRefactoring(RefactoringKind kind,
       String file, int offset, int length, bool validateOnly,
-      {RefactoringOptions options}) async {
+      {RefactoringOptions? options}) async {
     var params = EditGetRefactoringParams(
             kind, file, offset, length, validateOnly,
             options: options)
@@ -746,7 +746,6 @@ abstract class IntegrationTestMixin {
         break;
       default:
         fail('Unexpected notification: $event');
-        break;
     }
   }
 }

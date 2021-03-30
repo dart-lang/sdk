@@ -86,7 +86,7 @@ class CompletionTarget {
   /// or keyword that is part of the token stream, but that the parser has
   /// skipped and not reported in to the parser listeners, meaning that it is
   /// not part of the AST.
-  Token droppedToken;
+  Token? droppedToken;
 
   /// The entity which the completed text will replace (or which will be
   /// displaced once the completed text is inserted). This may be an AstNode or
@@ -97,7 +97,7 @@ class CompletionTarget {
   /// possible). However, there is one exception: when the cursor is inside of
   /// a multi-character token which is not a keyword or identifier (e.g. a
   /// comment, or a token like "+=", the entity will be always be the token.
-  final SyntacticEntity entity;
+  final SyntacticEntity? entity;
 
   /// The [entity] is a comment token, which is either not a documentation
   /// comment or the position is not in a [CommentReference].
@@ -105,21 +105,21 @@ class CompletionTarget {
 
   /// If the target is an argument in an [ArgumentList], then this is the index
   /// of the argument in the list, otherwise this is `null`.
-  final int argIndex;
+  final int? argIndex;
 
   /// If the target is an argument in an [ArgumentList], then this is the
   /// invoked [ExecutableElement], otherwise this is `null`.
-  ExecutableElement _executableElement;
+  ExecutableElement? _executableElement;
 
   /// If the target is in an argument list of a [FunctionExpressionInvocation],
   /// then this is the static type of the function being invoked, otherwise this
   /// is `null`.
-  FunctionType _functionType;
+  FunctionType? _functionType;
 
   /// If the target is an argument in an [ArgumentList], then this is the
   /// corresponding [ParameterElement] in the invoked [ExecutableElement],
   /// otherwise this is `null`.
-  ParameterElement _parameterElement;
+  ParameterElement? _parameterElement;
 
   /// Compute the appropriate [CompletionTarget] for the given [offset] within
   /// the [compilationUnit].
@@ -129,7 +129,7 @@ class CompletionTarget {
   /// [compilationUnit] such as dart expressions within angular templates.
   factory CompletionTarget.forOffset(
       CompilationUnit compilationUnit, int offset,
-      {AstNode entryPoint}) {
+      {AstNode? entryPoint}) {
     // The precise algorithm is as follows. We perform a depth-first search of
     // all edges in the parse tree (both those that point to AST nodes and
     // those that point to tokens), visiting parents before children. The
@@ -151,7 +151,7 @@ class CompletionTarget {
       if (containingNode is Comment) {
         // Comments are handled specially: we descend into any CommentReference
         // child node that contains the cursor offset.
-        var comment = containingNode as Comment;
+        var comment = containingNode;
         for (var commentReference in comment.references) {
           if (commentReference.offset <= offset &&
               offset <= commentReference.end) {
@@ -245,7 +245,7 @@ class CompletionTarget {
   /// Create a [CompletionTarget] holding the given [containingNode] and
   /// [entity].
   CompletionTarget._(this.unit, this.offset, AstNode containingNode,
-      SyntacticEntity entity, this.isCommentText)
+      SyntacticEntity? entity, this.isCommentText)
       : containingNode = containingNode,
         entity = entity,
         argIndex = _computeArgIndex(containingNode, entity),
@@ -253,9 +253,9 @@ class CompletionTarget {
 
   /// If the target is an argument in an argument list, and the invocation is
   /// resolved, return the invoked [ExecutableElement].
-  ExecutableElement get executableElement {
+  ExecutableElement? get executableElement {
     if (_executableElement == null) {
-      var argumentList = containingNode;
+      AstNode? argumentList = containingNode;
       if (argumentList is NamedExpression) {
         argumentList = argumentList.parent;
       }
@@ -265,7 +265,7 @@ class CompletionTarget {
 
       var invocation = argumentList.parent;
 
-      Element executable;
+      Element? executable;
       if (invocation is Annotation) {
         executable = invocation.element;
       } else if (invocation is InstanceCreationExpression) {
@@ -286,9 +286,9 @@ class CompletionTarget {
   /// If the target is in an argument list of a [FunctionExpressionInvocation],
   /// then this is the static type of the function being invoked, otherwise this
   /// is `null`.
-  FunctionType get functionType {
+  FunctionType? get functionType {
     if (_functionType == null) {
-      var argumentList = containingNode;
+      AstNode? argumentList = containingNode;
       if (argumentList is NamedExpression) {
         argumentList = argumentList.parent;
       }
@@ -319,14 +319,17 @@ class CompletionTarget {
       return node.isCascaded && offset > node.operator.offset + 1;
     }
     if (node is MethodInvocation) {
-      return node.isCascaded && offset > node.operator.offset + 1;
+      var operator = node.operator;
+      if (operator != null) {
+        return node.isCascaded && offset > operator.offset + 1;
+      }
     }
     return false;
   }
 
   /// If the target is an argument in an argument list, and the invocation is
   /// resolved, return the corresponding [ParameterElement].
-  ParameterElement get parameterElement {
+  ParameterElement? get parameterElement {
     if (_parameterElement == null) {
       var executable = executableElement;
       if (executable != null) {
@@ -345,7 +348,7 @@ class CompletionTarget {
         token.type.isKeyword || token.type == TokenType.IDENTIFIER;
 
     var token = droppedToken ??
-        (entity is AstNode ? (entity as AstNode).beginToken : entity as Token);
+        (entity is AstNode ? (entity as AstNode).beginToken : entity as Token?);
     if (token != null && requestOffset < token.offset) {
       token = containingNode.findPrevious(token);
     }
@@ -399,7 +402,7 @@ class CompletionTarget {
 
   /// Given that the [node] contains the [offset], return the [FormalParameter]
   /// that encloses the [offset], or `null`.
-  static FormalParameter findFormalParameter(
+  static FormalParameter? findFormalParameter(
     FormalParameterList node,
     int offset,
   ) {
@@ -423,8 +426,8 @@ class CompletionTarget {
     return null;
   }
 
-  static int _computeArgIndex(AstNode containingNode, Object entity) {
-    var argList = containingNode;
+  static int? _computeArgIndex(AstNode containingNode, Object? entity) {
+    AstNode? argList = containingNode;
     if (argList is NamedExpression) {
       entity = argList;
       argList = argList.parent;
@@ -451,8 +454,8 @@ class CompletionTarget {
     return null;
   }
 
-  static Token _computeDroppedToken(
-      AstNode containingNode, Object entity, int offset) {
+  static Token? _computeDroppedToken(
+      AstNode containingNode, Object? entity, int offset) {
     // Find the last token of the member before the entity.
     var previousMember;
     for (var member in containingNode.childEntities) {
@@ -463,7 +466,7 @@ class CompletionTarget {
         previousMember = member;
       }
     }
-    Token token;
+    Token? token;
     if (previousMember is AstNode) {
       token = previousMember.endToken;
     } else if (previousMember is Token) {
@@ -474,7 +477,7 @@ class CompletionTarget {
     }
 
     // Find the first token of the entity (which may be the entity itself).
-    Token endSearch;
+    Token? endSearch;
     if (entity is AstNode) {
       endSearch = entity.beginToken;
     } else if (entity is Token) {
@@ -486,7 +489,7 @@ class CompletionTarget {
 
     // Find a dropped token that overlaps the offset.
     token = token.next;
-    while (token != endSearch && !token.isEof) {
+    while (token != endSearch && !token!.isEof) {
       if (token.isKeywordOrIdentifier &&
           token.offset <= offset &&
           offset <= token.end) {
@@ -499,7 +502,7 @@ class CompletionTarget {
 
   /// Determine if the offset is contained in a preceding comment token
   /// and return that token, otherwise return `null`.
-  static Token _getContainingCommentToken(Token token, int offset) {
+  static Token? _getContainingCommentToken(Token? token, int offset) {
     if (token == null) {
       return null;
     }
@@ -522,7 +525,7 @@ class CompletionTarget {
   }
 
   /// Determine if the given token is part of the given node's dart doc.
-  static Comment _getContainingDocComment(AstNode node, Token token) {
+  static Comment? _getContainingDocComment(AstNode node, Token token) {
     if (node is AnnotatedNode) {
       var docComment = node.documentationComment;
       if (docComment != null && docComment.tokens.contains(token)) {
@@ -534,13 +537,13 @@ class CompletionTarget {
 
   /// Return the [ParameterElement] that corresponds to the given [argumentNode]
   /// at the given [argumentIndex].
-  static ParameterElement _getParameterElement(
+  static ParameterElement? _getParameterElement(
     List<ParameterElement> parameters,
     AstNode argumentNode,
-    int argumentIndex,
+    int? argumentIndex,
   ) {
     if (argumentNode is NamedExpression) {
-      var name = argumentNode.name?.label?.name;
+      var name = argumentNode.name.label.name;
       for (var parameter in parameters) {
         if (parameter.name == name) {
           return parameter;
@@ -549,7 +552,7 @@ class CompletionTarget {
       return null;
     }
 
-    if (argumentIndex < parameters.length) {
+    if (argumentIndex != null && argumentIndex < parameters.length) {
       return parameters[argumentIndex];
     }
 
@@ -575,7 +578,7 @@ class CompletionTarget {
 
   /// Determine whether [token] could possibly be the [entity] for a
   /// [CompletionTarget] associated with the given [offset].
-  static bool _isCandidateToken(AstNode node, Token token, int offset) {
+  static bool _isCandidateToken(AstNode node, Token? token, int offset) {
     if (token == null) {
       return false;
     }

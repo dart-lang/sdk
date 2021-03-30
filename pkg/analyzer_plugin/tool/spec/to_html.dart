@@ -148,7 +148,7 @@ class ApiMappings extends HierarchicalApiVisitor {
 
   @override
   void visitDomain(Domain domain) {
-    domains[domain.html] = domain;
+    domains[domain.html!] = domain;
   }
 }
 
@@ -170,11 +170,11 @@ abstract class HtmlMixin {
   void dt(String cls, void Function() callback) =>
       element('dt', {'class': cls}, callback);
   void element(String name, Map<Object, String> attributes,
-      [void Function() callback]);
+      [void Function()? callback]);
   void gray(void Function() callback) =>
       element('span', {'style': 'color:#999999'}, callback);
   void h1(void Function() callback) => element('h1', {}, callback);
-  void h2(String cls, void Function() callback) {
+  void h2(String? cls, void Function() callback) {
     if (cls == null) {
       return element('h2', {}, callback);
     }
@@ -191,7 +191,7 @@ abstract class HtmlMixin {
   void i(void Function() callback) => element('i', {}, callback);
   void li(void Function() callback) => element('li', {}, callback);
   void link(String id, void Function() callback,
-      [Map<dynamic, String> attributes]) {
+      [Map<Object, String>? attributes]) {
     attributes ??= {};
     attributes['href'] = '#$id';
     element('a', attributes, callback);
@@ -226,7 +226,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   ///
   /// If [force] is true, then a section is inserted even if the payload is
   /// null.
-  void describePayload(TypeObject subType, String name, {bool force = false}) {
+  void describePayload(TypeObject? subType, String name, {bool force = false}) {
     if (force || subType != null) {
       h4(() {
         write(name);
@@ -279,7 +279,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     }
 
     generateTypesIndex(definedTypes);
-    generateRefactoringsIndex(api.refactorings);
+    generateRefactoringsIndex(api.refactorings!);
   }
 
   void generateNotificationsIndex(Iterable<Notification> notifications) {
@@ -298,9 +298,6 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   }
 
   void generateRefactoringsIndex(Iterable<Refactoring> refactorings) {
-    if (refactorings == null) {
-      return;
-    }
     h3(() {
       write('Refactorings');
       write(' (');
@@ -384,13 +381,11 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   }
 
   void javadocParams(TypeObject typeObject) {
-    if (typeObject != null) {
-      for (var field in typeObject.fields) {
-        hangingIndent(() {
-          write('@param ${field.name} ');
-          translateHtml(field.html, squashParagraphs: true);
-        });
-      }
+    for (var field in typeObject.fields) {
+      hangingIndent(() {
+        write('@param ${field.name} ');
+        translateHtml(field.html, squashParagraphs: true);
+      });
     }
   }
 
@@ -401,7 +396,8 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   ///
   /// If [typeForBolding] is supplied, then fields in this type are shown in
   /// boldface.
-  void showType(String shortDesc, TypeDecl type, [TypeObject typeForBolding]) {
+  void showType(String? shortDesc, TypeDecl type,
+      [TypeObject? typeForBolding]) {
     var fieldsToBold = <String>{};
     if (typeForBolding != null) {
       for (var field in typeForBolding.fields) {
@@ -421,7 +417,10 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   /// Copy the contents of the given HTML element, translating the special
   /// elements that define the API appropriately.
-  void translateHtml(dom.Element html, {bool squashParagraphs = false}) {
+  void translateHtml(dom.Element? html, {bool squashParagraphs = false}) {
+    if (html == null) {
+      return;
+    }
     for (var node in html.nodes) {
       if (node is dom.Element) {
         if (squashParagraphs && node.localName == 'p') {
@@ -433,7 +432,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
             generateDomainsHeader();
             break;
           case 'domain':
-            visitDomain(apiMappings.domains[node]);
+            visitDomain(apiMappings.domains[node]!);
             break;
           case 'head':
             head(() {
@@ -466,7 +465,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
             break;
           default:
             if (!ApiReader.specialElements.contains(node.localName)) {
-              element(node.localName, node.attributes, () {
+              element(node.localName!, node.attributes, () {
                 translateHtml(node, squashParagraphs: squashParagraphs);
               });
             }
@@ -547,8 +546,8 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   }
 
   @override
-  void visitRefactorings(Refactorings refactorings) {
-    translateHtml(refactorings.html);
+  void visitRefactorings(Refactorings? refactorings) {
+    translateHtml(refactorings?.html);
     dl(() {
       super.visitRefactorings(refactorings);
     });
@@ -609,7 +608,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   @override
   void visitTypeEnumValue(TypeEnumValue typeEnumValue) {
     var isDocumented = false;
-    for (var node in typeEnumValue.html.nodes) {
+    for (var node in typeEnumValue.html?.nodes ?? []) {
       if ((node is dom.Element && node.localName != 'code') ||
           (node is dom.Text && node.text.trim().isNotEmpty)) {
         isDocumented = true;
@@ -701,7 +700,7 @@ class TypeVisitor extends HierarchicalApiVisitor
     with HtmlMixin, HtmlCodeGenerator {
   /// Set of fields which should be shown in boldface, or null if no field
   /// should be shown in boldface.
-  final Set<String> fieldsToBold;
+  final Set<String>? fieldsToBold;
 
   /// True if a short description should be generated. In a short description,
   /// objects are shown as simply "object", and enums are shown as "String".
@@ -750,6 +749,7 @@ class TypeVisitor extends HierarchicalApiVisitor
     indent(() {
       for (var field in typeObject.fields) {
         write('"');
+        var fieldsToBold = this.fieldsToBold;
         if (fieldsToBold != null && fieldsToBold.contains(field.name)) {
           b(() {
             write(field.name);

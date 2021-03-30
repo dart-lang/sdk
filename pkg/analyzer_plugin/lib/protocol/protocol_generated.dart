@@ -22,16 +22,15 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorFixes implements HasToJson {
-  AnalysisError _error;
+  late AnalysisError _error;
 
-  List<PrioritizedSourceChange> _fixes;
+  late List<PrioritizedSourceChange> _fixes;
 
   /// The error with which the fixes are associated.
   AnalysisError get error => _error;
 
   /// The error with which the fixes are associated.
   set error(AnalysisError value) {
-    assert(value != null);
     _error = value;
   }
 
@@ -40,12 +39,11 @@ class AnalysisErrorFixes implements HasToJson {
 
   /// The fixes associated with the error.
   set fixes(List<PrioritizedSourceChange> value) {
-    assert(value != null);
     _fixes = value;
   }
 
   AnalysisErrorFixes(AnalysisError error,
-      {List<PrioritizedSourceChange> fixes}) {
+      {List<PrioritizedSourceChange>? fixes}) {
     this.error = error;
     if (fixes == null) {
       this.fixes = <PrioritizedSourceChange>[];
@@ -55,7 +53,7 @@ class AnalysisErrorFixes implements HasToJson {
   }
 
   factory AnalysisErrorFixes.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       AnalysisError error;
@@ -70,7 +68,7 @@ class AnalysisErrorFixes implements HasToJson {
         fixes = jsonDecoder.decodeList(
             jsonPath + '.fixes',
             json['fixes'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 PrioritizedSourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'fixes');
@@ -82,8 +80,8 @@ class AnalysisErrorFixes implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['error'] = error.toJson();
     result['fixes'] =
         fixes.map((PrioritizedSourceChange value) => value.toJson()).toList();
@@ -121,16 +119,15 @@ class AnalysisErrorFixes implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorsParams implements HasToJson {
-  String _file;
+  late String _file;
 
-  List<AnalysisError> _errors;
+  late List<AnalysisError> _errors;
 
   /// The file containing the errors.
   String get file => _file;
 
   /// The file containing the errors.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -139,7 +136,6 @@ class AnalysisErrorsParams implements HasToJson {
 
   /// The errors contained in the file.
   set errors(List<AnalysisError> value) {
-    assert(value != null);
     _errors = value;
   }
 
@@ -149,7 +145,7 @@ class AnalysisErrorsParams implements HasToJson {
   }
 
   factory AnalysisErrorsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -163,7 +159,7 @@ class AnalysisErrorsParams implements HasToJson {
         errors = jsonDecoder.decodeList(
             jsonPath + '.errors',
             json['errors'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 AnalysisError.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'errors');
@@ -180,8 +176,8 @@ class AnalysisErrorsParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['errors'] =
         errors.map((AnalysisError value) => value.toJson()).toList();
@@ -223,16 +219,15 @@ class AnalysisErrorsParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisFoldingParams implements HasToJson {
-  String _file;
+  late String _file;
 
-  List<FoldingRegion> _regions;
+  late List<FoldingRegion> _regions;
 
   /// The file containing the folding regions.
   String get file => _file;
 
   /// The file containing the folding regions.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -241,7 +236,6 @@ class AnalysisFoldingParams implements HasToJson {
 
   /// The folding regions contained in the file.
   set regions(List<FoldingRegion> value) {
-    assert(value != null);
     _regions = value;
   }
 
@@ -251,7 +245,7 @@ class AnalysisFoldingParams implements HasToJson {
   }
 
   factory AnalysisFoldingParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -265,7 +259,7 @@ class AnalysisFoldingParams implements HasToJson {
         regions = jsonDecoder.decodeList(
             jsonPath + '.regions',
             json['regions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'regions');
@@ -282,8 +276,8 @@ class AnalysisFoldingParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['regions'] =
         regions.map((FoldingRegion value) => value.toJson()).toList();
@@ -326,18 +320,17 @@ class AnalysisFoldingParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationParams implements RequestParams {
-  String _file;
+  late String _file;
 
-  int _offset;
+  late int _offset;
 
-  int _length;
+  late int _length;
 
   /// The file in which navigation information is being requested.
   String get file => _file;
 
   /// The file in which navigation information is being requested.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -348,7 +341,6 @@ class AnalysisGetNavigationParams implements RequestParams {
   /// The offset of the region for which navigation information is being
   /// requested.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -359,7 +351,6 @@ class AnalysisGetNavigationParams implements RequestParams {
   /// The length of the region for which navigation information is being
   /// requested.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -370,7 +361,7 @@ class AnalysisGetNavigationParams implements RequestParams {
   }
 
   factory AnalysisGetNavigationParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -404,8 +395,8 @@ class AnalysisGetNavigationParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     result['length'] = length;
@@ -450,11 +441,11 @@ class AnalysisGetNavigationParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationResult implements ResponseResult {
-  List<String> _files;
+  late List<String> _files;
 
-  List<NavigationTarget> _targets;
+  late List<NavigationTarget> _targets;
 
-  List<NavigationRegion> _regions;
+  late List<NavigationRegion> _regions;
 
   /// A list of the paths of files that are referenced by the navigation
   /// targets.
@@ -463,7 +454,6 @@ class AnalysisGetNavigationResult implements ResponseResult {
   /// A list of the paths of files that are referenced by the navigation
   /// targets.
   set files(List<String> value) {
-    assert(value != null);
     _files = value;
   }
 
@@ -474,7 +464,6 @@ class AnalysisGetNavigationResult implements ResponseResult {
   /// A list of the navigation targets that are referenced by the navigation
   /// regions.
   set targets(List<NavigationTarget> value) {
-    assert(value != null);
     _targets = value;
   }
 
@@ -483,7 +472,6 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
   /// A list of the navigation regions within the requested region of the file.
   set regions(List<NavigationRegion> value) {
-    assert(value != null);
     _regions = value;
   }
 
@@ -495,7 +483,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
   }
 
   factory AnalysisGetNavigationResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<String> files;
@@ -510,7 +498,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
         targets = jsonDecoder.decodeList(
             jsonPath + '.targets',
             json['targets'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'targets');
@@ -520,7 +508,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
         regions = jsonDecoder.decodeList(
             jsonPath + '.regions',
             json['regions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'regions');
@@ -540,8 +528,8 @@ class AnalysisGetNavigationResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['files'] = files;
     result['targets'] =
         targets.map((NavigationTarget value) => value.toJson()).toList();
@@ -588,14 +576,13 @@ class AnalysisGetNavigationResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisHandleWatchEventsParams implements RequestParams {
-  List<WatchEvent> _events;
+  late List<WatchEvent> _events;
 
   /// The watch events that the plugin should handle.
   List<WatchEvent> get events => _events;
 
   /// The watch events that the plugin should handle.
   set events(List<WatchEvent> value) {
-    assert(value != null);
     _events = value;
   }
 
@@ -604,7 +591,7 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
   }
 
   factory AnalysisHandleWatchEventsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<WatchEvent> events;
@@ -612,7 +599,7 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
         events = jsonDecoder.decodeList(
             jsonPath + '.events',
             json['events'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 WatchEvent.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'events');
@@ -630,8 +617,8 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['events'] =
         events.map((WatchEvent value) => value.toJson()).toList();
     return result;
@@ -667,7 +654,7 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisHandleWatchEventsResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id, int requestTime) {
@@ -697,16 +684,15 @@ class AnalysisHandleWatchEventsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisHighlightsParams implements HasToJson {
-  String _file;
+  late String _file;
 
-  List<HighlightRegion> _regions;
+  late List<HighlightRegion> _regions;
 
   /// The file containing the highlight regions.
   String get file => _file;
 
   /// The file containing the highlight regions.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -715,7 +701,6 @@ class AnalysisHighlightsParams implements HasToJson {
 
   /// The highlight regions contained in the file.
   set regions(List<HighlightRegion> value) {
-    assert(value != null);
     _regions = value;
   }
 
@@ -725,7 +710,7 @@ class AnalysisHighlightsParams implements HasToJson {
   }
 
   factory AnalysisHighlightsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -739,7 +724,7 @@ class AnalysisHighlightsParams implements HasToJson {
         regions = jsonDecoder.decodeList(
             jsonPath + '.regions',
             json['regions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'regions');
@@ -756,8 +741,8 @@ class AnalysisHighlightsParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['regions'] =
         regions.map((HighlightRegion value) => value.toJson()).toList();
@@ -801,20 +786,19 @@ class AnalysisHighlightsParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisNavigationParams implements HasToJson {
-  String _file;
+  late String _file;
 
-  List<NavigationRegion> _regions;
+  late List<NavigationRegion> _regions;
 
-  List<NavigationTarget> _targets;
+  late List<NavigationTarget> _targets;
 
-  List<String> _files;
+  late List<String> _files;
 
   /// The file containing the navigation regions.
   String get file => _file;
 
   /// The file containing the navigation regions.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -823,7 +807,6 @@ class AnalysisNavigationParams implements HasToJson {
 
   /// The navigation regions contained in the file.
   set regions(List<NavigationRegion> value) {
-    assert(value != null);
     _regions = value;
   }
 
@@ -834,7 +817,6 @@ class AnalysisNavigationParams implements HasToJson {
   /// The navigation targets referenced in the file. They are referenced by
   /// NavigationRegions by their index in this array.
   set targets(List<NavigationTarget> value) {
-    assert(value != null);
     _targets = value;
   }
 
@@ -845,7 +827,6 @@ class AnalysisNavigationParams implements HasToJson {
   /// The files containing navigation targets referenced in the file. They are
   /// referenced by NavigationTargets by their index in this array.
   set files(List<String> value) {
-    assert(value != null);
     _files = value;
   }
 
@@ -858,7 +839,7 @@ class AnalysisNavigationParams implements HasToJson {
   }
 
   factory AnalysisNavigationParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -872,7 +853,7 @@ class AnalysisNavigationParams implements HasToJson {
         regions = jsonDecoder.decodeList(
             jsonPath + '.regions',
             json['regions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'regions');
@@ -882,7 +863,7 @@ class AnalysisNavigationParams implements HasToJson {
         targets = jsonDecoder.decodeList(
             jsonPath + '.targets',
             json['targets'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'targets');
@@ -906,8 +887,8 @@ class AnalysisNavigationParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['regions'] =
         regions.map((NavigationRegion value) => value.toJson()).toList();
@@ -957,16 +938,15 @@ class AnalysisNavigationParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOccurrencesParams implements HasToJson {
-  String _file;
+  late String _file;
 
-  List<Occurrences> _occurrences;
+  late List<Occurrences> _occurrences;
 
   /// The file in which the references occur.
   String get file => _file;
 
   /// The file in which the references occur.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -975,7 +955,6 @@ class AnalysisOccurrencesParams implements HasToJson {
 
   /// The occurrences of references to elements within the file.
   set occurrences(List<Occurrences> value) {
-    assert(value != null);
     _occurrences = value;
   }
 
@@ -985,7 +964,7 @@ class AnalysisOccurrencesParams implements HasToJson {
   }
 
   factory AnalysisOccurrencesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -999,7 +978,7 @@ class AnalysisOccurrencesParams implements HasToJson {
         occurrences = jsonDecoder.decodeList(
             jsonPath + '.occurrences',
             json['occurrences'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 Occurrences.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'occurrences');
@@ -1017,8 +996,8 @@ class AnalysisOccurrencesParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['occurrences'] =
         occurrences.map((Occurrences value) => value.toJson()).toList();
@@ -1060,16 +1039,15 @@ class AnalysisOccurrencesParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOutlineParams implements HasToJson {
-  String _file;
+  late String _file;
 
-  List<Outline> _outline;
+  late List<Outline> _outline;
 
   /// The file with which the outline is associated.
   String get file => _file;
 
   /// The file with which the outline is associated.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -1078,7 +1056,6 @@ class AnalysisOutlineParams implements HasToJson {
 
   /// The outline fragments associated with the file.
   set outline(List<Outline> value) {
-    assert(value != null);
     _outline = value;
   }
 
@@ -1088,7 +1065,7 @@ class AnalysisOutlineParams implements HasToJson {
   }
 
   factory AnalysisOutlineParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -1102,7 +1079,7 @@ class AnalysisOutlineParams implements HasToJson {
         outline = jsonDecoder.decodeList(
             jsonPath + '.outline',
             json['outline'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 Outline.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'outline');
@@ -1119,8 +1096,8 @@ class AnalysisOutlineParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['outline'] = outline.map((Outline value) => value.toJson()).toList();
     return result;
@@ -1204,7 +1181,7 @@ class AnalysisService implements Enum {
   }
 
   factory AnalysisService.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return AnalysisService(json);
@@ -1229,14 +1206,13 @@ class AnalysisService implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetContextRootsParams implements RequestParams {
-  List<ContextRoot> _roots;
+  late List<ContextRoot> _roots;
 
   /// A list of the context roots that should be analyzed.
   List<ContextRoot> get roots => _roots;
 
   /// A list of the context roots that should be analyzed.
   set roots(List<ContextRoot> value) {
-    assert(value != null);
     _roots = value;
   }
 
@@ -1245,7 +1221,7 @@ class AnalysisSetContextRootsParams implements RequestParams {
   }
 
   factory AnalysisSetContextRootsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<ContextRoot> roots;
@@ -1253,7 +1229,7 @@ class AnalysisSetContextRootsParams implements RequestParams {
         roots = jsonDecoder.decodeList(
             jsonPath + '.roots',
             json['roots'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 ContextRoot.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'roots');
@@ -1271,8 +1247,8 @@ class AnalysisSetContextRootsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['roots'] = roots.map((ContextRoot value) => value.toJson()).toList();
     return result;
   }
@@ -1307,7 +1283,7 @@ class AnalysisSetContextRootsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetContextRootsResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id, int requestTime) {
@@ -1336,14 +1312,13 @@ class AnalysisSetContextRootsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesParams implements RequestParams {
-  List<String> _files;
+  late List<String> _files;
 
   /// The files that are to be a priority for analysis.
   List<String> get files => _files;
 
   /// The files that are to be a priority for analysis.
   set files(List<String> value) {
-    assert(value != null);
     _files = value;
   }
 
@@ -1352,7 +1327,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   }
 
   factory AnalysisSetPriorityFilesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<String> files;
@@ -1375,8 +1350,8 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['files'] = files;
     return result;
   }
@@ -1410,7 +1385,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id, int requestTime) {
@@ -1439,7 +1414,7 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsParams implements RequestParams {
-  Map<AnalysisService, List<String>> _subscriptions;
+  late Map<AnalysisService, List<String>> _subscriptions;
 
   /// A table mapping services to a list of the files being subscribed to the
   /// service.
@@ -1448,7 +1423,6 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   /// A table mapping services to a list of the files being subscribed to the
   /// service.
   set subscriptions(Map<AnalysisService, List<String>> value) {
-    assert(value != null);
     _subscriptions = value;
   }
 
@@ -1458,16 +1432,16 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   }
 
   factory AnalysisSetSubscriptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       Map<AnalysisService, List<String>> subscriptions;
       if (json.containsKey('subscriptions')) {
         subscriptions = jsonDecoder.decodeMap(
             jsonPath + '.subscriptions', json['subscriptions'],
-            keyDecoder: (String jsonPath, Object json) =>
+            keyDecoder: (String jsonPath, Object? json) =>
                 AnalysisService.fromJson(jsonDecoder, jsonPath, json),
-            valueDecoder: (String jsonPath, Object json) => jsonDecoder
+            valueDecoder: (String jsonPath, Object? json) => jsonDecoder
                 .decodeList(jsonPath, json, jsonDecoder.decodeString));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
@@ -1485,8 +1459,8 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['subscriptions'] = mapMap(subscriptions,
         keyCallback: (AnalysisService value) => value.toJson());
     return result;
@@ -1525,7 +1499,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id, int requestTime) {
@@ -1554,38 +1528,37 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentParams implements RequestParams {
-  Map<String, dynamic> _files;
+  late Map<String, Object> _files;
 
   /// A table mapping the files whose content has changed to a description of
   /// the content change.
-  Map<String, dynamic> get files => _files;
+  Map<String, Object> get files => _files;
 
   /// A table mapping the files whose content has changed to a description of
   /// the content change.
-  set files(Map<String, dynamic> value) {
-    assert(value != null);
+  set files(Map<String, Object> value) {
     _files = value;
   }
 
-  AnalysisUpdateContentParams(Map<String, dynamic> files) {
+  AnalysisUpdateContentParams(Map<String, Object> files) {
     this.files = files;
   }
 
   factory AnalysisUpdateContentParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      Map<String, dynamic> files;
+      Map<String, Object> files;
       if (json.containsKey('files')) {
         files = jsonDecoder.decodeMap(jsonPath + '.files', json['files'],
-            valueDecoder: (String jsonPath, Object json) =>
+            valueDecoder: (String jsonPath, Object? json) =>
                 jsonDecoder.decodeUnion(jsonPath, json as Map, 'type', {
-                  'add': (String jsonPath, Object json) =>
+                  'add': (String jsonPath, Object? json) =>
                       AddContentOverlay.fromJson(jsonDecoder, jsonPath, json),
-                  'change': (String jsonPath, Object json) =>
+                  'change': (String jsonPath, Object? json) =>
                       ChangeContentOverlay.fromJson(
                           jsonDecoder, jsonPath, json),
-                  'remove': (String jsonPath, Object json) =>
+                  'remove': (String jsonPath, Object? json) =>
                       RemoveContentOverlay.fromJson(jsonDecoder, jsonPath, json)
                 }));
       } else {
@@ -1604,10 +1577,10 @@ class AnalysisUpdateContentParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
-    result['files'] =
-        mapMap(files, valueCallback: (dynamic value) => value.toJson());
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['files'] = mapMap(files,
+        valueCallback: (Object value) => (value as dynamic).toJson());
     return result;
   }
 
@@ -1622,7 +1595,7 @@ class AnalysisUpdateContentParams implements RequestParams {
   @override
   bool operator ==(other) {
     if (other is AnalysisUpdateContentParams) {
-      return mapEqual(files, other.files, (dynamic a, dynamic b) => a == b);
+      return mapEqual(files, other.files, (Object a, Object b) => a == b);
     }
     return false;
   }
@@ -1640,7 +1613,7 @@ class AnalysisUpdateContentParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id, int requestTime) {
@@ -1670,16 +1643,15 @@ class AnalysisUpdateContentResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionsParams implements RequestParams {
-  String _file;
+  late String _file;
 
-  int _offset;
+  late int _offset;
 
   /// The file containing the point at which suggestions are to be made.
   String get file => _file;
 
   /// The file containing the point at which suggestions are to be made.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -1688,7 +1660,6 @@ class CompletionGetSuggestionsParams implements RequestParams {
 
   /// The offset within the file at which suggestions are to be made.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -1698,7 +1669,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
   }
 
   factory CompletionGetSuggestionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -1726,8 +1697,8 @@ class CompletionGetSuggestionsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     return result;
@@ -1768,11 +1739,11 @@ class CompletionGetSuggestionsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionsResult implements ResponseResult {
-  int _replacementOffset;
+  late int _replacementOffset;
 
-  int _replacementLength;
+  late int _replacementLength;
 
-  List<CompletionSuggestion> _results;
+  late List<CompletionSuggestion> _results;
 
   /// The offset of the start of the text to be replaced. This will be
   /// different than the offset used to request the completion suggestions if
@@ -1787,7 +1758,6 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   /// particular, the replacementOffset will be the offset of the beginning of
   /// said identifier.
   set replacementOffset(int value) {
-    assert(value != null);
     _replacementOffset = value;
   }
 
@@ -1800,7 +1770,6 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   /// containing the cursor is to be replaced when the suggestion is applied
   /// (that is, the number of characters in the existing identifier).
   set replacementLength(int value) {
-    assert(value != null);
     _replacementLength = value;
   }
 
@@ -1817,7 +1786,6 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   /// client to respond to further keystrokes from the user without having to
   /// make additional requests.
   set results(List<CompletionSuggestion> value) {
-    assert(value != null);
     _results = value;
   }
 
@@ -1829,7 +1797,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   }
 
   factory CompletionGetSuggestionsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int replacementOffset;
@@ -1851,7 +1819,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
         results = jsonDecoder.decodeList(
             jsonPath + '.results',
             json['results'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'results');
@@ -1872,8 +1840,8 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['replacementOffset'] = replacementOffset;
     result['replacementLength'] = replacementLength;
     result['results'] =
@@ -1920,11 +1888,11 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ContextRoot implements HasToJson {
-  String _root;
+  late String _root;
 
-  List<String> _exclude;
+  late List<String> _exclude;
 
-  String _optionsFile;
+  String? _optionsFile;
 
   /// The absolute path of the root directory containing the files to be
   /// analyzed.
@@ -1933,7 +1901,6 @@ class ContextRoot implements HasToJson {
   /// The absolute path of the root directory containing the files to be
   /// analyzed.
   set root(String value) {
-    assert(value != null);
     _root = value;
   }
 
@@ -1944,28 +1911,27 @@ class ContextRoot implements HasToJson {
   /// A list of the absolute paths of files and directories within the root
   /// directory that should not be analyzed.
   set exclude(List<String> value) {
-    assert(value != null);
     _exclude = value;
   }
 
   /// The absolute path of the analysis options file that should be used to
   /// control the analysis of the files in the context.
-  String get optionsFile => _optionsFile;
+  String? get optionsFile => _optionsFile;
 
   /// The absolute path of the analysis options file that should be used to
   /// control the analysis of the files in the context.
-  set optionsFile(String value) {
+  set optionsFile(String? value) {
     _optionsFile = value;
   }
 
-  ContextRoot(String root, List<String> exclude, {String optionsFile}) {
+  ContextRoot(String root, List<String> exclude, {String? optionsFile}) {
     this.root = root;
     this.exclude = exclude;
     this.optionsFile = optionsFile;
   }
 
   factory ContextRoot.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String root;
@@ -1981,7 +1947,7 @@ class ContextRoot implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'exclude');
       }
-      String optionsFile;
+      String? optionsFile;
       if (json.containsKey('optionsFile')) {
         optionsFile = jsonDecoder.decodeString(
             jsonPath + '.optionsFile', json['optionsFile']);
@@ -1993,10 +1959,11 @@ class ContextRoot implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['root'] = root;
     result['exclude'] = exclude;
+    var optionsFile = this.optionsFile;
     if (optionsFile != null) {
       result['optionsFile'] = optionsFile;
     }
@@ -2112,18 +2079,17 @@ class ConvertMethodToGetterOptions extends RefactoringOptions
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsParams implements RequestParams {
-  String _file;
+  late String _file;
 
-  int _offset;
+  late int _offset;
 
-  int _length;
+  late int _length;
 
   /// The file containing the code for which assists are being requested.
   String get file => _file;
 
   /// The file containing the code for which assists are being requested.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -2132,7 +2098,6 @@ class EditGetAssistsParams implements RequestParams {
 
   /// The offset of the code for which assists are being requested.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -2141,7 +2106,6 @@ class EditGetAssistsParams implements RequestParams {
 
   /// The length of the code for which assists are being requested.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -2152,7 +2116,7 @@ class EditGetAssistsParams implements RequestParams {
   }
 
   factory EditGetAssistsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -2185,8 +2149,8 @@ class EditGetAssistsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     result['length'] = length;
@@ -2229,14 +2193,13 @@ class EditGetAssistsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsResult implements ResponseResult {
-  List<PrioritizedSourceChange> _assists;
+  late List<PrioritizedSourceChange> _assists;
 
   /// The assists that are available at the given location.
   List<PrioritizedSourceChange> get assists => _assists;
 
   /// The assists that are available at the given location.
   set assists(List<PrioritizedSourceChange> value) {
-    assert(value != null);
     _assists = value;
   }
 
@@ -2245,7 +2208,7 @@ class EditGetAssistsResult implements ResponseResult {
   }
 
   factory EditGetAssistsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<PrioritizedSourceChange> assists;
@@ -2253,7 +2216,7 @@ class EditGetAssistsResult implements ResponseResult {
         assists = jsonDecoder.decodeList(
             jsonPath + '.assists',
             json['assists'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 PrioritizedSourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'assists');
@@ -2272,8 +2235,8 @@ class EditGetAssistsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['assists'] =
         assists.map((PrioritizedSourceChange value) => value.toJson()).toList();
     return result;
@@ -2314,18 +2277,17 @@ class EditGetAssistsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsParams implements RequestParams {
-  String _file;
+  late String _file;
 
-  int _offset;
+  late int _offset;
 
-  int _length;
+  late int _length;
 
   /// The file containing the code on which the refactoring would be based.
   String get file => _file;
 
   /// The file containing the code on which the refactoring would be based.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -2334,7 +2296,6 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 
   /// The offset of the code on which the refactoring would be based.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -2343,7 +2304,6 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 
   /// The length of the code on which the refactoring would be based.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -2354,7 +2314,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   }
 
   factory EditGetAvailableRefactoringsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -2388,8 +2348,8 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     result['length'] = length;
@@ -2432,7 +2392,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsResult implements ResponseResult {
-  List<RefactoringKind> _kinds;
+  late List<RefactoringKind> _kinds;
 
   /// The kinds of refactorings that are valid for the given selection.
   ///
@@ -2449,7 +2409,6 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   /// However, plugins can support pre-defined refactorings, such as a rename
   /// refactoring, at locations not supported by server.
   set kinds(List<RefactoringKind> value) {
-    assert(value != null);
     _kinds = value;
   }
 
@@ -2458,7 +2417,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   }
 
   factory EditGetAvailableRefactoringsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<RefactoringKind> kinds;
@@ -2466,7 +2425,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
         kinds = jsonDecoder.decodeList(
             jsonPath + '.kinds',
             json['kinds'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kinds');
@@ -2486,8 +2445,8 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['kinds'] =
         kinds.map((RefactoringKind value) => value.toJson()).toList();
     return result;
@@ -2527,16 +2486,15 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetFixesParams implements RequestParams {
-  String _file;
+  late String _file;
 
-  int _offset;
+  late int _offset;
 
   /// The file containing the errors for which fixes are being requested.
   String get file => _file;
 
   /// The file containing the errors for which fixes are being requested.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -2545,7 +2503,6 @@ class EditGetFixesParams implements RequestParams {
 
   /// The offset used to select the errors for which fixes will be returned.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -2555,7 +2512,7 @@ class EditGetFixesParams implements RequestParams {
   }
 
   factory EditGetFixesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -2582,8 +2539,8 @@ class EditGetFixesParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     return result;
@@ -2622,14 +2579,13 @@ class EditGetFixesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetFixesResult implements ResponseResult {
-  List<AnalysisErrorFixes> _fixes;
+  late List<AnalysisErrorFixes> _fixes;
 
   /// The fixes that are available for the errors at the given offset.
   List<AnalysisErrorFixes> get fixes => _fixes;
 
   /// The fixes that are available for the errors at the given offset.
   set fixes(List<AnalysisErrorFixes> value) {
-    assert(value != null);
     _fixes = value;
   }
 
@@ -2638,7 +2594,7 @@ class EditGetFixesResult implements ResponseResult {
   }
 
   factory EditGetFixesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<AnalysisErrorFixes> fixes;
@@ -2646,7 +2602,7 @@ class EditGetFixesResult implements ResponseResult {
         fixes = jsonDecoder.decodeList(
             jsonPath + '.fixes',
             json['fixes'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'fixes');
@@ -2665,8 +2621,8 @@ class EditGetFixesResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['fixes'] =
         fixes.map((AnalysisErrorFixes value) => value.toJson()).toList();
     return result;
@@ -2710,24 +2666,23 @@ class EditGetFixesResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringParams implements RequestParams {
-  RefactoringKind _kind;
+  late RefactoringKind _kind;
 
-  String _file;
+  late String _file;
 
-  int _offset;
+  late int _offset;
 
-  int _length;
+  late int _length;
 
-  bool _validateOnly;
+  late bool _validateOnly;
 
-  RefactoringOptions _options;
+  RefactoringOptions? _options;
 
   /// The kind of refactoring to be performed.
   RefactoringKind get kind => _kind;
 
   /// The kind of refactoring to be performed.
   set kind(RefactoringKind value) {
-    assert(value != null);
     _kind = value;
   }
 
@@ -2736,7 +2691,6 @@ class EditGetRefactoringParams implements RequestParams {
 
   /// The file containing the code involved in the refactoring.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -2745,7 +2699,6 @@ class EditGetRefactoringParams implements RequestParams {
 
   /// The offset of the region involved in the refactoring.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -2754,7 +2707,6 @@ class EditGetRefactoringParams implements RequestParams {
 
   /// The length of the region involved in the refactoring.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -2765,7 +2717,6 @@ class EditGetRefactoringParams implements RequestParams {
   /// True if the client is only requesting that the values of the options be
   /// validated and no change be generated.
   set validateOnly(bool value) {
-    assert(value != null);
     _validateOnly = value;
   }
 
@@ -2774,20 +2725,20 @@ class EditGetRefactoringParams implements RequestParams {
   /// that is expected is documented in the section titled Refactorings,
   /// labeled as "Options". This field can be omitted if the refactoring does
   /// not require any options or if the values of those options are not known.
-  RefactoringOptions get options => _options;
+  RefactoringOptions? get options => _options;
 
   /// Data used to provide values provided by the user. The structure of the
   /// data is dependent on the kind of refactoring being performed. The data
   /// that is expected is documented in the section titled Refactorings,
   /// labeled as "Options". This field can be omitted if the refactoring does
   /// not require any options or if the values of those options are not known.
-  set options(RefactoringOptions value) {
+  set options(RefactoringOptions? value) {
     _options = value;
   }
 
   EditGetRefactoringParams(RefactoringKind kind, String file, int offset,
       int length, bool validateOnly,
-      {RefactoringOptions options}) {
+      {RefactoringOptions? options}) {
     this.kind = kind;
     this.file = file;
     this.offset = offset;
@@ -2797,7 +2748,7 @@ class EditGetRefactoringParams implements RequestParams {
   }
 
   factory EditGetRefactoringParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       RefactoringKind kind;
@@ -2832,7 +2783,7 @@ class EditGetRefactoringParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'validateOnly');
       }
-      RefactoringOptions options;
+      RefactoringOptions? options;
       if (json.containsKey('options')) {
         options = RefactoringOptions.fromJson(
             jsonDecoder, jsonPath + '.options', json['options'], kind);
@@ -2852,13 +2803,14 @@ class EditGetRefactoringParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['kind'] = kind.toJson();
     result['file'] = file;
     result['offset'] = offset;
     result['length'] = length;
     result['validateOnly'] = validateOnly;
+    var options = this.options;
     if (options != null) {
       result['options'] = options.toJson();
     }
@@ -2912,17 +2864,17 @@ class EditGetRefactoringParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringResult implements ResponseResult {
-  List<RefactoringProblem> _initialProblems;
+  late List<RefactoringProblem> _initialProblems;
 
-  List<RefactoringProblem> _optionsProblems;
+  late List<RefactoringProblem> _optionsProblems;
 
-  List<RefactoringProblem> _finalProblems;
+  late List<RefactoringProblem> _finalProblems;
 
-  RefactoringFeedback _feedback;
+  RefactoringFeedback? _feedback;
 
-  SourceChange _change;
+  SourceChange? _change;
 
-  List<String> _potentialEdits;
+  List<String>? _potentialEdits;
 
   /// The initial status of the refactoring, that is, problems related to the
   /// context in which the refactoring is requested. The list should be empty
@@ -2933,7 +2885,6 @@ class EditGetRefactoringResult implements ResponseResult {
   /// context in which the refactoring is requested. The list should be empty
   /// if there are no known problems.
   set initialProblems(List<RefactoringProblem> value) {
-    assert(value != null);
     _initialProblems = value;
   }
 
@@ -2946,7 +2897,6 @@ class EditGetRefactoringResult implements ResponseResult {
   /// such as light-weight validation of a new name, flags compatibility, etc.
   /// The list should be empty if there are no known problems.
   set optionsProblems(List<RefactoringProblem> value) {
-    assert(value != null);
     _optionsProblems = value;
   }
 
@@ -2959,7 +2909,6 @@ class EditGetRefactoringResult implements ResponseResult {
   /// result of a full, potentially expensive validation and / or change
   /// creation. The list should be empty if there are no known problems.
   set finalProblems(List<RefactoringProblem> value) {
-    assert(value != null);
     _finalProblems = value;
   }
 
@@ -2967,13 +2916,13 @@ class EditGetRefactoringResult implements ResponseResult {
   /// dependent on the kind of refactoring being created. The data that is
   /// returned is documented in the section titled Refactorings, labeled as
   /// "Feedback".
-  RefactoringFeedback get feedback => _feedback;
+  RefactoringFeedback? get feedback => _feedback;
 
   /// Data used to provide feedback to the user. The structure of the data is
   /// dependent on the kind of refactoring being created. The data that is
   /// returned is documented in the section titled Refactorings, labeled as
   /// "Feedback".
-  set feedback(RefactoringFeedback value) {
+  set feedback(RefactoringFeedback? value) {
     _feedback = value;
   }
 
@@ -2981,13 +2930,13 @@ class EditGetRefactoringResult implements ResponseResult {
   /// can be omitted if there are problems that prevent a set of changes from
   /// being computed, such as having no options specified for a refactoring
   /// that requires them, or if only validation was requested.
-  SourceChange get change => _change;
+  SourceChange? get change => _change;
 
   /// The changes that are to be applied to affect the refactoring. This field
   /// can be omitted if there are problems that prevent a set of changes from
   /// being computed, such as having no options specified for a refactoring
   /// that requires them, or if only validation was requested.
-  set change(SourceChange value) {
+  set change(SourceChange? value) {
     _change = value;
   }
 
@@ -2997,7 +2946,7 @@ class EditGetRefactoringResult implements ResponseResult {
   /// modified, such as when a member is being renamed and there is a reference
   /// to a member from an unknown type. This field can be omitted if the change
   /// field is omitted or if there are no potential edits for the refactoring.
-  List<String> get potentialEdits => _potentialEdits;
+  List<String>? get potentialEdits => _potentialEdits;
 
   /// The ids of source edits that are not known to be valid. An edit is not
   /// known to be valid if there was insufficient type information for the
@@ -3005,7 +2954,7 @@ class EditGetRefactoringResult implements ResponseResult {
   /// modified, such as when a member is being renamed and there is a reference
   /// to a member from an unknown type. This field can be omitted if the change
   /// field is omitted or if there are no potential edits for the refactoring.
-  set potentialEdits(List<String> value) {
+  set potentialEdits(List<String>? value) {
     _potentialEdits = value;
   }
 
@@ -3013,9 +2962,9 @@ class EditGetRefactoringResult implements ResponseResult {
       List<RefactoringProblem> initialProblems,
       List<RefactoringProblem> optionsProblems,
       List<RefactoringProblem> finalProblems,
-      {RefactoringFeedback feedback,
-      SourceChange change,
-      List<String> potentialEdits}) {
+      {RefactoringFeedback? feedback,
+      SourceChange? change,
+      List<String>? potentialEdits}) {
     this.initialProblems = initialProblems;
     this.optionsProblems = optionsProblems;
     this.finalProblems = finalProblems;
@@ -3025,7 +2974,7 @@ class EditGetRefactoringResult implements ResponseResult {
   }
 
   factory EditGetRefactoringResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<RefactoringProblem> initialProblems;
@@ -3033,7 +2982,7 @@ class EditGetRefactoringResult implements ResponseResult {
         initialProblems = jsonDecoder.decodeList(
             jsonPath + '.initialProblems',
             json['initialProblems'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'initialProblems');
@@ -3043,7 +2992,7 @@ class EditGetRefactoringResult implements ResponseResult {
         optionsProblems = jsonDecoder.decodeList(
             jsonPath + '.optionsProblems',
             json['optionsProblems'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'optionsProblems');
@@ -3053,22 +3002,22 @@ class EditGetRefactoringResult implements ResponseResult {
         finalProblems = jsonDecoder.decodeList(
             jsonPath + '.finalProblems',
             json['finalProblems'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'finalProblems');
       }
-      RefactoringFeedback feedback;
+      RefactoringFeedback? feedback;
       if (json.containsKey('feedback')) {
         feedback = RefactoringFeedback.fromJson(
             jsonDecoder, jsonPath + '.feedback', json['feedback'], json);
       }
-      SourceChange change;
+      SourceChange? change;
       if (json.containsKey('change')) {
         change = SourceChange.fromJson(
             jsonDecoder, jsonPath + '.change', json['change']);
       }
-      List<String> potentialEdits;
+      List<String>? potentialEdits;
       if (json.containsKey('potentialEdits')) {
         potentialEdits = jsonDecoder.decodeList(jsonPath + '.potentialEdits',
             json['potentialEdits'], jsonDecoder.decodeString);
@@ -3089,8 +3038,8 @@ class EditGetRefactoringResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['initialProblems'] = initialProblems
         .map((RefactoringProblem value) => value.toJson())
         .toList();
@@ -3100,12 +3049,15 @@ class EditGetRefactoringResult implements ResponseResult {
     result['finalProblems'] = finalProblems
         .map((RefactoringProblem value) => value.toJson())
         .toList();
+    var feedback = this.feedback;
     if (feedback != null) {
       result['feedback'] = feedback.toJson();
     }
+    var change = this.change;
     if (change != null) {
       result['change'] = change.toJson();
     }
+    var potentialEdits = this.potentialEdits;
     if (potentialEdits != null) {
       result['potentialEdits'] = potentialEdits;
     }
@@ -3162,33 +3114,33 @@ class EditGetRefactoringResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableFeedback extends RefactoringFeedback {
-  List<int> _coveringExpressionOffsets;
+  List<int>? _coveringExpressionOffsets;
 
-  List<int> _coveringExpressionLengths;
+  List<int>? _coveringExpressionLengths;
 
-  List<String> _names;
+  late List<String> _names;
 
-  List<int> _offsets;
+  late List<int> _offsets;
 
-  List<int> _lengths;
-
-  /// The offsets of the expressions that cover the specified selection, from
-  /// the down most to the up most.
-  List<int> get coveringExpressionOffsets => _coveringExpressionOffsets;
+  late List<int> _lengths;
 
   /// The offsets of the expressions that cover the specified selection, from
   /// the down most to the up most.
-  set coveringExpressionOffsets(List<int> value) {
+  List<int>? get coveringExpressionOffsets => _coveringExpressionOffsets;
+
+  /// The offsets of the expressions that cover the specified selection, from
+  /// the down most to the up most.
+  set coveringExpressionOffsets(List<int>? value) {
     _coveringExpressionOffsets = value;
   }
 
   /// The lengths of the expressions that cover the specified selection, from
   /// the down most to the up most.
-  List<int> get coveringExpressionLengths => _coveringExpressionLengths;
+  List<int>? get coveringExpressionLengths => _coveringExpressionLengths;
 
   /// The lengths of the expressions that cover the specified selection, from
   /// the down most to the up most.
-  set coveringExpressionLengths(List<int> value) {
+  set coveringExpressionLengths(List<int>? value) {
     _coveringExpressionLengths = value;
   }
 
@@ -3197,7 +3149,6 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   /// The proposed names for the local variable.
   set names(List<String> value) {
-    assert(value != null);
     _names = value;
   }
 
@@ -3208,7 +3159,6 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   /// The offsets of the expressions that would be replaced by a reference to
   /// the variable.
   set offsets(List<int> value) {
-    assert(value != null);
     _offsets = value;
   }
 
@@ -3223,14 +3173,13 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   /// a given expression, if the offset of that expression is offsets[i], then
   /// the length of that expression is lengths[i].
   set lengths(List<int> value) {
-    assert(value != null);
     _lengths = value;
   }
 
   ExtractLocalVariableFeedback(
       List<String> names, List<int> offsets, List<int> lengths,
-      {List<int> coveringExpressionOffsets,
-      List<int> coveringExpressionLengths}) {
+      {List<int>? coveringExpressionOffsets,
+      List<int>? coveringExpressionLengths}) {
     this.coveringExpressionOffsets = coveringExpressionOffsets;
     this.coveringExpressionLengths = coveringExpressionLengths;
     this.names = names;
@@ -3239,17 +3188,17 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   }
 
   factory ExtractLocalVariableFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      List<int> coveringExpressionOffsets;
+      List<int>? coveringExpressionOffsets;
       if (json.containsKey('coveringExpressionOffsets')) {
         coveringExpressionOffsets = jsonDecoder.decodeList(
             jsonPath + '.coveringExpressionOffsets',
             json['coveringExpressionOffsets'],
             jsonDecoder.decodeInt);
       }
-      List<int> coveringExpressionLengths;
+      List<int>? coveringExpressionLengths;
       if (json.containsKey('coveringExpressionLengths')) {
         coveringExpressionLengths = jsonDecoder.decodeList(
             jsonPath + '.coveringExpressionLengths',
@@ -3287,11 +3236,13 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var coveringExpressionOffsets = this.coveringExpressionOffsets;
     if (coveringExpressionOffsets != null) {
       result['coveringExpressionOffsets'] = coveringExpressionOffsets;
     }
+    var coveringExpressionLengths = this.coveringExpressionLengths;
     if (coveringExpressionLengths != null) {
       result['coveringExpressionLengths'] = coveringExpressionLengths;
     }
@@ -3339,16 +3290,15 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableOptions extends RefactoringOptions {
-  String _name;
+  late String _name;
 
-  bool _extractAll;
+  late bool _extractAll;
 
   /// The name that the local variable should be given.
   String get name => _name;
 
   /// The name that the local variable should be given.
   set name(String value) {
-    assert(value != null);
     _name = value;
   }
 
@@ -3363,7 +3313,6 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   /// variable. The expression used to initiate the refactoring will always be
   /// replaced.
   set extractAll(bool value) {
-    assert(value != null);
     _extractAll = value;
   }
 
@@ -3373,7 +3322,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   }
 
   factory ExtractLocalVariableOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -3403,8 +3352,8 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['name'] = name;
     result['extractAll'] = extractAll;
     return result;
@@ -3445,21 +3394,21 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractMethodFeedback extends RefactoringFeedback {
-  int _offset;
+  late int _offset;
 
-  int _length;
+  late int _length;
 
-  String _returnType;
+  late String _returnType;
 
-  List<String> _names;
+  late List<String> _names;
 
-  bool _canCreateGetter;
+  late bool _canCreateGetter;
 
-  List<RefactoringMethodParameter> _parameters;
+  late List<RefactoringMethodParameter> _parameters;
 
-  List<int> _offsets;
+  late List<int> _offsets;
 
-  List<int> _lengths;
+  late List<int> _lengths;
 
   /// The offset to the beginning of the expression or statements that will be
   /// extracted.
@@ -3468,7 +3417,6 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   /// The offset to the beginning of the expression or statements that will be
   /// extracted.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -3477,7 +3425,6 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   /// The length of the expression or statements that will be extracted.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -3488,7 +3435,6 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   /// The proposed return type for the method. If the returned element does not
   /// have a declared return type, this field will contain an empty string.
   set returnType(String value) {
-    assert(value != null);
     _returnType = value;
   }
 
@@ -3497,7 +3443,6 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   /// The proposed names for the method.
   set names(List<String> value) {
-    assert(value != null);
     _names = value;
   }
 
@@ -3506,7 +3451,6 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   /// True if a getter could be created rather than a method.
   set canCreateGetter(bool value) {
-    assert(value != null);
     _canCreateGetter = value;
   }
 
@@ -3515,7 +3459,6 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   /// The proposed parameters for the method.
   set parameters(List<RefactoringMethodParameter> value) {
-    assert(value != null);
     _parameters = value;
   }
 
@@ -3526,7 +3469,6 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   /// The offsets of the expressions or statements that would be replaced by an
   /// invocation of the method.
   set offsets(List<int> value) {
-    assert(value != null);
     _offsets = value;
   }
 
@@ -3543,7 +3485,6 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   /// that expression is offsets[i], then the length of that expression is
   /// lengths[i].
   set lengths(List<int> value) {
-    assert(value != null);
     _lengths = value;
   }
 
@@ -3567,7 +3508,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   }
 
   factory ExtractMethodFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -3608,7 +3549,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
         parameters = jsonDecoder.decodeList(
             jsonPath + '.parameters',
             json['parameters'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RefactoringMethodParameter.fromJson(
                     jsonDecoder, jsonPath, json));
       } else {
@@ -3636,8 +3577,8 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
     result['returnType'] = returnType;
@@ -3700,22 +3641,21 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractMethodOptions extends RefactoringOptions {
-  String _returnType;
+  late String _returnType;
 
-  bool _createGetter;
+  late bool _createGetter;
 
-  String _name;
+  late String _name;
 
-  List<RefactoringMethodParameter> _parameters;
+  late List<RefactoringMethodParameter> _parameters;
 
-  bool _extractAll;
+  late bool _extractAll;
 
   /// The return type that should be defined for the method.
   String get returnType => _returnType;
 
   /// The return type that should be defined for the method.
   set returnType(String value) {
-    assert(value != null);
     _returnType = value;
   }
 
@@ -3726,7 +3666,6 @@ class ExtractMethodOptions extends RefactoringOptions {
   /// True if a getter should be created rather than a method. It is an error
   /// if this field is true and the list of parameters is non-empty.
   set createGetter(bool value) {
-    assert(value != null);
     _createGetter = value;
   }
 
@@ -3735,7 +3674,6 @@ class ExtractMethodOptions extends RefactoringOptions {
 
   /// The name that the method should be given.
   set name(String value) {
-    assert(value != null);
     _name = value;
   }
 
@@ -3762,7 +3700,6 @@ class ExtractMethodOptions extends RefactoringOptions {
   /// - To add new parameters, omit their identifier.
   /// - To remove some parameters, omit them in this list.
   set parameters(List<RefactoringMethodParameter> value) {
-    assert(value != null);
     _parameters = value;
   }
 
@@ -3775,7 +3712,6 @@ class ExtractMethodOptions extends RefactoringOptions {
   /// replaced by an invocation of the method. The expression or statements
   /// used to initiate the refactoring will always be replaced.
   set extractAll(bool value) {
-    assert(value != null);
     _extractAll = value;
   }
 
@@ -3789,7 +3725,7 @@ class ExtractMethodOptions extends RefactoringOptions {
   }
 
   factory ExtractMethodOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String returnType;
@@ -3817,7 +3753,7 @@ class ExtractMethodOptions extends RefactoringOptions {
         parameters = jsonDecoder.decodeList(
             jsonPath + '.parameters',
             json['parameters'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RefactoringMethodParameter.fromJson(
                     jsonDecoder, jsonPath, json));
       } else {
@@ -3844,8 +3780,8 @@ class ExtractMethodOptions extends RefactoringOptions {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['returnType'] = returnType;
     result['createGetter'] = createGetter;
     result['name'] = name;
@@ -3896,16 +3832,15 @@ class ExtractMethodOptions extends RefactoringOptions {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineLocalVariableFeedback extends RefactoringFeedback {
-  String _name;
+  late String _name;
 
-  int _occurrences;
+  late int _occurrences;
 
   /// The name of the variable being inlined.
   String get name => _name;
 
   /// The name of the variable being inlined.
   set name(String value) {
-    assert(value != null);
     _name = value;
   }
 
@@ -3914,7 +3849,6 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
 
   /// The number of times the variable occurs.
   set occurrences(int value) {
-    assert(value != null);
     _occurrences = value;
   }
 
@@ -3924,7 +3858,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   }
 
   factory InlineLocalVariableFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -3948,8 +3882,8 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['name'] = name;
     result['occurrences'] = occurrences;
     return result;
@@ -4004,19 +3938,19 @@ class InlineLocalVariableOptions extends RefactoringOptions
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineMethodFeedback extends RefactoringFeedback {
-  String _className;
+  String? _className;
 
-  String _methodName;
+  late String _methodName;
 
-  bool _isDeclaration;
-
-  /// The name of the class enclosing the method being inlined. If not a class
-  /// member is being inlined, this field will be absent.
-  String get className => _className;
+  late bool _isDeclaration;
 
   /// The name of the class enclosing the method being inlined. If not a class
   /// member is being inlined, this field will be absent.
-  set className(String value) {
+  String? get className => _className;
+
+  /// The name of the class enclosing the method being inlined. If not a class
+  /// member is being inlined, this field will be absent.
+  set className(String? value) {
     _className = value;
   }
 
@@ -4025,7 +3959,6 @@ class InlineMethodFeedback extends RefactoringFeedback {
 
   /// The name of the method (or function) being inlined.
   set methodName(String value) {
-    assert(value != null);
     _methodName = value;
   }
 
@@ -4036,22 +3969,21 @@ class InlineMethodFeedback extends RefactoringFeedback {
   /// True if the declaration of the method is selected and all references
   /// should be inlined.
   set isDeclaration(bool value) {
-    assert(value != null);
     _isDeclaration = value;
   }
 
   InlineMethodFeedback(String methodName, bool isDeclaration,
-      {String className}) {
+      {String? className}) {
     this.className = className;
     this.methodName = methodName;
     this.isDeclaration = isDeclaration;
   }
 
   factory InlineMethodFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      String className;
+      String? className;
       if (json.containsKey('className')) {
         className = jsonDecoder.decodeString(
             jsonPath + '.className', json['className']);
@@ -4078,8 +4010,9 @@ class InlineMethodFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var className = this.className;
     if (className != null) {
       result['className'] = className;
     }
@@ -4120,9 +4053,9 @@ class InlineMethodFeedback extends RefactoringFeedback {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineMethodOptions extends RefactoringOptions {
-  bool _deleteSource;
+  late bool _deleteSource;
 
-  bool _inlineAll;
+  late bool _inlineAll;
 
   /// True if the method being inlined should be removed. It is an error if
   /// this field is true and inlineAll is false.
@@ -4131,7 +4064,6 @@ class InlineMethodOptions extends RefactoringOptions {
   /// True if the method being inlined should be removed. It is an error if
   /// this field is true and inlineAll is false.
   set deleteSource(bool value) {
-    assert(value != null);
     _deleteSource = value;
   }
 
@@ -4142,7 +4074,6 @@ class InlineMethodOptions extends RefactoringOptions {
   /// True if all invocations of the method should be inlined, or false if only
   /// the invocation site used to create this refactoring should be inlined.
   set inlineAll(bool value) {
-    assert(value != null);
     _inlineAll = value;
   }
 
@@ -4152,7 +4083,7 @@ class InlineMethodOptions extends RefactoringOptions {
   }
 
   factory InlineMethodOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       bool deleteSource;
@@ -4182,8 +4113,8 @@ class InlineMethodOptions extends RefactoringOptions {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['deleteSource'] = deleteSource;
     result['inlineAll'] = inlineAll;
     return result;
@@ -4217,7 +4148,7 @@ class InlineMethodOptions extends RefactoringOptions {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class KytheGetKytheEntriesParams implements RequestParams {
-  String _file;
+  late String _file;
 
   /// The file containing the code for which the Kythe Entry objects are being
   /// requested.
@@ -4226,7 +4157,6 @@ class KytheGetKytheEntriesParams implements RequestParams {
   /// The file containing the code for which the Kythe Entry objects are being
   /// requested.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -4235,7 +4165,7 @@ class KytheGetKytheEntriesParams implements RequestParams {
   }
 
   factory KytheGetKytheEntriesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -4257,8 +4187,8 @@ class KytheGetKytheEntriesParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     return result;
   }
@@ -4296,16 +4226,15 @@ class KytheGetKytheEntriesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class KytheGetKytheEntriesResult implements ResponseResult {
-  List<KytheEntry> _entries;
+  late List<KytheEntry> _entries;
 
-  List<String> _files;
+  late List<String> _files;
 
   /// The list of KytheEntry objects for the queried file.
   List<KytheEntry> get entries => _entries;
 
   /// The list of KytheEntry objects for the queried file.
   set entries(List<KytheEntry> value) {
-    assert(value != null);
     _entries = value;
   }
 
@@ -4320,7 +4249,6 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   /// to a referenced file that does not exist or generated files not being
   /// generated or passed before the call to "getKytheEntries".
   set files(List<String> value) {
-    assert(value != null);
     _files = value;
   }
 
@@ -4330,7 +4258,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   }
 
   factory KytheGetKytheEntriesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<KytheEntry> entries;
@@ -4338,7 +4266,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
         entries = jsonDecoder.decodeList(
             jsonPath + '.entries',
             json['entries'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 KytheEntry.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'entries');
@@ -4365,8 +4293,8 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['entries'] =
         entries.map((KytheEntry value) => value.toJson()).toList();
     result['files'] = files;
@@ -4426,14 +4354,13 @@ class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class MoveFileOptions extends RefactoringOptions {
-  String _newFile;
+  late String _newFile;
 
   /// The new file path to which the given file is being moved.
   String get newFile => _newFile;
 
   /// The new file path to which the given file is being moved.
   set newFile(String value) {
-    assert(value != null);
     _newFile = value;
   }
 
@@ -4442,7 +4369,7 @@ class MoveFileOptions extends RefactoringOptions {
   }
 
   factory MoveFileOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String newFile;
@@ -4465,8 +4392,8 @@ class MoveFileOptions extends RefactoringOptions {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['newFile'] = newFile;
     return result;
   }
@@ -4500,11 +4427,11 @@ class MoveFileOptions extends RefactoringOptions {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PluginErrorParams implements HasToJson {
-  bool _isFatal;
+  late bool _isFatal;
 
-  String _message;
+  late String _message;
 
-  String _stackTrace;
+  late String _stackTrace;
 
   /// A flag indicating whether the error is a fatal error, meaning that the
   /// plugin will shutdown automatically after sending this notification. If
@@ -4517,7 +4444,6 @@ class PluginErrorParams implements HasToJson {
   /// true, the server will not expect any other responses or notifications
   /// from the plugin.
   set isFatal(bool value) {
-    assert(value != null);
     _isFatal = value;
   }
 
@@ -4526,7 +4452,6 @@ class PluginErrorParams implements HasToJson {
 
   /// The error message indicating what kind of error was encountered.
   set message(String value) {
-    assert(value != null);
     _message = value;
   }
 
@@ -4537,7 +4462,6 @@ class PluginErrorParams implements HasToJson {
   /// The stack trace associated with the generation of the error, used for
   /// debugging the plugin.
   set stackTrace(String value) {
-    assert(value != null);
     _stackTrace = value;
   }
 
@@ -4548,7 +4472,7 @@ class PluginErrorParams implements HasToJson {
   }
 
   factory PluginErrorParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       bool isFatal;
@@ -4584,8 +4508,8 @@ class PluginErrorParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['isFatal'] = isFatal;
     result['message'] = message;
     result['stackTrace'] = stackTrace;
@@ -4624,7 +4548,7 @@ class PluginErrorParams implements HasToJson {
 /// Clients may not extend, implement or mix-in this class.
 class PluginShutdownParams implements RequestParams {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Request toRequest(String id) {
@@ -4650,7 +4574,7 @@ class PluginShutdownParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class PluginShutdownResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id, int requestTime) {
@@ -4681,11 +4605,11 @@ class PluginShutdownResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PluginVersionCheckParams implements RequestParams {
-  String _byteStorePath;
+  late String _byteStorePath;
 
-  String _sdkPath;
+  late String _sdkPath;
 
-  String _version;
+  late String _version;
 
   /// The path to the directory containing the on-disk byte store that is to be
   /// used by any analysis drivers that are created.
@@ -4694,7 +4618,6 @@ class PluginVersionCheckParams implements RequestParams {
   /// The path to the directory containing the on-disk byte store that is to be
   /// used by any analysis drivers that are created.
   set byteStorePath(String value) {
-    assert(value != null);
     _byteStorePath = value;
   }
 
@@ -4705,7 +4628,6 @@ class PluginVersionCheckParams implements RequestParams {
   /// The path to the directory containing the SDK that is to be used by any
   /// analysis drivers that are created.
   set sdkPath(String value) {
-    assert(value != null);
     _sdkPath = value;
   }
 
@@ -4716,7 +4638,6 @@ class PluginVersionCheckParams implements RequestParams {
   /// The version number of the plugin spec supported by the analysis server
   /// that is executing the plugin.
   set version(String value) {
-    assert(value != null);
     _version = value;
   }
 
@@ -4728,7 +4649,7 @@ class PluginVersionCheckParams implements RequestParams {
   }
 
   factory PluginVersionCheckParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String byteStorePath;
@@ -4764,8 +4685,8 @@ class PluginVersionCheckParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['byteStorePath'] = byteStorePath;
     result['sdkPath'] = sdkPath;
     result['version'] = version;
@@ -4812,15 +4733,15 @@ class PluginVersionCheckParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PluginVersionCheckResult implements ResponseResult {
-  bool _isCompatible;
+  late bool _isCompatible;
 
-  String _name;
+  late String _name;
 
-  String _version;
+  late String _version;
 
-  String _contactInfo;
+  String? _contactInfo;
 
-  List<String> _interestingFiles;
+  late List<String> _interestingFiles;
 
   /// A flag indicating whether the plugin supports the same version of the
   /// plugin spec as the analysis server. If the value is false, then the
@@ -4831,7 +4752,6 @@ class PluginVersionCheckResult implements ResponseResult {
   /// plugin spec as the analysis server. If the value is false, then the
   /// plugin is expected to shutdown after returning the response.
   set isCompatible(bool value) {
-    assert(value != null);
     _isCompatible = value;
   }
 
@@ -4842,7 +4762,6 @@ class PluginVersionCheckResult implements ResponseResult {
   /// The name of the plugin. This value is only used when the server needs to
   /// identify the plugin, either to the user or for debugging purposes.
   set name(String value) {
-    assert(value != null);
     _name = value;
   }
 
@@ -4853,17 +4772,16 @@ class PluginVersionCheckResult implements ResponseResult {
   /// The version of the plugin. This value is only used when the server needs
   /// to identify the plugin, either to the user or for debugging purposes.
   set version(String value) {
-    assert(value != null);
     _version = value;
   }
 
   /// Information that the user can use to use to contact the maintainers of
   /// the plugin when there is a problem.
-  String get contactInfo => _contactInfo;
+  String? get contactInfo => _contactInfo;
 
   /// Information that the user can use to use to contact the maintainers of
   /// the plugin when there is a problem.
-  set contactInfo(String value) {
+  set contactInfo(String? value) {
     _contactInfo = value;
   }
 
@@ -4878,13 +4796,12 @@ class PluginVersionCheckResult implements ResponseResult {
   /// Otherwise, it will be used to identify the files for which the plugin
   /// should be notified of changes.
   set interestingFiles(List<String> value) {
-    assert(value != null);
     _interestingFiles = value;
   }
 
   PluginVersionCheckResult(bool isCompatible, String name, String version,
       List<String> interestingFiles,
-      {String contactInfo}) {
+      {String? contactInfo}) {
     this.isCompatible = isCompatible;
     this.name = name;
     this.version = version;
@@ -4893,7 +4810,7 @@ class PluginVersionCheckResult implements ResponseResult {
   }
 
   factory PluginVersionCheckResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       bool isCompatible;
@@ -4916,7 +4833,7 @@ class PluginVersionCheckResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'version');
       }
-      String contactInfo;
+      String? contactInfo;
       if (json.containsKey('contactInfo')) {
         contactInfo = jsonDecoder.decodeString(
             jsonPath + '.contactInfo', json['contactInfo']);
@@ -4946,11 +4863,12 @@ class PluginVersionCheckResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['isCompatible'] = isCompatible;
     result['name'] = name;
     result['version'] = version;
+    var contactInfo = this.contactInfo;
     if (contactInfo != null) {
       result['contactInfo'] = contactInfo;
     }
@@ -5000,9 +4918,9 @@ class PluginVersionCheckResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PrioritizedSourceChange implements HasToJson {
-  int _priority;
+  late int _priority;
 
-  SourceChange _change;
+  late SourceChange _change;
 
   /// The priority of the change. The value is expected to be non-negative, and
   /// zero (0) is the lowest priority.
@@ -5011,7 +4929,6 @@ class PrioritizedSourceChange implements HasToJson {
   /// The priority of the change. The value is expected to be non-negative, and
   /// zero (0) is the lowest priority.
   set priority(int value) {
-    assert(value != null);
     _priority = value;
   }
 
@@ -5020,7 +4937,6 @@ class PrioritizedSourceChange implements HasToJson {
 
   /// The change with which the relevance is associated.
   set change(SourceChange value) {
-    assert(value != null);
     _change = value;
   }
 
@@ -5030,7 +4946,7 @@ class PrioritizedSourceChange implements HasToJson {
   }
 
   factory PrioritizedSourceChange.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int priority;
@@ -5054,8 +4970,8 @@ class PrioritizedSourceChange implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['priority'] = priority;
     result['change'] = change.toJson();
     return result;
@@ -5090,15 +5006,15 @@ class PrioritizedSourceChange implements HasToJson {
 class RefactoringFeedback implements HasToJson {
   RefactoringFeedback();
 
-  factory RefactoringFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json, Map responseJson) {
+  factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath,
+      Object? json, Map responseJson) {
     return refactoringFeedbackFromJson(
         jsonDecoder, jsonPath, json, responseJson);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     return result;
   }
 
@@ -5130,13 +5046,13 @@ class RefactoringOptions implements HasToJson {
   RefactoringOptions();
 
   factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath,
-      Object json, RefactoringKind kind) {
+      Object? json, RefactoringKind kind) {
     return refactoringOptionsFromJson(jsonDecoder, jsonPath, json, kind);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     return result;
   }
 
@@ -5169,20 +5085,19 @@ class RefactoringOptions implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RenameFeedback extends RefactoringFeedback {
-  int _offset;
+  late int _offset;
 
-  int _length;
+  late int _length;
 
-  String _elementKindName;
+  late String _elementKindName;
 
-  String _oldName;
+  late String _oldName;
 
   /// The offset to the beginning of the name selected to be renamed.
   int get offset => _offset;
 
   /// The offset to the beginning of the name selected to be renamed.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -5191,7 +5106,6 @@ class RenameFeedback extends RefactoringFeedback {
 
   /// The length of the name selected to be renamed.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -5202,7 +5116,6 @@ class RenameFeedback extends RefactoringFeedback {
   /// The human-readable description of the kind of element being renamed (such
   /// as “class” or “function type alias”).
   set elementKindName(String value) {
-    assert(value != null);
     _elementKindName = value;
   }
 
@@ -5211,7 +5124,6 @@ class RenameFeedback extends RefactoringFeedback {
 
   /// The old name of the element before the refactoring.
   set oldName(String value) {
-    assert(value != null);
     _oldName = value;
   }
 
@@ -5224,7 +5136,7 @@ class RenameFeedback extends RefactoringFeedback {
   }
 
   factory RenameFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -5260,8 +5172,8 @@ class RenameFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
     result['elementKindName'] = elementKindName;
@@ -5302,14 +5214,13 @@ class RenameFeedback extends RefactoringFeedback {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RenameOptions extends RefactoringOptions {
-  String _newName;
+  late String _newName;
 
   /// The name that the element should have after the refactoring.
   String get newName => _newName;
 
   /// The name that the element should have after the refactoring.
   set newName(String value) {
-    assert(value != null);
     _newName = value;
   }
 
@@ -5318,7 +5229,7 @@ class RenameOptions extends RefactoringOptions {
   }
 
   factory RenameOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String newName;
@@ -5341,8 +5252,8 @@ class RenameOptions extends RefactoringOptions {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['newName'] = newName;
     return result;
   }
@@ -5376,18 +5287,17 @@ class RenameOptions extends RefactoringOptions {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RequestError implements HasToJson {
-  RequestErrorCode _code;
+  late RequestErrorCode _code;
 
-  String _message;
+  late String _message;
 
-  String _stackTrace;
+  String? _stackTrace;
 
   /// A code that uniquely identifies the error that occurred.
   RequestErrorCode get code => _code;
 
   /// A code that uniquely identifies the error that occurred.
   set code(RequestErrorCode value) {
-    assert(value != null);
     _code = value;
   }
 
@@ -5396,28 +5306,27 @@ class RequestError implements HasToJson {
 
   /// A short description of the error.
   set message(String value) {
-    assert(value != null);
     _message = value;
   }
 
   /// The stack trace associated with processing the request, used for
   /// debugging the plugin.
-  String get stackTrace => _stackTrace;
+  String? get stackTrace => _stackTrace;
 
   /// The stack trace associated with processing the request, used for
   /// debugging the plugin.
-  set stackTrace(String value) {
+  set stackTrace(String? value) {
     _stackTrace = value;
   }
 
-  RequestError(RequestErrorCode code, String message, {String stackTrace}) {
+  RequestError(RequestErrorCode code, String message, {String? stackTrace}) {
     this.code = code;
     this.message = message;
     this.stackTrace = stackTrace;
   }
 
   factory RequestError.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       RequestErrorCode code;
@@ -5434,7 +5343,7 @@ class RequestError implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'message');
       }
-      String stackTrace;
+      String? stackTrace;
       if (json.containsKey('stackTrace')) {
         stackTrace = jsonDecoder.decodeString(
             jsonPath + '.stackTrace', json['stackTrace']);
@@ -5446,10 +5355,11 @@ class RequestError implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['code'] = code.toJson();
     result['message'] = message;
+    var stackTrace = this.stackTrace;
     if (stackTrace != null) {
       result['stackTrace'] = stackTrace;
     }
@@ -5543,7 +5453,7 @@ class RequestErrorCode implements Enum {
   }
 
   factory RequestErrorCode.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return RequestErrorCode(json);
@@ -5569,16 +5479,15 @@ class RequestErrorCode implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class WatchEvent implements HasToJson {
-  WatchEventType _type;
+  late WatchEventType _type;
 
-  String _path;
+  late String _path;
 
   /// The type of change represented by this event.
   WatchEventType get type => _type;
 
   /// The type of change represented by this event.
   set type(WatchEventType value) {
-    assert(value != null);
     _type = value;
   }
 
@@ -5587,7 +5496,6 @@ class WatchEvent implements HasToJson {
 
   /// The absolute path of the file or directory that changed.
   set path(String value) {
-    assert(value != null);
     _path = value;
   }
 
@@ -5597,7 +5505,7 @@ class WatchEvent implements HasToJson {
   }
 
   factory WatchEvent.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       WatchEventType type;
@@ -5620,8 +5528,8 @@ class WatchEvent implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['type'] = type.toJson();
     result['path'] = path;
     return result;
@@ -5691,7 +5599,7 @@ class WatchEventType implements Enum {
   }
 
   factory WatchEventType.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return WatchEventType(json);

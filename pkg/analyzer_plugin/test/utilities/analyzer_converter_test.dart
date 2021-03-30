@@ -38,7 +38,7 @@ class A {
     expect(element.kind, plugin.ElementKind.METHOD);
     expect(element.name, 'myMethod');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 32);
       expect(location.length, 'myGetter'.length);
@@ -57,7 +57,7 @@ class AnalyzerConverterTest extends _AnalyzerConverterTest
   /// Assert that the given [pluginError] matches the given [analyzerError].
   void assertError(
       plugin.AnalysisError pluginError, analyzer.AnalysisError analyzerError,
-      {analyzer.ErrorSeverity severity,
+      {analyzer.ErrorSeverity? severity,
       int startColumn = -1,
       int startLine = -1}) {
     var errorCode = analyzerError.errorCode;
@@ -77,7 +77,7 @@ class AnalyzerConverterTest extends _AnalyzerConverterTest
     expect(pluginError.type, converter.convertErrorType(errorCode.type));
   }
 
-  analyzer.AnalysisError createError(int offset, {String contextMessage}) {
+  analyzer.AnalysisError createError(int offset, {String? contextMessage}) {
     var contextMessages = <analyzer.DiagnosticMessageImpl>[];
     if (contextMessage != null) {
       contextMessages.add(analyzer.DiagnosticMessageImpl(
@@ -105,7 +105,7 @@ class AnalyzerConverterTest extends _AnalyzerConverterTest
     assertError(pluginError, analyzerError,
         startColumn: 4, startLine: 2, severity: severity);
     expect(pluginError.contextMessages, hasLength(1));
-    var message = pluginError.contextMessages[0];
+    var message = pluginError.contextMessages![0];
     expect(message.message, 'here');
     expect(message.location.offset, 53);
     expect(message.location.length, 7);
@@ -232,7 +232,7 @@ class B<K, V> {}''');
       expect(element.name, '_A');
       expect(element.typeParameters, isNull);
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.file, testFile);
         expect(location.offset, 27);
         expect(location.length, '_A'.length);
@@ -269,7 +269,7 @@ class A {
     expect(element.name, 'myConstructor');
     expect(element.typeParameters, isNull);
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 20);
       expect(location.length, 'myConstructor'.length);
@@ -307,7 +307,7 @@ enum E2 { three, four }''');
       expect(element.name, '_E1');
       expect(element.typeParameters, isNull);
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.file, testFile);
         expect(location.offset, 17);
         expect(location.length, '_E1'.length);
@@ -343,7 +343,7 @@ enum E2 { three, four }''');
       expect(element.kind, plugin.ElementKind.ENUM_CONSTANT);
       expect(element.name, 'one');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.file, testFile);
         expect(location.offset, 23);
         expect(location.length, 'one'.length);
@@ -367,7 +367,7 @@ enum E2 { three, four }''');
       expect(element.kind, plugin.ElementKind.ENUM_CONSTANT);
       expect(element.name, 'three');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.file, testFile);
         expect(location.offset, 44);
         expect(location.length, 'three'.length);
@@ -386,7 +386,7 @@ enum E2 { three, four }''');
       expect(element.kind, plugin.ElementKind.FIELD);
       expect(element.name, 'index');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.file, testFile);
         expect(location.offset, -1);
         expect(location.length, 'index'.length);
@@ -405,7 +405,7 @@ enum E2 { three, four }''');
       expect(element.kind, plugin.ElementKind.FIELD);
       expect(element.name, 'values');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.file, testFile);
         expect(location.offset, -1);
         expect(location.length, 'values'.length);
@@ -430,7 +430,7 @@ class A {
     expect(element.kind, plugin.ElementKind.FIELD);
     expect(element.name, 'myField');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 25);
       expect(location.length, 'myField'.length);
@@ -454,7 +454,7 @@ typedef int F<T>(String x);
     expect(element.name, 'F');
     expect(element.typeParameters, '<T>');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 12);
       expect(location.length, 'F'.length);
@@ -477,7 +477,7 @@ class A {
     expect(element.kind, plugin.ElementKind.GETTER);
     expect(element.name, 'myGetter');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 20);
       expect(location.length, 'myGetter'.length);
@@ -503,7 +503,7 @@ myLabel:
     expect(element.kind, plugin.ElementKind.LABEL);
     expect(element.name, 'myLabel');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 9);
       expect(location.length, 'myLabel'.length);
@@ -528,7 +528,7 @@ class A {
     expect(element.kind, plugin.ElementKind.METHOD);
     expect(element.name, 'myMethod');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 32);
       expect(location.length, 'myGetter'.length);
@@ -551,7 +551,7 @@ class A {
     expect(element.kind, plugin.ElementKind.SETTER);
     expect(element.name, 'mySetter');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 16);
       expect(location.length, 'mySetter'.length);
@@ -574,7 +574,7 @@ typedef F<T> = int Function(String x);
     expect(element.name, 'F');
     expect(element.typeParameters, '<T>');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 8);
       expect(location.length, 'F'.length);
@@ -597,7 +597,7 @@ typedef A<T> = Map<int, T>;
     expect(element.name, 'A');
     expect(element.typeParameters, '<out T>');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 8);
       expect(location.length, 'A'.length);
@@ -665,7 +665,7 @@ typedef A<T> = Map<int, T>;
 
 class _AnalyzerConverterTest extends AbstractSingleUnitTest {
   AnalyzerConverter converter = AnalyzerConverter();
-  analyzer.Source source;
+  late analyzer.Source source;
 
   @override
   void setUp() {

@@ -451,11 +451,11 @@ class _Base extends AbstractContextTest with DartChangeBuilderMixin {
   }
 
   Future<void> _assertImportLibraryElement(
-      {String initialCode,
-      String uriStr,
-      String name,
-      String expectedPrefix,
-      String expectedCode}) async {
+      {required String initialCode,
+      required String uriStr,
+      required String name,
+      String? expectedPrefix,
+      String? expectedCode}) async {
     var offset = initialCode.indexOf('^');
     if (offset > 0) {
       initialCode =

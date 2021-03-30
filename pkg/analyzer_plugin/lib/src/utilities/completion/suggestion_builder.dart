@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/utilities/completion/suggestion_builder.dart';
 /// An object used to build code completion suggestions for Dart code.
 class SuggestionBuilderImpl implements SuggestionBuilder {
   /// The resource provider used to access the file system.
-  final ResourceProvider resourceProvider;
+  final ResourceProvider? resourceProvider;
 
   /// The converter used to convert analyzer objects to protocol objects.
   final AnalyzerConverter converter = AnalyzerConverter();
@@ -65,9 +65,9 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
   }
 
   @override
-  CompletionSuggestion forElement(Element element,
-      {String completion,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+  CompletionSuggestion? forElement(Element? element,
+      {String? completion,
+      CompletionSuggestionKind? kind,
       int relevance = DART_RELEVANCE_DEFAULT}) {
     // Copied from analysis_server/lib/src/services/completion/dart/suggestion_builder.dart
     if (element == null) {
@@ -80,7 +80,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     completion ??= element.displayName;
     var isDeprecated = element.hasDeprecated;
     var suggestion = CompletionSuggestion(
-        kind,
+        kind ?? CompletionSuggestionKind.INVOCATION,
         isDeprecated ? DART_RELEVANCE_LOW : relevance,
         completion,
         completion.length,
@@ -105,11 +105,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
           .toList();
       suggestion.parameterTypes =
           element.parameters.map((ParameterElement parameter) {
-        var paramType = parameter.type;
-        // Gracefully degrade if type not resolved yet
-        return paramType != null
-            ? paramType.getDisplayString(withNullability: false)
-            : 'var';
+        return parameter.type.getDisplayString(withNullability: false);
       }).toList();
 
       var requiredParameters = element.parameters
@@ -126,19 +122,17 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     return suggestion;
   }
 
-  String getReturnTypeString(Element element) {
+  String? getReturnTypeString(Element element) {
     // Copied from analysis_server/lib/src/protocol_server.dart
     if (element is ExecutableElement) {
       if (element.kind == ElementKind.SETTER) {
         return null;
       } else {
-        return element.returnType?.getDisplayString(withNullability: false);
+        return element.returnType.getDisplayString(withNullability: false);
       }
     } else if (element is VariableElement) {
       var type = element.type;
-      return type != null
-          ? type.getDisplayString(withNullability: false)
-          : 'dynamic';
+      return type.getDisplayString(withNullability: false);
     } else if (element is TypeAliasElement) {
       var aliasedElement = element.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElement) {

@@ -34,7 +34,7 @@ mixin CompletionMixin implements ServerPlugin {
     var generator = CompletionGenerator(getCompletionContributors(path));
     var result = await generator.generateCompletionResponse(request);
     result.sendNotifications(channel);
-    return result.result;
+    return result.result!;
   }
 }
 

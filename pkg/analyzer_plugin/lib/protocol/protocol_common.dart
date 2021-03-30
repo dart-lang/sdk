@@ -21,14 +21,13 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AddContentOverlay implements HasToJson {
-  String _content;
+  late String _content;
 
   /// The new content of the file.
   String get content => _content;
 
   /// The new content of the file.
   set content(String value) {
-    assert(value != null);
     _content = value;
   }
 
@@ -37,7 +36,7 @@ class AddContentOverlay implements HasToJson {
   }
 
   factory AddContentOverlay.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       if (json['type'] != 'add') {
@@ -57,8 +56,8 @@ class AddContentOverlay implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['type'] = 'add';
     result['content'] = content;
     return result;
@@ -100,30 +99,29 @@ class AddContentOverlay implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisError implements HasToJson {
-  AnalysisErrorSeverity _severity;
+  late AnalysisErrorSeverity _severity;
 
-  AnalysisErrorType _type;
+  late AnalysisErrorType _type;
 
-  Location _location;
+  late Location _location;
 
-  String _message;
+  late String _message;
 
-  String _correction;
+  String? _correction;
 
-  String _code;
+  late String _code;
 
-  String _url;
+  String? _url;
 
-  List<DiagnosticMessage> _contextMessages;
+  List<DiagnosticMessage>? _contextMessages;
 
-  bool _hasFix;
+  bool? _hasFix;
 
   /// The severity of the error.
   AnalysisErrorSeverity get severity => _severity;
 
   /// The severity of the error.
   set severity(AnalysisErrorSeverity value) {
-    assert(value != null);
     _severity = value;
   }
 
@@ -132,7 +130,6 @@ class AnalysisError implements HasToJson {
 
   /// The type of the error.
   set type(AnalysisErrorType value) {
-    assert(value != null);
     _type = value;
   }
 
@@ -141,7 +138,6 @@ class AnalysisError implements HasToJson {
 
   /// The location associated with the error.
   set location(Location value) {
-    assert(value != null);
     _location = value;
   }
 
@@ -152,19 +148,18 @@ class AnalysisError implements HasToJson {
   /// The message to be displayed for this error. The message should indicate
   /// what is wrong with the code and why it is wrong.
   set message(String value) {
-    assert(value != null);
     _message = value;
   }
 
   /// The correction message to be displayed for this error. The correction
   /// message should indicate how the user can fix the error. The field is
   /// omitted if there is no correction message associated with the error code.
-  String get correction => _correction;
+  String? get correction => _correction;
 
   /// The correction message to be displayed for this error. The correction
   /// message should indicate how the user can fix the error. The field is
   /// omitted if there is no correction message associated with the error code.
-  set correction(String value) {
+  set correction(String? value) {
     _correction = value;
   }
 
@@ -173,25 +168,24 @@ class AnalysisError implements HasToJson {
 
   /// The name, as a string, of the error code associated with this error.
   set code(String value) {
-    assert(value != null);
     _code = value;
   }
 
   /// The URL of a page containing documentation associated with this error.
-  String get url => _url;
+  String? get url => _url;
 
   /// The URL of a page containing documentation associated with this error.
-  set url(String value) {
+  set url(String? value) {
     _url = value;
   }
 
   /// Additional messages associated with this diagnostic that provide context
   /// to help the user understand the diagnostic.
-  List<DiagnosticMessage> get contextMessages => _contextMessages;
+  List<DiagnosticMessage>? get contextMessages => _contextMessages;
 
   /// Additional messages associated with this diagnostic that provide context
   /// to help the user understand the diagnostic.
-  set contextMessages(List<DiagnosticMessage> value) {
+  set contextMessages(List<DiagnosticMessage>? value) {
     _contextMessages = value;
   }
 
@@ -204,7 +198,7 @@ class AnalysisError implements HasToJson {
   /// negatives, no false positives should be returned. If a client sees this
   /// flag set they can proceed with the confidence that there are in fact
   /// associated fixes.
-  bool get hasFix => _hasFix;
+  bool? get hasFix => _hasFix;
 
   /// A hint to indicate to interested clients that this error has an
   /// associated fix (or fixes). The absence of this field implies there are
@@ -215,16 +209,16 @@ class AnalysisError implements HasToJson {
   /// negatives, no false positives should be returned. If a client sees this
   /// flag set they can proceed with the confidence that there are in fact
   /// associated fixes.
-  set hasFix(bool value) {
+  set hasFix(bool? value) {
     _hasFix = value;
   }
 
   AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type,
       Location location, String message, String code,
-      {String correction,
-      String url,
-      List<DiagnosticMessage> contextMessages,
-      bool hasFix}) {
+      {String? correction,
+      String? url,
+      List<DiagnosticMessage>? contextMessages,
+      bool? hasFix}) {
     this.severity = severity;
     this.type = type;
     this.location = location;
@@ -237,7 +231,7 @@ class AnalysisError implements HasToJson {
   }
 
   factory AnalysisError.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       AnalysisErrorSeverity severity;
@@ -268,7 +262,7 @@ class AnalysisError implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'message');
       }
-      String correction;
+      String? correction;
       if (json.containsKey('correction')) {
         correction = jsonDecoder.decodeString(
             jsonPath + '.correction', json['correction']);
@@ -279,19 +273,19 @@ class AnalysisError implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'code');
       }
-      String url;
+      String? url;
       if (json.containsKey('url')) {
         url = jsonDecoder.decodeString(jsonPath + '.url', json['url']);
       }
-      List<DiagnosticMessage> contextMessages;
+      List<DiagnosticMessage>? contextMessages;
       if (json.containsKey('contextMessages')) {
         contextMessages = jsonDecoder.decodeList(
             jsonPath + '.contextMessages',
             json['contextMessages'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 DiagnosticMessage.fromJson(jsonDecoder, jsonPath, json));
       }
-      bool hasFix;
+      bool? hasFix;
       if (json.containsKey('hasFix')) {
         hasFix = jsonDecoder.decodeBool(jsonPath + '.hasFix', json['hasFix']);
       }
@@ -306,24 +300,28 @@ class AnalysisError implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['severity'] = severity.toJson();
     result['type'] = type.toJson();
     result['location'] = location.toJson();
     result['message'] = message;
+    var correction = this.correction;
     if (correction != null) {
       result['correction'] = correction;
     }
     result['code'] = code;
+    var url = this.url;
     if (url != null) {
       result['url'] = url;
     }
+    var contextMessages = this.contextMessages;
     if (contextMessages != null) {
       result['contextMessages'] = contextMessages
           .map((DiagnosticMessage value) => value.toJson())
           .toList();
     }
+    var hasFix = this.hasFix;
     if (hasFix != null) {
       result['hasFix'] = hasFix;
     }
@@ -408,7 +406,7 @@ class AnalysisErrorSeverity implements Enum {
   }
 
   factory AnalysisErrorSeverity.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return AnalysisErrorSeverity(json);
@@ -501,7 +499,7 @@ class AnalysisErrorType implements Enum {
   }
 
   factory AnalysisErrorType.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return AnalysisErrorType(json);
@@ -527,14 +525,13 @@ class AnalysisErrorType implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ChangeContentOverlay implements HasToJson {
-  List<SourceEdit> _edits;
+  late List<SourceEdit> _edits;
 
   /// The edits to be applied to the file.
   List<SourceEdit> get edits => _edits;
 
   /// The edits to be applied to the file.
   set edits(List<SourceEdit> value) {
-    assert(value != null);
     _edits = value;
   }
 
@@ -543,7 +540,7 @@ class ChangeContentOverlay implements HasToJson {
   }
 
   factory ChangeContentOverlay.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       if (json['type'] != 'change') {
@@ -554,7 +551,7 @@ class ChangeContentOverlay implements HasToJson {
         edits = jsonDecoder.decodeList(
             jsonPath + '.edits',
             json['edits'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
@@ -566,8 +563,8 @@ class ChangeContentOverlay implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['type'] = 'change';
     result['edits'] = edits.map((SourceEdit value) => value.toJson()).toList();
     return result;
@@ -624,58 +621,57 @@ class ChangeContentOverlay implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionSuggestion implements HasToJson {
-  CompletionSuggestionKind _kind;
+  late CompletionSuggestionKind _kind;
 
-  int _relevance;
+  late int _relevance;
 
-  String _completion;
+  late String _completion;
 
-  String _displayText;
+  String? _displayText;
 
-  int _replacementOffset;
+  int? _replacementOffset;
 
-  int _replacementLength;
+  int? _replacementLength;
 
-  int _selectionOffset;
+  late int _selectionOffset;
 
-  int _selectionLength;
+  late int _selectionLength;
 
-  bool _isDeprecated;
+  late bool _isDeprecated;
 
-  bool _isPotential;
+  late bool _isPotential;
 
-  String _docSummary;
+  String? _docSummary;
 
-  String _docComplete;
+  String? _docComplete;
 
-  String _declaringType;
+  String? _declaringType;
 
-  String _defaultArgumentListString;
+  String? _defaultArgumentListString;
 
-  List<int> _defaultArgumentListTextRanges;
+  List<int>? _defaultArgumentListTextRanges;
 
-  Element _element;
+  Element? _element;
 
-  String _returnType;
+  String? _returnType;
 
-  List<String> _parameterNames;
+  List<String>? _parameterNames;
 
-  List<String> _parameterTypes;
+  List<String>? _parameterTypes;
 
-  int _requiredParameterCount;
+  int? _requiredParameterCount;
 
-  bool _hasNamedParameters;
+  bool? _hasNamedParameters;
 
-  String _parameterName;
+  String? _parameterName;
 
-  String _parameterType;
+  String? _parameterType;
 
   /// The kind of element being suggested.
   CompletionSuggestionKind get kind => _kind;
 
   /// The kind of element being suggested.
   set kind(CompletionSuggestionKind value) {
-    assert(value != null);
     _kind = value;
   }
 
@@ -686,7 +682,6 @@ class CompletionSuggestion implements HasToJson {
   /// The relevance of this completion suggestion where a higher number
   /// indicates a higher relevance.
   set relevance(int value) {
-    assert(value != null);
     _relevance = value;
   }
 
@@ -701,19 +696,18 @@ class CompletionSuggestion implements HasToJson {
   /// additionally insert a template for the parameters. The information
   /// required in order to do so is contained in other fields.
   set completion(String value) {
-    assert(value != null);
     _completion = value;
   }
 
   /// Text to be displayed in, for example, a completion pop-up. This field is
   /// only defined if the displayed text should be different than the
   /// completion. Otherwise it is omitted.
-  String get displayText => _displayText;
+  String? get displayText => _displayText;
 
   /// Text to be displayed in, for example, a completion pop-up. This field is
   /// only defined if the displayed text should be different than the
   /// completion. Otherwise it is omitted.
-  set displayText(String value) {
+  set displayText(String? value) {
     _displayText = value;
   }
 
@@ -722,14 +716,14 @@ class CompletionSuggestion implements HasToJson {
   /// completion results. This value may be provided independently of
   /// replacementLength (for example if only one differs from the completion
   /// result value).
-  int get replacementOffset => _replacementOffset;
+  int? get replacementOffset => _replacementOffset;
 
   /// The offset of the start of the text to be replaced. If supplied, this
   /// should be used in preference to the offset provided on the containing
   /// completion results. This value may be provided independently of
   /// replacementLength (for example if only one differs from the completion
   /// result value).
-  set replacementOffset(int value) {
+  set replacementOffset(int? value) {
     _replacementOffset = value;
   }
 
@@ -737,13 +731,13 @@ class CompletionSuggestion implements HasToJson {
   /// in preference to the offset provided on the containing completion
   /// results. This value may be provided independently of replacementOffset
   /// (for example if only one differs from the completion result value).
-  int get replacementLength => _replacementLength;
+  int? get replacementLength => _replacementLength;
 
   /// The length of the text to be replaced. If supplied, this should be used
   /// in preference to the offset provided on the containing completion
   /// results. This value may be provided independently of replacementOffset
   /// (for example if only one differs from the completion result value).
-  set replacementLength(int value) {
+  set replacementLength(int? value) {
     _replacementLength = value;
   }
 
@@ -754,7 +748,6 @@ class CompletionSuggestion implements HasToJson {
   /// The offset, relative to the beginning of the completion, of where the
   /// selection should be placed after insertion.
   set selectionOffset(int value) {
-    assert(value != null);
     _selectionOffset = value;
   }
 
@@ -763,7 +756,6 @@ class CompletionSuggestion implements HasToJson {
 
   /// The number of characters that should be selected after insertion.
   set selectionLength(int value) {
-    assert(value != null);
     _selectionLength = value;
   }
 
@@ -772,7 +764,6 @@ class CompletionSuggestion implements HasToJson {
 
   /// True if the suggested element is deprecated.
   set isDeprecated(bool value) {
-    assert(value != null);
     _isDeprecated = value;
   }
 
@@ -783,49 +774,48 @@ class CompletionSuggestion implements HasToJson {
   /// True if the element is not known to be valid for the target. This happens
   /// if the type of the target is dynamic.
   set isPotential(bool value) {
-    assert(value != null);
     _isPotential = value;
   }
 
   /// An abbreviated version of the Dartdoc associated with the element being
   /// suggested. This field is omitted if there is no Dartdoc associated with
   /// the element.
-  String get docSummary => _docSummary;
+  String? get docSummary => _docSummary;
 
   /// An abbreviated version of the Dartdoc associated with the element being
   /// suggested. This field is omitted if there is no Dartdoc associated with
   /// the element.
-  set docSummary(String value) {
+  set docSummary(String? value) {
     _docSummary = value;
   }
 
   /// The Dartdoc associated with the element being suggested. This field is
   /// omitted if there is no Dartdoc associated with the element.
-  String get docComplete => _docComplete;
+  String? get docComplete => _docComplete;
 
   /// The Dartdoc associated with the element being suggested. This field is
   /// omitted if there is no Dartdoc associated with the element.
-  set docComplete(String value) {
+  set docComplete(String? value) {
     _docComplete = value;
   }
 
   /// The class that declares the element being suggested. This field is
   /// omitted if the suggested element is not a member of a class.
-  String get declaringType => _declaringType;
+  String? get declaringType => _declaringType;
 
   /// The class that declares the element being suggested. This field is
   /// omitted if the suggested element is not a member of a class.
-  set declaringType(String value) {
+  set declaringType(String? value) {
     _declaringType = value;
   }
 
   /// A default String for use in generating argument list source contents on
   /// the client side.
-  String get defaultArgumentListString => _defaultArgumentListString;
+  String? get defaultArgumentListString => _defaultArgumentListString;
 
   /// A default String for use in generating argument list source contents on
   /// the client side.
-  set defaultArgumentListString(String value) {
+  set defaultArgumentListString(String? value) {
     _defaultArgumentListString = value;
   }
 
@@ -835,7 +825,8 @@ class CompletionSuggestion implements HasToJson {
   /// y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
   /// of length 1, starting at offsets 0 and 3. Clients can use these ranges to
   /// treat the 'x' and 'y' values specially for linked edits.
-  List<int> get defaultArgumentListTextRanges => _defaultArgumentListTextRanges;
+  List<int>? get defaultArgumentListTextRanges =>
+      _defaultArgumentListTextRanges;
 
   /// Pairs of offsets and lengths describing 'defaultArgumentListString' text
   /// ranges suitable for use by clients to set up linked edits of default
@@ -843,91 +834,91 @@ class CompletionSuggestion implements HasToJson {
   /// y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
   /// of length 1, starting at offsets 0 and 3. Clients can use these ranges to
   /// treat the 'x' and 'y' values specially for linked edits.
-  set defaultArgumentListTextRanges(List<int> value) {
+  set defaultArgumentListTextRanges(List<int>? value) {
     _defaultArgumentListTextRanges = value;
   }
 
   /// Information about the element reference being suggested.
-  Element get element => _element;
+  Element? get element => _element;
 
   /// Information about the element reference being suggested.
-  set element(Element value) {
+  set element(Element? value) {
     _element = value;
   }
 
   /// The return type of the getter, function or method or the type of the
   /// field being suggested. This field is omitted if the suggested element is
   /// not a getter, function or method.
-  String get returnType => _returnType;
+  String? get returnType => _returnType;
 
   /// The return type of the getter, function or method or the type of the
   /// field being suggested. This field is omitted if the suggested element is
   /// not a getter, function or method.
-  set returnType(String value) {
+  set returnType(String? value) {
     _returnType = value;
   }
 
   /// The names of the parameters of the function or method being suggested.
   /// This field is omitted if the suggested element is not a setter, function
   /// or method.
-  List<String> get parameterNames => _parameterNames;
+  List<String>? get parameterNames => _parameterNames;
 
   /// The names of the parameters of the function or method being suggested.
   /// This field is omitted if the suggested element is not a setter, function
   /// or method.
-  set parameterNames(List<String> value) {
+  set parameterNames(List<String>? value) {
     _parameterNames = value;
   }
 
   /// The types of the parameters of the function or method being suggested.
   /// This field is omitted if the parameterNames field is omitted.
-  List<String> get parameterTypes => _parameterTypes;
+  List<String>? get parameterTypes => _parameterTypes;
 
   /// The types of the parameters of the function or method being suggested.
   /// This field is omitted if the parameterNames field is omitted.
-  set parameterTypes(List<String> value) {
+  set parameterTypes(List<String>? value) {
     _parameterTypes = value;
   }
 
   /// The number of required parameters for the function or method being
   /// suggested. This field is omitted if the parameterNames field is omitted.
-  int get requiredParameterCount => _requiredParameterCount;
+  int? get requiredParameterCount => _requiredParameterCount;
 
   /// The number of required parameters for the function or method being
   /// suggested. This field is omitted if the parameterNames field is omitted.
-  set requiredParameterCount(int value) {
+  set requiredParameterCount(int? value) {
     _requiredParameterCount = value;
   }
 
   /// True if the function or method being suggested has at least one named
   /// parameter. This field is omitted if the parameterNames field is omitted.
-  bool get hasNamedParameters => _hasNamedParameters;
+  bool? get hasNamedParameters => _hasNamedParameters;
 
   /// True if the function or method being suggested has at least one named
   /// parameter. This field is omitted if the parameterNames field is omitted.
-  set hasNamedParameters(bool value) {
+  set hasNamedParameters(bool? value) {
     _hasNamedParameters = value;
   }
 
   /// The name of the optional parameter being suggested. This field is omitted
   /// if the suggestion is not the addition of an optional argument within an
   /// argument list.
-  String get parameterName => _parameterName;
+  String? get parameterName => _parameterName;
 
   /// The name of the optional parameter being suggested. This field is omitted
   /// if the suggestion is not the addition of an optional argument within an
   /// argument list.
-  set parameterName(String value) {
+  set parameterName(String? value) {
     _parameterName = value;
   }
 
   /// The type of the options parameter being suggested. This field is omitted
   /// if the parameterName field is omitted.
-  String get parameterType => _parameterType;
+  String? get parameterType => _parameterType;
 
   /// The type of the options parameter being suggested. This field is omitted
   /// if the parameterName field is omitted.
-  set parameterType(String value) {
+  set parameterType(String? value) {
     _parameterType = value;
   }
 
@@ -939,22 +930,22 @@ class CompletionSuggestion implements HasToJson {
       int selectionLength,
       bool isDeprecated,
       bool isPotential,
-      {String displayText,
-      int replacementOffset,
-      int replacementLength,
-      String docSummary,
-      String docComplete,
-      String declaringType,
-      String defaultArgumentListString,
-      List<int> defaultArgumentListTextRanges,
-      Element element,
-      String returnType,
-      List<String> parameterNames,
-      List<String> parameterTypes,
-      int requiredParameterCount,
-      bool hasNamedParameters,
-      String parameterName,
-      String parameterType}) {
+      {String? displayText,
+      int? replacementOffset,
+      int? replacementLength,
+      String? docSummary,
+      String? docComplete,
+      String? declaringType,
+      String? defaultArgumentListString,
+      List<int>? defaultArgumentListTextRanges,
+      Element? element,
+      String? returnType,
+      List<String>? parameterNames,
+      List<String>? parameterTypes,
+      int? requiredParameterCount,
+      bool? hasNamedParameters,
+      String? parameterName,
+      String? parameterType}) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -981,7 +972,7 @@ class CompletionSuggestion implements HasToJson {
   }
 
   factory CompletionSuggestion.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       CompletionSuggestionKind kind;
@@ -1005,17 +996,17 @@ class CompletionSuggestion implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'completion');
       }
-      String displayText;
+      String? displayText;
       if (json.containsKey('displayText')) {
         displayText = jsonDecoder.decodeString(
             jsonPath + '.displayText', json['displayText']);
       }
-      int replacementOffset;
+      int? replacementOffset;
       if (json.containsKey('replacementOffset')) {
         replacementOffset = jsonDecoder.decodeInt(
             jsonPath + '.replacementOffset', json['replacementOffset']);
       }
-      int replacementLength;
+      int? replacementLength;
       if (json.containsKey('replacementLength')) {
         replacementLength = jsonDecoder.decodeInt(
             jsonPath + '.replacementLength', json['replacementLength']);
@@ -1048,71 +1039,71 @@ class CompletionSuggestion implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'isPotential');
       }
-      String docSummary;
+      String? docSummary;
       if (json.containsKey('docSummary')) {
         docSummary = jsonDecoder.decodeString(
             jsonPath + '.docSummary', json['docSummary']);
       }
-      String docComplete;
+      String? docComplete;
       if (json.containsKey('docComplete')) {
         docComplete = jsonDecoder.decodeString(
             jsonPath + '.docComplete', json['docComplete']);
       }
-      String declaringType;
+      String? declaringType;
       if (json.containsKey('declaringType')) {
         declaringType = jsonDecoder.decodeString(
             jsonPath + '.declaringType', json['declaringType']);
       }
-      String defaultArgumentListString;
+      String? defaultArgumentListString;
       if (json.containsKey('defaultArgumentListString')) {
         defaultArgumentListString = jsonDecoder.decodeString(
             jsonPath + '.defaultArgumentListString',
             json['defaultArgumentListString']);
       }
-      List<int> defaultArgumentListTextRanges;
+      List<int>? defaultArgumentListTextRanges;
       if (json.containsKey('defaultArgumentListTextRanges')) {
         defaultArgumentListTextRanges = jsonDecoder.decodeList(
             jsonPath + '.defaultArgumentListTextRanges',
             json['defaultArgumentListTextRanges'],
             jsonDecoder.decodeInt);
       }
-      Element element;
+      Element? element;
       if (json.containsKey('element')) {
         element = Element.fromJson(
             jsonDecoder, jsonPath + '.element', json['element']);
       }
-      String returnType;
+      String? returnType;
       if (json.containsKey('returnType')) {
         returnType = jsonDecoder.decodeString(
             jsonPath + '.returnType', json['returnType']);
       }
-      List<String> parameterNames;
+      List<String>? parameterNames;
       if (json.containsKey('parameterNames')) {
         parameterNames = jsonDecoder.decodeList(jsonPath + '.parameterNames',
             json['parameterNames'], jsonDecoder.decodeString);
       }
-      List<String> parameterTypes;
+      List<String>? parameterTypes;
       if (json.containsKey('parameterTypes')) {
         parameterTypes = jsonDecoder.decodeList(jsonPath + '.parameterTypes',
             json['parameterTypes'], jsonDecoder.decodeString);
       }
-      int requiredParameterCount;
+      int? requiredParameterCount;
       if (json.containsKey('requiredParameterCount')) {
         requiredParameterCount = jsonDecoder.decodeInt(
             jsonPath + '.requiredParameterCount',
             json['requiredParameterCount']);
       }
-      bool hasNamedParameters;
+      bool? hasNamedParameters;
       if (json.containsKey('hasNamedParameters')) {
         hasNamedParameters = jsonDecoder.decodeBool(
             jsonPath + '.hasNamedParameters', json['hasNamedParameters']);
       }
-      String parameterName;
+      String? parameterName;
       if (json.containsKey('parameterName')) {
         parameterName = jsonDecoder.decodeString(
             jsonPath + '.parameterName', json['parameterName']);
       }
-      String parameterType;
+      String? parameterType;
       if (json.containsKey('parameterType')) {
         parameterType = jsonDecoder.decodeString(
             jsonPath + '.parameterType', json['parameterType']);
@@ -1141,17 +1132,20 @@ class CompletionSuggestion implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['kind'] = kind.toJson();
     result['relevance'] = relevance;
     result['completion'] = completion;
+    var displayText = this.displayText;
     if (displayText != null) {
       result['displayText'] = displayText;
     }
+    var replacementOffset = this.replacementOffset;
     if (replacementOffset != null) {
       result['replacementOffset'] = replacementOffset;
     }
+    var replacementLength = this.replacementLength;
     if (replacementLength != null) {
       result['replacementLength'] = replacementLength;
     }
@@ -1159,42 +1153,55 @@ class CompletionSuggestion implements HasToJson {
     result['selectionLength'] = selectionLength;
     result['isDeprecated'] = isDeprecated;
     result['isPotential'] = isPotential;
+    var docSummary = this.docSummary;
     if (docSummary != null) {
       result['docSummary'] = docSummary;
     }
+    var docComplete = this.docComplete;
     if (docComplete != null) {
       result['docComplete'] = docComplete;
     }
+    var declaringType = this.declaringType;
     if (declaringType != null) {
       result['declaringType'] = declaringType;
     }
+    var defaultArgumentListString = this.defaultArgumentListString;
     if (defaultArgumentListString != null) {
       result['defaultArgumentListString'] = defaultArgumentListString;
     }
+    var defaultArgumentListTextRanges = this.defaultArgumentListTextRanges;
     if (defaultArgumentListTextRanges != null) {
       result['defaultArgumentListTextRanges'] = defaultArgumentListTextRanges;
     }
+    var element = this.element;
     if (element != null) {
       result['element'] = element.toJson();
     }
+    var returnType = this.returnType;
     if (returnType != null) {
       result['returnType'] = returnType;
     }
+    var parameterNames = this.parameterNames;
     if (parameterNames != null) {
       result['parameterNames'] = parameterNames;
     }
+    var parameterTypes = this.parameterTypes;
     if (parameterTypes != null) {
       result['parameterTypes'] = parameterTypes;
     }
+    var requiredParameterCount = this.requiredParameterCount;
     if (requiredParameterCount != null) {
       result['requiredParameterCount'] = requiredParameterCount;
     }
+    var hasNamedParameters = this.hasNamedParameters;
     if (hasNamedParameters != null) {
       result['hasNamedParameters'] = hasNamedParameters;
     }
+    var parameterName = this.parameterName;
     if (parameterName != null) {
       result['parameterName'] = parameterName;
     }
+    var parameterType = this.parameterType;
     if (parameterType != null) {
       result['parameterType'] = parameterType;
     }
@@ -1380,7 +1387,7 @@ class CompletionSuggestionKind implements Enum {
   }
 
   factory CompletionSuggestionKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return CompletionSuggestionKind(json);
@@ -1406,16 +1413,15 @@ class CompletionSuggestionKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class DiagnosticMessage implements HasToJson {
-  String _message;
+  late String _message;
 
-  Location _location;
+  late Location _location;
 
   /// The message to be displayed to the user.
   String get message => _message;
 
   /// The message to be displayed to the user.
   set message(String value) {
-    assert(value != null);
     _message = value;
   }
 
@@ -1426,7 +1432,6 @@ class DiagnosticMessage implements HasToJson {
   /// The location associated with or referenced by the message. Clients should
   /// provide the ability to navigate to the location.
   set location(Location value) {
-    assert(value != null);
     _location = value;
   }
 
@@ -1436,7 +1441,7 @@ class DiagnosticMessage implements HasToJson {
   }
 
   factory DiagnosticMessage.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String message;
@@ -1460,8 +1465,8 @@ class DiagnosticMessage implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['message'] = message;
     result['location'] = location.toJson();
     return result;
@@ -1526,28 +1531,27 @@ class Element implements HasToJson {
     return flags;
   }
 
-  ElementKind _kind;
+  late ElementKind _kind;
 
-  String _name;
+  late String _name;
 
-  Location _location;
+  Location? _location;
 
-  int _flags;
+  late int _flags;
 
-  String _parameters;
+  String? _parameters;
 
-  String _returnType;
+  String? _returnType;
 
-  String _typeParameters;
+  String? _typeParameters;
 
-  String _aliasedType;
+  String? _aliasedType;
 
   /// The kind of the element.
   ElementKind get kind => _kind;
 
   /// The kind of the element.
   set kind(ElementKind value) {
-    assert(value != null);
     _kind = value;
   }
 
@@ -1558,15 +1562,14 @@ class Element implements HasToJson {
   /// The name of the element. This is typically used as the label in the
   /// outline.
   set name(String value) {
-    assert(value != null);
     _name = value;
   }
 
   /// The location of the name in the declaration of the element.
-  Location get location => _location;
+  Location? get location => _location;
 
   /// The location of the name in the declaration of the element.
-  set location(Location value) {
+  set location(Location? value) {
     _location = value;
   }
 
@@ -1591,7 +1594,6 @@ class Element implements HasToJson {
   /// - 0x10 - set if the element is private
   /// - 0x20 - set if the element is deprecated
   set flags(int value) {
-    assert(value != null);
     _flags = value;
   }
 
@@ -1599,54 +1601,54 @@ class Element implements HasToJson {
   /// function this field will not be defined. If the element doesn't have
   /// parameters (e.g. getter), this field will not be defined. If the element
   /// has zero parameters, this field will have a value of "()".
-  String get parameters => _parameters;
+  String? get parameters => _parameters;
 
   /// The parameter list for the element. If the element is not a method or
   /// function this field will not be defined. If the element doesn't have
   /// parameters (e.g. getter), this field will not be defined. If the element
   /// has zero parameters, this field will have a value of "()".
-  set parameters(String value) {
+  set parameters(String? value) {
     _parameters = value;
   }
 
   /// The return type of the element. If the element is not a method or
   /// function this field will not be defined. If the element does not have a
   /// declared return type, this field will contain an empty string.
-  String get returnType => _returnType;
+  String? get returnType => _returnType;
 
   /// The return type of the element. If the element is not a method or
   /// function this field will not be defined. If the element does not have a
   /// declared return type, this field will contain an empty string.
-  set returnType(String value) {
+  set returnType(String? value) {
     _returnType = value;
   }
 
   /// The type parameter list for the element. If the element doesn't have type
   /// parameters, this field will not be defined.
-  String get typeParameters => _typeParameters;
+  String? get typeParameters => _typeParameters;
 
   /// The type parameter list for the element. If the element doesn't have type
   /// parameters, this field will not be defined.
-  set typeParameters(String value) {
+  set typeParameters(String? value) {
     _typeParameters = value;
   }
 
   /// If the element is a type alias, this field is the aliased type. Otherwise
   /// this field will not be defined.
-  String get aliasedType => _aliasedType;
+  String? get aliasedType => _aliasedType;
 
   /// If the element is a type alias, this field is the aliased type. Otherwise
   /// this field will not be defined.
-  set aliasedType(String value) {
+  set aliasedType(String? value) {
     _aliasedType = value;
   }
 
   Element(ElementKind kind, String name, int flags,
-      {Location location,
-      String parameters,
-      String returnType,
-      String typeParameters,
-      String aliasedType}) {
+      {Location? location,
+      String? parameters,
+      String? returnType,
+      String? typeParameters,
+      String? aliasedType}) {
     this.kind = kind;
     this.name = name;
     this.location = location;
@@ -1658,7 +1660,7 @@ class Element implements HasToJson {
   }
 
   factory Element.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       ElementKind kind;
@@ -1674,7 +1676,7 @@ class Element implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'name');
       }
-      Location location;
+      Location? location;
       if (json.containsKey('location')) {
         location = Location.fromJson(
             jsonDecoder, jsonPath + '.location', json['location']);
@@ -1685,22 +1687,22 @@ class Element implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'flags');
       }
-      String parameters;
+      String? parameters;
       if (json.containsKey('parameters')) {
         parameters = jsonDecoder.decodeString(
             jsonPath + '.parameters', json['parameters']);
       }
-      String returnType;
+      String? returnType;
       if (json.containsKey('returnType')) {
         returnType = jsonDecoder.decodeString(
             jsonPath + '.returnType', json['returnType']);
       }
-      String typeParameters;
+      String? typeParameters;
       if (json.containsKey('typeParameters')) {
         typeParameters = jsonDecoder.decodeString(
             jsonPath + '.typeParameters', json['typeParameters']);
       }
-      String aliasedType;
+      String? aliasedType;
       if (json.containsKey('aliasedType')) {
         aliasedType = jsonDecoder.decodeString(
             jsonPath + '.aliasedType', json['aliasedType']);
@@ -1724,23 +1726,28 @@ class Element implements HasToJson {
   bool get isDeprecated => (flags & FLAG_DEPRECATED) != 0;
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['kind'] = kind.toJson();
     result['name'] = name;
+    var location = this.location;
     if (location != null) {
       result['location'] = location.toJson();
     }
     result['flags'] = flags;
+    var parameters = this.parameters;
     if (parameters != null) {
       result['parameters'] = parameters;
     }
+    var returnType = this.returnType;
     if (returnType != null) {
       result['returnType'] = returnType;
     }
+    var typeParameters = this.typeParameters;
     if (typeParameters != null) {
       result['typeParameters'] = typeParameters;
     }
+    var aliasedType = this.aliasedType;
     if (aliasedType != null) {
       result['aliasedType'] = aliasedType;
     }
@@ -1975,7 +1982,7 @@ class ElementKind implements Enum {
   }
 
   factory ElementKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return ElementKind(json);
@@ -2076,7 +2083,7 @@ class FoldingKind implements Enum {
   }
 
   factory FoldingKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return FoldingKind(json);
@@ -2103,18 +2110,17 @@ class FoldingKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FoldingRegion implements HasToJson {
-  FoldingKind _kind;
+  late FoldingKind _kind;
 
-  int _offset;
+  late int _offset;
 
-  int _length;
+  late int _length;
 
   /// The kind of the region.
   FoldingKind get kind => _kind;
 
   /// The kind of the region.
   set kind(FoldingKind value) {
-    assert(value != null);
     _kind = value;
   }
 
@@ -2123,7 +2129,6 @@ class FoldingRegion implements HasToJson {
 
   /// The offset of the region to be folded.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -2132,7 +2137,6 @@ class FoldingRegion implements HasToJson {
 
   /// The length of the region to be folded.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -2143,7 +2147,7 @@ class FoldingRegion implements HasToJson {
   }
 
   factory FoldingRegion.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       FoldingKind kind;
@@ -2172,8 +2176,8 @@ class FoldingRegion implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['kind'] = kind.toJson();
     result['offset'] = offset;
     result['length'] = length;
@@ -2213,18 +2217,17 @@ class FoldingRegion implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class HighlightRegion implements HasToJson {
-  HighlightRegionType _type;
+  late HighlightRegionType _type;
 
-  int _offset;
+  late int _offset;
 
-  int _length;
+  late int _length;
 
   /// The type of highlight associated with the region.
   HighlightRegionType get type => _type;
 
   /// The type of highlight associated with the region.
   set type(HighlightRegionType value) {
-    assert(value != null);
     _type = value;
   }
 
@@ -2233,7 +2236,6 @@ class HighlightRegion implements HasToJson {
 
   /// The offset of the region to be highlighted.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -2242,7 +2244,6 @@ class HighlightRegion implements HasToJson {
 
   /// The length of the region to be highlighted.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -2253,7 +2254,7 @@ class HighlightRegion implements HasToJson {
   }
 
   factory HighlightRegion.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       HighlightRegionType type;
@@ -2282,8 +2283,8 @@ class HighlightRegion implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['type'] = type.toJson();
     result['offset'] = offset;
     result['length'] = length;
@@ -2860,7 +2861,7 @@ class HighlightRegionType implements Enum {
   }
 
   factory HighlightRegionType.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return HighlightRegionType(json);
@@ -2889,38 +2890,37 @@ class HighlightRegionType implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class KytheEntry implements HasToJson {
-  KytheVName _source;
+  late KytheVName _source;
 
-  String _kind;
+  String? _kind;
 
-  KytheVName _target;
+  KytheVName? _target;
 
-  String _fact;
+  late String _fact;
 
-  List<int> _value;
+  List<int>? _value;
 
   /// The ticket of the source node.
   KytheVName get source => _source;
 
   /// The ticket of the source node.
   set source(KytheVName value) {
-    assert(value != null);
     _source = value;
   }
 
   /// An edge label. The schema defines which labels are meaningful.
-  String get kind => _kind;
+  String? get kind => _kind;
 
   /// An edge label. The schema defines which labels are meaningful.
-  set kind(String value) {
+  set kind(String? value) {
     _kind = value;
   }
 
   /// The ticket of the target node.
-  KytheVName get target => _target;
+  KytheVName? get target => _target;
 
   /// The ticket of the target node.
-  set target(KytheVName value) {
+  set target(KytheVName? value) {
     _target = value;
   }
 
@@ -2929,20 +2929,19 @@ class KytheEntry implements HasToJson {
 
   /// A fact label. The schema defines which fact labels are meaningful.
   set fact(String value) {
-    assert(value != null);
     _fact = value;
   }
 
   /// The String value of the fact.
-  List<int> get value => _value;
+  List<int>? get value => _value;
 
   /// The String value of the fact.
-  set value(List<int> value) {
+  set value(List<int>? value) {
     _value = value;
   }
 
   KytheEntry(KytheVName source, String fact,
-      {String kind, KytheVName target, List<int> value}) {
+      {String? kind, KytheVName? target, List<int>? value}) {
     this.source = source;
     this.kind = kind;
     this.target = target;
@@ -2951,7 +2950,7 @@ class KytheEntry implements HasToJson {
   }
 
   factory KytheEntry.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       KytheVName source;
@@ -2961,11 +2960,11 @@ class KytheEntry implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'source');
       }
-      String kind;
+      String? kind;
       if (json.containsKey('kind')) {
         kind = jsonDecoder.decodeString(jsonPath + '.kind', json['kind']);
       }
-      KytheVName target;
+      KytheVName? target;
       if (json.containsKey('target')) {
         target = KytheVName.fromJson(
             jsonDecoder, jsonPath + '.target', json['target']);
@@ -2976,7 +2975,7 @@ class KytheEntry implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'fact');
       }
-      List<int> value;
+      List<int>? value;
       if (json.containsKey('value')) {
         value = jsonDecoder.decodeList(
             jsonPath + '.value', json['value'], jsonDecoder.decodeInt);
@@ -2988,16 +2987,19 @@ class KytheEntry implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['source'] = source.toJson();
+    var kind = this.kind;
     if (kind != null) {
       result['kind'] = kind;
     }
+    var target = this.target;
     if (target != null) {
       result['target'] = target.toJson();
     }
     result['fact'] = fact;
+    var value = this.value;
     if (value != null) {
       result['value'] = value;
     }
@@ -3043,22 +3045,21 @@ class KytheEntry implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class KytheVName implements HasToJson {
-  String _signature;
+  late String _signature;
 
-  String _corpus;
+  late String _corpus;
 
-  String _root;
+  late String _root;
 
-  String _path;
+  late String _path;
 
-  String _language;
+  late String _language;
 
   /// An opaque signature generated by the analyzer.
   String get signature => _signature;
 
   /// An opaque signature generated by the analyzer.
   set signature(String value) {
-    assert(value != null);
     _signature = value;
   }
 
@@ -3071,7 +3072,6 @@ class KytheVName implements HasToJson {
   /// is a collection of related files, such as the contents of a given source
   /// repository.
   set corpus(String value) {
-    assert(value != null);
     _corpus = value;
   }
 
@@ -3084,7 +3084,6 @@ class KytheVName implements HasToJson {
   /// identifier, denoting a distinct subset of the corpus. This may also be
   /// used to designate virtual collections like generated files.
   set root(String value) {
-    assert(value != null);
     _root = value;
   }
 
@@ -3095,7 +3094,6 @@ class KytheVName implements HasToJson {
   /// A path-structured label describing the “location” of the named object
   /// relative to the corpus and the root.
   set path(String value) {
-    assert(value != null);
     _path = value;
   }
 
@@ -3104,7 +3102,6 @@ class KytheVName implements HasToJson {
 
   /// The language this name belongs to.
   set language(String value) {
-    assert(value != null);
     _language = value;
   }
 
@@ -3118,7 +3115,7 @@ class KytheVName implements HasToJson {
   }
 
   factory KytheVName.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String signature;
@@ -3160,8 +3157,8 @@ class KytheVName implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['signature'] = signature;
     result['corpus'] = corpus;
     result['root'] = root;
@@ -3207,18 +3204,17 @@ class KytheVName implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LinkedEditGroup implements HasToJson {
-  List<Position> _positions;
+  late List<Position> _positions;
 
-  int _length;
+  late int _length;
 
-  List<LinkedEditSuggestion> _suggestions;
+  late List<LinkedEditSuggestion> _suggestions;
 
   /// The positions of the regions that should be edited simultaneously.
   List<Position> get positions => _positions;
 
   /// The positions of the regions that should be edited simultaneously.
   set positions(List<Position> value) {
-    assert(value != null);
     _positions = value;
   }
 
@@ -3227,7 +3223,6 @@ class LinkedEditGroup implements HasToJson {
 
   /// The length of the regions that should be edited simultaneously.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -3238,7 +3233,6 @@ class LinkedEditGroup implements HasToJson {
   /// Pre-computed suggestions for what every region might want to be changed
   /// to.
   set suggestions(List<LinkedEditSuggestion> value) {
-    assert(value != null);
     _suggestions = value;
   }
 
@@ -3250,7 +3244,7 @@ class LinkedEditGroup implements HasToJson {
   }
 
   factory LinkedEditGroup.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<Position> positions;
@@ -3258,7 +3252,7 @@ class LinkedEditGroup implements HasToJson {
         positions = jsonDecoder.decodeList(
             jsonPath + '.positions',
             json['positions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 Position.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'positions');
@@ -3274,7 +3268,7 @@ class LinkedEditGroup implements HasToJson {
         suggestions = jsonDecoder.decodeList(
             jsonPath + '.suggestions',
             json['suggestions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'suggestions');
@@ -3289,8 +3283,8 @@ class LinkedEditGroup implements HasToJson {
   LinkedEditGroup.empty() : this(<Position>[], 0, <LinkedEditSuggestion>[]);
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['positions'] =
         positions.map((Position value) => value.toJson()).toList();
     result['length'] = length;
@@ -3345,16 +3339,15 @@ class LinkedEditGroup implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LinkedEditSuggestion implements HasToJson {
-  String _value;
+  late String _value;
 
-  LinkedEditSuggestionKind _kind;
+  late LinkedEditSuggestionKind _kind;
 
   /// The value that could be used to replace all of the linked edit regions.
   String get value => _value;
 
   /// The value that could be used to replace all of the linked edit regions.
   set value(String value) {
-    assert(value != null);
     _value = value;
   }
 
@@ -3363,7 +3356,6 @@ class LinkedEditSuggestion implements HasToJson {
 
   /// The kind of value being proposed.
   set kind(LinkedEditSuggestionKind value) {
-    assert(value != null);
     _kind = value;
   }
 
@@ -3373,7 +3365,7 @@ class LinkedEditSuggestion implements HasToJson {
   }
 
   factory LinkedEditSuggestion.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String value;
@@ -3396,8 +3388,8 @@ class LinkedEditSuggestion implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['value'] = value;
     result['kind'] = kind.toJson();
     return result;
@@ -3470,7 +3462,7 @@ class LinkedEditSuggestionKind implements Enum {
   }
 
   factory LinkedEditSuggestionKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return LinkedEditSuggestionKind(json);
@@ -3501,26 +3493,25 @@ class LinkedEditSuggestionKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Location implements HasToJson {
-  String _file;
+  late String _file;
 
-  int _offset;
+  late int _offset;
 
-  int _length;
+  late int _length;
 
-  int _startLine;
+  late int _startLine;
 
-  int _startColumn;
+  late int _startColumn;
 
-  int _endLine;
+  late int _endLine;
 
-  int _endColumn;
+  late int _endColumn;
 
   /// The file containing the range.
   String get file => _file;
 
   /// The file containing the range.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -3529,7 +3520,6 @@ class Location implements HasToJson {
 
   /// The offset of the range.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -3538,7 +3528,6 @@ class Location implements HasToJson {
 
   /// The length of the range.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -3549,7 +3538,6 @@ class Location implements HasToJson {
   /// The one-based index of the line containing the first character of the
   /// range.
   set startLine(int value) {
-    assert(value != null);
     _startLine = value;
   }
 
@@ -3560,7 +3548,6 @@ class Location implements HasToJson {
   /// The one-based index of the column containing the first character of the
   /// range.
   set startColumn(int value) {
-    assert(value != null);
     _startColumn = value;
   }
 
@@ -3571,7 +3558,6 @@ class Location implements HasToJson {
   /// The one-based index of the line containing the character immediately
   /// following the range.
   set endLine(int value) {
-    assert(value != null);
     _endLine = value;
   }
 
@@ -3582,7 +3568,6 @@ class Location implements HasToJson {
   /// The one-based index of the column containing the character immediately
   /// following the range.
   set endColumn(int value) {
-    assert(value != null);
     _endColumn = value;
   }
 
@@ -3598,7 +3583,7 @@ class Location implements HasToJson {
   }
 
   factory Location.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -3654,8 +3639,8 @@ class Location implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     result['length'] = length;
@@ -3707,18 +3692,17 @@ class Location implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class NavigationRegion implements HasToJson {
-  int _offset;
+  late int _offset;
 
-  int _length;
+  late int _length;
 
-  List<int> _targets;
+  late List<int> _targets;
 
   /// The offset of the region from which the user can navigate.
   int get offset => _offset;
 
   /// The offset of the region from which the user can navigate.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -3727,7 +3711,6 @@ class NavigationRegion implements HasToJson {
 
   /// The length of the region from which the user can navigate.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -3740,7 +3723,6 @@ class NavigationRegion implements HasToJson {
   /// which the given region is bound. By opening the target, clients can
   /// implement one form of navigation. This list cannot be empty.
   set targets(List<int> value) {
-    assert(value != null);
     _targets = value;
   }
 
@@ -3751,7 +3733,7 @@ class NavigationRegion implements HasToJson {
   }
 
   factory NavigationRegion.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -3780,8 +3762,8 @@ class NavigationRegion implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
     result['targets'] = targets;
@@ -3826,28 +3808,27 @@ class NavigationRegion implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class NavigationTarget implements HasToJson {
-  ElementKind _kind;
+  late ElementKind _kind;
 
-  int _fileIndex;
+  late int _fileIndex;
 
-  int _offset;
+  late int _offset;
 
-  int _length;
+  late int _length;
 
-  int _startLine;
+  late int _startLine;
 
-  int _startColumn;
+  late int _startColumn;
 
-  int _codeOffset;
+  int? _codeOffset;
 
-  int _codeLength;
+  int? _codeLength;
 
   /// The kind of the element.
   ElementKind get kind => _kind;
 
   /// The kind of the element.
   set kind(ElementKind value) {
-    assert(value != null);
     _kind = value;
   }
 
@@ -3858,7 +3839,6 @@ class NavigationTarget implements HasToJson {
   /// The index of the file (in the enclosing navigation response) to navigate
   /// to.
   set fileIndex(int value) {
-    assert(value != null);
     _fileIndex = value;
   }
 
@@ -3867,7 +3847,6 @@ class NavigationTarget implements HasToJson {
 
   /// The offset of the name of the target to which the user can navigate.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -3876,7 +3855,6 @@ class NavigationTarget implements HasToJson {
 
   /// The length of the name of the target to which the user can navigate.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -3887,7 +3865,6 @@ class NavigationTarget implements HasToJson {
   /// The one-based index of the line containing the first character of the
   /// name of the target.
   set startLine(int value) {
-    assert(value != null);
     _startLine = value;
   }
 
@@ -3898,29 +3875,28 @@ class NavigationTarget implements HasToJson {
   /// The one-based index of the column containing the first character of the
   /// name of the target.
   set startColumn(int value) {
-    assert(value != null);
     _startColumn = value;
   }
 
   /// The offset of the target code to which the user can navigate.
-  int get codeOffset => _codeOffset;
+  int? get codeOffset => _codeOffset;
 
   /// The offset of the target code to which the user can navigate.
-  set codeOffset(int value) {
+  set codeOffset(int? value) {
     _codeOffset = value;
   }
 
   /// The length of the target code to which the user can navigate.
-  int get codeLength => _codeLength;
+  int? get codeLength => _codeLength;
 
   /// The length of the target code to which the user can navigate.
-  set codeLength(int value) {
+  set codeLength(int? value) {
     _codeLength = value;
   }
 
   NavigationTarget(ElementKind kind, int fileIndex, int offset, int length,
       int startLine, int startColumn,
-      {int codeOffset, int codeLength}) {
+      {int? codeOffset, int? codeLength}) {
     this.kind = kind;
     this.fileIndex = fileIndex;
     this.offset = offset;
@@ -3932,7 +3908,7 @@ class NavigationTarget implements HasToJson {
   }
 
   factory NavigationTarget.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       ElementKind kind;
@@ -3975,12 +3951,12 @@ class NavigationTarget implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'startColumn');
       }
-      int codeOffset;
+      int? codeOffset;
       if (json.containsKey('codeOffset')) {
         codeOffset =
             jsonDecoder.decodeInt(jsonPath + '.codeOffset', json['codeOffset']);
       }
-      int codeLength;
+      int? codeLength;
       if (json.containsKey('codeLength')) {
         codeLength =
             jsonDecoder.decodeInt(jsonPath + '.codeLength', json['codeLength']);
@@ -3994,17 +3970,19 @@ class NavigationTarget implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['kind'] = kind.toJson();
     result['fileIndex'] = fileIndex;
     result['offset'] = offset;
     result['length'] = length;
     result['startLine'] = startLine;
     result['startColumn'] = startColumn;
+    var codeOffset = this.codeOffset;
     if (codeOffset != null) {
       result['codeOffset'] = codeOffset;
     }
+    var codeLength = this.codeLength;
     if (codeLength != null) {
       result['codeLength'] = codeLength;
     }
@@ -4054,18 +4032,17 @@ class NavigationTarget implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Occurrences implements HasToJson {
-  Element _element;
+  late Element _element;
 
-  List<int> _offsets;
+  late List<int> _offsets;
 
-  int _length;
+  late int _length;
 
   /// The element that was referenced.
   Element get element => _element;
 
   /// The element that was referenced.
   set element(Element value) {
-    assert(value != null);
     _element = value;
   }
 
@@ -4074,7 +4051,6 @@ class Occurrences implements HasToJson {
 
   /// The offsets of the name of the referenced element within the file.
   set offsets(List<int> value) {
-    assert(value != null);
     _offsets = value;
   }
 
@@ -4083,7 +4059,6 @@ class Occurrences implements HasToJson {
 
   /// The length of the name of the referenced element.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -4094,7 +4069,7 @@ class Occurrences implements HasToJson {
   }
 
   factory Occurrences.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       Element element;
@@ -4124,8 +4099,8 @@ class Occurrences implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['element'] = element.toJson();
     result['offsets'] = offsets;
     result['length'] = length;
@@ -4168,24 +4143,23 @@ class Occurrences implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Outline implements HasToJson {
-  Element _element;
+  late Element _element;
 
-  int _offset;
+  late int _offset;
 
-  int _length;
+  late int _length;
 
-  int _codeOffset;
+  late int _codeOffset;
 
-  int _codeLength;
+  late int _codeLength;
 
-  List<Outline> _children;
+  List<Outline>? _children;
 
   /// A description of the element represented by this node.
   Element get element => _element;
 
   /// A description of the element represented by this node.
   set element(Element value) {
-    assert(value != null);
     _element = value;
   }
 
@@ -4200,7 +4174,6 @@ class Outline implements HasToJson {
   /// element. It can be used, for example, to map locations in the file back
   /// to an outline.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -4209,7 +4182,6 @@ class Outline implements HasToJson {
 
   /// The length of the element.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -4220,7 +4192,6 @@ class Outline implements HasToJson {
   /// The offset of the first character of the element code, which is neither
   /// documentation, nor annotation.
   set codeOffset(int value) {
-    assert(value != null);
     _codeOffset = value;
   }
 
@@ -4229,23 +4200,22 @@ class Outline implements HasToJson {
 
   /// The length of the element code.
   set codeLength(int value) {
-    assert(value != null);
     _codeLength = value;
   }
 
   /// The children of the node. The field will be omitted if the node has no
   /// children. Children are sorted by offset.
-  List<Outline> get children => _children;
+  List<Outline>? get children => _children;
 
   /// The children of the node. The field will be omitted if the node has no
   /// children. Children are sorted by offset.
-  set children(List<Outline> value) {
+  set children(List<Outline>? value) {
     _children = value;
   }
 
   Outline(
       Element element, int offset, int length, int codeOffset, int codeLength,
-      {List<Outline> children}) {
+      {List<Outline>? children}) {
     this.element = element;
     this.offset = offset;
     this.length = length;
@@ -4255,7 +4225,7 @@ class Outline implements HasToJson {
   }
 
   factory Outline.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       Element element;
@@ -4291,12 +4261,12 @@ class Outline implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'codeLength');
       }
-      List<Outline> children;
+      List<Outline>? children;
       if (json.containsKey('children')) {
         children = jsonDecoder.decodeList(
             jsonPath + '.children',
             json['children'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 Outline.fromJson(jsonDecoder, jsonPath, json));
       }
       return Outline(element, offset, length, codeOffset, codeLength,
@@ -4307,13 +4277,14 @@ class Outline implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['element'] = element.toJson();
     result['offset'] = offset;
     result['length'] = length;
     result['codeOffset'] = codeOffset;
     result['codeLength'] = codeLength;
+    var children = this.children;
     if (children != null) {
       result['children'] =
           children.map((Outline value) => value.toJson()).toList();
@@ -4361,20 +4332,19 @@ class Outline implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ParameterInfo implements HasToJson {
-  ParameterKind _kind;
+  late ParameterKind _kind;
 
-  String _name;
+  late String _name;
 
-  String _type;
+  late String _type;
 
-  String _defaultValue;
+  String? _defaultValue;
 
   /// The kind of the parameter.
   ParameterKind get kind => _kind;
 
   /// The kind of the parameter.
   set kind(ParameterKind value) {
-    assert(value != null);
     _kind = value;
   }
 
@@ -4383,7 +4353,6 @@ class ParameterInfo implements HasToJson {
 
   /// The name of the parameter.
   set name(String value) {
-    assert(value != null);
     _name = value;
   }
 
@@ -4392,22 +4361,21 @@ class ParameterInfo implements HasToJson {
 
   /// The type of the parameter.
   set type(String value) {
-    assert(value != null);
     _type = value;
   }
 
   /// The default value for this parameter. This value will be omitted if the
   /// parameter does not have a default value.
-  String get defaultValue => _defaultValue;
+  String? get defaultValue => _defaultValue;
 
   /// The default value for this parameter. This value will be omitted if the
   /// parameter does not have a default value.
-  set defaultValue(String value) {
+  set defaultValue(String? value) {
     _defaultValue = value;
   }
 
   ParameterInfo(ParameterKind kind, String name, String type,
-      {String defaultValue}) {
+      {String? defaultValue}) {
     this.kind = kind;
     this.name = name;
     this.type = type;
@@ -4415,7 +4383,7 @@ class ParameterInfo implements HasToJson {
   }
 
   factory ParameterInfo.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       ParameterKind kind;
@@ -4437,7 +4405,7 @@ class ParameterInfo implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'type');
       }
-      String defaultValue;
+      String? defaultValue;
       if (json.containsKey('defaultValue')) {
         defaultValue = jsonDecoder.decodeString(
             jsonPath + '.defaultValue', json['defaultValue']);
@@ -4449,11 +4417,12 @@ class ParameterInfo implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['kind'] = kind.toJson();
     result['name'] = name;
     result['type'] = type;
+    var defaultValue = this.defaultValue;
     if (defaultValue != null) {
       result['defaultValue'] = defaultValue;
     }
@@ -4538,7 +4507,7 @@ class ParameterKind implements Enum {
   }
 
   factory ParameterKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return ParameterKind(json);
@@ -4564,16 +4533,15 @@ class ParameterKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Position implements HasToJson {
-  String _file;
+  late String _file;
 
-  int _offset;
+  late int _offset;
 
   /// The file containing the position.
   String get file => _file;
 
   /// The file containing the position.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -4582,7 +4550,6 @@ class Position implements HasToJson {
 
   /// The offset of the position.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -4592,7 +4559,7 @@ class Position implements HasToJson {
   }
 
   factory Position.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -4614,8 +4581,8 @@ class Position implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     return result;
@@ -4725,7 +4692,7 @@ class RefactoringKind implements Enum {
   }
 
   factory RefactoringKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return RefactoringKind(json);
@@ -4754,23 +4721,23 @@ class RefactoringKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RefactoringMethodParameter implements HasToJson {
-  String _id;
+  String? _id;
 
-  RefactoringMethodParameterKind _kind;
+  late RefactoringMethodParameterKind _kind;
 
-  String _type;
+  late String _type;
 
-  String _name;
+  late String _name;
 
-  String _parameters;
-
-  /// The unique identifier of the parameter. Clients may omit this field for
-  /// the parameters they want to add.
-  String get id => _id;
+  String? _parameters;
 
   /// The unique identifier of the parameter. Clients may omit this field for
   /// the parameters they want to add.
-  set id(String value) {
+  String? get id => _id;
+
+  /// The unique identifier of the parameter. Clients may omit this field for
+  /// the parameters they want to add.
+  set id(String? value) {
     _id = value;
   }
 
@@ -4779,7 +4746,6 @@ class RefactoringMethodParameter implements HasToJson {
 
   /// The kind of the parameter.
   set kind(RefactoringMethodParameterKind value) {
-    assert(value != null);
     _kind = value;
   }
 
@@ -4790,7 +4756,6 @@ class RefactoringMethodParameter implements HasToJson {
   /// The type that should be given to the parameter, or the return type of the
   /// parameter's function type.
   set type(String value) {
-    assert(value != null);
     _type = value;
   }
 
@@ -4799,25 +4764,24 @@ class RefactoringMethodParameter implements HasToJson {
 
   /// The name that should be given to the parameter.
   set name(String value) {
-    assert(value != null);
     _name = value;
   }
 
   /// The parameter list of the parameter's function type. If the parameter is
   /// not of a function type, this field will not be defined. If the function
   /// type has zero parameters, this field will have a value of '()'.
-  String get parameters => _parameters;
+  String? get parameters => _parameters;
 
   /// The parameter list of the parameter's function type. If the parameter is
   /// not of a function type, this field will not be defined. If the function
   /// type has zero parameters, this field will have a value of '()'.
-  set parameters(String value) {
+  set parameters(String? value) {
     _parameters = value;
   }
 
   RefactoringMethodParameter(
       RefactoringMethodParameterKind kind, String type, String name,
-      {String id, String parameters}) {
+      {String? id, String? parameters}) {
     this.id = id;
     this.kind = kind;
     this.type = type;
@@ -4826,10 +4790,10 @@ class RefactoringMethodParameter implements HasToJson {
   }
 
   factory RefactoringMethodParameter.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      String id;
+      String? id;
       if (json.containsKey('id')) {
         id = jsonDecoder.decodeString(jsonPath + '.id', json['id']);
       }
@@ -4852,7 +4816,7 @@ class RefactoringMethodParameter implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'name');
       }
-      String parameters;
+      String? parameters;
       if (json.containsKey('parameters')) {
         parameters = jsonDecoder.decodeString(
             jsonPath + '.parameters', json['parameters']);
@@ -4865,14 +4829,16 @@ class RefactoringMethodParameter implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var id = this.id;
     if (id != null) {
       result['id'] = id;
     }
     result['kind'] = kind.toJson();
     result['type'] = type;
     result['name'] = name;
+    var parameters = this.parameters;
     if (parameters != null) {
       result['parameters'] = parameters;
     }
@@ -4947,7 +4913,7 @@ class RefactoringMethodParameterKind implements Enum {
   }
 
   factory RefactoringMethodParameterKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return RefactoringMethodParameterKind(json);
@@ -4975,18 +4941,17 @@ class RefactoringMethodParameterKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RefactoringProblem implements HasToJson {
-  RefactoringProblemSeverity _severity;
+  late RefactoringProblemSeverity _severity;
 
-  String _message;
+  late String _message;
 
-  Location _location;
+  Location? _location;
 
   /// The severity of the problem being represented.
   RefactoringProblemSeverity get severity => _severity;
 
   /// The severity of the problem being represented.
   set severity(RefactoringProblemSeverity value) {
-    assert(value != null);
     _severity = value;
   }
 
@@ -4995,31 +4960,30 @@ class RefactoringProblem implements HasToJson {
 
   /// A human-readable description of the problem being represented.
   set message(String value) {
-    assert(value != null);
     _message = value;
   }
 
   /// The location of the problem being represented. This field is omitted
   /// unless there is a specific location associated with the problem (such as
   /// a location where an element being renamed will be shadowed).
-  Location get location => _location;
+  Location? get location => _location;
 
   /// The location of the problem being represented. This field is omitted
   /// unless there is a specific location associated with the problem (such as
   /// a location where an element being renamed will be shadowed).
-  set location(Location value) {
+  set location(Location? value) {
     _location = value;
   }
 
   RefactoringProblem(RefactoringProblemSeverity severity, String message,
-      {Location location}) {
+      {Location? location}) {
     this.severity = severity;
     this.message = message;
     this.location = location;
   }
 
   factory RefactoringProblem.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       RefactoringProblemSeverity severity;
@@ -5036,7 +5000,7 @@ class RefactoringProblem implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'message');
       }
-      Location location;
+      Location? location;
       if (json.containsKey('location')) {
         location = Location.fromJson(
             jsonDecoder, jsonPath + '.location', json['location']);
@@ -5048,10 +5012,11 @@ class RefactoringProblem implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['severity'] = severity.toJson();
     result['message'] = message;
+    var location = this.location;
     if (location != null) {
       result['location'] = location.toJson();
     }
@@ -5145,7 +5110,7 @@ class RefactoringProblemSeverity implements Enum {
   }
 
   factory RefactoringProblemSeverity.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return RefactoringProblemSeverity(json);
@@ -5157,8 +5122,8 @@ class RefactoringProblemSeverity implements Enum {
   }
 
   /// Returns the [RefactoringProblemSeverity] with the maximal severity.
-  static RefactoringProblemSeverity max(
-          RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>
+  static RefactoringProblemSeverity? max(
+          RefactoringProblemSeverity? a, RefactoringProblemSeverity? b) =>
       maxRefactoringProblemSeverity(a, b);
 
   @override
@@ -5178,7 +5143,7 @@ class RemoveContentOverlay implements HasToJson {
   RemoveContentOverlay();
 
   factory RemoveContentOverlay.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       if (json['type'] != 'remove') {
@@ -5191,8 +5156,8 @@ class RemoveContentOverlay implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['type'] = 'remove';
     return result;
   }
@@ -5228,22 +5193,21 @@ class RemoveContentOverlay implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SourceChange implements HasToJson {
-  String _message;
+  late String _message;
 
-  List<SourceFileEdit> _edits;
+  late List<SourceFileEdit> _edits;
 
-  List<LinkedEditGroup> _linkedEditGroups;
+  late List<LinkedEditGroup> _linkedEditGroups;
 
-  Position _selection;
+  Position? _selection;
 
-  String _id;
+  String? _id;
 
   /// A human-readable description of the change to be applied.
   String get message => _message;
 
   /// A human-readable description of the change to be applied.
   set message(String value) {
-    assert(value != null);
     _message = value;
   }
 
@@ -5252,7 +5216,6 @@ class SourceChange implements HasToJson {
 
   /// A list of the edits used to effect the change, grouped by file.
   set edits(List<SourceFileEdit> value) {
-    assert(value != null);
     _edits = value;
   }
 
@@ -5263,33 +5226,32 @@ class SourceChange implements HasToJson {
   /// A list of the linked editing groups used to customize the changes that
   /// were made.
   set linkedEditGroups(List<LinkedEditGroup> value) {
-    assert(value != null);
     _linkedEditGroups = value;
   }
 
   /// The position that should be selected after the edits have been applied.
-  Position get selection => _selection;
+  Position? get selection => _selection;
 
   /// The position that should be selected after the edits have been applied.
-  set selection(Position value) {
+  set selection(Position? value) {
     _selection = value;
   }
 
   /// The optional identifier of the change kind. The identifier remains stable
   /// even if the message changes, or is parameterized.
-  String get id => _id;
+  String? get id => _id;
 
   /// The optional identifier of the change kind. The identifier remains stable
   /// even if the message changes, or is parameterized.
-  set id(String value) {
+  set id(String? value) {
     _id = value;
   }
 
   SourceChange(String message,
-      {List<SourceFileEdit> edits,
-      List<LinkedEditGroup> linkedEditGroups,
-      Position selection,
-      String id}) {
+      {List<SourceFileEdit>? edits,
+      List<LinkedEditGroup>? linkedEditGroups,
+      Position? selection,
+      String? id}) {
     this.message = message;
     if (edits == null) {
       this.edits = <SourceFileEdit>[];
@@ -5306,7 +5268,7 @@ class SourceChange implements HasToJson {
   }
 
   factory SourceChange.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String message;
@@ -5321,7 +5283,7 @@ class SourceChange implements HasToJson {
         edits = jsonDecoder.decodeList(
             jsonPath + '.edits',
             json['edits'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
@@ -5331,17 +5293,17 @@ class SourceChange implements HasToJson {
         linkedEditGroups = jsonDecoder.decodeList(
             jsonPath + '.linkedEditGroups',
             json['linkedEditGroups'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'linkedEditGroups');
       }
-      Position selection;
+      Position? selection;
       if (json.containsKey('selection')) {
         selection = Position.fromJson(
             jsonDecoder, jsonPath + '.selection', json['selection']);
       }
-      String id;
+      String? id;
       if (json.containsKey('id')) {
         id = jsonDecoder.decodeString(jsonPath + '.id', json['id']);
       }
@@ -5356,17 +5318,19 @@ class SourceChange implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['message'] = message;
     result['edits'] =
         edits.map((SourceFileEdit value) => value.toJson()).toList();
     result['linkedEditGroups'] = linkedEditGroups
         .map((LinkedEditGroup value) => value.toJson())
         .toList();
+    var selection = this.selection;
     if (selection != null) {
       result['selection'] = selection.toJson();
     }
+    var id = this.id;
     if (id != null) {
       result['id'] = id;
     }
@@ -5388,7 +5352,7 @@ class SourceChange implements HasToJson {
   }
 
   /// Returns the [FileEdit] for the given [file], maybe `null`.
-  SourceFileEdit getFileEdit(String file) => getChangeFileEdit(this, file);
+  SourceFileEdit? getFileEdit(String file) => getChangeFileEdit(this, file);
 
   @override
   String toString() => json.encode(toJson());
@@ -5435,20 +5399,19 @@ class SourceEdit implements HasToJson {
   static String applySequence(String code, Iterable<SourceEdit> edits) =>
       applySequenceOfEdits(code, edits);
 
-  int _offset;
+  late int _offset;
 
-  int _length;
+  late int _length;
 
-  String _replacement;
+  late String _replacement;
 
-  String _id;
+  String? _id;
 
   /// The offset of the region to be modified.
   int get offset => _offset;
 
   /// The offset of the region to be modified.
   set offset(int value) {
-    assert(value != null);
     _offset = value;
   }
 
@@ -5457,7 +5420,6 @@ class SourceEdit implements HasToJson {
 
   /// The length of the region to be modified.
   set length(int value) {
-    assert(value != null);
     _length = value;
   }
 
@@ -5466,7 +5428,6 @@ class SourceEdit implements HasToJson {
 
   /// The code that is to replace the specified region in the original code.
   set replacement(String value) {
-    assert(value != null);
     _replacement = value;
   }
 
@@ -5478,7 +5439,7 @@ class SourceEdit implements HasToJson {
   /// be appropriate (referred to as potential edits). Such edits will have an
   /// id so that they can be referenced. Edits in the same response that do not
   /// need to be referenced will not have an id.
-  String get id => _id;
+  String? get id => _id;
 
   /// An identifier that uniquely identifies this source edit from other edits
   /// in the same response. This field is omitted unless a containing structure
@@ -5488,11 +5449,11 @@ class SourceEdit implements HasToJson {
   /// be appropriate (referred to as potential edits). Such edits will have an
   /// id so that they can be referenced. Edits in the same response that do not
   /// need to be referenced will not have an id.
-  set id(String value) {
+  set id(String? value) {
     _id = value;
   }
 
-  SourceEdit(int offset, int length, String replacement, {String id}) {
+  SourceEdit(int offset, int length, String replacement, {String? id}) {
     this.offset = offset;
     this.length = length;
     this.replacement = replacement;
@@ -5500,7 +5461,7 @@ class SourceEdit implements HasToJson {
   }
 
   factory SourceEdit.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -5522,7 +5483,7 @@ class SourceEdit implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'replacement');
       }
-      String id;
+      String? id;
       if (json.containsKey('id')) {
         id = jsonDecoder.decodeString(jsonPath + '.id', json['id']);
       }
@@ -5536,11 +5497,12 @@ class SourceEdit implements HasToJson {
   int get end => offset + length;
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
     result['replacement'] = replacement;
+    var id = this.id;
     if (id != null) {
       result['id'] = id;
     }
@@ -5585,18 +5547,17 @@ class SourceEdit implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SourceFileEdit implements HasToJson {
-  String _file;
+  late String _file;
 
-  int _fileStamp;
+  late int _fileStamp;
 
-  List<SourceEdit> _edits;
+  late List<SourceEdit> _edits;
 
   /// The file containing the code to be modified.
   String get file => _file;
 
   /// The file containing the code to be modified.
   set file(String value) {
-    assert(value != null);
     _file = value;
   }
 
@@ -5613,7 +5574,6 @@ class SourceFileEdit implements HasToJson {
   /// make sure that the file was not changed since then, so it is safe to
   /// apply the change.
   set fileStamp(int value) {
-    assert(value != null);
     _fileStamp = value;
   }
 
@@ -5622,11 +5582,10 @@ class SourceFileEdit implements HasToJson {
 
   /// A list of the edits used to effect the change.
   set edits(List<SourceEdit> value) {
-    assert(value != null);
     _edits = value;
   }
 
-  SourceFileEdit(String file, int fileStamp, {List<SourceEdit> edits}) {
+  SourceFileEdit(String file, int fileStamp, {List<SourceEdit>? edits}) {
     this.file = file;
     this.fileStamp = fileStamp;
     if (edits == null) {
@@ -5637,7 +5596,7 @@ class SourceFileEdit implements HasToJson {
   }
 
   factory SourceFileEdit.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -5658,7 +5617,7 @@ class SourceFileEdit implements HasToJson {
         edits = jsonDecoder.decodeList(
             jsonPath + '.edits',
             json['edits'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
@@ -5670,8 +5629,8 @@ class SourceFileEdit implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['fileStamp'] = fileStamp;
     result['edits'] = edits.map((SourceEdit value) => value.toJson()).toList();

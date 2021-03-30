@@ -200,10 +200,10 @@ class B extends A {
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.parameterNames![0], 'x');
+    expect(suggestion.parameterTypes![0], 'dynamic');
+    expect(suggestion.parameterNames![1], 'y');
+    expect(suggestion.parameterTypes![1], 'int');
     expect(suggestion.requiredParameterCount, 1);
     expect(suggestion.hasNamedParameters, true);
   }
@@ -220,10 +220,10 @@ class B extends A {
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.parameterNames![0], 'x');
+    expect(suggestion.parameterTypes![0], 'dynamic');
+    expect(suggestion.parameterNames![1], 'y');
+    expect(suggestion.parameterTypes![1], 'int');
     expect(suggestion.requiredParameterCount, 1);
     expect(suggestion.hasNamedParameters, true);
   }
@@ -243,10 +243,10 @@ class B extends A {
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.parameterNames![0], 'x');
+    expect(suggestion.parameterTypes![0], 'dynamic');
+    expect(suggestion.parameterNames![1], 'y');
+    expect(suggestion.parameterTypes![1], 'int');
     expect(suggestion.requiredParameterCount, 1);
     expect(suggestion.hasNamedParameters, false);
   }
@@ -264,10 +264,10 @@ class B extends A {
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.parameterNames![0], 'x');
+    expect(suggestion.parameterTypes![0], 'dynamic');
+    expect(suggestion.parameterNames![1], 'y');
+    expect(suggestion.parameterTypes![1], 'int');
     expect(suggestion.requiredParameterCount, 1);
     expect(suggestion.hasNamedParameters, false);
   }
@@ -287,10 +287,10 @@ class B extends A {
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.parameterNames![0], 'x');
+    expect(suggestion.parameterTypes![0], 'dynamic');
+    expect(suggestion.parameterNames![1], 'y');
+    expect(suggestion.parameterTypes![1], 'int');
     expect(suggestion.requiredParameterCount, 0);
     expect(suggestion.hasNamedParameters, true);
   }
@@ -307,10 +307,10 @@ class B extends A {
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.parameterNames![0], 'x');
+    expect(suggestion.parameterTypes![0], 'dynamic');
+    expect(suggestion.parameterNames![1], 'y');
+    expect(suggestion.parameterTypes![1], 'int');
     expect(suggestion.requiredParameterCount, 0);
     expect(suggestion.hasNamedParameters, true);
   }
@@ -367,10 +367,10 @@ class B extends A {
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.parameterNames![0], 'x');
+    expect(suggestion.parameterTypes![0], 'dynamic');
+    expect(suggestion.parameterNames![1], 'y');
+    expect(suggestion.parameterTypes![1], 'int');
     expect(suggestion.requiredParameterCount, 0);
     expect(suggestion.hasNamedParameters, false);
   }
@@ -387,10 +387,10 @@ class B extends A {
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.parameterNames![0], 'x');
+    expect(suggestion.parameterTypes![0], 'dynamic');
+    expect(suggestion.parameterNames![1], 'y');
+    expect(suggestion.parameterTypes![1], 'int');
     expect(suggestion.requiredParameterCount, 0);
     expect(suggestion.hasNamedParameters, false);
   }
@@ -410,10 +410,10 @@ class B extends A {
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'A', 'void');
     expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.parameterNames![0], 'x');
+    expect(suggestion.parameterTypes![0], 'dynamic');
+    expect(suggestion.parameterNames![1], 'y');
+    expect(suggestion.parameterTypes![1], 'int');
     expect(suggestion.requiredParameterCount, 2);
     expect(suggestion.hasNamedParameters, false);
   }

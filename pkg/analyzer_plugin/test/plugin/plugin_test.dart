@@ -19,16 +19,16 @@ void main() {
 
 @reflectiveTest
 class ServerPluginTest with ResourceProviderMixin {
-  MockChannel channel;
-  _TestServerPlugin plugin;
+  late MockChannel channel;
+  late _TestServerPlugin plugin;
 
-  String packagePath1;
-  String filePath1;
-  ContextRoot contextRoot1;
+  late String packagePath1;
+  late String filePath1;
+  late ContextRoot contextRoot1;
 
-  String packagePath2;
-  String filePath2;
-  ContextRoot contextRoot2;
+  late String packagePath2;
+  late String filePath2;
+  late ContextRoot contextRoot2;
 
   void setUp() {
     packagePath1 = convertPath('/package1');
@@ -363,12 +363,12 @@ class ServerPluginTest with ResourceProviderMixin {
       var notifiedServices = notifications[path];
       expect(notifiedServices, isNotNull,
           reason: 'Not notified for file $path');
-      expect(notifiedServices, unorderedEquals(subscribedServices),
+      expect(notifiedServices, unorderedEquals(subscribedServices!),
           reason: 'Wrong notifications for file $path');
     }
   }
 
-  AnalysisDriverGeneric _getDriver(ContextRoot targetRoot) {
+  AnalysisDriverGeneric? _getDriver(ContextRoot targetRoot) {
     for (var root in plugin.driverMap.keys) {
       if (root.root == targetRoot.root) {
         return plugin.driverMap[root];
