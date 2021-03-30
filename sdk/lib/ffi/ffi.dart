@@ -100,8 +100,11 @@ class Array<T extends NativeType> extends NativeType {
   /// ```
   ///
   /// Do not invoke in normal code.
-  external const factory Array(int dimension1,
-      [int dimension2, int dimension3, int dimension4, int dimension5]);
+  const factory Array(int dimension1,
+      [int dimension2,
+      int dimension3,
+      int dimension4,
+      int dimension5]) = _ArraySize<T>;
 
   /// Const constructor to specify [Array] dimensions in [Struct]s.
   ///
@@ -116,7 +119,28 @@ class Array<T extends NativeType> extends NativeType {
   /// ```
   ///
   /// Do not invoke in normal code.
-  external const factory Array.multi(List<int> dimensions);
+  const factory Array.multi(List<int> dimensions) = _ArraySize<T>.multi;
+}
+
+class _ArraySize<T extends NativeType> implements Array<T> {
+  final int? dimension1;
+  final int? dimension2;
+  final int? dimension3;
+  final int? dimension4;
+  final int? dimension5;
+
+  final List<int>? dimensions;
+
+  const _ArraySize(this.dimension1,
+      [this.dimension2, this.dimension3, this.dimension4, this.dimension5])
+      : dimensions = null;
+
+  const _ArraySize.multi(this.dimensions)
+      : dimension1 = null,
+        dimension2 = null,
+        dimension3 = null,
+        dimension4 = null,
+        dimension5 = null;
 }
 
 /// Extension on [Pointer] specialized for the type argument [NativeFunction].

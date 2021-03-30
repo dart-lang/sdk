@@ -784,12 +784,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// associate it with the [errorNode].
   void _validateSizeOfAnnotation(AstNode errorNode,
       NodeList<Annotation> annotations, int arrayDimensions) {
-    final ffiSizeAnnotations = annotations.where((annotation) {
-      final element = annotation.element;
-      return element is ConstructorElement &&
-          element.ffiClass != null &&
-          element.enclosingElement.name == 'Array';
-    }).toList();
+    final ffiSizeAnnotations =
+        annotations.where((annotation) => annotation.isArray).toList();
 
     if (ffiSizeAnnotations.isEmpty) {
       _errorReporter.reportErrorForNode(
@@ -807,17 +803,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     // Check number of dimensions.
     final annotation = ffiSizeAnnotations.first;
-    final expressions = annotation.arguments!.arguments;
-    int annotationDimensions = 0;
-    for (var expression in expressions) {
-      if (expression is IntegerLiteral) {
-        // Element of `@Array(1, 2, 3)`.
-        annotationDimensions++;
-      } else if (expression is ListLiteral) {
-        // Element of `@Array.multi([1, 2, 3])`.
-        annotationDimensions += expression.elements.length;
-      }
-    }
+    final dimensions = annotation.elementAnnotation?.arraySizeDimensions ?? [];
+    final annotationDimensions = dimensions.length;
     if (annotationDimensions != arrayDimensions) {
       _errorReporter.reportErrorForNode(
           FfiCode.SIZE_ANNOTATION_DIMENSIONS, annotation);
@@ -845,6 +832,13 @@ enum _PrimitiveDartType {
 }
 
 extension on Annotation {
+  bool get isArray {
+    final element = this.element;
+    return element is ConstructorElement &&
+        element.ffiClass != null &&
+        element.enclosingElement.name == 'Array';
+  }
+
   bool get isPacked {
     final element = this.element;
     return element is ConstructorElement &&
@@ -854,11 +848,55 @@ extension on Annotation {
 }
 
 extension on ElementAnnotation {
+  bool get isArray {
+    final element = this.element;
+    return element is ConstructorElement &&
+        element.ffiClass != null &&
+        element.enclosingElement.name == 'Array';
+    // Note: this is 'Array' instead of '_ArraySize' because it finds the
+    // forwarding factory instead of the forwarded constructor.
+  }
+
   bool get isPacked {
     final element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name == 'Packed';
+  }
+
+  List<int> get arraySizeDimensions {
+    assert(isArray);
+    final value = computeConstantValue();
+
+    // Element of `@Array.multi([1, 2, 3])`.
+    final listField = value?.getField('dimensions');
+    if (listField != null) {
+      final listValues = listField
+          .toListValue()
+          ?.map((dartValue) => dartValue.toIntValue())
+          .whereType<int>()
+          .toList();
+      if (listValues != null) {
+        return listValues;
+      }
+    }
+
+    // Element of `@Array(1, 2, 3)`.
+    const dimensionFieldNames = [
+      'dimension1',
+      'dimension2',
+      'dimension3',
+      'dimension4',
+      'dimension5',
+    ];
+    var result = <int>[];
+    for (final dimensionFieldName in dimensionFieldNames) {
+      final dimensionValue = value?.getField(dimensionFieldName)?.toIntValue();
+      if (dimensionValue != null) {
+        result.add(dimensionValue);
+      }
+    }
+    return result;
   }
 
   int? get packedMemberAlignment {
