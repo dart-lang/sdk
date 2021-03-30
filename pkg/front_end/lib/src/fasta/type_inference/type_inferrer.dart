@@ -264,17 +264,6 @@ class TypeInferrerImpl implements TypeInferrer {
     return type.withDeclaredNullability(library.nullable);
   }
 
-  DartType computeNonNullable(DartType type) {
-    if (type is NullType) {
-      return isNonNullableByDefault ? const NeverType.nonNullable() : type;
-    }
-    if (type is TypeParameterType && type.promotedBound != null) {
-      return new TypeParameterType(type.parameter, Nullability.nonNullable,
-          computeNonNullable(type.promotedBound));
-    }
-    return type.withDeclaredNullability(library.nonNullable);
-  }
-
   Expression createReachabilityError(
       int fileOffset, Message errorMessage, Message warningMessage) {
     if (library.loader.target.context.options.warnOnReachabilityCheck &&
@@ -1192,8 +1181,8 @@ class TypeInferrerImpl implements TypeInferrer {
         // invalid.
         target = _findExtensionMember(
             isNonNullableByDefault
-                ? computeNonNullable(receiverType)
-                : computeNonNullable(receiverBound),
+                ? receiverType.toNonNull()
+                : receiverBound.toNonNull(),
             classNode,
             name,
             fileOffset,
