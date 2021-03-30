@@ -244,8 +244,23 @@ class NamedTypeBuilder extends TypeBuilder {
       }
     }
 
-    return declaration.buildType(
-        library, nullabilityBuilder, arguments, notInstanceContext);
+    if (library is SourceLibraryBuilder) {
+      int uncheckedTypedefTypeCount = library.uncheckedTypedefTypes.length;
+      DartType builtType = declaration.buildType(
+          library, nullabilityBuilder, arguments, notInstanceContext);
+      // Set locations for new unchecked TypedefTypes for error reporting.
+      for (int i = uncheckedTypedefTypeCount;
+          i < library.uncheckedTypedefTypes.length;
+          ++i) {
+        library.uncheckedTypedefTypes[i]
+          ..fileUri ??= fileUri
+          ..offset ??= charOffset;
+      }
+      return builtType;
+    } else {
+      return declaration.buildType(
+          library, nullabilityBuilder, arguments, notInstanceContext);
+    }
   }
 
   Supertype buildSupertype(

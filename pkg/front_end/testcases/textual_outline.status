@@ -59,6 +59,7 @@ general/invalid_operator2: FormatterCrash
 general/invalid_operator: FormatterCrash
 general/issue42997: FormatterCrash
 general/issue43363: FormatterCrash
+general/issue45490: FormatterCrash
 general/many_errors: FormatterCrash
 general/null_safety_invalid_experiment: FormatterCrash
 general/null_safety_invalid_experiment_and_language_version: FormatterCrash
@@ -126,6 +127,8 @@ nnbd/uninitialized_non_nullable_late_fields: FormatterCrash
 nnbd_mixed/inheritance_from_opt_in: FormatterCrash
 nnbd_mixed/issue41597: FormatterCrash
 nnbd_mixed/null_safety_invalid_language_version: FormatterCrash
+nonfunction_type_aliases/aliased_checks: FormatterCrash
+nonfunction_type_aliases/aliased_checks_in_typedef: FormatterCrash
 nonfunction_type_aliases/issue41501: FormatterCrash
 nonfunction_type_aliases/issue42446: FormatterCrash
 nonfunction_type_aliases/issue45051: FormatterCrash

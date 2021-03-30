@@ -188,6 +188,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   final List<TypeVariableBuilder> boundlessTypeVariables =
       <TypeVariableBuilder>[];
 
+  final List<UncheckedTypedefType> uncheckedTypedefTypes =
+      <UncheckedTypedefType>[];
+
   // A list of alternating forwarders and the procedures they were generated
   // for.  Note that it may not include a forwarder-origin pair in cases when
   // the former does not need to be updated after the body of the latter was
@@ -3778,6 +3781,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     inferredTypes.clear();
+    checkUncheckedTypedefTypes(typeEnvironment);
   }
 
   void registerImplicitlyTypedField(FieldBuilder fieldBuilder) {
@@ -3828,6 +3832,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Uri fileUri, int charOffset, TypeParameterType type) {
     _pendingNullabilities
         .add(new PendingNullability(fileUri, charOffset, type));
+  }
+
+  /// Performs delayed bounds checks on [TypedefType]s for the library
+  ///
+  /// As [TypedefType]s are built, they are eagerly unaliased, making it
+  /// impossible to perform the bounds checks on them at the time when the
+  /// checks can be done. To perform the checks, [TypedefType]s are added to
+  /// [uncheckedTypedefTypes] as they are built.  This method performs the
+  /// checks and clears the list of the types for the delayed check.
+  void checkUncheckedTypedefTypes(TypeEnvironment typeEnvironment) {
+    for (UncheckedTypedefType uncheckedTypedefType in uncheckedTypedefTypes) {
+      checkBoundsInType(uncheckedTypedefType.typeToCheck, typeEnvironment,
+          uncheckedTypedefType.fileUri, uncheckedTypedefType.offset);
+    }
+    uncheckedTypedefTypes.clear();
   }
 }
 
@@ -4294,4 +4313,15 @@ class PendingNullability {
   final TypeParameterType type;
 
   PendingNullability(this.fileUri, this.charOffset, this.type);
+}
+
+class UncheckedTypedefType {
+  final TypedefType typeToCheck;
+
+  // TODO(dmitryas): Make these fields nullable when the library is opted-in to
+  // NNBD.
+  int offset;
+  Uri fileUri;
+
+  UncheckedTypedefType(this.typeToCheck);
 }

@@ -575,8 +575,10 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder> metadata = pop();
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) {
-      libraryBuilder.endNestedDeclaration(
-          TypeParameterScopeKind.classDeclaration, "<syntax-error>");
+      libraryBuilder
+          .endNestedDeclaration(
+              TypeParameterScopeKind.classDeclaration, "<syntax-error>")
+          .resolveTypes(typeVariables, libraryBuilder);
       return;
     }
 
@@ -659,8 +661,10 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder> metadata = pop(NullValue.Metadata);
     checkEmpty(mixinToken.charOffset);
     if (name is ParserRecovery) {
-      libraryBuilder.endNestedDeclaration(
-          TypeParameterScopeKind.mixinDeclaration, "<syntax-error>");
+      libraryBuilder
+          .endNestedDeclaration(
+              TypeParameterScopeKind.mixinDeclaration, "<syntax-error>")
+          .resolveTypes(typeVariables, libraryBuilder);
       return;
     }
     int startOffset =
@@ -1255,8 +1259,10 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder> metadata = pop();
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery || mixinApplication is ParserRecovery) {
-      libraryBuilder.endNestedDeclaration(
-          TypeParameterScopeKind.namedMixinApplication, "<syntax-error>");
+      libraryBuilder
+          .endNestedDeclaration(
+              TypeParameterScopeKind.namedMixinApplication, "<syntax-error>")
+          .resolveTypes(typeVariables, libraryBuilder);
       return;
     }
 
@@ -1650,8 +1656,10 @@ class OutlineBuilder extends StackListenerImpl {
       // `library.addFunctionType`.
       if (name is ParserRecovery) {
         pop(); // Metadata.
-        libraryBuilder.endNestedDeclaration(
-            TypeParameterScopeKind.typedef, "<syntax-error>");
+        libraryBuilder
+            .endNestedDeclaration(
+                TypeParameterScopeKind.typedef, "<syntax-error>")
+            .resolveTypes(typeVariables, libraryBuilder);
         return;
       }
       libraryBuilder.beginNestedDeclaration(
@@ -1667,8 +1675,10 @@ class OutlineBuilder extends StackListenerImpl {
       name = pop();
       if (name is ParserRecovery) {
         pop(); // Metadata.
-        libraryBuilder.endNestedDeclaration(
-            TypeParameterScopeKind.functionType, "<syntax-error>");
+        libraryBuilder
+            .endNestedDeclaration(
+                TypeParameterScopeKind.functionType, "<syntax-error>")
+            .resolveTypes(typeVariables, libraryBuilder);
         return;
       }
       if (type is FunctionTypeBuilder &&
