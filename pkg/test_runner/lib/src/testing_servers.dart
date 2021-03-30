@@ -7,7 +7,6 @@ import 'dart:convert' show HtmlEscape;
 import 'dart:io';
 
 import 'package:package_config/package_config.dart';
-
 import 'package:test_runner/src/configuration.dart';
 import 'package:test_runner/src/repository.dart';
 import 'package:test_runner/src/utils.dart';
