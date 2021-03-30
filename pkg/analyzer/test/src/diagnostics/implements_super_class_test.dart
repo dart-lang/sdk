@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class ImplementsSuperClassTest extends PubPackageResolutionTest {
-  test_implements_super_class() async {
+  test_class() async {
     await assertErrorsInCode(r'''
 class A {}
 class B extends A implements A {}
@@ -24,7 +24,7 @@ class B extends A implements A {}
     ]);
   }
 
-  test_Object() async {
+  test_class_Object() async {
     await assertErrorsInCode('''
 class A implements Object {}
 ''', [
@@ -32,7 +32,27 @@ class A implements Object {}
     ]);
   }
 
-  test_Object_typeAlias() async {
+  test_class_viaTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {}
+typedef B = A;
+class C extends A implements B {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 55, 1),
+    ]);
+  }
+
+  test_classAlias() async {
+    await assertErrorsInCode(r'''
+class A {}
+mixin M {}
+class B = A with M implements A;
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 52, 1),
+    ]);
+  }
+
+  test_classAlias_Object() async {
     await assertErrorsInCode(r'''
 class M {}
 class A = Object with M implements Object;
@@ -41,13 +61,14 @@ class A = Object with M implements Object;
     ]);
   }
 
-  test_typeAlias() async {
+  test_classAlias_viaTypeAlias() async {
     await assertErrorsInCode(r'''
 class A {}
-class M {}
-class B = A with M implements A;
+mixin M {}
+typedef B = A;
+class C = A with M implements B;
 ''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 52, 1),
+      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 67, 1),
     ]);
   }
 }
