@@ -28,27 +28,44 @@ StandardTestSuite makeTestSuite(TestConfiguration configuration,
 
 /// Creates a [StaticError].
 ///
-/// Only one of [analyzerError], [cfeError], or [webError] may be passed.
+/// Only one of [analyzerError], [cfeError], [webError], or [contextError] may
+/// be passed.
 StaticError makeError(
     {int line = 1,
     int column = 2,
     int length,
     String analyzerError,
     String cfeError,
-    String webError}) {
+    String webError,
+    String contextError,
+    List<StaticError> context}) {
+  ErrorSource source;
+  String message;
   if (analyzerError != null) {
-    assert(cfeError == null && webError == null);
-    return StaticError(ErrorSource.analyzer, analyzerError,
-        line: line, column: column, length: length);
+    assert(cfeError == null);
+    assert(webError == null);
+    assert(contextError == null);
+    source = ErrorSource.analyzer;
+    message = analyzerError;
   } else if (cfeError != null) {
     assert(webError == null);
-    return StaticError(ErrorSource.cfe, cfeError,
-        line: line, column: column, length: length);
+    assert(contextError == null);
+    source = ErrorSource.cfe;
+    message = cfeError;
+  } else if (webError != null) {
+    assert(contextError == null);
+    source = ErrorSource.web;
+    message = webError;
   } else {
-    assert(webError != null);
-    return StaticError(ErrorSource.web, webError,
-        line: line, column: column, length: length);
+    assert(contextError != null);
+    source = ErrorSource.context;
+    message = contextError;
   }
+
+  var error =
+      StaticError(source, message, line: line, column: column, length: length);
+  if (context != null) error.contextMessages.addAll(context);
+  return error;
 }
 
 class _MockTestSuite extends StandardTestSuite {

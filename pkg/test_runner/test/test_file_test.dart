@@ -28,6 +28,7 @@ void main() {
   testParseMultitest();
   testParseErrorFlags();
   testParseErrorExpectations();
+  testParseContextMessages();
   testIsRuntimeTest();
   testName();
   testMultitest();
@@ -554,6 +555,145 @@ int j = "s";
     makeError(line: 10, column: 9, length: null, cfeError: "Message."),
     makeError(line: 10, column: 9, length: 1, webError: "Web message."),
   ]);
+}
+
+void testParseContextMessages() {
+  // Multiple messages.
+  expectParseErrorExpectations("""
+var string = "str";
+/\/  ^^^^^^
+/\/ [context 1] Analyzer context before.
+/\/ [context 2] CFE context before.
+
+int j = string;
+/\/      ^^^^^^
+/\/ [analyzer 1] Error.BAD
+/\/ [cfe 2] Error message.
+
+var string = "str";
+/\/            ^^^
+/\/ [context 2] CFE context after.
+
+var string = "str";
+/\/            ^^^
+/\/ [context 1] Analyzer context after.
+""", [
+    makeError(
+        line: 6,
+        column: 9,
+        length: 6,
+        analyzerError: "Error.BAD",
+        context: [
+          makeError(
+              line: 1,
+              column: 5,
+              length: 6,
+              analyzerError: "Analyzer context before."),
+          makeError(
+              line: 15,
+              column: 15,
+              length: 3,
+              analyzerError: "Analyzer context after.")
+        ]),
+    makeError(
+        line: 6,
+        column: 9,
+        length: 6,
+        cfeError: "Error message.",
+        context: [
+          makeError(
+              line: 1,
+              column: 5,
+              length: 6,
+              analyzerError: "CFE context before."),
+          makeError(
+              line: 11,
+              column: 15,
+              length: 3,
+              analyzerError: "CFE context after.")
+        ]),
+  ]);
+
+  // Context before error.
+  expectParseErrorExpectations("""
+var string = "str";
+/\/  ^^^^^^
+/\/ [context 1] Context.
+
+int j = string;
+/\/      ^^^^^^
+/\/ [analyzer 1] Error.BAD
+""", [
+    makeError(
+        line: 5,
+        column: 9,
+        length: 6,
+        analyzerError: "Error.BAD",
+        context: [
+          makeError(line: 1, column: 5, length: 6, analyzerError: "Context.")
+        ]),
+  ]);
+
+  // Context after error.
+  expectParseErrorExpectations("""
+int j = string;
+/\/      ^^^^^^
+/\/ [analyzer 1] Error.BAD
+
+var string = "str";
+/\/  ^^^^^^
+/\/ [context 1] Context.
+""", [
+    makeError(
+        line: 1,
+        column: 9,
+        length: 6,
+        analyzerError: "Error.BAD",
+        context: [
+          makeError(line: 5, column: 5, length: 6, analyzerError: "Context.")
+        ]),
+  ]);
+
+  // Context must have a number.
+  expectFormatError("""
+int i = "s";
+/\/      ^^^
+/\/ [context] No number.
+
+int i = "s";
+/\/      ^^^
+/\/ [cfe 1] Error.
+""");
+
+  // Context number must match an error.
+  expectFormatError("""
+int i = "s";
+/\/      ^^^
+/\/ [context 2] Wrong number.
+
+int i = "s";
+/\/      ^^^
+/\/ [cfe 1] Error.
+""");
+
+  // Two errors with same number.
+  expectFormatError("""
+int i = "s";
+/\/      ^^^
+/\/ [context 1] Context.
+
+int i = "s";
+/\/      ^^^
+/\/ [cfe 1] Error.
+/\/ [analyzer 1] Error.CODE
+""");
+
+  // Numbered error with no context.
+  expectFormatError("""
+int i = "s";
+/\/      ^^^
+/\/ [cfe 1] Error.
+""");
 }
 
 void testIsRuntimeTest() {

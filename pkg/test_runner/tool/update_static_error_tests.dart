@@ -37,6 +37,8 @@ Future<void> main(List<String> args) async {
       abbr: "n",
       help: "Print result but do not overwrite any files.",
       negatable: false);
+  parser.addFlag("context",
+      abbr: "c", help: "Include context messages in output.");
 
   parser.addSeparator("What operations to perform:");
   parser.addFlag("remove-all",
@@ -61,8 +63,6 @@ Future<void> main(List<String> args) async {
       help: "Update error expectations for given front ends.",
       allowed: sources);
 
-  parser.addSeparator("Other flags:");
-
   var results = parser.parse(args);
 
   if (results["help"] as bool) {
@@ -75,6 +75,8 @@ Future<void> main(List<String> args) async {
   }
 
   var dryRun = results["dry-run"] as bool;
+
+  var includeContext = results["context"] as bool;
 
   var removeSources = <ErrorSource>{};
   var insertSources = <ErrorSource>{};
@@ -132,7 +134,10 @@ Future<void> main(List<String> args) async {
 
     if (entry is pkg_file.File) {
       await _processFile(entry,
-          dryRun: dryRun, remove: removeSources, insert: insertSources);
+          dryRun: dryRun,
+          includeContext: includeContext,
+          remove: removeSources,
+          insert: insertSources);
     }
   }
 }
@@ -146,7 +151,10 @@ void _usageError(ArgParser parser, String message) {
 }
 
 Future<void> _processFile(File file,
-    {bool dryRun, Set<ErrorSource> remove, Set<ErrorSource> insert}) async {
+    {bool dryRun,
+    bool includeContext,
+    Set<ErrorSource> remove,
+    Set<ErrorSource> insert}) async {
   stdout.write("${file.path}...");
   var source = file.readAsStringSync();
   var testFile = TestFile.parse(Path("."), file.absolute.path, source);
@@ -203,7 +211,8 @@ Future<void> _processFile(File file,
     }
   }
 
-  var result = updateErrorExpectations(source, errors, remove: remove);
+  var result = updateErrorExpectations(source, errors,
+      remove: remove, includeContext: includeContext);
 
   stdout.writeln("\r${file.path} (Updated with ${errors.length} errors)");
 

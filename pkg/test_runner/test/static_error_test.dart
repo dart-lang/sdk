@@ -12,7 +12,6 @@ void main() {
   testProperties();
   testIsWarning();
   testCompareTo();
-  // testDescribeDifferences();
   testValidate();
 }
 
@@ -222,6 +221,105 @@ void testValidate() {
     makeError(line: 1, column: 1, length: 3, webError: "Web 1."),
     makeError(line: 1, column: 2, length: 3, webError: "Web 2."),
     makeError(line: 1, column: 3, length: 3, webError: "Web 3."),
+  ], null);
+
+  // If expectation has context, actual must match it.
+  expectValidate([
+    makeError(line: 1, column: 2, length: 3, cfeError: "Error.", context: [
+      makeError(line: 4, column: 5, length: 6, contextError: "Context A."),
+      makeError(line: 7, column: 8, length: 9, contextError: "Context B."),
+    ]),
+  ], [
+    makeError(line: 1, column: 2, length: 3, cfeError: "Error.", context: [
+      makeError(line: 4, column: 5, length: 6, contextError: "Context A."),
+      makeError(line: 7, column: 8, length: 9, contextError: "Context B."),
+    ]),
+  ], null);
+
+  // Actual context is different.
+  expectValidate([
+    makeError(line: 1, column: 2, length: 3, cfeError: "Error.", context: [
+      makeError(line: 4, column: 5, length: 6, contextError: "Context A."),
+    ]),
+  ], [
+    makeError(line: 1, column: 2, length: 3, cfeError: "Error.", context: [
+      makeError(line: 4, column: 5, length: 6, contextError: "Context Z."),
+    ]),
+  ], """
+- Wrong context message at line 4, column 5, length 6: Context Z.
+  Expected: Context A.""");
+
+  // Missing some actual context.
+  expectValidate([
+    makeError(line: 1, column: 2, length: 3, cfeError: "Error.", context: [
+      makeError(line: 4, column: 5, length: 6, contextError: "Context A."),
+      makeError(line: 7, column: 8, length: 9, contextError: "Context B."),
+    ]),
+  ], [
+    makeError(line: 1, column: 2, length: 3, cfeError: "Error.", context: [
+      makeError(line: 7, column: 8, length: 9, contextError: "Context B."),
+    ]),
+  ], """
+- Missing expected context message at line 4, column 5, length 6: Context A.""");
+
+  // Missing all actual context.
+  expectValidate([
+    makeError(line: 1, column: 2, length: 3, cfeError: "Error.", context: [
+      makeError(line: 4, column: 5, length: 6, contextError: "Context A."),
+      makeError(line: 7, column: 8, length: 9, contextError: "Context B."),
+    ]),
+  ], [
+    makeError(line: 1, column: 2, length: 3, cfeError: "Error."),
+  ], """
+- Missing expected context message at line 4, column 5, length 6: Context A.
+
+- Missing expected context message at line 7, column 8, length 9: Context B.""");
+
+  // Unexpected extra actual context.
+  expectValidate([
+    makeError(line: 1, column: 2, length: 3, cfeError: "Error.", context: [
+      makeError(line: 4, column: 5, length: 6, contextError: "Context A."),
+    ]),
+  ], [
+    makeError(line: 1, column: 2, length: 3, cfeError: "Error.", context: [
+      makeError(line: 4, column: 5, length: 6, contextError: "Context A."),
+      makeError(line: 7, column: 8, length: 9, contextError: "Context B."),
+    ]),
+  ], """
+- Unexpected context message at line 7, column 8, length 9: Context B.""");
+
+  // Actual context owned by wrong error.
+  // TODO(rnystrom): This error is pretty confusing. Ideally we would detect
+  // this case specifically and give better guidance.
+  expectValidate([
+    makeError(line: 1, column: 2, length: 3, cfeError: "Error A.", context: [
+      makeError(line: 4, column: 5, length: 6, contextError: "Context A."),
+      makeError(line: 33, column: 5, length: 6, contextError: "Context."),
+    ]),
+    makeError(line: 10, column: 2, length: 3, cfeError: "Error B.", context: [
+      makeError(line: 11, column: 5, length: 6, contextError: "Context B."),
+    ]),
+  ], [
+    makeError(line: 1, column: 2, length: 3, cfeError: "Error A.", context: [
+      makeError(line: 4, column: 5, length: 6, contextError: "Context A."),
+    ]),
+    makeError(line: 10, column: 2, length: 3, cfeError: "Error B.", context: [
+      makeError(line: 11, column: 5, length: 6, contextError: "Context B."),
+      makeError(line: 33, column: 5, length: 6, contextError: "Context."),
+    ]),
+  ], """
+- Missing expected context message at line 33, column 5, length 6: Context.
+
+- Unexpected context message at line 33, column 5, length 6: Context.""");
+
+  // If expectation has no context at all, then ignore actual context.
+  expectValidate([
+    makeError(line: 1, column: 2, length: 3, cfeError: "Error."),
+  ], [
+    makeError(line: 1, column: 2, length: 3, cfeError: "Error.", context: [
+      makeError(line: 4, column: 5, length: 6, contextError: "Context A."),
+      makeError(line: 7, column: 8, length: 9, contextError: "Context B."),
+    ]),
   ], null);
 }
 
