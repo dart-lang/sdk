@@ -6,16 +6,49 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+
+/// Information about a constructor element to instantiate.
+///
+/// If the target is a [ClassElement], the [element] is a raw
+/// [ConstructorElement] from the class, and [typeParameters] are the
+/// type parameters of the class.
+///
+/// If the target is a [TypeAliasElement] with an [InterfaceType] as the
+/// aliased type, the [element] is a [ConstructorMember] created from the
+/// [ConstructorElement] of the corresponding class, and substituting
+/// the class type parameters with the type arguments specified in the alias,
+/// explicit types or the type parameters of the alias. The [typeParameters]
+/// are the type parameters of the alias.
+class ConstructorElementToInfer {
+  /// The type parameters used in [element].
+  final List<TypeParameterElement> typeParameters;
+
+  /// The element, might be [ConstructorMember].
+  final ConstructorElement element;
+
+  ConstructorElementToInfer(this.typeParameters, this.element);
+
+  FunctionType get asType {
+    return FunctionTypeImpl(
+      typeFormals: typeParameters,
+      parameters: element.parameters,
+      returnType: element.returnType,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+}
 
 class InvocationInferenceHelper {
   final ResolverVisitor _resolver;
@@ -46,6 +79,50 @@ class InvocationInferenceHelper {
       return type.returnType;
     } else {
       return DynamicTypeImpl.instance;
+    }
+  }
+
+  /// If the constructor referenced by the [constructorName] is generic,
+  /// and the [constructorName] does not have explicit type arguments,
+  /// return the element and type parameters to infer. Otherwise return `null`.
+  ConstructorElementToInfer? constructorElementToInfer({
+    required ConstructorName constructorName,
+    required LibraryElement definingLibrary,
+  }) {
+    List<TypeParameterElement>? typeParameters;
+    ConstructorElement? rawElement;
+
+    var typeName = constructorName.type;
+    var typeArguments = typeName.typeArguments;
+    var typeElement = typeName.name.staticElement;
+    if (typeElement is ClassElement) {
+      typeParameters = typeElement.typeParameters;
+      if (typeParameters.isNotEmpty && typeArguments == null) {
+        var constructorIdentifier = constructorName.name;
+        if (constructorIdentifier == null) {
+          rawElement = typeElement.unnamedConstructor;
+        } else {
+          var name = constructorIdentifier.name;
+          rawElement = typeElement.getNamedConstructor(name);
+        }
+      }
+    } else if (typeElement is TypeAliasElement) {
+      typeParameters = typeElement.typeParameters;
+      var aliasedType = typeElement.aliasedType;
+      if (aliasedType is InterfaceType) {
+        if (typeParameters.isNotEmpty && typeArguments == null) {
+          var constructorIdentifier = constructorName.name;
+          rawElement = aliasedType.lookUpConstructor(
+            constructorIdentifier?.name,
+            definingLibrary,
+          );
+        }
+      }
+    }
+
+    if (typeParameters != null && rawElement != null) {
+      rawElement = _resolver.toLegacyElement(rawElement);
+      return ConstructorElementToInfer(typeParameters, rawElement);
     }
   }
 

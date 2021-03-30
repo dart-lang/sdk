@@ -71,15 +71,15 @@ HashMap<int, int> f() {
   }
 
   test_missingTypeArgument_interfaceTypeTypedef_noInference() async {
-    await assertErrorsInCode(r'''
+    // `typedef A = HashMap;` means `typedef A = HashMap<dynamic, dynamic>;`.
+    // So, there is no inference failure on `new A();`.
+    await assertNoErrorsInCode(r'''
 import 'dart:collection';
 typedef A = HashMap;
 void f() {
   A();
 }
-''', [
-      error(HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 60, 1),
-    ]);
+''');
   }
 
   test_missingTypeArgument_noInference() async {

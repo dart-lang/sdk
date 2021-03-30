@@ -311,7 +311,6 @@ void f() {
     );
   }
 
-  @FailingTest(reason: 'We attempt to do type inference on A')
   test_typeAlias_asInstanceCreation_implicitNew_toBounds_noTypeParameters_interfaceType_none() async {
     await assertNoErrorsInCode(r'''
 class A<T> {}

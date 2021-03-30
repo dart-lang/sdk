@@ -18,6 +18,112 @@ class InstanceCreationTest extends PubPackageResolutionTest
     with InstanceCreationTestCases {}
 
 mixin InstanceCreationTestCases on PubPackageResolutionTest {
+  test_class_generic_named_inferTypeArguments() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  A.named(T t);
+}
+
+void f() {
+  A.named(0);
+}
+
+''');
+
+    var creation = findNode.instanceCreation('A.named(0)');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('A'),
+      'A<int>',
+      constructorName: 'named',
+      expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'int'},
+    );
+  }
+
+  test_class_generic_named_withTypeArguments() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  A.named();
+}
+
+void f() {
+  A<int>.named();
+}
+
+''');
+
+    var creation = findNode.instanceCreation('A<int>');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('A'),
+      'A<int>',
+      constructorName: 'named',
+      expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'int'},
+    );
+    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+  }
+
+  test_class_generic_unnamed_inferTypeArguments() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  A(T t);
+}
+
+void f() {
+  A(0);
+}
+
+''');
+
+    var creation = findNode.instanceCreation('A(0)');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('A'),
+      'A<int>',
+      expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'int'},
+    );
+  }
+
+  test_class_generic_unnamed_withTypeArguments() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+
+void f() {
+  A<int>();
+}
+
+''');
+
+    var creation = findNode.instanceCreation('A<int>');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('A'),
+      'A<int>',
+      expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'int'},
+    );
+    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+  }
+
+  test_class_notGeneric() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A(int a);
+}
+
+void f() {
+  A(0);
+}
+
+''');
+
+    var creation = findNode.instanceCreation('A(0)');
+    assertInstanceCreation(creation, findElement.class_('A'), 'A');
+  }
+
   test_demoteType() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
@@ -167,6 +273,157 @@ main() {
       expectedConstructorMember: true,
       expectedPrefix: import.prefix,
       expectedSubstitution: {'X': 'int'},
+    );
+  }
+
+  test_typeAlias_generic_class_generic_named_infer_all() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  A.named(T t);
+}
+
+typedef B<U> = A<U>;
+
+void f() {
+  B.named(0);
+}
+''');
+
+    var creation = findNode.instanceCreation('B.named(0)');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('A'),
+      'A<int>',
+      constructorName: 'named',
+      expectedTypeNameElement: findElement.typeAlias('B'),
+      expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'int'},
+    );
+  }
+
+  test_typeAlias_generic_class_generic_named_infer_partial() async {
+    await assertNoErrorsInCode(r'''
+class A<T, U> {
+  A.named(T t, U u);
+}
+
+typedef B<V> = A<V, String>;
+
+void f() {
+  B.named(0, '');
+}
+''');
+
+    var creation = findNode.instanceCreation('B.named(0, ');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('A'),
+      'A<int, String>',
+      constructorName: 'named',
+      expectedTypeNameElement: findElement.typeAlias('B'),
+      expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'int', 'U': 'String'},
+    );
+  }
+
+  test_typeAlias_generic_class_generic_unnamed_infer_all() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  A(T t);
+}
+
+typedef B<U> = A<U>;
+
+void f() {
+  B(0);
+}
+''');
+
+    var creation = findNode.instanceCreation('B(0)');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('A'),
+      'A<int>',
+      expectedTypeNameElement: findElement.typeAlias('B'),
+      expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'int'},
+    );
+  }
+
+  test_typeAlias_generic_class_generic_unnamed_infer_partial() async {
+    await assertNoErrorsInCode(r'''
+class A<T, U> {
+  A(T t, U u);
+}
+
+typedef B<V> = A<V, String>;
+
+void f() {
+  B(0, '');
+}
+''');
+
+    var creation = findNode.instanceCreation('B(0, ');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('A'),
+      'A<int, String>',
+      expectedTypeNameElement: findElement.typeAlias('B'),
+      expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'int', 'U': 'String'},
+    );
+  }
+
+  test_typeAlias_notGeneric_class_generic_named_argumentTypeMismatch() async {
+    await assertErrorsInCode(r'''
+class A<T> {
+  A.named(T t);
+}
+
+typedef B = A<String>;
+
+void f() {
+  B.named(0);
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 1),
+    ]);
+
+    var creation = findNode.instanceCreation('B.named(0)');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('A'),
+      'A<String>',
+      constructorName: 'named',
+      expectedTypeNameElement: findElement.typeAlias('B'),
+      expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'String'},
+    );
+  }
+
+  test_typeAlias_notGeneric_class_generic_unnamed_argumentTypeMismatch() async {
+    await assertErrorsInCode(r'''
+class A<T> {
+  A(T t);
+}
+
+typedef B = A<String>;
+
+void f() {
+  B(0);
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 65, 1),
+    ]);
+
+    var creation = findNode.instanceCreation('B(0)');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('A'),
+      'A<String>',
+      expectedTypeNameElement: findElement.typeAlias('B'),
+      expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'String'},
     );
   }
 }

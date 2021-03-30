@@ -296,4 +296,26 @@ main() {
       error(CompileTimeErrorCode.COULD_NOT_INFER, 42, 3),
     ]);
   }
+
+  test_instanceCreation_viaTypeAlias_notWellBounded() async {
+    await assertErrorsInCode('''
+class C<X> {
+  C();
+  factory C.foo() => C();
+  factory C.bar() = C;
+}
+typedef G<X> = X Function(X);
+typedef A<X extends G<C<X>>> = C<X>;
+
+void f() {
+  A(); // Error.
+  A.foo(); // Error.
+  A.bar(); // Error.
+}
+''', [
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 152, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 169, 5),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 190, 5),
+    ]);
+  }
 }
