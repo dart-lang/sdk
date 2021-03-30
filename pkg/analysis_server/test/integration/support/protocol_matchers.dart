@@ -6,6 +6,8 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
+// @dart = 2.9
+
 /// Matchers for data types defined in the analysis server API.
 import 'package:test/test.dart';
 

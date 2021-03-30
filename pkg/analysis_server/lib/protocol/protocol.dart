@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Support for client code that needs to interact with the requests, responses
 /// and notifications that are part of the analysis server's wire protocol.
 import 'dart:convert' hide JsonDecoder;

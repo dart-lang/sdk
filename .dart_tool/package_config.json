@@ -70,7 +70,7 @@
       "name": "analysis_server",
       "rootUri": "../pkg/analysis_server",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.12"
     },
     {
       "name": "analysis_server_client",

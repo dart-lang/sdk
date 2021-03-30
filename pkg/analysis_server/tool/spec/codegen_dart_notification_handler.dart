@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analyzer_utilities/tools.dart';
 import 'package:html/dom.dart';
 
@@ -109,6 +111,8 @@ mixin NotificationHandler {
   @override
   void visitApi() {
     outputHeader(year: '2018');
+    writeln();
+    writeln('// @dart = 2.9');
     writeln();
     emitImports();
     emitNotificationHandler();

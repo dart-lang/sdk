@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Utility methods to compute the value of the features used for code
 /// completion.
 import 'dart:math' as math;

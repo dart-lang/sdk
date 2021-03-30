@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Code generation for the file "matchers.dart".
 import 'package:analyzer_utilities/tools.dart';
 
@@ -88,6 +90,8 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   @override
   void visitApi() {
     outputHeader(year: '2017');
+    writeln();
+    writeln('// @dart = 2.9');
     writeln();
     writeln('/// Matchers for data types defined in the analysis server API.');
     writeln("import 'package:test/test.dart';");

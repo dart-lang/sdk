@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// These classes were copied from `analyzer`. They should be moved into the
 /// `analyzer/lib/src/test_utilities` directory so that they can be shared.
 /// (This version has been converted to a more modern style.)
