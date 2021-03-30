@@ -4,4 +4,3 @@
 
 LibTest/ffi/Array/PointerArray_A01_t01: Skip # https://github.com/dart-lang/co19/issues/1018
 LibTest/io/RawDatagramSocket/*: Skip # https://github.com/dart-lang/co19/issues/195
-

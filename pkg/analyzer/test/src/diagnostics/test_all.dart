@@ -231,6 +231,7 @@ import 'illegal_sync_generator_return_type_test.dart'
 import 'implements_deferred_class_test.dart' as implements_deferred_class;
 import 'implements_disallowed_class_test.dart' as implements_disallowed_class;
 import 'implements_non_class_test.dart' as implements_non_class;
+import 'implements_repeated_test.dart' as implements_repeated;
 import 'implements_super_class_test.dart' as implements_super_class;
 import 'implements_type_alias_expands_to_type_parameter_test.dart'
     as implements_type_alias_expands_to_type_parameter;
@@ -497,6 +498,7 @@ import 'nullable_type_in_on_clause_test.dart' as nullable_type_in_on_clause;
 import 'nullable_type_in_with_clause_test.dart' as nullable_type_in_with_clause;
 import 'object_cannot_extend_another_class_test.dart'
     as object_cannot_extend_another_class;
+import 'on_repeated_test.dart' as on_repeated;
 import 'optional_parameter_in_operator_test.dart'
     as optional_parameter_in_operator;
 import 'override_on_non_overriding_field_test.dart'
@@ -838,6 +840,7 @@ main() {
     implements_deferred_class.main();
     implements_disallowed_class.main();
     implements_non_class.main();
+    implements_repeated.main();
     implements_super_class.main();
     implements_type_alias_expands_to_type_parameter.main();
     implicit_this_reference_in_initializer.main();
@@ -1013,6 +1016,7 @@ main() {
     nullable_type_in_on_clause.main();
     nullable_type_in_with_clause.main();
     object_cannot_extend_another_class.main();
+    on_repeated.main();
     optional_parameter_in_operator.main();
     override_on_non_overriding_field.main();
     override_on_non_overriding_getter.main();

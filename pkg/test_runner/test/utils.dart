@@ -26,6 +26,9 @@ StandardTestSuite makeTestSuite(TestConfiguration configuration,
         List<TestFile> testFiles, String suite) =>
     _MockTestSuite(configuration, testFiles, suite);
 
+/// Creates a [StaticError].
+///
+/// Only one of [analyzerError], [cfeError], or [webError] may be passed.
 StaticError makeError(
     {int line = 1,
     int column = 2,
@@ -33,12 +36,19 @@ StaticError makeError(
     String analyzerError,
     String cfeError,
     String webError}) {
-  var errors = {
-    if (analyzerError != null) ErrorSource.analyzer: analyzerError,
-    if (cfeError != null) ErrorSource.cfe: cfeError,
-    if (webError != null) ErrorSource.web: webError,
-  };
-  return StaticError(errors, line: line, column: column, length: length);
+  if (analyzerError != null) {
+    assert(cfeError == null && webError == null);
+    return StaticError(ErrorSource.analyzer, analyzerError,
+        line: line, column: column, length: length);
+  } else if (cfeError != null) {
+    assert(webError == null);
+    return StaticError(ErrorSource.cfe, cfeError,
+        line: line, column: column, length: length);
+  } else {
+    assert(webError != null);
+    return StaticError(ErrorSource.web, webError,
+        line: line, column: column, length: length);
+  }
 }
 
 class _MockTestSuite extends StandardTestSuite {

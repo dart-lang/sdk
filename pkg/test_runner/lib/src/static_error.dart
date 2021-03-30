@@ -36,7 +36,7 @@ class ErrorSource {
   const ErrorSource._(this.name);
 }
 
-/// Describes one or more static errors that should be reported at a specific
+/// Describes a single static error reported by a single front end at a specific
 /// location.
 ///
 /// These can be parsed from comments in [TestFile]s, in which case they
@@ -44,11 +44,6 @@ class ErrorSource {
 /// "static error test" and exists to validate that a conforming front end
 /// produces the expected compile-time errors. This same class is also used for
 /// *reported* errors when parsing the output of a front end.
-///
-/// Because there are multiple front ends that each report errors somewhat
-/// differently, each [StaticError] has a map to associate an error message
-/// with each front end. If there is no message for a given front end, it means
-/// the error is not reported by that front end.
 ///
 /// For analyzer errors, the error "message" is actually the constant name for
 /// the error code, like "CompileTimeErrorCode.WRONG_TYPE".
@@ -98,85 +93,6 @@ class StaticError implements Comparable<StaticError> {
   static List<StaticError> parseExpectations(String source) =>
       _ErrorExpectationParser(source)._parse();
 
-  /// Collapses overlapping [errors] into a shorter list of errors where
-  /// possible.
-  ///
-  /// Errors on the same location can be collapsed if none of them both define
-  /// a message for the same front end.
-  static List<StaticError> simplify(List<StaticError> errors) {
-    var result = errors.toList();
-    result.sort();
-
-    for (var i = 0; i < result.length - 1; i++) {
-      var a = result[i];
-
-      // Look for a later error we can merge with this one. Usually, it will be
-      // adjacent to this one, but if there are multiple errors with no length
-      // on the same location, those will all be next to each other and their
-      // merge targets will come later. This happens when CFE reports multiple
-      // errors at the same location (messages but no length) and analyzer does
-      // too (codes and lengths but no messages).
-      for (var j = i + 1; j < result.length; j++) {
-        var b = result[j];
-
-        // Position must be the same. If the position is different, we can
-        // stop looking because all same-position errors will be adjacent.
-        if (a.line != b.line) break;
-        if (a.column != b.column) break;
-
-        // If they both have lengths that are different, we can't discard that
-        // information.
-        if (a.length != null && b.length != null && a.length != b.length) {
-          continue;
-        }
-
-        // Can't lose any messages.
-        if (ErrorSource.all
-            .any((source) => a.hasError(source) && b.hasError(source))) {
-          continue;
-        }
-
-        // TODO(rnystrom): Now that there are more than two front ends, this
-        // isn't as smart as it could be. It could try to pack all of the
-        // messages in a given location into as few errors as possible by
-        // taking only the non-colliding messages from one error. But that's
-        // weird.
-        //
-        // A cleaner model is to have each StaticError represent a unique error
-        // location. It would have an open-ended list of every message that
-        // occurs at that location, across the various front-ends, including
-        // multiple messages for the same front end. But that would change how
-        // the existing static error tests look since something like:
-        //
-        //     // ^^^
-        //     // [cfe] Message 1.
-        //     // ^^^
-        //     // [cfe] Message 2.
-        //
-        // Would turn into:
-        //
-        //     // ^^^
-        //     // [cfe] Message 1.
-        //     // [cfe] Message 2.
-        //
-        // That's a good change to do, but should probably wait until after
-        // NNBD.
-
-        // Merge the two errors.
-        result[i] = StaticError({...a._errors, ...b._errors},
-            line: a.line, column: a.column, length: a.length ?? b.length);
-
-        // Continue trying to merge this merged error with more since multiple
-        // errors might collapse into a single one.
-        result.removeAt(j);
-        a = result[i];
-        j--;
-      }
-    }
-
-    return result;
-  }
-
   /// Determines whether all [actualErrors] match the given [expectedErrors].
   ///
   /// If they match, returns `null`. Otherwise returns a string describing the
@@ -185,88 +101,118 @@ class StaticError implements Comparable<StaticError> {
   /// An expected error that is completely identical to an actual error is
   /// treated as a match. Everything else is a failure.
   ///
-  /// It treats line number as the "identity" of an error. So if there are two
-  /// errors on the same line that differ in other properties, it reports that
-  /// as a "wrong" error. Any expected error on a line containing no actual
-  /// error is reported as a "missing" error. Conversely, an actual error on a
-  /// line containing no expected error is an "unexpected" error.
+  /// It has a few heuristics to try to determine what the discrepancies mean,
+  /// which it applies in order:
   ///
-  /// By not treating the error's index in the list to be its identity, we
-  /// gracefully handle extra or missing errors without causing cascading
-  /// failures for later errors in the lists.
+  /// *   If it sees an actual errors with the same message but different
+  ///     location as expected ones, it considers those to be the same error
+  ///     but with the wrong location.
+  ///
+  /// *   If it sees an actual errors at the same location as expected ones,
+  ///     it considers those to be wrong messages.
+  ///
+  /// *   Otherwise, any remaining expected errors are considered missing
+  ///     errors and remaining actual errors are considered unexpected.
   static String validateExpectations(Iterable<StaticError> expectedErrors,
       Iterable<StaticError> actualErrors) {
-    // Don't require the test or front end to output in any specific order.
-    var sortedExpected = expectedErrors.toList();
-    var sortedActual = actualErrors.toList();
-    sortedExpected.sort();
-    sortedActual.sort();
+    var expected = expectedErrors.toList();
+    var actual = actualErrors.toList();
+
+    // Put them in a deterministic order.
+    expected.sort();
+    actual.sort();
+
+    // Discard matched errors.
+    for (var i = 0; i < expected.length; i++) {
+      var matchedExpected = false;
+
+      for (var j = 0; j < actual.length; j++) {
+        if (actual[j] == null) continue;
+
+        if (expected[i]._matchLocation(actual[j]) == null &&
+            (expected[i].message == actual[j].message ||
+                !expected[i].isSpecified)) {
+          actual[j] = null;
+          matchedExpected = true;
+
+          // If the expected error is unspecified, keep going so that it can
+          // consume multiple errors on the same line.
+          if (expected[i].isSpecified) break;
+        }
+      }
+
+      if (matchedExpected) expected[i] = null;
+    }
+
+    expected.removeWhere((error) => error == null);
+    actual.removeWhere((error) => error == null);
+
+    // If everything matched, we're done.
+    if (expected.isEmpty && actual.isEmpty) return null;
 
     var buffer = StringBuffer();
 
-    describeError(String adjective, StaticError error, String verb) {
-      buffer.writeln("$adjective static error at ${error.location}:");
-
-      for (var source in ErrorSource.all) {
-        var sourceError = error._errors[source];
-        if (sourceError == _unspecified) {
-          buffer.writeln("- $verb unspecified ${source.name} error.");
-        } else if (sourceError != null) {
-          buffer.writeln("- $verb ${source.name} error '$sourceError'.");
-        }
+    void fail(StaticError error, String label, [String secondary]) {
+      if (error.isSpecified) {
+        buffer.writeln("- $label ${error.location}: ${error.message}");
+      } else {
+        label = label.replaceAll("error", "unspecified error");
+        buffer.writeln("- $label ${error.location}.");
       }
 
+      if (secondary != null) buffer.writeln("  $secondary");
       buffer.writeln();
     }
 
-    var expectedIndex = 0;
-    var actualIndex = 0;
-    for (;
-        expectedIndex < sortedExpected.length &&
-            actualIndex < sortedActual.length;) {
-      var expected = sortedExpected[expectedIndex];
-      var actual = sortedActual[actualIndex];
+    // Look for matching messages, which means a wrong location.
+    for (var i = 0; i < expected.length; i++) {
+      if (expected[i] == null) continue;
 
-      var differences = expected.describeDifferences(actual);
-      if (differences == null) {
-        // Consume this actual error.
-        actualIndex++;
+      for (var j = 0; j < actual.length; j++) {
+        if (actual[j] == null) continue;
 
-        // Consume the expectation, unless it's an unspecified error that can
-        // match more actual errors.
-        if (expected.isSpecifiedFor(actual) ||
-            actualIndex == sortedActual.length ||
-            sortedActual[actualIndex].line != expected.line) {
-          expectedIndex++;
+        if (expected[i].message == actual[j].message) {
+          fail(expected[i], "Wrong error location",
+              expected[i]._matchLocation(actual[j]));
+
+          // Only report this mismatch once.
+          expected[i] = null;
+          actual[j] = null;
+          break;
         }
-      } else if (expected.line == actual.line) {
-        buffer.writeln("Wrong static error at ${expected.location}:");
-        for (var difference in differences) {
-          buffer.writeln("- $difference");
-        }
-        buffer.writeln();
-        expectedIndex++;
-        actualIndex++;
-      } else if (expected.line < actual.line) {
-        describeError("Missing", expected, "Expected");
-        expectedIndex++;
-      } else {
-        describeError("Unexpected", actual, "Had");
-        actualIndex++;
       }
     }
 
-    // Output any trailing expected or actual errors if the lengths of the
-    // lists differ.
-    for (; expectedIndex < sortedExpected.length; expectedIndex++) {
-      describeError("Missing", sortedExpected[expectedIndex], "Expected");
+    // Look for matching locations, which means a wrong message.
+    for (var i = 0; i < expected.length; i++) {
+      if (expected[i] == null) continue;
+      for (var j = 0; j < actual.length; j++) {
+        if (actual[j] == null) continue;
+
+        if (expected[i]._matchLocation(actual[j]) == null) {
+          fail(actual[j], "Wrong message at",
+              "Expected: ${expected[i].message}");
+
+          // Only report this mismatch once.
+          expected[i] = null;
+          actual[j] = null;
+          break;
+        }
+      }
     }
 
-    for (; actualIndex < sortedActual.length; actualIndex++) {
-      describeError("Unexpected", sortedActual[actualIndex], "Had");
+    // Any remaining expected errors are missing.
+    for (var i = 0; i < expected.length; i++) {
+      if (expected[i] == null) continue;
+      fail(expected[i], "Missing expected error at");
     }
 
-    if (buffer.isEmpty) return null;
+    // Any remaining actual errors are unexpected.
+    for (var j = 0; j < actual.length; j++) {
+      if (actual[j] == null) continue;
+      fail(actual[j], "Unexpected error at");
+    }
+
     return buffer.toString().trimRight();
   }
 
@@ -281,27 +227,18 @@ class StaticError implements Comparable<StaticError> {
   /// This is optional. The CFE only reports error location, but not length.
   final int length;
 
-  /// The error messages that should be or were reported by each front end.
-  final Map<ErrorSource, String> _errors;
+  /// The front end this error is for.
+  final ErrorSource source;
 
-  /// Whether this static error exists for [source].
-  bool hasError(ErrorSource source) => _errors.containsKey(source);
+  final String message;
 
-  /// The error for [source] or `null` if this error isn't expected to
-  /// reported by that source.
-  String errorFor(ErrorSource source) => _errors[source];
-
-  /// The zero-based index of the first line in the [TestFile] containing the
-  /// marker comments that define this error.
+  /// The zero-based numbers of the lines in the [TestFile] containing comments
+  /// that were parsed to produce this error.
   ///
-  /// If this error was not parsed from a file, this may be `null`.
-  final int markerStartLine;
-
-  /// The zero-based index of the last line in the [TestFile] containing the
-  /// marker comments that define this error, inclusive.
-  ///
-  /// If this error was not parsed from a file, this may be `null`.
-  final int markerEndLine;
+  /// This includes a line for the location comment, as well as lines for the
+  /// error message. Note that lines may not be contiguous and multiple errors
+  /// may share the same line number for a shared location marker.
+  final Set<int> sourceLines;
 
   /// Creates a new StaticError at the given location with the given expected
   /// error code and message.
@@ -312,19 +249,12 @@ class StaticError implements Comparable<StaticError> {
   /// code or message be the special string "unspecified". When an unspecified
   /// error is tested, a front end is expected to report *some* error on that
   /// error's line, but it can be any location, error code, or message.
-  StaticError(Map<ErrorSource, String> errors,
-      {this.line,
-      this.column,
-      this.length,
-      this.markerStartLine,
-      this.markerEndLine})
-      : _errors = errors {
+  StaticError(this.source, this.message,
+      {this.line, this.column, this.length, Set<int> sourceLines})
+      : sourceLines = {...?sourceLines} {
     // Must have a location.
     assert(line != null);
     assert(column != null);
-
-    // Must have at least one piece of description.
-    assert(_errors.isNotEmpty);
   }
 
   /// A textual description of this error's location.
@@ -334,37 +264,33 @@ class StaticError implements Comparable<StaticError> {
     return result;
   }
 
+  /// True if this error has a specific expected message and location.
+  ///
+  /// Otherwise, it is an "unspecified error", which means that as long as some
+  /// actual error is reported on this error's line, then the expectation is
+  /// met.
+  bool get isSpecified => message != _unspecified;
+
   /// Whether this error is only considered a warning on all front ends that
   /// report it.
   bool get isWarning {
-    var analyzer = _errors[ErrorSource.analyzer];
-    if (analyzer != null && !_analyzerWarningCodes.contains(analyzer)) {
-      return false;
+    switch (source) {
+      case ErrorSource.analyzer:
+        return _analyzerWarningCodes.contains(message);
+      case ErrorSource.cfe:
+        // TODO(42787): Once CFE starts reporting warnings, encode that in the
+        // message somehow and then look for it here.
+        return false;
+      case ErrorSource.web:
+        // TODO(rnystrom): If the web compilers report warnings, encode that in
+        // the message somehow and then look for it here.
+        return false;
     }
 
-    // TODO(42787): Once CFE starts reporting warnings, encode that in the
-    // message somehow and then look for it here.
-    if (hasError(ErrorSource.cfe)) return false;
-
-    // TODO(rnystrom): If the web compilers report warnings, encode that in the
-    // message somehow and then look for it here.
-    if (hasError(ErrorSource.web)) return false;
-
-    return true;
+    throw FallThroughError();
   }
 
-  String toString() {
-    var result = "Error at $location";
-
-    for (var source in ErrorSource.all) {
-      var sourceError = _errors[source];
-      if (sourceError != null) {
-        result += "\n[${source.name.toLowerCase()}] $sourceError";
-      }
-    }
-
-    return result;
-  }
+  String toString() => "[${source.marker} $location] $message";
 
   /// Orders errors primarily by location, then by other fields if needed.
   @override
@@ -377,15 +303,11 @@ class StaticError implements Comparable<StaticError> {
     if (length != null && other.length == null) return -1;
     if (length != other.length) return length.compareTo(other.length);
 
-    for (var source in ErrorSource.all) {
-      var thisError = _errors[source] ?? "";
-      var otherError = other._errors[source] ?? "";
-      if (thisError != otherError) {
-        return thisError.compareTo(otherError);
-      }
+    if (source != other.source) {
+      return source.marker.compareTo(other.source.marker);
     }
 
-    return 0;
+    return message.compareTo(other.message);
   }
 
   @override
@@ -396,73 +318,43 @@ class StaticError implements Comparable<StaticError> {
       3 * line.hashCode +
       5 * column.hashCode +
       7 * (length ?? 0).hashCode +
-      11 * (_errors[ErrorSource.analyzer] ?? "").hashCode +
-      13 * (_errors[ErrorSource.cfe] ?? "").hashCode +
-      17 * (_errors[ErrorSource.web] ?? "").hashCode;
+      11 * source.hashCode +
+      13 * message.hashCode;
 
-  /// Whether this error expectation is a specified error for the front end
-  /// reported by [actual].
-  bool isSpecifiedFor(StaticError actual) {
-    assert(actual._errors.length == 1,
-        "Actual error should only have one source.");
-
-    for (var source in ErrorSource.all) {
-      if (actual.hasError(source)) {
-        return hasError(source) && _errors[source] != _unspecified;
-      }
-    }
-
-    return false;
-  }
-
-  /// Compares this error expectation to [actual].
+  /// Returns a string describing how this error's expected location differs
+  /// from [actual], or `null` if [actual]'s location matches this one.
   ///
-  /// If this error correctly matches [actual], returns `null`. Otherwise
-  /// returns a list of strings describing the mismatch.
-  ///
-  /// Note that this does *not* check to see that [actual] matches the front
-  /// ends that this error expects. For example, if [actual] only reports an
-  /// analyzer error and this error only specifies a CFE error, this will still
-  /// report differences in location information. This method expects that error
-  /// expectations have already been filtered by platform so this will only be
-  /// called in cases where the platforms do match.
-  List<String> describeDifferences(StaticError actual) {
-    var differences = <String>[];
+  /// Takes into account unspecified errors and errors without lengths.
+  String _matchLocation(StaticError actual) {
+    var expectedMismatches = <String>[];
+    var actualMismatches = <String>[];
 
     if (line != actual.line) {
-      differences.add("Expected on line $line but was on ${actual.line}.");
+      expectedMismatches.add("line $line");
+      actualMismatches.add("line ${actual.line}");
     }
 
-    // If the error is unspecified on the front end being tested, the column
-    // and length can be any values.
-    if (isSpecifiedFor(actual)) {
+    // Ignore column and length for unspecified errors.
+    if (isSpecified) {
       if (column != actual.column) {
-        differences
-            .add("Expected on column $column but was on ${actual.column}.");
+        expectedMismatches.add("column $column");
+        actualMismatches.add("column ${actual.column}");
       }
 
-      // This error represents an expectation, so should have a length.
-      assert(length != null);
       if (actual.length != null && length != actual.length) {
-        differences.add("Expected length $length but was ${actual.length}.");
+        expectedMismatches.add("length $column");
+        actualMismatches.add("length ${actual.column}");
       }
     }
 
-    for (var source in ErrorSource.all) {
-      var error = _errors[source];
-      var actualError = actual._errors[source];
-
-      if (error != null &&
-          error != _unspecified &&
-          actualError != null &&
-          error != actualError) {
-        differences.add("Expected ${source.name} error '$error' "
-            "but was '$actualError'.");
-      }
+    if (expectedMismatches.isEmpty) {
+      // Everything matches.
+      return null;
     }
 
-    if (differences.isNotEmpty) return differences;
-    return null;
+    var expectedList = expectedMismatches.join(", ");
+    var actualList = actualMismatches.join(", ");
+    return "Expected $expectedList but was $actualList.";
   }
 }
 
@@ -500,9 +392,6 @@ class _ErrorExpectationParser {
   /// are part of it.
   static final _errorMessageRestRegExp = RegExp(r"^\s*//\s*(.*)");
 
-  /// Matches the multitest marker and yields the preceding content.
-  final _stripMultitestRegExp = RegExp(r"(.*)//#");
-
   final List<String> _lines;
   final List<StaticError> _errors = [];
   int _currentLine = 0;
@@ -522,7 +411,7 @@ class _ErrorExpectationParser {
           _fail("An error expectation must follow some code.");
         }
 
-        _parseErrorMessages(
+        _parseErrors(
             line: _lastRealLine,
             column: sourceLine.indexOf("^") + 1,
             length: match.group(1).length);
@@ -532,7 +421,7 @@ class _ErrorExpectationParser {
 
       match = _explicitLocationAndLengthRegExp.firstMatch(sourceLine);
       if (match != null) {
-        _parseErrorMessages(
+        _parseErrors(
             line: int.parse(match.group(1)),
             column: int.parse(match.group(2)),
             length: int.parse(match.group(3)));
@@ -542,7 +431,7 @@ class _ErrorExpectationParser {
 
       match = _explicitLocationRegExp.firstMatch(sourceLine);
       if (match != null) {
-        _parseErrorMessages(
+        _parseErrors(
             line: int.parse(match.group(1)), column: int.parse(match.group(2)));
         _advance();
         continue;
@@ -555,12 +444,12 @@ class _ErrorExpectationParser {
     return _errors;
   }
 
-  /// Finishes parsing an error expectation after parsing the location.
-  void _parseErrorMessages({int line, int column, int length}) {
-    var errors = <ErrorSource, String>{};
+  /// Finishes parsing a series of error expectations after parsing a location.
+  void _parseErrors({int line, int column, int length}) {
+    var locationLine = _currentLine;
+    var parsedError = false;
 
-    var startLine = _currentLine;
-
+    // Allow errors for multiple front-ends to share the same location marker.
     while (_canPeek(1)) {
       var match = _errorMessageRegExp.firstMatch(_peek(1));
       if (match == null) break;
@@ -571,6 +460,7 @@ class _ErrorExpectationParser {
 
       var message = match.group(2);
       _advance();
+      var sourceLines = {locationLine, _currentLine};
 
       // Consume as many additional error message lines as we find.
       while (_canPeek(1)) {
@@ -589,6 +479,7 @@ class _ErrorExpectationParser {
 
         message += "\n" + messageMatch.group(1);
         _advance();
+        sourceLines.add(_currentLine);
       }
 
       if (source == ErrorSource.analyzer &&
@@ -596,35 +487,28 @@ class _ErrorExpectationParser {
         _fail("An analyzer error expectation should be a dotted identifier.");
       }
 
-      if (errors.containsKey(source)) {
-        _fail("Already have an error for ${source.name}:\n${errors[source]}");
+      // Hack: If the error is CFE-only and the length is one, treat it as no
+      // length. The CFE does not output length information, and when the update
+      // tool writes a CFE-only error, it implicitly uses a length of one. Thus,
+      // when we parse back in a length one CFE error, we ignore the length so
+      // that the error round-trips correctly.
+      // TODO(rnystrom): Stop doing this when the CFE reports error lengths.
+      var errorLength = length;
+      if (errorLength == 1 && source == ErrorSource.cfe) {
+        errorLength = null;
       }
 
-      errors[source] = message;
+      _errors.add(StaticError(source, message,
+          line: line,
+          column: column,
+          length: errorLength,
+          sourceLines: sourceLines));
+      parsedError = true;
     }
 
-    if (errors.isEmpty) {
+    if (!parsedError) {
       _fail("An error expectation must specify at least one error message.");
     }
-
-    // Hack: If the error is CFE-only and the length is one, treat it as no
-    // length. The CFE does not output length information, and when the update
-    // tool writes a CFE-only error, it implicitly uses a length of one. Thus,
-    // when we parse back in a length one CFE error, we ignore the length so
-    // that the error round-trips correctly.
-    // TODO(rnystrom): Stop doing this when the CFE reports error lengths.
-    if (length == 1 &&
-        errors.length == 1 &&
-        errors.containsKey(ErrorSource.cfe)) {
-      length = null;
-    }
-
-    _errors.add(StaticError(errors,
-        line: line,
-        column: column,
-        length: length,
-        markerStartLine: startLine,
-        markerEndLine: _currentLine));
   }
 
   bool _canPeek(int offset) => _currentLine + offset < _lines.length;
@@ -637,9 +521,9 @@ class _ErrorExpectationParser {
     var line = _lines[_currentLine + offset];
 
     // Strip off any multitest marker.
-    var multitestMatch = _stripMultitestRegExp.firstMatch(line);
-    if (multitestMatch != null) {
-      line = multitestMatch.group(1).trimRight();
+    var index = line.indexOf("//#");
+    if (index != -1) {
+      line = line.substring(0, index).trimRight();
     }
 
     return line;
