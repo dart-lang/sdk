@@ -191,6 +191,7 @@ mixin ErrorDetectionHelpers {
     Expression index, {
     required ExecutableElement? readElement,
     required ExecutableElement? writeElement,
+    required Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     if (readElement is MethodElement) {
       var parameters = readElement.parameters;
@@ -199,6 +200,7 @@ mixin ErrorDetectionHelpers {
           argument: index,
           parameter: parameters[0],
           promoteParameterToNullable: false,
+          whyNotPromoted: whyNotPromoted,
         );
       }
     }

@@ -401,3 +401,79 @@ compoundAssignmentRhs(C26 c) {
       /*analyzer.notPromoted(propertyNotPromoted(target: member:C26.bad, type: int?))*/ c
           . /*cfe.notPromoted(propertyNotPromoted(target: member:C26.bad, type: int?))*/ bad;
 }
+
+class C27 {
+  int? bad;
+}
+
+indexGet(C27 c, List<int> values) {
+  if (c.bad == null) return;
+  values[
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C27.bad, type: int?))*/ c
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C27.bad, type: int?))*/ bad];
+}
+
+class C28 {
+  int? bad;
+}
+
+indexSet(C28 c, List<int> values) {
+  if (c.bad == null) return;
+  values[
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C28.bad, type: int?))*/ c
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C28.bad, type: int?))*/ bad] = 0;
+}
+
+class C29 {
+  int? bad;
+}
+
+indexSetCompound(C29 c, List<int> values) {
+  // TODO(paulberry): get this to work with the CFE
+  if (c.bad == null) return;
+  values[
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C29.bad, type: int?))*/ c
+          .bad] += 1;
+}
+
+class C30 {
+  int? bad;
+}
+
+indexSetIfNull(C30 c, List<int?> values) {
+  // TODO(paulberry): get this to work with the CFE
+  if (c.bad == null) return;
+  values[
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C30.bad, type: int?))*/ c
+          .bad] ??= 1;
+}
+
+class C31 {
+  int? bad;
+}
+
+indexSetPreIncDec(C31 c, List<int> values) {
+  // TODO(paulberry): get this to work with the CFE
+  if (c.bad == null) return;
+  ++values[
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C31.bad, type: int?))*/ c
+          .bad];
+  --values[
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C31.bad, type: int?))*/ c
+          .bad];
+}
+
+class C32 {
+  int? bad;
+}
+
+indexSetPostIncDec(C32 c, List<int> values) {
+  // TODO(paulberry): get this to work with the CFE
+  if (c.bad == null) return;
+  values[
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C32.bad, type: int?))*/ c
+          .bad]++;
+  values[
+      /*analyzer.notPromoted(propertyNotPromoted(target: member:C32.bad, type: int?))*/ c
+          .bad]--;
+}
