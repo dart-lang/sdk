@@ -8,6 +8,7 @@ import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analysis_server/src/utilities/yaml_node_locator.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
@@ -15,6 +16,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:yaml/yaml.dart';
 
@@ -169,7 +171,9 @@ class AnalysisOptionsFixGenerator {
     var nodeToDelete = coveringNodePath[index - 1];
     deletionRange ??=
         _lines(nodeToDelete.span.start.offset, nodeToDelete.span.end.offset);
-    var builder = ChangeBuilder();
+    var builder = ChangeBuilder(
+      workspace: _NonDartChangeWorkspace(),
+    );
     await builder.addGenericFileEdit(file, (builder) {
       builder.addDeletion(deletionRange);
     });
@@ -190,5 +194,17 @@ class AnalysisOptionsFixGenerator {
     var endOffset = lineInfo.getOffsetOfLine(
         math.min(endLocation.lineNumber, lineInfo.lineCount - 1));
     return SourceRange(startOffset, endOffset - startOffset);
+  }
+}
+
+class _NonDartChangeWorkspace implements ChangeWorkspace {
+  @override
+  bool containsFile(String path) {
+    return true;
+  }
+
+  @override
+  AnalysisSession getSession(String path) {
+    throw UnimplementedError('Attempt to work a Dart file.');
   }
 }

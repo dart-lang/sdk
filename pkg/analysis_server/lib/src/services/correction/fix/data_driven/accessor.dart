@@ -49,6 +49,9 @@ class ArgumentAccessor extends Accessor {
     return const InvalidResult();
   }
 
+  @override
+  String toString() => 'arguments[$parameter]';
+
   /// Return the argument list associated with the [node].
   ArgumentList _getArgumentList(AstNode node) {
     if (node is Annotation) {
@@ -105,6 +108,9 @@ class TypeArgumentAccessor extends Accessor {
     }
     return const InvalidResult();
   }
+
+  @override
+  String toString() => 'typeArguments[$index]';
 
   /// Return the type argument list associated with the [node].
   TypeArgumentList _getTypeArgumentList(AstNode node) {

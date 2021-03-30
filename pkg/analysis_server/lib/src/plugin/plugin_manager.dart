@@ -565,7 +565,7 @@ class PluginManager {
     }
     var files = params.files;
     for (var file in files.keys) {
-      Object overlay = files[file];
+      var overlay = files[file];
       if (overlay is RemoveContentOverlay) {
         _overlayState.remove(file);
       } else if (overlay is AddContentOverlay) {

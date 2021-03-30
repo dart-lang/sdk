@@ -92,6 +92,7 @@ class ModifyParameters extends Change<_Data> {
       }
     }
     argumentsToInsert.sort();
+    argumentsToDelete.sort();
 
     /// Write to the [builder] the argument associated with a single
     /// [parameter].
@@ -202,8 +203,20 @@ class ModifyParameters extends Change<_Data> {
     // The remaining deletion ranges are now ready to be removed.
     //
     for (var subRange in deletionRanges) {
-      builder.addDeletion(range.argumentRange(
-          argumentList, subRange.lower, subRange.upper, true));
+      var lower = subRange.lower;
+      var upper = subRange.upper;
+      if (lower == 0 &&
+          upper == arguments.length - 1 &&
+          insertionRanges.isNotEmpty) {
+        // We're removing all of the existing arguments but we've already
+        // inserted new arguments between the parentheses. We need to handle
+        // this case specially because the default code would cause a
+        // `ConflictingEditException`.
+        builder.addDeletion(range.startEnd(arguments[lower], arguments[upper]));
+      } else {
+        builder
+            .addDeletion(range.argumentRange(argumentList, lower, upper, true));
+      }
     }
   }
 

@@ -75,8 +75,8 @@ class ApiReader {
     Api api;
     var versions = <String>[];
     var domains = <Domain>[];
-    Types types;
-    Refactorings refactorings;
+    Types? types;
+    Refactorings? refactorings;
     recurse(html, 'api', {
       'domain': (dom.Element element) {
         domains.add(domainFromHtml(element));
@@ -97,7 +97,7 @@ class ApiReader {
     if (versions.length != 1) {
       throw Exception('The API must contain exactly one <version> element');
     }
-    api = Api(versions[0], domains, types, refactorings, html);
+    api = Api(versions[0], domains, types!, refactorings, html);
     return api;
   }
 
@@ -125,7 +125,7 @@ class ApiReader {
   }
 
   /// Check that the given [element] has the given [expectedName].
-  void checkName(dom.Element element, String expectedName, [String context]) {
+  void checkName(dom.Element element, String expectedName, [String? context]) {
     if (element.localName != expectedName) {
       context ??= element.localName;
       throw Exception(
@@ -158,7 +158,7 @@ class ApiReader {
         notifications.add(notificationFromHtml(child, context));
       }
     });
-    return Domain(name, requests, notifications, html,
+    return Domain(name!, requests, notifications, html,
         experimental: experimental);
   }
 
@@ -186,18 +186,18 @@ class ApiReader {
   ///
   /// Child elements can occur in any order.
   Notification notificationFromHtml(dom.Element html, String context) {
-    var domainName = getAncestor(html, 'domain', context).attributes['name'];
+    var domainName = getAncestor(html, 'domain', context).attributes['name']!;
     checkName(html, 'notification', context);
     var event = html.attributes['event'];
     context = '$context.${event ?? 'event'}';
     checkAttributes(html, ['event'], context);
-    TypeObject params;
+    late TypeObject params;
     recurse(html, context, {
       'params': (dom.Element child) {
         params = typeObjectFromHtml(child, '$context.params');
       }
     });
-    return Notification(domainName, event, params, html);
+    return Notification(domainName, event!, params, html);
   }
 
   /// Create a single of [TypeDecl] corresponding to the type defined inside the
@@ -249,8 +249,8 @@ class ApiReader {
       },
       'map': (dom.Element child) {
         checkAttributes(child, [], context);
-        TypeDecl keyType;
-        TypeDecl valueType;
+        TypeDecl? keyType;
+        TypeDecl? valueType;
         recurse(child, context, {
           'key': (dom.Element child) {
             if (keyType != null) {
@@ -271,7 +271,7 @@ class ApiReader {
         if (valueType == null) {
           throw Exception('$context: Value type not specified');
         }
-        types.add(TypeMap(keyType as TypeReference, valueType, child));
+        types.add(TypeMap(keyType as TypeReference, valueType!, child));
       },
       'enum': (dom.Element child) {
         types.add(typeEnumFromHtml(child, context));
@@ -284,7 +284,7 @@ class ApiReader {
         checkAttributes(child, ['field'], context);
         var field = child.attributes['field'];
         types.add(
-            TypeUnion(processContentsAsTypes(child, context), field, child));
+            TypeUnion(processContentsAsTypes(child, context), field!, child));
       }
     });
     return types;
@@ -295,7 +295,7 @@ class ApiReader {
     var htmlContents = File(filePath).readAsStringSync();
     var document = parser.parse(htmlContents);
     var htmlElement = document.children
-        .singleWhere((element) => element.localName.toLowerCase() == 'html');
+        .singleWhere((element) => element.localName?.toLowerCase() == 'html');
     return apiFromHtml(htmlElement);
   }
 
@@ -309,7 +309,7 @@ class ApiReader {
     for (var node in parent.nodes) {
       if (node is dom.Element) {
         if (elementProcessors.containsKey(node.localName)) {
-          elementProcessors[node.localName](node);
+          elementProcessors[node.localName]!(node);
         } else if (specialElements.contains(node.localName)) {
           throw Exception('$context: Unexpected use of <${node.localName}>');
         } else {
@@ -335,8 +335,8 @@ class ApiReader {
     var kind = html.attributes['kind'];
     var context = kind ?? 'refactoring';
     checkAttributes(html, ['kind'], context);
-    TypeObject feedback;
-    TypeObject options;
+    TypeObject? feedback;
+    TypeObject? options;
     recurse(html, context, {
       'feedback': (dom.Element child) {
         feedback = typeObjectFromHtml(child, '$context.feedback');
@@ -345,7 +345,7 @@ class ApiReader {
         options = typeObjectFromHtml(child, '$context.options');
       }
     });
-    return Refactoring(kind, feedback, options, html);
+    return Refactoring(kind!, feedback, options, html);
   }
 
   /// Create a [Refactorings] object from an HTML representation such as:
@@ -380,7 +380,7 @@ class ApiReader {
   ///
   /// Child elements can occur in any order.
   Request requestFromHtml(dom.Element html, String context) {
-    var domainName = getAncestor(html, 'domain', context).attributes['name'];
+    var domainName = getAncestor(html, 'domain', context).attributes['name']!;
     checkName(html, 'request', context);
     var method = html.attributes['method'];
     context = '$context.${method ?? 'method'}';
@@ -388,8 +388,8 @@ class ApiReader {
         optionalAttributes: ['experimental', 'deprecated']);
     var experimental = html.attributes['experimental'] == 'true';
     var deprecated = html.attributes['deprecated'] == 'true';
-    TypeObject params;
-    TypeObject result;
+    TypeObject? params;
+    TypeObject? result;
     recurse(html, context, {
       'params': (dom.Element child) {
         params = typeObjectFromHtml(child, '$context.params');
@@ -398,7 +398,7 @@ class ApiReader {
         result = typeObjectFromHtml(child, '$context.result');
       }
     });
-    return Request(domainName, method, params, result, html,
+    return Request(domainName, method!, params, result, html,
         experimental: experimental, deprecated: deprecated);
   }
 
@@ -420,7 +420,7 @@ class ApiReader {
     var type = processContentsAsType(html, context);
     var experimental = html.attributes['experimental'] == 'true';
     var deprecated = html.attributes['deprecated'] == 'true';
-    return TypeDefinition(name, type, html,
+    return TypeDefinition(name!, type, html,
         experimental: experimental, deprecated: deprecated);
   }
 
@@ -500,7 +500,7 @@ class ApiReader {
     }
     var value = html.attributes['value'];
     var type = processContentsAsType(html, context);
-    return TypeObjectField(name, type, html,
+    return TypeObjectField(name!, type, html,
         optional: optional, value: value, deprecated: deprecated);
   }
 
@@ -541,7 +541,7 @@ class ApiReader {
         var api = reader.readApi();
         for (var typeDefinition in api.types) {
           typeDefinition.isExternal = true;
-          childElements.add(typeDefinition.html);
+          childElements.add(typeDefinition.html!);
           typeMap[typeDefinition.name] = typeDefinition;
         }
       },

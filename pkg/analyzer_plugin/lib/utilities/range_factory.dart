@@ -103,8 +103,8 @@ class RangeFactory {
   SourceRange nodeInList<T extends AstNode>(NodeList<T> list, T item) {
     if (list.length == 1) {
       var nextToken = item.endToken.next;
-      if (nextToken.type == TokenType.COMMA) {
-        return startEnd(item, nextToken);
+      if (nextToken?.type == TokenType.COMMA) {
+        return startEnd(item, nextToken!);
       }
       return node(item);
     }

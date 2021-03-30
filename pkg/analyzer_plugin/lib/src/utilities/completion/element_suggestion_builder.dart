@@ -24,17 +24,17 @@ mixin ElementSuggestionBuilder {
       <String, CompletionSuggestion>{};
 
   /// Return the library in which the completion is requested.
-  LibraryElement get containingLibrary;
+  LibraryElement? get containingLibrary;
 
   /// Return the kind of suggestions that should be built.
-  CompletionSuggestionKind get kind;
+  CompletionSuggestionKind? get kind;
 
   /// Return the resource provider used to access the file system.
-  ResourceProvider get resourceProvider;
+  ResourceProvider? get resourceProvider;
 
   /// Add a suggestion based upon the given element.
   void addSuggestion(Element element,
-      {String prefix, int relevance = DART_RELEVANCE_DEFAULT}) {
+      {String? prefix, int relevance = DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
         return;
@@ -42,13 +42,13 @@ mixin ElementSuggestionBuilder {
     }
     var completion = element.displayName;
     if (prefix != null && prefix.isNotEmpty) {
-      if (completion == null || completion.isEmpty) {
+      if (completion.isEmpty) {
         completion = prefix;
       } else {
         completion = '$prefix.$completion';
       }
     }
-    if (completion == null || completion.isEmpty) {
+    if (completion.isEmpty) {
       return;
     }
     var builder = SuggestionBuilderImpl(resourceProvider);
@@ -56,7 +56,7 @@ mixin ElementSuggestionBuilder {
         completion: completion, kind: kind, relevance: relevance);
     if (suggestion != null) {
       if (element.isSynthetic && element is PropertyAccessorElement) {
-        String cacheKey;
+        String? cacheKey;
         if (element.isGetter) {
           cacheKey = element.name;
         }
@@ -75,10 +75,10 @@ mixin ElementSuggestionBuilder {
                 : protocol.ElementKind.TOP_LEVEL_VARIABLE;
             existingSuggestion.element = protocol.Element(
                 elemKind,
-                existingSuggestion.element.name,
-                existingSuggestion.element.flags,
-                location: getter.element.location,
-                typeParameters: getter.element.typeParameters,
+                existingSuggestion.element!.name,
+                existingSuggestion.element!.flags,
+                location: getter.element?.location,
+                typeParameters: getter.element?.typeParameters,
                 parameters: null,
                 returnType: getter.returnType);
             return;

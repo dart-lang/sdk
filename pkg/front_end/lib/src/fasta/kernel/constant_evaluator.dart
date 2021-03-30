@@ -3373,6 +3373,10 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
       new BreakStatus(node.target);
 
   @override
+  ExecutionStatus visitContinueSwitchStatement(ContinueSwitchStatement node) =>
+      node.target.body.accept(this);
+
+  @override
   ExecutionStatus visitDoStatement(DoStatement node) {
     Constant condition;
     do {
@@ -3452,6 +3456,21 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   @override
   ExecutionStatus visitReturnStatement(ReturnStatement node) =>
       new ReturnStatus(evaluate(node.expression));
+
+  @override
+  ExecutionStatus visitSwitchStatement(SwitchStatement node) {
+    final Constant value = evaluate(node.expression);
+    if (value is AbortConstant) return new AbortStatus(value);
+
+    for (SwitchCase switchCase in node.cases) {
+      if (switchCase.isDefault) return switchCase.body.accept(this);
+      for (Expression expr in switchCase.expressions) {
+        final Constant caseValue = evaluate(expr);
+        if (value == caseValue) return switchCase.body.accept(this);
+      }
+    }
+    return const ProceedStatus();
+  }
 
   @override
   ExecutionStatus visitVariableDeclaration(VariableDeclaration node) {

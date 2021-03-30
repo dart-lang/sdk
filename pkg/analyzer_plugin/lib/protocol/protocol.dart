@@ -30,7 +30,7 @@ class Notification {
 
   /// A table mapping the names of notification parameters to their values, or
   /// `null` if there are no notification parameters.
-  final Map<String, Object> params;
+  final Map<String, Object>? params;
 
   /// Initialize a newly created [Notification] to have the given [event] name.
   /// If [params] is provided, it will be used as the params; otherwise no
@@ -48,6 +48,7 @@ class Notification {
   Map<String, Object> toJson() {
     var jsonObject = <String, Object>{};
     jsonObject[EVENT] = event;
+    var params = this.params;
     if (params != null) {
       jsonObject[PARAMS] = params;
     }
@@ -83,13 +84,13 @@ class Request {
 
   /// The time (milliseconds since epoch) at which the server made the request,
   /// or `null` if this information is not provided by the server.
-  final int serverRequestTime;
+  final int? serverRequestTime;
 
   /// Initialize a newly created [Request] to have the given [id] and [method]
   /// name. If [params] is supplied, it is used as the "params" map for the
   /// request. Otherwise an empty "params" map is allocated.
   Request(this.id, this.method,
-      [Map<String, Object> params, this.serverRequestTime])
+      [Map<String, Object>? params, this.serverRequestTime])
       : params = params ?? <String, Object>{};
 
   /// Return a request parsed from the given json, or `null` if the [data] is
@@ -114,18 +115,17 @@ class Request {
     var id = result[Request.ID];
     var method = result[Request.METHOD];
     if (id is! String || method is! String) {
-      return null;
+      throw StateError('Unexpected type for id or method');
     }
     var time = result[Request.SERVER_REQUEST_TIME];
     if (time != null && time is! int) {
-      return null;
+      throw StateError('Unexpected type for server request time');
     }
     var params = result[Request.PARAMS];
     if (params is Map || params == null) {
-      return Request(id as String, method as String,
-          params as Map<String, Object>, time as int);
+      return Request(id, method, params as Map<String, Object>?, time as int?);
     } else {
-      return null;
+      throw StateError('Unexpected type for params');
     }
   }
 
@@ -152,13 +152,14 @@ class Request {
     if (params.isNotEmpty) {
       jsonObject[PARAMS] = params;
     }
+    var serverRequestTime = this.serverRequestTime;
     if (serverRequestTime != null) {
       jsonObject[SERVER_REQUEST_TIME] = serverRequestTime;
     }
     return jsonObject;
   }
 
-  bool _equalLists(List first, List second) {
+  bool _equalLists(List? first, List? second) {
     if (first == null) {
       return second == null;
     }
@@ -177,7 +178,7 @@ class Request {
     return true;
   }
 
-  bool _equalMaps(Map first, Map second) {
+  bool _equalMaps(Map? first, Map? second) {
     if (first == null) {
       return second == null;
     }
@@ -198,7 +199,7 @@ class Request {
     return true;
   }
 
-  bool _equalObjects(Object first, Object second) {
+  bool _equalObjects(Object? first, Object? second) {
     if (first == null) {
       return second == null;
     }
@@ -249,7 +250,7 @@ class RequestErrorFactory {
           "Invalid parameter '$path'. $expectation.");
 
   /// Return a request error representing an error that occurred in the plugin.
-  static RequestError pluginError(dynamic exception, String stackTrace) =>
+  static RequestError pluginError(dynamic exception, String? stackTrace) =>
       RequestError(RequestErrorCode.PLUGIN_ERROR, exception.toString(),
           stackTrace: stackTrace);
 
@@ -296,49 +297,45 @@ class Response {
 
   /// The error that was caused by attempting to handle the request, or `null` if
   /// there was no error.
-  final RequestError error;
+  final RequestError? error;
 
   /// The time at which the request was handled by the plugin.
   final int requestTime;
 
   /// A table mapping the names of result fields to their values. Should be
   /// `null` if there is no result to send.
-  Map<String, Object> result;
+  Map<String, Object>? result;
 
   /// Initialize a newly created instance to represent a response to a request
   /// with the given [id]. If [_result] is provided, it will be used as the
   /// result; otherwise an empty result will be used. If an [error] is provided
   /// then the response will represent an error condition.
-  Response(this.id, this.requestTime, {this.error, Map<String, Object> result})
+  Response(this.id, this.requestTime, {this.error, Map<String, Object>? result})
       : result = result;
 
   /// Initialize a newly created instance based on the given JSON data.
   factory Response.fromJson(Map json) {
-    try {
-      Object id = json[ID];
-      if (id is! String) {
-        return null;
-      }
-      Object error = json[ERROR];
-      RequestError decodedError;
-      if (error is Map) {
-        decodedError =
-            RequestError.fromJson(ResponseDecoder(null), '.error', error);
-      }
-      Object requestTime = json[REQUEST_TIME];
-      if (requestTime is! int) {
-        return null;
-      }
-      Object result = json[RESULT];
-      Map<String, Object> decodedResult;
-      if (result is Map) {
-        decodedResult = result as Map<String, Object>;
-      }
-      return Response(id as String, requestTime as int,
-          error: decodedError, result: decodedResult);
-    } catch (exception) {
-      return null;
+    var id = json[ID];
+    if (id is! String) {
+      throw StateError('Unexpected type for id');
     }
+    var error = json[ERROR];
+    RequestError? decodedError;
+    if (error is Map) {
+      decodedError =
+          RequestError.fromJson(ResponseDecoder(null), '.error', error);
+    }
+    var requestTime = json[REQUEST_TIME];
+    if (requestTime is! int) {
+      throw StateError('Unexpected type for requestTime');
+    }
+    var result = json[RESULT];
+    Map<String, Object>? decodedResult;
+    if (result is Map) {
+      decodedResult = result as Map<String, Object>;
+    }
+    return Response(id, requestTime,
+        error: decodedError, result: decodedResult);
   }
 
   /// Return a table representing the structure of the Json object that will be
@@ -346,10 +343,12 @@ class Response {
   Map<String, Object> toJson() {
     var jsonObject = <String, Object>{};
     jsonObject[ID] = id;
+    var error = this.error;
     if (error != null) {
       jsonObject[ERROR] = error.toJson();
     }
     jsonObject[REQUEST_TIME] = requestTime;
+    var result = this.result;
     if (result != null) {
       jsonObject[RESULT] = result;
     }

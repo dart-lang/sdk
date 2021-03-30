@@ -37,6 +37,7 @@ void main(List<String> arguments) async {
     print(exception.message);
     exit(1);
   }
+
   if (configurations.isEmpty) return;
   await buildConfigurations(configurations);
   // Run all of the configured tests.

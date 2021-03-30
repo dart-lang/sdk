@@ -19,8 +19,8 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
 /// Finds an [Element] with the given [name].
-Element findChildElement(Element root, String name, [ElementKind kind]) {
-  Element result;
+Element? findChildElement(Element root, String name, [ElementKind? kind]) {
+  Element? result;
   root.accept(_ElementVisitorFunctionWrapper((Element element) {
     if (element.name != name) {
       return;
@@ -41,7 +41,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
   final Map<String, String> _declaredVariables = {};
 
-  AnalysisContextCollection _analysisContextCollection;
+  AnalysisContextCollection? _analysisContextCollection;
 
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
@@ -51,7 +51,7 @@ class AbstractContextTest with ResourceProviderMixin {
   String get testPackageAnalysisOptionsPath =>
       convertPath('$testPackageRootPath/analysis_options.yaml');
 
-  String get testPackageLanguageVersion => '2.9';
+  String? get testPackageLanguageVersion => '2.9';
 
   /// The file system-specific `pubspec.yaml` path.
   String get testPackagePubspecPath =>
@@ -69,11 +69,11 @@ class AbstractContextTest with ResourceProviderMixin {
     _createAnalysisContexts();
 
     path = convertPath(path);
-    return _analysisContextCollection.contextFor(path);
+    return _analysisContextCollection!.contextFor(path);
   }
 
   /// Create an analysis options file based on the given arguments.
-  void createAnalysisOptionsFile({List<String> experiments}) {
+  void createAnalysisOptionsFile({List<String>? experiments}) {
     var buffer = StringBuffer();
     buffer.writeln('analyzer:');
 
@@ -116,8 +116,8 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   void writeTestPackageConfig({
-    PackageConfigFileBuilder config,
-    String languageVersion,
+    PackageConfigFileBuilder? config,
+    String? languageVersion,
     bool meta = false,
   }) {
     if (config == null) {
@@ -163,7 +163,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
 mixin WithNonFunctionTypeAliasesMixin on AbstractContextTest {
   @override
-  String get testPackageLanguageVersion => null;
+  String? get testPackageLanguageVersion => null;
 
   @override
   void setUp() {
@@ -179,7 +179,7 @@ mixin WithNonFunctionTypeAliasesMixin on AbstractContextTest {
 
 mixin WithNullSafetyMixin on AbstractContextTest {
   @override
-  String get testPackageLanguageVersion => null;
+  String? get testPackageLanguageVersion => null;
 }
 
 /// Wraps the given [_ElementVisitorFunction] into an instance of

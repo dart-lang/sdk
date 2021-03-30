@@ -24,12 +24,12 @@ void main() {
 
 @reflectiveTest
 class FixesMixinTest with ResourceProviderMixin {
-  String packagePath1;
-  String filePath1;
-  ContextRoot contextRoot1;
+  late String packagePath1;
+  late String filePath1;
+  late ContextRoot contextRoot1;
 
-  MockChannel channel;
-  _TestServerPlugin plugin;
+  late MockChannel channel;
+  late _TestServerPlugin plugin;
 
   void setUp() {
     packagePath1 = convertPath('/package1');
@@ -61,7 +61,8 @@ class _TestFixContributor implements FixContributor {
   _TestFixContributor(this.changes);
 
   @override
-  Future<void> computeFixes(FixesRequest request, FixCollector collector) async {
+  Future<void> computeFixes(
+      FixesRequest request, FixCollector collector) async {
     for (var change in changes) {
       collector.addFix(request.errorsToFix[0], change);
     }

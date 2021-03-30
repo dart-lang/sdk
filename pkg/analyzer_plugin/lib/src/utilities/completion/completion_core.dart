@@ -11,11 +11,11 @@ import 'package:analyzer_plugin/utilities/completion/completion_core.dart';
 class CompletionCollectorImpl implements CompletionCollector {
   /// The length of the region of text that should be replaced by the selected
   /// completion suggestion.
-  int _length;
+  int? _length;
 
   /// The offset of the region of text that should be replaced by the selected
   /// completion suggestion.
-  int _offset;
+  int? _offset;
 
   /// A list of the completion suggestions that have been collected.
   List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
@@ -25,10 +25,10 @@ class CompletionCollectorImpl implements CompletionCollector {
 
   /// Return the length of the region of text that should be replaced by the
   /// selected completion suggestion, or `null` if the length has not been set.
-  int get length => _length;
+  int? get length => _length;
 
   @override
-  set length(int length) {
+  set length(int? length) {
     if (_length != null) {
       throw StateError('The length can only be set once');
     }
@@ -37,10 +37,10 @@ class CompletionCollectorImpl implements CompletionCollector {
 
   /// Return the offset of the region of text that should be replaced by the
   /// selected completion suggestion, or `null` if the offset has not been set.
-  int get offset => _offset;
+  int? get offset => _offset;
 
   @override
-  set offset(int length) {
+  set offset(int? length) {
     if (_offset != null) {
       throw StateError('The offset can only be set once');
     }

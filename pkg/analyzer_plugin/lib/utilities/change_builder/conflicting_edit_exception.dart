@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:meta/meta.dart';
 
 /// An exception that is thrown when a change builder is asked to include an
 /// edit that conflicts with a previous edit.
@@ -15,8 +14,7 @@ class ConflictingEditException implements Exception {
   final SourceEdit existingEdit;
 
   /// Initialize a newly created exception indicating that the [newEdit].
-  ConflictingEditException(
-      {@required this.newEdit, @required this.existingEdit});
+  ConflictingEditException({required this.newEdit, required this.existingEdit});
 
   @override
   String toString() =>

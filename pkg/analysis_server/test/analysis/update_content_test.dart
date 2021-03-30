@@ -233,7 +233,7 @@ f() {}
     expect(params, isNotNull);
     var files = params.files;
     expect(files, hasLength(1));
-    Object overlay = files[filePath];
+    var overlay = files[filePath];
     expect(overlay, const TypeMatcher<AddContentOverlay>());
     AddContentOverlay addOverlay = overlay;
     expect(addOverlay.content, fileContent);

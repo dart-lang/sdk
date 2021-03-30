@@ -23,7 +23,7 @@ class AnalyzerConverter {
   /// error's location will have a start line and start column. If a [severity]
   /// is provided, then it will override the severity defined by the error.
   plugin.AnalysisError convertAnalysisError(analyzer.AnalysisError error,
-      {analyzer.LineInfo lineInfo, analyzer.ErrorSeverity severity}) {
+      {analyzer.LineInfo? lineInfo, analyzer.ErrorSeverity? severity}) {
     var errorCode = error.errorCode;
     severity ??= errorCode.errorSeverity;
     var offset = error.offset;
@@ -33,17 +33,13 @@ class AnalyzerConverter {
     var endColumn = -1;
     if (lineInfo != null) {
       var startLocation = lineInfo.getLocation(offset);
-      if (startLocation != null) {
-        startLine = startLocation.lineNumber;
-        startColumn = startLocation.columnNumber;
-      }
+      startLine = startLocation.lineNumber;
+      startColumn = startLocation.columnNumber;
       var endLocation = lineInfo.getLocation(offset + error.length);
-      if (endLocation != null) {
-        endLine = endLocation.lineNumber;
-        endColumn = endLocation.columnNumber;
-      }
+      endLine = endLocation.lineNumber;
+      endColumn = endLocation.columnNumber;
     }
-    List<plugin.DiagnosticMessage> contextMessages;
+    List<plugin.DiagnosticMessage>? contextMessages;
     if (error.contextMessages.isNotEmpty) {
       contextMessages = error.contextMessages
           .map((message) =>
@@ -69,8 +65,8 @@ class AnalyzerConverter {
   /// the errors will be altered based on those options.
   List<plugin.AnalysisError> convertAnalysisErrors(
       List<analyzer.AnalysisError> errors,
-      {analyzer.LineInfo lineInfo,
-      analyzer.AnalysisOptions options}) {
+      {analyzer.LineInfo? lineInfo,
+      analyzer.AnalysisOptions? options}) {
     var serverErrors = <plugin.AnalysisError>[];
     for (var error in errors) {
       var processor = analyzer.ErrorProcessor.getProcessor(options, error);
@@ -94,7 +90,7 @@ class AnalyzerConverter {
   /// the error's location will have a start line and start column.
   plugin.DiagnosticMessage convertDiagnosticMessage(
       analyzer.DiagnosticMessage message,
-      {analyzer.LineInfo lineInfo}) {
+      {analyzer.LineInfo? lineInfo}) {
     var file = message.filePath;
     var offset = message.offset;
     var length = message.length;
@@ -104,15 +100,11 @@ class AnalyzerConverter {
     var endColumn = -1;
     if (lineInfo != null) {
       var lineLocation = lineInfo.getLocation(offset);
-      if (lineLocation != null) {
-        startLine = lineLocation.lineNumber;
-        startColumn = lineLocation.columnNumber;
-      }
+      startLine = lineLocation.lineNumber;
+      startColumn = lineLocation.columnNumber;
       var endLocation = lineInfo.getLocation(offset + length);
-      if (endLocation != null) {
-        endLine = endLocation.lineNumber;
-        endColumn = endLocation.columnNumber;
-      }
+      endLine = endLocation.lineNumber;
+      endColumn = endLocation.columnNumber;
     }
     return plugin.DiagnosticMessage(
         message.message,
@@ -202,8 +194,8 @@ class AnalyzerConverter {
       plugin.AnalysisErrorType(type.name);
 
   /// Create a location based on an the given [element].
-  plugin.Location locationFromElement(analyzer.Element element,
-      {int offset, int length}) {
+  plugin.Location? locationFromElement(analyzer.Element? element,
+      {int? offset, int? length}) {
     if (element == null || element.source == null) {
       return null;
     }
@@ -234,14 +226,13 @@ class AnalyzerConverter {
         // so should it return isEnumConstant = true?
         // Or should we return ElementKind.ENUM_CONSTANT here
         // in either or both of these cases?
-        element.type != null &&
         element.type.element == element.enclosingElement) {
       return plugin.ElementKind.ENUM_CONSTANT;
     }
     return convertElementKind(element.kind);
   }
 
-  String _getAliasedTypeString(analyzer.Element element) {
+  String? _getAliasedTypeString(analyzer.Element element) {
     if (element is analyzer.TypeAliasElement) {
       var aliasedType = element.aliasedType;
       return aliasedType.getDisplayString(withNullability: false);
@@ -251,7 +242,7 @@ class AnalyzerConverter {
 
   /// Return a textual representation of the parameters of the given [element],
   /// or `null` if the element does not have any parameters.
-  String _getParametersString(analyzer.Element element) {
+  String? _getParametersString(analyzer.Element element) {
     // TODO(scheglov) expose the corresponding feature from ExecutableElement
     List<analyzer.ParameterElement> parameters;
     if (element is analyzer.ExecutableElement) {
@@ -297,17 +288,14 @@ class AnalyzerConverter {
 
   /// Return a textual representation of the return type of the given [element],
   /// or `null` if the element does not have a return type.
-  String _getReturnTypeString(analyzer.Element element) {
+  String? _getReturnTypeString(analyzer.Element element) {
     if (element is analyzer.ExecutableElement) {
       if (element.kind == analyzer.ElementKind.SETTER) {
         return null;
       }
-      return element.returnType?.getDisplayString(withNullability: false);
+      return element.returnType.getDisplayString(withNullability: false);
     } else if (element is analyzer.VariableElement) {
-      var type = element.type;
-      return type != null
-          ? type.getDisplayString(withNullability: false)
-          : 'dynamic';
+      return element.type.getDisplayString(withNullability: false);
     } else if (element is analyzer.TypeAliasElement) {
       var aliasedType = element.aliasedType;
       if (aliasedType is FunctionType) {
@@ -320,10 +308,10 @@ class AnalyzerConverter {
 
   /// Return a textual representation of the type parameters of the given
   /// [element], or `null` if the element does not have type parameters.
-  String _getTypeParametersString(analyzer.Element element) {
+  String? _getTypeParametersString(analyzer.Element element) {
     if (element is analyzer.TypeParameterizedElement) {
       var typeParameters = element.typeParameters;
-      if (typeParameters == null || typeParameters.isEmpty) {
+      if (typeParameters.isEmpty) {
         return null;
       }
       return '<${typeParameters.join(', ')}>';
@@ -332,19 +320,22 @@ class AnalyzerConverter {
   }
 
   /// Return the compilation unit containing the given [element].
-  analyzer.CompilationUnitElement _getUnitElement(analyzer.Element element) {
-    if (element is analyzer.CompilationUnitElement) {
-      return element;
+  analyzer.CompilationUnitElement? _getUnitElement(analyzer.Element element) {
+    analyzer.Element? currentElement = element;
+    if (currentElement is analyzer.CompilationUnitElement) {
+      return currentElement;
     }
-    if (element?.enclosingElement is analyzer.LibraryElement) {
-      element = element.enclosingElement;
+    if (currentElement.enclosingElement is analyzer.LibraryElement) {
+      currentElement = currentElement.enclosingElement;
     }
-    if (element is analyzer.LibraryElement) {
-      return element.definingCompilationUnit;
+    if (currentElement is analyzer.LibraryElement) {
+      return currentElement.definingCompilationUnit;
     }
-    for (; element != null; element = element.enclosingElement) {
-      if (element is analyzer.CompilationUnitElement) {
-        return element;
+    for (;
+        currentElement != null;
+        currentElement = currentElement.enclosingElement) {
+      if (currentElement is analyzer.CompilationUnitElement) {
+        return currentElement;
       }
     }
     return null;
@@ -392,21 +383,24 @@ class AnalyzerConverter {
 
   /// Create and return a location within the given [unitElement] at the given
   /// [range].
-  plugin.Location _locationForArgs(
-      analyzer.CompilationUnitElement unitElement, analyzer.SourceRange range) {
+  plugin.Location? _locationForArgs(
+      analyzer.CompilationUnitElement? unitElement,
+      analyzer.SourceRange range) {
     var startLine = 0;
     var startColumn = 0;
     var endLine = 0;
     var endColumn = 0;
+
+    if (unitElement == null) {
+      return null;
+    }
     try {
       var lineInfo = unitElement.lineInfo;
       if (lineInfo != null) {
         var offsetLocation = lineInfo.getLocation(range.offset);
         startLine = offsetLocation.lineNumber;
         startColumn = offsetLocation.columnNumber;
-      }
-      var endLocation = lineInfo.getLocation(range.offset + range.length);
-      if (endLocation != null) {
+        var endLocation = lineInfo.getLocation(range.offset + range.length);
         endLine = endLocation.lineNumber;
         endColumn = endLocation.columnNumber;
       }

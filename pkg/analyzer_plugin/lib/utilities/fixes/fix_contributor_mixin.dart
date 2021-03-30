@@ -15,29 +15,29 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 /// a mix-in when creating a subclass of [FixContributor].
 abstract class FixContributorMixin implements FixContributor {
   /// The request that specifies the fixes that are to be built.
-  DartFixesRequest request;
+  DartFixesRequest? request;
 
   /// The collector to which fixes should be added.
-  FixCollector collector;
+  FixCollector? collector;
 
   /// Add a fix for the given [error]. Use the [kind] of the fix to get the
   /// message and priority, and use the change [builder] to get the edits that
   /// comprise the fix. If the message has parameters, then use the list of
   /// [args] to populate the message.
   void addFix(AnalysisError error, FixKind kind, ChangeBuilder builder,
-      {List<Object> args}) {
+      {List<Object>? args}) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
     }
     change.id = kind.id;
     change.message = formatList(kind.message, args);
-    collector.addFix(
-        error, PrioritizedSourceChange(kind.priority, change));
+    collector?.addFix(error, PrioritizedSourceChange(kind.priority, change));
   }
 
   @override
-  Future<void> computeFixes(DartFixesRequest request, FixCollector collector) async {
+  Future<void> computeFixes(
+      DartFixesRequest request, FixCollector collector) async {
     this.request = request;
     this.collector = collector;
     try {

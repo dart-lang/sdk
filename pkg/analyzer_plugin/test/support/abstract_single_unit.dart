@@ -18,11 +18,11 @@ import 'abstract_context.dart';
 class AbstractSingleUnitTest extends AbstractContextTest {
   bool verifyNoTestUnitErrors = true;
 
-  String testCode;
-  String testFile;
-  CompilationUnit testUnit;
-  FindNode findNode;
-  FindElement findElement;
+  late String testCode;
+  late String testFile;
+  late CompilationUnit testUnit;
+  late FindNode findNode;
+  late FindElement findElement;
 
   void addTestSource(String code) {
     testCode = code;
@@ -39,7 +39,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
         as SimpleIdentifier;
   }
 
-  AstNode findNodeAtOffset(int offset, [Predicate<AstNode> predicate]) {
+  AstNode? findNodeAtOffset(int offset, [Predicate<AstNode>? predicate]) {
     var result = NodeLocator(offset).searchWithin(testUnit);
     if (result != null && predicate != null) {
       result = result.thisOrAncestorMatching(predicate);
@@ -47,13 +47,13 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return result;
   }
 
-  AstNode findNodeAtString(String search, [Predicate<AstNode> predicate]) {
+  AstNode? findNodeAtString(String search, [Predicate<AstNode>? predicate]) {
     var offset = findOffset(search);
     return findNodeAtOffset(offset, predicate);
   }
 
-  Element findNodeElementAtString(String search,
-      [Predicate<AstNode> predicate]) {
+  Element? findNodeElementAtString(String search,
+      [Predicate<AstNode>? predicate]) {
     var node = findNodeAtString(search, predicate);
     if (node == null) {
       return null;
@@ -95,8 +95,8 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   Future<void> resolveTestFile() async {
     var result = await resolveFile(testFile);
-    testCode = result.content;
-    testUnit = result.unit;
+    testCode = result.content!;
+    testUnit = result.unit!;
     if (verifyNoTestUnitErrors) {
       expect(result.errors.where((AnalysisError error) {
         return error.errorCode != HintCode.DEAD_CODE &&

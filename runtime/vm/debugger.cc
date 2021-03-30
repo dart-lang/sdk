@@ -66,6 +66,7 @@ BreakpointLocation::BreakpointLocation(Debugger* debugger,
     : debugger_(debugger),
       script_(script.ptr()),
       url_(script.url()),
+      line_number_lock_(new SafepointRwLock()),
       line_number_(-1),  // lazily computed
       token_pos_(token_pos),
       end_token_pos_(end_token_pos),
@@ -86,6 +87,8 @@ BreakpointLocation::BreakpointLocation(Debugger* debugger,
     : debugger_(debugger),
       script_(Script::null()),
       url_(url.ptr()),
+      line_number_lock_(new SafepointRwLock()),
+      line_number_(-1),  // lazily computed
       token_pos_(TokenPosition::kNoSource),
       end_token_pos_(TokenPosition::kNoSource),
       next_(NULL),
@@ -129,6 +132,21 @@ void BreakpointLocation::GetCodeLocation(Script* script,
     *script = this->script();
     *pos = token_pos_;
   }
+}
+
+intptr_t BreakpointLocation::line_number() {
+  // Compute line number lazily since it causes scanning of the script.
+  {
+    SafepointReadRwLocker sl(Thread::Current(), line_number_lock());
+    if (line_number_ >= 0) {
+      return line_number_;
+    }
+  }
+  SafepointWriteRwLocker sl(Thread::Current(), line_number_lock());
+  if (line_number_ < 0) {
+    Script::Handle(script()).GetTokenLocation(token_pos(), &line_number_);
+  }
+  return line_number_;
 }
 
 void Breakpoint::set_bpt_location(BreakpointLocation* new_bpt_location) {
@@ -1539,6 +1557,7 @@ GroupDebugger::GroupDebugger(IsolateGroup* isolate_group)
     : isolate_group_(isolate_group),
       code_breakpoints_lock_(new SafepointRwLock()),
       code_breakpoints_(nullptr),
+      breakpoint_locations_lock_(new SafepointRwLock()),
       needs_breakpoint_cleanup_(false) {}
 
 GroupDebugger::~GroupDebugger() {
@@ -1587,17 +1606,23 @@ void Debugger::Shutdown() {
   if (Isolate::IsSystemIsolate(isolate_)) {
     return;
   }
-  while (breakpoint_locations_ != nullptr) {
-    BreakpointLocation* loc = breakpoint_locations_;
-    group_debugger()->UnlinkCodeBreakpoints(loc);
-    breakpoint_locations_ = breakpoint_locations_->next();
-    delete loc;
-  }
-  while (latent_locations_ != nullptr) {
-    BreakpointLocation* loc = latent_locations_;
-    group_debugger()->UnlinkCodeBreakpoints(loc);
-    latent_locations_ = latent_locations_->next();
-    delete loc;
+  {
+    SafepointWriteRwLocker sl(Thread::Current(),
+                              group_debugger()->breakpoint_locations_lock());
+    while (breakpoint_locations_ != nullptr) {
+      BreakpointLocation* loc = breakpoint_locations_;
+      group_debugger()->UnlinkCodeBreakpoints(loc);
+      group_debugger()->UnregisterBreakpointLocation(loc);
+      breakpoint_locations_ = breakpoint_locations_->next();
+      delete loc;
+    }
+    while (latent_locations_ != nullptr) {
+      BreakpointLocation* loc = latent_locations_;
+      group_debugger()->UnlinkCodeBreakpoints(loc);
+      group_debugger()->UnregisterBreakpointLocation(loc);
+      latent_locations_ = latent_locations_->next();
+      delete loc;
+    }
   }
   if (NeedsIsolateEvents()) {
     ServiceEvent event(isolate_, ServiceEvent::kIsolateExit);
@@ -2537,33 +2562,35 @@ void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
       }
     }
   }
-  if (lowest_pc_offset != kUwordMax) {
-    uword lowest_pc = code.PayloadStart() + lowest_pc_offset;
-    SafepointWriteRwLocker sl(Thread::Current(), code_breakpoints_lock());
-    CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_pc);
-    if (code_bpt == nullptr) {
-      // No code breakpoint for this code exists; create one.
-      code_bpt = new CodeBreakpoint(code, loc, lowest_pc, lowest_kind);
-      if (FLAG_verbose_debug) {
-        OS::PrintErr("Setting code breakpoint at pos %s pc %#" Px
-                     " offset %#" Px "\n",
-                     loc->token_pos_.ToCString(), lowest_pc,
-                     lowest_pc - code.PayloadStart());
-      }
-      RegisterCodeBreakpoint(code_bpt);
-    } else {
-      if (FLAG_verbose_debug) {
-        OS::PrintErr(
-            "Adding location to existing code breakpoint at pos %s pc %#" Px
-            " offset %#" Px "\n",
-            loc->token_pos_.ToCString(), lowest_pc,
-            lowest_pc - code.PayloadStart());
-      }
-      code_bpt->AddBreakpointLocation(loc);
+  if (lowest_pc_offset == kUwordMax) {
+    return;
+  }
+
+  uword lowest_pc = code.PayloadStart() + lowest_pc_offset;
+  SafepointWriteRwLocker sl(Thread::Current(), code_breakpoints_lock());
+  CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_pc);
+  if (code_bpt == nullptr) {
+    // No code breakpoint for this code exists; create one.
+    code_bpt = new CodeBreakpoint(code, loc, lowest_pc, lowest_kind);
+    if (FLAG_verbose_debug) {
+      OS::PrintErr("Setting code breakpoint at pos %s pc %#" Px " offset %#" Px
+                   "\n",
+                   loc->token_pos_.ToCString(), lowest_pc,
+                   lowest_pc - code.PayloadStart());
     }
-    if (loc->AnyEnabled()) {
-      code_bpt->Enable();
+    RegisterCodeBreakpoint(code_bpt);
+  } else {
+    if (FLAG_verbose_debug) {
+      OS::PrintErr(
+          "Adding location to existing code breakpoint at pos %s pc %#" Px
+          " offset %#" Px "\n",
+          loc->token_pos_.ToCString(), lowest_pc,
+          lowest_pc - code.PayloadStart());
     }
+    code_bpt->AddBreakpointLocation(loc);
+  }
+  if (loc->AnyEnabled()) {
+    code_bpt->Enable();
   }
 }
 
@@ -3124,6 +3151,102 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
                  script_url.ToCString());
   }
   return loc;
+}
+
+// Return innermost closure contained in 'function' that contains
+// the given token position.
+static FunctionPtr FindInnermostClosure(Zone* zone,
+                                        const Function& function,
+                                        TokenPosition token_pos) {
+  ASSERT(function.end_token_pos().IsReal());
+  const TokenPosition& func_start = function.token_pos();
+  const Script& outer_origin = Script::Handle(zone, function.script());
+
+  Function& best_fit = Function::Handle(zone);
+  ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& closure) {
+    const TokenPosition& closure_start = closure.token_pos();
+    const TokenPosition& closure_end = closure.end_token_pos();
+    // We're only interested in closures that have real ending token positions.
+    // The starting token position can be synthetic.
+    if (closure_end.IsReal() && (function.end_token_pos() > closure_end) &&
+        (!closure_start.IsReal() || !func_start.IsReal() ||
+         (closure_start > func_start)) &&
+        token_pos.IsWithin(closure_start, closure_end) &&
+        (closure.script() == outer_origin.ptr())) {
+      UpdateBestFit(&best_fit, closure);
+    }
+    return true;  // Continue iteration.
+  });
+  return best_fit.ptr();
+}
+
+bool GroupDebugger::EnsureLocationIsInFunction(Zone* zone,
+                                               const Function& function,
+                                               BreakpointLocation* location) {
+  const Script& script = Script::Handle(zone, location->script());
+  if (!FunctionOverlaps(function, script, location->token_pos(),
+                        location->end_token_pos())) {
+    return false;
+  }
+
+  TokenPosition token_pos = location->token_pos();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  TokenPosition end_token_pos = location->end_token_pos();
+  if (token_pos != end_token_pos && location->requested_column_number() >= 0) {
+    // Narrow down the token position range to a single value
+    // if requested column number is provided so that inner
+    // Closure won't be missed.
+    token_pos = FindExactTokenPosition(script, token_pos,
+                                       location->requested_column_number());
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  const Function& inner_function =
+      Function::Handle(zone, FindInnermostClosure(zone, function, token_pos));
+  if (!inner_function.IsNull()) {
+    if (FLAG_verbose_debug) {
+      OS::PrintErr(
+          "Pending breakpoint remains unresolved in "
+          "inner function '%s'\n",
+          inner_function.ToFullyQualifiedCString());
+    }
+    return false;
+  }
+
+  // There is no local function within function that contains the
+  // breakpoint token position. Resolve the breakpoint if necessary
+  // and set the code breakpoints.
+  if (!location->EnsureIsResolved(function, token_pos)) {
+    // Failed to resolve breakpoint location for some reason
+    return false;
+  }
+  return true;
+}
+
+void GroupDebugger::NotifyCompilation(const Function& function) {
+  if (!function.is_debuggable()) {
+    return;
+  }
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+
+  // Going through BreakpointLocations of all isolates and debuggers looking
+  // for those that can be resolved and added code breakpoints at now.
+  SafepointReadRwLocker sl(thread, breakpoint_locations_lock());
+  for (intptr_t i = 0; i < breakpoint_locations_.length(); i++) {
+    BreakpointLocation* location = breakpoint_locations_.At(i);
+    if (EnsureLocationIsInFunction(zone, function, location)) {
+      if (FLAG_verbose_debug) {
+        Breakpoint* bpt = location->breakpoints();
+        while (bpt != NULL) {
+          OS::PrintErr("Setting breakpoint %" Pd " for %s '%s'\n", bpt->id(),
+                       function.IsClosureFunction() ? "closure" : "function",
+                       function.ToFullyQualifiedCString());
+          bpt = bpt->next();
+        }
+      }
+      MakeCodeBreakpointAt(function, location);
+    }
+  }
 }
 
 void GroupDebugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
@@ -3928,34 +4051,6 @@ void Debugger::NotifyIsolateCreated() {
   }
 }
 
-// Return innermost closure contained in 'function' that contains
-// the given token position.
-static FunctionPtr FindInnermostClosure(const Function& function,
-                                        TokenPosition token_pos) {
-  ASSERT(function.end_token_pos().IsReal());
-  const TokenPosition& func_start = function.token_pos();
-  auto thread = Thread::Current();
-  auto zone = thread->zone();
-  const Script& outer_origin = Script::Handle(zone, function.script());
-
-  Function& best_fit = Function::Handle(zone);
-  ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& closure) {
-    const TokenPosition& closure_start = closure.token_pos();
-    const TokenPosition& closure_end = closure.end_token_pos();
-    // We're only interested in closures that have real ending token positions.
-    // The starting token position can be synthetic.
-    if (closure_end.IsReal() && (function.end_token_pos() > closure_end) &&
-        (!closure_start.IsReal() || !func_start.IsReal() ||
-         (closure_start > func_start)) &&
-        token_pos.IsWithin(closure_start, closure_end) &&
-        (closure.script() == outer_origin.ptr())) {
-      UpdateBestFit(&best_fit, closure);
-    }
-    return true;  // Continue iteration.
-  });
-  return best_fit.ptr();
-}
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
 // On single line of code with given column number,
 // Calculate exact tokenPosition
@@ -3971,70 +4066,6 @@ static TokenPosition FindExactTokenPosition(const Script& script,
   return TokenPosition::kNoSource;
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-void Debugger::NotifyCompilation(const Function& func) {
-  if (breakpoint_locations_ == NULL) {
-    // Return with minimal overhead if there are no breakpoints.
-    return;
-  }
-  if (!func.is_debuggable()) {
-    // Nothing to do if the function is not debuggable. If there is
-    // a pending breakpoint in an inner function (that is debuggable),
-    // we'll resolve the breakpoint when the inner function is compiled.
-    return;
-  }
-  // Iterate over all source breakpoints to check whether breakpoints
-  // need to be set in the newly compiled function.
-  Zone* zone = Thread::Current()->zone();
-  Script& script = Script::Handle(zone);
-  for (BreakpointLocation* loc = breakpoint_locations_; loc != NULL;
-       loc = loc->next()) {
-    script = loc->script();
-    if (FunctionOverlaps(func, script, loc->token_pos(),
-                         loc->end_token_pos())) {
-      TokenPosition token_pos = loc->token_pos();
-      TokenPosition end_token_pos = loc->end_token_pos();
-      if (token_pos != end_token_pos && loc->requested_column_number() >= 0) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-        // Narrow down the token position range to a single value
-        // if requested column number is provided so that inner
-        // Closure won't be missed.
-        token_pos = FindExactTokenPosition(script, token_pos,
-                                           loc->requested_column_number());
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-      }
-      const Function& inner_function =
-          Function::Handle(zone, FindInnermostClosure(func, token_pos));
-      if (!inner_function.IsNull()) {
-        if (FLAG_verbose_debug) {
-          OS::PrintErr(
-              "Pending breakpoint remains unresolved in "
-              "inner function '%s'\n",
-              inner_function.ToFullyQualifiedCString());
-        }
-        continue;
-      }
-
-      // There is no local function within func that contains the
-      // breakpoint token position. Resolve the breakpoint if necessary
-      // and set the code breakpoints.
-      if (!loc->EnsureIsResolved(func, token_pos)) {
-        // Failed to resolve breakpoint location for some reason
-        continue;
-      }
-      if (FLAG_verbose_debug) {
-        Breakpoint* bpt = loc->breakpoints();
-        while (bpt != NULL) {
-          OS::PrintErr("Setting breakpoint %" Pd " for %s '%s'\n", bpt->id(),
-                       func.IsClosureFunction() ? "closure" : "function",
-                       func.ToFullyQualifiedCString());
-          bpt = bpt->next();
-        }
-      }
-      group_debugger()->MakeCodeBreakpointAt(func, loc);
-    }
-  }
-}
 
 void Debugger::NotifyDoneLoading() {
   if (latent_locations_ == NULL) {
@@ -4210,6 +4241,8 @@ CodePtr GroupDebugger::GetPatchedStubAddress(uword breakpoint_address) {
 // Remove and delete the source breakpoint bpt and its associated
 // code breakpoints.
 void Debugger::RemoveBreakpoint(intptr_t bp_id) {
+  SafepointWriteRwLocker sl(Thread::Current(),
+                            group_debugger()->breakpoint_locations_lock());
   if (RemoveBreakpointFromTheList(bp_id, &breakpoint_locations_)) {
     return;
   }
@@ -4265,6 +4298,7 @@ bool Debugger::RemoveBreakpointFromTheList(intptr_t bp_id,
             // Latent breakpoint locations won't have code breakpoints.
             group_debugger()->UnlinkCodeBreakpoints(curr_loc);
           }
+          group_debugger()->UnregisterBreakpointLocation(curr_loc);
           BreakpointLocation* next_loc = curr_loc->next();
           delete curr_loc;
           curr_loc = next_loc;
@@ -4283,6 +4317,21 @@ bool Debugger::RemoveBreakpointFromTheList(intptr_t bp_id,
   }
   // breakpoint with bp_id does not exist, nothing to do.
   return false;
+}
+
+void GroupDebugger::RegisterBreakpointLocation(BreakpointLocation* location) {
+  ASSERT(breakpoint_locations_lock()->IsCurrentThreadWriter());
+  breakpoint_locations_.Add(location);
+}
+
+void GroupDebugger::UnregisterBreakpointLocation(BreakpointLocation* location) {
+  ASSERT(breakpoint_locations_lock()->IsCurrentThreadWriter());
+  for (intptr_t i = 0; i < breakpoint_locations_.length(); i++) {
+    if (breakpoint_locations_.At(i) == location) {
+      breakpoint_locations_.EraseAt(i);
+      return;
+    }
+  }
 }
 
 // Unlink code breakpoints from the given breakpoint location.
@@ -4427,9 +4476,12 @@ BreakpointLocation* Debugger::GetLatentBreakpoint(const String& url,
 }
 
 void Debugger::RegisterBreakpointLocation(BreakpointLocation* loc) {
+  SafepointWriteRwLocker sl(Thread::Current(),
+                            group_debugger()->breakpoint_locations_lock());
   ASSERT(loc->next() == NULL);
   loc->set_next(breakpoint_locations_);
   breakpoint_locations_ = loc;
+  group_debugger()->RegisterBreakpointLocation(loc);
 }
 
 #endif  // !PRODUCT

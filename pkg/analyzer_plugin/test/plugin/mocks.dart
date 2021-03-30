@@ -39,10 +39,10 @@ class MockAnalysisDriver implements AnalysisDriver {
 class MockChannel implements PluginCommunicationChannel {
   bool _closed = false;
 
-  void Function() _onDone;
-  Function _onError;
-  void Function(Notification) _onNotification;
-  void Function(Request) _onRequest;
+  void Function()? _onDone;
+  Function? _onError;
+  void Function(Notification)? _onNotification;
+  void Function(Request)? _onRequest;
 
   List<Notification> sentNotifications = <Notification>[];
 
@@ -56,10 +56,10 @@ class MockChannel implements PluginCommunicationChannel {
   }
 
   @override
-  void listen(void Function(Request request) onRequest,
-      {void Function() onDone,
-      Function onError,
-      Function(Notification) onNotification}) {
+  void listen(void Function(Request request)? onRequest,
+      {void Function()? onDone,
+      Function? onError,
+      Function(Notification)? onNotification}) {
     _onDone = onDone;
     _onError = onError;
     _onNotification = onNotification;
@@ -67,11 +67,15 @@ class MockChannel implements PluginCommunicationChannel {
   }
 
   void sendDone() {
-    _onDone();
+    if (_onDone != null) {
+      _onDone!();
+    }
   }
 
   void sendError(Object exception, StackTrace stackTrace) {
-    _onError(exception, stackTrace);
+    if (_onError != null) {
+      _onError!(exception, stackTrace);
+    }
   }
 
   @override
@@ -82,7 +86,7 @@ class MockChannel implements PluginCommunicationChannel {
     if (_onNotification == null) {
       fail('Unexpected invocation of sendNotification');
     }
-    _onNotification(notification);
+    _onNotification!(notification);
   }
 
   Future<Response> sendRequest(RequestParams params) {
@@ -93,7 +97,7 @@ class MockChannel implements PluginCommunicationChannel {
     var request = params.toRequest(id);
     var completer = Completer<Response>();
     completers[request.id] = completer;
-    _onRequest(request);
+    _onRequest!(request);
     return completer.future;
   }
 
@@ -103,7 +107,7 @@ class MockChannel implements PluginCommunicationChannel {
       throw StateError('Sent a response to a closed channel');
     }
     var completer = completers.remove(response.id);
-    completer.complete(response);
+    completer?.complete(response);
   }
 }
 
@@ -117,7 +121,11 @@ class MockResolvedUnitResult implements ResolvedUnitResult {
   @override
   final String path;
 
-  MockResolvedUnitResult({this.errors, this.lineInfo, this.path});
+  MockResolvedUnitResult(
+      {List<AnalysisError>? errors, LineInfo? lineInfo, String? path})
+      : errors = errors ?? [],
+        lineInfo = lineInfo ?? LineInfo([0]),
+        path = path ?? '';
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -149,10 +157,10 @@ class MockServerPlugin extends ServerPlugin {
 
 class MockSource implements Source {
   @override
-  TimestampedData<String> get contents => null;
+  TimestampedData<String> get contents => TimestampedData(0, '');
 
   @override
-  String get encoding => null;
+  String get encoding => '';
 
   @override
   String get fullName => '/pkg/lib/test.dart';

@@ -40,6 +40,9 @@ class CodeFragment extends ValueGenerator {
   }
 
   @override
+  String toString() => accessors.join('.');
+
+  @override
   bool validate(TemplateContext context) {
     Object target = context.node;
     for (var accessor in accessors) {

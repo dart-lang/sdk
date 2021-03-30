@@ -19,7 +19,7 @@ abstract class PluginCommunicationChannel {
   /// client, invoke the [onDone] function. Only one listener is allowed per
   /// channel.
   void listen(void Function(Request request) onRequest,
-      {Function onError, void Function() onDone});
+      {Function? onError, void Function()? onDone});
 
   /// Send the given [notification] to the server.
   void sendNotification(Notification notification);
@@ -49,7 +49,7 @@ abstract class ServerCommunicationChannel {
   /// listener is allowed per channel.
   void listen(void Function(Response response) onResponse,
       void Function(Notification notification) onNotification,
-      {void Function(dynamic error) onError, void Function() onDone});
+      {void Function(dynamic error)? onError, void Function()? onDone});
 
   /// Send the given [request] to the plugin.
   void sendRequest(Request request);

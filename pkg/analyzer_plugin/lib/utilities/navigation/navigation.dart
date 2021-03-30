@@ -40,7 +40,7 @@ abstract class NavigationCollector {
   /// should navigate to the given [targetNameLocation].
   void addRegion(int offset, int length, ElementKind targetKind,
       Location targetNameLocation,
-      {Location targetCodeLocation});
+      {Location? targetCodeLocation});
 }
 
 /// An object used to produce navigation regions.
@@ -115,7 +115,7 @@ class NavigationGenerator {
 abstract class NavigationRequest {
   /// Return the length of the region within the source for which navigation
   /// regions are being requested.
-  int get length;
+  int? get length;
 
   /// Return the offset of the region within the source for which navigation
   /// regions are being requested.
