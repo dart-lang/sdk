@@ -3821,15 +3821,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     int count = typeNames.length;
     List<bool> detectedRepeatOnIndex = List<bool>.filled(count, false);
-    for (int i = 0; i < detectedRepeatOnIndex.length; i++) {
-      detectedRepeatOnIndex[i] = false;
-    }
     for (int i = 0; i < count; i++) {
       if (!detectedRepeatOnIndex[i]) {
-        var element = typeNames[i].name.staticElement;
+        var iType = typeNames[i].type;
         for (int j = i + 1; j < count; j++) {
           TypeName typeName = typeNames[j];
-          if (typeName.name.staticElement == element) {
+          var jType = typeName.type;
+          if (iType is InterfaceType &&
+              jType is InterfaceType &&
+              iType.element == jType.element) {
             detectedRepeatOnIndex[j] = true;
             errorReporter
                 .reportErrorForNode(errorCode, typeName, [typeName.name.name]);
