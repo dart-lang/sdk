@@ -160,6 +160,9 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
   List<PreFragment> preDeferredFragmentsForTesting;
 
   @override
+  Set<OutputUnit> omittedOutputUnits;
+
+  @override
   Map<String, List<FinalizedFragment>> finalizedFragmentsToLoad;
 
   @override
@@ -206,6 +209,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
     }
     return _task.measureSubtask('emit program', () {
       var size = _emitter.emitProgram(program, codegenWorld);
+      omittedOutputUnits = _emitter.omittedOutputUnits;
       finalizedFragmentsToLoad = _emitter.finalizedFragmentsToLoad;
       fragmentMerger = _emitter.fragmentMerger;
       finalizedFragmentsToLoad.values.forEach((fragments) {
