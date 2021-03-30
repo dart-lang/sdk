@@ -426,7 +426,7 @@ compiler.''',
     if (arguments.contains("--help") || arguments.contains("-h")) {
       _printHelp(
           verbose: arguments.contains("--verbose") || arguments.contains("-v"));
-      return null;
+      return const [];
     }
 
     // Parse the command line arguments to a map.
@@ -563,12 +563,12 @@ compiler.''',
 
     if (options.containsKey('find-configurations')) {
       findConfigurations(options);
-      return null;
+      return const [];
     }
 
     if (options.containsKey('list-configurations')) {
       listConfigurations(options);
-      return null;
+      return const [];
     }
 
     // If a named configuration was specified ensure no other options, which are
