@@ -2060,9 +2060,7 @@ class FragmentEmitter {
   js.Block emitTypeRules(Fragment fragment) {
     List<js.Statement> statements = [];
 
-    bool addJsObjectRedirections = false;
     ClassEntity jsObjectClass = _commonElements.jsJavaScriptObjectClass;
-    InterfaceType jsObjectType = _elementEnvironment.getThisType(jsObjectClass);
 
     Map<ClassTypeData, List<ClassTypeData>> nativeRedirections =
         _nativeEmitter.typeRedirections;
@@ -2082,49 +2080,43 @@ class FragmentEmitter {
 
       bool isInterop = _classHierarchy.isSubclassOf(element, jsObjectClass);
 
-      Iterable<TypeCheck> checks = typeData.classChecks?.checks ?? [];
-      Iterable<InterfaceType> supertypes = isInterop
-          ? checks
-              .map((check) => _elementEnvironment.getJsInteropType(check.cls))
-          : checks
-              .map((check) => _dartTypes.asInstanceOf(targetType, check.cls));
-
-      Map<TypeVariableType, DartType> typeVariables = {};
-      Set<TypeVariableType> namedTypeVariables = typeData.namedTypeVariables;
-      nativeRedirections[typeData]?.forEach((ClassTypeData redirectee) {
-        namedTypeVariables.addAll(redirectee.namedTypeVariables);
-      });
-      for (TypeVariableType typeVariable in typeData.namedTypeVariables) {
-        TypeVariableEntity element = typeVariable.element;
-        InterfaceType supertype = isInterop
-            ? _elementEnvironment.getJsInteropType(element.typeDeclaration)
-            : _dartTypes.asInstanceOf(targetType, element.typeDeclaration);
-        List<DartType> supertypeArguments = supertype.typeArguments;
-        typeVariables[typeVariable] = supertypeArguments[element.index];
-      }
-
-      if (isInterop) {
-        ruleset.addEntry(jsObjectType, supertypes, typeVariables);
-        addJsObjectRedirections = true;
+      if (isInterop && element != jsObjectClass) {
+        ruleset.addRedirection(element, jsObjectClass);
       } else {
+        Iterable<TypeCheck> checks = typeData.classChecks?.checks ?? const [];
+        Iterable<InterfaceType> supertypes = isInterop
+            ? checks
+                .map((check) => _elementEnvironment.getJsInteropType(check.cls))
+            : checks
+                .map((check) => _dartTypes.asInstanceOf(targetType, check.cls));
+
+        Map<TypeVariableType, DartType> typeVariables = {};
+        Set<TypeVariableType> namedTypeVariables = typeData.namedTypeVariables;
+        nativeRedirections[typeData]?.forEach((ClassTypeData redirectee) {
+          namedTypeVariables.addAll(redirectee.namedTypeVariables);
+        });
+        for (TypeVariableType typeVariable in typeData.namedTypeVariables) {
+          TypeVariableEntity element = typeVariable.element;
+          InterfaceType supertype = isInterop
+              ? _elementEnvironment.getJsInteropType(element.typeDeclaration)
+              : _dartTypes.asInstanceOf(targetType, element.typeDeclaration);
+          List<DartType> supertypeArguments = supertype.typeArguments;
+          typeVariables[typeVariable] = supertypeArguments[element.index];
+        }
         ruleset.addEntry(targetType, supertypes, typeVariables);
       }
     });
 
-    if (addJsObjectRedirections) {
-      _classHierarchy
-          .strictSubclassesOf(jsObjectClass)
-          .forEach((ClassEntity subclass) {
-        ruleset.addRedirection(subclass, jsObjectClass);
+    // We add native redirections only to the main fragment in order to avoid
+    // duplicating them in multiple deferred units.
+    if (fragment.outputUnit.isMainOutput) {
+      nativeRedirections
+          .forEach((ClassTypeData target, List<ClassTypeData> redirectees) {
+        for (ClassTypeData redirectee in redirectees) {
+          ruleset.addRedirection(redirectee.element, target.element);
+        }
       });
     }
-
-    nativeRedirections
-        .forEach((ClassTypeData target, List<ClassTypeData> redirectees) {
-      for (ClassTypeData redirectee in redirectees) {
-        ruleset.addRedirection(redirectee.element, target.element);
-      }
-    });
 
     if (ruleset.isNotEmpty) {
       FunctionEntity addRules = _closedWorld.commonElements.rtiAddRulesMethod;
