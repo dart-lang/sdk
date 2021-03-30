@@ -139,13 +139,7 @@ class BreakpointLocation {
   ~BreakpointLocation();
 
   TokenPosition token_pos() const { return token_pos_; }
-  intptr_t line_number() {
-    // Compute line number lazily since it causes scanning of the script.
-    if (line_number_ < 0) {
-      Script::Handle(script()).GetTokenLocation(token_pos(), &line_number_);
-    }
-    return line_number_;
-  }
+  intptr_t line_number();
   TokenPosition end_token_pos() const { return end_token_pos_; }
 
   ScriptPtr script() const { return script_; }
@@ -187,9 +181,12 @@ class BreakpointLocation {
   // Finds the breakpoint we hit at |location|.
   Breakpoint* FindHitBreakpoint(ActivationFrame* top_frame);
 
+  SafepointRwLock* line_number_lock() { return line_number_lock_.get(); }
+
   Debugger* debugger_;
   ScriptPtr script_;
   StringPtr url_;
+  std::unique_ptr<SafepointRwLock> line_number_lock_;
   intptr_t line_number_;  // lazily computed for token_pos_
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
@@ -528,6 +525,7 @@ class GroupDebugger {
   ~GroupDebugger();
 
   void MakeCodeBreakpointAt(const Function& func, BreakpointLocation* bpt);
+
   // Returns [nullptr] if no breakpoint exists for the given address.
   CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);
   BreakpointLocation* GetBreakpointLocationFor(Debugger* debugger,
@@ -535,6 +533,10 @@ class GroupDebugger {
                                                CodeBreakpoint** pcbpt);
   CodePtr GetPatchedStubAddress(uword breakpoint_address);
 
+  void RegisterBreakpointLocation(BreakpointLocation* location);
+  void UnregisterBreakpointLocation(BreakpointLocation* location);
+
+  void RemoveBreakpointLocation(BreakpointLocation* bpt_location);
   void UnlinkCodeBreakpoints(BreakpointLocation* bpt_location);
 
   // Returns true if the call at address pc is patched to point to
@@ -550,13 +552,28 @@ class GroupDebugger {
 
   void Pause();
 
+  bool EnsureLocationIsInFunction(Zone* zone,
+                                  const Function& function,
+                                  BreakpointLocation* location);
+  void NotifyCompilation(const Function& func);
+
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  SafepointRwLock* breakpoint_locations_lock() {
+    return breakpoint_locations_lock_.get();
+  }
 
  private:
   IsolateGroup* isolate_group_;
 
   std::unique_ptr<SafepointRwLock> code_breakpoints_lock_;
   CodeBreakpoint* code_breakpoints_;
+
+  // Secondary list of all breakpoint_locations_(primary is in Debugger class).
+  // This list is kept in sync with all the lists in Isolate Debuggers and is
+  // used to quickly scan BreakpointLocations when new Function is compiled.
+  std::unique_ptr<SafepointRwLock> breakpoint_locations_lock_;
+  MallocGrowableArray<BreakpointLocation*> breakpoint_locations_;
 
   SafepointRwLock* code_breakpoints_lock() {
     return code_breakpoints_lock_.get();
@@ -584,7 +601,6 @@ class Debugger {
   void NotifyIsolateCreated();
   void Shutdown();
 
-  void NotifyCompilation(const Function& func);
   void NotifyDoneLoading();
 
   // Set breakpoint at closest location to function entry.
