@@ -392,9 +392,6 @@ class _ErrorExpectationParser {
   /// are part of it.
   static final _errorMessageRestRegExp = RegExp(r"^\s*//\s*(.*)");
 
-  /// Matches the multitest marker and yields the preceding content.
-  final _stripMultitestRegExp = RegExp(r"(.*)//#");
-
   final List<String> _lines;
   final List<StaticError> _errors = [];
   int _currentLine = 0;
@@ -524,9 +521,9 @@ class _ErrorExpectationParser {
     var line = _lines[_currentLine + offset];
 
     // Strip off any multitest marker.
-    var multitestMatch = _stripMultitestRegExp.firstMatch(line);
-    if (multitestMatch != null) {
-      line = multitestMatch.group(1).trimRight();
+    var index = line.indexOf("//#");
+    if (index != -1) {
+      line = line.substring(0, index).trimRight();
     }
 
     return line;
