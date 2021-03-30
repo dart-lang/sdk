@@ -292,6 +292,13 @@ class Utils {
     return static_cast<T>(static_cast<Unsigned>(a) * static_cast<Unsigned>(b));
   }
 
+  template <typename T = int64_t>
+  static inline T NegWithWrapAround(T a) {
+    // Avoid undefined behavior by doing arithmetic in the unsigned type.
+    using Unsigned = typename std::make_unsigned<T>::type;
+    return static_cast<T>(-static_cast<Unsigned>(a));
+  }
+
   // Shifts int64_t value left. Supports any non-negative number of bits and
   // silently discards shifted out bits.
   static inline int64_t ShiftLeftWithTruncation(int64_t a, int64_t b) {

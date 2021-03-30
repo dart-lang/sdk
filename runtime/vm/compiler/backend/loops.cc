@@ -723,13 +723,16 @@ InductionVar* InductionVarAnalysis::Add(InductionVar* x, InductionVar* y) {
       // Invariant + Invariant : only for same or just one instruction.
       if (x->def_ == y->def_) {
         return new (zone_)
-            InductionVar(x->offset_ + y->offset_, x->mult_ + y->mult_, x->def_);
+            InductionVar(Utils::AddWithWrapAround(x->offset_, y->offset_),
+                         Utils::AddWithWrapAround(x->mult_, y->mult_), x->def_);
       } else if (y->mult_ == 0) {
         return new (zone_)
-            InductionVar(x->offset_ + y->offset_, x->mult_, x->def_);
+            InductionVar(Utils::AddWithWrapAround(x->offset_, y->offset_),
+                         x->mult_, x->def_);
       } else if (x->mult_ == 0) {
         return new (zone_)
-            InductionVar(x->offset_ + y->offset_, y->mult_, y->def_);
+            InductionVar(Utils::AddWithWrapAround(x->offset_, y->offset_),
+                         y->mult_, y->def_);
       }
     } else if (y != nullptr) {
       // Invariant + Induction.
@@ -768,13 +771,16 @@ InductionVar* InductionVarAnalysis::Sub(InductionVar* x, InductionVar* y) {
       // Invariant + Invariant : only for same or just one instruction.
       if (x->def_ == y->def_) {
         return new (zone_)
-            InductionVar(x->offset_ - y->offset_, x->mult_ - y->mult_, x->def_);
+            InductionVar(Utils::SubWithWrapAround(x->offset_, y->offset_),
+                         Utils::SubWithWrapAround(x->mult_, y->mult_), x->def_);
       } else if (y->mult_ == 0) {
         return new (zone_)
-            InductionVar(x->offset_ - y->offset_, x->mult_, x->def_);
+            InductionVar(Utils::SubWithWrapAround(x->offset_, y->offset_),
+                         x->mult_, x->def_);
       } else if (x->mult_ == 0) {
         return new (zone_)
-            InductionVar(x->offset_ - y->offset_, -y->mult_, y->def_);
+            InductionVar(Utils::SubWithWrapAround(x->offset_, y->offset_),
+                         Utils::NegWithWrapAround(y->mult_), y->def_);
       }
     } else if (y != nullptr) {
       // Invariant - Induction.
@@ -823,7 +829,8 @@ InductionVar* InductionVarAnalysis::Mul(InductionVar* x, InductionVar* y) {
   if (InductionVar::IsConstant(x) && y != nullptr) {
     if (y->kind_ == InductionVar::kInvariant) {
       return new (zone_)
-          InductionVar(x->offset_ * y->offset_, x->offset_ * y->mult_, y->def_);
+          InductionVar(Utils::MulWithWrapAround(x->offset_, y->offset_),
+                       Utils::MulWithWrapAround(x->offset_, y->mult_), y->def_);
     }
     return new (zone_)
         InductionVar(y->kind_, Mul(x, y->initial_), Mul(x, y->next_));
