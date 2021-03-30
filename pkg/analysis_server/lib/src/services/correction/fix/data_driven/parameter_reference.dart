@@ -22,6 +22,9 @@ class NamedParameterReference extends ParameterReference {
     }
     return null;
   }
+
+  @override
+  String toString() => name;
 }
 
 /// A reference to a formal parameter.
@@ -54,4 +57,7 @@ class PositionalParameterReference extends ParameterReference {
     }
     return argument;
   }
+
+  @override
+  String toString() => '$index';
 }
