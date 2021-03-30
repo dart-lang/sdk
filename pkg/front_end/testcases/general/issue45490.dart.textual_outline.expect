@@ -1,0 +1,3 @@
+class A<X> {}
+class test<X extends A> = A<X extends A<X>>with;
+main() {}
