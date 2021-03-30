@@ -116,12 +116,16 @@ abstract class TestRunner {
   static String getTag(String mode) {
     if (mode.endsWith('debug-ia32')) return 'DebugIA32';
     if (mode.endsWith('debug-x64')) return 'DebugX64';
+    if (mode.endsWith('debug-x64c')) return 'DebugX64C';
     if (mode.endsWith('debug-arm32')) return 'DebugSIMARM';
     if (mode.endsWith('debug-arm64')) return 'DebugSIMARM64';
+    if (mode.endsWith('debug-arm64c')) return 'DebugSIMARM64C';
     if (mode.endsWith('ia32')) return 'ReleaseIA32';
     if (mode.endsWith('x64')) return 'ReleaseX64';
+    if (mode.endsWith('x64c')) return 'ReleaseX64C';
     if (mode.endsWith('arm32')) return 'ReleaseSIMARM';
     if (mode.endsWith('arm64')) return 'ReleaseSIMARM64';
+    if (mode.endsWith('arm64c')) return 'ReleaseSIMARM64C';
     throw ('unknown tag in mode: $mode');
   }
 
@@ -674,14 +678,20 @@ class DartFuzzTestSession {
   static const List<String> clusterModes = [
     'jit-debug-ia32',
     'jit-debug-x64',
+    'jit-debug-x64c',
     'jit-debug-arm32',
     'jit-debug-arm64',
+    'jit-debug-arm64c',
     'jit-ia32',
     'jit-x64',
+    'jit-x64c',
     'jit-arm32',
     'jit-arm64',
+    'jit-arm64c',
     'aot-debug-x64',
+    'aot-debug-x64c',
     'aot-x64',
+    'aot-x64c',
   ];
 
   // Modes not used on cluster runs because they have outstanding issues.
@@ -689,8 +699,10 @@ class DartFuzzTestSession {
     // Times out often:
     'aot-debug-arm32',
     'aot-debug-arm64',
+    'aot-debug-arm64c',
     'aot-arm32',
     'aot-arm64',
+    'aot-arm64c',
     // Too many divergences (due to arithmetic):
     'js-x64',
   ];

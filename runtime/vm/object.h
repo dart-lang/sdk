@@ -8224,7 +8224,8 @@ class FunctionType : public AbstractType {
   // with equal bounds as the other function type. Type parameter names and
   // parameter names (unless optional named) are ignored.
   bool HasSameTypeParametersAndBounds(const FunctionType& other,
-                                      TypeEquality kind) const;
+                                      TypeEquality kind,
+                                      TrailPtr trail = nullptr) const;
 
   // Return true if this function type declares type parameters.
   bool IsGeneric() const { return NumTypeParameters(Thread::Current()) > 0; }

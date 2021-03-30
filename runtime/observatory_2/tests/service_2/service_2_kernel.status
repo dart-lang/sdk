@@ -39,6 +39,7 @@ coverage_optimized_function_test: Pass, Slow
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
 evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
 get_source_report_test: RuntimeError # Should pass again when constant evaluation is relanded, see http://dartbug.com/36600
+pause_on_exception_from_slow_path_test: Pass, Slow
 pause_on_unhandled_async_exceptions2_test: Pass, Slow
 
 [ $compiler == dartkp ]

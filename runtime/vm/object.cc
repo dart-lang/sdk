@@ -8554,7 +8554,8 @@ bool FunctionType::IsContravariantParameter(intptr_t parameter_position,
 }
 
 bool FunctionType::HasSameTypeParametersAndBounds(const FunctionType& other,
-                                                  TypeEquality kind) const {
+                                                  TypeEquality kind,
+                                                  TrailPtr trail) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
@@ -8574,7 +8575,7 @@ bool FunctionType::HasSameTypeParametersAndBounds(const FunctionType& other,
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
       other_type_param ^= other_type_params.TypeAt(i);
-      if (!type_param.IsEquivalent(other_type_param, kind)) {
+      if (!type_param.IsEquivalent(other_type_param, kind, trail)) {
         return false;
       }
     }
@@ -20286,7 +20287,7 @@ bool FunctionType::IsEquivalent(const Instance& other,
 
   // Compare function type parameters and their bounds.
   // Check the type parameters and bounds of generic functions.
-  if (!HasSameTypeParametersAndBounds(other_type, kind)) {
+  if (!HasSameTypeParametersAndBounds(other_type, kind, trail)) {
     return false;
   }
   AbstractType& param_type = Type::Handle(zone);

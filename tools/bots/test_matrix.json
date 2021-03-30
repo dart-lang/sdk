@@ -244,12 +244,15 @@
       "out/DebugIA32/",
       "out/DebugSIMARM/",
       "out/DebugSIMARM64/",
+      "out/DebugSIMARM64C/",
       "out/DebugX64/",
-      "out/ProductX64/",
+      "out/DebugX64C/",
       "out/ReleaseIA32/",
       "out/ReleaseSIMARM/",
       "out/ReleaseSIMARM64/",
+      "out/ReleaseSIMARM64C/",
       "out/ReleaseX64/",
+      "out/ReleaseX64C/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "tools/sdks/dart-sdk/",
@@ -3666,7 +3669,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug,release",
-            "--arch=x64,simarm64",
+            "--arch=x64,x64c,simarm64,simarm64c",
             "runtime",
             "dart_precompiled_runtime"
           ]

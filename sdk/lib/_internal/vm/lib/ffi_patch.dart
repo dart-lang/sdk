@@ -129,7 +129,7 @@ class Array<T extends NativeType> {
 
   _checkIndex(int index) {
     if (index < 0 || index >= _size) {
-      throw RangeError.range(index, 0, _size);
+      throw RangeError.range(index, 0, _size - 1);
     }
   }
 
