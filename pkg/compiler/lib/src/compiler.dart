@@ -236,10 +236,6 @@ abstract class Compiler {
         options.readCodegenUri == null;
   }
 
-  bool get onlyPerformCodegen {
-    return options.readClosedWorldUri != null && options.readDataUri != null;
-  }
-
   Future runInternal(Uri uri) async {
     clearState();
     assert(uri != null);
@@ -254,32 +250,30 @@ abstract class Compiler {
       GlobalTypeInferenceResults globalTypeInferenceResults =
           performGlobalTypeInference(closedWorld);
       if (options.writeDataUri != null) {
-        if (options.noClosedWorldInData) {
-          serializationTask
-              .serializeGlobalTypeInference(globalTypeInferenceResults);
-        } else {
-          serializationTask
-              .serializeGlobalTypeInferenceLegacy(globalTypeInferenceResults);
-        }
+        serializationTask
+            .serializeGlobalTypeInference(globalTypeInferenceResults);
         return;
       }
       await generateJavaScriptCode(globalTypeInferenceResults);
-    } else if (onlyPerformCodegen) {
-      GlobalTypeInferenceResults globalTypeInferenceResults;
-      ir.Component component =
-          await serializationTask.deserializeComponentAndUpdateOptions();
-      JsClosedWorld closedWorld =
-          await serializationTask.deserializeClosedWorld(
-              environment, abstractValueStrategy, component);
-      globalTypeInferenceResults =
-          await serializationTask.deserializeGlobalTypeInferenceResults(
-              environment, abstractValueStrategy, component, closedWorld);
-      await generateJavaScriptCode(globalTypeInferenceResults);
     } else if (options.readDataUri != null) {
-      // TODO(joshualitt) delete and clean up after google3 roll
-      var globalTypeInferenceResults =
-          await serializationTask.deserializeGlobalTypeInferenceLegacy(
-              environment, abstractValueStrategy);
+      GlobalTypeInferenceResults globalTypeInferenceResults;
+      if (options.readClosedWorldUri != null) {
+        ir.Component component =
+            await serializationTask.deserializeComponentAndUpdateOptions();
+        JsClosedWorld closedWorld =
+            await serializationTask.deserializeClosedWorld(
+                environment, abstractValueStrategy, component);
+        globalTypeInferenceResults =
+            await serializationTask.deserializeGlobalAnalysis(
+                environment, abstractValueStrategy, component, closedWorld);
+      } else {
+        globalTypeInferenceResults = await serializationTask
+            .deserializeGlobalTypeInference(environment, abstractValueStrategy);
+      }
+      if (options.debugGlobalInference) {
+        performGlobalTypeInference(globalTypeInferenceResults.closedWorld);
+        return;
+      }
       await generateJavaScriptCode(globalTypeInferenceResults);
     } else {
       KernelResult result = await kernelLoader.load(uri);
@@ -450,18 +444,14 @@ abstract class Compiler {
       GlobalTypeInferenceResults results) {
     SerializationStrategy strategy = const BytesInMemorySerializationStrategy();
     List<int> irData = strategy.unpackAndSerializeComponent(results);
-    List<int> closedWorldData =
-        strategy.serializeClosedWorld(results.closedWorld);
-    List<int> globalTypeInferenceResultsData =
-        strategy.serializeGlobalTypeInferenceResults(results);
+    List worldData = strategy.serializeGlobalTypeInferenceResults(results);
     return strategy.deserializeGlobalTypeInferenceResults(
         options,
         reporter,
         environment,
         abstractValueStrategy,
         strategy.deserializeComponent(irData),
-        closedWorldData,
-        globalTypeInferenceResultsData);
+        worldData);
   }
 
   void compileFromKernel(Uri rootLibraryUri, Iterable<Uri> libraries) {

@@ -17,19 +17,17 @@ main(List<String> args) {
     Uri dillUri = dir.uri.resolve('out.dill');
     Uri outUri = dir.uri.resolve('out.js');
     var commonArgs = [
+      Flags.writeData,
       Flags.verbose,
       '--libraries-spec=$sdkLibrariesSpecificationUri',
     ];
     await internalMain([
           'samples-dev/swarm/swarm.dart',
-          Flags.writeClosedWorld,
           '--out=${dillUri}',
         ] +
         commonArgs);
     await internalMain([
           '${dillUri}',
-          Flags.readClosedWorld,
-          Flags.writeData,
           '--out=${outUri}',
         ] +
         commonArgs);

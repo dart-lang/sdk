@@ -184,8 +184,7 @@ JsClosedWorld cloneClosedWorld(Compiler compiler, JsClosedWorld closedWorld,
 GlobalTypeInferenceResults cloneInferenceResults(Compiler compiler,
     GlobalTypeInferenceResults results, SerializationStrategy strategy) {
   List<int> irData = strategy.unpackAndSerializeComponent(results);
-  List<int> closedWorldData =
-      strategy.serializeClosedWorld(results.closedWorld);
+
   List<int> worldData = strategy.serializeGlobalTypeInferenceResults(results);
   print('data size: ${worldData.length}');
 
@@ -197,7 +196,6 @@ GlobalTypeInferenceResults cloneInferenceResults(Compiler compiler,
           compiler.environment,
           compiler.abstractValueStrategy,
           newComponent,
-          closedWorldData,
           worldData);
   List<int> newWorldData =
       strategy.serializeGlobalTypeInferenceResults(newResults);
