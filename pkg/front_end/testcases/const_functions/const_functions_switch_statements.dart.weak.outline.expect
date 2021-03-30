@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static const field core::int var1 = self::basicSwitch(1);
+static const field core::int var2 = self::basicSwitch(2);
+static const field core::int var3 = self::multipleCaseSwitch(1);
+static const field core::int var4 = self::multipleCaseSwitch(2);
+static const field core::int var5 = self::multipleCaseSwitch(3);
+static const field core::int var6 = self::continueLabelSwitch(1);
+static const field core::int var7 = self::continueLabelSwitch(2);
+static const field core::int var8 = self::continueLabelSwitch(3);
+static const field core::int var9 = self::continueLabelSwitch(4);
+static method basicSwitch(core::int x) → core::int
+  ;
+static method multipleCaseSwitch(core::int x) → core::int
+  ;
+static method continueLabelSwitch(core::int x) → core::int
+  ;
+static method main() → void
+  ;
