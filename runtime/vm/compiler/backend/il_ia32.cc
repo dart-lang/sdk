@@ -529,7 +529,7 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 }
 
-static Condition TokenKindToSmiCondition(Token::Kind kind) {
+static Condition TokenKindToIntCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
       return EQUAL;
@@ -665,7 +665,7 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   Location right = locs.in(1);
   ASSERT(!left.IsConstant() || !right.IsConstant());
 
-  Condition true_condition = TokenKindToSmiCondition(kind);
+  Condition true_condition = TokenKindToIntCondition(kind);
 
   if (left.IsConstant()) {
     __ CompareObject(right.reg(), left.constant());
@@ -678,26 +678,6 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     __ cmpl(left.reg(), right.reg());
   }
   return true_condition;
-}
-
-static Condition TokenKindToMintCondition(Token::Kind kind) {
-  switch (kind) {
-    case Token::kEQ:
-      return EQUAL;
-    case Token::kNE:
-      return NOT_EQUAL;
-    case Token::kLT:
-      return LESS;
-    case Token::kGT:
-      return GREATER;
-    case Token::kLTE:
-      return LESS_EQUAL;
-    case Token::kGTE:
-      return GREATER_EQUAL;
-    default:
-      UNREACHABLE();
-      return OVERFLOW;
-  }
 }
 
 static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
@@ -718,7 +698,7 @@ static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
   // Lower is equal, compare upper.
   __ cmpl(left2, right2);
   __ Bind(&done);
-  Condition true_condition = TokenKindToMintCondition(kind);
+  Condition true_condition = TokenKindToIntCondition(kind);
   return true_condition;
 }
 
@@ -803,6 +783,10 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 
 Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                    BranchLabels labels) {
+  if (is_null_aware()) {
+    // Null-aware EqualityCompare instruction is only used in AOT.
+    UNREACHABLE();
+  }
   if (operation_cid() == kSmiCid) {
     return EmitSmiComparisonOp(compiler, *locs(), kind(), labels);
   } else if (operation_cid() == kMintCid) {

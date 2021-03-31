@@ -729,13 +729,18 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, LocationRegisterOrConstant(left()));
-    // Only one input can be a constant operand. The case of two constant
-    // operands should be handled by constant propagation.
-    // Only right can be a stack slot.
-    locs->set_in(1, locs->in(0).IsConstant()
-                        ? Location::RequiresRegister()
-                        : LocationRegisterOrConstant(right()));
+    if (is_null_aware()) {
+      locs->set_in(0, Location::RequiresRegister());
+      locs->set_in(1, Location::RequiresRegister());
+    } else {
+      locs->set_in(0, LocationRegisterOrConstant(left()));
+      // Only one input can be a constant operand. The case of two constant
+      // operands should be handled by constant propagation.
+      // Only right can be a stack slot.
+      locs->set_in(1, locs->in(0).IsConstant()
+                          ? Location::RequiresRegister()
+                          : LocationRegisterOrConstant(right()));
+    }
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -885,6 +890,35 @@ static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
   return true_condition;
 }
 
+static Condition EmitNullAwareInt64ComparisonOp(FlowGraphCompiler* compiler,
+                                                const LocationSummary& locs,
+                                                Token::Kind kind,
+                                                BranchLabels labels) {
+  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
+  const Register left = locs.in(0).reg();
+  const Register right = locs.in(1).reg();
+  const Condition true_condition = TokenKindToIntCondition(kind);
+  compiler::Label* equal_result =
+      (true_condition == EQUAL) ? labels.true_label : labels.false_label;
+  compiler::Label* not_equal_result =
+      (true_condition == EQUAL) ? labels.false_label : labels.true_label;
+
+  // Check if operands have the same value. If they don't, then they could
+  // be equal only if both of them are Mints with the same value.
+  __ OBJ(cmp)(left, right);
+  __ j(EQUAL, equal_result);
+  __ OBJ(mov)(TMP, left);
+  __ OBJ(and)(TMP, right);
+  __ BranchIfSmi(TMP, not_equal_result);
+  __ CompareClassId(left, kMintCid);
+  __ j(NOT_EQUAL, not_equal_result);
+  __ CompareClassId(right, kMintCid);
+  __ j(NOT_EQUAL, not_equal_result);
+  __ movq(TMP, compiler::FieldAddress(left, Mint::value_offset()));
+  __ cmpq(TMP, compiler::FieldAddress(right, Mint::value_offset()));
+  return true_condition;
+}
+
 static Condition TokenKindToDoubleCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
@@ -923,6 +957,10 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 
 Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                    BranchLabels labels) {
+  if (is_null_aware()) {
+    ASSERT(operation_cid() == kMintCid);
+    return EmitNullAwareInt64ComparisonOp(compiler, *locs(), kind(), labels);
+  }
   if (operation_cid() == kSmiCid) {
     return EmitSmiComparisonOp(compiler, *locs(), kind());
   } else if (operation_cid() == kMintCid) {

@@ -4518,8 +4518,10 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
                        Value* right,
                        intptr_t cid,
                        intptr_t deopt_id,
+                       bool null_aware = false,
                        SpeculativeMode speculative_mode = kGuardInputs)
       : TemplateComparison(source, kind, deopt_id),
+        null_aware_(null_aware),
         speculative_mode_(speculative_mode) {
     ASSERT(Token::IsEqualityOperator(kind));
     SetInputAt(0, left);
@@ -4535,8 +4537,12 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
+  bool is_null_aware() const { return null_aware_; }
+  void set_null_aware(bool value) { null_aware_ = value; }
+
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
+    if (is_null_aware()) return kTagged;
     if (operation_cid() == kDoubleCid) return kUnboxedDouble;
     if (operation_cid() == kMintCid) return kUnboxedInt64;
     return kTagged;
@@ -4548,12 +4554,16 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   virtual bool AttributesEqual(Instruction* other) const {
     return ComparisonInstr::AttributesEqual(other) &&
+           (null_aware_ == other->AsEqualityCompare()->null_aware_) &&
            (speculative_mode_ == other->AsEqualityCompare()->speculative_mode_);
   }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
+  bool null_aware_;
   const SpeculativeMode speculative_mode_;
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareInstr);
 };

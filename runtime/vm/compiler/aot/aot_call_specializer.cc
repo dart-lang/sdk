@@ -448,7 +448,6 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
     CompileType* left_type = left_value->Type();
     CompileType* right_type = right_value->Type();
 
-    const bool is_equality_op = Token::IsEqualityOperator(op_kind);
     bool has_nullable_int_args =
         left_type->IsNullableInt() && right_type->IsNullableInt();
 
@@ -457,12 +456,6 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         has_nullable_int_args = false;
       }
     }
-
-    // NOTE: We cannot use strict comparisons if the receiver has an overridden
-    // == operator or if either side can be a double, since 1.0 == 1.
-    const bool can_use_strict_compare =
-        is_equality_op && has_nullable_int_args &&
-        (left_type->IsNullableSmi() || right_type->IsNullableSmi());
 
     // We only support binary operations if both operands are nullable integers
     // or when we can use a cheap strict comparison operation.
@@ -473,43 +466,32 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
     switch (op_kind) {
       case Token::kEQ:
       case Token::kNE:
-      case Token::kLT:
-      case Token::kLTE:
-      case Token::kGT:
-      case Token::kGTE: {
-        const bool can_use_equality_compare =
-            is_equality_op && left_type->IsInt() && right_type->IsInt();
-
-        // We prefer equality compare, since it doesn't require boxing.
-        if (!can_use_equality_compare && can_use_strict_compare) {
+        if (left_type->IsNull() || left_type->IsNullableSmi() ||
+            right_type->IsNull() || right_type->IsNullableSmi()) {
           replacement = new (Z) StrictCompareInstr(
               instr->source(),
               (op_kind == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
               left_value->CopyWithType(Z), right_value->CopyWithType(Z),
               /*needs_number_check=*/false, DeoptId::kNone);
-          break;
-        }
-
-        if (can_use_equality_compare) {
+        } else {
+          const bool null_aware =
+              left_type->is_nullable() || right_type->is_nullable();
           replacement = new (Z) EqualityCompareInstr(
               instr->source(), op_kind, left_value->CopyWithType(Z),
               right_value->CopyWithType(Z), kMintCid, DeoptId::kNone,
-              Instruction::kNotSpeculative);
-        } else if (Token::IsRelationalOperator(op_kind)) {
-          left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-          right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-          replacement = new (Z) RelationalOpInstr(
-              instr->source(), op_kind, left_value, right_value, kMintCid,
-              DeoptId::kNone, Instruction::kNotSpeculative);
-        } else {
-          // TODO(dartbug.com/30480): Figure out how to handle null in
-          // equality comparisons.
-          replacement = new (Z)
-              CheckedSmiComparisonInstr(op_kind, left_value->CopyWithType(Z),
-                                        right_value->CopyWithType(Z), instr);
+              null_aware, Instruction::kNotSpeculative);
         }
         break;
-      }
+      case Token::kLT:
+      case Token::kLTE:
+      case Token::kGT:
+      case Token::kGTE:
+        left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+        right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
+        replacement = new (Z) RelationalOpInstr(
+            instr->source(), op_kind, left_value, right_value, kMintCid,
+            DeoptId::kNone, Instruction::kNotSpeculative);
+        break;
       case Token::kMOD:
         replacement = TryOptimizeMod(instr, op_kind, left_value, right_value);
         if (replacement != nullptr) break;
@@ -625,7 +607,8 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
           replacement = new (Z) EqualityCompareInstr(
               instr->source(), op_kind, left_value, right_value, kDoubleCid,
-              DeoptId::kNone, Instruction::kNotSpeculative);
+              DeoptId::kNone, /*null_aware=*/false,
+              Instruction::kNotSpeculative);
           break;
         }
         break;

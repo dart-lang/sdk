@@ -2496,7 +2496,7 @@ Definition* CheckedSmiComparisonInstr::Canonicalize(FlowGraph* flow_graph) {
     } else if (Token::IsEqualityOperator(kind())) {
       replacement = new EqualityCompareInstr(
           source(), kind(), left()->CopyWithType(), right()->CopyWithType(),
-          op_cid, DeoptId::kNone, speculative_mode);
+          op_cid, DeoptId::kNone, /*null_aware=*/false, speculative_mode);
     }
     if (replacement != NULL) {
       if (FLAG_trace_strong_mode_types && (op_cid == kMintCid)) {
@@ -3667,6 +3667,30 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
     replacement->AsComparison()->NegateComparison();
   }
   return replacement;
+}
+
+Definition* EqualityCompareInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (is_null_aware()) {
+    ASSERT(operation_cid() == kMintCid);
+    // Select more efficient instructions based on operand types.
+    CompileType* left_type = left()->Type();
+    CompileType* right_type = right()->Type();
+    if (left_type->IsNull() || left_type->IsNullableSmi() ||
+        right_type->IsNull() || right_type->IsNullableSmi()) {
+      auto replacement = new StrictCompareInstr(
+          source(),
+          (kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
+          left()->CopyWithType(), right()->CopyWithType(),
+          /*needs_number_check=*/false, DeoptId::kNone);
+      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
+      return replacement;
+    } else {
+      if (!left_type->is_nullable() && !right_type->is_nullable()) {
+        set_null_aware(false);
+      }
+    }
+  }
+  return this;
 }
 
 Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -5816,7 +5840,8 @@ ComparisonInstr* DoubleTestOpInstr::CopyWithNewOperands(Value* new_left,
 ComparisonInstr* EqualityCompareInstr::CopyWithNewOperands(Value* new_left,
                                                            Value* new_right) {
   return new EqualityCompareInstr(source(), kind(), new_left, new_right,
-                                  operation_cid(), deopt_id());
+                                  operation_cid(), deopt_id(), is_null_aware(),
+                                  speculative_mode_);
 }
 
 ComparisonInstr* RelationalOpInstr::CopyWithNewOperands(Value* new_left,

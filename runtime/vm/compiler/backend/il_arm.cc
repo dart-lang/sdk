@@ -832,7 +832,7 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 }
 
-static Condition TokenKindToSmiCondition(Token::Kind kind) {
+static Condition TokenKindToIntCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
       return EQ;
@@ -855,6 +855,16 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
 LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 2;
+  if (is_null_aware()) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* locs = new (zone)
+        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_out(0, Location::RequiresRegister());
+    return locs;
+  }
   if (operation_cid() == kMintCid) {
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
@@ -961,7 +971,7 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   Location right = locs->in(1);
   ASSERT(!left.IsConstant() || !right.IsConstant());
 
-  Condition true_condition = TokenKindToSmiCondition(kind);
+  Condition true_condition = TokenKindToIntCondition(kind);
 
   if (left.IsConstant()) {
     __ CompareObject(right.reg(), left.constant());
@@ -972,26 +982,6 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     __ cmp(left.reg(), compiler::Operand(right.reg()));
   }
   return true_condition;
-}
-
-static Condition TokenKindToMintCondition(Token::Kind kind) {
-  switch (kind) {
-    case Token::kEQ:
-      return EQ;
-    case Token::kNE:
-      return NE;
-    case Token::kLT:
-      return LT;
-    case Token::kGT:
-      return GT;
-    case Token::kLTE:
-      return LE;
-    case Token::kGTE:
-      return GE;
-    default:
-      UNREACHABLE();
-      return VS;
-  }
 }
 
 static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
@@ -1009,7 +999,7 @@ static Condition EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
   __ cmp(left_lo, compiler::Operand(right_lo));
   // Compare upper if lower is equal.
   __ cmp(left_hi, compiler::Operand(right_hi), EQ);
-  return TokenKindToMintCondition(kind);
+  return TokenKindToIntCondition(kind);
 }
 
 static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
@@ -1056,6 +1046,45 @@ static Condition EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
   return lo_cond;
 }
 
+static Condition EmitNullAwareInt64ComparisonOp(FlowGraphCompiler* compiler,
+                                                LocationSummary* locs,
+                                                Token::Kind kind,
+                                                BranchLabels labels) {
+  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
+  const Register left = locs->in(0).reg();
+  const Register right = locs->in(1).reg();
+  const Register temp = locs->temp(0).reg();
+  const Condition true_condition = TokenKindToIntCondition(kind);
+  compiler::Label* equal_result =
+      (true_condition == EQ) ? labels.true_label : labels.false_label;
+  compiler::Label* not_equal_result =
+      (true_condition == EQ) ? labels.false_label : labels.true_label;
+
+  // Check if operands have the same value. If they don't, then they could
+  // be equal only if both of them are Mints with the same value.
+  __ cmp(left, compiler::Operand(right));
+  __ b(equal_result, EQ);
+  __ and_(temp, left, compiler::Operand(right));
+  __ BranchIfSmi(temp, not_equal_result);
+  __ CompareClassId(left, kMintCid, temp);
+  __ b(not_equal_result, NE);
+  __ CompareClassId(right, kMintCid, temp);
+  __ b(not_equal_result, NE);
+  __ LoadFieldFromOffset(temp, left, compiler::target::Mint::value_offset());
+  __ LoadFieldFromOffset(TMP, right, compiler::target::Mint::value_offset());
+  __ cmp(temp, compiler::Operand(TMP));
+  __ LoadFieldFromOffset(
+      temp, left,
+      compiler::target::Mint::value_offset() + compiler::target::kWordSize,
+      compiler::kFourBytes, EQ);
+  __ LoadFieldFromOffset(
+      TMP, right,
+      compiler::target::Mint::value_offset() + compiler::target::kWordSize,
+      compiler::kFourBytes, EQ);
+  __ cmp(temp, compiler::Operand(TMP), EQ);
+  return true_condition;
+}
+
 static Condition TokenKindToDoubleCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
@@ -1097,6 +1126,10 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 
 Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                    BranchLabels labels) {
+  if (is_null_aware()) {
+    ASSERT(operation_cid() == kMintCid);
+    return EmitNullAwareInt64ComparisonOp(compiler, locs(), kind(), labels);
+  }
   if (operation_cid() == kSmiCid) {
     return EmitSmiComparisonOp(compiler, locs(), kind());
   } else if (operation_cid() == kMintCid) {
