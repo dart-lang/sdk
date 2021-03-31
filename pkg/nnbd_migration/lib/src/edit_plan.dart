@@ -282,21 +282,31 @@ class EditPlanner {
   }
 
   /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// appending the given text with postfix precedence.  This could be used, for
+  /// example, to append a property access or method call.
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan addPostfix(NodeProducingEditPlan innerPlan, String text,
+      {AtomicEditInfo info}) {
+    assert(innerPlan.sourceNode is Expression);
+    return surround(innerPlan,
+        suffix: [AtomicEdit.insert(text, info: info)],
+        outerPrecedence: Precedence.postfix,
+        innerPrecedence: Precedence.postfix,
+        associative: true);
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// appending the given postfix [operator].  This could be used, for example,
   /// to add a null check.
   ///
   /// Optional argument [info] contains information about why the change was
   /// made.
   NodeProducingEditPlan addUnaryPostfix(
-      NodeProducingEditPlan innerPlan, TokenType operator,
-      {AtomicEditInfo info}) {
-    assert(innerPlan.sourceNode is Expression);
-    return surround(innerPlan,
-        suffix: [AtomicEdit.insert(operator.lexeme, info: info)],
-        outerPrecedence: Precedence.postfix,
-        innerPrecedence: Precedence.postfix,
-        associative: true);
-  }
+          NodeProducingEditPlan innerPlan, TokenType operator,
+          {AtomicEditInfo info}) =>
+      addPostfix(innerPlan, operator.lexeme, info: info);
 
   /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// prepending the given prefix [operator].

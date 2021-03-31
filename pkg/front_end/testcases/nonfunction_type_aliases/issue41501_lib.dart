@@ -11,11 +11,10 @@ import 'issue41501.dart';
 
 class A {}
 
-typedef AAlias = A;
+typedef AAlias = A Function();
 
 test() {
   FutureOr<AAlias> foLegacy = null; // ok
   FutureOr<AAliasNonNullable> foNonNullable = null; // ok
   FutureOr<AAliasNullable> foNullable = null; // ok
 }
-

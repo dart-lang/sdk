@@ -2918,6 +2918,7 @@ class TypeInferrerImpl implements TypeInferrer {
         receiverType: receiverType,
         isImplicitCall: isImplicitCall);
     Expression expression;
+    String localName;
     if (useNewMethodInvocationEncoding) {
       DartType inferredFunctionType = result.functionType;
       if (result.isInapplicable) {
@@ -2933,6 +2934,7 @@ class TypeInferrerImpl implements TypeInferrer {
         if (parent is FunctionDeclaration) {
           assert(!identical(inferredFunctionType, unknownFunction),
               "Unknown function type for local function invocation.");
+          localName = variable.name;
           expression = new LocalFunctionInvocation(variable, arguments,
               functionType: inferredFunctionType)
             ..fileOffset = receiver.fileOffset;
@@ -2951,9 +2953,22 @@ class TypeInferrerImpl implements TypeInferrer {
               : inferredFunctionType)
         ..fileOffset = fileOffset;
     } else {
+      if (receiver is VariableGet) {
+        VariableDeclaration variable = receiver.variable;
+        TreeNode parent = variable.parent;
+        if (parent is FunctionDeclaration) {
+          // This is a local function invocation. Use the name in bounds
+          // checking below.
+          localName = variable.name;
+        }
+      }
       expression = new MethodInvocation(receiver, callName, arguments)
         ..fileOffset = fileOffset;
     }
+
+    _checkBoundsInFunctionInvocation(
+        declaredFunctionType, localName, arguments, fileOffset);
+
     Expression replacement = result.applyResult(expression);
     if (!isTopLevel && target.isNullableCallFunction) {
       List<LocatedMessage> context = getWhyNotPromotedContext(
@@ -3445,13 +3460,13 @@ class TypeInferrerImpl implements TypeInferrer {
           kind, originalReceiver, originalName,
           resultType: calleeType, interfaceTarget: originalTarget)
         ..fileOffset = fileOffset;
-      flowAnalysis.propertyGet(
-          originalPropertyGet, originalReceiver, originalName.text, calleeType);
     } else {
       originalPropertyGet =
           new PropertyGet(originalReceiver, originalName, originalTarget)
             ..fileOffset = fileOffset;
     }
+    flowAnalysis.propertyGet(
+        originalPropertyGet, originalReceiver, originalName.text, calleeType);
     Expression propertyGet = originalPropertyGet;
     if (receiver is! ThisExpression &&
         calleeType is! DynamicType &&
@@ -3682,11 +3697,9 @@ class TypeInferrerImpl implements TypeInferrer {
       Arguments arguments,
       int fileOffset) {
     // If [arguments] were inferred, check them.
-    // TODO(dmitryas): Figure out why [library] is sometimes null? Answer:
-    // because top level inference never got a library. This has changed so
-    // we always have a library. Should we still skip this for top level
-    // inference?
     if (!isTopLevel) {
+      // We only perform checks in full inference.
+
       // [actualReceiverType], [interfaceTarget], and [actualMethodName] below
       // are for a workaround for the cases like the following:
       //
@@ -3714,6 +3727,23 @@ class TypeInferrerImpl implements TypeInferrer {
           this,
           actualMethodName,
           interfaceTarget,
+          arguments,
+          helper.uri,
+          fileOffset);
+    }
+  }
+
+  void _checkBoundsInFunctionInvocation(FunctionType functionType,
+      String localName, Arguments arguments, int fileOffset) {
+    // If [arguments] were inferred, check them.
+    if (!isTopLevel) {
+      // We only perform checks in full inference.
+      library.checkBoundsInFunctionInvocation(
+          typeSchemaEnvironment,
+          classHierarchy,
+          this,
+          functionType,
+          localName,
           arguments,
           helper.uri,
           fileOffset);

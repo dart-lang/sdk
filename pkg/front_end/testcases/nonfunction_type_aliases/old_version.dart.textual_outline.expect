@@ -1,0 +1,3 @@
+// @dart = 2.12
+typedef A = int;
+void main() {}

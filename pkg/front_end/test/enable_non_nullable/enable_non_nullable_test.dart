@@ -107,6 +107,7 @@ test(
 
   bool hadDiagnostic = false;
   options.onDiagnostic = (DiagnosticMessage message) {
+    print(message.plainTextFormatted);
     hadDiagnostic = true;
   };
 

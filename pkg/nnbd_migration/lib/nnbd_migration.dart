@@ -18,6 +18,11 @@ export 'package:nnbd_migration/src/utilities/hint_utils.dart' show HintComment;
 
 /// Description of fixes that might be performed by nullability migration.
 class NullabilityFixDescription {
+  /// A `.then((value) => ...)` suffix was added to an expression.
+  static const addThen = NullabilityFixDescription._(
+      appliedMessage: 'Added `.then` to adjust type of Future expression',
+      kind: NullabilityFixKind.addThen);
+
   /// An import was added to the library.
   static const addImport = NullabilityFixDescription._(
       appliedMessage: 'Added import for use in migrated code',
@@ -266,6 +271,7 @@ class NullabilityFixDescription {
 
 /// An enumeration of the various kinds of nullability fixes.
 enum NullabilityFixKind {
+  addThen,
   addImport,
   addLate,
   addLateDueToHint,

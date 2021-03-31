@@ -5029,8 +5029,9 @@ UnexpectedModifierInNonNnbd:
   template: "The modifier '#lexeme' is only available in null safe libraries."
   exampleAllowMoreCodes: true
   analyzerCode: UNEXPECTED_TOKEN
-  script:
-    - "late int x;"
+  script: |
+    // @dart=2.9
+    late int x;
 
 CompilingWithSoundNullSafety:
   template: "Compiling with sound null safety"

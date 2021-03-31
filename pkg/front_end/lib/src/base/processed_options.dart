@@ -401,6 +401,11 @@ class ProcessedOptions {
     return _raw.getExperimentEnabledVersionInLibrary(flag, importUri);
   }
 
+  bool isExperimentEnabledInLibraryByVersion(
+      flags.ExperimentalFlag flag, Uri importUri, Version version) {
+    return _raw.isExperimentEnabledInLibraryByVersion(flag, importUri, version);
+  }
+
   Component _validateNullSafetyMode(Component component) {
     if (component.mode == NonNullableByDefaultCompiledMode.Invalid) {
       throw new FormatException(

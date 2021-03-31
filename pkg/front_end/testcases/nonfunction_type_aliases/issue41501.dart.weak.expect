@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
+// pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A Function()>' because 'FutureOr<A Function()>' is not nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
 //   FutureOr<AAlias> foLegacyNonNullable = null; // error
 //                                          ^
@@ -21,11 +21,11 @@ import "org-dartlang-testcase:///issue41501_lib.dart";
 typedef AAliasNonNullable = opt::A;
 typedef AAliasNullable = opt::A?;
 static method test() → dynamic {
-  FutureOr<opt::A>foLegacyNonNullable = let final Never #t1 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
+  FutureOr<() → opt::A*>foLegacyNonNullable = let final Never #t1 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A Function()>' because 'FutureOr<A Function()>' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
   FutureOr<AAlias> foLegacyNonNullable = null; // error
-                                         ^" in null as{TypeError,ForNonNullableByDefault} FutureOr<opt::A>;
-  FutureOr<opt::A?>foLegacyNullable = null;
+                                         ^" in null as{TypeError,ForNonNullableByDefault} FutureOr<() → opt::A*>;
+  FutureOr<() →? opt::A*>foLegacyNullable = null;
   FutureOr<opt::A>foNonNullable = let final Never #t2 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
   FutureOr<AAliasNonNullable> foNonNullable = null; // error
@@ -43,7 +43,7 @@ import "dart:core" as core;
 import "dart:async";
 import "org-dartlang-testcase:///issue41501.dart";
 
-typedef AAlias = opt::A*;
+typedef AAlias = () →* opt::A*;
 class A extends core::Object {
   synthetic constructor •() → opt::A*
     : super core::Object::•()
@@ -60,7 +60,7 @@ class A extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test() → dynamic {
-  FutureOr<opt::A*>* foLegacy = null;
+  FutureOr<() →* opt::A*>* foLegacy = null;
   FutureOr<opt::A*>* foNonNullable = null;
   FutureOr<opt::A*>* foNullable = null;
 }

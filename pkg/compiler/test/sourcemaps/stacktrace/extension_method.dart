@@ -1,7 +1,8 @@
+// @dart = 2.7
+
 class MyClass {
   MyClass();
 
-// @dart = 2.7
   @pragma('dart2js:noInline')
   set internalSetter(int v) {
     /*7:MyClass.internalSetter*/ throw "error";

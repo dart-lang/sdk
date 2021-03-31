@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A {}
 mixin B<inout X, out Y, in Z> on A {}
 main() {}

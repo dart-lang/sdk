@@ -262,6 +262,9 @@ class InfoBuilder {
         // We don't offer any edits around unmigratable `null`s.  The user has
         // to fix manually.
         break;
+      case NullabilityFixKind.addThen:
+        // We don't offer any edits around addition of `.then` to a future.
+        break;
     }
     return edits;
   }

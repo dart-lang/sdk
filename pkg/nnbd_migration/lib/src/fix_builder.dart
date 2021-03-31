@@ -577,44 +577,62 @@ class MigrationResolutionHooksImpl
     _flowAnalysis = flowAnalysis;
   }
 
-  DartType _addCast(
+  DartType _addCastOrNullCheck(
       Expression node, DartType expressionType, DartType contextType) {
-    var isDowncast =
-        _fixBuilder._typeSystem.isSubtypeOf(contextType, expressionType);
     var checks =
         _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
-    var info = AtomicEditInfo(
-        isDowncast
-            ? NullabilityFixDescription.downcastExpression
-            : NullabilityFixDescription.otherCastExpression,
-        checks != null ? checks.edges : {});
+    var change = _createExpressionChange(node, expressionType, contextType);
+    var info = AtomicEditInfo(change.description, checks?.edges ?? {});
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
-        .introduceAs(contextType, info);
-    _flowAnalysis.asExpression_end(node, contextType);
-    return contextType;
+        .addExpressionChange(change, info);
+    return change.resultType;
   }
 
   DartType _addNullCheck(Expression node, DartType type,
       {AtomicEditInfo info, HintComment hint}) {
+    var change = _createNullCheckChange(node, type, hint: hint);
     var checks =
         _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
-    bool noValidMigration = node is NullLiteral && hint == null;
-    info ??= checks != null
-        ? AtomicEditInfo(
-            noValidMigration
-                ? NullabilityFixDescription.noValidMigrationForNull
-                : NullabilityFixDescription.checkExpression,
-            checks.edges)
-        : null;
+    info ??= AtomicEditInfo(change.description, checks?.edges ?? {});
     var nodeChangeForExpression =
         _fixBuilder._getChange(node) as NodeChangeForExpression;
-    if (noValidMigration) {
-      nodeChangeForExpression.addNoValidMigration(info);
-    } else {
-      nodeChangeForExpression.addNullCheck(info, hint: hint);
+    nodeChangeForExpression.addExpressionChange(change, info);
+    return change.resultType;
+  }
+
+  ExpressionChange _createExpressionChange(
+      Expression node, DartType expressionType, DartType contextType) {
+    var expressionFutureTypeArgument = _getFutureTypeArgument(expressionType);
+    var contextFutureTypeArgument = _getFutureTypeArgument(contextType);
+    if (expressionFutureTypeArgument != null &&
+        contextFutureTypeArgument != null) {
+      return IntroduceThenChange(
+          contextType,
+          _createExpressionChange(
+              node, expressionFutureTypeArgument, contextFutureTypeArgument));
     }
+    // Either a cast or a null check is needed.  We prefer to do a null
+    // check if we can.
+    var nonNullType = _fixBuilder._typeSystem.promoteToNonNull(expressionType);
+    if (_fixBuilder._typeSystem.isSubtypeOf(nonNullType, contextType)) {
+      return _createNullCheckChange(node, expressionType);
+    } else {
+      if (node != null) {
+        _flowAnalysis.asExpression_end(node, contextType);
+      }
+      return IntroduceAsChange(contextType,
+          isDowncast:
+              _fixBuilder._typeSystem.isSubtypeOf(contextType, expressionType));
+    }
+  }
+
+  ExpressionChange _createNullCheckChange(Expression node, DartType type,
+      {HintComment hint}) {
+    var resultType = _fixBuilder._typeSystem.promoteToNonNull(type as TypeImpl);
     _flowAnalysis.nonNullAssert_end(node);
-    return _fixBuilder._typeSystem.promoteToNonNull(type as TypeImpl);
+    return node is NullLiteral && hint == null
+        ? NoValidMigrationChange(resultType)
+        : NullCheckChange(resultType, hint: hint);
   }
 
   Expression _findNullabilityContextAncestor(Expression node) {
@@ -636,6 +654,16 @@ class MigrationResolutionHooksImpl
         .getDecoratedSupertype(class_, superclass);
     var finalType = _fixBuilder._variables.toFinalType(decoratedSupertype);
     return finalType as InterfaceType;
+  }
+
+  DartType _getFutureTypeArgument(DartType type) {
+    if (type is InterfaceType && type.isDartAsyncFuture) {
+      var typeArguments = type.typeArguments;
+      if (typeArguments.isNotEmpty) {
+        return typeArguments.first;
+      }
+    }
+    return null;
   }
 
   DartType _modifyRValueType(Expression node, DartType type,
@@ -689,14 +717,7 @@ class MigrationResolutionHooksImpl
                 .makeNullable(methodInvocationType as TypeImpl);
         return type;
       }
-      // Either a cast or a null check is needed.  We prefer to do a null
-      // check if we can.
-      var nonNullType = _fixBuilder._typeSystem.promoteToNonNull(type);
-      if (_fixBuilder._typeSystem.isSubtypeOf(nonNullType, context)) {
-        return _addNullCheck(node, type);
-      } else {
-        return _addCast(node, type, context);
-      }
+      return _addCastOrNullCheck(node, type, context);
     }
     if (!_fixBuilder._typeSystem.isNullable(type)) return type;
     if (_needsNullCheckDueToStructure(ancestor)) {

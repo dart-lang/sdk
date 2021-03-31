@@ -3357,6 +3357,32 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_future_nullability_mismatch() async {
+    var content = '''
+String foo;
+
+Future<String> getNullableFoo() async {
+  return foo;
+}
+
+Future<String/*!*/> getFoo() {
+  return getNullableFoo();
+}
+''';
+    var expected = '''
+String? foo;
+
+Future<String?> getNullableFoo() async {
+  return foo;
+}
+
+Future<String> getFoo() {
+  return getNullableFoo().then((value) => value!);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_future_or_t_downcast_to_t() async {
     var content = '''
 import 'dart:async';
@@ -3384,6 +3410,30 @@ void f(
   int? i2 = foi2 as int?;
   int? i3 = foi3 as int?;
   int? i4 = foi4 as int?;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_future_type_mismatch() async {
+    var content = '''
+Future<List<int>> getNullableInts() async {
+  return [null];
+}
+
+Future<List<int/*!*/>> getInts() {
+  return getNullableInts();
+}
+''';
+    // TODO(paulberry): this is not a good migration.  Really we should produce
+    // getNullableInts.then((value) => value.cast());
+    var expected = '''
+Future<List<int?>> getNullableInts() async {
+  return [null];
+}
+
+Future<List<int>> getInts() {
+  return getNullableInts().then((value) => value as List<int>);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

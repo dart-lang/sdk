@@ -697,17 +697,14 @@ class FieldMorpher {
               positionalParameters: [parameter], returnType: const VoidType())
             ..fileOffset = field.fileOffset,
           isAbstract: isAbstract,
-          fileUri: field.fileUri,
-          reference: field.setterReference);
+          fileUri: field.fileUri);
       if (!isAbstract) {
         _extraMembersWithReachableBody.add(accessor);
       }
     } else {
       accessor = new Procedure(field.name, ProcedureKind.Getter,
           new FunctionNode(null, returnType: field.type),
-          isAbstract: true,
-          fileUri: field.fileUri,
-          reference: field.getterReference);
+          isAbstract: true, fileUri: field.fileUri);
     }
     accessor.fileOffset = field.fileOffset;
     field.enclosingClass.addProcedure(accessor);
@@ -752,12 +749,6 @@ class FieldMorpher {
     }
     return _removedFields[target] ?? target;
   }
-
-  bool isGetterReferenceReused(Field node) =>
-      _gettersForRemovedFields.containsKey(node);
-
-  bool isSetterReferenceReused(Field node) =>
-      _settersForRemovedFields.containsKey(node);
 }
 
 /// Visits Dart types and collects all classes and typedefs used in types.
@@ -1185,8 +1176,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableInitializer([node.value]);
     } else {
-      final field =
-          fieldMorpher.getOriginalMember(node.fieldReference.asMember) as Field;
+      final field = node.field;
       assert(shaker.isMemberBodyReachable(field),
           "Field should be reachable: ${field}");
       if (!shaker.retainField(field)) {
@@ -1307,7 +1297,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
           node.reference.node == node,
           "Trying to remove canonical name from reference on $node which has "
           "been repurposed for ${node.reference.node}.");
-      node.reference.canonicalName = null;
+      node.reference.canonicalName?.unbind();
       Statistics.classesDropped++;
       return removalSentinel; // Remove the class.
     }
@@ -1345,34 +1335,24 @@ class _TreeShakerPass2 extends RemovingTransformer {
       // Ensure that kernel file writer will not be able to
       // write a dangling reference to the deleted member.
       if (node is Field) {
-        if (!shaker.fieldMorpher.isGetterReferenceReused(node)) {
-          // The getter reference hasn't be repurposed for another node so we
-          // reset the canonical name to ensure that the getter reference
-          // cannot be serialized.
-          assert(
-              node.getterReference.node == node,
-              "Trying to remove canonical name from getter reference on $node "
-              "which has been repurposed for ${node.getterReference.node}.");
-          node.getterReference.canonicalName = null;
-        }
+        assert(
+            node.getterReference.node == node,
+            "Trying to remove canonical name from getter reference on $node "
+            "which has been repurposed for ${node.getterReference.node}.");
+        node.getterReference.canonicalName?.unbind();
         if (node.hasSetter) {
-          if (!shaker.fieldMorpher.isSetterReferenceReused(node)) {
-            // The setter reference hasn't be repurposed for another node so we
-            // reset the canonical name to ensure that the setter reference
-            // cannot be serialized.
-            assert(
-                node.setterReference.node == node,
-                "Trying to remove canonical name from reference on $node which "
-                "has been repurposed for ${node.setterReference.node}.");
-            node.setterReference.canonicalName = null;
-          }
+          assert(
+              node.setterReference.node == node,
+              "Trying to remove canonical name from reference on $node which "
+              "has been repurposed for ${node.setterReference.node}.");
+          node.setterReference.canonicalName?.unbind();
         }
       } else {
         assert(
             node.reference.node == node,
             "Trying to remove canonical name from reference on $node which has "
             "been repurposed for ${node.reference.node}.");
-        node.reference.canonicalName = null;
+        node.reference.canonicalName?.unbind();
       }
       Statistics.membersDropped++;
       return removalSentinel;

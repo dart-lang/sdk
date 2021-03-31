@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Covariant<out T> {}
 class Contravariant<in T> {}
 class Invariant<inout T> {}

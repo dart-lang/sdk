@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Operators1 {
   operator >>(){}
   operator>() => true;
