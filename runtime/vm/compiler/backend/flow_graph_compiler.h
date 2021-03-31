@@ -983,8 +983,6 @@ class FlowGraphCompiler : public ValueObject {
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
   friend class StoreInstanceFieldInstr;  // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
-  friend class CheckedSmiSlowPath;          // Same.
-  friend class CheckedSmiComparisonSlowPath;  // Same.
   friend class GraphInstrinsicCodeGenScope;   // For optimizing_.
 
   // Architecture specific implementation of simple native moves.

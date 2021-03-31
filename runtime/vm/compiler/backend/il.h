@@ -440,8 +440,6 @@ struct InstrAttrs {
   M(AllocateUninitializedContext, _)                                           \
   M(CloneContext, _)                                                           \
   M(BinarySmiOp, kNoGC)                                                        \
-  M(CheckedSmiComparison, _)                                                   \
-  M(CheckedSmiOp, _)                                                           \
   M(BinaryInt32Op, kNoGC)                                                      \
   M(UnarySmiOp, kNoGC)                                                         \
   M(UnaryDoubleOp, kNoGC)                                                      \
@@ -7615,100 +7613,6 @@ class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
  private:
   const SpeculativeMode speculative_mode_;
   DISALLOW_COPY_AND_ASSIGN(UnaryInt64OpInstr);
-};
-
-class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
- public:
-  CheckedSmiOpInstr(Token::Kind op_kind,
-                    Value* left,
-                    Value* right,
-                    TemplateDartCall<0>* call)
-      : TemplateDefinition(call->deopt_id()), call_(call), op_kind_(op_kind) {
-    ASSERT(call->type_args_len() == 0);
-    ASSERT(!call->IsInstanceCallBase() ||
-           call->AsInstanceCallBase()->CanReceiverBeSmiBasedOnInterfaceTarget(
-               Thread::Current()->zone()));
-
-    SetInputAt(0, left);
-    SetInputAt(1, right);
-  }
-
-  TemplateDartCall<0>* call() const { return call_; }
-  Token::Kind op_kind() const { return op_kind_; }
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual CompileType ComputeType() const;
-  virtual bool RecomputeType();
-
-  virtual bool HasUnknownSideEffects() const { return true; }
-  virtual bool CanCallDart() const { return true; }
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  PRINT_OPERANDS_TO_SUPPORT
-
-  DECLARE_INSTRUCTION(CheckedSmiOp)
-
- private:
-  TemplateDartCall<0>* call_;
-  const Token::Kind op_kind_;
-  DISALLOW_COPY_AND_ASSIGN(CheckedSmiOpInstr);
-};
-
-class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
- public:
-  CheckedSmiComparisonInstr(Token::Kind op_kind,
-                            Value* left,
-                            Value* right,
-                            TemplateDartCall<0>* call)
-      : TemplateComparison(call->source(), op_kind, call->deopt_id()),
-        call_(call),
-        is_negated_(false) {
-    ASSERT(call->type_args_len() == 0);
-    ASSERT(!call->IsInstanceCallBase() ||
-           call->AsInstanceCallBase()->CanReceiverBeSmiBasedOnInterfaceTarget(
-               Thread::Current()->zone()));
-
-    SetInputAt(0, left);
-    SetInputAt(1, right);
-  }
-
-  TemplateDartCall<0>* call() const { return call_; }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual CompileType ComputeType() const;
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  virtual void NegateComparison() {
-    ComparisonInstr::NegateComparison();
-    is_negated_ = !is_negated_;
-  }
-
-  bool is_negated() const { return is_negated_; }
-
-  virtual bool HasUnknownSideEffects() const { return true; }
-  virtual bool CanCallDart() const { return true; }
-
-  PRINT_OPERANDS_TO_SUPPORT
-
-  DECLARE_INSTRUCTION(CheckedSmiComparison)
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
-
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels);
-
-  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
-
- private:
-  TemplateDartCall<0>* call_;
-  bool is_negated_;
-  DISALLOW_COPY_AND_ASSIGN(CheckedSmiComparisonInstr);
 };
 
 class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
