@@ -60,6 +60,8 @@ class MigrationSummary {
 
   String _keyForKind(NullabilityFixKind kind) {
     switch (kind) {
+      case NullabilityFixKind.addThen:
+        return 'addThen';
       case NullabilityFixKind.addImport:
         return 'addImport';
       case NullabilityFixKind.addLate:

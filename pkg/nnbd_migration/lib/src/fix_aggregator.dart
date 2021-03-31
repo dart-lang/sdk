@@ -18,6 +18,28 @@ import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
 import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 
+/// Base class representing a change that might need to be made to an
+/// expression.
+abstract class ExpressionChange {
+  /// The type of the expression after the change is applied.
+  final DartType resultType;
+
+  ExpressionChange(this.resultType);
+
+  /// Description of the change.
+  NullabilityFixDescription get description;
+
+  /// Creates a [NodeProducingEditPlan] that applies the change to [innerPlan].
+  NodeProducingEditPlan applyExpression(FixAggregator aggregator,
+      NodeProducingEditPlan innerPlan, AtomicEditInfo info);
+
+  /// Creates a string that applies the change to the [inner] text string.
+  String applyText(FixAggregator aggregator, String inner);
+
+  /// Describes the change, for use in debugging.
+  String describe();
+}
+
 /// Visitor that combines together the changes produced by [FixBuilder] into a
 /// concrete set of source code edits using the infrastructure of [EditPlan].
 class FixAggregator extends UnifyingAstVisitor<void> {
@@ -193,6 +215,64 @@ class FixAggregator extends UnifyingAstVisitor<void> {
     }
     return planner.finalize(plan);
   }
+}
+
+/// [ExpressionChange] describing the addition of an `as` cast to an expression.
+class IntroduceAsChange extends ExpressionChange {
+  /// The type being cast to.
+  final DartType type;
+
+  /// Indicates whether this is a downcast.
+  final bool isDowncast;
+
+  IntroduceAsChange(this.type, {@required this.isDowncast}) : super(type);
+
+  @override
+  NullabilityFixDescription get description => isDowncast
+      ? NullabilityFixDescription.downcastExpression
+      : NullabilityFixDescription.otherCastExpression;
+
+  @override
+  NodeProducingEditPlan applyExpression(FixAggregator aggregator,
+          NodeProducingEditPlan innerPlan, AtomicEditInfo info) =>
+      aggregator.planner.addBinaryPostfix(
+          innerPlan, TokenType.AS, aggregator.typeToCode(type),
+          info: info);
+
+  @override
+  String applyText(FixAggregator aggregator, String inner) =>
+      '$inner as ${aggregator.typeToCode(type)}';
+
+  @override
+  String describe() => 'IntroduceAsChange($type)';
+}
+
+/// [ExpressionChange] describing the addition of an `as` cast to an expression
+/// having a Future type.
+class IntroduceThenChange extends ExpressionChange {
+  /// The change that should be made to the value the future completes with.
+  final ExpressionChange innerChange;
+
+  IntroduceThenChange(DartType resultType, this.innerChange)
+      : super(resultType);
+
+  @override
+  NullabilityFixDescription get description =>
+      NullabilityFixDescription.addThen;
+
+  @override
+  NodeProducingEditPlan applyExpression(FixAggregator aggregator,
+          NodeProducingEditPlan innerPlan, AtomicEditInfo info) =>
+      aggregator.planner.addPostfix(innerPlan,
+          '.then((value) => ${innerChange.applyText(aggregator, 'value')})',
+          info: info);
+
+  @override
+  String applyText(FixAggregator aggregator, String inner) =>
+      '$inner.then((value) => ${innerChange.applyText(aggregator, 'value')})';
+
+  @override
+  String describe() => 'IntroduceThenChange($innerChange)';
 }
 
 /// Reasons that a variable declaration is to be made late.
@@ -701,69 +781,25 @@ class NodeChangeForDefaultFormalParameter
 /// Implementation of [NodeChange] specialized for operating on [Expression]
 /// nodes.
 class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
-  bool _addsNoValidMigration = false;
+  /// The list of [ExpressionChange] objects that should be applied to the
+  /// expression, in the order they should be applied.
+  final List<ExpressionChange> expressionChanges = [];
 
-  AtomicEditInfo _addNoValidMigrationInfo;
-
-  bool _addsNullCheck = false;
-
-  AtomicEditInfo _addNullCheckInfo;
-
-  HintComment _addNullCheckHint;
-
-  DartType _introducesAsType;
-
-  AtomicEditInfo _introduceAsInfo;
+  /// The list of [AtomicEditInfo] objects corresponding to each change in
+  /// [expressionChanges].
+  final List<AtomicEditInfo> expressionChangeInfos = [];
 
   NodeChangeForExpression() : super._();
 
-  /// Gets the info for any added "no valid migration" comment.
-  AtomicEditInfo get addNoValidMigrationInfo => _addNoValidMigrationInfo;
-
-  /// Gets the info for any added null check.
-  AtomicEditInfo get addNullCheckInfo => _addNullCheckInfo;
-
-  /// Indicates whether [addNoValidMigration] has been called.
-  bool get addsNoValidMigration => _addsNoValidMigration;
-
-  /// Indicates whether [addNullCheck] has been called.
-  bool get addsNullCheck => _addsNullCheck;
-
-  /// Gets the info for any introduced "as" cast
-  AtomicEditInfo get introducesAsInfo => _introduceAsInfo;
-
-  /// Gets the type for any introduced "as" cast, or `null` if no "as" cast is
-  /// being introduced.
-  DartType get introducesAsType => _introducesAsType;
-
   @override
   Iterable<String> get _toStringParts => [
-        if (_addsNoValidMigration) 'addsNoValidMigration',
-        if (_addsNullCheck) 'addsNullCheck',
-        if (_introducesAsType != null) 'introducesAsType'
+        for (var expressionChange in expressionChanges)
+          expressionChange.describe()
       ];
 
-  void addNoValidMigration(AtomicEditInfo info) {
-    assert(!_addsNoValidMigration);
-    _addsNoValidMigration = true;
-    _addNoValidMigrationInfo = info;
-  }
-
-  /// Causes a null check to be added to this expression, with the given [info].
-  void addNullCheck(AtomicEditInfo info, {HintComment hint}) {
-    assert(!_addsNullCheck);
-    _addsNullCheck = true;
-    _addNullCheckInfo = info;
-    _addNullCheckHint = hint;
-  }
-
-  /// Causes a cast to the given [type] to be added to this expression, with
-  /// the given [info].
-  void introduceAs(DartType type, AtomicEditInfo info) {
-    assert(_introducesAsType == null);
-    assert(type != null);
-    _introducesAsType = type;
-    _introduceAsInfo = info;
+  void addExpressionChange(ExpressionChange change, AtomicEditInfo info) {
+    expressionChanges.add(change);
+    expressionChangeInfos.add(info);
   }
 
   @override
@@ -778,25 +814,9 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   NodeProducingEditPlan _applyExpression(
       FixAggregator aggregator, NodeProducingEditPlan innerPlan) {
     var plan = innerPlan;
-    if (_addsNullCheck) {
-      var hint = _addNullCheckHint;
-      if (hint != null) {
-        plan = aggregator.planner.acceptNullabilityOrNullCheckHint(plan, hint,
-            info: _addNullCheckInfo);
-      } else {
-        plan = aggregator.planner
-            .addUnaryPostfix(plan, TokenType.BANG, info: _addNullCheckInfo);
-      }
-    }
-    if (_addsNoValidMigration) {
-      plan = aggregator.planner.addCommentPostfix(
-          plan, '/* no valid migration */',
-          info: _addNoValidMigrationInfo, isInformative: true);
-    }
-    if (_introducesAsType != null) {
-      plan = aggregator.planner.addBinaryPostfix(
-          plan, TokenType.AS, aggregator.typeToCode(_introducesAsType),
-          info: _introduceAsInfo);
+    for (int i = 0; i < expressionChanges.length; i++) {
+      plan = expressionChanges[i]
+          .applyExpression(aggregator, plan, expressionChangeInfos[i]);
     }
     return plan;
   }
@@ -1287,6 +1307,60 @@ class NodeChangeForVariableDeclarationList
     }
     return plan;
   }
+}
+
+/// [ExpressionChange] describing the addition of a comment explaining that a
+/// literal `null` could not be migrated.
+class NoValidMigrationChange extends ExpressionChange {
+  NoValidMigrationChange(DartType resultType) : super(resultType);
+
+  @override
+  NullabilityFixDescription get description =>
+      NullabilityFixDescription.noValidMigrationForNull;
+
+  @override
+  NodeProducingEditPlan applyExpression(FixAggregator aggregator,
+          NodeProducingEditPlan innerPlan, AtomicEditInfo info) =>
+      aggregator.planner.addCommentPostfix(
+          innerPlan, '/* no valid migration */',
+          info: info, isInformative: true);
+
+  @override
+  String applyText(FixAggregator aggregator, String inner) =>
+      '$inner /* no valid migration */';
+
+  @override
+  String describe() => 'NoValidMigrationChange';
+}
+
+/// [ExpressionChange] describing the addition of an `!` after an expression.
+class NullCheckChange extends ExpressionChange {
+  /// The hint that is causing this `!` to be added, if any.
+  final HintComment hint;
+
+  NullCheckChange(DartType resultType, {this.hint}) : super(resultType);
+
+  @override
+  NullabilityFixDescription get description =>
+      NullabilityFixDescription.checkExpression;
+
+  @override
+  NodeProducingEditPlan applyExpression(FixAggregator aggregator,
+      NodeProducingEditPlan innerPlan, AtomicEditInfo info) {
+    if (hint != null) {
+      return aggregator.planner
+          .acceptNullabilityOrNullCheckHint(innerPlan, hint, info: info);
+    } else {
+      return aggregator.planner
+          .addUnaryPostfix(innerPlan, TokenType.BANG, info: info);
+    }
+  }
+
+  @override
+  String applyText(FixAggregator aggregator, String inner) => '$inner!';
+
+  @override
+  String describe() => 'NullCheckChange';
 }
 
 /// Visitor that creates an appropriate [NodeChange] object for the node being

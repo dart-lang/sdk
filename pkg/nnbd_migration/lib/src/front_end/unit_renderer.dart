@@ -26,6 +26,7 @@ class UnitRenderer {
     NullabilityFixKind.noValidMigrationForNull,
     NullabilityFixKind.compoundAssignmentHasBadCombinedType,
     NullabilityFixKind.compoundAssignmentHasNullableSource,
+    NullabilityFixKind.addThen,
     NullabilityFixKind.removeDeadCode,
     NullabilityFixKind.conditionTrueInStrongMode,
     NullabilityFixKind.conditionFalseInStrongMode,
@@ -277,6 +278,8 @@ class UnitRenderer {
     var s = count == 1 ? '' : 's';
     var es = count == 1 ? '' : 'es';
     switch (kind) {
+      case NullabilityFixKind.addThen:
+        return '$count invocation$s of `.then` added';
       case NullabilityFixKind.addImport:
         return '$count import$s added';
       case NullabilityFixKind.addLate:

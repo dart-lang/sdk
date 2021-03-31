@@ -165,7 +165,8 @@ main() => null;
         ..addImport('package:collection/collection.dart', 'IterableExtension'),
       findNode.import('package:fixnum').combinators[0]:
           NodeChangeForShowCombinator()..addName('Int64'),
-      findNode.expression('null'): NodeChangeForExpression()..addNullCheck(null)
+      findNode.expression('null'): NodeChangeForExpression()
+        ..addExpressionChange(NullCheckChange(MockDartType()), null)
     });
     expect(previewInfo.applyTo(code), '''
 import 'package:args/args.dart';
@@ -342,10 +343,12 @@ f({@deprecated required int x}) {}
     var aRef = findNode.simple('a +');
     var bRef = findNode.simple('b;');
     var previewInfo = run({
-      aRef: NodeChangeForExpression()..addNullCheck(_MockInfo()),
-      bRef: NodeChangeForExpression()..addNullCheck(_MockInfo()),
+      aRef: NodeChangeForExpression()
+        ..addExpressionChange(NullCheckChange(MockDartType()), _MockInfo()),
+      bRef: NodeChangeForExpression()
+        ..addExpressionChange(NullCheckChange(MockDartType()), _MockInfo()),
       findNode.binary('a + b'): NodeChangeForExpression()
-        ..addNullCheck(_MockInfo())
+        ..addExpressionChange(NullCheckChange(MockDartType()), _MockInfo())
     });
     expect(previewInfo.applyTo(code), 'f(a, b) => (a! + b!)!;');
   }
@@ -392,7 +395,8 @@ g(int x, int y) => f(x, y);
     var previewInfo = run({
       findNode.methodInvocation('f(x').argumentList: NodeChangeForArgumentList()
         ..dropArgument(findNode.simple('y);'), null),
-      findNode.simple('x, y'): NodeChangeForExpression()..addNullCheck(null)
+      findNode.simple('x, y'): NodeChangeForExpression()
+        ..addExpressionChange(NullCheckChange(MockDartType()), null)
     });
     expect(previewInfo.applyTo(code), '''
 f([int x, int y]) => null;
@@ -404,7 +408,8 @@ g(int x, int y) => f(x!);
     var content = 'f(int x, int y) => x += y;';
     await analyze(content);
     var previewInfo = run({
-      findNode.assignment('+='): NodeChangeForAssignment()..addNullCheck(null)
+      findNode.assignment('+='): NodeChangeForAssignment()
+        ..addExpressionChange(NullCheckChange(MockDartType()), null)
     });
     expect(previewInfo.applyTo(code), 'f(int x, int y) => (x += y)!;');
   }
@@ -415,7 +420,7 @@ g(int x, int y) => f(x!);
     var previewInfo = run({
       findNode.assignment('+='): NodeChangeForAssignment(),
       findNode.index('[0]').target: NodeChangeForExpression()
-        ..addNullCheck(null)
+        ..addExpressionChange(NullCheckChange(MockDartType()), null)
     });
     expect(previewInfo.applyTo(code), 'f(List<int> x, int y) => x![0] += y;');
   }
@@ -426,7 +431,8 @@ g(int x, int y) => f(x!);
     var assignment = findNode.assignment('+=');
     var previewInfo = run({
       assignment: NodeChangeForAssignment(),
-      assignment.rightHandSide: NodeChangeForExpression()..addNullCheck(null)
+      assignment.rightHandSide: NodeChangeForExpression()
+        ..addExpressionChange(NullCheckChange(MockDartType()), null)
     });
     expect(previewInfo.applyTo(code), 'f(int x, int y) => x += y!;');
   }
@@ -468,7 +474,9 @@ g(int x, int y) => f(x!);
     await analyze(content);
     var previewInfo = run({
       findNode.assignment('+='): NodeChangeForAssignment()
-        ..introduceAs(nnbdTypeProvider.intType, null)
+        ..addExpressionChange(
+            IntroduceAsChange(nnbdTypeProvider.intType, isDowncast: false),
+            null)
     });
     expect(previewInfo.applyTo(code), 'f(int x, int y) => (x += y) as int;');
   }
@@ -509,7 +517,7 @@ f(int i, int/*?*/ j) {
       findNode.statement('if'): NodeChangeForIfStatement()
         ..conditionValue = true,
       findNode.simple('j.isEven'): NodeChangeForExpression()
-        ..addNullCheck(_MockInfo())
+        ..addExpressionChange(NullCheckChange(MockDartType()), _MockInfo())
     });
     expect(previewInfo.applyTo(code), '''
 f(int i, int/*?*/ j) {
@@ -530,7 +538,7 @@ f(int i, int/*?*/ j) {
       findNode.statement('if'): NodeChangeForIfStatement()
         ..conditionValue = true,
       findNode.simple('j.isEven'): NodeChangeForExpression()
-        ..addNullCheck(_MockInfo())
+        ..addExpressionChange(NullCheckChange(MockDartType()), _MockInfo())
     });
     expect(previewInfo.applyTo(code), '''
 f(int i, int/*?*/ j) {
@@ -830,7 +838,9 @@ void f(int i, String callback()) {
     var cd = findNode.cascade('c..d');
     var previewInfo = run({
       cd: NodeChangeForExpression()
-        ..introduceAs(nnbdTypeProvider.intType, _MockInfo())
+        ..addExpressionChange(
+            IntroduceAsChange(nnbdTypeProvider.intType, isDowncast: false),
+            _MockInfo())
     });
     expect(
         previewInfo.applyTo(code), 'f(a, c) => a..b = (throw (c..d) as int);');
@@ -841,7 +851,9 @@ void f(int i, String callback()) {
     var expr = findNode.simple('o;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(nnbdTypeProvider.dynamicType, _MockInfo())
+        ..addExpressionChange(
+            IntroduceAsChange(nnbdTypeProvider.dynamicType, isDowncast: false),
+            _MockInfo())
     });
     expect(previewInfo.applyTo(code), 'f(Object o) => o as dynamic;');
   }
@@ -855,7 +867,10 @@ f(Object o) => o;
     var expr = findNode.simple('o;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(nnbdTypeProvider.futureNullType, _MockInfo())
+        ..addExpressionChange(
+            IntroduceAsChange(nnbdTypeProvider.futureNullType,
+                isDowncast: false),
+            _MockInfo())
     });
     expect(previewInfo.applyTo(code), '''
 import 'dart:async' as a;
@@ -869,12 +884,14 @@ f(Object o) => o as a.Future<Null>;
     var expr = findNode.simple('o;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(
-            FunctionTypeImpl(
-                returnType: nnbdTypeProvider.boolType,
-                typeFormals: [],
-                parameters: [],
-                nullabilitySuffix: NullabilitySuffix.none),
+        ..addExpressionChange(
+            IntroduceAsChange(
+                FunctionTypeImpl(
+                    returnType: nnbdTypeProvider.boolType,
+                    typeFormals: [],
+                    parameters: [],
+                    nullabilitySuffix: NullabilitySuffix.none),
+                isDowncast: false),
             _MockInfo())
     });
     expect(previewInfo.applyTo(code), 'f(Object o) => o as bool Function();');
@@ -885,15 +902,17 @@ f(Object o) => o as a.Future<Null>;
     var expr = findNode.simple('o;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(
-            FunctionTypeImpl(
-                returnType: nnbdTypeProvider.boolType,
-                typeFormals: [
-                  TypeParameterElementImpl.synthetic('T')
-                    ..bound = nnbdTypeProvider.numType
-                ],
-                parameters: [],
-                nullabilitySuffix: NullabilitySuffix.none),
+        ..addExpressionChange(
+            IntroduceAsChange(
+                FunctionTypeImpl(
+                    returnType: nnbdTypeProvider.boolType,
+                    typeFormals: [
+                      TypeParameterElementImpl.synthetic('T')
+                        ..bound = nnbdTypeProvider.numType
+                    ],
+                    parameters: [],
+                    nullabilitySuffix: NullabilitySuffix.none),
+                isDowncast: false),
             _MockInfo())
     });
     expect(previewInfo.applyTo(code),
@@ -905,15 +924,17 @@ f(Object o) => o as a.Future<Null>;
     var expr = findNode.simple('o;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(
-            FunctionTypeImpl(
-                returnType: nnbdTypeProvider.boolType,
-                typeFormals: [
-                  TypeParameterElementImpl.synthetic('T')
-                    ..bound = nnbdTypeProvider.dynamicType
-                ],
-                parameters: [],
-                nullabilitySuffix: NullabilitySuffix.none),
+        ..addExpressionChange(
+            IntroduceAsChange(
+                FunctionTypeImpl(
+                    returnType: nnbdTypeProvider.boolType,
+                    typeFormals: [
+                      TypeParameterElementImpl.synthetic('T')
+                        ..bound = nnbdTypeProvider.dynamicType
+                    ],
+                    parameters: [],
+                    nullabilitySuffix: NullabilitySuffix.none),
+                isDowncast: false),
             _MockInfo())
     });
     expect(
@@ -925,15 +946,17 @@ f(Object o) => o as a.Future<Null>;
     var expr = findNode.simple('o;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(
-            FunctionTypeImpl(
-                returnType: nnbdTypeProvider.boolType,
-                typeFormals: [
-                  TypeParameterElementImpl.synthetic('T')
-                    ..bound = nnbdTypeProvider.objectType
-                ],
-                parameters: [],
-                nullabilitySuffix: NullabilitySuffix.none),
+        ..addExpressionChange(
+            IntroduceAsChange(
+                FunctionTypeImpl(
+                    returnType: nnbdTypeProvider.boolType,
+                    typeFormals: [
+                      TypeParameterElementImpl.synthetic('T')
+                        ..bound = nnbdTypeProvider.objectType
+                    ],
+                    parameters: [],
+                    nullabilitySuffix: NullabilitySuffix.none),
+                isDowncast: false),
             _MockInfo())
     });
     expect(previewInfo.applyTo(code),
@@ -946,16 +969,18 @@ f(Object o) => o as a.Future<Null>;
     var expr = findNode.simple('o;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(
-            FunctionTypeImpl(
-                returnType: nnbdTypeProvider.boolType,
-                typeFormals: [
-                  TypeParameterElementImpl.synthetic('T')
-                    ..bound = (nnbdTypeProvider.objectType as TypeImpl)
-                        .withNullability(NullabilitySuffix.question)
-                ],
-                parameters: [],
-                nullabilitySuffix: NullabilitySuffix.none),
+        ..addExpressionChange(
+            IntroduceAsChange(
+                FunctionTypeImpl(
+                    returnType: nnbdTypeProvider.boolType,
+                    typeFormals: [
+                      TypeParameterElementImpl.synthetic('T')
+                        ..bound = (nnbdTypeProvider.objectType as TypeImpl)
+                            .withNullability(NullabilitySuffix.question)
+                    ],
+                    parameters: [],
+                    nullabilitySuffix: NullabilitySuffix.none),
+                isDowncast: false),
             _MockInfo())
     });
     expect(
@@ -967,16 +992,18 @@ f(Object o) => o as a.Future<Null>;
     var expr = findNode.simple('o;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(
-            FunctionTypeImpl(
-                returnType: nnbdTypeProvider.boolType,
-                typeFormals: [
-                  TypeParameterElementImpl.synthetic('T')
-                    ..bound = (nnbdTypeProvider.numType as TypeImpl)
-                        .withNullability(NullabilitySuffix.question)
-                ],
-                parameters: [],
-                nullabilitySuffix: NullabilitySuffix.none),
+        ..addExpressionChange(
+            IntroduceAsChange(
+                FunctionTypeImpl(
+                    returnType: nnbdTypeProvider.boolType,
+                    typeFormals: [
+                      TypeParameterElementImpl.synthetic('T')
+                        ..bound = (nnbdTypeProvider.numType as TypeImpl)
+                            .withNullability(NullabilitySuffix.question)
+                    ],
+                    parameters: [],
+                    nullabilitySuffix: NullabilitySuffix.none),
+                isDowncast: false),
             _MockInfo())
     });
     expect(previewInfo.applyTo(code),
@@ -988,15 +1015,17 @@ f(Object o) => o as a.Future<Null>;
     var expr = findNode.simple('o;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(
-            FunctionTypeImpl(
-                returnType: nnbdTypeProvider.boolType,
-                typeFormals: [
-                  TypeParameterElementImpl.synthetic('T'),
-                  TypeParameterElementImpl.synthetic('U')
-                ],
-                parameters: [],
-                nullabilitySuffix: NullabilitySuffix.none),
+        ..addExpressionChange(
+            IntroduceAsChange(
+                FunctionTypeImpl(
+                    returnType: nnbdTypeProvider.boolType,
+                    typeFormals: [
+                      TypeParameterElementImpl.synthetic('T'),
+                      TypeParameterElementImpl.synthetic('U')
+                    ],
+                    parameters: [],
+                    nullabilitySuffix: NullabilitySuffix.none),
+                isDowncast: false),
             _MockInfo())
     });
     expect(previewInfo.applyTo(code),
@@ -1008,17 +1037,19 @@ f(Object o) => o as a.Future<Null>;
     var expr = findNode.simple('o;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(
-            FunctionTypeImpl(
-                returnType: nnbdTypeProvider.boolType,
-                typeFormals: [],
-                parameters: [
-                  ParameterElementImpl.synthetic(
-                      'x', nnbdTypeProvider.intType, ParameterKind.REQUIRED),
-                  ParameterElementImpl.synthetic(
-                      'y', nnbdTypeProvider.numType, ParameterKind.REQUIRED)
-                ],
-                nullabilitySuffix: NullabilitySuffix.none),
+        ..addExpressionChange(
+            IntroduceAsChange(
+                FunctionTypeImpl(
+                    returnType: nnbdTypeProvider.boolType,
+                    typeFormals: [],
+                    parameters: [
+                      ParameterElementImpl.synthetic('x',
+                          nnbdTypeProvider.intType, ParameterKind.REQUIRED),
+                      ParameterElementImpl.synthetic(
+                          'y', nnbdTypeProvider.numType, ParameterKind.REQUIRED)
+                    ],
+                    nullabilitySuffix: NullabilitySuffix.none),
+                isDowncast: false),
             _MockInfo())
     });
     expect(previewInfo.applyTo(code),
@@ -1030,17 +1061,19 @@ f(Object o) => o as a.Future<Null>;
     var expr = findNode.simple('o;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(
-            FunctionTypeImpl(
-                returnType: nnbdTypeProvider.boolType,
-                typeFormals: [],
-                parameters: [
-                  ParameterElementImpl.synthetic(
-                      'x', nnbdTypeProvider.intType, ParameterKind.NAMED),
-                  ParameterElementImpl.synthetic(
-                      'y', nnbdTypeProvider.numType, ParameterKind.NAMED)
-                ],
-                nullabilitySuffix: NullabilitySuffix.none),
+        ..addExpressionChange(
+            IntroduceAsChange(
+                FunctionTypeImpl(
+                    returnType: nnbdTypeProvider.boolType,
+                    typeFormals: [],
+                    parameters: [
+                      ParameterElementImpl.synthetic(
+                          'x', nnbdTypeProvider.intType, ParameterKind.NAMED),
+                      ParameterElementImpl.synthetic(
+                          'y', nnbdTypeProvider.numType, ParameterKind.NAMED)
+                    ],
+                    nullabilitySuffix: NullabilitySuffix.none),
+                isDowncast: false),
             _MockInfo())
     });
     expect(previewInfo.applyTo(code),
@@ -1052,17 +1085,19 @@ f(Object o) => o as a.Future<Null>;
     var expr = findNode.simple('o;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(
-            FunctionTypeImpl(
-                returnType: nnbdTypeProvider.boolType,
-                typeFormals: [],
-                parameters: [
-                  ParameterElementImpl.synthetic(
-                      'x', nnbdTypeProvider.intType, ParameterKind.POSITIONAL),
-                  ParameterElementImpl.synthetic(
-                      'y', nnbdTypeProvider.numType, ParameterKind.POSITIONAL)
-                ],
-                nullabilitySuffix: NullabilitySuffix.none),
+        ..addExpressionChange(
+            IntroduceAsChange(
+                FunctionTypeImpl(
+                    returnType: nnbdTypeProvider.boolType,
+                    typeFormals: [],
+                    parameters: [
+                      ParameterElementImpl.synthetic('x',
+                          nnbdTypeProvider.intType, ParameterKind.POSITIONAL),
+                      ParameterElementImpl.synthetic('y',
+                          nnbdTypeProvider.numType, ParameterKind.POSITIONAL)
+                    ],
+                    nullabilitySuffix: NullabilitySuffix.none),
+                isDowncast: false),
             _MockInfo())
     });
     expect(previewInfo.applyTo(code),
@@ -1074,9 +1109,11 @@ f(Object o) => o as a.Future<Null>;
     var expr = findNode.simple('o;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(
-            nnbdTypeProvider.mapType(
-                nnbdTypeProvider.intType, nnbdTypeProvider.boolType),
+        ..addExpressionChange(
+            IntroduceAsChange(
+                nnbdTypeProvider.mapType(
+                    nnbdTypeProvider.intType, nnbdTypeProvider.boolType),
+                isDowncast: false),
             _MockInfo())
     });
     expect(previewInfo.applyTo(code), 'f(Object o) => o as Map<int, bool>;');
@@ -1087,7 +1124,9 @@ f(Object o) => o as a.Future<Null>;
     var expr = findNode.binary('a | b');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(nnbdTypeProvider.intType, _MockInfo())
+        ..addExpressionChange(
+            IntroduceAsChange(nnbdTypeProvider.intType, isDowncast: false),
+            _MockInfo())
     });
     expect(previewInfo.applyTo(code), 'f(a, b) => a | b as int;');
   }
@@ -1097,7 +1136,9 @@ f(Object o) => o as a.Future<Null>;
     var expr = findNode.binary('a < b');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(nnbdTypeProvider.boolType, _MockInfo())
+        ..addExpressionChange(
+            IntroduceAsChange(nnbdTypeProvider.boolType, isDowncast: false),
+            _MockInfo())
     });
     expect(previewInfo.applyTo(code), 'f(a, b) => (a < b) as bool;');
   }
@@ -1110,7 +1151,10 @@ f(Object o) => o;
     var expr = findNode.simple('o;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(nnbdTypeProvider.futureNullType, _MockInfo())
+        ..addExpressionChange(
+            IntroduceAsChange(nnbdTypeProvider.futureNullType,
+                isDowncast: false),
+            _MockInfo())
     });
     expect(previewInfo.applyTo(code), '''
 import 'dart:async' as a;
@@ -1123,8 +1167,10 @@ f(Object o) => o as a.Future<Null>;
     var expr = findNode.simple('x;');
     var previewInfo = run({
       expr: NodeChangeForExpression()
-        ..introduceAs(nnbdTypeProvider.intType, _MockInfo())
-        ..addNullCheck(_MockInfo())
+        ..addExpressionChange(NullCheckChange(MockDartType()), _MockInfo())
+        ..addExpressionChange(
+            IntroduceAsChange(nnbdTypeProvider.intType, isDowncast: false),
+            _MockInfo())
     });
     expect(previewInfo.applyTo(code), 'f(x) => x! as int;');
   }
@@ -1191,8 +1237,11 @@ f(Object o) => o as a.Future<Null>;
   Future<void> test_noValidMigration() async {
     await analyze('f(a) => null;');
     var literal = findNode.nullLiteral('null');
-    var previewInfo = run(
-        {literal: NodeChangeForExpression()..addNoValidMigration(_MockInfo())});
+    var previewInfo = run({
+      literal: NodeChangeForExpression()
+        ..addExpressionChange(
+            NoValidMigrationChange(MockDartType()), _MockInfo())
+    });
     expect(previewInfo.applyTo(code), code);
     expect(previewInfo.applyTo(code, includeInformative: true),
         'f(a) => null /* no valid migration */;');
@@ -1201,40 +1250,50 @@ f(Object o) => o as a.Future<Null>;
   Future<void> test_nullCheck_index_cascadeResult() async {
     await analyze('f(a) => a..[0].c;');
     var index = findNode.index('[0]');
-    var previewInfo =
-        run({index: NodeChangeForExpression()..addNullCheck(_MockInfo())});
+    var previewInfo = run({
+      index: NodeChangeForExpression()
+        ..addExpressionChange(NullCheckChange(MockDartType()), _MockInfo())
+    });
     expect(previewInfo.applyTo(code), 'f(a) => a..[0]!.c;');
   }
 
   Future<void> test_nullCheck_methodInvocation_cascadeResult() async {
     await analyze('f(a) => a..b().c;');
     var method = findNode.methodInvocation('b()');
-    var previewInfo = run(
-        {method: NodeChangeForMethodInvocation()..addNullCheck(_MockInfo())});
+    var previewInfo = run({
+      method: NodeChangeForMethodInvocation()
+        ..addExpressionChange(NullCheckChange(MockDartType()), _MockInfo())
+    });
     expect(previewInfo.applyTo(code), 'f(a) => a..b()!.c;');
   }
 
   Future<void> test_nullCheck_no_parens() async {
     await analyze('f(a) => a++;');
     var expr = findNode.postfix('a++');
-    var previewInfo =
-        run({expr: NodeChangeForExpression()..addNullCheck(_MockInfo())});
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..addExpressionChange(NullCheckChange(MockDartType()), _MockInfo())
+    });
     expect(previewInfo.applyTo(code), 'f(a) => a++!;');
   }
 
   Future<void> test_nullCheck_parens() async {
     await analyze('f(a) => -a;');
     var expr = findNode.prefix('-a');
-    var previewInfo =
-        run({expr: NodeChangeForExpression()..addNullCheck(_MockInfo())});
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..addExpressionChange(NullCheckChange(MockDartType()), _MockInfo())
+    });
     expect(previewInfo.applyTo(code), 'f(a) => (-a)!;');
   }
 
   Future<void> test_nullCheck_propertyAccess_cascadeResult() async {
     await analyze('f(a) => a..b.c;');
     var property = findNode.propertyAccess('b');
-    var previewInfo = run(
-        {property: NodeChangeForPropertyAccess()..addNullCheck(_MockInfo())});
+    var previewInfo = run({
+      property: NodeChangeForPropertyAccess()
+        ..addExpressionChange(NullCheckChange(MockDartType()), _MockInfo())
+    });
     expect(previewInfo.applyTo(code), 'f(a) => a..b!.c;');
   }
 
@@ -1409,7 +1468,7 @@ class C {
     await analyze(content);
     var previewInfo = run({
       findNode.postfix('++'): NodeChangeForPostfixExpression()
-        ..addNullCheck(null)
+        ..addExpressionChange(NullCheckChange(MockDartType()), null)
     });
     expect(previewInfo.applyTo(code), 'f(int x) => x++!;');
   }
@@ -1420,7 +1479,7 @@ class C {
     var previewInfo = run({
       findNode.postfix('++'): NodeChangeForPostfixExpression(),
       findNode.index('[0]').target: NodeChangeForExpression()
-        ..addNullCheck(null)
+        ..addExpressionChange(NullCheckChange(MockDartType()), null)
     });
     expect(previewInfo.applyTo(code), 'f(List<int> x) => x![0]++;');
   }
@@ -1430,7 +1489,9 @@ class C {
     await analyze(content);
     var previewInfo = run({
       findNode.postfix('++'): NodeChangeForPostfixExpression()
-        ..introduceAs(nnbdTypeProvider.intType, null)
+        ..addExpressionChange(
+            IntroduceAsChange(nnbdTypeProvider.intType, isDowncast: false),
+            null)
     });
     expect(previewInfo.applyTo(code), 'f(int x) => x++ as int;');
   }
@@ -1471,7 +1532,8 @@ class C {
     var content = 'f(int x) => ++x;';
     await analyze(content);
     var previewInfo = run({
-      findNode.prefix('++'): NodeChangeForPrefixExpression()..addNullCheck(null)
+      findNode.prefix('++'): NodeChangeForPrefixExpression()
+        ..addExpressionChange(NullCheckChange(MockDartType()), null)
     });
     expect(previewInfo.applyTo(code), 'f(int x) => (++x)!;');
   }
@@ -1482,7 +1544,7 @@ class C {
     var previewInfo = run({
       findNode.prefix('++'): NodeChangeForPrefixExpression(),
       findNode.index('[0]').target: NodeChangeForExpression()
-        ..addNullCheck(null)
+        ..addExpressionChange(NullCheckChange(MockDartType()), null)
     });
     expect(previewInfo.applyTo(code), 'f(List<int> x) => ++x![0];');
   }
@@ -1492,7 +1554,9 @@ class C {
     await analyze(content);
     var previewInfo = run({
       findNode.prefix('++'): NodeChangeForPrefixExpression()
-        ..introduceAs(nnbdTypeProvider.intType, null)
+        ..addExpressionChange(
+            IntroduceAsChange(nnbdTypeProvider.intType, isDowncast: false),
+            null)
     });
     expect(previewInfo.applyTo(code), 'f(int x) => ++x as int;');
   }
@@ -1727,7 +1791,8 @@ int f() => null;
     var previewInfo = run({
       methodInvocation: NodeChangeForMethodInvocation()
         ..removeNullAwareness = true,
-      argument: NodeChangeForExpression()..addNullCheck(_MockInfo())
+      argument: NodeChangeForExpression()
+        ..addExpressionChange(NullCheckChange(MockDartType()), _MockInfo())
     });
     expect(previewInfo.applyTo(code), 'f(x) => x.m(x!);');
   }
@@ -1906,7 +1971,7 @@ f({required int x}) {}
           NodeChangeForVariableDeclarationList()
             ..addExplicitType = nnbdTypeProvider.intType,
       findNode.integerLiteral('0'): NodeChangeForExpression()
-        ..addNullCheck(_MockInfo())
+        ..addExpressionChange(NullCheckChange(MockDartType()), _MockInfo())
     });
     expect(previewInfo.applyTo(code), 'int x = 0!;');
   }

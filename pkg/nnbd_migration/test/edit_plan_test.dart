@@ -315,6 +315,30 @@ class C {
         expectedIncludingInformative: 'f() => 0 /* zero */ .isEven;');
   }
 
+  Future<void> test_addPostfix_inner_precedence_add_parens() async {
+    await analyze('f(x) => -x;');
+    checkPlan(
+        planner.addPostfix(
+            planner.passThrough(findNode.prefix('-x')), '.abs()'),
+        'f(x) => (-x).abs();');
+  }
+
+  Future<void> test_addPostfix_inner_precedence_no_parens() async {
+    await analyze('f(x) => x++;');
+    checkPlan(
+        planner.addPostfix(
+            planner.passThrough(findNode.postfix('x++')), '.abs()'),
+        'f(x) => x++.abs();');
+  }
+
+  Future<void> test_addPostfix_outer_precedence() async {
+    await analyze('f(x) => x/*!*/;');
+    checkPlan(
+        planner.addPostfix(
+            planner.passThrough(findNode.simple('x/*!*/')), '.abs()'),
+        'f(x) => x.abs()/*!*/;');
+  }
+
   Future<void> test_addUnaryPostfix_inner_precedence_add_parens() async {
     await analyze('f(x) => -x;');
     checkPlan(
