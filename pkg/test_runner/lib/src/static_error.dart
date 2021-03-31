@@ -490,7 +490,12 @@ class _ErrorExpectationParser {
   /// For errors that have a number associated with them, tracks that number.
   ///
   /// These are used after parsing to attach context messages to their errors.
-  final Map<StaticError, int> _errorNumbers = {};
+  ///
+  /// Note: if the same context message appears multiple times at the same
+  /// location, there will be distinct (non-identical) StaticError instances
+  /// that compare equal.  We use `Map.identity` to ensure that we can associate
+  /// each with its own context number.
+  final Map<StaticError, int> _errorNumbers = Map.identity();
 
   int _currentLine = 0;
 

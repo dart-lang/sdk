@@ -174,7 +174,11 @@ String updateErrorExpectations(String source, List<StaticError> errors,
 /// Assigns unique numbers to all [errors] that have context messages, as well
 /// as their context messages.
 Map<StaticError, int> _numberErrors(List<StaticError> errors) {
-  var result = <StaticError, int>{};
+  // Note: if the same context message appears multiple times at the same
+  // location, there will be distinct (non-identical) StaticError instances
+  // that compare equal.  We use `Map.identity` to ensure that we can associate
+  // each with its own context number.
+  var result = Map<StaticError, int>.identity();
   var number = 1;
   for (var error in errors) {
     if (error.contextMessages.isEmpty) continue;
