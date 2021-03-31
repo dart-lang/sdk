@@ -3231,17 +3231,7 @@ void GroupDebugger::NotifyCompilation(const Function& function) {
 
   // Going through BreakpointLocations of all isolates and debuggers looking
   // for those that can be resolved and added code breakpoints at now.
-  //
-  // When IsolateGroups are enabled assert that we are either only one isolate
-  // or in safepoint operation scope because we are updating
-  // breakpoint_locations, which normally needs to be under a
-  // breakpoint_locations_lock, but we can't acquire that lock because
-  // somebody else(who is at a safepoint we inititated) holds it
-  // already, can't release it.
-  RELEASE_ASSERT(
-      (thread->IsMutatorThread() && !IsolateGroup::AreIsolateGroupsEnabled()) ||
-      (thread->IsMutatorThread() && isolate_group_->ContainsOnlyOneIsolate()) ||
-      isolate_group_->safepoint_handler()->IsOwnedByTheThread(thread));
+  SafepointReadRwLocker sl(thread, breakpoint_locations_lock());
   for (intptr_t i = 0; i < breakpoint_locations_.length(); i++) {
     BreakpointLocation* location = breakpoint_locations_.At(i);
     if (EnsureLocationIsInFunction(zone, function, location)) {
