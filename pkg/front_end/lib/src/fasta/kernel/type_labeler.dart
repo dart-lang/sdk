@@ -112,8 +112,8 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(nameForEntity(
         typedefNode,
         typedefNode.name,
-        typedefNode.enclosingLibrary.importUri,
-        typedefNode.enclosingLibrary.fileUri));
+        typedefNode?.enclosingLibrary?.importUri ?? unknownUri,
+        typedefNode?.enclosingLibrary?.fileUri ?? unknownUri));
     if (node.typeArguments.isNotEmpty) {
       result.add("<");
       bool first = true;
@@ -226,8 +226,10 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(nameForEntity(
         classNode,
         classNode.name,
-        classNode.enclosingLibrary.importUri,
-        classNode.enclosingLibrary.fileUri));
+        // TODO(johnniwinther): Ensure enclosing libraries on classes earlier
+        // in the compiler to ensure types in error messages have context.
+        classNode?.enclosingLibrary?.importUri ?? unknownUri,
+        classNode?.enclosingLibrary?.fileUri ?? unknownUri));
     if (node.typeArguments.isNotEmpty) {
       result.add("<");
       bool first = true;
@@ -252,8 +254,8 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(nameForEntity(
         node.extension,
         node.extension.name,
-        node.extension.enclosingLibrary.importUri,
-        node.extension.enclosingLibrary.fileUri));
+        node.extension?.enclosingLibrary?.importUri ?? unknownUri,
+        node.extension?.enclosingLibrary?.fileUri ?? unknownUri));
     if (node.typeArguments.isNotEmpty) {
       result.add("<");
       bool first = true;

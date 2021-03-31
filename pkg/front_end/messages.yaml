@@ -2952,6 +2952,14 @@ SupertypeIsIllegal:
   template: "The type '#name' can't be used as supertype."
   analyzerCode: EXTENDS_NON_CLASS
 
+SupertypeIsIllegalAliased:
+  template: "The type '#name' which is an alias of '#type' can't be used as supertype."
+  analyzerCode: EXTENDS_NON_CLASS
+
+SupertypeIsNullableAliased:
+  template: "The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable."
+  analyzerCode: EXTENDS_NON_CLASS
+
 SupertypeIsTypeVariable:
   template: "The type variable '#name' can't be used as supertype."
   analyzerCode: EXTENDS_NON_CLASS

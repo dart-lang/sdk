@@ -21,6 +21,8 @@ import '../fasta_codes.dart'
         templateExtendingRestricted,
         templateNotAType,
         templateSupertypeIsIllegal,
+        templateSupertypeIsIllegalAliased,
+        templateSupertypeIsNullableAliased,
         templateSupertypeIsTypeVariable,
         templateTypeArgumentMismatch,
         templateTypeArgumentsOnTypeVariable,
@@ -177,7 +179,7 @@ class NamedTypeBuilder extends TypeBuilder {
   String get debugName => "NamedTypeBuilder";
 
   StringBuffer printOn(StringBuffer buffer) {
-    buffer.write(name);
+    buffer.write(flattenName(name, charOffset, fileUri));
     if (arguments?.isEmpty ?? true) return buffer;
     buffer.write("<");
     bool first = true;
@@ -201,29 +203,39 @@ class NamedTypeBuilder extends TypeBuilder {
         context: context);
   }
 
-  Supertype handleInvalidSupertype(LibraryBuilder library, int charOffset,
-      Uri fileUri, TypeAliasBuilder aliasBuilder) {
+  Supertype handleInvalidSupertype(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
     Template<Message Function(String name)> template =
         declaration.isTypeVariable
             ? templateSupertypeIsTypeVariable
             : templateSupertypeIsIllegal;
-    if (aliasBuilder != null) {
-      library.addProblem(
-          template.withArguments(flattenName(name, charOffset, fileUri)),
-          charOffset,
-          noLength,
-          fileUri,
-          context: [
-            messageTypedefCause.withLocation(
-                aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
-          ]);
-    } else {
-      library.addProblem(
-          template.withArguments(flattenName(name, charOffset, fileUri)),
-          charOffset,
-          noLength,
-          fileUri);
-    }
+    library.addProblem(template.withArguments(fullNameForErrors), charOffset,
+        noLength, fileUri);
+    return null;
+  }
+
+  Supertype handleInvalidAliasedSupertype(
+      LibraryBuilder library,
+      int charOffset,
+      Uri fileUri,
+      TypeAliasBuilder aliasBuilder,
+      DartType type) {
+    Template<Message Function(String name, DartType type, bool)> template =
+        declaration.isTypeVariable
+            ? templateSupertypeIsTypeVariable
+            : (type != null && type.nullability == Nullability.nullable
+                ? templateSupertypeIsNullableAliased
+                : templateSupertypeIsIllegalAliased);
+    library.addProblem(
+        template.withArguments(
+            fullNameForErrors, type, library.isNonNullableByDefault),
+        charOffset,
+        noLength,
+        fileUri,
+        context: [
+          messageTypedefCause.withLocation(
+              aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+        ]);
     return null;
   }
 
@@ -266,7 +278,6 @@ class NamedTypeBuilder extends TypeBuilder {
   Supertype buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration;
-    TypeAliasBuilder aliasBuilder; // Non-null if a type alias is used.
     if (declaration is ClassBuilder) {
       if (declaration.isNullClass && !library.mayImplementRestrictedTypes) {
         library.addProblem(
@@ -277,10 +288,10 @@ class NamedTypeBuilder extends TypeBuilder {
       }
       return declaration.buildSupertype(library, arguments);
     } else if (declaration is TypeAliasBuilder) {
-      aliasBuilder = declaration;
+      TypeAliasBuilder aliasBuilder = declaration;
       DartType type =
           declaration.buildType(library, library.nonNullableBuilder, arguments);
-      if (type is InterfaceType) {
+      if (type is InterfaceType && type.nullability != Nullability.nullable) {
         return new Supertype(type.classNode, type.typeArguments);
       } else if (type is NullType) {
         // Even though Null is disallowed as a supertype, ClassHierarchyBuilder
@@ -324,9 +335,9 @@ class NamedTypeBuilder extends TypeBuilder {
             unaliasedDeclaration.name == "FutureOr");
         return new Supertype((unaliasedDeclaration as ClassBuilder).cls,
             <DartType>[type.typeArgument]);
-      } else {
-        // Do nothing: handleInvalidSuper below will handle the erroneous case.
       }
+      return handleInvalidAliasedSupertype(
+          library, charOffset, fileUri, aliasBuilder, type);
     } else if (declaration is InvalidTypeDeclarationBuilder) {
       library.addProblem(
           declaration.message.messageObject,
@@ -336,22 +347,23 @@ class NamedTypeBuilder extends TypeBuilder {
           severity: Severity.error);
       return null;
     }
-    return handleInvalidSupertype(library, charOffset, fileUri, aliasBuilder);
+    return handleInvalidSupertype(library, charOffset, fileUri);
   }
 
   Supertype buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration;
-    TypeAliasBuilder aliasBuilder; // Non-null if a type alias is used.
     if (declaration is ClassBuilder) {
       return declaration.buildMixedInType(library, arguments);
     } else if (declaration is TypeAliasBuilder) {
-      aliasBuilder = declaration;
+      TypeAliasBuilder aliasBuilder = declaration;
       DartType type =
           declaration.buildType(library, library.nonNullableBuilder, arguments);
-      if (type is InterfaceType) {
+      if (type is InterfaceType && type.nullability != Nullability.nullable) {
         return new Supertype(type.classNode, type.typeArguments);
       }
+      return handleInvalidAliasedSupertype(
+          library, charOffset, fileUri, aliasBuilder, type);
     } else if (declaration is InvalidTypeDeclarationBuilder) {
       library.addProblem(
           declaration.message.messageObject,
@@ -361,7 +373,7 @@ class NamedTypeBuilder extends TypeBuilder {
           severity: Severity.error);
       return null;
     }
-    return handleInvalidSupertype(library, charOffset, fileUri, aliasBuilder);
+    return handleInvalidSupertype(library, charOffset, fileUri);
   }
 
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {
