@@ -3058,8 +3058,9 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
     Arguments arguments = send.arguments;
 
     TypeDeclarationBuilder declarationBuilder = declaration;
+    TypeAliasBuilder aliasBuilder;
     if (declarationBuilder is TypeAliasBuilder) {
-      TypeAliasBuilder aliasBuilder = declarationBuilder;
+      aliasBuilder = declarationBuilder;
       declarationBuilder = aliasBuilder.unaliasDeclaration(null,
           isUsedAsClass: true,
           usedAsClassCharOffset: this.fileOffset,
@@ -3085,7 +3086,8 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
               send.typeArguments,
               token.charOffset,
               Constness.implicit,
-              isTypeArgumentsInForest: send.isTypeArgumentsInForest);
+              isTypeArgumentsInForest: send.isTypeArgumentsInForest,
+              typeAliasBuilder: aliasBuilder);
         }
       } else if (member is AmbiguousBuilder) {
         return _helper.buildProblem(

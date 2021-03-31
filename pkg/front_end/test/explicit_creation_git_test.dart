@@ -237,7 +237,8 @@ class BodyBuilderTest extends BodyBuilder {
       List<UnresolvedType> typeArguments,
       int charOffset,
       Constness constness,
-      {bool isTypeArgumentsInForest = false}) {
+      {bool isTypeArgumentsInForest = false,
+      TypeDeclarationBuilder typeAliasBuilder}) {
     Token maybeNewOrConst = nameToken.previous;
     bool doReport = true;
     if (maybeNewOrConst is KeywordToken) {
