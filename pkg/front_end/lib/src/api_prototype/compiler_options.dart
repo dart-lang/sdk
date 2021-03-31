@@ -31,7 +31,8 @@ import 'experimental_flags.dart' as flags
     show
         getExperimentEnabledVersionInLibrary,
         isExperimentEnabled,
-        isExperimentEnabledInLibrary;
+        isExperimentEnabledInLibrary,
+        isExperimentEnabledInLibraryByVersion;
 
 import 'file_system.dart' show FileSystem;
 
@@ -292,6 +293,17 @@ class CompilerOptions {
       ExperimentalFlag flag, Uri importUri) {
     return flags.getExperimentEnabledVersionInLibrary(
         flag, importUri, explicitExperimentalFlags,
+        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
+        allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
+        experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
+        experimentReleasedVersionForTesting:
+            experimentReleasedVersionForTesting);
+  }
+
+  bool isExperimentEnabledInLibraryByVersion(
+      ExperimentalFlag flag, Uri importUri, Version version) {
+    return flags.isExperimentEnabledInLibraryByVersion(flag, importUri, version,
+        explicitExperimentalFlags: explicitExperimentalFlags,
         defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
         allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
         experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,

@@ -231,6 +231,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   List<FieldBuilder> _implicitlyTypedFields;
 
+  /// The language version of this library as defined by the language version
+  /// of the package it belongs to, if present, or the current language version
+  /// otherwise.
+  ///
+  /// This language version we be used as the language version for the library
+  /// if the library does not contain an explicit @dart= annotation.
+  final LanguageVersion packageLanguageVersion;
+
+  /// The actual language version of this library. This is initially the
+  /// [packageLanguageVersion] but will be updated if the library contains
+  /// an explicit @dart= language version annotation.
   LanguageVersion _languageVersion;
 
   bool postponedProblemsIssued = false;
@@ -247,6 +258,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       SourceLoader loader,
       Uri fileUri,
       Uri packageUri,
+      LanguageVersion packageLanguageVersion,
       Scope scope,
       SourceLibraryBuilder actualOrigin,
       Library library,
@@ -257,6 +269,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             loader,
             fileUri,
             packageUri,
+            packageLanguageVersion,
             new TypeParameterScopeBuilder.library(),
             scope ?? new Scope.top(),
             actualOrigin,
@@ -268,13 +281,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this.loader,
       this.fileUri,
       this._packageUri,
+      this.packageLanguageVersion,
       this.libraryDeclaration,
       this.importScope,
       this.actualOrigin,
       this.library,
       this._nameOrigin,
       this.referencesFrom)
-      : _languageVersion = new ImplicitLanguageVersion(library.languageVersion),
+      : _languageVersion = packageLanguageVersion,
         currentTypeParameterScopeBuilder = libraryDeclaration,
         referencesFromIndexed =
             referencesFrom == null ? null : new IndexedLibrary(referencesFrom),
@@ -303,17 +317,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool _enableExtensionTypesInLibrary;
 
   bool get enableConstFunctionsInLibrary => _enableConstFunctionsInLibrary ??=
-      loader.target.isExperimentEnabledInLibrary(
-          ExperimentalFlag.constFunctions, _packageUri ?? importUri);
+      loader.target.isExperimentEnabledInLibraryByVersion(
+          ExperimentalFlag.constFunctions,
+          _packageUri ?? importUri,
+          languageVersion.version);
 
-  bool get enableVarianceInLibrary =>
-      _enableVarianceInLibrary ??= loader.target.isExperimentEnabledInLibrary(
-          ExperimentalFlag.variance, _packageUri ?? importUri);
+  bool get enableVarianceInLibrary => _enableVarianceInLibrary ??= loader.target
+      .isExperimentEnabledInLibraryByVersion(ExperimentalFlag.variance,
+          _packageUri ?? importUri, languageVersion.version);
 
   bool get enableNonfunctionTypeAliasesInLibrary =>
       _enableNonfunctionTypeAliasesInLibrary ??= loader.target
-          .isExperimentEnabledInLibrary(ExperimentalFlag.nonfunctionTypeAliases,
-              _packageUri ?? importUri);
+          .isExperimentEnabledInLibraryByVersion(
+              ExperimentalFlag.nonfunctionTypeAliases,
+              _packageUri ?? importUri,
+              languageVersion.version);
 
   /// Returns `true` if the 'non-nullable' experiment is enabled for this
   /// library.
@@ -331,46 +349,54 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               ExperimentalFlag.nonNullable, _packageUri ?? importUri);
 
   bool get enableTripleShiftInLibrary => _enableTripleShiftInLibrary ??=
-      loader.target.isExperimentEnabledInLibrary(
-          ExperimentalFlag.tripleShift, _packageUri ?? importUri);
+      loader.target.isExperimentEnabledInLibraryByVersion(
+          ExperimentalFlag.tripleShift,
+          _packageUri ?? importUri,
+          languageVersion.version);
 
   bool get enableExtensionMethodsInLibrary =>
       _enableExtensionMethodsInLibrary ??= loader.target
-          .isExperimentEnabledInLibrary(
-              ExperimentalFlag.extensionMethods, _packageUri ?? importUri);
+          .isExperimentEnabledInLibraryByVersion(
+              ExperimentalFlag.extensionMethods,
+              _packageUri ?? importUri,
+              languageVersion.version);
 
   bool get enableGenericMetadataInLibrary => _enableGenericMetadataInLibrary ??=
-      loader.target.isExperimentEnabledInLibrary(
-          ExperimentalFlag.genericMetadata, _packageUri ?? importUri);
+      loader.target.isExperimentEnabledInLibraryByVersion(
+          ExperimentalFlag.genericMetadata,
+          _packageUri ?? importUri,
+          languageVersion.version);
 
   bool get enableExtensionTypesInLibrary => _enableExtensionTypesInLibrary ??=
-      loader.target.isExperimentEnabledInLibrary(
-          ExperimentalFlag.extensionTypes, _packageUri ?? importUri);
+      loader.target.isExperimentEnabledInLibraryByVersion(
+          ExperimentalFlag.extensionTypes,
+          _packageUri ?? importUri,
+          languageVersion.version);
 
-  void updateLibraryNNBDSettings() {
+  void _updateLibraryNNBDSettings() {
     library.isNonNullableByDefault = isNonNullableByDefault;
-    if (enableNonNullableInLibrary) {
-      switch (loader.nnbdMode) {
-        case NnbdMode.Weak:
-          library.nonNullableByDefaultCompiledMode =
-              NonNullableByDefaultCompiledMode.Weak;
-          break;
-        case NnbdMode.Strong:
-          library.nonNullableByDefaultCompiledMode =
-              NonNullableByDefaultCompiledMode.Strong;
-          break;
-        case NnbdMode.Agnostic:
-          library.nonNullableByDefaultCompiledMode =
-              NonNullableByDefaultCompiledMode.Agnostic;
-          break;
-      }
-    } else {
-      library.nonNullableByDefaultCompiledMode =
-          NonNullableByDefaultCompiledMode.Weak;
+    switch (loader.nnbdMode) {
+      case NnbdMode.Weak:
+        library.nonNullableByDefaultCompiledMode =
+            NonNullableByDefaultCompiledMode.Weak;
+        break;
+      case NnbdMode.Strong:
+        library.nonNullableByDefaultCompiledMode =
+            NonNullableByDefaultCompiledMode.Strong;
+        break;
+      case NnbdMode.Agnostic:
+        library.nonNullableByDefaultCompiledMode =
+            NonNullableByDefaultCompiledMode.Agnostic;
+        break;
     }
   }
 
-  SourceLibraryBuilder(Uri uri, Uri fileUri, Uri packageUri, Loader loader,
+  SourceLibraryBuilder(
+      Uri uri,
+      Uri fileUri,
+      Uri packageUri,
+      LanguageVersion packageLanguageVersion,
+      Loader loader,
       SourceLibraryBuilder actualOrigin,
       {Scope scope,
       Library target,
@@ -381,6 +407,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             loader,
             fileUri,
             packageUri,
+            packageLanguageVersion,
             scope,
             actualOrigin,
             target ??
@@ -390,7 +417,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                         reference: referenceIsPartOwner == true
                             ? null
                             : referencesFrom?.reference)
-                  ..setLanguageVersion(loader.target.currentSdkVersion)),
+                  ..setLanguageVersion(packageLanguageVersion.version)),
             nameOrigin,
             referencesFrom,
             referenceIsPartOwner);
@@ -425,7 +452,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool _ensureIsNonNullableByDefault() {
     if (_isNonNullableByDefault == null) {
       _isNonNullableByDefault = _computeIsNonNullableByDefault();
-      updateLibraryNNBDSettings();
+      _updateLibraryNNBDSettings();
     }
     return _isNonNullableByDefault;
   }
@@ -458,9 +485,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     'vm/dart_2/', // in runtime/tests
   ];
 
-  LanguageVersion get languageVersion => _languageVersion;
+  LanguageVersion get languageVersion {
+    assert(
+        _languageVersion.isFinal,
+        "Attempting to read the language version of ${this} before has been "
+        "finalized.");
+    return _languageVersion;
+  }
 
   void markLanguageVersionFinal() {
+    _languageVersion.isFinal = true;
+    _ensureIsNonNullableByDefault();
     if (!isNonNullableByDefault &&
         (loader.nnbdMode == NnbdMode.Strong ||
             loader.nnbdMode == NnbdMode.Agnostic)) {
@@ -476,32 +511,29 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           NonNullableByDefaultCompiledMode.Invalid;
       loader.hasInvalidNnbdModeLibrary = true;
     }
-    _languageVersion.isFinal = true;
-    _ensureIsNonNullableByDefault();
   }
 
-  @override
-  void setLanguageVersion(Version version,
-      {int offset: 0, int length: noLength, bool explicit: false}) {
-    assert(!_languageVersion.isFinal);
-    if (languageVersion.isExplicit) return;
-
-    if (version == null) {
-      addPostponedProblem(
-          messageLanguageVersionInvalidInDotPackages, offset, length, fileUri);
-      if (_languageVersion is ImplicitLanguageVersion) {
-        // If the package set an OK version, but the file set an invalid version
-        // we want to use the package version.
-        _languageVersion = new InvalidLanguageVersion(
-            fileUri, offset, length, explicit, loader.target.currentSdkVersion);
-        library.setLanguageVersion(_languageVersion.version);
-      }
+  /// Set the language version to an explicit major and minor version.
+  ///
+  /// The default language version specified by the .packages file is passed
+  /// to the constructor, but the library can have source code that specifies
+  /// another one which should be supported.
+  ///
+  /// Only the first registered language version is used.
+  ///
+  /// [offset] and [length] refers to the offset and length of the source code
+  /// specifying the language version.
+  void registerExplicitLanguageVersion(Version version,
+      {int offset: 0, int length: noLength}) {
+    if (_languageVersion.isExplicit) {
+      // If more than once language version exists we use the first.
       return;
     }
+    assert(!_languageVersion.isFinal);
 
-    // If trying to set a language version that is higher than the current sdk
-    // version it's an error.
     if (version > loader.target.currentSdkVersion) {
+      // If trying to set a language version that is higher than the current sdk
+      // version it's an error.
       addPostponedProblem(
           templateLanguageVersionTooHigh.withArguments(
               loader.target.currentSdkVersion.major,
@@ -509,19 +541,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           offset,
           length,
           fileUri);
-      if (_languageVersion is ImplicitLanguageVersion) {
-        // If the package set an OK version, but the file set an invalid version
-        // we want to use the package version.
-        _languageVersion = new InvalidLanguageVersion(
-            fileUri, offset, length, explicit, loader.target.currentSdkVersion);
-        library.setLanguageVersion(_languageVersion.version);
-      }
-      return;
+      // If the package set an OK version, but the file set an invalid version
+      // we want to use the package version.
+      _languageVersion = new InvalidLanguageVersion(
+          fileUri, offset, length, packageLanguageVersion.version, true);
+    } else {
+      _languageVersion = new LanguageVersion(version, fileUri, offset, length);
     }
-
-    _languageVersion =
-        new LanguageVersion(version, fileUri, offset, length, explicit);
-    library.setLanguageVersion(version);
+    library.setLanguageVersion(_languageVersion.version);
+    _languageVersion.isFinal = true;
   }
 
   ConstructorReferenceBuilder addConstructorReference(Object name,
@@ -4150,11 +4178,11 @@ class LanguageVersion {
   final Uri fileUri;
   final int charOffset;
   final int charCount;
-  final bool isExplicit;
   bool isFinal = false;
 
-  LanguageVersion(this.version, this.fileUri, this.charOffset, this.charCount,
-      this.isExplicit);
+  LanguageVersion(this.version, this.fileUri, this.charOffset, this.charCount);
+
+  bool get isExplicit => true;
 
   bool get valid => true;
 
@@ -4177,12 +4205,12 @@ class InvalidLanguageVersion implements LanguageVersion {
   final Uri fileUri;
   final int charOffset;
   final int charCount;
-  final bool isExplicit;
   final Version version;
+  final bool isExplicit;
   bool isFinal = false;
 
   InvalidLanguageVersion(this.fileUri, this.charOffset, this.charCount,
-      this.isExplicit, this.version);
+      this.version, this.isExplicit);
 
   @override
   bool get valid => false;

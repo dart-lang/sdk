@@ -17,6 +17,8 @@ import '../builder/class_builder.dart';
 
 import '../problems.dart' show unsupported;
 
+import '../source/source_library_builder.dart' show LanguageVersion;
+
 import '../target_implementation.dart' show TargetImplementation;
 
 import '../ticker.dart' show Ticker;
@@ -66,6 +68,7 @@ class DillTarget extends TargetImplementation {
       Uri uri,
       Uri fileUri,
       Uri packageUri,
+      LanguageVersion packageLanguageVersion,
       LibraryBuilder origin,
       Library referencesFrom,
       bool referenceIsPartOwner) {

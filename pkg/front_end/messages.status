@@ -786,6 +786,7 @@ UndefinedExtensionOperator/analyzerCode: Fail
 UndefinedExtensionOperator/example: Fail
 UndefinedExtensionSetter/analyzerCode: Fail
 UndefinedExtensionSetter/example: Fail
+UnexpectedModifierInNonNnbd/part_wrapped_script: Fail # Test requires @dart= annotation
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
 UnmatchedToken/part_wrapped_script1: Fail

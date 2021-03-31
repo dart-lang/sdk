@@ -119,7 +119,8 @@ import 'kernel/kernel_target.dart' show KernelTarget;
 
 import 'library_graph.dart' show LibraryGraph;
 
-import 'source/source_library_builder.dart' show SourceLibraryBuilder;
+import 'source/source_library_builder.dart'
+    show ImplicitLanguageVersion, SourceLibraryBuilder;
 
 import 'ticker.dart' show Ticker;
 
@@ -1883,12 +1884,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         libraryUri,
         debugExprUri,
         /*packageUri*/ null,
+        new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
         userCode.loader,
         null,
         scope: libraryBuilder.scope.createNestedScope("expression"),
         nameOrigin: libraryBuilder.library,
       );
-      debugLibrary.setLanguageVersion(libraryBuilder.library.languageVersion);
       ticker.logMs("Created debug library");
 
       if (libraryBuilder is DillLibraryBuilder) {

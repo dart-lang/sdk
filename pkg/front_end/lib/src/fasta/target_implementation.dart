@@ -17,6 +17,7 @@ import '../base/processed_options.dart' show ProcessedOptions;
 import 'builder/class_builder.dart';
 import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
+import 'source/source_library_builder.dart' show LanguageVersion;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -66,6 +67,12 @@ abstract class TargetImplementation extends Target {
     return _options.getExperimentEnabledVersionInLibrary(flag, importUri);
   }
 
+  bool isExperimentEnabledInLibraryByVersion(
+      ExperimentalFlag flag, Uri importUri, Version version) {
+    return _options.isExperimentEnabledInLibraryByVersion(
+        flag, importUri, version);
+  }
+
   /// Returns `true` if the [flag] is enabled by default.
   bool isExperimentEnabledByDefault(ExperimentalFlag flag) {
     return _options.isExperimentEnabledByDefault(flag);
@@ -100,10 +107,15 @@ abstract class TargetImplementation extends Target {
   /// For libraries with a 'package:' [importUri], the package path must match
   /// the path in the [importUri]. For libraries with a 'dart:' [importUri] the
   /// [packageUri] must be `null`.
+  ///
+  /// [packageLanguageVersion] is the language version defined by the package
+  /// which the library belongs to, or the current sdk version if the library
+  /// doesn't belong to a package.
   LibraryBuilder createLibraryBuilder(
       Uri uri,
       Uri fileUri,
       Uri packageUri,
+      LanguageVersion packageLanguageVersion,
       covariant LibraryBuilder origin,
       Library referencesFrom,
       bool referenceIsPartOwner);

@@ -182,3 +182,71 @@ Version getExperimentEnabledVersionInLibrary(ExperimentalFlag flag,
   assert(version != null, "No version for enabling $flag in $canonicalUri.");
   return version;
 }
+
+bool isExperimentEnabledInLibraryByVersion(
+    ExperimentalFlag flag, Uri canonicalUri, Version version,
+    {Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting,
+    Map<ExperimentalFlag, bool> explicitExperimentalFlags,
+    AllowedExperimentalFlags allowedExperimentalFlags,
+    Map<ExperimentalFlag, Version> experimentEnabledVersionForTesting,
+    Map<ExperimentalFlag, Version> experimentReleasedVersionForTesting}) {
+  assert(defaultExperimentalFlags.containsKey(flag),
+      "No default value for $flag.");
+  assert(expiredExperimentalFlags.containsKey(flag),
+      "No expired value for $flag.");
+  if (expiredExperimentalFlags[flag]) {
+    return defaultExperimentalFlags[flag];
+  }
+
+  bool enabledByDefault;
+  if (defaultExperimentFlagsForTesting != null) {
+    enabledByDefault = defaultExperimentFlagsForTesting[flag];
+  }
+  enabledByDefault ??= defaultExperimentalFlags[flag];
+
+  bool enabledExplicitly = explicitExperimentalFlags[flag] ?? false;
+
+  allowedExperimentalFlags ??= defaultAllowedExperimentalFlags;
+
+  Set<ExperimentalFlag> allowedFlags;
+  bool enabledByAllowed = false;
+  if (canonicalUri.scheme == 'dart') {
+    allowedFlags = allowedExperimentalFlags.forSdkLibrary(canonicalUri.path);
+  } else if (canonicalUri.scheme == 'package') {
+    int index = canonicalUri.path.indexOf('/');
+    String packageName;
+    if (index >= 0) {
+      packageName = canonicalUri.path.substring(0, index);
+    } else {
+      packageName = canonicalUri.path;
+    }
+    allowedFlags = allowedExperimentalFlags.forPackage(packageName);
+  }
+  if (allowedFlags != null) {
+    enabledByAllowed = allowedFlags.contains(flag);
+  }
+
+  if (enabledByDefault || enabledExplicitly || enabledByAllowed) {
+    // The feature is enabled depending on the library language version.
+    Version enabledVersion;
+    if (!enabledByDefault || enabledExplicitly || enabledByAllowed) {
+      // If the feature is not enabled by default or is enabled by the allowed
+      // list, use the experiment release version.
+      if (experimentReleasedVersionForTesting != null) {
+        enabledVersion = experimentReleasedVersionForTesting[flag];
+      }
+      enabledVersion ??= experimentReleasedVersion[flag];
+    } else {
+      // If the feature is enabled by default and is not enabled by the allowed
+      // list use the enabled version.
+      if (experimentEnabledVersionForTesting != null) {
+        enabledVersion = experimentEnabledVersionForTesting[flag];
+      }
+      enabledVersion ??= experimentEnabledVersion[flag];
+    }
+    return version >= enabledVersion;
+  } else {
+    // The feature is not enabled, regardless of library language version.
+    return false;
+  }
+}

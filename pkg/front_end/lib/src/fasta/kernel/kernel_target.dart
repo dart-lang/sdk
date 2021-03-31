@@ -9,38 +9,7 @@ library fasta.kernel_target;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart'
     show DillLibraryBuilder;
-import 'package:kernel/ast.dart'
-    show
-        Arguments,
-        CanonicalName,
-        Class,
-        Component,
-        Constructor,
-        DartType,
-        EmptyStatement,
-        Expression,
-        Field,
-        FieldInitializer,
-        FunctionNode,
-        Initializer,
-        InterfaceType,
-        InvalidInitializer,
-        InvalidType,
-        Library,
-        Name,
-        NamedExpression,
-        NonNullableByDefaultCompiledMode,
-        NullLiteral,
-        Procedure,
-        RedirectingInitializer,
-        Reference,
-        Source,
-        SuperInitializer,
-        Supertype,
-        TypeParameter,
-        TypeParameterType,
-        VariableDeclaration,
-        VariableGet;
+import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/core_types.dart';
@@ -51,7 +20,7 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/transformations/value_class.dart' as valueClass;
 import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
-import 'package:package_config/package_config.dart';
+import 'package:package_config/package_config.dart' hide LanguageVersion;
 
 import '../../api_prototype/file_system.dart' show FileSystem;
 import '../../base/nnbd_mode.dart';
@@ -102,7 +71,8 @@ import '../messages.dart'
 import '../problems.dart' show unhandled;
 import '../scope.dart' show AmbiguousBuilder;
 import '../source/source_class_builder.dart' show SourceClassBuilder;
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../source/source_library_builder.dart'
+    show LanguageVersion, SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../target_implementation.dart' show TargetImplementation;
 import '../uri_translator.dart' show UriTranslator;
@@ -246,6 +216,7 @@ class KernelTarget extends TargetImplementation {
       Uri uri,
       Uri fileUri,
       Uri packageUri,
+      LanguageVersion packageLanguageVersion,
       SourceLibraryBuilder origin,
       Library referencesFrom,
       bool referenceIsPartOwner) {
@@ -295,7 +266,8 @@ class KernelTarget extends TargetImplementation {
         return builder;
       }
     }
-    return new SourceLibraryBuilder(uri, fileUri, packageUri, loader, origin,
+    return new SourceLibraryBuilder(
+        uri, fileUri, packageUri, packageLanguageVersion, loader, origin,
         referencesFrom: referencesFrom,
         referenceIsPartOwner: referenceIsPartOwner);
   }
