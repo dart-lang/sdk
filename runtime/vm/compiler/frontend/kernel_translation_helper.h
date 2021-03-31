@@ -1460,7 +1460,8 @@ class TypeTranslator {
                  ConstantReader* constant_reader,
                  ActiveClass* active_class,
                  bool finalize = false,
-                 bool apply_canonical_type_erasure = false);
+                 bool apply_canonical_type_erasure = false,
+                 bool in_constant_context = false);
 
   AbstractType& BuildType();
   AbstractType& BuildTypeWithoutFinalization();
@@ -1541,6 +1542,7 @@ class TypeTranslator {
   AbstractType& result_;
   bool finalize_;
   const bool apply_canonical_type_erasure_;
+  const bool in_constant_context_;
 
   friend class ScopeBuilder;
   friend class KernelLoader;

@@ -2926,7 +2926,8 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
                                ConstantReader* constant_reader,
                                ActiveClass* active_class,
                                bool finalize,
-                               bool apply_canonical_type_erasure)
+                               bool apply_canonical_type_erasure,
+                               bool in_constant_context)
     : helper_(helper),
       constant_reader_(constant_reader),
       translation_helper_(helper->translation_helper_),
@@ -2937,7 +2938,8 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
       finalize_(finalize),
-      apply_canonical_type_erasure_(apply_canonical_type_erasure) {}
+      apply_canonical_type_erasure_(apply_canonical_type_erasure),
+      in_constant_context_(in_constant_context) {}
 
 AbstractType& TypeTranslator::BuildType() {
   BuildTypeInternal();
@@ -3152,73 +3154,76 @@ void TypeTranslator::BuildTypeParameterType() {
   intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
   helper_->SkipOptionalDartType();                 // read bound.
 
-  const TypeArguments& class_types =
-      TypeArguments::Handle(Z, active_class_->klass->type_parameters());
-  if (parameter_index < class_types.Length()) {
-    // The index of the type parameter in [parameters] is
-    // the same index into the `klass->type_parameters()` array.
-    const auto& type_param =
-        TypeParameter::CheckedHandle(Z, class_types.TypeAt(parameter_index));
-    result_ = type_param.ToNullability(nullability, Heap::kOld);
-    active_class_->RecordDerivedTypeParameter(Z, type_param,
-                                              TypeParameter::Cast(result_));
-    return;
-  }
-  parameter_index -= class_types.Length();
-
-  if (active_class_->HasMember()) {
-    if (active_class_->MemberIsFactoryProcedure()) {
-      //
-      // WARNING: This is a little hackish:
-      //
-      // We have a static factory constructor. The kernel IR gives the factory
-      // constructor function its own type parameters (which are equal in name
-      // and number to the ones of the enclosing class). I.e.,
-      //
-      //   class A<T> {
-      //     factory A.x() { return new B<T>(); }
-      //   }
-      //
-      //  is basically translated to this:
-      //
-      //   class A<T> {
-      //     static A.x<T'>() { return new B<T'>(); }
-      //   }
-      //
-      if (class_types.Length() > parameter_index) {
-        const auto& type_param = TypeParameter::CheckedHandle(
-            Z, class_types.TypeAt(parameter_index));
-        result_ = type_param.ToNullability(nullability, Heap::kOld);
-        active_class_->RecordDerivedTypeParameter(Z, type_param,
-                                                  TypeParameter::Cast(result_));
-        return;
-      }
-      parameter_index -= class_types.Length();
+  // If the type is from a constant, the parameter index isn't offset by the
+  // enclosing context.
+  if (!in_constant_context_) {
+    const TypeArguments& class_types =
+        TypeArguments::Handle(Z, active_class_->klass->type_parameters());
+    if (parameter_index < class_types.Length()) {
+      // The index of the type parameter in [parameters] is
+      // the same index into the `klass->type_parameters()` array.
+      const auto& type_param =
+          TypeParameter::CheckedHandle(Z, class_types.TypeAt(parameter_index));
+      result_ = type_param.ToNullability(nullability, Heap::kOld);
+      active_class_->RecordDerivedTypeParameter(Z, type_param,
+                                                TypeParameter::Cast(result_));
+      return;
     }
-    // Factory function should not be considered as procedure.
-    intptr_t procedure_type_parameter_count =
-        (active_class_->MemberIsProcedure() &&
-         !active_class_->MemberIsFactoryProcedure())
-            ? active_class_->MemberTypeParameterCount(Z)
-            : 0;
-    if (procedure_type_parameter_count > 0) {
-      if (procedure_type_parameter_count > parameter_index) {
-        const auto& type_param = TypeParameter::CheckedHandle(
-            Z,
-            TypeArguments::Handle(Z, active_class_->member->type_parameters())
-                .TypeAt(parameter_index));
-        result_ = type_param.ToNullability(nullability, Heap::kOld);
-        active_class_->RecordDerivedTypeParameter(Z, type_param,
-                                                  TypeParameter::Cast(result_));
-        if (finalize_) {
-          result_ = ClassFinalizer::FinalizeType(result_);
+    parameter_index -= class_types.Length();
+
+    if (active_class_->HasMember()) {
+      if (active_class_->MemberIsFactoryProcedure()) {
+        //
+        // WARNING: This is a little hackish:
+        //
+        // We have a static factory constructor. The kernel IR gives the factory
+        // constructor function its own type parameters (which are equal in name
+        // and number to the ones of the enclosing class). I.e.,
+        //
+        //   class A<T> {
+        //     factory A.x() { return new B<T>(); }
+        //   }
+        //
+        //  is basically translated to this:
+        //
+        //   class A<T> {
+        //     static A.x<T'>() { return new B<T'>(); }
+        //   }
+        //
+        if (class_types.Length() > parameter_index) {
+          const auto& type_param = TypeParameter::CheckedHandle(
+              Z, class_types.TypeAt(parameter_index));
+          result_ = type_param.ToNullability(nullability, Heap::kOld);
+          active_class_->RecordDerivedTypeParameter(
+              Z, type_param, TypeParameter::Cast(result_));
+          return;
         }
-        return;
+        parameter_index -= class_types.Length();
       }
-      parameter_index -= procedure_type_parameter_count;
+      // Factory function should not be considered as procedure.
+      intptr_t procedure_type_parameter_count =
+          (active_class_->MemberIsProcedure() &&
+           !active_class_->MemberIsFactoryProcedure())
+              ? active_class_->MemberTypeParameterCount(Z)
+              : 0;
+      if (procedure_type_parameter_count > 0) {
+        if (procedure_type_parameter_count > parameter_index) {
+          const auto& type_param = TypeParameter::CheckedHandle(
+              Z,
+              TypeArguments::Handle(Z, active_class_->member->type_parameters())
+                  .TypeAt(parameter_index));
+          result_ = type_param.ToNullability(nullability, Heap::kOld);
+          active_class_->RecordDerivedTypeParameter(
+              Z, type_param, TypeParameter::Cast(result_));
+          if (finalize_) {
+            result_ = ClassFinalizer::FinalizeType(result_);
+          }
+          return;
+        }
+        parameter_index -= procedure_type_parameter_count;
+      }
     }
   }
-
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
       const auto& type_param = TypeParameter::CheckedHandle(

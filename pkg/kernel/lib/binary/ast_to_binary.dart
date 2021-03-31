@@ -21,7 +21,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   VariableIndexer? _variableIndexer;
   LabelIndexer? _labelIndexer;
   SwitchCaseIndexer? _switchCaseIndexer;
-  final TypeParameterIndexer _typeParameterIndexer = new TypeParameterIndexer();
+  TypeParameterIndexer _typeParameterIndexer = new TypeParameterIndexer();
   final StringIndexer stringIndexer;
   late ConstantIndexer _constantIndexer;
   final UriIndexer _sourceUriIndexer = new UriIndexer();
@@ -191,6 +191,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   int writeConstantTableEntry(Constant constant) {
+    TypeParameterIndexer oldTypeParameterIndexer = _typeParameterIndexer;
+    _typeParameterIndexer = new TypeParameterIndexer();
     BufferedSink oldSink = _sink;
     _sink = _constantsSink;
     int initialOffset = _sink.offset;
@@ -263,6 +265,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       throw new ArgumentError('Unsupported constant $constant');
     }
     _sink = oldSink;
+    _typeParameterIndexer = oldTypeParameterIndexer;
     return _constantsSink.offset - initialOffset;
   }
 
