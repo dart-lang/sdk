@@ -101,7 +101,8 @@ class ContextLocatorImpl implements ContextLocator {
 
       ContextRootImpl? root;
       for (var existingRoot in roots) {
-        if (existingRoot.root == location.rootFolder) {
+        if (existingRoot.root.isOrContains(folder.path) &&
+            _matchRootWithLocation(existingRoot, location)) {
           root = existingRoot;
           break;
         }
@@ -123,11 +124,6 @@ class ContextLocatorImpl implements ContextLocator {
           root.excludedGlobs, defaultOptionsFile, defaultPackagesFile);
     }
 
-    var rootMap = <Folder, ContextRootImpl>{};
-    for (var root in roots) {
-      rootMap[root.root] = root;
-    }
-
     for (File file in includedFiles) {
       Folder parent = file.parent2;
 
@@ -138,16 +134,22 @@ class ContextLocatorImpl implements ContextLocator {
         defaultRootFolder: () => _fileSystemRoot(parent),
       );
 
-      var rootFolder = location.rootFolder;
-      var root = rootMap.putIfAbsent(rootFolder, () {
-        return _createContextRoot(
-          roots,
-          rootFolder: rootFolder,
-          workspace: location.workspace,
-          optionsFile: location.optionsFile,
-          packagesFile: location.packagesFile,
-        );
-      });
+      ContextRootImpl? root;
+      for (var existingRoot in roots) {
+        if (existingRoot.root.isOrContains(file.path) &&
+            _matchRootWithLocation(existingRoot, location)) {
+          root = existingRoot;
+          break;
+        }
+      }
+
+      root ??= _createContextRoot(
+        roots,
+        rootFolder: location.rootFolder,
+        workspace: location.workspace,
+        optionsFile: location.optionsFile,
+        packagesFile: location.packagesFile,
+      );
 
       if (!root.isAnalyzed(file.path)) {
         root.included.add(file);
@@ -541,6 +543,32 @@ class ContextLocatorImpl implements ContextLocator {
       return first;
     }
     return second;
+  }
+
+  /// Return `true` if the configuration of [existingRoot] is the same as
+  /// the requested configuration for the [location].
+  static bool _matchRootWithLocation(
+    ContextRootImpl existingRoot,
+    _RootLocation location,
+  ) {
+    if (existingRoot.optionsFile != location.optionsFile) {
+      return false;
+    }
+
+    if (existingRoot.packagesFile != location.packagesFile) {
+      return false;
+    }
+
+    // BasicWorkspace has no special meaning, so can be ignored.
+    // Other workspaces have semantic meaning, so must match.
+    var workspace = location.workspace;
+    if (workspace is! BasicWorkspace) {
+      if (existingRoot.workspace.root != workspace.root) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
 
