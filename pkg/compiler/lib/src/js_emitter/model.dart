@@ -261,6 +261,9 @@ class Class implements FieldContainer {
   /// Uses indicate missing information in the model.
   final ClassEntity element;
 
+  // TODO(joshualitt): Now that we collect all rti needed classes and handle
+  // them separately, we should investigate whether or not we still need to
+  // store the type data on the class.
   final ClassTypeData typeData;
 
   final js.Name name;
