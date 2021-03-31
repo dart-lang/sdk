@@ -71,8 +71,8 @@ class C6 {
   C6(int i);
 }
 
-C6 constructor_with_implicit_new(C6 c) {
-  if (c.bad == null) return;
+C6? constructor_with_implicit_new(C6 c) {
+  if (c.bad == null) return null;
   return C6(
       /*analyzer.notPromoted(propertyNotPromoted(target: member:C6.bad, type: int?))*/ c
           . /*cfe.notPromoted(propertyNotPromoted(target: member:C6.bad, type: int?))*/ bad);
@@ -83,8 +83,8 @@ class C7 {
   C7(int i);
 }
 
-C7 constructor_with_explicit_new(C7 c) {
-  if (c.bad == null) return;
+C7? constructor_with_explicit_new(C7 c) {
+  if (c.bad == null) return null;
   return new C7(
       /*analyzer.notPromoted(propertyNotPromoted(target: member:C7.bad, type: int?))*/ c
           . /*cfe.notPromoted(propertyNotPromoted(target: member:C7.bad, type: int?))*/ bad);
@@ -395,9 +395,9 @@ class C26 {
 }
 
 compoundAssignmentRhs(C26 c) {
-  int i = 0;
+  num n = 0;
   if (c.bad == null) return;
-  i +=
+  n +=
       /*analyzer.notPromoted(propertyNotPromoted(target: member:C26.bad, type: int?))*/ c
           . /*cfe.notPromoted(propertyNotPromoted(target: member:C26.bad, type: int?))*/ bad;
 }

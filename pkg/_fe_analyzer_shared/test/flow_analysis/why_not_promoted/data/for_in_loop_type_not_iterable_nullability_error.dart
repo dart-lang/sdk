@@ -44,8 +44,7 @@ forElementInMap(C1 c) {
     for (var x
         in /*analyzer.notPromoted(propertyNotPromoted(target: member:C1.bad, type: List<int>?))*/ c
             . /*cfe.notPromoted(propertyNotPromoted(target: member:C1.bad, type: List<int>?))*/ bad)
-      null,
-    null
+      null: null
   };
 }
 
