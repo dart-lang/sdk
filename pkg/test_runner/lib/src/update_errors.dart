@@ -13,9 +13,10 @@ final _lineCommentRegExp = RegExp(r"^\s*//");
 /// for the given [errors].
 ///
 /// If [remove] is not `null`, then only removes existing errors for the given
-/// sources.
+/// sources. If [includeContext] is `true`, then includes context messages in
+/// the output. Otherwise discards them.
 String updateErrorExpectations(String source, List<StaticError> errors,
-    {Set<ErrorSource> remove}) {
+    {Set<ErrorSource> remove, bool includeContext = false}) {
   remove ??= {};
 
   // Split the existing errors into kept and deleted lists.
@@ -39,15 +40,20 @@ String updateErrorExpectations(String source, List<StaticError> errors,
   // Remove all existing marker comments in the file, even for errors we are
   // preserving. We will regenerate marker comments for those errors too so
   // they can properly share location comments with new errors if needed.
+  void removeLine(int line) {
+    if (lines[line] == null) return;
+
+    indentation[line] = _countIndentation(lines[line]);
+
+    // Null the line instead of removing it so that line numbers in the
+    // reported errors are still correct.
+    lines[line] = null;
+  }
+
   for (var error in existingErrors) {
-    for (var line in error.sourceLines) {
-      if (lines[line] == null) continue;
-
-      indentation[line] = _countIndentation(lines[line]);
-
-      // Null the line instead of removing it so that line numbers in the
-      // reported errors are still correct.
-      lines[line] = null;
+    error.sourceLines.forEach(removeLine);
+    for (var contextMessage in error.contextMessages) {
+      contextMessage.sourceLines.forEach(removeLine);
     }
   }
 
@@ -59,6 +65,14 @@ String updateErrorExpectations(String source, List<StaticError> errors,
   for (var error in errors) {
     // -1 to translate from one-based to zero-based index.
     errorMap.putIfAbsent(error.line - 1, () => []).add(error);
+
+    // Flatten out and include context messages.
+    if (includeContext) {
+      for (var context in error.contextMessages) {
+        // -1 to translate from one-based to zero-based index.
+        errorMap.putIfAbsent(context.line - 1, () => []).add(context);
+      }
+    }
   }
 
   // If there are multiple errors on the same line, order them
@@ -66,6 +80,8 @@ String updateErrorExpectations(String source, List<StaticError> errors,
   for (var errorList in errorMap.values) {
     errorList.sort();
   }
+
+  var errorNumbers = _numberErrors(errors);
 
   // Rebuild the source file a line at a time.
   var previousIndent = 0;
@@ -131,7 +147,12 @@ String updateErrorExpectations(String source, List<StaticError> errors,
       previousLength = error.length;
 
       var errorLines = error.message.split("\n");
-      result.add("$comment [${error.source.marker}] ${errorLines[0]}");
+      var line = "$comment [${error.source.marker}";
+      if (includeContext && errorNumbers.containsKey(error)) {
+        line += " ${errorNumbers[error]}";
+      }
+      line += "] ${errorLines[0]}";
+      result.add(line);
       for (var errorLine in errorLines.skip(1)) {
         result.add("$comment $errorLine");
       }
@@ -148,6 +169,25 @@ String updateErrorExpectations(String source, List<StaticError> errors,
   }
 
   return result.join("\n");
+}
+
+/// Assigns unique numbers to all [errors] that have context messages, as well
+/// as their context messages.
+Map<StaticError, int> _numberErrors(List<StaticError> errors) {
+  var result = <StaticError, int>{};
+  var number = 1;
+  for (var error in errors) {
+    if (error.contextMessages.isEmpty) continue;
+
+    result[error] = number;
+    for (var context in error.contextMessages) {
+      result[context] = number;
+    }
+
+    number++;
+  }
+
+  return result;
 }
 
 /// Returns the number of characters of leading spaces in [line].

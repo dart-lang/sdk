@@ -459,7 +459,7 @@ abstract class Map<K, V> {
   int get length => 0;
   Iterable<V> get values;
 
-  V? operator [](K key);
+  V? operator [](Object? key);
   void operator []=(K key, V value);
 
   Map<RK, RV> cast<RK, RV>();

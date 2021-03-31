@@ -984,8 +984,9 @@ class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
   ///
   /// The test runner only validates the main error message, and not the
   /// suggested fixes, so we only parse the first line.
+  // TODO(rnystrom): Support validating context messages.
   static final _errorRegexp =
-      RegExp(r"^([^:]+):(\d+):(\d+):\nError: (.*)$", multiLine: true);
+      RegExp(r"^([^:]+):(\d+):(\d+):\n(Error): (.*)$", multiLine: true);
 
   Dart2jsCompilerCommandOutput(
       Command command,
@@ -1017,8 +1018,9 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
   ///
   /// The test runner only validates the main error message, and not the
   /// suggested fixes, so we only parse the first line.
+  // TODO(rnystrom): Support validating context messages.
   static final _errorRegexp = RegExp(
-      r"^org-dartlang-app:/([^:]+):(\d+):(\d+): Error: (.*)$",
+      r"^org-dartlang-app:/([^:]+):(\d+):(\d+): (Error): (.*)$",
       multiLine: true);
 
   DevCompilerCommandOutput(
@@ -1252,36 +1254,22 @@ class FastaCommandOutput extends CompilationCommandOutput
   static void parseErrors(
       String stdout, List<StaticError> errors, List<StaticError> warnings) {
     _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.cfe, _errorRegexp, stdout, errors);
-    _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.cfe, _warningRegexp, stdout, warnings);
+        ErrorSource.cfe, _errorRegexp, stdout, errors, warnings);
   }
 
-  /// Matches the first line of a Fasta error message. Fasta prints errors to
-  /// stdout that look like:
+  /// Matches the first line of a Fasta error, warning, or context message.
+  /// Fasta prints to stdout like:
   ///
   ///     tests/language_2/some_test.dart:7:21: Error: Some message.
   ///     Try fixing the code to be less bad.
   ///       var _ = <int>[if (1) 2];
   ///                    ^
   ///
-  /// The test runner only validates the main error message, and not the
-  /// suggested fixes, so we only parse the first line.
-  static final _errorRegexp =
-      RegExp(r"^([^:]+):(\d+):(\d+): Error: (.*)$", multiLine: true);
-
-  /// Matches the first line of a Fasta warning message. Fasta prints errors to
-  /// stdout that look like:
-  ///
-  ///     tests/language_2/some_test.dart:7:21: Warning: Some message.
-  ///     Try fixing the code to be less bad.
-  ///       var _ = <int>[if (1) 2];
-  ///                    ^
-  ///
-  /// The test runner only validates the main error message, and not the
-  /// suggested fixes, so we only parse the first line.
-  static final _warningRegexp =
-      RegExp(r"^([^:]+):(\d+):(\d+): Warning: (.*)$", multiLine: true);
+  /// The test runner only validates the first line of the message, and not the
+  /// suggested fixes.
+  static final _errorRegexp = RegExp(
+      r"^([^:]+):(\d+):(\d+): (Context|Error|Warning): (.*)$",
+      multiLine: true);
 
   FastaCommandOutput(
       Command command,
@@ -1310,12 +1298,35 @@ mixin _StaticErrorOutput on CommandOutput {
   /// Parses compile errors reported by CFE using the given [regExp] and adds
   /// them to [errors] as coming from [errorSource].
   static void _parseCfeErrors(ErrorSource errorSource, RegExp regExp,
-      String stdout, List<StaticError> errors) {
+      String stdout, List<StaticError> errors,
+      [List<StaticError> warnings]) {
+    StaticError previousError;
     for (var match in regExp.allMatches(stdout)) {
       var line = int.parse(match.group(2));
       var column = int.parse(match.group(3));
-      var message = match.group(4);
-      errors.add(StaticError(errorSource, message, line: line, column: column));
+      var severity = match.group(4);
+      var message = match.group(5);
+
+      var error = StaticError(
+          severity == "Context" ? ErrorSource.context : errorSource, message,
+          line: line, column: column);
+
+      if (severity == "Context") {
+        // Attach context messages to the preceding error/warning.
+        if (previousError == null) {
+          DebugLogger.error("Got context message in CFE output before "
+              "error to attach it to.");
+        } else {
+          previousError.contextMessages.add(error);
+        }
+      } else {
+        if (severity == "Error") {
+          errors.add(error);
+        } else {
+          warnings.add(error);
+        }
+        previousError = error;
+      }
     }
   }
 

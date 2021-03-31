@@ -343,7 +343,7 @@ class TestingServers {
       ]) {
         response.headers.set(header, content_header_value);
       }
-      if (const ["safari"].contains(runtime)) {
+      if (runtime == Runtime.safari) {
         response.headers.set("X-WebKit-CSP", content_header_value);
       }
     }

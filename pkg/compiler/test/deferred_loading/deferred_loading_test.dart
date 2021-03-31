@@ -156,9 +156,12 @@ class OutputUnitDataComputer extends DataComputer<Features> {
         .backendStrategy.emitterTask.emitter.preDeferredFragmentsForTesting;
     Map<String, List<FinalizedFragment>> fragmentsToLoad =
         compiler.backendStrategy.emitterTask.emitter.finalizedFragmentsToLoad;
+    Set<OutputUnit> omittedOutputUnits =
+        compiler.backendStrategy.emitterTask.emitter.omittedOutputUnits;
     Map<String, List<PreFragment>> preFragmentMap =
         buildPreFragmentMap(fragmentsToLoad, preDeferredFragments);
-    PreFragmentsIrComputer(compiler.reporter, actualMap, preFragmentMap)
+    PreFragmentsIrComputer(
+            compiler.reporter, actualMap, preFragmentMap, omittedOutputUnits)
         .computeForLibrary(node);
   }
 
@@ -169,9 +172,13 @@ class OutputUnitDataComputer extends DataComputer<Features> {
 
 class PreFragmentsIrComputer extends IrDataExtractor<Features> {
   final Map<String, List<PreFragment>> _preFragmentMap;
+  final Set<OutputUnit> _omittedOutputUnits;
 
-  PreFragmentsIrComputer(DiagnosticReporter reporter,
-      Map<Id, ActualData<Features>> actualMap, this._preFragmentMap)
+  PreFragmentsIrComputer(
+      DiagnosticReporter reporter,
+      Map<Id, ActualData<Features>> actualMap,
+      this._preFragmentMap,
+      this._omittedOutputUnits)
       : super(reporter, actualMap);
 
   @override
@@ -214,11 +221,16 @@ class PreFragmentsIrComputer extends IrDataExtractor<Features> {
       }
 
       for (var emittedOutputUnit in preFragment.emittedOutputUnits) {
-        supplied.add(emittedOutputUnit.outputUnit);
+        var outputUnit = emittedOutputUnit.outputUnit;
+        if (!_omittedOutputUnits.contains(outputUnit)) {
+          supplied.add(outputUnit);
+        }
       }
-      var suppliedString = '[${supplied.map(outputUnitString).join(', ')}]';
-      features.addElement(Tags.outputUnits,
-          'f$i: {units: $suppliedString, usedBy: $usedBy, needs: $needs}');
+      if (supplied.isNotEmpty) {
+        var suppliedString = '[${supplied.map(outputUnitString).join(', ')}]';
+        features.addElement(Tags.outputUnits,
+            'f$i: {units: $suppliedString, usedBy: $usedBy, needs: $needs}');
+      }
     }
 
     return features;

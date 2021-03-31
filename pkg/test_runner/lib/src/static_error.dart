@@ -11,6 +11,9 @@ class ErrorSource {
   static const cfe = ErrorSource._("CFE");
   static const web = ErrorSource._("web");
 
+  /// Pseudo-front end for context messages.
+  static const context = ErrorSource._("context");
+
   /// All of the supported front ends.
   ///
   /// The order is significant here. In static error tests, error expectations
@@ -23,6 +26,8 @@ class ErrorSource {
     for (var source in all) {
       if (source.marker == name) return source;
     }
+
+    if (name == "context") return context;
 
     return null;
   }
@@ -113,6 +118,9 @@ class StaticError implements Comparable<StaticError> {
   ///
   /// *   Otherwise, any remaining expected errors are considered missing
   ///     errors and remaining actual errors are considered unexpected.
+  ///
+  /// Also describes any mismatches between the context messages in the expected
+  /// and actual errors.
   static String validateExpectations(Iterable<StaticError> expectedErrors,
       Iterable<StaticError> actualErrors) {
     var expected = expectedErrors.toList();
@@ -122,16 +130,20 @@ class StaticError implements Comparable<StaticError> {
     expected.sort();
     actual.sort();
 
-    // Discard matched errors.
+    var buffer = StringBuffer();
+
+    // Pair up errors by location and message.
     for (var i = 0; i < expected.length; i++) {
       var matchedExpected = false;
 
       for (var j = 0; j < actual.length; j++) {
         if (actual[j] == null) continue;
 
-        if (expected[i]._matchLocation(actual[j]) == null &&
-            (expected[i].message == actual[j].message ||
-                !expected[i].isSpecified)) {
+        if (expected[i]._matchMessage(actual[j]) &&
+            expected[i]._matchLocation(actual[j])) {
+          // Report any mismatches in the context messages.
+          expected[i]._validateContext(actual[j], buffer);
+
           actual[j] = null;
           matchedExpected = true;
 
@@ -147,12 +159,13 @@ class StaticError implements Comparable<StaticError> {
     expected.removeWhere((error) => error == null);
     actual.removeWhere((error) => error == null);
 
-    // If everything matched, we're done.
-    if (expected.isEmpty && actual.isEmpty) return null;
+    // If every error was paired up, and the contexts matched, we're done.
+    if (expected.isEmpty && actual.isEmpty && buffer.isEmpty) return null;
 
-    var buffer = StringBuffer();
+    void fail(StaticError error, String label, String contextLabel,
+        [String secondary]) {
+      if (error.isContext) label = contextLabel;
 
-    void fail(StaticError error, String label, [String secondary]) {
       if (error.isSpecified) {
         buffer.writeln("- $label ${error.location}: ${error.message}");
       } else {
@@ -172,8 +185,10 @@ class StaticError implements Comparable<StaticError> {
         if (actual[j] == null) continue;
 
         if (expected[i].message == actual[j].message) {
-          fail(expected[i], "Wrong error location",
-              expected[i]._matchLocation(actual[j]));
+          fail(expected[i], "Wrong error location", "Wrong context location",
+              expected[i]._locationError(actual[j]));
+          // Report any mismatches in the context messages.
+          expected[i]._validateContext(actual[j], buffer);
 
           // Only report this mismatch once.
           expected[i] = null;
@@ -189,9 +204,11 @@ class StaticError implements Comparable<StaticError> {
       for (var j = 0; j < actual.length; j++) {
         if (actual[j] == null) continue;
 
-        if (expected[i]._matchLocation(actual[j]) == null) {
-          fail(actual[j], "Wrong message at",
+        if (expected[i]._matchLocation(actual[j])) {
+          fail(actual[j], "Wrong message at", "Wrong context message at",
               "Expected: ${expected[i].message}");
+          // Report any mismatches in the context messages.
+          expected[i]._validateContext(actual[j], buffer);
 
           // Only report this mismatch once.
           expected[i] = null;
@@ -204,13 +221,14 @@ class StaticError implements Comparable<StaticError> {
     // Any remaining expected errors are missing.
     for (var i = 0; i < expected.length; i++) {
       if (expected[i] == null) continue;
-      fail(expected[i], "Missing expected error at");
+      fail(expected[i], "Missing expected error at",
+          "Missing expected context message at");
     }
 
     // Any remaining actual errors are unexpected.
     for (var j = 0; j < actual.length; j++) {
       if (actual[j] == null) continue;
-      fail(actual[j], "Unexpected error at");
+      fail(actual[j], "Unexpected error at", "Unexpected context message at");
     }
 
     return buffer.toString().trimRight();
@@ -231,6 +249,9 @@ class StaticError implements Comparable<StaticError> {
   final ErrorSource source;
 
   final String message;
+
+  /// Additional context messages associated with this error.
+  final List<StaticError> contextMessages = [];
 
   /// The zero-based numbers of the lines in the [TestFile] containing comments
   /// that were parsed to produce this error.
@@ -271,6 +292,9 @@ class StaticError implements Comparable<StaticError> {
   /// met.
   bool get isSpecified => message != _unspecified;
 
+  /// Whether this is a context message instead of an error.
+  bool get isContext => source == ErrorSource.context;
+
   /// Whether this error is only considered a warning on all front ends that
   /// report it.
   bool get isWarning {
@@ -290,7 +314,21 @@ class StaticError implements Comparable<StaticError> {
     throw FallThroughError();
   }
 
-  String toString() => "[${source.marker} $location] $message";
+  String toString() {
+    var buffer = StringBuffer("StaticError(");
+    buffer.write("line: $line, column: $column");
+    if (length != null) buffer.write(", length: $length");
+    buffer.write(", message: '$message'");
+
+    if (contextMessages.isNotEmpty) {
+      buffer.write(", context: [ ");
+      buffer.writeAll(contextMessages, ", ");
+      buffer.write(" ]");
+    }
+
+    buffer.write(")");
+    return buffer.toString();
+  }
 
   /// Orders errors primarily by location, then by other fields if needed.
   @override
@@ -311,7 +349,20 @@ class StaticError implements Comparable<StaticError> {
   }
 
   @override
-  bool operator ==(other) => other is StaticError && compareTo(other) == 0;
+  bool operator ==(other) {
+    if (other is StaticError) {
+      if (compareTo(other) != 0) return false;
+
+      if (contextMessages.length != other.contextMessages.length) return false;
+      for (var i = 0; i < contextMessages.length; i++) {
+        if (contextMessages[i] != other.contextMessages[i]) return false;
+      }
+
+      return true;
+    }
+
+    return false;
+  }
 
   @override
   int get hashCode =>
@@ -321,11 +372,31 @@ class StaticError implements Comparable<StaticError> {
       11 * source.hashCode +
       13 * message.hashCode;
 
-  /// Returns a string describing how this error's expected location differs
-  /// from [actual], or `null` if [actual]'s location matches this one.
+  /// Returns true if [actual]'s message matches this one.
+  ///
+  /// Takes unspecified errors into account.
+  bool _matchMessage(StaticError actual) {
+    return !isSpecified || message == actual.message;
+  }
+
+  /// Returns true if [actual]'s location matches this one.
   ///
   /// Takes into account unspecified errors and errors without lengths.
-  String _matchLocation(StaticError actual) {
+  bool _matchLocation(StaticError actual) {
+    if (line != actual.line) return false;
+
+    // Ignore column and length for unspecified errors.
+    if (isSpecified) {
+      if (column != actual.column) return false;
+      if (actual.length != null && length != actual.length) return false;
+    }
+
+    return true;
+  }
+
+  /// Returns a string describing how this error's expected location differs
+  /// from [actual].
+  String _locationError(StaticError actual) {
     var expectedMismatches = <String>[];
     var actualMismatches = <String>[];
 
@@ -347,14 +418,27 @@ class StaticError implements Comparable<StaticError> {
       }
     }
 
-    if (expectedMismatches.isEmpty) {
-      // Everything matches.
-      return null;
-    }
+    // Should only call this when the locations don't match.
+    assert(expectedMismatches.isNotEmpty);
 
     var expectedList = expectedMismatches.join(", ");
     var actualList = actualMismatches.join(", ");
     return "Expected $expectedList but was $actualList.";
+  }
+
+  /// Validates that this expected error's context messages match [actual]'s.
+  ///
+  /// Writes any mismatch errors to [buffer].
+  void _validateContext(StaticError actual, StringBuffer buffer) {
+    // If the expected error has no context, then ignore actual context
+    // messages.
+    if (contextMessages.isEmpty) return;
+
+    var result = validateExpectations(contextMessages, actual.contextMessages);
+    if (result != null) {
+      buffer.writeln(result);
+      buffer.writeln();
+    }
   }
 }
 
@@ -382,7 +466,10 @@ class _ErrorExpectationParser {
       RegExp(r"^\s*//\s*\[\s*error line\s+(\d+)\s*,\s*column\s+(\d+)\s*\]\s*$");
 
   /// Matches the beginning of an error message, like `// [analyzer]`.
-  static final _errorMessageRegExp = RegExp(r"^\s*// \[(\w+)\]\s*(.*)");
+  ///
+  /// May have an optional number like `// [cfe 32]`.
+  static final _errorMessageRegExp =
+      RegExp(r"^\s*// \[(\w+)(\s+\d+)?\]\s*(.*)");
 
   /// An analyzer error code is a dotted identifier or the magic string
   /// "unspecified".
@@ -394,6 +481,17 @@ class _ErrorExpectationParser {
 
   final List<String> _lines;
   final List<StaticError> _errors = [];
+
+  /// The parsed context messages.
+  ///
+  /// Once parsing is done, these are added to the errors that own them.
+  final List<StaticError> _contextMessages = [];
+
+  /// For errors that have a number associated with them, tracks that number.
+  ///
+  /// These are used after parsing to attach context messages to their errors.
+  final Map<StaticError, int> _errorNumbers = {};
+
   int _currentLine = 0;
 
   // One-based index of the last line that wasn't part of an error expectation.
@@ -402,6 +500,7 @@ class _ErrorExpectationParser {
   _ErrorExpectationParser(String source) : _lines = source.split("\n");
 
   List<StaticError> _parse() {
+    // Read all the lines.
     while (_canPeek(0)) {
       var sourceLine = _peek(0);
 
@@ -441,6 +540,7 @@ class _ErrorExpectationParser {
       _advance();
     }
 
+    _attachContext();
     return _errors;
   }
 
@@ -454,11 +554,16 @@ class _ErrorExpectationParser {
       var match = _errorMessageRegExp.firstMatch(_peek(1));
       if (match == null) break;
 
+      var number = match.group(2) != null ? int.parse(match.group(2)) : null;
+
       var sourceName = match.group(1);
       var source = ErrorSource.find(sourceName);
       if (source == null) _fail("Unknown front end '[$sourceName]'.");
+      if (source == ErrorSource.context && number == null) {
+        _fail("Context messages must have an error number.");
+      }
 
-      var message = match.group(2);
+      var message = match.group(3);
       _advance();
       var sourceLines = {locationLine, _currentLine};
 
@@ -498,16 +603,69 @@ class _ErrorExpectationParser {
         errorLength = null;
       }
 
-      _errors.add(StaticError(source, message,
+      var error = StaticError(source, message,
           line: line,
           column: column,
           length: errorLength,
-          sourceLines: sourceLines));
+          sourceLines: sourceLines);
+
+      if (number != null) {
+        // Make sure two errors don't claim the same number.
+        if (source != ErrorSource.context) {
+          var existingError = _errors.firstWhere(
+              (error) => _errorNumbers[error] == number,
+              orElse: () => null);
+          if (existingError != null) {
+            _fail("Already have an error with number $number.");
+          }
+        }
+
+        _errorNumbers[error] = number;
+      }
+
+      if (source == ErrorSource.context) {
+        _contextMessages.add(error);
+      } else {
+        _errors.add(error);
+      }
+
       parsedError = true;
     }
 
     if (!parsedError) {
       _fail("An error expectation must specify at least one error message.");
+    }
+  }
+
+  /// Attach context messages to their errors and validate that everything lines
+  /// up.
+  void _attachContext() {
+    for (var contextMessage in _contextMessages) {
+      var number = _errorNumbers[contextMessage];
+
+      var error = _errors.firstWhere((error) => _errorNumbers[error] == number,
+          orElse: () => null);
+      if (error == null) {
+        throw FormatException("No error with number $number for context "
+            "message '${contextMessage.message}'.");
+      }
+
+      error.contextMessages.add(contextMessage);
+    }
+
+    // Make sure every numbered error does have some context, otherwise the
+    // number is pointless.
+    for (var error in _errors) {
+      var number = _errorNumbers[error];
+      if (number == null) continue;
+
+      var context = _contextMessages.firstWhere(
+          (context) => _errorNumbers[context] == number,
+          orElse: () => null);
+      if (context == null) {
+        throw FormatException("Missing context for numbered error $number "
+            "'${error.message}'.");
+      }
     }
   }
 

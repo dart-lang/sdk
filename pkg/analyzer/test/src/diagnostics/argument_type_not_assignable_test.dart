@@ -454,6 +454,40 @@ f(A a) {
     ]);
   }
 
+  test_map_indexGet() async {
+    // Any type may be passed to Map.operator[].
+    await assertNoErrorsInCode('''
+main() {
+  Map<int, int> m = <int, int>{};
+  m['x'];
+}
+''');
+  }
+
+  test_map_indexSet() async {
+    // The type passed to Map.operator[]= must match the key type.
+    await assertErrorsInCode('''
+main() {
+  Map<int, int> m = <int, int>{};
+  m['x'] = 0;
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 47, 3),
+    ]);
+  }
+
+  test_map_indexSet_ifNull() async {
+    // The type passed to Map.operator[]= must match the key type.
+    await assertErrorsInCode('''
+main() {
+  Map<int, int> m = <int, int>{};
+  m['x'] ??= 0;
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 47, 3),
+    ]);
+  }
+
   test_new_generic() async {
     await assertErrorsInCode('''
 class A<T> {

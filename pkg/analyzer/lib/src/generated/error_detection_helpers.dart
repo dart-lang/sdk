@@ -55,30 +55,12 @@ mixin ErrorDetectionHelpers {
   void checkForArgumentTypeNotAssignableForArgument(Expression argument,
       {bool promoteParameterToNullable = false,
       Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
-    checkForArgumentTypeNotAssignableForArgument2(
+    _checkForArgumentTypeNotAssignableForArgument2(
       argument: argument,
       parameter: argument.staticParameterElement,
       promoteParameterToNullable: promoteParameterToNullable,
       whyNotPromoted: whyNotPromoted,
     );
-  }
-
-  void checkForArgumentTypeNotAssignableForArgument2({
-    required Expression argument,
-    required ParameterElement? parameter,
-    required bool promoteParameterToNullable,
-    Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
-  }) {
-    var staticParameterType = parameter?.type;
-    if (promoteParameterToNullable && staticParameterType != null) {
-      staticParameterType =
-          typeSystem.makeNullable(staticParameterType as TypeImpl);
-    }
-    _checkForArgumentTypeNotAssignableWithExpectedTypes(
-        argument,
-        staticParameterType,
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        whyNotPromoted);
   }
 
   /// Verify that the given constructor field [initializer] has compatible field
@@ -205,6 +187,36 @@ mixin ErrorDetectionHelpers {
     return true;
   }
 
+  void checkIndexExpressionIndex(
+    Expression index, {
+    required ExecutableElement? readElement,
+    required ExecutableElement? writeElement,
+    required Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
+  }) {
+    if (readElement is MethodElement) {
+      var parameters = readElement.parameters;
+      if (parameters.isNotEmpty) {
+        _checkForArgumentTypeNotAssignableForArgument2(
+          argument: index,
+          parameter: parameters[0],
+          promoteParameterToNullable: false,
+          whyNotPromoted: whyNotPromoted,
+        );
+      }
+    }
+
+    if (writeElement is MethodElement) {
+      var parameters = writeElement.parameters;
+      if (parameters.isNotEmpty) {
+        _checkForArgumentTypeNotAssignableForArgument2(
+          argument: index,
+          parameter: parameters[0],
+          promoteParameterToNullable: false,
+        );
+      }
+    }
+  }
+
   /// Computes the appropriate set of context messages to report along with an
   /// error that may have occurred because [expression] was not type promoted.
   ///
@@ -231,6 +243,24 @@ mixin ErrorDetectionHelpers {
       }
     }
     return null;
+  }
+
+  void _checkForArgumentTypeNotAssignableForArgument2({
+    required Expression argument,
+    required ParameterElement? parameter,
+    required bool promoteParameterToNullable,
+    Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
+  }) {
+    var staticParameterType = parameter?.type;
+    if (promoteParameterToNullable && staticParameterType != null) {
+      staticParameterType =
+          typeSystem.makeNullable(staticParameterType as TypeImpl);
+    }
+    _checkForArgumentTypeNotAssignableWithExpectedTypes(
+        argument,
+        staticParameterType,
+        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        whyNotPromoted);
   }
 
   /// Verify that the given [expression] can be assigned to its corresponding

@@ -213,6 +213,9 @@ abstract class Emitter implements ModularEmitter {
 
   List<PreFragment> get preDeferredFragmentsForTesting;
 
+  /// The set of omitted [OutputUnits].
+  Set<OutputUnit> get omittedOutputUnits;
+
   /// A map of loadId to list of [FinalizedFragments].
   Map<String, List<FinalizedFragment>> get finalizedFragmentsToLoad;
 
