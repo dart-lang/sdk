@@ -3445,13 +3445,13 @@ class TypeInferrerImpl implements TypeInferrer {
           kind, originalReceiver, originalName,
           resultType: calleeType, interfaceTarget: originalTarget)
         ..fileOffset = fileOffset;
-      flowAnalysis.propertyGet(
-          originalPropertyGet, originalReceiver, originalName.text, calleeType);
     } else {
       originalPropertyGet =
           new PropertyGet(originalReceiver, originalName, originalTarget)
             ..fileOffset = fileOffset;
     }
+    flowAnalysis.propertyGet(
+        originalPropertyGet, originalReceiver, originalName.text, calleeType);
     Expression propertyGet = originalPropertyGet;
     if (receiver is! ThisExpression &&
         calleeType is! DynamicType &&
