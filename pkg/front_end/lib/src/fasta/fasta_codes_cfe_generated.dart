@@ -4631,6 +4631,78 @@ Message _withArgumentsSuperBoundedHint(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateSupertypeIsIllegalAliased = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#name' which is an alias of '#type' can't be used as supertype.""",
+        withArguments: _withArgumentsSupertypeIsIllegalAliased);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeSupertypeIsIllegalAliased = const Code<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "SupertypeIsIllegalAliased",
+        analyzerCodes: <String>["EXTENDS_NON_CLASS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSupertypeIsIllegalAliased(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeSupertypeIsIllegalAliased,
+      message:
+          """The type '${name}' which is an alias of '${type}' can't be used as supertype.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateSupertypeIsNullableAliased = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable.""",
+        withArguments: _withArgumentsSupertypeIsNullableAliased);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeSupertypeIsNullableAliased = const Code<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "SupertypeIsNullableAliased",
+        analyzerCodes: <String>["EXTENDS_NON_CLASS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSupertypeIsNullableAliased(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeSupertypeIsNullableAliased,
+      message:
+          """The type '${name}' which is an alias of '${type}' can't be used as supertype because it is nullable.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
     templateSwitchExpressionNotAssignable = const Template<
             Message Function(

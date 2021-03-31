@@ -180,6 +180,8 @@ cumulative
 cursor
 cuts
 cx
+d1a
+d1b
 dacoharkes
 dadd
 daemon
@@ -523,6 +525,8 @@ mul
 mx
 mxn
 mysdk
+n1a
+n1b
 naively
 naturally
 negatable

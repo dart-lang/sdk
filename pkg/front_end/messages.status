@@ -745,6 +745,8 @@ SuperclassMethodArgumentMismatch/example: Fail
 SupertypeIsFunction/analyzerCode: Fail
 SupertypeIsFunction/example: Fail
 SupertypeIsIllegal/example: Fail
+SupertypeIsIllegalAliased/example: Fail
+SupertypeIsNullableAliased/example: Fail
 SupertypeIsTypeVariable/example: Fail
 SwitchCaseFallThrough/example: Fail
 SwitchExpressionNotSubtype/analyzerCode: Fail
