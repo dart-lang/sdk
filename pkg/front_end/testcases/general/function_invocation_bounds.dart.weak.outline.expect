@@ -1,0 +1,9 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef G<invariant T extends core::Object? = dynamic> = (T%) → T%;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

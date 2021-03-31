@@ -3779,6 +3779,41 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         targetName: name.text);
   }
 
+  void checkBoundsInFunctionInvocation(
+      TypeEnvironment typeEnvironment,
+      ClassHierarchy hierarchy,
+      TypeInferrerImpl typeInferrer,
+      FunctionType functionType,
+      String localName,
+      Arguments arguments,
+      Uri fileUri,
+      int offset) {
+    if (arguments.types.isEmpty) return;
+
+    List<TypeParameter> functionTypeParameters = functionType.typeParameters;
+    // The error is to be reported elsewhere.
+    if (functionTypeParameters.length != arguments.types.length) return;
+    final DartType bottomType = isNonNullableByDefault
+        ? const NeverType.nonNullable()
+        : const NullType();
+    List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
+        functionTypeParameters,
+        arguments.types,
+        typeEnvironment,
+        isNonNullableByDefault
+            ? SubtypeCheckMode.withNullabilities
+            : SubtypeCheckMode.ignoringNullabilities,
+        bottomType,
+        isNonNullableByDefault: library.isNonNullableByDefault,
+        areGenericArgumentsAllowed: enableGenericMetadataInLibrary);
+    reportTypeArgumentIssues(issues, fileUri, offset,
+        typeArgumentsInfo: getTypeArgumentsInfo(arguments),
+        // TODO(johnniwinther): Special-case messaging on function type
+        //  invocation to avoid reference to 'call' and use the function type
+        //  instead.
+        targetName: localName ?? 'call');
+  }
+
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
     Iterator<Builder> iterator = this.iterator;
     while (iterator.moveNext()) {

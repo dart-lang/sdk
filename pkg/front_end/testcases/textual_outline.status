@@ -134,6 +134,7 @@ nonfunction_type_aliases/aliased_checks_in_typedef: FormatterCrash
 nonfunction_type_aliases/issue41501: FormatterCrash
 nonfunction_type_aliases/issue42446: FormatterCrash
 nonfunction_type_aliases/issue45051: FormatterCrash
+nonfunction_type_aliases/issue45464: FormatterCrash
 nonfunction_type_aliases/nullable_supertypes: FormatterCrash
 nonfunction_type_aliases/old_version: FormatterCrash
 nonfunction_type_aliases/unaliased_bounds_checks_in_constructor_calls: FormatterCrash
