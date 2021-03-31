@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert';
 
 import 'package:analyzer_utilities/tools.dart';
@@ -1119,6 +1121,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   @override
   void visitApi() {
     outputHeader(year: '2017');
+    writeln();
+    writeln('// @dart = 2.9');
     writeln();
     emitImports();
     emitClasses(getClassesToEmit());

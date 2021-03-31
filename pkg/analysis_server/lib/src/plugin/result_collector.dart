@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// A function used to determine whether results should be collected for the
 /// file with the given [path].
 typedef ShouldCollectPredicate = bool Function(String path);

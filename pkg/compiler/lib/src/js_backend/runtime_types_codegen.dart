@@ -57,6 +57,10 @@ class ClassChecks {
     _map[check.cls] = check;
   }
 
+  void addAll(Iterable<TypeCheck> checks) {
+    checks.forEach(add);
+  }
+
   TypeCheck operator [](ClassEntity cls) => _map[cls];
 
   Iterable<TypeCheck> get checks => _map.values;

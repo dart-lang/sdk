@@ -6,6 +6,8 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
+// @dart = 2.9
+
 import 'dart:async';
 
 import 'package:analysis_server_client/handler/notification_handler.dart';

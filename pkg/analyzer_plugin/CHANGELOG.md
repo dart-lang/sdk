@@ -1,4 +1,4 @@
-## 0.5.0-dev
+## 0.5.0
 - Changed the support version range of the analyzer to `^1.3.0`.
 - Removed `Plugin.fileContentOverlay`, instead `Plugin.resourceProvider` is
   now `OverlayResourceProvider`, and `analysis.updateContent` updates it.

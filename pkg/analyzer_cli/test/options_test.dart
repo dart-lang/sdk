@@ -65,6 +65,7 @@ void main() {
         expect(options.ignoreUnrecognizedFlags, isFalse);
         expect(options.implicitCasts, isNull);
         expect(options.log, isFalse);
+        expect(options.jsonFormat, isFalse);
         expect(options.machineFormat, isFalse);
         expect(options.noImplicitDynamic, isNull);
         expect(options.batchMode, isFalse);
@@ -186,10 +187,19 @@ void main() {
         expect(options.log, isTrue);
       });
 
-      test('machine format', () {
-        var options =
-            parse(['--dart-sdk', '.', '--format=machine', 'foo.dart']);
-        expect(options.machineFormat, isTrue);
+      group('format', () {
+        test('json', () {
+          var options = parse(['--dart-sdk', '.', '--format=json', 'foo.dart']);
+          expect(options.jsonFormat, isTrue);
+          expect(options.machineFormat, isFalse);
+        });
+
+        test('machine', () {
+          var options =
+              parse(['--dart-sdk', '.', '--format=machine', 'foo.dart']);
+          expect(options.jsonFormat, isFalse);
+          expect(options.machineFormat, isTrue);
+        });
       });
 
       test('no-hints', () {

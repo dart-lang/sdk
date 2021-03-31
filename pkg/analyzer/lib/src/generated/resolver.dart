@@ -2258,13 +2258,16 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
   void _inferArgumentTypesForInstanceCreate(
       covariant InstanceCreationExpressionImpl node) {
-    var constructor = node.constructorName;
-    TypeName classTypeName = constructor.type;
-    // if (classTypeName == null) {
-    //   return;
-    // }
+    var constructorName = node.constructorName;
 
-    var originalElement = constructor.staticElement;
+    var typeName = constructorName.type;
+    var typeArguments = typeName.typeArguments;
+
+    var elementToInfer = inferenceHelper.constructorElementToInfer(
+      constructorName: constructorName,
+      definingLibrary: definingLibrary,
+    );
+
     FunctionType? inferred;
     // If the constructor is generic, we'll have a ConstructorMember that
     // substitutes in type arguments (possibly `dynamic`) from earlier in
@@ -2272,8 +2275,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     //
     // Otherwise we'll have a ConstructorElement, and we can skip inference
     // because there's nothing to infer in a non-generic type.
-    if (classTypeName.typeArguments == null &&
-        originalElement is ConstructorMember) {
+    if (elementToInfer != null) {
       // TODO(leafp): Currently, we may re-infer types here, since we
       // sometimes resolve multiple times.  We should really check that we
       // have not already inferred something.  However, the obvious ways to
@@ -2284,14 +2286,11 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
       // Get back to the uninstantiated generic constructor.
       // TODO(jmesserly): should we store this earlier in resolution?
       // Or look it up, instead of jumping backwards through the Member?
-      var rawElement = originalElement.declaration;
-      rawElement = toLegacyElement(rawElement);
-
-      FunctionType constructorType =
-          typeAnalyzer.constructorToGenericFunctionType(rawElement);
+      var rawElement = elementToInfer.element;
+      var constructorType = elementToInfer.asType;
 
       inferred = inferenceHelper.inferArgumentTypesForGeneric(
-          node, constructorType, constructor.type.typeArguments,
+          node, constructorType, typeArguments,
           isConst: node.isConst, errorNode: node.constructorName);
 
       if (inferred != null) {
@@ -2301,7 +2300,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
         arguments.correspondingStaticParameters =
             resolveArgumentsToParameters(arguments, inferred.parameters, null);
 
-        constructor.type.type = inferred.returnType;
+        constructorName.type.type = inferred.returnType;
 
         // Update the static element as well. This is used in some cases, such
         // as computing constant values. It is stored in two places.
@@ -2309,15 +2308,17 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
           rawElement,
           inferred.returnType as InterfaceType,
         );
-        constructorElement = toLegacyElement(constructorElement);
-        constructor.staticElement = constructorElement;
+        constructorName.staticElement = constructorElement;
       }
     }
 
     if (inferred == null) {
-      var type = originalElement?.type;
-      type = type != null ? toLegacyTypeIfOptOut(type) as FunctionType : null;
-      InferenceContext.setType(node.argumentList, type);
+      var constructorElement = constructorName.staticElement;
+      if (constructorElement != null) {
+        var type = constructorElement.type;
+        type = toLegacyTypeIfOptOut(type) as FunctionType;
+        InferenceContext.setType(node.argumentList, type);
+      }
     }
   }
 

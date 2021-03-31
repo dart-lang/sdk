@@ -149,7 +149,7 @@ class Driver implements CommandLineStarter {
 
   /// Perform analysis according to the given [options].
   Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
-    if (!options.machineFormat) {
+    if (!options.jsonFormat && !options.machineFormat) {
       var fileNames = options.sourceFiles.map((String file) {
         file = path.normalize(file);
         if (file == '.') {
@@ -184,7 +184,10 @@ class Driver implements CommandLineStarter {
     // batch mode which removes the batch flag to prevent the "cannot have the
     // batch flag and source file" error message.
     ErrorFormatter formatter;
-    if (options.machineFormat) {
+    if (options.jsonFormat) {
+      formatter = JsonErrorFormatter(errorSink, options, stats,
+          severityProcessor: defaultSeverityProcessor);
+    } else if (options.machineFormat) {
       formatter = MachineErrorFormatter(errorSink, options, stats,
           severityProcessor: defaultSeverityProcessor);
     } else {

@@ -3303,6 +3303,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--fatal-infos",
             "pkg/test_runner"
           ]
         },

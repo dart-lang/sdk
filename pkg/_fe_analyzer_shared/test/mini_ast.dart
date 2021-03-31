@@ -243,9 +243,9 @@ abstract class Expression extends Node implements _Visitable<Type> {
   /// If `this` is an expression `x`, creates the expression `x || other`.
   Expression or(Expression other) => new _Logical(this, other, isAnd: false);
 
-  /// If `this` is an expression `x`, creates the expression `x.name`.
-  Expression propertyGet(String name, {String type = 'Object?'}) =>
-      new _PropertyGet(this, name, Type(type));
+  /// If `this` is an expression `x`, creates the L-value `x.name`.
+  LValue property(String name, {String type = 'Object?'}) =>
+      new _Property(this, name, Type(type));
 
   /// If `this` is an expression `x`, creates a pseudo-expression that models
   /// evaluation of `x` followed by execution of [stmt].  This can be used to
@@ -529,6 +529,23 @@ class Harness extends TypeOperations<Var, Type> {
   }
 }
 
+/// Representation of an expression that can appear on the left hand side of an
+/// assignment (or as the target of `++` or `--`).  Methods in this class may be
+/// used to create more complex expressions based on this one.
+abstract class LValue extends Expression {
+  LValue._();
+
+  /// Creates an expression representing a write to this L-value.
+  Expression write(Expression? value) => new _Write(this, value);
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables,
+      {_LValueDisposition disposition});
+
+  void _visitWrite(FlowAnalysis<Node, Statement, Expression, Var, Type> flow,
+      Expression assignmentExpression, Type writtenType, Expression? rhs);
+}
+
 /// Representation of an expression or statement in the pseudo-Dart language
 /// used for flow analysis testing.
 class Node {
@@ -606,19 +623,19 @@ class Var {
 
   Var(this.name, String typeStr) : type = Type(typeStr);
 
-  /// Creates an expression representing a read of this variable.
-  Expression get read => new _VariableRead(this, null);
+  /// Creates an L-value representing a reference to this variable.
+  LValue get expr => new _VariableReference(this, null);
 
   /// Creates an expression representing a read of this variable, which as a
   /// side effect will call the given callback with the returned promoted type.
   Expression readAndCheckPromotedType(void Function(Type?) callback) =>
-      new _VariableRead(this, callback);
+      new _VariableReference(this, callback);
 
   @override
   String toString() => '$type $name';
 
   /// Creates an expression representing a write to this variable.
-  Expression write(Expression? value) => new _Write(this, value);
+  Expression write(Expression? value) => expr.write(value);
 }
 
 class _As extends Expression {
@@ -1314,6 +1331,22 @@ class _Logical extends Expression {
   }
 }
 
+/// Enum representing the different ways an [LValue] might be used.
+enum _LValueDisposition {
+  /// The [LValue] is being read from only, not written to.  This happens if it
+  /// appears in a place where an ordinary expression is expected.
+  read,
+
+  /// The [LValue] is being written to only, not read from.  This happens if it
+  /// appears on the left hand side of `=`.
+  write,
+
+  /// The [LValue] is being both read from and written to.  This happens if it
+  /// appears on the left and side of `op=` (where `op` is some operator), or as
+  /// the target of `++` or `--`.
+  readWrite,
+}
+
 class _NonNullAssert extends Expression {
   final Expression operand;
 
@@ -1440,17 +1473,18 @@ class _PlaceholderExpression extends Expression {
       type;
 }
 
-class _PropertyGet extends Expression {
+class _Property extends LValue {
   final Expression target;
 
   final String propertyName;
 
   final Type type;
 
-  _PropertyGet(this.target, this.propertyName, this.type);
+  _Property(this.target, this.propertyName, this.type) : super._();
 
   @override
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables,
+      {_LValueDisposition disposition = _LValueDisposition.read}) {
     target._preVisit(assignedVariables);
   }
 
@@ -1460,6 +1494,12 @@ class _PropertyGet extends Expression {
     target._visit(h, flow);
     flow.propertyGet(this, target, propertyName, type);
     return type;
+  }
+
+  @override
+  void _visitWrite(FlowAnalysis<Node, Statement, Expression, Var, Type> flow,
+      Expression assignmentExpression, Type writtenType, Expression? rhs) {
+    // No flow analysis impact
   }
 }
 
@@ -1641,19 +1681,25 @@ class _TryStatement extends TryStatement {
   }
 }
 
-class _VariableRead extends Expression {
+class _VariableReference extends LValue {
   final Var variable;
 
   final void Function(Type?)? callback;
 
-  _VariableRead(this.variable, this.callback);
+  _VariableReference(this.variable, this.callback) : super._();
 
   @override
   String toString() => variable.name;
 
   @override
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    assignedVariables.read(variable);
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables,
+      {_LValueDisposition disposition = _LValueDisposition.read}) {
+    if (disposition != _LValueDisposition.write) {
+      assignedVariables.read(variable);
+    }
+    if (disposition != _LValueDisposition.read) {
+      assignedVariables.write(variable);
+    }
   }
 
   @override
@@ -1662,6 +1708,12 @@ class _VariableRead extends Expression {
     var readResult = flow.variableRead(this, variable);
     callback?.call(readResult);
     return readResult ?? variable.type;
+  }
+
+  @override
+  void _visitWrite(FlowAnalysis<Node, Statement, Expression, Var, Type> flow,
+      Expression assignmentExpression, Type writtenType, Expression? rhs) {
+    flow.write(assignmentExpression, variable, writtenType, rhs);
   }
 }
 
@@ -1789,17 +1841,20 @@ class _WrappedExpression extends Expression {
 }
 
 class _Write extends Expression {
-  final Var variable;
+  final LValue lhs;
   final Expression? rhs;
 
-  _Write(this.variable, this.rhs);
+  _Write(this.lhs, this.rhs);
 
   @override
-  String toString() => '${variable.name} = $rhs';
+  String toString() => '$lhs = $rhs';
 
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    assignedVariables.write(variable);
+    lhs._preVisit(assignedVariables,
+        disposition: rhs == null
+            ? _LValueDisposition.readWrite
+            : _LValueDisposition.write);
     rhs?._preVisit(assignedVariables);
   }
 
@@ -1807,8 +1862,15 @@ class _Write extends Expression {
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     var rhs = this.rhs;
-    var type = rhs == null ? variable.type : rhs._visit(h, flow);
-    flow.write(this, variable, type, rhs);
+    Type type;
+    if (rhs == null) {
+      // We are simulating an increment/decrement operation.
+      // TODO(paulberry): Make a separate node type for this.
+      type = lhs._visit(h, flow);
+    } else {
+      type = rhs._visit(h, flow);
+    }
+    lhs._visitWrite(flow, this, type, rhs);
     return type;
   }
 }

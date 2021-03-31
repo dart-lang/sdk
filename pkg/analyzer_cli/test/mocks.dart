@@ -5,6 +5,7 @@
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_cli/src/options.dart';
@@ -23,7 +24,7 @@ class MockAnalysisError implements AnalysisError {
   String message;
 
   @override
-  int length;
+  int length = 3;
 
   MockAnalysisError(this.source, this.errorCode, this.offset, this.message);
 
@@ -37,7 +38,11 @@ class MockAnalysisError implements AnalysisError {
   String get correctionMessage => null;
 
   @override
-  DiagnosticMessage get problemMessage => null;
+  DiagnosticMessage get problemMessage => DiagnosticMessageImpl(
+      filePath: source.fullName,
+      length: length,
+      message: message,
+      offset: offset);
 
   @override
   Severity get severity => null;
@@ -57,6 +62,8 @@ class MockCommandLineOptions implements CommandLineOptions {
   bool enableTypeChecks = false;
   @override
   bool infosAreFatal = false;
+  @override
+  bool jsonFormat = false;
   @override
   bool machineFormat = false;
   @override

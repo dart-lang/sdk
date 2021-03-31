@@ -3796,16 +3796,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     List<bool> detectedRepeatOnIndex = List<bool>.filled(count, false);
     for (int i = 0; i < count; i++) {
       if (!detectedRepeatOnIndex[i]) {
-        var iType = typeNames[i].type;
-        for (int j = i + 1; j < count; j++) {
-          TypeName typeName = typeNames[j];
-          var jType = typeName.type;
-          if (iType is InterfaceType &&
-              jType is InterfaceType &&
-              iType.element == jType.element) {
-            detectedRepeatOnIndex[j] = true;
-            errorReporter
-                .reportErrorForNode(errorCode, typeName, [typeName.name.name]);
+        var type = typeNames[i].type;
+        if (type is InterfaceType) {
+          var element = type.element;
+          for (int j = i + 1; j < count; j++) {
+            var otherNode = typeNames[j];
+            var otherType = otherNode.type;
+            if (otherType is InterfaceType && otherType.element == element) {
+              detectedRepeatOnIndex[j] = true;
+              errorReporter
+                  .reportErrorForNode(errorCode, otherNode, [element.name]);
+            }
           }
         }
       }

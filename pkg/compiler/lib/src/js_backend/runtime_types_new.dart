@@ -466,6 +466,7 @@ class Ruleset {
   bool get isNotEmpty => _redirections.isNotEmpty || _entries.isNotEmpty;
 
   void addRedirection(ClassEntity redirectee, ClassEntity target) {
+    assert(redirectee != target);
     _redirections[redirectee] = target;
   }
 
