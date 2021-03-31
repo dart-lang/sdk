@@ -207,7 +207,20 @@ class CanonicalName {
     }
     if (_reference == target) return;
     if (_reference != null) {
-      throw '$this is already bound';
+      StringBuffer sb = new StringBuffer();
+      sb.write('$this is already bound to ${_reference}');
+      if (_reference?._node != null) {
+        sb.write(' with node ${_reference?._node}'
+            ' (${_reference?._node.runtimeType}'
+            ':${_reference?._node.hashCode})');
+      }
+      sb.write(', trying to bind to ${target}');
+      if (target._node != null) {
+        sb.write(' with node ${target._node}'
+            ' (${target._node.runtimeType}'
+            ':${target._node.hashCode})');
+      }
+      throw sb.toString();
     }
     if (target.canonicalName != null) {
       throw 'Cannot bind $this to ${target.node}, target is already bound to '
