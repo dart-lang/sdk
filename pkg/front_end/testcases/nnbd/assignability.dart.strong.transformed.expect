@@ -1324,466 +1324,466 @@ static method error<XnonNull extends core::Object = core::Object, YnonNull exten
   functionVar = let final Never #t104 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:200:17: Error: A value of type 'Function?' can't be assigned to a variable of type 'Function' because 'Function?' is nullable and 'Function' isn't.
  - 'Function' is from 'dart:core'.
   functionVar = functionNullableArg;
-                ^" in let core::Function? #t105 = functionNullableArg in #t105.==(null) ?{core::Function} #t105 as{TypeError,ForNonNullableByDefault} core::Function : #t105{core::Function};
-  functionVar = let final Never #t106 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:201:17: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'Function' because 'void Function()?' is nullable and 'Function' isn't.
+                ^" in functionNullableArg as{TypeError,ForNonNullableByDefault} core::Function;
+  functionVar = let final Never #t105 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:201:17: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'Function' because 'void Function()?' is nullable and 'Function' isn't.
  - 'Function' is from 'dart:core'.
   functionVar = toVoidNullableArg;
-                ^" in let () →? void #t107 = toVoidNullableArg in #t107.==(null) ?{core::Function} #t107 as{TypeError,ForNonNullableByDefault} core::Function : #t107{core::Function};
-  functionVar = let final Never #t108 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:202:17: Error: Can't tear off method 'call' from a potentially null value.
+                ^" in toVoidNullableArg as{TypeError,ForNonNullableByDefault} core::Function;
+  functionVar = let final Never #t106 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:202:17: Error: Can't tear off method 'call' from a potentially null value.
   functionVar = tearoffableNullableArg;
                 ^" in tearoffableNullableArg as{TypeError} core::Function;
-  functionVar = let final Never #t109 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:203:17: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'Function'.
+  functionVar = let final Never #t107 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:203:17: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'Function'.
  - 'Function' is from 'dart:core'.
   functionVar = xNonNullArg;
                 ^" in xNonNullArg as{TypeError,ForNonNullableByDefault} core::Function;
-  functionVar = let final Never #t110 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:204:17: Error: A value of type 'XnonNull?' can't be assigned to a variable of type 'Function'.
+  functionVar = let final Never #t108 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:204:17: Error: A value of type 'XnonNull?' can't be assigned to a variable of type 'Function'.
  - 'Function' is from 'dart:core'.
   functionVar = xNonNullNullableArg;
                 ^" in xNonNullNullableArg as{TypeError,ForNonNullableByDefault} core::Function;
-  functionVar = let final Never #t111 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:205:17: Error: A value of type 'XpotentiallyNull' can't be assigned to a variable of type 'Function'.
+  functionVar = let final Never #t109 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:205:17: Error: A value of type 'XpotentiallyNull' can't be assigned to a variable of type 'Function'.
  - 'Function' is from 'dart:core'.
   functionVar = xPotentiallyNullArg;
                 ^" in xPotentiallyNullArg as{TypeError,ForNonNullableByDefault} core::Function;
-  functionVar = let final Never #t112 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:206:17: Error: A value of type 'XpotentiallyNull?' can't be assigned to a variable of type 'Function'.
+  functionVar = let final Never #t110 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:206:17: Error: A value of type 'XpotentiallyNull?' can't be assigned to a variable of type 'Function'.
  - 'Function' is from 'dart:core'.
   functionVar = xPotentiallyNullNullableArg;
                 ^" in xPotentiallyNullNullableArg as{TypeError,ForNonNullableByDefault} core::Function;
-  functionVar = let final Never #t113 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:207:17: Error: A value of type 'YnonNull' can't be assigned to a variable of type 'Function'.
+  functionVar = let final Never #t111 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:207:17: Error: A value of type 'YnonNull' can't be assigned to a variable of type 'Function'.
  - 'Function' is from 'dart:core'.
   functionVar = yNonNullArg;
                 ^" in yNonNullArg as{TypeError,ForNonNullableByDefault} core::Function;
-  functionVar = let final Never #t114 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:208:17: Error: A value of type 'YnonNull?' can't be assigned to a variable of type 'Function'.
+  functionVar = let final Never #t112 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:208:17: Error: A value of type 'YnonNull?' can't be assigned to a variable of type 'Function'.
  - 'Function' is from 'dart:core'.
   functionVar = yNonNullNullableArg;
                 ^" in yNonNullNullableArg as{TypeError,ForNonNullableByDefault} core::Function;
-  functionVar = let final Never #t115 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:209:17: Error: A value of type 'YpotentiallyNull' can't be assigned to a variable of type 'Function'.
+  functionVar = let final Never #t113 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:209:17: Error: A value of type 'YpotentiallyNull' can't be assigned to a variable of type 'Function'.
  - 'Function' is from 'dart:core'.
   functionVar = yPotentiallyNullArg;
                 ^" in yPotentiallyNullArg as{TypeError,ForNonNullableByDefault} core::Function;
-  functionVar = let final Never #t116 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:210:17: Error: A value of type 'YpotentiallyNull?' can't be assigned to a variable of type 'Function'.
+  functionVar = let final Never #t114 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:210:17: Error: A value of type 'YpotentiallyNull?' can't be assigned to a variable of type 'Function'.
  - 'Function' is from 'dart:core'.
   functionVar = yPotentiallyNullNullableArg;
                 ^" in yPotentiallyNullNullableArg as{TypeError,ForNonNullableByDefault} core::Function;
-  () → void toVoidVar = let final Never #t117 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:212:31: Error: A value of type 'Object' can't be assigned to a variable of type 'void Function()'.
+  () → void toVoidVar = let final Never #t115 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:212:31: Error: A value of type 'Object' can't be assigned to a variable of type 'void Function()'.
  - 'Object' is from 'dart:core'.
   void Function() toVoidVar = objectArg;
                               ^" in objectArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t118 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:213:15: Error: A value of type 'Object?' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t116 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:213:15: Error: A value of type 'Object?' can't be assigned to a variable of type 'void Function()'.
  - 'Object' is from 'dart:core'.
   toVoidVar = objectNullableArg;
               ^" in objectNullableArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t119 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:214:15: Error: A value of type 'num' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t117 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:214:15: Error: A value of type 'num' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = numArg;
               ^" in numArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t120 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:215:15: Error: A value of type 'num?' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t118 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:215:15: Error: A value of type 'num?' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = numNullableArg;
               ^" in numNullableArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t121 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:216:15: Error: A value of type 'int' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t119 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:216:15: Error: A value of type 'int' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = intArg;
               ^" in intArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t122 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:217:15: Error: A value of type 'int?' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t120 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:217:15: Error: A value of type 'int?' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = intNullableArg;
               ^" in intNullableArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t123 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:218:15: Error: A value of type 'double' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t121 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:218:15: Error: A value of type 'double' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = doubleArg;
               ^" in doubleArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t124 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:219:15: Error: A value of type 'double?' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t122 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:219:15: Error: A value of type 'double?' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = doubleNullableArg;
               ^" in doubleNullableArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t125 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:220:15: Error: A value of type 'Function' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t123 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:220:15: Error: A value of type 'Function' can't be assigned to a variable of type 'void Function()'.
  - 'Function' is from 'dart:core'.
   toVoidVar = functionArg;
               ^" in functionArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t126 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:221:15: Error: A value of type 'Function?' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t124 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:221:15: Error: A value of type 'Function?' can't be assigned to a variable of type 'void Function()'.
  - 'Function' is from 'dart:core'.
   toVoidVar = functionNullableArg;
               ^" in functionNullableArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t127 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:222:15: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'void Function()' because 'void Function()?' is nullable and 'void Function()' isn't.
+  toVoidVar = let final Never #t125 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:222:15: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'void Function()' because 'void Function()?' is nullable and 'void Function()' isn't.
   toVoidVar = toVoidNullableArg;
-              ^" in let () →? void #t128 = toVoidNullableArg in #t128.==(null) ?{() → void} #t128 as{TypeError,ForNonNullableByDefault} () → void : #t128{() → void};
-  toVoidVar = let final Never #t129 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:223:15: Error: Can't tear off method 'call' from a potentially null value.
+              ^" in let () →? void #t126 = toVoidNullableArg in #t126.==(null) ?{() → void} #t126 as{TypeError,ForNonNullableByDefault} () → void : #t126{() → void};
+  toVoidVar = let final Never #t127 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:223:15: Error: Can't tear off method 'call' from a potentially null value.
   toVoidVar = tearoffableNullableArg;
               ^" in tearoffableNullableArg as{TypeError} () → void;
-  toVoidVar = let final Never #t130 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:224:15: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t128 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:224:15: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = xNonNullArg;
               ^" in xNonNullArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t131 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:225:15: Error: A value of type 'XnonNull?' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t129 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:225:15: Error: A value of type 'XnonNull?' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = xNonNullNullableArg;
               ^" in xNonNullNullableArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t132 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:226:15: Error: A value of type 'XpotentiallyNull' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t130 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:226:15: Error: A value of type 'XpotentiallyNull' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = xPotentiallyNullArg;
               ^" in xPotentiallyNullArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t133 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:227:15: Error: A value of type 'XpotentiallyNull?' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t131 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:227:15: Error: A value of type 'XpotentiallyNull?' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = xPotentiallyNullNullableArg;
               ^" in xPotentiallyNullNullableArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t134 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:228:15: Error: A value of type 'YnonNull' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t132 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:228:15: Error: A value of type 'YnonNull' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = yNonNullArg;
               ^" in yNonNullArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t135 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:229:15: Error: A value of type 'YnonNull?' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t133 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:229:15: Error: A value of type 'YnonNull?' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = yNonNullNullableArg;
               ^" in yNonNullNullableArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t136 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:230:15: Error: A value of type 'YpotentiallyNull' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t134 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:230:15: Error: A value of type 'YpotentiallyNull' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = yPotentiallyNullArg;
               ^" in yPotentiallyNullArg as{TypeError,ForNonNullableByDefault} () → void;
-  toVoidVar = let final Never #t137 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:231:15: Error: A value of type 'YpotentiallyNull?' can't be assigned to a variable of type 'void Function()'.
+  toVoidVar = let final Never #t135 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:231:15: Error: A value of type 'YpotentiallyNull?' can't be assigned to a variable of type 'void Function()'.
   toVoidVar = yPotentiallyNullNullableArg;
               ^" in yPotentiallyNullNullableArg as{TypeError,ForNonNullableByDefault} () → void;
-  self::Tearoffable tearoffableVar = let final Never #t138 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:233:32: Error: A value of type 'Object' can't be assigned to a variable of type 'Tearoffable'.
+  self::Tearoffable tearoffableVar = let final Never #t136 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:233:32: Error: A value of type 'Object' can't be assigned to a variable of type 'Tearoffable'.
  - 'Object' is from 'dart:core'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   Tearoffable tearoffableVar = objectArg;
                                ^" in objectArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t139 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:234:20: Error: A value of type 'Object?' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t137 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:234:20: Error: A value of type 'Object?' can't be assigned to a variable of type 'Tearoffable'.
  - 'Object' is from 'dart:core'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = objectNullableArg;
                    ^" in objectNullableArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t140 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:235:20: Error: A value of type 'num' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t138 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:235:20: Error: A value of type 'num' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = numArg;
                    ^" in numArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t141 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:236:20: Error: A value of type 'num?' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t139 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:236:20: Error: A value of type 'num?' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = numNullableArg;
                    ^" in numNullableArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t142 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:237:20: Error: A value of type 'int' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t140 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:237:20: Error: A value of type 'int' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = intArg;
                    ^" in intArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t143 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:238:20: Error: A value of type 'int?' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t141 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:238:20: Error: A value of type 'int?' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = intNullableArg;
                    ^" in intNullableArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t144 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:239:20: Error: A value of type 'double' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t142 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:239:20: Error: A value of type 'double' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = doubleArg;
                    ^" in doubleArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t145 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:240:20: Error: A value of type 'double?' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t143 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:240:20: Error: A value of type 'double?' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = doubleNullableArg;
                    ^" in doubleNullableArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t146 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:241:20: Error: A value of type 'Function' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t144 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:241:20: Error: A value of type 'Function' can't be assigned to a variable of type 'Tearoffable'.
  - 'Function' is from 'dart:core'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = functionArg;
                    ^" in functionArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t147 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:242:20: Error: A value of type 'Function?' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t145 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:242:20: Error: A value of type 'Function?' can't be assigned to a variable of type 'Tearoffable'.
  - 'Function' is from 'dart:core'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = functionNullableArg;
                    ^" in functionNullableArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t148 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:243:20: Error: A value of type 'void Function()' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t146 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:243:20: Error: A value of type 'void Function()' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = toVoidArg;
                    ^" in toVoidArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t149 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:244:20: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t147 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:244:20: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = toVoidNullableArg;
                    ^" in toVoidNullableArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t150 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:245:20: Error: A value of type 'Tearoffable?' can't be assigned to a variable of type 'Tearoffable' because 'Tearoffable?' is nullable and 'Tearoffable' isn't.
+  tearoffableVar = let final Never #t148 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:245:20: Error: A value of type 'Tearoffable?' can't be assigned to a variable of type 'Tearoffable' because 'Tearoffable?' is nullable and 'Tearoffable' isn't.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = tearoffableNullableArg;
-                   ^" in let self::Tearoffable? #t151 = tearoffableNullableArg in #t151.==(null) ?{self::Tearoffable} #t151 as{TypeError,ForNonNullableByDefault} self::Tearoffable : #t151{self::Tearoffable};
-  tearoffableVar = let final Never #t152 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:246:20: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'Tearoffable'.
+                   ^" in let self::Tearoffable? #t149 = tearoffableNullableArg in #t149.==(null) ?{self::Tearoffable} #t149 as{TypeError,ForNonNullableByDefault} self::Tearoffable : #t149{self::Tearoffable};
+  tearoffableVar = let final Never #t150 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:246:20: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = xNonNullArg;
                    ^" in xNonNullArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t153 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:247:20: Error: A value of type 'XnonNull?' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t151 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:247:20: Error: A value of type 'XnonNull?' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = xNonNullNullableArg;
                    ^" in xNonNullNullableArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t154 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:248:20: Error: A value of type 'XpotentiallyNull' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t152 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:248:20: Error: A value of type 'XpotentiallyNull' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = xPotentiallyNullArg;
                    ^" in xPotentiallyNullArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t155 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:249:20: Error: A value of type 'XpotentiallyNull?' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t153 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:249:20: Error: A value of type 'XpotentiallyNull?' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = xPotentiallyNullNullableArg;
                    ^" in xPotentiallyNullNullableArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t156 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:250:20: Error: A value of type 'YnonNull' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t154 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:250:20: Error: A value of type 'YnonNull' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = yNonNullArg;
                    ^" in yNonNullArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t157 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:251:20: Error: A value of type 'YnonNull?' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t155 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:251:20: Error: A value of type 'YnonNull?' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = yNonNullNullableArg;
                    ^" in yNonNullNullableArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t158 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:252:20: Error: A value of type 'YpotentiallyNull' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t156 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:252:20: Error: A value of type 'YpotentiallyNull' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = yPotentiallyNullArg;
                    ^" in yPotentiallyNullArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  tearoffableVar = let final Never #t159 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:253:20: Error: A value of type 'YpotentiallyNull?' can't be assigned to a variable of type 'Tearoffable'.
+  tearoffableVar = let final Never #t157 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:253:20: Error: A value of type 'YpotentiallyNull?' can't be assigned to a variable of type 'Tearoffable'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   tearoffableVar = yPotentiallyNullNullableArg;
                    ^" in yPotentiallyNullNullableArg as{TypeError,ForNonNullableByDefault} self::Tearoffable;
-  self::error::XnonNull xNonNullVar = let final Never #t160 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:255:26: Error: A value of type 'Object' can't be assigned to a variable of type 'XnonNull'.
+  self::error::XnonNull xNonNullVar = let final Never #t158 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:255:26: Error: A value of type 'Object' can't be assigned to a variable of type 'XnonNull'.
  - 'Object' is from 'dart:core'.
   XnonNull xNonNullVar = objectArg;
                          ^" in objectArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t161 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:256:17: Error: A value of type 'Object?' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t159 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:256:17: Error: A value of type 'Object?' can't be assigned to a variable of type 'XnonNull'.
  - 'Object' is from 'dart:core'.
   xNonNullVar = objectNullableArg;
                 ^" in objectNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t162 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:257:17: Error: A value of type 'num' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t160 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:257:17: Error: A value of type 'num' can't be assigned to a variable of type 'XnonNull'.
   xNonNullVar = numArg;
                 ^" in numArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t163 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:258:17: Error: A value of type 'num?' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t161 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:258:17: Error: A value of type 'num?' can't be assigned to a variable of type 'XnonNull'.
   xNonNullVar = numNullableArg;
                 ^" in numNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t164 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:259:17: Error: A value of type 'int' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t162 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:259:17: Error: A value of type 'int' can't be assigned to a variable of type 'XnonNull'.
   xNonNullVar = intArg;
                 ^" in intArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t165 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:260:17: Error: A value of type 'int?' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t163 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:260:17: Error: A value of type 'int?' can't be assigned to a variable of type 'XnonNull'.
   xNonNullVar = intNullableArg;
                 ^" in intNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t166 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:261:17: Error: A value of type 'double' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t164 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:261:17: Error: A value of type 'double' can't be assigned to a variable of type 'XnonNull'.
   xNonNullVar = doubleArg;
                 ^" in doubleArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t167 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:262:17: Error: A value of type 'double?' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t165 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:262:17: Error: A value of type 'double?' can't be assigned to a variable of type 'XnonNull'.
   xNonNullVar = doubleNullableArg;
                 ^" in doubleNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t168 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:263:17: Error: A value of type 'Function' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t166 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:263:17: Error: A value of type 'Function' can't be assigned to a variable of type 'XnonNull'.
  - 'Function' is from 'dart:core'.
   xNonNullVar = functionArg;
                 ^" in functionArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t169 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:264:17: Error: A value of type 'Function?' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t167 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:264:17: Error: A value of type 'Function?' can't be assigned to a variable of type 'XnonNull'.
  - 'Function' is from 'dart:core'.
   xNonNullVar = functionNullableArg;
                 ^" in functionNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t170 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:265:17: Error: A value of type 'void Function()' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t168 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:265:17: Error: A value of type 'void Function()' can't be assigned to a variable of type 'XnonNull'.
   xNonNullVar = toVoidArg;
                 ^" in toVoidArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t171 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:266:17: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t169 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:266:17: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'XnonNull'.
   xNonNullVar = toVoidNullableArg;
                 ^" in toVoidNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t172 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:267:17: Error: A value of type 'Tearoffable' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t170 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:267:17: Error: A value of type 'Tearoffable' can't be assigned to a variable of type 'XnonNull'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   xNonNullVar = tearoffableArg;
                 ^" in tearoffableArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t173 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:268:17: Error: A value of type 'Tearoffable?' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t171 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:268:17: Error: A value of type 'Tearoffable?' can't be assigned to a variable of type 'XnonNull'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   xNonNullVar = tearoffableNullableArg;
                 ^" in tearoffableNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t174 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:269:17: Error: A value of type 'XnonNull?' can't be assigned to a variable of type 'XnonNull' because 'XnonNull?' is nullable and 'XnonNull' isn't.
+  xNonNullVar = let final Never #t172 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:269:17: Error: A value of type 'XnonNull?' can't be assigned to a variable of type 'XnonNull' because 'XnonNull?' is nullable and 'XnonNull' isn't.
   xNonNullVar = xNonNullNullableArg;
                 ^" in xNonNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t175 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:270:17: Error: A value of type 'XpotentiallyNull' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t173 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:270:17: Error: A value of type 'XpotentiallyNull' can't be assigned to a variable of type 'XnonNull'.
   xNonNullVar = xPotentiallyNullArg;
                 ^" in xPotentiallyNullArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t176 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:271:17: Error: A value of type 'XpotentiallyNull?' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t174 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:271:17: Error: A value of type 'XpotentiallyNull?' can't be assigned to a variable of type 'XnonNull'.
   xNonNullVar = xPotentiallyNullNullableArg;
                 ^" in xPotentiallyNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t177 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:272:17: Error: A value of type 'YnonNull?' can't be assigned to a variable of type 'XnonNull' because 'YnonNull?' is nullable and 'XnonNull' isn't.
+  xNonNullVar = let final Never #t175 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:272:17: Error: A value of type 'YnonNull?' can't be assigned to a variable of type 'XnonNull' because 'YnonNull?' is nullable and 'XnonNull' isn't.
   xNonNullVar = yNonNullNullableArg;
                 ^" in yNonNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t178 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:273:17: Error: A value of type 'YpotentiallyNull' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t176 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:273:17: Error: A value of type 'YpotentiallyNull' can't be assigned to a variable of type 'XnonNull'.
   xNonNullVar = yPotentiallyNullArg;
                 ^" in yPotentiallyNullArg as{TypeError,ForNonNullableByDefault} Never;
-  xNonNullVar = let final Never #t179 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:274:17: Error: A value of type 'YpotentiallyNull?' can't be assigned to a variable of type 'XnonNull'.
+  xNonNullVar = let final Never #t177 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:274:17: Error: A value of type 'YpotentiallyNull?' can't be assigned to a variable of type 'XnonNull'.
   xNonNullVar = yPotentiallyNullNullableArg;
                 ^" in yPotentiallyNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  self::error::XpotentiallyNull% xPotentiallyNullVar = let final Never #t180 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:276:42: Error: A value of type 'Object' can't be assigned to a variable of type 'XpotentiallyNull'.
+  self::error::XpotentiallyNull% xPotentiallyNullVar = let final Never #t178 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:276:42: Error: A value of type 'Object' can't be assigned to a variable of type 'XpotentiallyNull'.
  - 'Object' is from 'dart:core'.
   XpotentiallyNull xPotentiallyNullVar = objectArg;
                                          ^" in objectArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t181 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:277:25: Error: A value of type 'Object?' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t179 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:277:25: Error: A value of type 'Object?' can't be assigned to a variable of type 'XpotentiallyNull'.
  - 'Object' is from 'dart:core'.
   xPotentiallyNullVar = objectNullableArg;
                         ^" in objectNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t182 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:278:25: Error: A value of type 'num' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t180 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:278:25: Error: A value of type 'num' can't be assigned to a variable of type 'XpotentiallyNull'.
   xPotentiallyNullVar = numArg;
                         ^" in numArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t183 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:279:25: Error: A value of type 'num?' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t181 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:279:25: Error: A value of type 'num?' can't be assigned to a variable of type 'XpotentiallyNull'.
   xPotentiallyNullVar = numNullableArg;
                         ^" in numNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t184 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:280:25: Error: A value of type 'int' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t182 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:280:25: Error: A value of type 'int' can't be assigned to a variable of type 'XpotentiallyNull'.
   xPotentiallyNullVar = intArg;
                         ^" in intArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t185 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:281:25: Error: A value of type 'int?' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t183 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:281:25: Error: A value of type 'int?' can't be assigned to a variable of type 'XpotentiallyNull'.
   xPotentiallyNullVar = intNullableArg;
                         ^" in intNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t186 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:282:25: Error: A value of type 'double' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t184 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:282:25: Error: A value of type 'double' can't be assigned to a variable of type 'XpotentiallyNull'.
   xPotentiallyNullVar = doubleArg;
                         ^" in doubleArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t187 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:283:25: Error: A value of type 'double?' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t185 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:283:25: Error: A value of type 'double?' can't be assigned to a variable of type 'XpotentiallyNull'.
   xPotentiallyNullVar = doubleNullableArg;
                         ^" in doubleNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t188 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:284:25: Error: A value of type 'Function' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t186 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:284:25: Error: A value of type 'Function' can't be assigned to a variable of type 'XpotentiallyNull'.
  - 'Function' is from 'dart:core'.
   xPotentiallyNullVar = functionArg;
                         ^" in functionArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t189 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:285:25: Error: A value of type 'Function?' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t187 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:285:25: Error: A value of type 'Function?' can't be assigned to a variable of type 'XpotentiallyNull'.
  - 'Function' is from 'dart:core'.
   xPotentiallyNullVar = functionNullableArg;
                         ^" in functionNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t190 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:286:25: Error: A value of type 'void Function()' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t188 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:286:25: Error: A value of type 'void Function()' can't be assigned to a variable of type 'XpotentiallyNull'.
   xPotentiallyNullVar = toVoidArg;
                         ^" in toVoidArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t191 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:287:25: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t189 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:287:25: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'XpotentiallyNull'.
   xPotentiallyNullVar = toVoidNullableArg;
                         ^" in toVoidNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t192 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:288:25: Error: A value of type 'Tearoffable' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t190 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:288:25: Error: A value of type 'Tearoffable' can't be assigned to a variable of type 'XpotentiallyNull'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   xPotentiallyNullVar = tearoffableArg;
                         ^" in tearoffableArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t193 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:289:25: Error: A value of type 'Tearoffable?' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t191 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:289:25: Error: A value of type 'Tearoffable?' can't be assigned to a variable of type 'XpotentiallyNull'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   xPotentiallyNullVar = tearoffableNullableArg;
                         ^" in tearoffableNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t194 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:290:25: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t192 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:290:25: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'XpotentiallyNull'.
   xPotentiallyNullVar = xNonNullArg;
                         ^" in xNonNullArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t195 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:291:25: Error: A value of type 'XnonNull?' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t193 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:291:25: Error: A value of type 'XnonNull?' can't be assigned to a variable of type 'XpotentiallyNull'.
   xPotentiallyNullVar = xNonNullNullableArg;
                         ^" in xNonNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t196 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:292:25: Error: A value of type 'XpotentiallyNull?' can't be assigned to a variable of type 'XpotentiallyNull' because 'XpotentiallyNull?' is nullable and 'XpotentiallyNull' isn't.
+  xPotentiallyNullVar = let final Never #t194 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:292:25: Error: A value of type 'XpotentiallyNull?' can't be assigned to a variable of type 'XpotentiallyNull' because 'XpotentiallyNull?' is nullable and 'XpotentiallyNull' isn't.
   xPotentiallyNullVar = xPotentiallyNullNullableArg;
                         ^" in xPotentiallyNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t197 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:293:25: Error: A value of type 'YnonNull' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t195 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:293:25: Error: A value of type 'YnonNull' can't be assigned to a variable of type 'XpotentiallyNull'.
   xPotentiallyNullVar = yNonNullArg;
                         ^" in yNonNullArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t198 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:294:25: Error: A value of type 'YnonNull?' can't be assigned to a variable of type 'XpotentiallyNull'.
+  xPotentiallyNullVar = let final Never #t196 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:294:25: Error: A value of type 'YnonNull?' can't be assigned to a variable of type 'XpotentiallyNull'.
   xPotentiallyNullVar = yNonNullNullableArg;
                         ^" in yNonNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  xPotentiallyNullVar = let final Never #t199 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:295:25: Error: A value of type 'YpotentiallyNull?' can't be assigned to a variable of type 'XpotentiallyNull' because 'YpotentiallyNull?' is nullable and 'XpotentiallyNull' isn't.
+  xPotentiallyNullVar = let final Never #t197 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:295:25: Error: A value of type 'YpotentiallyNull?' can't be assigned to a variable of type 'XpotentiallyNull' because 'YpotentiallyNull?' is nullable and 'XpotentiallyNull' isn't.
   xPotentiallyNullVar = yPotentiallyNullNullableArg;
                         ^" in yPotentiallyNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  self::error::YnonNull yNonNullVar = let final Never #t200 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:297:26: Error: A value of type 'Object' can't be assigned to a variable of type 'YnonNull'.
+  self::error::YnonNull yNonNullVar = let final Never #t198 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:297:26: Error: A value of type 'Object' can't be assigned to a variable of type 'YnonNull'.
  - 'Object' is from 'dart:core'.
   YnonNull yNonNullVar = objectArg;
                          ^" in objectArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t201 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:298:17: Error: A value of type 'Object?' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t199 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:298:17: Error: A value of type 'Object?' can't be assigned to a variable of type 'YnonNull'.
  - 'Object' is from 'dart:core'.
   yNonNullVar = objectNullableArg;
                 ^" in objectNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t202 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:299:17: Error: A value of type 'num' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t200 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:299:17: Error: A value of type 'num' can't be assigned to a variable of type 'YnonNull'.
   yNonNullVar = numArg;
                 ^" in numArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t203 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:300:17: Error: A value of type 'num?' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t201 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:300:17: Error: A value of type 'num?' can't be assigned to a variable of type 'YnonNull'.
   yNonNullVar = numNullableArg;
                 ^" in numNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t204 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:301:17: Error: A value of type 'int' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t202 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:301:17: Error: A value of type 'int' can't be assigned to a variable of type 'YnonNull'.
   yNonNullVar = intArg;
                 ^" in intArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t205 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:302:17: Error: A value of type 'int?' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t203 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:302:17: Error: A value of type 'int?' can't be assigned to a variable of type 'YnonNull'.
   yNonNullVar = intNullableArg;
                 ^" in intNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t206 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:303:17: Error: A value of type 'double' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t204 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:303:17: Error: A value of type 'double' can't be assigned to a variable of type 'YnonNull'.
   yNonNullVar = doubleArg;
                 ^" in doubleArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t207 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:304:17: Error: A value of type 'double?' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t205 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:304:17: Error: A value of type 'double?' can't be assigned to a variable of type 'YnonNull'.
   yNonNullVar = doubleNullableArg;
                 ^" in doubleNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t208 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:305:17: Error: A value of type 'Function' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t206 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:305:17: Error: A value of type 'Function' can't be assigned to a variable of type 'YnonNull'.
  - 'Function' is from 'dart:core'.
   yNonNullVar = functionArg;
                 ^" in functionArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t209 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:306:17: Error: A value of type 'Function?' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t207 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:306:17: Error: A value of type 'Function?' can't be assigned to a variable of type 'YnonNull'.
  - 'Function' is from 'dart:core'.
   yNonNullVar = functionNullableArg;
                 ^" in functionNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t210 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:307:17: Error: A value of type 'void Function()' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t208 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:307:17: Error: A value of type 'void Function()' can't be assigned to a variable of type 'YnonNull'.
   yNonNullVar = toVoidArg;
                 ^" in toVoidArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t211 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:308:17: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t209 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:308:17: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'YnonNull'.
   yNonNullVar = toVoidNullableArg;
                 ^" in toVoidNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t212 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:309:17: Error: A value of type 'Tearoffable' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t210 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:309:17: Error: A value of type 'Tearoffable' can't be assigned to a variable of type 'YnonNull'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   yNonNullVar = tearoffableArg;
                 ^" in tearoffableArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t213 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:310:17: Error: A value of type 'Tearoffable?' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t211 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:310:17: Error: A value of type 'Tearoffable?' can't be assigned to a variable of type 'YnonNull'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   yNonNullVar = tearoffableNullableArg;
                 ^" in tearoffableNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t214 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:311:17: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t212 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:311:17: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'YnonNull'.
   yNonNullVar = xNonNullArg;
                 ^" in xNonNullArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t215 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:312:17: Error: A value of type 'XnonNull?' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t213 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:312:17: Error: A value of type 'XnonNull?' can't be assigned to a variable of type 'YnonNull'.
   yNonNullVar = xNonNullNullableArg;
                 ^" in xNonNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t216 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:313:17: Error: A value of type 'XpotentiallyNull' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t214 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:313:17: Error: A value of type 'XpotentiallyNull' can't be assigned to a variable of type 'YnonNull'.
   yNonNullVar = xPotentiallyNullArg;
                 ^" in xPotentiallyNullArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t217 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:314:17: Error: A value of type 'XpotentiallyNull?' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t215 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:314:17: Error: A value of type 'XpotentiallyNull?' can't be assigned to a variable of type 'YnonNull'.
   yNonNullVar = xPotentiallyNullNullableArg;
                 ^" in xPotentiallyNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t218 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:315:17: Error: A value of type 'YnonNull?' can't be assigned to a variable of type 'YnonNull' because 'YnonNull?' is nullable and 'YnonNull' isn't.
+  yNonNullVar = let final Never #t216 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:315:17: Error: A value of type 'YnonNull?' can't be assigned to a variable of type 'YnonNull' because 'YnonNull?' is nullable and 'YnonNull' isn't.
   yNonNullVar = yNonNullNullableArg;
                 ^" in yNonNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t219 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:316:17: Error: A value of type 'YpotentiallyNull' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t217 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:316:17: Error: A value of type 'YpotentiallyNull' can't be assigned to a variable of type 'YnonNull'.
   yNonNullVar = yPotentiallyNullArg;
                 ^" in yPotentiallyNullArg as{TypeError,ForNonNullableByDefault} Never;
-  yNonNullVar = let final Never #t220 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:317:17: Error: A value of type 'YpotentiallyNull?' can't be assigned to a variable of type 'YnonNull'.
+  yNonNullVar = let final Never #t218 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:317:17: Error: A value of type 'YpotentiallyNull?' can't be assigned to a variable of type 'YnonNull'.
   yNonNullVar = yPotentiallyNullNullableArg;
                 ^" in yPotentiallyNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  self::error::YpotentiallyNull% yPotentiallyNullVar = let final Never #t221 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:319:42: Error: A value of type 'Object' can't be assigned to a variable of type 'YpotentiallyNull'.
+  self::error::YpotentiallyNull% yPotentiallyNullVar = let final Never #t219 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:319:42: Error: A value of type 'Object' can't be assigned to a variable of type 'YpotentiallyNull'.
  - 'Object' is from 'dart:core'.
   YpotentiallyNull yPotentiallyNullVar = objectArg;
                                          ^" in objectArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t222 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:320:25: Error: A value of type 'Object?' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t220 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:320:25: Error: A value of type 'Object?' can't be assigned to a variable of type 'YpotentiallyNull'.
  - 'Object' is from 'dart:core'.
   yPotentiallyNullVar = objectNullableArg;
                         ^" in objectNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t223 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:321:25: Error: A value of type 'num' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t221 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:321:25: Error: A value of type 'num' can't be assigned to a variable of type 'YpotentiallyNull'.
   yPotentiallyNullVar = numArg;
                         ^" in numArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t224 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:322:25: Error: A value of type 'num?' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t222 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:322:25: Error: A value of type 'num?' can't be assigned to a variable of type 'YpotentiallyNull'.
   yPotentiallyNullVar = numNullableArg;
                         ^" in numNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t225 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:323:25: Error: A value of type 'int' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t223 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:323:25: Error: A value of type 'int' can't be assigned to a variable of type 'YpotentiallyNull'.
   yPotentiallyNullVar = intArg;
                         ^" in intArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t226 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:324:25: Error: A value of type 'int?' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t224 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:324:25: Error: A value of type 'int?' can't be assigned to a variable of type 'YpotentiallyNull'.
   yPotentiallyNullVar = intNullableArg;
                         ^" in intNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t227 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:325:25: Error: A value of type 'double' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t225 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:325:25: Error: A value of type 'double' can't be assigned to a variable of type 'YpotentiallyNull'.
   yPotentiallyNullVar = doubleArg;
                         ^" in doubleArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t228 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:326:25: Error: A value of type 'double?' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t226 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:326:25: Error: A value of type 'double?' can't be assigned to a variable of type 'YpotentiallyNull'.
   yPotentiallyNullVar = doubleNullableArg;
                         ^" in doubleNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t229 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:327:25: Error: A value of type 'Function' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t227 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:327:25: Error: A value of type 'Function' can't be assigned to a variable of type 'YpotentiallyNull'.
  - 'Function' is from 'dart:core'.
   yPotentiallyNullVar = functionArg;
                         ^" in functionArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t230 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:328:25: Error: A value of type 'Function?' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t228 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:328:25: Error: A value of type 'Function?' can't be assigned to a variable of type 'YpotentiallyNull'.
  - 'Function' is from 'dart:core'.
   yPotentiallyNullVar = functionNullableArg;
                         ^" in functionNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t231 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:329:25: Error: A value of type 'void Function()' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t229 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:329:25: Error: A value of type 'void Function()' can't be assigned to a variable of type 'YpotentiallyNull'.
   yPotentiallyNullVar = toVoidArg;
                         ^" in toVoidArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t232 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:330:25: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t230 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:330:25: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'YpotentiallyNull'.
   yPotentiallyNullVar = toVoidNullableArg;
                         ^" in toVoidNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t233 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:331:25: Error: A value of type 'Tearoffable' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t231 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:331:25: Error: A value of type 'Tearoffable' can't be assigned to a variable of type 'YpotentiallyNull'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   yPotentiallyNullVar = tearoffableArg;
                         ^" in tearoffableArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t234 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:332:25: Error: A value of type 'Tearoffable?' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t232 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:332:25: Error: A value of type 'Tearoffable?' can't be assigned to a variable of type 'YpotentiallyNull'.
  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
   yPotentiallyNullVar = tearoffableNullableArg;
                         ^" in tearoffableNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t235 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:333:25: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t233 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:333:25: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'YpotentiallyNull'.
   yPotentiallyNullVar = xNonNullArg;
                         ^" in xNonNullArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t236 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:334:25: Error: A value of type 'XnonNull?' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t234 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:334:25: Error: A value of type 'XnonNull?' can't be assigned to a variable of type 'YpotentiallyNull'.
   yPotentiallyNullVar = xNonNullNullableArg;
                         ^" in xNonNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t237 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:335:25: Error: A value of type 'XpotentiallyNull' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t235 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:335:25: Error: A value of type 'XpotentiallyNull' can't be assigned to a variable of type 'YpotentiallyNull'.
   yPotentiallyNullVar = xPotentiallyNullArg;
                         ^" in xPotentiallyNullArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t238 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:336:25: Error: A value of type 'XpotentiallyNull?' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t236 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:336:25: Error: A value of type 'XpotentiallyNull?' can't be assigned to a variable of type 'YpotentiallyNull'.
   yPotentiallyNullVar = xPotentiallyNullNullableArg;
                         ^" in xPotentiallyNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t239 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:337:25: Error: A value of type 'YnonNull' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t237 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:337:25: Error: A value of type 'YnonNull' can't be assigned to a variable of type 'YpotentiallyNull'.
   yPotentiallyNullVar = yNonNullArg;
                         ^" in yNonNullArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t240 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:338:25: Error: A value of type 'YnonNull?' can't be assigned to a variable of type 'YpotentiallyNull'.
+  yPotentiallyNullVar = let final Never #t238 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:338:25: Error: A value of type 'YnonNull?' can't be assigned to a variable of type 'YpotentiallyNull'.
   yPotentiallyNullVar = yNonNullNullableArg;
                         ^" in yNonNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
-  yPotentiallyNullVar = let final Never #t241 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:339:25: Error: A value of type 'YpotentiallyNull?' can't be assigned to a variable of type 'YpotentiallyNull' because 'YpotentiallyNull?' is nullable and 'YpotentiallyNull' isn't.
+  yPotentiallyNullVar = let final Never #t239 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:339:25: Error: A value of type 'YpotentiallyNull?' can't be assigned to a variable of type 'YpotentiallyNull' because 'YpotentiallyNull?' is nullable and 'YpotentiallyNull' isn't.
   yPotentiallyNullVar = yPotentiallyNullNullableArg;
                         ^" in yPotentiallyNullNullableArg as{TypeError,ForNonNullableByDefault} Never;
 }
