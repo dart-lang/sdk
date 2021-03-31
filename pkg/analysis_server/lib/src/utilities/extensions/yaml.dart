@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:yaml/yaml.dart';
 
 extension YamlNodeExtensions on YamlNode {
   /// Return the child of this node that contains the given [offset], or `null`
   /// if none of the children contains the offset.
-  YamlNode childContainingOffset(int offset) {
+  YamlNode? childContainingOffset(int offset) {
     var node = this;
     if (node is YamlList) {
       for (var element in node.nodes) {

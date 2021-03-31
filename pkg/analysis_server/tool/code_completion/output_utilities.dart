@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:math' as math;
 
 /// Print the given [table].
@@ -13,7 +11,7 @@ void printTable(List<List<String>> table) {
   print(buffer.toString());
 }
 
-/// Return an interable that will produce all of the integer values between
+/// Return an iterable that will produce all of the integer values between
 /// [first] and [last] inclusive.
 Iterable<int> range(int first, int last) sync* {
   for (var i = first; i < last; i++) {
