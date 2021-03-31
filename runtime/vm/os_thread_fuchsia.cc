@@ -133,7 +133,7 @@ int OSThread::Start(const char* name,
   return 0;
 }
 
-const ThreadId OSThread::kInvalidThreadId = ZX_KOID_INVALID;
+const ThreadId OSThread::kInvalidThreadId = ZX_HANDLE_INVALID;
 const ThreadJoinId OSThread::kInvalidThreadJoinId =
     static_cast<ThreadJoinId>(0);
 
@@ -163,15 +163,7 @@ intptr_t OSThread::GetMaxStackSize() {
 }
 
 ThreadId OSThread::GetCurrentThreadId() {
-  zx_info_handle_basic_t info;
-  zx_handle_t thread_handle = thrd_get_zx_handle(thrd_current());
-  zx_status_t status =
-      zx_object_get_info(thread_handle, ZX_INFO_HANDLE_BASIC, &info,
-                         sizeof(info), nullptr, nullptr);
-  if (status != ZX_OK) {
-    FATAL1("Failed to get thread koid: %s\n", zx_status_get_string(status));
-  }
-  return info.koid;
+  return thrd_get_zx_handle(thrd_current());
 }
 
 #ifdef SUPPORT_TIMELINE
