@@ -71,9 +71,8 @@ static IntegerPtr UnaryIntegerEvaluateRaw(const Integer& value,
 int64_t Evaluator::TruncateTo(int64_t v, Representation r) {
   switch (r) {
     case kTagged: {
-      // Smi occupies word minus kSmiTagShift bits.
       const intptr_t kTruncateBits =
-          (kBitsPerInt64 - kBitsPerWord) + kSmiTagShift;
+          kBitsPerInt64 - (compiler::target::kSmiBits + 1 /*sign bit*/);
       return Utils::ShiftLeftWithTruncation(v, kTruncateBits) >> kTruncateBits;
     }
     case kUnboxedInt32:
