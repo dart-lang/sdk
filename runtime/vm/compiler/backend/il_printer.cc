@@ -730,22 +730,6 @@ void UnaryIntegerOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 }
 
-void CheckedSmiOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s", Token::Str(op_kind()));
-  f->AddString(", ");
-  left()->PrintTo(f);
-  f->AddString(", ");
-  right()->PrintTo(f);
-}
-
-void CheckedSmiComparisonInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s", Token::Str(kind()));
-  f->AddString(", ");
-  left()->PrintTo(f);
-  f->AddString(", ");
-  right()->PrintTo(f);
-}
-
 void BinaryIntegerOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%s", Token::Str(op_kind()));
   if (is_truncating()) {

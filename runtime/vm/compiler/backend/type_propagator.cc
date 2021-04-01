@@ -1595,30 +1595,6 @@ CompileType UnaryInt64OpInstr::ComputeType() const {
   return CompileType::Int();
 }
 
-CompileType CheckedSmiOpInstr::ComputeType() const {
-  if (left()->Type()->IsNullableInt() && right()->Type()->IsNullableInt()) {
-    const AbstractType& abstract_type =
-        AbstractType::ZoneHandle(Type::IntType());
-    TraceStrongModeType(this, abstract_type);
-    return CompileType::FromAbstractType(abstract_type,
-                                         CompileType::kNonNullable);
-  } else {
-    CompileType* type = call()->Type();
-    TraceStrongModeType(this, type);
-    return *type;
-  }
-}
-
-bool CheckedSmiOpInstr::RecomputeType() {
-  return UpdateType(ComputeType());
-}
-
-CompileType CheckedSmiComparisonInstr::ComputeType() const {
-  CompileType* type = call()->Type();
-  TraceStrongModeType(this, type);
-  return *type;
-}
-
 CompileType BoxIntegerInstr::ComputeType() const {
   return ValueFitsSmi() ? CompileType::FromCid(kSmiCid) : CompileType::Int();
 }

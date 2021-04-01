@@ -729,13 +729,18 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary(Zone* zone,
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, LocationRegisterOrConstant(left()));
-    // Only one input can be a constant operand. The case of two constant
-    // operands should be handled by constant propagation.
-    // Only right can be a stack slot.
-    locs->set_in(1, locs->in(0).IsConstant()
-                        ? Location::RequiresRegister()
-                        : LocationRegisterOrConstant(right()));
+    if (is_null_aware()) {
+      locs->set_in(0, Location::RequiresRegister());
+      locs->set_in(1, Location::RequiresRegister());
+    } else {
+      locs->set_in(0, LocationRegisterOrConstant(left()));
+      // Only one input can be a constant operand. The case of two constant
+      // operands should be handled by constant propagation.
+      // Only right can be a stack slot.
+      locs->set_in(1, locs->in(0).IsConstant()
+                          ? Location::RequiresRegister()
+                          : LocationRegisterOrConstant(right()));
+    }
     locs->set_out(0, Location::RequiresRegister());
     return locs;
   }
@@ -885,6 +890,35 @@ static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
   return true_condition;
 }
 
+static Condition EmitNullAwareInt64ComparisonOp(FlowGraphCompiler* compiler,
+                                                const LocationSummary& locs,
+                                                Token::Kind kind,
+                                                BranchLabels labels) {
+  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
+  const Register left = locs.in(0).reg();
+  const Register right = locs.in(1).reg();
+  const Condition true_condition = TokenKindToIntCondition(kind);
+  compiler::Label* equal_result =
+      (true_condition == EQUAL) ? labels.true_label : labels.false_label;
+  compiler::Label* not_equal_result =
+      (true_condition == EQUAL) ? labels.false_label : labels.true_label;
+
+  // Check if operands have the same value. If they don't, then they could
+  // be equal only if both of them are Mints with the same value.
+  __ OBJ(cmp)(left, right);
+  __ j(EQUAL, equal_result);
+  __ OBJ(mov)(TMP, left);
+  __ OBJ(and)(TMP, right);
+  __ BranchIfSmi(TMP, not_equal_result);
+  __ CompareClassId(left, kMintCid);
+  __ j(NOT_EQUAL, not_equal_result);
+  __ CompareClassId(right, kMintCid);
+  __ j(NOT_EQUAL, not_equal_result);
+  __ movq(TMP, compiler::FieldAddress(left, Mint::value_offset()));
+  __ cmpq(TMP, compiler::FieldAddress(right, Mint::value_offset()));
+  return true_condition;
+}
+
 static Condition TokenKindToDoubleCondition(Token::Kind kind) {
   switch (kind) {
     case Token::kEQ:
@@ -923,6 +957,10 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 
 Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                    BranchLabels labels) {
+  if (is_null_aware()) {
+    ASSERT(operation_cid() == kMintCid);
+    return EmitNullAwareInt64ComparisonOp(compiler, *locs(), kind(), labels);
+  }
   if (operation_cid() == kSmiCid) {
     return EmitSmiComparisonOp(compiler, *locs(), kind());
   } else if (operation_cid() == kMintCid) {
@@ -3513,342 +3551,6 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     // Shift for result now we know there is no overflow.
     __ OBJ(shl)(left, right);
     ASSERT(!shift_left->is_truncating());
-  }
-}
-
-class CheckedSmiSlowPath : public TemplateSlowPathCode<CheckedSmiOpInstr> {
- public:
-  CheckedSmiSlowPath(CheckedSmiOpInstr* instruction, intptr_t try_index)
-      : TemplateSlowPathCode(instruction), try_index_(try_index) {}
-
-  static constexpr intptr_t kNumSlowPathArgs = 2;
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    if (compiler::Assembler::EmittingComments()) {
-      __ Comment("slow path smi operation");
-    }
-    __ Bind(entry_label());
-    LocationSummary* locs = instruction()->locs();
-    Register result = locs->out(0).reg();
-    locs->live_registers()->Remove(Location::RegisterLocation(result));
-
-    compiler->SaveLiveRegisters(locs);
-    if (instruction()->env() != NULL) {
-      Environment* env =
-          compiler->SlowPathEnvironmentFor(instruction(), kNumSlowPathArgs);
-      compiler->pending_deoptimization_env_ = env;
-    }
-    __ pushq(locs->in(0).reg());
-    __ pushq(locs->in(1).reg());
-    const auto& selector = String::Handle(instruction()->call()->Selector());
-    const auto& arguments_descriptor =
-        Array::Handle(ArgumentsDescriptor::NewBoxed(
-            /*type_args_len=*/0, /*num_arguments=*/2));
-    compiler->EmitMegamorphicInstanceCall(
-        selector, arguments_descriptor, instruction()->call()->deopt_id(),
-        instruction()->source(), locs, try_index_, kNumSlowPathArgs);
-    __ MoveRegister(result, RAX);
-    compiler->RestoreLiveRegisters(locs);
-    __ jmp(exit_label());
-    compiler->pending_deoptimization_env_ = NULL;
-  }
-
- private:
-  intptr_t try_index_;
-};
-
-LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
-  bool is_shift = (op_kind() == Token::kSHL) || (op_kind() == Token::kSHR) ||
-                  (op_kind() == Token::kUSHR);
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = is_shift ? 1 : 0;
-  LocationSummary* summary = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
-  switch (op_kind()) {
-    case Token::kADD:
-    case Token::kSUB:
-    case Token::kMUL:
-    case Token::kSHL:
-    case Token::kSHR:
-    case Token::kUSHR:
-      summary->set_out(0, Location::RequiresRegister());
-      break;
-    case Token::kBIT_OR:
-    case Token::kBIT_AND:
-    case Token::kBIT_XOR:
-      summary->set_out(0, Location::SameAsFirstInput());
-      break;
-    default:
-      UNIMPLEMENTED();
-  }
-  if (is_shift) {
-    summary->set_temp(0, Location::RegisterLocation(RCX));
-  }
-  return summary;
-}
-
-void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  CheckedSmiSlowPath* slow_path =
-      new CheckedSmiSlowPath(this, compiler->CurrentTryIndex());
-  compiler->AddSlowPathCode(slow_path);
-  // Test operands if necessary.
-
-  intptr_t left_cid = left()->Type()->ToCid();
-  intptr_t right_cid = right()->Type()->ToCid();
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  if (FLAG_use_slow_path) {
-    __ jmp(slow_path->entry_label());
-  } else if (this->left()->definition() == this->right()->definition()) {
-    __ BranchIfNotSmi(left, slow_path->entry_label());
-  } else if (left_cid == kSmiCid) {
-    __ BranchIfNotSmi(right, slow_path->entry_label());
-  } else if (right_cid == kSmiCid) {
-    __ BranchIfNotSmi(left, slow_path->entry_label());
-  } else {
-    __ movq(TMP, left);
-    __ orq(TMP, right);
-    __ BranchIfNotSmi(TMP, slow_path->entry_label());
-  }
-  Register result = locs()->out(0).reg();
-  switch (op_kind()) {
-    case Token::kADD:
-      __ movq(result, left);
-      __ OBJ(add)(result, right);
-      __ j(OVERFLOW, slow_path->entry_label());
-      break;
-    case Token::kSUB:
-      __ movq(result, left);
-      __ OBJ(sub)(result, right);
-      __ j(OVERFLOW, slow_path->entry_label());
-      break;
-    case Token::kMUL:
-      __ movq(result, left);
-      __ SmiUntag(result);
-      __ OBJ(imul)(result, right);
-      __ j(OVERFLOW, slow_path->entry_label());
-      break;
-    case Token::kBIT_OR:
-      ASSERT(left == result);
-      __ orq(result, right);
-      break;
-    case Token::kBIT_AND:
-      ASSERT(left == result);
-      __ andq(result, right);
-      break;
-    case Token::kBIT_XOR:
-      ASSERT(left == result);
-      __ xorq(result, right);
-      break;
-    case Token::kSHL:
-      ASSERT(result != right);
-      ASSERT(locs()->temp(0).reg() == RCX);
-      __ CompareObject(right, Smi::ZoneHandle(Smi::New(Smi::kBits)));
-      __ j(ABOVE_EQUAL, slow_path->entry_label());
-
-      __ movq(RCX, right);
-      __ SmiUntag(RCX);
-      __ movq(result, left);
-      __ shlq(result, RCX);
-      __ movq(TMP, result);
-      __ OBJ(sar)(TMP, RCX);
-      __ OBJ(cmp)(TMP, left);
-      __ j(NOT_EQUAL, slow_path->entry_label());
-      break;
-    case Token::kSHR:
-      ASSERT(result != right);
-      ASSERT(locs()->temp(0).reg() == RCX);
-      __ CompareObject(right, Smi::ZoneHandle(Smi::New(Smi::kBits)));
-      __ j(ABOVE_EQUAL, slow_path->entry_label());
-
-      __ movq(RCX, right);
-      __ SmiUntag(RCX);
-      __ movq(result, left);
-      __ SmiUntag(result);
-      __ OBJ(sar)(result, RCX);
-      __ SmiTag(result);
-      break;
-    case Token::kUSHR: {
-      ASSERT(result != right);
-      ASSERT(locs()->temp(0).reg() == RCX);
-      __ CompareObject(right, Smi::ZoneHandle(Smi::New(kBitsPerInt64)));
-      __ j(ABOVE_EQUAL, slow_path->entry_label());
-
-      __ movq(RCX, right);
-      __ SmiUntag(RCX);
-      __ movq(result, left);
-      __ SmiUntagAndSignExtend(result);
-      __ shrq(result, RCX);
-      __ shlq(result, compiler::Immediate(1));  // SmiTag, keep hi bits.
-      __ j(OVERFLOW, slow_path->entry_label());
-#if defined(DART_COMPRESSED_POINTERS)
-      const Register temp = locs()->temp(0).reg();
-      __ movsxd(temp, result);
-      __ cmpq(temp, result);
-      __ j(NOT_EQUAL, slow_path->entry_label());
-#endif  // defined(DART_COMPRESSED_POINTERS)
-      break;
-    }
-    default:
-      UNIMPLEMENTED();
-  }
-  __ Bind(slow_path->exit_label());
-}
-
-class CheckedSmiComparisonSlowPath
-    : public TemplateSlowPathCode<CheckedSmiComparisonInstr> {
- public:
-  static constexpr intptr_t kNumSlowPathArgs = 2;
-
-  CheckedSmiComparisonSlowPath(CheckedSmiComparisonInstr* instruction,
-                               Environment* env,
-                               intptr_t try_index,
-                               BranchLabels labels,
-                               bool merged)
-      : TemplateSlowPathCode(instruction),
-        try_index_(try_index),
-        labels_(labels),
-        merged_(merged),
-        env_(env) {
-    // The environment must either come from the comparison or the environment
-    // was cleared from the comparison (and moved to a branch).
-    ASSERT(env == instruction->env() ||
-           (merged && instruction->env() == nullptr));
-  }
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    if (compiler::Assembler::EmittingComments()) {
-      __ Comment("slow path smi comparison");
-    }
-    __ Bind(entry_label());
-    LocationSummary* locs = instruction()->locs();
-    Register result = merged_ ? locs->temp(0).reg() : locs->out(0).reg();
-    locs->live_registers()->Remove(Location::RegisterLocation(result));
-
-    compiler->SaveLiveRegisters(locs);
-    if (env_ != nullptr) {
-      compiler->pending_deoptimization_env_ =
-          compiler->SlowPathEnvironmentFor(env_, locs, kNumSlowPathArgs);
-    }
-    __ pushq(locs->in(0).reg());
-    __ pushq(locs->in(1).reg());
-
-    const auto& selector = String::Handle(instruction()->call()->Selector());
-    const auto& arguments_descriptor =
-        Array::Handle(ArgumentsDescriptor::NewBoxed(
-            /*type_args_len=*/0, /*num_arguments=*/2));
-
-    compiler->EmitMegamorphicInstanceCall(
-        selector, arguments_descriptor, instruction()->call()->deopt_id(),
-        instruction()->source(), locs, try_index_, kNumSlowPathArgs);
-    __ MoveRegister(result, RAX);
-    compiler->RestoreLiveRegisters(locs);
-    compiler->pending_deoptimization_env_ = nullptr;
-    if (merged_) {
-      __ CompareObject(result, Bool::True());
-      __ j(EQUAL, instruction()->is_negated() ? labels_.false_label
-                                              : labels_.true_label);
-      __ jmp(instruction()->is_negated() ? labels_.true_label
-                                         : labels_.false_label);
-      ASSERT(exit_label()->IsUnused());
-    } else {
-      ASSERT(!instruction()->is_negated());
-      __ jmp(exit_label());
-    }
-  }
-
- private:
-  intptr_t try_index_;
-  BranchLabels labels_;
-  bool merged_;
-  Environment* env_;
-};
-
-LocationSummary* CheckedSmiComparisonInstr::MakeLocationSummary(
-    Zone* zone,
-    bool opt) const {
-  const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 1;
-  LocationSummary* summary = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RequiresRegister());
-  summary->set_temp(0, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
-}
-
-Condition CheckedSmiComparisonInstr::EmitComparisonCode(
-    FlowGraphCompiler* compiler,
-    BranchLabels labels) {
-  return EmitSmiComparisonOp(compiler, *locs(), kind());
-}
-
-#define EMIT_SMI_CHECK                                                         \
-  intptr_t left_cid = left()->Type()->ToCid();                                 \
-  intptr_t right_cid = right()->Type()->ToCid();                               \
-  Register left = locs()->in(0).reg();                                         \
-  Register right = locs()->in(1).reg();                                        \
-  if (FLAG_use_slow_path) {                                                    \
-    __ jmp(slow_path->entry_label());                                          \
-  } else if (this->left()->definition() == this->right()->definition()) {      \
-    __ BranchIfNotSmi(left, slow_path->entry_label());                         \
-  } else if (left_cid == kSmiCid) {                                            \
-    __ BranchIfNotSmi(right, slow_path->entry_label());                        \
-  } else if (right_cid == kSmiCid) {                                           \
-    __ BranchIfNotSmi(left, slow_path->entry_label());                         \
-  } else {                                                                     \
-    __ movq(TMP, left);                                                        \
-    __ orq(TMP, right);                                                        \
-    __ BranchIfNotSmi(TMP, slow_path->entry_label());                          \
-  }
-
-void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
-                                               BranchInstr* branch) {
-  BranchLabels labels = compiler->CreateBranchLabels(branch);
-  CheckedSmiComparisonSlowPath* slow_path = new CheckedSmiComparisonSlowPath(
-      this, branch->env(), compiler->CurrentTryIndex(), labels,
-      /* merged = */ true);
-  compiler->AddSlowPathCode(slow_path);
-  EMIT_SMI_CHECK;
-  Condition true_condition = EmitComparisonCode(compiler, labels);
-  ASSERT(true_condition != kInvalidCondition);
-  EmitBranchOnCondition(compiler, true_condition, labels);
-  // No need to bind slow_path->exit_label() as slow path exits through
-  // true/false branch labels.
-}
-
-void CheckedSmiComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Zone-allocate labels to pass them to slow-path which outlives local scope.
-  compiler::Label* true_label = new (Z) compiler::Label();
-  compiler::Label* false_label = new (Z) compiler::Label();
-  compiler::Label done;
-  BranchLabels labels = {true_label, false_label, false_label};
-  // In case of negated comparison result of a slow path call should be negated.
-  // For this purpose, 'merged' slow path is generated: it tests
-  // result of a call and jumps directly to true or false label.
-  CheckedSmiComparisonSlowPath* slow_path = new CheckedSmiComparisonSlowPath(
-      this, env(), compiler->CurrentTryIndex(), labels,
-      /* merged = */ is_negated());
-  compiler->AddSlowPathCode(slow_path);
-  EMIT_SMI_CHECK;
-  Condition true_condition = EmitComparisonCode(compiler, labels);
-  ASSERT(true_condition != kInvalidCondition);
-  EmitBranchOnCondition(compiler, true_condition, labels,
-                        compiler::Assembler::kNearJump);
-  Register result = locs()->out(0).reg();
-  __ Bind(false_label);
-  __ LoadObject(result, Bool::False());
-  __ jmp(&done, compiler::Assembler::kNearJump);
-  __ Bind(true_label);
-  __ LoadObject(result, Bool::True());
-  __ Bind(&done);
-  // In case of negated comparison slow path exits through true/false labels.
-  if (!is_negated()) {
-    __ Bind(slow_path->exit_label());
   }
 }
 

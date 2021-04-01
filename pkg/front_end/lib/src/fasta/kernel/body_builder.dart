@@ -1301,11 +1301,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void _unaliasTypeAliasedConstructorInvocations() {
     for (TypeAliasedConstructorInvocationJudgment invocation
         in typeAliasedConstructorInvocations) {
-      DartType unaliasedType = new TypedefType(
-              invocation.typeAliasBuilder.typedef,
-              Nullability.nonNullable,
-              invocation.arguments.types)
-          .unalias;
+      DartType aliasedType = new TypedefType(
+          invocation.typeAliasBuilder.typedef,
+          Nullability.nonNullable,
+          invocation.arguments.types);
+      libraryBuilder.checkBoundsInType(
+          aliasedType, typeEnvironment, uri, invocation.fileOffset);
+      DartType unaliasedType = aliasedType.unalias;
       List<DartType> invocationTypeArguments = null;
       if (unaliasedType is InterfaceType) {
         invocationTypeArguments = unaliasedType.typeArguments;
@@ -1323,11 +1325,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void _unaliasTypeAliasedFactoryInvocations() {
     for (TypeAliasedFactoryInvocationJudgment invocation
         in typeAliasedFactoryInvocations) {
-      DartType unaliasedType = new TypedefType(
-              invocation.typeAliasBuilder.typedef,
-              Nullability.nonNullable,
-              invocation.arguments.types)
-          .unalias;
+      DartType aliasedType = new TypedefType(
+          invocation.typeAliasBuilder.typedef,
+          Nullability.nonNullable,
+          invocation.arguments.types);
+      libraryBuilder.checkBoundsInType(
+          aliasedType, typeEnvironment, uri, invocation.fileOffset);
+      DartType unaliasedType = aliasedType.unalias;
       List<DartType> invocationTypeArguments = null;
       if (unaliasedType is InterfaceType) {
         invocationTypeArguments = unaliasedType.typeArguments;
@@ -4500,7 +4504,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       List<UnresolvedType> typeArguments,
       int charOffset,
       Constness constness,
-      {bool isTypeArgumentsInForest = false}) {
+      {bool isTypeArgumentsInForest = false,
+      TypeDeclarationBuilder typeAliasBuilder}) {
     if (arguments == null) {
       return buildProblem(fasta.messageMissingArgumentList,
           nameToken.charOffset, nameToken.length);
@@ -4727,7 +4732,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         invocation = buildStaticInvocation(target, arguments,
             constness: constness,
             charOffset: nameToken.charOffset,
-            charLength: nameToken.length);
+            charLength: nameToken.length,
+            typeAliasBuilder: typeAliasBuilder);
 
         if (invocation is StaticInvocation &&
             isRedirectingFactory(target, helper: this)) {

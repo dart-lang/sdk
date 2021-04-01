@@ -685,6 +685,17 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
     }
     return createTypedef(node, newNullability, newTypeArguments);
   }
+
+  @override
+  DartType? visitFunctionType(FunctionType node, int variance) {
+    // The variance of the Typedef parameters should be taken into account only
+    // when for the NNBD code.
+    if (node.typedefType != null && isNonNullableByDefault) {
+      return node.typedefType!.accept1(this, variance);
+    } else {
+      return super.visitFunctionType(node, variance);
+    }
+  }
 }
 
 int computeVariance(TypeParameter typeParameter, DartType type,

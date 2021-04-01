@@ -202,8 +202,7 @@ void TestPipeline::CompileGraphAndAttachFunction() {
 
   // We expect there to be no deoptimizations.
   if (mode_ == CompilerPass::kAOT) {
-    // TODO(kustermann): Enable this once we get rid of [CheckedSmiSlowPath]s.
-    // EXPECT(deopt_info_array.IsNull() || deopt_info_array.Length() == 0);
+    EXPECT(deopt_info_array.IsNull() || deopt_info_array.Length() == 0);
   }
 }
 

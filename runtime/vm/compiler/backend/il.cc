@@ -2437,79 +2437,6 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
   return op;
 }
 
-Definition* CheckedSmiOpInstr::Canonicalize(FlowGraph* flow_graph) {
-  if ((left()->Type()->ToCid() == kSmiCid) &&
-      (right()->Type()->ToCid() == kSmiCid)) {
-    Definition* replacement = NULL;
-    // Operations that can't deoptimize are specialized here: These include
-    // bit-wise operators and comparisons. Other arithmetic operations can
-    // overflow or divide by 0 and can't be specialized unless we have extra
-    // range information.
-    switch (op_kind()) {
-      case Token::kBIT_AND:
-        FALL_THROUGH;
-      case Token::kBIT_OR:
-        FALL_THROUGH;
-      case Token::kBIT_XOR:
-        replacement = new BinarySmiOpInstr(
-            op_kind(), new Value(left()->definition()),
-            new Value(right()->definition()), DeoptId::kNone);
-        FALL_THROUGH;
-      default:
-        break;
-    }
-    if (replacement != NULL) {
-      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
-      return replacement;
-    }
-  }
-  return this;
-}
-
-ComparisonInstr* CheckedSmiComparisonInstr::CopyWithNewOperands(Value* left,
-                                                                Value* right) {
-  UNREACHABLE();
-  return NULL;
-}
-
-Definition* CheckedSmiComparisonInstr::Canonicalize(FlowGraph* flow_graph) {
-  CompileType* left_type = left()->Type();
-  CompileType* right_type = right()->Type();
-  intptr_t op_cid = kIllegalCid;
-  SpeculativeMode speculative_mode = kGuardInputs;
-
-  if ((left_type->ToCid() == kSmiCid) && (right_type->ToCid() == kSmiCid)) {
-    op_cid = kSmiCid;
-  } else if (  // TODO(dartbug.com/30480): handle nullable types here
-      left_type->IsNullableInt() && !left_type->is_nullable() &&
-      right_type->IsNullableInt() && !right_type->is_nullable()) {
-    op_cid = kMintCid;
-    speculative_mode = kNotSpeculative;
-  }
-
-  if (op_cid != kIllegalCid) {
-    Definition* replacement = NULL;
-    if (Token::IsRelationalOperator(kind())) {
-      replacement = new RelationalOpInstr(
-          source(), kind(), left()->CopyWithType(), right()->CopyWithType(),
-          op_cid, DeoptId::kNone, speculative_mode);
-    } else if (Token::IsEqualityOperator(kind())) {
-      replacement = new EqualityCompareInstr(
-          source(), kind(), left()->CopyWithType(), right()->CopyWithType(),
-          op_cid, DeoptId::kNone, speculative_mode);
-    }
-    if (replacement != NULL) {
-      if (FLAG_trace_strong_mode_types && (op_cid == kMintCid)) {
-        THR_Print("[Strong mode] Optimization: replacing %s with %s\n",
-                  ToCString(), replacement->ToCString());
-      }
-      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
-      return replacement;
-    }
-  }
-  return this;
-}
-
 Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
   // If both operands are constants evaluate this expression. Might
   // occur due to load forwarding after constant propagation pass
@@ -3667,6 +3594,30 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
     replacement->AsComparison()->NegateComparison();
   }
   return replacement;
+}
+
+Definition* EqualityCompareInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (is_null_aware()) {
+    ASSERT(operation_cid() == kMintCid);
+    // Select more efficient instructions based on operand types.
+    CompileType* left_type = left()->Type();
+    CompileType* right_type = right()->Type();
+    if (left_type->IsNull() || left_type->IsNullableSmi() ||
+        right_type->IsNull() || right_type->IsNullableSmi()) {
+      auto replacement = new StrictCompareInstr(
+          source(),
+          (kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
+          left()->CopyWithType(), right()->CopyWithType(),
+          /*needs_number_check=*/false, DeoptId::kNone);
+      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
+      return replacement;
+    } else {
+      if (!left_type->is_nullable() && !right_type->is_nullable()) {
+        set_null_aware(false);
+      }
+    }
+  }
+  return this;
 }
 
 Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -5816,7 +5767,8 @@ ComparisonInstr* DoubleTestOpInstr::CopyWithNewOperands(Value* new_left,
 ComparisonInstr* EqualityCompareInstr::CopyWithNewOperands(Value* new_left,
                                                            Value* new_right) {
   return new EqualityCompareInstr(source(), kind(), new_left, new_right,
-                                  operation_cid(), deopt_id());
+                                  operation_cid(), deopt_id(), is_null_aware(),
+                                  speculative_mode_);
 }
 
 ComparisonInstr* RelationalOpInstr::CopyWithNewOperands(Value* new_left,
