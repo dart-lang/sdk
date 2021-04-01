@@ -702,6 +702,27 @@ List<Object> getInboundReferenceIssues(List<TypeVariableBuilder> variables) {
   return issues;
 }
 
+/// Finds raw non-simple types in bounds of type variables in [typeBuilder].
+///
+/// Returns flattened list of triplets.  The first element of the triplet is the
+/// [TypeDeclarationBuilder] for the type variable from [variables] that has raw
+/// generic types with inbound references in its bound.  The second element of
+/// the triplet is the error message.  The third element is the context.
+List<Object> getInboundReferenceIssuesInType(TypeBuilder typeBuilder) {
+  List<FunctionTypeBuilder> genericFunctionTypeBuilders =
+      <FunctionTypeBuilder>[];
+  findUnaliasedGenericFunctionTypes(typeBuilder,
+      result: genericFunctionTypeBuilders);
+  List<Object> issues = <Object>[];
+  for (FunctionTypeBuilder genericFunctionTypeBuilder
+      in genericFunctionTypeBuilders) {
+    List<TypeVariableBuilder> typeVariables =
+        genericFunctionTypeBuilder.typeVariables;
+    issues.addAll(getInboundReferenceIssues(typeVariables));
+  }
+  return issues;
+}
+
 /// Finds raw type paths starting from those in [start] and ending with [end].
 ///
 /// Returns list of found paths.  Each path is represented as a list of
@@ -964,8 +985,38 @@ void breakCycles(List<List<Object>> cycles) {
   }
 }
 
+/// Finds generic function type sub-terms in [type].
+void findUnaliasedGenericFunctionTypes(TypeBuilder type,
+    {List<FunctionTypeBuilder> result}) {
+  assert(result != null);
+  if (type is FunctionTypeBuilder) {
+    if (type.typeVariables != null && type.typeVariables.length > 0) {
+      result.add(type);
+
+      for (TypeVariableBuilder typeVariable in type.typeVariables) {
+        findUnaliasedGenericFunctionTypes(typeVariable.bound, result: result);
+        findUnaliasedGenericFunctionTypes(typeVariable.defaultType,
+            result: result);
+      }
+    }
+    findUnaliasedGenericFunctionTypes(type.returnType, result: result);
+    if (type.formals != null) {
+      for (FormalParameterBuilder formal in type.formals) {
+        findUnaliasedGenericFunctionTypes(formal.type, result: result);
+      }
+    }
+  } else if (type is NamedTypeBuilder) {
+    if (type.arguments != null) {
+      for (TypeBuilder argument in type.arguments) {
+        findUnaliasedGenericFunctionTypes(argument, result: result);
+      }
+    }
+  }
+}
+
+/// Finds generic function type sub-terms in [type] including the aliased ones.
 void findGenericFunctionTypes(TypeBuilder type, {List<TypeBuilder> result}) {
-  result ??= <TypeBuilder>[];
+  assert(result != null);
   if (type is FunctionTypeBuilder) {
     if (type.typeVariables != null && type.typeVariables.length > 0) {
       result.add(type);

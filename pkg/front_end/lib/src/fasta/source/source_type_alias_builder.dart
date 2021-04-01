@@ -246,7 +246,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     library.checkBoundsInTypeParameters(
         typeEnvironment, typedef.typeParameters, fileUri);
     library.checkBoundsInType(
-        typedef.type, typeEnvironment, fileUri, type?.charOffset ?? charOffset);
+        typedef.type, typeEnvironment, fileUri, type?.charOffset ?? charOffset,
+        allowSuperBounded: false);
   }
 
   @override

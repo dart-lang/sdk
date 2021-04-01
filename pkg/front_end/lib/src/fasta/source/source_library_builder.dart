@@ -96,6 +96,7 @@ import '../kernel/type_algorithms.dart'
         calculateBounds,
         computeTypeVariableBuilderVariance,
         findGenericFunctionTypes,
+        getInboundReferenceIssuesInType,
         getNonSimplicityIssuesForDeclaration,
         getNonSimplicityIssuesForTypeVariables,
         pendingVariance;
@@ -3105,6 +3106,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               inErrorRecovery: issues.isNotEmpty);
 
           declaration.constructors.forEach((String name, Builder member) {
+            List<FormalParameterBuilder> formals;
             if (member is ProcedureBuilder) {
               assert(member.isFactory,
                   "Unexpected constructor member (${member.runtimeType}).");
@@ -3112,9 +3114,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   // Type variables are inherited from the class so if the class
                   // has issues, so does the factory constructors.
                   inErrorRecovery: issues.isNotEmpty);
+              formals = member.formals;
             } else {
               assert(member is ConstructorBuilder,
                   "Unexpected constructor member (${member.runtimeType}).");
+              formals = (member as ConstructorBuilder).formals;
+            }
+            if (formals != null && formals.isNotEmpty) {
+              for (FormalParameterBuilder formal in formals) {
+                List<Object> issues =
+                    getInboundReferenceIssuesInType(formal.type);
+                reportIssues(issues);
+              }
             }
           });
         }
@@ -3122,23 +3133,46 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           if (member is ProcedureBuilder) {
             List<Object> issues =
                 getNonSimplicityIssuesForTypeVariables(member.typeVariables);
+            if (member.formals != null && member.formals.isNotEmpty) {
+              for (FormalParameterBuilder formal in member.formals) {
+                issues.addAll(getInboundReferenceIssuesInType(formal.type));
+              }
+            }
+            if (member.returnType != null) {
+              issues.addAll(getInboundReferenceIssuesInType(member.returnType));
+            }
             reportIssues(issues);
             count += computeDefaultTypesForVariables(member.typeVariables,
                 inErrorRecovery: issues.isNotEmpty);
           } else {
             assert(member is FieldBuilder,
                 "Unexpected class member $member (${member.runtimeType}).");
+            TypeBuilder fieldType = (member as FieldBuilder).type;
+            if (fieldType != null) {
+              List<Object> issues = getInboundReferenceIssuesInType(fieldType);
+              reportIssues(issues);
+            }
           }
         });
       } else if (declaration is TypeAliasBuilder) {
         List<Object> issues = getNonSimplicityIssuesForDeclaration(declaration,
             performErrorRecovery: true);
+        issues.addAll(getInboundReferenceIssuesInType(declaration.type));
         reportIssues(issues);
         count += computeDefaultTypesForVariables(declaration.typeVariables,
             inErrorRecovery: issues.isNotEmpty);
       } else if (declaration is FunctionBuilder) {
         List<Object> issues =
             getNonSimplicityIssuesForTypeVariables(declaration.typeVariables);
+        if (declaration.formals != null && declaration.formals.isNotEmpty) {
+          for (FormalParameterBuilder formal in declaration.formals) {
+            issues.addAll(getInboundReferenceIssuesInType(formal.type));
+          }
+        }
+        if (declaration.returnType != null) {
+          issues
+              .addAll(getInboundReferenceIssuesInType(declaration.returnType));
+        }
         reportIssues(issues);
         count += computeDefaultTypesForVariables(declaration.typeVariables,
             inErrorRecovery: issues.isNotEmpty);
@@ -3155,6 +3189,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           if (member is ProcedureBuilder) {
             List<Object> issues =
                 getNonSimplicityIssuesForTypeVariables(member.typeVariables);
+            if (member.formals != null && member.formals.isNotEmpty) {
+              for (FormalParameterBuilder formal in member.formals) {
+                issues.addAll(getInboundReferenceIssuesInType(formal.type));
+              }
+            }
+            if (member.returnType != null) {
+              issues.addAll(getInboundReferenceIssuesInType(member.returnType));
+            }
             reportIssues(issues);
             count += computeDefaultTypesForVariables(member.typeVariables,
                 inErrorRecovery: issues.isNotEmpty);
@@ -3163,14 +3205,32 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 "Unexpected extension member $member (${member.runtimeType}).");
           }
         });
+      } else if (declaration is FieldBuilder) {
+        if (declaration.type != null) {
+          List<Object> issues =
+              getInboundReferenceIssuesInType(declaration.type);
+          reportIssues(issues);
+        }
       } else {
         assert(
-            declaration is FieldBuilder ||
-                declaration is PrefixBuilder ||
+            declaration is PrefixBuilder ||
                 declaration is DynamicTypeDeclarationBuilder ||
                 declaration is NeverTypeDeclarationBuilder,
             "Unexpected top level member $declaration "
             "(${declaration.runtimeType}).");
+      }
+    }
+    for (Builder declaration in libraryDeclaration.setters.values) {
+      assert(
+          declaration is ProcedureBuilder,
+          "Expected setter to be a ProcedureBuilder, "
+          "but got '${declaration.runtimeType}'");
+      if (declaration is ProcedureBuilder &&
+          declaration.formals != null &&
+          declaration.formals.isNotEmpty) {
+        for (FormalParameterBuilder formal in declaration.formals) {
+          reportIssues(getInboundReferenceIssuesInType(formal.type));
+        }
       }
     }
 
