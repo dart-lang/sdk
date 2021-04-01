@@ -12,6 +12,7 @@ import 'package:path/path.dart' as p;
 import '../core.dart';
 import '../sdk.dart';
 import '../templates.dart';
+import '../utils.dart';
 
 /// A command to create a new project from a set of templates.
 class CreateCommand extends DartdevCommand {
@@ -66,7 +67,8 @@ class CreateCommand extends DartdevCommand {
     String templateId = argResults['template'];
 
     String dir = argResults.rest.first;
-    var targetDir = io.Directory(dir);
+    var targetDir = io.Directory(dir).absolute;
+    dir = targetDir.path;
     if (targetDir.existsSync() && !argResults['force']) {
       log.stderr(
         "Directory '$dir' already exists "
@@ -75,15 +77,27 @@ class CreateCommand extends DartdevCommand {
       return 73;
     }
 
+    String projectName = p.basename(dir);
+    if (projectName == '.') {
+      projectName = p.basename(io.Directory.current.path);
+    }
+    projectName = normalizeProjectName(projectName);
+
+    if (!isValidPackageName(projectName)) {
+      log.stderr('"$projectName" is not a valid Dart project name.\n\n'
+          'See https://dart.dev/tools/pub/pubspec#name for more information.');
+      return 73;
+    }
+
     log.stdout(
-      'Creating ${log.ansi.emphasized(p.absolute(dir))} '
+      'Creating ${log.ansi.emphasized(projectName)} '
       'using template $templateId...',
     );
     log.stdout('');
 
     var generator = getGenerator(templateId);
     generator.generate(
-      p.basename(dir),
+      projectName,
       DirectoryGeneratorTarget(generator, io.Directory(dir)),
     );
 
@@ -120,11 +134,12 @@ class CreateCommand extends DartdevCommand {
     }
 
     log.stdout('');
-    log.stdout('Created project $dir! In order to get started, type:');
+    log.stdout(
+        'Created project $projectName in ${p.relative(dir)}! In order to get '
+        'started, run the following commands:');
     log.stdout('');
     log.stdout(log.ansi.emphasized('  cd ${p.relative(dir)}'));
-    // TODO(devoncarew): Once we have a 'run' command, print out here how to run
-    // the app.
+    log.stdout(log.ansi.emphasized('  dart run'));
     log.stdout('');
 
     return 0;
@@ -166,7 +181,9 @@ class DirectoryGeneratorTarget extends GeneratorTarget {
   final io.Directory dir;
 
   DirectoryGeneratorTarget(this.generator, this.dir) {
-    dir.createSync();
+    if (!dir.existsSync()) {
+      dir.createSync();
+    }
   }
 
   @override

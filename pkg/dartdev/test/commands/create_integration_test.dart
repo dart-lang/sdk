@@ -30,7 +30,7 @@ void defineCreateTests() {
         '--force',
         '--template',
         templateId,
-        p.dir.path,
+        'template_project',
       ]);
       expect(createResult.exitCode, 0, reason: createResult.stderr);
 
@@ -46,7 +46,7 @@ void defineCreateTests() {
         '--output',
         'none',
         '--set-exit-if-changed',
-        p.dir.path,
+        'template_project',
       ]);
       expect(formatResult.exitCode, 0, reason: formatResult.stdout);
     });
