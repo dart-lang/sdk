@@ -3472,7 +3472,7 @@ class _WhyNotPromotedVisitor
     }
     var variableName = reason.variable.name;
     if (variableName == null) return null;
-    return _contextMessageForWrite(variableName, writeExpression);
+    return _contextMessageForWrite(variableName, writeExpression, reason);
   }
 
   @override
@@ -3496,7 +3496,7 @@ class _WhyNotPromotedVisitor
         _dataForTesting!.nonPromotionReasonTargets[identifier] =
             reason.shortName;
       }
-      return _contextMessageForWrite(variableName, identifier);
+      return _contextMessageForWrite(variableName, identifier, reason);
     } else {
       assert(false, 'Unexpected parts type');
       return null;
@@ -3521,7 +3521,8 @@ class _WhyNotPromotedVisitor
     if (receiverElement is PropertyAccessorElement) {
       propertyReference = receiverElement;
       propertyType = reason.staticType;
-      return _contextMessageForProperty(receiverElement, reason.propertyName);
+      return _contextMessageForProperty(
+          receiverElement, reason.propertyName, reason);
     } else {
       assert(receiverElement == null,
           'Unrecognized property element: ${receiverElement.runtimeType}');
@@ -3533,27 +3534,29 @@ class _WhyNotPromotedVisitor
   DiagnosticMessage? visitThisNotPromoted(ThisNotPromoted reason) {
     return DiagnosticMessageImpl(
         filePath: source.fullName,
-        message: "'this' can't be promoted.",
+        message: "'this' can't be promoted.  See ${reason.documentationLink}",
         offset: _errorEntity.offset,
         length: _errorEntity.length);
   }
 
   DiagnosticMessageImpl _contextMessageForProperty(
-      PropertyAccessorElement property, String propertyName) {
+      PropertyAccessorElement property,
+      String propertyName,
+      NonPromotionReason reason) {
     return DiagnosticMessageImpl(
         filePath: property.source.fullName,
-        message:
-            "'$propertyName' refers to a property so it couldn't be promoted.",
+        message: "'$propertyName' refers to a property so it couldn't be "
+            "promoted.  See ${reason.documentationLink}",
         offset: property.nameOffset,
         length: property.nameLength);
   }
 
-  DiagnosticMessageImpl _contextMessageForWrite(
-      String variableName, Expression writeExpression) {
+  DiagnosticMessageImpl _contextMessageForWrite(String variableName,
+      Expression writeExpression, NonPromotionReason reason) {
     return DiagnosticMessageImpl(
         filePath: source.fullName,
         message: "Variable '$variableName' could be null due to an intervening "
-            "write.",
+            "write.  See ${reason.documentationLink}",
         offset: writeExpression.offset,
         length: writeExpression.length);
   }

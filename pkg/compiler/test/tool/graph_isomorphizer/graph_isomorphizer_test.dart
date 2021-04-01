@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:expect/expect.dart';
 import 'package:compiler/compiler_new.dart';
+import 'package:dart_style/dart_style.dart' show DartFormatter;
 import '../../helpers/memory_compiler.dart';
 import '../../../tool/graph_isomorphizer.dart';
 
@@ -42,7 +43,8 @@ void unorderedListEquals(List<String> expected, List<String> actual) {
 
 void verifyGeneratedFile(
     String filename, StringBuffer contents, Map<String, String> expectations) {
-  Expect.stringEquals(contents.toString(), expectations[filename]);
+  Expect.stringEquals(
+      DartFormatter().format(contents.toString()), expectations[filename]);
 }
 
 GraphIsomorphizer generateFiles(List<String> graphFileLines,

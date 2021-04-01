@@ -5754,6 +5754,9 @@ Matcher _matchVariableModel(
 }
 
 class _MockNonPromotionReason extends NonPromotionReason {
+  @override
+  String get documentationLink => fail('Unexpected call to documentationLink');
+
   String get shortName => fail('Unexpected call to shortName');
 
   R accept<R, Node extends Object, Expression extends Object,
