@@ -1,0 +1,93 @@
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class C {
+  int? get i => null;
+  //       ^
+  // [context 1] 'i' refers to a property so it couldn't be promoted.
+  // [context 2] 'i' refers to a property so it couldn't be promoted.
+  // [context 3] 'i' refers to a property so it couldn't be promoted.
+  // [context 4] 'i' refers to a property so it couldn't be promoted.
+  // [context 5] 'i' refers to a property so it couldn't be promoted.
+  // [context 6] 'i' refers to a property so it couldn't be promoted.
+  int? get j => null;
+
+  get_property_via_explicit_this() {
+    if (this.i == null) return;
+    this.i.isEven;
+//  ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+//         ^
+// [cfe 1] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+  }
+
+  get_property_via_explicit_this_parenthesized() {
+    if ((this).i == null) return;
+    (this).i.isEven;
+//  ^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+//           ^
+// [cfe 2] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+  }
+
+  get_property_by_implicit_this() {
+    if (i == null) return;
+    i.isEven;
+//  ^
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+//    ^
+// [cfe 3] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+  }
+}
+
+class D extends C {
+  get_property_via_explicit_super() {
+    if (super.i == null) return;
+    super.i.isEven;
+//  ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+//          ^
+// [cfe 4] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+  }
+
+  get_property_by_implicit_super() {
+    if (i == null) return;
+    i.isEven;
+//  ^
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+//    ^
+// [cfe 5] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+  }
+}
+
+get_property_via_prefixed_identifier(C c) {
+  if (c.i == null) return;
+  c.i.isEven;
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+//    ^
+// [cfe 6] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+}
+
+get_property_via_prefixed_identifier_mismatched_target(C c1, C c2) {
+  // Note: no context on this error because the property the user is attempting
+  // to promote is on c1, but the property the user is accessing is on c2.
+  if (c1.i == null) return;
+  c2.i.isEven;
+//^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+//     ^
+// [cfe] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+}
+
+get_property_via_prefixed_identifier_mismatched_property(C c) {
+  // Note: no context on this error because the property the user is attempting
+  // to promote is C.i, but the property the user is accessing is C.j.
+  if (c.i == null) return;
+  c.j.isEven;
+//^^^
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+//    ^
+// [cfe] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+}
