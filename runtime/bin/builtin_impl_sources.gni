@@ -62,6 +62,7 @@ builtin_impl_sources = [
   "thread_macos.h",
   "thread_win.cc",
   "thread_win.h",
+  "utils.cc",
   "utils.h",
   "utils_android.cc",
   "utils_fuchsia.cc",

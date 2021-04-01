@@ -63,6 +63,12 @@ bool _isDirectIOCapableTypedList(List<int> buffer) {
 }
 
 @patch
+class OSError {
+  @patch
+  static int inProgressErrorCode() native "OSError_inProgressErrorCode";
+}
+
+@patch
 class _IOCrypto {
   @patch
   static Uint8List getRandomBytes(int count) native "Crypto_GetRandomBytes";
