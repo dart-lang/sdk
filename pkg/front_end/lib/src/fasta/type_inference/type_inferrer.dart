@@ -5151,7 +5151,7 @@ class _WhyNotPromotedVisitor
     }
     int offset = reason.writeExpression.fileOffset;
     return templateVariableCouldBeNullDueToWrite
-        .withArguments(reason.variable.name)
+        .withArguments(reason.variable.name, reason.documentationLink)
         .withLocation(inferrer.helper.uri, offset, noLength);
   }
 
@@ -5160,7 +5160,7 @@ class _WhyNotPromotedVisitor
       DemoteViaForEachVariableWrite<VariableDeclaration, Node> reason) {
     int offset = (reason.node as TreeNode).fileOffset;
     return templateVariableCouldBeNullDueToWrite
-        .withArguments(reason.variable.name)
+        .withArguments(reason.variable.name, reason.documentationLink)
         .withLocation(inferrer.helper.uri, offset, noLength);
   }
 
@@ -5183,7 +5183,7 @@ class _WhyNotPromotedVisitor
       propertyReference = member;
       propertyType = reason.staticType;
       return templateFieldNotPromoted
-          .withArguments(reason.propertyName)
+          .withArguments(reason.propertyName, reason.documentationLink)
           .withLocation(member.fileUri, member.fileOffset, noLength);
     } else {
       return null;
@@ -5192,6 +5192,8 @@ class _WhyNotPromotedVisitor
 
   @override
   LocatedMessage visitThisNotPromoted(ThisNotPromoted reason) {
-    return messageThisNotPromoted.withoutLocation();
+    return templateThisNotPromoted
+        .withArguments(reason.documentationLink)
+        .withoutLocation();
   }
 }

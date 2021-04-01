@@ -4656,13 +4656,15 @@ MultipleVarianceModifiers:
 
 VariableCouldBeNullDueToWrite:
   template: "Variable '#name' could be null due to an intervening write."
-  tip: "Try null checking the variable after the write."
+  tip: "Try null checking the variable after the write.  See #string"
 
 FieldNotPromoted:
   template: "'#name' refers to a property so it couldn't be promoted."
+  tip: "See #string"
 
 ThisNotPromoted:
   template: "'this' can't be promoted."
+  tip: "See #string"
 
 NullablePropertyAccessError:
   template: "Property '#name' cannot be accessed on '#type' because it is potentially null."

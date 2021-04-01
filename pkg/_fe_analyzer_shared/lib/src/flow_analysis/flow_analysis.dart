@@ -312,6 +312,9 @@ class DemoteViaExplicitWrite<Variable extends Object, Expression extends Object>
   DemoteViaExplicitWrite(this.variable, this.writeExpression);
 
   @override
+  String get documentationLink => 'http://dart.dev/go/non-promo-write';
+
+  @override
   String get shortName => 'explicitWrite';
 
   @override
@@ -338,6 +341,9 @@ class DemoteViaForEachVariableWrite<Variable extends Object,
   final Node node;
 
   DemoteViaForEachVariableWrite(this.variable, this.node);
+
+  @override
+  String get documentationLink => 'http://dart.dev/go/non-promo-write';
 
   @override
   String get shortName => 'explicitWrite';
@@ -2332,6 +2338,11 @@ class NonPromotionHistory<Type> {
 
 /// Abstract class representing a reason why something was not promoted.
 abstract class NonPromotionReason {
+  /// Link to documentation describing this non-promotion reason; this should be
+  /// presented to the user as a source of additional information about the
+  /// error.
+  String get documentationLink;
+
   /// Short text description of this non-promotion reason; intended for ID
   /// testing.
   String get shortName;
@@ -2370,6 +2381,9 @@ class PropertyNotPromoted<Type extends Object> extends NonPromotionReason {
   final Type staticType;
 
   PropertyNotPromoted(this.propertyName, this.staticType);
+
+  @override
+  String get documentationLink => 'http://dart.dev/go/non-promo-property';
 
   @override
   String get shortName => 'propertyNotPromoted';
@@ -2606,6 +2620,9 @@ class SsaNode<Variable extends Object, Type extends Object> {
 /// Non-promotion reason describing the situation where an expression was not
 /// promoted due to the fact that it's a reference to `this`.
 class ThisNotPromoted extends NonPromotionReason {
+  @override
+  String get documentationLink => 'http://dart.dev/go/non-promo-this';
+
   @override
   String get shortName => 'thisNotPromoted';
 
