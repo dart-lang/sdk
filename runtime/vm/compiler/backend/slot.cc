@@ -338,7 +338,28 @@ const Slot& Slot::Get(const Field& field,
 }
 
 CompileType Slot::ComputeCompileType() const {
-  return CompileType::CreateNullable(is_nullable(), nullable_cid());
+  // If we unboxed the slot, we may know a more precise type.
+  switch (representation()) {
+    case kUnboxedInt64:
+      if (nullable_cid() == kDynamicCid) {
+        return CompileType::Int();
+      }
+      // Might be an CID like nullable_cid == kSmiCid.
+      break;
+    case kUnboxedDouble:
+      return CompileType::FromCid(kDoubleCid);
+    case kUnboxedInt32x4:
+      return CompileType::FromCid(kInt32x4Cid);
+    case kUnboxedFloat32x4:
+      return CompileType::FromCid(kFloat32x4Cid);
+    case kUnboxedFloat64x2:
+      return CompileType::FromCid(kFloat64x2Cid);
+    default:
+      break;
+  }
+
+  return CompileType(is_nullable(), nullable_cid(),
+                     nullable_cid() == kDynamicCid ? static_type_ : nullptr);
 }
 
 const AbstractType& Slot::static_type() const {

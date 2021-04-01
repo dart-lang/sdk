@@ -1505,21 +1505,9 @@ CompileType LoadClassIdInstr::ComputeType() const {
 }
 
 CompileType LoadFieldInstr::ComputeType() const {
-  const AbstractType& field_type = slot().static_type();
-  CompileType compile_type_cid = slot().ComputeCompileType();
-  if (field_type.ptr() == AbstractType::null()) {
-    return compile_type_cid;
-  }
-
-  const AbstractType* abstract_type = &field_type;
-  TraceStrongModeType(this, *abstract_type);
-
-  if (compile_type_cid.ToNullableCid() != kDynamicCid) {
-    abstract_type = nullptr;
-  }
-
-  return CompileType(compile_type_cid.is_nullable(),
-                     compile_type_cid.ToNullableCid(), abstract_type);
+  CompileType type = slot().ComputeCompileType();
+  TraceStrongModeType(this, &type);
+  return type;
 }
 
 CompileType LoadCodeUnitsInstr::ComputeType() const {
