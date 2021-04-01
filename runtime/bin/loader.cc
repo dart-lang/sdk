@@ -79,7 +79,8 @@ Dart_Handle Loader::LoadImportExtension(const char* url_string,
 
   char* lib_path = NULL;
   if (strncmp(lib_uri_str, "file://", 7) == 0) {
-    lib_path = DartUtils::DirName(lib_uri_str + 7);
+    auto path = File::UriToPath(lib_uri_str);
+    lib_path = DartUtils::DirName(path.get());
   } else {
     lib_path = Utils::StrDup(lib_uri_str);
   }
@@ -125,7 +126,8 @@ Dart_Handle Loader::ReloadNativeExtensions() {
 
     char* lib_path = NULL;
     if (strncmp(lib_uri, "file://", 7) == 0) {
-      lib_path = DartUtils::DirName(DartUtils::RemoveScheme(lib_uri));
+      auto path = File::UriToPath(lib_uri);
+      lib_path = DartUtils::DirName(path.get());
     } else {
       lib_path = Utils::StrDup(lib_uri);
     }
