@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -365,6 +367,38 @@ A
       findNode.integerLiteral('42').staticParameterElement,
       declaration: findElement.fieldFormalParameter('f'),
     );
+  }
+
+  test_value_class_staticConstField() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static const int foo = 42;
+}
+
+@A.foo
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@A');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  element: self::@class::A::@getter::foo
+  name: PrefixedIdentifier
+    identifier: SimpleIdentifier
+      staticElement: self::@class::A::@getter::foo
+      staticType: null
+      token: foo
+    period: .
+    prefix: SimpleIdentifier
+      staticElement: self::@class::A
+      staticType: null
+      token: A
+    staticElement: self::@class::A::@getter::foo
+    staticType: null
+''');
+    _assertAnnotationValueText(annotation, '''
+int 42
+''');
   }
 
   test_value_class_unnamedConstructor() async {
@@ -822,6 +856,819 @@ A
 ''');
   }
 
+  test_value_prefix_typeAlias_class_staticConstField() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  static const int foo = 42;
+}
+
+typedef B = A;
+''');
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+@prefix.B.foo
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@prefix.B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  constructorName: SimpleIdentifier
+    staticElement: package:test/a.dart::@class::A::@getter::foo
+    staticType: null
+    token: foo
+  element: package:test/a.dart::@class::A::@getter::foo
+  name: PrefixedIdentifier
+    identifier: SimpleIdentifier
+      staticElement: package:test/a.dart::@typeAlias::B
+      staticType: null
+      token: B
+    period: .
+    prefix: SimpleIdentifier
+      staticElement: self::@prefix::prefix
+      staticType: null
+      token: prefix
+    staticElement: package:test/a.dart::@typeAlias::B
+    staticType: null
+''');
+    _assertAnnotationValueText(annotation, '''
+int 42
+''');
+  }
+
+  test_value_prefix_typeAlias_generic_class_generic_all_inference_namedConstructor() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A<T> {
+  final T f;
+  const A.named(this.f);
+}
+
+typedef B<U> = A<U>;
+''');
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+@prefix.B.named(42)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@prefix.B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+  constructorName: SimpleIdentifier
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::A::@constructor::named
+      substitution: {T: int}
+    staticType: null
+    token: named
+  element: ConstructorMember
+    base: package:test/a.dart::@class::A::@constructor::named
+    substitution: {T: int}
+  name: PrefixedIdentifier
+    identifier: SimpleIdentifier
+      staticElement: package:test/a.dart::@typeAlias::B
+      staticType: null
+      token: B
+    period: .
+    prefix: SimpleIdentifier
+      staticElement: self::@prefix::prefix
+      staticType: null
+      token: prefix
+    staticElement: package:test/a.dart::@typeAlias::B
+    staticType: null
+''');
+    _assertAnnotationValueText(annotation, r'''
+A<int>
+  f: int 42
+''');
+
+    assertElement2(
+      findNode.integerLiteral('42').staticParameterElement,
+      declaration: findElement.importFind('package:test/a.dart').parameter('f'),
+      substitution: {'T': 'int'},
+    );
+  }
+
+  test_value_prefix_typeAlias_generic_class_generic_all_inference_unnamedConstructor() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+typedef B<U> = A<U>;
+''');
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+@prefix.B(42)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@prefix.B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+  element: ConstructorMember
+    base: package:test/a.dart::@class::A::@constructor::•
+    substitution: {T: int}
+  name: PrefixedIdentifier
+    identifier: SimpleIdentifier
+      staticElement: package:test/a.dart::@typeAlias::B
+      staticType: null
+      token: B
+    period: .
+    prefix: SimpleIdentifier
+      staticElement: self::@prefix::prefix
+      staticType: null
+      token: prefix
+    staticElement: package:test/a.dart::@typeAlias::B
+    staticType: null
+''');
+    _assertAnnotationValueText(annotation, r'''
+A<int>
+  f: int 42
+''');
+
+    assertElement2(
+      findNode.integerLiteral('42').staticParameterElement,
+      declaration: findElement.importFind('package:test/a.dart').parameter('f'),
+      substitution: {'T': 'int'},
+    );
+  }
+
+  test_value_prefix_typeAlias_generic_class_generic_all_typeArguments_namedConstructor() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A<T> {
+  final T f;
+  const A.named(this.f);
+}
+
+typedef B<U> = A<U>;
+''');
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+@prefix.B<int>.named(42)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@prefix.B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+  constructorName: SimpleIdentifier
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::A::@constructor::named
+      substitution: {T: int}
+    staticType: null
+    token: named
+  element: ConstructorMember
+    base: package:test/a.dart::@class::A::@constructor::named
+    substitution: {T: int}
+  name: PrefixedIdentifier
+    identifier: SimpleIdentifier
+      staticElement: package:test/a.dart::@typeAlias::B
+      staticType: null
+      token: B
+    period: .
+    prefix: SimpleIdentifier
+      staticElement: self::@prefix::prefix
+      staticType: null
+      token: prefix
+    staticElement: package:test/a.dart::@typeAlias::B
+    staticType: null
+  typeArguments: TypeArgumentList
+    arguments
+      TypeName
+        name: SimpleIdentifier
+          staticElement: dart:core::@class::int
+          staticType: null
+          token: int
+        type: int
+''');
+    _assertAnnotationValueText(annotation, r'''
+A<int>
+  f: int 42
+''');
+
+    assertElement2(
+      findNode.integerLiteral('42').staticParameterElement,
+      declaration: findElement.importFind('package:test/a.dart').parameter('f'),
+      substitution: {'T': 'int'},
+    );
+  }
+
+  test_value_prefix_typeAlias_generic_class_generic_all_typeArguments_unnamedConstructor() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+typedef B<U> = A<U>;
+''');
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+@prefix.B<int>(42)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@prefix.B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+  element: ConstructorMember
+    base: package:test/a.dart::@class::A::@constructor::•
+    substitution: {T: int}
+  name: PrefixedIdentifier
+    identifier: SimpleIdentifier
+      staticElement: package:test/a.dart::@typeAlias::B
+      staticType: null
+      token: B
+    period: .
+    prefix: SimpleIdentifier
+      staticElement: self::@prefix::prefix
+      staticType: null
+      token: prefix
+    staticElement: package:test/a.dart::@typeAlias::B
+    staticType: null
+  typeArguments: TypeArgumentList
+    arguments
+      TypeName
+        name: SimpleIdentifier
+          staticElement: dart:core::@class::int
+          staticType: null
+          token: int
+        type: int
+''');
+    _assertAnnotationValueText(annotation, r'''
+A<int>
+  f: int 42
+''');
+
+    assertElement2(
+      findNode.integerLiteral('42').staticParameterElement,
+      declaration: findElement.importFind('package:test/a.dart').parameter('f'),
+      substitution: {'T': 'int'},
+    );
+  }
+
+  test_value_typeAlias_class_staticConstField() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static const int foo = 42;
+}
+
+typedef B = A;
+
+@B.foo
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  element: self::@class::A::@getter::foo
+  name: PrefixedIdentifier
+    identifier: SimpleIdentifier
+      staticElement: self::@class::A::@getter::foo
+      staticType: null
+      token: foo
+    period: .
+    prefix: SimpleIdentifier
+      staticElement: self::@typeAlias::B
+      staticType: null
+      token: B
+    staticElement: self::@class::A::@getter::foo
+    staticType: null
+''');
+    _assertAnnotationValueText(annotation, '''
+int 42
+''');
+  }
+
+  test_value_typeAlias_generic_class_generic_1of2_typeArguments_namedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A<T, U> {
+  final T t;
+  final U u;
+  const A.named(this.t, this.u);
+}
+
+typedef B<T> = A<T, double>;
+
+@B<int>.named(42, 1.2)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+      DoubleLiteral
+        literal: 1.2
+        staticType: double
+  constructorName: SimpleIdentifier
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::named
+      substitution: {T: int, U: double}
+    staticType: null
+    token: named
+  element: ConstructorMember
+    base: self::@class::A::@constructor::named
+    substitution: {T: int, U: double}
+  name: SimpleIdentifier
+    staticElement: self::@typeAlias::B
+    staticType: null
+    token: B
+  typeArguments: TypeArgumentList
+    arguments
+      TypeName
+        name: SimpleIdentifier
+          staticElement: dart:core::@class::int
+          staticType: null
+          token: int
+        type: int
+''');
+    _assertAnnotationValueText(annotation, r'''
+A<int, double>
+  t: int 42
+  u: double 1.2
+''');
+
+    assertElement2(
+      findNode.integerLiteral('42').staticParameterElement,
+      declaration: findElement.fieldFormalParameter('t'),
+      substitution: {'T': 'int', 'U': 'double'},
+    );
+
+    assertElement2(
+      findNode.doubleLiteral('1.2').staticParameterElement,
+      declaration: findElement.fieldFormalParameter('u'),
+      substitution: {'T': 'int', 'U': 'double'},
+    );
+  }
+
+  test_value_typeAlias_generic_class_generic_1of2_typeArguments_unnamedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A<T, U> {
+  final T t;
+  final U u;
+  const A(this.t, this.u);
+}
+
+typedef B<T> = A<T, double>;
+
+@B<int>(42, 1.2)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+      DoubleLiteral
+        literal: 1.2
+        staticType: double
+  element: ConstructorMember
+    base: self::@class::A::@constructor::•
+    substitution: {T: int, U: double}
+  name: SimpleIdentifier
+    staticElement: self::@typeAlias::B
+    staticType: null
+    token: B
+  typeArguments: TypeArgumentList
+    arguments
+      TypeName
+        name: SimpleIdentifier
+          staticElement: dart:core::@class::int
+          staticType: null
+          token: int
+        type: int
+''');
+    _assertAnnotationValueText(annotation, r'''
+A<int, double>
+  t: int 42
+  u: double 1.2
+''');
+
+    assertElement2(
+      findNode.integerLiteral('42').staticParameterElement,
+      declaration: findElement.fieldFormalParameter('t'),
+      substitution: {'T': 'int', 'U': 'double'},
+    );
+
+    assertElement2(
+      findNode.doubleLiteral('1.2').staticParameterElement,
+      declaration: findElement.fieldFormalParameter('u'),
+      substitution: {'T': 'int', 'U': 'double'},
+    );
+  }
+
+  test_value_typeAlias_generic_class_generic_all_inference_namedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  final T f;
+  const A.named(this.f);
+}
+
+typedef B<U> = A<U>;
+
+@B.named(42)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+  element: ConstructorMember
+    base: self::@class::A::@constructor::named
+    substitution: {T: int}
+  name: PrefixedIdentifier
+    identifier: SimpleIdentifier
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::named
+        substitution: {T: int}
+      staticType: null
+      token: named
+    period: .
+    prefix: SimpleIdentifier
+      staticElement: self::@typeAlias::B
+      staticType: null
+      token: B
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::named
+      substitution: {T: int}
+    staticType: null
+''');
+    _assertAnnotationValueText(annotation, r'''
+A<int>
+  f: int 42
+''');
+
+    assertElement2(
+      findNode.integerLiteral('42').staticParameterElement,
+      declaration: findElement.fieldFormalParameter('f'),
+      substitution: {'T': 'int'},
+    );
+  }
+
+  test_value_typeAlias_generic_class_generic_all_inference_unnamedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+typedef B<U> = A<U>;
+
+@B(42)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+  element: ConstructorMember
+    base: self::@class::A::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@typeAlias::B
+    staticType: null
+    token: B
+''');
+    _assertAnnotationValueText(annotation, r'''
+A<int>
+  f: int 42
+''');
+
+    assertElement2(
+      findNode.integerLiteral('42').staticParameterElement,
+      declaration: findElement.fieldFormalParameter('f'),
+      substitution: {'T': 'int'},
+    );
+  }
+
+  test_value_typeAlias_generic_class_generic_all_typeArguments_namedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  final T f;
+  const A.named(this.f);
+}
+
+typedef B<U> = A<U>;
+
+@B<int>.named(42)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+  constructorName: SimpleIdentifier
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::named
+      substitution: {T: int}
+    staticType: null
+    token: named
+  element: ConstructorMember
+    base: self::@class::A::@constructor::named
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@typeAlias::B
+    staticType: null
+    token: B
+  typeArguments: TypeArgumentList
+    arguments
+      TypeName
+        name: SimpleIdentifier
+          staticElement: dart:core::@class::int
+          staticType: null
+          token: int
+        type: int
+''');
+    _assertAnnotationValueText(annotation, r'''
+A<int>
+  f: int 42
+''');
+
+    assertElement2(
+      findNode.integerLiteral('42').staticParameterElement,
+      declaration: findElement.fieldFormalParameter('f'),
+      substitution: {'T': 'int'},
+    );
+  }
+
+  test_value_typeAlias_generic_class_generic_all_typeArguments_unnamedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+typedef B<U> = A<U>;
+
+@B<int>(42)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+  element: ConstructorMember
+    base: self::@class::A::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@typeAlias::B
+    staticType: null
+    token: B
+  typeArguments: TypeArgumentList
+    arguments
+      TypeName
+        name: SimpleIdentifier
+          staticElement: dart:core::@class::int
+          staticType: null
+          token: int
+        type: int
+''');
+    _assertAnnotationValueText(annotation, r'''
+A<int>
+  f: int 42
+''');
+
+    assertElement2(
+      findNode.integerLiteral('42').staticParameterElement,
+      declaration: findElement.fieldFormalParameter('f'),
+      substitution: {'T': 'int'},
+    );
+  }
+
+  test_value_typeAlias_notGeneric_class_generic_namedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  final T f;
+  const A.named(this.f);
+}
+
+typedef B = A<int>;
+
+@B.named(42)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+  element: ConstructorMember
+    base: self::@class::A::@constructor::named
+    substitution: {T: int}
+  name: PrefixedIdentifier
+    identifier: SimpleIdentifier
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::named
+        substitution: {T: int}
+      staticType: null
+      token: named
+    period: .
+    prefix: SimpleIdentifier
+      staticElement: self::@typeAlias::B
+      staticType: null
+      token: B
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::named
+      substitution: {T: int}
+    staticType: null
+''');
+    _assertAnnotationValueText(annotation, r'''
+A<int>
+  f: int 42
+''');
+
+    assertElement2(
+      findNode.integerLiteral('42').staticParameterElement,
+      declaration: findElement.fieldFormalParameter('f'),
+      substitution: {'T': 'int'},
+    );
+  }
+
+  test_value_typeAlias_notGeneric_class_generic_unnamedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+typedef B = A<int>;
+
+@B(42)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+  element: ConstructorMember
+    base: self::@class::A::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@typeAlias::B
+    staticType: null
+    token: B
+''');
+    _assertAnnotationValueText(annotation, r'''
+A<int>
+  f: int 42
+''');
+
+    assertElement2(
+      findNode.integerLiteral('42').staticParameterElement,
+      declaration: findElement.fieldFormalParameter('f'),
+      substitution: {'T': 'int'},
+    );
+  }
+
+  test_value_typeAlias_notGeneric_class_notGeneric_namedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int f;
+  const A.named(this.f);
+}
+
+typedef B = A;
+
+@B.named(42)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+  element: self::@class::A::@constructor::named
+  name: PrefixedIdentifier
+    identifier: SimpleIdentifier
+      staticElement: self::@class::A::@constructor::named
+      staticType: null
+      token: named
+    period: .
+    prefix: SimpleIdentifier
+      staticElement: self::@typeAlias::B
+      staticType: null
+      token: B
+    staticElement: self::@class::A::@constructor::named
+    staticType: null
+''');
+    _assertAnnotationValueText(annotation, r'''
+A
+  f: int 42
+''');
+
+    assertElement2(
+      findNode.integerLiteral('42').staticParameterElement,
+      declaration: findElement.fieldFormalParameter('f'),
+    );
+  }
+
+  test_value_typeAlias_notGeneric_class_notGeneric_unnamedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int f;
+  const A(this.f);
+}
+
+typedef B = A;
+
+@B(42)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+  element: self::@class::A::@constructor::•
+  name: SimpleIdentifier
+    staticElement: self::@typeAlias::B
+    staticType: null
+    token: B
+''');
+    _assertAnnotationValueText(annotation, r'''
+A
+  f: int 42
+''');
+
+    assertElement2(
+      findNode.integerLiteral('42').staticParameterElement,
+      declaration: findElement.fieldFormalParameter('f'),
+    );
+  }
+
   void _assertAnnotationValueText(Annotation annotation, String expected) {
     var elementAnnotation = annotation.elementAnnotation!;
     _assertElementAnnotationValueText(elementAnnotation, expected);
@@ -874,7 +1721,10 @@ class _DartObjectPrinter {
   void write(DartObjectImpl? object, String indent) {
     if (object != null) {
       var type = object.type;
-      if (type.isDartCoreInt) {
+      if (type.isDartCoreDouble) {
+        sink.write('double ');
+        sink.writeln(object.toDoubleValue());
+      } else if (type.isDartCoreInt) {
         sink.write('int ');
         sink.writeln(object.toIntValue());
       } else if (object.isUserDefinedObject) {
@@ -883,7 +1733,8 @@ class _DartObjectPrinter {
         sink.writeln(typeStr);
         var fields = object.fields;
         if (fields != null) {
-          for (var entry in fields.entries) {
+          var sortedFields = SplayTreeMap.of(fields);
+          for (var entry in sortedFields.entries) {
             sink.write(newIndent);
             sink.write('${entry.key}: ');
             write(entry.value, newIndent);

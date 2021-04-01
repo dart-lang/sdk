@@ -7368,10 +7368,12 @@ class TypeArguments : public Instance {
   // 2 bits per type:
   //  - the high bit is set if the type is nullable or legacy.
   //  - the low bit is set if the type is nullable.
-  // The nullabilty is 0 if the vector is longer than kNullabilityMaxTypes.
+  // The nullability is 0 if the vector is longer than kNullabilityMaxTypes.
   // The condition evaluated at runtime to decide whether UTA can share ITA is
   //   (UTA.nullability & ITA.nullability) == UTA.nullability
-  // Note that this allows for ITA to be longer than UTA.
+  // Note that this allows for ITA to be longer than UTA (the bit vector must be
+  // stored in the same order as the corresponding type vector, i.e. with the
+  // least significant 2 bits representing the nullability of the first type).
   static const intptr_t kNullabilityBitsPerType = 2;
   static const intptr_t kNullabilityMaxTypes =
       kSmiBits / kNullabilityBitsPerType;

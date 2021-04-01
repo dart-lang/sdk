@@ -5976,23 +5976,24 @@ intptr_t TypeArguments::ComputeNullability() const {
   if (num_types <= kNullabilityMaxTypes) {
     AbstractType& type = AbstractType::Handle();
     for (intptr_t i = 0; i < num_types; i++) {
-      result <<= kNullabilityBitsPerType;
       type = TypeAt(i);
+      intptr_t type_bits = 0;
       if (!type.IsNull() && !type.IsNullTypeRef()) {
         switch (type.nullability()) {
           case Nullability::kNullable:
-            result |= kNullableBits;
+            type_bits = kNullableBits;
             break;
           case Nullability::kNonNullable:
-            result |= kNonNullableBits;
+            type_bits = kNonNullableBits;
             break;
           case Nullability::kLegacy:
-            result |= kLegacyBits;
+            type_bits = kLegacyBits;
             break;
           default:
             UNREACHABLE();
         }
       }
+      result |= (type_bits << (i * kNullabilityBitsPerType));
     }
   }
   set_nullability(result);

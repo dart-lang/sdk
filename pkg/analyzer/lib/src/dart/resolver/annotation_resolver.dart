@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -44,6 +45,38 @@ class AnnotationResolver {
     } else {
       elementAnnotationImpl.annotationAst = _createCloner().cloneNode(node);
     }
+  }
+
+  void _classConstructorInvocation(
+    AnnotationImpl node,
+    ClassElement classElement,
+    SimpleIdentifierImpl? constructorName,
+    ArgumentList argumentList,
+    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+  ) {
+    ConstructorElement? constructorElement;
+    if (constructorName != null) {
+      constructorElement = classElement.getNamedConstructor(
+        constructorName.name,
+      );
+    } else {
+      constructorElement = classElement.unnamedConstructor;
+    }
+
+    _constructorInvocation(
+      node,
+      constructorName,
+      classElement.typeParameters,
+      constructorElement,
+      argumentList,
+      (typeArguments) {
+        return classElement.instantiate(
+          typeArguments: typeArguments,
+          nullabilitySuffix: _resolver.noneOrStarSuffix,
+        );
+      },
+      whyNotPromotedList,
+    );
   }
 
   void _classGetter(
@@ -80,20 +113,13 @@ class AnnotationResolver {
 
   void _constructorInvocation(
     AnnotationImpl node,
-    ClassElement classElement,
     SimpleIdentifierImpl? constructorName,
+    List<TypeParameterElement> typeParameters,
+    ConstructorElement? constructorElement,
     ArgumentList argumentList,
+    InterfaceType Function(List<DartType> typeArguments) instantiateElement,
     List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
   ) {
-    ConstructorElement? constructorElement;
-    if (constructorName != null) {
-      constructorElement = classElement.getNamedConstructor(
-        constructorName.name,
-      );
-    } else {
-      constructorElement = classElement.unnamedConstructor;
-    }
-
     constructorElement = _resolver.toLegacyElement(constructorElement);
     constructorName?.staticElement = constructorElement;
     node.element = constructorElement;
@@ -108,8 +134,6 @@ class AnnotationResolver {
       return;
     }
 
-    var typeParameters = classElement.typeParameters;
-
     // If no type parameters, the elements are correct.
     if (typeParameters.isEmpty) {
       _resolveConstructorInvocationArguments(node);
@@ -123,10 +147,7 @@ class AnnotationResolver {
       List<DartType> typeArguments,
       ConstructorElement constructorElement,
     ) {
-      var type = classElement.instantiate(
-        typeArguments: typeArguments,
-        nullabilitySuffix: _resolver.noneOrStarSuffix,
-      );
+      var type = instantiateElement(typeArguments);
       constructorElement = ConstructorMember.from(constructorElement, type);
       constructorName?.staticElement = constructorElement;
       node.element = constructorElement;
@@ -166,8 +187,11 @@ class AnnotationResolver {
     _resolver.visitArgumentList(argumentList,
         whyNotPromotedList: whyNotPromotedList);
 
-    var constructorRawType = _resolver.typeAnalyzer
-        .constructorToGenericFunctionType(constructorElement);
+    var elementToInfer = ConstructorElementToInfer(
+      typeParameters,
+      constructorElement,
+    );
+    var constructorRawType = elementToInfer.asType;
 
     var inferred = _resolver.inferenceHelper.inferGenericInvoke(
         node, constructorRawType, typeArgumentList, argumentList, node,
@@ -264,7 +288,7 @@ class AnnotationResolver {
     // Class(args) or Class.CONST
     if (element1 is ClassElement) {
       if (argumentList != null) {
-        _constructorInvocation(
+        _classConstructorInvocation(
             node, element1, name2, argumentList, whyNotPromotedList);
       } else {
         _classGetter(node, element1, name2, whyNotPromotedList);
@@ -286,7 +310,7 @@ class AnnotationResolver {
         // prefix.Class(args) or prefix.Class.CONST
         if (element2 is ClassElement) {
           if (argumentList != null) {
-            _constructorInvocation(
+            _classConstructorInvocation(
                 node, element2, name3, argumentList, whyNotPromotedList);
           } else {
             _classGetter(node, element2, name3, whyNotPromotedList);
@@ -301,6 +325,19 @@ class AnnotationResolver {
         // prefix.CONST
         if (element2 is PropertyAccessorElement) {
           _propertyAccessorElement(node, name2, element2, whyNotPromotedList);
+          return;
+        }
+
+        // prefix.TypeAlias(args) or prefix.TypeAlias.CONST
+        if (element2 is TypeAliasElement) {
+          var aliasedType = element2.aliasedType;
+          var argumentList = node.arguments;
+          if (aliasedType is InterfaceType && argumentList != null) {
+            _typeAliasConstructorInvocation(node, element2, name3, aliasedType,
+                argumentList, whyNotPromotedList);
+          } else {
+            _typeAliasGetter(node, element2, name3, whyNotPromotedList);
+          }
           return;
         }
         // undefined
@@ -319,6 +356,19 @@ class AnnotationResolver {
     // CONST
     if (element1 is PropertyAccessorElement) {
       _propertyAccessorElement(node, name1, element1, whyNotPromotedList);
+      return;
+    }
+
+    // TypeAlias(args) or TypeAlias.CONST
+    if (element1 is TypeAliasElement) {
+      var aliasedType = element1.aliasedType;
+      var argumentList = node.arguments;
+      if (aliasedType is InterfaceType && argumentList != null) {
+        _typeAliasConstructorInvocation(node, element1, name2, aliasedType,
+            argumentList, whyNotPromotedList);
+      } else {
+        _typeAliasGetter(node, element1, name2, whyNotPromotedList);
+      }
       return;
     }
 
@@ -391,6 +441,67 @@ class AnnotationResolver {
         argumentList.correspondingStaticParameters = parameters;
       }
     }
+  }
+
+  void _typeAliasConstructorInvocation(
+    AnnotationImpl node,
+    TypeAliasElement typeAliasElement,
+    SimpleIdentifierImpl? constructorName,
+    InterfaceType aliasedType,
+    ArgumentList argumentList,
+    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+  ) {
+    var constructorElement = aliasedType.lookUpConstructor(
+      constructorName?.name,
+      _definingLibrary,
+    );
+
+    _constructorInvocation(
+      node,
+      constructorName,
+      typeAliasElement.typeParameters,
+      constructorElement,
+      argumentList,
+      (typeArguments) {
+        return typeAliasElement.instantiate(
+          typeArguments: typeArguments,
+          nullabilitySuffix: _resolver.noneOrStarSuffix,
+        ) as InterfaceType;
+      },
+      whyNotPromotedList,
+    );
+  }
+
+  void _typeAliasGetter(
+    AnnotationImpl node,
+    TypeAliasElement typeAliasElement,
+    SimpleIdentifierImpl? getterName,
+    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+  ) {
+    ExecutableElement? getter;
+    var aliasedType = typeAliasElement.aliasedType;
+    if (aliasedType is InterfaceType) {
+      var classElement = aliasedType.element;
+      if (getterName != null) {
+        getter = classElement.getGetter(getterName.name);
+        getter = _resolver.toLegacyElement(getter);
+      }
+    }
+
+    getterName?.staticElement = getter;
+    node.element = getter;
+
+    if (getterName != null && getter is PropertyAccessorElement) {
+      _propertyAccessorElement(node, getterName, getter, whyNotPromotedList);
+      _resolveAnnotationElementGetter(node, getter);
+    } else if (getter is! ConstructorElement) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVALID_ANNOTATION,
+        node,
+      );
+    }
+
+    _visitArguments(node, whyNotPromotedList);
   }
 
   void _visitArguments(AnnotationImpl node,

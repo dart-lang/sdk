@@ -40,6 +40,12 @@ class ConstructorElementToInfer {
 
   ConstructorElementToInfer(this.typeParameters, this.element);
 
+  /// Return the equivalent generic function type that we could use to
+  /// forward to the constructor, or for a non-generic type simply returns
+  /// the constructor type.
+  ///
+  /// For example given the type `class C<T> { C(T arg); }`, the generic
+  /// function type is `<T>(T) -> C<T>`.
   FunctionType get asType {
     return FunctionTypeImpl(
       typeFormals: typeParameters,

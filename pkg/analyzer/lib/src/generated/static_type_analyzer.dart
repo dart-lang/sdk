@@ -4,13 +4,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/migration.dart';
@@ -46,28 +43,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _typeProvider = _resolver.typeProvider;
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
-  }
-
-  /// Given a constructor for a generic type, returns the equivalent generic
-  /// function type that we could use to forward to the constructor, or for a
-  /// non-generic type simply returns the constructor type.
-  ///
-  /// For example given the type `class C<T> { C(T arg); }`, the generic function
-  /// type is `<T>(T) -> C<T>`.
-  FunctionType constructorToGenericFunctionType(
-      ConstructorElement constructor) {
-    var classElement = constructor.enclosingElement;
-    var typeParameters = classElement.typeParameters;
-    if (typeParameters.isEmpty) {
-      return constructor.type;
-    }
-
-    return FunctionTypeImpl(
-      typeFormals: typeParameters,
-      parameters: constructor.parameters,
-      returnType: constructor.returnType,
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
   }
 
   /// Record that the static type of the given node is the given type.
