@@ -125,6 +125,20 @@ class SharedClassTable {
     trace_allocation_table_.load()[cid] = trace ? 1 : 0;
   }
   bool TraceAllocationFor(intptr_t cid);
+  void SetCollectInstancesFor(intptr_t cid, bool trace) {
+    ASSERT(cid > 0);
+    ASSERT(cid < top_);
+    if (trace) {
+      trace_allocation_table_.load()[cid] |= 2;
+    } else {
+      trace_allocation_table_.load()[cid] &= ~2;
+    }
+  }
+  bool CollectInstancesFor(intptr_t cid) {
+    ASSERT(cid > 0);
+    ASSERT(cid < top_);
+    return (trace_allocation_table_.load()[cid] & 2) != 0;
+  }
 #endif  // !defined(PRODUCT)
 
   void CopyBeforeHotReload(intptr_t** copy, intptr_t* copy_num_cids) {

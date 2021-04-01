@@ -3079,23 +3079,72 @@ static bool EvaluateInFrame(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static void MarkClasses(const Class& root,
+                        bool include_subclasses,
+                        bool include_implementors) {
+  Thread* thread = Thread::Current();
+  HANDLESCOPE(thread);
+  SharedClassTable* table = thread->isolate()->group()->shared_class_table();
+  GrowableArray<const Class*> worklist;
+  table->SetCollectInstancesFor(root.id(), true);
+  worklist.Add(&root);
+  GrowableObjectArray& subclasses = GrowableObjectArray::Handle();
+  GrowableObjectArray& implementors = GrowableObjectArray::Handle();
+  while (!worklist.is_empty()) {
+    const Class& cls = *worklist.RemoveLast();
+    // All subclasses are implementors, but they are not included in
+    // `direct_implementors`.
+    if (include_subclasses || include_implementors) {
+      subclasses = cls.direct_subclasses_unsafe();
+      if (!subclasses.IsNull()) {
+        for (intptr_t j = 0; j < subclasses.Length(); j++) {
+          Class& subclass = Class::Handle();
+          subclass ^= subclasses.At(j);
+          if (!table->CollectInstancesFor(subclass.id())) {
+            table->SetCollectInstancesFor(subclass.id(), true);
+            worklist.Add(&subclass);
+          }
+        }
+      }
+    }
+    if (include_implementors) {
+      implementors = cls.direct_implementors_unsafe();
+      if (!implementors.IsNull()) {
+        for (intptr_t j = 0; j < implementors.Length(); j++) {
+          Class& implementor = Class::Handle();
+          implementor ^= implementors.At(j);
+          if (!table->CollectInstancesFor(implementor.id())) {
+            table->SetCollectInstancesFor(implementor.id(), true);
+            worklist.Add(&implementor);
+          }
+        }
+      }
+    }
+  }
+}
+
+static void UnmarkClasses() {
+  SharedClassTable* table = IsolateGroup::Current()->shared_class_table();
+  for (intptr_t i = 1; i < table->NumCids(); i++) {
+    table->SetCollectInstancesFor(i, false);
+  }
+}
+
 class GetInstancesVisitor : public ObjectGraph::Visitor {
  public:
-  GetInstancesVisitor(const Class& cls,
-                      ZoneGrowableHandlePtrArray<Object>* storage,
+  GetInstancesVisitor(ZoneGrowableHandlePtrArray<Object>* storage,
                       intptr_t limit)
-      : cls_(cls), storage_(storage), limit_(limit), count_(0) {}
+      : table_(IsolateGroup::Current()->shared_class_table()),
+        storage_(storage),
+        limit_(limit),
+        count_(0) {}
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     ObjectPtr raw_obj = it->Get();
     if (raw_obj->IsPseudoObject()) {
       return kProceed;
     }
-    Thread* thread = Thread::Current();
-    REUSABLE_OBJECT_HANDLESCOPE(thread);
-    Object& obj = thread->ObjectHandle();
-    obj = raw_obj;
-    if (obj.GetClassId() == cls_.id()) {
+    if (table_->CollectInstancesFor(raw_obj->GetClassId())) {
       if (count_ < limit_) {
         storage_->Add(Object::Handle(raw_obj));
       }
@@ -3107,7 +3156,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
   intptr_t count() const { return count_; }
 
  private:
-  const Class& cls_;
+  SharedClassTable* const table_;
   ZoneGrowableHandlePtrArray<Object>* storage_;
   const intptr_t limit_;
   intptr_t count_;
@@ -3147,11 +3196,13 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
   HANDLESCOPE(thread);
 
   ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), limit);
-  GetInstancesVisitor visitor(cls, &storage, limit);
+  GetInstancesVisitor visitor(&storage, limit);
   {
     ObjectGraph graph(thread);
     HeapIterationScope iteration_scope(Thread::Current(), true);
+    MarkClasses(cls, false, false);
     graph.IterateObjects(&visitor);
+    UnmarkClasses();
   }
   intptr_t count = visitor.count();
   JSONObject jsobj(js);
@@ -3163,6 +3214,55 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
       samples.AddValue(storage.At(i));
     }
   }
+  return true;
+}
+
+static const MethodParameter* get_instances_as_array_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool GetInstancesAsArray(Thread* thread, JSONStream* js) {
+  const char* object_id = js->LookupParam("objectId");
+  if (object_id == NULL) {
+    PrintMissingParamError(js, "objectId");
+    return true;
+  }
+
+  bool include_subclasses =
+      BoolParameter::Parse(js->LookupParam("includeSubclasses"), false);
+  bool include_implementors =
+      BoolParameter::Parse(js->LookupParam("includeImplementors"), false);
+
+  const Object& obj = Object::Handle(LookupHeapObject(thread, object_id, NULL));
+  if (obj.ptr() == Object::sentinel().ptr() || !obj.IsClass()) {
+    PrintInvalidParamError(js, "objectId");
+    return true;
+  }
+  const Class& cls = Class::Cast(obj);
+
+  // Ensure the array and handles created below are promptly destroyed.
+  Array& instances = Array::Handle();
+  {
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+
+    ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), 1024);
+    GetInstancesVisitor visitor(&storage, kSmiMax);
+    {
+      ObjectGraph graph(thread);
+      HeapIterationScope iteration_scope(Thread::Current(), true);
+      MarkClasses(cls, include_subclasses, include_implementors);
+      graph.IterateObjects(&visitor);
+      UnmarkClasses();
+    }
+    intptr_t count = visitor.count();
+    instances = Array::New(count);
+    for (intptr_t i = 0; i < count; i++) {
+      instances.SetAt(i, storage.At(i));
+    }
+  }
+  instances.PrintJSON(js, /* as_ref */ true);
   return true;
 }
 
@@ -5116,6 +5216,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_inbound_references_params },
   { "getInstances", GetInstances,
     get_instances_params },
+  { "_getInstancesAsArray", GetInstancesAsArray,
+    get_instances_as_array_params },
   { "getPorts", GetPorts,
     get_ports_params },
   { "getIsolate", GetIsolate,

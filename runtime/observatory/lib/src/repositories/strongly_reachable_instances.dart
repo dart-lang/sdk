@@ -15,4 +15,18 @@ class StronglyReachableInstancesRepository
     assert(limit != null);
     return (await isolate.getInstances(cls, limit)) as S.InstanceSet;
   }
+
+  Future<M.Guarded<M.InstanceRef>> getAsArray(M.IsolateRef i, M.ClassRef c,
+      {bool includeSubclasses: false, includeImplementors: false}) async {
+    S.Isolate isolate = i as S.Isolate;
+    S.Class cls = c as S.Class;
+    assert(isolate != null);
+    assert(cls != null);
+    final response = await isolate.invokeRpc('_getInstancesAsArray', {
+      'objectId': cls.id,
+      'includeSubclasses': includeSubclasses,
+      'includeImplementors': includeImplementors
+    });
+    return new S.Guarded<S.Instance>(response);
+  }
 }
