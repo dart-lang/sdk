@@ -149,6 +149,7 @@ class FindElement extends _FindElementBase {
     return result!;
   }
 
+  @override
   ParameterElement parameter(String name) {
     ParameterElement? result;
 
@@ -523,6 +524,28 @@ abstract class _FindElementBase {
       if (mixin.name == name) {
         return mixin;
       }
+    }
+    throw StateError('Not found: $name');
+  }
+
+  ParameterElement parameter(String name) {
+    ParameterElement? result;
+
+    for (var class_ in unitElement.types) {
+      for (var constructor in class_.constructors) {
+        for (var parameter in constructor.parameters) {
+          if (parameter.name == name) {
+            if (result != null) {
+              throw StateError('Not unique: $name');
+            }
+            result = parameter;
+          }
+        }
+      }
+    }
+
+    if (result != null) {
+      return result;
     }
     throw StateError('Not found: $name');
   }
