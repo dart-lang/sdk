@@ -25164,6 +25164,10 @@ void RegExp::set_num_bracket_expressions(SmiPtr value) const {
   untag()->set_num_bracket_expressions(value);
 }
 
+void RegExp::set_num_bracket_expressions(const Smi& value) const {
+  untag()->set_num_bracket_expressions(value.ptr());
+}
+
 void RegExp::set_num_bracket_expressions(intptr_t value) const {
   untag()->set_num_bracket_expressions(Smi::New(value));
 }

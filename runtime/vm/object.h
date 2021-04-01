@@ -11042,6 +11042,7 @@ class RegExp : public Instance {
                     const TypedData& bytecode) const;
 
   void set_num_bracket_expressions(SmiPtr value) const;
+  void set_num_bracket_expressions(const Smi& value) const;
   void set_num_bracket_expressions(intptr_t value) const;
   void set_capture_name_map(const Array& array) const;
   void set_is_global() const {
