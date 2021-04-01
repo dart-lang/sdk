@@ -135,6 +135,7 @@ nonfunction_type_aliases/issue41501: FormatterCrash
 nonfunction_type_aliases/issue42446: FormatterCrash
 nonfunction_type_aliases/issue45051: FormatterCrash
 nonfunction_type_aliases/issue45464: FormatterCrash
+nonfunction_type_aliases/issue45491: FormatterCrash
 nonfunction_type_aliases/issue45519: FormatterCrash
 nonfunction_type_aliases/issue45519_2: FormatterCrash
 nonfunction_type_aliases/nullable_supertypes: FormatterCrash
