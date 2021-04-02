@@ -35,20 +35,20 @@ testeeDo() {
 
 Future<void> checkAsyncVarDescriptors(
     VmService? service, IsolateRef? isolateRef) async {
-  final isolateId = isolateRef!.id!;
+  final isolateId = isolateRef!.id;
   final stack = await service!.getStack(isolateId);
-  expect(stack.frames!.length, greaterThanOrEqualTo(1));
-  final frame = stack.frames![0];
+  expect(stack.frames.length, greaterThanOrEqualTo(1));
+  final frame = stack.frames[0];
   final vars = frame.vars!.map((v) => v.name).join(' ');
   expect(vars, 'param1 local1'); // no :async_op et al
 }
 
 Future checkAsyncStarVarDescriptors(
     VmService? service, IsolateRef? isolateRef) async {
-  final isolateId = isolateRef!.id!;
+  final isolateId = isolateRef!.id;
   final stack = await service!.getStack(isolateId);
-  expect(stack.frames!.length, greaterThanOrEqualTo(1));
-  final frame = stack.frames![0];
+  expect(stack.frames.length, greaterThanOrEqualTo(1));
+  final frame = stack.frames[0];
   final vars = frame.vars!.map((v) => v.name).join(' ');
   expect(vars, 'param2 local2'); // no :async_op et al
 }

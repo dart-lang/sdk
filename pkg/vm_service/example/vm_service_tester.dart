@@ -109,7 +109,7 @@ void main() {
     VM vm = await serviceClient.getVM();
     print('hostCPU=${vm.hostCPU}');
     print(await serviceClient.getVersion());
-    List<IsolateRef> isolates = await vm.isolates!;
+    List<IsolateRef> isolates = await vm.isolates;
     print(isolates);
 
     // Disable the json reserialization checks since custom services are not
@@ -118,11 +118,11 @@ void main() {
     await testServiceRegistration();
     checkResponseJsonCompatibility = true;
 
-    await testScriptParse(vm.isolates!.first);
-    await testSourceReport(vm.isolates!.first);
+    await testScriptParse(vm.isolates.first);
+    await testSourceReport(vm.isolates.first);
 
     IsolateRef isolateRef = isolates.first;
-    print(await serviceClient.resume(isolateRef.id!));
+    print(await serviceClient.resume(isolateRef.id));
 
     print('waiting for client to shut down...');
     await serviceClient.dispose();
@@ -180,14 +180,14 @@ Future testServiceRegistration() async {
 }
 
 Future testScriptParse(IsolateRef isolateRef) async {
-  final isolateId = isolateRef.id!;
+  final isolateId = isolateRef.id;
   final Isolate isolate = await serviceClient.getIsolate(isolateId);
   final Library rootLibrary =
-      await serviceClient.getObject(isolateId, isolate.rootLib!.id!) as Library;
-  final ScriptRef scriptRef = rootLibrary.scripts!.first;
+      await serviceClient.getObject(isolateId, isolate.rootLib!.id) as Library;
+  final ScriptRef scriptRef = rootLibrary.scripts.first;
 
   final Script script =
-      await serviceClient.getObject(isolateId, scriptRef.id!) as Script;
+      await serviceClient.getObject(isolateId, scriptRef.id) as Script;
   print(script);
   print(script.uri);
   print(script.library);
@@ -196,11 +196,11 @@ Future testScriptParse(IsolateRef isolateRef) async {
 }
 
 Future testSourceReport(IsolateRef isolateRef) async {
-  final isolateId = isolateRef.id!;
+  final isolateId = isolateRef.id;
   final Isolate isolate = await serviceClient.getIsolate(isolateId);
   final Library rootLibrary =
-      await serviceClient.getObject(isolateId, isolate.rootLib!.id!) as Library;
-  final ScriptRef scriptRef = rootLibrary.scripts!.first;
+      await serviceClient.getObject(isolateId, isolate.rootLib!.id) as Library;
+  final ScriptRef scriptRef = rootLibrary.scripts.first;
 
   // make sure some code has run
   await serviceClient.resume(isolateId);
@@ -209,7 +209,7 @@ Future testSourceReport(IsolateRef isolateRef) async {
   final SourceReport sourceReport = await serviceClient.getSourceReport(
       isolateId, [SourceReportKind.kCoverage],
       scriptId: scriptRef.id);
-  for (SourceReportRange range in sourceReport.ranges!) {
+  for (SourceReportRange range in sourceReport.ranges) {
     print('  $range');
     if (range.coverage != null) {
       print('  ${range.coverage}');

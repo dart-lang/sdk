@@ -30,19 +30,19 @@ bool allRangesCompiled(coverage) {
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
+    final isolateId = isolateRef.id;
     final isolate = await service.getIsolate(isolateId);
     final stack = await service.getStack(isolateId);
 
     // Make sure we are in the right place.
-    expect(stack.frames!.length, greaterThanOrEqualTo(1));
-    expect(stack.frames![0].function!.name, 'testFunction');
+    expect(stack.frames.length, greaterThanOrEqualTo(1));
+    expect(stack.frames[0].function!.name, 'testFunction');
 
     final Library root =
-        await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
+        await service.getObject(isolateId, isolate.rootLib!.id) as Library;
     FuncRef funcRef =
-        root.functions!.singleWhere((f) => f.name == 'leafFunction');
-    Func func = await service.getObject(isolateId, funcRef.id!) as Func;
+        root.functions.singleWhere((f) => f.name == 'leafFunction');
+    Func func = await service.getObject(isolateId, funcRef.id) as Func;
 
     final expectedRange = {
       'scriptIndex': 0,
@@ -58,32 +58,31 @@ var tests = <IsolateTest>[
 
     final report = await service.getSourceReport(
         isolateId, [SourceReportKind.kCoverage],
-        scriptId: location.script!.id,
+        scriptId: location.script.id,
         tokenPos: location.tokenPos,
         endTokenPos: location.endTokenPos,
         forceCompile: true);
-    expect(report.ranges!.length, 1);
-    expect(report.ranges![0].toJson(), expectedRange);
-    expect(report.scripts!.length, 1);
-    expect(
-        report.scripts![0].uri, endsWith('coverage_leaf_function_test.dart'));
+    expect(report.ranges.length, 1);
+    expect(report.ranges[0].toJson(), expectedRange);
+    expect(report.scripts.length, 1);
+    expect(report.scripts[0].uri, endsWith('coverage_leaf_function_test.dart'));
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,
   (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
+    final isolateId = isolateRef.id;
     final isolate = await service.getIsolate(isolateId);
     final stack = await service.getStack(isolateId);
 
     // Make sure we are in the right place.
-    expect(stack.frames!.length, greaterThanOrEqualTo(1));
-    expect(stack.frames![0].function!.name, 'testFunction');
+    expect(stack.frames.length, greaterThanOrEqualTo(1));
+    expect(stack.frames[0].function!.name, 'testFunction');
 
     final Library root =
-        await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
+        await service.getObject(isolateId, isolate.rootLib!.id) as Library;
     FuncRef funcRef =
-        root.functions!.singleWhere((f) => f.name == 'leafFunction');
-    Func func = await service.getObject(isolateId, funcRef.id!) as Func;
+        root.functions.singleWhere((f) => f.name == 'leafFunction');
+    Func func = await service.getObject(isolateId, funcRef.id) as Func;
 
     var expectedRange = {
       'scriptIndex': 0,
@@ -99,15 +98,14 @@ var tests = <IsolateTest>[
     final location = func.location!;
     final report = await service.getSourceReport(
         isolateId, [SourceReportKind.kCoverage],
-        scriptId: location.script!.id,
+        scriptId: location.script.id,
         tokenPos: location.tokenPos,
         endTokenPos: location.endTokenPos,
         forceCompile: true);
-    expect(report.ranges!.length, 1);
-    expect(report.ranges![0].toJson(), expectedRange);
-    expect(report.scripts!.length, 1);
-    expect(
-        report.scripts![0].uri, endsWith('coverage_leaf_function_test.dart'));
+    expect(report.ranges.length, 1);
+    expect(report.ranges[0].toJson(), expectedRange);
+    expect(report.scripts.length, 1);
+    expect(report.scripts[0].uri, endsWith('coverage_leaf_function_test.dart'));
   },
 ];
 

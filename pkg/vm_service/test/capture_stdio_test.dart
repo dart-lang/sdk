@@ -35,7 +35,7 @@ var tests = <IsolateTest>[
       completer.complete();
     });
     await service.streamListen(EventStreams.kStdout);
-    await service.resume(isolateRef.id!);
+    await service.resume(isolateRef.id);
     await completer.future;
   },
   hasStoppedAtBreakpoint,
@@ -60,7 +60,7 @@ var tests = <IsolateTest>[
       eventNumber++;
     });
     await service.streamListen(EventStreams.kStdout);
-    await service.resume(isolateRef.id!);
+    await service.resume(isolateRef.id);
     await completer.future;
   },
   hasStoppedAtBreakpoint,
@@ -75,7 +75,7 @@ var tests = <IsolateTest>[
       completer.complete();
     });
     await service.streamListen(EventStreams.kStderr);
-    await service.resume(isolateRef.id!);
+    await service.resume(isolateRef.id);
     await completer.future;
   },
 ];

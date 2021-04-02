@@ -26,7 +26,7 @@ Future<void> waitForStreamEvent(
     VmService service, IsolateRef isolateRef, bool state,
     {bool useSetter = true}) async {
   final completer = Completer<void>();
-  final isolateId = isolateRef.id!;
+  final isolateId = isolateRef.id;
   late StreamSubscription sub;
   sub = service.onExtensionEvent.listen((event) {
     expect(event.extensionKind, 'SocketProfilingStateChange');
@@ -84,7 +84,7 @@ Future<void> socketTest() async {
 
 var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
-    final isolate = await service.getIsolate(isolateRef.id!);
+    final isolate = await service.getIsolate(isolateRef.id);
     // Ensure all network profiling service extensions are registered.
     expect(isolate.extensionRPCs!.length, greaterThanOrEqualTo(5));
     expect(isolate.extensionRPCs!.contains(kClearSocketProfileRPC), isTrue);
@@ -97,20 +97,20 @@ var tests = <IsolateTest>[
 
   // Test getSocketProfiler
   (VmService service, IsolateRef isolateRef) async {
-    final socketProfile = await service.getSocketProfile(isolateRef.id!);
+    final socketProfile = await service.getSocketProfile(isolateRef.id);
     expect(socketProfile.sockets.isEmpty, isTrue);
   },
   // Exercise methods naively
   (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
+    final isolateId = isolateRef.id;
     final version = await service.getDartIOVersion(isolateId);
-    expect(version.major! >= 1, true);
-    expect(version.minor! >= 0, true);
+    expect(version.major >= 1, true);
+    expect(version.minor >= 0, true);
     await service.clearSocketProfile(isolateId);
     await service.getSocketProfile(isolateId);
   },
   (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
+    final isolateId = isolateRef.id;
     final initial = (await service.socketProfilingEnabled(isolateId)).enabled;
     await waitForStreamEvent(service, isolateRef, !initial);
     expect((await service.socketProfilingEnabled(isolateId)).enabled, !initial);
@@ -118,7 +118,7 @@ var tests = <IsolateTest>[
     expect((await service.socketProfilingEnabled(isolateId)).enabled, initial);
   },
   (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
+    final isolateId = isolateRef.id;
     final initial = (await service.socketProfilingEnabled(isolateId)).enabled;
     await waitForStreamEvent(service, isolateRef, !initial, useSetter: false);
     expect((await service.socketProfilingEnabled(isolateId)).enabled, !initial);

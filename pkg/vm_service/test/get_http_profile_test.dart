@@ -289,7 +289,7 @@ Future<void> hasValidHttpPUTs(HttpProfile profile) =>
 var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     vmService = service;
-    final isolateId = isolateRef.id!;
+    final isolateId = isolateRef.id;
 
     final httpProfile = await service.getHttpProfile(isolateId);
     expect(httpProfile.requests.length, 70);

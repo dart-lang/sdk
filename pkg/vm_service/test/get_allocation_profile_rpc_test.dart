@@ -12,14 +12,14 @@ Future<void> sleep(int milliseconds) =>
 
 var tests = <IsolateTest>[
   (VmService service, IsolateRef isolate) async {
-    final isolateId = isolate.id!;
+    final isolateId = isolate.id;
 
     AllocationProfile result = await service.getAllocationProfile(isolateId);
     expect(result.dateLastAccumulatorReset, isNull);
     expect(result.dateLastServiceGC, isNull);
-    expect(result.members!.length, isPositive);
+    expect(result.members.length, isPositive);
 
-    ClassHeapStats member = result.members![0];
+    ClassHeapStats member = result.members[0];
     expect(member.instancesAccumulated, isNotNull);
     expect(member.instancesCurrent, isNotNull);
     expect(member.bytesCurrent, isNotNull);
@@ -30,9 +30,9 @@ var tests = <IsolateTest>[
     final firstReset = result.dateLastAccumulatorReset;
     expect(firstReset, isNotNull);
     expect(result.dateLastServiceGC, isNull);
-    expect(result.members!.length, isPositive);
+    expect(result.members.length, isPositive);
 
-    member = result.members![0];
+    member = result.members[0];
     expect(member.instancesAccumulated, isNotNull);
     expect(member.instancesCurrent, isNotNull);
     expect(member.bytesCurrent, isNotNull);
@@ -49,9 +49,9 @@ var tests = <IsolateTest>[
     expect(result.dateLastAccumulatorReset, secondReset);
     final firstGC = result.dateLastServiceGC;
     expect(firstGC, isNotNull);
-    expect(result.members!.length, isPositive);
+    expect(result.members.length, isPositive);
 
-    member = result.members![0];
+    member = result.members[0];
     expect(member.instancesAccumulated, isNotNull);
     expect(member.instancesCurrent, isNotNull);
     expect(member.bytesCurrent, isNotNull);

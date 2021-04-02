@@ -71,7 +71,7 @@ Future setupFiles() async {
 
 var fileTests = <IsolateTest>[
   (VmService service, IsolateRef isolate) async {
-    final isolateId = isolate.id!;
+    final isolateId = isolate.id;
     await service.callServiceExtension(
       'ext.dart.io.setup',
       isolateId: isolate.id,

@@ -1499,20 +1499,20 @@ class Type extends Member {
 
     // Build from JSON.
     gen.writeln();
-    String superCall = superName == null ? '' : ": super._fromJson(json) ";
+    String superCall = '';
     if (name == 'Response' || name == 'TimelineEvent') {
       gen.write('${name}._fromJson(this.json)');
+      if (fields.isNotEmpty) {
+        gen.write(':');
+      }
     } else {
-      gen.write('${name}._fromJson(Map<String, dynamic> json) ${superCall}');
+      superCall = superName == null ? '' : "super._fromJson(json) ";
+      gen.write('${name}._fromJson(Map<String, dynamic> json):');
     }
 
-    if (fields.isEmpty) {
-      gen.writeln(';');
-    } else {
-      gen.writeln('{');
-    }
-
-    fields.forEach((TypeField field) {
+    var constructorBody = DartGenerator();
+    var fieldsCode = fields.map((TypeField field) {
+      var gen = DartGenerator();
       if (field.type.isSimple || field.type.isEnum) {
         // Special case `AllocationProfile`.
         if (name == 'AllocationProfile' && field.type.name == 'int') {
@@ -1556,7 +1556,6 @@ class Type extends Member {
           }
           gen.write(' ?? $defaultValue');
         }
-        gen.writeln(';');
         // } else if (field.type.isEnum) {
         //   // Parse the enum.
         //   String enumTypeName = field.type.types.first.name;
@@ -1565,35 +1564,35 @@ class Type extends Member {
       } else if (name == 'Event' && field.name == 'extensionData') {
         // Special case `Event.extensionData`.
         gen.writeln(
-            "extensionData = ExtensionData.parse(json['extensionData']);");
+            "extensionData = ExtensionData.parse(json['extensionData'])");
       } else if (name == 'Instance' && field.name == 'associations') {
         // Special case `Instance.associations`.
         gen.writeln("associations = json['associations'] == null "
             "? null : List<MapAssociation>.from("
-            "_createSpecificObject(json['associations'], MapAssociation.parse));");
+            "_createSpecificObject(json['associations'], MapAssociation.parse))");
       } else if (name == 'Instance' && field.name == 'classRef') {
         // This is populated by `Obj`
       } else if (name == '_CpuProfile' && field.name == 'codes') {
         // Special case `_CpuProfile.codes`.
         gen.writeln("codes = List<CodeRegion>.from("
-            "_createSpecificObject(json['codes']!, CodeRegion.parse));");
+            "_createSpecificObject(json['codes']!, CodeRegion.parse))");
       } else if (name == '_CpuProfile' && field.name == 'functions') {
         // Special case `_CpuProfile.functions`.
         gen.writeln("functions = List<ProfileFunction>.from("
-            "_createSpecificObject(json['functions']!, ProfileFunction.parse));");
+            "_createSpecificObject(json['functions']!, ProfileFunction.parse))");
       } else if (name == 'SourceReport' && field.name == 'ranges') {
         // Special case `SourceReport.ranges`.
         gen.writeln("ranges = List<SourceReportRange>.from("
-            "_createSpecificObject(json['ranges']!, SourceReportRange.parse));");
+            "_createSpecificObject(json['ranges']!, SourceReportRange.parse))");
       } else if (name == 'SourceReportRange' && field.name == 'coverage') {
         // Special case `SourceReportRange.coverage`.
         gen.writeln("coverage = _createSpecificObject("
-            "json['coverage'], SourceReportCoverage.parse);");
+            "json['coverage'], SourceReportCoverage.parse)");
       } else if (name == 'Library' && field.name == 'dependencies') {
         // Special case `Library.dependencies`.
         gen.writeln("dependencies = List<LibraryDependency>.from("
             "_createSpecificObject(json['dependencies']!, "
-            "LibraryDependency.parse));");
+            "LibraryDependency.parse))");
       } else if (name == 'Script' && field.name == 'tokenPosTable') {
         // Special case `Script.tokenPosTable`.
         gen.write("tokenPosTable = ");
@@ -1601,8 +1600,8 @@ class Type extends Member {
           gen.write("json['tokenPosTable'] == null ? null : ");
         }
         gen.writeln("List<List<int>>.from(json['tokenPosTable']!.map"
-            "((dynamic list) => List<int>.from(list)));");
-        gen.writeln('_parseTokenPosTable();');
+            "((dynamic list) => List<int>.from(list)))");
+        constructorBody.writeln('_parseTokenPosTable();');
       } else if (field.type.isArray) {
         TypeRef fieldType = field.type.types.first;
         String typesList = _typeRefListToString(field.type.types);
@@ -1610,10 +1609,10 @@ class Type extends Member {
         if (field.optional) {
           if (fieldType.isListTypeSimple) {
             gen.writeln("${field.generatableName} = $ref == null ? null : "
-                "List<${fieldType.listTypeArg}>.from($ref);");
+                "List<${fieldType.listTypeArg}>.from($ref)");
           } else {
             gen.writeln("${field.generatableName} = $ref == null ? null : "
-                "List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList)! as List);");
+                "List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList)! as List)");
           }
         } else {
           if (fieldType.isListTypeSimple) {
@@ -1621,20 +1620,20 @@ class Type extends Member {
             // `new` and `old`. Post 3.18, these will be null.
             if (name == 'ClassHeapStats') {
               gen.writeln("${field.generatableName} = $ref == null ? null : "
-                  "List<${fieldType.listTypeArg}>.from($ref);");
+                  "List<${fieldType.listTypeArg}>.from($ref)");
             } else {
               gen.writeln("${field.generatableName} = "
-                  "List<${fieldType.listTypeArg}>.from($ref);");
+                  "List<${fieldType.listTypeArg}>.from($ref)");
             }
           } else {
             // Special case `InstanceSet`. Pre 3.20, instances were sent in a
             // field named 'samples' instead of 'instances'.
             if (name == 'InstanceSet') {
               gen.writeln("${field.generatableName} = "
-                  "List<${fieldType.listTypeArg}>.from(createServiceObject(($ref ?? json['samples']!) as List, $typesList)! as List);");
+                  "List<${fieldType.listTypeArg}>.from(createServiceObject(($ref ?? json['samples']!) as List, $typesList)! as List)");
             } else {
               gen.writeln("${field.generatableName} = "
-                  "List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList) as List? ?? []);");
+                  "List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList) as List? ?? [])");
             }
           }
         }
@@ -1643,11 +1642,19 @@ class Type extends Member {
         String nullable =
             field.optional && field.type.name != 'dynamic' ? '?' : '';
         gen.writeln("${field.generatableName} = "
-            "createServiceObject(json['${field.name}']${field.optional ? '' : '!'}, "
-            "$typesList) as ${field.type.name}$nullable;");
+            "createServiceObject(json['${field.name}'], "
+            "$typesList) as ${field.type.name}$nullable");
       }
-    });
-    if (fields.isNotEmpty) {
+
+      return gen.toString();
+    }).join(', ');
+    gen.writeln([fieldsCode, superCall].where((e) => e.isNotEmpty).join(', '));
+    var constructor = constructorBody.toString();
+    if (constructor.isEmpty) {
+      gen.writeln(';');
+    } else {
+      gen.writeln('{');
+      gen.writeln(constructor);
       gen.writeln('}');
     }
     gen.writeln();
@@ -1696,7 +1703,7 @@ Map<String, dynamic> toJson() {
         gen.writeln('final json = super.toJson();');
       }
 
-      // Only Response objects have a `type` field, as defined by protocol.
+      // Only Response objects have a `@type` field, as defined by protocol.
       if (isResponse) {
         // Overwrites "type" from the super class if we had one.
         gen.writeln("json['type'] = type;");
@@ -1806,7 +1813,8 @@ void _parseTokenPosTable() {
       // Special case `Event.extensionData`.
       gen.writeln('extensionData?.data');
     } else if (field.type.isArray) {
-      gen.write('${field.generatableName}?.map((f) => f');
+      gen.write(
+          '${field.generatableName}${field.optional ? '?' : ''}.map((f) => f');
       // Special case `tokenPosTable` which is a List<List<int>>.
       if (field.name == 'tokenPosTable') {
         gen.write('.toList()');
@@ -1815,7 +1823,8 @@ void _parseTokenPosTable() {
       }
       gen.write(').toList()');
     } else {
-      gen.write('${field.generatableName}?.toJson()');
+      gen.write(
+          '${field.generatableName}${field.optional ? '?' : ''}.toJson()');
     }
   }
 
@@ -1831,7 +1840,7 @@ void _parseTokenPosTable() {
             String assertMethodName = 'assertListOf' +
                 arrayType.name!.substring(0, 1).toUpperCase() +
                 arrayType.name!.substring(1);
-            gen.writeln('$assertMethodName(obj.${field.generatableName}!);');
+            gen.writeln('$assertMethodName(obj.${field.generatableName});');
           } else {
             gen.writeln(
                 '// assert obj.${field.generatableName} is ${type.name}');
@@ -1846,7 +1855,7 @@ void _parseTokenPosTable() {
             String assertMethodName = 'assert' +
                 typeRef.name!.substring(0, 1).toUpperCase() +
                 typeRef.name!.substring(1);
-            gen.writeln('$assertMethodName(obj.${field.generatableName}!);');
+            gen.writeln('$assertMethodName(obj.${field.generatableName});');
           }
           gen.writeln('} else {');
           gen.writeln(
@@ -1856,7 +1865,7 @@ void _parseTokenPosTable() {
           String assertMethodName = 'assert' +
               type.name.substring(0, 1).toUpperCase() +
               type.name.substring(1);
-          gen.writeln('$assertMethodName(obj.${field.generatableName}!);');
+          gen.writeln('$assertMethodName(obj.${field.generatableName});');
         }
       }
     }
@@ -1882,15 +1891,24 @@ void _parseTokenPosTable() {
     for (TypeField field in fields.toList()) {
       if (superName == null) continue;
 
-      if (getSuper()!.hasField(field.name)) {
+      var superType = getSuper()!;
+      var superFields = superType.fieldOverrides(field.name);
+      if (superFields.isNotEmpty) {
         field.setOverrides();
+      }
+      if (superFields.any((field) => field.optional) ||
+          // Instance implements InstanceRef and need a nullable classRef field
+          (name == 'InstanceRef' && field.name == 'class')) {
+        field.inheritsOptional = true;
       }
     }
   }
 
-  bool hasField(String? name) {
-    if (fields.any((field) => field.name == name)) return true;
-    return getSuper()?.hasField(name) ?? false;
+  List<TypeField> fieldOverrides(String? name) {
+    return [
+      ...fields.where((field) => field.name == name),
+      ...?getSuper()?.fieldOverrides(name),
+    ];
   }
 }
 
@@ -1909,11 +1927,16 @@ class TypeField extends Member {
   final String? _docs;
   MemberType type = MemberType();
   String? name;
-  bool optional = false;
+  bool _isOptional = false;
   String? defaultValue;
   bool overrides = false;
+  bool inheritsOptional = false;
 
   TypeField(this.parent, this._docs);
+
+  bool get optional => _isOptional || inheritsOptional;
+
+  void setOptional() => _isOptional = true;
 
   void setOverrides() => overrides = true;
 
@@ -1933,7 +1956,7 @@ class TypeField extends Member {
 
   void generate(DartGenerator gen) {
     if (docs!.isNotEmpty) gen.writeDocs(docs);
-    if (optional) gen.write('@optional ');
+    if (_isOptional) gen.write('@optional ');
     if (overrides) gen.write('@override ');
     // Special case where Instance extends Obj, but 'classRef' is not optional
     // for Instance although it is for Obj.
@@ -1946,7 +1969,7 @@ class TypeField extends Member {
     {
       String? typeName =
           api.isEnumName(type.name) ? '/*${type.name}*/ String' : type.name;
-      if (typeName != 'dynamic') {
+      if (optional && typeName != 'dynamic') {
         typeName = '$typeName?';
       }
       gen.writeStatement('${typeName} ${generatableName};');
@@ -2204,7 +2227,7 @@ class TypeParser extends Parser {
       if (consume('[')) {
         expect('optional');
         expect(']');
-        field.optional = true;
+        field.setOptional();
       }
       type.fields.add(field);
       expect(';');
@@ -2218,7 +2241,7 @@ class TypeParser extends Parser {
       TypeField dataField = TypeField(type, comment);
       dataField.type.types.add(TypeRef('ByteData'));
       dataField.name = 'data';
-      dataField.optional = true;
+      dataField.setOptional();
       type.fields.add(dataField);
     } else if (type.rawName == 'Response') {
       type.fields.removeWhere((field) => field.name == 'type');

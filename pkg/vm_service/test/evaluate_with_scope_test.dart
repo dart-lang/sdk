@@ -20,18 +20,20 @@ Future evaluate(VmService service, isolate, target, x, y) async =>
 
 final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
+    final isolateId = isolateRef.id;
     final isolate = await service.getIsolate(isolateId);
     final Library lib =
-        (await service.getObject(isolateId, isolate.rootLib!.id!)) as Library;
+        (await service.getObject(isolateId, isolate.rootLib!.id)) as Library;
 
-    final Field field1 = (await service.getObject(isolateId,
-        lib.variables!.singleWhere((v) => v.name == 'thing1').id!)) as Field;
+    final Field field1 = (await service.getObject(
+            isolateId, lib.variables.singleWhere((v) => v.name == 'thing1').id))
+        as Field;
     final thing1 =
         (await service.getObject(isolateId, field1.staticValue!.id!));
 
-    final Field field2 = (await service.getObject(isolateId,
-        lib.variables!.singleWhere((v) => v.name == 'thing2').id!)) as Field;
+    final Field field2 = (await service.getObject(
+            isolateId, lib.variables.singleWhere((v) => v.name == 'thing2').id))
+        as Field;
     final thing2 =
         (await service.getObject(isolateId, field2.staticValue!.id!));
 
@@ -51,8 +53,8 @@ final tests = <IsolateTest>[
 
     didThrow = false;
     try {
-      result = await service.evaluate(isolateId, lib.id!, "x + y",
-          scope: <String, String>{"not&an&id!entifier": thing1.id!});
+      result = await service.evaluate(isolateId, lib.id, "x + y",
+          scope: <String, String>{"not&an&id!entifier": thing1.id});
       print(result);
     } catch (e) {
       didThrow = true;

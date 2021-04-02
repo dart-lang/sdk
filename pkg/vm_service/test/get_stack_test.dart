@@ -54,7 +54,7 @@ final tests = <IsolateTest>[
   stoppedAtLine(LINE_A),
   // At LINE_A we're still running sync. so no asyncCausalFrames.
   (VmService service, IsolateRef isolateRef) async {
-    final result = await service.getStack(isolateRef.id!);
+    final result = await service.getStack(isolateRef.id);
 
     expect(result.frames, hasLength(16));
     expect(result.asyncCausalFrames, isNull);
@@ -93,13 +93,13 @@ final tests = <IsolateTest>[
   stoppedAtLine(LINE_B),
   // After resuming the continuation - i.e. running async.
   (VmService service, IsolateRef isolateRef) async {
-    final result = await service.getStack(isolateRef.id!);
+    final result = await service.getStack(isolateRef.id);
 
     expect(result.frames, hasLength(10));
     expect(result.asyncCausalFrames, hasLength(26));
     expect(result.awaiterFrames, hasLength(13));
 
-    expectFrames(result.frames!, [
+    expectFrames(result.frames, [
       [equals('Regular'), endsWith(' func10')],
       [equals('Regular'), endsWith(' _RootZone.runUnary')],
       [equals('Regular'), anything], // Internal mech. ..

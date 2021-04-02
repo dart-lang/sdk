@@ -15,11 +15,11 @@ class Bar {}
 
 var tests = <IsolateTest>[
   (VmService service, IsolateRef isolate) async {
-    final classes = (await service.getClassList(isolate.id!)).classes!;
+    final classes = (await service.getClassList(isolate.id)).classes;
     final fooRef = classes.firstWhere((element) => element.name == 'Foo');
-    final foo = (await service.getObject(isolate.id!, fooRef.id!)) as Class;
+    final foo = (await service.getObject(isolate.id, fooRef.id)) as Class;
     final field =
-        (await service.getObject(isolate.id!, foo.fields!.first.id!)) as Field;
+        (await service.getObject(isolate.id, foo.fields.first.id)) as Field;
     expect(field.staticValue!.valueAsString, '<not initialized>');
   }
 ];

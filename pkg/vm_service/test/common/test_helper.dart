@@ -316,7 +316,7 @@ class _ServiceTesterRunner {
 
   Future<IsolateRef> getFirstIsolate(VmService service) async {
     var vm = await service.getVM();
-    final vmIsolates = vm.isolates!;
+    final vmIsolates = vm.isolates;
     if (vmIsolates.isNotEmpty) {
       return vmIsolates.first;
     }

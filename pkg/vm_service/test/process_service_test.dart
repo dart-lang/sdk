@@ -98,7 +98,7 @@ Future setupProcesses() async {
 final processTests = <IsolateTest>[
   // Initial.
   (VmService service, IsolateRef isolate) async {
-    final isolateId = isolate.id!;
+    final isolateId = isolate.id;
     final setup = await service.callServiceExtension(
       'ext.dart.io.setup',
       isolateId: isolateId,

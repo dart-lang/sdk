@@ -315,14 +315,14 @@ void hasValidHttpPUTs(HttpProfile profile, List<TimelineEvent> traceEvents) =>
 
 var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
+    final isolateId = isolateRef.id;
 
     final httpProfile = await service.getHttpProfile(isolateId);
     expect(httpProfile.requests.length, 70);
 
     // Verify timeline events.
     final result = await service.getVMTimeline();
-    final traceEvents = result.traceEvents!;
+    final traceEvents = result.traceEvents;
     expect(traceEvents.isNotEmpty, isTrue);
     hasValidHttpConnections(traceEvents);
     hasValidHttpCONNECTs(httpProfile, traceEvents);

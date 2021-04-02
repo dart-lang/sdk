@@ -21,16 +21,16 @@ testeeDo() {
 
 Future checkSamples(VmService service, IsolateRef isolate) async {
   // Grab all the samples.
-  final isolateId = isolate.id!;
+  final isolateId = isolate.id;
   final result = await service.getCpuSamples(isolateId, 0, ~0);
 
   final isString = TypeMatcher<String>();
   final isInt = TypeMatcher<int>();
   final isList = TypeMatcher<List>();
-  expect(result.functions!.length, greaterThan(10),
+  expect(result.functions.length, greaterThan(10),
       reason: "Should have many functions!");
 
-  final samples = result.samples!;
+  final samples = result.samples;
   expect(samples.length, greaterThan(10), reason: "Should have many samples");
   expect(samples.length, result.sampleCount);
 

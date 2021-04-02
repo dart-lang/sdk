@@ -44,12 +44,12 @@ Future<Class?> getClassFromRootLib(
   IsolateRef isolateRef,
   String className,
 ) async {
-  final isolate = await service.getIsolate(isolateRef.id!);
+  final isolate = await service.getIsolate(isolateRef.id);
   Library rootLib =
-      (await service.getObject(isolate.id!, isolate.rootLib!.id!)) as Library;
-  for (ClassRef cls in rootLib.classes!) {
+      (await service.getObject(isolate.id, isolate.rootLib!.id)) as Library;
+  for (ClassRef cls in rootLib.classes) {
     if (cls.name == className) {
-      return (await service.getObject(isolate.id!, cls.id!)) as Class;
+      return (await service.getObject(isolate.id, cls.id)) as Class;
     }
   }
   return null;
@@ -64,9 +64,9 @@ final tests = <IsolateTest>[
     Class fooClass = (await getClassFromRootLib(service, isolate, 'Foo'))!;
     expect(fooClass.name, equals('Foo'));
     expect(fooClass.traceAllocations, false);
-    await service.setTraceClassAllocation(isolate.id!, fooClass.id!, true);
+    await service.setTraceClassAllocation(isolate.id, fooClass.id, true);
 
-    fooClass = await service.getObject(isolate.id!, fooClass.id!) as Class;
+    fooClass = await service.getObject(isolate.id, fooClass.id) as Class;
     expect(fooClass.traceAllocations, true);
   },
 
@@ -82,25 +82,25 @@ final tests = <IsolateTest>[
     Class fooClass = (await getClassFromRootLib(service, isolate, 'Foo'))!;
     expect(fooClass.traceAllocations, true);
 
-    final profileResponse = await service.getAllocationTraces(isolate.id!);
+    final profileResponse = await service.getAllocationTraces(isolate.id);
     expect(profileResponse, isNotNull);
-    expect(profileResponse.samples!.length, 1);
-    expect(profileResponse.samples!.first.identityHashCode != 0, true);
+    expect(profileResponse.samples.length, 1);
+    expect(profileResponse.samples.first.identityHashCode != 0, true);
 
     final instances = await service.getInstances(
-      isolate.id!,
-      fooClass.id!,
+      isolate.id,
+      fooClass.id,
       1,
     );
     expect(instances.totalCount, 1);
-    final instance = instances.instances!.first as InstanceRef;
+    final instance = instances.instances.first as InstanceRef;
     expect(instance.identityHashCode != 0, isTrue);
     expect(instance.identityHashCode,
-        profileResponse.samples!.first.identityHashCode);
+        profileResponse.samples.first.identityHashCode);
 
-    await service.setTraceClassAllocation(isolate.id!, fooClass.id!, false);
+    await service.setTraceClassAllocation(isolate.id, fooClass.id, false);
 
-    fooClass = await service.getObject(isolate.id!, fooClass.id!) as Class;
+    fooClass = await service.getObject(isolate.id, fooClass.id) as Class;
     expect(fooClass.traceAllocations, false);
   },
   resumeIsolate,
@@ -109,7 +109,7 @@ final tests = <IsolateTest>[
     // Trace Bar.
     Class barClass = (await getClassFromRootLib(service, isolate, 'Bar'))!;
     expect(barClass.traceAllocations, false);
-    await service.setTraceClassAllocation(isolate.id!, barClass.id!, true);
+    await service.setTraceClassAllocation(isolate.id, barClass.id, true);
     barClass = (await getClassFromRootLib(service, isolate, 'Bar'))!;
     expect(barClass.traceAllocations, true);
   },
@@ -123,8 +123,8 @@ final tests = <IsolateTest>[
 
   (VmService service, IsolateRef isolate) async {
     // Ensure the allocation of `Bar()` was recorded.
-    final profileResponse = (await service.getAllocationTraces(isolate.id!));
-    expect(profileResponse.samples!.length, 2);
+    final profileResponse = (await service.getAllocationTraces(isolate.id));
+    expect(profileResponse.samples.length, 2);
   },
 ];
 
