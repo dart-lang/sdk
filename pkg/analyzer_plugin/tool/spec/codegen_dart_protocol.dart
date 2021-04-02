@@ -413,39 +413,10 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         if (field.value != null) {
           continue;
         }
-
-        // if (!field.optional) {
-        //   write('late ');
-        // }
-        // write(dartType(field.type));
-        // if (field.optional) {
-        //   write('?');
-        // }
-        // write(' _${field.name};');
-
-        var lateStr = field.optional ? '' : 'late';
-        var questionStr = field.optional ? '?' : '';
-        writeln('$lateStr ${dartType(field.type)}$questionStr _${field.name};');
-
-        writeln();
-      }
-      for (var field in type.fields) {
-        if (field.value != null) {
-          continue;
-        }
         docComment(toHtmlVisitor.collectHtml(() {
           toHtmlVisitor.translateHtml(field.html);
         }));
-        writeln('${fieldDartType(field)} get ${field.name} => _${field.name};');
-        writeln();
-        docComment(toHtmlVisitor.collectHtml(() {
-          toHtmlVisitor.translateHtml(field.html);
-        }));
-        writeln('set ${field.name}(${fieldDartType(field)} value) {');
-        indent(() {
-          writeln('_${field.name} = value;');
-        });
-        writeln('}');
+        writeln('${fieldDartType(field)} ${field.name};');
         writeln();
       }
       emitObjectConstructor(type, className);
@@ -489,62 +460,39 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   void emitObjectConstructor(TypeObject type, String className) {
     var args = <String>[];
     var optionalArgs = <String>[];
-    var extraInitCode = <CodegenCallback>[];
+    var initializers = <String>[];
     for (var field in type.fields) {
       if (field.value != null) {
         continue;
       }
-      var setValueFromArg = 'this.${field.name} = ${field.name};';
       if (isOptionalConstructorArg(className, field)) {
-        var arg = '${dartType(field.type)}? ${field.name}';
-        optionalArgs.add(arg);
         if (!field.optional) {
+          optionalArgs.add('${dartType(field.type)}? ${field.name}');
           // Optional constructor arg, but non-optional field. If no arg is
           // given, the constructor should populate with the empty list.
           var fieldType = field.type;
           if (fieldType is TypeList) {
-            extraInitCode.add(() {
-              writeln('if (${field.name} == null) {');
-              indent(() {
-                writeln(
-                    'this.${field.name} = <${dartType(fieldType.itemType)}>[];');
-              });
-              writeln('} else {');
-              indent(() {
-                writeln(setValueFromArg);
-              });
-              writeln('}');
-            });
+            var defaultValue = '<${dartType(fieldType.itemType)}>[]';
+            initializers.add('${field.name} = ${field.name} ?? $defaultValue');
           } else {
             throw Exception("Don't know how to create default field value.");
           }
         } else {
-          extraInitCode.add(() {
-            writeln(setValueFromArg);
-          });
+          optionalArgs.add('this.${field.name}');
         }
       } else {
-        var arg = '${dartType(field.type)} ${field.name}';
-        args.add(arg);
-        extraInitCode.add(() {
-          writeln(setValueFromArg);
-        });
+        args.add('this.${field.name}');
       }
     }
     if (optionalArgs.isNotEmpty) {
       args.add('{${optionalArgs.join(', ')}}');
     }
     write('$className(${args.join(', ')})');
-    if (extraInitCode.isEmpty) {
+    if (initializers.isEmpty) {
       writeln(';');
     } else {
-      writeln(' {');
-      indent(() {
-        for (var callback in extraInitCode) {
-          callback();
-        }
-      });
-      writeln('}');
+      writeln(' : ${initializers.join(', ')}');
+      writeln(';');
     }
   }
 

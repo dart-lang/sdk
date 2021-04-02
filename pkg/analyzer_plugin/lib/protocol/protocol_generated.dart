@@ -22,35 +22,14 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorFixes implements HasToJson {
-  late AnalysisError _error;
-
-  late List<PrioritizedSourceChange> _fixes;
-
   /// The error with which the fixes are associated.
-  AnalysisError get error => _error;
-
-  /// The error with which the fixes are associated.
-  set error(AnalysisError value) {
-    _error = value;
-  }
+  AnalysisError error;
 
   /// The fixes associated with the error.
-  List<PrioritizedSourceChange> get fixes => _fixes;
+  List<PrioritizedSourceChange> fixes;
 
-  /// The fixes associated with the error.
-  set fixes(List<PrioritizedSourceChange> value) {
-    _fixes = value;
-  }
-
-  AnalysisErrorFixes(AnalysisError error,
-      {List<PrioritizedSourceChange>? fixes}) {
-    this.error = error;
-    if (fixes == null) {
-      this.fixes = <PrioritizedSourceChange>[];
-    } else {
-      this.fixes = fixes;
-    }
-  }
+  AnalysisErrorFixes(this.error, {List<PrioritizedSourceChange>? fixes})
+      : fixes = fixes ?? <PrioritizedSourceChange>[];
 
   factory AnalysisErrorFixes.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -119,30 +98,13 @@ class AnalysisErrorFixes implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorsParams implements HasToJson {
-  late String _file;
-
-  late List<AnalysisError> _errors;
-
   /// The file containing the errors.
-  String get file => _file;
-
-  /// The file containing the errors.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The errors contained in the file.
-  List<AnalysisError> get errors => _errors;
+  List<AnalysisError> errors;
 
-  /// The errors contained in the file.
-  set errors(List<AnalysisError> value) {
-    _errors = value;
-  }
-
-  AnalysisErrorsParams(String file, List<AnalysisError> errors) {
-    this.file = file;
-    this.errors = errors;
-  }
+  AnalysisErrorsParams(this.file, this.errors);
 
   factory AnalysisErrorsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -219,30 +181,13 @@ class AnalysisErrorsParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisFoldingParams implements HasToJson {
-  late String _file;
-
-  late List<FoldingRegion> _regions;
-
   /// The file containing the folding regions.
-  String get file => _file;
-
-  /// The file containing the folding regions.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The folding regions contained in the file.
-  List<FoldingRegion> get regions => _regions;
+  List<FoldingRegion> regions;
 
-  /// The folding regions contained in the file.
-  set regions(List<FoldingRegion> value) {
-    _regions = value;
-  }
-
-  AnalysisFoldingParams(String file, List<FoldingRegion> regions) {
-    this.file = file;
-    this.regions = regions;
-  }
+  AnalysisFoldingParams(this.file, this.regions);
 
   factory AnalysisFoldingParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -320,45 +265,18 @@ class AnalysisFoldingParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationParams implements RequestParams {
-  late String _file;
-
-  late int _offset;
-
-  late int _length;
-
   /// The file in which navigation information is being requested.
-  String get file => _file;
-
-  /// The file in which navigation information is being requested.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The offset of the region for which navigation information is being
   /// requested.
-  int get offset => _offset;
-
-  /// The offset of the region for which navigation information is being
-  /// requested.
-  set offset(int value) {
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the region for which navigation information is being
   /// requested.
-  int get length => _length;
+  int length;
 
-  /// The length of the region for which navigation information is being
-  /// requested.
-  set length(int value) {
-    _length = value;
-  }
-
-  AnalysisGetNavigationParams(String file, int offset, int length) {
-    this.file = file;
-    this.offset = offset;
-    this.length = length;
-  }
+  AnalysisGetNavigationParams(this.file, this.offset, this.length);
 
   factory AnalysisGetNavigationParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -441,46 +359,18 @@ class AnalysisGetNavigationParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationResult implements ResponseResult {
-  late List<String> _files;
-
-  late List<NavigationTarget> _targets;
-
-  late List<NavigationRegion> _regions;
-
   /// A list of the paths of files that are referenced by the navigation
   /// targets.
-  List<String> get files => _files;
-
-  /// A list of the paths of files that are referenced by the navigation
-  /// targets.
-  set files(List<String> value) {
-    _files = value;
-  }
+  List<String> files;
 
   /// A list of the navigation targets that are referenced by the navigation
   /// regions.
-  List<NavigationTarget> get targets => _targets;
-
-  /// A list of the navigation targets that are referenced by the navigation
-  /// regions.
-  set targets(List<NavigationTarget> value) {
-    _targets = value;
-  }
+  List<NavigationTarget> targets;
 
   /// A list of the navigation regions within the requested region of the file.
-  List<NavigationRegion> get regions => _regions;
+  List<NavigationRegion> regions;
 
-  /// A list of the navigation regions within the requested region of the file.
-  set regions(List<NavigationRegion> value) {
-    _regions = value;
-  }
-
-  AnalysisGetNavigationResult(List<String> files,
-      List<NavigationTarget> targets, List<NavigationRegion> regions) {
-    this.files = files;
-    this.targets = targets;
-    this.regions = regions;
-  }
+  AnalysisGetNavigationResult(this.files, this.targets, this.regions);
 
   factory AnalysisGetNavigationResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -576,19 +466,10 @@ class AnalysisGetNavigationResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisHandleWatchEventsParams implements RequestParams {
-  late List<WatchEvent> _events;
-
   /// The watch events that the plugin should handle.
-  List<WatchEvent> get events => _events;
+  List<WatchEvent> events;
 
-  /// The watch events that the plugin should handle.
-  set events(List<WatchEvent> value) {
-    _events = value;
-  }
-
-  AnalysisHandleWatchEventsParams(List<WatchEvent> events) {
-    this.events = events;
-  }
+  AnalysisHandleWatchEventsParams(this.events);
 
   factory AnalysisHandleWatchEventsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -684,30 +565,13 @@ class AnalysisHandleWatchEventsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisHighlightsParams implements HasToJson {
-  late String _file;
-
-  late List<HighlightRegion> _regions;
-
   /// The file containing the highlight regions.
-  String get file => _file;
-
-  /// The file containing the highlight regions.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The highlight regions contained in the file.
-  List<HighlightRegion> get regions => _regions;
+  List<HighlightRegion> regions;
 
-  /// The highlight regions contained in the file.
-  set regions(List<HighlightRegion> value) {
-    _regions = value;
-  }
-
-  AnalysisHighlightsParams(String file, List<HighlightRegion> regions) {
-    this.file = file;
-    this.regions = regions;
-  }
+  AnalysisHighlightsParams(this.file, this.regions);
 
   factory AnalysisHighlightsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -786,57 +650,21 @@ class AnalysisHighlightsParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisNavigationParams implements HasToJson {
-  late String _file;
-
-  late List<NavigationRegion> _regions;
-
-  late List<NavigationTarget> _targets;
-
-  late List<String> _files;
-
   /// The file containing the navigation regions.
-  String get file => _file;
-
-  /// The file containing the navigation regions.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The navigation regions contained in the file.
-  List<NavigationRegion> get regions => _regions;
-
-  /// The navigation regions contained in the file.
-  set regions(List<NavigationRegion> value) {
-    _regions = value;
-  }
+  List<NavigationRegion> regions;
 
   /// The navigation targets referenced in the file. They are referenced by
   /// NavigationRegions by their index in this array.
-  List<NavigationTarget> get targets => _targets;
-
-  /// The navigation targets referenced in the file. They are referenced by
-  /// NavigationRegions by their index in this array.
-  set targets(List<NavigationTarget> value) {
-    _targets = value;
-  }
+  List<NavigationTarget> targets;
 
   /// The files containing navigation targets referenced in the file. They are
   /// referenced by NavigationTargets by their index in this array.
-  List<String> get files => _files;
+  List<String> files;
 
-  /// The files containing navigation targets referenced in the file. They are
-  /// referenced by NavigationTargets by their index in this array.
-  set files(List<String> value) {
-    _files = value;
-  }
-
-  AnalysisNavigationParams(String file, List<NavigationRegion> regions,
-      List<NavigationTarget> targets, List<String> files) {
-    this.file = file;
-    this.regions = regions;
-    this.targets = targets;
-    this.files = files;
-  }
+  AnalysisNavigationParams(this.file, this.regions, this.targets, this.files);
 
   factory AnalysisNavigationParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -938,30 +766,13 @@ class AnalysisNavigationParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOccurrencesParams implements HasToJson {
-  late String _file;
-
-  late List<Occurrences> _occurrences;
-
   /// The file in which the references occur.
-  String get file => _file;
-
-  /// The file in which the references occur.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The occurrences of references to elements within the file.
-  List<Occurrences> get occurrences => _occurrences;
+  List<Occurrences> occurrences;
 
-  /// The occurrences of references to elements within the file.
-  set occurrences(List<Occurrences> value) {
-    _occurrences = value;
-  }
-
-  AnalysisOccurrencesParams(String file, List<Occurrences> occurrences) {
-    this.file = file;
-    this.occurrences = occurrences;
-  }
+  AnalysisOccurrencesParams(this.file, this.occurrences);
 
   factory AnalysisOccurrencesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -1039,30 +850,13 @@ class AnalysisOccurrencesParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOutlineParams implements HasToJson {
-  late String _file;
-
-  late List<Outline> _outline;
-
   /// The file with which the outline is associated.
-  String get file => _file;
-
-  /// The file with which the outline is associated.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The outline fragments associated with the file.
-  List<Outline> get outline => _outline;
+  List<Outline> outline;
 
-  /// The outline fragments associated with the file.
-  set outline(List<Outline> value) {
-    _outline = value;
-  }
-
-  AnalysisOutlineParams(String file, List<Outline> outline) {
-    this.file = file;
-    this.outline = outline;
-  }
+  AnalysisOutlineParams(this.file, this.outline);
 
   factory AnalysisOutlineParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -1206,19 +1000,10 @@ class AnalysisService implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetContextRootsParams implements RequestParams {
-  late List<ContextRoot> _roots;
-
   /// A list of the context roots that should be analyzed.
-  List<ContextRoot> get roots => _roots;
+  List<ContextRoot> roots;
 
-  /// A list of the context roots that should be analyzed.
-  set roots(List<ContextRoot> value) {
-    _roots = value;
-  }
-
-  AnalysisSetContextRootsParams(List<ContextRoot> roots) {
-    this.roots = roots;
-  }
+  AnalysisSetContextRootsParams(this.roots);
 
   factory AnalysisSetContextRootsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -1312,19 +1097,10 @@ class AnalysisSetContextRootsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesParams implements RequestParams {
-  late List<String> _files;
-
   /// The files that are to be a priority for analysis.
-  List<String> get files => _files;
+  List<String> files;
 
-  /// The files that are to be a priority for analysis.
-  set files(List<String> value) {
-    _files = value;
-  }
-
-  AnalysisSetPriorityFilesParams(List<String> files) {
-    this.files = files;
-  }
+  AnalysisSetPriorityFilesParams(this.files);
 
   factory AnalysisSetPriorityFilesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -1414,22 +1190,11 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsParams implements RequestParams {
-  late Map<AnalysisService, List<String>> _subscriptions;
-
   /// A table mapping services to a list of the files being subscribed to the
   /// service.
-  Map<AnalysisService, List<String>> get subscriptions => _subscriptions;
+  Map<AnalysisService, List<String>> subscriptions;
 
-  /// A table mapping services to a list of the files being subscribed to the
-  /// service.
-  set subscriptions(Map<AnalysisService, List<String>> value) {
-    _subscriptions = value;
-  }
-
-  AnalysisSetSubscriptionsParams(
-      Map<AnalysisService, List<String>> subscriptions) {
-    this.subscriptions = subscriptions;
-  }
+  AnalysisSetSubscriptionsParams(this.subscriptions);
 
   factory AnalysisSetSubscriptionsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -1528,21 +1293,11 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentParams implements RequestParams {
-  late Map<String, Object> _files;
-
   /// A table mapping the files whose content has changed to a description of
   /// the content change.
-  Map<String, Object> get files => _files;
+  Map<String, Object> files;
 
-  /// A table mapping the files whose content has changed to a description of
-  /// the content change.
-  set files(Map<String, Object> value) {
-    _files = value;
-  }
-
-  AnalysisUpdateContentParams(Map<String, Object> files) {
-    this.files = files;
-  }
+  AnalysisUpdateContentParams(this.files);
 
   factory AnalysisUpdateContentParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -1643,30 +1398,13 @@ class AnalysisUpdateContentResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionsParams implements RequestParams {
-  late String _file;
-
-  late int _offset;
-
   /// The file containing the point at which suggestions are to be made.
-  String get file => _file;
-
-  /// The file containing the point at which suggestions are to be made.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The offset within the file at which suggestions are to be made.
-  int get offset => _offset;
+  int offset;
 
-  /// The offset within the file at which suggestions are to be made.
-  set offset(int value) {
-    _offset = value;
-  }
-
-  CompletionGetSuggestionsParams(String file, int offset) {
-    this.file = file;
-    this.offset = offset;
-  }
+  CompletionGetSuggestionsParams(this.file, this.offset);
 
   factory CompletionGetSuggestionsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -1739,62 +1477,27 @@ class CompletionGetSuggestionsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionsResult implements ResponseResult {
-  late int _replacementOffset;
-
-  late int _replacementLength;
-
-  late List<CompletionSuggestion> _results;
-
   /// The offset of the start of the text to be replaced. This will be
   /// different than the offset used to request the completion suggestions if
   /// there was a portion of an identifier before the original offset. In
   /// particular, the replacementOffset will be the offset of the beginning of
   /// said identifier.
-  int get replacementOffset => _replacementOffset;
-
-  /// The offset of the start of the text to be replaced. This will be
-  /// different than the offset used to request the completion suggestions if
-  /// there was a portion of an identifier before the original offset. In
-  /// particular, the replacementOffset will be the offset of the beginning of
-  /// said identifier.
-  set replacementOffset(int value) {
-    _replacementOffset = value;
-  }
+  int replacementOffset;
 
   /// The length of the text to be replaced if the remainder of the identifier
   /// containing the cursor is to be replaced when the suggestion is applied
   /// (that is, the number of characters in the existing identifier).
-  int get replacementLength => _replacementLength;
-
-  /// The length of the text to be replaced if the remainder of the identifier
-  /// containing the cursor is to be replaced when the suggestion is applied
-  /// (that is, the number of characters in the existing identifier).
-  set replacementLength(int value) {
-    _replacementLength = value;
-  }
+  int replacementLength;
 
   /// The completion suggestions being reported. The notification contains all
   /// possible completions at the requested cursor position, even those that do
   /// not match the characters the user has already typed. This allows the
   /// client to respond to further keystrokes from the user without having to
   /// make additional requests.
-  List<CompletionSuggestion> get results => _results;
+  List<CompletionSuggestion> results;
 
-  /// The completion suggestions being reported. The notification contains all
-  /// possible completions at the requested cursor position, even those that do
-  /// not match the characters the user has already typed. This allows the
-  /// client to respond to further keystrokes from the user without having to
-  /// make additional requests.
-  set results(List<CompletionSuggestion> value) {
-    _results = value;
-  }
-
-  CompletionGetSuggestionsResult(int replacementOffset, int replacementLength,
-      List<CompletionSuggestion> results) {
-    this.replacementOffset = replacementOffset;
-    this.replacementLength = replacementLength;
-    this.results = results;
-  }
+  CompletionGetSuggestionsResult(
+      this.replacementOffset, this.replacementLength, this.results);
 
   factory CompletionGetSuggestionsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -1888,47 +1591,19 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ContextRoot implements HasToJson {
-  late String _root;
-
-  late List<String> _exclude;
-
-  String? _optionsFile;
-
   /// The absolute path of the root directory containing the files to be
   /// analyzed.
-  String get root => _root;
-
-  /// The absolute path of the root directory containing the files to be
-  /// analyzed.
-  set root(String value) {
-    _root = value;
-  }
+  String root;
 
   /// A list of the absolute paths of files and directories within the root
   /// directory that should not be analyzed.
-  List<String> get exclude => _exclude;
-
-  /// A list of the absolute paths of files and directories within the root
-  /// directory that should not be analyzed.
-  set exclude(List<String> value) {
-    _exclude = value;
-  }
+  List<String> exclude;
 
   /// The absolute path of the analysis options file that should be used to
   /// control the analysis of the files in the context.
-  String? get optionsFile => _optionsFile;
+  String? optionsFile;
 
-  /// The absolute path of the analysis options file that should be used to
-  /// control the analysis of the files in the context.
-  set optionsFile(String? value) {
-    _optionsFile = value;
-  }
-
-  ContextRoot(String root, List<String> exclude, {String? optionsFile}) {
-    this.root = root;
-    this.exclude = exclude;
-    this.optionsFile = optionsFile;
-  }
+  ContextRoot(this.root, this.exclude, {this.optionsFile});
 
   factory ContextRoot.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -2079,41 +1754,16 @@ class ConvertMethodToGetterOptions extends RefactoringOptions
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsParams implements RequestParams {
-  late String _file;
-
-  late int _offset;
-
-  late int _length;
-
   /// The file containing the code for which assists are being requested.
-  String get file => _file;
-
-  /// The file containing the code for which assists are being requested.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The offset of the code for which assists are being requested.
-  int get offset => _offset;
-
-  /// The offset of the code for which assists are being requested.
-  set offset(int value) {
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the code for which assists are being requested.
-  int get length => _length;
+  int length;
 
-  /// The length of the code for which assists are being requested.
-  set length(int value) {
-    _length = value;
-  }
-
-  EditGetAssistsParams(String file, int offset, int length) {
-    this.file = file;
-    this.offset = offset;
-    this.length = length;
-  }
+  EditGetAssistsParams(this.file, this.offset, this.length);
 
   factory EditGetAssistsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -2193,19 +1843,10 @@ class EditGetAssistsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsResult implements ResponseResult {
-  late List<PrioritizedSourceChange> _assists;
-
   /// The assists that are available at the given location.
-  List<PrioritizedSourceChange> get assists => _assists;
+  List<PrioritizedSourceChange> assists;
 
-  /// The assists that are available at the given location.
-  set assists(List<PrioritizedSourceChange> value) {
-    _assists = value;
-  }
-
-  EditGetAssistsResult(List<PrioritizedSourceChange> assists) {
-    this.assists = assists;
-  }
+  EditGetAssistsResult(this.assists);
 
   factory EditGetAssistsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -2277,41 +1918,16 @@ class EditGetAssistsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsParams implements RequestParams {
-  late String _file;
-
-  late int _offset;
-
-  late int _length;
-
   /// The file containing the code on which the refactoring would be based.
-  String get file => _file;
-
-  /// The file containing the code on which the refactoring would be based.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The offset of the code on which the refactoring would be based.
-  int get offset => _offset;
-
-  /// The offset of the code on which the refactoring would be based.
-  set offset(int value) {
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the code on which the refactoring would be based.
-  int get length => _length;
+  int length;
 
-  /// The length of the code on which the refactoring would be based.
-  set length(int value) {
-    _length = value;
-  }
-
-  EditGetAvailableRefactoringsParams(String file, int offset, int length) {
-    this.file = file;
-    this.offset = offset;
-    this.length = length;
-  }
+  EditGetAvailableRefactoringsParams(this.file, this.offset, this.length);
 
   factory EditGetAvailableRefactoringsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -2392,29 +2008,15 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsResult implements ResponseResult {
-  late List<RefactoringKind> _kinds;
-
   /// The kinds of refactorings that are valid for the given selection.
   ///
   /// The list of refactoring kinds is currently limited to those defined by
   /// the server API, preventing plugins from adding their own refactorings.
   /// However, plugins can support pre-defined refactorings, such as a rename
   /// refactoring, at locations not supported by server.
-  List<RefactoringKind> get kinds => _kinds;
+  List<RefactoringKind> kinds;
 
-  /// The kinds of refactorings that are valid for the given selection.
-  ///
-  /// The list of refactoring kinds is currently limited to those defined by
-  /// the server API, preventing plugins from adding their own refactorings.
-  /// However, plugins can support pre-defined refactorings, such as a rename
-  /// refactoring, at locations not supported by server.
-  set kinds(List<RefactoringKind> value) {
-    _kinds = value;
-  }
-
-  EditGetAvailableRefactoringsResult(List<RefactoringKind> kinds) {
-    this.kinds = kinds;
-  }
+  EditGetAvailableRefactoringsResult(this.kinds);
 
   factory EditGetAvailableRefactoringsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -2486,30 +2088,13 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetFixesParams implements RequestParams {
-  late String _file;
-
-  late int _offset;
-
   /// The file containing the errors for which fixes are being requested.
-  String get file => _file;
-
-  /// The file containing the errors for which fixes are being requested.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The offset used to select the errors for which fixes will be returned.
-  int get offset => _offset;
+  int offset;
 
-  /// The offset used to select the errors for which fixes will be returned.
-  set offset(int value) {
-    _offset = value;
-  }
-
-  EditGetFixesParams(String file, int offset) {
-    this.file = file;
-    this.offset = offset;
-  }
+  EditGetFixesParams(this.file, this.offset);
 
   factory EditGetFixesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -2579,19 +2164,10 @@ class EditGetFixesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetFixesResult implements ResponseResult {
-  late List<AnalysisErrorFixes> _fixes;
-
   /// The fixes that are available for the errors at the given offset.
-  List<AnalysisErrorFixes> get fixes => _fixes;
+  List<AnalysisErrorFixes> fixes;
 
-  /// The fixes that are available for the errors at the given offset.
-  set fixes(List<AnalysisErrorFixes> value) {
-    _fixes = value;
-  }
-
-  EditGetFixesResult(List<AnalysisErrorFixes> fixes) {
-    this.fixes = fixes;
-  }
+  EditGetFixesResult(this.fixes);
 
   factory EditGetFixesResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -2666,86 +2242,32 @@ class EditGetFixesResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringParams implements RequestParams {
-  late RefactoringKind _kind;
-
-  late String _file;
-
-  late int _offset;
-
-  late int _length;
-
-  late bool _validateOnly;
-
-  RefactoringOptions? _options;
-
   /// The kind of refactoring to be performed.
-  RefactoringKind get kind => _kind;
-
-  /// The kind of refactoring to be performed.
-  set kind(RefactoringKind value) {
-    _kind = value;
-  }
+  RefactoringKind kind;
 
   /// The file containing the code involved in the refactoring.
-  String get file => _file;
-
-  /// The file containing the code involved in the refactoring.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The offset of the region involved in the refactoring.
-  int get offset => _offset;
-
-  /// The offset of the region involved in the refactoring.
-  set offset(int value) {
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the region involved in the refactoring.
-  int get length => _length;
-
-  /// The length of the region involved in the refactoring.
-  set length(int value) {
-    _length = value;
-  }
+  int length;
 
   /// True if the client is only requesting that the values of the options be
   /// validated and no change be generated.
-  bool get validateOnly => _validateOnly;
-
-  /// True if the client is only requesting that the values of the options be
-  /// validated and no change be generated.
-  set validateOnly(bool value) {
-    _validateOnly = value;
-  }
+  bool validateOnly;
 
   /// Data used to provide values provided by the user. The structure of the
   /// data is dependent on the kind of refactoring being performed. The data
   /// that is expected is documented in the section titled Refactorings,
   /// labeled as "Options". This field can be omitted if the refactoring does
   /// not require any options or if the values of those options are not known.
-  RefactoringOptions? get options => _options;
+  RefactoringOptions? options;
 
-  /// Data used to provide values provided by the user. The structure of the
-  /// data is dependent on the kind of refactoring being performed. The data
-  /// that is expected is documented in the section titled Refactorings,
-  /// labeled as "Options". This field can be omitted if the refactoring does
-  /// not require any options or if the values of those options are not known.
-  set options(RefactoringOptions? value) {
-    _options = value;
-  }
-
-  EditGetRefactoringParams(RefactoringKind kind, String file, int offset,
-      int length, bool validateOnly,
-      {RefactoringOptions? options}) {
-    this.kind = kind;
-    this.file = file;
-    this.offset = offset;
-    this.length = length;
-    this.validateOnly = validateOnly;
-    this.options = options;
-  }
+  EditGetRefactoringParams(
+      this.kind, this.file, this.offset, this.length, this.validateOnly,
+      {this.options});
 
   factory EditGetRefactoringParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -2864,81 +2386,32 @@ class EditGetRefactoringParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringResult implements ResponseResult {
-  late List<RefactoringProblem> _initialProblems;
-
-  late List<RefactoringProblem> _optionsProblems;
-
-  late List<RefactoringProblem> _finalProblems;
-
-  RefactoringFeedback? _feedback;
-
-  SourceChange? _change;
-
-  List<String>? _potentialEdits;
-
   /// The initial status of the refactoring, that is, problems related to the
   /// context in which the refactoring is requested. The list should be empty
   /// if there are no known problems.
-  List<RefactoringProblem> get initialProblems => _initialProblems;
-
-  /// The initial status of the refactoring, that is, problems related to the
-  /// context in which the refactoring is requested. The list should be empty
-  /// if there are no known problems.
-  set initialProblems(List<RefactoringProblem> value) {
-    _initialProblems = value;
-  }
+  List<RefactoringProblem> initialProblems;
 
   /// The options validation status, that is, problems in the given options,
   /// such as light-weight validation of a new name, flags compatibility, etc.
   /// The list should be empty if there are no known problems.
-  List<RefactoringProblem> get optionsProblems => _optionsProblems;
-
-  /// The options validation status, that is, problems in the given options,
-  /// such as light-weight validation of a new name, flags compatibility, etc.
-  /// The list should be empty if there are no known problems.
-  set optionsProblems(List<RefactoringProblem> value) {
-    _optionsProblems = value;
-  }
+  List<RefactoringProblem> optionsProblems;
 
   /// The final status of the refactoring, that is, problems identified in the
   /// result of a full, potentially expensive validation and / or change
   /// creation. The list should be empty if there are no known problems.
-  List<RefactoringProblem> get finalProblems => _finalProblems;
-
-  /// The final status of the refactoring, that is, problems identified in the
-  /// result of a full, potentially expensive validation and / or change
-  /// creation. The list should be empty if there are no known problems.
-  set finalProblems(List<RefactoringProblem> value) {
-    _finalProblems = value;
-  }
+  List<RefactoringProblem> finalProblems;
 
   /// Data used to provide feedback to the user. The structure of the data is
   /// dependent on the kind of refactoring being created. The data that is
   /// returned is documented in the section titled Refactorings, labeled as
   /// "Feedback".
-  RefactoringFeedback? get feedback => _feedback;
-
-  /// Data used to provide feedback to the user. The structure of the data is
-  /// dependent on the kind of refactoring being created. The data that is
-  /// returned is documented in the section titled Refactorings, labeled as
-  /// "Feedback".
-  set feedback(RefactoringFeedback? value) {
-    _feedback = value;
-  }
+  RefactoringFeedback? feedback;
 
   /// The changes that are to be applied to affect the refactoring. This field
   /// can be omitted if there are problems that prevent a set of changes from
   /// being computed, such as having no options specified for a refactoring
   /// that requires them, or if only validation was requested.
-  SourceChange? get change => _change;
-
-  /// The changes that are to be applied to affect the refactoring. This field
-  /// can be omitted if there are problems that prevent a set of changes from
-  /// being computed, such as having no options specified for a refactoring
-  /// that requires them, or if only validation was requested.
-  set change(SourceChange? value) {
-    _change = value;
-  }
+  SourceChange? change;
 
   /// The ids of source edits that are not known to be valid. An edit is not
   /// known to be valid if there was insufficient type information for the
@@ -2946,32 +2419,11 @@ class EditGetRefactoringResult implements ResponseResult {
   /// modified, such as when a member is being renamed and there is a reference
   /// to a member from an unknown type. This field can be omitted if the change
   /// field is omitted or if there are no potential edits for the refactoring.
-  List<String>? get potentialEdits => _potentialEdits;
-
-  /// The ids of source edits that are not known to be valid. An edit is not
-  /// known to be valid if there was insufficient type information for the
-  /// plugin to be able to determine whether or not the code needs to be
-  /// modified, such as when a member is being renamed and there is a reference
-  /// to a member from an unknown type. This field can be omitted if the change
-  /// field is omitted or if there are no potential edits for the refactoring.
-  set potentialEdits(List<String>? value) {
-    _potentialEdits = value;
-  }
+  List<String>? potentialEdits;
 
   EditGetRefactoringResult(
-      List<RefactoringProblem> initialProblems,
-      List<RefactoringProblem> optionsProblems,
-      List<RefactoringProblem> finalProblems,
-      {RefactoringFeedback? feedback,
-      SourceChange? change,
-      List<String>? potentialEdits}) {
-    this.initialProblems = initialProblems;
-    this.optionsProblems = optionsProblems;
-    this.finalProblems = finalProblems;
-    this.feedback = feedback;
-    this.change = change;
-    this.potentialEdits = potentialEdits;
-  }
+      this.initialProblems, this.optionsProblems, this.finalProblems,
+      {this.feedback, this.change, this.potentialEdits});
 
   factory EditGetRefactoringResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -3114,78 +2566,29 @@ class EditGetRefactoringResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableFeedback extends RefactoringFeedback {
-  List<int>? _coveringExpressionOffsets;
-
-  List<int>? _coveringExpressionLengths;
-
-  late List<String> _names;
-
-  late List<int> _offsets;
-
-  late List<int> _lengths;
-
   /// The offsets of the expressions that cover the specified selection, from
   /// the down most to the up most.
-  List<int>? get coveringExpressionOffsets => _coveringExpressionOffsets;
-
-  /// The offsets of the expressions that cover the specified selection, from
-  /// the down most to the up most.
-  set coveringExpressionOffsets(List<int>? value) {
-    _coveringExpressionOffsets = value;
-  }
+  List<int>? coveringExpressionOffsets;
 
   /// The lengths of the expressions that cover the specified selection, from
   /// the down most to the up most.
-  List<int>? get coveringExpressionLengths => _coveringExpressionLengths;
-
-  /// The lengths of the expressions that cover the specified selection, from
-  /// the down most to the up most.
-  set coveringExpressionLengths(List<int>? value) {
-    _coveringExpressionLengths = value;
-  }
+  List<int>? coveringExpressionLengths;
 
   /// The proposed names for the local variable.
-  List<String> get names => _names;
-
-  /// The proposed names for the local variable.
-  set names(List<String> value) {
-    _names = value;
-  }
+  List<String> names;
 
   /// The offsets of the expressions that would be replaced by a reference to
   /// the variable.
-  List<int> get offsets => _offsets;
-
-  /// The offsets of the expressions that would be replaced by a reference to
-  /// the variable.
-  set offsets(List<int> value) {
-    _offsets = value;
-  }
+  List<int> offsets;
 
   /// The lengths of the expressions that would be replaced by a reference to
   /// the variable. The lengths correspond to the offsets. In other words, for
   /// a given expression, if the offset of that expression is offsets[i], then
   /// the length of that expression is lengths[i].
-  List<int> get lengths => _lengths;
+  List<int> lengths;
 
-  /// The lengths of the expressions that would be replaced by a reference to
-  /// the variable. The lengths correspond to the offsets. In other words, for
-  /// a given expression, if the offset of that expression is offsets[i], then
-  /// the length of that expression is lengths[i].
-  set lengths(List<int> value) {
-    _lengths = value;
-  }
-
-  ExtractLocalVariableFeedback(
-      List<String> names, List<int> offsets, List<int> lengths,
-      {List<int>? coveringExpressionOffsets,
-      List<int>? coveringExpressionLengths}) {
-    this.coveringExpressionOffsets = coveringExpressionOffsets;
-    this.coveringExpressionLengths = coveringExpressionLengths;
-    this.names = names;
-    this.offsets = offsets;
-    this.lengths = lengths;
-  }
+  ExtractLocalVariableFeedback(this.names, this.offsets, this.lengths,
+      {this.coveringExpressionOffsets, this.coveringExpressionLengths});
 
   factory ExtractLocalVariableFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -3290,36 +2693,16 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableOptions extends RefactoringOptions {
-  late String _name;
-
-  late bool _extractAll;
-
   /// The name that the local variable should be given.
-  String get name => _name;
-
-  /// The name that the local variable should be given.
-  set name(String value) {
-    _name = value;
-  }
+  String name;
 
   /// True if all occurrences of the expression within the scope in which the
   /// variable will be defined should be replaced by a reference to the local
   /// variable. The expression used to initiate the refactoring will always be
   /// replaced.
-  bool get extractAll => _extractAll;
+  bool extractAll;
 
-  /// True if all occurrences of the expression within the scope in which the
-  /// variable will be defined should be replaced by a reference to the local
-  /// variable. The expression used to initiate the refactoring will always be
-  /// replaced.
-  set extractAll(bool value) {
-    _extractAll = value;
-  }
-
-  ExtractLocalVariableOptions(String name, bool extractAll) {
-    this.name = name;
-    this.extractAll = extractAll;
-  }
+  ExtractLocalVariableOptions(this.name, this.extractAll);
 
   factory ExtractLocalVariableOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -3394,118 +2777,39 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractMethodFeedback extends RefactoringFeedback {
-  late int _offset;
-
-  late int _length;
-
-  late String _returnType;
-
-  late List<String> _names;
-
-  late bool _canCreateGetter;
-
-  late List<RefactoringMethodParameter> _parameters;
-
-  late List<int> _offsets;
-
-  late List<int> _lengths;
-
   /// The offset to the beginning of the expression or statements that will be
   /// extracted.
-  int get offset => _offset;
-
-  /// The offset to the beginning of the expression or statements that will be
-  /// extracted.
-  set offset(int value) {
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the expression or statements that will be extracted.
-  int get length => _length;
-
-  /// The length of the expression or statements that will be extracted.
-  set length(int value) {
-    _length = value;
-  }
+  int length;
 
   /// The proposed return type for the method. If the returned element does not
   /// have a declared return type, this field will contain an empty string.
-  String get returnType => _returnType;
-
-  /// The proposed return type for the method. If the returned element does not
-  /// have a declared return type, this field will contain an empty string.
-  set returnType(String value) {
-    _returnType = value;
-  }
+  String returnType;
 
   /// The proposed names for the method.
-  List<String> get names => _names;
-
-  /// The proposed names for the method.
-  set names(List<String> value) {
-    _names = value;
-  }
+  List<String> names;
 
   /// True if a getter could be created rather than a method.
-  bool get canCreateGetter => _canCreateGetter;
-
-  /// True if a getter could be created rather than a method.
-  set canCreateGetter(bool value) {
-    _canCreateGetter = value;
-  }
+  bool canCreateGetter;
 
   /// The proposed parameters for the method.
-  List<RefactoringMethodParameter> get parameters => _parameters;
-
-  /// The proposed parameters for the method.
-  set parameters(List<RefactoringMethodParameter> value) {
-    _parameters = value;
-  }
+  List<RefactoringMethodParameter> parameters;
 
   /// The offsets of the expressions or statements that would be replaced by an
   /// invocation of the method.
-  List<int> get offsets => _offsets;
-
-  /// The offsets of the expressions or statements that would be replaced by an
-  /// invocation of the method.
-  set offsets(List<int> value) {
-    _offsets = value;
-  }
+  List<int> offsets;
 
   /// The lengths of the expressions or statements that would be replaced by an
   /// invocation of the method. The lengths correspond to the offsets. In other
   /// words, for a given expression (or block of statements), if the offset of
   /// that expression is offsets[i], then the length of that expression is
   /// lengths[i].
-  List<int> get lengths => _lengths;
+  List<int> lengths;
 
-  /// The lengths of the expressions or statements that would be replaced by an
-  /// invocation of the method. The lengths correspond to the offsets. In other
-  /// words, for a given expression (or block of statements), if the offset of
-  /// that expression is offsets[i], then the length of that expression is
-  /// lengths[i].
-  set lengths(List<int> value) {
-    _lengths = value;
-  }
-
-  ExtractMethodFeedback(
-      int offset,
-      int length,
-      String returnType,
-      List<String> names,
-      bool canCreateGetter,
-      List<RefactoringMethodParameter> parameters,
-      List<int> offsets,
-      List<int> lengths) {
-    this.offset = offset;
-    this.length = length;
-    this.returnType = returnType;
-    this.names = names;
-    this.canCreateGetter = canCreateGetter;
-    this.parameters = parameters;
-    this.offsets = offsets;
-    this.lengths = lengths;
-  }
+  ExtractMethodFeedback(this.offset, this.length, this.returnType, this.names,
+      this.canCreateGetter, this.parameters, this.offsets, this.lengths);
 
   factory ExtractMethodFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -3641,41 +2945,15 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractMethodOptions extends RefactoringOptions {
-  late String _returnType;
-
-  late bool _createGetter;
-
-  late String _name;
-
-  late List<RefactoringMethodParameter> _parameters;
-
-  late bool _extractAll;
-
   /// The return type that should be defined for the method.
-  String get returnType => _returnType;
-
-  /// The return type that should be defined for the method.
-  set returnType(String value) {
-    _returnType = value;
-  }
+  String returnType;
 
   /// True if a getter should be created rather than a method. It is an error
   /// if this field is true and the list of parameters is non-empty.
-  bool get createGetter => _createGetter;
-
-  /// True if a getter should be created rather than a method. It is an error
-  /// if this field is true and the list of parameters is non-empty.
-  set createGetter(bool value) {
-    _createGetter = value;
-  }
+  bool createGetter;
 
   /// The name that the method should be given.
-  String get name => _name;
-
-  /// The name that the method should be given.
-  set name(String value) {
-    _name = value;
-  }
+  String name;
 
   /// The parameters that should be defined for the method.
   ///
@@ -3687,42 +2965,15 @@ class ExtractMethodOptions extends RefactoringOptions {
   ///   with the same identifiers as proposed.
   /// - To add new parameters, omit their identifier.
   /// - To remove some parameters, omit them in this list.
-  List<RefactoringMethodParameter> get parameters => _parameters;
-
-  /// The parameters that should be defined for the method.
-  ///
-  /// It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
-  /// parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
-  /// NAMED parameter.
-  ///
-  /// - To change the order and/or update proposed parameters, add parameters
-  ///   with the same identifiers as proposed.
-  /// - To add new parameters, omit their identifier.
-  /// - To remove some parameters, omit them in this list.
-  set parameters(List<RefactoringMethodParameter> value) {
-    _parameters = value;
-  }
+  List<RefactoringMethodParameter> parameters;
 
   /// True if all occurrences of the expression or statements should be
   /// replaced by an invocation of the method. The expression or statements
   /// used to initiate the refactoring will always be replaced.
-  bool get extractAll => _extractAll;
+  bool extractAll;
 
-  /// True if all occurrences of the expression or statements should be
-  /// replaced by an invocation of the method. The expression or statements
-  /// used to initiate the refactoring will always be replaced.
-  set extractAll(bool value) {
-    _extractAll = value;
-  }
-
-  ExtractMethodOptions(String returnType, bool createGetter, String name,
-      List<RefactoringMethodParameter> parameters, bool extractAll) {
-    this.returnType = returnType;
-    this.createGetter = createGetter;
-    this.name = name;
-    this.parameters = parameters;
-    this.extractAll = extractAll;
-  }
+  ExtractMethodOptions(this.returnType, this.createGetter, this.name,
+      this.parameters, this.extractAll);
 
   factory ExtractMethodOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -3832,30 +3083,13 @@ class ExtractMethodOptions extends RefactoringOptions {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineLocalVariableFeedback extends RefactoringFeedback {
-  late String _name;
-
-  late int _occurrences;
-
   /// The name of the variable being inlined.
-  String get name => _name;
-
-  /// The name of the variable being inlined.
-  set name(String value) {
-    _name = value;
-  }
+  String name;
 
   /// The number of times the variable occurs.
-  int get occurrences => _occurrences;
+  int occurrences;
 
-  /// The number of times the variable occurs.
-  set occurrences(int value) {
-    _occurrences = value;
-  }
-
-  InlineLocalVariableFeedback(String name, int occurrences) {
-    this.name = name;
-    this.occurrences = occurrences;
-  }
+  InlineLocalVariableFeedback(this.name, this.occurrences);
 
   factory InlineLocalVariableFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -3938,46 +3172,18 @@ class InlineLocalVariableOptions extends RefactoringOptions
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineMethodFeedback extends RefactoringFeedback {
-  String? _className;
-
-  late String _methodName;
-
-  late bool _isDeclaration;
-
   /// The name of the class enclosing the method being inlined. If not a class
   /// member is being inlined, this field will be absent.
-  String? get className => _className;
-
-  /// The name of the class enclosing the method being inlined. If not a class
-  /// member is being inlined, this field will be absent.
-  set className(String? value) {
-    _className = value;
-  }
+  String? className;
 
   /// The name of the method (or function) being inlined.
-  String get methodName => _methodName;
-
-  /// The name of the method (or function) being inlined.
-  set methodName(String value) {
-    _methodName = value;
-  }
+  String methodName;
 
   /// True if the declaration of the method is selected and all references
   /// should be inlined.
-  bool get isDeclaration => _isDeclaration;
+  bool isDeclaration;
 
-  /// True if the declaration of the method is selected and all references
-  /// should be inlined.
-  set isDeclaration(bool value) {
-    _isDeclaration = value;
-  }
-
-  InlineMethodFeedback(String methodName, bool isDeclaration,
-      {String? className}) {
-    this.className = className;
-    this.methodName = methodName;
-    this.isDeclaration = isDeclaration;
-  }
+  InlineMethodFeedback(this.methodName, this.isDeclaration, {this.className});
 
   factory InlineMethodFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4053,34 +3259,15 @@ class InlineMethodFeedback extends RefactoringFeedback {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineMethodOptions extends RefactoringOptions {
-  late bool _deleteSource;
-
-  late bool _inlineAll;
-
   /// True if the method being inlined should be removed. It is an error if
   /// this field is true and inlineAll is false.
-  bool get deleteSource => _deleteSource;
-
-  /// True if the method being inlined should be removed. It is an error if
-  /// this field is true and inlineAll is false.
-  set deleteSource(bool value) {
-    _deleteSource = value;
-  }
+  bool deleteSource;
 
   /// True if all invocations of the method should be inlined, or false if only
   /// the invocation site used to create this refactoring should be inlined.
-  bool get inlineAll => _inlineAll;
+  bool inlineAll;
 
-  /// True if all invocations of the method should be inlined, or false if only
-  /// the invocation site used to create this refactoring should be inlined.
-  set inlineAll(bool value) {
-    _inlineAll = value;
-  }
-
-  InlineMethodOptions(bool deleteSource, bool inlineAll) {
-    this.deleteSource = deleteSource;
-    this.inlineAll = inlineAll;
-  }
+  InlineMethodOptions(this.deleteSource, this.inlineAll);
 
   factory InlineMethodOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4148,21 +3335,11 @@ class InlineMethodOptions extends RefactoringOptions {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class KytheGetKytheEntriesParams implements RequestParams {
-  late String _file;
-
   /// The file containing the code for which the Kythe Entry objects are being
   /// requested.
-  String get file => _file;
+  String file;
 
-  /// The file containing the code for which the Kythe Entry objects are being
-  /// requested.
-  set file(String value) {
-    _file = value;
-  }
-
-  KytheGetKytheEntriesParams(String file) {
-    this.file = file;
-  }
+  KytheGetKytheEntriesParams(this.file);
 
   factory KytheGetKytheEntriesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4226,36 +3403,16 @@ class KytheGetKytheEntriesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class KytheGetKytheEntriesResult implements ResponseResult {
-  late List<KytheEntry> _entries;
-
-  late List<String> _files;
-
   /// The list of KytheEntry objects for the queried file.
-  List<KytheEntry> get entries => _entries;
-
-  /// The list of KytheEntry objects for the queried file.
-  set entries(List<KytheEntry> value) {
-    _entries = value;
-  }
+  List<KytheEntry> entries;
 
   /// The set of files paths that were required, but not in the file system, to
   /// give a complete and accurate Kythe graph for the file. This could be due
   /// to a referenced file that does not exist or generated files not being
   /// generated or passed before the call to "getKytheEntries".
-  List<String> get files => _files;
+  List<String> files;
 
-  /// The set of files paths that were required, but not in the file system, to
-  /// give a complete and accurate Kythe graph for the file. This could be due
-  /// to a referenced file that does not exist or generated files not being
-  /// generated or passed before the call to "getKytheEntries".
-  set files(List<String> value) {
-    _files = value;
-  }
-
-  KytheGetKytheEntriesResult(List<KytheEntry> entries, List<String> files) {
-    this.entries = entries;
-    this.files = files;
-  }
+  KytheGetKytheEntriesResult(this.entries, this.files);
 
   factory KytheGetKytheEntriesResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4354,19 +3511,10 @@ class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class MoveFileOptions extends RefactoringOptions {
-  late String _newFile;
-
   /// The new file path to which the given file is being moved.
-  String get newFile => _newFile;
+  String newFile;
 
-  /// The new file path to which the given file is being moved.
-  set newFile(String value) {
-    _newFile = value;
-  }
-
-  MoveFileOptions(String newFile) {
-    this.newFile = newFile;
-  }
+  MoveFileOptions(this.newFile);
 
   factory MoveFileOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4427,49 +3575,20 @@ class MoveFileOptions extends RefactoringOptions {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PluginErrorParams implements HasToJson {
-  late bool _isFatal;
-
-  late String _message;
-
-  late String _stackTrace;
-
   /// A flag indicating whether the error is a fatal error, meaning that the
   /// plugin will shutdown automatically after sending this notification. If
   /// true, the server will not expect any other responses or notifications
   /// from the plugin.
-  bool get isFatal => _isFatal;
-
-  /// A flag indicating whether the error is a fatal error, meaning that the
-  /// plugin will shutdown automatically after sending this notification. If
-  /// true, the server will not expect any other responses or notifications
-  /// from the plugin.
-  set isFatal(bool value) {
-    _isFatal = value;
-  }
+  bool isFatal;
 
   /// The error message indicating what kind of error was encountered.
-  String get message => _message;
-
-  /// The error message indicating what kind of error was encountered.
-  set message(String value) {
-    _message = value;
-  }
+  String message;
 
   /// The stack trace associated with the generation of the error, used for
   /// debugging the plugin.
-  String get stackTrace => _stackTrace;
+  String stackTrace;
 
-  /// The stack trace associated with the generation of the error, used for
-  /// debugging the plugin.
-  set stackTrace(String value) {
-    _stackTrace = value;
-  }
-
-  PluginErrorParams(bool isFatal, String message, String stackTrace) {
-    this.isFatal = isFatal;
-    this.message = message;
-    this.stackTrace = stackTrace;
-  }
+  PluginErrorParams(this.isFatal, this.message, this.stackTrace);
 
   factory PluginErrorParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4605,48 +3724,19 @@ class PluginShutdownResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PluginVersionCheckParams implements RequestParams {
-  late String _byteStorePath;
-
-  late String _sdkPath;
-
-  late String _version;
-
   /// The path to the directory containing the on-disk byte store that is to be
   /// used by any analysis drivers that are created.
-  String get byteStorePath => _byteStorePath;
-
-  /// The path to the directory containing the on-disk byte store that is to be
-  /// used by any analysis drivers that are created.
-  set byteStorePath(String value) {
-    _byteStorePath = value;
-  }
+  String byteStorePath;
 
   /// The path to the directory containing the SDK that is to be used by any
   /// analysis drivers that are created.
-  String get sdkPath => _sdkPath;
-
-  /// The path to the directory containing the SDK that is to be used by any
-  /// analysis drivers that are created.
-  set sdkPath(String value) {
-    _sdkPath = value;
-  }
+  String sdkPath;
 
   /// The version number of the plugin spec supported by the analysis server
   /// that is executing the plugin.
-  String get version => _version;
+  String version;
 
-  /// The version number of the plugin spec supported by the analysis server
-  /// that is executing the plugin.
-  set version(String value) {
-    _version = value;
-  }
-
-  PluginVersionCheckParams(
-      String byteStorePath, String sdkPath, String version) {
-    this.byteStorePath = byteStorePath;
-    this.sdkPath = sdkPath;
-    this.version = version;
-  }
+  PluginVersionCheckParams(this.byteStorePath, this.sdkPath, this.version);
 
   factory PluginVersionCheckParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4733,81 +3823,32 @@ class PluginVersionCheckParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PluginVersionCheckResult implements ResponseResult {
-  late bool _isCompatible;
-
-  late String _name;
-
-  late String _version;
-
-  String? _contactInfo;
-
-  late List<String> _interestingFiles;
-
   /// A flag indicating whether the plugin supports the same version of the
   /// plugin spec as the analysis server. If the value is false, then the
   /// plugin is expected to shutdown after returning the response.
-  bool get isCompatible => _isCompatible;
-
-  /// A flag indicating whether the plugin supports the same version of the
-  /// plugin spec as the analysis server. If the value is false, then the
-  /// plugin is expected to shutdown after returning the response.
-  set isCompatible(bool value) {
-    _isCompatible = value;
-  }
+  bool isCompatible;
 
   /// The name of the plugin. This value is only used when the server needs to
   /// identify the plugin, either to the user or for debugging purposes.
-  String get name => _name;
-
-  /// The name of the plugin. This value is only used when the server needs to
-  /// identify the plugin, either to the user or for debugging purposes.
-  set name(String value) {
-    _name = value;
-  }
+  String name;
 
   /// The version of the plugin. This value is only used when the server needs
   /// to identify the plugin, either to the user or for debugging purposes.
-  String get version => _version;
-
-  /// The version of the plugin. This value is only used when the server needs
-  /// to identify the plugin, either to the user or for debugging purposes.
-  set version(String value) {
-    _version = value;
-  }
+  String version;
 
   /// Information that the user can use to use to contact the maintainers of
   /// the plugin when there is a problem.
-  String? get contactInfo => _contactInfo;
-
-  /// Information that the user can use to use to contact the maintainers of
-  /// the plugin when there is a problem.
-  set contactInfo(String? value) {
-    _contactInfo = value;
-  }
+  String? contactInfo;
 
   /// The glob patterns of the files for which the plugin will provide
   /// information. This value is ignored if the isCompatible field is false.
   /// Otherwise, it will be used to identify the files for which the plugin
   /// should be notified of changes.
-  List<String> get interestingFiles => _interestingFiles;
+  List<String> interestingFiles;
 
-  /// The glob patterns of the files for which the plugin will provide
-  /// information. This value is ignored if the isCompatible field is false.
-  /// Otherwise, it will be used to identify the files for which the plugin
-  /// should be notified of changes.
-  set interestingFiles(List<String> value) {
-    _interestingFiles = value;
-  }
-
-  PluginVersionCheckResult(bool isCompatible, String name, String version,
-      List<String> interestingFiles,
-      {String? contactInfo}) {
-    this.isCompatible = isCompatible;
-    this.name = name;
-    this.version = version;
-    this.contactInfo = contactInfo;
-    this.interestingFiles = interestingFiles;
-  }
+  PluginVersionCheckResult(
+      this.isCompatible, this.name, this.version, this.interestingFiles,
+      {this.contactInfo});
 
   factory PluginVersionCheckResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4918,32 +3959,14 @@ class PluginVersionCheckResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PrioritizedSourceChange implements HasToJson {
-  late int _priority;
-
-  late SourceChange _change;
-
   /// The priority of the change. The value is expected to be non-negative, and
   /// zero (0) is the lowest priority.
-  int get priority => _priority;
-
-  /// The priority of the change. The value is expected to be non-negative, and
-  /// zero (0) is the lowest priority.
-  set priority(int value) {
-    _priority = value;
-  }
+  int priority;
 
   /// The change with which the relevance is associated.
-  SourceChange get change => _change;
+  SourceChange change;
 
-  /// The change with which the relevance is associated.
-  set change(SourceChange value) {
-    _change = value;
-  }
-
-  PrioritizedSourceChange(int priority, SourceChange change) {
-    this.priority = priority;
-    this.change = change;
-  }
+  PrioritizedSourceChange(this.priority, this.change);
 
   factory PrioritizedSourceChange.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -5085,55 +4108,20 @@ class RefactoringOptions implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RenameFeedback extends RefactoringFeedback {
-  late int _offset;
-
-  late int _length;
-
-  late String _elementKindName;
-
-  late String _oldName;
-
   /// The offset to the beginning of the name selected to be renamed.
-  int get offset => _offset;
-
-  /// The offset to the beginning of the name selected to be renamed.
-  set offset(int value) {
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the name selected to be renamed.
-  int get length => _length;
-
-  /// The length of the name selected to be renamed.
-  set length(int value) {
-    _length = value;
-  }
+  int length;
 
   /// The human-readable description of the kind of element being renamed (such
   /// as “class” or “function type alias”).
-  String get elementKindName => _elementKindName;
-
-  /// The human-readable description of the kind of element being renamed (such
-  /// as “class” or “function type alias”).
-  set elementKindName(String value) {
-    _elementKindName = value;
-  }
+  String elementKindName;
 
   /// The old name of the element before the refactoring.
-  String get oldName => _oldName;
+  String oldName;
 
-  /// The old name of the element before the refactoring.
-  set oldName(String value) {
-    _oldName = value;
-  }
-
-  RenameFeedback(
-      int offset, int length, String elementKindName, String oldName) {
-    this.offset = offset;
-    this.length = length;
-    this.elementKindName = elementKindName;
-    this.oldName = oldName;
-  }
+  RenameFeedback(this.offset, this.length, this.elementKindName, this.oldName);
 
   factory RenameFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -5214,19 +4202,10 @@ class RenameFeedback extends RefactoringFeedback {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RenameOptions extends RefactoringOptions {
-  late String _newName;
-
   /// The name that the element should have after the refactoring.
-  String get newName => _newName;
+  String newName;
 
-  /// The name that the element should have after the refactoring.
-  set newName(String value) {
-    _newName = value;
-  }
-
-  RenameOptions(String newName) {
-    this.newName = newName;
-  }
+  RenameOptions(this.newName);
 
   factory RenameOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -5287,43 +4266,17 @@ class RenameOptions extends RefactoringOptions {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RequestError implements HasToJson {
-  late RequestErrorCode _code;
-
-  late String _message;
-
-  String? _stackTrace;
-
   /// A code that uniquely identifies the error that occurred.
-  RequestErrorCode get code => _code;
-
-  /// A code that uniquely identifies the error that occurred.
-  set code(RequestErrorCode value) {
-    _code = value;
-  }
+  RequestErrorCode code;
 
   /// A short description of the error.
-  String get message => _message;
-
-  /// A short description of the error.
-  set message(String value) {
-    _message = value;
-  }
+  String message;
 
   /// The stack trace associated with processing the request, used for
   /// debugging the plugin.
-  String? get stackTrace => _stackTrace;
+  String? stackTrace;
 
-  /// The stack trace associated with processing the request, used for
-  /// debugging the plugin.
-  set stackTrace(String? value) {
-    _stackTrace = value;
-  }
-
-  RequestError(RequestErrorCode code, String message, {String? stackTrace}) {
-    this.code = code;
-    this.message = message;
-    this.stackTrace = stackTrace;
-  }
+  RequestError(this.code, this.message, {this.stackTrace});
 
   factory RequestError.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -5479,30 +4432,13 @@ class RequestErrorCode implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class WatchEvent implements HasToJson {
-  late WatchEventType _type;
-
-  late String _path;
-
   /// The type of change represented by this event.
-  WatchEventType get type => _type;
-
-  /// The type of change represented by this event.
-  set type(WatchEventType value) {
-    _type = value;
-  }
+  WatchEventType type;
 
   /// The absolute path of the file or directory that changed.
-  String get path => _path;
+  String path;
 
-  /// The absolute path of the file or directory that changed.
-  set path(String value) {
-    _path = value;
-  }
-
-  WatchEvent(WatchEventType type, String path) {
-    this.type = type;
-    this.path = path;
-  }
+  WatchEvent(this.type, this.path);
 
   factory WatchEvent.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
