@@ -1090,6 +1090,24 @@ class ToSourceVisitor2Test {
         ]));
   }
 
+  void test_visitFormalParameterList_namedRequired() {
+    _assertSource(
+        "({required a, required A b})",
+        AstTestFactory.formalParameterList([
+          AstTestFactory.namedFormalParameter(
+              AstTestFactory.simpleFormalParameter3("a")
+                ..requiredKeyword =
+                    TokenFactory.tokenFromKeyword(Keyword.REQUIRED),
+              null),
+          AstTestFactory.namedFormalParameter(
+              AstTestFactory.simpleFormalParameter2(
+                  null, AstTestFactory.typeName4('A'), "b")
+                ..requiredKeyword =
+                    TokenFactory.tokenFromKeyword(Keyword.REQUIRED),
+              null),
+        ]));
+  }
+
   void test_visitFormalParameterList_nn() {
     _assertSource(
         "({a: 0, b: 1})",
@@ -1216,24 +1234,6 @@ class ToSourceVisitor2Test {
           AstTestFactory.namedFormalParameter(
               AstTestFactory.simpleFormalParameter3("d"),
               AstTestFactory.integer(4))
-        ]));
-  }
-
-  void test_visitFormalParameterList_namedRequired() {
-    _assertSource(
-        "({required a, required A b})",
-        AstTestFactory.formalParameterList([
-          AstTestFactory.namedFormalParameter(
-              AstTestFactory.simpleFormalParameter3("a")
-                ..requiredKeyword =
-                    TokenFactory.tokenFromKeyword(Keyword.REQUIRED),
-              null),
-          AstTestFactory.namedFormalParameter(
-              AstTestFactory.simpleFormalParameter2(
-                  null, AstTestFactory.typeName4('A'), "b")
-                ..requiredKeyword =
-                    TokenFactory.tokenFromKeyword(Keyword.REQUIRED),
-              null),
         ]));
   }
 
