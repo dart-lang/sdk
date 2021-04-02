@@ -1713,7 +1713,8 @@ RegExpPtr RegExp::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &regex, kIsDeserialized);
 
   // Read and Set all the other fields.
-  regex.set_num_bracket_expressions(reader->ReadAsSmi());
+  *reader->SmiHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
+  regex.set_num_bracket_expressions(*reader->SmiHandle());
 
   *reader->ArrayHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
   regex.set_capture_name_map(*reader->ArrayHandle());
@@ -1750,7 +1751,8 @@ void UntaggedRegExp::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the other fields.
-  writer->Write<ObjectPtr>(num_bracket_expressions_);
+  writer->WriteObjectImpl(num_bracket_expressions_, kAsInlinedObject);
+  writer->WriteObjectImpl(capture_name_map_, kAsInlinedObject);
   writer->WriteObjectImpl(pattern_, kAsInlinedObject);
   writer->Write<int32_t>(num_one_byte_registers_);
   writer->Write<int32_t>(num_two_byte_registers_);

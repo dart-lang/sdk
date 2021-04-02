@@ -802,9 +802,17 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       try {
         socket.port;
       } catch (e) {
-        error ??= createError(e, "Connection failed", address, port);
-        connectNext(); // Try again after failure to connect.
-        return;
+        if (e is OSError && e.errorCode == OSError.inProgressErrorCode()) {
+          // Ignore the error, proceed with waiting for a socket to become open.
+          // In non-blocking mode connect might not be established away, socket
+          // have to be waited for.
+          // EINPROGRESS error is ignored during |connect| call in native code,
+          // it has be ignored here during |port| query here.
+        } else {
+          error ??= createError(e, "Connection failed", address, port);
+          connectNext(); // Try again after failure to connect.
+          return;
+        }
       }
 
       // Try again if no response (failure or success) within a duration.
@@ -1146,7 +1154,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (localAddress.type == InternetAddressType.unix) return 0;
     if (localPort != 0) return localPort;
     if (isClosing || isClosed) throw const SocketException.closed();
-    return localPort = nativeGetPort();
+    var result = nativeGetPort();
+    if (result is OSError) {
+      throw result;
+    }
+    return localPort = result;
   }
 
   int get remotePort {
@@ -1530,7 +1542,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   nativeCreateBindDatagram(Uint8List addr, int port, bool reuseAddress,
       bool reusePort, int ttl) native "Socket_CreateBindDatagram";
   bool nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
-  int nativeGetPort() native "Socket_GetPort";
+  dynamic nativeGetPort() native "Socket_GetPort";
   List nativeGetRemotePeer() native "Socket_GetRemotePeer";
   int nativeGetSocketId() native "Socket_GetSocketId";
   OSError nativeGetError() native "Socket_GetError";

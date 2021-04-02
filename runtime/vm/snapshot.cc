@@ -301,6 +301,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       typed_data_(TypedData::Handle(zone_)),
       typed_data_view_(TypedDataView::Handle(zone_)),
       function_(Function::Handle(zone_)),
+      smi_(Smi::Handle(zone_)),
       error_(UnhandledException::Handle(zone_)),
       set_class_(Class::ZoneHandle(
           zone_,

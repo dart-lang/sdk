@@ -75,9 +75,6 @@ declare_args() {
   # Whether libdart should export the symbols of the Dart API.
   dart_lib_export_symbols = true
 
-  # Whether package:wasm should be enabled.
-  dart_enable_wasm = false
-
   # Whether to use compressed pointers.
   dart_use_compressed_pointers = false
 }
