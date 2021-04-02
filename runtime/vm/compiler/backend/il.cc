@@ -2232,14 +2232,18 @@ static Definition* CanonicalizeCommutativeDoubleArithmetic(Token::Kind op,
 
 Definition* DoubleToFloatInstr::Canonicalize(FlowGraph* flow_graph) {
 #ifdef DEBUG
-  // Must only be used in Float32 StoreIndexedInstr or FloatToDoubleInstr or
-  // Phis introduce by load forwarding.
+  // Must only be used in Float32 StoreIndexedInstr, FloatToDoubleInstr,
+  // Phis introduce by load forwarding, or MaterializeObject for
+  // eliminated Float32 array.
   ASSERT(env_use_list() == NULL);
   for (Value* use = input_use_list(); use != NULL; use = use->next_use()) {
     ASSERT(use->instruction()->IsPhi() ||
            use->instruction()->IsFloatToDouble() ||
            (use->instruction()->IsStoreIndexed() &&
             (use->instruction()->AsStoreIndexed()->class_id() ==
+             kTypedDataFloat32ArrayCid)) ||
+           (use->instruction()->IsMaterializeObject() &&
+            (use->instruction()->AsMaterializeObject()->cls().id() ==
              kTypedDataFloat32ArrayCid)));
   }
 #endif
