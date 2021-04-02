@@ -505,7 +505,7 @@ main() {
       // of "why not promoted" functionality: when storing information about an
       // attempt to promote a field (e.g. `x.y != null`) we need to make sure we
       // don't wipe out information about the target variable (`x`).
-      var h = Harness();
+      var h = Harness()..addMember('C', 'y', 'Object?');
       var x = Var('x', 'C');
       h.run([
         declare(x, initialized: true),
@@ -536,7 +536,7 @@ main() {
 
     group('equalityOp_end does not set reachability for property gets', () {
       test('on a variable', () {
-        var h = Harness();
+        var h = Harness()..addMember('C', 'f', 'Object?');
         var x = Var('x', 'C');
         h.run([
           declare(x, initialized: true),
@@ -551,7 +551,7 @@ main() {
       });
 
       test('on an arbitrary expression', () {
-        var h = Harness();
+        var h = Harness()..addMember('C', 'f', 'Object?');
         h.run([
           if_(expr('C').property('f').is_('Null'), [
             if_(expr('C').property('f').eq(nullLiteral), [
@@ -564,7 +564,7 @@ main() {
       });
 
       test('on explicit this', () {
-        var h = Harness(thisType: 'C');
+        var h = Harness(thisType: 'C')..addMember('C', 'f', 'Object?');
         h.run([
           if_(this_.property('f').is_('Null'), [
             if_(this_.property('f').eq(nullLiteral), [
@@ -1478,7 +1478,7 @@ main() {
 
     group('isExpression_end() does not set reachability for property gets', () {
       test('on a variable', () {
-        var h = Harness();
+        var h = Harness()..addMember('C', 'f', 'Object?');
         var x = Var('x', 'C');
         h.run([
           declare(x, initialized: true),
@@ -1491,7 +1491,7 @@ main() {
       });
 
       test('on an arbitrary expression', () {
-        var h = Harness();
+        var h = Harness()..addMember('C', 'f', 'Object?');
         h.run([
           if_(expr('C').property('f').is_('Never'), [
             checkReachable(true),
@@ -1502,7 +1502,7 @@ main() {
       });
 
       test('on explicit this', () {
-        var h = Harness(thisType: 'C');
+        var h = Harness(thisType: 'C')..addMember('C', 'f', 'Object?');
         h.run([
           if_(this_.property('f').is_('Never'), [
             checkReachable(true),
@@ -5606,7 +5606,7 @@ main() {
 
     group('because property', () {
       test('via explicit this', () {
-        var h = Harness(thisType: 'C');
+        var h = Harness(thisType: 'C')..addMember('C', 'field', 'Object?');
         h.run([
           if_(this_.property('field').eq(nullLiteral), [
             return_(),
@@ -5634,7 +5634,7 @@ main() {
       });
 
       test('via variable', () {
-        var h = Harness();
+        var h = Harness()..addMember('C', 'field', 'Object?');
         var x = Var('x', 'C');
         h.run([
           declare(x, initialized: true),
