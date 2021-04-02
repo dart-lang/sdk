@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -59,13 +57,13 @@ class BazelMockPackages {
   Folder _addFiles(MemoryResourceProvider provider, String packageName) {
     var packagesPath = provider.convertPath('/workspace/third_party/dart');
 
-    for (var relativePosixPath in _cachedFiles.keys) {
+    for (var entry in _cachedFiles.entries) {
+      var relativePosixPath = entry.key;
       var relativePathComponents = relativePosixPath.split('/');
       if (relativePathComponents[0] == packageName) {
         var relativePath = provider.pathContext.joinAll(relativePathComponents);
         var path = provider.pathContext.join(packagesPath, relativePath);
-        var content = _cachedFiles[relativePosixPath];
-        provider.newFile(path, content);
+        provider.newFile(path, entry.value);
       }
     }
 
@@ -114,13 +112,13 @@ class MockPackages {
   Folder _addFiles(MemoryResourceProvider provider, String packageName) {
     var packagesPath = provider.convertPath('/packages');
 
-    for (var relativePosixPath in _cachedFiles.keys) {
+    for (var entry in _cachedFiles.entries) {
+      var relativePosixPath = entry.key;
       var relativePathComponents = relativePosixPath.split('/');
       if (relativePathComponents[0] == packageName) {
         var relativePath = provider.pathContext.joinAll(relativePathComponents);
         var path = provider.pathContext.join(packagesPath, relativePath);
-        var content = _cachedFiles[relativePosixPath];
-        provider.newFile(path, content);
+        provider.newFile(path, entry.value);
       }
     }
 
