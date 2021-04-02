@@ -20,7 +20,23 @@
 
 ### Tools
 
-#### Dartanalyzer
+#### Analyzer
+
+- Static analyses with "error" severity can once again be ignored with
+  comments like `// ignore: code` and `// ignore_for_file: code`. To declare
+  that certain analysis codes, or codes with certain severities ("error",
+  "warning", and "info") cannot be ignored with such comments, list them in
+  `analysis_options.yaml`, under the `analyzer` heading, with a new YAML key,
+  `cannot-ignore`. For example, to declare that "error" codes and
+  `unused_import` cannot be ignored, write the following into
+  `analysis_options.yaml`:
+
+  ```yaml
+  analyzer:
+    cannot-ignore:
+      - error
+      - unused_import
+  ```
 
 #### Linter
 
@@ -180,7 +196,7 @@ This is a patch release that fixes:
 
 ### Tools
 
-#### Dartanalyzer
+#### Analyzer
 
 *   Remove the `--use-fasta-parser`, `--preview-dart-2`, and
     `--enable-assert-initializers` command line options. These options haven't
@@ -613,6 +629,11 @@ applications (issue [flutter/flutter#63038][]).
 * Don't add unneeded splits on if elements near comments.
 * Indent blocks in initializers of multiple-variable declarations.
 * Update the null-aware subscript syntax from `?.[]` to `?[]`.
+
+#### Analyzer
+
+* Static analyses with a severity of "error" can no longer be ignored with
+  comments (`// ignore: code` and `// ignore_for_file: code`).
 
 #### Linter
 
