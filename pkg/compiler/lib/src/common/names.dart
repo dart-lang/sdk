@@ -235,10 +235,6 @@ class Uris {
   static final Uri dart__js_helper =
       new Uri(scheme: 'dart', path: '_js_helper');
 
-  /// The URI for 'dart:_late_helper'.
-  static final Uri dart__late_helper =
-      Uri(scheme: 'dart', path: '_late_helper');
-
   /// The URI for 'dart:_rti'.
   static final Uri dart__rti = new Uri(scheme: 'dart', path: '_rti');
 

@@ -92,9 +92,6 @@ abstract class CommonElements {
   /// The dart:_js_helper library.
   LibraryEntity get jsHelperLibrary;
 
-  /// The dart:_late_helper library
-  LibraryEntity get lateHelperLibrary;
-
   /// The dart:_interceptors library.
   LibraryEntity get interceptorsLibrary;
 
@@ -443,7 +440,7 @@ abstract class CommonElements {
 
   FunctionEntity get defineProperty;
 
-  FunctionEntity get throwLateFieldADI;
+  FunctionEntity get throwLateInitializationError;
 
   bool isExtractTypeArguments(FunctionEntity member);
 
@@ -775,11 +772,6 @@ class CommonElementsImpl
   @override
   LibraryEntity get jsHelperLibrary =>
       _jsHelperLibrary ??= _env.lookupLibrary(Uris.dart__js_helper);
-
-  LibraryEntity _lateHelperLibrary;
-  @override
-  LibraryEntity get lateHelperLibrary =>
-      _lateHelperLibrary ??= _env.lookupLibrary(Uris.dart__late_helper);
 
   LibraryEntity _interceptorsLibrary;
   @override
@@ -1529,9 +1521,6 @@ class CommonElementsImpl
   ClassEntity _findHelperClass(String name) =>
       _findClass(jsHelperLibrary, name);
 
-  FunctionEntity _findLateHelperFunction(String name) =>
-      _findLibraryMember(lateHelperLibrary, name);
-
   ClassEntity _closureClass;
   @override
   ClassEntity get closureClass => _closureClass ??= _findHelperClass('Closure');
@@ -1798,8 +1787,8 @@ class CommonElementsImpl
   FunctionEntity get defineProperty => _findHelperFunction('defineProperty');
 
   @override
-  FunctionEntity get throwLateFieldADI =>
-      _findLateHelperFunction('throwLateFieldADI');
+  FunctionEntity get throwLateInitializationError =>
+      _findHelperFunction('throwLateInitializationError');
 
   @override
   bool isExtractTypeArguments(FunctionEntity member) {

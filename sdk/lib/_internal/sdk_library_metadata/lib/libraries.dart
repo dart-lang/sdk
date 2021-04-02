@@ -149,8 +149,6 @@ const Map<String, LibraryInfo> libraries = const {
       dart2jsPatchPath: "_internal/js_runtime/lib/internal_patch.dart"),
   "_js_helper": const LibraryInfo("_internal/js_runtime/lib/js_helper.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
-  "_late_helper": const LibraryInfo("_internal/js_runtime/lib/late_helper.dart",
-      categories: "", documented: false, platforms: DART2JS_PLATFORM),
   "_rti": const LibraryInfo("_internal/js_runtime/lib/rti.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
   "_interceptors": const LibraryInfo(

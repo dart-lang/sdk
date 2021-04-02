@@ -57,31 +57,6 @@ bool maybeEnableNative(Uri uri) {
   return allowedNativeTest(uri) || allowedDartLibrary();
 }
 
-int _foldLateLowerings(List<int> lowerings) =>
-    lowerings.fold(LateLowering.none, (a, b) => a | b);
-
-/// Late lowerings which the frontend performs for dart2js.
-const List<int> _allEnabledLateLowerings = [
-  LateLowering.nullableUninitializedNonFinalLocal,
-  LateLowering.nonNullableUninitializedNonFinalLocal,
-  LateLowering.nullableUninitializedFinalLocal,
-  LateLowering.nonNullableUninitializedFinalLocal,
-  LateLowering.nullableInitializedNonFinalLocal,
-  LateLowering.nonNullableInitializedNonFinalLocal,
-  LateLowering.nullableInitializedFinalLocal,
-  LateLowering.nonNullableInitializedFinalLocal,
-  LateLowering.uninitializedNonFinalStaticField,
-  LateLowering.uninitializedFinalStaticField,
-  LateLowering.initializedNonFinalStaticField,
-  LateLowering.initializedFinalStaticField,
-  LateLowering.uninitializedNonFinalInstanceField,
-  LateLowering.uninitializedFinalInstanceField,
-  LateLowering.initializedNonFinalInstanceField,
-  LateLowering.initializedFinalInstanceField,
-];
-
-final int _enabledLateLowerings = _foldLateLowerings(_allEnabledLateLowerings);
-
 /// A kernel [Target] to configure the Dart Front End for dart2js.
 class Dart2jsTarget extends Target {
   @override
@@ -97,7 +72,7 @@ class Dart2jsTarget extends Target {
   bool get enableNoSuchMethodForwarders => true;
 
   @override
-  final int enabledLateLowerings = _enabledLateLowerings;
+  int get enabledLateLowerings => LateLowering.all;
 
   @override
   bool get supportsLateLoweringSentinel => true;
@@ -121,7 +96,6 @@ class Dart2jsTarget extends Target {
         'dart:_foreign_helper',
         'dart:_interceptors',
         'dart:_js_helper',
-        'dart:_late_helper',
         'dart:js_util'
       ];
 
@@ -245,7 +219,6 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:_js_embedded_names',
     'dart:_js_helper',
     'dart:_js_names',
-    'dart:_late_helper',
     'dart:_native_typed_data',
     'dart:async',
     'dart:collection',
@@ -268,7 +241,6 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:_js_embedded_names',
     'dart:_js_helper',
     'dart:_js_names',
-    'dart:_late_helper',
     'dart:_native_typed_data',
     'dart:async',
     'dart:collection',

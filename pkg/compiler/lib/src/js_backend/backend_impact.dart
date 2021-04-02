@@ -407,7 +407,7 @@ class BackendImpacts {
   BackendImpact get lazyField {
     return _lazyField ??= new BackendImpact(staticUses: [
       _commonElements.cyclicThrowHelper,
-      _commonElements.throwLateFieldADI,
+      _commonElements.throwLateInitializationError
     ]);
   }
 

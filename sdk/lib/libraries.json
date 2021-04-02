@@ -242,9 +242,6 @@
       "_js_helper": {
         "uri": "_internal/js_runtime/lib/js_helper.dart"
       },
-      "_late_helper": {
-        "uri": "_internal/js_runtime/lib/late_helper.dart"
-      },
       "_rti": {
         "uri": "_internal/js_runtime/lib/rti.dart"
       },
@@ -340,9 +337,6 @@
       },
       "_js_helper": {
         "uri": "_internal/js_runtime/lib/js_helper.dart"
-      },
-      "_late_helper": {
-        "uri": "_internal/js_runtime/lib/late_helper.dart"
       },
       "_rti": {
         "uri": "_internal/js_runtime/lib/rti.dart"
