@@ -5080,10 +5080,9 @@ void Class::AddDirectImplementor(const Class& implementor,
   direct_implementors.Add(implementor, Heap::kOld);
 }
 
-void Class::set_direct_implementors(
-    const GrowableObjectArray& implementors) const {
+void Class::ClearDirectImplementors() const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  untag()->set_direct_implementors(implementors.ptr());
+  untag()->set_direct_implementors(GrowableObjectArray::null());
 }
 
 void Class::AddDirectSubclass(const Class& subclass) const {
@@ -5107,9 +5106,9 @@ void Class::AddDirectSubclass(const Class& subclass) const {
   direct_subclasses.Add(subclass, Heap::kOld);
 }
 
-void Class::set_direct_subclasses(const GrowableObjectArray& subclasses) const {
+void Class::ClearDirectSubclasses() const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  untag()->set_direct_subclasses(subclasses.ptr());
+  untag()->set_direct_subclasses(GrowableObjectArray::null());
 }
 
 ArrayPtr Class::constants() const {
