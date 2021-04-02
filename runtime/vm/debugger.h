@@ -214,7 +214,7 @@ class BreakpointLocation {
 // The CodeBreakpoint is enabled if it has any such BreakpointLocations
 // associated with it.
 // The class is not thread-safe - users of this class need to ensure the access
-// is synchronized, guarded by mutexes.
+// is synchronized, guarded by mutexes or run inside of a safepoint scope.
 class CodeBreakpoint {
  public:
   // Unless CodeBreakpoint is unlinked and is no longer used there should be at
