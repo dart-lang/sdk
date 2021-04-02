@@ -492,7 +492,7 @@ class MethodInvocationResolver {
         );
       } else {
         _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
-        _resolver.nullableDereferenceVerifier.report(receiver, receiverType,
+        _resolver.nullableDereferenceVerifier.report(methodName, receiverType,
             errorCode: CompileTimeErrorCode
                 .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE);
       }
@@ -693,7 +693,7 @@ class MethodInvocationResolver {
       receiver: receiver,
       receiverType: receiverType,
       name: name,
-      receiverErrorNode: receiverErrorNode,
+      propertyErrorEntity: nameNode,
       nameErrorEntity: nameNode,
     );
 

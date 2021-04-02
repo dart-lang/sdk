@@ -134,7 +134,7 @@ class PostfixExpressionResolver {
       receiver: operand,
       receiverType: receiverType,
       name: methodName,
-      receiverErrorNode: operand,
+      propertyErrorEntity: node.operator,
       nameErrorEntity: operand,
     );
     node.staticElement = result.getter as MethodElement?;

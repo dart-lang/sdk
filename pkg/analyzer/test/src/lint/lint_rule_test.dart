@@ -87,7 +87,7 @@ class CollectingReporter extends ErrorReporter {
 
   @override
   void reportErrorForToken(ErrorCode errorCode, Token token,
-      [List<Object?>? arguments]) {
+      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
     code = errorCode;
   }
 }

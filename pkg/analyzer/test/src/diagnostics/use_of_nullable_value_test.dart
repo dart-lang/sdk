@@ -161,9 +161,9 @@ extension E on A? {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          126, 4),
+          130, 1),
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          154, 4),
+          158, 1),
     ]);
   }
 
@@ -206,7 +206,7 @@ extension E on A? {
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
           68, 3),
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          79, 4),
+          84, 3),
     ]);
   }
 
@@ -237,7 +237,7 @@ extension E on A? {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          78, 4),
+          77, 1),
     ]);
   }
 
@@ -284,7 +284,7 @@ extension E on A? {
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
           93, 3),
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          102, 4),
+          107, 3),
     ]);
   }
 
@@ -331,7 +331,7 @@ extension E on A? {
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
           93, 3),
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          106, 4),
+          111, 3),
     ]);
   }
 }
@@ -407,7 +407,7 @@ m(B b) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          100, 3,
+          104, 1,
           contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
 
@@ -494,7 +494,7 @@ m(B b) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          109, 5),
+          115, 2),
     ]);
 
     assertAssignment(
@@ -549,7 +549,7 @@ m(B b) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          101, 3,
+          105, 1,
           contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
 
@@ -595,7 +595,7 @@ m(int x, int? y) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          31, 1),
+          33, 2),
     ]);
     var assignment1 = findNode.assignment('x +=');
     var assignment2 = findNode.assignment('y +=');
@@ -667,7 +667,7 @@ m() {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          24, 1),
+          27, 1),
     ]);
   }
 
@@ -688,7 +688,7 @@ m() {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          18, 1),
+          21, 3),
     ]);
   }
 
@@ -709,7 +709,7 @@ m() {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          18, 1),
+          21, 6),
     ]);
   }
 
@@ -766,7 +766,7 @@ m(int? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          58, 1),
+          60, 3),
     ]);
   }
 
@@ -808,7 +808,7 @@ m() {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          19, 1),
+          20, 1),
     ]);
   }
 
@@ -916,7 +916,7 @@ m() {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          18, 1),
+          20, 6),
     ]);
     assertSimpleIdentifier(
       findNode.simple('isEven'),
@@ -942,7 +942,7 @@ m() {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          18, 3),
+          22, 6),
     ]);
   }
 
@@ -962,7 +962,7 @@ m<T extends int?>(T x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          27, 1),
+          29, 6),
     ]);
   }
 
@@ -1019,7 +1019,7 @@ m() {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          18, 1),
+          20, 5),
     ]);
   }
 
@@ -1034,7 +1034,7 @@ m(int? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          54, 1),
+          56, 3),
     ]);
   }
 
@@ -1070,7 +1070,7 @@ m(Function? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          19, 1),
+          21, 4),
     ]);
   }
 
@@ -1094,7 +1094,7 @@ m() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          18, 1),
+          20, 2),
     ]);
   }
 
@@ -1176,7 +1176,7 @@ m() {
 ''', [
       error(
           CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
-          18,
+          20,
           1),
     ]);
   }
@@ -1199,7 +1199,7 @@ m() {
 ''', [
       error(
           CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
-          18,
+          20,
           1),
     ]);
   }
@@ -1224,7 +1224,7 @@ m() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          18, 1),
+          19, 2),
     ]);
   }
 
@@ -1243,7 +1243,7 @@ m(int? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          14, 1),
+          15, 2),
     ]);
   }
 
@@ -1260,7 +1260,7 @@ m(A? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          77, 1),
+          78, 2),
     ]);
   }
 
@@ -1284,7 +1284,7 @@ m() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          20, 1),
+          18, 2),
     ]);
   }
 
@@ -1303,7 +1303,7 @@ m(int? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          16, 1),
+          14, 2),
     ]);
   }
 
@@ -1327,7 +1327,7 @@ m() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          19, 1),
+          18, 1),
     ]);
   }
 
@@ -1344,7 +1344,7 @@ m(A? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          73, 1),
+          72, 1),
     ]);
   }
 
@@ -1386,7 +1386,7 @@ m(int? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          14, 1),
+          16, 2),
     ]);
   }
 
@@ -1403,7 +1403,7 @@ m(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          66, 1),
+          68, 1),
     ]);
     var propertyAccess1 = findNode.propertyAccess('a?.x; // 1');
     var propertyAccess2 = findNode.prefixed('a.x; // 2');
@@ -1435,7 +1435,7 @@ m(B b) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          101, 3,
+          105, 1,
           contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
     var propertyAccess1 = findNode.propertyAccess('b.a?.x; // 1');
@@ -1468,7 +1468,7 @@ m(B? b) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          101, 1),
+          103, 1),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
@@ -1505,7 +1505,7 @@ m(C c) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          142, 5,
+          148, 1,
           contextMessages: [message('/home/test/lib/test.dart', 56, 1)]),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
@@ -1543,7 +1543,7 @@ m(C c) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-          148, 3,
+          152, 1,
           contextMessages: [message('/home/test/lib/test.dart', 101, 1)]),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
@@ -1630,8 +1630,8 @@ m(String? s) {
 ''', [
       error(
           CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
-          17,
-          9),
+          27,
+          3),
     ]);
   }
 

@@ -18,12 +18,12 @@ void f(int x, int y, int? z) {
 // ^
 // [cfe] Illegal assignment to non-assignable expression.
   z++ ??= y;
-//^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 //^^^
 // [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
 //^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
+// ^^
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 // ^
 // [cfe] Illegal assignment to non-assignable expression.
 }

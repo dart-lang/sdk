@@ -514,7 +514,7 @@ void f() {
       error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 68,
           1),
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          68, 1),
+          70, 2),
     ]);
     _assertAssigned('x +=', assigned: false, unassigned: true);
   }
@@ -530,7 +530,7 @@ void f() {
       error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 68,
           1),
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          68, 1),
+          69, 2),
     ]);
     _assertAssigned('x++', assigned: false, unassigned: true);
   }
@@ -546,7 +546,7 @@ void f() {
       error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 70,
           1),
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          70, 1),
+          68, 2),
     ]);
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
@@ -583,7 +583,7 @@ void f(bool b) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          90, 1),
+          92, 2),
     ]);
     _assertAssigned('x +=', assigned: false, unassigned: false);
   }
@@ -598,7 +598,7 @@ void f(bool b) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          90, 1),
+          91, 2),
     ]);
     _assertAssigned('x++', assigned: false, unassigned: false);
   }
@@ -613,7 +613,7 @@ void f(bool b) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          92, 1),
+          90, 2),
     ]);
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }

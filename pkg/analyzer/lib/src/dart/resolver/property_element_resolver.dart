@@ -95,7 +95,7 @@ class PropertyElementResolver {
       receiver: target,
       receiverType: targetType,
       name: '[]',
-      receiverErrorNode: target,
+      propertyErrorEntity: node.leftBracket,
       nameErrorEntity: target,
     );
 
@@ -369,7 +369,7 @@ class PropertyElementResolver {
       receiver: target,
       receiverType: targetType,
       name: propertyName.name,
-      receiverErrorNode: target,
+      propertyErrorEntity: propertyName,
       nameErrorEntity: propertyName,
     );
 

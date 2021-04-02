@@ -12,7 +12,7 @@
 void assignNullRhs(int? x) {
   if (x != (x = null)) {
     x.isEven;
-//  ^
+//    ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
     //^
     // [cfe] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
@@ -25,7 +25,7 @@ void assignNullLhs(int? x) {
   // promote in order to be consistent with the `assignNullRhs` case.
   if ((x = null) != x) {
     x.isEven;
-//  ^
+//    ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
     //^
     // [cfe] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
@@ -35,7 +35,7 @@ void assignNullLhs(int? x) {
 void unrelatedVarRhs(int? x, Null n) {
   if (x != n) {
     x.isEven;
-//  ^
+//    ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
     //^
     // [cfe] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
@@ -45,7 +45,7 @@ void unrelatedVarRhs(int? x, Null n) {
 void unrelatedVarLhs(int? x, Null n) {
   if (n != x) {
     x.isEven;
-//  ^
+//    ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
     //^
     // [cfe] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.

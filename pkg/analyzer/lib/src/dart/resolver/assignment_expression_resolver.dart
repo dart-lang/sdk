@@ -185,7 +185,7 @@ class AssignmentExpressionResolver {
       receiver: left,
       receiverType: leftType,
       name: methodName,
-      receiverErrorNode: left,
+      propertyErrorEntity: operator,
       nameErrorEntity: operator,
     );
     node.staticElement = result.getter as MethodElement?;

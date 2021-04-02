@@ -49,13 +49,13 @@ class C extends B {
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
     // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     -super?.field;
-//   ^^^^^^^^^^^^
+//  ^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 //        ^^
 // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
 // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     ~super?.field;
-//   ^^^^^^^^^^^^
+//  ^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 //        ^^
 // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER

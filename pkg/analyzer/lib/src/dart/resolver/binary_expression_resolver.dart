@@ -322,7 +322,7 @@ class BinaryExpressionResolver {
       receiver: leftOperand,
       receiverType: leftType,
       name: methodName,
-      receiverErrorNode: leftOperand,
+      propertyErrorEntity: node.operator,
       nameErrorEntity: node,
     );
 
