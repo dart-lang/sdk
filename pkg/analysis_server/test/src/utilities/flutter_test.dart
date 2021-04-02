@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:test/test.dart';
@@ -113,14 +111,14 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) => null;
 }
 ''');
-    FunctionDeclaration main = testUnit.declarations[0];
-    BlockFunctionBody body = main.functionExpression.body;
-    List<Statement> statements = body.block.statements;
+    var main = testUnit.declarations[0] as FunctionDeclaration;
+    var body = main.functionExpression.body as BlockFunctionBody;
+    var statements = body.block.statements;
 
     // new MyWidget(1234);
     {
-      ExpressionStatement statement = statements[0];
-      InstanceCreationExpression creation = statement.expression;
+      var statement = statements[0] as ExpressionStatement;
+      var creation = statement.expression as InstanceCreationExpression;
       var constructorName = creation.constructorName;
       var typeName = constructorName.type;
       var argumentList = creation.argumentList;
@@ -136,8 +134,8 @@ class MyWidget extends StatelessWidget {
 
     // new MyWidget.named(5678);
     {
-      ExpressionStatement statement = statements[1];
-      InstanceCreationExpression creation = statement.expression;
+      var statement = statements[1] as ExpressionStatement;
+      var creation = statement.expression as InstanceCreationExpression;
       var constructorName = creation.constructorName;
       var typeName = constructorName.type;
       var argumentList = creation.argumentList;
@@ -496,7 +494,7 @@ Text createEmptyText() => new Text('');
     {
       var expression = findNode.simple('named(); // use');
       expect(_flutter.isWidgetExpression(expression), isFalse);
-      var creation = expression.parent.parent as InstanceCreationExpression;
+      var creation = expression.parent?.parent as InstanceCreationExpression;
       expect(_flutter.isWidgetExpression(creation), isTrue);
     }
 
@@ -536,7 +534,7 @@ Text createEmptyText() => new Text('');
     }
   }
 
-  VariableDeclaration _getTopVariable(String name, [CompilationUnit unit]) {
+  VariableDeclaration _getTopVariable(String name, [CompilationUnit? unit]) {
     unit ??= testUnit;
     for (var topDeclaration in unit.declarations) {
       if (topDeclaration is TopLevelVariableDeclaration) {
@@ -551,7 +549,7 @@ Text createEmptyText() => new Text('');
   }
 
   InstanceCreationExpression _getTopVariableCreation(String name,
-      [CompilationUnit unit]) {
+      [CompilationUnit? unit]) {
     return _getTopVariable(name, unit).initializer
         as InstanceCreationExpression;
   }
