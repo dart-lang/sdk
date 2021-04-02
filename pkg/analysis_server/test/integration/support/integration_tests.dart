@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
@@ -42,7 +40,7 @@ Matcher isOneOf(List<Matcher> choiceMatchers) => _OneOf(choiceMatchers);
 
 /// Assert that [actual] matches [matcher].
 void outOfTestExpect(actual, Matcher matcher,
-    {String reason, skip, bool verbose = false}) {
+    {String? reason, skip, bool verbose = false}) {
   var matchState = {};
   try {
     if (matcher.matches(actual, matchState)) return;
@@ -53,7 +51,7 @@ void outOfTestExpect(actual, Matcher matcher,
 }
 
 String _defaultFailFormatter(
-    actual, Matcher matcher, String reason, Map matchState, bool verbose) {
+    actual, Matcher matcher, String? reason, Map matchState, bool verbose) {
   var description = StringDescription();
   description.add('Expected: ').addDescriptionOf(matcher).add('\n');
   description.add('  Actual: ').addDescriptionOf(actual).add('\n');
@@ -90,7 +88,7 @@ abstract class AbstractAnalysisServerIntegrationTest
   final Server server = Server();
 
   /// Temporary directory in which source files can be stored.
-  Directory sourceDirectory;
+  late Directory sourceDirectory;
 
   /// Map from file path to the list of analysis errors which have most recently
   /// been received for the file.
@@ -98,7 +96,7 @@ abstract class AbstractAnalysisServerIntegrationTest
       HashMap<String, List<AnalysisError>>();
 
   /// The last list of analyzed files received.
-  List<String> lastAnalyzedFiles;
+  late List<String> lastAnalyzedFiles;
 
   /// True if the teardown process should skip sending a "server.shutdown"
   /// request (e.g. because the server is known to have already shutdown).
@@ -121,12 +119,13 @@ abstract class AbstractAnalysisServerIntegrationTest
   /// analysis to finish.
   Future<ServerStatusParams> get analysisFinished {
     var completer = Completer<ServerStatusParams>();
-    StreamSubscription<ServerStatusParams> subscription;
+    late StreamSubscription<ServerStatusParams> subscription;
     // This will only work if the caller has already subscribed to
     // SERVER_STATUS (e.g. using sendServerSetSubscriptions(['STATUS']))
     outOfTestExpect(_subscribedToServerStatus, isTrue);
     subscription = onServerStatus.listen((ServerStatusParams params) {
-      if (params.analysis != null && !params.analysis.isAnalyzing) {
+      var analysisStatus = params.analysis;
+      if (analysisStatus != null && !analysisStatus.isAnalyzing) {
         completer.complete(params);
         subscription.cancel();
       }
@@ -140,7 +139,7 @@ abstract class AbstractAnalysisServerIntegrationTest
     server.debugStdio();
   }
 
-  List<AnalysisError> getErrors(String pathname) =>
+  List<AnalysisError>? getErrors(String pathname) =>
       currentAnalysisErrors[pathname];
 
   /// Read a source file with the given absolute [pathname].
@@ -219,8 +218,8 @@ abstract class AbstractAnalysisServerIntegrationTest
 
   /// Start [server].
   Future startServer({
-    int diagnosticPort,
-    int servicesPort,
+    int? diagnosticPort,
+    int? servicesPort,
   }) {
     return server.start(
         diagnosticPort: diagnosticPort, servicesPort: servicesPort);
@@ -259,33 +258,30 @@ class LazyMatcher implements Matcher {
 
   /// The matcher returned by [_creator], if it has already been called.
   /// Otherwise null.
-  Matcher _wrappedMatcher;
+  Matcher? _wrappedMatcher;
 
   LazyMatcher(this._creator);
 
+  /// Create the wrapped matcher object, if it hasn't been created already.
+  Matcher get _matcher {
+    return _wrappedMatcher ??= _creator();
+  }
+
   @override
   Description describe(Description description) {
-    _createMatcher();
-    return _wrappedMatcher.describe(description);
+    return _matcher.describe(description);
   }
 
   @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
-    _createMatcher();
-    return _wrappedMatcher.describeMismatch(
+    return _matcher.describeMismatch(
         item, mismatchDescription, matchState, verbose);
   }
 
   @override
   bool matches(item, Map matchState) {
-    _createMatcher();
-    return _wrappedMatcher.matches(item, matchState);
-  }
-
-  /// Create the wrapped matcher object, if it hasn't been created already.
-  void _createMatcher() {
-    _wrappedMatcher ??= _creator();
+    return _matcher.matches(item, matchState);
   }
 }
 
@@ -317,11 +313,11 @@ class MatchesJsonObject extends _RecursiveMatcher {
 
   /// Fields that are required to be in the JSON object, and [Matcher]s
   /// describing their expected types.
-  final Map<String, Matcher> requiredFields;
+  final Map<String, Matcher>? requiredFields;
 
   /// Fields that are optional in the JSON object, and [Matcher]s describing
   /// their expected types.
-  final Map<String, Matcher> optionalFields;
+  final Map<String, Matcher>? optionalFields;
 
   const MatchesJsonObject(this.description, this.requiredFields,
       {this.optionalFields});
@@ -336,9 +332,11 @@ class MatchesJsonObject extends _RecursiveMatcher {
       mismatches.add(simpleDescription('is not a map'));
       return;
     }
+    var requiredFields = this.requiredFields;
+    var optionalFields = this.optionalFields;
     if (requiredFields != null) {
       requiredFields.forEach((String key, Matcher valueMatcher) {
-        if (!(item as Map).containsKey(key)) {
+        if (!item.containsKey(key)) {
           mismatches.add((Description mismatchDescription) =>
               mismatchDescription
                   .add('is missing field ')
@@ -354,13 +352,18 @@ class MatchesJsonObject extends _RecursiveMatcher {
     item.forEach((key, value) {
       if (requiredFields != null && requiredFields.containsKey(key)) {
         // Already checked this field
-      } else if (optionalFields != null && optionalFields.containsKey(key)) {
-        _checkField(key, value, optionalFields[key], mismatches);
-      } else {
-        mismatches.add((Description mismatchDescription) => mismatchDescription
-            .add('has unexpected field ')
-            .addDescriptionOf(key));
+        return;
       }
+      if (optionalFields != null) {
+        var optionalValue = optionalFields[key];
+        if (optionalValue != null) {
+          _checkField(key, value, optionalValue, mismatches);
+          return;
+        }
+      }
+      mismatches.add((Description mismatchDescription) => mismatchDescription
+          .add('has unexpected field ')
+          .addDescriptionOf(key));
     });
   }
 
@@ -382,7 +385,7 @@ class MatchesJsonObject extends _RecursiveMatcher {
 /// facilitate communication to and from the server.
 class Server {
   /// Server process object, or null if server hasn't been started yet.
-  Process _process;
+  late final Process _process;
 
   /// Commands that have been sent to the server but not yet acknowledged, and
   /// the [Completer] objects which should be completed when acknowledgement is
@@ -411,7 +414,7 @@ class Server {
 
   /// The [currentElapseTime] at which the last communication was received from
   /// the server or `null` if no communication has been received.
-  double lastCommunicationTime;
+  double? lastCommunicationTime;
 
   /// The current elapse time (seconds) since the server was started.
   double get currentElapseTime => _time.elapsedTicks / _time.frequency;
@@ -536,7 +539,7 @@ class Server {
   /// 'result' field from the response.  If the server acknowledges the command
   /// with an error response, the future will be completed with an error.
   Future<Map<String, dynamic>> send(
-      String method, Map<String, dynamic> params) {
+      String method, Map<String, dynamic>? params) {
     var id = '${_nextId++}';
     var command = <String, dynamic>{'id': id, 'method': method};
     if (params != null) {
@@ -554,16 +557,13 @@ class Server {
   /// with "--observe" and "--pause-isolates-on-exit", allowing the observatory
   /// to be used.
   Future start({
-    int diagnosticPort,
-    String instrumentationLogFile,
+    int? diagnosticPort,
+    String? instrumentationLogFile,
     bool profileServer = false,
-    String sdkPath,
-    int servicesPort,
+    String? sdkPath,
+    int? servicesPort,
     bool useAnalysisHighlight2 = false,
   }) async {
-    if (_process != null) {
-      throw Exception('Process already started');
-    }
     _time.start();
     var dartBinary = Platform.executable;
 
@@ -833,7 +833,7 @@ abstract class _RecursiveMatcher extends Matcher {
   @override
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
-    var mismatches = matchState['mismatches'] as List<MismatchDescriber>;
+    var mismatches = matchState['mismatches'] as List<MismatchDescriber>?;
     if (mismatches != null) {
       for (var i = 0; i < mismatches.length; i++) {
         var mismatch = mismatches[i];

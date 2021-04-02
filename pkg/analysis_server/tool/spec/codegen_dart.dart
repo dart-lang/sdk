@@ -42,4 +42,10 @@ class DartCodegenVisitor extends HierarchicalApiVisitor {
       throw Exception("Can't convert to a dart type");
     }
   }
+
+  /// Return the Dart type for [field], nullable if the field is optional.
+  String fieldDartType(TypeObjectField field) {
+    var typeStr = dartType(field.type);
+    return field.optional ? '$typeStr?' : typeStr;
+  }
 }

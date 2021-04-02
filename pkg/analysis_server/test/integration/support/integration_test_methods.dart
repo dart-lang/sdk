@@ -6,8 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-// @dart = 2.9
-
 /// Convenience methods for running integration tests.
 import 'dart:async';
 
@@ -81,10 +79,10 @@ abstract class IntegrationTestMixin {
   /// pid: int
   ///
   ///   The process id of the analysis server process.
-  Stream<ServerConnectedParams> onServerConnected;
+  late Stream<ServerConnectedParams> onServerConnected;
 
   /// Stream controller for [onServerConnected].
-  StreamController<ServerConnectedParams> _onServerConnected;
+  late StreamController<ServerConnectedParams> _onServerConnected;
 
   /// Reports that an unexpected error has occurred while executing the server.
   /// This notification is not used for problems with specific requests (which
@@ -109,20 +107,20 @@ abstract class IntegrationTestMixin {
   ///
   ///   The stack trace associated with the generation of the error, used for
   ///   debugging the server.
-  Stream<ServerErrorParams> onServerError;
+  late Stream<ServerErrorParams> onServerError;
 
   /// Stream controller for [onServerError].
-  StreamController<ServerErrorParams> _onServerError;
+  late StreamController<ServerErrorParams> _onServerError;
 
   /// The stream of entries describing events happened in the server.
   ///
   /// Parameters
   ///
   /// entry: ServerLogEntry
-  Stream<ServerLogParams> onServerLog;
+  late Stream<ServerLogParams> onServerLog;
 
   /// Stream controller for [onServerLog].
-  StreamController<ServerLogParams> _onServerLog;
+  late StreamController<ServerLogParams> _onServerLog;
 
   /// Reports the current status of the server. Parameters are omitted if there
   /// has been no change in the status represented by that parameter.
@@ -145,10 +143,10 @@ abstract class IntegrationTestMixin {
   ///
   ///   Note: this status type is deprecated, and is no longer sent by the
   ///   server.
-  Stream<ServerStatusParams> onServerStatus;
+  late Stream<ServerStatusParams> onServerStatus;
 
   /// Stream controller for [onServerStatus].
-  StreamController<ServerStatusParams> _onServerStatus;
+  late StreamController<ServerStatusParams> _onServerStatus;
 
   /// Return the errors associated with the given file. If the errors for the
   /// given file have not yet been computed, or the most recently computed
@@ -492,7 +490,7 @@ abstract class IntegrationTestMixin {
   ///   that the normal pubspec.yaml mechanism should always be used.
   Future sendAnalysisSetAnalysisRoots(
       List<String> included, List<String> excluded,
-      {Map<String, String> packageRoots}) async {
+      {Map<String, String>? packageRoots}) async {
     var params = AnalysisSetAnalysisRootsParams(included, excluded,
             packageRoots: packageRoots)
         .toJson();
@@ -646,10 +644,10 @@ abstract class IntegrationTestMixin {
   /// directories: List<FilePath>
   ///
   ///   A list of the paths of the files that are being analyzed.
-  Stream<AnalysisAnalyzedFilesParams> onAnalysisAnalyzedFiles;
+  late Stream<AnalysisAnalyzedFilesParams> onAnalysisAnalyzedFiles;
 
   /// Stream controller for [onAnalysisAnalyzedFiles].
-  StreamController<AnalysisAnalyzedFilesParams> _onAnalysisAnalyzedFiles;
+  late StreamController<AnalysisAnalyzedFilesParams> _onAnalysisAnalyzedFiles;
 
   /// Reports closing labels relevant to a given file.
   ///
@@ -672,10 +670,10 @@ abstract class IntegrationTestMixin {
   ///   constructor/method calls and List arguments that span multiple lines.
   ///   Note that the ranges that are returned can overlap each other because
   ///   they may be associated with constructs that can be nested.
-  Stream<AnalysisClosingLabelsParams> onAnalysisClosingLabels;
+  late Stream<AnalysisClosingLabelsParams> onAnalysisClosingLabels;
 
   /// Stream controller for [onAnalysisClosingLabels].
-  StreamController<AnalysisClosingLabelsParams> _onAnalysisClosingLabels;
+  late StreamController<AnalysisClosingLabelsParams> _onAnalysisClosingLabels;
 
   /// Reports the errors associated with a given file. The set of errors
   /// included in the notification is always a complete list that supersedes
@@ -690,10 +688,10 @@ abstract class IntegrationTestMixin {
   /// errors: List<AnalysisError>
   ///
   ///   The errors contained in the file.
-  Stream<AnalysisErrorsParams> onAnalysisErrors;
+  late Stream<AnalysisErrorsParams> onAnalysisErrors;
 
   /// Stream controller for [onAnalysisErrors].
-  StreamController<AnalysisErrorsParams> _onAnalysisErrors;
+  late StreamController<AnalysisErrorsParams> _onAnalysisErrors;
 
   /// Reports that any analysis results that were previously associated with
   /// the given files should be considered to be invalid because those files
@@ -713,10 +711,10 @@ abstract class IntegrationTestMixin {
   /// files: List<FilePath>
   ///
   ///   The files that are no longer being analyzed.
-  Stream<AnalysisFlushResultsParams> onAnalysisFlushResults;
+  late Stream<AnalysisFlushResultsParams> onAnalysisFlushResults;
 
   /// Stream controller for [onAnalysisFlushResults].
-  StreamController<AnalysisFlushResultsParams> _onAnalysisFlushResults;
+  late StreamController<AnalysisFlushResultsParams> _onAnalysisFlushResults;
 
   /// Reports the folding regions associated with a given file. Folding regions
   /// can be nested, but will not be overlapping. Nesting occurs when a
@@ -736,10 +734,10 @@ abstract class IntegrationTestMixin {
   /// regions: List<FoldingRegion>
   ///
   ///   The folding regions contained in the file.
-  Stream<AnalysisFoldingParams> onAnalysisFolding;
+  late Stream<AnalysisFoldingParams> onAnalysisFolding;
 
   /// Stream controller for [onAnalysisFolding].
-  StreamController<AnalysisFoldingParams> _onAnalysisFolding;
+  late StreamController<AnalysisFoldingParams> _onAnalysisFolding;
 
   /// Reports the highlight regions associated with a given file.
   ///
@@ -760,10 +758,10 @@ abstract class IntegrationTestMixin {
   ///   some range. Note that the highlight regions that are returned can
   ///   overlap other highlight regions if there is more than one meaning
   ///   associated with a particular region.
-  Stream<AnalysisHighlightsParams> onAnalysisHighlights;
+  late Stream<AnalysisHighlightsParams> onAnalysisHighlights;
 
   /// Stream controller for [onAnalysisHighlights].
-  StreamController<AnalysisHighlightsParams> _onAnalysisHighlights;
+  late StreamController<AnalysisHighlightsParams> _onAnalysisHighlights;
 
   /// Reports the classes that are implemented or extended and class members
   /// that are implemented or overridden in a file.
@@ -785,10 +783,10 @@ abstract class IntegrationTestMixin {
   /// members: List<ImplementedMember>
   ///
   ///   The member defined in the file that are implemented or overridden.
-  Stream<AnalysisImplementedParams> onAnalysisImplemented;
+  late Stream<AnalysisImplementedParams> onAnalysisImplemented;
 
   /// Stream controller for [onAnalysisImplemented].
-  StreamController<AnalysisImplementedParams> _onAnalysisImplemented;
+  late StreamController<AnalysisImplementedParams> _onAnalysisImplemented;
 
   /// Reports that the navigation information associated with a region of a
   /// single file has become invalid and should be re-requested.
@@ -816,10 +814,10 @@ abstract class IntegrationTestMixin {
   ///   The delta to be applied to the offsets in information that follows the
   ///   invalidated region in order to update it so that it doesn't need to be
   ///   re-requested.
-  Stream<AnalysisInvalidateParams> onAnalysisInvalidate;
+  late Stream<AnalysisInvalidateParams> onAnalysisInvalidate;
 
   /// Stream controller for [onAnalysisInvalidate].
-  StreamController<AnalysisInvalidateParams> _onAnalysisInvalidate;
+  late StreamController<AnalysisInvalidateParams> _onAnalysisInvalidate;
 
   /// Reports the navigation targets associated with a given file.
   ///
@@ -852,10 +850,10 @@ abstract class IntegrationTestMixin {
   ///
   ///   The files containing navigation targets referenced in the file. They
   ///   are referenced by NavigationTargets by their index in this array.
-  Stream<AnalysisNavigationParams> onAnalysisNavigation;
+  late Stream<AnalysisNavigationParams> onAnalysisNavigation;
 
   /// Stream controller for [onAnalysisNavigation].
-  StreamController<AnalysisNavigationParams> _onAnalysisNavigation;
+  late StreamController<AnalysisNavigationParams> _onAnalysisNavigation;
 
   /// Reports the occurrences of references to elements within a single file.
   ///
@@ -872,10 +870,10 @@ abstract class IntegrationTestMixin {
   /// occurrences: List<Occurrences>
   ///
   ///   The occurrences of references to elements within the file.
-  Stream<AnalysisOccurrencesParams> onAnalysisOccurrences;
+  late Stream<AnalysisOccurrencesParams> onAnalysisOccurrences;
 
   /// Stream controller for [onAnalysisOccurrences].
-  StreamController<AnalysisOccurrencesParams> _onAnalysisOccurrences;
+  late StreamController<AnalysisOccurrencesParams> _onAnalysisOccurrences;
 
   /// Reports the outline associated with a single file.
   ///
@@ -904,10 +902,10 @@ abstract class IntegrationTestMixin {
   /// outline: Outline
   ///
   ///   The outline associated with the file.
-  Stream<AnalysisOutlineParams> onAnalysisOutline;
+  late Stream<AnalysisOutlineParams> onAnalysisOutline;
 
   /// Stream controller for [onAnalysisOutline].
-  StreamController<AnalysisOutlineParams> _onAnalysisOutline;
+  late StreamController<AnalysisOutlineParams> _onAnalysisOutline;
 
   /// Reports the overriding members in a file.
   ///
@@ -924,10 +922,10 @@ abstract class IntegrationTestMixin {
   /// overrides: List<Override>
   ///
   ///   The overrides associated with the file.
-  Stream<AnalysisOverridesParams> onAnalysisOverrides;
+  late Stream<AnalysisOverridesParams> onAnalysisOverrides;
 
   /// Stream controller for [onAnalysisOverrides].
-  StreamController<AnalysisOverridesParams> _onAnalysisOverrides;
+  late StreamController<AnalysisOverridesParams> _onAnalysisOverrides;
 
   /// Request that completion suggestions for the given offset in the given
   /// file be returned.
@@ -1117,10 +1115,10 @@ abstract class IntegrationTestMixin {
   ///
   ///   If an AvailableSuggestion has relevance tags that match more than one
   ///   IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
-  Stream<CompletionResultsParams> onCompletionResults;
+  late Stream<CompletionResultsParams> onCompletionResults;
 
   /// Stream controller for [onCompletionResults].
-  StreamController<CompletionResultsParams> _onCompletionResults;
+  late StreamController<CompletionResultsParams> _onCompletionResults;
 
   /// Reports the pre-computed, candidate completions from symbols defined in a
   /// corresponding library. This notification may be sent multiple times. When
@@ -1140,10 +1138,11 @@ abstract class IntegrationTestMixin {
   /// removedLibraries: List<int> (optional)
   ///
   ///   A list of library ids that no longer apply.
-  Stream<CompletionAvailableSuggestionsParams> onCompletionAvailableSuggestions;
+  late Stream<CompletionAvailableSuggestionsParams>
+      onCompletionAvailableSuggestions;
 
   /// Stream controller for [onCompletionAvailableSuggestions].
-  StreamController<CompletionAvailableSuggestionsParams>
+  late StreamController<CompletionAvailableSuggestionsParams>
       _onCompletionAvailableSuggestions;
 
   /// Reports existing imports in a library. This notification may be sent
@@ -1159,10 +1158,10 @@ abstract class IntegrationTestMixin {
   /// imports: ExistingImports
   ///
   ///   The existing imports in the library.
-  Stream<CompletionExistingImportsParams> onCompletionExistingImports;
+  late Stream<CompletionExistingImportsParams> onCompletionExistingImports;
 
   /// Stream controller for [onCompletionExistingImports].
-  StreamController<CompletionExistingImportsParams>
+  late StreamController<CompletionExistingImportsParams>
       _onCompletionExistingImports;
 
   /// Perform a search for references to the element defined or referenced at
@@ -1325,7 +1324,7 @@ abstract class IntegrationTestMixin {
   ///
   ///   The list of the paths of files with declarations.
   Future<SearchGetElementDeclarationsResult> sendSearchGetElementDeclarations(
-      {String file, String pattern, int maxResults}) async {
+      {String? file, String? pattern, int? maxResults}) async {
     var params = SearchGetElementDeclarationsParams(
             file: file, pattern: pattern, maxResults: maxResults)
         .toJson();
@@ -1369,7 +1368,7 @@ abstract class IntegrationTestMixin {
   ///   to allow a type hierarchy to be produced.
   Future<SearchGetTypeHierarchyResult> sendSearchGetTypeHierarchy(
       String file, int offset,
-      {bool superOnly}) async {
+      {bool? superOnly}) async {
     var params =
         SearchGetTypeHierarchyParams(file, offset, superOnly: superOnly)
             .toJson();
@@ -1397,10 +1396,10 @@ abstract class IntegrationTestMixin {
   ///
   ///   True if this is that last set of results that will be returned for the
   ///   indicated search.
-  Stream<SearchResultsParams> onSearchResults;
+  late Stream<SearchResultsParams> onSearchResults;
 
   /// Stream controller for [onSearchResults].
-  StreamController<SearchResultsParams> _onSearchResults;
+  late StreamController<SearchResultsParams> _onSearchResults;
 
   /// Format the contents of a single file. The currently selected region of
   /// text is passed in so that the selection can be preserved across the
@@ -1450,7 +1449,7 @@ abstract class IntegrationTestMixin {
   ///   The length of the selection after formatting the code.
   Future<EditFormatResult> sendEditFormat(
       String file, int selectionOffset, int selectionLength,
-      {int lineLength}) async {
+      {int? lineLength}) async {
     var params = EditFormatParams(file, selectionOffset, selectionLength,
             lineLength: lineLength)
         .toJson();
@@ -1580,7 +1579,7 @@ abstract class IntegrationTestMixin {
   ///   Details that summarize the fixes associated with the recommended
   ///   changes.
   Future<EditBulkFixesResult> sendEditBulkFixes(List<String> included,
-      {bool inTestMode}) async {
+      {bool? inTestMode}) async {
     var params = EditBulkFixesParams(included, inTestMode: inTestMode).toJson();
     var result = await server.send('edit.bulkFixes', params);
     var decoder = ResponseDecoder(null);
@@ -1681,11 +1680,11 @@ abstract class IntegrationTestMixin {
   ///   proposed changes. There is one URL for each of the included file paths.
   ///   The field is omitted if a preview was not requested.
   Future<EditDartfixResult> sendEditDartfix(List<String> included,
-      {List<String> includedFixes,
-      bool includePedanticFixes,
-      List<String> excludedFixes,
-      int port,
-      String outputDir}) async {
+      {List<String>? includedFixes,
+      bool? includePedanticFixes,
+      List<String>? excludedFixes,
+      int? port,
+      String? outputDir}) async {
     var params = EditDartfixParams(included,
             includedFixes: includedFixes,
             includePedanticFixes: includePedanticFixes,
@@ -1841,7 +1840,7 @@ abstract class IntegrationTestMixin {
   ///   the refactoring.
   Future<EditGetRefactoringResult> sendEditGetRefactoring(RefactoringKind kind,
       String file, int offset, int length, bool validateOnly,
-      {RefactoringOptions options}) async {
+      {RefactoringOptions? options}) async {
     var params = EditGetRefactoringParams(
             kind, file, offset, length, validateOnly,
             options: options)
@@ -1975,7 +1974,7 @@ abstract class IntegrationTestMixin {
   ///   that need to be applied.
   Future<EditImportElementsResult> sendEditImportElements(
       String file, List<ImportedElements> elements,
-      {int offset}) async {
+      {int? offset}) async {
     var params =
         EditImportElementsParams(file, elements, offset: offset).toJson();
     var result = await server.send('edit.importElements', params);
@@ -2164,7 +2163,7 @@ abstract class IntegrationTestMixin {
       String contextFile,
       int contextOffset,
       List<RuntimeCompletionVariable> variables,
-      {List<RuntimeCompletionExpression> expressions}) async {
+      {List<RuntimeCompletionExpression>? expressions}) async {
     var params = ExecutionGetSuggestionsParams(
             code, offset, contextFile, contextOffset, variables,
             expressions: expressions)
@@ -2221,7 +2220,7 @@ abstract class IntegrationTestMixin {
   ///   The URI to which the file path was mapped. This field is omitted if the
   ///   file field was not given in the request.
   Future<ExecutionMapUriResult> sendExecutionMapUri(String id,
-      {String file, String uri}) async {
+      {String? file, String? uri}) async {
     var params = ExecutionMapUriParams(id, file: file, uri: uri).toJson();
     var result = await server.send('execution.mapUri', params);
     var decoder = ResponseDecoder(null);
@@ -2273,10 +2272,10 @@ abstract class IntegrationTestMixin {
   ///
   ///   A list of the Dart files that are referenced by the file. This field is
   ///   omitted if the file is not an HTML file.
-  Stream<ExecutionLaunchDataParams> onExecutionLaunchData;
+  late Stream<ExecutionLaunchDataParams> onExecutionLaunchData;
 
   /// Stream controller for [onExecutionLaunchData].
-  StreamController<ExecutionLaunchDataParams> _onExecutionLaunchData;
+  late StreamController<ExecutionLaunchDataParams> _onExecutionLaunchData;
 
   /// Return server diagnostics.
   ///
@@ -2512,7 +2511,7 @@ abstract class IntegrationTestMixin {
   ///   The change that should be applied.
   Future<FlutterSetWidgetPropertyValueResult> sendFlutterSetWidgetPropertyValue(
       int id,
-      {FlutterWidgetPropertyValue value}) async {
+      {FlutterWidgetPropertyValue? value}) async {
     var params = FlutterSetWidgetPropertyValueParams(id, value: value).toJson();
     var result = await server.send('flutter.setWidgetPropertyValue', params);
     var decoder = ResponseDecoder(null);
@@ -2573,10 +2572,10 @@ abstract class IntegrationTestMixin {
   /// outline: FlutterOutline
   ///
   ///   The outline associated with the file.
-  Stream<FlutterOutlineParams> onFlutterOutline;
+  late Stream<FlutterOutlineParams> onFlutterOutline;
 
   /// Stream controller for [onFlutterOutline].
-  StreamController<FlutterOutlineParams> _onFlutterOutline;
+  late StreamController<FlutterOutlineParams> _onFlutterOutline;
 
   /// Initialize the fields in InttestMixin, and ensure that notifications will
   /// be handled.
@@ -2762,7 +2761,6 @@ abstract class IntegrationTestMixin {
         break;
       default:
         fail('Unexpected notification: $event');
-        break;
     }
   }
 }

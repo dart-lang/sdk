@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Support for client code that needs to interact with the requests, responses
 /// and notifications that are part of the analysis server's wire protocol.
 import 'dart:convert' hide JsonDecoder;
@@ -36,7 +34,7 @@ class Notification {
 
   /// A table mapping the names of notification parameters to their values, or
   /// `null` if there are no notification parameters.
-  final Map<String, Object> params;
+  final Map<String, Object>? params;
 
   /// Initialize a newly created [Notification] to have the given [event] name.
   /// If [params] is provided, it will be used as the params; otherwise no
@@ -54,6 +52,7 @@ class Notification {
   Map<String, Object> toJson() {
     var jsonObject = <String, Object>{};
     jsonObject[EVENT] = event;
+    var params = this.params;
     if (params != null) {
       jsonObject[PARAMS] = params;
     }
@@ -85,84 +84,18 @@ class Request {
   final String method;
 
   /// A table mapping the names of request parameters to their values.
-  final Map<String, Object> params;
+  final Map<String, Object?> params;
 
   /// The time (milliseconds since epoch) at which the client made the request
   /// or `null` if this information is not provided by the client.
-  final int clientRequestTime;
+  final int? clientRequestTime;
 
   /// Initialize a newly created [Request] to have the given [id] and [method]
   /// name. If [params] is supplied, it is used as the "params" map for the
   /// request. Otherwise an empty "params" map is allocated.
   Request(this.id, this.method,
-      [Map<String, Object> params, this.clientRequestTime])
-      : params = params ?? <String, Object>{};
-
-  /// Return a request parsed from the given json, or `null` if the [data] is
-  /// not a valid json representation of a request. The [data] is expected to
-  /// have the following format:
-  ///
-  ///   {
-  ///     'clientRequestTime': millisecondsSinceEpoch
-  ///     'id': String,
-  ///     'method': methodName,
-  ///     'params': {
-  ///       paramter_name: value
-  ///     }
-  ///   }
-  ///
-  /// where both the parameters and clientRequestTime are optional.
-  ///
-  /// The parameters can contain any number of name/value pairs. The
-  /// clientRequestTime must be an int representing the time at which the client
-  /// issued the request (milliseconds since epoch).
-  factory Request.fromJson(Map<String, Object> result) {
-    var id = result[Request.ID];
-    var method = result[Request.METHOD];
-    if (id is! String || method is! String) {
-      return null;
-    }
-    var time = result[Request.CLIENT_REQUEST_TIME];
-    if (time != null && time is! int) {
-      return null;
-    }
-    var params = result[Request.PARAMS];
-    if (params is Map || params == null) {
-      return Request(id, method, params as Map<String, Object>, time);
-    } else {
-      return null;
-    }
-  }
-
-  /// Return a request parsed from the given [data], or `null` if the [data] is
-  /// not a valid json representation of a request. The [data] is expected to
-  /// have the following format:
-  ///
-  ///   {
-  ///     'clientRequestTime': millisecondsSinceEpoch
-  ///     'id': String,
-  ///     'method': methodName,
-  ///     'params': {
-  ///       paramter_name: value
-  ///     }
-  ///   }
-  ///
-  /// where both the parameters and clientRequestTime are optional.
-  ///
-  /// The parameters can contain any number of name/value pairs. The
-  /// clientRequestTime must be an int representing the time at which the client
-  /// issued the request (milliseconds since epoch).
-  factory Request.fromString(String data) {
-    try {
-      var result = json.decode(data);
-      if (result is Map) {
-        return Request.fromJson(result as Map<String, dynamic>);
-      }
-      return null;
-    } catch (exception) {
-      return null;
-    }
-  }
+      [Map<String, Object?>? params, this.clientRequestTime])
+      : params = params ?? <String, Object?>{};
 
   @override
   int get hashCode {
@@ -187,13 +120,14 @@ class Request {
     if (params.isNotEmpty) {
       jsonObject[PARAMS] = params;
     }
+    var clientRequestTime = this.clientRequestTime;
     if (clientRequestTime != null) {
       jsonObject[CLIENT_REQUEST_TIME] = clientRequestTime;
     }
     return jsonObject;
   }
 
-  bool _equalLists(List first, List second) {
+  bool _equalLists(List? first, List? second) {
     if (first == null) {
       return second == null;
     }
@@ -212,7 +146,7 @@ class Request {
     return true;
   }
 
-  bool _equalMaps(Map first, Map second) {
+  bool _equalMaps(Map? first, Map? second) {
     if (first == null) {
       return second == null;
     }
@@ -233,7 +167,7 @@ class Request {
     return true;
   }
 
-  bool _equalObjects(Object first, Object second) {
+  bool _equalObjects(Object? first, Object? second) {
     if (first == null) {
       return second == null;
     }
@@ -253,6 +187,72 @@ class Request {
       return false;
     }
     return first == second;
+  }
+
+  /// Return a request parsed from the given json, or `null` if the [data] is
+  /// not a valid json representation of a request. The [data] is expected to
+  /// have the following format:
+  ///
+  ///   {
+  ///     'clientRequestTime': millisecondsSinceEpoch
+  ///     'id': String,
+  ///     'method': methodName,
+  ///     'params': {
+  ///       paramter_name: value
+  ///     }
+  ///   }
+  ///
+  /// where both the parameters and clientRequestTime are optional.
+  ///
+  /// The parameters can contain any number of name/value pairs. The
+  /// clientRequestTime must be an int representing the time at which the client
+  /// issued the request (milliseconds since epoch).
+  static Request? fromJson(Map<String, Object?> result) {
+    var id = result[Request.ID];
+    var method = result[Request.METHOD];
+    if (id is! String || method is! String) {
+      return null;
+    }
+    var time = result[Request.CLIENT_REQUEST_TIME];
+    if (time is! int?) {
+      return null;
+    }
+    var params = result[Request.PARAMS];
+    if (params is Map<String, Object?>?) {
+      return Request(id, method, params, time);
+    } else {
+      return null;
+    }
+  }
+
+  /// Return a request parsed from the given [data], or `null` if the [data] is
+  /// not a valid json representation of a request. The [data] is expected to
+  /// have the following format:
+  ///
+  ///   {
+  ///     'clientRequestTime': millisecondsSinceEpoch
+  ///     'id': String,
+  ///     'method': methodName,
+  ///     'params': {
+  ///       paramter_name: value
+  ///     }
+  ///   }
+  ///
+  /// where both the parameters and clientRequestTime are optional.
+  ///
+  /// The parameters can contain any number of name/value pairs. The
+  /// clientRequestTime must be an int representing the time at which the client
+  /// issued the request (milliseconds since epoch).
+  static Request? fromString(String data) {
+    try {
+      var result = json.decode(data);
+      if (result is Map<String, Object?>) {
+        return Request.fromJson(result);
+      }
+      return null;
+    } catch (exception) {
+      return null;
+    }
   }
 }
 
@@ -303,17 +303,17 @@ class Response {
 
   /// The error that was caused by attempting to handle the request, or `null` if
   /// there was no error.
-  final RequestError error;
+  final RequestError? error;
 
   /// A table mapping the names of result fields to their values. Should be
   /// `null` if there is no result to send.
-  Map<String, Object> result;
+  Map<String, Object?>? result;
 
   /// Initialize a newly created instance to represent a response to a request
-  /// with the given [id]. If [_result] is provided, it will be used as the
+  /// with the given [id]. If [result] is provided, it will be used as the
   /// result; otherwise an empty result will be used. If an [error] is provided
   /// then the response will represent an error condition.
-  Response(this.id, {Map<String, Object> result, this.error}) : result = result;
+  Response(this.id, {this.result, this.error});
 
   /// Create and return the `DEBUG_PORT_COULD_NOT_BE_OPENED` error response.
   Response.debugPortCouldNotBeOpened(Request request, dynamic error)
@@ -341,30 +341,6 @@ class Response {
       : this(request.id,
             error: RequestError(RequestErrorCode.FORMAT_WITH_ERRORS,
                 'Error during `edit.format`: source contains syntax errors.'));
-
-  /// Initialize a newly created instance based on the given JSON data.
-  factory Response.fromJson(Map json) {
-    try {
-      Object id = json[Response.ID];
-      if (id is! String) {
-        return null;
-      }
-      Object error = json[Response.ERROR];
-      RequestError decodedError;
-      if (error is Map) {
-        decodedError =
-            RequestError.fromJson(ResponseDecoder(null), '.error', error);
-      }
-      Object result = json[Response.RESULT];
-      Map<String, Object> decodedResult;
-      if (result is Map) {
-        decodedResult = result as Map<String, Object>;
-      }
-      return Response(id, error: decodedError, result: decodedResult);
-    } catch (exception) {
-      return null;
-    }
-  }
 
   /// Initialize a newly created instance to represent the
   /// GET_ERRORS_INVALID_FILE error condition.
@@ -528,12 +504,41 @@ class Response {
   Map<String, Object> toJson() {
     var jsonObject = <String, Object>{};
     jsonObject[ID] = id;
+    var error = this.error;
     if (error != null) {
       jsonObject[ERROR] = error.toJson();
     }
+    var result = this.result;
     if (result != null) {
       jsonObject[RESULT] = result;
     }
     return jsonObject;
+  }
+
+  /// Initialize a newly created instance based on the given JSON data.
+  static Response? fromJson(Map<String, Object?> json) {
+    try {
+      var id = json[Response.ID];
+      if (id is! String) {
+        return null;
+      }
+
+      RequestError? decodedError;
+      var error = json[Response.ERROR];
+      if (error is Map) {
+        decodedError =
+            RequestError.fromJson(ResponseDecoder(null), '.error', error);
+      }
+
+      Map<String, Object?>? decodedResult;
+      var result = json[Response.RESULT];
+      if (result is Map<String, Object?>) {
+        decodedResult = result;
+      }
+
+      return Response(id, error: decodedError, result: decodedResult);
+    } catch (exception) {
+      return null;
+    }
   }
 }

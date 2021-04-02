@@ -90,8 +90,6 @@ class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
   void visitApi() {
     outputHeader(year: '2017');
     writeln();
-    writeln('// @dart = 2.9');
-    writeln();
     generateConstants();
   }
 }

@@ -6,8 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-// @dart = 2.9
-
 import 'package:analysis_server_client/protocol.dart';
 
 /// [NotificationHandler] processes analysis server notifications

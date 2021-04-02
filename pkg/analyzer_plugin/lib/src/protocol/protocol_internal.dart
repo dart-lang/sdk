@@ -136,11 +136,11 @@ bool mapEqual<K, V>(
   if (mapA.length != mapB.length) {
     return false;
   }
-  for (var key in mapA.keys) {
-    if (!mapB.containsKey(key)) {
-      return false;
-    }
-    if (!valueEqual(mapA[key]!, mapB[key]!)) {
+  for (var entryA in mapA.entries) {
+    var key = entryA.key;
+    var valueA = entryA.value;
+    var valueB = mapB[key];
+    if (valueB == null || !valueEqual(valueA, valueB)) {
       return false;
     }
   }
@@ -239,7 +239,7 @@ RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
 /// string describing the part of the JSON object being decoded, and [value] is
 /// the part to decode.
 typedef JsonDecoderCallback<E extends Object> = E Function(
-    String jsonPath, dynamic value);
+    String jsonPath, Object? value);
 
 /// Instances of the class [HasToJson] implement [toJson] method that returns
 /// a JSON presentation.
@@ -361,7 +361,7 @@ abstract class JsonDecoder {
   /// where the choices are disambiguated by the contents of the field [field].
   /// [decoders] is a map from each possible string in the field to the decoder
   /// that should be used to decode the JSON object.
-  Object decodeUnion(String jsonPath, Map jsonData, String field,
+  Object decodeUnion(String jsonPath, Object? jsonData, String field,
       Map<String, JsonDecoderCallback> decoders) {
     if (jsonData is Map) {
       if (!jsonData.containsKey(field)) {

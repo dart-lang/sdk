@@ -28,9 +28,7 @@ List<GeneratedContent> get allTargets {
   targets.add(codegen_inttest_methods.target);
   targets.add(codegen_matchers.target);
   targets.add(codegen_protocol_common.pluginTarget(true));
-  // TODO(scheglov) Migrate analysis_server_client
-  // https://github.com/dart-lang/sdk/issues/45500
-  // targets.add(codegen_protocol_common.clientTarget(true));
+  targets.add(codegen_protocol_common.clientTarget(true));
   targets.add(codegen_protocol_constants.target);
   targets.add(to_html.target);
   return targets;

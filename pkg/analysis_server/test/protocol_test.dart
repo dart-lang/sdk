@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -92,34 +90,34 @@ class RequestErrorTest {
 
 @reflectiveTest
 class RequestTest {
-  void test_fromJson() {
+  void test_fromString() {
     var original = Request('one', 'aMethod');
     var jsonData = json.encode(original.toJson());
-    var request = Request.fromString(jsonData);
+    var request = Request.fromString(jsonData)!;
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
     expect(request.clientRequestTime, isNull);
   }
 
-  void test_fromJson_invalidId() {
+  void test_fromString_invalidId_notString() {
     var json = '{"id":{"one":"two"},"method":"aMethod","params":{"foo":"bar"}}';
     var request = Request.fromString(json);
     expect(request, isNull);
   }
 
-  void test_fromJson_invalidMethod() {
+  void test_fromString_invalidMethod_notString() {
     var json = '{"id":"one","method":{"boo":"aMethod"},"params":{"foo":"bar"}}';
     var request = Request.fromString(json);
     expect(request, isNull);
   }
 
-  void test_fromJson_invalidParams() {
+  void test_fromString_invalidParams_notMap() {
     var json = '{"id":"one","method":"aMethod","params":"foobar"}';
     var request = Request.fromString(json);
     expect(request, isNull);
   }
 
-  void test_fromJson_withBadClientTime() {
+  void test_fromString_withBadClientTime() {
     var original = Request('one', 'aMethod', null, 347);
     var map = original.toJson();
     // Insert bad value - should be int but client sent string instead
@@ -129,19 +127,19 @@ class RequestTest {
     expect(request, isNull);
   }
 
-  void test_fromJson_withClientTime() {
+  void test_fromString_withClientTime() {
     var original = Request('one', 'aMethod', null, 347);
     var jsonData = json.encode(original.toJson());
-    var request = Request.fromString(jsonData);
+    var request = Request.fromString(jsonData)!;
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
     expect(request.clientRequestTime, 347);
   }
 
-  void test_fromJson_withParams() {
+  void test_fromString_withParams() {
     var original = Request('one', 'aMethod', {'foo': 'bar'});
     var jsonData = json.encode(original.toJson());
-    var request = Request.fromString(jsonData);
+    var request = Request.fromString(jsonData)!;
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
     expect(request.toJson()['params'], equals({'foo': 'bar'}));
@@ -199,25 +197,25 @@ class ResponseTest {
 
   void test_fromJson() {
     var original = Response('myId');
-    var response = Response.fromJson(original.toJson());
+    var response = Response.fromJson(original.toJson())!;
     expect(response.id, equals('myId'));
   }
 
   void test_fromJson_withError() {
     var original = Response.invalidRequestFormat();
-    var response = Response.fromJson(original.toJson());
+    var response = Response.fromJson(original.toJson())!;
     expect(response.id, equals(''));
     expect(response.error, isNotNull);
-    var error = response.error;
+    var error = response.error!;
     expect(error.code, equals(RequestErrorCode.INVALID_REQUEST));
     expect(error.message, equals('Invalid request'));
   }
 
   void test_fromJson_withResult() {
     var original = Response('myId', result: {'foo': 'bar'});
-    var response = Response.fromJson(original.toJson());
+    var response = Response.fromJson(original.toJson())!;
     expect(response.id, equals('myId'));
-    var result = response.toJson()['result'] as Map<String, Object>;
+    var result = response.toJson()['result'] as Map<String, Object?>;
     expect(result.length, equals(1));
     expect(result['foo'], equals('bar'));
   }
