@@ -2285,7 +2285,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// For user-defined operators the following names are allowed:
   ///
-  ///     <, >, <=, >=, ==, -, +, /, ~/, *, %, |, ^, &, <<, >>, []=, [], ~
+  ///     <, >, <=, >=, ==, -, +, /, ~/, *, %, |, ^, &, <<, >>, >>>, []=, [], ~
   ///
   /// They generate code like:
   ///
@@ -5042,6 +5042,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             if (_asIntInRange(right, 0, 31) != null) {
               return _coerceBitOperationResultToUnsigned(
                   node, binary('# << #'));
+            }
+            return _emitOperatorCall(left, target, op, [right]);
+
+          case '>>>':
+            if (_asIntInRange(right, 0, 31) != null) {
+              return binary('# >>> #');
             }
             return _emitOperatorCall(left, target, op, [right]);
 

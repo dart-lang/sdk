@@ -135,6 +135,7 @@ bool isOperatorMethodName(String name) {
     case '&':
     case '>>':
     case '<<':
+    case '>>>':
     case '+':
     case 'unary-':
     case '-':
