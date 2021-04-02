@@ -608,7 +608,7 @@ class GroupDebugger {
   void UnregisterSingleSteppingDebugger(Thread* thread,
                                         const Debugger* debugger);
 
-  // Returns true if there is at least one breakpoint set in function or code.
+  // Returns [true] if there is at least one breakpoint set in function or code.
   // Checks for both user-defined and internal temporary breakpoints.
   bool HasBreakpoint(Thread* thread, const Function& function);
   bool IsDebugging(Thread* thread, const Function& function);
