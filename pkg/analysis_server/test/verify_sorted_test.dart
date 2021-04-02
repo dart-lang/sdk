@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -11,7 +9,6 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/package_root.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -33,8 +30,8 @@ void main() {
 }
 
 void buildTests({
-  @required String packagePath,
-  @required List<String> excludedPaths,
+  required String packagePath,
+  required List<String> excludedPaths,
 }) {
   var provider = PhysicalResourceProvider.INSTANCE;
   var pkgRootPath = provider.pathContext.normalize(packageRoot);

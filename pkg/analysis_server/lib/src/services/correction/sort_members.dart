@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -44,12 +42,14 @@ class MemberSorter {
   ];
 
   final String initialCode;
-  final CompilationUnit unit;
-  String code;
-  String endOfLine;
 
-  MemberSorter(this.initialCode, this.unit) {
-    code = initialCode;
+  final CompilationUnit unit;
+
+  String code;
+
+  String endOfLine = '\n';
+
+  MemberSorter(this.initialCode, this.unit) : code = initialCode {
     endOfLine = getEOL(code);
   }
 
@@ -108,17 +108,18 @@ class MemberSorter {
         } else {
           name = nameNode.name;
         }
-      }
-      if (member is FieldDeclaration) {
+      } else if (member is FieldDeclaration) {
         var fieldDeclaration = member;
         List<VariableDeclaration> fields = fieldDeclaration.fields.variables;
         if (fields.isNotEmpty) {
           kind = _MemberKind.CLASS_FIELD;
           isStatic = fieldDeclaration.isStatic;
           name = fields[0].name.name;
+        } else {
+          // Don't sort members if there are errors in the code.
+          return;
         }
-      }
-      if (member is MethodDeclaration) {
+      } else if (member is MethodDeclaration) {
         var method = member;
         isStatic = method.isStatic;
         name = method.name.name;
@@ -131,14 +132,14 @@ class MemberSorter {
         } else {
           kind = _MemberKind.CLASS_METHOD;
         }
+      } else {
+        throw StateError('Unsupported class of member: ${member.runtimeType}');
       }
-      if (name != null) {
-        var item = _PriorityItem.forName(isStatic, name, kind);
-        var offset = member.offset;
-        var length = member.length;
-        var text = code.substring(offset, offset + length);
-        members.add(_MemberInfo(item, name, offset, length, text));
-      }
+      var item = _PriorityItem.forName(isStatic, name, kind);
+      var offset = member.offset;
+      var length = member.length;
+      var text = code.substring(offset, offset + length);
+      members.add(_MemberInfo(item, name, offset, length, text));
     }
     // do sort
     _sortAndReorderMembers(members);
@@ -203,15 +204,18 @@ class MemberSorter {
             kind = _MemberKind.UNIT_VARIABLE;
           }
           name = variables[0].name.name;
+        } else {
+          // Don't sort members if there are errors in the code.
+          return;
         }
+      } else {
+        throw StateError('Unsupported class of member: ${member.runtimeType}');
       }
-      if (name != null) {
-        var item = _PriorityItem.forName(false, name, kind);
-        var offset = member.offset;
-        var length = member.length;
-        var text = code.substring(offset, offset + length);
-        members.add(_MemberInfo(item, name, offset, length, text));
-      }
+      var item = _PriorityItem.forName(false, name, kind);
+      var offset = member.offset;
+      var length = member.length;
+      var text = code.substring(offset, offset + length);
+      members.add(_MemberInfo(item, name, offset, length, text));
     }
     // do sort
     _sortAndReorderMembers(members);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -21,7 +19,7 @@ void main() {
 
 @reflectiveTest
 class OrganizeDirectivesTest extends AbstractSingleUnitTest {
-  List<AnalysisError> testErrors;
+  late List<AnalysisError> testErrors;
 
   Future<void> test_docComment_beforeDirective_hasUnresolvedIdentifier() async {
     await _computeUnitAndErrors(r'''
@@ -584,7 +582,7 @@ import 'package:b/a.dart';''');
   Future<void> _computeUnitAndErrors(String code) async {
     addTestSource(code);
     var result = await session.getResolvedUnit(testFile);
-    testUnit = result.unit;
+    testUnit = result.unit!;
     testErrors = result.errors;
   }
 }

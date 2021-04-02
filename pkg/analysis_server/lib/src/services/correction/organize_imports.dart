@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -16,17 +14,22 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 /// Organizer of imports (and other directives) in the [unit].
 class ImportOrganizer {
   final String initialCode;
+
   final CompilationUnit unit;
+
   final List<AnalysisError> errors;
+
   final bool removeUnused;
 
   String code;
-  String endOfLine;
-  bool hasUnresolvedIdentifierError;
+
+  String endOfLine = '\n';
+
+  bool hasUnresolvedIdentifierError = false;
 
   ImportOrganizer(this.initialCode, this.unit, this.errors,
-      {this.removeUnused = true}) {
-    code = initialCode;
+      {this.removeUnused = true})
+      : code = initialCode {
     endOfLine = getEOL(code);
     hasUnresolvedIdentifierError = errors.any((error) {
       return error.errorCode.isUnresolvedIdentifier;
@@ -60,7 +63,7 @@ class ImportOrganizer {
 
   /// Organize all [Directive]s.
   void _organizeDirectives() {
-    var lineInfo = unit.lineInfo;
+    var lineInfo = unit.lineInfo ?? LineInfo.fromContent(code);
     var hasLibraryDirective = false;
     var directives = <_DirectiveInfo>[];
     for (var directive in unit.directives) {
@@ -77,34 +80,34 @@ class ImportOrganizer {
           final trailingComment =
               getTrailingComment(unit, directive, lineInfo, end);
 
-          String leadingCommentText;
+          String? leadingCommentText;
           if (leadingComment != null) {
             leadingCommentText =
                 code.substring(leadingComment.offset, directive.offset);
             offset = leadingComment.offset;
           }
-          String trailingCommentText;
+          String? trailingCommentText;
           if (trailingComment != null) {
             trailingCommentText =
                 code.substring(directive.end, trailingComment.end);
             end = trailingComment.end;
           }
-          String documentationText;
-          if (directive.documentationComment != null) {
+          String? documentationText;
+          var documentationComment = directive.documentationComment;
+          if (documentationComment != null) {
             documentationText = code.substring(
-                directive.documentationComment.offset,
-                directive.documentationComment.end);
+                documentationComment.offset, documentationComment.end);
           }
-          String annotationText;
-          if (directive.metadata.beginToken != null) {
-            annotationText = code.substring(
-                directive.metadata.beginToken.offset,
-                directive.metadata.endToken.end);
+          String? annotationText;
+          var beginToken = directive.metadata.beginToken;
+          var endToken = directive.metadata.endToken;
+          if (beginToken != null && endToken != null) {
+            annotationText = code.substring(beginToken.offset, endToken.end);
           }
           var text = code.substring(
               directive.firstTokenAfterCommentAndMetadata.offset,
               directive.end);
-          var uriContent = directive.uri.stringValue;
+          var uriContent = directive.uri.stringValue ?? '';
           directives.add(
             _DirectiveInfo(
               directive,
@@ -131,7 +134,7 @@ class ImportOrganizer {
 
     // Without a library directive, the library comment is the comment of the
     // first directive.
-    _DirectiveInfo libraryDocumentationDirective;
+    _DirectiveInfo? libraryDocumentationDirective;
     if (!hasLibraryDirective && directives.isNotEmpty) {
       libraryDocumentationDirective = directives.first;
     }
@@ -142,7 +145,8 @@ class ImportOrganizer {
     String directivesCode;
     {
       var sb = StringBuffer();
-      if (libraryDocumentationDirective?.documentationText != null) {
+      if (libraryDocumentationDirective != null &&
+          libraryDocumentationDirective.documentationText != null) {
         sb.write(libraryDocumentationDirective.documentationText);
         sb.write(endOfLine);
       }
@@ -185,7 +189,7 @@ class ImportOrganizer {
     code = beforeDirectives + directivesCode + afterDirectives;
   }
 
-  static _DirectivePriority getDirectivePriority(UriBasedDirective directive) {
+  static _DirectivePriority? getDirectivePriority(UriBasedDirective directive) {
     var uriContent = directive.uri.stringValue ?? '';
     if (directive is ImportDirective) {
       if (uriContent.startsWith('dart:')) {
@@ -230,28 +234,30 @@ class ImportOrganizer {
   /// Leading comments for the first directive in a file are considered library
   /// comments and not returned unless they contain blank lines, in which case
   /// only the last part of the comment will be returned.
-  static Token getLeadingComment(
+  static Token? getLeadingComment(
       CompilationUnit unit, UriBasedDirective directive, LineInfo lineInfo) {
     if (directive.beginToken.precedingComments == null) {
       return null;
     }
 
-    var firstComment = directive.beginToken.precedingComments;
+    Token? firstComment = directive.beginToken.precedingComments;
     var comment = firstComment;
+    var nextComment = comment?.next;
     // Don't connect comments that have a blank line between them
-    while (comment.next != null) {
+    while (comment != null && nextComment != null) {
       var currentLine = lineInfo.getLocation(comment.offset).lineNumber;
-      var nextLine = lineInfo.getLocation(comment.next.offset).lineNumber;
+      var nextLine = lineInfo.getLocation(nextComment.offset).lineNumber;
       if (nextLine - currentLine > 1) {
-        firstComment = comment.next;
+        firstComment = nextComment;
       }
-      comment = comment.next;
+      comment = nextComment;
+      nextComment = comment.next;
     }
 
     // Check if the comment is the first comment in the document
     if (firstComment != unit.beginToken.precedingComments) {
       var previousDirectiveLine =
-          lineInfo.getLocation(directive.beginToken.previous.end).lineNumber;
+          lineInfo.getLocation(directive.beginToken.previous!.end).lineNumber;
 
       // Skip over any comments on the same line as the previous directive
       // as they will be attached to the end of it.
@@ -271,10 +277,10 @@ class ImportOrganizer {
   ///
   /// To be considered a trailing comment, the comment must be on the same line
   /// as the directive.
-  static Token getTrailingComment(CompilationUnit unit,
+  static Token? getTrailingComment(CompilationUnit unit,
       UriBasedDirective directive, LineInfo lineInfo, int end) {
     var line = lineInfo.getLocation(end).lineNumber;
-    Token comment = directive.endToken.next.precedingComments;
+    Token? comment = directive.endToken.next!.precedingComments;
     while (comment != null) {
       if (lineInfo.getLocation(comment.offset).lineNumber == line) {
         return comment;
@@ -288,11 +294,11 @@ class ImportOrganizer {
 class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   final UriBasedDirective directive;
   final _DirectivePriority priority;
-  final String leadingCommentText;
-  final String documentationText;
-  final String annotationText;
+  final String? leadingCommentText;
+  final String? documentationText;
+  final String? annotationText;
   final String uri;
-  final String trailingCommentText;
+  final String? trailingCommentText;
 
   /// The offset of the first token, usually the keyword but may include leading comments.
   final int offset;
