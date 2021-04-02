@@ -1274,7 +1274,10 @@ static void TrySwitchInstanceCall(Thread* thread,
 #if !defined(PRODUCT)
   // Skip functions that contain breakpoints or when debugger is in single
   // stepping mode.
-  if (Debugger::IsDebugging(thread, caller_function)) return;
+  if (thread->isolate_group()->debugger()->IsDebugging(thread,
+                                                       caller_function)) {
+    return;
+  }
 #endif
 
   const intptr_t num_checks = ic_data.NumberOfChecks();

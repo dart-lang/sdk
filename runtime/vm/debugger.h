@@ -519,6 +519,44 @@ typedef enum {
   kInvalidExceptionPauseInfo
 } Dart_ExceptionPauseInfo;
 
+class DebuggerKeyValueTrait : public AllStatic {
+ public:
+  typedef const Debugger* Key;
+  typedef bool Value;
+
+  struct Pair {
+    Key key;
+    Value value;
+    Pair() : key(NULL), value(false) {}
+    Pair(const Key key, const Value& value) : key(key), value(value) {}
+    Pair(const Pair& other) : key(other.key), value(other.value) {}
+    Pair& operator=(const Pair&) = default;
+  };
+
+  static Key KeyOf(Pair kv) { return kv.key; }
+  static Value ValueOf(Pair kv) { return kv.value; }
+  static intptr_t Hashcode(Key key) { return reinterpret_cast<intptr_t>(key); }
+  static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
+};
+
+class DebuggerSet : public MallocDirectChainedHashMap<DebuggerKeyValueTrait> {
+ public:
+  typedef DebuggerKeyValueTrait::Key Key;
+  typedef DebuggerKeyValueTrait::Value Value;
+  typedef DebuggerKeyValueTrait::Pair Pair;
+
+  virtual ~DebuggerSet() { Clear(); }
+
+  void Insert(const Key& key) {
+    Pair pair(key, /*value=*/true);
+    MallocDirectChainedHashMap<DebuggerKeyValueTrait>::Insert(pair);
+  }
+
+  void Remove(const Key& key) {
+    MallocDirectChainedHashMap<DebuggerKeyValueTrait>::Remove(key);
+  }
+};
+
 class GroupDebugger {
  public:
   explicit GroupDebugger(IsolateGroup* isolate_group);
@@ -563,6 +601,18 @@ class GroupDebugger {
     return breakpoint_locations_lock_.get();
   }
 
+  SafepointRwLock* single_stepping_set_lock() {
+    return single_stepping_set_lock_.get();
+  }
+  void RegisterSingleSteppingDebugger(Thread* thread, const Debugger* debugger);
+  void UnregisterSingleSteppingDebugger(Thread* thread,
+                                        const Debugger* debugger);
+
+  // Returns true if there is at least one breakpoint set in function or code.
+  // Checks for both user-defined and internal temporary breakpoints.
+  bool HasBreakpoint(Thread* thread, const Function& function);
+  bool IsDebugging(Thread* thread, const Function& function);
+
  private:
   IsolateGroup* isolate_group_;
 
@@ -574,6 +624,9 @@ class GroupDebugger {
   // used to quickly scan BreakpointLocations when new Function is compiled.
   std::unique_ptr<SafepointRwLock> breakpoint_locations_lock_;
   MallocGrowableArray<BreakpointLocation*> breakpoint_locations_;
+
+  std::unique_ptr<SafepointRwLock> single_stepping_set_lock_;
+  DebuggerSet single_stepping_set_;
 
   SafepointRwLock* code_breakpoints_lock() {
     return code_breakpoints_lock_.get();
@@ -665,12 +718,6 @@ class Debugger {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  // Returns true if there is at least one breakpoint set in func or code.
-  // Checks for both user-defined and internal temporary breakpoints.
-  // This may be called from different threads, therefore do not use the,
-  // debugger's zone.
-  bool HasBreakpoint(const Function& func, Zone* zone);
-
   // Returns a stack trace with frames corresponding to invisible functions
   // omitted. CurrentStackTrace always returns a new trace on the current stack.
   // The trace returned by StackTrace may have been cached; it is suitable for
@@ -704,8 +751,6 @@ class Debugger {
   void PrintSettingsToJSONObject(JSONObject* jsobj) const;
 
   static bool IsDebuggable(const Function& func);
-
-  static bool IsDebugging(Thread* thread, const Function& func);
 
   intptr_t limitBreakpointId() { return next_id_; }
 
@@ -809,6 +854,7 @@ class Debugger {
 
   // Tells debugger what to do when resuming execution after a breakpoint.
   ResumeAction resume_action_;
+  void set_resume_action(ResumeAction action);
   intptr_t resume_frame_index_;
   intptr_t post_deopt_frame_index_;
 

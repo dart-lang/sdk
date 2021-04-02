@@ -6820,19 +6820,8 @@ bool Function::HasBreakpoint() const {
 #if defined(PRODUCT)
   return false;
 #else
-  // TODO(dartbug.com/36097): We might need to adjust this once we start adding
-  // debugging support to --enable-isolate-groups.
   auto thread = Thread::Current();
-  auto zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
-
-  bool has_breakpoint = false;
-  isolate_group->ForEachIsolate([&](Isolate* isolate) {
-    if (isolate->debugger()->HasBreakpoint(*this, zone)) {
-      has_breakpoint = true;
-    }
-  });
-  return has_breakpoint;
+  return thread->isolate_group()->debugger()->HasBreakpoint(thread, *this);
 #endif
 }
 
