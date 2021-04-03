@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Jenkins hash function, optimized for small integers.
 ///
 /// Static methods borrowed from sdk/lib/math/jenkins_smi_hash.dart. Non-static

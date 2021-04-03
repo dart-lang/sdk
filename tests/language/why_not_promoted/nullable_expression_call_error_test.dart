@@ -140,7 +140,7 @@ instance_field_invocation(C12 c) {
   // Note: the CFE error message is misleading here.  See
   // https://github.com/dart-lang/sdk/issues/45552
   c.bad.foo();
-//^^^^^
+//      ^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 //      ^
 // [cfe 6] Can't use an expression of type 'C13?' as a function because it's potentially null.

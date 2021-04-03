@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 /// An object used to locate the [YamlNode] associated with a source range.
@@ -22,7 +19,7 @@ class YamlNodeLocator {
   ///
   /// If the [end] offset is not provided, then it is considered the same as the
   /// [start] offset.
-  YamlNodeLocator({@required int start, int end})
+  YamlNodeLocator({required int start, int? end})
       : _startOffset = start,
         _endOffset = end ?? start;
 
@@ -51,13 +48,13 @@ class YamlNodeLocator {
       }
     } else if (node is YamlMap) {
       var nodeMap = node.nodes;
-      for (YamlNode key in nodeMap.keys) {
-        _searchWithin(path, key);
+      for (var entry in nodeMap.entries) {
+        _searchWithin(path, entry.key);
         if (path.isNotEmpty) {
           path.add(node);
           return;
         }
-        _searchWithin(path, nodeMap[key]);
+        _searchWithin(path, entry.value);
         if (path.isNotEmpty) {
           path.add(node);
           return;

@@ -6400,7 +6400,7 @@ _An expression whose value is always 'null' can't be dereferenced._
 #### Description
 
 The analyzer produces this diagnostic when an expression whose value will
-always be `null` is dererenced.
+always be `null` is dereferenced.
 
 #### Example
 
@@ -11101,7 +11101,7 @@ the point where it's referenced:
 
 {% prettify dart tag=pre+code %}
 void f(String? s) {
-  if ([!s!].length > 3) {
+  if (s.[!length!] > 3) {
     // ...
   }
 }

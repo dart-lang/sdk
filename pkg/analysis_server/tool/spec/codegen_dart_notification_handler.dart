@@ -112,8 +112,6 @@ mixin NotificationHandler {
   void visitApi() {
     outputHeader(year: '2018');
     writeln();
-    writeln('// @dart = 2.9');
-    writeln();
     emitImports();
     emitNotificationHandler();
   }

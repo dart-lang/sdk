@@ -223,7 +223,7 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
       if (input is SendPort) {
         _sendPort = input;
         channelReady.complete(null);
-      } else if (input is Map) {
+      } else if (input is Map<String, Object?>) {
         if (input.containsKey('id')) {
           var encodedInput = json.encode(input);
           instrumentationService.logPluginResponse(pluginId, encodedInput);

@@ -6,7 +6,6 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory_2/models.dart' as M;
 import 'package:observatory_2/src/elements/class_ref.dart';
-import 'package:observatory_2/src/elements/helpers/any_ref.dart';
 import 'package:observatory_2/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory_2/src/elements/helpers/custom_element.dart';
 import 'package:observatory_2/src/elements/inbound_references.dart';
@@ -26,12 +25,6 @@ class ClassInstancesElement extends CustomElement implements Renderable {
   M.ReachableSizeRepository _reachableSizes;
   M.StronglyReachableInstancesRepository _stronglyReachableInstances;
   M.ObjectRepository _objects;
-  M.Guarded<M.InstanceRef> _allInstances = null;
-  bool _loadingAllInstances = false;
-  M.Guarded<M.InstanceRef> _allSubclassInstances = null;
-  bool _loadingAllSubclassInstances = false;
-  M.Guarded<M.InstanceRef> _allImplementorInstances = null;
-  bool _loadingAllImplementorInstances = false;
   M.Guarded<M.Instance> _retainedSize = null;
   bool _loadingRetainedBytes = false;
   M.Guarded<M.Instance> _reachableSize = null;
@@ -115,41 +108,6 @@ class ClassInstancesElement extends CustomElement implements Renderable {
             ],
           new DivElement()
             ..classes = ['memberItem']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'all direct instances'
-                ..title = 'All instances whose class is exactly this class',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..children = _createAllInstances()
-            ],
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'all instances of subclasses'
-                ..title =
-                    'All instances whose class is a subclass of this class',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..children = _createAllSubclassInstances()
-            ],
-          new DivElement()
-            ..classes = ['memberItem']
-            ..children = <Element>[
-              new DivElement()
-                ..classes = ['memberName']
-                ..text = 'all instances of implementors'
-                ..title =
-                    'All instances whose class implements the implicit interface of this class',
-              new DivElement()
-                ..classes = ['memberValue']
-                ..children = _createAllImplementorInstances()
-            ],
-          new DivElement()
-            ..classes = ['memberItem']
             ..title = 'Space reachable from this object, '
                 'excluding class references'
             ..children = <Element>[
@@ -174,95 +132,6 @@ class ClassInstancesElement extends CustomElement implements Renderable {
             ],
         ]
     ];
-  }
-
-  List<Element> _createAllInstances() {
-    final content = <Element>[];
-    if (_allInstances != null) {
-      if (_allInstances.isSentinel) {
-        content.add(
-            new SentinelValueElement(_allInstances.asSentinel, queue: _r.queue)
-                .element);
-      } else {
-        content.add(anyRef(_isolate, _allInstances.asValue, _objects));
-      }
-    } else {
-      content.add(new SpanElement()..text = '...');
-    }
-    final button = new ButtonElement()
-      ..classes = ['reachable_size']
-      ..disabled = _loadingAllInstances
-      ..text = '↺';
-    button.onClick.listen((_) async {
-      button.disabled = true;
-      _loadingAllInstances = true;
-      _allInstances =
-          await _stronglyReachableInstances.getAsArray(_isolate, _cls);
-      _loadingAllInstances = false;
-      _r.dirty();
-    });
-    content.add(button);
-    return content;
-  }
-
-  List<Element> _createAllSubclassInstances() {
-    final content = <Element>[];
-    if (_allSubclassInstances != null) {
-      if (_allSubclassInstances.isSentinel) {
-        content.add(new SentinelValueElement(_allSubclassInstances.asSentinel,
-                queue: _r.queue)
-            .element);
-      } else {
-        content.add(anyRef(_isolate, _allSubclassInstances.asValue, _objects));
-      }
-    } else {
-      content.add(new SpanElement()..text = '...');
-    }
-    final button = new ButtonElement()
-      ..classes = ['reachable_size']
-      ..disabled = _loadingAllSubclassInstances
-      ..text = '↺';
-    button.onClick.listen((_) async {
-      button.disabled = true;
-      _loadingAllSubclassInstances = true;
-      _allSubclassInstances = await _stronglyReachableInstances
-          .getAsArray(_isolate, _cls, includeSubclasses: true);
-      _loadingAllSubclassInstances = false;
-      _r.dirty();
-    });
-    content.add(button);
-    return content;
-  }
-
-  List<Element> _createAllImplementorInstances() {
-    final content = <Element>[];
-    if (_allImplementorInstances != null) {
-      if (_allImplementorInstances.isSentinel) {
-        content.add(new SentinelValueElement(
-                _allImplementorInstances.asSentinel,
-                queue: _r.queue)
-            .element);
-      } else {
-        content
-            .add(anyRef(_isolate, _allImplementorInstances.asValue, _objects));
-      }
-    } else {
-      content.add(new SpanElement()..text = '...');
-    }
-    final button = new ButtonElement()
-      ..classes = ['reachable_size']
-      ..disabled = _loadingAllImplementorInstances
-      ..text = '↺';
-    button.onClick.listen((_) async {
-      button.disabled = true;
-      _loadingAllImplementorInstances = true;
-      _allImplementorInstances = await _stronglyReachableInstances
-          .getAsArray(_isolate, _cls, includeImplementors: true);
-      _loadingAllImplementorInstances = false;
-      _r.dirty();
-    });
-    content.add(button);
-    return content;
   }
 
   List<Element> _createReachableSizeValue() {

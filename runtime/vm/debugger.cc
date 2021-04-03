@@ -332,7 +332,7 @@ ErrorPtr Debugger::PauseRequest(ServiceEvent::EventKind kind) {
   }
   CacheStackTraces(trace, DebuggerStackTrace::CollectAsyncCausal(),
                    DebuggerStackTrace::CollectAwaiterReturn());
-  resume_action_ = kContinue;
+  set_resume_action(kContinue);
   Pause(&event);
   HandleSteppingRequest(trace);
   ClearCachedStackTraces();
@@ -457,27 +457,6 @@ static bool IsImplicitFunction(const Function& func) {
       }
   }
   return false;
-}
-
-bool Debugger::HasBreakpoint(const Function& func, Zone* zone) {
-  if (!func.HasCode()) {
-    // If the function is not compiled yet, just check whether there
-    // is a user-defined breakpoint that falls into the token
-    // range of the function. This may be a false positive: the breakpoint
-    // might be inside a local closure.
-    Script& script = Script::Handle(zone);
-    BreakpointLocation* sbpt = breakpoint_locations_;
-    while (sbpt != NULL) {
-      script = sbpt->script();
-      if (FunctionOverlaps(func, script, sbpt->token_pos(),
-                           sbpt->end_token_pos())) {
-        return true;
-      }
-      sbpt = sbpt->next_;
-    }
-    return false;
-  }
-  return group_debugger()->HasCodeBreakpointInFunction(func);
 }
 
 bool GroupDebugger::HasCodeBreakpointInFunction(const Function& func) {
@@ -1558,6 +1537,7 @@ GroupDebugger::GroupDebugger(IsolateGroup* isolate_group)
       code_breakpoints_lock_(new SafepointRwLock()),
       code_breakpoints_(nullptr),
       breakpoint_locations_lock_(new SafepointRwLock()),
+      single_stepping_set_lock_(new SafepointRwLock()),
       needs_breakpoint_cleanup_(false) {}
 
 GroupDebugger::~GroupDebugger() {
@@ -1671,13 +1651,13 @@ bool Debugger::SetResumeAction(ResumeAction action,
     case kStepOver:
     case kStepOut:
     case kContinue:
-      resume_action_ = action;
+      set_resume_action(action);
       return true;
     case kStepRewind:
       if (!CanRewindFrame(frame_index, error)) {
         return false;
       }
-      resume_action_ = kStepRewind;
+      set_resume_action(kStepRewind);
       resume_frame_index_ = frame_index;
       return true;
     case kStepOverAsyncSuspension:
@@ -3315,6 +3295,7 @@ void Debugger::Pause(ServiceEvent* event) {
 }
 
 void GroupDebugger::Pause() {
+  SafepointWriteRwLocker sl(Thread::Current(), code_breakpoints_lock());
   if (needs_breakpoint_cleanup_) {
     RemoveUnlinkedCodeBreakpoints();
   }
@@ -3603,7 +3584,7 @@ void Debugger::RewindToUnoptimizedFrame(StackFrame* frame, const Code& code) {
   // We will be jumping out of the debugger rather than exiting this
   // function, so prepare the debugger state.
   ClearCachedStackTraces();
-  resume_action_ = kContinue;
+  set_resume_action(kContinue);
   resume_frame_index_ = -1;
   EnterSingleStepMode();
 
@@ -3634,7 +3615,7 @@ void Debugger::RewindToOptimizedFrame(StackFrame* frame,
   // We will be jumping out of the debugger rather than exiting this
   // function, so prepare the debugger state.
   ClearCachedStackTraces();
-  resume_action_ = kContinue;
+  set_resume_action(kContinue);
   resume_frame_index_ = -1;
   EnterSingleStepMode();
 
@@ -3707,28 +3688,67 @@ bool Debugger::IsDebuggable(const Function& func) {
   return lib.IsDebuggable();
 }
 
-bool Debugger::IsDebugging(Thread* thread, const Function& func) {
-  // TODO(dartbug.com/36097): We might need to adjust this once we start adding
-  // debugging support to --enable-isolate-groups.
-  auto isolate_group = thread->isolate_group();
+void GroupDebugger::RegisterSingleSteppingDebugger(Thread* thread,
+                                                   const Debugger* debugger) {
+  ASSERT(single_stepping_set_lock()->IsCurrentThreadWriter());
+  single_stepping_set_.Insert(debugger);
+}
 
-  bool has_breakpoint = false;
-  bool is_single_stepping = false;
-  isolate_group->ForEachIsolate(
-      [&](Isolate* isolate) {
-        if (isolate->debugger()->IsStepping()) {
-          is_single_stepping = true;
-        }
-        if (isolate->debugger()->HasBreakpoint(func, thread->zone())) {
-          has_breakpoint = true;
-        }
-      },
-      thread->IsAtSafepoint());
-  return has_breakpoint || is_single_stepping;
+void GroupDebugger::UnregisterSingleSteppingDebugger(Thread* thread,
+                                                     const Debugger* debugger) {
+  ASSERT(single_stepping_set_lock()->IsCurrentThreadWriter());
+  single_stepping_set_.Remove(debugger);
+}
+
+bool GroupDebugger::HasBreakpoint(Thread* thread, const Function& function) {
+  {
+    // Check if function has any breakpoints.
+    SafepointReadRwLocker sl(thread, breakpoint_locations_lock());
+    Script& script = Script::Handle(thread->zone());
+    for (intptr_t i = 0; i < breakpoint_locations_.length(); i++) {
+      BreakpointLocation* location = breakpoint_locations_.At(i);
+      script = location->script();
+      if (FunctionOverlaps(function, script, location->token_pos(),
+                           location->end_token_pos())) {
+        return true;
+      }
+    }
+  }
+  // TODO(aam): do we have to iterate over both code breakpoints and
+  // breakpoint locations? Wouldn't be sufficient to iterate over only
+  // one list? Could you have a CodeBreakpoint without corresponding
+  // BreakpointLocation?
+  if (HasCodeBreakpointInFunction(function)) {
+    return true;
+  }
+
+  return false;
+}
+
+bool GroupDebugger::IsDebugging(Thread* thread, const Function& function) {
+  {
+    SafepointReadRwLocker sl(thread, single_stepping_set_lock());
+    if (!single_stepping_set_.IsEmpty()) {
+      return true;
+    }
+  }
+  return HasBreakpoint(thread, function);
+}
+
+void Debugger::set_resume_action(ResumeAction resume_action) {
+  auto thread = Thread::Current();
+  SafepointWriteRwLocker sl(thread,
+                            group_debugger()->single_stepping_set_lock());
+  if (resume_action == kContinue) {
+    group_debugger()->UnregisterSingleSteppingDebugger(thread, this);
+  } else {
+    group_debugger()->RegisterSingleSteppingDebugger(thread, this);
+  }
+  resume_action_ = resume_action;
 }
 
 void Debugger::SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt) {
-  resume_action_ = kContinue;
+  set_resume_action(kContinue);
   ResetSteppingFramePointers();
   NotifySingleStepping(false);
   ASSERT(!IsPaused());
@@ -4354,7 +4374,7 @@ void GroupDebugger::UnlinkCodeBreakpoints(BreakpointLocation* bpt_location) {
 // Remove and delete unlinked code breakpoints, i.e. breakpoints that
 // are not associated with a breakpoint location.
 void GroupDebugger::RemoveUnlinkedCodeBreakpoints() {
-  SafepointWriteRwLocker sl(Thread::Current(), code_breakpoints_lock());
+  ASSERT(code_breakpoints_lock()->IsCurrentThreadWriter());
   CodeBreakpoint* prev_bpt = nullptr;
   CodeBreakpoint* curr_bpt = code_breakpoints_;
   while (curr_bpt != nullptr) {

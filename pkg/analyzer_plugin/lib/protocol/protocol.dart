@@ -80,7 +80,7 @@ class Request {
   final String method;
 
   /// A table mapping the names of request parameters to their values.
-  final Map<String, Object> params;
+  final Map<String, Object?> params;
 
   /// The time (milliseconds since epoch) at which the server made the request,
   /// or `null` if this information is not provided by the server.
@@ -90,8 +90,8 @@ class Request {
   /// name. If [params] is supplied, it is used as the "params" map for the
   /// request. Otherwise an empty "params" map is allocated.
   Request(this.id, this.method,
-      [Map<String, Object>? params, this.serverRequestTime])
-      : params = params ?? <String, Object>{};
+      [Map<String, Object?>? params, this.serverRequestTime])
+      : params = params ?? <String, Object?>{};
 
   /// Return a request parsed from the given json, or `null` if the [data] is
   /// not a valid json representation of a request. The [data] is expected to
@@ -111,19 +111,19 @@ class Request {
   /// The parameters can contain any number of name/value pairs. The
   /// clientRequestTime must be an int representing the time at which the client
   /// issued the request (milliseconds since epoch).
-  factory Request.fromJson(Map<String, Object> result) {
+  factory Request.fromJson(Map<String, Object?> result) {
     var id = result[Request.ID];
     var method = result[Request.METHOD];
     if (id is! String || method is! String) {
       throw StateError('Unexpected type for id or method');
     }
     var time = result[Request.SERVER_REQUEST_TIME];
-    if (time != null && time is! int) {
+    if (time is! int?) {
       throw StateError('Unexpected type for server request time');
     }
     var params = result[Request.PARAMS];
-    if (params is Map || params == null) {
-      return Request(id, method, params as Map<String, Object>?, time as int?);
+    if (params is Map<String, Object?>?) {
+      return Request(id, method, params, time);
     } else {
       throw StateError('Unexpected type for params');
     }
@@ -304,36 +304,39 @@ class Response {
 
   /// A table mapping the names of result fields to their values. Should be
   /// `null` if there is no result to send.
-  Map<String, Object>? result;
+  Map<String, Object?>? result;
 
   /// Initialize a newly created instance to represent a response to a request
-  /// with the given [id]. If [_result] is provided, it will be used as the
+  /// with the given [id]. If [result] is provided, it will be used as the
   /// result; otherwise an empty result will be used. If an [error] is provided
   /// then the response will represent an error condition.
-  Response(this.id, this.requestTime, {this.error, Map<String, Object>? result})
-      : result = result;
+  Response(this.id, this.requestTime, {this.error, this.result});
 
   /// Initialize a newly created instance based on the given JSON data.
-  factory Response.fromJson(Map json) {
+  factory Response.fromJson(Map<String, Object?> json) {
     var id = json[ID];
     if (id is! String) {
       throw StateError('Unexpected type for id');
     }
-    var error = json[ERROR];
+
     RequestError? decodedError;
+    var error = json[ERROR];
     if (error is Map) {
       decodedError =
           RequestError.fromJson(ResponseDecoder(null), '.error', error);
     }
+
     var requestTime = json[REQUEST_TIME];
     if (requestTime is! int) {
       throw StateError('Unexpected type for requestTime');
     }
-    var result = json[RESULT];
-    Map<String, Object>? decodedResult;
-    if (result is Map) {
-      decodedResult = result as Map<String, Object>;
+
+    Map<String, Object?>? decodedResult;
+    var result = json[Response.RESULT];
+    if (result is Map<String, Object?>) {
+      decodedResult = result;
     }
+
     return Response(id, requestTime,
         error: decodedError, result: decodedResult);
   }

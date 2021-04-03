@@ -6854,7 +6854,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when an expression whose value will
-  // always be `null` is dererenced.
+  // always be `null` is dereferenced.
   //
   // #### Example
   //
@@ -11897,7 +11897,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // ```dart
   // void f(String? s) {
-  //   if ([!s!].length > 3) {
+  //   if (s.[!length!] > 3) {
   //     // ...
   //   }
   // }

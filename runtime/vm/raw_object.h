@@ -934,9 +934,7 @@ class UntaggedClass : public UntaggedObject {
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-#if defined(PRODUCT)
         return reinterpret_cast<CompressedObjectPtr*>(&allocation_stub_);
-#endif
       case Snapshot::kFull:
       case Snapshot::kFullCore:
         return reinterpret_cast<CompressedObjectPtr*>(&direct_subclasses_);

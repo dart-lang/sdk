@@ -49,7 +49,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
 
   /// Generate a function argument for the given parameter field.
   String formatArgument(TypeObjectField field) =>
-      '${dartType(field.type)} ${field.name}';
+      '${fieldDartType(field)} ${field.name}';
 
   /// Figure out the appropriate Dart type for data having the given API
   /// protocol [type].
@@ -85,8 +85,6 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
   @override
   void visitApi() {
     outputHeader(year: '2017');
-    writeln();
-    writeln('// @dart = 2.9');
     writeln();
     writeln('/// Convenience methods for running integration tests.');
     writeln("import 'dart:async';");
@@ -134,7 +132,6 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
           writeln('default:');
           indent(() {
             writeln("fail('Unexpected notification: \$event');");
-            writeln('break;');
           });
         });
         writeln('}');
@@ -156,12 +153,12 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       toHtmlVisitor.translateHtml(notification.html);
       toHtmlVisitor.describePayload(notification.params, 'Parameters');
     }));
-    writeln('Stream<$className> $streamName;');
+    writeln('late Stream<$className> $streamName;');
     writeln();
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.write('Stream controller for [$streamName].');
     }));
-    writeln('StreamController<$className> _$streamName;');
+    writeln('late StreamController<$className> _$streamName;');
     fieldInitializationCode.add(collectCode(() {
       writeln('_$streamName = StreamController<$className>(sync: true);');
       writeln('$streamName = _$streamName.stream.asBroadcastStream();');

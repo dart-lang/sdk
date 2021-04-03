@@ -120,8 +120,9 @@ class ErrorReporter {
   /// Report an error with the given [errorCode] and [arguments]. The [token] is
   /// used to compute the location of the error.
   void reportErrorForToken(ErrorCode errorCode, Token token,
-      [List<Object?>? arguments]) {
-    reportErrorForOffset(errorCode, token.offset, token.length, arguments);
+      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
+    reportErrorForOffset(
+        errorCode, token.offset, token.length, arguments, messages);
   }
 
   /// Report an error with the given [errorCode] and [message]. The location of

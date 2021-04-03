@@ -91,8 +91,6 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   void visitApi() {
     outputHeader(year: '2017');
     writeln();
-    writeln('// @dart = 2.9');
-    writeln();
     writeln('/// Matchers for data types defined in the analysis server API.');
     writeln("import 'package:test/test.dart';");
     writeln();

@@ -24,8 +24,31 @@ class AddNullCheck extends CorrectionProducer {
       return;
     }
     Expression target;
-    if (coveredNode is Expression) {
+    var coveredNodeParent = coveredNode.parent;
+    if (coveredNode is SimpleIdentifier) {
+      if (coveredNodeParent is MethodInvocation) {
+        target = coveredNodeParent.realTarget;
+      } else if (coveredNodeParent is PrefixedIdentifier) {
+        target = coveredNodeParent.prefix;
+      } else if (coveredNodeParent is PropertyAccess) {
+        target = coveredNodeParent.realTarget;
+      } else if (coveredNodeParent is BinaryExpression) {
+        target = coveredNodeParent.rightOperand;
+      } else {
+        target = coveredNode;
+      }
+    } else if (coveredNode is IndexExpression) {
+      target = (coveredNode as IndexExpression).realTarget;
+    } else if (coveredNodeParent is FunctionExpressionInvocation) {
       target = coveredNode;
+    } else if (coveredNodeParent is AssignmentExpression) {
+      target = coveredNodeParent.rightHandSide;
+    } else if (coveredNode is PostfixExpression) {
+      target = (coveredNode as PostfixExpression).operand;
+    } else if (coveredNode is PrefixExpression) {
+      target = (coveredNode as PrefixExpression).operand;
+    } else if (coveredNode is BinaryExpression) {
+      target = (coveredNode as BinaryExpression).leftOperand;
     } else {
       return;
     }

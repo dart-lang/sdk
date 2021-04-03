@@ -6,8 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-// @dart = 2.9
-
 import 'dart:convert' hide JsonDecoder;
 
 import 'package:analysis_server_client/src/protocol/protocol_base.dart';
@@ -23,23 +21,13 @@ import 'package:analysis_server_client/src/protocol/protocol_util.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisAnalyzedFilesParams implements HasToJson {
-  List<String> _directories;
-
   /// A list of the paths of the files that are being analyzed.
-  List<String> get directories => _directories;
+  List<String> directories;
 
-  /// A list of the paths of the files that are being analyzed.
-  set directories(List<String> value) {
-    assert(value != null);
-    _directories = value;
-  }
-
-  AnalysisAnalyzedFilesParams(List<String> directories) {
-    this.directories = directories;
-  }
+  AnalysisAnalyzedFilesParams(this.directories);
 
   factory AnalysisAnalyzedFilesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<String> directories;
@@ -63,8 +51,8 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['directories'] = directories;
     return result;
   }
@@ -102,18 +90,8 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisClosingLabelsParams implements HasToJson {
-  String _file;
-
-  List<ClosingLabel> _labels;
-
   /// The file the closing labels relate to.
-  String get file => _file;
-
-  /// The file the closing labels relate to.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// Closing labels relevant to the file. Each item represents a useful label
   /// associated with some range with may be useful to display to the user
@@ -122,27 +100,12 @@ class AnalysisClosingLabelsParams implements HasToJson {
   /// and List arguments that span multiple lines. Note that the ranges that
   /// are returned can overlap each other because they may be associated with
   /// constructs that can be nested.
-  List<ClosingLabel> get labels => _labels;
+  List<ClosingLabel> labels;
 
-  /// Closing labels relevant to the file. Each item represents a useful label
-  /// associated with some range with may be useful to display to the user
-  /// within the editor at the end of the range to indicate what construct is
-  /// closed at that location. Closing labels include constructor/method calls
-  /// and List arguments that span multiple lines. Note that the ranges that
-  /// are returned can overlap each other because they may be associated with
-  /// constructs that can be nested.
-  set labels(List<ClosingLabel> value) {
-    assert(value != null);
-    _labels = value;
-  }
-
-  AnalysisClosingLabelsParams(String file, List<ClosingLabel> labels) {
-    this.file = file;
-    this.labels = labels;
-  }
+  AnalysisClosingLabelsParams(this.file, this.labels);
 
   factory AnalysisClosingLabelsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -156,7 +119,7 @@ class AnalysisClosingLabelsParams implements HasToJson {
         labels = jsonDecoder.decodeList(
             jsonPath + '.labels',
             json['labels'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 ClosingLabel.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'labels');
@@ -175,8 +138,8 @@ class AnalysisClosingLabelsParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['labels'] =
         labels.map((ClosingLabel value) => value.toJson()).toList();
@@ -218,39 +181,17 @@ class AnalysisClosingLabelsParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorFixes implements HasToJson {
-  AnalysisError _error;
-
-  List<SourceChange> _fixes;
-
   /// The error with which the fixes are associated.
-  AnalysisError get error => _error;
-
-  /// The error with which the fixes are associated.
-  set error(AnalysisError value) {
-    assert(value != null);
-    _error = value;
-  }
+  AnalysisError error;
 
   /// The fixes associated with the error.
-  List<SourceChange> get fixes => _fixes;
+  List<SourceChange> fixes;
 
-  /// The fixes associated with the error.
-  set fixes(List<SourceChange> value) {
-    assert(value != null);
-    _fixes = value;
-  }
-
-  AnalysisErrorFixes(AnalysisError error, {List<SourceChange> fixes}) {
-    this.error = error;
-    if (fixes == null) {
-      this.fixes = <SourceChange>[];
-    } else {
-      this.fixes = fixes;
-    }
-  }
+  AnalysisErrorFixes(this.error, {List<SourceChange>? fixes})
+      : fixes = fixes ?? <SourceChange>[];
 
   factory AnalysisErrorFixes.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       AnalysisError error;
@@ -265,7 +206,7 @@ class AnalysisErrorFixes implements HasToJson {
         fixes = jsonDecoder.decodeList(
             jsonPath + '.fixes',
             json['fixes'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 SourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'fixes');
@@ -277,8 +218,8 @@ class AnalysisErrorFixes implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['error'] = error.toJson();
     result['fixes'] =
         fixes.map((SourceChange value) => value.toJson()).toList();
@@ -316,35 +257,16 @@ class AnalysisErrorFixes implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorsParams implements HasToJson {
-  String _file;
-
-  List<AnalysisError> _errors;
-
   /// The file containing the errors.
-  String get file => _file;
-
-  /// The file containing the errors.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The errors contained in the file.
-  List<AnalysisError> get errors => _errors;
+  List<AnalysisError> errors;
 
-  /// The errors contained in the file.
-  set errors(List<AnalysisError> value) {
-    assert(value != null);
-    _errors = value;
-  }
-
-  AnalysisErrorsParams(String file, List<AnalysisError> errors) {
-    this.file = file;
-    this.errors = errors;
-  }
+  AnalysisErrorsParams(this.file, this.errors);
 
   factory AnalysisErrorsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -358,7 +280,7 @@ class AnalysisErrorsParams implements HasToJson {
         errors = jsonDecoder.decodeList(
             jsonPath + '.errors',
             json['errors'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 AnalysisError.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'errors');
@@ -375,8 +297,8 @@ class AnalysisErrorsParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['errors'] =
         errors.map((AnalysisError value) => value.toJson()).toList();
@@ -417,23 +339,13 @@ class AnalysisErrorsParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisFlushResultsParams implements HasToJson {
-  List<String> _files;
-
   /// The files that are no longer being analyzed.
-  List<String> get files => _files;
+  List<String> files;
 
-  /// The files that are no longer being analyzed.
-  set files(List<String> value) {
-    assert(value != null);
-    _files = value;
-  }
-
-  AnalysisFlushResultsParams(List<String> files) {
-    this.files = files;
-  }
+  AnalysisFlushResultsParams(this.files);
 
   factory AnalysisFlushResultsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<String> files;
@@ -457,8 +369,8 @@ class AnalysisFlushResultsParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['files'] = files;
     return result;
   }
@@ -495,35 +407,16 @@ class AnalysisFlushResultsParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisFoldingParams implements HasToJson {
-  String _file;
-
-  List<FoldingRegion> _regions;
-
   /// The file containing the folding regions.
-  String get file => _file;
-
-  /// The file containing the folding regions.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The folding regions contained in the file.
-  List<FoldingRegion> get regions => _regions;
+  List<FoldingRegion> regions;
 
-  /// The folding regions contained in the file.
-  set regions(List<FoldingRegion> value) {
-    assert(value != null);
-    _regions = value;
-  }
-
-  AnalysisFoldingParams(String file, List<FoldingRegion> regions) {
-    this.file = file;
-    this.regions = regions;
-  }
+  AnalysisFoldingParams(this.file, this.regions);
 
   factory AnalysisFoldingParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -537,7 +430,7 @@ class AnalysisFoldingParams implements HasToJson {
         regions = jsonDecoder.decodeList(
             jsonPath + '.regions',
             json['regions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'regions');
@@ -554,8 +447,8 @@ class AnalysisFoldingParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['regions'] =
         regions.map((FoldingRegion value) => value.toJson()).toList();
@@ -596,23 +489,13 @@ class AnalysisFoldingParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetErrorsParams implements RequestParams {
-  String _file;
-
   /// The file for which errors are being requested.
-  String get file => _file;
+  String file;
 
-  /// The file for which errors are being requested.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
-
-  AnalysisGetErrorsParams(String file) {
-    this.file = file;
-  }
+  AnalysisGetErrorsParams(this.file);
 
   factory AnalysisGetErrorsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -633,8 +516,8 @@ class AnalysisGetErrorsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     return result;
   }
@@ -671,23 +554,13 @@ class AnalysisGetErrorsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetErrorsResult implements ResponseResult {
-  List<AnalysisError> _errors;
-
   /// The errors associated with the file.
-  List<AnalysisError> get errors => _errors;
+  List<AnalysisError> errors;
 
-  /// The errors associated with the file.
-  set errors(List<AnalysisError> value) {
-    assert(value != null);
-    _errors = value;
-  }
-
-  AnalysisGetErrorsResult(List<AnalysisError> errors) {
-    this.errors = errors;
-  }
+  AnalysisGetErrorsResult(this.errors);
 
   factory AnalysisGetErrorsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<AnalysisError> errors;
@@ -695,7 +568,7 @@ class AnalysisGetErrorsResult implements ResponseResult {
         errors = jsonDecoder.decodeList(
             jsonPath + '.errors',
             json['errors'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 AnalysisError.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'errors');
@@ -714,8 +587,8 @@ class AnalysisGetErrorsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['errors'] =
         errors.map((AnalysisError value) => value.toJson()).toList();
     return result;
@@ -755,35 +628,16 @@ class AnalysisGetErrorsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetHoverParams implements RequestParams {
-  String _file;
-
-  int _offset;
-
   /// The file in which hover information is being requested.
-  String get file => _file;
-
-  /// The file in which hover information is being requested.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The offset for which hover information is being requested.
-  int get offset => _offset;
+  int offset;
 
-  /// The offset for which hover information is being requested.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
-
-  AnalysisGetHoverParams(String file, int offset) {
-    this.file = file;
-    this.offset = offset;
-  }
+  AnalysisGetHoverParams(this.file, this.offset);
 
   factory AnalysisGetHoverParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -810,8 +664,8 @@ class AnalysisGetHoverParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     return result;
@@ -850,31 +704,17 @@ class AnalysisGetHoverParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetHoverResult implements ResponseResult {
-  List<HoverInformation> _hovers;
-
   /// The hover information associated with the location. The list will be
   /// empty if no information could be determined for the location. The list
   /// can contain multiple items if the file is being analyzed in multiple
   /// contexts in conflicting ways (such as a part that is included in multiple
   /// libraries).
-  List<HoverInformation> get hovers => _hovers;
+  List<HoverInformation> hovers;
 
-  /// The hover information associated with the location. The list will be
-  /// empty if no information could be determined for the location. The list
-  /// can contain multiple items if the file is being analyzed in multiple
-  /// contexts in conflicting ways (such as a part that is included in multiple
-  /// libraries).
-  set hovers(List<HoverInformation> value) {
-    assert(value != null);
-    _hovers = value;
-  }
-
-  AnalysisGetHoverResult(List<HoverInformation> hovers) {
-    this.hovers = hovers;
-  }
+  AnalysisGetHoverResult(this.hovers);
 
   factory AnalysisGetHoverResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<HoverInformation> hovers;
@@ -882,7 +722,7 @@ class AnalysisGetHoverResult implements ResponseResult {
         hovers = jsonDecoder.decodeList(
             jsonPath + '.hovers',
             json['hovers'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 HoverInformation.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'hovers');
@@ -901,8 +741,8 @@ class AnalysisGetHoverResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['hovers'] =
         hovers.map((HoverInformation value) => value.toJson()).toList();
     return result;
@@ -943,47 +783,19 @@ class AnalysisGetHoverResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetImportedElementsParams implements RequestParams {
-  String _file;
-
-  int _offset;
-
-  int _length;
-
   /// The file in which import information is being requested.
-  String get file => _file;
-
-  /// The file in which import information is being requested.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The offset of the region for which import information is being requested.
-  int get offset => _offset;
-
-  /// The offset of the region for which import information is being requested.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the region for which import information is being requested.
-  int get length => _length;
+  int length;
 
-  /// The length of the region for which import information is being requested.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
-
-  AnalysisGetImportedElementsParams(String file, int offset, int length) {
-    this.file = file;
-    this.offset = offset;
-    this.length = length;
-  }
+  AnalysisGetImportedElementsParams(this.file, this.offset, this.length);
 
   factory AnalysisGetImportedElementsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -1017,8 +829,8 @@ class AnalysisGetImportedElementsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     result['length'] = length;
@@ -1061,25 +873,14 @@ class AnalysisGetImportedElementsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetImportedElementsResult implements ResponseResult {
-  List<ImportedElements> _elements;
-
   /// The information about the elements that are referenced in the specified
   /// region of the specified file that come from imported libraries.
-  List<ImportedElements> get elements => _elements;
+  List<ImportedElements> elements;
 
-  /// The information about the elements that are referenced in the specified
-  /// region of the specified file that come from imported libraries.
-  set elements(List<ImportedElements> value) {
-    assert(value != null);
-    _elements = value;
-  }
-
-  AnalysisGetImportedElementsResult(List<ImportedElements> elements) {
-    this.elements = elements;
-  }
+  AnalysisGetImportedElementsResult(this.elements);
 
   factory AnalysisGetImportedElementsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<ImportedElements> elements;
@@ -1087,7 +888,7 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
         elements = jsonDecoder.decodeList(
             jsonPath + '.elements',
             json['elements'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 ImportedElements.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'elements');
@@ -1107,8 +908,8 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['elements'] =
         elements.map((ImportedElements value) => value.toJson()).toList();
     return result;
@@ -1144,7 +945,7 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetLibraryDependenciesParams implements RequestParams {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Request toRequest(String id) {
@@ -1174,42 +975,19 @@ class AnalysisGetLibraryDependenciesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetLibraryDependenciesResult implements ResponseResult {
-  List<String> _libraries;
-
-  Map<String, Map<String, List<String>>> _packageMap;
-
   /// A list of the paths of library elements referenced by files in existing
   /// analysis roots.
-  List<String> get libraries => _libraries;
-
-  /// A list of the paths of library elements referenced by files in existing
-  /// analysis roots.
-  set libraries(List<String> value) {
-    assert(value != null);
-    _libraries = value;
-  }
+  List<String> libraries;
 
   /// A mapping from context source roots to package maps which map package
   /// names to source directories for use in client-side package URI
   /// resolution.
-  Map<String, Map<String, List<String>>> get packageMap => _packageMap;
+  Map<String, Map<String, List<String>>> packageMap;
 
-  /// A mapping from context source roots to package maps which map package
-  /// names to source directories for use in client-side package URI
-  /// resolution.
-  set packageMap(Map<String, Map<String, List<String>>> value) {
-    assert(value != null);
-    _packageMap = value;
-  }
-
-  AnalysisGetLibraryDependenciesResult(List<String> libraries,
-      Map<String, Map<String, List<String>>> packageMap) {
-    this.libraries = libraries;
-    this.packageMap = packageMap;
-  }
+  AnalysisGetLibraryDependenciesResult(this.libraries, this.packageMap);
 
   factory AnalysisGetLibraryDependenciesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<String> libraries;
@@ -1223,9 +1001,9 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
       if (json.containsKey('packageMap')) {
         packageMap = jsonDecoder.decodeMap(
             jsonPath + '.packageMap', json['packageMap'],
-            valueDecoder: (String jsonPath, Object json) =>
+            valueDecoder: (String jsonPath, Object? json) =>
                 jsonDecoder.decodeMap(jsonPath, json,
-                    valueDecoder: (String jsonPath, Object json) => jsonDecoder
+                    valueDecoder: (String jsonPath, Object? json) => jsonDecoder
                         .decodeList(jsonPath, json, jsonDecoder.decodeString)));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'packageMap');
@@ -1245,8 +1023,8 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['libraries'] = libraries;
     result['packageMap'] = packageMap;
     return result;
@@ -1297,51 +1075,21 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationParams implements RequestParams {
-  String _file;
-
-  int _offset;
-
-  int _length;
-
   /// The file in which navigation information is being requested.
-  String get file => _file;
-
-  /// The file in which navigation information is being requested.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The offset of the region for which navigation information is being
   /// requested.
-  int get offset => _offset;
-
-  /// The offset of the region for which navigation information is being
-  /// requested.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the region for which navigation information is being
   /// requested.
-  int get length => _length;
+  int length;
 
-  /// The length of the region for which navigation information is being
-  /// requested.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
-
-  AnalysisGetNavigationParams(String file, int offset, int length) {
-    this.file = file;
-    this.offset = offset;
-    this.length = length;
-  }
+  AnalysisGetNavigationParams(this.file, this.offset, this.length);
 
   factory AnalysisGetNavigationParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -1375,8 +1123,8 @@ class AnalysisGetNavigationParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     result['length'] = length;
@@ -1421,52 +1169,21 @@ class AnalysisGetNavigationParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationResult implements ResponseResult {
-  List<String> _files;
-
-  List<NavigationTarget> _targets;
-
-  List<NavigationRegion> _regions;
-
   /// A list of the paths of files that are referenced by the navigation
   /// targets.
-  List<String> get files => _files;
-
-  /// A list of the paths of files that are referenced by the navigation
-  /// targets.
-  set files(List<String> value) {
-    assert(value != null);
-    _files = value;
-  }
+  List<String> files;
 
   /// A list of the navigation targets that are referenced by the navigation
   /// regions.
-  List<NavigationTarget> get targets => _targets;
-
-  /// A list of the navigation targets that are referenced by the navigation
-  /// regions.
-  set targets(List<NavigationTarget> value) {
-    assert(value != null);
-    _targets = value;
-  }
+  List<NavigationTarget> targets;
 
   /// A list of the navigation regions within the requested region of the file.
-  List<NavigationRegion> get regions => _regions;
+  List<NavigationRegion> regions;
 
-  /// A list of the navigation regions within the requested region of the file.
-  set regions(List<NavigationRegion> value) {
-    assert(value != null);
-    _regions = value;
-  }
-
-  AnalysisGetNavigationResult(List<String> files,
-      List<NavigationTarget> targets, List<NavigationRegion> regions) {
-    this.files = files;
-    this.targets = targets;
-    this.regions = regions;
-  }
+  AnalysisGetNavigationResult(this.files, this.targets, this.regions);
 
   factory AnalysisGetNavigationResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<String> files;
@@ -1481,7 +1198,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
         targets = jsonDecoder.decodeList(
             jsonPath + '.targets',
             json['targets'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'targets');
@@ -1491,7 +1208,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
         regions = jsonDecoder.decodeList(
             jsonPath + '.regions',
             json['regions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'regions');
@@ -1511,8 +1228,8 @@ class AnalysisGetNavigationResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['files'] = files;
     result['targets'] =
         targets.map((NavigationTarget value) => value.toJson()).toList();
@@ -1559,23 +1276,13 @@ class AnalysisGetNavigationResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetReachableSourcesParams implements RequestParams {
-  String _file;
-
   /// The file for which reachable source information is being requested.
-  String get file => _file;
+  String file;
 
-  /// The file for which reachable source information is being requested.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
-
-  AnalysisGetReachableSourcesParams(String file) {
-    this.file = file;
-  }
+  AnalysisGetReachableSourcesParams(this.file);
 
   factory AnalysisGetReachableSourcesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -1597,8 +1304,8 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     return result;
   }
@@ -1635,8 +1342,6 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetReachableSourcesResult implements ResponseResult {
-  Map<String, List<String>> _sources;
-
   /// A mapping from source URIs to directly reachable source URIs. For
   /// example, a file "foo.dart" that imports "bar.dart" would have the
   /// corresponding mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If
@@ -1644,32 +1349,18 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
   /// the URI "file:///bar.dart" to them. To check if a specific URI is
   /// reachable from a given file, clients can check for its presence in the
   /// resulting key set.
-  Map<String, List<String>> get sources => _sources;
+  Map<String, List<String>> sources;
 
-  /// A mapping from source URIs to directly reachable source URIs. For
-  /// example, a file "foo.dart" that imports "bar.dart" would have the
-  /// corresponding mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If
-  /// "bar.dart" has further imports (or exports) there will be a mapping from
-  /// the URI "file:///bar.dart" to them. To check if a specific URI is
-  /// reachable from a given file, clients can check for its presence in the
-  /// resulting key set.
-  set sources(Map<String, List<String>> value) {
-    assert(value != null);
-    _sources = value;
-  }
-
-  AnalysisGetReachableSourcesResult(Map<String, List<String>> sources) {
-    this.sources = sources;
-  }
+  AnalysisGetReachableSourcesResult(this.sources);
 
   factory AnalysisGetReachableSourcesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       Map<String, List<String>> sources;
       if (json.containsKey('sources')) {
         sources = jsonDecoder.decodeMap(jsonPath + '.sources', json['sources'],
-            valueDecoder: (String jsonPath, Object json) => jsonDecoder
+            valueDecoder: (String jsonPath, Object? json) => jsonDecoder
                 .decodeList(jsonPath, json, jsonDecoder.decodeString));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'sources');
@@ -1689,8 +1380,8 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['sources'] = sources;
     return result;
   }
@@ -1732,35 +1423,16 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetSignatureParams implements RequestParams {
-  String _file;
-
-  int _offset;
-
   /// The file in which signature information is being requested.
-  String get file => _file;
-
-  /// The file in which signature information is being requested.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The location for which signature information is being requested.
-  int get offset => _offset;
+  int offset;
 
-  /// The location for which signature information is being requested.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
-
-  AnalysisGetSignatureParams(String file, int offset) {
-    this.file = file;
-    this.offset = offset;
-  }
+  AnalysisGetSignatureParams(this.file, this.offset);
 
   factory AnalysisGetSignatureParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -1788,8 +1460,8 @@ class AnalysisGetSignatureParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     return result;
@@ -1830,57 +1502,24 @@ class AnalysisGetSignatureParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetSignatureResult implements ResponseResult {
-  String _name;
-
-  List<ParameterInfo> _parameters;
-
-  String _dartdoc;
-
   /// The name of the function being invoked at the given offset.
-  String get name => _name;
-
-  /// The name of the function being invoked at the given offset.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
+  String name;
 
   /// A list of information about each of the parameters of the function being
   /// invoked.
-  List<ParameterInfo> get parameters => _parameters;
-
-  /// A list of information about each of the parameters of the function being
-  /// invoked.
-  set parameters(List<ParameterInfo> value) {
-    assert(value != null);
-    _parameters = value;
-  }
+  List<ParameterInfo> parameters;
 
   /// The dartdoc associated with the function being invoked. Other than the
   /// removal of the comment delimiters, including leading asterisks in the
   /// case of a block comment, the dartdoc is unprocessed markdown. This data
   /// is omitted if there is no referenced element, or if the element has no
   /// dartdoc.
-  String get dartdoc => _dartdoc;
+  String? dartdoc;
 
-  /// The dartdoc associated with the function being invoked. Other than the
-  /// removal of the comment delimiters, including leading asterisks in the
-  /// case of a block comment, the dartdoc is unprocessed markdown. This data
-  /// is omitted if there is no referenced element, or if the element has no
-  /// dartdoc.
-  set dartdoc(String value) {
-    _dartdoc = value;
-  }
-
-  AnalysisGetSignatureResult(String name, List<ParameterInfo> parameters,
-      {String dartdoc}) {
-    this.name = name;
-    this.parameters = parameters;
-    this.dartdoc = dartdoc;
-  }
+  AnalysisGetSignatureResult(this.name, this.parameters, {this.dartdoc});
 
   factory AnalysisGetSignatureResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -1894,12 +1533,12 @@ class AnalysisGetSignatureResult implements ResponseResult {
         parameters = jsonDecoder.decodeList(
             jsonPath + '.parameters',
             json['parameters'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 ParameterInfo.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'parameters');
       }
-      String dartdoc;
+      String? dartdoc;
       if (json.containsKey('dartdoc')) {
         dartdoc =
             jsonDecoder.decodeString(jsonPath + '.dartdoc', json['dartdoc']);
@@ -1919,11 +1558,12 @@ class AnalysisGetSignatureResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['name'] = name;
     result['parameters'] =
         parameters.map((ParameterInfo value) => value.toJson()).toList();
+    var dartdoc = this.dartdoc;
     if (dartdoc != null) {
       result['dartdoc'] = dartdoc;
     }
@@ -1968,43 +1608,20 @@ class AnalysisGetSignatureResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisHighlightsParams implements HasToJson {
-  String _file;
-
-  List<HighlightRegion> _regions;
-
   /// The file containing the highlight regions.
-  String get file => _file;
-
-  /// The file containing the highlight regions.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The highlight regions contained in the file. Each highlight region
   /// represents a particular syntactic or semantic meaning associated with
   /// some range. Note that the highlight regions that are returned can overlap
   /// other highlight regions if there is more than one meaning associated with
   /// a particular region.
-  List<HighlightRegion> get regions => _regions;
+  List<HighlightRegion> regions;
 
-  /// The highlight regions contained in the file. Each highlight region
-  /// represents a particular syntactic or semantic meaning associated with
-  /// some range. Note that the highlight regions that are returned can overlap
-  /// other highlight regions if there is more than one meaning associated with
-  /// a particular region.
-  set regions(List<HighlightRegion> value) {
-    assert(value != null);
-    _regions = value;
-  }
-
-  AnalysisHighlightsParams(String file, List<HighlightRegion> regions) {
-    this.file = file;
-    this.regions = regions;
-  }
+  AnalysisHighlightsParams(this.file, this.regions);
 
   factory AnalysisHighlightsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -2018,7 +1635,7 @@ class AnalysisHighlightsParams implements HasToJson {
         regions = jsonDecoder.decodeList(
             jsonPath + '.regions',
             json['regions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'regions');
@@ -2035,8 +1652,8 @@ class AnalysisHighlightsParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['regions'] =
         regions.map((HighlightRegion value) => value.toJson()).toList();
@@ -2079,48 +1696,19 @@ class AnalysisHighlightsParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisImplementedParams implements HasToJson {
-  String _file;
-
-  List<ImplementedClass> _classes;
-
-  List<ImplementedMember> _members;
-
   /// The file with which the implementations are associated.
-  String get file => _file;
-
-  /// The file with which the implementations are associated.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The classes defined in the file that are implemented or extended.
-  List<ImplementedClass> get classes => _classes;
-
-  /// The classes defined in the file that are implemented or extended.
-  set classes(List<ImplementedClass> value) {
-    assert(value != null);
-    _classes = value;
-  }
+  List<ImplementedClass> classes;
 
   /// The member defined in the file that are implemented or overridden.
-  List<ImplementedMember> get members => _members;
+  List<ImplementedMember> members;
 
-  /// The member defined in the file that are implemented or overridden.
-  set members(List<ImplementedMember> value) {
-    assert(value != null);
-    _members = value;
-  }
-
-  AnalysisImplementedParams(String file, List<ImplementedClass> classes,
-      List<ImplementedMember> members) {
-    this.file = file;
-    this.classes = classes;
-    this.members = members;
-  }
+  AnalysisImplementedParams(this.file, this.classes, this.members);
 
   factory AnalysisImplementedParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -2134,7 +1722,7 @@ class AnalysisImplementedParams implements HasToJson {
         classes = jsonDecoder.decodeList(
             jsonPath + '.classes',
             json['classes'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 ImplementedClass.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'classes');
@@ -2144,7 +1732,7 @@ class AnalysisImplementedParams implements HasToJson {
         members = jsonDecoder.decodeList(
             jsonPath + '.members',
             json['members'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 ImplementedMember.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'members');
@@ -2162,8 +1750,8 @@ class AnalysisImplementedParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['classes'] =
         classes.map((ImplementedClass value) => value.toJson()).toList();
@@ -2212,63 +1800,24 @@ class AnalysisImplementedParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisInvalidateParams implements HasToJson {
-  String _file;
-
-  int _offset;
-
-  int _length;
-
-  int _delta;
-
   /// The file whose information has been invalidated.
-  String get file => _file;
-
-  /// The file whose information has been invalidated.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The offset of the invalidated region.
-  int get offset => _offset;
-
-  /// The offset of the invalidated region.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the invalidated region.
-  int get length => _length;
-
-  /// The length of the invalidated region.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
+  int length;
 
   /// The delta to be applied to the offsets in information that follows the
   /// invalidated region in order to update it so that it doesn't need to be
   /// re-requested.
-  int get delta => _delta;
+  int delta;
 
-  /// The delta to be applied to the offsets in information that follows the
-  /// invalidated region in order to update it so that it doesn't need to be
-  /// re-requested.
-  set delta(int value) {
-    assert(value != null);
-    _delta = value;
-  }
-
-  AnalysisInvalidateParams(String file, int offset, int length, int delta) {
-    this.file = file;
-    this.offset = offset;
-    this.length = length;
-    this.delta = delta;
-  }
+  AnalysisInvalidateParams(this.file, this.offset, this.length, this.delta);
 
   factory AnalysisInvalidateParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -2307,8 +1856,8 @@ class AnalysisInvalidateParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     result['length'] = length;
@@ -2356,22 +1905,8 @@ class AnalysisInvalidateParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisNavigationParams implements HasToJson {
-  String _file;
-
-  List<NavigationRegion> _regions;
-
-  List<NavigationTarget> _targets;
-
-  List<String> _files;
-
   /// The file containing the navigation regions.
-  String get file => _file;
-
-  /// The file containing the navigation regions.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The navigation regions contained in the file. The regions are sorted by
   /// their offsets. Each navigation region represents a list of targets
@@ -2380,52 +1915,20 @@ class AnalysisNavigationParams implements HasToJson {
   /// multiple libraries or in Dart code that is compiled against multiple
   /// versions of a package. Note that the navigation regions that are returned
   /// do not overlap other navigation regions.
-  List<NavigationRegion> get regions => _regions;
-
-  /// The navigation regions contained in the file. The regions are sorted by
-  /// their offsets. Each navigation region represents a list of targets
-  /// associated with some range. The lists will usually contain a single
-  /// target, but can contain more in the case of a part that is included in
-  /// multiple libraries or in Dart code that is compiled against multiple
-  /// versions of a package. Note that the navigation regions that are returned
-  /// do not overlap other navigation regions.
-  set regions(List<NavigationRegion> value) {
-    assert(value != null);
-    _regions = value;
-  }
+  List<NavigationRegion> regions;
 
   /// The navigation targets referenced in the file. They are referenced by
   /// NavigationRegions by their index in this array.
-  List<NavigationTarget> get targets => _targets;
-
-  /// The navigation targets referenced in the file. They are referenced by
-  /// NavigationRegions by their index in this array.
-  set targets(List<NavigationTarget> value) {
-    assert(value != null);
-    _targets = value;
-  }
+  List<NavigationTarget> targets;
 
   /// The files containing navigation targets referenced in the file. They are
   /// referenced by NavigationTargets by their index in this array.
-  List<String> get files => _files;
+  List<String> files;
 
-  /// The files containing navigation targets referenced in the file. They are
-  /// referenced by NavigationTargets by their index in this array.
-  set files(List<String> value) {
-    assert(value != null);
-    _files = value;
-  }
-
-  AnalysisNavigationParams(String file, List<NavigationRegion> regions,
-      List<NavigationTarget> targets, List<String> files) {
-    this.file = file;
-    this.regions = regions;
-    this.targets = targets;
-    this.files = files;
-  }
+  AnalysisNavigationParams(this.file, this.regions, this.targets, this.files);
 
   factory AnalysisNavigationParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -2439,7 +1942,7 @@ class AnalysisNavigationParams implements HasToJson {
         regions = jsonDecoder.decodeList(
             jsonPath + '.regions',
             json['regions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'regions');
@@ -2449,7 +1952,7 @@ class AnalysisNavigationParams implements HasToJson {
         targets = jsonDecoder.decodeList(
             jsonPath + '.targets',
             json['targets'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'targets');
@@ -2473,8 +1976,8 @@ class AnalysisNavigationParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['regions'] =
         regions.map((NavigationRegion value) => value.toJson()).toList();
@@ -2524,35 +2027,16 @@ class AnalysisNavigationParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOccurrencesParams implements HasToJson {
-  String _file;
-
-  List<Occurrences> _occurrences;
-
   /// The file in which the references occur.
-  String get file => _file;
-
-  /// The file in which the references occur.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The occurrences of references to elements within the file.
-  List<Occurrences> get occurrences => _occurrences;
+  List<Occurrences> occurrences;
 
-  /// The occurrences of references to elements within the file.
-  set occurrences(List<Occurrences> value) {
-    assert(value != null);
-    _occurrences = value;
-  }
-
-  AnalysisOccurrencesParams(String file, List<Occurrences> occurrences) {
-    this.file = file;
-    this.occurrences = occurrences;
-  }
+  AnalysisOccurrencesParams(this.file, this.occurrences);
 
   factory AnalysisOccurrencesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -2566,7 +2050,7 @@ class AnalysisOccurrencesParams implements HasToJson {
         occurrences = jsonDecoder.decodeList(
             jsonPath + '.occurrences',
             json['occurrences'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 Occurrences.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'occurrences');
@@ -2584,8 +2068,8 @@ class AnalysisOccurrencesParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['occurrences'] =
         occurrences.map((Occurrences value) => value.toJson()).toList();
@@ -2633,176 +2117,96 @@ class AnalysisOccurrencesParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOptions implements HasToJson {
-  bool _enableAsync;
-
-  bool _enableDeferredLoading;
-
-  bool _enableEnums;
-
-  bool _enableNullAwareOperators;
-
-  bool _enableSuperMixins;
-
-  bool _generateDart2jsHints;
-
-  bool _generateHints;
-
-  bool _generateLints;
-
   /// Deprecated: this feature is always enabled.
   ///
   /// True if the client wants to enable support for the proposed async
   /// feature.
-  bool get enableAsync => _enableAsync;
-
-  /// Deprecated: this feature is always enabled.
-  ///
-  /// True if the client wants to enable support for the proposed async
-  /// feature.
-  set enableAsync(bool value) {
-    _enableAsync = value;
-  }
+  bool? enableAsync;
 
   /// Deprecated: this feature is always enabled.
   ///
   /// True if the client wants to enable support for the proposed deferred
   /// loading feature.
-  bool get enableDeferredLoading => _enableDeferredLoading;
-
-  /// Deprecated: this feature is always enabled.
-  ///
-  /// True if the client wants to enable support for the proposed deferred
-  /// loading feature.
-  set enableDeferredLoading(bool value) {
-    _enableDeferredLoading = value;
-  }
+  bool? enableDeferredLoading;
 
   /// Deprecated: this feature is always enabled.
   ///
   /// True if the client wants to enable support for the proposed enum feature.
-  bool get enableEnums => _enableEnums;
-
-  /// Deprecated: this feature is always enabled.
-  ///
-  /// True if the client wants to enable support for the proposed enum feature.
-  set enableEnums(bool value) {
-    _enableEnums = value;
-  }
+  bool? enableEnums;
 
   /// Deprecated: this feature is always enabled.
   ///
   /// True if the client wants to enable support for the proposed "null aware
   /// operators" feature.
-  bool get enableNullAwareOperators => _enableNullAwareOperators;
-
-  /// Deprecated: this feature is always enabled.
-  ///
-  /// True if the client wants to enable support for the proposed "null aware
-  /// operators" feature.
-  set enableNullAwareOperators(bool value) {
-    _enableNullAwareOperators = value;
-  }
+  bool? enableNullAwareOperators;
 
   /// True if the client wants to enable support for the proposed "less
   /// restricted mixins" proposal (DEP 34).
-  bool get enableSuperMixins => _enableSuperMixins;
-
-  /// True if the client wants to enable support for the proposed "less
-  /// restricted mixins" proposal (DEP 34).
-  set enableSuperMixins(bool value) {
-    _enableSuperMixins = value;
-  }
+  bool? enableSuperMixins;
 
   /// True if hints that are specific to dart2js should be generated. This
   /// option is ignored if generateHints is false.
-  bool get generateDart2jsHints => _generateDart2jsHints;
-
-  /// True if hints that are specific to dart2js should be generated. This
-  /// option is ignored if generateHints is false.
-  set generateDart2jsHints(bool value) {
-    _generateDart2jsHints = value;
-  }
+  bool? generateDart2jsHints;
 
   /// True if hints should be generated as part of generating errors and
   /// warnings.
-  bool get generateHints => _generateHints;
-
-  /// True if hints should be generated as part of generating errors and
-  /// warnings.
-  set generateHints(bool value) {
-    _generateHints = value;
-  }
+  bool? generateHints;
 
   /// True if lints should be generated as part of generating errors and
   /// warnings.
-  bool get generateLints => _generateLints;
-
-  /// True if lints should be generated as part of generating errors and
-  /// warnings.
-  set generateLints(bool value) {
-    _generateLints = value;
-  }
+  bool? generateLints;
 
   AnalysisOptions(
-      {bool enableAsync,
-      bool enableDeferredLoading,
-      bool enableEnums,
-      bool enableNullAwareOperators,
-      bool enableSuperMixins,
-      bool generateDart2jsHints,
-      bool generateHints,
-      bool generateLints}) {
-    this.enableAsync = enableAsync;
-    this.enableDeferredLoading = enableDeferredLoading;
-    this.enableEnums = enableEnums;
-    this.enableNullAwareOperators = enableNullAwareOperators;
-    this.enableSuperMixins = enableSuperMixins;
-    this.generateDart2jsHints = generateDart2jsHints;
-    this.generateHints = generateHints;
-    this.generateLints = generateLints;
-  }
+      {this.enableAsync,
+      this.enableDeferredLoading,
+      this.enableEnums,
+      this.enableNullAwareOperators,
+      this.enableSuperMixins,
+      this.generateDart2jsHints,
+      this.generateHints,
+      this.generateLints});
 
   factory AnalysisOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      bool enableAsync;
+      bool? enableAsync;
       if (json.containsKey('enableAsync')) {
         enableAsync = jsonDecoder.decodeBool(
             jsonPath + '.enableAsync', json['enableAsync']);
       }
-      bool enableDeferredLoading;
+      bool? enableDeferredLoading;
       if (json.containsKey('enableDeferredLoading')) {
         enableDeferredLoading = jsonDecoder.decodeBool(
             jsonPath + '.enableDeferredLoading', json['enableDeferredLoading']);
       }
-      bool enableEnums;
+      bool? enableEnums;
       if (json.containsKey('enableEnums')) {
         enableEnums = jsonDecoder.decodeBool(
             jsonPath + '.enableEnums', json['enableEnums']);
       }
-      bool enableNullAwareOperators;
+      bool? enableNullAwareOperators;
       if (json.containsKey('enableNullAwareOperators')) {
         enableNullAwareOperators = jsonDecoder.decodeBool(
             jsonPath + '.enableNullAwareOperators',
             json['enableNullAwareOperators']);
       }
-      bool enableSuperMixins;
+      bool? enableSuperMixins;
       if (json.containsKey('enableSuperMixins')) {
         enableSuperMixins = jsonDecoder.decodeBool(
             jsonPath + '.enableSuperMixins', json['enableSuperMixins']);
       }
-      bool generateDart2jsHints;
+      bool? generateDart2jsHints;
       if (json.containsKey('generateDart2jsHints')) {
         generateDart2jsHints = jsonDecoder.decodeBool(
             jsonPath + '.generateDart2jsHints', json['generateDart2jsHints']);
       }
-      bool generateHints;
+      bool? generateHints;
       if (json.containsKey('generateHints')) {
         generateHints = jsonDecoder.decodeBool(
             jsonPath + '.generateHints', json['generateHints']);
       }
-      bool generateLints;
+      bool? generateLints;
       if (json.containsKey('generateLints')) {
         generateLints = jsonDecoder.decodeBool(
             jsonPath + '.generateLints', json['generateLints']);
@@ -2822,29 +2226,37 @@ class AnalysisOptions implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var enableAsync = this.enableAsync;
     if (enableAsync != null) {
       result['enableAsync'] = enableAsync;
     }
+    var enableDeferredLoading = this.enableDeferredLoading;
     if (enableDeferredLoading != null) {
       result['enableDeferredLoading'] = enableDeferredLoading;
     }
+    var enableEnums = this.enableEnums;
     if (enableEnums != null) {
       result['enableEnums'] = enableEnums;
     }
+    var enableNullAwareOperators = this.enableNullAwareOperators;
     if (enableNullAwareOperators != null) {
       result['enableNullAwareOperators'] = enableNullAwareOperators;
     }
+    var enableSuperMixins = this.enableSuperMixins;
     if (enableSuperMixins != null) {
       result['enableSuperMixins'] = enableSuperMixins;
     }
+    var generateDart2jsHints = this.generateDart2jsHints;
     if (generateDart2jsHints != null) {
       result['generateDart2jsHints'] = generateDart2jsHints;
     }
+    var generateHints = this.generateHints;
     if (generateHints != null) {
       result['generateHints'] = generateHints;
     }
+    var generateLints = this.generateLints;
     if (generateLints != null) {
       result['generateLints'] = generateLints;
     }
@@ -2895,67 +2307,26 @@ class AnalysisOptions implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOutlineParams implements HasToJson {
-  String _file;
-
-  FileKind _kind;
-
-  String _libraryName;
-
-  Outline _outline;
-
   /// The file with which the outline is associated.
-  String get file => _file;
-
-  /// The file with which the outline is associated.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The kind of the file.
-  FileKind get kind => _kind;
-
-  /// The kind of the file.
-  set kind(FileKind value) {
-    assert(value != null);
-    _kind = value;
-  }
+  FileKind kind;
 
   /// The name of the library defined by the file using a "library" directive,
   /// or referenced by a "part of" directive. If both "library" and "part of"
   /// directives are present, then the "library" directive takes precedence.
   /// This field will be omitted if the file has neither "library" nor "part
   /// of" directives.
-  String get libraryName => _libraryName;
-
-  /// The name of the library defined by the file using a "library" directive,
-  /// or referenced by a "part of" directive. If both "library" and "part of"
-  /// directives are present, then the "library" directive takes precedence.
-  /// This field will be omitted if the file has neither "library" nor "part
-  /// of" directives.
-  set libraryName(String value) {
-    _libraryName = value;
-  }
+  String? libraryName;
 
   /// The outline associated with the file.
-  Outline get outline => _outline;
+  Outline outline;
 
-  /// The outline associated with the file.
-  set outline(Outline value) {
-    assert(value != null);
-    _outline = value;
-  }
-
-  AnalysisOutlineParams(String file, FileKind kind, Outline outline,
-      {String libraryName}) {
-    this.file = file;
-    this.kind = kind;
-    this.libraryName = libraryName;
-    this.outline = outline;
-  }
+  AnalysisOutlineParams(this.file, this.kind, this.outline, {this.libraryName});
 
   factory AnalysisOutlineParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -2970,7 +2341,7 @@ class AnalysisOutlineParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
-      String libraryName;
+      String? libraryName;
       if (json.containsKey('libraryName')) {
         libraryName = jsonDecoder.decodeString(
             jsonPath + '.libraryName', json['libraryName']);
@@ -2995,10 +2366,11 @@ class AnalysisOutlineParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['kind'] = kind.toJson();
+    var libraryName = this.libraryName;
     if (libraryName != null) {
       result['libraryName'] = libraryName;
     }
@@ -3044,35 +2416,16 @@ class AnalysisOutlineParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOverridesParams implements HasToJson {
-  String _file;
-
-  List<Override> _overrides;
-
   /// The file with which the overrides are associated.
-  String get file => _file;
-
-  /// The file with which the overrides are associated.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The overrides associated with the file.
-  List<Override> get overrides => _overrides;
+  List<Override> overrides;
 
-  /// The overrides associated with the file.
-  set overrides(List<Override> value) {
-    assert(value != null);
-    _overrides = value;
-  }
-
-  AnalysisOverridesParams(String file, List<Override> overrides) {
-    this.file = file;
-    this.overrides = overrides;
-  }
+  AnalysisOverridesParams(this.file, this.overrides);
 
   factory AnalysisOverridesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -3086,7 +2439,7 @@ class AnalysisOverridesParams implements HasToJson {
         overrides = jsonDecoder.decodeList(
             jsonPath + '.overrides',
             json['overrides'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 Override.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'overrides');
@@ -3103,8 +2456,8 @@ class AnalysisOverridesParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['overrides'] =
         overrides.map((Override value) => value.toJson()).toList();
@@ -3142,7 +2495,7 @@ class AnalysisOverridesParams implements HasToJson {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisReanalyzeParams implements RequestParams {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Request toRequest(String id) {
@@ -3168,7 +2521,7 @@ class AnalysisReanalyzeParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisReanalyzeResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -3269,7 +2622,7 @@ class AnalysisService implements Enum {
   }
 
   factory AnalysisService.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return AnalysisService(json);
@@ -3296,31 +2649,12 @@ class AnalysisService implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetAnalysisRootsParams implements RequestParams {
-  List<String> _included;
-
-  List<String> _excluded;
-
-  Map<String, String> _packageRoots;
-
   /// A list of the files and directories that should be analyzed.
-  List<String> get included => _included;
-
-  /// A list of the files and directories that should be analyzed.
-  set included(List<String> value) {
-    assert(value != null);
-    _included = value;
-  }
+  List<String> included;
 
   /// A list of the files and directories within the included directories that
   /// should not be analyzed.
-  List<String> get excluded => _excluded;
-
-  /// A list of the files and directories within the included directories that
-  /// should not be analyzed.
-  set excluded(List<String> value) {
-    assert(value != null);
-    _excluded = value;
-  }
+  List<String> excluded;
 
   /// A mapping from source directories to package roots that should override
   /// the normal package: URI resolution mechanism.
@@ -3334,33 +2668,13 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
   /// their package: URI's resolved using the normal pubspec.yaml mechanism. If
   /// this field is absent, or the empty map is specified, that indicates that
   /// the normal pubspec.yaml mechanism should always be used.
-  Map<String, String> get packageRoots => _packageRoots;
+  Map<String, String>? packageRoots;
 
-  /// A mapping from source directories to package roots that should override
-  /// the normal package: URI resolution mechanism.
-  ///
-  /// If a package root is a file, then the analyzer will behave as though that
-  /// file is a ".packages" file in the source directory. The effect is the
-  /// same as specifying the file as a "--packages" parameter to the Dart VM
-  /// when executing any Dart file inside the source directory.
-  ///
-  /// Files in any directories that are not overridden by this mapping have
-  /// their package: URI's resolved using the normal pubspec.yaml mechanism. If
-  /// this field is absent, or the empty map is specified, that indicates that
-  /// the normal pubspec.yaml mechanism should always be used.
-  set packageRoots(Map<String, String> value) {
-    _packageRoots = value;
-  }
-
-  AnalysisSetAnalysisRootsParams(List<String> included, List<String> excluded,
-      {Map<String, String> packageRoots}) {
-    this.included = included;
-    this.excluded = excluded;
-    this.packageRoots = packageRoots;
-  }
+  AnalysisSetAnalysisRootsParams(this.included, this.excluded,
+      {this.packageRoots});
 
   factory AnalysisSetAnalysisRootsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<String> included;
@@ -3377,7 +2691,7 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'excluded');
       }
-      Map<String, String> packageRoots;
+      Map<String, String>? packageRoots;
       if (json.containsKey('packageRoots')) {
         packageRoots = jsonDecoder.decodeMap(
             jsonPath + '.packageRoots', json['packageRoots'],
@@ -3397,10 +2711,11 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['included'] = included;
     result['excluded'] = excluded;
+    var packageRoots = this.packageRoots;
     if (packageRoots != null) {
       result['packageRoots'] = packageRoots;
     }
@@ -3442,7 +2757,7 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetAnalysisRootsResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -3471,24 +2786,13 @@ class AnalysisSetAnalysisRootsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
-  List<GeneralAnalysisService> _subscriptions;
-
   /// A list of the services being subscribed to.
-  List<GeneralAnalysisService> get subscriptions => _subscriptions;
+  List<GeneralAnalysisService> subscriptions;
 
-  /// A list of the services being subscribed to.
-  set subscriptions(List<GeneralAnalysisService> value) {
-    assert(value != null);
-    _subscriptions = value;
-  }
-
-  AnalysisSetGeneralSubscriptionsParams(
-      List<GeneralAnalysisService> subscriptions) {
-    this.subscriptions = subscriptions;
-  }
+  AnalysisSetGeneralSubscriptionsParams(this.subscriptions);
 
   factory AnalysisSetGeneralSubscriptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<GeneralAnalysisService> subscriptions;
@@ -3496,7 +2800,7 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
         subscriptions = jsonDecoder.decodeList(
             jsonPath + '.subscriptions',
             json['subscriptions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 GeneralAnalysisService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
@@ -3514,8 +2818,8 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['subscriptions'] = subscriptions
         .map((GeneralAnalysisService value) => value.toJson())
         .toList();
@@ -3552,7 +2856,7 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetGeneralSubscriptionsResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -3581,23 +2885,13 @@ class AnalysisSetGeneralSubscriptionsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesParams implements RequestParams {
-  List<String> _files;
-
   /// The files that are to be a priority for analysis.
-  List<String> get files => _files;
+  List<String> files;
 
-  /// The files that are to be a priority for analysis.
-  set files(List<String> value) {
-    assert(value != null);
-    _files = value;
-  }
-
-  AnalysisSetPriorityFilesParams(List<String> files) {
-    this.files = files;
-  }
+  AnalysisSetPriorityFilesParams(this.files);
 
   factory AnalysisSetPriorityFilesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<String> files;
@@ -3620,8 +2914,8 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['files'] = files;
     return result;
   }
@@ -3655,7 +2949,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -3684,35 +2978,23 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsParams implements RequestParams {
-  Map<AnalysisService, List<String>> _subscriptions;
-
   /// A table mapping services to a list of the files being subscribed to the
   /// service.
-  Map<AnalysisService, List<String>> get subscriptions => _subscriptions;
+  Map<AnalysisService, List<String>> subscriptions;
 
-  /// A table mapping services to a list of the files being subscribed to the
-  /// service.
-  set subscriptions(Map<AnalysisService, List<String>> value) {
-    assert(value != null);
-    _subscriptions = value;
-  }
-
-  AnalysisSetSubscriptionsParams(
-      Map<AnalysisService, List<String>> subscriptions) {
-    this.subscriptions = subscriptions;
-  }
+  AnalysisSetSubscriptionsParams(this.subscriptions);
 
   factory AnalysisSetSubscriptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       Map<AnalysisService, List<String>> subscriptions;
       if (json.containsKey('subscriptions')) {
         subscriptions = jsonDecoder.decodeMap(
             jsonPath + '.subscriptions', json['subscriptions'],
-            keyDecoder: (String jsonPath, Object json) =>
+            keyDecoder: (String jsonPath, Object? json) =>
                 AnalysisService.fromJson(jsonDecoder, jsonPath, json),
-            valueDecoder: (String jsonPath, Object json) => jsonDecoder
+            valueDecoder: (String jsonPath, Object? json) => jsonDecoder
                 .decodeList(jsonPath, json, jsonDecoder.decodeString));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
@@ -3730,8 +3012,8 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['subscriptions'] = mapMap(subscriptions,
         keyCallback: (AnalysisService value) => value.toJson());
     return result;
@@ -3770,7 +3052,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -3800,36 +3082,17 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisStatus implements HasToJson {
-  bool _isAnalyzing;
-
-  String _analysisTarget;
-
   /// True if analysis is currently being performed.
-  bool get isAnalyzing => _isAnalyzing;
-
-  /// True if analysis is currently being performed.
-  set isAnalyzing(bool value) {
-    assert(value != null);
-    _isAnalyzing = value;
-  }
+  bool isAnalyzing;
 
   /// The name of the current target of analysis. This field is omitted if
   /// analyzing is false.
-  String get analysisTarget => _analysisTarget;
+  String? analysisTarget;
 
-  /// The name of the current target of analysis. This field is omitted if
-  /// analyzing is false.
-  set analysisTarget(String value) {
-    _analysisTarget = value;
-  }
-
-  AnalysisStatus(bool isAnalyzing, {String analysisTarget}) {
-    this.isAnalyzing = isAnalyzing;
-    this.analysisTarget = analysisTarget;
-  }
+  AnalysisStatus(this.isAnalyzing, {this.analysisTarget});
 
   factory AnalysisStatus.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       bool isAnalyzing;
@@ -3839,7 +3102,7 @@ class AnalysisStatus implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'isAnalyzing');
       }
-      String analysisTarget;
+      String? analysisTarget;
       if (json.containsKey('analysisTarget')) {
         analysisTarget = jsonDecoder.decodeString(
             jsonPath + '.analysisTarget', json['analysisTarget']);
@@ -3851,9 +3114,10 @@ class AnalysisStatus implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['isAnalyzing'] = isAnalyzing;
+    var analysisTarget = this.analysisTarget;
     if (analysisTarget != null) {
       result['analysisTarget'] = analysisTarget;
     }
@@ -3889,38 +3153,27 @@ class AnalysisStatus implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentParams implements RequestParams {
-  Map<String, dynamic> _files;
-
   /// A table mapping the files whose content has changed to a description of
   /// the content change.
-  Map<String, dynamic> get files => _files;
+  Map<String, dynamic> files;
 
-  /// A table mapping the files whose content has changed to a description of
-  /// the content change.
-  set files(Map<String, dynamic> value) {
-    assert(value != null);
-    _files = value;
-  }
-
-  AnalysisUpdateContentParams(Map<String, dynamic> files) {
-    this.files = files;
-  }
+  AnalysisUpdateContentParams(this.files);
 
   factory AnalysisUpdateContentParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       Map<String, dynamic> files;
       if (json.containsKey('files')) {
         files = jsonDecoder.decodeMap(jsonPath + '.files', json['files'],
-            valueDecoder: (String jsonPath, Object json) =>
+            valueDecoder: (String jsonPath, Object? json) =>
                 jsonDecoder.decodeUnion(jsonPath, json, 'type', {
-                  'add': (String jsonPath, Object json) =>
+                  'add': (String jsonPath, Object? json) =>
                       AddContentOverlay.fromJson(jsonDecoder, jsonPath, json),
-                  'change': (String jsonPath, Object json) =>
+                  'change': (String jsonPath, Object? json) =>
                       ChangeContentOverlay.fromJson(
                           jsonDecoder, jsonPath, json),
-                  'remove': (String jsonPath, Object json) =>
+                  'remove': (String jsonPath, Object? json) =>
                       RemoveContentOverlay.fromJson(jsonDecoder, jsonPath, json)
                 }));
       } else {
@@ -3939,8 +3192,8 @@ class AnalysisUpdateContentParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['files'] =
         mapMap(files, valueCallback: (dynamic value) => value.toJson());
     return result;
@@ -3980,7 +3233,7 @@ class AnalysisUpdateContentResult implements ResponseResult {
   AnalysisUpdateContentResult();
 
   factory AnalysisUpdateContentResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       return AnalysisUpdateContentResult();
@@ -3998,8 +3251,8 @@ class AnalysisUpdateContentResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     return result;
   }
 
@@ -4034,23 +3287,13 @@ class AnalysisUpdateContentResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateOptionsParams implements RequestParams {
-  AnalysisOptions _options;
-
   /// The options that are to be used to control analysis.
-  AnalysisOptions get options => _options;
+  AnalysisOptions options;
 
-  /// The options that are to be used to control analysis.
-  set options(AnalysisOptions value) {
-    assert(value != null);
-    _options = value;
-  }
-
-  AnalysisUpdateOptionsParams(AnalysisOptions options) {
-    this.options = options;
-  }
+  AnalysisUpdateOptionsParams(this.options);
 
   factory AnalysisUpdateOptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       AnalysisOptions options;
@@ -4073,8 +3316,8 @@ class AnalysisUpdateOptionsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['options'] = options.toJson();
     return result;
   }
@@ -4108,7 +3351,7 @@ class AnalysisUpdateOptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateOptionsResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -4137,23 +3380,13 @@ class AnalysisUpdateOptionsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsEnableParams implements RequestParams {
-  bool _value;
-
   /// Enable or disable analytics.
-  bool get value => _value;
+  bool value;
 
-  /// Enable or disable analytics.
-  set value(bool value) {
-    assert(value != null);
-    _value = value;
-  }
-
-  AnalyticsEnableParams(bool value) {
-    this.value = value;
-  }
+  AnalyticsEnableParams(this.value);
 
   factory AnalyticsEnableParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       bool value;
@@ -4174,8 +3407,8 @@ class AnalyticsEnableParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['value'] = value;
     return result;
   }
@@ -4209,7 +3442,7 @@ class AnalyticsEnableParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsEnableResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -4235,7 +3468,7 @@ class AnalyticsEnableResult implements ResponseResult {
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsIsEnabledParams implements RequestParams {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Request toRequest(String id) {
@@ -4264,23 +3497,13 @@ class AnalyticsIsEnabledParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsIsEnabledResult implements ResponseResult {
-  bool _enabled;
-
   /// Whether sending analytics is enabled or not.
-  bool get enabled => _enabled;
+  bool enabled;
 
-  /// Whether sending analytics is enabled or not.
-  set enabled(bool value) {
-    assert(value != null);
-    _enabled = value;
-  }
-
-  AnalyticsIsEnabledResult(bool enabled) {
-    this.enabled = enabled;
-  }
+  AnalyticsIsEnabledResult(this.enabled);
 
   factory AnalyticsIsEnabledResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       bool enabled;
@@ -4304,8 +3527,8 @@ class AnalyticsIsEnabledResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['enabled'] = enabled;
     return result;
   }
@@ -4342,23 +3565,13 @@ class AnalyticsIsEnabledResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendEventParams implements RequestParams {
-  String _action;
-
   /// The value used to indicate which action was performed.
-  String get action => _action;
+  String action;
 
-  /// The value used to indicate which action was performed.
-  set action(String value) {
-    assert(value != null);
-    _action = value;
-  }
-
-  AnalyticsSendEventParams(String action) {
-    this.action = action;
-  }
+  AnalyticsSendEventParams(this.action);
 
   factory AnalyticsSendEventParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String action;
@@ -4379,8 +3592,8 @@ class AnalyticsSendEventParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['action'] = action;
     return result;
   }
@@ -4414,7 +3627,7 @@ class AnalyticsSendEventParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendEventResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -4444,35 +3657,16 @@ class AnalyticsSendEventResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendTimingParams implements RequestParams {
-  String _event;
-
-  int _millis;
-
   /// The name of the event.
-  String get event => _event;
-
-  /// The name of the event.
-  set event(String value) {
-    assert(value != null);
-    _event = value;
-  }
+  String event;
 
   /// The duration of the event in milliseconds.
-  int get millis => _millis;
+  int millis;
 
-  /// The duration of the event in milliseconds.
-  set millis(int value) {
-    assert(value != null);
-    _millis = value;
-  }
-
-  AnalyticsSendTimingParams(String event, int millis) {
-    this.event = event;
-    this.millis = millis;
-  }
+  AnalyticsSendTimingParams(this.event, this.millis);
 
   factory AnalyticsSendTimingParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String event;
@@ -4499,8 +3693,8 @@ class AnalyticsSendTimingParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['event'] = event;
     result['millis'] = millis;
     return result;
@@ -4536,7 +3730,7 @@ class AnalyticsSendTimingParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendTimingResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -4573,62 +3767,19 @@ class AnalyticsSendTimingResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AvailableSuggestion implements HasToJson {
-  String _label;
-
-  String _declaringLibraryUri;
-
-  Element _element;
-
-  String _defaultArgumentListString;
-
-  List<int> _defaultArgumentListTextRanges;
-
-  List<String> _parameterNames;
-
-  List<String> _parameterTypes;
-
-  List<String> _relevanceTags;
-
-  int _requiredParameterCount;
-
   /// The identifier to present to the user for code completion.
-  String get label => _label;
-
-  /// The identifier to present to the user for code completion.
-  set label(String value) {
-    assert(value != null);
-    _label = value;
-  }
+  String label;
 
   /// The URI of the library that declares the element being suggested, not the
   /// URI of the library associated with the enclosing AvailableSuggestionSet.
-  String get declaringLibraryUri => _declaringLibraryUri;
-
-  /// The URI of the library that declares the element being suggested, not the
-  /// URI of the library associated with the enclosing AvailableSuggestionSet.
-  set declaringLibraryUri(String value) {
-    assert(value != null);
-    _declaringLibraryUri = value;
-  }
+  String declaringLibraryUri;
 
   /// Information about the element reference being suggested.
-  Element get element => _element;
-
-  /// Information about the element reference being suggested.
-  set element(Element value) {
-    assert(value != null);
-    _element = value;
-  }
+  Element element;
 
   /// A default String for use in generating argument list source contents on
   /// the client side.
-  String get defaultArgumentListString => _defaultArgumentListString;
-
-  /// A default String for use in generating argument list source contents on
-  /// the client side.
-  set defaultArgumentListString(String value) {
-    _defaultArgumentListString = value;
-  }
+  String? defaultArgumentListString;
 
   /// Pairs of offsets and lengths describing 'defaultArgumentListString' text
   /// ranges suitable for use by clients to set up linked edits of default
@@ -4636,80 +3787,35 @@ class AvailableSuggestion implements HasToJson {
   /// y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
   /// of length 1, starting at offsets 0 and 3. Clients can use these ranges to
   /// treat the 'x' and 'y' values specially for linked edits.
-  List<int> get defaultArgumentListTextRanges => _defaultArgumentListTextRanges;
-
-  /// Pairs of offsets and lengths describing 'defaultArgumentListString' text
-  /// ranges suitable for use by clients to set up linked edits of default
-  /// argument source contents. For example, given an argument list string 'x,
-  /// y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
-  /// of length 1, starting at offsets 0 and 3. Clients can use these ranges to
-  /// treat the 'x' and 'y' values specially for linked edits.
-  set defaultArgumentListTextRanges(List<int> value) {
-    _defaultArgumentListTextRanges = value;
-  }
+  List<int>? defaultArgumentListTextRanges;
 
   /// If the element is an executable, the names of the formal parameters of
   /// all kinds - required, optional positional, and optional named. The names
   /// of positional parameters are empty strings. Omitted if the element is not
   /// an executable.
-  List<String> get parameterNames => _parameterNames;
-
-  /// If the element is an executable, the names of the formal parameters of
-  /// all kinds - required, optional positional, and optional named. The names
-  /// of positional parameters are empty strings. Omitted if the element is not
-  /// an executable.
-  set parameterNames(List<String> value) {
-    _parameterNames = value;
-  }
+  List<String>? parameterNames;
 
   /// If the element is an executable, the declared types of the formal
   /// parameters of all kinds - required, optional positional, and optional
   /// named. Omitted if the element is not an executable.
-  List<String> get parameterTypes => _parameterTypes;
-
-  /// If the element is an executable, the declared types of the formal
-  /// parameters of all kinds - required, optional positional, and optional
-  /// named. Omitted if the element is not an executable.
-  set parameterTypes(List<String> value) {
-    _parameterTypes = value;
-  }
+  List<String>? parameterTypes;
 
   /// This field is set if the relevance of this suggestion might be changed
   /// depending on where completion is requested.
-  List<String> get relevanceTags => _relevanceTags;
+  List<String>? relevanceTags;
 
-  /// This field is set if the relevance of this suggestion might be changed
-  /// depending on where completion is requested.
-  set relevanceTags(List<String> value) {
-    _relevanceTags = value;
-  }
+  int? requiredParameterCount;
 
-  int get requiredParameterCount => _requiredParameterCount;
-
-  set requiredParameterCount(int value) {
-    _requiredParameterCount = value;
-  }
-
-  AvailableSuggestion(String label, String declaringLibraryUri, Element element,
-      {String defaultArgumentListString,
-      List<int> defaultArgumentListTextRanges,
-      List<String> parameterNames,
-      List<String> parameterTypes,
-      List<String> relevanceTags,
-      int requiredParameterCount}) {
-    this.label = label;
-    this.declaringLibraryUri = declaringLibraryUri;
-    this.element = element;
-    this.defaultArgumentListString = defaultArgumentListString;
-    this.defaultArgumentListTextRanges = defaultArgumentListTextRanges;
-    this.parameterNames = parameterNames;
-    this.parameterTypes = parameterTypes;
-    this.relevanceTags = relevanceTags;
-    this.requiredParameterCount = requiredParameterCount;
-  }
+  AvailableSuggestion(this.label, this.declaringLibraryUri, this.element,
+      {this.defaultArgumentListString,
+      this.defaultArgumentListTextRanges,
+      this.parameterNames,
+      this.parameterTypes,
+      this.relevanceTags,
+      this.requiredParameterCount});
 
   factory AvailableSuggestion.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String label;
@@ -4732,35 +3838,35 @@ class AvailableSuggestion implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'element');
       }
-      String defaultArgumentListString;
+      String? defaultArgumentListString;
       if (json.containsKey('defaultArgumentListString')) {
         defaultArgumentListString = jsonDecoder.decodeString(
             jsonPath + '.defaultArgumentListString',
             json['defaultArgumentListString']);
       }
-      List<int> defaultArgumentListTextRanges;
+      List<int>? defaultArgumentListTextRanges;
       if (json.containsKey('defaultArgumentListTextRanges')) {
         defaultArgumentListTextRanges = jsonDecoder.decodeList(
             jsonPath + '.defaultArgumentListTextRanges',
             json['defaultArgumentListTextRanges'],
             jsonDecoder.decodeInt);
       }
-      List<String> parameterNames;
+      List<String>? parameterNames;
       if (json.containsKey('parameterNames')) {
         parameterNames = jsonDecoder.decodeList(jsonPath + '.parameterNames',
             json['parameterNames'], jsonDecoder.decodeString);
       }
-      List<String> parameterTypes;
+      List<String>? parameterTypes;
       if (json.containsKey('parameterTypes')) {
         parameterTypes = jsonDecoder.decodeList(jsonPath + '.parameterTypes',
             json['parameterTypes'], jsonDecoder.decodeString);
       }
-      List<String> relevanceTags;
+      List<String>? relevanceTags;
       if (json.containsKey('relevanceTags')) {
         relevanceTags = jsonDecoder.decodeList(jsonPath + '.relevanceTags',
             json['relevanceTags'], jsonDecoder.decodeString);
       }
-      int requiredParameterCount;
+      int? requiredParameterCount;
       if (json.containsKey('requiredParameterCount')) {
         requiredParameterCount = jsonDecoder.decodeInt(
             jsonPath + '.requiredParameterCount',
@@ -4779,26 +3885,32 @@ class AvailableSuggestion implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['label'] = label;
     result['declaringLibraryUri'] = declaringLibraryUri;
     result['element'] = element.toJson();
+    var defaultArgumentListString = this.defaultArgumentListString;
     if (defaultArgumentListString != null) {
       result['defaultArgumentListString'] = defaultArgumentListString;
     }
+    var defaultArgumentListTextRanges = this.defaultArgumentListTextRanges;
     if (defaultArgumentListTextRanges != null) {
       result['defaultArgumentListTextRanges'] = defaultArgumentListTextRanges;
     }
+    var parameterNames = this.parameterNames;
     if (parameterNames != null) {
       result['parameterNames'] = parameterNames;
     }
+    var parameterTypes = this.parameterTypes;
     if (parameterTypes != null) {
       result['parameterTypes'] = parameterTypes;
     }
+    var relevanceTags = this.relevanceTags;
     if (relevanceTags != null) {
       result['relevanceTags'] = relevanceTags;
     }
+    var requiredParameterCount = this.requiredParameterCount;
     if (requiredParameterCount != null) {
       result['requiredParameterCount'] = requiredParameterCount;
     }
@@ -4854,45 +3966,18 @@ class AvailableSuggestion implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AvailableSuggestionSet implements HasToJson {
-  int _id;
-
-  String _uri;
-
-  List<AvailableSuggestion> _items;
-
   /// The id associated with the library.
-  int get id => _id;
-
-  /// The id associated with the library.
-  set id(int value) {
-    assert(value != null);
-    _id = value;
-  }
+  int id;
 
   /// The URI of the library.
-  String get uri => _uri;
+  String uri;
 
-  /// The URI of the library.
-  set uri(String value) {
-    assert(value != null);
-    _uri = value;
-  }
+  List<AvailableSuggestion> items;
 
-  List<AvailableSuggestion> get items => _items;
-
-  set items(List<AvailableSuggestion> value) {
-    assert(value != null);
-    _items = value;
-  }
-
-  AvailableSuggestionSet(int id, String uri, List<AvailableSuggestion> items) {
-    this.id = id;
-    this.uri = uri;
-    this.items = items;
-  }
+  AvailableSuggestionSet(this.id, this.uri, this.items);
 
   factory AvailableSuggestionSet.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int id;
@@ -4912,7 +3997,7 @@ class AvailableSuggestionSet implements HasToJson {
         items = jsonDecoder.decodeList(
             jsonPath + '.items',
             json['items'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 AvailableSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'items');
@@ -4924,8 +4009,8 @@ class AvailableSuggestionSet implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['id'] = id;
     result['uri'] = uri;
     result['items'] =
@@ -4966,35 +4051,16 @@ class AvailableSuggestionSet implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class BulkFix implements HasToJson {
-  String _path;
-
-  List<BulkFixDetail> _fixes;
-
   /// The path of the library.
-  String get path => _path;
-
-  /// The path of the library.
-  set path(String value) {
-    assert(value != null);
-    _path = value;
-  }
+  String path;
 
   /// A list of bulk fix details.
-  List<BulkFixDetail> get fixes => _fixes;
+  List<BulkFixDetail> fixes;
 
-  /// A list of bulk fix details.
-  set fixes(List<BulkFixDetail> value) {
-    assert(value != null);
-    _fixes = value;
-  }
-
-  BulkFix(String path, List<BulkFixDetail> fixes) {
-    this.path = path;
-    this.fixes = fixes;
-  }
+  BulkFix(this.path, this.fixes);
 
   factory BulkFix.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String path;
@@ -5008,7 +4074,7 @@ class BulkFix implements HasToJson {
         fixes = jsonDecoder.decodeList(
             jsonPath + '.fixes',
             json['fixes'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 BulkFixDetail.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'fixes');
@@ -5020,8 +4086,8 @@ class BulkFix implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['path'] = path;
     result['fixes'] =
         fixes.map((BulkFixDetail value) => value.toJson()).toList();
@@ -5059,37 +4125,17 @@ class BulkFix implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class BulkFixDetail implements HasToJson {
-  String _code;
-
-  int _occurrences;
-
   /// The code of the diagnostic associated with the fix.
-  String get code => _code;
-
-  /// The code of the diagnostic associated with the fix.
-  set code(String value) {
-    assert(value != null);
-    _code = value;
-  }
+  String code;
 
   /// The number times the associated diagnostic was fixed in the associated
   /// source edit.
-  int get occurrences => _occurrences;
+  int occurrences;
 
-  /// The number times the associated diagnostic was fixed in the associated
-  /// source edit.
-  set occurrences(int value) {
-    assert(value != null);
-    _occurrences = value;
-  }
-
-  BulkFixDetail(String code, int occurrences) {
-    this.code = code;
-    this.occurrences = occurrences;
-  }
+  BulkFixDetail(this.code, this.occurrences);
 
   factory BulkFixDetail.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String code;
@@ -5112,8 +4158,8 @@ class BulkFixDetail implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['code'] = code;
     result['occurrences'] = occurrences;
     return result;
@@ -5149,49 +4195,20 @@ class BulkFixDetail implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ClosingLabel implements HasToJson {
-  int _offset;
-
-  int _length;
-
-  String _label;
-
   /// The offset of the construct being labelled.
-  int get offset => _offset;
-
-  /// The offset of the construct being labelled.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the whole construct to be labelled.
-  int get length => _length;
-
-  /// The length of the whole construct to be labelled.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
+  int length;
 
   /// The label associated with this range that should be displayed to the
   /// user.
-  String get label => _label;
+  String label;
 
-  /// The label associated with this range that should be displayed to the
-  /// user.
-  set label(String value) {
-    assert(value != null);
-    _label = value;
-  }
-
-  ClosingLabel(int offset, int length, String label) {
-    this.offset = offset;
-    this.length = length;
-    this.label = label;
-  }
+  ClosingLabel(this.offset, this.length, this.label);
 
   factory ClosingLabel.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -5219,8 +4236,8 @@ class ClosingLabel implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
     result['label'] = label;
@@ -5259,48 +4276,29 @@ class ClosingLabel implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionAvailableSuggestionsParams implements HasToJson {
-  List<AvailableSuggestionSet> _changedLibraries;
-
-  List<int> _removedLibraries;
-
   /// A list of pre-computed, potential completions coming from this set of
   /// completion suggestions.
-  List<AvailableSuggestionSet> get changedLibraries => _changedLibraries;
-
-  /// A list of pre-computed, potential completions coming from this set of
-  /// completion suggestions.
-  set changedLibraries(List<AvailableSuggestionSet> value) {
-    _changedLibraries = value;
-  }
+  List<AvailableSuggestionSet>? changedLibraries;
 
   /// A list of library ids that no longer apply.
-  List<int> get removedLibraries => _removedLibraries;
-
-  /// A list of library ids that no longer apply.
-  set removedLibraries(List<int> value) {
-    _removedLibraries = value;
-  }
+  List<int>? removedLibraries;
 
   CompletionAvailableSuggestionsParams(
-      {List<AvailableSuggestionSet> changedLibraries,
-      List<int> removedLibraries}) {
-    this.changedLibraries = changedLibraries;
-    this.removedLibraries = removedLibraries;
-  }
+      {this.changedLibraries, this.removedLibraries});
 
   factory CompletionAvailableSuggestionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      List<AvailableSuggestionSet> changedLibraries;
+      List<AvailableSuggestionSet>? changedLibraries;
       if (json.containsKey('changedLibraries')) {
         changedLibraries = jsonDecoder.decodeList(
             jsonPath + '.changedLibraries',
             json['changedLibraries'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 AvailableSuggestionSet.fromJson(jsonDecoder, jsonPath, json));
       }
-      List<int> removedLibraries;
+      List<int>? removedLibraries;
       if (json.containsKey('removedLibraries')) {
         removedLibraries = jsonDecoder.decodeList(
             jsonPath + '.removedLibraries',
@@ -5323,13 +4321,15 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var changedLibraries = this.changedLibraries;
     if (changedLibraries != null) {
       result['changedLibraries'] = changedLibraries
           .map((AvailableSuggestionSet value) => value.toJson())
           .toList();
     }
+    var removedLibraries = this.removedLibraries;
     if (removedLibraries != null) {
       result['removedLibraries'] = removedLibraries;
     }
@@ -5372,35 +4372,16 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionExistingImportsParams implements HasToJson {
-  String _file;
-
-  ExistingImports _imports;
-
   /// The defining file of the library.
-  String get file => _file;
-
-  /// The defining file of the library.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The existing imports in the library.
-  ExistingImports get imports => _imports;
+  ExistingImports imports;
 
-  /// The existing imports in the library.
-  set imports(ExistingImports value) {
-    assert(value != null);
-    _imports = value;
-  }
-
-  CompletionExistingImportsParams(String file, ExistingImports imports) {
-    this.file = file;
-    this.imports = imports;
-  }
+  CompletionExistingImportsParams(this.file, this.imports);
 
   factory CompletionExistingImportsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -5430,8 +4411,8 @@ class CompletionExistingImportsParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['imports'] = imports.toJson();
     return result;
@@ -5472,64 +4453,25 @@ class CompletionExistingImportsParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionDetailsParams implements RequestParams {
-  String _file;
-
-  int _id;
-
-  String _label;
-
-  int _offset;
-
   /// The path of the file into which this completion is being inserted.
-  String get file => _file;
-
-  /// The path of the file into which this completion is being inserted.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The identifier of the AvailableSuggestionSet containing the selected
   /// label.
-  int get id => _id;
-
-  /// The identifier of the AvailableSuggestionSet containing the selected
-  /// label.
-  set id(int value) {
-    assert(value != null);
-    _id = value;
-  }
+  int id;
 
   /// The label from the AvailableSuggestionSet with the `id` for which
   /// insertion information is requested.
-  String get label => _label;
-
-  /// The label from the AvailableSuggestionSet with the `id` for which
-  /// insertion information is requested.
-  set label(String value) {
-    assert(value != null);
-    _label = value;
-  }
+  String label;
 
   /// The offset in the file where the completion will be inserted.
-  int get offset => _offset;
-
-  /// The offset in the file where the completion will be inserted.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   CompletionGetSuggestionDetailsParams(
-      String file, int id, String label, int offset) {
-    this.file = file;
-    this.id = id;
-    this.label = label;
-    this.offset = offset;
-  }
+      this.file, this.id, this.label, this.offset);
 
   factory CompletionGetSuggestionDetailsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -5569,8 +4511,8 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['id'] = id;
     result['label'] = label;
@@ -5617,39 +4559,18 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionDetailsResult implements ResponseResult {
-  String _completion;
-
-  SourceChange _change;
-
   /// The full text to insert, including any optional import prefix.
-  String get completion => _completion;
-
-  /// The full text to insert, including any optional import prefix.
-  set completion(String value) {
-    assert(value != null);
-    _completion = value;
-  }
+  String completion;
 
   /// A change for the client to apply in case the library containing the
   /// accepted completion suggestion needs to be imported. The field will be
   /// omitted if there are no additional changes that need to be made.
-  SourceChange get change => _change;
+  SourceChange? change;
 
-  /// A change for the client to apply in case the library containing the
-  /// accepted completion suggestion needs to be imported. The field will be
-  /// omitted if there are no additional changes that need to be made.
-  set change(SourceChange value) {
-    _change = value;
-  }
-
-  CompletionGetSuggestionDetailsResult(String completion,
-      {SourceChange change}) {
-    this.completion = completion;
-    this.change = change;
-  }
+  CompletionGetSuggestionDetailsResult(this.completion, {this.change});
 
   factory CompletionGetSuggestionDetailsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String completion;
@@ -5659,7 +4580,7 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'completion');
       }
-      SourceChange change;
+      SourceChange? change;
       if (json.containsKey('change')) {
         change = SourceChange.fromJson(
             jsonDecoder, jsonPath + '.change', json['change']);
@@ -5679,9 +4600,10 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['completion'] = completion;
+    var change = this.change;
     if (change != null) {
       result['change'] = change.toJson();
     }
@@ -5722,35 +4644,16 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionsParams implements RequestParams {
-  String _file;
-
-  int _offset;
-
   /// The file containing the point at which suggestions are to be made.
-  String get file => _file;
-
-  /// The file containing the point at which suggestions are to be made.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The offset within the file at which suggestions are to be made.
-  int get offset => _offset;
+  int offset;
 
-  /// The offset within the file at which suggestions are to be made.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
-
-  CompletionGetSuggestionsParams(String file, int offset) {
-    this.file = file;
-    this.offset = offset;
-  }
+  CompletionGetSuggestionsParams(this.file, this.offset);
 
   factory CompletionGetSuggestionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -5778,8 +4681,8 @@ class CompletionGetSuggestionsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     return result;
@@ -5818,23 +4721,13 @@ class CompletionGetSuggestionsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionsResult implements ResponseResult {
-  String _id;
-
   /// The identifier used to associate results with this completion request.
-  String get id => _id;
+  String id;
 
-  /// The identifier used to associate results with this completion request.
-  set id(String value) {
-    assert(value != null);
-    _id = value;
-  }
-
-  CompletionGetSuggestionsResult(String id) {
-    this.id = id;
-  }
+  CompletionGetSuggestionsResult(this.id);
 
   factory CompletionGetSuggestionsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -5858,8 +4751,8 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['id'] = id;
     return result;
   }
@@ -5896,29 +4789,16 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionRegisterLibraryPathsParams implements RequestParams {
-  List<LibraryPathSet> _paths;
-
   /// A list of objects each containing a path and the additional libraries
   /// from which the client is interested in receiving completion suggestions.
   /// If one configured path is beneath another, the descendent will override
   /// the ancestors' configured libraries of interest.
-  List<LibraryPathSet> get paths => _paths;
+  List<LibraryPathSet> paths;
 
-  /// A list of objects each containing a path and the additional libraries
-  /// from which the client is interested in receiving completion suggestions.
-  /// If one configured path is beneath another, the descendent will override
-  /// the ancestors' configured libraries of interest.
-  set paths(List<LibraryPathSet> value) {
-    assert(value != null);
-    _paths = value;
-  }
-
-  CompletionRegisterLibraryPathsParams(List<LibraryPathSet> paths) {
-    this.paths = paths;
-  }
+  CompletionRegisterLibraryPathsParams(this.paths);
 
   factory CompletionRegisterLibraryPathsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<LibraryPathSet> paths;
@@ -5926,7 +4806,7 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
         paths = jsonDecoder.decodeList(
             jsonPath + '.paths',
             json['paths'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 LibraryPathSet.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'paths');
@@ -5944,8 +4824,8 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['paths'] =
         paths.map((LibraryPathSet value) => value.toJson()).toList();
     return result;
@@ -5981,7 +4861,7 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class CompletionRegisterLibraryPathsResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -6018,131 +4898,48 @@ class CompletionRegisterLibraryPathsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionResultsParams implements HasToJson {
-  String _id;
-
-  int _replacementOffset;
-
-  int _replacementLength;
-
-  List<CompletionSuggestion> _results;
-
-  bool _isLast;
-
-  String _libraryFile;
-
-  List<IncludedSuggestionSet> _includedSuggestionSets;
-
-  List<ElementKind> _includedElementKinds;
-
-  List<IncludedSuggestionRelevanceTag> _includedSuggestionRelevanceTags;
-
   /// The id associated with the completion.
-  String get id => _id;
-
-  /// The id associated with the completion.
-  set id(String value) {
-    assert(value != null);
-    _id = value;
-  }
+  String id;
 
   /// The offset of the start of the text to be replaced. This will be
   /// different than the offset used to request the completion suggestions if
   /// there was a portion of an identifier before the original offset. In
   /// particular, the replacementOffset will be the offset of the beginning of
   /// said identifier.
-  int get replacementOffset => _replacementOffset;
-
-  /// The offset of the start of the text to be replaced. This will be
-  /// different than the offset used to request the completion suggestions if
-  /// there was a portion of an identifier before the original offset. In
-  /// particular, the replacementOffset will be the offset of the beginning of
-  /// said identifier.
-  set replacementOffset(int value) {
-    assert(value != null);
-    _replacementOffset = value;
-  }
+  int replacementOffset;
 
   /// The length of the text to be replaced if the remainder of the identifier
   /// containing the cursor is to be replaced when the suggestion is applied
   /// (that is, the number of characters in the existing identifier).
-  int get replacementLength => _replacementLength;
-
-  /// The length of the text to be replaced if the remainder of the identifier
-  /// containing the cursor is to be replaced when the suggestion is applied
-  /// (that is, the number of characters in the existing identifier).
-  set replacementLength(int value) {
-    assert(value != null);
-    _replacementLength = value;
-  }
+  int replacementLength;
 
   /// The completion suggestions being reported. The notification contains all
   /// possible completions at the requested cursor position, even those that do
   /// not match the characters the user has already typed. This allows the
   /// client to respond to further keystrokes from the user without having to
   /// make additional requests.
-  List<CompletionSuggestion> get results => _results;
-
-  /// The completion suggestions being reported. The notification contains all
-  /// possible completions at the requested cursor position, even those that do
-  /// not match the characters the user has already typed. This allows the
-  /// client to respond to further keystrokes from the user without having to
-  /// make additional requests.
-  set results(List<CompletionSuggestion> value) {
-    assert(value != null);
-    _results = value;
-  }
+  List<CompletionSuggestion> results;
 
   /// True if this is that last set of results that will be returned for the
   /// indicated completion.
-  bool get isLast => _isLast;
-
-  /// True if this is that last set of results that will be returned for the
-  /// indicated completion.
-  set isLast(bool value) {
-    assert(value != null);
-    _isLast = value;
-  }
+  bool isLast;
 
   /// The library file that contains the file where completion was requested.
   /// The client might use it for example together with the existingImports
   /// notification to filter out available suggestions. If there were changes
   /// to existing imports in the library, the corresponding existingImports
   /// notification will be sent before the completion notification.
-  String get libraryFile => _libraryFile;
-
-  /// The library file that contains the file where completion was requested.
-  /// The client might use it for example together with the existingImports
-  /// notification to filter out available suggestions. If there were changes
-  /// to existing imports in the library, the corresponding existingImports
-  /// notification will be sent before the completion notification.
-  set libraryFile(String value) {
-    _libraryFile = value;
-  }
+  String? libraryFile;
 
   /// References to AvailableSuggestionSet objects previously sent to the
   /// client. The client can include applicable names from the referenced
   /// library in code completion suggestions.
-  List<IncludedSuggestionSet> get includedSuggestionSets =>
-      _includedSuggestionSets;
-
-  /// References to AvailableSuggestionSet objects previously sent to the
-  /// client. The client can include applicable names from the referenced
-  /// library in code completion suggestions.
-  set includedSuggestionSets(List<IncludedSuggestionSet> value) {
-    _includedSuggestionSets = value;
-  }
+  List<IncludedSuggestionSet>? includedSuggestionSets;
 
   /// The client is expected to check this list against the ElementKind sent in
   /// IncludedSuggestionSet to decide whether or not these symbols should
   /// should be presented to the user.
-  List<ElementKind> get includedElementKinds => _includedElementKinds;
-
-  /// The client is expected to check this list against the ElementKind sent in
-  /// IncludedSuggestionSet to decide whether or not these symbols should
-  /// should be presented to the user.
-  set includedElementKinds(List<ElementKind> value) {
-    _includedElementKinds = value;
-  }
+  List<ElementKind>? includedElementKinds;
 
   /// The client is expected to check this list against the values of the field
   /// relevanceTags of AvailableSuggestion to decide if the suggestion should
@@ -6152,41 +4949,17 @@ class CompletionResultsParams implements HasToJson {
   ///
   /// If an AvailableSuggestion has relevance tags that match more than one
   /// IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
-  List<IncludedSuggestionRelevanceTag> get includedSuggestionRelevanceTags =>
-      _includedSuggestionRelevanceTags;
+  List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
 
-  /// The client is expected to check this list against the values of the field
-  /// relevanceTags of AvailableSuggestion to decide if the suggestion should
-  /// be given a different relevance than the IncludedSuggestionSet that
-  /// contains it. This might be used for example to give higher relevance to
-  /// suggestions of matching types.
-  ///
-  /// If an AvailableSuggestion has relevance tags that match more than one
-  /// IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
-  set includedSuggestionRelevanceTags(
-      List<IncludedSuggestionRelevanceTag> value) {
-    _includedSuggestionRelevanceTags = value;
-  }
-
-  CompletionResultsParams(String id, int replacementOffset,
-      int replacementLength, List<CompletionSuggestion> results, bool isLast,
-      {String libraryFile,
-      List<IncludedSuggestionSet> includedSuggestionSets,
-      List<ElementKind> includedElementKinds,
-      List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags}) {
-    this.id = id;
-    this.replacementOffset = replacementOffset;
-    this.replacementLength = replacementLength;
-    this.results = results;
-    this.isLast = isLast;
-    this.libraryFile = libraryFile;
-    this.includedSuggestionSets = includedSuggestionSets;
-    this.includedElementKinds = includedElementKinds;
-    this.includedSuggestionRelevanceTags = includedSuggestionRelevanceTags;
-  }
+  CompletionResultsParams(this.id, this.replacementOffset,
+      this.replacementLength, this.results, this.isLast,
+      {this.libraryFile,
+      this.includedSuggestionSets,
+      this.includedElementKinds,
+      this.includedSuggestionRelevanceTags});
 
   factory CompletionResultsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -6214,7 +4987,7 @@ class CompletionResultsParams implements HasToJson {
         results = jsonDecoder.decodeList(
             jsonPath + '.results',
             json['results'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'results');
@@ -6225,33 +4998,33 @@ class CompletionResultsParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'isLast');
       }
-      String libraryFile;
+      String? libraryFile;
       if (json.containsKey('libraryFile')) {
         libraryFile = jsonDecoder.decodeString(
             jsonPath + '.libraryFile', json['libraryFile']);
       }
-      List<IncludedSuggestionSet> includedSuggestionSets;
+      List<IncludedSuggestionSet>? includedSuggestionSets;
       if (json.containsKey('includedSuggestionSets')) {
         includedSuggestionSets = jsonDecoder.decodeList(
             jsonPath + '.includedSuggestionSets',
             json['includedSuggestionSets'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 IncludedSuggestionSet.fromJson(jsonDecoder, jsonPath, json));
       }
-      List<ElementKind> includedElementKinds;
+      List<ElementKind>? includedElementKinds;
       if (json.containsKey('includedElementKinds')) {
         includedElementKinds = jsonDecoder.decodeList(
             jsonPath + '.includedElementKinds',
             json['includedElementKinds'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 ElementKind.fromJson(jsonDecoder, jsonPath, json));
       }
-      List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
+      List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
       if (json.containsKey('includedSuggestionRelevanceTags')) {
         includedSuggestionRelevanceTags = jsonDecoder.decodeList(
             jsonPath + '.includedSuggestionRelevanceTags',
             json['includedSuggestionRelevanceTags'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 IncludedSuggestionRelevanceTag.fromJson(
                     jsonDecoder, jsonPath, json));
       }
@@ -6272,27 +5045,31 @@ class CompletionResultsParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['id'] = id;
     result['replacementOffset'] = replacementOffset;
     result['replacementLength'] = replacementLength;
     result['results'] =
         results.map((CompletionSuggestion value) => value.toJson()).toList();
     result['isLast'] = isLast;
+    var libraryFile = this.libraryFile;
     if (libraryFile != null) {
       result['libraryFile'] = libraryFile;
     }
+    var includedSuggestionSets = this.includedSuggestionSets;
     if (includedSuggestionSets != null) {
       result['includedSuggestionSets'] = includedSuggestionSets
           .map((IncludedSuggestionSet value) => value.toJson())
           .toList();
     }
+    var includedElementKinds = this.includedElementKinds;
     if (includedElementKinds != null) {
       result['includedElementKinds'] = includedElementKinds
           .map((ElementKind value) => value.toJson())
           .toList();
     }
+    var includedSuggestionRelevanceTags = this.includedSuggestionRelevanceTags;
     if (includedSuggestionRelevanceTags != null) {
       result['includedSuggestionRelevanceTags'] =
           includedSuggestionRelevanceTags
@@ -6387,7 +5164,7 @@ class CompletionService implements Enum {
   }
 
   factory CompletionService.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return CompletionService(json);
@@ -6412,23 +5189,13 @@ class CompletionService implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionSetSubscriptionsParams implements RequestParams {
-  List<CompletionService> _subscriptions;
-
   /// A list of the services being subscribed to.
-  List<CompletionService> get subscriptions => _subscriptions;
+  List<CompletionService> subscriptions;
 
-  /// A list of the services being subscribed to.
-  set subscriptions(List<CompletionService> value) {
-    assert(value != null);
-    _subscriptions = value;
-  }
-
-  CompletionSetSubscriptionsParams(List<CompletionService> subscriptions) {
-    this.subscriptions = subscriptions;
-  }
+  CompletionSetSubscriptionsParams(this.subscriptions);
 
   factory CompletionSetSubscriptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<CompletionService> subscriptions;
@@ -6436,7 +5203,7 @@ class CompletionSetSubscriptionsParams implements RequestParams {
         subscriptions = jsonDecoder.decodeList(
             jsonPath + '.subscriptions',
             json['subscriptions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 CompletionService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
@@ -6454,8 +5221,8 @@ class CompletionSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['subscriptions'] =
         subscriptions.map((CompletionService value) => value.toJson()).toList();
     return result;
@@ -6491,7 +5258,7 @@ class CompletionSetSubscriptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class CompletionSetSubscriptionsResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -6524,72 +5291,26 @@ class CompletionSetSubscriptionsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ContextData implements HasToJson {
-  String _name;
-
-  int _explicitFileCount;
-
-  int _implicitFileCount;
-
-  int _workItemQueueLength;
-
-  List<String> _cacheEntryExceptions;
-
   /// The name of the context.
-  String get name => _name;
-
-  /// The name of the context.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
+  String name;
 
   /// Explicitly analyzed files.
-  int get explicitFileCount => _explicitFileCount;
-
-  /// Explicitly analyzed files.
-  set explicitFileCount(int value) {
-    assert(value != null);
-    _explicitFileCount = value;
-  }
+  int explicitFileCount;
 
   /// Implicitly analyzed files.
-  int get implicitFileCount => _implicitFileCount;
-
-  /// Implicitly analyzed files.
-  set implicitFileCount(int value) {
-    assert(value != null);
-    _implicitFileCount = value;
-  }
+  int implicitFileCount;
 
   /// The number of work items in the queue.
-  int get workItemQueueLength => _workItemQueueLength;
-
-  /// The number of work items in the queue.
-  set workItemQueueLength(int value) {
-    assert(value != null);
-    _workItemQueueLength = value;
-  }
+  int workItemQueueLength;
 
   /// Exceptions associated with cache entries.
-  List<String> get cacheEntryExceptions => _cacheEntryExceptions;
+  List<String> cacheEntryExceptions;
 
-  /// Exceptions associated with cache entries.
-  set cacheEntryExceptions(List<String> value) {
-    assert(value != null);
-    _cacheEntryExceptions = value;
-  }
-
-  ContextData(String name, int explicitFileCount, int implicitFileCount,
-      int workItemQueueLength, List<String> cacheEntryExceptions) {
-    this.name = name;
-    this.explicitFileCount = explicitFileCount;
-    this.implicitFileCount = implicitFileCount;
-    this.workItemQueueLength = workItemQueueLength;
-    this.cacheEntryExceptions = cacheEntryExceptions;
-  }
+  ContextData(this.name, this.explicitFileCount, this.implicitFileCount,
+      this.workItemQueueLength, this.cacheEntryExceptions);
 
   factory ContextData.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -6636,8 +5357,8 @@ class ContextData implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['name'] = name;
     result['explicitFileCount'] = explicitFileCount;
     result['implicitFileCount'] = implicitFileCount;
@@ -6759,34 +5480,16 @@ class ConvertMethodToGetterOptions extends RefactoringOptions
 ///
 /// Clients may not extend, implement or mix-in this class.
 class DartFix implements HasToJson {
-  String _name;
-
-  String _description;
-
   /// The name of the fix.
-  String get name => _name;
-
-  /// The name of the fix.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
+  String name;
 
   /// A human readable description of the fix.
-  String get description => _description;
+  String? description;
 
-  /// A human readable description of the fix.
-  set description(String value) {
-    _description = value;
-  }
-
-  DartFix(String name, {String description}) {
-    this.name = name;
-    this.description = description;
-  }
+  DartFix(this.name, {this.description});
 
   factory DartFix.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -6795,7 +5498,7 @@ class DartFix implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'name');
       }
-      String description;
+      String? description;
       if (json.containsKey('description')) {
         description = jsonDecoder.decodeString(
             jsonPath + '.description', json['description']);
@@ -6807,9 +5510,10 @@ class DartFix implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['name'] = name;
+    var description = this.description;
     if (description != null) {
       result['description'] = description;
     }
@@ -6845,34 +5549,16 @@ class DartFix implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class DartFixSuggestion implements HasToJson {
-  String _description;
-
-  Location _location;
-
   /// A human readable description of the suggested change.
-  String get description => _description;
-
-  /// A human readable description of the suggested change.
-  set description(String value) {
-    assert(value != null);
-    _description = value;
-  }
+  String description;
 
   /// The location of the suggested change.
-  Location get location => _location;
+  Location? location;
 
-  /// The location of the suggested change.
-  set location(Location value) {
-    _location = value;
-  }
-
-  DartFixSuggestion(String description, {Location location}) {
-    this.description = description;
-    this.location = location;
-  }
+  DartFixSuggestion(this.description, {this.location});
 
   factory DartFixSuggestion.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String description;
@@ -6882,7 +5568,7 @@ class DartFixSuggestion implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'description');
       }
-      Location location;
+      Location? location;
       if (json.containsKey('location')) {
         location = Location.fromJson(
             jsonDecoder, jsonPath + '.location', json['location']);
@@ -6894,9 +5580,10 @@ class DartFixSuggestion implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['description'] = description;
+    var location = this.location;
     if (location != null) {
       result['location'] = location.toJson();
     }
@@ -6928,7 +5615,7 @@ class DartFixSuggestion implements HasToJson {
 /// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetDiagnosticsParams implements RequestParams {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Request toRequest(String id) {
@@ -6957,23 +5644,13 @@ class DiagnosticGetDiagnosticsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetDiagnosticsResult implements ResponseResult {
-  List<ContextData> _contexts;
-
   /// The list of analysis contexts.
-  List<ContextData> get contexts => _contexts;
+  List<ContextData> contexts;
 
-  /// The list of analysis contexts.
-  set contexts(List<ContextData> value) {
-    assert(value != null);
-    _contexts = value;
-  }
-
-  DiagnosticGetDiagnosticsResult(List<ContextData> contexts) {
-    this.contexts = contexts;
-  }
+  DiagnosticGetDiagnosticsResult(this.contexts);
 
   factory DiagnosticGetDiagnosticsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<ContextData> contexts;
@@ -6981,7 +5658,7 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
         contexts = jsonDecoder.decodeList(
             jsonPath + '.contexts',
             json['contexts'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 ContextData.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'contexts');
@@ -7001,8 +5678,8 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['contexts'] =
         contexts.map((ContextData value) => value.toJson()).toList();
     return result;
@@ -7038,7 +5715,7 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
 /// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetServerPortParams implements RequestParams {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Request toRequest(String id) {
@@ -7067,23 +5744,13 @@ class DiagnosticGetServerPortParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetServerPortResult implements ResponseResult {
-  int _port;
-
   /// The diagnostic server port.
-  int get port => _port;
+  int port;
 
-  /// The diagnostic server port.
-  set port(int value) {
-    assert(value != null);
-    _port = value;
-  }
-
-  DiagnosticGetServerPortResult(int port) {
-    this.port = port;
-  }
+  DiagnosticGetServerPortResult(this.port);
 
   factory DiagnosticGetServerPortResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int port;
@@ -7107,8 +5774,8 @@ class DiagnosticGetServerPortResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['port'] = port;
     return result;
   }
@@ -7146,10 +5813,6 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditBulkFixesParams implements RequestParams {
-  List<String> _included;
-
-  bool _inTestMode;
-
   /// A list of the files and directories for which edits should be suggested.
   ///
   /// If a request is made with a path that is invalid, e.g. is not absolute
@@ -7158,20 +5821,7 @@ class EditBulkFixesParams implements RequestParams {
   /// is not currently subject to analysis (e.g. because it is not associated
   /// with any analysis root specified to analysis.setAnalysisRoots), an error
   /// of type FILE_NOT_ANALYZED will be generated.
-  List<String> get included => _included;
-
-  /// A list of the files and directories for which edits should be suggested.
-  ///
-  /// If a request is made with a path that is invalid, e.g. is not absolute
-  /// and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
-  /// generated. If a request is made for a file which does not exist, or which
-  /// is not currently subject to analysis (e.g. because it is not associated
-  /// with any analysis root specified to analysis.setAnalysisRoots), an error
-  /// of type FILE_NOT_ANALYZED will be generated.
-  set included(List<String> value) {
-    assert(value != null);
-    _included = value;
-  }
+  List<String> included;
 
   /// A flag indicating whether the bulk fixes are being run in test mode. The
   /// only difference is that in test mode the fix processor will look for a
@@ -7179,25 +5829,12 @@ class EditBulkFixesParams implements RequestParams {
   /// compute the fixes when data-driven fixes are being considered.
   ///
   /// If this field is omitted the flag defaults to false.
-  bool get inTestMode => _inTestMode;
+  bool? inTestMode;
 
-  /// A flag indicating whether the bulk fixes are being run in test mode. The
-  /// only difference is that in test mode the fix processor will look for a
-  /// configuration file that can modify the content of the data file used to
-  /// compute the fixes when data-driven fixes are being considered.
-  ///
-  /// If this field is omitted the flag defaults to false.
-  set inTestMode(bool value) {
-    _inTestMode = value;
-  }
-
-  EditBulkFixesParams(List<String> included, {bool inTestMode}) {
-    this.included = included;
-    this.inTestMode = inTestMode;
-  }
+  EditBulkFixesParams(this.included, {this.inTestMode});
 
   factory EditBulkFixesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<String> included;
@@ -7207,7 +5844,7 @@ class EditBulkFixesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'included');
       }
-      bool inTestMode;
+      bool? inTestMode;
       if (json.containsKey('inTestMode')) {
         inTestMode = jsonDecoder.decodeBool(
             jsonPath + '.inTestMode', json['inTestMode']);
@@ -7224,9 +5861,10 @@ class EditBulkFixesParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['included'] = included;
+    var inTestMode = this.inTestMode;
     if (inTestMode != null) {
       result['inTestMode'] = inTestMode;
     }
@@ -7269,35 +5907,16 @@ class EditBulkFixesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditBulkFixesResult implements ResponseResult {
-  List<SourceFileEdit> _edits;
-
-  List<BulkFix> _details;
-
   /// A list of source edits to apply the recommended changes.
-  List<SourceFileEdit> get edits => _edits;
-
-  /// A list of source edits to apply the recommended changes.
-  set edits(List<SourceFileEdit> value) {
-    assert(value != null);
-    _edits = value;
-  }
+  List<SourceFileEdit> edits;
 
   /// Details that summarize the fixes associated with the recommended changes.
-  List<BulkFix> get details => _details;
+  List<BulkFix> details;
 
-  /// Details that summarize the fixes associated with the recommended changes.
-  set details(List<BulkFix> value) {
-    assert(value != null);
-    _details = value;
-  }
-
-  EditBulkFixesResult(List<SourceFileEdit> edits, List<BulkFix> details) {
-    this.edits = edits;
-    this.details = details;
-  }
+  EditBulkFixesResult(this.edits, this.details);
 
   factory EditBulkFixesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<SourceFileEdit> edits;
@@ -7305,7 +5924,7 @@ class EditBulkFixesResult implements ResponseResult {
         edits = jsonDecoder.decodeList(
             jsonPath + '.edits',
             json['edits'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
@@ -7315,7 +5934,7 @@ class EditBulkFixesResult implements ResponseResult {
         details = jsonDecoder.decodeList(
             jsonPath + '.details',
             json['details'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 BulkFix.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'details');
@@ -7334,8 +5953,8 @@ class EditBulkFixesResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['edits'] =
         edits.map((SourceFileEdit value) => value.toJson()).toList();
     result['details'] = details.map((BulkFix value) => value.toJson()).toList();
@@ -7382,18 +6001,6 @@ class EditBulkFixesResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditDartfixParams implements RequestParams {
-  List<String> _included;
-
-  List<String> _includedFixes;
-
-  bool _includePedanticFixes;
-
-  List<String> _excludedFixes;
-
-  int _port;
-
-  String _outputDir;
-
   /// A list of the files and directories for which edits should be suggested.
   ///
   /// If a request is made with a path that is invalid, e.g. is not absolute
@@ -7402,89 +6009,38 @@ class EditDartfixParams implements RequestParams {
   /// is not currently subject to analysis (e.g. because it is not associated
   /// with any analysis root specified to analysis.setAnalysisRoots), an error
   /// of type FILE_NOT_ANALYZED will be generated.
-  List<String> get included => _included;
-
-  /// A list of the files and directories for which edits should be suggested.
-  ///
-  /// If a request is made with a path that is invalid, e.g. is not absolute
-  /// and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
-  /// generated. If a request is made for a file which does not exist, or which
-  /// is not currently subject to analysis (e.g. because it is not associated
-  /// with any analysis root specified to analysis.setAnalysisRoots), an error
-  /// of type FILE_NOT_ANALYZED will be generated.
-  set included(List<String> value) {
-    assert(value != null);
-    _included = value;
-  }
+  List<String> included;
 
   /// A list of names indicating which fixes should be applied.
   ///
   /// If a name is specified that does not match the name of a known fix, an
   /// error of type UNKNOWN_FIX will be generated.
-  List<String> get includedFixes => _includedFixes;
-
-  /// A list of names indicating which fixes should be applied.
-  ///
-  /// If a name is specified that does not match the name of a known fix, an
-  /// error of type UNKNOWN_FIX will be generated.
-  set includedFixes(List<String> value) {
-    _includedFixes = value;
-  }
+  List<String>? includedFixes;
 
   /// A flag indicating whether "pedantic" fixes should be applied.
-  bool get includePedanticFixes => _includePedanticFixes;
-
-  /// A flag indicating whether "pedantic" fixes should be applied.
-  set includePedanticFixes(bool value) {
-    _includePedanticFixes = value;
-  }
+  bool? includePedanticFixes;
 
   /// A list of names indicating which fixes should not be applied.
   ///
   /// If a name is specified that does not match the name of a known fix, an
   /// error of type UNKNOWN_FIX will be generated.
-  List<String> get excludedFixes => _excludedFixes;
-
-  /// A list of names indicating which fixes should not be applied.
-  ///
-  /// If a name is specified that does not match the name of a known fix, an
-  /// error of type UNKNOWN_FIX will be generated.
-  set excludedFixes(List<String> value) {
-    _excludedFixes = value;
-  }
+  List<String>? excludedFixes;
 
   /// Deprecated: This field is now ignored by server.
-  int get port => _port;
+  int? port;
 
   /// Deprecated: This field is now ignored by server.
-  set port(int value) {
-    _port = value;
-  }
+  String? outputDir;
 
-  /// Deprecated: This field is now ignored by server.
-  String get outputDir => _outputDir;
-
-  /// Deprecated: This field is now ignored by server.
-  set outputDir(String value) {
-    _outputDir = value;
-  }
-
-  EditDartfixParams(List<String> included,
-      {List<String> includedFixes,
-      bool includePedanticFixes,
-      List<String> excludedFixes,
-      int port,
-      String outputDir}) {
-    this.included = included;
-    this.includedFixes = includedFixes;
-    this.includePedanticFixes = includePedanticFixes;
-    this.excludedFixes = excludedFixes;
-    this.port = port;
-    this.outputDir = outputDir;
-  }
+  EditDartfixParams(this.included,
+      {this.includedFixes,
+      this.includePedanticFixes,
+      this.excludedFixes,
+      this.port,
+      this.outputDir});
 
   factory EditDartfixParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<String> included;
@@ -7494,26 +6050,26 @@ class EditDartfixParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'included');
       }
-      List<String> includedFixes;
+      List<String>? includedFixes;
       if (json.containsKey('includedFixes')) {
         includedFixes = jsonDecoder.decodeList(jsonPath + '.includedFixes',
             json['includedFixes'], jsonDecoder.decodeString);
       }
-      bool includePedanticFixes;
+      bool? includePedanticFixes;
       if (json.containsKey('includePedanticFixes')) {
         includePedanticFixes = jsonDecoder.decodeBool(
             jsonPath + '.includePedanticFixes', json['includePedanticFixes']);
       }
-      List<String> excludedFixes;
+      List<String>? excludedFixes;
       if (json.containsKey('excludedFixes')) {
         excludedFixes = jsonDecoder.decodeList(jsonPath + '.excludedFixes',
             json['excludedFixes'], jsonDecoder.decodeString);
       }
-      int port;
+      int? port;
       if (json.containsKey('port')) {
         port = jsonDecoder.decodeInt(jsonPath + '.port', json['port']);
       }
-      String outputDir;
+      String? outputDir;
       if (json.containsKey('outputDir')) {
         outputDir = jsonDecoder.decodeString(
             jsonPath + '.outputDir', json['outputDir']);
@@ -7535,21 +6091,26 @@ class EditDartfixParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['included'] = included;
+    var includedFixes = this.includedFixes;
     if (includedFixes != null) {
       result['includedFixes'] = includedFixes;
     }
+    var includePedanticFixes = this.includePedanticFixes;
     if (includePedanticFixes != null) {
       result['includePedanticFixes'] = includePedanticFixes;
     }
+    var excludedFixes = this.excludedFixes;
     if (excludedFixes != null) {
       result['excludedFixes'] = excludedFixes;
     }
+    var port = this.port;
     if (port != null) {
       result['port'] = port;
     }
+    var outputDir = this.outputDir;
     if (outputDir != null) {
       result['outputDir'] = outputDir;
     }
@@ -7607,117 +6168,42 @@ class EditDartfixParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditDartfixResult implements ResponseResult {
-  List<DartFixSuggestion> _suggestions;
-
-  List<DartFixSuggestion> _otherSuggestions;
-
-  bool _hasErrors;
-
-  List<SourceFileEdit> _edits;
-
-  List<String> _details;
-
-  int _port;
-
-  List<String> _urls;
-
   /// A list of recommended changes that can be automatically made by applying
   /// the 'edits' included in this response.
-  List<DartFixSuggestion> get suggestions => _suggestions;
-
-  /// A list of recommended changes that can be automatically made by applying
-  /// the 'edits' included in this response.
-  set suggestions(List<DartFixSuggestion> value) {
-    assert(value != null);
-    _suggestions = value;
-  }
+  List<DartFixSuggestion> suggestions;
 
   /// A list of recommended changes that could not be automatically made.
-  List<DartFixSuggestion> get otherSuggestions => _otherSuggestions;
-
-  /// A list of recommended changes that could not be automatically made.
-  set otherSuggestions(List<DartFixSuggestion> value) {
-    assert(value != null);
-    _otherSuggestions = value;
-  }
+  List<DartFixSuggestion> otherSuggestions;
 
   /// True if the analyzed source contains errors that might impact the
   /// correctness of the recommended changes that can be automatically applied.
-  bool get hasErrors => _hasErrors;
-
-  /// True if the analyzed source contains errors that might impact the
-  /// correctness of the recommended changes that can be automatically applied.
-  set hasErrors(bool value) {
-    assert(value != null);
-    _hasErrors = value;
-  }
+  bool hasErrors;
 
   /// A list of source edits to apply the recommended changes.
-  List<SourceFileEdit> get edits => _edits;
-
-  /// A list of source edits to apply the recommended changes.
-  set edits(List<SourceFileEdit> value) {
-    assert(value != null);
-    _edits = value;
-  }
+  List<SourceFileEdit> edits;
 
   /// Messages that should be displayed to the user that describe details of
   /// the fix generation. For example, the messages might (a) point out details
   /// that users might want to explore before committing the changes or (b)
   /// describe exceptions that were thrown but that did not stop the fixes from
   /// being produced. The list will be omitted if it is empty.
-  List<String> get details => _details;
-
-  /// Messages that should be displayed to the user that describe details of
-  /// the fix generation. For example, the messages might (a) point out details
-  /// that users might want to explore before committing the changes or (b)
-  /// describe exceptions that were thrown but that did not stop the fixes from
-  /// being produced. The list will be omitted if it is empty.
-  set details(List<String> value) {
-    _details = value;
-  }
+  List<String>? details;
 
   /// The port on which the preview tool will respond to GET requests. The
   /// field is omitted if a preview was not requested.
-  int get port => _port;
-
-  /// The port on which the preview tool will respond to GET requests. The
-  /// field is omitted if a preview was not requested.
-  set port(int value) {
-    _port = value;
-  }
+  int? port;
 
   /// The URLs that users can visit in a browser to see a preview of the
   /// proposed changes. There is one URL for each of the included file paths.
   /// The field is omitted if a preview was not requested.
-  List<String> get urls => _urls;
-
-  /// The URLs that users can visit in a browser to see a preview of the
-  /// proposed changes. There is one URL for each of the included file paths.
-  /// The field is omitted if a preview was not requested.
-  set urls(List<String> value) {
-    _urls = value;
-  }
+  List<String>? urls;
 
   EditDartfixResult(
-      List<DartFixSuggestion> suggestions,
-      List<DartFixSuggestion> otherSuggestions,
-      bool hasErrors,
-      List<SourceFileEdit> edits,
-      {List<String> details,
-      int port,
-      List<String> urls}) {
-    this.suggestions = suggestions;
-    this.otherSuggestions = otherSuggestions;
-    this.hasErrors = hasErrors;
-    this.edits = edits;
-    this.details = details;
-    this.port = port;
-    this.urls = urls;
-  }
+      this.suggestions, this.otherSuggestions, this.hasErrors, this.edits,
+      {this.details, this.port, this.urls});
 
   factory EditDartfixResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<DartFixSuggestion> suggestions;
@@ -7725,7 +6211,7 @@ class EditDartfixResult implements ResponseResult {
         suggestions = jsonDecoder.decodeList(
             jsonPath + '.suggestions',
             json['suggestions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 DartFixSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'suggestions');
@@ -7735,7 +6221,7 @@ class EditDartfixResult implements ResponseResult {
         otherSuggestions = jsonDecoder.decodeList(
             jsonPath + '.otherSuggestions',
             json['otherSuggestions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 DartFixSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'otherSuggestions');
@@ -7752,21 +6238,21 @@ class EditDartfixResult implements ResponseResult {
         edits = jsonDecoder.decodeList(
             jsonPath + '.edits',
             json['edits'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
       }
-      List<String> details;
+      List<String>? details;
       if (json.containsKey('details')) {
         details = jsonDecoder.decodeList(
             jsonPath + '.details', json['details'], jsonDecoder.decodeString);
       }
-      int port;
+      int? port;
       if (json.containsKey('port')) {
         port = jsonDecoder.decodeInt(jsonPath + '.port', json['port']);
       }
-      List<String> urls;
+      List<String>? urls;
       if (json.containsKey('urls')) {
         urls = jsonDecoder.decodeList(
             jsonPath + '.urls', json['urls'], jsonDecoder.decodeString);
@@ -7786,8 +6272,8 @@ class EditDartfixResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['suggestions'] =
         suggestions.map((DartFixSuggestion value) => value.toJson()).toList();
     result['otherSuggestions'] = otherSuggestions
@@ -7796,12 +6282,15 @@ class EditDartfixResult implements ResponseResult {
     result['hasErrors'] = hasErrors;
     result['edits'] =
         edits.map((SourceFileEdit value) => value.toJson()).toList();
+    var details = this.details;
     if (details != null) {
       result['details'] = details;
     }
+    var port = this.port;
     if (port != null) {
       result['port'] = port;
     }
+    var urls = this.urls;
     if (urls != null) {
       result['urls'] = urls;
     }
@@ -7858,59 +6347,23 @@ class EditDartfixResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditFormatParams implements RequestParams {
-  String _file;
-
-  int _selectionOffset;
-
-  int _selectionLength;
-
-  int _lineLength;
-
   /// The file containing the code to be formatted.
-  String get file => _file;
-
-  /// The file containing the code to be formatted.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The offset of the current selection in the file.
-  int get selectionOffset => _selectionOffset;
-
-  /// The offset of the current selection in the file.
-  set selectionOffset(int value) {
-    assert(value != null);
-    _selectionOffset = value;
-  }
+  int selectionOffset;
 
   /// The length of the current selection in the file.
-  int get selectionLength => _selectionLength;
-
-  /// The length of the current selection in the file.
-  set selectionLength(int value) {
-    assert(value != null);
-    _selectionLength = value;
-  }
+  int selectionLength;
 
   /// The line length to be used by the formatter.
-  int get lineLength => _lineLength;
+  int? lineLength;
 
-  /// The line length to be used by the formatter.
-  set lineLength(int value) {
-    _lineLength = value;
-  }
-
-  EditFormatParams(String file, int selectionOffset, int selectionLength,
-      {int lineLength}) {
-    this.file = file;
-    this.selectionOffset = selectionOffset;
-    this.selectionLength = selectionLength;
-    this.lineLength = lineLength;
-  }
+  EditFormatParams(this.file, this.selectionOffset, this.selectionLength,
+      {this.lineLength});
 
   factory EditFormatParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -7933,7 +6386,7 @@ class EditFormatParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'selectionLength');
       }
-      int lineLength;
+      int? lineLength;
       if (json.containsKey('lineLength')) {
         lineLength =
             jsonDecoder.decodeInt(jsonPath + '.lineLength', json['lineLength']);
@@ -7951,11 +6404,12 @@ class EditFormatParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['selectionOffset'] = selectionOffset;
     result['selectionLength'] = selectionLength;
+    var lineLength = this.lineLength;
     if (lineLength != null) {
       result['lineLength'] = lineLength;
     }
@@ -8002,50 +6456,20 @@ class EditFormatParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditFormatResult implements ResponseResult {
-  List<SourceEdit> _edits;
-
-  int _selectionOffset;
-
-  int _selectionLength;
-
   /// The edit(s) to be applied in order to format the code. The list will be
   /// empty if the code was already formatted (there are no changes).
-  List<SourceEdit> get edits => _edits;
-
-  /// The edit(s) to be applied in order to format the code. The list will be
-  /// empty if the code was already formatted (there are no changes).
-  set edits(List<SourceEdit> value) {
-    assert(value != null);
-    _edits = value;
-  }
+  List<SourceEdit> edits;
 
   /// The offset of the selection after formatting the code.
-  int get selectionOffset => _selectionOffset;
-
-  /// The offset of the selection after formatting the code.
-  set selectionOffset(int value) {
-    assert(value != null);
-    _selectionOffset = value;
-  }
+  int selectionOffset;
 
   /// The length of the selection after formatting the code.
-  int get selectionLength => _selectionLength;
+  int selectionLength;
 
-  /// The length of the selection after formatting the code.
-  set selectionLength(int value) {
-    assert(value != null);
-    _selectionLength = value;
-  }
-
-  EditFormatResult(
-      List<SourceEdit> edits, int selectionOffset, int selectionLength) {
-    this.edits = edits;
-    this.selectionOffset = selectionOffset;
-    this.selectionLength = selectionLength;
-  }
+  EditFormatResult(this.edits, this.selectionOffset, this.selectionLength);
 
   factory EditFormatResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<SourceEdit> edits;
@@ -8053,7 +6477,7 @@ class EditFormatResult implements ResponseResult {
         edits = jsonDecoder.decodeList(
             jsonPath + '.edits',
             json['edits'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'edits');
@@ -8086,8 +6510,8 @@ class EditFormatResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['edits'] = edits.map((SourceEdit value) => value.toJson()).toList();
     result['selectionOffset'] = selectionOffset;
     result['selectionLength'] = selectionLength;
@@ -8133,47 +6557,19 @@ class EditFormatResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsParams implements RequestParams {
-  String _file;
-
-  int _offset;
-
-  int _length;
-
   /// The file containing the code for which assists are being requested.
-  String get file => _file;
-
-  /// The file containing the code for which assists are being requested.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The offset of the code for which assists are being requested.
-  int get offset => _offset;
-
-  /// The offset of the code for which assists are being requested.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the code for which assists are being requested.
-  int get length => _length;
+  int length;
 
-  /// The length of the code for which assists are being requested.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
-
-  EditGetAssistsParams(String file, int offset, int length) {
-    this.file = file;
-    this.offset = offset;
-    this.length = length;
-  }
+  EditGetAssistsParams(this.file, this.offset, this.length);
 
   factory EditGetAssistsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -8206,8 +6602,8 @@ class EditGetAssistsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     result['length'] = length;
@@ -8250,23 +6646,13 @@ class EditGetAssistsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsResult implements ResponseResult {
-  List<SourceChange> _assists;
-
   /// The assists that are available at the given location.
-  List<SourceChange> get assists => _assists;
+  List<SourceChange> assists;
 
-  /// The assists that are available at the given location.
-  set assists(List<SourceChange> value) {
-    assert(value != null);
-    _assists = value;
-  }
-
-  EditGetAssistsResult(List<SourceChange> assists) {
-    this.assists = assists;
-  }
+  EditGetAssistsResult(this.assists);
 
   factory EditGetAssistsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<SourceChange> assists;
@@ -8274,7 +6660,7 @@ class EditGetAssistsResult implements ResponseResult {
         assists = jsonDecoder.decodeList(
             jsonPath + '.assists',
             json['assists'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 SourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'assists');
@@ -8293,8 +6679,8 @@ class EditGetAssistsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['assists'] =
         assists.map((SourceChange value) => value.toJson()).toList();
     return result;
@@ -8335,47 +6721,19 @@ class EditGetAssistsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsParams implements RequestParams {
-  String _file;
-
-  int _offset;
-
-  int _length;
-
   /// The file containing the code on which the refactoring would be based.
-  String get file => _file;
-
-  /// The file containing the code on which the refactoring would be based.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The offset of the code on which the refactoring would be based.
-  int get offset => _offset;
-
-  /// The offset of the code on which the refactoring would be based.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the code on which the refactoring would be based.
-  int get length => _length;
+  int length;
 
-  /// The length of the code on which the refactoring would be based.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
-
-  EditGetAvailableRefactoringsParams(String file, int offset, int length) {
-    this.file = file;
-    this.offset = offset;
-    this.length = length;
-  }
+  EditGetAvailableRefactoringsParams(this.file, this.offset, this.length);
 
   factory EditGetAvailableRefactoringsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -8409,8 +6767,8 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     result['length'] = length;
@@ -8453,23 +6811,13 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsResult implements ResponseResult {
-  List<RefactoringKind> _kinds;
-
   /// The kinds of refactorings that are valid for the given selection.
-  List<RefactoringKind> get kinds => _kinds;
+  List<RefactoringKind> kinds;
 
-  /// The kinds of refactorings that are valid for the given selection.
-  set kinds(List<RefactoringKind> value) {
-    assert(value != null);
-    _kinds = value;
-  }
-
-  EditGetAvailableRefactoringsResult(List<RefactoringKind> kinds) {
-    this.kinds = kinds;
-  }
+  EditGetAvailableRefactoringsResult(this.kinds);
 
   factory EditGetAvailableRefactoringsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<RefactoringKind> kinds;
@@ -8477,7 +6825,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
         kinds = jsonDecoder.decodeList(
             jsonPath + '.kinds',
             json['kinds'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kinds');
@@ -8497,8 +6845,8 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['kinds'] =
         kinds.map((RefactoringKind value) => value.toJson()).toList();
     return result;
@@ -8539,7 +6887,7 @@ class EditGetDartfixInfoParams implements RequestParams {
   EditGetDartfixInfoParams();
 
   factory EditGetDartfixInfoParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       return EditGetDartfixInfoParams();
@@ -8554,8 +6902,8 @@ class EditGetDartfixInfoParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     return result;
   }
 
@@ -8590,23 +6938,13 @@ class EditGetDartfixInfoParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetDartfixInfoResult implements ResponseResult {
-  List<DartFix> _fixes;
-
   /// A list of fixes that can be specified in an edit.dartfix request.
-  List<DartFix> get fixes => _fixes;
+  List<DartFix> fixes;
 
-  /// A list of fixes that can be specified in an edit.dartfix request.
-  set fixes(List<DartFix> value) {
-    assert(value != null);
-    _fixes = value;
-  }
-
-  EditGetDartfixInfoResult(List<DartFix> fixes) {
-    this.fixes = fixes;
-  }
+  EditGetDartfixInfoResult(this.fixes);
 
   factory EditGetDartfixInfoResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<DartFix> fixes;
@@ -8614,7 +6952,7 @@ class EditGetDartfixInfoResult implements ResponseResult {
         fixes = jsonDecoder.decodeList(
             jsonPath + '.fixes',
             json['fixes'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 DartFix.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'fixes');
@@ -8633,8 +6971,8 @@ class EditGetDartfixInfoResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['fixes'] = fixes.map((DartFix value) => value.toJson()).toList();
     return result;
   }
@@ -8672,35 +7010,16 @@ class EditGetDartfixInfoResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetFixesParams implements RequestParams {
-  String _file;
-
-  int _offset;
-
   /// The file containing the errors for which fixes are being requested.
-  String get file => _file;
-
-  /// The file containing the errors for which fixes are being requested.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The offset used to select the errors for which fixes will be returned.
-  int get offset => _offset;
+  int offset;
 
-  /// The offset used to select the errors for which fixes will be returned.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
-
-  EditGetFixesParams(String file, int offset) {
-    this.file = file;
-    this.offset = offset;
-  }
+  EditGetFixesParams(this.file, this.offset);
 
   factory EditGetFixesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -8727,8 +7046,8 @@ class EditGetFixesParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     return result;
@@ -8767,23 +7086,13 @@ class EditGetFixesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetFixesResult implements ResponseResult {
-  List<AnalysisErrorFixes> _fixes;
-
   /// The fixes that are available for the errors at the given offset.
-  List<AnalysisErrorFixes> get fixes => _fixes;
+  List<AnalysisErrorFixes> fixes;
 
-  /// The fixes that are available for the errors at the given offset.
-  set fixes(List<AnalysisErrorFixes> value) {
-    assert(value != null);
-    _fixes = value;
-  }
-
-  EditGetFixesResult(List<AnalysisErrorFixes> fixes) {
-    this.fixes = fixes;
-  }
+  EditGetFixesResult(this.fixes);
 
   factory EditGetFixesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<AnalysisErrorFixes> fixes;
@@ -8791,7 +7100,7 @@ class EditGetFixesResult implements ResponseResult {
         fixes = jsonDecoder.decodeList(
             jsonPath + '.fixes',
             json['fixes'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'fixes');
@@ -8810,8 +7119,8 @@ class EditGetFixesResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['fixes'] =
         fixes.map((AnalysisErrorFixes value) => value.toJson()).toList();
     return result;
@@ -8852,49 +7161,20 @@ class EditGetFixesResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetPostfixCompletionParams implements RequestParams {
-  String _file;
-
-  String _key;
-
-  int _offset;
-
   /// The file containing the postfix template to be expanded.
-  String get file => _file;
-
-  /// The file containing the postfix template to be expanded.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The unique name that identifies the template in use.
-  String get key => _key;
-
-  /// The unique name that identifies the template in use.
-  set key(String value) {
-    assert(value != null);
-    _key = value;
-  }
+  String key;
 
   /// The offset used to identify the code to which the template will be
   /// applied.
-  int get offset => _offset;
+  int offset;
 
-  /// The offset used to identify the code to which the template will be
-  /// applied.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
-
-  EditGetPostfixCompletionParams(String file, String key, int offset) {
-    this.file = file;
-    this.key = key;
-    this.offset = offset;
-  }
+  EditGetPostfixCompletionParams(this.file, this.key, this.offset);
 
   factory EditGetPostfixCompletionParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -8928,8 +7208,8 @@ class EditGetPostfixCompletionParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['key'] = key;
     result['offset'] = offset;
@@ -8970,23 +7250,13 @@ class EditGetPostfixCompletionParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetPostfixCompletionResult implements ResponseResult {
-  SourceChange _change;
-
   /// The change to be applied in order to complete the statement.
-  SourceChange get change => _change;
+  SourceChange change;
 
-  /// The change to be applied in order to complete the statement.
-  set change(SourceChange value) {
-    assert(value != null);
-    _change = value;
-  }
-
-  EditGetPostfixCompletionResult(SourceChange change) {
-    this.change = change;
-  }
+  EditGetPostfixCompletionResult(this.change);
 
   factory EditGetPostfixCompletionResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       SourceChange change;
@@ -9011,8 +7281,8 @@ class EditGetPostfixCompletionResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['change'] = change.toJson();
     return result;
   }
@@ -9054,94 +7324,35 @@ class EditGetPostfixCompletionResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringParams implements RequestParams {
-  RefactoringKind _kind;
-
-  String _file;
-
-  int _offset;
-
-  int _length;
-
-  bool _validateOnly;
-
-  RefactoringOptions _options;
-
   /// The kind of refactoring to be performed.
-  RefactoringKind get kind => _kind;
-
-  /// The kind of refactoring to be performed.
-  set kind(RefactoringKind value) {
-    assert(value != null);
-    _kind = value;
-  }
+  RefactoringKind kind;
 
   /// The file containing the code involved in the refactoring.
-  String get file => _file;
-
-  /// The file containing the code involved in the refactoring.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The offset of the region involved in the refactoring.
-  int get offset => _offset;
-
-  /// The offset of the region involved in the refactoring.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the region involved in the refactoring.
-  int get length => _length;
-
-  /// The length of the region involved in the refactoring.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
+  int length;
 
   /// True if the client is only requesting that the values of the options be
   /// validated and no change be generated.
-  bool get validateOnly => _validateOnly;
-
-  /// True if the client is only requesting that the values of the options be
-  /// validated and no change be generated.
-  set validateOnly(bool value) {
-    assert(value != null);
-    _validateOnly = value;
-  }
+  bool validateOnly;
 
   /// Data used to provide values provided by the user. The structure of the
   /// data is dependent on the kind of refactoring being performed. The data
   /// that is expected is documented in the section titled Refactorings,
   /// labeled as "Options". This field can be omitted if the refactoring does
   /// not require any options or if the values of those options are not known.
-  RefactoringOptions get options => _options;
+  RefactoringOptions? options;
 
-  /// Data used to provide values provided by the user. The structure of the
-  /// data is dependent on the kind of refactoring being performed. The data
-  /// that is expected is documented in the section titled Refactorings,
-  /// labeled as "Options". This field can be omitted if the refactoring does
-  /// not require any options or if the values of those options are not known.
-  set options(RefactoringOptions value) {
-    _options = value;
-  }
-
-  EditGetRefactoringParams(RefactoringKind kind, String file, int offset,
-      int length, bool validateOnly,
-      {RefactoringOptions options}) {
-    this.kind = kind;
-    this.file = file;
-    this.offset = offset;
-    this.length = length;
-    this.validateOnly = validateOnly;
-    this.options = options;
-  }
+  EditGetRefactoringParams(
+      this.kind, this.file, this.offset, this.length, this.validateOnly,
+      {this.options});
 
   factory EditGetRefactoringParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       RefactoringKind kind;
@@ -9176,7 +7387,7 @@ class EditGetRefactoringParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'validateOnly');
       }
-      RefactoringOptions options;
+      RefactoringOptions? options;
       if (json.containsKey('options')) {
         options = RefactoringOptions.fromJson(
             jsonDecoder, jsonPath + '.options', json['options'], kind);
@@ -9196,13 +7407,14 @@ class EditGetRefactoringParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['kind'] = kind.toJson();
     result['file'] = file;
     result['offset'] = offset;
     result['length'] = length;
     result['validateOnly'] = validateOnly;
+    var options = this.options;
     if (options != null) {
       result['options'] = options.toJson();
     }
@@ -9256,84 +7468,32 @@ class EditGetRefactoringParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringResult implements ResponseResult {
-  List<RefactoringProblem> _initialProblems;
-
-  List<RefactoringProblem> _optionsProblems;
-
-  List<RefactoringProblem> _finalProblems;
-
-  RefactoringFeedback _feedback;
-
-  SourceChange _change;
-
-  List<String> _potentialEdits;
-
   /// The initial status of the refactoring, i.e. problems related to the
   /// context in which the refactoring is requested. The array will be empty if
   /// there are no known problems.
-  List<RefactoringProblem> get initialProblems => _initialProblems;
-
-  /// The initial status of the refactoring, i.e. problems related to the
-  /// context in which the refactoring is requested. The array will be empty if
-  /// there are no known problems.
-  set initialProblems(List<RefactoringProblem> value) {
-    assert(value != null);
-    _initialProblems = value;
-  }
+  List<RefactoringProblem> initialProblems;
 
   /// The options validation status, i.e. problems in the given options, such
   /// as light-weight validation of a new name, flags compatibility, etc. The
   /// array will be empty if there are no known problems.
-  List<RefactoringProblem> get optionsProblems => _optionsProblems;
-
-  /// The options validation status, i.e. problems in the given options, such
-  /// as light-weight validation of a new name, flags compatibility, etc. The
-  /// array will be empty if there are no known problems.
-  set optionsProblems(List<RefactoringProblem> value) {
-    assert(value != null);
-    _optionsProblems = value;
-  }
+  List<RefactoringProblem> optionsProblems;
 
   /// The final status of the refactoring, i.e. problems identified in the
   /// result of a full, potentially expensive validation and / or change
   /// creation. The array will be empty if there are no known problems.
-  List<RefactoringProblem> get finalProblems => _finalProblems;
-
-  /// The final status of the refactoring, i.e. problems identified in the
-  /// result of a full, potentially expensive validation and / or change
-  /// creation. The array will be empty if there are no known problems.
-  set finalProblems(List<RefactoringProblem> value) {
-    assert(value != null);
-    _finalProblems = value;
-  }
+  List<RefactoringProblem> finalProblems;
 
   /// Data used to provide feedback to the user. The structure of the data is
   /// dependent on the kind of refactoring being created. The data that is
   /// returned is documented in the section titled Refactorings, labeled as
   /// "Feedback".
-  RefactoringFeedback get feedback => _feedback;
-
-  /// Data used to provide feedback to the user. The structure of the data is
-  /// dependent on the kind of refactoring being created. The data that is
-  /// returned is documented in the section titled Refactorings, labeled as
-  /// "Feedback".
-  set feedback(RefactoringFeedback value) {
-    _feedback = value;
-  }
+  RefactoringFeedback? feedback;
 
   /// The changes that are to be applied to affect the refactoring. This field
   /// will be omitted if there are problems that prevent a set of changes from
   /// being computed, such as having no options specified for a refactoring
   /// that requires them, or if only validation was requested.
-  SourceChange get change => _change;
-
-  /// The changes that are to be applied to affect the refactoring. This field
-  /// will be omitted if there are problems that prevent a set of changes from
-  /// being computed, such as having no options specified for a refactoring
-  /// that requires them, or if only validation was requested.
-  set change(SourceChange value) {
-    _change = value;
-  }
+  SourceChange? change;
 
   /// The ids of source edits that are not known to be valid. An edit is not
   /// known to be valid if there was insufficient type information for the
@@ -9342,36 +7502,14 @@ class EditGetRefactoringResult implements ResponseResult {
   /// to a member from an unknown type. This field will be omitted if the
   /// change field is omitted or if there are no potential edits for the
   /// refactoring.
-  List<String> get potentialEdits => _potentialEdits;
-
-  /// The ids of source edits that are not known to be valid. An edit is not
-  /// known to be valid if there was insufficient type information for the
-  /// server to be able to determine whether or not the code needs to be
-  /// modified, such as when a member is being renamed and there is a reference
-  /// to a member from an unknown type. This field will be omitted if the
-  /// change field is omitted or if there are no potential edits for the
-  /// refactoring.
-  set potentialEdits(List<String> value) {
-    _potentialEdits = value;
-  }
+  List<String>? potentialEdits;
 
   EditGetRefactoringResult(
-      List<RefactoringProblem> initialProblems,
-      List<RefactoringProblem> optionsProblems,
-      List<RefactoringProblem> finalProblems,
-      {RefactoringFeedback feedback,
-      SourceChange change,
-      List<String> potentialEdits}) {
-    this.initialProblems = initialProblems;
-    this.optionsProblems = optionsProblems;
-    this.finalProblems = finalProblems;
-    this.feedback = feedback;
-    this.change = change;
-    this.potentialEdits = potentialEdits;
-  }
+      this.initialProblems, this.optionsProblems, this.finalProblems,
+      {this.feedback, this.change, this.potentialEdits});
 
   factory EditGetRefactoringResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<RefactoringProblem> initialProblems;
@@ -9379,7 +7517,7 @@ class EditGetRefactoringResult implements ResponseResult {
         initialProblems = jsonDecoder.decodeList(
             jsonPath + '.initialProblems',
             json['initialProblems'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'initialProblems');
@@ -9389,7 +7527,7 @@ class EditGetRefactoringResult implements ResponseResult {
         optionsProblems = jsonDecoder.decodeList(
             jsonPath + '.optionsProblems',
             json['optionsProblems'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'optionsProblems');
@@ -9399,22 +7537,22 @@ class EditGetRefactoringResult implements ResponseResult {
         finalProblems = jsonDecoder.decodeList(
             jsonPath + '.finalProblems',
             json['finalProblems'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'finalProblems');
       }
-      RefactoringFeedback feedback;
+      RefactoringFeedback? feedback;
       if (json.containsKey('feedback')) {
         feedback = RefactoringFeedback.fromJson(
             jsonDecoder, jsonPath + '.feedback', json['feedback'], json);
       }
-      SourceChange change;
+      SourceChange? change;
       if (json.containsKey('change')) {
         change = SourceChange.fromJson(
             jsonDecoder, jsonPath + '.change', json['change']);
       }
-      List<String> potentialEdits;
+      List<String>? potentialEdits;
       if (json.containsKey('potentialEdits')) {
         potentialEdits = jsonDecoder.decodeList(jsonPath + '.potentialEdits',
             json['potentialEdits'], jsonDecoder.decodeString);
@@ -9435,8 +7573,8 @@ class EditGetRefactoringResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['initialProblems'] = initialProblems
         .map((RefactoringProblem value) => value.toJson())
         .toList();
@@ -9446,12 +7584,15 @@ class EditGetRefactoringResult implements ResponseResult {
     result['finalProblems'] = finalProblems
         .map((RefactoringProblem value) => value.toJson())
         .toList();
+    var feedback = this.feedback;
     if (feedback != null) {
       result['feedback'] = feedback.toJson();
     }
+    var change = this.change;
     if (change != null) {
       result['change'] = change.toJson();
     }
+    var potentialEdits = this.potentialEdits;
     if (potentialEdits != null) {
       result['potentialEdits'] = potentialEdits;
     }
@@ -9505,35 +7646,16 @@ class EditGetRefactoringResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetStatementCompletionParams implements RequestParams {
-  String _file;
-
-  int _offset;
-
   /// The file containing the statement to be completed.
-  String get file => _file;
-
-  /// The file containing the statement to be completed.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The offset used to identify the statement to be completed.
-  int get offset => _offset;
+  int offset;
 
-  /// The offset used to identify the statement to be completed.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
-
-  EditGetStatementCompletionParams(String file, int offset) {
-    this.file = file;
-    this.offset = offset;
-  }
+  EditGetStatementCompletionParams(this.file, this.offset);
 
   factory EditGetStatementCompletionParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -9561,8 +7683,8 @@ class EditGetStatementCompletionParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     return result;
@@ -9602,37 +7724,17 @@ class EditGetStatementCompletionParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetStatementCompletionResult implements ResponseResult {
-  SourceChange _change;
-
-  bool _whitespaceOnly;
-
   /// The change to be applied in order to complete the statement.
-  SourceChange get change => _change;
-
-  /// The change to be applied in order to complete the statement.
-  set change(SourceChange value) {
-    assert(value != null);
-    _change = value;
-  }
+  SourceChange change;
 
   /// Will be true if the change contains nothing but whitespace characters, or
   /// is empty.
-  bool get whitespaceOnly => _whitespaceOnly;
+  bool whitespaceOnly;
 
-  /// Will be true if the change contains nothing but whitespace characters, or
-  /// is empty.
-  set whitespaceOnly(bool value) {
-    assert(value != null);
-    _whitespaceOnly = value;
-  }
-
-  EditGetStatementCompletionResult(SourceChange change, bool whitespaceOnly) {
-    this.change = change;
-    this.whitespaceOnly = whitespaceOnly;
-  }
+  EditGetStatementCompletionResult(this.change, this.whitespaceOnly);
 
   factory EditGetStatementCompletionResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       SourceChange change;
@@ -9664,8 +7766,8 @@ class EditGetStatementCompletionResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['change'] = change.toJson();
     result['whitespaceOnly'] = whitespaceOnly;
     return result;
@@ -9706,53 +7808,22 @@ class EditGetStatementCompletionResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditImportElementsParams implements RequestParams {
-  String _file;
-
-  List<ImportedElements> _elements;
-
-  int _offset;
-
   /// The file in which the specified elements are to be made accessible.
-  String get file => _file;
-
-  /// The file in which the specified elements are to be made accessible.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The elements to be made accessible in the specified file.
-  List<ImportedElements> get elements => _elements;
-
-  /// The elements to be made accessible in the specified file.
-  set elements(List<ImportedElements> value) {
-    assert(value != null);
-    _elements = value;
-  }
+  List<ImportedElements> elements;
 
   /// The offset at which the specified elements need to be made accessible. If
   /// provided, this is used to guard against adding imports for text that
   /// would be inserted into a comment, string literal, or other location where
   /// the imports would not be necessary.
-  int get offset => _offset;
+  int? offset;
 
-  /// The offset at which the specified elements need to be made accessible. If
-  /// provided, this is used to guard against adding imports for text that
-  /// would be inserted into a comment, string literal, or other location where
-  /// the imports would not be necessary.
-  set offset(int value) {
-    _offset = value;
-  }
-
-  EditImportElementsParams(String file, List<ImportedElements> elements,
-      {int offset}) {
-    this.file = file;
-    this.elements = elements;
-    this.offset = offset;
-  }
+  EditImportElementsParams(this.file, this.elements, {this.offset});
 
   factory EditImportElementsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -9766,12 +7837,12 @@ class EditImportElementsParams implements RequestParams {
         elements = jsonDecoder.decodeList(
             jsonPath + '.elements',
             json['elements'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 ImportedElements.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'elements');
       }
-      int offset;
+      int? offset;
       if (json.containsKey('offset')) {
         offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       }
@@ -9787,11 +7858,12 @@ class EditImportElementsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['elements'] =
         elements.map((ImportedElements value) => value.toJson()).toList();
+    var offset = this.offset;
     if (offset != null) {
       result['offset'] = offset;
     }
@@ -9835,35 +7907,21 @@ class EditImportElementsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditImportElementsResult implements ResponseResult {
-  SourceFileEdit _edit;
-
   /// The edits to be applied in order to make the specified elements
   /// accessible. The file to be edited will be the defining compilation unit
   /// of the library containing the file specified in the request, which can be
   /// different than the file specified in the request if the specified file is
   /// a part file. This field will be omitted if there are no edits that need
   /// to be applied.
-  SourceFileEdit get edit => _edit;
+  SourceFileEdit? edit;
 
-  /// The edits to be applied in order to make the specified elements
-  /// accessible. The file to be edited will be the defining compilation unit
-  /// of the library containing the file specified in the request, which can be
-  /// different than the file specified in the request if the specified file is
-  /// a part file. This field will be omitted if there are no edits that need
-  /// to be applied.
-  set edit(SourceFileEdit value) {
-    _edit = value;
-  }
-
-  EditImportElementsResult({SourceFileEdit edit}) {
-    this.edit = edit;
-  }
+  EditImportElementsResult({this.edit});
 
   factory EditImportElementsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      SourceFileEdit edit;
+      SourceFileEdit? edit;
       if (json.containsKey('edit')) {
         edit = SourceFileEdit.fromJson(
             jsonDecoder, jsonPath + '.edit', json['edit']);
@@ -9882,8 +7940,9 @@ class EditImportElementsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var edit = this.edit;
     if (edit != null) {
       result['edit'] = edit.toJson();
     }
@@ -9924,49 +7983,20 @@ class EditImportElementsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditIsPostfixCompletionApplicableParams implements RequestParams {
-  String _file;
-
-  String _key;
-
-  int _offset;
-
   /// The file containing the postfix template to be expanded.
-  String get file => _file;
-
-  /// The file containing the postfix template to be expanded.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The unique name that identifies the template in use.
-  String get key => _key;
-
-  /// The unique name that identifies the template in use.
-  set key(String value) {
-    assert(value != null);
-    _key = value;
-  }
+  String key;
 
   /// The offset used to identify the code to which the template will be
   /// applied.
-  int get offset => _offset;
+  int offset;
 
-  /// The offset used to identify the code to which the template will be
-  /// applied.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
-
-  EditIsPostfixCompletionApplicableParams(String file, String key, int offset) {
-    this.file = file;
-    this.key = key;
-    this.offset = offset;
-  }
+  EditIsPostfixCompletionApplicableParams(this.file, this.key, this.offset);
 
   factory EditIsPostfixCompletionApplicableParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -10000,8 +8030,8 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['key'] = key;
     result['offset'] = offset;
@@ -10042,23 +8072,13 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditIsPostfixCompletionApplicableResult implements ResponseResult {
-  bool _value;
-
   /// True if the template can be expanded at the given location.
-  bool get value => _value;
+  bool value;
 
-  /// True if the template can be expanded at the given location.
-  set value(bool value) {
-    assert(value != null);
-    _value = value;
-  }
-
-  EditIsPostfixCompletionApplicableResult(bool value) {
-    this.value = value;
-  }
+  EditIsPostfixCompletionApplicableResult(this.value);
 
   factory EditIsPostfixCompletionApplicableResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       bool value;
@@ -10083,8 +8103,8 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['value'] = value;
     return result;
   }
@@ -10118,7 +8138,7 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
 /// Clients may not extend, implement or mix-in this class.
 class EditListPostfixCompletionTemplatesParams implements RequestParams {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Request toRequest(String id) {
@@ -10147,24 +8167,13 @@ class EditListPostfixCompletionTemplatesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditListPostfixCompletionTemplatesResult implements ResponseResult {
-  List<PostfixTemplateDescriptor> _templates;
-
   /// The list of available templates.
-  List<PostfixTemplateDescriptor> get templates => _templates;
+  List<PostfixTemplateDescriptor> templates;
 
-  /// The list of available templates.
-  set templates(List<PostfixTemplateDescriptor> value) {
-    assert(value != null);
-    _templates = value;
-  }
-
-  EditListPostfixCompletionTemplatesResult(
-      List<PostfixTemplateDescriptor> templates) {
-    this.templates = templates;
-  }
+  EditListPostfixCompletionTemplatesResult(this.templates);
 
   factory EditListPostfixCompletionTemplatesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<PostfixTemplateDescriptor> templates;
@@ -10172,7 +8181,7 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
         templates = jsonDecoder.decodeList(
             jsonPath + '.templates',
             json['templates'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 PostfixTemplateDescriptor.fromJson(
                     jsonDecoder, jsonPath, json));
       } else {
@@ -10194,8 +8203,8 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['templates'] = templates
         .map((PostfixTemplateDescriptor value) => value.toJson())
         .toList();
@@ -10235,23 +8244,13 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditOrganizeDirectivesParams implements RequestParams {
-  String _file;
-
   /// The Dart file to organize directives in.
-  String get file => _file;
+  String file;
 
-  /// The Dart file to organize directives in.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
-
-  EditOrganizeDirectivesParams(String file) {
-    this.file = file;
-  }
+  EditOrganizeDirectivesParams(this.file);
 
   factory EditOrganizeDirectivesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -10273,8 +8272,8 @@ class EditOrganizeDirectivesParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     return result;
   }
@@ -10311,25 +8310,14 @@ class EditOrganizeDirectivesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditOrganizeDirectivesResult implements ResponseResult {
-  SourceFileEdit _edit;
-
   /// The file edit that is to be applied to the given file to effect the
   /// organizing.
-  SourceFileEdit get edit => _edit;
+  SourceFileEdit edit;
 
-  /// The file edit that is to be applied to the given file to effect the
-  /// organizing.
-  set edit(SourceFileEdit value) {
-    assert(value != null);
-    _edit = value;
-  }
-
-  EditOrganizeDirectivesResult(SourceFileEdit edit) {
-    this.edit = edit;
-  }
+  EditOrganizeDirectivesResult(this.edit);
 
   factory EditOrganizeDirectivesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       SourceFileEdit edit;
@@ -10354,8 +8342,8 @@ class EditOrganizeDirectivesResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['edit'] = edit.toJson();
     return result;
   }
@@ -10392,23 +8380,13 @@ class EditOrganizeDirectivesResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditSortMembersParams implements RequestParams {
-  String _file;
-
   /// The Dart file to sort.
-  String get file => _file;
+  String file;
 
-  /// The Dart file to sort.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
-
-  EditSortMembersParams(String file) {
-    this.file = file;
-  }
+  EditSortMembersParams(this.file);
 
   factory EditSortMembersParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -10429,8 +8407,8 @@ class EditSortMembersParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     return result;
   }
@@ -10467,25 +8445,14 @@ class EditSortMembersParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditSortMembersResult implements ResponseResult {
-  SourceFileEdit _edit;
-
   /// The file edit that is to be applied to the given file to effect the
   /// sorting.
-  SourceFileEdit get edit => _edit;
+  SourceFileEdit edit;
 
-  /// The file edit that is to be applied to the given file to effect the
-  /// sorting.
-  set edit(SourceFileEdit value) {
-    assert(value != null);
-    _edit = value;
-  }
-
-  EditSortMembersResult(SourceFileEdit edit) {
-    this.edit = edit;
-  }
+  EditSortMembersResult(this.edit);
 
   factory EditSortMembersResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       SourceFileEdit edit;
@@ -10509,8 +8476,8 @@ class EditSortMembersResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['edit'] = edit.toJson();
     return result;
   }
@@ -10557,119 +8524,37 @@ class EditSortMembersResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ElementDeclaration implements HasToJson {
-  String _name;
-
-  ElementKind _kind;
-
-  int _fileIndex;
-
-  int _offset;
-
-  int _line;
-
-  int _column;
-
-  int _codeOffset;
-
-  int _codeLength;
-
-  String _className;
-
-  String _mixinName;
-
-  String _parameters;
-
   /// The name of the declaration.
-  String get name => _name;
-
-  /// The name of the declaration.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
+  String name;
 
   /// The kind of the element that corresponds to the declaration.
-  ElementKind get kind => _kind;
-
-  /// The kind of the element that corresponds to the declaration.
-  set kind(ElementKind value) {
-    assert(value != null);
-    _kind = value;
-  }
+  ElementKind kind;
 
   /// The index of the file (in the enclosing response).
-  int get fileIndex => _fileIndex;
-
-  /// The index of the file (in the enclosing response).
-  set fileIndex(int value) {
-    assert(value != null);
-    _fileIndex = value;
-  }
+  int fileIndex;
 
   /// The offset of the declaration name in the file.
-  int get offset => _offset;
-
-  /// The offset of the declaration name in the file.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The one-based index of the line containing the declaration name.
-  int get line => _line;
-
-  /// The one-based index of the line containing the declaration name.
-  set line(int value) {
-    assert(value != null);
-    _line = value;
-  }
+  int line;
 
   /// The one-based index of the column containing the declaration name.
-  int get column => _column;
-
-  /// The one-based index of the column containing the declaration name.
-  set column(int value) {
-    assert(value != null);
-    _column = value;
-  }
+  int column;
 
   /// The offset of the first character of the declaration code in the file.
-  int get codeOffset => _codeOffset;
-
-  /// The offset of the first character of the declaration code in the file.
-  set codeOffset(int value) {
-    assert(value != null);
-    _codeOffset = value;
-  }
+  int codeOffset;
 
   /// The length of the declaration code in the file.
-  int get codeLength => _codeLength;
-
-  /// The length of the declaration code in the file.
-  set codeLength(int value) {
-    assert(value != null);
-    _codeLength = value;
-  }
+  int codeLength;
 
   /// The name of the class enclosing this declaration. If the declaration is
   /// not a class member, this field will be absent.
-  String get className => _className;
-
-  /// The name of the class enclosing this declaration. If the declaration is
-  /// not a class member, this field will be absent.
-  set className(String value) {
-    _className = value;
-  }
+  String? className;
 
   /// The name of the mixin enclosing this declaration. If the declaration is
   /// not a mixin member, this field will be absent.
-  String get mixinName => _mixinName;
-
-  /// The name of the mixin enclosing this declaration. If the declaration is
-  /// not a mixin member, this field will be absent.
-  set mixinName(String value) {
-    _mixinName = value;
-  }
+  String? mixinName;
 
   /// The parameter list for the element. If the element is not a method or
   /// function this field will not be defined. If the element doesn't have
@@ -10677,36 +8562,14 @@ class ElementDeclaration implements HasToJson {
   /// has zero parameters, this field will have a value of "()". The value
   /// should not be treated as exact presentation of parameters, it is just
   /// approximation of parameters to give the user general idea.
-  String get parameters => _parameters;
+  String? parameters;
 
-  /// The parameter list for the element. If the element is not a method or
-  /// function this field will not be defined. If the element doesn't have
-  /// parameters (e.g. getter), this field will not be defined. If the element
-  /// has zero parameters, this field will have a value of "()". The value
-  /// should not be treated as exact presentation of parameters, it is just
-  /// approximation of parameters to give the user general idea.
-  set parameters(String value) {
-    _parameters = value;
-  }
-
-  ElementDeclaration(String name, ElementKind kind, int fileIndex, int offset,
-      int line, int column, int codeOffset, int codeLength,
-      {String className, String mixinName, String parameters}) {
-    this.name = name;
-    this.kind = kind;
-    this.fileIndex = fileIndex;
-    this.offset = offset;
-    this.line = line;
-    this.column = column;
-    this.codeOffset = codeOffset;
-    this.codeLength = codeLength;
-    this.className = className;
-    this.mixinName = mixinName;
-    this.parameters = parameters;
-  }
+  ElementDeclaration(this.name, this.kind, this.fileIndex, this.offset,
+      this.line, this.column, this.codeOffset, this.codeLength,
+      {this.className, this.mixinName, this.parameters});
 
   factory ElementDeclaration.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -10761,17 +8624,17 @@ class ElementDeclaration implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'codeLength');
       }
-      String className;
+      String? className;
       if (json.containsKey('className')) {
         className = jsonDecoder.decodeString(
             jsonPath + '.className', json['className']);
       }
-      String mixinName;
+      String? mixinName;
       if (json.containsKey('mixinName')) {
         mixinName = jsonDecoder.decodeString(
             jsonPath + '.mixinName', json['mixinName']);
       }
-      String parameters;
+      String? parameters;
       if (json.containsKey('parameters')) {
         parameters = jsonDecoder.decodeString(
             jsonPath + '.parameters', json['parameters']);
@@ -10785,8 +8648,8 @@ class ElementDeclaration implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['name'] = name;
     result['kind'] = kind.toJson();
     result['fileIndex'] = fileIndex;
@@ -10795,12 +8658,15 @@ class ElementDeclaration implements HasToJson {
     result['column'] = column;
     result['codeOffset'] = codeOffset;
     result['codeLength'] = codeLength;
+    var className = this.className;
     if (className != null) {
       result['className'] = className;
     }
+    var mixinName = this.mixinName;
     if (mixinName != null) {
       result['mixinName'] = mixinName;
     }
+    var parameters = this.parameters;
     if (parameters != null) {
       result['parameters'] = parameters;
     }
@@ -10855,35 +8721,16 @@ class ElementDeclaration implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutableFile implements HasToJson {
-  String _file;
-
-  ExecutableKind _kind;
-
   /// The path of the executable file.
-  String get file => _file;
-
-  /// The path of the executable file.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The kind of the executable file.
-  ExecutableKind get kind => _kind;
+  ExecutableKind kind;
 
-  /// The kind of the executable file.
-  set kind(ExecutableKind value) {
-    assert(value != null);
-    _kind = value;
-  }
-
-  ExecutableFile(String file, ExecutableKind kind) {
-    this.file = file;
-    this.kind = kind;
-  }
+  ExecutableFile(this.file, this.kind);
 
   factory ExecutableFile.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -10906,8 +8753,8 @@ class ExecutableFile implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['kind'] = kind.toJson();
     return result;
@@ -10981,7 +8828,7 @@ class ExecutableKind implements Enum {
   }
 
   factory ExecutableKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return ExecutableKind(json);
@@ -11006,25 +8853,14 @@ class ExecutableKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionCreateContextParams implements RequestParams {
-  String _contextRoot;
-
   /// The path of the Dart or HTML file that will be launched, or the path of
   /// the directory containing the file.
-  String get contextRoot => _contextRoot;
+  String contextRoot;
 
-  /// The path of the Dart or HTML file that will be launched, or the path of
-  /// the directory containing the file.
-  set contextRoot(String value) {
-    assert(value != null);
-    _contextRoot = value;
-  }
-
-  ExecutionCreateContextParams(String contextRoot) {
-    this.contextRoot = contextRoot;
-  }
+  ExecutionCreateContextParams(this.contextRoot);
 
   factory ExecutionCreateContextParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String contextRoot;
@@ -11047,8 +8883,8 @@ class ExecutionCreateContextParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['contextRoot'] = contextRoot;
     return result;
   }
@@ -11085,23 +8921,13 @@ class ExecutionCreateContextParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionCreateContextResult implements ResponseResult {
-  String _id;
-
   /// The identifier used to refer to the execution context that was created.
-  String get id => _id;
+  String id;
 
-  /// The identifier used to refer to the execution context that was created.
-  set id(String value) {
-    assert(value != null);
-    _id = value;
-  }
-
-  ExecutionCreateContextResult(String id) {
-    this.id = id;
-  }
+  ExecutionCreateContextResult(this.id);
 
   factory ExecutionCreateContextResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -11125,8 +8951,8 @@ class ExecutionCreateContextResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['id'] = id;
     return result;
   }
@@ -11163,23 +8989,13 @@ class ExecutionCreateContextResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionDeleteContextParams implements RequestParams {
-  String _id;
-
   /// The identifier of the execution context that is to be deleted.
-  String get id => _id;
+  String id;
 
-  /// The identifier of the execution context that is to be deleted.
-  set id(String value) {
-    assert(value != null);
-    _id = value;
-  }
-
-  ExecutionDeleteContextParams(String id) {
-    this.id = id;
-  }
+  ExecutionDeleteContextParams(this.id);
 
   factory ExecutionDeleteContextParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -11201,8 +9017,8 @@ class ExecutionDeleteContextParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['id'] = id;
     return result;
   }
@@ -11236,7 +9052,7 @@ class ExecutionDeleteContextParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionDeleteContextResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -11270,72 +9086,25 @@ class ExecutionDeleteContextResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionGetSuggestionsParams implements RequestParams {
-  String _code;
-
-  int _offset;
-
-  String _contextFile;
-
-  int _contextOffset;
-
-  List<RuntimeCompletionVariable> _variables;
-
-  List<RuntimeCompletionExpression> _expressions;
-
   /// The code to get suggestions in.
-  String get code => _code;
-
-  /// The code to get suggestions in.
-  set code(String value) {
-    assert(value != null);
-    _code = value;
-  }
+  String code;
 
   /// The offset within the code to get suggestions at.
-  int get offset => _offset;
-
-  /// The offset within the code to get suggestions at.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The path of the context file, e.g. the file of the current debugger
   /// frame. The combination of the context file and context offset can be used
   /// to ensure that all variables of the context are available for completion
   /// (with their static types).
-  String get contextFile => _contextFile;
-
-  /// The path of the context file, e.g. the file of the current debugger
-  /// frame. The combination of the context file and context offset can be used
-  /// to ensure that all variables of the context are available for completion
-  /// (with their static types).
-  set contextFile(String value) {
-    assert(value != null);
-    _contextFile = value;
-  }
+  String contextFile;
 
   /// The offset in the context file, e.g. the line offset in the current
   /// debugger frame.
-  int get contextOffset => _contextOffset;
-
-  /// The offset in the context file, e.g. the line offset in the current
-  /// debugger frame.
-  set contextOffset(int value) {
-    assert(value != null);
-    _contextOffset = value;
-  }
+  int contextOffset;
 
   /// The runtime context variables that are potentially referenced in the
   /// code.
-  List<RuntimeCompletionVariable> get variables => _variables;
-
-  /// The runtime context variables that are potentially referenced in the
-  /// code.
-  set variables(List<RuntimeCompletionVariable> value) {
-    assert(value != null);
-    _variables = value;
-  }
+  List<RuntimeCompletionVariable> variables;
 
   /// The list of sub-expressions in the code for which the client wants to
   /// provide runtime types. It does not have to be the full list of
@@ -11346,34 +9115,14 @@ class ExecutionGetSuggestionsParams implements RequestParams {
   /// only when there are no interesting sub-expressions in the given code. The
   /// client may provide an empty list, in this case the server will return
   /// completion suggestions.
-  List<RuntimeCompletionExpression> get expressions => _expressions;
+  List<RuntimeCompletionExpression>? expressions;
 
-  /// The list of sub-expressions in the code for which the client wants to
-  /// provide runtime types. It does not have to be the full list of
-  /// expressions requested by the server, for missing expressions their static
-  /// types will be used.
-  ///
-  /// When this field is omitted, the server will return completion suggestions
-  /// only when there are no interesting sub-expressions in the given code. The
-  /// client may provide an empty list, in this case the server will return
-  /// completion suggestions.
-  set expressions(List<RuntimeCompletionExpression> value) {
-    _expressions = value;
-  }
-
-  ExecutionGetSuggestionsParams(String code, int offset, String contextFile,
-      int contextOffset, List<RuntimeCompletionVariable> variables,
-      {List<RuntimeCompletionExpression> expressions}) {
-    this.code = code;
-    this.offset = offset;
-    this.contextFile = contextFile;
-    this.contextOffset = contextOffset;
-    this.variables = variables;
-    this.expressions = expressions;
-  }
+  ExecutionGetSuggestionsParams(this.code, this.offset, this.contextFile,
+      this.contextOffset, this.variables,
+      {this.expressions});
 
   factory ExecutionGetSuggestionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String code;
@@ -11407,18 +9156,18 @@ class ExecutionGetSuggestionsParams implements RequestParams {
         variables = jsonDecoder.decodeList(
             jsonPath + '.variables',
             json['variables'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RuntimeCompletionVariable.fromJson(
                     jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'variables');
       }
-      List<RuntimeCompletionExpression> expressions;
+      List<RuntimeCompletionExpression>? expressions;
       if (json.containsKey('expressions')) {
         expressions = jsonDecoder.decodeList(
             jsonPath + '.expressions',
             json['expressions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RuntimeCompletionExpression.fromJson(
                     jsonDecoder, jsonPath, json));
       }
@@ -11437,8 +9186,8 @@ class ExecutionGetSuggestionsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['code'] = code;
     result['offset'] = offset;
     result['contextFile'] = contextFile;
@@ -11446,6 +9195,7 @@ class ExecutionGetSuggestionsParams implements RequestParams {
     result['variables'] = variables
         .map((RuntimeCompletionVariable value) => value.toJson())
         .toList();
+    var expressions = this.expressions;
     if (expressions != null) {
       result['expressions'] = expressions
           .map((RuntimeCompletionExpression value) => value.toJson())
@@ -11505,10 +9255,6 @@ class ExecutionGetSuggestionsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionGetSuggestionsResult implements ResponseResult {
-  List<CompletionSuggestion> _suggestions;
-
-  List<RuntimeCompletionExpression> _expressions;
-
   /// The completion suggestions. In contrast to usual completion request,
   /// suggestions for private elements also will be provided.
   ///
@@ -11517,59 +9263,34 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
   /// their actual runtime types can improve completion results, the server
   /// omits this field in the response, and instead will return the
   /// "expressions" field.
-  List<CompletionSuggestion> get suggestions => _suggestions;
-
-  /// The completion suggestions. In contrast to usual completion request,
-  /// suggestions for private elements also will be provided.
-  ///
-  /// If there are sub-expressions that can have different runtime types, and
-  /// are considered to be safe to evaluate at runtime (e.g. getters), so using
-  /// their actual runtime types can improve completion results, the server
-  /// omits this field in the response, and instead will return the
-  /// "expressions" field.
-  set suggestions(List<CompletionSuggestion> value) {
-    _suggestions = value;
-  }
+  List<CompletionSuggestion>? suggestions;
 
   /// The list of sub-expressions in the code for which the server would like
   /// to know runtime types to provide better completion suggestions.
   ///
   /// This field is omitted the field "suggestions" is returned.
-  List<RuntimeCompletionExpression> get expressions => _expressions;
+  List<RuntimeCompletionExpression>? expressions;
 
-  /// The list of sub-expressions in the code for which the server would like
-  /// to know runtime types to provide better completion suggestions.
-  ///
-  /// This field is omitted the field "suggestions" is returned.
-  set expressions(List<RuntimeCompletionExpression> value) {
-    _expressions = value;
-  }
-
-  ExecutionGetSuggestionsResult(
-      {List<CompletionSuggestion> suggestions,
-      List<RuntimeCompletionExpression> expressions}) {
-    this.suggestions = suggestions;
-    this.expressions = expressions;
-  }
+  ExecutionGetSuggestionsResult({this.suggestions, this.expressions});
 
   factory ExecutionGetSuggestionsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      List<CompletionSuggestion> suggestions;
+      List<CompletionSuggestion>? suggestions;
       if (json.containsKey('suggestions')) {
         suggestions = jsonDecoder.decodeList(
             jsonPath + '.suggestions',
             json['suggestions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
       }
-      List<RuntimeCompletionExpression> expressions;
+      List<RuntimeCompletionExpression>? expressions;
       if (json.containsKey('expressions')) {
         expressions = jsonDecoder.decodeList(
             jsonPath + '.expressions',
             json['expressions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RuntimeCompletionExpression.fromJson(
                     jsonDecoder, jsonPath, json));
       }
@@ -11589,13 +9310,15 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var suggestions = this.suggestions;
     if (suggestions != null) {
       result['suggestions'] = suggestions
           .map((CompletionSuggestion value) => value.toJson())
           .toList();
     }
+    var expressions = this.expressions;
     if (expressions != null) {
       result['expressions'] = expressions
           .map((RuntimeCompletionExpression value) => value.toJson())
@@ -11645,52 +9368,22 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionLaunchDataParams implements HasToJson {
-  String _file;
-
-  ExecutableKind _kind;
-
-  List<String> _referencedFiles;
-
   /// The file for which launch data is being provided. This will either be a
   /// Dart library or an HTML file.
-  String get file => _file;
-
-  /// The file for which launch data is being provided. This will either be a
-  /// Dart library or an HTML file.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The kind of the executable file. This field is omitted if the file is not
   /// a Dart file.
-  ExecutableKind get kind => _kind;
-
-  /// The kind of the executable file. This field is omitted if the file is not
-  /// a Dart file.
-  set kind(ExecutableKind value) {
-    _kind = value;
-  }
+  ExecutableKind? kind;
 
   /// A list of the Dart files that are referenced by the file. This field is
   /// omitted if the file is not an HTML file.
-  List<String> get referencedFiles => _referencedFiles;
+  List<String>? referencedFiles;
 
-  /// A list of the Dart files that are referenced by the file. This field is
-  /// omitted if the file is not an HTML file.
-  set referencedFiles(List<String> value) {
-    _referencedFiles = value;
-  }
-
-  ExecutionLaunchDataParams(String file,
-      {ExecutableKind kind, List<String> referencedFiles}) {
-    this.file = file;
-    this.kind = kind;
-    this.referencedFiles = referencedFiles;
-  }
+  ExecutionLaunchDataParams(this.file, {this.kind, this.referencedFiles});
 
   factory ExecutionLaunchDataParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -11699,12 +9392,12 @@ class ExecutionLaunchDataParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'file');
       }
-      ExecutableKind kind;
+      ExecutableKind? kind;
       if (json.containsKey('kind')) {
         kind = ExecutableKind.fromJson(
             jsonDecoder, jsonPath + '.kind', json['kind']);
       }
-      List<String> referencedFiles;
+      List<String>? referencedFiles;
       if (json.containsKey('referencedFiles')) {
         referencedFiles = jsonDecoder.decodeList(jsonPath + '.referencedFiles',
             json['referencedFiles'], jsonDecoder.decodeString);
@@ -11723,12 +9416,14 @@ class ExecutionLaunchDataParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
+    var kind = this.kind;
     if (kind != null) {
       result['kind'] = kind.toJson();
     }
+    var referencedFiles = this.referencedFiles;
     if (referencedFiles != null) {
       result['referencedFiles'] = referencedFiles;
     }
@@ -11773,45 +9468,19 @@ class ExecutionLaunchDataParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionMapUriParams implements RequestParams {
-  String _id;
-
-  String _file;
-
-  String _uri;
-
   /// The identifier of the execution context in which the URI is to be mapped.
-  String get id => _id;
-
-  /// The identifier of the execution context in which the URI is to be mapped.
-  set id(String value) {
-    assert(value != null);
-    _id = value;
-  }
+  String id;
 
   /// The path of the file to be mapped into a URI.
-  String get file => _file;
-
-  /// The path of the file to be mapped into a URI.
-  set file(String value) {
-    _file = value;
-  }
+  String? file;
 
   /// The URI to be mapped into a file path.
-  String get uri => _uri;
+  String? uri;
 
-  /// The URI to be mapped into a file path.
-  set uri(String value) {
-    _uri = value;
-  }
-
-  ExecutionMapUriParams(String id, {String file, String uri}) {
-    this.id = id;
-    this.file = file;
-    this.uri = uri;
-  }
+  ExecutionMapUriParams(this.id, {this.file, this.uri});
 
   factory ExecutionMapUriParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -11820,11 +9489,11 @@ class ExecutionMapUriParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'id');
       }
-      String file;
+      String? file;
       if (json.containsKey('file')) {
         file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       }
-      String uri;
+      String? uri;
       if (json.containsKey('uri')) {
         uri = jsonDecoder.decodeString(jsonPath + '.uri', json['uri']);
       }
@@ -11840,12 +9509,14 @@ class ExecutionMapUriParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['id'] = id;
+    var file = this.file;
     if (file != null) {
       result['file'] = file;
     }
+    var uri = this.uri;
     if (uri != null) {
       result['uri'] = uri;
     }
@@ -11887,44 +9558,25 @@ class ExecutionMapUriParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionMapUriResult implements ResponseResult {
-  String _file;
-
-  String _uri;
-
   /// The file to which the URI was mapped. This field is omitted if the uri
   /// field was not given in the request.
-  String get file => _file;
-
-  /// The file to which the URI was mapped. This field is omitted if the uri
-  /// field was not given in the request.
-  set file(String value) {
-    _file = value;
-  }
+  String? file;
 
   /// The URI to which the file path was mapped. This field is omitted if the
   /// file field was not given in the request.
-  String get uri => _uri;
+  String? uri;
 
-  /// The URI to which the file path was mapped. This field is omitted if the
-  /// file field was not given in the request.
-  set uri(String value) {
-    _uri = value;
-  }
-
-  ExecutionMapUriResult({String file, String uri}) {
-    this.file = file;
-    this.uri = uri;
-  }
+  ExecutionMapUriResult({this.file, this.uri});
 
   factory ExecutionMapUriResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      String file;
+      String? file;
       if (json.containsKey('file')) {
         file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       }
-      String uri;
+      String? uri;
       if (json.containsKey('uri')) {
         uri = jsonDecoder.decodeString(jsonPath + '.uri', json['uri']);
       }
@@ -11942,11 +9594,13 @@ class ExecutionMapUriResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var file = this.file;
     if (file != null) {
       result['file'] = file;
     }
+    var uri = this.uri;
     if (uri != null) {
       result['uri'] = uri;
     }
@@ -12005,7 +9659,7 @@ class ExecutionService implements Enum {
   }
 
   factory ExecutionService.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return ExecutionService(json);
@@ -12030,23 +9684,13 @@ class ExecutionService implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionSetSubscriptionsParams implements RequestParams {
-  List<ExecutionService> _subscriptions;
-
   /// A list of the services being subscribed to.
-  List<ExecutionService> get subscriptions => _subscriptions;
+  List<ExecutionService> subscriptions;
 
-  /// A list of the services being subscribed to.
-  set subscriptions(List<ExecutionService> value) {
-    assert(value != null);
-    _subscriptions = value;
-  }
-
-  ExecutionSetSubscriptionsParams(List<ExecutionService> subscriptions) {
-    this.subscriptions = subscriptions;
-  }
+  ExecutionSetSubscriptionsParams(this.subscriptions);
 
   factory ExecutionSetSubscriptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<ExecutionService> subscriptions;
@@ -12054,7 +9698,7 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
         subscriptions = jsonDecoder.decodeList(
             jsonPath + '.subscriptions',
             json['subscriptions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 ExecutionService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
@@ -12072,8 +9716,8 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['subscriptions'] =
         subscriptions.map((ExecutionService value) => value.toJson()).toList();
     return result;
@@ -12109,7 +9753,7 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionSetSubscriptionsResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -12139,37 +9783,17 @@ class ExecutionSetSubscriptionsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExistingImport implements HasToJson {
-  int _uri;
-
-  List<int> _elements;
-
   /// The URI of the imported library. It is an index in the strings field, in
   /// the enclosing ExistingImports and its ImportedElementSet object.
-  int get uri => _uri;
-
-  /// The URI of the imported library. It is an index in the strings field, in
-  /// the enclosing ExistingImports and its ImportedElementSet object.
-  set uri(int value) {
-    assert(value != null);
-    _uri = value;
-  }
+  int uri;
 
   /// The list of indexes of elements, in the enclosing ExistingImports object.
-  List<int> get elements => _elements;
+  List<int> elements;
 
-  /// The list of indexes of elements, in the enclosing ExistingImports object.
-  set elements(List<int> value) {
-    assert(value != null);
-    _elements = value;
-  }
-
-  ExistingImport(int uri, List<int> elements) {
-    this.uri = uri;
-    this.elements = elements;
-  }
+  ExistingImport(this.uri, this.elements);
 
   factory ExistingImport.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int uri;
@@ -12192,8 +9816,8 @@ class ExistingImport implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['uri'] = uri;
     result['elements'] = elements;
     return result;
@@ -12229,35 +9853,16 @@ class ExistingImport implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExistingImports implements HasToJson {
-  ImportedElementSet _elements;
-
-  List<ExistingImport> _imports;
-
   /// The set of all unique imported elements for all imports.
-  ImportedElementSet get elements => _elements;
-
-  /// The set of all unique imported elements for all imports.
-  set elements(ImportedElementSet value) {
-    assert(value != null);
-    _elements = value;
-  }
+  ImportedElementSet elements;
 
   /// The list of imports in the library.
-  List<ExistingImport> get imports => _imports;
+  List<ExistingImport> imports;
 
-  /// The list of imports in the library.
-  set imports(List<ExistingImport> value) {
-    assert(value != null);
-    _imports = value;
-  }
-
-  ExistingImports(ImportedElementSet elements, List<ExistingImport> imports) {
-    this.elements = elements;
-    this.imports = imports;
-  }
+  ExistingImports(this.elements, this.imports);
 
   factory ExistingImports.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       ImportedElementSet elements;
@@ -12272,7 +9877,7 @@ class ExistingImports implements HasToJson {
         imports = jsonDecoder.decodeList(
             jsonPath + '.imports',
             json['imports'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 ExistingImport.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'imports');
@@ -12284,8 +9889,8 @@ class ExistingImports implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['elements'] = elements.toJson();
     result['imports'] =
         imports.map((ExistingImport value) => value.toJson()).toList();
@@ -12326,94 +9931,42 @@ class ExistingImports implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableFeedback extends RefactoringFeedback {
-  List<int> _coveringExpressionOffsets;
-
-  List<int> _coveringExpressionLengths;
-
-  List<String> _names;
-
-  List<int> _offsets;
-
-  List<int> _lengths;
-
   /// The offsets of the expressions that cover the specified selection, from
   /// the down most to the up most.
-  List<int> get coveringExpressionOffsets => _coveringExpressionOffsets;
-
-  /// The offsets of the expressions that cover the specified selection, from
-  /// the down most to the up most.
-  set coveringExpressionOffsets(List<int> value) {
-    _coveringExpressionOffsets = value;
-  }
+  List<int>? coveringExpressionOffsets;
 
   /// The lengths of the expressions that cover the specified selection, from
   /// the down most to the up most.
-  List<int> get coveringExpressionLengths => _coveringExpressionLengths;
-
-  /// The lengths of the expressions that cover the specified selection, from
-  /// the down most to the up most.
-  set coveringExpressionLengths(List<int> value) {
-    _coveringExpressionLengths = value;
-  }
+  List<int>? coveringExpressionLengths;
 
   /// The proposed names for the local variable.
-  List<String> get names => _names;
-
-  /// The proposed names for the local variable.
-  set names(List<String> value) {
-    assert(value != null);
-    _names = value;
-  }
+  List<String> names;
 
   /// The offsets of the expressions that would be replaced by a reference to
   /// the variable.
-  List<int> get offsets => _offsets;
-
-  /// The offsets of the expressions that would be replaced by a reference to
-  /// the variable.
-  set offsets(List<int> value) {
-    assert(value != null);
-    _offsets = value;
-  }
+  List<int> offsets;
 
   /// The lengths of the expressions that would be replaced by a reference to
   /// the variable. The lengths correspond to the offsets. In other words, for
   /// a given expression, if the offset of that expression is offsets[i], then
   /// the length of that expression is lengths[i].
-  List<int> get lengths => _lengths;
+  List<int> lengths;
 
-  /// The lengths of the expressions that would be replaced by a reference to
-  /// the variable. The lengths correspond to the offsets. In other words, for
-  /// a given expression, if the offset of that expression is offsets[i], then
-  /// the length of that expression is lengths[i].
-  set lengths(List<int> value) {
-    assert(value != null);
-    _lengths = value;
-  }
-
-  ExtractLocalVariableFeedback(
-      List<String> names, List<int> offsets, List<int> lengths,
-      {List<int> coveringExpressionOffsets,
-      List<int> coveringExpressionLengths}) {
-    this.coveringExpressionOffsets = coveringExpressionOffsets;
-    this.coveringExpressionLengths = coveringExpressionLengths;
-    this.names = names;
-    this.offsets = offsets;
-    this.lengths = lengths;
-  }
+  ExtractLocalVariableFeedback(this.names, this.offsets, this.lengths,
+      {this.coveringExpressionOffsets, this.coveringExpressionLengths});
 
   factory ExtractLocalVariableFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      List<int> coveringExpressionOffsets;
+      List<int>? coveringExpressionOffsets;
       if (json.containsKey('coveringExpressionOffsets')) {
         coveringExpressionOffsets = jsonDecoder.decodeList(
             jsonPath + '.coveringExpressionOffsets',
             json['coveringExpressionOffsets'],
             jsonDecoder.decodeInt);
       }
-      List<int> coveringExpressionLengths;
+      List<int>? coveringExpressionLengths;
       if (json.containsKey('coveringExpressionLengths')) {
         coveringExpressionLengths = jsonDecoder.decodeList(
             jsonPath + '.coveringExpressionLengths',
@@ -12451,11 +10004,13 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var coveringExpressionOffsets = this.coveringExpressionOffsets;
     if (coveringExpressionOffsets != null) {
       result['coveringExpressionOffsets'] = coveringExpressionOffsets;
     }
+    var coveringExpressionLengths = this.coveringExpressionLengths;
     if (coveringExpressionLengths != null) {
       result['coveringExpressionLengths'] = coveringExpressionLengths;
     }
@@ -12503,41 +10058,19 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableOptions extends RefactoringOptions {
-  String _name;
-
-  bool _extractAll;
-
   /// The name that the local variable should be given.
-  String get name => _name;
-
-  /// The name that the local variable should be given.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
+  String name;
 
   /// True if all occurrences of the expression within the scope in which the
   /// variable will be defined should be replaced by a reference to the local
   /// variable. The expression used to initiate the refactoring will always be
   /// replaced.
-  bool get extractAll => _extractAll;
+  bool extractAll;
 
-  /// True if all occurrences of the expression within the scope in which the
-  /// variable will be defined should be replaced by a reference to the local
-  /// variable. The expression used to initiate the refactoring will always be
-  /// replaced.
-  set extractAll(bool value) {
-    assert(value != null);
-    _extractAll = value;
-  }
-
-  ExtractLocalVariableOptions(String name, bool extractAll) {
-    this.name = name;
-    this.extractAll = extractAll;
-  }
+  ExtractLocalVariableOptions(this.name, this.extractAll);
 
   factory ExtractLocalVariableOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -12567,8 +10100,8 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['name'] = name;
     result['extractAll'] = extractAll;
     return result;
@@ -12609,129 +10142,42 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractMethodFeedback extends RefactoringFeedback {
-  int _offset;
-
-  int _length;
-
-  String _returnType;
-
-  List<String> _names;
-
-  bool _canCreateGetter;
-
-  List<RefactoringMethodParameter> _parameters;
-
-  List<int> _offsets;
-
-  List<int> _lengths;
-
   /// The offset to the beginning of the expression or statements that will be
   /// extracted.
-  int get offset => _offset;
-
-  /// The offset to the beginning of the expression or statements that will be
-  /// extracted.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the expression or statements that will be extracted.
-  int get length => _length;
-
-  /// The length of the expression or statements that will be extracted.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
+  int length;
 
   /// The proposed return type for the method. If the returned element does not
   /// have a declared return type, this field will contain an empty string.
-  String get returnType => _returnType;
-
-  /// The proposed return type for the method. If the returned element does not
-  /// have a declared return type, this field will contain an empty string.
-  set returnType(String value) {
-    assert(value != null);
-    _returnType = value;
-  }
+  String returnType;
 
   /// The proposed names for the method.
-  List<String> get names => _names;
-
-  /// The proposed names for the method.
-  set names(List<String> value) {
-    assert(value != null);
-    _names = value;
-  }
+  List<String> names;
 
   /// True if a getter could be created rather than a method.
-  bool get canCreateGetter => _canCreateGetter;
-
-  /// True if a getter could be created rather than a method.
-  set canCreateGetter(bool value) {
-    assert(value != null);
-    _canCreateGetter = value;
-  }
+  bool canCreateGetter;
 
   /// The proposed parameters for the method.
-  List<RefactoringMethodParameter> get parameters => _parameters;
-
-  /// The proposed parameters for the method.
-  set parameters(List<RefactoringMethodParameter> value) {
-    assert(value != null);
-    _parameters = value;
-  }
+  List<RefactoringMethodParameter> parameters;
 
   /// The offsets of the expressions or statements that would be replaced by an
   /// invocation of the method.
-  List<int> get offsets => _offsets;
-
-  /// The offsets of the expressions or statements that would be replaced by an
-  /// invocation of the method.
-  set offsets(List<int> value) {
-    assert(value != null);
-    _offsets = value;
-  }
+  List<int> offsets;
 
   /// The lengths of the expressions or statements that would be replaced by an
   /// invocation of the method. The lengths correspond to the offsets. In other
   /// words, for a given expression (or block of statements), if the offset of
   /// that expression is offsets[i], then the length of that expression is
   /// lengths[i].
-  List<int> get lengths => _lengths;
+  List<int> lengths;
 
-  /// The lengths of the expressions or statements that would be replaced by an
-  /// invocation of the method. The lengths correspond to the offsets. In other
-  /// words, for a given expression (or block of statements), if the offset of
-  /// that expression is offsets[i], then the length of that expression is
-  /// lengths[i].
-  set lengths(List<int> value) {
-    assert(value != null);
-    _lengths = value;
-  }
-
-  ExtractMethodFeedback(
-      int offset,
-      int length,
-      String returnType,
-      List<String> names,
-      bool canCreateGetter,
-      List<RefactoringMethodParameter> parameters,
-      List<int> offsets,
-      List<int> lengths) {
-    this.offset = offset;
-    this.length = length;
-    this.returnType = returnType;
-    this.names = names;
-    this.canCreateGetter = canCreateGetter;
-    this.parameters = parameters;
-    this.offsets = offsets;
-    this.lengths = lengths;
-  }
+  ExtractMethodFeedback(this.offset, this.length, this.returnType, this.names,
+      this.canCreateGetter, this.parameters, this.offsets, this.lengths);
 
   factory ExtractMethodFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -12772,7 +10218,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
         parameters = jsonDecoder.decodeList(
             jsonPath + '.parameters',
             json['parameters'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RefactoringMethodParameter.fromJson(
                     jsonDecoder, jsonPath, json));
       } else {
@@ -12800,8 +10246,8 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
     result['returnType'] = returnType;
@@ -12864,44 +10310,15 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractMethodOptions extends RefactoringOptions {
-  String _returnType;
-
-  bool _createGetter;
-
-  String _name;
-
-  List<RefactoringMethodParameter> _parameters;
-
-  bool _extractAll;
-
   /// The return type that should be defined for the method.
-  String get returnType => _returnType;
-
-  /// The return type that should be defined for the method.
-  set returnType(String value) {
-    assert(value != null);
-    _returnType = value;
-  }
+  String returnType;
 
   /// True if a getter should be created rather than a method. It is an error
   /// if this field is true and the list of parameters is non-empty.
-  bool get createGetter => _createGetter;
-
-  /// True if a getter should be created rather than a method. It is an error
-  /// if this field is true and the list of parameters is non-empty.
-  set createGetter(bool value) {
-    assert(value != null);
-    _createGetter = value;
-  }
+  bool createGetter;
 
   /// The name that the method should be given.
-  String get name => _name;
-
-  /// The name that the method should be given.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
+  String name;
 
   /// The parameters that should be defined for the method.
   ///
@@ -12913,47 +10330,18 @@ class ExtractMethodOptions extends RefactoringOptions {
   ///   with the same identifiers as proposed.
   /// - To add new parameters, omit their identifier.
   /// - To remove some parameters, omit them in this list.
-  List<RefactoringMethodParameter> get parameters => _parameters;
-
-  /// The parameters that should be defined for the method.
-  ///
-  /// It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
-  /// parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
-  /// NAMED parameter.
-  ///
-  /// - To change the order and/or update proposed parameters, add parameters
-  ///   with the same identifiers as proposed.
-  /// - To add new parameters, omit their identifier.
-  /// - To remove some parameters, omit them in this list.
-  set parameters(List<RefactoringMethodParameter> value) {
-    assert(value != null);
-    _parameters = value;
-  }
+  List<RefactoringMethodParameter> parameters;
 
   /// True if all occurrences of the expression or statements should be
   /// replaced by an invocation of the method. The expression or statements
   /// used to initiate the refactoring will always be replaced.
-  bool get extractAll => _extractAll;
+  bool extractAll;
 
-  /// True if all occurrences of the expression or statements should be
-  /// replaced by an invocation of the method. The expression or statements
-  /// used to initiate the refactoring will always be replaced.
-  set extractAll(bool value) {
-    assert(value != null);
-    _extractAll = value;
-  }
-
-  ExtractMethodOptions(String returnType, bool createGetter, String name,
-      List<RefactoringMethodParameter> parameters, bool extractAll) {
-    this.returnType = returnType;
-    this.createGetter = createGetter;
-    this.name = name;
-    this.parameters = parameters;
-    this.extractAll = extractAll;
-  }
+  ExtractMethodOptions(this.returnType, this.createGetter, this.name,
+      this.parameters, this.extractAll);
 
   factory ExtractMethodOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String returnType;
@@ -12981,7 +10369,7 @@ class ExtractMethodOptions extends RefactoringOptions {
         parameters = jsonDecoder.decodeList(
             jsonPath + '.parameters',
             json['parameters'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RefactoringMethodParameter.fromJson(
                     jsonDecoder, jsonPath, json));
       } else {
@@ -13008,8 +10396,8 @@ class ExtractMethodOptions extends RefactoringOptions {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['returnType'] = returnType;
     result['createGetter'] = createGetter;
     result['name'] = name;
@@ -13061,7 +10449,7 @@ class ExtractWidgetFeedback extends RefactoringFeedback {
   ExtractWidgetFeedback();
 
   factory ExtractWidgetFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       return ExtractWidgetFeedback();
@@ -13071,8 +10459,8 @@ class ExtractWidgetFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     return result;
   }
 
@@ -13102,23 +10490,13 @@ class ExtractWidgetFeedback extends RefactoringFeedback {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractWidgetOptions extends RefactoringOptions {
-  String _name;
-
   /// The name that the widget class should be given.
-  String get name => _name;
+  String name;
 
-  /// The name that the widget class should be given.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
-
-  ExtractWidgetOptions(String name) {
-    this.name = name;
-  }
+  ExtractWidgetOptions(this.name);
 
   factory ExtractWidgetOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -13140,8 +10518,8 @@ class ExtractWidgetOptions extends RefactoringOptions {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['name'] = name;
     return result;
   }
@@ -13197,7 +10575,7 @@ class FileKind implements Enum {
   }
 
   factory FileKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return FileKind(json);
@@ -13223,35 +10601,16 @@ class FileKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterGetWidgetDescriptionParams implements RequestParams {
-  String _file;
-
-  int _offset;
-
   /// The file where the widget instance is created.
-  String get file => _file;
-
-  /// The file where the widget instance is created.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The offset in the file where the widget instance is created.
-  int get offset => _offset;
+  int offset;
 
-  /// The offset in the file where the widget instance is created.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
-
-  FlutterGetWidgetDescriptionParams(String file, int offset) {
-    this.file = file;
-    this.offset = offset;
-  }
+  FlutterGetWidgetDescriptionParams(this.file, this.offset);
 
   factory FlutterGetWidgetDescriptionParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -13279,8 +10638,8 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     return result;
@@ -13319,29 +10678,16 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterGetWidgetDescriptionResult implements ResponseResult {
-  List<FlutterWidgetProperty> _properties;
-
   /// The list of properties of the widget. Some of the properties might be
   /// read only, when their editor is not set. This might be because they have
   /// type that we don't know how to edit, or for compound properties that work
   /// as containers for sub-properties.
-  List<FlutterWidgetProperty> get properties => _properties;
+  List<FlutterWidgetProperty> properties;
 
-  /// The list of properties of the widget. Some of the properties might be
-  /// read only, when their editor is not set. This might be because they have
-  /// type that we don't know how to edit, or for compound properties that work
-  /// as containers for sub-properties.
-  set properties(List<FlutterWidgetProperty> value) {
-    assert(value != null);
-    _properties = value;
-  }
-
-  FlutterGetWidgetDescriptionResult(List<FlutterWidgetProperty> properties) {
-    this.properties = properties;
-  }
+  FlutterGetWidgetDescriptionResult(this.properties);
 
   factory FlutterGetWidgetDescriptionResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<FlutterWidgetProperty> properties;
@@ -13349,7 +10695,7 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
         properties = jsonDecoder.decodeList(
             jsonPath + '.properties',
             json['properties'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 FlutterWidgetProperty.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'properties');
@@ -13369,8 +10715,8 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['properties'] = properties
         .map((FlutterWidgetProperty value) => value.toJson())
         .toList();
@@ -13421,178 +10767,65 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterOutline implements HasToJson {
-  FlutterOutlineKind _kind;
-
-  int _offset;
-
-  int _length;
-
-  int _codeOffset;
-
-  int _codeLength;
-
-  String _label;
-
-  Element _dartElement;
-
-  List<FlutterOutlineAttribute> _attributes;
-
-  String _className;
-
-  String _parentAssociationLabel;
-
-  String _variableName;
-
-  List<FlutterOutline> _children;
-
   /// The kind of the node.
-  FlutterOutlineKind get kind => _kind;
-
-  /// The kind of the node.
-  set kind(FlutterOutlineKind value) {
-    assert(value != null);
-    _kind = value;
-  }
+  FlutterOutlineKind kind;
 
   /// The offset of the first character of the element. This is different than
   /// the offset in the Element, which is the offset of the name of the
   /// element. It can be used, for example, to map locations in the file back
   /// to an outline.
-  int get offset => _offset;
-
-  /// The offset of the first character of the element. This is different than
-  /// the offset in the Element, which is the offset of the name of the
-  /// element. It can be used, for example, to map locations in the file back
-  /// to an outline.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the element.
-  int get length => _length;
-
-  /// The length of the element.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
+  int length;
 
   /// The offset of the first character of the element code, which is neither
   /// documentation, nor annotation.
-  int get codeOffset => _codeOffset;
-
-  /// The offset of the first character of the element code, which is neither
-  /// documentation, nor annotation.
-  set codeOffset(int value) {
-    assert(value != null);
-    _codeOffset = value;
-  }
+  int codeOffset;
 
   /// The length of the element code.
-  int get codeLength => _codeLength;
-
-  /// The length of the element code.
-  set codeLength(int value) {
-    assert(value != null);
-    _codeLength = value;
-  }
+  int codeLength;
 
   /// The text label of the node children of the node. It is provided for any
   /// FlutterOutlineKind.GENERIC node, where better information is not
   /// available.
-  String get label => _label;
-
-  /// The text label of the node children of the node. It is provided for any
-  /// FlutterOutlineKind.GENERIC node, where better information is not
-  /// available.
-  set label(String value) {
-    _label = value;
-  }
+  String? label;
 
   /// If this node is a Dart element, the description of it; omitted otherwise.
-  Element get dartElement => _dartElement;
-
-  /// If this node is a Dart element, the description of it; omitted otherwise.
-  set dartElement(Element value) {
-    _dartElement = value;
-  }
+  Element? dartElement;
 
   /// Additional attributes for this node, which might be interesting to
   /// display on the client. These attributes are usually arguments for the
   /// instance creation or the invocation that created the widget.
-  List<FlutterOutlineAttribute> get attributes => _attributes;
-
-  /// Additional attributes for this node, which might be interesting to
-  /// display on the client. These attributes are usually arguments for the
-  /// instance creation or the invocation that created the widget.
-  set attributes(List<FlutterOutlineAttribute> value) {
-    _attributes = value;
-  }
+  List<FlutterOutlineAttribute>? attributes;
 
   /// If the node creates a new class instance, or a reference to an instance,
   /// this field has the name of the class.
-  String get className => _className;
-
-  /// If the node creates a new class instance, or a reference to an instance,
-  /// this field has the name of the class.
-  set className(String value) {
-    _className = value;
-  }
+  String? className;
 
   /// A short text description how this node is associated with the parent
   /// node. For example "appBar" or "body" in Scaffold.
-  String get parentAssociationLabel => _parentAssociationLabel;
-
-  /// A short text description how this node is associated with the parent
-  /// node. For example "appBar" or "body" in Scaffold.
-  set parentAssociationLabel(String value) {
-    _parentAssociationLabel = value;
-  }
+  String? parentAssociationLabel;
 
   /// If FlutterOutlineKind.VARIABLE, the name of the variable.
-  String get variableName => _variableName;
-
-  /// If FlutterOutlineKind.VARIABLE, the name of the variable.
-  set variableName(String value) {
-    _variableName = value;
-  }
+  String? variableName;
 
   /// The children of the node. The field will be omitted if the node has no
   /// children.
-  List<FlutterOutline> get children => _children;
+  List<FlutterOutline>? children;
 
-  /// The children of the node. The field will be omitted if the node has no
-  /// children.
-  set children(List<FlutterOutline> value) {
-    _children = value;
-  }
-
-  FlutterOutline(FlutterOutlineKind kind, int offset, int length,
-      int codeOffset, int codeLength,
-      {String label,
-      Element dartElement,
-      List<FlutterOutlineAttribute> attributes,
-      String className,
-      String parentAssociationLabel,
-      String variableName,
-      List<FlutterOutline> children}) {
-    this.kind = kind;
-    this.offset = offset;
-    this.length = length;
-    this.codeOffset = codeOffset;
-    this.codeLength = codeLength;
-    this.label = label;
-    this.dartElement = dartElement;
-    this.attributes = attributes;
-    this.className = className;
-    this.parentAssociationLabel = parentAssociationLabel;
-    this.variableName = variableName;
-    this.children = children;
-  }
+  FlutterOutline(
+      this.kind, this.offset, this.length, this.codeOffset, this.codeLength,
+      {this.label,
+      this.dartElement,
+      this.attributes,
+      this.className,
+      this.parentAssociationLabel,
+      this.variableName,
+      this.children});
 
   factory FlutterOutline.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       FlutterOutlineKind kind;
@@ -13628,45 +10861,45 @@ class FlutterOutline implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'codeLength');
       }
-      String label;
+      String? label;
       if (json.containsKey('label')) {
         label = jsonDecoder.decodeString(jsonPath + '.label', json['label']);
       }
-      Element dartElement;
+      Element? dartElement;
       if (json.containsKey('dartElement')) {
         dartElement = Element.fromJson(
             jsonDecoder, jsonPath + '.dartElement', json['dartElement']);
       }
-      List<FlutterOutlineAttribute> attributes;
+      List<FlutterOutlineAttribute>? attributes;
       if (json.containsKey('attributes')) {
         attributes = jsonDecoder.decodeList(
             jsonPath + '.attributes',
             json['attributes'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 FlutterOutlineAttribute.fromJson(jsonDecoder, jsonPath, json));
       }
-      String className;
+      String? className;
       if (json.containsKey('className')) {
         className = jsonDecoder.decodeString(
             jsonPath + '.className', json['className']);
       }
-      String parentAssociationLabel;
+      String? parentAssociationLabel;
       if (json.containsKey('parentAssociationLabel')) {
         parentAssociationLabel = jsonDecoder.decodeString(
             jsonPath + '.parentAssociationLabel',
             json['parentAssociationLabel']);
       }
-      String variableName;
+      String? variableName;
       if (json.containsKey('variableName')) {
         variableName = jsonDecoder.decodeString(
             jsonPath + '.variableName', json['variableName']);
       }
-      List<FlutterOutline> children;
+      List<FlutterOutline>? children;
       if (json.containsKey('children')) {
         children = jsonDecoder.decodeList(
             jsonPath + '.children',
             json['children'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 FlutterOutline.fromJson(jsonDecoder, jsonPath, json));
       }
       return FlutterOutline(kind, offset, length, codeOffset, codeLength,
@@ -13683,33 +10916,40 @@ class FlutterOutline implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['kind'] = kind.toJson();
     result['offset'] = offset;
     result['length'] = length;
     result['codeOffset'] = codeOffset;
     result['codeLength'] = codeLength;
+    var label = this.label;
     if (label != null) {
       result['label'] = label;
     }
+    var dartElement = this.dartElement;
     if (dartElement != null) {
       result['dartElement'] = dartElement.toJson();
     }
+    var attributes = this.attributes;
     if (attributes != null) {
       result['attributes'] = attributes
           .map((FlutterOutlineAttribute value) => value.toJson())
           .toList();
     }
+    var className = this.className;
     if (className != null) {
       result['className'] = className;
     }
+    var parentAssociationLabel = this.parentAssociationLabel;
     if (parentAssociationLabel != null) {
       result['parentAssociationLabel'] = parentAssociationLabel;
     }
+    var variableName = this.variableName;
     if (variableName != null) {
       result['variableName'] = variableName;
     }
+    var children = this.children;
     if (children != null) {
       result['children'] =
           children.map((FlutterOutline value) => value.toJson()).toList();
@@ -13777,111 +11017,44 @@ class FlutterOutline implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterOutlineAttribute implements HasToJson {
-  String _name;
-
-  String _label;
-
-  bool _literalValueBoolean;
-
-  int _literalValueInteger;
-
-  String _literalValueString;
-
-  Location _nameLocation;
-
-  Location _valueLocation;
-
   /// The name of the attribute.
-  String get name => _name;
-
-  /// The name of the attribute.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
+  String name;
 
   /// The label of the attribute value, usually the Dart code. It might be
   /// quite long, the client should abbreviate as needed.
-  String get label => _label;
-
-  /// The label of the attribute value, usually the Dart code. It might be
-  /// quite long, the client should abbreviate as needed.
-  set label(String value) {
-    assert(value != null);
-    _label = value;
-  }
+  String label;
 
   /// The boolean literal value of the attribute. This field is absent if the
   /// value is not a boolean literal.
-  bool get literalValueBoolean => _literalValueBoolean;
-
-  /// The boolean literal value of the attribute. This field is absent if the
-  /// value is not a boolean literal.
-  set literalValueBoolean(bool value) {
-    _literalValueBoolean = value;
-  }
+  bool? literalValueBoolean;
 
   /// The integer literal value of the attribute. This field is absent if the
   /// value is not an integer literal.
-  int get literalValueInteger => _literalValueInteger;
-
-  /// The integer literal value of the attribute. This field is absent if the
-  /// value is not an integer literal.
-  set literalValueInteger(int value) {
-    _literalValueInteger = value;
-  }
+  int? literalValueInteger;
 
   /// The string literal value of the attribute. This field is absent if the
   /// value is not a string literal.
-  String get literalValueString => _literalValueString;
-
-  /// The string literal value of the attribute. This field is absent if the
-  /// value is not a string literal.
-  set literalValueString(String value) {
-    _literalValueString = value;
-  }
+  String? literalValueString;
 
   /// If the attribute is a named argument, the location of the name, without
   /// the colon.
-  Location get nameLocation => _nameLocation;
-
-  /// If the attribute is a named argument, the location of the name, without
-  /// the colon.
-  set nameLocation(Location value) {
-    _nameLocation = value;
-  }
+  Location? nameLocation;
 
   /// The location of the value.
   ///
   /// This field is always available, but marked optional for backward
   /// compatibility between new clients with older servers.
-  Location get valueLocation => _valueLocation;
+  Location? valueLocation;
 
-  /// The location of the value.
-  ///
-  /// This field is always available, but marked optional for backward
-  /// compatibility between new clients with older servers.
-  set valueLocation(Location value) {
-    _valueLocation = value;
-  }
-
-  FlutterOutlineAttribute(String name, String label,
-      {bool literalValueBoolean,
-      int literalValueInteger,
-      String literalValueString,
-      Location nameLocation,
-      Location valueLocation}) {
-    this.name = name;
-    this.label = label;
-    this.literalValueBoolean = literalValueBoolean;
-    this.literalValueInteger = literalValueInteger;
-    this.literalValueString = literalValueString;
-    this.nameLocation = nameLocation;
-    this.valueLocation = valueLocation;
-  }
+  FlutterOutlineAttribute(this.name, this.label,
+      {this.literalValueBoolean,
+      this.literalValueInteger,
+      this.literalValueString,
+      this.nameLocation,
+      this.valueLocation});
 
   factory FlutterOutlineAttribute.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -13896,27 +11069,27 @@ class FlutterOutlineAttribute implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'label');
       }
-      bool literalValueBoolean;
+      bool? literalValueBoolean;
       if (json.containsKey('literalValueBoolean')) {
         literalValueBoolean = jsonDecoder.decodeBool(
             jsonPath + '.literalValueBoolean', json['literalValueBoolean']);
       }
-      int literalValueInteger;
+      int? literalValueInteger;
       if (json.containsKey('literalValueInteger')) {
         literalValueInteger = jsonDecoder.decodeInt(
             jsonPath + '.literalValueInteger', json['literalValueInteger']);
       }
-      String literalValueString;
+      String? literalValueString;
       if (json.containsKey('literalValueString')) {
         literalValueString = jsonDecoder.decodeString(
             jsonPath + '.literalValueString', json['literalValueString']);
       }
-      Location nameLocation;
+      Location? nameLocation;
       if (json.containsKey('nameLocation')) {
         nameLocation = Location.fromJson(
             jsonDecoder, jsonPath + '.nameLocation', json['nameLocation']);
       }
-      Location valueLocation;
+      Location? valueLocation;
       if (json.containsKey('valueLocation')) {
         valueLocation = Location.fromJson(
             jsonDecoder, jsonPath + '.valueLocation', json['valueLocation']);
@@ -13933,22 +11106,27 @@ class FlutterOutlineAttribute implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['name'] = name;
     result['label'] = label;
+    var literalValueBoolean = this.literalValueBoolean;
     if (literalValueBoolean != null) {
       result['literalValueBoolean'] = literalValueBoolean;
     }
+    var literalValueInteger = this.literalValueInteger;
     if (literalValueInteger != null) {
       result['literalValueInteger'] = literalValueInteger;
     }
+    var literalValueString = this.literalValueString;
     if (literalValueString != null) {
       result['literalValueString'] = literalValueString;
     }
+    var nameLocation = this.nameLocation;
     if (nameLocation != null) {
       result['nameLocation'] = nameLocation.toJson();
     }
+    var valueLocation = this.valueLocation;
     if (valueLocation != null) {
       result['valueLocation'] = valueLocation.toJson();
     }
@@ -14057,7 +11235,7 @@ class FlutterOutlineKind implements Enum {
   }
 
   factory FlutterOutlineKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return FlutterOutlineKind(json);
@@ -14083,35 +11261,16 @@ class FlutterOutlineKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterOutlineParams implements HasToJson {
-  String _file;
-
-  FlutterOutline _outline;
-
   /// The file with which the outline is associated.
-  String get file => _file;
-
-  /// The file with which the outline is associated.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The outline associated with the file.
-  FlutterOutline get outline => _outline;
+  FlutterOutline outline;
 
-  /// The outline associated with the file.
-  set outline(FlutterOutline value) {
-    assert(value != null);
-    _outline = value;
-  }
-
-  FlutterOutlineParams(String file, FlutterOutline outline) {
-    this.file = file;
-    this.outline = outline;
-  }
+  FlutterOutlineParams(this.file, this.outline);
 
   factory FlutterOutlineParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -14139,8 +11298,8 @@ class FlutterOutlineParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['outline'] = outline.toJson();
     return result;
@@ -14197,7 +11356,7 @@ class FlutterService implements Enum {
   }
 
   factory FlutterService.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return FlutterService(json);
@@ -14222,35 +11381,23 @@ class FlutterService implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterSetSubscriptionsParams implements RequestParams {
-  Map<FlutterService, List<String>> _subscriptions;
-
   /// A table mapping services to a list of the files being subscribed to the
   /// service.
-  Map<FlutterService, List<String>> get subscriptions => _subscriptions;
+  Map<FlutterService, List<String>> subscriptions;
 
-  /// A table mapping services to a list of the files being subscribed to the
-  /// service.
-  set subscriptions(Map<FlutterService, List<String>> value) {
-    assert(value != null);
-    _subscriptions = value;
-  }
-
-  FlutterSetSubscriptionsParams(
-      Map<FlutterService, List<String>> subscriptions) {
-    this.subscriptions = subscriptions;
-  }
+  FlutterSetSubscriptionsParams(this.subscriptions);
 
   factory FlutterSetSubscriptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       Map<FlutterService, List<String>> subscriptions;
       if (json.containsKey('subscriptions')) {
         subscriptions = jsonDecoder.decodeMap(
             jsonPath + '.subscriptions', json['subscriptions'],
-            keyDecoder: (String jsonPath, Object json) =>
+            keyDecoder: (String jsonPath, Object? json) =>
                 FlutterService.fromJson(jsonDecoder, jsonPath, json),
-            valueDecoder: (String jsonPath, Object json) => jsonDecoder
+            valueDecoder: (String jsonPath, Object? json) => jsonDecoder
                 .decodeList(jsonPath, json, jsonDecoder.decodeString));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
@@ -14268,8 +11415,8 @@ class FlutterSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['subscriptions'] = mapMap(subscriptions,
         keyCallback: (FlutterService value) => value.toJson());
     return result;
@@ -14308,7 +11455,7 @@ class FlutterSetSubscriptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class FlutterSetSubscriptionsResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -14338,26 +11485,12 @@ class FlutterSetSubscriptionsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterSetWidgetPropertyValueParams implements RequestParams {
-  int _id;
-
-  FlutterWidgetPropertyValue _value;
-
   /// The identifier of the property, previously returned as a part of a
   /// FlutterWidgetProperty.
   ///
   /// An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is
   /// generated if the identifier is not valid.
-  int get id => _id;
-
-  /// The identifier of the property, previously returned as a part of a
-  /// FlutterWidgetProperty.
-  ///
-  /// An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is
-  /// generated if the identifier is not valid.
-  set id(int value) {
-    assert(value != null);
-    _id = value;
-  }
+  int id;
 
   /// The new value to set for the property.
   ///
@@ -14368,29 +11501,12 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
   ///
   /// If the expression is not a syntactically valid Dart code, then
   /// FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
-  FlutterWidgetPropertyValue get value => _value;
+  FlutterWidgetPropertyValue? value;
 
-  /// The new value to set for the property.
-  ///
-  /// If absent, indicates that the property should be removed. If the property
-  /// corresponds to an optional parameter, the corresponding named argument is
-  /// removed. If the property isRequired is true,
-  /// FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
-  ///
-  /// If the expression is not a syntactically valid Dart code, then
-  /// FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
-  set value(FlutterWidgetPropertyValue value) {
-    _value = value;
-  }
-
-  FlutterSetWidgetPropertyValueParams(int id,
-      {FlutterWidgetPropertyValue value}) {
-    this.id = id;
-    this.value = value;
-  }
+  FlutterSetWidgetPropertyValueParams(this.id, {this.value});
 
   factory FlutterSetWidgetPropertyValueParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int id;
@@ -14399,7 +11515,7 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'id');
       }
-      FlutterWidgetPropertyValue value;
+      FlutterWidgetPropertyValue? value;
       if (json.containsKey('value')) {
         value = FlutterWidgetPropertyValue.fromJson(
             jsonDecoder, jsonPath + '.value', json['value']);
@@ -14417,9 +11533,10 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['id'] = id;
+    var value = this.value;
     if (value != null) {
       result['value'] = value.toJson();
     }
@@ -14459,23 +11576,13 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterSetWidgetPropertyValueResult implements ResponseResult {
-  SourceChange _change;
-
   /// The change that should be applied.
-  SourceChange get change => _change;
+  SourceChange change;
 
-  /// The change that should be applied.
-  set change(SourceChange value) {
-    assert(value != null);
-    _change = value;
-  }
-
-  FlutterSetWidgetPropertyValueResult(SourceChange change) {
-    this.change = change;
-  }
+  FlutterSetWidgetPropertyValueResult(this.change);
 
   factory FlutterSetWidgetPropertyValueResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       SourceChange change;
@@ -14500,8 +11607,8 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['change'] = change.toJson();
     return result;
   }
@@ -14546,158 +11653,66 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetProperty implements HasToJson {
-  String _documentation;
-
-  String _expression;
-
-  int _id;
-
-  bool _isRequired;
-
-  bool _isSafeToUpdate;
-
-  String _name;
-
-  List<FlutterWidgetProperty> _children;
-
-  FlutterWidgetPropertyEditor _editor;
-
-  FlutterWidgetPropertyValue _value;
-
   /// The documentation of the property to show to the user. Omitted if the
   /// server does not know the documentation, e.g. because the corresponding
   /// field is not documented.
-  String get documentation => _documentation;
-
-  /// The documentation of the property to show to the user. Omitted if the
-  /// server does not know the documentation, e.g. because the corresponding
-  /// field is not documented.
-  set documentation(String value) {
-    _documentation = value;
-  }
+  String? documentation;
 
   /// If the value of this property is set, the Dart code of the expression of
   /// this property.
-  String get expression => _expression;
-
-  /// If the value of this property is set, the Dart code of the expression of
-  /// this property.
-  set expression(String value) {
-    _expression = value;
-  }
+  String? expression;
 
   /// The unique identifier of the property, must be passed back to the server
   /// when updating the property value. Identifiers become invalid on any
   /// source code change.
-  int get id => _id;
-
-  /// The unique identifier of the property, must be passed back to the server
-  /// when updating the property value. Identifiers become invalid on any
-  /// source code change.
-  set id(int value) {
-    assert(value != null);
-    _id = value;
-  }
+  int id;
 
   /// True if the property is required, e.g. because it corresponds to a
   /// required parameter of a constructor.
-  bool get isRequired => _isRequired;
-
-  /// True if the property is required, e.g. because it corresponds to a
-  /// required parameter of a constructor.
-  set isRequired(bool value) {
-    assert(value != null);
-    _isRequired = value;
-  }
+  bool isRequired;
 
   /// If the property expression is a concrete value (e.g. a literal, or an
   /// enum constant), then it is safe to replace the expression with another
   /// concrete value. In this case this field is true. Otherwise, for example
   /// when the expression is a reference to a field, so that its value is
   /// provided from outside, this field is false.
-  bool get isSafeToUpdate => _isSafeToUpdate;
-
-  /// If the property expression is a concrete value (e.g. a literal, or an
-  /// enum constant), then it is safe to replace the expression with another
-  /// concrete value. In this case this field is true. Otherwise, for example
-  /// when the expression is a reference to a field, so that its value is
-  /// provided from outside, this field is false.
-  set isSafeToUpdate(bool value) {
-    assert(value != null);
-    _isSafeToUpdate = value;
-  }
+  bool isSafeToUpdate;
 
   /// The name of the property to display to the user.
-  String get name => _name;
-
-  /// The name of the property to display to the user.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
+  String name;
 
   /// The list of children properties, if any. For example any property of type
   /// EdgeInsets will have four children properties of type double - left / top
   /// / right / bottom.
-  List<FlutterWidgetProperty> get children => _children;
-
-  /// The list of children properties, if any. For example any property of type
-  /// EdgeInsets will have four children properties of type double - left / top
-  /// / right / bottom.
-  set children(List<FlutterWidgetProperty> value) {
-    _children = value;
-  }
+  List<FlutterWidgetProperty>? children;
 
   /// The editor that should be used by the client. This field is omitted if
   /// the server does not know the editor for this property, for example
   /// because it does not have one of the supported types.
-  FlutterWidgetPropertyEditor get editor => _editor;
-
-  /// The editor that should be used by the client. This field is omitted if
-  /// the server does not know the editor for this property, for example
-  /// because it does not have one of the supported types.
-  set editor(FlutterWidgetPropertyEditor value) {
-    _editor = value;
-  }
+  FlutterWidgetPropertyEditor? editor;
 
   /// If the expression is set, and the server knows the value of the
   /// expression, this field is set.
-  FlutterWidgetPropertyValue get value => _value;
-
-  /// If the expression is set, and the server knows the value of the
-  /// expression, this field is set.
-  set value(FlutterWidgetPropertyValue value) {
-    _value = value;
-  }
+  FlutterWidgetPropertyValue? value;
 
   FlutterWidgetProperty(
-      int id, bool isRequired, bool isSafeToUpdate, String name,
-      {String documentation,
-      String expression,
-      List<FlutterWidgetProperty> children,
-      FlutterWidgetPropertyEditor editor,
-      FlutterWidgetPropertyValue value}) {
-    this.documentation = documentation;
-    this.expression = expression;
-    this.id = id;
-    this.isRequired = isRequired;
-    this.isSafeToUpdate = isSafeToUpdate;
-    this.name = name;
-    this.children = children;
-    this.editor = editor;
-    this.value = value;
-  }
+      this.id, this.isRequired, this.isSafeToUpdate, this.name,
+      {this.documentation,
+      this.expression,
+      this.children,
+      this.editor,
+      this.value});
 
   factory FlutterWidgetProperty.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      String documentation;
+      String? documentation;
       if (json.containsKey('documentation')) {
         documentation = jsonDecoder.decodeString(
             jsonPath + '.documentation', json['documentation']);
       }
-      String expression;
+      String? expression;
       if (json.containsKey('expression')) {
         expression = jsonDecoder.decodeString(
             jsonPath + '.expression', json['expression']);
@@ -14728,20 +11743,20 @@ class FlutterWidgetProperty implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'name');
       }
-      List<FlutterWidgetProperty> children;
+      List<FlutterWidgetProperty>? children;
       if (json.containsKey('children')) {
         children = jsonDecoder.decodeList(
             jsonPath + '.children',
             json['children'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 FlutterWidgetProperty.fromJson(jsonDecoder, jsonPath, json));
       }
-      FlutterWidgetPropertyEditor editor;
+      FlutterWidgetPropertyEditor? editor;
       if (json.containsKey('editor')) {
         editor = FlutterWidgetPropertyEditor.fromJson(
             jsonDecoder, jsonPath + '.editor', json['editor']);
       }
-      FlutterWidgetPropertyValue value;
+      FlutterWidgetPropertyValue? value;
       if (json.containsKey('value')) {
         value = FlutterWidgetPropertyValue.fromJson(
             jsonDecoder, jsonPath + '.value', json['value']);
@@ -14758,11 +11773,13 @@ class FlutterWidgetProperty implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var documentation = this.documentation;
     if (documentation != null) {
       result['documentation'] = documentation;
     }
+    var expression = this.expression;
     if (expression != null) {
       result['expression'] = expression;
     }
@@ -14770,14 +11787,17 @@ class FlutterWidgetProperty implements HasToJson {
     result['isRequired'] = isRequired;
     result['isSafeToUpdate'] = isSafeToUpdate;
     result['name'] = name;
+    var children = this.children;
     if (children != null) {
       result['children'] = children
           .map((FlutterWidgetProperty value) => value.toJson())
           .toList();
     }
+    var editor = this.editor;
     if (editor != null) {
       result['editor'] = editor.toJson();
     }
+    var value = this.value;
     if (value != null) {
       result['value'] = value.toJson();
     }
@@ -14829,31 +11849,14 @@ class FlutterWidgetProperty implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyEditor implements HasToJson {
-  FlutterWidgetPropertyEditorKind _kind;
+  FlutterWidgetPropertyEditorKind kind;
 
-  List<FlutterWidgetPropertyValueEnumItem> _enumItems;
+  List<FlutterWidgetPropertyValueEnumItem>? enumItems;
 
-  FlutterWidgetPropertyEditorKind get kind => _kind;
-
-  set kind(FlutterWidgetPropertyEditorKind value) {
-    assert(value != null);
-    _kind = value;
-  }
-
-  List<FlutterWidgetPropertyValueEnumItem> get enumItems => _enumItems;
-
-  set enumItems(List<FlutterWidgetPropertyValueEnumItem> value) {
-    _enumItems = value;
-  }
-
-  FlutterWidgetPropertyEditor(FlutterWidgetPropertyEditorKind kind,
-      {List<FlutterWidgetPropertyValueEnumItem> enumItems}) {
-    this.kind = kind;
-    this.enumItems = enumItems;
-  }
+  FlutterWidgetPropertyEditor(this.kind, {this.enumItems});
 
   factory FlutterWidgetPropertyEditor.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       FlutterWidgetPropertyEditorKind kind;
@@ -14863,12 +11866,12 @@ class FlutterWidgetPropertyEditor implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
-      List<FlutterWidgetPropertyValueEnumItem> enumItems;
+      List<FlutterWidgetPropertyValueEnumItem>? enumItems;
       if (json.containsKey('enumItems')) {
         enumItems = jsonDecoder.decodeList(
             jsonPath + '.enumItems',
             json['enumItems'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 FlutterWidgetPropertyValueEnumItem.fromJson(
                     jsonDecoder, jsonPath, json));
       }
@@ -14879,9 +11882,10 @@ class FlutterWidgetPropertyEditor implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['kind'] = kind.toJson();
+    var enumItems = this.enumItems;
     if (enumItems != null) {
       result['enumItems'] = enumItems
           .map((FlutterWidgetPropertyValueEnumItem value) => value.toJson())
@@ -14991,7 +11995,7 @@ class FlutterWidgetPropertyEditorKind implements Enum {
   }
 
   factory FlutterWidgetPropertyEditorKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return FlutterWidgetPropertyEditorKind(json);
@@ -15022,101 +12026,57 @@ class FlutterWidgetPropertyEditorKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyValue implements HasToJson {
-  bool _boolValue;
+  bool? boolValue;
 
-  double _doubleValue;
+  double? doubleValue;
 
-  int _intValue;
+  int? intValue;
 
-  String _stringValue;
+  String? stringValue;
 
-  FlutterWidgetPropertyValueEnumItem _enumValue;
-
-  String _expression;
-
-  bool get boolValue => _boolValue;
-
-  set boolValue(bool value) {
-    _boolValue = value;
-  }
-
-  double get doubleValue => _doubleValue;
-
-  set doubleValue(double value) {
-    _doubleValue = value;
-  }
-
-  int get intValue => _intValue;
-
-  set intValue(int value) {
-    _intValue = value;
-  }
-
-  String get stringValue => _stringValue;
-
-  set stringValue(String value) {
-    _stringValue = value;
-  }
-
-  FlutterWidgetPropertyValueEnumItem get enumValue => _enumValue;
-
-  set enumValue(FlutterWidgetPropertyValueEnumItem value) {
-    _enumValue = value;
-  }
+  FlutterWidgetPropertyValueEnumItem? enumValue;
 
   /// A free-form expression, which will be used as the value as is.
-  String get expression => _expression;
-
-  /// A free-form expression, which will be used as the value as is.
-  set expression(String value) {
-    _expression = value;
-  }
+  String? expression;
 
   FlutterWidgetPropertyValue(
-      {bool boolValue,
-      double doubleValue,
-      int intValue,
-      String stringValue,
-      FlutterWidgetPropertyValueEnumItem enumValue,
-      String expression}) {
-    this.boolValue = boolValue;
-    this.doubleValue = doubleValue;
-    this.intValue = intValue;
-    this.stringValue = stringValue;
-    this.enumValue = enumValue;
-    this.expression = expression;
-  }
+      {this.boolValue,
+      this.doubleValue,
+      this.intValue,
+      this.stringValue,
+      this.enumValue,
+      this.expression});
 
   factory FlutterWidgetPropertyValue.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      bool boolValue;
+      bool? boolValue;
       if (json.containsKey('boolValue')) {
         boolValue =
             jsonDecoder.decodeBool(jsonPath + '.boolValue', json['boolValue']);
       }
-      double doubleValue;
+      double? doubleValue;
       if (json.containsKey('doubleValue')) {
         doubleValue = jsonDecoder.decodeDouble(
             jsonPath + '.doubleValue', json['doubleValue']);
       }
-      int intValue;
+      int? intValue;
       if (json.containsKey('intValue')) {
         intValue =
             jsonDecoder.decodeInt(jsonPath + '.intValue', json['intValue']);
       }
-      String stringValue;
+      String? stringValue;
       if (json.containsKey('stringValue')) {
         stringValue = jsonDecoder.decodeString(
             jsonPath + '.stringValue', json['stringValue']);
       }
-      FlutterWidgetPropertyValueEnumItem enumValue;
+      FlutterWidgetPropertyValueEnumItem? enumValue;
       if (json.containsKey('enumValue')) {
         enumValue = FlutterWidgetPropertyValueEnumItem.fromJson(
             jsonDecoder, jsonPath + '.enumValue', json['enumValue']);
       }
-      String expression;
+      String? expression;
       if (json.containsKey('expression')) {
         expression = jsonDecoder.decodeString(
             jsonPath + '.expression', json['expression']);
@@ -15134,23 +12094,29 @@ class FlutterWidgetPropertyValue implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var boolValue = this.boolValue;
     if (boolValue != null) {
       result['boolValue'] = boolValue;
     }
+    var doubleValue = this.doubleValue;
     if (doubleValue != null) {
       result['doubleValue'] = doubleValue;
     }
+    var intValue = this.intValue;
     if (intValue != null) {
       result['intValue'] = intValue;
     }
+    var stringValue = this.stringValue;
     if (stringValue != null) {
       result['stringValue'] = stringValue;
     }
+    var enumValue = this.enumValue;
     if (enumValue != null) {
       result['enumValue'] = enumValue.toJson();
     }
+    var expression = this.expression;
     if (expression != null) {
       result['expression'] = expression;
     }
@@ -15197,70 +12163,28 @@ class FlutterWidgetPropertyValue implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyValueEnumItem implements HasToJson {
-  String _libraryUri;
-
-  String _className;
-
-  String _name;
-
-  String _documentation;
-
   /// The URI of the library containing the className. When the enum item is
   /// passed back, this will allow the server to import the corresponding
   /// library if necessary.
-  String get libraryUri => _libraryUri;
-
-  /// The URI of the library containing the className. When the enum item is
-  /// passed back, this will allow the server to import the corresponding
-  /// library if necessary.
-  set libraryUri(String value) {
-    assert(value != null);
-    _libraryUri = value;
-  }
+  String libraryUri;
 
   /// The name of the class or enum.
-  String get className => _className;
-
-  /// The name of the class or enum.
-  set className(String value) {
-    assert(value != null);
-    _className = value;
-  }
+  String className;
 
   /// The name of the field in the enumeration, or the static field in the
   /// class.
-  String get name => _name;
-
-  /// The name of the field in the enumeration, or the static field in the
-  /// class.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
+  String name;
 
   /// The documentation to show to the user. Omitted if the server does not
   /// know the documentation, e.g. because the corresponding field is not
   /// documented.
-  String get documentation => _documentation;
+  String? documentation;
 
-  /// The documentation to show to the user. Omitted if the server does not
-  /// know the documentation, e.g. because the corresponding field is not
-  /// documented.
-  set documentation(String value) {
-    _documentation = value;
-  }
-
-  FlutterWidgetPropertyValueEnumItem(
-      String libraryUri, String className, String name,
-      {String documentation}) {
-    this.libraryUri = libraryUri;
-    this.className = className;
-    this.name = name;
-    this.documentation = documentation;
-  }
+  FlutterWidgetPropertyValueEnumItem(this.libraryUri, this.className, this.name,
+      {this.documentation});
 
   factory FlutterWidgetPropertyValueEnumItem.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String libraryUri;
@@ -15283,7 +12207,7 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'name');
       }
-      String documentation;
+      String? documentation;
       if (json.containsKey('documentation')) {
         documentation = jsonDecoder.decodeString(
             jsonPath + '.documentation', json['documentation']);
@@ -15297,11 +12221,12 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['libraryUri'] = libraryUri;
     result['className'] = className;
     result['name'] = name;
+    var documentation = this.documentation;
     if (documentation != null) {
       result['documentation'] = documentation;
     }
@@ -15363,7 +12288,7 @@ class GeneralAnalysisService implements Enum {
   }
 
   factory GeneralAnalysisService.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return GeneralAnalysisService(json);
@@ -15399,195 +12324,76 @@ class GeneralAnalysisService implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class HoverInformation implements HasToJson {
-  int _offset;
-
-  int _length;
-
-  String _containingLibraryPath;
-
-  String _containingLibraryName;
-
-  String _containingClassDescription;
-
-  String _dartdoc;
-
-  String _elementDescription;
-
-  String _elementKind;
-
-  bool _isDeprecated;
-
-  String _parameter;
-
-  String _propagatedType;
-
-  String _staticType;
-
   /// The offset of the range of characters that encompasses the cursor
   /// position and has the same hover information as the cursor position.
-  int get offset => _offset;
-
-  /// The offset of the range of characters that encompasses the cursor
-  /// position and has the same hover information as the cursor position.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the range of characters that encompasses the cursor
   /// position and has the same hover information as the cursor position.
-  int get length => _length;
-
-  /// The length of the range of characters that encompasses the cursor
-  /// position and has the same hover information as the cursor position.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
+  int length;
 
   /// The path to the defining compilation unit of the library in which the
   /// referenced element is declared. This data is omitted if there is no
   /// referenced element, or if the element is declared inside an HTML file.
-  String get containingLibraryPath => _containingLibraryPath;
-
-  /// The path to the defining compilation unit of the library in which the
-  /// referenced element is declared. This data is omitted if there is no
-  /// referenced element, or if the element is declared inside an HTML file.
-  set containingLibraryPath(String value) {
-    _containingLibraryPath = value;
-  }
+  String? containingLibraryPath;
 
   /// The URI of the containing library, examples here include "dart:core",
   /// "package:.." and file uris represented by the path on disk, "/..". The
   /// data is omitted if the element is declared inside an HTML file.
-  String get containingLibraryName => _containingLibraryName;
-
-  /// The URI of the containing library, examples here include "dart:core",
-  /// "package:.." and file uris represented by the path on disk, "/..". The
-  /// data is omitted if the element is declared inside an HTML file.
-  set containingLibraryName(String value) {
-    _containingLibraryName = value;
-  }
+  String? containingLibraryName;
 
   /// A human-readable description of the class declaring the element being
   /// referenced. This data is omitted if there is no referenced element, or if
   /// the element is not a class member.
-  String get containingClassDescription => _containingClassDescription;
-
-  /// A human-readable description of the class declaring the element being
-  /// referenced. This data is omitted if there is no referenced element, or if
-  /// the element is not a class member.
-  set containingClassDescription(String value) {
-    _containingClassDescription = value;
-  }
+  String? containingClassDescription;
 
   /// The dartdoc associated with the referenced element. Other than the
   /// removal of the comment delimiters, including leading asterisks in the
   /// case of a block comment, the dartdoc is unprocessed markdown. This data
   /// is omitted if there is no referenced element, or if the element has no
   /// dartdoc.
-  String get dartdoc => _dartdoc;
-
-  /// The dartdoc associated with the referenced element. Other than the
-  /// removal of the comment delimiters, including leading asterisks in the
-  /// case of a block comment, the dartdoc is unprocessed markdown. This data
-  /// is omitted if there is no referenced element, or if the element has no
-  /// dartdoc.
-  set dartdoc(String value) {
-    _dartdoc = value;
-  }
+  String? dartdoc;
 
   /// A human-readable description of the element being referenced. This data
   /// is omitted if there is no referenced element.
-  String get elementDescription => _elementDescription;
-
-  /// A human-readable description of the element being referenced. This data
-  /// is omitted if there is no referenced element.
-  set elementDescription(String value) {
-    _elementDescription = value;
-  }
+  String? elementDescription;
 
   /// A human-readable description of the kind of element being referenced
   /// (such as "class" or "function type alias"). This data is omitted if there
   /// is no referenced element.
-  String get elementKind => _elementKind;
-
-  /// A human-readable description of the kind of element being referenced
-  /// (such as "class" or "function type alias"). This data is omitted if there
-  /// is no referenced element.
-  set elementKind(String value) {
-    _elementKind = value;
-  }
+  String? elementKind;
 
   /// True if the referenced element is deprecated.
-  bool get isDeprecated => _isDeprecated;
-
-  /// True if the referenced element is deprecated.
-  set isDeprecated(bool value) {
-    _isDeprecated = value;
-  }
+  bool? isDeprecated;
 
   /// A human-readable description of the parameter corresponding to the
   /// expression being hovered over. This data is omitted if the location is
   /// not in an argument to a function.
-  String get parameter => _parameter;
-
-  /// A human-readable description of the parameter corresponding to the
-  /// expression being hovered over. This data is omitted if the location is
-  /// not in an argument to a function.
-  set parameter(String value) {
-    _parameter = value;
-  }
+  String? parameter;
 
   /// The name of the propagated type of the expression. This data is omitted
   /// if the location does not correspond to an expression or if there is no
   /// propagated type information.
-  String get propagatedType => _propagatedType;
-
-  /// The name of the propagated type of the expression. This data is omitted
-  /// if the location does not correspond to an expression or if there is no
-  /// propagated type information.
-  set propagatedType(String value) {
-    _propagatedType = value;
-  }
+  String? propagatedType;
 
   /// The name of the static type of the expression. This data is omitted if
   /// the location does not correspond to an expression.
-  String get staticType => _staticType;
+  String? staticType;
 
-  /// The name of the static type of the expression. This data is omitted if
-  /// the location does not correspond to an expression.
-  set staticType(String value) {
-    _staticType = value;
-  }
-
-  HoverInformation(int offset, int length,
-      {String containingLibraryPath,
-      String containingLibraryName,
-      String containingClassDescription,
-      String dartdoc,
-      String elementDescription,
-      String elementKind,
-      bool isDeprecated,
-      String parameter,
-      String propagatedType,
-      String staticType}) {
-    this.offset = offset;
-    this.length = length;
-    this.containingLibraryPath = containingLibraryPath;
-    this.containingLibraryName = containingLibraryName;
-    this.containingClassDescription = containingClassDescription;
-    this.dartdoc = dartdoc;
-    this.elementDescription = elementDescription;
-    this.elementKind = elementKind;
-    this.isDeprecated = isDeprecated;
-    this.parameter = parameter;
-    this.propagatedType = propagatedType;
-    this.staticType = staticType;
-  }
+  HoverInformation(this.offset, this.length,
+      {this.containingLibraryPath,
+      this.containingLibraryName,
+      this.containingClassDescription,
+      this.dartdoc,
+      this.elementDescription,
+      this.elementKind,
+      this.isDeprecated,
+      this.parameter,
+      this.propagatedType,
+      this.staticType});
 
   factory HoverInformation.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -15602,53 +12408,53 @@ class HoverInformation implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'length');
       }
-      String containingLibraryPath;
+      String? containingLibraryPath;
       if (json.containsKey('containingLibraryPath')) {
         containingLibraryPath = jsonDecoder.decodeString(
             jsonPath + '.containingLibraryPath', json['containingLibraryPath']);
       }
-      String containingLibraryName;
+      String? containingLibraryName;
       if (json.containsKey('containingLibraryName')) {
         containingLibraryName = jsonDecoder.decodeString(
             jsonPath + '.containingLibraryName', json['containingLibraryName']);
       }
-      String containingClassDescription;
+      String? containingClassDescription;
       if (json.containsKey('containingClassDescription')) {
         containingClassDescription = jsonDecoder.decodeString(
             jsonPath + '.containingClassDescription',
             json['containingClassDescription']);
       }
-      String dartdoc;
+      String? dartdoc;
       if (json.containsKey('dartdoc')) {
         dartdoc =
             jsonDecoder.decodeString(jsonPath + '.dartdoc', json['dartdoc']);
       }
-      String elementDescription;
+      String? elementDescription;
       if (json.containsKey('elementDescription')) {
         elementDescription = jsonDecoder.decodeString(
             jsonPath + '.elementDescription', json['elementDescription']);
       }
-      String elementKind;
+      String? elementKind;
       if (json.containsKey('elementKind')) {
         elementKind = jsonDecoder.decodeString(
             jsonPath + '.elementKind', json['elementKind']);
       }
-      bool isDeprecated;
+      bool? isDeprecated;
       if (json.containsKey('isDeprecated')) {
         isDeprecated = jsonDecoder.decodeBool(
             jsonPath + '.isDeprecated', json['isDeprecated']);
       }
-      String parameter;
+      String? parameter;
       if (json.containsKey('parameter')) {
         parameter = jsonDecoder.decodeString(
             jsonPath + '.parameter', json['parameter']);
       }
-      String propagatedType;
+      String? propagatedType;
       if (json.containsKey('propagatedType')) {
         propagatedType = jsonDecoder.decodeString(
             jsonPath + '.propagatedType', json['propagatedType']);
       }
-      String staticType;
+      String? staticType;
       if (json.containsKey('staticType')) {
         staticType = jsonDecoder.decodeString(
             jsonPath + '.staticType', json['staticType']);
@@ -15670,37 +12476,47 @@ class HoverInformation implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
+    var containingLibraryPath = this.containingLibraryPath;
     if (containingLibraryPath != null) {
       result['containingLibraryPath'] = containingLibraryPath;
     }
+    var containingLibraryName = this.containingLibraryName;
     if (containingLibraryName != null) {
       result['containingLibraryName'] = containingLibraryName;
     }
+    var containingClassDescription = this.containingClassDescription;
     if (containingClassDescription != null) {
       result['containingClassDescription'] = containingClassDescription;
     }
+    var dartdoc = this.dartdoc;
     if (dartdoc != null) {
       result['dartdoc'] = dartdoc;
     }
+    var elementDescription = this.elementDescription;
     if (elementDescription != null) {
       result['elementDescription'] = elementDescription;
     }
+    var elementKind = this.elementKind;
     if (elementKind != null) {
       result['elementKind'] = elementKind;
     }
+    var isDeprecated = this.isDeprecated;
     if (isDeprecated != null) {
       result['isDeprecated'] = isDeprecated;
     }
+    var parameter = this.parameter;
     if (parameter != null) {
       result['parameter'] = parameter;
     }
+    var propagatedType = this.propagatedType;
     if (propagatedType != null) {
       result['propagatedType'] = propagatedType;
     }
+    var staticType = this.staticType;
     if (staticType != null) {
       result['staticType'] = staticType;
     }
@@ -15757,35 +12573,16 @@ class HoverInformation implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ImplementedClass implements HasToJson {
-  int _offset;
-
-  int _length;
-
   /// The offset of the name of the implemented class.
-  int get offset => _offset;
-
-  /// The offset of the name of the implemented class.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the name of the implemented class.
-  int get length => _length;
+  int length;
 
-  /// The length of the name of the implemented class.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
-
-  ImplementedClass(int offset, int length) {
-    this.offset = offset;
-    this.length = length;
-  }
+  ImplementedClass(this.offset, this.length);
 
   factory ImplementedClass.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -15807,8 +12604,8 @@ class ImplementedClass implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
     return result;
@@ -15843,35 +12640,16 @@ class ImplementedClass implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ImplementedMember implements HasToJson {
-  int _offset;
-
-  int _length;
-
   /// The offset of the name of the implemented member.
-  int get offset => _offset;
-
-  /// The offset of the name of the implemented member.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the name of the implemented member.
-  int get length => _length;
+  int length;
 
-  /// The length of the name of the implemented member.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
-
-  ImplementedMember(int offset, int length) {
-    this.offset = offset;
-    this.length = length;
-  }
+  ImplementedMember(this.offset, this.length);
 
   factory ImplementedMember.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -15893,8 +12671,8 @@ class ImplementedMember implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
     return result;
@@ -15930,47 +12708,19 @@ class ImplementedMember implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ImportedElementSet implements HasToJson {
-  List<String> _strings;
-
-  List<int> _uris;
-
-  List<int> _names;
-
   /// The list of unique strings in this object.
-  List<String> get strings => _strings;
-
-  /// The list of unique strings in this object.
-  set strings(List<String> value) {
-    assert(value != null);
-    _strings = value;
-  }
+  List<String> strings;
 
   /// The library URI part of the element. It is an index in the strings field.
-  List<int> get uris => _uris;
-
-  /// The library URI part of the element. It is an index in the strings field.
-  set uris(List<int> value) {
-    assert(value != null);
-    _uris = value;
-  }
+  List<int> uris;
 
   /// The name part of a the element. It is an index in the strings field.
-  List<int> get names => _names;
+  List<int> names;
 
-  /// The name part of a the element. It is an index in the strings field.
-  set names(List<int> value) {
-    assert(value != null);
-    _names = value;
-  }
-
-  ImportedElementSet(List<String> strings, List<int> uris, List<int> names) {
-    this.strings = strings;
-    this.uris = uris;
-    this.names = names;
-  }
+  ImportedElementSet(this.strings, this.uris, this.names);
 
   factory ImportedElementSet.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<String> strings;
@@ -16001,8 +12751,8 @@ class ImportedElementSet implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['strings'] = strings;
     result['uris'] = uris;
     result['names'] = names;
@@ -16043,49 +12793,20 @@ class ImportedElementSet implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ImportedElements implements HasToJson {
-  String _path;
-
-  String _prefix;
-
-  List<String> _elements;
-
   /// The absolute and normalized path of the file containing the library.
-  String get path => _path;
-
-  /// The absolute and normalized path of the file containing the library.
-  set path(String value) {
-    assert(value != null);
-    _path = value;
-  }
+  String path;
 
   /// The prefix that was used when importing the library into the original
   /// source.
-  String get prefix => _prefix;
-
-  /// The prefix that was used when importing the library into the original
-  /// source.
-  set prefix(String value) {
-    assert(value != null);
-    _prefix = value;
-  }
+  String prefix;
 
   /// The names of the elements imported from the library.
-  List<String> get elements => _elements;
+  List<String> elements;
 
-  /// The names of the elements imported from the library.
-  set elements(List<String> value) {
-    assert(value != null);
-    _elements = value;
-  }
-
-  ImportedElements(String path, String prefix, List<String> elements) {
-    this.path = path;
-    this.prefix = prefix;
-    this.elements = elements;
-  }
+  ImportedElements(this.path, this.prefix, this.elements);
 
   factory ImportedElements.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String path;
@@ -16114,8 +12835,8 @@ class ImportedElements implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['path'] = path;
     result['prefix'] = prefix;
     result['elements'] = elements;
@@ -16154,39 +12875,18 @@ class ImportedElements implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class IncludedSuggestionRelevanceTag implements HasToJson {
-  String _tag;
-
-  int _relevanceBoost;
-
   /// The opaque value of the tag.
-  String get tag => _tag;
-
-  /// The opaque value of the tag.
-  set tag(String value) {
-    assert(value != null);
-    _tag = value;
-  }
+  String tag;
 
   /// The boost to the relevance of the completion suggestions that match this
   /// tag, which is added to the relevance of the containing
   /// IncludedSuggestionSet.
-  int get relevanceBoost => _relevanceBoost;
+  int relevanceBoost;
 
-  /// The boost to the relevance of the completion suggestions that match this
-  /// tag, which is added to the relevance of the containing
-  /// IncludedSuggestionSet.
-  set relevanceBoost(int value) {
-    assert(value != null);
-    _relevanceBoost = value;
-  }
-
-  IncludedSuggestionRelevanceTag(String tag, int relevanceBoost) {
-    this.tag = tag;
-    this.relevanceBoost = relevanceBoost;
-  }
+  IncludedSuggestionRelevanceTag(this.tag, this.relevanceBoost);
 
   factory IncludedSuggestionRelevanceTag.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String tag;
@@ -16210,8 +12910,8 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['tag'] = tag;
     result['relevanceBoost'] = relevanceBoost;
     return result;
@@ -16247,33 +12947,13 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class IncludedSuggestionSet implements HasToJson {
-  int _id;
-
-  int _relevance;
-
-  String _displayUri;
-
   /// Clients should use it to access the set of precomputed completions to be
   /// displayed to the user.
-  int get id => _id;
-
-  /// Clients should use it to access the set of precomputed completions to be
-  /// displayed to the user.
-  set id(int value) {
-    assert(value != null);
-    _id = value;
-  }
+  int id;
 
   /// The relevance of completion suggestions from this library where a higher
   /// number indicates a higher relevance.
-  int get relevance => _relevance;
-
-  /// The relevance of completion suggestions from this library where a higher
-  /// number indicates a higher relevance.
-  set relevance(int value) {
-    assert(value != null);
-    _relevance = value;
-  }
+  int relevance;
 
   /// The optional string that should be displayed instead of the uri of the
   /// referenced AvailableSuggestionSet.
@@ -16282,27 +12962,12 @@ class IncludedSuggestionSet implements HasToJson {
   /// "file://" URIs, so are usually long, and don't look nice, but actual
   /// import directives will use relative URIs, which are short, so we probably
   /// want to display such relative URIs to the user.
-  String get displayUri => _displayUri;
+  String? displayUri;
 
-  /// The optional string that should be displayed instead of the uri of the
-  /// referenced AvailableSuggestionSet.
-  ///
-  /// For example libraries in the "test" directory of a package have only
-  /// "file://" URIs, so are usually long, and don't look nice, but actual
-  /// import directives will use relative URIs, which are short, so we probably
-  /// want to display such relative URIs to the user.
-  set displayUri(String value) {
-    _displayUri = value;
-  }
-
-  IncludedSuggestionSet(int id, int relevance, {String displayUri}) {
-    this.id = id;
-    this.relevance = relevance;
-    this.displayUri = displayUri;
-  }
+  IncludedSuggestionSet(this.id, this.relevance, {this.displayUri});
 
   factory IncludedSuggestionSet.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int id;
@@ -16318,7 +12983,7 @@ class IncludedSuggestionSet implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'relevance');
       }
-      String displayUri;
+      String? displayUri;
       if (json.containsKey('displayUri')) {
         displayUri = jsonDecoder.decodeString(
             jsonPath + '.displayUri', json['displayUri']);
@@ -16330,10 +12995,11 @@ class IncludedSuggestionSet implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['id'] = id;
     result['relevance'] = relevance;
+    var displayUri = this.displayUri;
     if (displayUri != null) {
       result['displayUri'] = displayUri;
     }
@@ -16372,35 +13038,16 @@ class IncludedSuggestionSet implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineLocalVariableFeedback extends RefactoringFeedback {
-  String _name;
-
-  int _occurrences;
-
   /// The name of the variable being inlined.
-  String get name => _name;
-
-  /// The name of the variable being inlined.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
+  String name;
 
   /// The number of times the variable occurs.
-  int get occurrences => _occurrences;
+  int occurrences;
 
-  /// The number of times the variable occurs.
-  set occurrences(int value) {
-    assert(value != null);
-    _occurrences = value;
-  }
-
-  InlineLocalVariableFeedback(String name, int occurrences) {
-    this.name = name;
-    this.occurrences = occurrences;
-  }
+  InlineLocalVariableFeedback(this.name, this.occurrences);
 
   factory InlineLocalVariableFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -16424,8 +13071,8 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['name'] = name;
     result['occurrences'] = occurrences;
     return result;
@@ -16480,54 +13127,24 @@ class InlineLocalVariableOptions extends RefactoringOptions
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineMethodFeedback extends RefactoringFeedback {
-  String _className;
-
-  String _methodName;
-
-  bool _isDeclaration;
-
   /// The name of the class enclosing the method being inlined. If not a class
   /// member is being inlined, this field will be absent.
-  String get className => _className;
-
-  /// The name of the class enclosing the method being inlined. If not a class
-  /// member is being inlined, this field will be absent.
-  set className(String value) {
-    _className = value;
-  }
+  String? className;
 
   /// The name of the method (or function) being inlined.
-  String get methodName => _methodName;
-
-  /// The name of the method (or function) being inlined.
-  set methodName(String value) {
-    assert(value != null);
-    _methodName = value;
-  }
+  String methodName;
 
   /// True if the declaration of the method is selected. So all references
   /// should be inlined.
-  bool get isDeclaration => _isDeclaration;
+  bool isDeclaration;
 
-  /// True if the declaration of the method is selected. So all references
-  /// should be inlined.
-  set isDeclaration(bool value) {
-    assert(value != null);
-    _isDeclaration = value;
-  }
-
-  InlineMethodFeedback(String methodName, bool isDeclaration,
-      {String className}) {
-    this.className = className;
-    this.methodName = methodName;
-    this.isDeclaration = isDeclaration;
-  }
+  InlineMethodFeedback(this.methodName, this.isDeclaration, {this.className});
 
   factory InlineMethodFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      String className;
+      String? className;
       if (json.containsKey('className')) {
         className = jsonDecoder.decodeString(
             jsonPath + '.className', json['className']);
@@ -16554,8 +13171,9 @@ class InlineMethodFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var className = this.className;
     if (className != null) {
       result['className'] = className;
     }
@@ -16596,39 +13214,18 @@ class InlineMethodFeedback extends RefactoringFeedback {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineMethodOptions extends RefactoringOptions {
-  bool _deleteSource;
-
-  bool _inlineAll;
-
   /// True if the method being inlined should be removed. It is an error if
   /// this field is true and inlineAll is false.
-  bool get deleteSource => _deleteSource;
-
-  /// True if the method being inlined should be removed. It is an error if
-  /// this field is true and inlineAll is false.
-  set deleteSource(bool value) {
-    assert(value != null);
-    _deleteSource = value;
-  }
+  bool deleteSource;
 
   /// True if all invocations of the method should be inlined, or false if only
   /// the invocation site used to create this refactoring should be inlined.
-  bool get inlineAll => _inlineAll;
+  bool inlineAll;
 
-  /// True if all invocations of the method should be inlined, or false if only
-  /// the invocation site used to create this refactoring should be inlined.
-  set inlineAll(bool value) {
-    assert(value != null);
-    _inlineAll = value;
-  }
-
-  InlineMethodOptions(bool deleteSource, bool inlineAll) {
-    this.deleteSource = deleteSource;
-    this.inlineAll = inlineAll;
-  }
+  InlineMethodOptions(this.deleteSource, this.inlineAll);
 
   factory InlineMethodOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       bool deleteSource;
@@ -16658,8 +13255,8 @@ class InlineMethodOptions extends RefactoringOptions {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['deleteSource'] = deleteSource;
     result['inlineAll'] = inlineAll;
     return result;
@@ -16693,25 +13290,14 @@ class InlineMethodOptions extends RefactoringOptions {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class KytheGetKytheEntriesParams implements RequestParams {
-  String _file;
-
   /// The file containing the code for which the Kythe Entry objects are being
   /// requested.
-  String get file => _file;
+  String file;
 
-  /// The file containing the code for which the Kythe Entry objects are being
-  /// requested.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
-
-  KytheGetKytheEntriesParams(String file) {
-    this.file = file;
-  }
+  KytheGetKytheEntriesParams(this.file);
 
   factory KytheGetKytheEntriesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -16733,8 +13319,8 @@ class KytheGetKytheEntriesParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     return result;
   }
@@ -16772,41 +13358,19 @@ class KytheGetKytheEntriesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class KytheGetKytheEntriesResult implements ResponseResult {
-  List<KytheEntry> _entries;
-
-  List<String> _files;
-
   /// The list of KytheEntry objects for the queried file.
-  List<KytheEntry> get entries => _entries;
-
-  /// The list of KytheEntry objects for the queried file.
-  set entries(List<KytheEntry> value) {
-    assert(value != null);
-    _entries = value;
-  }
+  List<KytheEntry> entries;
 
   /// The set of files paths that were required, but not in the file system, to
   /// give a complete and accurate Kythe graph for the file. This could be due
   /// to a referenced file that does not exist or generated files not being
   /// generated or passed before the call to "getKytheEntries".
-  List<String> get files => _files;
+  List<String> files;
 
-  /// The set of files paths that were required, but not in the file system, to
-  /// give a complete and accurate Kythe graph for the file. This could be due
-  /// to a referenced file that does not exist or generated files not being
-  /// generated or passed before the call to "getKytheEntries".
-  set files(List<String> value) {
-    assert(value != null);
-    _files = value;
-  }
-
-  KytheGetKytheEntriesResult(List<KytheEntry> entries, List<String> files) {
-    this.entries = entries;
-    this.files = files;
-  }
+  KytheGetKytheEntriesResult(this.entries, this.files);
 
   factory KytheGetKytheEntriesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<KytheEntry> entries;
@@ -16814,7 +13378,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
         entries = jsonDecoder.decodeList(
             jsonPath + '.entries',
             json['entries'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 KytheEntry.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'entries');
@@ -16841,8 +13405,8 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['entries'] =
         entries.map((KytheEntry value) => value.toJson()).toList();
     result['files'] = files;
@@ -16885,41 +13449,19 @@ class KytheGetKytheEntriesResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LibraryPathSet implements HasToJson {
-  String _scope;
-
-  List<String> _libraryPaths;
-
   /// The filepath for which this request's libraries should be active in
   /// completion suggestions. This object associates filesystem regions to
   /// libraries and library directories of interest to the client.
-  String get scope => _scope;
-
-  /// The filepath for which this request's libraries should be active in
-  /// completion suggestions. This object associates filesystem regions to
-  /// libraries and library directories of interest to the client.
-  set scope(String value) {
-    assert(value != null);
-    _scope = value;
-  }
+  String scope;
 
   /// The paths of the libraries of interest to the client for completion
   /// suggestions.
-  List<String> get libraryPaths => _libraryPaths;
+  List<String> libraryPaths;
 
-  /// The paths of the libraries of interest to the client for completion
-  /// suggestions.
-  set libraryPaths(List<String> value) {
-    assert(value != null);
-    _libraryPaths = value;
-  }
-
-  LibraryPathSet(String scope, List<String> libraryPaths) {
-    this.scope = scope;
-    this.libraryPaths = libraryPaths;
-  }
+  LibraryPathSet(this.scope, this.libraryPaths);
 
   factory LibraryPathSet.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String scope;
@@ -16942,8 +13484,8 @@ class LibraryPathSet implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['scope'] = scope;
     result['libraryPaths'] = libraryPaths;
     return result;
@@ -16997,23 +13539,13 @@ class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class MoveFileOptions extends RefactoringOptions {
-  String _newFile;
-
   /// The new file path to which the given file is being moved.
-  String get newFile => _newFile;
+  String newFile;
 
-  /// The new file path to which the given file is being moved.
-  set newFile(String value) {
-    assert(value != null);
-    _newFile = value;
-  }
-
-  MoveFileOptions(String newFile) {
-    this.newFile = newFile;
-  }
+  MoveFileOptions(this.newFile);
 
   factory MoveFileOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String newFile;
@@ -17036,8 +13568,8 @@ class MoveFileOptions extends RefactoringOptions {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['newFile'] = newFile;
     return result;
   }
@@ -17070,35 +13602,16 @@ class MoveFileOptions extends RefactoringOptions {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class OverriddenMember implements HasToJson {
-  Element _element;
-
-  String _className;
-
   /// The element that is being overridden.
-  Element get element => _element;
-
-  /// The element that is being overridden.
-  set element(Element value) {
-    assert(value != null);
-    _element = value;
-  }
+  Element element;
 
   /// The name of the class in which the member is defined.
-  String get className => _className;
+  String className;
 
-  /// The name of the class in which the member is defined.
-  set className(String value) {
-    assert(value != null);
-    _className = value;
-  }
-
-  OverriddenMember(Element element, String className) {
-    this.element = element;
-    this.className = className;
-  }
+  OverriddenMember(this.element, this.className);
 
   factory OverriddenMember.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       Element element;
@@ -17122,8 +13635,8 @@ class OverriddenMember implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['element'] = element.toJson();
     result['className'] = className;
     return result;
@@ -17160,67 +13673,27 @@ class OverriddenMember implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Override implements HasToJson {
-  int _offset;
-
-  int _length;
-
-  OverriddenMember _superclassMember;
-
-  List<OverriddenMember> _interfaceMembers;
-
   /// The offset of the name of the overriding member.
-  int get offset => _offset;
-
-  /// The offset of the name of the overriding member.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the name of the overriding member.
-  int get length => _length;
-
-  /// The length of the name of the overriding member.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
+  int length;
 
   /// The member inherited from a superclass that is overridden by the
   /// overriding member. The field is omitted if there is no superclass member,
   /// in which case there must be at least one interface member.
-  OverriddenMember get superclassMember => _superclassMember;
-
-  /// The member inherited from a superclass that is overridden by the
-  /// overriding member. The field is omitted if there is no superclass member,
-  /// in which case there must be at least one interface member.
-  set superclassMember(OverriddenMember value) {
-    _superclassMember = value;
-  }
+  OverriddenMember? superclassMember;
 
   /// The members inherited from interfaces that are overridden by the
   /// overriding member. The field is omitted if there are no interface
   /// members, in which case there must be a superclass member.
-  List<OverriddenMember> get interfaceMembers => _interfaceMembers;
+  List<OverriddenMember>? interfaceMembers;
 
-  /// The members inherited from interfaces that are overridden by the
-  /// overriding member. The field is omitted if there are no interface
-  /// members, in which case there must be a superclass member.
-  set interfaceMembers(List<OverriddenMember> value) {
-    _interfaceMembers = value;
-  }
-
-  Override(int offset, int length,
-      {OverriddenMember superclassMember,
-      List<OverriddenMember> interfaceMembers}) {
-    this.offset = offset;
-    this.length = length;
-    this.superclassMember = superclassMember;
-    this.interfaceMembers = interfaceMembers;
-  }
+  Override(this.offset, this.length,
+      {this.superclassMember, this.interfaceMembers});
 
   factory Override.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -17235,17 +13708,17 @@ class Override implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'length');
       }
-      OverriddenMember superclassMember;
+      OverriddenMember? superclassMember;
       if (json.containsKey('superclassMember')) {
         superclassMember = OverriddenMember.fromJson(jsonDecoder,
             jsonPath + '.superclassMember', json['superclassMember']);
       }
-      List<OverriddenMember> interfaceMembers;
+      List<OverriddenMember>? interfaceMembers;
       if (json.containsKey('interfaceMembers')) {
         interfaceMembers = jsonDecoder.decodeList(
             jsonPath + '.interfaceMembers',
             json['interfaceMembers'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 OverriddenMember.fromJson(jsonDecoder, jsonPath, json));
       }
       return Override(offset, length,
@@ -17257,13 +13730,15 @@ class Override implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
+    var superclassMember = this.superclassMember;
     if (superclassMember != null) {
       result['superclassMember'] = superclassMember.toJson();
     }
+    var interfaceMembers = this.interfaceMembers;
     if (interfaceMembers != null) {
       result['interfaceMembers'] = interfaceMembers
           .map((OverriddenMember value) => value.toJson())
@@ -17308,49 +13783,20 @@ class Override implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PostfixTemplateDescriptor implements HasToJson {
-  String _name;
-
-  String _key;
-
-  String _example;
-
   /// The template name, shown in the UI.
-  String get name => _name;
-
-  /// The template name, shown in the UI.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
+  String name;
 
   /// The unique template key, not shown in the UI.
-  String get key => _key;
-
-  /// The unique template key, not shown in the UI.
-  set key(String value) {
-    assert(value != null);
-    _key = value;
-  }
+  String key;
 
   /// A short example of the transformation performed when the template is
   /// applied.
-  String get example => _example;
+  String example;
 
-  /// A short example of the transformation performed when the template is
-  /// applied.
-  set example(String value) {
-    assert(value != null);
-    _example = value;
-  }
-
-  PostfixTemplateDescriptor(String name, String key, String example) {
-    this.name = name;
-    this.key = key;
-    this.example = example;
-  }
+  PostfixTemplateDescriptor(this.name, this.key, this.example);
 
   factory PostfixTemplateDescriptor.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -17379,8 +13825,8 @@ class PostfixTemplateDescriptor implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['name'] = name;
     result['key'] = key;
     result['example'] = example;
@@ -17416,25 +13862,14 @@ class PostfixTemplateDescriptor implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PubStatus implements HasToJson {
-  bool _isListingPackageDirs;
-
   /// True if the server is currently running pub to produce a list of package
   /// directories.
-  bool get isListingPackageDirs => _isListingPackageDirs;
+  bool isListingPackageDirs;
 
-  /// True if the server is currently running pub to produce a list of package
-  /// directories.
-  set isListingPackageDirs(bool value) {
-    assert(value != null);
-    _isListingPackageDirs = value;
-  }
-
-  PubStatus(bool isListingPackageDirs) {
-    this.isListingPackageDirs = isListingPackageDirs;
-  }
+  PubStatus(this.isListingPackageDirs);
 
   factory PubStatus.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       bool isListingPackageDirs;
@@ -17451,8 +13886,8 @@ class PubStatus implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['isListingPackageDirs'] = isListingPackageDirs;
     return result;
   }
@@ -17485,15 +13920,15 @@ class PubStatus implements HasToJson {
 class RefactoringFeedback implements HasToJson {
   RefactoringFeedback();
 
-  factory RefactoringFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json, Map responseJson) {
+  static RefactoringFeedback? fromJson(JsonDecoder jsonDecoder, String jsonPath,
+      Object? json, Map responseJson) {
     return refactoringFeedbackFromJson(
         jsonDecoder, jsonPath, json, responseJson);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     return result;
   }
 
@@ -17524,14 +13959,14 @@ class RefactoringFeedback implements HasToJson {
 class RefactoringOptions implements HasToJson {
   RefactoringOptions();
 
-  factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath,
-      Object json, RefactoringKind kind) {
+  static RefactoringOptions? fromJson(JsonDecoder jsonDecoder, String jsonPath,
+      Object? json, RefactoringKind kind) {
     return refactoringOptionsFromJson(jsonDecoder, jsonPath, json, kind);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     return result;
   }
 
@@ -17564,64 +13999,24 @@ class RefactoringOptions implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RenameFeedback extends RefactoringFeedback {
-  int _offset;
-
-  int _length;
-
-  String _elementKindName;
-
-  String _oldName;
-
   /// The offset to the beginning of the name selected to be renamed, or -1 if
   /// the name does not exist yet.
-  int get offset => _offset;
-
-  /// The offset to the beginning of the name selected to be renamed, or -1 if
-  /// the name does not exist yet.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the name selected to be renamed.
-  int get length => _length;
-
-  /// The length of the name selected to be renamed.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
+  int length;
 
   /// The human-readable description of the kind of element being renamed (such
   /// as "class" or "function type alias").
-  String get elementKindName => _elementKindName;
-
-  /// The human-readable description of the kind of element being renamed (such
-  /// as "class" or "function type alias").
-  set elementKindName(String value) {
-    assert(value != null);
-    _elementKindName = value;
-  }
+  String elementKindName;
 
   /// The old name of the element before the refactoring.
-  String get oldName => _oldName;
+  String oldName;
 
-  /// The old name of the element before the refactoring.
-  set oldName(String value) {
-    assert(value != null);
-    _oldName = value;
-  }
-
-  RenameFeedback(
-      int offset, int length, String elementKindName, String oldName) {
-    this.offset = offset;
-    this.length = length;
-    this.elementKindName = elementKindName;
-    this.oldName = oldName;
-  }
+  RenameFeedback(this.offset, this.length, this.elementKindName, this.oldName);
 
   factory RenameFeedback.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -17657,8 +14052,8 @@ class RenameFeedback extends RefactoringFeedback {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
     result['elementKindName'] = elementKindName;
@@ -17699,23 +14094,13 @@ class RenameFeedback extends RefactoringFeedback {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RenameOptions extends RefactoringOptions {
-  String _newName;
-
   /// The name that the element should have after the refactoring.
-  String get newName => _newName;
+  String newName;
 
-  /// The name that the element should have after the refactoring.
-  set newName(String value) {
-    assert(value != null);
-    _newName = value;
-  }
-
-  RenameOptions(String newName) {
-    this.newName = newName;
-  }
+  RenameOptions(this.newName);
 
   factory RenameOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String newName;
@@ -17738,8 +14123,8 @@ class RenameOptions extends RefactoringOptions {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['newName'] = newName;
     return result;
   }
@@ -17773,48 +14158,20 @@ class RenameOptions extends RefactoringOptions {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RequestError implements HasToJson {
-  RequestErrorCode _code;
-
-  String _message;
-
-  String _stackTrace;
-
   /// A code that uniquely identifies the error that occurred.
-  RequestErrorCode get code => _code;
-
-  /// A code that uniquely identifies the error that occurred.
-  set code(RequestErrorCode value) {
-    assert(value != null);
-    _code = value;
-  }
+  RequestErrorCode code;
 
   /// A short description of the error.
-  String get message => _message;
-
-  /// A short description of the error.
-  set message(String value) {
-    assert(value != null);
-    _message = value;
-  }
+  String message;
 
   /// The stack trace associated with processing the request, used for
   /// debugging the server.
-  String get stackTrace => _stackTrace;
+  String? stackTrace;
 
-  /// The stack trace associated with processing the request, used for
-  /// debugging the server.
-  set stackTrace(String value) {
-    _stackTrace = value;
-  }
-
-  RequestError(RequestErrorCode code, String message, {String stackTrace}) {
-    this.code = code;
-    this.message = message;
-    this.stackTrace = stackTrace;
-  }
+  RequestError(this.code, this.message, {this.stackTrace});
 
   factory RequestError.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       RequestErrorCode code;
@@ -17831,7 +14188,7 @@ class RequestError implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'message');
       }
-      String stackTrace;
+      String? stackTrace;
       if (json.containsKey('stackTrace')) {
         stackTrace = jsonDecoder.decodeString(
             jsonPath + '.stackTrace', json['stackTrace']);
@@ -17843,10 +14200,11 @@ class RequestError implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['code'] = code.toJson();
     result['message'] = message;
+    var stackTrace = this.stackTrace;
     if (stackTrace != null) {
       result['stackTrace'] = stackTrace;
     }
@@ -18216,7 +14574,7 @@ class RequestErrorCode implements Enum {
   }
 
   factory RequestErrorCode.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return RequestErrorCode(json);
@@ -18243,51 +14601,21 @@ class RequestErrorCode implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionExpression implements HasToJson {
-  int _offset;
-
-  int _length;
-
-  RuntimeCompletionExpressionType _type;
-
   /// The offset of the expression in the code for completion.
-  int get offset => _offset;
-
-  /// The offset of the expression in the code for completion.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the expression in the code for completion.
-  int get length => _length;
-
-  /// The length of the expression in the code for completion.
-  set length(int value) {
-    assert(value != null);
-    _length = value;
-  }
+  int length;
 
   /// When the expression is sent from the server to the client, the type is
   /// omitted. The client should fill the type when it sends the request to the
   /// server again.
-  RuntimeCompletionExpressionType get type => _type;
+  RuntimeCompletionExpressionType? type;
 
-  /// When the expression is sent from the server to the client, the type is
-  /// omitted. The client should fill the type when it sends the request to the
-  /// server again.
-  set type(RuntimeCompletionExpressionType value) {
-    _type = value;
-  }
-
-  RuntimeCompletionExpression(int offset, int length,
-      {RuntimeCompletionExpressionType type}) {
-    this.offset = offset;
-    this.length = length;
-    this.type = type;
-  }
+  RuntimeCompletionExpression(this.offset, this.length, {this.type});
 
   factory RuntimeCompletionExpression.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int offset;
@@ -18302,7 +14630,7 @@ class RuntimeCompletionExpression implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'length');
       }
-      RuntimeCompletionExpressionType type;
+      RuntimeCompletionExpressionType? type;
       if (json.containsKey('type')) {
         type = RuntimeCompletionExpressionType.fromJson(
             jsonDecoder, jsonPath + '.type', json['type']);
@@ -18314,10 +14642,11 @@ class RuntimeCompletionExpression implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['offset'] = offset;
     result['length'] = length;
+    var type = this.type;
     if (type != null) {
       result['type'] = type.toJson();
     }
@@ -18361,116 +14690,49 @@ class RuntimeCompletionExpression implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionExpressionType implements HasToJson {
-  String _libraryPath;
-
-  RuntimeCompletionExpressionTypeKind _kind;
-
-  String _name;
-
-  List<RuntimeCompletionExpressionType> _typeArguments;
-
-  RuntimeCompletionExpressionType _returnType;
-
-  List<RuntimeCompletionExpressionType> _parameterTypes;
-
-  List<String> _parameterNames;
-
   /// The path of the library that has this type. Omitted if the type is not
   /// declared in any library, e.g. "dynamic", or "void".
-  String get libraryPath => _libraryPath;
-
-  /// The path of the library that has this type. Omitted if the type is not
-  /// declared in any library, e.g. "dynamic", or "void".
-  set libraryPath(String value) {
-    _libraryPath = value;
-  }
+  String? libraryPath;
 
   /// The kind of the type.
-  RuntimeCompletionExpressionTypeKind get kind => _kind;
-
-  /// The kind of the type.
-  set kind(RuntimeCompletionExpressionTypeKind value) {
-    assert(value != null);
-    _kind = value;
-  }
+  RuntimeCompletionExpressionTypeKind kind;
 
   /// The name of the type. Omitted if the type does not have a name, e.g. an
   /// inline function type.
-  String get name => _name;
-
-  /// The name of the type. Omitted if the type does not have a name, e.g. an
-  /// inline function type.
-  set name(String value) {
-    _name = value;
-  }
+  String? name;
 
   /// The type arguments of the type. Omitted if the type does not have type
   /// parameters.
-  List<RuntimeCompletionExpressionType> get typeArguments => _typeArguments;
-
-  /// The type arguments of the type. Omitted if the type does not have type
-  /// parameters.
-  set typeArguments(List<RuntimeCompletionExpressionType> value) {
-    _typeArguments = value;
-  }
+  List<RuntimeCompletionExpressionType>? typeArguments;
 
   /// If the type is a function type, the return type of the function. Omitted
   /// if the type is not a function type.
-  RuntimeCompletionExpressionType get returnType => _returnType;
-
-  /// If the type is a function type, the return type of the function. Omitted
-  /// if the type is not a function type.
-  set returnType(RuntimeCompletionExpressionType value) {
-    _returnType = value;
-  }
+  RuntimeCompletionExpressionType? returnType;
 
   /// If the type is a function type, the types of the function parameters of
   /// all kinds - required, optional positional, and optional named. Omitted if
   /// the type is not a function type.
-  List<RuntimeCompletionExpressionType> get parameterTypes => _parameterTypes;
-
-  /// If the type is a function type, the types of the function parameters of
-  /// all kinds - required, optional positional, and optional named. Omitted if
-  /// the type is not a function type.
-  set parameterTypes(List<RuntimeCompletionExpressionType> value) {
-    _parameterTypes = value;
-  }
+  List<RuntimeCompletionExpressionType>? parameterTypes;
 
   /// If the type is a function type, the names of the function parameters of
   /// all kinds - required, optional positional, and optional named. The names
   /// of positional parameters are empty strings. Omitted if the type is not a
   /// function type.
-  List<String> get parameterNames => _parameterNames;
+  List<String>? parameterNames;
 
-  /// If the type is a function type, the names of the function parameters of
-  /// all kinds - required, optional positional, and optional named. The names
-  /// of positional parameters are empty strings. Omitted if the type is not a
-  /// function type.
-  set parameterNames(List<String> value) {
-    _parameterNames = value;
-  }
-
-  RuntimeCompletionExpressionType(RuntimeCompletionExpressionTypeKind kind,
-      {String libraryPath,
-      String name,
-      List<RuntimeCompletionExpressionType> typeArguments,
-      RuntimeCompletionExpressionType returnType,
-      List<RuntimeCompletionExpressionType> parameterTypes,
-      List<String> parameterNames}) {
-    this.libraryPath = libraryPath;
-    this.kind = kind;
-    this.name = name;
-    this.typeArguments = typeArguments;
-    this.returnType = returnType;
-    this.parameterTypes = parameterTypes;
-    this.parameterNames = parameterNames;
-  }
+  RuntimeCompletionExpressionType(this.kind,
+      {this.libraryPath,
+      this.name,
+      this.typeArguments,
+      this.returnType,
+      this.parameterTypes,
+      this.parameterNames});
 
   factory RuntimeCompletionExpressionType.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      String libraryPath;
+      String? libraryPath;
       if (json.containsKey('libraryPath')) {
         libraryPath = jsonDecoder.decodeString(
             jsonPath + '.libraryPath', json['libraryPath']);
@@ -18482,34 +14744,34 @@ class RuntimeCompletionExpressionType implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
-      String name;
+      String? name;
       if (json.containsKey('name')) {
         name = jsonDecoder.decodeString(jsonPath + '.name', json['name']);
       }
-      List<RuntimeCompletionExpressionType> typeArguments;
+      List<RuntimeCompletionExpressionType>? typeArguments;
       if (json.containsKey('typeArguments')) {
         typeArguments = jsonDecoder.decodeList(
             jsonPath + '.typeArguments',
             json['typeArguments'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RuntimeCompletionExpressionType.fromJson(
                     jsonDecoder, jsonPath, json));
       }
-      RuntimeCompletionExpressionType returnType;
+      RuntimeCompletionExpressionType? returnType;
       if (json.containsKey('returnType')) {
         returnType = RuntimeCompletionExpressionType.fromJson(
             jsonDecoder, jsonPath + '.returnType', json['returnType']);
       }
-      List<RuntimeCompletionExpressionType> parameterTypes;
+      List<RuntimeCompletionExpressionType>? parameterTypes;
       if (json.containsKey('parameterTypes')) {
         parameterTypes = jsonDecoder.decodeList(
             jsonPath + '.parameterTypes',
             json['parameterTypes'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 RuntimeCompletionExpressionType.fromJson(
                     jsonDecoder, jsonPath, json));
       }
-      List<String> parameterNames;
+      List<String>? parameterNames;
       if (json.containsKey('parameterNames')) {
         parameterNames = jsonDecoder.decodeList(jsonPath + '.parameterNames',
             json['parameterNames'], jsonDecoder.decodeString);
@@ -18528,28 +14790,34 @@ class RuntimeCompletionExpressionType implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var libraryPath = this.libraryPath;
     if (libraryPath != null) {
       result['libraryPath'] = libraryPath;
     }
     result['kind'] = kind.toJson();
+    var name = this.name;
     if (name != null) {
       result['name'] = name;
     }
+    var typeArguments = this.typeArguments;
     if (typeArguments != null) {
       result['typeArguments'] = typeArguments
           .map((RuntimeCompletionExpressionType value) => value.toJson())
           .toList();
     }
+    var returnType = this.returnType;
     if (returnType != null) {
       result['returnType'] = returnType.toJson();
     }
+    var parameterTypes = this.parameterTypes;
     if (parameterTypes != null) {
       result['parameterTypes'] = parameterTypes
           .map((RuntimeCompletionExpressionType value) => value.toJson())
           .toList();
     }
+    var parameterNames = this.parameterNames;
     if (parameterNames != null) {
       result['parameterNames'] = parameterNames;
     }
@@ -18639,7 +14907,7 @@ class RuntimeCompletionExpressionTypeKind implements Enum {
   }
 
   factory RuntimeCompletionExpressionTypeKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return RuntimeCompletionExpressionTypeKind(json);
@@ -18666,39 +14934,18 @@ class RuntimeCompletionExpressionTypeKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionVariable implements HasToJson {
-  String _name;
-
-  RuntimeCompletionExpressionType _type;
-
   /// The name of the variable. The name "this" has a special meaning and is
   /// used as an implicit target for runtime completion, and in explicit "this"
   /// references.
-  String get name => _name;
-
-  /// The name of the variable. The name "this" has a special meaning and is
-  /// used as an implicit target for runtime completion, and in explicit "this"
-  /// references.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
+  String name;
 
   /// The type of the variable.
-  RuntimeCompletionExpressionType get type => _type;
+  RuntimeCompletionExpressionType type;
 
-  /// The type of the variable.
-  set type(RuntimeCompletionExpressionType value) {
-    assert(value != null);
-    _type = value;
-  }
-
-  RuntimeCompletionVariable(String name, RuntimeCompletionExpressionType type) {
-    this.name = name;
-    this.type = type;
-  }
+  RuntimeCompletionVariable(this.name, this.type);
 
   factory RuntimeCompletionVariable.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -18721,8 +14968,8 @@ class RuntimeCompletionVariable implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['name'] = name;
     result['type'] = type.toJson();
     return result;
@@ -18758,52 +15005,22 @@ class RuntimeCompletionVariable implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindElementReferencesParams implements RequestParams {
-  String _file;
-
-  int _offset;
-
-  bool _includePotential;
-
   /// The file containing the declaration of or reference to the element used
   /// to define the search.
-  String get file => _file;
-
-  /// The file containing the declaration of or reference to the element used
-  /// to define the search.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The offset within the file of the declaration of or reference to the
   /// element.
-  int get offset => _offset;
-
-  /// The offset within the file of the declaration of or reference to the
-  /// element.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// True if potential matches are to be included in the results.
-  bool get includePotential => _includePotential;
-
-  /// True if potential matches are to be included in the results.
-  set includePotential(bool value) {
-    assert(value != null);
-    _includePotential = value;
-  }
+  bool includePotential;
 
   SearchFindElementReferencesParams(
-      String file, int offset, bool includePotential) {
-    this.file = file;
-    this.offset = offset;
-    this.includePotential = includePotential;
-  }
+      this.file, this.offset, this.includePotential);
 
   factory SearchFindElementReferencesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -18838,8 +15055,8 @@ class SearchFindElementReferencesParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
     result['includePotential'] = includePotential;
@@ -18883,52 +15100,29 @@ class SearchFindElementReferencesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindElementReferencesResult implements ResponseResult {
-  String _id;
-
-  Element _element;
-
   /// The identifier used to associate results with this search request.
   ///
   /// If no element was found at the given location, this field will be absent,
   /// and no results will be reported via the search.results notification.
-  String get id => _id;
-
-  /// The identifier used to associate results with this search request.
-  ///
-  /// If no element was found at the given location, this field will be absent,
-  /// and no results will be reported via the search.results notification.
-  set id(String value) {
-    _id = value;
-  }
+  String? id;
 
   /// The element referenced or defined at the given offset and whose
   /// references will be returned in the search results.
   ///
   /// If no element was found at the given location, this field will be absent.
-  Element get element => _element;
+  Element? element;
 
-  /// The element referenced or defined at the given offset and whose
-  /// references will be returned in the search results.
-  ///
-  /// If no element was found at the given location, this field will be absent.
-  set element(Element value) {
-    _element = value;
-  }
-
-  SearchFindElementReferencesResult({String id, Element element}) {
-    this.id = id;
-    this.element = element;
-  }
+  SearchFindElementReferencesResult({this.id, this.element});
 
   factory SearchFindElementReferencesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      String id;
+      String? id;
       if (json.containsKey('id')) {
         id = jsonDecoder.decodeString(jsonPath + '.id', json['id']);
       }
-      Element element;
+      Element? element;
       if (json.containsKey('element')) {
         element = Element.fromJson(
             jsonDecoder, jsonPath + '.element', json['element']);
@@ -18948,11 +15142,13 @@ class SearchFindElementReferencesResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var id = this.id;
     if (id != null) {
       result['id'] = id;
     }
+    var element = this.element;
     if (element != null) {
       result['element'] = element.toJson();
     }
@@ -18992,23 +15188,13 @@ class SearchFindElementReferencesResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberDeclarationsParams implements RequestParams {
-  String _name;
-
   /// The name of the declarations to be found.
-  String get name => _name;
+  String name;
 
-  /// The name of the declarations to be found.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
-
-  SearchFindMemberDeclarationsParams(String name) {
-    this.name = name;
-  }
+  SearchFindMemberDeclarationsParams(this.name);
 
   factory SearchFindMemberDeclarationsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -19030,8 +15216,8 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['name'] = name;
     return result;
   }
@@ -19068,23 +15254,13 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberDeclarationsResult implements ResponseResult {
-  String _id;
-
   /// The identifier used to associate results with this search request.
-  String get id => _id;
+  String id;
 
-  /// The identifier used to associate results with this search request.
-  set id(String value) {
-    assert(value != null);
-    _id = value;
-  }
-
-  SearchFindMemberDeclarationsResult(String id) {
-    this.id = id;
-  }
+  SearchFindMemberDeclarationsResult(this.id);
 
   factory SearchFindMemberDeclarationsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -19108,8 +15284,8 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['id'] = id;
     return result;
   }
@@ -19146,23 +15322,13 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberReferencesParams implements RequestParams {
-  String _name;
-
   /// The name of the references to be found.
-  String get name => _name;
+  String name;
 
-  /// The name of the references to be found.
-  set name(String value) {
-    assert(value != null);
-    _name = value;
-  }
-
-  SearchFindMemberReferencesParams(String name) {
-    this.name = name;
-  }
+  SearchFindMemberReferencesParams(this.name);
 
   factory SearchFindMemberReferencesParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String name;
@@ -19184,8 +15350,8 @@ class SearchFindMemberReferencesParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['name'] = name;
     return result;
   }
@@ -19222,23 +15388,13 @@ class SearchFindMemberReferencesParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberReferencesResult implements ResponseResult {
-  String _id;
-
   /// The identifier used to associate results with this search request.
-  String get id => _id;
+  String id;
 
-  /// The identifier used to associate results with this search request.
-  set id(String value) {
-    assert(value != null);
-    _id = value;
-  }
-
-  SearchFindMemberReferencesResult(String id) {
-    this.id = id;
-  }
+  SearchFindMemberReferencesResult(this.id);
 
   factory SearchFindMemberReferencesResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -19262,8 +15418,8 @@ class SearchFindMemberReferencesResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['id'] = id;
     return result;
   }
@@ -19300,25 +15456,14 @@ class SearchFindMemberReferencesResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindTopLevelDeclarationsParams implements RequestParams {
-  String _pattern;
-
   /// The regular expression used to match the names of the declarations to be
   /// found.
-  String get pattern => _pattern;
+  String pattern;
 
-  /// The regular expression used to match the names of the declarations to be
-  /// found.
-  set pattern(String value) {
-    assert(value != null);
-    _pattern = value;
-  }
-
-  SearchFindTopLevelDeclarationsParams(String pattern) {
-    this.pattern = pattern;
-  }
+  SearchFindTopLevelDeclarationsParams(this.pattern);
 
   factory SearchFindTopLevelDeclarationsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String pattern;
@@ -19341,8 +15486,8 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['pattern'] = pattern;
     return result;
   }
@@ -19379,23 +15524,13 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindTopLevelDeclarationsResult implements ResponseResult {
-  String _id;
-
   /// The identifier used to associate results with this search request.
-  String get id => _id;
+  String id;
 
-  /// The identifier used to associate results with this search request.
-  set id(String value) {
-    assert(value != null);
-    _id = value;
-  }
-
-  SearchFindTopLevelDeclarationsResult(String id) {
-    this.id = id;
-  }
+  SearchFindTopLevelDeclarationsResult(this.id);
 
   factory SearchFindTopLevelDeclarationsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -19419,8 +15554,8 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['id'] = id;
     return result;
   }
@@ -19459,63 +15594,35 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchGetElementDeclarationsParams implements RequestParams {
-  String _file;
-
-  String _pattern;
-
-  int _maxResults;
-
   /// If this field is provided, return only declarations in this file. If this
   /// field is missing, return declarations in all files.
-  String get file => _file;
-
-  /// If this field is provided, return only declarations in this file. If this
-  /// field is missing, return declarations in all files.
-  set file(String value) {
-    _file = value;
-  }
+  String? file;
 
   /// The regular expression used to match the names of declarations. If this
   /// field is missing, return all declarations.
-  String get pattern => _pattern;
-
-  /// The regular expression used to match the names of declarations. If this
-  /// field is missing, return all declarations.
-  set pattern(String value) {
-    _pattern = value;
-  }
+  String? pattern;
 
   /// The maximum number of declarations to return. If this field is missing,
   /// return all matching declarations.
-  int get maxResults => _maxResults;
-
-  /// The maximum number of declarations to return. If this field is missing,
-  /// return all matching declarations.
-  set maxResults(int value) {
-    _maxResults = value;
-  }
+  int? maxResults;
 
   SearchGetElementDeclarationsParams(
-      {String file, String pattern, int maxResults}) {
-    this.file = file;
-    this.pattern = pattern;
-    this.maxResults = maxResults;
-  }
+      {this.file, this.pattern, this.maxResults});
 
   factory SearchGetElementDeclarationsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      String file;
+      String? file;
       if (json.containsKey('file')) {
         file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       }
-      String pattern;
+      String? pattern;
       if (json.containsKey('pattern')) {
         pattern =
             jsonDecoder.decodeString(jsonPath + '.pattern', json['pattern']);
       }
-      int maxResults;
+      int? maxResults;
       if (json.containsKey('maxResults')) {
         maxResults =
             jsonDecoder.decodeInt(jsonPath + '.maxResults', json['maxResults']);
@@ -19534,14 +15641,17 @@ class SearchGetElementDeclarationsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var file = this.file;
     if (file != null) {
       result['file'] = file;
     }
+    var pattern = this.pattern;
     if (pattern != null) {
       result['pattern'] = pattern;
     }
+    var maxResults = this.maxResults;
     if (maxResults != null) {
       result['maxResults'] = maxResults;
     }
@@ -19585,36 +15695,16 @@ class SearchGetElementDeclarationsParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchGetElementDeclarationsResult implements ResponseResult {
-  List<ElementDeclaration> _declarations;
-
-  List<String> _files;
-
   /// The list of declarations.
-  List<ElementDeclaration> get declarations => _declarations;
-
-  /// The list of declarations.
-  set declarations(List<ElementDeclaration> value) {
-    assert(value != null);
-    _declarations = value;
-  }
+  List<ElementDeclaration> declarations;
 
   /// The list of the paths of files with declarations.
-  List<String> get files => _files;
+  List<String> files;
 
-  /// The list of the paths of files with declarations.
-  set files(List<String> value) {
-    assert(value != null);
-    _files = value;
-  }
-
-  SearchGetElementDeclarationsResult(
-      List<ElementDeclaration> declarations, List<String> files) {
-    this.declarations = declarations;
-    this.files = files;
-  }
+  SearchGetElementDeclarationsResult(this.declarations, this.files);
 
   factory SearchGetElementDeclarationsResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<ElementDeclaration> declarations;
@@ -19622,7 +15712,7 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
         declarations = jsonDecoder.decodeList(
             jsonPath + '.declarations',
             json['declarations'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 ElementDeclaration.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'declarations');
@@ -19649,8 +15739,8 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['declarations'] =
         declarations.map((ElementDeclaration value) => value.toJson()).toList();
     result['files'] = files;
@@ -19694,50 +15784,21 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchGetTypeHierarchyParams implements RequestParams {
-  String _file;
-
-  int _offset;
-
-  bool _superOnly;
-
   /// The file containing the declaration or reference to the type for which a
   /// hierarchy is being requested.
-  String get file => _file;
-
-  /// The file containing the declaration or reference to the type for which a
-  /// hierarchy is being requested.
-  set file(String value) {
-    assert(value != null);
-    _file = value;
-  }
+  String file;
 
   /// The offset of the name of the type within the file.
-  int get offset => _offset;
-
-  /// The offset of the name of the type within the file.
-  set offset(int value) {
-    assert(value != null);
-    _offset = value;
-  }
+  int offset;
 
   /// True if the client is only requesting superclasses and interfaces
   /// hierarchy.
-  bool get superOnly => _superOnly;
+  bool? superOnly;
 
-  /// True if the client is only requesting superclasses and interfaces
-  /// hierarchy.
-  set superOnly(bool value) {
-    _superOnly = value;
-  }
-
-  SearchGetTypeHierarchyParams(String file, int offset, {bool superOnly}) {
-    this.file = file;
-    this.offset = offset;
-    this.superOnly = superOnly;
-  }
+  SearchGetTypeHierarchyParams(this.file, this.offset, {this.superOnly});
 
   factory SearchGetTypeHierarchyParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String file;
@@ -19752,7 +15813,7 @@ class SearchGetTypeHierarchyParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
-      bool superOnly;
+      bool? superOnly;
       if (json.containsKey('superOnly')) {
         superOnly =
             jsonDecoder.decodeBool(jsonPath + '.superOnly', json['superOnly']);
@@ -19770,10 +15831,11 @@ class SearchGetTypeHierarchyParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['file'] = file;
     result['offset'] = offset;
+    var superOnly = this.superOnly;
     if (superOnly != null) {
       result['superOnly'] = superOnly;
     }
@@ -19816,8 +15878,6 @@ class SearchGetTypeHierarchyParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchGetTypeHierarchyResult implements ResponseResult {
-  List<TypeHierarchyItem> _hierarchyItems;
-
   /// A list of the types in the requested hierarchy. The first element of the
   /// list is the item representing the type for which the hierarchy was
   /// requested. The index of other elements of the list is unspecified, but
@@ -19827,35 +15887,20 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
   /// This field will be absent if the code at the given file and offset does
   /// not represent a type, or if the file has not been sufficiently analyzed
   /// to allow a type hierarchy to be produced.
-  List<TypeHierarchyItem> get hierarchyItems => _hierarchyItems;
+  List<TypeHierarchyItem>? hierarchyItems;
 
-  /// A list of the types in the requested hierarchy. The first element of the
-  /// list is the item representing the type for which the hierarchy was
-  /// requested. The index of other elements of the list is unspecified, but
-  /// correspond to the integers used to reference supertype and subtype items
-  /// within the items.
-  ///
-  /// This field will be absent if the code at the given file and offset does
-  /// not represent a type, or if the file has not been sufficiently analyzed
-  /// to allow a type hierarchy to be produced.
-  set hierarchyItems(List<TypeHierarchyItem> value) {
-    _hierarchyItems = value;
-  }
-
-  SearchGetTypeHierarchyResult({List<TypeHierarchyItem> hierarchyItems}) {
-    this.hierarchyItems = hierarchyItems;
-  }
+  SearchGetTypeHierarchyResult({this.hierarchyItems});
 
   factory SearchGetTypeHierarchyResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      List<TypeHierarchyItem> hierarchyItems;
+      List<TypeHierarchyItem>? hierarchyItems;
       if (json.containsKey('hierarchyItems')) {
         hierarchyItems = jsonDecoder.decodeList(
             jsonPath + '.hierarchyItems',
             json['hierarchyItems'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 TypeHierarchyItem.fromJson(jsonDecoder, jsonPath, json));
       }
       return SearchGetTypeHierarchyResult(hierarchyItems: hierarchyItems);
@@ -19873,8 +15918,9 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var hierarchyItems = this.hierarchyItems;
     if (hierarchyItems != null) {
       result['hierarchyItems'] = hierarchyItems
           .map((TypeHierarchyItem value) => value.toJson())
@@ -19919,70 +15965,27 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchResult implements HasToJson {
-  Location _location;
-
-  SearchResultKind _kind;
-
-  bool _isPotential;
-
-  List<Element> _path;
-
   /// The location of the code that matched the search criteria.
-  Location get location => _location;
-
-  /// The location of the code that matched the search criteria.
-  set location(Location value) {
-    assert(value != null);
-    _location = value;
-  }
+  Location location;
 
   /// The kind of element that was found or the kind of reference that was
   /// found.
-  SearchResultKind get kind => _kind;
-
-  /// The kind of element that was found or the kind of reference that was
-  /// found.
-  set kind(SearchResultKind value) {
-    assert(value != null);
-    _kind = value;
-  }
+  SearchResultKind kind;
 
   /// True if the result is a potential match but cannot be confirmed to be a
   /// match. For example, if all references to a method m defined in some class
   /// were requested, and a reference to a method m from an unknown class were
   /// found, it would be marked as being a potential match.
-  bool get isPotential => _isPotential;
-
-  /// True if the result is a potential match but cannot be confirmed to be a
-  /// match. For example, if all references to a method m defined in some class
-  /// were requested, and a reference to a method m from an unknown class were
-  /// found, it would be marked as being a potential match.
-  set isPotential(bool value) {
-    assert(value != null);
-    _isPotential = value;
-  }
+  bool isPotential;
 
   /// The elements that contain the result, starting with the most immediately
   /// enclosing ancestor and ending with the library.
-  List<Element> get path => _path;
+  List<Element> path;
 
-  /// The elements that contain the result, starting with the most immediately
-  /// enclosing ancestor and ending with the library.
-  set path(List<Element> value) {
-    assert(value != null);
-    _path = value;
-  }
-
-  SearchResult(Location location, SearchResultKind kind, bool isPotential,
-      List<Element> path) {
-    this.location = location;
-    this.kind = kind;
-    this.isPotential = isPotential;
-    this.path = path;
-  }
+  SearchResult(this.location, this.kind, this.isPotential, this.path);
 
   factory SearchResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       Location location;
@@ -20011,7 +16014,7 @@ class SearchResult implements HasToJson {
         path = jsonDecoder.decodeList(
             jsonPath + '.path',
             json['path'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 Element.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'path');
@@ -20023,8 +16026,8 @@ class SearchResult implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['location'] = location.toJson();
     result['kind'] = kind.toJson();
     result['isPotential'] = isPotential;
@@ -20130,7 +16133,7 @@ class SearchResultKind implements Enum {
   }
 
   factory SearchResultKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return SearchResultKind(json);
@@ -20157,49 +16160,20 @@ class SearchResultKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchResultsParams implements HasToJson {
-  String _id;
-
-  List<SearchResult> _results;
-
-  bool _isLast;
-
   /// The id associated with the search.
-  String get id => _id;
-
-  /// The id associated with the search.
-  set id(String value) {
-    assert(value != null);
-    _id = value;
-  }
+  String id;
 
   /// The search results being reported.
-  List<SearchResult> get results => _results;
-
-  /// The search results being reported.
-  set results(List<SearchResult> value) {
-    assert(value != null);
-    _results = value;
-  }
+  List<SearchResult> results;
 
   /// True if this is that last set of results that will be returned for the
   /// indicated search.
-  bool get isLast => _isLast;
+  bool isLast;
 
-  /// True if this is that last set of results that will be returned for the
-  /// indicated search.
-  set isLast(bool value) {
-    assert(value != null);
-    _isLast = value;
-  }
-
-  SearchResultsParams(String id, List<SearchResult> results, bool isLast) {
-    this.id = id;
-    this.results = results;
-    this.isLast = isLast;
-  }
+  SearchResultsParams(this.id, this.results, this.isLast);
 
   factory SearchResultsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String id;
@@ -20213,7 +16187,7 @@ class SearchResultsParams implements HasToJson {
         results = jsonDecoder.decodeList(
             jsonPath + '.results',
             json['results'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 SearchResult.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'results');
@@ -20236,8 +16210,8 @@ class SearchResultsParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['id'] = id;
     result['results'] =
         results.map((SearchResult value) => value.toJson()).toList();
@@ -20282,35 +16256,16 @@ class SearchResultsParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerConnectedParams implements HasToJson {
-  String _version;
-
-  int _pid;
-
   /// The version number of the analysis server.
-  String get version => _version;
-
-  /// The version number of the analysis server.
-  set version(String value) {
-    assert(value != null);
-    _version = value;
-  }
+  String version;
 
   /// The process id of the analysis server process.
-  int get pid => _pid;
+  int pid;
 
-  /// The process id of the analysis server process.
-  set pid(int value) {
-    assert(value != null);
-    _pid = value;
-  }
-
-  ServerConnectedParams(String version, int pid) {
-    this.version = version;
-    this.pid = pid;
-  }
+  ServerConnectedParams(this.version, this.pid);
 
   factory ServerConnectedParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String version;
@@ -20338,8 +16293,8 @@ class ServerConnectedParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['version'] = version;
     result['pid'] = pid;
     return result;
@@ -20379,51 +16334,21 @@ class ServerConnectedParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerErrorParams implements HasToJson {
-  bool _isFatal;
-
-  String _message;
-
-  String _stackTrace;
-
   /// True if the error is a fatal error, meaning that the server will shutdown
   /// automatically after sending this notification.
-  bool get isFatal => _isFatal;
-
-  /// True if the error is a fatal error, meaning that the server will shutdown
-  /// automatically after sending this notification.
-  set isFatal(bool value) {
-    assert(value != null);
-    _isFatal = value;
-  }
+  bool isFatal;
 
   /// The error message indicating what kind of error was encountered.
-  String get message => _message;
-
-  /// The error message indicating what kind of error was encountered.
-  set message(String value) {
-    assert(value != null);
-    _message = value;
-  }
+  String message;
 
   /// The stack trace associated with the generation of the error, used for
   /// debugging the server.
-  String get stackTrace => _stackTrace;
+  String stackTrace;
 
-  /// The stack trace associated with the generation of the error, used for
-  /// debugging the server.
-  set stackTrace(String value) {
-    assert(value != null);
-    _stackTrace = value;
-  }
-
-  ServerErrorParams(bool isFatal, String message, String stackTrace) {
-    this.isFatal = isFatal;
-    this.message = message;
-    this.stackTrace = stackTrace;
-  }
+  ServerErrorParams(this.isFatal, this.message, this.stackTrace);
 
   factory ServerErrorParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       bool isFatal;
@@ -20459,8 +16384,8 @@ class ServerErrorParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['isFatal'] = isFatal;
     result['message'] = message;
     result['stackTrace'] = stackTrace;
@@ -20499,7 +16424,7 @@ class ServerErrorParams implements HasToJson {
 /// Clients may not extend, implement or mix-in this class.
 class ServerGetVersionParams implements RequestParams {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Request toRequest(String id) {
@@ -20528,23 +16453,13 @@ class ServerGetVersionParams implements RequestParams {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerGetVersionResult implements ResponseResult {
-  String _version;
-
   /// The version number of the analysis server.
-  String get version => _version;
+  String version;
 
-  /// The version number of the analysis server.
-  set version(String value) {
-    assert(value != null);
-    _version = value;
-  }
-
-  ServerGetVersionResult(String version) {
-    this.version = version;
-  }
+  ServerGetVersionResult(this.version);
 
   factory ServerGetVersionResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       String version;
@@ -20568,8 +16483,8 @@ class ServerGetVersionResult implements ResponseResult {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['version'] = version;
     return result;
   }
@@ -20608,53 +16523,22 @@ class ServerGetVersionResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerLogEntry implements HasToJson {
-  int _time;
-
-  ServerLogEntryKind _kind;
-
-  String _data;
-
   /// The time (milliseconds since epoch) at which the server created this log
   /// entry.
-  int get time => _time;
-
-  /// The time (milliseconds since epoch) at which the server created this log
-  /// entry.
-  set time(int value) {
-    assert(value != null);
-    _time = value;
-  }
+  int time;
 
   /// The kind of the entry, used to determine how to interpret the "data"
   /// field.
-  ServerLogEntryKind get kind => _kind;
-
-  /// The kind of the entry, used to determine how to interpret the "data"
-  /// field.
-  set kind(ServerLogEntryKind value) {
-    assert(value != null);
-    _kind = value;
-  }
+  ServerLogEntryKind kind;
 
   /// The payload of the entry, the actual format is determined by the "kind"
   /// field.
-  String get data => _data;
+  String data;
 
-  /// The payload of the entry, the actual format is determined by the "kind"
-  /// field.
-  set data(String value) {
-    assert(value != null);
-    _data = value;
-  }
-
-  ServerLogEntry(int time, ServerLogEntryKind kind, String data) {
-    this.time = time;
-    this.kind = kind;
-    this.data = data;
-  }
+  ServerLogEntry(this.time, this.kind, this.data);
 
   factory ServerLogEntry.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       int time;
@@ -20683,8 +16567,8 @@ class ServerLogEntry implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['time'] = time;
     result['kind'] = kind.toJson();
     result['data'] = data;
@@ -20782,7 +16666,7 @@ class ServerLogEntryKind implements Enum {
   }
 
   factory ServerLogEntryKind.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return ServerLogEntryKind(json);
@@ -20807,21 +16691,12 @@ class ServerLogEntryKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerLogParams implements HasToJson {
-  ServerLogEntry _entry;
+  ServerLogEntry entry;
 
-  ServerLogEntry get entry => _entry;
-
-  set entry(ServerLogEntry value) {
-    assert(value != null);
-    _entry = value;
-  }
-
-  ServerLogParams(ServerLogEntry entry) {
-    this.entry = entry;
-  }
+  ServerLogParams(this.entry);
 
   factory ServerLogParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       ServerLogEntry entry;
@@ -20843,8 +16718,8 @@ class ServerLogParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['entry'] = entry.toJson();
     return result;
   }
@@ -20904,7 +16779,7 @@ class ServerService implements Enum {
   }
 
   factory ServerService.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     if (json is String) {
       try {
         return ServerService(json);
@@ -20929,23 +16804,13 @@ class ServerService implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerSetSubscriptionsParams implements RequestParams {
-  List<ServerService> _subscriptions;
-
   /// A list of the services being subscribed to.
-  List<ServerService> get subscriptions => _subscriptions;
+  List<ServerService> subscriptions;
 
-  /// A list of the services being subscribed to.
-  set subscriptions(List<ServerService> value) {
-    assert(value != null);
-    _subscriptions = value;
-  }
-
-  ServerSetSubscriptionsParams(List<ServerService> subscriptions) {
-    this.subscriptions = subscriptions;
-  }
+  ServerSetSubscriptionsParams(this.subscriptions);
 
   factory ServerSetSubscriptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       List<ServerService> subscriptions;
@@ -20953,7 +16818,7 @@ class ServerSetSubscriptionsParams implements RequestParams {
         subscriptions = jsonDecoder.decodeList(
             jsonPath + '.subscriptions',
             json['subscriptions'],
-            (String jsonPath, Object json) =>
+            (String jsonPath, Object? json) =>
                 ServerService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
@@ -20971,8 +16836,8 @@ class ServerSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['subscriptions'] =
         subscriptions.map((ServerService value) => value.toJson()).toList();
     return result;
@@ -21008,7 +16873,7 @@ class ServerSetSubscriptionsParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class ServerSetSubscriptionsResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -21034,7 +16899,7 @@ class ServerSetSubscriptionsResult implements ResponseResult {
 /// Clients may not extend, implement or mix-in this class.
 class ServerShutdownParams implements RequestParams {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Request toRequest(String id) {
@@ -21060,7 +16925,7 @@ class ServerShutdownParams implements RequestParams {
 /// Clients may not extend, implement or mix-in this class.
 class ServerShutdownResult implements ResponseResult {
   @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
+  Map<String, Object> toJson() => <String, Object>{};
 
   @override
   Response toResponse(String id) {
@@ -21090,51 +16955,29 @@ class ServerShutdownResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerStatusParams implements HasToJson {
-  AnalysisStatus _analysis;
-
-  PubStatus _pub;
-
   /// The current status of analysis, including whether analysis is being
   /// performed and if so what is being analyzed.
-  AnalysisStatus get analysis => _analysis;
-
-  /// The current status of analysis, including whether analysis is being
-  /// performed and if so what is being analyzed.
-  set analysis(AnalysisStatus value) {
-    _analysis = value;
-  }
+  AnalysisStatus? analysis;
 
   /// The current status of pub execution, indicating whether we are currently
   /// running pub.
   ///
   /// Note: this status type is deprecated, and is no longer sent by the
   /// server.
-  PubStatus get pub => _pub;
+  PubStatus? pub;
 
-  /// The current status of pub execution, indicating whether we are currently
-  /// running pub.
-  ///
-  /// Note: this status type is deprecated, and is no longer sent by the
-  /// server.
-  set pub(PubStatus value) {
-    _pub = value;
-  }
-
-  ServerStatusParams({AnalysisStatus analysis, PubStatus pub}) {
-    this.analysis = analysis;
-    this.pub = pub;
-  }
+  ServerStatusParams({this.analysis, this.pub});
 
   factory ServerStatusParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      AnalysisStatus analysis;
+      AnalysisStatus? analysis;
       if (json.containsKey('analysis')) {
         analysis = AnalysisStatus.fromJson(
             jsonDecoder, jsonPath + '.analysis', json['analysis']);
       }
-      PubStatus pub;
+      PubStatus? pub;
       if (json.containsKey('pub')) {
         pub = PubStatus.fromJson(jsonDecoder, jsonPath + '.pub', json['pub']);
       }
@@ -21150,11 +16993,13 @@ class ServerStatusParams implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var analysis = this.analysis;
     if (analysis != null) {
       result['analysis'] = analysis.toJson();
     }
+    var pub = this.pub;
     if (pub != null) {
       result['pub'] = pub.toJson();
     }
@@ -21199,134 +17044,52 @@ class ServerStatusParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeHierarchyItem implements HasToJson {
-  Element _classElement;
-
-  String _displayName;
-
-  Element _memberElement;
-
-  int _superclass;
-
-  List<int> _interfaces;
-
-  List<int> _mixins;
-
-  List<int> _subclasses;
-
   /// The class element represented by this item.
-  Element get classElement => _classElement;
-
-  /// The class element represented by this item.
-  set classElement(Element value) {
-    assert(value != null);
-    _classElement = value;
-  }
+  Element classElement;
 
   /// The name to be displayed for the class. This field will be omitted if the
   /// display name is the same as the name of the element. The display name is
   /// different if there is additional type information to be displayed, such
   /// as type arguments.
-  String get displayName => _displayName;
-
-  /// The name to be displayed for the class. This field will be omitted if the
-  /// display name is the same as the name of the element. The display name is
-  /// different if there is additional type information to be displayed, such
-  /// as type arguments.
-  set displayName(String value) {
-    _displayName = value;
-  }
+  String? displayName;
 
   /// The member in the class corresponding to the member on which the
   /// hierarchy was requested. This field will be omitted if the hierarchy was
   /// not requested for a member or if the class does not have a corresponding
   /// member.
-  Element get memberElement => _memberElement;
-
-  /// The member in the class corresponding to the member on which the
-  /// hierarchy was requested. This field will be omitted if the hierarchy was
-  /// not requested for a member or if the class does not have a corresponding
-  /// member.
-  set memberElement(Element value) {
-    _memberElement = value;
-  }
+  Element? memberElement;
 
   /// The index of the item representing the superclass of this class. This
   /// field will be omitted if this item represents the class Object.
-  int get superclass => _superclass;
-
-  /// The index of the item representing the superclass of this class. This
-  /// field will be omitted if this item represents the class Object.
-  set superclass(int value) {
-    _superclass = value;
-  }
+  int? superclass;
 
   /// The indexes of the items representing the interfaces implemented by this
   /// class. The list will be empty if there are no implemented interfaces.
-  List<int> get interfaces => _interfaces;
-
-  /// The indexes of the items representing the interfaces implemented by this
-  /// class. The list will be empty if there are no implemented interfaces.
-  set interfaces(List<int> value) {
-    assert(value != null);
-    _interfaces = value;
-  }
+  List<int> interfaces;
 
   /// The indexes of the items representing the mixins referenced by this
   /// class. The list will be empty if there are no classes mixed in to this
   /// class.
-  List<int> get mixins => _mixins;
-
-  /// The indexes of the items representing the mixins referenced by this
-  /// class. The list will be empty if there are no classes mixed in to this
-  /// class.
-  set mixins(List<int> value) {
-    assert(value != null);
-    _mixins = value;
-  }
+  List<int> mixins;
 
   /// The indexes of the items representing the subtypes of this class. The
   /// list will be empty if there are no subtypes or if this item represents a
   /// supertype of the pivot type.
-  List<int> get subclasses => _subclasses;
+  List<int> subclasses;
 
-  /// The indexes of the items representing the subtypes of this class. The
-  /// list will be empty if there are no subtypes or if this item represents a
-  /// supertype of the pivot type.
-  set subclasses(List<int> value) {
-    assert(value != null);
-    _subclasses = value;
-  }
-
-  TypeHierarchyItem(Element classElement,
-      {String displayName,
-      Element memberElement,
-      int superclass,
-      List<int> interfaces,
-      List<int> mixins,
-      List<int> subclasses}) {
-    this.classElement = classElement;
-    this.displayName = displayName;
-    this.memberElement = memberElement;
-    this.superclass = superclass;
-    if (interfaces == null) {
-      this.interfaces = <int>[];
-    } else {
-      this.interfaces = interfaces;
-    }
-    if (mixins == null) {
-      this.mixins = <int>[];
-    } else {
-      this.mixins = mixins;
-    }
-    if (subclasses == null) {
-      this.subclasses = <int>[];
-    } else {
-      this.subclasses = subclasses;
-    }
-  }
+  TypeHierarchyItem(this.classElement,
+      {this.displayName,
+      this.memberElement,
+      this.superclass,
+      List<int>? interfaces,
+      List<int>? mixins,
+      List<int>? subclasses})
+      : interfaces = interfaces ?? <int>[],
+        mixins = mixins ?? <int>[],
+        subclasses = subclasses ?? <int>[];
 
   factory TypeHierarchyItem.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
       Element classElement;
@@ -21336,17 +17099,17 @@ class TypeHierarchyItem implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'classElement');
       }
-      String displayName;
+      String? displayName;
       if (json.containsKey('displayName')) {
         displayName = jsonDecoder.decodeString(
             jsonPath + '.displayName', json['displayName']);
       }
-      Element memberElement;
+      Element? memberElement;
       if (json.containsKey('memberElement')) {
         memberElement = Element.fromJson(
             jsonDecoder, jsonPath + '.memberElement', json['memberElement']);
       }
-      int superclass;
+      int? superclass;
       if (json.containsKey('superclass')) {
         superclass =
             jsonDecoder.decodeInt(jsonPath + '.superclass', json['superclass']);
@@ -21385,15 +17148,18 @@ class TypeHierarchyItem implements HasToJson {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    var result = <String, dynamic>{};
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
     result['classElement'] = classElement.toJson();
+    var displayName = this.displayName;
     if (displayName != null) {
       result['displayName'] = displayName;
     }
+    var memberElement = this.memberElement;
     if (memberElement != null) {
       result['memberElement'] = memberElement.toJson();
     }
+    var superclass = this.superclass;
     if (superclass != null) {
       result['superclass'] = superclass;
     }

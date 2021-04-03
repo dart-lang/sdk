@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -39,7 +41,7 @@ class NullableDereferenceVerifier {
     return _check(expression, type, errorCode: errorCode);
   }
 
-  void report(AstNode errorNode, DartType receiverType,
+  void report(SyntacticEntity errorEntity, DartType receiverType,
       {ErrorCode? errorCode,
       List<String> arguments = const <String>[],
       List<DiagnosticMessage>? messages}) {
@@ -48,8 +50,15 @@ class NullableDereferenceVerifier {
     } else {
       errorCode ??= CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
     }
-    _errorReporter.reportErrorForNode(
-        errorCode, errorNode, arguments, messages);
+    if (errorEntity is AstNode) {
+      _errorReporter.reportErrorForNode(
+          errorCode, errorEntity, arguments, messages);
+    } else if (errorEntity is Token) {
+      _errorReporter.reportErrorForToken(
+          errorCode, errorEntity, arguments, messages);
+    } else {
+      throw StateError('Syntactic entity must be AstNode or Token to report.');
+    }
   }
 
   /// If the [receiverType] is potentially nullable, report it.

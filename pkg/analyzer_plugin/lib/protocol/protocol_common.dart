@@ -21,19 +21,10 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AddContentOverlay implements HasToJson {
-  late String _content;
-
   /// The new content of the file.
-  String get content => _content;
+  String content;
 
-  /// The new content of the file.
-  set content(String value) {
-    _content = value;
-  }
-
-  AddContentOverlay(String content) {
-    this.content = content;
-  }
+  AddContentOverlay(this.content);
 
   factory AddContentOverlay.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -99,95 +90,33 @@ class AddContentOverlay implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisError implements HasToJson {
-  late AnalysisErrorSeverity _severity;
-
-  late AnalysisErrorType _type;
-
-  late Location _location;
-
-  late String _message;
-
-  String? _correction;
-
-  late String _code;
-
-  String? _url;
-
-  List<DiagnosticMessage>? _contextMessages;
-
-  bool? _hasFix;
-
   /// The severity of the error.
-  AnalysisErrorSeverity get severity => _severity;
-
-  /// The severity of the error.
-  set severity(AnalysisErrorSeverity value) {
-    _severity = value;
-  }
+  AnalysisErrorSeverity severity;
 
   /// The type of the error.
-  AnalysisErrorType get type => _type;
-
-  /// The type of the error.
-  set type(AnalysisErrorType value) {
-    _type = value;
-  }
+  AnalysisErrorType type;
 
   /// The location associated with the error.
-  Location get location => _location;
-
-  /// The location associated with the error.
-  set location(Location value) {
-    _location = value;
-  }
+  Location location;
 
   /// The message to be displayed for this error. The message should indicate
   /// what is wrong with the code and why it is wrong.
-  String get message => _message;
-
-  /// The message to be displayed for this error. The message should indicate
-  /// what is wrong with the code and why it is wrong.
-  set message(String value) {
-    _message = value;
-  }
+  String message;
 
   /// The correction message to be displayed for this error. The correction
   /// message should indicate how the user can fix the error. The field is
   /// omitted if there is no correction message associated with the error code.
-  String? get correction => _correction;
-
-  /// The correction message to be displayed for this error. The correction
-  /// message should indicate how the user can fix the error. The field is
-  /// omitted if there is no correction message associated with the error code.
-  set correction(String? value) {
-    _correction = value;
-  }
+  String? correction;
 
   /// The name, as a string, of the error code associated with this error.
-  String get code => _code;
-
-  /// The name, as a string, of the error code associated with this error.
-  set code(String value) {
-    _code = value;
-  }
+  String code;
 
   /// The URL of a page containing documentation associated with this error.
-  String? get url => _url;
-
-  /// The URL of a page containing documentation associated with this error.
-  set url(String? value) {
-    _url = value;
-  }
+  String? url;
 
   /// Additional messages associated with this diagnostic that provide context
   /// to help the user understand the diagnostic.
-  List<DiagnosticMessage>? get contextMessages => _contextMessages;
-
-  /// Additional messages associated with this diagnostic that provide context
-  /// to help the user understand the diagnostic.
-  set contextMessages(List<DiagnosticMessage>? value) {
-    _contextMessages = value;
-  }
+  List<DiagnosticMessage>? contextMessages;
 
   /// A hint to indicate to interested clients that this error has an
   /// associated fix (or fixes). The absence of this field implies there are
@@ -198,37 +127,11 @@ class AnalysisError implements HasToJson {
   /// negatives, no false positives should be returned. If a client sees this
   /// flag set they can proceed with the confidence that there are in fact
   /// associated fixes.
-  bool? get hasFix => _hasFix;
+  bool? hasFix;
 
-  /// A hint to indicate to interested clients that this error has an
-  /// associated fix (or fixes). The absence of this field implies there are
-  /// not known to be fixes. Note that since the operation to calculate whether
-  /// fixes apply needs to be performant it is possible that complicated tests
-  /// will be skipped and a false negative returned. For this reason, this
-  /// attribute should be treated as a "hint". Despite the possibility of false
-  /// negatives, no false positives should be returned. If a client sees this
-  /// flag set they can proceed with the confidence that there are in fact
-  /// associated fixes.
-  set hasFix(bool? value) {
-    _hasFix = value;
-  }
-
-  AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type,
-      Location location, String message, String code,
-      {String? correction,
-      String? url,
-      List<DiagnosticMessage>? contextMessages,
-      bool? hasFix}) {
-    this.severity = severity;
-    this.type = type;
-    this.location = location;
-    this.message = message;
-    this.correction = correction;
-    this.code = code;
-    this.url = url;
-    this.contextMessages = contextMessages;
-    this.hasFix = hasFix;
-  }
+  AnalysisError(
+      this.severity, this.type, this.location, this.message, this.code,
+      {this.correction, this.url, this.contextMessages, this.hasFix});
 
   factory AnalysisError.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -525,19 +428,10 @@ class AnalysisErrorType implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ChangeContentOverlay implements HasToJson {
-  late List<SourceEdit> _edits;
-
   /// The edits to be applied to the file.
-  List<SourceEdit> get edits => _edits;
+  List<SourceEdit> edits;
 
-  /// The edits to be applied to the file.
-  set edits(List<SourceEdit> value) {
-    _edits = value;
-  }
-
-  ChangeContentOverlay(List<SourceEdit> edits) {
-    this.edits = edits;
-  }
+  ChangeContentOverlay(this.edits);
 
   factory ChangeContentOverlay.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -621,203 +515,67 @@ class ChangeContentOverlay implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionSuggestion implements HasToJson {
-  late CompletionSuggestionKind _kind;
-
-  late int _relevance;
-
-  late String _completion;
-
-  String? _displayText;
-
-  int? _replacementOffset;
-
-  int? _replacementLength;
-
-  late int _selectionOffset;
-
-  late int _selectionLength;
-
-  late bool _isDeprecated;
-
-  late bool _isPotential;
-
-  String? _docSummary;
-
-  String? _docComplete;
-
-  String? _declaringType;
-
-  String? _defaultArgumentListString;
-
-  List<int>? _defaultArgumentListTextRanges;
-
-  Element? _element;
-
-  String? _returnType;
-
-  List<String>? _parameterNames;
-
-  List<String>? _parameterTypes;
-
-  int? _requiredParameterCount;
-
-  bool? _hasNamedParameters;
-
-  String? _parameterName;
-
-  String? _parameterType;
-
   /// The kind of element being suggested.
-  CompletionSuggestionKind get kind => _kind;
-
-  /// The kind of element being suggested.
-  set kind(CompletionSuggestionKind value) {
-    _kind = value;
-  }
+  CompletionSuggestionKind kind;
 
   /// The relevance of this completion suggestion where a higher number
   /// indicates a higher relevance.
-  int get relevance => _relevance;
-
-  /// The relevance of this completion suggestion where a higher number
-  /// indicates a higher relevance.
-  set relevance(int value) {
-    _relevance = value;
-  }
+  int relevance;
 
   /// The identifier to be inserted if the suggestion is selected. If the
   /// suggestion is for a method or function, the client might want to
   /// additionally insert a template for the parameters. The information
   /// required in order to do so is contained in other fields.
-  String get completion => _completion;
-
-  /// The identifier to be inserted if the suggestion is selected. If the
-  /// suggestion is for a method or function, the client might want to
-  /// additionally insert a template for the parameters. The information
-  /// required in order to do so is contained in other fields.
-  set completion(String value) {
-    _completion = value;
-  }
+  String completion;
 
   /// Text to be displayed in, for example, a completion pop-up. This field is
   /// only defined if the displayed text should be different than the
   /// completion. Otherwise it is omitted.
-  String? get displayText => _displayText;
-
-  /// Text to be displayed in, for example, a completion pop-up. This field is
-  /// only defined if the displayed text should be different than the
-  /// completion. Otherwise it is omitted.
-  set displayText(String? value) {
-    _displayText = value;
-  }
+  String? displayText;
 
   /// The offset of the start of the text to be replaced. If supplied, this
   /// should be used in preference to the offset provided on the containing
   /// completion results. This value may be provided independently of
   /// replacementLength (for example if only one differs from the completion
   /// result value).
-  int? get replacementOffset => _replacementOffset;
-
-  /// The offset of the start of the text to be replaced. If supplied, this
-  /// should be used in preference to the offset provided on the containing
-  /// completion results. This value may be provided independently of
-  /// replacementLength (for example if only one differs from the completion
-  /// result value).
-  set replacementOffset(int? value) {
-    _replacementOffset = value;
-  }
+  int? replacementOffset;
 
   /// The length of the text to be replaced. If supplied, this should be used
   /// in preference to the offset provided on the containing completion
   /// results. This value may be provided independently of replacementOffset
   /// (for example if only one differs from the completion result value).
-  int? get replacementLength => _replacementLength;
-
-  /// The length of the text to be replaced. If supplied, this should be used
-  /// in preference to the offset provided on the containing completion
-  /// results. This value may be provided independently of replacementOffset
-  /// (for example if only one differs from the completion result value).
-  set replacementLength(int? value) {
-    _replacementLength = value;
-  }
+  int? replacementLength;
 
   /// The offset, relative to the beginning of the completion, of where the
   /// selection should be placed after insertion.
-  int get selectionOffset => _selectionOffset;
-
-  /// The offset, relative to the beginning of the completion, of where the
-  /// selection should be placed after insertion.
-  set selectionOffset(int value) {
-    _selectionOffset = value;
-  }
+  int selectionOffset;
 
   /// The number of characters that should be selected after insertion.
-  int get selectionLength => _selectionLength;
-
-  /// The number of characters that should be selected after insertion.
-  set selectionLength(int value) {
-    _selectionLength = value;
-  }
+  int selectionLength;
 
   /// True if the suggested element is deprecated.
-  bool get isDeprecated => _isDeprecated;
-
-  /// True if the suggested element is deprecated.
-  set isDeprecated(bool value) {
-    _isDeprecated = value;
-  }
+  bool isDeprecated;
 
   /// True if the element is not known to be valid for the target. This happens
   /// if the type of the target is dynamic.
-  bool get isPotential => _isPotential;
-
-  /// True if the element is not known to be valid for the target. This happens
-  /// if the type of the target is dynamic.
-  set isPotential(bool value) {
-    _isPotential = value;
-  }
+  bool isPotential;
 
   /// An abbreviated version of the Dartdoc associated with the element being
   /// suggested. This field is omitted if there is no Dartdoc associated with
   /// the element.
-  String? get docSummary => _docSummary;
-
-  /// An abbreviated version of the Dartdoc associated with the element being
-  /// suggested. This field is omitted if there is no Dartdoc associated with
-  /// the element.
-  set docSummary(String? value) {
-    _docSummary = value;
-  }
+  String? docSummary;
 
   /// The Dartdoc associated with the element being suggested. This field is
   /// omitted if there is no Dartdoc associated with the element.
-  String? get docComplete => _docComplete;
-
-  /// The Dartdoc associated with the element being suggested. This field is
-  /// omitted if there is no Dartdoc associated with the element.
-  set docComplete(String? value) {
-    _docComplete = value;
-  }
+  String? docComplete;
 
   /// The class that declares the element being suggested. This field is
   /// omitted if the suggested element is not a member of a class.
-  String? get declaringType => _declaringType;
-
-  /// The class that declares the element being suggested. This field is
-  /// omitted if the suggested element is not a member of a class.
-  set declaringType(String? value) {
-    _declaringType = value;
-  }
+  String? declaringType;
 
   /// A default String for use in generating argument list source contents on
   /// the client side.
-  String? get defaultArgumentListString => _defaultArgumentListString;
-
-  /// A default String for use in generating argument list source contents on
-  /// the client side.
-  set defaultArgumentListString(String? value) {
-    _defaultArgumentListString = value;
-  }
+  String? defaultArgumentListString;
 
   /// Pairs of offsets and lengths describing 'defaultArgumentListString' text
   /// ranges suitable for use by clients to set up linked edits of default
@@ -825,151 +583,66 @@ class CompletionSuggestion implements HasToJson {
   /// y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
   /// of length 1, starting at offsets 0 and 3. Clients can use these ranges to
   /// treat the 'x' and 'y' values specially for linked edits.
-  List<int>? get defaultArgumentListTextRanges =>
-      _defaultArgumentListTextRanges;
-
-  /// Pairs of offsets and lengths describing 'defaultArgumentListString' text
-  /// ranges suitable for use by clients to set up linked edits of default
-  /// argument source contents. For example, given an argument list string 'x,
-  /// y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
-  /// of length 1, starting at offsets 0 and 3. Clients can use these ranges to
-  /// treat the 'x' and 'y' values specially for linked edits.
-  set defaultArgumentListTextRanges(List<int>? value) {
-    _defaultArgumentListTextRanges = value;
-  }
+  List<int>? defaultArgumentListTextRanges;
 
   /// Information about the element reference being suggested.
-  Element? get element => _element;
-
-  /// Information about the element reference being suggested.
-  set element(Element? value) {
-    _element = value;
-  }
+  Element? element;
 
   /// The return type of the getter, function or method or the type of the
   /// field being suggested. This field is omitted if the suggested element is
   /// not a getter, function or method.
-  String? get returnType => _returnType;
-
-  /// The return type of the getter, function or method or the type of the
-  /// field being suggested. This field is omitted if the suggested element is
-  /// not a getter, function or method.
-  set returnType(String? value) {
-    _returnType = value;
-  }
+  String? returnType;
 
   /// The names of the parameters of the function or method being suggested.
   /// This field is omitted if the suggested element is not a setter, function
   /// or method.
-  List<String>? get parameterNames => _parameterNames;
-
-  /// The names of the parameters of the function or method being suggested.
-  /// This field is omitted if the suggested element is not a setter, function
-  /// or method.
-  set parameterNames(List<String>? value) {
-    _parameterNames = value;
-  }
+  List<String>? parameterNames;
 
   /// The types of the parameters of the function or method being suggested.
   /// This field is omitted if the parameterNames field is omitted.
-  List<String>? get parameterTypes => _parameterTypes;
-
-  /// The types of the parameters of the function or method being suggested.
-  /// This field is omitted if the parameterNames field is omitted.
-  set parameterTypes(List<String>? value) {
-    _parameterTypes = value;
-  }
+  List<String>? parameterTypes;
 
   /// The number of required parameters for the function or method being
   /// suggested. This field is omitted if the parameterNames field is omitted.
-  int? get requiredParameterCount => _requiredParameterCount;
-
-  /// The number of required parameters for the function or method being
-  /// suggested. This field is omitted if the parameterNames field is omitted.
-  set requiredParameterCount(int? value) {
-    _requiredParameterCount = value;
-  }
+  int? requiredParameterCount;
 
   /// True if the function or method being suggested has at least one named
   /// parameter. This field is omitted if the parameterNames field is omitted.
-  bool? get hasNamedParameters => _hasNamedParameters;
-
-  /// True if the function or method being suggested has at least one named
-  /// parameter. This field is omitted if the parameterNames field is omitted.
-  set hasNamedParameters(bool? value) {
-    _hasNamedParameters = value;
-  }
+  bool? hasNamedParameters;
 
   /// The name of the optional parameter being suggested. This field is omitted
   /// if the suggestion is not the addition of an optional argument within an
   /// argument list.
-  String? get parameterName => _parameterName;
-
-  /// The name of the optional parameter being suggested. This field is omitted
-  /// if the suggestion is not the addition of an optional argument within an
-  /// argument list.
-  set parameterName(String? value) {
-    _parameterName = value;
-  }
+  String? parameterName;
 
   /// The type of the options parameter being suggested. This field is omitted
   /// if the parameterName field is omitted.
-  String? get parameterType => _parameterType;
-
-  /// The type of the options parameter being suggested. This field is omitted
-  /// if the parameterName field is omitted.
-  set parameterType(String? value) {
-    _parameterType = value;
-  }
+  String? parameterType;
 
   CompletionSuggestion(
-      CompletionSuggestionKind kind,
-      int relevance,
-      String completion,
-      int selectionOffset,
-      int selectionLength,
-      bool isDeprecated,
-      bool isPotential,
-      {String? displayText,
-      int? replacementOffset,
-      int? replacementLength,
-      String? docSummary,
-      String? docComplete,
-      String? declaringType,
-      String? defaultArgumentListString,
-      List<int>? defaultArgumentListTextRanges,
-      Element? element,
-      String? returnType,
-      List<String>? parameterNames,
-      List<String>? parameterTypes,
-      int? requiredParameterCount,
-      bool? hasNamedParameters,
-      String? parameterName,
-      String? parameterType}) {
-    this.kind = kind;
-    this.relevance = relevance;
-    this.completion = completion;
-    this.displayText = displayText;
-    this.replacementOffset = replacementOffset;
-    this.replacementLength = replacementLength;
-    this.selectionOffset = selectionOffset;
-    this.selectionLength = selectionLength;
-    this.isDeprecated = isDeprecated;
-    this.isPotential = isPotential;
-    this.docSummary = docSummary;
-    this.docComplete = docComplete;
-    this.declaringType = declaringType;
-    this.defaultArgumentListString = defaultArgumentListString;
-    this.defaultArgumentListTextRanges = defaultArgumentListTextRanges;
-    this.element = element;
-    this.returnType = returnType;
-    this.parameterNames = parameterNames;
-    this.parameterTypes = parameterTypes;
-    this.requiredParameterCount = requiredParameterCount;
-    this.hasNamedParameters = hasNamedParameters;
-    this.parameterName = parameterName;
-    this.parameterType = parameterType;
-  }
+      this.kind,
+      this.relevance,
+      this.completion,
+      this.selectionOffset,
+      this.selectionLength,
+      this.isDeprecated,
+      this.isPotential,
+      {this.displayText,
+      this.replacementOffset,
+      this.replacementLength,
+      this.docSummary,
+      this.docComplete,
+      this.declaringType,
+      this.defaultArgumentListString,
+      this.defaultArgumentListTextRanges,
+      this.element,
+      this.returnType,
+      this.parameterNames,
+      this.parameterTypes,
+      this.requiredParameterCount,
+      this.hasNamedParameters,
+      this.parameterName,
+      this.parameterType});
 
   factory CompletionSuggestion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -1413,32 +1086,14 @@ class CompletionSuggestionKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class DiagnosticMessage implements HasToJson {
-  late String _message;
-
-  late Location _location;
-
   /// The message to be displayed to the user.
-  String get message => _message;
-
-  /// The message to be displayed to the user.
-  set message(String value) {
-    _message = value;
-  }
+  String message;
 
   /// The location associated with or referenced by the message. Clients should
   /// provide the ability to navigate to the location.
-  Location get location => _location;
+  Location location;
 
-  /// The location associated with or referenced by the message. Clients should
-  /// provide the ability to navigate to the location.
-  set location(Location value) {
-    _location = value;
-  }
-
-  DiagnosticMessage(String message, Location location) {
-    this.message = message;
-    this.location = location;
-  }
+  DiagnosticMessage(this.message, this.location);
 
   factory DiagnosticMessage.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -1531,47 +1186,15 @@ class Element implements HasToJson {
     return flags;
   }
 
-  late ElementKind _kind;
-
-  late String _name;
-
-  Location? _location;
-
-  late int _flags;
-
-  String? _parameters;
-
-  String? _returnType;
-
-  String? _typeParameters;
-
-  String? _aliasedType;
-
   /// The kind of the element.
-  ElementKind get kind => _kind;
-
-  /// The kind of the element.
-  set kind(ElementKind value) {
-    _kind = value;
-  }
+  ElementKind kind;
 
   /// The name of the element. This is typically used as the label in the
   /// outline.
-  String get name => _name;
-
-  /// The name of the element. This is typically used as the label in the
-  /// outline.
-  set name(String value) {
-    _name = value;
-  }
+  String name;
 
   /// The location of the name in the declaration of the element.
-  Location? get location => _location;
-
-  /// The location of the name in the declaration of the element.
-  set location(Location? value) {
-    _location = value;
-  }
+  Location? location;
 
   /// A bit-map containing the following flags:
   ///
@@ -1582,82 +1205,33 @@ class Element implements HasToJson {
   ///   top-level function or field
   /// - 0x10 - set if the element is private
   /// - 0x20 - set if the element is deprecated
-  int get flags => _flags;
-
-  /// A bit-map containing the following flags:
-  ///
-  /// - 0x01 - set if the element is explicitly or implicitly abstract
-  /// - 0x02 - set if the element was declared to be ‘const’
-  /// - 0x04 - set if the element was declared to be ‘final’
-  /// - 0x08 - set if the element is a static member of a class or is a
-  ///   top-level function or field
-  /// - 0x10 - set if the element is private
-  /// - 0x20 - set if the element is deprecated
-  set flags(int value) {
-    _flags = value;
-  }
+  int flags;
 
   /// The parameter list for the element. If the element is not a method or
   /// function this field will not be defined. If the element doesn't have
   /// parameters (e.g. getter), this field will not be defined. If the element
   /// has zero parameters, this field will have a value of "()".
-  String? get parameters => _parameters;
-
-  /// The parameter list for the element. If the element is not a method or
-  /// function this field will not be defined. If the element doesn't have
-  /// parameters (e.g. getter), this field will not be defined. If the element
-  /// has zero parameters, this field will have a value of "()".
-  set parameters(String? value) {
-    _parameters = value;
-  }
+  String? parameters;
 
   /// The return type of the element. If the element is not a method or
   /// function this field will not be defined. If the element does not have a
   /// declared return type, this field will contain an empty string.
-  String? get returnType => _returnType;
-
-  /// The return type of the element. If the element is not a method or
-  /// function this field will not be defined. If the element does not have a
-  /// declared return type, this field will contain an empty string.
-  set returnType(String? value) {
-    _returnType = value;
-  }
+  String? returnType;
 
   /// The type parameter list for the element. If the element doesn't have type
   /// parameters, this field will not be defined.
-  String? get typeParameters => _typeParameters;
-
-  /// The type parameter list for the element. If the element doesn't have type
-  /// parameters, this field will not be defined.
-  set typeParameters(String? value) {
-    _typeParameters = value;
-  }
+  String? typeParameters;
 
   /// If the element is a type alias, this field is the aliased type. Otherwise
   /// this field will not be defined.
-  String? get aliasedType => _aliasedType;
+  String? aliasedType;
 
-  /// If the element is a type alias, this field is the aliased type. Otherwise
-  /// this field will not be defined.
-  set aliasedType(String? value) {
-    _aliasedType = value;
-  }
-
-  Element(ElementKind kind, String name, int flags,
-      {Location? location,
-      String? parameters,
-      String? returnType,
-      String? typeParameters,
-      String? aliasedType}) {
-    this.kind = kind;
-    this.name = name;
-    this.location = location;
-    this.flags = flags;
-    this.parameters = parameters;
-    this.returnType = returnType;
-    this.typeParameters = typeParameters;
-    this.aliasedType = aliasedType;
-  }
+  Element(this.kind, this.name, this.flags,
+      {this.location,
+      this.parameters,
+      this.returnType,
+      this.typeParameters,
+      this.aliasedType});
 
   factory Element.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -2110,41 +1684,16 @@ class FoldingKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FoldingRegion implements HasToJson {
-  late FoldingKind _kind;
-
-  late int _offset;
-
-  late int _length;
-
   /// The kind of the region.
-  FoldingKind get kind => _kind;
-
-  /// The kind of the region.
-  set kind(FoldingKind value) {
-    _kind = value;
-  }
+  FoldingKind kind;
 
   /// The offset of the region to be folded.
-  int get offset => _offset;
-
-  /// The offset of the region to be folded.
-  set offset(int value) {
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the region to be folded.
-  int get length => _length;
+  int length;
 
-  /// The length of the region to be folded.
-  set length(int value) {
-    _length = value;
-  }
-
-  FoldingRegion(FoldingKind kind, int offset, int length) {
-    this.kind = kind;
-    this.offset = offset;
-    this.length = length;
-  }
+  FoldingRegion(this.kind, this.offset, this.length);
 
   factory FoldingRegion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -2217,41 +1766,16 @@ class FoldingRegion implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class HighlightRegion implements HasToJson {
-  late HighlightRegionType _type;
-
-  late int _offset;
-
-  late int _length;
-
   /// The type of highlight associated with the region.
-  HighlightRegionType get type => _type;
-
-  /// The type of highlight associated with the region.
-  set type(HighlightRegionType value) {
-    _type = value;
-  }
+  HighlightRegionType type;
 
   /// The offset of the region to be highlighted.
-  int get offset => _offset;
-
-  /// The offset of the region to be highlighted.
-  set offset(int value) {
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the region to be highlighted.
-  int get length => _length;
+  int length;
 
-  /// The length of the region to be highlighted.
-  set length(int value) {
-    _length = value;
-  }
-
-  HighlightRegion(HighlightRegionType type, int offset, int length) {
-    this.type = type;
-    this.offset = offset;
-    this.length = length;
-  }
+  HighlightRegion(this.type, this.offset, this.length);
 
   factory HighlightRegion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -2890,64 +2414,22 @@ class HighlightRegionType implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class KytheEntry implements HasToJson {
-  late KytheVName _source;
-
-  String? _kind;
-
-  KytheVName? _target;
-
-  late String _fact;
-
-  List<int>? _value;
-
   /// The ticket of the source node.
-  KytheVName get source => _source;
-
-  /// The ticket of the source node.
-  set source(KytheVName value) {
-    _source = value;
-  }
+  KytheVName source;
 
   /// An edge label. The schema defines which labels are meaningful.
-  String? get kind => _kind;
-
-  /// An edge label. The schema defines which labels are meaningful.
-  set kind(String? value) {
-    _kind = value;
-  }
+  String? kind;
 
   /// The ticket of the target node.
-  KytheVName? get target => _target;
-
-  /// The ticket of the target node.
-  set target(KytheVName? value) {
-    _target = value;
-  }
+  KytheVName? target;
 
   /// A fact label. The schema defines which fact labels are meaningful.
-  String get fact => _fact;
-
-  /// A fact label. The schema defines which fact labels are meaningful.
-  set fact(String value) {
-    _fact = value;
-  }
+  String fact;
 
   /// The String value of the fact.
-  List<int>? get value => _value;
+  List<int>? value;
 
-  /// The String value of the fact.
-  set value(List<int>? value) {
-    _value = value;
-  }
-
-  KytheEntry(KytheVName source, String fact,
-      {String? kind, KytheVName? target, List<int>? value}) {
-    this.source = source;
-    this.kind = kind;
-    this.target = target;
-    this.fact = fact;
-    this.value = value;
-  }
+  KytheEntry(this.source, this.fact, {this.kind, this.target, this.value});
 
   factory KytheEntry.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -3045,74 +2527,27 @@ class KytheEntry implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class KytheVName implements HasToJson {
-  late String _signature;
-
-  late String _corpus;
-
-  late String _root;
-
-  late String _path;
-
-  late String _language;
-
   /// An opaque signature generated by the analyzer.
-  String get signature => _signature;
-
-  /// An opaque signature generated by the analyzer.
-  set signature(String value) {
-    _signature = value;
-  }
+  String signature;
 
   /// The corpus of source code this KytheVName belongs to. Loosely, a corpus
   /// is a collection of related files, such as the contents of a given source
   /// repository.
-  String get corpus => _corpus;
-
-  /// The corpus of source code this KytheVName belongs to. Loosely, a corpus
-  /// is a collection of related files, such as the contents of a given source
-  /// repository.
-  set corpus(String value) {
-    _corpus = value;
-  }
+  String corpus;
 
   /// A corpus-specific root label, typically a directory path or project
   /// identifier, denoting a distinct subset of the corpus. This may also be
   /// used to designate virtual collections like generated files.
-  String get root => _root;
-
-  /// A corpus-specific root label, typically a directory path or project
-  /// identifier, denoting a distinct subset of the corpus. This may also be
-  /// used to designate virtual collections like generated files.
-  set root(String value) {
-    _root = value;
-  }
+  String root;
 
   /// A path-structured label describing the “location” of the named object
   /// relative to the corpus and the root.
-  String get path => _path;
-
-  /// A path-structured label describing the “location” of the named object
-  /// relative to the corpus and the root.
-  set path(String value) {
-    _path = value;
-  }
+  String path;
 
   /// The language this name belongs to.
-  String get language => _language;
+  String language;
 
-  /// The language this name belongs to.
-  set language(String value) {
-    _language = value;
-  }
-
-  KytheVName(String signature, String corpus, String root, String path,
-      String language) {
-    this.signature = signature;
-    this.corpus = corpus;
-    this.root = root;
-    this.path = path;
-    this.language = language;
-  }
+  KytheVName(this.signature, this.corpus, this.root, this.path, this.language);
 
   factory KytheVName.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -3204,44 +2639,17 @@ class KytheVName implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LinkedEditGroup implements HasToJson {
-  late List<Position> _positions;
-
-  late int _length;
-
-  late List<LinkedEditSuggestion> _suggestions;
-
   /// The positions of the regions that should be edited simultaneously.
-  List<Position> get positions => _positions;
-
-  /// The positions of the regions that should be edited simultaneously.
-  set positions(List<Position> value) {
-    _positions = value;
-  }
+  List<Position> positions;
 
   /// The length of the regions that should be edited simultaneously.
-  int get length => _length;
-
-  /// The length of the regions that should be edited simultaneously.
-  set length(int value) {
-    _length = value;
-  }
+  int length;
 
   /// Pre-computed suggestions for what every region might want to be changed
   /// to.
-  List<LinkedEditSuggestion> get suggestions => _suggestions;
+  List<LinkedEditSuggestion> suggestions;
 
-  /// Pre-computed suggestions for what every region might want to be changed
-  /// to.
-  set suggestions(List<LinkedEditSuggestion> value) {
-    _suggestions = value;
-  }
-
-  LinkedEditGroup(List<Position> positions, int length,
-      List<LinkedEditSuggestion> suggestions) {
-    this.positions = positions;
-    this.length = length;
-    this.suggestions = suggestions;
-  }
+  LinkedEditGroup(this.positions, this.length, this.suggestions);
 
   factory LinkedEditGroup.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -3339,30 +2747,13 @@ class LinkedEditGroup implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LinkedEditSuggestion implements HasToJson {
-  late String _value;
-
-  late LinkedEditSuggestionKind _kind;
-
   /// The value that could be used to replace all of the linked edit regions.
-  String get value => _value;
-
-  /// The value that could be used to replace all of the linked edit regions.
-  set value(String value) {
-    _value = value;
-  }
+  String value;
 
   /// The kind of value being proposed.
-  LinkedEditSuggestionKind get kind => _kind;
+  LinkedEditSuggestionKind kind;
 
-  /// The kind of value being proposed.
-  set kind(LinkedEditSuggestionKind value) {
-    _kind = value;
-  }
-
-  LinkedEditSuggestion(String value, LinkedEditSuggestionKind kind) {
-    this.value = value;
-    this.kind = kind;
-  }
+  LinkedEditSuggestion(this.value, this.kind);
 
   factory LinkedEditSuggestion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -3493,94 +2884,33 @@ class LinkedEditSuggestionKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Location implements HasToJson {
-  late String _file;
-
-  late int _offset;
-
-  late int _length;
-
-  late int _startLine;
-
-  late int _startColumn;
-
-  late int _endLine;
-
-  late int _endColumn;
-
   /// The file containing the range.
-  String get file => _file;
-
-  /// The file containing the range.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The offset of the range.
-  int get offset => _offset;
-
-  /// The offset of the range.
-  set offset(int value) {
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the range.
-  int get length => _length;
-
-  /// The length of the range.
-  set length(int value) {
-    _length = value;
-  }
+  int length;
 
   /// The one-based index of the line containing the first character of the
   /// range.
-  int get startLine => _startLine;
-
-  /// The one-based index of the line containing the first character of the
-  /// range.
-  set startLine(int value) {
-    _startLine = value;
-  }
+  int startLine;
 
   /// The one-based index of the column containing the first character of the
   /// range.
-  int get startColumn => _startColumn;
-
-  /// The one-based index of the column containing the first character of the
-  /// range.
-  set startColumn(int value) {
-    _startColumn = value;
-  }
+  int startColumn;
 
   /// The one-based index of the line containing the character immediately
   /// following the range.
-  int get endLine => _endLine;
-
-  /// The one-based index of the line containing the character immediately
-  /// following the range.
-  set endLine(int value) {
-    _endLine = value;
-  }
+  int endLine;
 
   /// The one-based index of the column containing the character immediately
   /// following the range.
-  int get endColumn => _endColumn;
+  int endColumn;
 
-  /// The one-based index of the column containing the character immediately
-  /// following the range.
-  set endColumn(int value) {
-    _endColumn = value;
-  }
-
-  Location(String file, int offset, int length, int startLine, int startColumn,
-      int endLine, int endColumn) {
-    this.file = file;
-    this.offset = offset;
-    this.length = length;
-    this.startLine = startLine;
-    this.startColumn = startColumn;
-    this.endLine = endLine;
-    this.endColumn = endColumn;
-  }
+  Location(this.file, this.offset, this.length, this.startLine,
+      this.startColumn, this.endLine, this.endColumn);
 
   factory Location.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -3692,45 +3022,18 @@ class Location implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class NavigationRegion implements HasToJson {
-  late int _offset;
-
-  late int _length;
-
-  late List<int> _targets;
-
   /// The offset of the region from which the user can navigate.
-  int get offset => _offset;
-
-  /// The offset of the region from which the user can navigate.
-  set offset(int value) {
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the region from which the user can navigate.
-  int get length => _length;
-
-  /// The length of the region from which the user can navigate.
-  set length(int value) {
-    _length = value;
-  }
+  int length;
 
   /// The indexes of the targets (in the enclosing navigation response) to
   /// which the given region is bound. By opening the target, clients can
   /// implement one form of navigation. This list cannot be empty.
-  List<int> get targets => _targets;
+  List<int> targets;
 
-  /// The indexes of the targets (in the enclosing navigation response) to
-  /// which the given region is bound. By opening the target, clients can
-  /// implement one form of navigation. This list cannot be empty.
-  set targets(List<int> value) {
-    _targets = value;
-  }
-
-  NavigationRegion(int offset, int length, List<int> targets) {
-    this.offset = offset;
-    this.length = length;
-    this.targets = targets;
-  }
+  NavigationRegion(this.offset, this.length, this.targets);
 
   factory NavigationRegion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -3808,104 +3111,36 @@ class NavigationRegion implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class NavigationTarget implements HasToJson {
-  late ElementKind _kind;
-
-  late int _fileIndex;
-
-  late int _offset;
-
-  late int _length;
-
-  late int _startLine;
-
-  late int _startColumn;
-
-  int? _codeOffset;
-
-  int? _codeLength;
-
   /// The kind of the element.
-  ElementKind get kind => _kind;
-
-  /// The kind of the element.
-  set kind(ElementKind value) {
-    _kind = value;
-  }
+  ElementKind kind;
 
   /// The index of the file (in the enclosing navigation response) to navigate
   /// to.
-  int get fileIndex => _fileIndex;
-
-  /// The index of the file (in the enclosing navigation response) to navigate
-  /// to.
-  set fileIndex(int value) {
-    _fileIndex = value;
-  }
+  int fileIndex;
 
   /// The offset of the name of the target to which the user can navigate.
-  int get offset => _offset;
-
-  /// The offset of the name of the target to which the user can navigate.
-  set offset(int value) {
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the name of the target to which the user can navigate.
-  int get length => _length;
-
-  /// The length of the name of the target to which the user can navigate.
-  set length(int value) {
-    _length = value;
-  }
+  int length;
 
   /// The one-based index of the line containing the first character of the
   /// name of the target.
-  int get startLine => _startLine;
-
-  /// The one-based index of the line containing the first character of the
-  /// name of the target.
-  set startLine(int value) {
-    _startLine = value;
-  }
+  int startLine;
 
   /// The one-based index of the column containing the first character of the
   /// name of the target.
-  int get startColumn => _startColumn;
-
-  /// The one-based index of the column containing the first character of the
-  /// name of the target.
-  set startColumn(int value) {
-    _startColumn = value;
-  }
+  int startColumn;
 
   /// The offset of the target code to which the user can navigate.
-  int? get codeOffset => _codeOffset;
-
-  /// The offset of the target code to which the user can navigate.
-  set codeOffset(int? value) {
-    _codeOffset = value;
-  }
+  int? codeOffset;
 
   /// The length of the target code to which the user can navigate.
-  int? get codeLength => _codeLength;
+  int? codeLength;
 
-  /// The length of the target code to which the user can navigate.
-  set codeLength(int? value) {
-    _codeLength = value;
-  }
-
-  NavigationTarget(ElementKind kind, int fileIndex, int offset, int length,
-      int startLine, int startColumn,
-      {int? codeOffset, int? codeLength}) {
-    this.kind = kind;
-    this.fileIndex = fileIndex;
-    this.offset = offset;
-    this.length = length;
-    this.startLine = startLine;
-    this.startColumn = startColumn;
-    this.codeOffset = codeOffset;
-    this.codeLength = codeLength;
-  }
+  NavigationTarget(this.kind, this.fileIndex, this.offset, this.length,
+      this.startLine, this.startColumn,
+      {this.codeOffset, this.codeLength});
 
   factory NavigationTarget.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4032,41 +3267,16 @@ class NavigationTarget implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Occurrences implements HasToJson {
-  late Element _element;
-
-  late List<int> _offsets;
-
-  late int _length;
-
   /// The element that was referenced.
-  Element get element => _element;
-
-  /// The element that was referenced.
-  set element(Element value) {
-    _element = value;
-  }
+  Element element;
 
   /// The offsets of the name of the referenced element within the file.
-  List<int> get offsets => _offsets;
-
-  /// The offsets of the name of the referenced element within the file.
-  set offsets(List<int> value) {
-    _offsets = value;
-  }
+  List<int> offsets;
 
   /// The length of the name of the referenced element.
-  int get length => _length;
+  int length;
 
-  /// The length of the name of the referenced element.
-  set length(int value) {
-    _length = value;
-  }
-
-  Occurrences(Element element, List<int> offsets, int length) {
-    this.element = element;
-    this.offsets = offsets;
-    this.length = length;
-  }
+  Occurrences(this.element, this.offsets, this.length);
 
   factory Occurrences.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4143,86 +3353,32 @@ class Occurrences implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Outline implements HasToJson {
-  late Element _element;
-
-  late int _offset;
-
-  late int _length;
-
-  late int _codeOffset;
-
-  late int _codeLength;
-
-  List<Outline>? _children;
-
   /// A description of the element represented by this node.
-  Element get element => _element;
-
-  /// A description of the element represented by this node.
-  set element(Element value) {
-    _element = value;
-  }
+  Element element;
 
   /// The offset of the first character of the element. This is different than
   /// the offset in the Element, which is the offset of the name of the
   /// element. It can be used, for example, to map locations in the file back
   /// to an outline.
-  int get offset => _offset;
-
-  /// The offset of the first character of the element. This is different than
-  /// the offset in the Element, which is the offset of the name of the
-  /// element. It can be used, for example, to map locations in the file back
-  /// to an outline.
-  set offset(int value) {
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the element.
-  int get length => _length;
-
-  /// The length of the element.
-  set length(int value) {
-    _length = value;
-  }
+  int length;
 
   /// The offset of the first character of the element code, which is neither
   /// documentation, nor annotation.
-  int get codeOffset => _codeOffset;
-
-  /// The offset of the first character of the element code, which is neither
-  /// documentation, nor annotation.
-  set codeOffset(int value) {
-    _codeOffset = value;
-  }
+  int codeOffset;
 
   /// The length of the element code.
-  int get codeLength => _codeLength;
-
-  /// The length of the element code.
-  set codeLength(int value) {
-    _codeLength = value;
-  }
+  int codeLength;
 
   /// The children of the node. The field will be omitted if the node has no
   /// children. Children are sorted by offset.
-  List<Outline>? get children => _children;
-
-  /// The children of the node. The field will be omitted if the node has no
-  /// children. Children are sorted by offset.
-  set children(List<Outline>? value) {
-    _children = value;
-  }
+  List<Outline>? children;
 
   Outline(
-      Element element, int offset, int length, int codeOffset, int codeLength,
-      {List<Outline>? children}) {
-    this.element = element;
-    this.offset = offset;
-    this.length = length;
-    this.codeOffset = codeOffset;
-    this.codeLength = codeLength;
-    this.children = children;
-  }
+      this.element, this.offset, this.length, this.codeOffset, this.codeLength,
+      {this.children});
 
   factory Outline.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4332,55 +3488,20 @@ class Outline implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ParameterInfo implements HasToJson {
-  late ParameterKind _kind;
-
-  late String _name;
-
-  late String _type;
-
-  String? _defaultValue;
-
   /// The kind of the parameter.
-  ParameterKind get kind => _kind;
-
-  /// The kind of the parameter.
-  set kind(ParameterKind value) {
-    _kind = value;
-  }
+  ParameterKind kind;
 
   /// The name of the parameter.
-  String get name => _name;
-
-  /// The name of the parameter.
-  set name(String value) {
-    _name = value;
-  }
+  String name;
 
   /// The type of the parameter.
-  String get type => _type;
-
-  /// The type of the parameter.
-  set type(String value) {
-    _type = value;
-  }
+  String type;
 
   /// The default value for this parameter. This value will be omitted if the
   /// parameter does not have a default value.
-  String? get defaultValue => _defaultValue;
+  String? defaultValue;
 
-  /// The default value for this parameter. This value will be omitted if the
-  /// parameter does not have a default value.
-  set defaultValue(String? value) {
-    _defaultValue = value;
-  }
-
-  ParameterInfo(ParameterKind kind, String name, String type,
-      {String? defaultValue}) {
-    this.kind = kind;
-    this.name = name;
-    this.type = type;
-    this.defaultValue = defaultValue;
-  }
+  ParameterInfo(this.kind, this.name, this.type, {this.defaultValue});
 
   factory ParameterInfo.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4533,30 +3654,13 @@ class ParameterKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Position implements HasToJson {
-  late String _file;
-
-  late int _offset;
-
   /// The file containing the position.
-  String get file => _file;
-
-  /// The file containing the position.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The offset of the position.
-  int get offset => _offset;
+  int offset;
 
-  /// The offset of the position.
-  set offset(int value) {
-    _offset = value;
-  }
-
-  Position(String file, int offset) {
-    this.file = file;
-    this.offset = offset;
-  }
+  Position(this.file, this.offset);
 
   factory Position.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4721,73 +3825,27 @@ class RefactoringKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RefactoringMethodParameter implements HasToJson {
-  String? _id;
-
-  late RefactoringMethodParameterKind _kind;
-
-  late String _type;
-
-  late String _name;
-
-  String? _parameters;
-
   /// The unique identifier of the parameter. Clients may omit this field for
   /// the parameters they want to add.
-  String? get id => _id;
-
-  /// The unique identifier of the parameter. Clients may omit this field for
-  /// the parameters they want to add.
-  set id(String? value) {
-    _id = value;
-  }
+  String? id;
 
   /// The kind of the parameter.
-  RefactoringMethodParameterKind get kind => _kind;
-
-  /// The kind of the parameter.
-  set kind(RefactoringMethodParameterKind value) {
-    _kind = value;
-  }
+  RefactoringMethodParameterKind kind;
 
   /// The type that should be given to the parameter, or the return type of the
   /// parameter's function type.
-  String get type => _type;
-
-  /// The type that should be given to the parameter, or the return type of the
-  /// parameter's function type.
-  set type(String value) {
-    _type = value;
-  }
+  String type;
 
   /// The name that should be given to the parameter.
-  String get name => _name;
-
-  /// The name that should be given to the parameter.
-  set name(String value) {
-    _name = value;
-  }
+  String name;
 
   /// The parameter list of the parameter's function type. If the parameter is
   /// not of a function type, this field will not be defined. If the function
   /// type has zero parameters, this field will have a value of '()'.
-  String? get parameters => _parameters;
+  String? parameters;
 
-  /// The parameter list of the parameter's function type. If the parameter is
-  /// not of a function type, this field will not be defined. If the function
-  /// type has zero parameters, this field will have a value of '()'.
-  set parameters(String? value) {
-    _parameters = value;
-  }
-
-  RefactoringMethodParameter(
-      RefactoringMethodParameterKind kind, String type, String name,
-      {String? id, String? parameters}) {
-    this.id = id;
-    this.kind = kind;
-    this.type = type;
-    this.name = name;
-    this.parameters = parameters;
-  }
+  RefactoringMethodParameter(this.kind, this.type, this.name,
+      {this.id, this.parameters});
 
   factory RefactoringMethodParameter.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4941,46 +3999,18 @@ class RefactoringMethodParameterKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RefactoringProblem implements HasToJson {
-  late RefactoringProblemSeverity _severity;
-
-  late String _message;
-
-  Location? _location;
-
   /// The severity of the problem being represented.
-  RefactoringProblemSeverity get severity => _severity;
-
-  /// The severity of the problem being represented.
-  set severity(RefactoringProblemSeverity value) {
-    _severity = value;
-  }
+  RefactoringProblemSeverity severity;
 
   /// A human-readable description of the problem being represented.
-  String get message => _message;
-
-  /// A human-readable description of the problem being represented.
-  set message(String value) {
-    _message = value;
-  }
+  String message;
 
   /// The location of the problem being represented. This field is omitted
   /// unless there is a specific location associated with the problem (such as
   /// a location where an element being renamed will be shadowed).
-  Location? get location => _location;
+  Location? location;
 
-  /// The location of the problem being represented. This field is omitted
-  /// unless there is a specific location associated with the problem (such as
-  /// a location where an element being renamed will be shadowed).
-  set location(Location? value) {
-    _location = value;
-  }
-
-  RefactoringProblem(RefactoringProblemSeverity severity, String message,
-      {Location? location}) {
-    this.severity = severity;
-    this.message = message;
-    this.location = location;
-  }
+  RefactoringProblem(this.severity, this.message, {this.location});
 
   factory RefactoringProblem.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -5193,79 +4223,30 @@ class RemoveContentOverlay implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SourceChange implements HasToJson {
-  late String _message;
-
-  late List<SourceFileEdit> _edits;
-
-  late List<LinkedEditGroup> _linkedEditGroups;
-
-  Position? _selection;
-
-  String? _id;
-
   /// A human-readable description of the change to be applied.
-  String get message => _message;
-
-  /// A human-readable description of the change to be applied.
-  set message(String value) {
-    _message = value;
-  }
+  String message;
 
   /// A list of the edits used to effect the change, grouped by file.
-  List<SourceFileEdit> get edits => _edits;
-
-  /// A list of the edits used to effect the change, grouped by file.
-  set edits(List<SourceFileEdit> value) {
-    _edits = value;
-  }
+  List<SourceFileEdit> edits;
 
   /// A list of the linked editing groups used to customize the changes that
   /// were made.
-  List<LinkedEditGroup> get linkedEditGroups => _linkedEditGroups;
-
-  /// A list of the linked editing groups used to customize the changes that
-  /// were made.
-  set linkedEditGroups(List<LinkedEditGroup> value) {
-    _linkedEditGroups = value;
-  }
+  List<LinkedEditGroup> linkedEditGroups;
 
   /// The position that should be selected after the edits have been applied.
-  Position? get selection => _selection;
-
-  /// The position that should be selected after the edits have been applied.
-  set selection(Position? value) {
-    _selection = value;
-  }
+  Position? selection;
 
   /// The optional identifier of the change kind. The identifier remains stable
   /// even if the message changes, or is parameterized.
-  String? get id => _id;
+  String? id;
 
-  /// The optional identifier of the change kind. The identifier remains stable
-  /// even if the message changes, or is parameterized.
-  set id(String? value) {
-    _id = value;
-  }
-
-  SourceChange(String message,
+  SourceChange(this.message,
       {List<SourceFileEdit>? edits,
       List<LinkedEditGroup>? linkedEditGroups,
-      Position? selection,
-      String? id}) {
-    this.message = message;
-    if (edits == null) {
-      this.edits = <SourceFileEdit>[];
-    } else {
-      this.edits = edits;
-    }
-    if (linkedEditGroups == null) {
-      this.linkedEditGroups = <LinkedEditGroup>[];
-    } else {
-      this.linkedEditGroups = linkedEditGroups;
-    }
-    this.selection = selection;
-    this.id = id;
-  }
+      this.selection,
+      this.id})
+      : edits = edits ?? <SourceFileEdit>[],
+        linkedEditGroups = linkedEditGroups ?? <LinkedEditGroup>[];
 
   factory SourceChange.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -5399,37 +4380,14 @@ class SourceEdit implements HasToJson {
   static String applySequence(String code, Iterable<SourceEdit> edits) =>
       applySequenceOfEdits(code, edits);
 
-  late int _offset;
-
-  late int _length;
-
-  late String _replacement;
-
-  String? _id;
-
   /// The offset of the region to be modified.
-  int get offset => _offset;
-
-  /// The offset of the region to be modified.
-  set offset(int value) {
-    _offset = value;
-  }
+  int offset;
 
   /// The length of the region to be modified.
-  int get length => _length;
-
-  /// The length of the region to be modified.
-  set length(int value) {
-    _length = value;
-  }
+  int length;
 
   /// The code that is to replace the specified region in the original code.
-  String get replacement => _replacement;
-
-  /// The code that is to replace the specified region in the original code.
-  set replacement(String value) {
-    _replacement = value;
-  }
+  String replacement;
 
   /// An identifier that uniquely identifies this source edit from other edits
   /// in the same response. This field is omitted unless a containing structure
@@ -5439,26 +4397,9 @@ class SourceEdit implements HasToJson {
   /// be appropriate (referred to as potential edits). Such edits will have an
   /// id so that they can be referenced. Edits in the same response that do not
   /// need to be referenced will not have an id.
-  String? get id => _id;
+  String? id;
 
-  /// An identifier that uniquely identifies this source edit from other edits
-  /// in the same response. This field is omitted unless a containing structure
-  /// needs to be able to identify the edit for some reason.
-  ///
-  /// For example, some refactoring operations can produce edits that might not
-  /// be appropriate (referred to as potential edits). Such edits will have an
-  /// id so that they can be referenced. Edits in the same response that do not
-  /// need to be referenced will not have an id.
-  set id(String? value) {
-    _id = value;
-  }
-
-  SourceEdit(int offset, int length, String replacement, {String? id}) {
-    this.offset = offset;
-    this.length = length;
-    this.replacement = replacement;
-    this.id = id;
-  }
+  SourceEdit(this.offset, this.length, this.replacement, {this.id});
 
   factory SourceEdit.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -5547,53 +4488,21 @@ class SourceEdit implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SourceFileEdit implements HasToJson {
-  late String _file;
-
-  late int _fileStamp;
-
-  late List<SourceEdit> _edits;
-
   /// The file containing the code to be modified.
-  String get file => _file;
-
-  /// The file containing the code to be modified.
-  set file(String value) {
-    _file = value;
-  }
+  String file;
 
   /// The modification stamp of the file at the moment when the change was
   /// created, in milliseconds since the "Unix epoch". Will be -1 if the file
   /// did not exist and should be created. The client may use this field to
   /// make sure that the file was not changed since then, so it is safe to
   /// apply the change.
-  int get fileStamp => _fileStamp;
-
-  /// The modification stamp of the file at the moment when the change was
-  /// created, in milliseconds since the "Unix epoch". Will be -1 if the file
-  /// did not exist and should be created. The client may use this field to
-  /// make sure that the file was not changed since then, so it is safe to
-  /// apply the change.
-  set fileStamp(int value) {
-    _fileStamp = value;
-  }
+  int fileStamp;
 
   /// A list of the edits used to effect the change.
-  List<SourceEdit> get edits => _edits;
+  List<SourceEdit> edits;
 
-  /// A list of the edits used to effect the change.
-  set edits(List<SourceEdit> value) {
-    _edits = value;
-  }
-
-  SourceFileEdit(String file, int fileStamp, {List<SourceEdit>? edits}) {
-    this.file = file;
-    this.fileStamp = fileStamp;
-    if (edits == null) {
-      this.edits = <SourceEdit>[];
-    } else {
-      this.edits = edits;
-    }
-  }
+  SourceFileEdit(this.file, this.fileStamp, {List<SourceEdit>? edits})
+      : edits = edits ?? <SourceEdit>[];
 
   factory SourceFileEdit.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {

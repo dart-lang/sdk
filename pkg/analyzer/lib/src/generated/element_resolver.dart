@@ -665,7 +665,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
             receiver: null,
             receiverType: enclosingClass.thisType,
             name: identifier.name,
-            receiverErrorNode: identifier,
+            propertyErrorEntity: identifier,
             nameErrorEntity: identifier,
           );
           setter = result.setter;
@@ -706,7 +706,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           receiver: null,
           receiverType: enclosingType,
           name: identifier.name,
-          receiverErrorNode: identifier,
+          propertyErrorEntity: identifier,
           nameErrorEntity: identifier,
         );
         if (identifier.inSetterContext() ||

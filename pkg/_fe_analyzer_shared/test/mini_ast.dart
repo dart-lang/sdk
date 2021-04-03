@@ -244,8 +244,7 @@ abstract class Expression extends Node implements _Visitable<Type> {
   Expression or(Expression other) => new _Logical(this, other, isAnd: false);
 
   /// If `this` is an expression `x`, creates the L-value `x.name`.
-  LValue property(String name, {String type = 'Object?'}) =>
-      new _Property(this, name, Type(type));
+  LValue property(String name) => new _Property(this, name);
 
   /// If `this` is an expression `x`, creates a pseudo-expression that models
   /// evaluation of `x` followed by execution of [stmt].  This can be used to
@@ -392,6 +391,8 @@ class Harness extends TypeOperations<Var, Type> {
 
   final Map<String, Type> _factorResults = Map.of(_coreFactors);
 
+  final Map<String, Type> _members = {};
+
   Node? _currentSwitch;
 
   Map<String, Map<String, String>> _promotionExceptions = {};
@@ -404,6 +405,13 @@ class Harness extends TypeOperations<Var, Type> {
   void addFactor(String from, String what, String result) {
     var query = '$from - $what';
     _factorResults[query] = Type(result);
+  }
+
+  /// Updates the harness so that when member [memberName] is looked up on type
+  /// [targetType], a member is found having the given [type].
+  void addMember(String targetType, String memberName, String type) {
+    var query = '$targetType.$memberName';
+    _members[query] = Type(type);
   }
 
   void addPromotionException(String from, String to, String result) {
@@ -432,6 +440,13 @@ class Harness extends TypeOperations<Var, Type> {
   Type factor(Type from, Type what) {
     var query = '$from - $what';
     return _factorResults[query] ?? fail('Unknown factor query: $query');
+  }
+
+  /// Attempts to look up a member named [memberName] in the given [type].  If
+  /// a member is found, returns its type.  Otherwise the test fails.
+  Type getMember(Type type, String memberName) {
+    var query = '$type.$memberName';
+    return _members[query] ?? fail('Unknown member query: $query');
   }
 
   @override
@@ -1478,9 +1493,7 @@ class _Property extends LValue {
 
   final String propertyName;
 
-  final Type type;
-
-  _Property(this.target, this.propertyName, this.type) : super._();
+  _Property(this.target, this.propertyName) : super._();
 
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables,
@@ -1491,9 +1504,10 @@ class _Property extends LValue {
   @override
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    target._visit(h, flow);
-    flow.propertyGet(this, target, propertyName, type);
-    return type;
+    var targetType = target._visit(h, flow);
+    var propertyType = h.getMember(targetType, propertyName);
+    flow.propertyGet(this, target, propertyName, propertyType);
+    return propertyType;
   }
 
   @override

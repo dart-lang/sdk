@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -23,18 +21,20 @@ export 'package:analysis_server_client/src/server_base.dart'
 class Server extends ServerBase {
   /// Server process object, or `null` if server hasn't been started yet
   /// or if the server has already been stopped.
-  Process _process;
+  Process? _process;
 
   /// The stderr subscription or `null` if either
   /// [listenToOutput] has not been called or [stop] has been called.
-  StreamSubscription<String> _stderrSubscription;
+  StreamSubscription<String>? _stderrSubscription;
 
   /// The stdout subscription or `null` if either
   /// [listenToOutput] has not been called or [stop] has been called.
-  StreamSubscription<String> _stdoutSubscription;
+  StreamSubscription<String>? _stdoutSubscription;
 
   Server(
-      {ServerListener listener, Process process, bool stdioPassthrough = false})
+      {ServerListener? listener,
+      Process? process,
+      bool stdioPassthrough = false})
       : _process = process,
         super(listener: listener, stdioPassthrough: stdioPassthrough);
 
@@ -42,7 +42,7 @@ class Server extends ServerBase {
   @override
   Future<int> kill({String reason = 'none'}) {
     listener?.killingServerProcess(reason);
-    final process = _process;
+    final process = _process!;
     _process = null;
     process.kill();
     return process.exitCode;
@@ -51,12 +51,12 @@ class Server extends ServerBase {
   /// Start listening to output from the server,
   /// and deliver notifications to [notificationProcessor].
   @override
-  void listenToOutput({NotificationProcessor notificationProcessor}) {
-    _stdoutSubscription = _process.stdout
+  void listenToOutput({NotificationProcessor? notificationProcessor}) {
+    _stdoutSubscription = _process!.stdout
         .transform(utf8.decoder)
         .transform(LineSplitter())
         .listen((line) => outputProcessor(line, notificationProcessor));
-    _stderrSubscription = _process.stderr
+    _stderrSubscription = _process!.stderr
         .transform(utf8.decoder)
         .transform(LineSplitter())
         .listen((line) => errorProcessor(line, notificationProcessor));
@@ -70,9 +70,9 @@ class Server extends ServerBase {
   /// If the server acknowledges the command with an error response,
   /// the future will be completed with an error.
   @override
-  Future<Map<String, dynamic>> send(
-          String method, Map<String, dynamic> params) =>
-      sendCommandWith(method, params, _process.stdin.add);
+  Future<Map<String, Object?>?> send(
+          String method, Map<String, Object?>? params) =>
+      sendCommandWith(method, params, _process!.stdin.add);
 
   /// Start the server.
   ///
@@ -88,14 +88,14 @@ class Server extends ServerBase {
   /// locally for debugging.
   @override
   Future start({
-    String clientId,
-    String clientVersion,
-    int diagnosticPort,
-    String instrumentationLogFile,
+    String? clientId,
+    String? clientVersion,
+    int? diagnosticPort,
+    String? instrumentationLogFile,
     bool profileServer = false,
-    String sdkPath,
-    String serverPath,
-    int servicesPort,
+    String? sdkPath,
+    String? serverPath,
+    int? servicesPort,
     bool suppressAnalytics = true,
     bool useAnalysisHighlight2 = false,
     bool enableAsserts = false,
@@ -154,9 +154,10 @@ class Server extends ServerBase {
         useAnalysisHighlight2: useAnalysisHighlight2));
 
     listener?.startingServer(dartBinary, arguments);
-    _process = await Process.start(dartBinary, arguments);
+    final process = await Process.start(dartBinary, arguments);
+    _process = process;
     // ignore: unawaited_futures
-    _process.exitCode.then((int code) {
+    process.exitCode.then((int code) {
       if (code != 0 && _process != null) {
         // Report an error if server abruptly terminated
         listener?.unexpectedStop(code);
@@ -167,19 +168,21 @@ class Server extends ServerBase {
   /// Attempt to gracefully shutdown the server.
   /// If that fails, then kill the process.
   @override
-  Future<int> stop({Duration timeLimit}) async {
+  Future<int> stop({Duration? timeLimit}) async {
     timeLimit ??= const Duration(seconds: 5);
-    if (_process == null) {
+
+    final process = _process;
+    if (process == null) {
       // Process already exited
       return -1;
     }
+
     final future = send(SERVER_REQUEST_SHUTDOWN, null);
-    final process = _process;
     _process = null;
     await future
         // fall through to wait for exit
         .timeout(timeLimit, onTimeout: () {
-      return null;
+      return {};
     }).whenComplete(() async {
       await _stderrSubscription?.cancel();
       _stderrSubscription = null;

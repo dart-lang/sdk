@@ -1000,7 +1000,7 @@ main() {
 }
 ''', [
       if (typeToStringWithNullability)
-        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 11, 4)
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 16, 3)
       else
         error(CompileTimeErrorCode.UNDEFINED_METHOD, 16, 3),
     ]);
@@ -2486,7 +2486,7 @@ void f(Function? foo) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          26, 3),
+          30, 4),
     ]);
 
     assertMethodInvocation2(
@@ -2538,7 +2538,7 @@ void f(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          46, 1),
+          48, 3),
     ]);
 
     assertMethodInvocation2(
@@ -2565,7 +2565,7 @@ void f(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          84, 1),
+          86, 3),
     ]);
 
     assertMethodInvocation2(
@@ -2633,7 +2633,7 @@ void f(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          29, 1),
+          31, 3),
     ]);
 
     assertMethodInvocation2(
@@ -2658,7 +2658,7 @@ void f(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          67, 1),
+          69, 3),
     ]);
 
     assertMethodInvocation2(

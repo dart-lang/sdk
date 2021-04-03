@@ -165,7 +165,7 @@ class FunctionExpressionInvocationResolver {
       receiver: function,
       receiverType: receiverType,
       name: FunctionElement.CALL_METHOD_NAME,
-      receiverErrorNode: function,
+      propertyErrorEntity: function,
       nameErrorEntity: function,
     );
     var callElement = result.getter;

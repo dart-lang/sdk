@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -56,7 +54,7 @@ class Flutter {
   );
 
   /// Return the argument with the given [index], or `null` if none.
-  Expression argumentByIndex(List<Expression> arguments, int index) {
+  Expression? argumentByIndex(List<Expression> arguments, int index) {
     if (index < arguments.length) {
       return arguments[index];
     }
@@ -64,7 +62,7 @@ class Flutter {
   }
 
   /// Return the named expression with the given [name], or `null` if none.
-  NamedExpression argumentByName(List<Expression> arguments, String name) {
+  NamedExpression? argumentByName(List<Expression> arguments, String name) {
     for (var argument in arguments) {
       if (argument is NamedExpression && argument.name.label.name == name) {
         return argument;
@@ -161,26 +159,40 @@ class Flutter {
 
   /// Return the named expression representing the `child` argument of the given
   /// [newExpr], or `null` if none.
-  NamedExpression findChildArgument(InstanceCreationExpression newExpr) =>
-      newExpr.argumentList.arguments
-          .firstWhere(isChildArgument, orElse: () => null);
+  NamedExpression? findChildArgument(InstanceCreationExpression newExpr) {
+    for (var argument in newExpr.argumentList.arguments) {
+      if (argument is NamedExpression && isChildArgument(argument)) {
+        return argument;
+      }
+    }
+    return null;
+  }
 
   /// Return the named expression representing the `children` argument of the
   /// given [newExpr], or `null` if none.
-  NamedExpression findChildrenArgument(InstanceCreationExpression newExpr) =>
-      newExpr.argumentList.arguments
-          .firstWhere(isChildrenArgument, orElse: () => null);
+  NamedExpression? findChildrenArgument(InstanceCreationExpression newExpr) {
+    for (var argument in newExpr.argumentList.arguments) {
+      if (isChildrenArgument(argument)) {
+        return argument as NamedExpression;
+      }
+    }
+    return null;
+  }
 
   /// Return the Flutter instance creation expression that is the value of the
-  /// 'child' argument of the given [newExpr], or null if none.
-  InstanceCreationExpression findChildWidget(
+  /// 'child' argument of the given [newExpr], or `null` if none.
+  InstanceCreationExpression? findChildWidget(
       InstanceCreationExpression newExpr) {
     var child = findChildArgument(newExpr);
-    return getChildWidget(child);
+    var widget = getChildWidget(child);
+    if (widget is InstanceCreationExpression) {
+      return widget;
+    }
+    return null;
   }
 
   /// Return the named expression with the given [name], or `null` if none.
-  NamedExpression findNamedArgument(
+  NamedExpression? findNamedArgument(
     InstanceCreationExpression creation,
     String name,
   ) {
@@ -191,33 +203,30 @@ class Flutter {
   /// If the given [node] is a simple identifier, find the named expression
   /// whose name is the given [name] that is an argument to a Flutter instance
   /// creation expression. Return null if any condition cannot be satisfied.
-  NamedExpression findNamedExpression(AstNode node, String name) {
+  NamedExpression? findNamedExpression(AstNode node, String name) {
     if (node is! SimpleIdentifier) {
       return null;
     }
-    SimpleIdentifier namedArg = node;
-    NamedExpression namedExp;
-    if (namedArg.parent is Label && namedArg.parent.parent is NamedExpression) {
-      namedExp = namedArg.parent.parent;
-      if (namedArg.name != name || namedExp.expression == null) {
+    var parent = node.parent;
+    var grandParent = parent?.parent;
+    if (parent is Label && grandParent is NamedExpression) {
+      if (node.name != name) {
         return null;
       }
     } else {
       return null;
     }
-    if (namedExp.parent?.parent is! InstanceCreationExpression) {
+    var invocation = grandParent.parent?.parent;
+    if (invocation is! InstanceCreationExpression ||
+        !isWidgetCreation(invocation)) {
       return null;
     }
-    InstanceCreationExpression newExpr = namedExp.parent.parent;
-    if (newExpr == null || !isWidgetCreation(newExpr)) {
-      return null;
-    }
-    return namedExp;
+    return grandParent;
   }
 
   /// Return the expression that is a Flutter Widget that is the value of the
   /// given [child], or null if none.
-  Expression getChildWidget(NamedExpression child) {
+  Expression? getChildWidget(NamedExpression? child) {
     var expression = child?.expression;
     if (isWidgetExpression(expression)) {
       return expression;
@@ -226,7 +235,7 @@ class Flutter {
   }
 
   /// Return the presentation for the given Flutter `Widget` creation [node].
-  String getWidgetPresentationText(InstanceCreationExpression node) {
+  String? getWidgetPresentationText(InstanceCreationExpression node) {
     var element = node.constructorName.staticElement?.enclosingElement;
     if (!isWidget(element)) {
       return null;
@@ -250,21 +259,24 @@ class Flutter {
         return 'Text';
       }
     }
-    return element.name;
+    return element?.name;
   }
 
   /// Return the instance creation expression that surrounds the given
   /// [node], if any, else null. The [node] may be the instance creation
   /// expression itself or the identifier that names the constructor.
-  InstanceCreationExpression identifyNewExpression(AstNode node) {
-    InstanceCreationExpression newExpr;
+  InstanceCreationExpression? identifyNewExpression(AstNode node) {
+    InstanceCreationExpression? newExpr;
     if (node is SimpleIdentifier) {
-      if (node.parent is ConstructorName &&
-          node.parent.parent is InstanceCreationExpression) {
-        newExpr = node.parent.parent;
-      } else if (node.parent?.parent is ConstructorName &&
-          node.parent.parent?.parent is InstanceCreationExpression) {
-        newExpr = node.parent.parent.parent;
+      var parent = node.parent;
+      var grandParent = parent?.parent;
+      var greatGrandParent = grandParent?.parent;
+      if (parent is ConstructorName &&
+          grandParent is InstanceCreationExpression) {
+        newExpr = grandParent;
+      } else if (grandParent is ConstructorName &&
+          greatGrandParent is InstanceCreationExpression) {
+        newExpr = greatGrandParent;
       }
     } else if (node is InstanceCreationExpression) {
       newExpr = node;
@@ -274,7 +286,7 @@ class Flutter {
 
   /// Attempt to find and return the closest expression that encloses the [node]
   /// and is an independent Flutter `Widget`.  Return `null` if nothing found.
-  Expression identifyWidgetExpression(AstNode node) {
+  Expression? identifyWidgetExpression(AstNode? node) {
     for (; node != null; node = node.parent) {
       if (isWidgetExpression(node)) {
         var parent = node.parent;
@@ -284,7 +296,7 @@ class Flutter {
         }
         if (parent is AssignmentExpression) {
           if (parent.rightHandSide == node) {
-            return node;
+            return node as Expression;
           }
           return null;
         }
@@ -299,7 +311,7 @@ class Flutter {
             parent is ListLiteral ||
             parent is NamedExpression && parent.expression == node ||
             parent is Statement) {
-          return node;
+          return node as Expression;
         }
       }
       if (node is ArgumentList || node is Statement || node is FunctionBody) {
@@ -325,12 +337,9 @@ class Flutter {
     }
 
     bool isColorElement(ClassElement element) {
-      if (element == null) {
-        return false;
-      }
-
       bool isExactColor(ClassElement element) =>
-          element?.name == 'Color' && element.library.name == 'dart.ui';
+          element.name == 'Color' && element.library.name == 'dart.ui';
+
       if (isExactColor(element)) {
         return true;
       }
@@ -347,19 +356,16 @@ class Flutter {
 
   /// Return `true` if the given [type] is the flutter mixin `Diagnosticable`
   /// or its subtype.
-  bool isDiagnosticable(DartType type) {
+  bool isDiagnosticable(DartType? type) {
     if (type is! InterfaceType) {
       return false;
     }
 
     bool isDiagnosticableElement(ClassElement element) {
-      if (element == null) {
-        return false;
-      }
-
       bool isExactDiagnosticable(ClassElement element) =>
-          element?.name == 'Diagnosticable' &&
+          element.name == 'Diagnosticable' &&
           element.source.uri == _uriDiagnostics;
+
       if (isExactDiagnosticable(element)) {
         return true;
       }
@@ -397,25 +403,25 @@ class Flutter {
   }
 
   /// Return `true` if the [node] is creation of `Align`.
-  bool isExactlyAlignCreation(InstanceCreationExpression node) {
+  bool isExactlyAlignCreation(InstanceCreationExpression? node) {
     var type = node?.staticType;
     return isExactWidgetTypeAlign(type);
   }
 
   /// Return `true` if the [node] is creation of `Container`.
-  bool isExactlyContainerCreation(InstanceCreationExpression node) {
+  bool isExactlyContainerCreation(InstanceCreationExpression? node) {
     var type = node?.staticType;
     return isExactWidgetTypeContainer(type);
   }
 
   /// Return `true` if the [node] is creation of `Padding`.
-  bool isExactlyPaddingCreation(InstanceCreationExpression node) {
+  bool isExactlyPaddingCreation(InstanceCreationExpression? node) {
     var type = node?.staticType;
     return isExactWidgetTypePadding(type);
   }
 
   /// Return `true` if the given [type] is the Flutter class `StatefulWidget`.
-  bool isExactlyStatefulWidgetType(DartType type) {
+  bool isExactlyStatefulWidgetType(DartType? type) {
     return type is InterfaceType &&
         _isExactWidget(type.element, _nameStatefulWidget, _uriFramework);
   }
@@ -432,7 +438,7 @@ class Flutter {
   }
 
   /// Return `true` if the given [type] is the Flutter class `Align`.
-  bool isExactWidgetTypeAlign(DartType type) {
+  bool isExactWidgetTypeAlign(DartType? type) {
     return type is InterfaceType &&
         _isExactWidget(type.element, _nameAlign, _uriBasic);
   }
@@ -444,13 +450,13 @@ class Flutter {
   }
 
   /// Return `true` if the given [type] is the Flutter class `Container`.
-  bool isExactWidgetTypeContainer(DartType type) {
+  bool isExactWidgetTypeContainer(DartType? type) {
     return type is InterfaceType &&
         _isExactWidget(type.element, _nameContainer, _uriContainer);
   }
 
   /// Return `true` if the given [type] is the Flutter class `Padding`.
-  bool isExactWidgetTypePadding(DartType type) {
+  bool isExactWidgetTypePadding(DartType? type) {
     return type is InterfaceType &&
         _isExactWidget(type.element, _namePadding, _uriBasic);
   }
@@ -483,13 +489,9 @@ class Flutter {
     }
 
     bool isMatrix4Element(ClassElement element) {
-      if (element == null) {
-        return false;
-      }
-
       bool isExactMatrix4(ClassElement element) =>
-          element?.name == 'Matrix4' &&
-          element.library.name == 'vector_math_64';
+          element.name == 'Matrix4' && element.library.name == 'vector_math_64';
+
       if (isExactMatrix4(element)) {
         return true;
       }
@@ -506,7 +508,7 @@ class Flutter {
 
   /// Return `true` if the given [element] has the Flutter class `State` as
   /// a superclass.
-  bool isState(ClassElement element) {
+  bool isState(ClassElement? element) {
     return _hasSupertype(element, _uriFramework, _nameState);
   }
 
@@ -521,7 +523,7 @@ class Flutter {
 
   /// Return `true` if the given [element] is the Flutter class `Widget`, or its
   /// subtype.
-  bool isWidget(ClassElement element) {
+  bool isWidget(ClassElement? element) {
     if (element == null) {
       return false;
     }
@@ -538,14 +540,14 @@ class Flutter {
 
   /// Return `true` if the given [expr] is a constructor invocation for a
   /// class that has the Flutter class `Widget` as a superclass.
-  bool isWidgetCreation(InstanceCreationExpression expr) {
-    var element = expr?.constructorName?.staticElement?.enclosingElement;
+  bool isWidgetCreation(InstanceCreationExpression? expr) {
+    var element = expr?.constructorName.staticElement?.enclosingElement;
     return isWidget(element);
   }
 
   /// Return `true` if the given [node] is the Flutter class `Widget`, or its
   /// subtype.
-  bool isWidgetExpression(AstNode node) {
+  bool isWidgetExpression(AstNode? node) {
     if (node == null) {
       return false;
     }
@@ -566,14 +568,14 @@ class Flutter {
 
   /// Return `true` if the given [type] is the Flutter class `Widget`, or its
   /// subtype.
-  bool isWidgetType(DartType type) {
+  bool isWidgetType(DartType? type) {
     return type is InterfaceType && isWidget(type.element);
   }
 
   /// Return `true` if the given [element] has a supertype with the
   /// [requiredName] defined in the file with the [requiredUri].
   bool _hasSupertype(
-      ClassElement element, Uri requiredUri, String requiredName) {
+      ClassElement? element, Uri requiredUri, String requiredName) {
     if (element == null) {
       return false;
     }
@@ -590,7 +592,7 @@ class Flutter {
 
   /// Return `true` if the given [element] is the exact [type] defined in the
   /// file with the given [uri].
-  bool _isExactWidget(ClassElement element, String type, Uri uri) {
+  bool _isExactWidget(ClassElement? element, String type, Uri uri) {
     return element != null && element.name == type && element.source.uri == uri;
   }
 }

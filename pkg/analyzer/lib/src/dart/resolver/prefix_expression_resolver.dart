@@ -168,7 +168,7 @@ class PrefixExpressionResolver {
         receiver: operand,
         receiverType: readType,
         name: methodName,
-        receiverErrorNode: operand,
+        propertyErrorEntity: node.operator,
         nameErrorEntity: operand,
       );
       node.staticElement = result.getter as MethodElement?;
