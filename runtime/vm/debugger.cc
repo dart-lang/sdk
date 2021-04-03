@@ -460,27 +460,31 @@ static bool IsImplicitFunction(const Function& func) {
 }
 
 bool GroupDebugger::HasCodeBreakpointInFunction(const Function& func) {
-  SafepointReadRwLocker sl(Thread::Current(), code_breakpoints_lock());
-  CodeBreakpoint* cbpt = code_breakpoints_;
-  while (cbpt != NULL) {
-    if (func.ptr() == cbpt->function()) {
-      return true;
+  auto thread = Thread::Current();
+  return RunUnderReadLockIfNeeded(thread, code_breakpoints_lock(), [&]() {
+    CodeBreakpoint* cbpt = code_breakpoints_;
+    while (cbpt != NULL) {
+      if (func.ptr() == cbpt->function()) {
+        return true;
+      }
+      cbpt = cbpt->next_;
     }
-    cbpt = cbpt->next_;
-  }
-  return false;
+    return false;
+  });
 }
 
 bool GroupDebugger::HasBreakpointInCode(const Code& code) {
-  SafepointReadRwLocker sl(Thread::Current(), code_breakpoints_lock());
-  CodeBreakpoint* cbpt = code_breakpoints_;
-  while (cbpt != NULL) {
-    if (code.ptr() == cbpt->code_) {
-      return true;
+  auto thread = Thread::Current();
+  return RunUnderReadLockIfNeeded(thread, code_breakpoints_lock(), [&]() {
+    CodeBreakpoint* cbpt = code_breakpoints_;
+    while (cbpt != NULL) {
+      if (code.ptr() == cbpt->code_) {
+        return true;
+      }
+      cbpt = cbpt->next_;
     }
-    cbpt = cbpt->next_;
-  }
-  return false;
+    return false;
+  });
 }
 
 void Debugger::PrintBreakpointsToJSONArray(JSONArray* jsarr) const {
@@ -3211,7 +3215,12 @@ void GroupDebugger::NotifyCompilation(const Function& function) {
 
   // Going through BreakpointLocations of all isolates and debuggers looking
   // for those that can be resolved and added code breakpoints at now.
-  SafepointReadRwLocker sl(thread, breakpoint_locations_lock());
+  //
+  // The check below is used instead of breakpoint_locations_lock acquisition.
+  // We don't need to acquire the lock if always run with stopped mutators.
+  // We can't acquire the lock if we run with stopped mutators as that could
+  // result in deadlock.
+  RELEASE_ASSERT(thread->IsInStoppedMutatorsScope());
   for (intptr_t i = 0; i < breakpoint_locations_.length(); i++) {
     BreakpointLocation* location = breakpoint_locations_.At(i);
     if (EnsureLocationIsInFunction(zone, function, location)) {
@@ -3700,20 +3709,34 @@ void GroupDebugger::UnregisterSingleSteppingDebugger(Thread* thread,
   single_stepping_set_.Remove(debugger);
 }
 
-bool GroupDebugger::HasBreakpoint(Thread* thread, const Function& function) {
-  {
-    // Check if function has any breakpoints.
-    SafepointReadRwLocker sl(thread, breakpoint_locations_lock());
-    Script& script = Script::Handle(thread->zone());
-    for (intptr_t i = 0; i < breakpoint_locations_.length(); i++) {
-      BreakpointLocation* location = breakpoint_locations_.At(i);
-      script = location->script();
-      if (FunctionOverlaps(function, script, location->token_pos(),
-                           location->end_token_pos())) {
-        return true;
-      }
-    }
+bool GroupDebugger::RunUnderReadLockIfNeededCallable(Thread* thread,
+                                                     SafepointRwLock* rw_lock,
+                                                     BoolCallable* callable) {
+  if (thread->IsInStoppedMutatorsScope()) {
+    return callable->Call();
   }
+
+  SafepointReadRwLocker sl(thread, rw_lock);
+  return callable->Call();
+}
+
+bool GroupDebugger::HasBreakpoint(Thread* thread, const Function& function) {
+  if (RunUnderReadLockIfNeeded(thread, breakpoint_locations_lock(), [&]() {
+        // Check if function has any breakpoints.
+        Script& script = Script::Handle(thread->zone());
+        for (intptr_t i = 0; i < breakpoint_locations_.length(); i++) {
+          BreakpointLocation* location = breakpoint_locations_.At(i);
+          script = location->script();
+          if (FunctionOverlaps(function, script, location->token_pos(),
+                               location->end_token_pos())) {
+            return true;
+          }
+        }
+        return false;
+      })) {
+    return true;
+  }
+
   // TODO(aam): do we have to iterate over both code breakpoints and
   // breakpoint locations? Wouldn't be sufficient to iterate over only
   // one list? Could you have a CodeBreakpoint without corresponding
@@ -3726,11 +3749,10 @@ bool GroupDebugger::HasBreakpoint(Thread* thread, const Function& function) {
 }
 
 bool GroupDebugger::IsDebugging(Thread* thread, const Function& function) {
-  {
-    SafepointReadRwLocker sl(thread, single_stepping_set_lock());
-    if (!single_stepping_set_.IsEmpty()) {
-      return true;
-    }
+  if (!RunUnderReadLockIfNeeded(thread, single_stepping_set_lock(), [&]() {
+        return single_stepping_set_.IsEmpty();
+      })) {
+    return true;
   }
   return HasBreakpoint(thread, function);
 }
@@ -3983,6 +4005,9 @@ ErrorPtr Debugger::PauseBreakpoint() {
   }
 
   if (FLAG_verbose_debug) {
+    // Lock is needed for CodeBreakpoint::ToCString().
+    SafepointReadRwLocker sl(Thread::Current(),
+                             group_debugger()->code_breakpoints_lock());
     OS::PrintErr(">>> hit %" Pd
                  " %s"
                  " (func %s token %s address %#" Px " offset %#" Px ")\n",

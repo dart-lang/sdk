@@ -87,7 +87,7 @@ const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.extensionTypes: false,
   ExperimentalFlag.genericMetadata: false,
   ExperimentalFlag.nonNullable: true,
-  ExperimentalFlag.nonfunctionTypeAliases: false,
+  ExperimentalFlag.nonfunctionTypeAliases: true,
   ExperimentalFlag.setLiterals: true,
   ExperimentalFlag.spreadCollections: true,
   ExperimentalFlag.tripleShift: false,

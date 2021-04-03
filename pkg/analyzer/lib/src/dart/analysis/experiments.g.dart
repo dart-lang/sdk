@@ -152,7 +152,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.nonfunction_type_aliases,
     documentation: 'Type aliases define a <type>, not just a <functionType>',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('2.13.0'),
   );
 
   static final set_literals = ExperimentalFeature(
@@ -231,7 +231,7 @@ class IsEnabledByDefault {
   static const bool non_nullable = true;
 
   /// Default state of the experiment "nonfunction-type-aliases"
-  static const bool nonfunction_type_aliases = false;
+  static const bool nonfunction_type_aliases = true;
 
   /// Default state of the experiment "set-literals"
   static const bool set_literals = true;

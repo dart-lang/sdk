@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for a function type test that cannot be eliminated at compile time.
 
-// This test validates the static errors for typedefs in language versions
-// prior to the release of nonfunction type aliases (Dart 2.13).
-// @dart=2.12
+// This test validates the static errors for typedefs as per the code in
+// function_typedef2_test.dart in language versions after the release of
+// nonfunction type aliases (Dart 2.13).
 
 import "package:expect/expect.dart";
 
@@ -14,21 +14,13 @@ class A {}
 typedef int F();
 
 typedef G = F;
-//        ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] Can't create typedef from non-function type.
+
 typedef H = int;
-//        ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] Can't create typedef from non-function type.
+
 typedef I = A;
-//        ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] Can't create typedef from non-function type.
+
 typedef J = List<int>;
-//        ^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] Can't create typedef from non-function type.
+
 typedef K = Function(Function<A>(A<int>));
 //                               ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS

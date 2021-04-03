@@ -80,8 +80,8 @@ class ABC {}
     await findTopLevelDeclarations('^[A-F]\$');
     assertHasDeclaration(ElementKind.CLASS, 'A');
     assertHasDeclaration(ElementKind.CLASS, 'B');
-    assertHasDeclaration(ElementKind.FUNCTION_TYPE_ALIAS, 'C');
-    assertHasDeclaration(ElementKind.FUNCTION_TYPE_ALIAS, 'D');
+    assertHasDeclaration(ElementKind.TYPE_ALIAS, 'C');
+    assertHasDeclaration(ElementKind.TYPE_ALIAS, 'D');
     assertHasDeclaration(ElementKind.FUNCTION, 'E');
     assertHasDeclaration(ElementKind.TOP_LEVEL_VARIABLE, 'F');
     assertNoDeclaration(ElementKind.CLASS, 'ABC');

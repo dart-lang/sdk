@@ -23,8 +23,7 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisNotificationHighlightsTest extends HighlightsTestSupport
-    with WithNonFunctionTypeAliasesMixin {
+class AnalysisNotificationHighlightsTest extends HighlightsTestSupport {
   Future<void> test_ANNOTATION_hasArguments() async {
     addTestFile('''
 class AAA {

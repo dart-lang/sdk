@@ -557,6 +557,28 @@ class DebuggerSet : public MallocDirectChainedHashMap<DebuggerKeyValueTrait> {
   }
 };
 
+class BoolCallable : public ValueObject {
+ public:
+  BoolCallable() {}
+  virtual ~BoolCallable() {}
+
+  virtual bool Call() = 0;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoolCallable);
+};
+
+template <typename T>
+class LambdaBoolCallable : public BoolCallable {
+ public:
+  explicit LambdaBoolCallable(T& lambda) : lambda_(lambda) {}
+  bool Call() { return lambda_(); }
+
+ private:
+  T& lambda_;
+  DISALLOW_COPY_AND_ASSIGN(LambdaBoolCallable);
+};
+
 class GroupDebugger {
  public:
   explicit GroupDebugger(IsolateGroup* isolate_group);
@@ -597,6 +619,10 @@ class GroupDebugger {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
+  SafepointRwLock* code_breakpoints_lock() {
+    return code_breakpoints_lock_.get();
+  }
+
   SafepointRwLock* breakpoint_locations_lock() {
     return breakpoint_locations_lock_.get();
   }
@@ -607,6 +633,18 @@ class GroupDebugger {
   void RegisterSingleSteppingDebugger(Thread* thread, const Debugger* debugger);
   void UnregisterSingleSteppingDebugger(Thread* thread,
                                         const Debugger* debugger);
+
+  bool RunUnderReadLockIfNeededCallable(Thread* thread,
+                                        SafepointRwLock* rw_lock,
+                                        BoolCallable* callable);
+
+  template <typename T>
+  bool RunUnderReadLockIfNeeded(Thread* thread,
+                                SafepointRwLock* rw_lock,
+                                T function) {
+    LambdaBoolCallable<T> callable(function);
+    return RunUnderReadLockIfNeededCallable(thread, rw_lock, &callable);
+  }
 
   // Returns [true] if there is at least one breakpoint set in function or code.
   // Checks for both user-defined and internal temporary breakpoints.
@@ -628,9 +666,6 @@ class GroupDebugger {
   std::unique_ptr<SafepointRwLock> single_stepping_set_lock_;
   DebuggerSet single_stepping_set_;
 
-  SafepointRwLock* code_breakpoints_lock() {
-    return code_breakpoints_lock_.get();
-  }
   void RemoveUnlinkedCodeBreakpoints();
   void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
 
