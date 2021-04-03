@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -22,10 +20,12 @@ void main() {
 @reflectiveTest
 class LinterRuleOptionsValidatorTest {
   final LinterRuleOptionsValidator validator = LinterRuleOptionsValidator();
+
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
-  RecordingErrorListener recorder;
-  ErrorReporter reporter;
+  late RecordingErrorListener recorder;
+
+  late ErrorReporter reporter;
 
   List<AnalysisError> get errors => recorder.errors;
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -19,10 +17,10 @@ class CiderServiceTest with ResourceProviderMixin {
   final ByteStore byteStore = MemoryByteStore();
 
   final StringBuffer logBuffer = StringBuffer();
-  PerformanceLog logger;
-  MockSdk sdk;
+  late PerformanceLog logger;
+  late MockSdk sdk;
 
-  FileResolver fileResolver;
+  late FileResolver fileResolver;
 
   String testPath = '/workspace/dart/test/lib/test.dart';
 
@@ -33,7 +31,7 @@ class CiderServiceTest with ResourceProviderMixin {
     var workspace = BazelWorkspace.find(
       resourceProvider,
       convertPath(testPath),
-    );
+    )!;
 
     fileResolver = FileResolver(
       logger,

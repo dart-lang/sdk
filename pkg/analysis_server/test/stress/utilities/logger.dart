@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// A utility class used to write logging information during a test.
 class Logger {
   /// The width of the field in which labels are printed.
@@ -23,7 +21,7 @@ class Logger {
   /// The [label] is used to indicate the kind of information being logged,
   /// while the [content] contains the actual information. If a list of
   /// [arguments] is provided, then they will be written after the content.
-  void log(String label, String content, {List<String> arguments}) {
+  void log(String label, String content, {List<String>? arguments}) {
     for (var i = _labelWidth - label.length; i > 0; i--) {
       sink.write(' ');
     }

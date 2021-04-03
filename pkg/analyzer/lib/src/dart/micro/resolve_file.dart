@@ -94,7 +94,7 @@ class FileResolver {
     @deprecated ByteStore byteStore,
     SourceFactory sourceFactory,
     String Function(String path) getFileDigest,
-    void Function(List<String> paths) prefetchFiles, {
+    void Function(List<String> paths)? prefetchFiles, {
     required Workspace workspace,
     @deprecated Duration? libraryContextResetTimeout,
   }) : this.from(
