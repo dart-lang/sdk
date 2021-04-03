@@ -300,16 +300,16 @@ class AssignedVariablesNodeInfo<Variable extends Object> {
 /// Non-promotion reason describing the situation where a variable was not
 /// promoted due to an explicit write to the variable appearing somewhere in the
 /// source code.
-class DemoteViaExplicitWrite<Variable extends Object, Expression extends Object>
+class DemoteViaExplicitWrite<Variable extends Object>
     extends NonPromotionReason {
   /// The local variable that was not promoted.
   final Variable variable;
 
-  /// The expression that wrote to the variable; this corresponds to an
-  /// expression that was passed to [FlowAnalysis.write].
-  final Expression writeExpression;
+  /// The node that wrote to the variable; this corresponds to a node that was
+  /// passed to [FlowAnalysis.write].
+  final Object node;
 
-  DemoteViaExplicitWrite(this.variable, this.writeExpression);
+  DemoteViaExplicitWrite(this.variable, this.node);
 
   @override
   String get documentationLink => 'http://dart.dev/go/non-promo-write';
@@ -318,46 +318,14 @@ class DemoteViaExplicitWrite<Variable extends Object, Expression extends Object>
   String get shortName => 'explicitWrite';
 
   @override
-  R accept<R, Node extends Object, Expression extends Object,
-              Variable extends Object, Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
-              visitor) =>
+  R accept<R, Node extends Object, Variable extends Object,
+              Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
       visitor.visitDemoteViaExplicitWrite(
-          this as DemoteViaExplicitWrite<Variable, Expression>);
+          this as DemoteViaExplicitWrite<Variable>);
 
   @override
-  String toString() => 'DemoteViaExplicitWrite($writeExpression)';
-}
-
-/// Non-promotion reason describing the situation where a variable was not
-/// promoted due to the variable appearing before the word `in` in a "for each"
-/// statement or a "for each" collection element.
-class DemoteViaForEachVariableWrite<Variable extends Object,
-    Node extends Object> extends NonPromotionReason {
-  /// The local variable that was not promoted.
-  final Variable variable;
-
-  /// The "for each" statement or collection element that wrote to the variable.
-  final Node node;
-
-  DemoteViaForEachVariableWrite(this.variable, this.node);
-
-  @override
-  String get documentationLink => 'http://dart.dev/go/non-promo-write';
-
-  @override
-  String get shortName => 'explicitWrite';
-
-  @override
-  R accept<R, Node extends Object, Expression extends Object,
-              Variable extends Object, Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
-              visitor) =>
-      visitor.visitDemoteViaForEachVariableWrite(
-          this as DemoteViaForEachVariableWrite<Variable, Node>);
-
-  @override
-  String toString() => 'DemoteViaForEachVariableWrite($node)';
+  String toString() => 'DemoteViaExplicitWrite($node)';
 }
 
 /// A collection of flow models representing the possible outcomes of evaluating
@@ -565,11 +533,8 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// - Call [forEach_end].
   ///
   /// [node] should be the same node that was passed to
-  /// [AssignedVariables.endNode] for the for statement.  [loopVariable] should
-  /// be the variable assigned to by the loop (if it is promotable, otherwise
-  /// null).  [writtenType] should be the type written to that variable (i.e.
-  /// if the loop iterates over `List<Foo>`, it should be `Foo`).
-  void forEach_bodyBegin(Node node, Variable? loopVariable, Type writtenType);
+  /// [AssignedVariables.endNode] for the for statement.
+  void forEach_bodyBegin(Node node);
 
   /// Call this method just before visiting the body of a "for-in" statement or
   /// collection element.  See [forEach_bodyBegin] for details.
@@ -982,7 +947,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Register write of the given [variable] in the current state.
   /// [writtenType] should be the type of the value that was written.
-  /// [expression] should be the whole expression performing the write.
+  /// [node] should be the syntactic construct performing the write.
   /// [writtenExpression] should be the expression that was written, or `null`
   /// if the expression that was written is not directly represented in the
   /// source code (this happens, for example, with compound assignments and with
@@ -991,7 +956,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// This should also be used for the implicit write to a non-final variable in
   /// its initializer, to ensure that the type is promoted to non-nullable if
   /// necessary; in this case, [viaInitializer] should be `true`.
-  void write(Expression expression, Variable variable, Type writtenType,
+  void write(Node node, Variable variable, Type writtenType,
       Expression? writtenExpression);
 
   /// Prints out a summary of the current state of flow analysis, intended for
@@ -1162,9 +1127,9 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void forEach_bodyBegin(Node node, Variable? loopVariable, Type writtenType) {
-    return _wrap('forEach_bodyBegin($node, $loopVariable, $writtenType)',
-        () => _wrapped.forEach_bodyBegin(node, loopVariable, writtenType));
+  void forEach_bodyBegin(Node node) {
+    return _wrap(
+        'forEach_bodyBegin($node)', () => _wrapped.forEach_bodyBegin(node));
   }
 
   @override
@@ -1513,12 +1478,10 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void write(Expression expression, Variable variable, Type writtenType,
+  void write(Node node, Variable variable, Type writtenType,
       Expression? writtenExpression) {
-    _wrap(
-        'write($expression, $variable, $writtenType, $writtenExpression)',
-        () => _wrapped.write(
-            expression, variable, writtenType, writtenExpression));
+    _wrap('write($node, $variable, $writtenType, $writtenExpression)',
+        () => _wrapped.write(node, variable, writtenType, writtenExpression));
   }
 
   @override
@@ -2348,21 +2311,17 @@ abstract class NonPromotionReason {
   String get shortName;
 
   /// Implementation of the visitor pattern for non-promotion reasons.
-  R accept<R, Node extends Object, Expression extends Object,
-          Variable extends Object, Type extends Object>(
-      NonPromotionReasonVisitor<R, Node, Expression, Variable, Type> visitor);
+  R accept<R, Node extends Object, Variable extends Object,
+          Type extends Object>(
+      NonPromotionReasonVisitor<R, Node, Variable, Type> visitor);
 }
 
 /// Implementation of the visitor pattern for non-promotion reasons.
 abstract class NonPromotionReasonVisitor<R, Node extends Object,
-    Expression extends Object, Variable extends Object, Type extends Object> {
+    Variable extends Object, Type extends Object> {
   NonPromotionReasonVisitor._() : assert(false, 'Do not extend this class');
 
-  R visitDemoteViaExplicitWrite(
-      DemoteViaExplicitWrite<Variable, Expression> reason);
-
-  R visitDemoteViaForEachVariableWrite(
-      DemoteViaForEachVariableWrite<Variable, Node> reason);
+  R visitDemoteViaExplicitWrite(DemoteViaExplicitWrite<Variable> reason);
 
   R visitPropertyNotPromoted(PropertyNotPromoted<Type> reason);
 
@@ -2389,10 +2348,9 @@ class PropertyNotPromoted<Type extends Object> extends NonPromotionReason {
   String get shortName => 'propertyNotPromoted';
 
   @override
-  R accept<R, Node extends Object, Expression extends Object,
-              Variable extends Object, Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
-              visitor) =>
+  R accept<R, Node extends Object, Variable extends Object,
+              Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
       visitor.visitPropertyNotPromoted(this as PropertyNotPromoted<Type>);
 }
 
@@ -2627,10 +2585,9 @@ class ThisNotPromoted extends NonPromotionReason {
   String get shortName => 'thisNotPromoted';
 
   @override
-  R accept<R, Node extends Object, Expression extends Object,
-              Variable extends Object, Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
-              visitor) =>
+  R accept<R, Node extends Object, Variable extends Object,
+              Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
       visitor.visitThisNotPromoted(this);
 }
 
@@ -3680,7 +3637,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void forEach_bodyBegin(Node node, Variable? loopVariable, Type writtenType) {
+  void forEach_bodyBegin(Node node) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
     _current = _current.conservativeJoin(info._written, info._captured).split();
@@ -3688,14 +3645,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         new _SimpleStatementContext<Variable, Type>(
             _current.reachable.parent!, _current);
     _stack.add(context);
-    if (loopVariable != null) {
-      _current = _current.write(
-          new DemoteViaForEachVariableWrite<Variable, Node>(loopVariable, node),
-          loopVariable,
-          writtenType,
-          new SsaNode<Variable, Type>(null),
-          typeOperations);
-    }
   }
 
   @override
@@ -4220,7 +4169,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void write(Expression expression, Variable variable, Type writtenType,
+  void write(Node node, Variable variable, Type writtenType,
       Expression? writtenExpression) {
     ExpressionInfo<Variable, Type>? expressionInfo = writtenExpression == null
         ? null
@@ -4228,7 +4177,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     SsaNode<Variable, Type> newSsaNode = new SsaNode<Variable, Type>(
         expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
     _current = _current.write(
-        new DemoteViaExplicitWrite<Variable, Expression>(variable, expression),
+        new DemoteViaExplicitWrite<Variable>(variable, node),
         variable,
         writtenType,
         newSsaNode,
@@ -4509,8 +4458,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void for_updaterBegin() {}
 
   @override
-  void forEach_bodyBegin(
-      Node node, Variable? loopVariable, Type? writtenType) {}
+  void forEach_bodyBegin(Node node) {}
 
   @override
   void forEach_end() {}
@@ -4815,7 +4763,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
-  void write(Expression expression, Variable variable, Type writtenType,
+  void write(Node node, Variable variable, Type writtenType,
       Expression? writtenExpression) {
     assert(
         _assignedVariables._anywhere._written.contains(variable),

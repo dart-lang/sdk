@@ -3443,7 +3443,7 @@ class _SwitchExhaustiveness {
 
 class _WhyNotPromotedVisitor
     implements
-        NonPromotionReasonVisitor<DiagnosticMessage?, AstNode, Expression,
+        NonPromotionReasonVisitor<DiagnosticMessage?, AstNode,
             PromotableElement, DartType> {
   final Source source;
 
@@ -3464,43 +3464,17 @@ class _WhyNotPromotedVisitor
 
   @override
   DiagnosticMessage? visitDemoteViaExplicitWrite(
-      DemoteViaExplicitWrite<PromotableElement, Expression> reason) {
-    var writeExpression = reason.writeExpression;
+      DemoteViaExplicitWrite<PromotableElement> reason) {
+    var node = reason.node as AstNode;
+    if (node is ForEachPartsWithIdentifier) {
+      node = node.identifier;
+    }
     if (_dataForTesting != null) {
-      _dataForTesting!.nonPromotionReasonTargets[writeExpression] =
-          reason.shortName;
+      _dataForTesting!.nonPromotionReasonTargets[node] = reason.shortName;
     }
     var variableName = reason.variable.name;
     if (variableName == null) return null;
-    return _contextMessageForWrite(variableName, writeExpression, reason);
-  }
-
-  @override
-  DiagnosticMessage? visitDemoteViaForEachVariableWrite(
-      DemoteViaForEachVariableWrite<PromotableElement, AstNode> reason) {
-    var node = reason.node;
-    var variableName = reason.variable.name;
-    if (variableName == null) return null;
-    ForLoopParts parts;
-    if (node is ForStatement) {
-      parts = node.forLoopParts;
-    } else if (node is ForElement) {
-      parts = node.forLoopParts;
-    } else {
-      assert(false, 'Unexpected node type');
-      return null;
-    }
-    if (parts is ForEachPartsWithIdentifier) {
-      var identifier = parts.identifier;
-      if (_dataForTesting != null) {
-        _dataForTesting!.nonPromotionReasonTargets[identifier] =
-            reason.shortName;
-      }
-      return _contextMessageForWrite(variableName, identifier, reason);
-    } else {
-      assert(false, 'Unexpected parts type');
-      return null;
-    }
+    return _contextMessageForWrite(variableName, node, reason);
   }
 
   @override
@@ -3551,13 +3525,13 @@ class _WhyNotPromotedVisitor
         length: property.nameLength);
   }
 
-  DiagnosticMessageImpl _contextMessageForWrite(String variableName,
-      Expression writeExpression, NonPromotionReason reason) {
+  DiagnosticMessageImpl _contextMessageForWrite(
+      String variableName, AstNode node, NonPromotionReason reason) {
     return DiagnosticMessageImpl(
         filePath: source.fullName,
         message: "Variable '$variableName' could not be promoted due to an "
             "assignment.  See ${reason.documentationLink}",
-        offset: writeExpression.offset,
-        length: writeExpression.length);
+        offset: node.offset,
+        length: node.length);
   }
 }

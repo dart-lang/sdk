@@ -132,13 +132,12 @@ class ForResolver {
           ?.declare(loopVariable.declaredElement!, true);
     }
 
-    _resolver.flowAnalysis?.flow?.forEach_bodyBegin(
-      node,
-      identifierElement is PromotableElement
-          ? identifierElement
-          : loopVariable?.declaredElement,
-      elementType ?? DynamicTypeImpl.instance,
-    );
+    _resolver.flowAnalysis?.flow?.forEach_bodyBegin(node);
+    if (identifierElement is PromotableElement &&
+        forEachParts is ForEachPartsWithIdentifier) {
+      _resolver.flowAnalysis?.flow?.write(forEachParts, identifierElement,
+          elementType ?? DynamicTypeImpl.instance, null);
+    }
 
     _resolveBody(body);
 

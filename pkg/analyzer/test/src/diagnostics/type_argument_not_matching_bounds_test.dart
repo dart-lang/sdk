@@ -471,6 +471,45 @@ void f(CB<F2> a) {}
 ''');
   }
 
+  test_metadata_matching() async {
+    await assertNoErrorsInCode(r'''
+class A<T extends num> {
+  const A();
+}
+
+@A<int>()
+void f() {}
+''');
+  }
+
+  test_metadata_notMatching() async {
+    await assertErrorsInCode(r'''
+class A<T extends num> {
+  const A();
+}
+
+@A<String>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 44, 6),
+    ]);
+  }
+
+  test_metadata_notMatching_viaTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A<T> {
+  const A();
+}
+
+typedef B<T extends num> = A<T>;
+
+@B<String>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 66, 6),
+    ]);
+  }
+
   test_methodInvocation_genericFunctionTypeArgument_match() async {
     await assertNoErrorsInCode(r'''
 typedef F = void Function<T extends num>();

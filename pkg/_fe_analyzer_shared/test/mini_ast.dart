@@ -37,7 +37,7 @@ Statement break_(BranchTargetPlaceholder branchTargetPlaceholder) =>
     new _Break(branchTargetPlaceholder);
 
 SwitchCase case_(List<Statement> body, {bool hasLabel = false}) =>
-    SwitchCase._(hasLabel, body);
+    SwitchCase._(hasLabel, new _Block(body));
 
 /// Creates a pseudo-statement whose function is to verify that flow analysis
 /// considers [variable]'s assigned state to be [expectedAssignedState].
@@ -79,7 +79,7 @@ Statement declareInitialized(Var variable, Expression initializer,
     new _Declare(variable, initializer, isFinal, isLate);
 
 Statement do_(List<Statement> body, Expression condition) =>
-    _Do(body, condition);
+    _Do(block(body), condition);
 
 /// Creates a pseudo-expression having type [typeStr] that otherwise has no
 /// effect on flow analysis.
@@ -92,7 +92,7 @@ Expression expr(String typeStr) =>
 Statement for_(Statement? initializer, Expression? condition,
         Expression? updater, List<Statement> body,
         {bool forCollection = false}) =>
-    new _For(initializer, condition, updater, body, forCollection);
+    new _For(initializer, condition, updater, block(body), forCollection);
 
 /// Creates a "for each" statement where the identifier being assigned to by the
 /// iteration is not a local variable.
@@ -103,7 +103,7 @@ Statement for_(Statement? initializer, Expression? condition,
 ///       for (x in iterable) { ... }
 ///     }
 Statement forEachWithNonVariable(Expression iterable, List<Statement> body) =>
-    new _ForEach(null, iterable, body, false);
+    new _ForEach(null, iterable, block(body), false);
 
 /// Creates a "for each" statement where the identifier being assigned to by the
 /// iteration is a variable that is being declared by the "for each" statement.
@@ -116,7 +116,7 @@ Statement forEachWithVariableDecl(
     Var variable, Expression iterable, List<Statement> body) {
   // ignore: unnecessary_null_comparison
   assert(variable != null);
-  return new _ForEach(variable, iterable, body, true);
+  return new _ForEach(variable, iterable, block(body), true);
 }
 
 /// Creates a "for each" statement where the identifier being assigned to by the
@@ -131,7 +131,7 @@ Statement forEachWithVariableSet(
     Var variable, Expression iterable, List<Statement> body) {
   // ignore: unnecessary_null_comparison
   assert(variable != null);
-  return new _ForEach(variable, iterable, body, false);
+  return new _ForEach(variable, iterable, block(body), false);
 }
 
 /// Creates a [Statement] that, when analyzed, will cause [callback] to be
@@ -142,7 +142,7 @@ Statement getSsaNodes(void Function(SsaNodeHarness) callback) =>
 
 Statement if_(Expression condition, List<Statement> ifTrue,
         [List<Statement>? ifFalse]) =>
-    new _If(condition, ifTrue, ifFalse);
+    new _If(condition, block(ifTrue), ifFalse == null ? null : block(ifFalse));
 
 Statement implicitThis_whyNotPromoted(String staticType,
         void Function(Map<Type, NonPromotionReason>) callback) =>
@@ -150,7 +150,7 @@ Statement implicitThis_whyNotPromoted(String staticType,
 
 Statement labeled(Statement body) => new _LabeledStatement(body);
 
-Statement localFunction(List<Statement> body) => _LocalFunction(body);
+Statement localFunction(List<Statement> body) => _LocalFunction(block(body));
 
 Statement return_() => new _Return();
 
@@ -163,10 +163,11 @@ Expression thisOrSuperPropertyGet(String name, {String type = 'Object?'}) =>
 
 Expression throw_(Expression operand) => new _Throw(operand);
 
-TryBuilder try_(List<Statement> body) => new _TryStatement(body, [], null);
+TryBuilder try_(List<Statement> body) =>
+    new _TryStatement(block(body), [], null);
 
 Statement while_(Expression condition, List<Statement> body) =>
-    new _While(condition, body);
+    new _While(condition, block(body));
 
 /// Placeholder used by [branchTarget] to tie `break` and `continue` statements
 /// to their branch targets.
@@ -481,13 +482,14 @@ class Harness extends TypeOperations<Var, Type> {
   /// they contain.
   void run(List<Statement> statements) {
     var assignedVariables = AssignedVariables<Node, Var>();
-    statements._preVisit(assignedVariables);
+    var b = block(statements);
+    b._preVisit(assignedVariables);
     var flow = legacy
         ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
             this, assignedVariables)
         : FlowAnalysis<Node, Statement, Expression, Var, Type>(
             this, assignedVariables);
-    statements._visit(this, flow);
+    b._visit(this, flow);
     flow.finish();
   }
 
@@ -601,12 +603,15 @@ abstract class Statement extends Node implements _Visitable<void> {
 /// to create instances of this class.
 class SwitchCase implements _Visitable<void> {
   final bool _hasLabel;
-  final List<Statement> _body;
+  final _Block _body;
 
   SwitchCase._(this._hasLabel, this._body);
 
-  String toString() =>
-      [if (_hasLabel) '<label>:', 'case <value>:', ..._body].join(' ');
+  String toString() => [
+        if (_hasLabel) '<label>:',
+        'case <value>:',
+        ..._body.statements
+      ].join(' ');
 
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
     _body._preVisit(assignedVariables);
@@ -713,13 +718,17 @@ class _Block extends Statement {
 
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    statements._preVisit(assignedVariables);
+    for (var statement in statements) {
+      statement._preVisit(assignedVariables);
+    }
   }
 
   @override
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    statements._visit(h, flow);
+    for (var statement in statements) {
+      statement._visit(h, flow);
+    }
   }
 }
 
@@ -765,7 +774,7 @@ class _Break extends Statement {
 /// Representation of a single catch clause in a try/catch statement.  Use
 /// [catch_] to create instances of this class.
 class _CatchClause implements _Visitable<void> {
-  final List<Statement> _body;
+  final Statement _body;
   final Var? _exception;
   final Var? _stackTrace;
 
@@ -780,7 +789,7 @@ class _CatchClause implements _Visitable<void> {
     } else {
       initialPart = 'on ...';
     }
-    return '$initialPart ${block(_body)}';
+    return '$initialPart $_body';
   }
 
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
@@ -973,13 +982,13 @@ class _Declare extends Statement {
 }
 
 class _Do extends Statement {
-  final List<Statement> body;
+  final Statement body;
   final Expression condition;
 
   _Do(this.body, this.condition) : super._();
 
   @override
-  String toString() => 'do ${block(body)} while ($condition);';
+  String toString() => 'do $body while ($condition);';
 
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
@@ -1051,7 +1060,7 @@ class _For extends Statement {
   final Statement? initializer;
   final Expression? condition;
   final Expression? updater;
-  final List<Statement> body;
+  final Statement body;
   final bool forCollection;
 
   _For(this.initializer, this.condition, this.updater, this.body,
@@ -1074,7 +1083,7 @@ class _For extends Statement {
     if (updater != null) {
       buffer.write(' $updater');
     }
-    buffer.write(') ${block(body)}');
+    buffer.write(') $body');
     return buffer.toString();
   }
 
@@ -1105,7 +1114,7 @@ class _For extends Statement {
 class _ForEach extends Statement {
   final Var? variable;
   final Expression iterable;
-  final List<Statement> body;
+  final Statement body;
   final bool declaresVariable;
 
   _ForEach(this.variable, this.iterable, this.body, this.declaresVariable)
@@ -1121,7 +1130,7 @@ class _ForEach extends Statement {
     } else {
       declarationPart = variable!.name;
     }
-    return 'for ($declarationPart in $iterable) ${block(body)}';
+    return 'for ($declarationPart in $iterable) $body';
   }
 
   @override
@@ -1143,7 +1152,11 @@ class _ForEach extends Statement {
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     var iteratedType = h._getIteratedType(iterable._visit(h, flow));
-    flow.forEach_bodyBegin(this, variable, iteratedType);
+    flow.forEach_bodyBegin(this);
+    var variable = this.variable;
+    if (variable != null && !declaresVariable) {
+      flow.write(this, variable, iteratedType, null);
+    }
     body._visit(h, flow);
     flow.forEach_end();
   }
@@ -1188,15 +1201,14 @@ class _GetSsaNodes extends Statement {
 
 class _If extends Statement {
   final Expression condition;
-  final List<Statement> ifTrue;
-  final List<Statement>? ifFalse;
+  final Statement ifTrue;
+  final Statement? ifFalse;
 
   _If(this.condition, this.ifTrue, this.ifFalse) : super._();
 
   @override
   String toString() =>
-      'if ($condition) ${block(ifTrue)}' +
-      (ifFalse == null ? '' : 'else ${block(ifFalse!)}');
+      'if ($condition) $ifTrue' + (ifFalse == null ? '' : 'else $ifFalse');
 
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
@@ -1295,12 +1307,12 @@ class _LabeledStatement extends Statement {
 }
 
 class _LocalFunction extends Statement {
-  final List<Statement> body;
+  final Statement body;
 
   _LocalFunction(this.body) : super._();
 
   @override
-  String toString() => '() ${block(body)}';
+  String toString() => '() $body';
 
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
@@ -1557,7 +1569,9 @@ class _Switch extends Statement {
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
     expression._preVisit(assignedVariables);
     assignedVariables.beginNode();
-    cases._preVisit(assignedVariables);
+    for (var case_ in cases) {
+      case_._preVisit(assignedVariables);
+    }
     assignedVariables.endNode(this);
   }
 
@@ -1568,7 +1582,9 @@ class _Switch extends Statement {
     flow.switchStatement_expressionEnd(this);
     var oldSwitch = h._currentSwitch;
     h._currentSwitch = this;
-    cases._visit(h, flow);
+    for (var case_ in cases) {
+      case_._visit(h, flow);
+    }
     h._currentSwitch = oldSwitch;
     flow.switchStatement_end(isExhaustive);
   }
@@ -1631,9 +1647,9 @@ class _Throw extends Expression {
 }
 
 class _TryStatement extends TryStatement {
-  final List<Statement> _body;
+  final Statement _body;
   final List<_CatchClause> _catches;
-  final List<Statement>? _finally;
+  final Statement? _finally;
   final _bodyNode = Node._();
 
   _TryStatement(this._body, this._catches, this._finally) : super._();
@@ -1642,14 +1658,14 @@ class _TryStatement extends TryStatement {
   TryStatement catch_(
       {Var? exception, Var? stackTrace, required List<Statement> body}) {
     assert(_finally == null, 'catch after finally');
-    return _TryStatement(
-        _body, [..._catches, _CatchClause(body, exception, stackTrace)], null);
+    return _TryStatement(_body,
+        [..._catches, _CatchClause(block(body), exception, stackTrace)], null);
   }
 
   @override
   Statement finally_(List<Statement> statements) {
     assert(_finally == null, 'multiple finally clauses');
-    return _TryStatement(_body, _catches, statements);
+    return _TryStatement(_body, _catches, block(statements));
   }
 
   @override
@@ -1662,7 +1678,9 @@ class _TryStatement extends TryStatement {
     }
     _body._preVisit(assignedVariables);
     assignedVariables.endNode(_bodyNode);
-    _catches._preVisit(assignedVariables);
+    for (var catch_ in _catches) {
+      catch_._preVisit(assignedVariables);
+    }
     if (_finally != null) {
       if (_catches.isNotEmpty) {
         assignedVariables.endNode(this);
@@ -1683,7 +1701,9 @@ class _TryStatement extends TryStatement {
     _body._visit(h, flow);
     if (_catches.isNotEmpty) {
       flow.tryCatchStatement_bodyEnd(_bodyNode);
-      _catches._visit(h, flow);
+      for (var catch_ in _catches) {
+        catch_._visit(h, flow);
+      }
       flow.tryCatchStatement_end();
     }
     if (_finally != null) {
@@ -1740,12 +1760,12 @@ abstract class _Visitable<T> {
 
 class _While extends Statement {
   final Expression condition;
-  final List<Statement> body;
+  final Statement body;
 
   _While(this.condition, this.body) : super._();
 
   @override
-  String toString() => 'while ($condition) ${block(body)}';
+  String toString() => 'while ($condition) $body';
 
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
@@ -1886,20 +1906,5 @@ class _Write extends Expression {
     }
     lhs._visitWrite(flow, this, type, rhs);
     return type;
-  }
-}
-
-extension on List<_Visitable<void>> {
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    for (var element in this) {
-      element._preVisit(assignedVariables);
-    }
-  }
-
-  void _visit(
-      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    for (var element in this) {
-      element._visit(h, flow);
-    }
   }
 }

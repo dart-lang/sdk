@@ -5500,8 +5500,8 @@ main() {
         x.expr.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int')]));
           var nonPromotionReason =
-              reasons.values.single as DemoteViaExplicitWrite<Var, Expression>;
-          expect(nonPromotionReason.writeExpression, same(writeExpression));
+              reasons.values.single as DemoteViaExplicitWrite<Var>;
+          expect(nonPromotionReason.node, same(writeExpression));
         }).stmt,
       ]);
     });
@@ -5523,13 +5523,9 @@ main() {
         checkNotPromoted(x),
         x.expr.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int'), Type('int?')]));
-          expect(
-              (reasons[Type('int')] as DemoteViaExplicitWrite<Var, Expression>)
-                  .writeExpression,
+          expect((reasons[Type('int')] as DemoteViaExplicitWrite<Var>).node,
               same(writeExpression));
-          expect(
-              (reasons[Type('int?')] as DemoteViaExplicitWrite<Var, Expression>)
-                  .writeExpression,
+          expect((reasons[Type('int?')] as DemoteViaExplicitWrite<Var>).node,
               same(writeExpression));
         }).stmt,
       ]);
@@ -5553,8 +5549,8 @@ main() {
         x.expr.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int')]));
           var nonPromotionReason =
-              reasons.values.single as DemoteViaExplicitWrite<Var, Expression>;
-          expect(nonPromotionReason.writeExpression, same(writeExpression));
+              reasons.values.single as DemoteViaExplicitWrite<Var>;
+          expect(nonPromotionReason.node, same(writeExpression));
         }).stmt,
       ]);
     });
@@ -5577,8 +5573,8 @@ main() {
         checkPromoted(x, 'num'),
         x.expr.whyNotPromoted((reasons) {
           var nonPromotionReason =
-              reasons[Type('int')] as DemoteViaExplicitWrite;
-          expect(nonPromotionReason.writeExpression, same(writeExpression));
+              reasons[Type('int')] as DemoteViaExplicitWrite<Var>;
+          expect(nonPromotionReason.node, same(writeExpression));
         }).stmt,
       ]);
     });
@@ -5759,10 +5755,9 @@ class _MockNonPromotionReason extends NonPromotionReason {
 
   String get shortName => fail('Unexpected call to shortName');
 
-  R accept<R, Node extends Object, Expression extends Object,
-              Variable extends Object, Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
-              visitor) =>
+  R accept<R, Node extends Object, Variable extends Object,
+              Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
       fail('Unexpected call to accept');
 }
 

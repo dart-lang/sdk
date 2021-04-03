@@ -5130,8 +5130,8 @@ class InferredFunctionBody {
 
 class _WhyNotPromotedVisitor
     implements
-        NonPromotionReasonVisitor<LocatedMessage, Node, Expression,
-            VariableDeclaration, DartType> {
+        NonPromotionReasonVisitor<LocatedMessage, Node, VariableDeclaration,
+            DartType> {
   final TypeInferrerImpl inferrer;
 
   final Expression receiver;
@@ -5144,21 +5144,13 @@ class _WhyNotPromotedVisitor
 
   @override
   LocatedMessage visitDemoteViaExplicitWrite(
-      DemoteViaExplicitWrite<VariableDeclaration, Expression> reason) {
+      DemoteViaExplicitWrite<VariableDeclaration> reason) {
+    TreeNode node = reason.node as TreeNode;
     if (inferrer.dataForTesting != null) {
       inferrer.dataForTesting.flowAnalysisResult
-          .nonPromotionReasonTargets[reason.writeExpression] = reason.shortName;
+          .nonPromotionReasonTargets[node] = reason.shortName;
     }
-    int offset = reason.writeExpression.fileOffset;
-    return templateVariableCouldBeNullDueToWrite
-        .withArguments(reason.variable.name, reason.documentationLink)
-        .withLocation(inferrer.helper.uri, offset, noLength);
-  }
-
-  @override
-  LocatedMessage visitDemoteViaForEachVariableWrite(
-      DemoteViaForEachVariableWrite<VariableDeclaration, Node> reason) {
-    int offset = (reason.node as TreeNode).fileOffset;
+    int offset = node.fileOffset;
     return templateVariableCouldBeNullDueToWrite
         .withArguments(reason.variable.name, reason.documentationLink)
         .withLocation(inferrer.helper.uri, offset, noLength);

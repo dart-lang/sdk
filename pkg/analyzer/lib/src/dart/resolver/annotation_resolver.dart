@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -65,6 +66,7 @@ class AnnotationResolver {
 
     _constructorInvocation(
       node,
+      classElement.name,
       constructorName,
       classElement.typeParameters,
       constructorElement,
@@ -113,6 +115,7 @@ class AnnotationResolver {
 
   void _constructorInvocation(
     AnnotationImpl node,
+    String typeDisplayName,
     SimpleIdentifierImpl? constructorName,
     List<TypeParameterElement> typeParameters,
     ConstructorElement? constructorElement,
@@ -136,6 +139,18 @@ class AnnotationResolver {
 
     // If no type parameters, the elements are correct.
     if (typeParameters.isEmpty) {
+      var typeArgumentList = node.typeArguments;
+      if (typeArgumentList != null) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+          typeArgumentList,
+          [
+            typeDisplayName,
+            typeParameters.length,
+            typeArgumentList.arguments.length,
+          ],
+        );
+      }
       _resolveConstructorInvocationArguments(node);
       InferenceContext.setType(argumentList, constructorElement.type);
       _resolver.visitArgumentList(argumentList,
@@ -174,7 +189,35 @@ class AnnotationResolver {
         typeArguments = typeArgumentList.arguments
             .map((element) => element.typeOrThrow)
             .toList();
+        var substitution = Substitution.fromPairs(
+          typeParameters,
+          typeArguments,
+        );
+        for (var i = 0; i < typeParameters.length; i++) {
+          var typeParameter = typeParameters[i];
+          var bound = typeParameter.bound;
+          if (bound != null) {
+            bound = substitution.substituteType(bound);
+            var typeArgument = typeArguments[i];
+            if (!_resolver.typeSystem.isSubtypeOf(typeArgument, bound)) {
+              _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+                typeArgumentList.arguments[i],
+                [typeArgument, typeParameter.name, bound],
+              );
+            }
+          }
+        }
       } else {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+          typeArgumentList,
+          [
+            typeDisplayName,
+            typeParameters.length,
+            typeArgumentList.arguments.length,
+          ],
+        );
         typeArguments = List.filled(
           typeParameters.length,
           DynamicTypeImpl.instance,
@@ -458,6 +501,7 @@ class AnnotationResolver {
 
     _constructorInvocation(
       node,
+      typeAliasElement.name,
       constructorName,
       typeAliasElement.typeParameters,
       constructorElement,
