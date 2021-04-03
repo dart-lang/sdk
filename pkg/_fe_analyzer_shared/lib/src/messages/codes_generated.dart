@@ -9707,14 +9707,17 @@ const MessageCode messageVarReturnType = const MessageCode("VarReturnType",
         r"""Try removing the keyword 'var', or replacing it with the name of the return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
-    templateVariableCouldBeNullDueToWrite =
-    const Template<Message Function(String name, String string)>(
-        messageTemplate:
-            r"""Variable '#name' could be null due to an intervening write.""",
-        tipTemplate:
-            r"""Try null checking the variable after the write.  See #string""",
-        withArguments: _withArgumentsVariableCouldBeNullDueToWrite);
+const Template<
+    Message Function(
+        String name,
+        String
+            string)> templateVariableCouldBeNullDueToWrite = const Template<
+        Message Function(String name, String string)>(
+    messageTemplate:
+        r"""Variable '#name' could not be promoted due to an assignment.""",
+    tipTemplate:
+        r"""Try null checking the variable after the assignment.  See #string""",
+    withArguments: _withArgumentsVariableCouldBeNullDueToWrite);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name, String string)>
@@ -9731,8 +9734,9 @@ Message _withArgumentsVariableCouldBeNullDueToWrite(
   if (string.isEmpty) throw 'No string provided';
   return new Message(codeVariableCouldBeNullDueToWrite,
       message:
-          """Variable '${name}' could be null due to an intervening write.""",
-      tip: """Try null checking the variable after the write.  See ${string}""",
+          """Variable '${name}' could not be promoted due to an assignment.""",
+      tip:
+          """Try null checking the variable after the assignment.  See ${string}""",
       arguments: {'name': name, 'string': string});
 }
 

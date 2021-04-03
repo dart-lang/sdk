@@ -3555,8 +3555,8 @@ class _WhyNotPromotedVisitor
       Expression writeExpression, NonPromotionReason reason) {
     return DiagnosticMessageImpl(
         filePath: source.fullName,
-        message: "Variable '$variableName' could be null due to an intervening "
-            "write.  See ${reason.documentationLink}",
+        message: "Variable '$variableName' could not be promoted due to an "
+            "assignment.  See ${reason.documentationLink}",
         offset: writeExpression.offset,
         length: writeExpression.length);
   }

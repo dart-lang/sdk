@@ -11,7 +11,7 @@ direct_assignment(int? i, int? j) {
   if (i == null) return;
   i = j;
 //^
-// [context 1] Variable 'i' could be null due to an intervening write.
+// [context 1] Variable 'i' could not be promoted due to an assignment.
   i.isEven;
 //  ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
@@ -23,7 +23,7 @@ compound_assignment(C? c, int i) {
   if (c == null) return;
   c += i;
 //^
-// [context 2] Variable 'c' could be null due to an intervening write.
+// [context 2] Variable 'c' could not be promoted due to an assignment.
   c.cProperty;
 //  ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
@@ -35,7 +35,7 @@ via_postfix_op(C? c) {
   if (c == null) return;
   c++;
 //^
-// [context 3] Variable 'c' could be null due to an intervening write.
+// [context 3] Variable 'c' could not be promoted due to an assignment.
   c.cProperty;
 //  ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
@@ -47,7 +47,7 @@ via_prefix_op(C? c) {
   if (c == null) return;
   ++c;
   //^
-  // [context 4] Variable 'c' could be null due to an intervening write.
+  // [context 4] Variable 'c' could not be promoted due to an assignment.
   c.cProperty;
 //  ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
@@ -59,7 +59,7 @@ via_for_each_statement(int? i, List<int?> list) {
   if (i == null) return;
   for (i in list) {
   //   ^
-  // [context 5] Variable 'i' could be null due to an intervening write.
+  // [context 5] Variable 'i' could not be promoted due to an assignment.
     i.isEven;
 //    ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
@@ -72,7 +72,7 @@ via_for_each_list_element(int? i, List<int?> list) {
   if (i == null) return;
   [for (i in list) i.isEven];
   //    ^
-  // [context 6] Variable 'i' could be null due to an intervening write.
+  // [context 6] Variable 'i' could not be promoted due to an assignment.
   //                 ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   //                 ^
@@ -83,7 +83,7 @@ via_for_each_set_element(int? i, List<int?> list) {
   if (i == null) return;
   ({for (i in list) i.isEven});
   //     ^
-  // [context 7] Variable 'i' could be null due to an intervening write.
+  // [context 7] Variable 'i' could not be promoted due to an assignment.
   //                  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   //                  ^
@@ -94,7 +94,7 @@ via_for_each_map_key(int? i, List<int?> list) {
   if (i == null) return;
   ({for (i in list) i.isEven: null});
   //     ^
-  // [context 8] Variable 'i' could be null due to an intervening write.
+  // [context 8] Variable 'i' could not be promoted due to an assignment.
   //                  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   //                  ^
@@ -105,7 +105,7 @@ via_for_each_map_value(int? i, List<int?> list) {
   if (i == null) return;
   ({for (i in list) null: i.isEven});
   //     ^
-  // [context 9] Variable 'i' could be null due to an intervening write.
+  // [context 9] Variable 'i' could not be promoted due to an assignment.
   //                        ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   //                        ^
