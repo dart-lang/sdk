@@ -901,7 +901,7 @@ class InferenceVisitor
     // This is matched by the call to [forEach_end] in
     // [inferElement], [inferMapEntry] or [inferForInStatement].
     inferrer.flowAnalysis.declare(variable, true);
-    inferrer.flowAnalysis.forEach_bodyBegin(node, variable, variable.type);
+    inferrer.flowAnalysis.forEach_bodyBegin(node);
 
     VariableDeclaration tempVariable =
         new VariableDeclaration(null, type: inferredType, isFinal: true);
@@ -1022,8 +1022,11 @@ class InferenceVisitor
     }
     // This is matched by the call to [forEach_end] in
     // [inferElement], [inferMapEntry] or [inferForInStatement].
-    inferrer.flowAnalysis.forEach_bodyBegin(node, variable, inferredType);
+    inferrer.flowAnalysis.forEach_bodyBegin(node);
     syntheticAssignment = forInVariable.inferAssignment(inferrer, inferredType);
+    if (syntheticAssignment is VariableSet) {
+      inferrer.flowAnalysis.write(node, variable, inferredType, null);
+    }
     if (expressionEffects != null) {
       StatementInferenceResult result =
           inferrer.inferStatement(expressionEffects);

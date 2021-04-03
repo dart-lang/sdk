@@ -1143,7 +1143,11 @@ class _ForEach extends Statement {
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     var iteratedType = h._getIteratedType(iterable._visit(h, flow));
-    flow.forEach_bodyBegin(this, variable, iteratedType);
+    flow.forEach_bodyBegin(this);
+    var variable = this.variable;
+    if (variable != null && !declaresVariable) {
+      flow.write(this, variable, iteratedType, null);
+    }
     body._visit(h, flow);
     flow.forEach_end();
   }
