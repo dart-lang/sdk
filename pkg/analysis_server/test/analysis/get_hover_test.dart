@@ -19,8 +19,7 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisHoverTest extends AbstractAnalysisTest
-    with WithNonFunctionTypeAliasesMixin {
+class AnalysisHoverTest extends AbstractAnalysisTest {
   Future<HoverInformation> prepareHover(String search) {
     var offset = findOffset(search);
     return prepareHoverAt(offset);

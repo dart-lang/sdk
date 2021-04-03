@@ -21,8 +21,7 @@ void main() {
   });
 }
 
-class AbstractNavigationTest extends AbstractAnalysisTest
-    with WithNonFunctionTypeAliasesMixin {
+class AbstractNavigationTest extends AbstractAnalysisTest {
   List<NavigationRegion> regions;
   List<NavigationTarget> targets;
   List<String> targetFiles;
