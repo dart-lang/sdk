@@ -2,6 +2,48 @@
 
 ### Language
 
+*   **Type aliases** [Non-function type aliases][]: Type aliases (names for
+    types introduced via the `typedef` keyword) were previously restricted
+    to only introduce names for function types.  In this release, we
+    remove this restriction and allow type aliases to name any kind of type.
+
+    ```dart
+    import 'dart:convert';
+
+    typedef JsonMap = Map<String, dynamic>;
+
+    JsonMap parseJsonMap(String input) => json.decode(input) as JsonMap;
+    ```
+
+    In addition to being usable as type annotations, type aliases that name
+    class types can now also be used anywhere that the underlying class could be
+    used, allowing type aliases to be used to safely rename existing classes.
+
+    ```dart
+    class NewClassName<T> {
+       NewClassName.create(T x);
+       static NewClassName<T> mkOne<T>(T x) => NewClassName<T>.create(x);
+     }
+    @Deprecated("Use NewClassName instead")
+    typedef OldClassName<T> = NewClassName<T>;
+
+    class LegacyClass extends OldClassName<int> {
+      LegacyClass() : super.create(3);
+    }
+    OldClassName<int> legacyCode() {
+      var one = OldClassName.create(1);
+      var two = OldClassName.mkOne(2);
+      return LegacyClass();
+    }
+    ```
+
+    The new type alias feature is only available as part of the 2.13 [language
+    version](https://dart.dev/guides/language/evolution).  To use this feature,
+    you must set the lower bound on the sdk constraint for your package to 2.13
+    or greater.
+
+    [Non-function type aliases]: https://github.com/dart-lang/language/blob/master/accepted/2.13/nonfunction-type-aliases/feature-specification.md
+
 ### Core libraries
 
 #### `dart:collection`
