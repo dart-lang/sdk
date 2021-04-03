@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// A stress test for the analysis server.
 import 'dart:io';
 import 'dart:math' as math;
@@ -62,32 +60,32 @@ class Driver {
   static String VERBOSE_FLAG_NAME = 'verbose';
 
   /// The style of interaction to use for analysis.updateContent requests.
-  OverlayStyle overlayStyle;
+  late OverlayStyle overlayStyle;
 
   /// The absolute path of the repository.
-  String repositoryPath;
+  late String repositoryPath;
 
   /// The absolute paths to the analysis roots.
-  List<String> analysisRoots;
+  late List<String> analysisRoots;
 
   /// The git repository.
-  GitRepository repository;
+  late GitRepository repository;
 
   /// The connection to the analysis server.
-  Server server;
+  late Server server;
 
   /// A list of the glob patterns used to identify the files being analyzed by
   /// the server.
-  List<Glob> fileGlobs;
+  late List<Glob> fileGlobs;
 
   /// An object gathering statistics about the simulation.
-  Statistics statistics;
+  late Statistics statistics;
 
   /// A flag indicating whether verbose output should be provided.
   bool verbose = false;
 
   /// The logger to which verbose logging data will be written.
-  Logger logger;
+  late Logger logger;
 
   /// Initialize a newly created driver.
   Driver() {
@@ -219,7 +217,7 @@ class Driver {
   List<int> _getBreakOffsets(String text) {
     var breakOffsets = <int>[];
     var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
-    var scanner = Scanner(null, CharSequenceReader(text),
+    var scanner = Scanner(_TestSource(), CharSequenceReader(text),
         error.AnalysisErrorListener.NULL_LISTENER)
       ..configureFeatures(
         featureSetForOverriding: featureSet,
@@ -236,7 +234,7 @@ class Driver {
       if (token.type == TokenType.IDENTIFIER && length > 3) {
         breakOffsets.add(offset + (length ~/ 2));
       }
-      token = token.next;
+      token = token.next!;
     }
     return breakOffsets;
   }
@@ -315,8 +313,8 @@ class Driver {
       // Iterate over the history, applying changes.
       //
       var firstCheckout = true;
-      ErrorMap expectedErrors;
-      Iterable<String> changedPubspecs;
+      ErrorMap? expectedErrors;
+      late Iterable<String> changedPubspecs;
       while (iterator.moveNext()) {
         //
         // Checkout the commit on which the changes are based.
@@ -416,8 +414,7 @@ class Driver {
   /// Run the simulation by starting up a server and sending it requests.
   Future<void> _runSimulation() async {
     server = Server(logger: logger);
-    var stopwatch = Stopwatch();
-    statistics.stopwatch = stopwatch;
+    var stopwatch = statistics.stopwatch;
     stopwatch.start();
     await server.start();
     server.sendServerSetSubscriptions([ServerService.STATUS]);
@@ -443,7 +440,7 @@ class Driver {
   }
 
   /// Display usage information, preceded by the [errorMessage] if one is given.
-  void _showUsage(ArgParser parser, [String errorMessage]) {
+  void _showUsage(ArgParser parser, [String? errorMessage]) {
     if (errorMessage != null) {
       stderr.writeln(errorMessage);
       stderr.writeln();
@@ -474,25 +471,25 @@ class FileEdit {
   OverlayStyle overlayStyle;
 
   /// The absolute path of the file to be edited.
-  String filePath;
+  late String filePath;
 
   /// The content of the file before any edits have been applied.
-  String content;
+  late String content;
 
   /// The line info for the file before any edits have been applied.
-  LineInfo lineInfo;
+  late LineInfo lineInfo;
 
   /// The lists of source edits, one list for each hunk being edited.
   List<List<SourceEdit>> editLists = <List<SourceEdit>>[];
 
   /// The current content of the file. This field is only used if the overlay
   /// style is [OverlayStyle.multipleAdd].
-  String currentContent;
+  late String currentContent;
 
   /// Initialize a collection of edits to be associated with the file at the
   /// given [filePath].
   FileEdit(this.overlayStyle, DiffRecord record) {
-    filePath = record.srcPath;
+    filePath = record.srcPath!;
     if (record.isAddition) {
       content = '';
       lineInfo = LineInfo(<int>[0]);
@@ -533,9 +530,7 @@ class FileEdit {
         } else {
           throw StateError('Failed to handle overlay style = $overlayStyle');
         }
-        if (overlay != null) {
-          addUpdateContent(overlay);
-        }
+        addUpdateContent(overlay);
       }
     }
     addUpdateContent(RemoveContentOverlay());
@@ -553,10 +548,10 @@ class Statistics {
   final Driver driver;
 
   /// The stopwatch being used to time the simulation.
-  Stopwatch stopwatch;
+  Stopwatch stopwatch = Stopwatch();
 
   /// The total number of commits in the repository.
-  int commitCount;
+  int commitCount = 0;
 
   /// The number of commits in the repository that touched one of the files in
   /// one of the analysis roots.
@@ -601,4 +596,12 @@ class Statistics {
     }
     return '$seconds.$milliseconds';
   }
+}
+
+class _TestSource implements Source {
+  @override
+  String get fullName => '/package/lib/test.dart';
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

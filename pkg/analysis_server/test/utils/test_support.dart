@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// These classes were copied from `analyzer`. They should be moved into the
 /// `analyzer/lib/src/test_utilities` directory so that they can be shared.
 /// (This version has been converted to a more modern style.)
@@ -25,7 +23,7 @@ class ExpectedContextMessage {
   final int length;
 
   /// The message text for the error.
-  final String text;
+  final String? text;
 
   ExpectedContextMessage(this.filePath, this.offset, this.length, {this.text});
 
@@ -53,12 +51,13 @@ class ExpectedError {
   /// The offset of the beginning of the error's region.
   final int length;
 
-  /// The message text of the error or `null` if the message should not be checked.
-  final String message;
+  /// The message text of the error or `null` if the message should not be
+  /// checked.
+  final String? message;
 
-  /// A pattern that should be contained in the error message or `null` if the message
-  /// contents should not be checked.
-  final Pattern messageContains;
+  /// A pattern that should be contained in the error message or `null` if the
+  /// message contents should not be checked.
+  final Pattern? messageContains;
 
   /// The list of context messages that are expected to be associated with the
   /// error.
@@ -81,8 +80,9 @@ class ExpectedError {
     if (message != null && error.message != message) {
       return false;
     }
+    var messageContains = this.messageContains;
     if (messageContains != null &&
-        error.message?.contains(messageContains) != true) {
+        error.message.contains(messageContains) != true) {
       return false;
     }
     var contextMessages = error.contextMessages.toList();
@@ -359,7 +359,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
   /// Return the line information associated with the given [source], or `null`
   /// if no line information has been associated with the source.
-  LineInfo getLineInfo(Source source) => _lineInfoMap[source];
+  LineInfo? getLineInfo(Source source) => _lineInfoMap[source];
 
   /// Return `true` if an error with the given [errorCode] has been gathered.
   bool hasError(ErrorCode errorCode) {

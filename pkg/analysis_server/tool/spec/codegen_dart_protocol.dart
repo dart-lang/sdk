@@ -677,7 +677,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
               'Returns the [RefactoringProblemSeverity] with the maximal severity.')
         ]);
         writeln(
-            'static RefactoringProblemSeverity max(RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>');
+            'static RefactoringProblemSeverity? max(RefactoringProblemSeverity? a, RefactoringProblemSeverity? b) =>');
         writeln('    maxRefactoringProblemSeverity(a, b);');
         return true;
       default:
@@ -748,7 +748,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         docComment([
           dom.Text('Returns the [FileEdit] for the given [file], maybe `null`.')
         ]);
-        writeln('SourceFileEdit getFileEdit(String file) =>');
+        writeln('SourceFileEdit? getFileEdit(String file) =>');
         writeln('    getChangeFileEdit(this, file);');
         return true;
       case 'SourceEdit':
@@ -985,7 +985,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
                 'Each choice in the union needs a constant value for the field ${type.field}');
           }
           var closure = fromJsonCode(choice).asClosure;
-          decoders.add('${literalString(field.value)}: $closure');
+          decoders.add('${literalString(field.value as String)}: $closure');
         } else {
           throw Exception('Union types must be unions of objects.');
         }
@@ -1074,7 +1074,10 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           throw Exception('Union types must be unions of objects');
         }
       }
-      return ToJsonSnippet(dartType(type), (String value) => '$value.toJson()');
+      return ToJsonSnippet(
+        dartType(type),
+        (String value) => '($value as dynamic).toJson()',
+      );
     } else if (resolvedType is TypeObject || resolvedType is TypeEnum) {
       return ToJsonSnippet(dartType(type), (String value) => '$value.toJson()');
     } else {

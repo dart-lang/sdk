@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -31,17 +29,17 @@ void main(List<String> args) {
 /// minor change inside a method body.
 class SimpleTest extends TimingTest {
   /// The path to the file in which code completion is to be performed.
-  String mainFilePath;
+  late String mainFilePath;
 
   /// The original content of the file.
-  String originalContent;
+  late String originalContent;
 
   /// The offset of the cursor when requesting code completion.
-  int cursorOffset;
+  late int cursorOffset;
 
   /// A completer that will be completed when code completion results have been
   /// received from the server.
-  Completer completionReceived;
+  late Completer completionReceived;
 
   /// Initialize a newly created test.
   SimpleTest();

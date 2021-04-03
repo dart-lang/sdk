@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -66,7 +64,7 @@ class ProtocolTestUtilities {
 
   /// On return, increment [stringIndex] by 3 (or 4 if no [file] name is
   /// provided) and [intIndex] by 4.
-  AnalysisError analysisError(int stringIndex, int intIndex, {String file}) {
+  AnalysisError analysisError(int stringIndex, int intIndex, {String? file}) {
     return AnalysisError(
         AnalysisErrorSeverity.ERROR,
         AnalysisErrorType.COMPILE_TIME_ERROR,
@@ -78,7 +76,7 @@ class ProtocolTestUtilities {
   }
 
   /// On return, increment [stringIndex] by 5 and [intIndex] by 5.
-  Element element(int stringIndex, int intIndex, {ElementKind kind}) =>
+  Element element(int stringIndex, int intIndex, {ElementKind? kind}) =>
       Element(kind ?? ElementKind.CLASS, strings[stringIndex++], intIndex++,
           location: Location(fileName(stringIndex++), intIndex++, intIndex++,
               intIndex++, intIndex++, intIndex++, intIndex++),
@@ -95,7 +93,7 @@ class ProtocolTestUtilities {
       HighlightRegion(HighlightRegionType.FIELD, offset, length);
 
   /// On return, increment [stringIndex] by 1 and [intIndex] by 4.
-  Location location(int stringIndex, int intIndex, {String file}) => Location(
+  Location location(int stringIndex, int intIndex, {String? file}) => Location(
       file ?? fileName(stringIndex),
       intIndex++,
       intIndex++,
@@ -131,7 +129,7 @@ class ProtocolTestUtilities {
   /// On return, increment [stringIndex] by 2 (or 3 if no [file] name is
   /// provided) and [intIndex] by 4.
   plugin.AnalysisNavigationParams pluginNavigationParams(
-          int stringIndex, int intIndex, {String file}) =>
+          int stringIndex, int intIndex, {String? file}) =>
       plugin.AnalysisNavigationParams(
           file ?? fileName(stringIndex++), <NavigationRegion>[
         NavigationRegion(intIndex++, 2, <int>[0])
@@ -153,7 +151,7 @@ class ProtocolTestUtilities {
   /// On return, increment [stringIndex] by 2 (or 3 if no [file] name is
   /// provided) and [intIndex] by 4.
   server.AnalysisNavigationParams serverNavigationParams(
-          int stringIndex, int intIndex, {String file}) =>
+          int stringIndex, int intIndex, {String? file}) =>
       server.AnalysisNavigationParams(
           file ?? fileName(stringIndex++), <NavigationRegion>[
         NavigationRegion(intIndex++, 2, <int>[0])
