@@ -32,7 +32,7 @@ property_get_of_variable(int? i, int? j) {
   if (i == null) return;
   i = j;
 //^
-// [context 1] Variable 'i' could be null due to an intervening write.
+// [context 1] Variable 'i' could not be promoted due to an assignment.
   i.isEven;
 //  ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
@@ -44,7 +44,7 @@ extension_property_get_of_variable(int? i, int? j) {
   if (i == null) return;
   i = j;
 //^
-// [context 2] Variable 'i' could be null due to an intervening write.
+// [context 2] Variable 'i' could not be promoted due to an assignment.
   i.propertyOnNullableInt;
   i.propertyOnNonNullInt;
 //  ^^^^^^^^^^^^^^^^^^^^
