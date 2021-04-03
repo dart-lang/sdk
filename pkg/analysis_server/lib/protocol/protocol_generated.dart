@@ -3155,7 +3155,7 @@ class AnalysisStatus implements HasToJson {
 class AnalysisUpdateContentParams implements RequestParams {
   /// A table mapping the files whose content has changed to a description of
   /// the content change.
-  Map<String, dynamic> files;
+  Map<String, Object> files;
 
   AnalysisUpdateContentParams(this.files);
 
@@ -3163,7 +3163,7 @@ class AnalysisUpdateContentParams implements RequestParams {
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
     json ??= {};
     if (json is Map) {
-      Map<String, dynamic> files;
+      Map<String, Object> files;
       if (json.containsKey('files')) {
         files = jsonDecoder.decodeMap(jsonPath + '.files', json['files'],
             valueDecoder: (String jsonPath, Object? json) =>
@@ -3194,8 +3194,8 @@ class AnalysisUpdateContentParams implements RequestParams {
   @override
   Map<String, Object> toJson() {
     var result = <String, Object>{};
-    result['files'] =
-        mapMap(files, valueCallback: (dynamic value) => value.toJson());
+    result['files'] = mapMap(files,
+        valueCallback: (Object value) => (value as dynamic).toJson());
     return result;
   }
 
@@ -3210,7 +3210,7 @@ class AnalysisUpdateContentParams implements RequestParams {
   @override
   bool operator ==(other) {
     if (other is AnalysisUpdateContentParams) {
-      return mapEqual(files, other.files, (dynamic a, dynamic b) => a == b);
+      return mapEqual(files, other.files, (Object a, Object b) => a == b);
     }
     return false;
   }

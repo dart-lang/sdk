@@ -605,7 +605,7 @@ abstract class IntegrationTestMixin {
   ///
   /// Returns
   Future<AnalysisUpdateContentResult> sendAnalysisUpdateContent(
-      Map<String, dynamic> files) async {
+      Map<String, Object> files) async {
     var params = AnalysisUpdateContentParams(files).toJson();
     var result = await server.send('analysis.updateContent', params);
     var decoder = ResponseDecoder(null);

@@ -37,7 +37,7 @@ class DartCodegenVisitor extends HierarchicalApiVisitor {
     } else if (type is TypeMap) {
       return 'Map<${dartType(type.keyType)}, ${dartType(type.valueType)}>';
     } else if (type is TypeUnion) {
-      return 'dynamic';
+      return 'Object';
     } else {
       throw Exception("Can't convert to a dart type");
     }

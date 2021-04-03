@@ -961,7 +961,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         }
       }
       return FromJsonSnippet((String jsonPath, String json) =>
-          'jsonDecoder.decodeUnion($jsonPath, $json as Map, ${literalString(type.field)}, {${decoders.join(', ')}})');
+          'jsonDecoder.decodeUnion($jsonPath, $json, ${literalString(type.field)}, {${decoders.join(', ')}})');
     } else {
       throw Exception("Can't convert $type from JSON");
     }

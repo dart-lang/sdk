@@ -1307,7 +1307,7 @@ class AnalysisUpdateContentParams implements RequestParams {
       if (json.containsKey('files')) {
         files = jsonDecoder.decodeMap(jsonPath + '.files', json['files'],
             valueDecoder: (String jsonPath, Object? json) =>
-                jsonDecoder.decodeUnion(jsonPath, json as Map, 'type', {
+                jsonDecoder.decodeUnion(jsonPath, json, 'type', {
                   'add': (String jsonPath, Object? json) =>
                       AddContentOverlay.fromJson(jsonDecoder, jsonPath, json),
                   'change': (String jsonPath, Object? json) =>
