@@ -570,6 +570,10 @@ class Thread : public ThreadState {
 
   bool IsInNoReloadScope() const { return no_reload_scope_depth_ > 0; }
 
+  bool IsInStoppedMutatorsScope() const {
+    return stopped_mutators_scope_depth_ > 0;
+  }
+
 #define DEFINE_OFFSET_METHOD(type_name, member_name, expr, default_init_value) \
   static intptr_t member_name##offset() {                                      \
     return OFFSET_OF(Thread, member_name);                                     \
@@ -1008,6 +1012,7 @@ class Thread : public ThreadState {
   ApiLocalScope* api_reusable_scope_;
   int32_t no_callback_scope_depth_;
   intptr_t no_reload_scope_depth_ = 0;
+  intptr_t stopped_mutators_scope_depth_ = 0;
 #if defined(DEBUG)
   int32_t no_safepoint_scope_depth_;
 #endif
@@ -1105,6 +1110,7 @@ class Thread : public ThreadState {
   friend class NoReloadScope;
   friend class Simulator;
   friend class StackZone;
+  friend class StoppedMutatorsScope;
   friend class ThreadRegistry;
   friend class CompilerState;
   friend class compiler::target::Thread;
@@ -1171,6 +1177,28 @@ class NoReloadScope : public ThreadStackResource {
  private:
   Thread* thread_;
   DISALLOW_COPY_AND_ASSIGN(NoReloadScope);
+};
+
+class StoppedMutatorsScope : public ThreadStackResource {
+ public:
+  explicit StoppedMutatorsScope(Thread* thread)
+      : ThreadStackResource(thread), thread_(thread) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    thread->stopped_mutators_scope_depth_++;
+    ASSERT(thread->stopped_mutators_scope_depth_ >= 0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  ~StoppedMutatorsScope() {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    thread_->stopped_mutators_scope_depth_ -= 1;
+    ASSERT(thread_->stopped_mutators_scope_depth_ >= 0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+ private:
+  Thread* thread_;
+  DISALLOW_COPY_AND_ASSIGN(StoppedMutatorsScope);
 };
 
 // Within a EnterCompilerScope, the thread must operate on cloned fields.

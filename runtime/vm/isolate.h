@@ -1024,11 +1024,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
   Dart_MessageNotifyCallback message_notify_callback() const {
-    return message_notify_callback_;
+    return message_notify_callback_.load(std::memory_order_relaxed);
   }
 
   void set_message_notify_callback(Dart_MessageNotifyCallback value) {
-    message_notify_callback_ = value;
+    message_notify_callback_.store(value, std::memory_order_release);
   }
 
   void set_on_shutdown_callback(Dart_IsolateShutdownCallback value) {
@@ -1594,7 +1594,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   // All other fields go here.
   int64_t start_time_micros_;
-  Dart_MessageNotifyCallback message_notify_callback_ = nullptr;
+  std::atomic<Dart_MessageNotifyCallback> message_notify_callback_;
   Dart_IsolateShutdownCallback on_shutdown_callback_ = nullptr;
   Dart_IsolateCleanupCallback on_cleanup_callback_ = nullptr;
   char* name_ = nullptr;

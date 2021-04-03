@@ -1738,6 +1738,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
 #undef ISOLATE_METRIC_CONSTRUCTORS
 #endif  // !defined(PRODUCT)
           start_time_micros_(OS::GetCurrentMonotonicMicros()),
+      message_notify_callback_(nullptr),
       on_shutdown_callback_(Isolate::ShutdownCallback()),
       on_cleanup_callback_(Isolate::CleanupCallback()),
       random_(),
@@ -2731,20 +2732,27 @@ void IsolateGroup::DisableIncrementalBarrier() {
 void IsolateGroup::ForEachIsolate(
     std::function<void(Isolate* isolate)> function,
     bool at_safepoint) {
+  auto thread = Thread::Current();
   if (at_safepoint) {
-    ASSERT(Thread::Current()->IsAtSafepoint() ||
-           (Thread::Current()->task_kind() == Thread::kMutatorTask) ||
-           (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
-           (Thread::Current()->task_kind() == Thread::kCompactorTask) ||
-           (Thread::Current()->task_kind() == Thread::kScavengerTask));
+    ASSERT(thread->IsAtSafepoint() ||
+           (thread->task_kind() == Thread::kMutatorTask) ||
+           (thread->task_kind() == Thread::kMarkerTask) ||
+           (thread->task_kind() == Thread::kCompactorTask) ||
+           (thread->task_kind() == Thread::kScavengerTask));
     for (Isolate* isolate : isolates_) {
       function(isolate);
     }
-  } else {
-    SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
+    return;
+  }
+  if (thread != nullptr && thread->IsAtSafepoint()) {
     for (Isolate* isolate : isolates_) {
       function(isolate);
     }
+    return;
+  }
+  SafepointReadRwLocker ml(thread, isolates_lock_.get());
+  for (Isolate* isolate : isolates_) {
+    function(isolate);
   }
 }
 
@@ -2762,6 +2770,7 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
     Callable* otherwise,
     bool use_force_growth_in_otherwise) {
   auto thread = Thread::Current();
+  StoppedMutatorsScope stopped_mutators_scope(thread);
 
   if (thread->IsMutatorThread() && !IsolateGroup::AreIsolateGroupsEnabled()) {
     single_current_mutator->Call();

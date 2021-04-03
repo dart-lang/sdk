@@ -6965,12 +6965,14 @@ static void KillNonMainIsolatesSlow(Thread* thread, Isolate* main_isolate) {
     bool non_main_isolates_alive = false;
     {
       SafepointOperationScope safepoint(thread);
-      group->ForEachIsolate([&](Isolate* isolate) {
-        if (isolate != main_isolate) {
-          Isolate::KillIfExists(isolate, Isolate::kKillMsg);
-          non_main_isolates_alive = true;
-        }
-      });
+      group->ForEachIsolate(
+          [&](Isolate* isolate) {
+            if (isolate != main_isolate) {
+              Isolate::KillIfExists(isolate, Isolate::kKillMsg);
+              non_main_isolates_alive = true;
+            }
+          },
+          /*at_safepoint=*/true);
       if (!non_main_isolates_alive) {
         break;
       }

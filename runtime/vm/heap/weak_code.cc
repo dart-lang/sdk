@@ -66,7 +66,8 @@ void WeakCodeReferences::DisableCode() {
   return;
 #else
   // Ensure mutators see empty code_objects only after code was deoptimized.
-  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
 
   if (code_objects.IsNull()) {
     return;
@@ -76,20 +77,22 @@ void WeakCodeReferences::DisableCode() {
   // Deoptimize stacks and disable code with mutators stopped.
   isolate_group->RunWithStoppedMutators([&]() {
     Code& code = Code::Handle();
-    isolate_group->ForEachIsolate([&](Isolate* isolate) {
-      auto mutator_thread = isolate->mutator_thread();
-      DartFrameIterator iterator(
-          mutator_thread, StackFrameIterator::kAllowCrossThreadIteration);
-      StackFrame* frame = iterator.NextFrame();
-      while (frame != nullptr) {
-        code = frame->LookupDartCode();
-        if (IsOptimizedCode(code_objects, code)) {
-          ReportDeoptimization(code);
-          DeoptimizeAt(mutator_thread, code, frame);
-        }
-        frame = iterator.NextFrame();
-      }
-    });
+    isolate_group->ForEachIsolate(
+        [&](Isolate* isolate) {
+          auto mutator_thread = isolate->mutator_thread();
+          DartFrameIterator iterator(
+              mutator_thread, StackFrameIterator::kAllowCrossThreadIteration);
+          StackFrame* frame = iterator.NextFrame();
+          while (frame != nullptr) {
+            code = frame->LookupDartCode();
+            if (IsOptimizedCode(code_objects, code)) {
+              ReportDeoptimization(code);
+              DeoptimizeAt(mutator_thread, code, frame);
+            }
+            frame = iterator.NextFrame();
+          }
+        },
+        /*at_safepoint=*/true);
 
     // Switch functions that use dependent code to unoptimized code.
     WeakProperty& weak_property = WeakProperty::Handle();
