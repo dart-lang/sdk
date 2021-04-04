@@ -307,7 +307,7 @@ class Server {
 
   /// Remove any existing overlays.
   void removeAllOverlays() {
-    Map<String, dynamic> files = HashMap<String, dynamic>();
+    var files = <String, Object>{};
     for (var path in filesWithOverlays) {
       files[path] = RemoveContentOverlay();
     }
@@ -370,8 +370,8 @@ class Server {
     _send('analysis.setSubscriptions', params);
   }
 
-  void sendAnalysisUpdateContent(Map<String, dynamic> files) {
-    files.forEach((String path, dynamic overlay) {
+  void sendAnalysisUpdateContent(Map<String, Object> files) {
+    files.forEach((path, overlay) {
       if (overlay is AddContentOverlay) {
         filesWithOverlays.add(path);
       } else if (overlay is RemoveContentOverlay) {

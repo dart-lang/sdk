@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analysis_server/src/plugin/request_converter.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -62,7 +60,7 @@ class RequestConverterTest extends ProtocolTestUtilities {
   }
 
   void test_convertAnalysisUpdateContentParams() {
-    var serverFiles = <String, dynamic>{
+    var serverFiles = <String, Object>{
       'file1': AddContentOverlay('content1'),
       'file2': AddContentOverlay('content2'),
     };

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
@@ -17,10 +15,10 @@ void main() {
 
 @reflectiveTest
 class PluginLocatorTest with ResourceProviderMixin {
-  String packageRoot;
-  String pubspecPath;
-  String defaultDirPath;
-  PluginLocator locator;
+  late String packageRoot;
+  late String pubspecPath;
+  late String defaultDirPath;
+  late PluginLocator locator;
 
   void setUp() {
     packageRoot = newFolder('/package').path;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
@@ -24,10 +22,10 @@ class RequestConverter {
       server.AnalysisSetSubscriptionsParams params) {
     var serverSubscriptions = params.subscriptions;
     var pluginSubscriptions = <plugin.AnalysisService, List<String>>{};
-    for (var service in serverSubscriptions.keys) {
+    for (var entry in serverSubscriptions.entries) {
+      var service = entry.key;
       try {
-        pluginSubscriptions[convertAnalysisService(service)] =
-            serverSubscriptions[service];
+        pluginSubscriptions[convertAnalysisService(service)] = entry.value;
       } catch (exception) {
         // Ignore the exception. It indicates that the service isn't one that
         // should be passed along to plugins.
