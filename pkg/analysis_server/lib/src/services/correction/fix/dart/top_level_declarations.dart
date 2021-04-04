@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 
@@ -87,7 +85,7 @@ class TopLevelDeclarationsProvider {
     return declarations;
   }
 
-  TopLevelDeclarationKind _getTopKind(DeclarationKind kind) {
+  TopLevelDeclarationKind? _getTopKind(DeclarationKind kind) {
     switch (kind) {
       case DeclarationKind.CLASS:
       case DeclarationKind.CLASS_TYPE_ALIAS:
@@ -95,18 +93,14 @@ class TopLevelDeclarationsProvider {
       case DeclarationKind.FUNCTION_TYPE_ALIAS:
       case DeclarationKind.MIXIN:
         return TopLevelDeclarationKind.type;
-        break;
       case DeclarationKind.EXTENSION:
         return TopLevelDeclarationKind.extension;
-        break;
       case DeclarationKind.FUNCTION:
         return TopLevelDeclarationKind.function;
-        break;
       case DeclarationKind.GETTER:
       case DeclarationKind.SETTER:
       case DeclarationKind.VARIABLE:
         return TopLevelDeclarationKind.variable;
-        break;
       default:
         return null;
     }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -33,19 +31,26 @@ class ImportElementsComputer {
   /// imported into the library at the given [path].
   Future<SourceChange> createEdits(
       List<ImportedElements> importedElementsList) async {
+    var unit = libraryResult.unit;
+    var path = libraryResult.path;
+    if (unit == null || path == null) {
+      // We should never reach this point because the libraryResult should be
+      // valid.
+      return SourceChange('');
+    }
     var filteredImportedElements =
         _filterImportedElements(importedElementsList);
     var libraryElement = libraryResult.libraryElement;
     var uriConverter = libraryResult.session.uriConverter;
     var existingImports = <ImportDirective>[];
-    for (var directive in libraryResult.unit.directives) {
+    for (var directive in unit.directives) {
       if (directive is ImportDirective) {
         existingImports.add(directive);
       }
     }
 
     var builder = ChangeBuilder(session: libraryResult.session);
-    await builder.addDartFileEdit(libraryResult.path, (builder) {
+    await builder.addDartFileEdit(path, (builder) {
       for (var importedElements in filteredImportedElements) {
         var matchingImports =
             _findMatchingImports(existingImports, importedElements);
@@ -90,8 +95,9 @@ class ImportElementsComputer {
           //
           // Apply the edits.
           //
-          for (var directive in updateMap.keys) {
-            var update = updateMap[directive];
+          for (var entry in updateMap.entries) {
+            var directive = entry.key;
+            var update = entry.value;
             var namesToUnhide = update.namesToUnhide;
             var namesToShow = update.namesToShow;
             namesToShow.sort();
@@ -129,12 +135,8 @@ class ImportElementsComputer {
                       var precedingNode = directive.prefix ??
                           directive.deferredKeyword ??
                           directive.uri;
-                      if (precedingNode == null) {
-                        builder.addDeletion(range.node(combinator));
-                      } else {
-                        builder.addDeletion(
-                            range.endEnd(precedingNode, combinator));
-                      }
+                      builder
+                          .addDeletion(range.endEnd(precedingNode, combinator));
                     }
                   } else {
                     builder.addDeletion(range.endEnd(
@@ -186,7 +188,7 @@ class ImportElementsComputer {
       return false;
     }
 
-    ImportDirective preferredDirective;
+    late ImportDirective preferredDirective;
     var bestEditCount = -1;
     var deleteHide = false;
     var addShow = false;
@@ -278,7 +280,12 @@ class ImportElementsComputer {
   /// Partially copied from DartFileEditBuilderImpl.
   _InsertionDescription _getInsertionDescription(String importUri) {
     var unit = libraryResult.unit;
-    LibraryDirective libraryDirective;
+    if (unit == null) {
+      // We should never reach this point because the libraryResult should be
+      // valid.
+      return _InsertionDescription(0, after: 2);
+    }
+    LibraryDirective? libraryDirective;
     var importDirectives = <ImportDirective>[];
     var otherDirectives = <Directive>[];
     for (var directive in unit.directives) {
@@ -343,7 +350,11 @@ class ImportElementsComputer {
   /// [importedElements]. They will match if they import the same library using
   /// the same prefix.
   bool _matches(ImportDirective import, ImportedElements importedElements) {
-    var library = import.element.importedLibrary;
+    var importElement = import.element;
+    if (importElement == null) {
+      return false;
+    }
+    var library = importElement.importedLibrary;
     return library != null &&
         library.source.fullName == importedElements.path &&
         (import.prefix?.name ?? '') == importedElements.prefix;

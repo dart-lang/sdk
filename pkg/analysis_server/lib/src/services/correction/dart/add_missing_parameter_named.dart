@@ -42,7 +42,8 @@ class AddMissingParameterNamed extends CorrectionProducer {
     var argumentList = namedExpression.parent;
 
     // Prepare the invoked element.
-    var context = ExecutableParameters(sessionHelper, argumentList.parent);
+    var context =
+        ExecutableParameters.forInvocation(sessionHelper, argumentList.parent);
     if (context == null) {
       return;
     }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// A range of probabilities that a given event has occurred.
 class ProbabilityRange {
   /// The lower bound of the range.
@@ -14,7 +12,7 @@ class ProbabilityRange {
 
   /// Initialize a newly created probability range to have the given [lower] and
   /// [upper] bounds.
-  const ProbabilityRange({this.lower, this.upper});
+  const ProbabilityRange({required this.lower, required this.upper});
 
   /// The middle of the range.
   double get middle => (upper + lower) / 2;
