@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';

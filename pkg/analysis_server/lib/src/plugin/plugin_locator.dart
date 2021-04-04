@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer/file_system/file_system.dart';
 
 /// An object used to locate a plugin within a package.
@@ -26,7 +24,7 @@ class PluginLocator {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  final Map<String, String> pluginMap = <String, String>{};
+  final Map<String, String?> pluginMap = {};
 
   /// Initialize a newly created plugin locator to use the given
   /// [resourceProvider] to access the file system.
@@ -48,12 +46,12 @@ class PluginLocator {
   ///
   /// This method does not validate the content of the plugin directory before
   /// returning it.
-  String findPlugin(String packageRoot) {
+  String? findPlugin(String packageRoot) {
     return pluginMap.putIfAbsent(packageRoot, () => _findPlugin(packageRoot));
   }
 
   /// The implementation of [findPlugin].
-  String _findPlugin(String packageRoot) {
+  String? _findPlugin(String packageRoot) {
     var packageFolder = resourceProvider.getFolder(packageRoot);
     // TODO(brianwilkerson) Re-enable this after deciding how we want to deal
     // with discovery of plugins.

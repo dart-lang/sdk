@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -209,7 +207,7 @@ class ResultMerger {
   /// the plugins. If a plugin contributes a navigation region that overlaps a
   /// region from a previous plugin, the overlapping region will be omitted.
   /// (For these purposes, nested regions are considered to be overlapping.)
-  AnalysisNavigationParams mergeNavigation(
+  AnalysisNavigationParams? mergeNavigation(
       List<AnalysisNavigationParams> partialResultList) {
     var count = partialResultList.length;
     if (count == 0) {
@@ -284,7 +282,7 @@ class ResultMerger {
       for (var j = 0; j < targets.length; j++) {
         var target = targets[j];
         var newIndex = fileMap[target.fileIndex];
-        if (target.fileIndex != newIndex) {
+        if (newIndex != null && target.fileIndex != newIndex) {
           target = NavigationTarget(target.kind, newIndex, target.offset,
               target.length, target.startLine, target.startColumn,
               codeOffset: target.codeOffset, codeLength: target.codeLength);
@@ -303,7 +301,8 @@ class ResultMerger {
         var region = regions[j];
         var newTargets = region.targets
             .map((int oldTarget) => targetMap[oldTarget])
-            .toList();
+            .toList()
+            .cast<int>();
         if (region.targets != newTargets) {
           region = NavigationRegion(region.offset, region.length, newTargets);
         }
@@ -429,23 +428,27 @@ class ResultMerger {
     /// Merge the children of the [newOutline] into the list of children of the
     /// [mergedOutline].
     void mergeChildren(Outline mergedOutline, Outline newOutline) {
-      for (var newChild in newOutline.children) {
-        var mergedChild = outlineMap[computeKey(newChild.element)];
-        if (mergedChild == null) {
-          // The [newChild] isn't in the existing list.
-          var copiedOutline = copyMap.putIfAbsent(
-              mergedOutline,
-              () => Outline(
-                  mergedOutline.element,
-                  mergedOutline.offset,
-                  mergedOutline.length,
-                  mergedOutline.codeOffset,
-                  mergedOutline.codeLength,
-                  children: mergedOutline.children.toList()));
-          copiedOutline.children.add(newChild);
-          addToMap(newChild);
-        } else {
-          mergeChildren(mergedChild, newChild);
+      var newChildren = newOutline.children;
+      if (newChildren != null) {
+        for (var newChild in newChildren) {
+          var mergedChild = outlineMap[computeKey(newChild.element)];
+          if (mergedChild == null) {
+            // The [newChild] isn't in the existing list.
+            var mergedChildren = _copyList(mergedOutline.children);
+            mergedChildren.add(newChild);
+            copyMap.putIfAbsent(
+                mergedOutline,
+                () => Outline(
+                    mergedOutline.element,
+                    mergedOutline.offset,
+                    mergedOutline.length,
+                    mergedOutline.codeOffset,
+                    mergedOutline.codeLength,
+                    children: mergedChildren));
+            addToMap(newChild);
+          } else {
+            mergeChildren(mergedChild, newChild);
+          }
         }
       }
     }
@@ -533,7 +536,7 @@ class ResultMerger {
   ///
   /// The feedbacks in the [partialResultList] are expected to all be of the
   /// same type. If that expectation is violated, and exception might be thrown.
-  RefactoringFeedback mergeRefactoringFeedbacks(
+  RefactoringFeedback? mergeRefactoringFeedbacks(
       List<RefactoringFeedback> feedbacks) {
     var count = feedbacks.length;
     if (count == 0) {
@@ -549,24 +552,24 @@ class ResultMerger {
       // The feedbacks are empty, so there's nothing to merge.
       return first;
     } else if (first is ExtractLocalVariableFeedback) {
-      var coveringExpressionOffsets = first.coveringExpressionOffsets == null
-          ? <int>[]
-          : first.coveringExpressionOffsets.toList();
-      var coveringExpressionLengths = first.coveringExpressionLengths == null
-          ? <int>[]
-          : first.coveringExpressionLengths.toList();
+      var coveringExpressionOffsets =
+          _copyList(first.coveringExpressionOffsets);
+      var coveringExpressionLengths =
+          _copyList(first.coveringExpressionLengths);
       var names = first.names.toList();
       var offsets = first.offsets.toList();
       var lengths = first.lengths.toList();
       for (var i = 1; i < count; i++) {
-        ExtractLocalVariableFeedback feedback = feedbacks[i];
+        var feedback = feedbacks[i] as ExtractLocalVariableFeedback;
         // TODO(brianwilkerson) This doesn't ensure that the covering data is in
         // the right order and consistent.
-        if (feedback.coveringExpressionOffsets != null) {
-          coveringExpressionOffsets.addAll(feedback.coveringExpressionOffsets);
+        var coveringOffsets = feedback.coveringExpressionOffsets;
+        if (coveringOffsets != null) {
+          coveringExpressionOffsets.addAll(coveringOffsets);
         }
-        if (feedback.coveringExpressionLengths != null) {
-          coveringExpressionLengths.addAll(feedback.coveringExpressionLengths);
+        var coveringLengths = feedback.coveringExpressionLengths;
+        if (coveringLengths != null) {
+          coveringExpressionLengths.addAll(coveringLengths);
         }
         for (var name in feedback.names) {
           if (!names.contains(name)) {
@@ -593,7 +596,7 @@ class ResultMerger {
       var offsets = first.offsets.toList();
       var lengths = first.lengths.toList();
       for (var i = 1; i < count; i++) {
-        ExtractMethodFeedback feedback = feedbacks[i];
+        var feedback = feedbacks[i] as ExtractMethodFeedback;
         if (returnType.isEmpty) {
           returnType = feedback.returnType;
         }
@@ -667,7 +670,7 @@ class ResultMerger {
   /// The returned result will contain the concatenation of the potential edits.
   /// If two or more plugins produce the same potential edit, then the resulting
   /// list of potential edits will contain duplications.
-  EditGetRefactoringResult mergeRefactorings(
+  EditGetRefactoringResult? mergeRefactorings(
       List<EditGetRefactoringResult> partialResultList) {
     /// Return the result of merging the given list of source [changes] into a
     /// single source change.
@@ -679,7 +682,7 @@ class ResultMerger {
     /// edits will be merged at the level of the file being edited, but will be
     /// a concatenation of the individual edits within each file, even if
     /// multiple plugins contribute duplicate or conflicting edits.
-    SourceChange mergeChanges(List<SourceChange> changes) {
+    SourceChange? mergeChanges(List<SourceChange> changes) {
       var count = changes.length;
       if (count == 0) {
         return null;
@@ -711,7 +714,6 @@ class ResultMerger {
           }
         }
         linkedEditGroups.addAll(change.linkedEditGroups);
-        message ??= change.message;
         selection ??= change.selection;
       }
       return SourceChange(message,
@@ -731,26 +733,33 @@ class ResultMerger {
     var optionsProblems = result.optionsProblems.toList();
     var finalProblems = result.finalProblems.toList();
     var feedbacks = <RefactoringFeedback>[];
-    if (result.feedback != null) {
-      feedbacks.add(result.feedback);
+    var feedback = result.feedback;
+    if (feedback != null) {
+      feedbacks.add(feedback);
     }
     var changes = <SourceChange>[];
-    if (result.change != null) {
-      changes.add(result.change);
+    var change = result.change;
+    if (change != null) {
+      changes.add(change);
     }
-    var potentialEdits = result.potentialEdits.toList();
+    var potentialEdits = _copyList(result.potentialEdits);
     for (var i = 1; i < count; i++) {
       var result = partialResultList[1];
       initialProblems.addAll(result.initialProblems);
       optionsProblems.addAll(result.optionsProblems);
       finalProblems.addAll(result.finalProblems);
-      if (result.feedback != null) {
-        feedbacks.add(result.feedback);
+      var feedback = result.feedback;
+      if (feedback != null) {
+        feedbacks.add(feedback);
       }
-      if (result.change != null) {
-        changes.add(result.change);
+      var change = result.change;
+      if (change != null) {
+        changes.add(change);
       }
-      potentialEdits.addAll(result.potentialEdits);
+      var edits = result.potentialEdits;
+      if (edits != null) {
+        potentialEdits.addAll(edits);
+      }
     }
     return EditGetRefactoringResult(
         initialProblems, optionsProblems, finalProblems,
@@ -797,4 +806,7 @@ class ResultMerger {
     return !((leftStart <= rightStart && rightEnd <= leftEnd) ||
         (rightStart <= leftStart && leftEnd <= rightEnd));
   }
+
+  /// Return a copy of the [list], or an empty list if [list] is `null`.
+  List<E> _copyList<E>(List<E>? list) => list == null ? <E>[] : list.toList();
 }
