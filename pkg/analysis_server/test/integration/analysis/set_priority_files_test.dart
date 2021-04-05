@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,6 +24,7 @@ class SetPriorityFilesTest extends AbstractAnalysisServerIntegrationTest {
     await sendAnalysisSetPriorityFiles([pathname]);
 
     var status = await analysisFinished;
-    expect(status.analysis.isAnalyzing, false);
+    var analysisStatus = status.analysis;
+    expect(analysisStatus != null && analysisStatus.isAnalyzing, false);
   }
 }

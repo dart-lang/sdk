@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import '../log/log.dart';
 import 'page_writer.dart';
 
@@ -88,8 +86,8 @@ class StatsPage extends PageWriter {
         if (method == 'completion.getSuggestions') {
           var response = log.responseFor(entry);
           if (response != null) {
-            String id = response.result('id');
-            if (id != null) {
+            var id = response.result('id');
+            if (id is String) {
               var events = log.completionEventsWithId(id);
               if (events != null && events.isNotEmpty) {
                 completionResponseTimes
@@ -104,7 +102,7 @@ class StatsPage extends PageWriter {
           pluginErrorCount[entry.pluginId] = count + 1;
         }
       } else if (entry is PluginRequestEntry) {
-        var response = log.pluginResponseFor(entry);
+        var response = log.pluginResponseFor(entry)!;
         var responseTime = response.timeStamp - entry.timeStamp;
         var pluginData = pluginResponseData.putIfAbsent(
             entry.pluginId, () => <String, List<int>>{});
@@ -191,7 +189,7 @@ class StatsPage extends PageWriter {
         '<tr><th>min</th><th>mean</th><th>max</th><th>method</th></tr>');
     var methodNames = latencyData.keys.toList()..sort();
     for (var method in methodNames) {
-      var latencies = latencyData[method]..sort();
+      var latencies = latencyData[method]!..sort();
       // TODO(brianwilkerson) Add a spark-line distribution graph.
       sink.write('<tr><td class="int">');
       sink.write(latencies[0]);
@@ -225,7 +223,7 @@ class StatsPage extends PageWriter {
         sink.writeln('<table>');
         var methodNames = responseData.keys.toList()..sort();
         for (var method in methodNames) {
-          var responseTimes = responseData[method]..sort();
+          var responseTimes = responseData[method]!..sort();
           // TODO(brianwilkerson) Add a spark-line distribution graph.
           sink.write('<tr><td class="int">');
           sink.write(responseTimes[0]);

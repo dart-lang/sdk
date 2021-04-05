@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -60,22 +58,19 @@ part of foo;
     sendAnalysisSetSubscriptions({
       AnalysisService.NAVIGATION: [pathname1]
     });
-    List<NavigationRegion> regions;
-    List<NavigationTarget> targets;
-    List<String> targetFiles;
-    onAnalysisNavigation.listen((AnalysisNavigationParams params) {
-      expect(params.file, equals(pathname1));
-      regions = params.regions;
-      targets = params.targets;
-      targetFiles = params.files;
-    });
-
-    await analysisFinished;
 
     // There should be a single error, due to the fact that 'dart:async' is not
     // used.
+    await analysisFinished;
     expect(currentAnalysisErrors[pathname1], hasLength(1));
     expect(currentAnalysisErrors[pathname2], isEmpty);
+
+    var params = await onAnalysisNavigation.first;
+    expect(params.file, equals(pathname1));
+    var regions = params.regions;
+    var targets = params.targets;
+    var targetFiles = params.files;
+
     NavigationTarget findTargetElement(int index) {
       for (var region in regions) {
         if (region.offset <= index && index < region.offset + region.length) {

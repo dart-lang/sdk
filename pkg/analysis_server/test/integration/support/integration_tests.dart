@@ -139,6 +139,16 @@ abstract class AbstractAnalysisServerIntegrationTest
     server.debugStdio();
   }
 
+  /// If there was a set of errors (might be empty) received for the file
+  /// with the given [path], return it. If no errors - fail.
+  List<AnalysisError> existingErrorsForFile(String path) {
+    var errors = currentAnalysisErrors[path];
+    if (errors == null) {
+      fail('Expected errors for: $path');
+    }
+    return errors;
+  }
+
   List<AnalysisError>? getErrors(String pathname) =>
       currentAnalysisErrors[pathname];
 
@@ -390,8 +400,7 @@ class Server {
   /// Commands that have been sent to the server but not yet acknowledged, and
   /// the [Completer] objects which should be completed when acknowledgement is
   /// received.
-  final Map<String, Completer<Map<String, dynamic>>> _pendingCommands =
-      <String, Completer<Map<String, dynamic>>>{};
+  final Map<String, Completer<Map<String, Object?>?>> _pendingCommands = {};
 
   /// Number which should be used to compute the 'id' to send in the next
   /// command sent to the server.
@@ -538,14 +547,14 @@ class Server {
   /// normal (non-error) response, the future will be completed with the
   /// 'result' field from the response.  If the server acknowledges the command
   /// with an error response, the future will be completed with an error.
-  Future<Map<String, dynamic>> send(
-      String method, Map<String, dynamic>? params) {
+  Future<Map<String, Object?>?> send(
+      String method, Map<String, Object?>? params) {
     var id = '${_nextId++}';
-    var command = <String, dynamic>{'id': id, 'method': method};
+    var command = <String, Object?>{'id': id, 'method': method};
     if (params != null) {
       command['params'] = params;
     }
-    var completer = Completer<Map<String, dynamic>>();
+    var completer = Completer<Map<String, Object?>?>();
     _pendingCommands[id] = completer;
     var line = json.encode(command);
     _recordStdio('==> $line');

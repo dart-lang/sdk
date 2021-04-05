@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -33,7 +31,7 @@ main() {
     await analysisFinished;
 
     expect(currentAnalysisErrors[filePath], isList);
-    var errors = currentAnalysisErrors[filePath];
+    var errors = existingErrorsForFile(filePath);
     expect(errors, hasLength(1));
     expect(errors[0].location.file, equals(filePath));
   }
@@ -47,7 +45,7 @@ main() {
     standardAnalysisSetup();
     return analysisFinished.then((_) {
       expect(currentAnalysisErrors[pathname], isList);
-      var errors = currentAnalysisErrors[pathname];
+      var errors = existingErrorsForFile(pathname);
       expect(errors, hasLength(1));
       expect(errors[0].location.file, equals(pathname));
     });

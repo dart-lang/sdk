@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -18,7 +16,7 @@ void main() {
 
 @reflectiveTest
 class FindElementReferencesTest extends AbstractAnalysisServerIntegrationTest {
-  String pathname;
+  late String pathname;
 
   Future<void> test_badTarget() async {
     var text = r'''
@@ -52,7 +50,7 @@ foo(String str) {}
     standardAnalysisSetup();
     await analysisFinished;
 
-    var results = await _findElementReferences(text);
+    var results = (await _findElementReferences(text))!;
     expect(results, hasLength(1));
     var result = results.first;
     expect(result.location.file, pathname);
@@ -61,7 +59,7 @@ foo(String str) {}
     expect(result.path.first.name, 'main');
   }
 
-  Future<List<SearchResult>> _findElementReferences(String text) async {
+  Future<List<SearchResult>?> _findElementReferences(String text) async {
     var offset = text.indexOf(' /* target */') - 1;
     var result = await sendSearchFindElementReferences(pathname, offset, false);
     if (result.id == null) return null;

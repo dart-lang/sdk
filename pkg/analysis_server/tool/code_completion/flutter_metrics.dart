@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/utilities/flutter.dart';
@@ -52,7 +50,7 @@ ArgParser createArgParser() {
 }
 
 /// Print usage information for this tool.
-void printUsage(ArgParser parser, {String error}) {
+void printUsage(ArgParser parser, {String? error}) {
   if (error != null) {
     print(error);
     print('');
@@ -106,7 +104,7 @@ class FlutterData {
   /// Record that an instance of the [childWidget] was created. If the instance
   /// creation expression is an argument in another widget constructor
   /// invocation, then the [parentWidget] is the name of the enclosing class.
-  void recordWidgetCreation(String childWidget, String parentWidget) {
+  void recordWidgetCreation(String childWidget, String? parentWidget) {
     totalWidgetCount++;
     widgetCounts[childWidget] = (widgetCounts[childWidget] ?? 0) + 1;
 
@@ -127,11 +125,11 @@ class FlutterDataCollector extends RecursiveAstVisitor<void> {
   final FlutterData data;
 
   /// The object used to determine Flutter-specific features.
-  Flutter flutter;
+  final Flutter flutter = Flutter.instance;
 
   /// The name of the most deeply widget class whose constructor invocation we
   /// are within.
-  String parentWidget;
+  String? parentWidget;
 
   /// Initialize a newly created collector to add data points to the given
   /// [data].
@@ -213,11 +211,7 @@ class FlutterMetricsComputer {
           //
           // Check for errors that cause the file to be skipped.
           //
-          if (resolvedUnitResult == null) {
-            print('');
-            print('File $filePath skipped because of an internal error.');
-            continue;
-          } else if (resolvedUnitResult.state != ResultState.VALID) {
+          if (resolvedUnitResult.state != ResultState.VALID) {
             print('');
             print('File $filePath skipped because it could not be analyzed.');
             continue;
@@ -230,8 +224,7 @@ class FlutterMetricsComputer {
             continue;
           }
 
-          collector.flutter = Flutter.instance;
-          resolvedUnitResult.unit.accept(collector);
+          resolvedUnitResult.unit!.accept(collector);
         } catch (exception, stackTrace) {
           print('');
           print('Exception caught analyzing: "$filePath"');
@@ -270,13 +263,15 @@ class FlutterMetricsComputer {
   /// Write the structure data in the [structureMap] to the [sink].
   void _writeStructureData(
       StringSink sink, Map<String, Map<String, int>> structureMap) {
-    var outerKeys = structureMap.keys.toList()..sort();
-    for (var outerKey in outerKeys) {
+    var outerEntries = structureMap.entries.toList();
+    outerEntries.sort((first, second) => first.key.compareTo(second.key));
+    for (var outerEntry in outerEntries) {
+      var outerKey = outerEntry.key;
       sink.writeln(outerKey);
-      var innerMap = structureMap[outerKey];
+      var innerMap = outerEntry.value;
       var entries = innerMap.entries.toList();
       entries.sort((first, second) => second.value.compareTo(first.value));
-      var total = entries.fold(
+      var total = entries.fold<int>(
           0, (previousValue, entry) => previousValue + entry.value);
       for (var entry in entries) {
         var percent = _formatPercent(entry.value, total);
