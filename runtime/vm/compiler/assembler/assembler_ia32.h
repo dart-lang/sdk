@@ -572,6 +572,9 @@ class Assembler : public AssemblerBase {
 
   void Ret() { ret(); }
   void CompareRegisters(Register a, Register b);
+  void CompareObjectRegisters(Register a, Register b) {
+    CompareRegisters(a, b);
+  }
   void BranchIf(Condition condition,
                 Label* label,
                 JumpDistance distance = kFarJump) {
@@ -599,6 +602,9 @@ class Assembler : public AssemblerBase {
                  OperandSize sz = kFourBytes) {
     LoadFromOffset(dst, address, sz);
   }
+  void LoadCompressedField(Register dst, const FieldAddress& address) {
+    LoadField(dst, address);
+  }
   void LoadFieldFromOffset(Register reg,
                            Register base,
                            int32_t offset,
@@ -607,9 +613,8 @@ class Assembler : public AssemblerBase {
   }
   void LoadCompressedFieldFromOffset(Register reg,
                                      Register base,
-                                     int32_t offset,
-                                     OperandSize sz = kFourBytes) {
-    LoadFieldFromOffset(reg, base, offset, sz);
+                                     int32_t offset) {
+    LoadFieldFromOffset(reg, base, offset);
   }
   void LoadIndexedPayload(Register dst,
                           Register base,

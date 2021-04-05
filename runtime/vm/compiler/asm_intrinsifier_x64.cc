@@ -1308,7 +1308,7 @@ void AsmIntrinsifier::String_getHashCode(Assembler* assembler,
 void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
                                        Label* normal_ir_body) {
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // Type object.
-  __ movq(RAX, FieldAddress(RAX, target::Type::hash_offset()));
+  __ LoadCompressed(RAX, FieldAddress(RAX, target::Type::hash_offset()));
   ASSERT(kSmiTag == 0);
   ASSERT(kSmiTagShift == 1);
   __ testq(RAX, RAX);
@@ -1334,9 +1334,11 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ j(NOT_EQUAL, normal_ir_body);
 
   // Check if types are syntactically equal.
-  __ movq(RDI, FieldAddress(RCX, target::Type::type_class_id_offset()));
+  __ LoadCompressedSmi(RDI,
+                       FieldAddress(RCX, target::Type::type_class_id_offset()));
   __ SmiUntag(RDI);
-  __ movq(RSI, FieldAddress(RDX, target::Type::type_class_id_offset()));
+  __ LoadCompressedSmi(RSI,
+                       FieldAddress(RDX, target::Type::type_class_id_offset()));
   __ SmiUntag(RSI);
   EquivalentClassIds(assembler, normal_ir_body, &equiv_cids, &not_equal, RDI,
                      RSI, RAX);
@@ -1374,7 +1376,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // FunctionType object.
-  __ movq(RAX, FieldAddress(RAX, target::FunctionType::hash_offset()));
+  __ LoadCompressed(RAX,
+                    FieldAddress(RAX, target::FunctionType::hash_offset()));
   ASSERT(kSmiTag == 0);
   ASSERT(kSmiTagShift == 1);
   __ testq(RAX, RAX);
@@ -1423,9 +1426,9 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
                                             Label* return_true,
                                             Label* return_false) {
   __ SmiUntag(RBX);
-  __ movq(R8, FieldAddress(RAX, target::String::length_offset()));
+  __ LoadCompressedSmi(R8, FieldAddress(RAX, target::String::length_offset()));
   __ SmiUntag(R8);
-  __ movq(R9, FieldAddress(RCX, target::String::length_offset()));
+  __ LoadCompressedSmi(R9, FieldAddress(RCX, target::String::length_offset()));
   __ SmiUntag(R9);
 
   // if (other.length == 0) return true;
@@ -1530,7 +1533,7 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ testq(RCX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, normal_ir_body);  // Non-smi index.
   // Range check.
-  __ cmpq(RCX, FieldAddress(RAX, target::String::length_offset()));
+  __ OBJ(cmp)(RCX, FieldAddress(RAX, target::String::length_offset()));
   // Runtime throws exception.
   __ j(ABOVE_EQUAL, normal_ir_body);
   __ CompareClassId(RAX, kOneByteStringCid);
@@ -1570,7 +1573,7 @@ void AsmIntrinsifier::StringBaseIsEmpty(Assembler* assembler,
   Label is_true;
   // Get length.
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // String object.
-  __ movq(RAX, FieldAddress(RAX, target::String::length_offset()));
+  __ LoadCompressedSmi(RAX, FieldAddress(RAX, target::String::length_offset()));
   __ OBJ(cmp)(RAX, Immediate(target::ToRawSmi(0)));
   __ j(EQUAL, &is_true, Assembler::kNearJump);
   __ LoadObject(RAX, CastHandle<Object>(FalseObject()));
@@ -1594,7 +1597,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
 
   __ Bind(&compute_hash);
   // Hash not yet computed, use algorithm of class StringHasher.
-  __ movq(RCX, FieldAddress(RBX, target::String::length_offset()));
+  __ LoadCompressedSmi(RCX, FieldAddress(RBX, target::String::length_offset()));
   __ SmiUntag(RCX);
   __ xorq(RAX, RAX);
   __ xorq(RDI, RDI);
@@ -1736,7 +1739,7 @@ static void TryAllocateString(Assembler* assembler,
 
   // Set the length field.
   __ popq(RDI);
-  __ StoreIntoObjectNoBarrier(
+  __ StoreCompressedIntoObjectNoBarrier(
       RAX, FieldAddress(RAX, target::String::length_offset()), RDI);
   __ jmp(ok, Assembler::kNearJump);
 
@@ -1865,7 +1868,7 @@ static void StringEquality(Assembler* assembler,
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
 
   // Have same length?
-  __ movq(RDI, FieldAddress(RAX, target::String::length_offset()));
+  __ LoadCompressedSmi(RDI, FieldAddress(RAX, target::String::length_offset()));
   __ OBJ(cmp)(RDI, FieldAddress(RCX, target::String::length_offset()));
   __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
 
@@ -1934,9 +1937,15 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ movq(RDI, Address(RSP, kStringParamOffset));
   __ LoadClassId(RDI, RDI);
   __ SubImmediate(RDI, Immediate(kOneByteStringCid));
+#if !defined(DART_COMPRESSED_POINTERS)
   __ movq(RAX, FieldAddress(
                    RBX, RDI, TIMES_8,
                    target::RegExp::function_offset(kOneByteStringCid, sticky)));
+#else
+  __ LoadCompressed(RAX, FieldAddress(RBX, RDI, TIMES_4,
+                                      target::RegExp::function_offset(
+                                          kOneByteStringCid, sticky)));
+#endif
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in RAX, the argument descriptor in R10, and IC-Data in RCX.

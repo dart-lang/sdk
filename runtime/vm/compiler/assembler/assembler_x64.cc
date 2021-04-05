@@ -1360,14 +1360,26 @@ void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
   }
 }
 
-void Assembler::LoadCompressed(Register dest,
-                               const Address& slot,
-                               CanBeSmi can_value_be_smi) {
+void Assembler::LoadCompressed(Register dest, const Address& slot) {
 #if !defined(DART_COMPRESSED_POINTERS)
   movq(dest, slot);
 #else
   movl(dest, slot);  // Zero-extension.
   addq(dest, Address(THR, target::Thread::heap_base_offset()));
+#endif
+}
+
+void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
+#if !defined(DART_COMPRESSED_POINTERS)
+  movq(dest, slot);
+#else
+  movl(dest, slot);  // Zero-extension.
+#endif
+#if defined(DEBUG)
+  Label done;
+  BranchIfSmi(dest, &done);
+  Stop("Expected Smi");
+  Bind(&done);
 #endif
 }
 
@@ -1413,12 +1425,25 @@ void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 CanBeSmi can_be_smi) {
+  movq(dest, value);
+  StoreBarrier(object, value, can_be_smi);
+}
+
+void Assembler::StoreCompressedIntoObject(Register object,
+                                          const Address& dest,
+                                          Register value,
+                                          CanBeSmi can_be_smi) {
+  OBJ(mov)(dest, value);
+  StoreBarrier(object, value, can_be_smi);
+}
+
+void Assembler::StoreBarrier(Register object,
+                             Register value,
+                             CanBeSmi can_be_smi) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
   ASSERT(object != TMP);
   ASSERT(value != TMP);
-
-  movq(dest, value);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1523,10 +1548,37 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
 }
 
+void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
+                                                   const Address& dest,
+                                                   Register value) {
+  OBJ(mov)(dest, value);
+#if defined(DEBUG)
+  Label done;
+  pushq(value);
+  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
+
+  testb(FieldAddress(object, target::Object::tags_offset()),
+        Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+  j(ZERO, &done, Assembler::kNearJump);
+
+  Stop("Store buffer update is required");
+  Bind(&done);
+  popq(value);
+#endif  // defined(DEBUG)
+  // No store buffer update.
+}
+
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
   StoreObject(dest, value);
+}
+
+void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
+                                                   const Address& dest,
+                                                   const Object& value) {
+  LoadObject(TMP, value);
+  StoreCompressedIntoObjectNoBarrier(object, dest, TMP);
 }
 
 void Assembler::StoreInternalPointer(Register object,
@@ -1549,6 +1601,11 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
 void Assembler::ZeroInitSmiField(const Address& dest) {
   Immediate zero(target::ToRawSmi(0));
   movq(dest, zero);
+}
+
+void Assembler::ZeroInitCompressedSmiField(const Address& dest) {
+  Immediate zero(target::ToRawSmi(0));
+  OBJ(mov)(dest, zero);
 }
 
 void Assembler::IncrementSmiField(const Address& dest, int64_t increment) {

@@ -5539,10 +5539,11 @@ void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (index_cid != kSmiCid) {
       __ BranchIfNotSmi(index, slow_path->entry_label());
     }
+    __ CompareObjectRegisters(index, length);
   } else {
     ASSERT(representation() == kUnboxedInt64);
+    __ CompareRegisters(index, length);
   }
-  __ CompareRegisters(index, length);
   __ BranchIf(UNSIGNED_GREATER_EQUAL, slow_path->entry_label());
 }
 

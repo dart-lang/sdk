@@ -1391,6 +1391,15 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
   Register char_code = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
 
+#if defined(DART_COMPRESSED_POINTERS)
+  // The upper half of a compressed Smi contains undefined bits, but no x64
+  // addressing mode will ignore these bits. Assume that the index is
+  // non-negative and clear the upper bits, which is shorter than
+  // sign-extension (movsxd). Note: we don't bother to ensure index is a
+  // writable input because any other instructions using it must also not
+  // rely on the upper bits.
+  __ orl(char_code, char_code);
+#endif
   __ movq(result,
           compiler::Address(THR, Thread::predefined_symbols_address_offset()));
   __ movq(result,
@@ -1411,7 +1420,8 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register str = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
   compiler::Label is_one, done;
-  __ movq(result, compiler::FieldAddress(str, String::length_offset()));
+  __ LoadCompressedSmi(result,
+                       compiler::FieldAddress(str, String::length_offset()));
   __ cmpq(result, compiler::Immediate(Smi::RawValue(1)));
   __ j(EQUAL, &is_one, compiler::Assembler::kNearJump);
   __ movq(result, compiler::Immediate(Smi::RawValue(-1)));
@@ -2392,7 +2402,8 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // value's class matches guarded class id of the field.
     // offset_reg contains offset already corrected by -kHeapObjectTag that is
     // why we use Address instead of FieldAddress.
-    __ cmpq(length_reg, compiler::Address(value_reg, offset_reg, TIMES_1, 0));
+    __ OBJ(cmp)(length_reg,
+                compiler::Address(value_reg, offset_reg, TIMES_1, 0));
 
     if (deopt == NULL) {
       __ j(EQUAL, &ok);
@@ -2735,22 +2746,40 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&store_pointer);
   }
 
-  ASSERT(!slot().is_compressed());  // Unimplemented.
+  const bool compressed = slot().is_compressed();
   if (ShouldEmitStoreBarrier()) {
     Register value_reg = locs()->in(1).reg();
-    __ StoreIntoObject(instance_reg,
-                       compiler::FieldAddress(instance_reg, offset_in_bytes),
-                       value_reg, CanValueBeSmi());
+    if (!compressed) {
+      __ StoreIntoObject(instance_reg,
+                         compiler::FieldAddress(instance_reg, offset_in_bytes),
+                         value_reg, CanValueBeSmi());
+    } else {
+      __ StoreCompressedIntoObject(
+          instance_reg, compiler::FieldAddress(instance_reg, offset_in_bytes),
+          value_reg, CanValueBeSmi());
+    }
   } else {
     if (locs()->in(1).IsConstant()) {
-      __ StoreIntoObjectNoBarrier(
-          instance_reg, compiler::FieldAddress(instance_reg, offset_in_bytes),
-          locs()->in(1).constant());
+      if (!compressed) {
+        __ StoreIntoObjectNoBarrier(
+            instance_reg, compiler::FieldAddress(instance_reg, offset_in_bytes),
+            locs()->in(1).constant());
+      } else {
+        __ StoreCompressedIntoObjectNoBarrier(
+            instance_reg, compiler::FieldAddress(instance_reg, offset_in_bytes),
+            locs()->in(1).constant());
+      }
     } else {
       Register value_reg = locs()->in(1).reg();
-      __ StoreIntoObjectNoBarrier(
-          instance_reg, compiler::FieldAddress(instance_reg, offset_in_bytes),
-          value_reg);
+      if (!compressed) {
+        __ StoreIntoObjectNoBarrier(
+            instance_reg, compiler::FieldAddress(instance_reg, offset_in_bytes),
+            value_reg);
+      } else {
+        __ StoreCompressedIntoObjectNoBarrier(
+            instance_reg, compiler::FieldAddress(instance_reg, offset_in_bytes),
+            value_reg);
+      }
     }
   }
   __ Bind(&skip_store);

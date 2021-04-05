@@ -122,8 +122,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         delayed_weak_properties_(WeakProperty::null()) {}
 
   virtual void VisitTypedDataViewPointers(TypedDataViewPtr view,
-                                          ObjectPtr* first,
-                                          ObjectPtr* last) {
+                                          CompressedObjectPtr* first,
+                                          CompressedObjectPtr* last) {
     // TypedDataViews require extra processing to update their
     // PointerBase::data_ pointer. If the underlying typed data is external, no
     // update is needed. If the underlying typed data is internal, the pointer
@@ -140,11 +140,11 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         view->untag()->data_ != view->untag()->DataFieldForInternalTypedData();
 
     // Forward all fields of the typed data view.
-    VisitPointers(first, last);
+    VisitCompressedPointers(view->heap_base(), first, last);
 
     if (view->untag()->data_ == nullptr) {
-      ASSERT(RawSmiValue(view->untag()->offset_in_bytes_) == 0 &&
-             RawSmiValue(view->untag()->length_) == 0);
+      ASSERT(RawSmiValue(view->untag()->offset_in_bytes()) == 0 &&
+             RawSmiValue(view->untag()->length()) == 0);
       ASSERT(is_external);
       return;
     }
@@ -156,7 +156,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     ASSERT(IsTypedDataViewClassId(view->GetClassIdMayBeSmi()));
 
     // Validate that the backing store is not a forwarding word.
-    TypedDataBasePtr td = view->untag()->typed_data_;
+    TypedDataBasePtr td = view->untag()->typed_data();
     ASSERT(td->IsHeapObject());
     const uword td_header =
         *reinterpret_cast<uword*>(UntaggedObject::ToAddr(td));

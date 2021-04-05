@@ -547,6 +547,9 @@ class Assembler : public AssemblerBase {
   }
 
   void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+  void LoadCompressedField(Register dst, FieldAddress address) {
+    LoadCompressed(dst, address);
+  }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(dst, base, offset, kEightBytes);
   }
@@ -1744,9 +1747,8 @@ class Assembler : public AssemblerBase {
     kValueCanBeSmi,
   };
 
-  void LoadCompressed(Register dest,
-                      const Address& slot,
-                      CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void LoadCompressed(Register dest, const Address& slot);
+  void LoadCompressedSmi(Register dest, const Address& slot);
 
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,
@@ -1757,6 +1759,11 @@ class Assembler : public AssemblerBase {
                        const Address& dest,
                        Register value,
                        CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void StoreCompressedIntoObject(Register object,
+                                 const Address& dest,
+                                 Register value,
+                                 CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void StoreBarrier(Register object, Register value, CanBeSmi can_value_be_smi);
   void StoreIntoArray(Register object,
                       Register slot,
                       Register value,
@@ -1766,18 +1773,35 @@ class Assembler : public AssemblerBase {
                              int32_t offset,
                              Register value,
                              CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void StoreCompressedIntoObjectOffset(
+      Register object,
+      int32_t offset,
+      Register value,
+      CanBeSmi can_value_be_smi = kValueCanBeSmi);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
+  void StoreCompressedIntoObjectNoBarrier(Register object,
+                                          const Address& dest,
+                                          Register value);
   void StoreIntoObjectOffsetNoBarrier(Register object,
                                       int32_t offset,
                                       Register value);
+  void StoreCompressedIntoObjectOffsetNoBarrier(Register object,
+                                                int32_t offset,
+                                                Register value);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
+  void StoreCompressedIntoObjectNoBarrier(Register object,
+                                          const Address& dest,
+                                          const Object& value);
   void StoreIntoObjectOffsetNoBarrier(Register object,
                                       int32_t offset,
                                       const Object& value);
+  void StoreCompressedIntoObjectOffsetNoBarrier(Register object,
+                                                int32_t offset,
+                                                const Object& value);
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,

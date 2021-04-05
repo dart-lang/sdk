@@ -924,14 +924,26 @@ void Assembler::VRSqrts(VRegister vd, VRegister vn) {
   vmuls(vd, vd, VTMP);
 }
 
-void Assembler::LoadCompressed(Register dest,
-                               const Address& slot,
-                               CanBeSmi can_value_be_smi) {
+void Assembler::LoadCompressed(Register dest, const Address& slot) {
 #if !defined(DART_COMPRESSED_POINTERS)
   ldr(dest, slot);
 #else
   ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
   add(dest, dest, Operand(HEAP_BASE));
+#endif
+}
+
+void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
+#if !defined(DART_COMPRESSED_POINTERS)
+  ldr(dest, slot);
+#else
+  ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
+#endif
+#if defined(DEBUG)
+  Label done;
+  BranchIfSmi(dest, &done);
+  Stop("Expected Smi");
+  Bind(&done);
 #endif
 }
 
@@ -985,10 +997,38 @@ void Assembler::StoreIntoObjectOffset(Register object,
   }
 }
 
+void Assembler::StoreCompressedIntoObjectOffset(Register object,
+                                                int32_t offset,
+                                                Register value,
+                                                CanBeSmi value_can_be_smi) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreCompressedIntoObject(object, FieldAddress(object, offset), value,
+                              value_can_be_smi);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag);
+    StoreCompressedIntoObject(object, Address(TMP), value, value_can_be_smi);
+  }
+}
+
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 CanBeSmi can_be_smi) {
+  str(value, dest);
+  StoreBarrier(object, value, can_be_smi);
+}
+
+void Assembler::StoreCompressedIntoObject(Register object,
+                                          const Address& dest,
+                                          Register value,
+                                          CanBeSmi can_be_smi) {
+  str(value, dest, kObjectBytes);
+  StoreBarrier(object, value, can_be_smi);
+}
+
+void Assembler::StoreBarrier(Register object,
+                             Register value,
+                             CanBeSmi can_be_smi) {
   const bool spill_lr = lr_state().LRContainsReturnAddress();
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
@@ -998,8 +1038,6 @@ void Assembler::StoreIntoObject(Register object,
   ASSERT(object != TMP2);
   ASSERT(value != TMP);
   ASSERT(value != TMP2);
-
-  str(value, dest);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1124,6 +1162,25 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
 }
 
+void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
+                                                   const Address& dest,
+                                                   Register value) {
+  str(value, dest, kObjectBytes);
+#if defined(DEBUG)
+  Label done;
+  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
+
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
+      kUnsignedByte);
+  tsti(TMP, Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+  b(&done, ZERO);
+
+  Stop("Store buffer update is required");
+  Bind(&done);
+#endif  // defined(DEBUG)
+  // No store buffer update.
+}
+
 void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                int32_t offset,
                                                Register value) {
@@ -1132,6 +1189,18 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
   } else {
     AddImmediate(TMP, object, offset - kHeapObjectTag);
     StoreIntoObjectNoBarrier(object, Address(TMP), value);
+  }
+}
+
+void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(Register object,
+                                                         int32_t offset,
+                                                         Register value) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreCompressedIntoObjectNoBarrier(object, FieldAddress(object, offset),
+                                       value);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag);
+    StoreCompressedIntoObjectNoBarrier(object, Address(TMP), value);
   }
 }
 
@@ -1149,6 +1218,20 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   }
 }
 
+void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
+                                                   const Address& dest,
+                                                   const Object& value) {
+  ASSERT(IsOriginalObject(value));
+  ASSERT(IsNotTemporaryScopedHandle(value));
+  // No store buffer update.
+  if (IsSameObject(compiler::NullObject(), value)) {
+    str(NULL_REG, dest, kObjectBytes);
+  } else {
+    LoadObject(TMP2, value);
+    str(TMP2, dest, kObjectBytes);
+  }
+}
+
 void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                int32_t offset,
                                                const Object& value) {
@@ -1157,6 +1240,18 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
   } else {
     AddImmediate(TMP, object, offset - kHeapObjectTag);
     StoreIntoObjectNoBarrier(object, Address(TMP), value);
+  }
+}
+
+void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(Register object,
+                                                         int32_t offset,
+                                                         const Object& value) {
+  if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
+    StoreCompressedIntoObjectNoBarrier(object, FieldAddress(object, offset),
+                                       value);
+  } else {
+    AddImmediate(TMP, object, offset - kHeapObjectTag);
+    StoreCompressedIntoObjectNoBarrier(object, Address(TMP), value);
   }
 }
 

@@ -191,9 +191,13 @@ class ObjectPtr {
   ObjectPtr Decompress(uword heap_base) const { return *this; }
   ObjectPtr DecompressSmi() const { return *this; }
   uword heap_base() const {
+    // TODO(rmacnak): Why does Windows have trouble linking GetClassId used
+    // here?
+#if !defined(HOST_OS_WINDOWS)
     ASSERT(IsHeapObject());
     ASSERT(!IsInstructions());
     ASSERT(!IsInstructionsSection());
+#endif
     return tagged_pointer_ & kHeapBaseMask;
   }
 

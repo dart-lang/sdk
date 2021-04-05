@@ -10982,18 +10982,18 @@ class RegExp : public Instance {
   }
 
   StringPtr pattern() const { return untag()->pattern(); }
-  SmiPtr num_bracket_expressions() const {
-    return untag()->num_bracket_expressions();
+  intptr_t num_bracket_expressions() const {
+    return untag()->num_bracket_expressions_;
   }
   ArrayPtr capture_name_map() const { return untag()->capture_name_map(); }
 
   TypedDataPtr bytecode(bool is_one_byte, bool sticky) const {
     if (sticky) {
-      return TypedData::RawCast(is_one_byte ? untag()->one_byte_sticky_
-                                            : untag()->two_byte_sticky_);
+      return TypedData::RawCast(is_one_byte ? untag()->one_byte_sticky()
+                                            : untag()->two_byte_sticky());
     } else {
-      return TypedData::RawCast(is_one_byte ? untag()->one_byte_
-                                            : untag()->two_byte_);
+      return TypedData::RawCast(is_one_byte ? untag()->one_byte()
+                                            : untag()->two_byte());
     }
   }
 
@@ -11026,13 +11026,33 @@ class RegExp : public Instance {
     return -1;
   }
 
-  FunctionPtr* FunctionAddr(intptr_t cid, bool sticky) const {
-    return reinterpret_cast<FunctionPtr*>(
-        FieldAddrAtOffset(function_offset(cid, sticky)));
-  }
-
   FunctionPtr function(intptr_t cid, bool sticky) const {
-    return *FunctionAddr(cid, sticky);
+    if (sticky) {
+      switch (cid) {
+        case kOneByteStringCid:
+          return static_cast<FunctionPtr>(untag()->one_byte_sticky());
+        case kTwoByteStringCid:
+          return static_cast<FunctionPtr>(untag()->two_byte_sticky());
+        case kExternalOneByteStringCid:
+          return static_cast<FunctionPtr>(untag()->external_one_byte_sticky());
+        case kExternalTwoByteStringCid:
+          return static_cast<FunctionPtr>(untag()->external_two_byte_sticky());
+      }
+    } else {
+      switch (cid) {
+        case kOneByteStringCid:
+          return static_cast<FunctionPtr>(untag()->one_byte());
+        case kTwoByteStringCid:
+          return static_cast<FunctionPtr>(untag()->two_byte());
+        case kExternalOneByteStringCid:
+          return static_cast<FunctionPtr>(untag()->external_one_byte());
+        case kExternalTwoByteStringCid:
+          return static_cast<FunctionPtr>(untag()->external_two_byte());
+      }
+    }
+
+    UNREACHABLE();
+    return Function::null();
   }
 
   void set_pattern(const String& pattern) const;
@@ -11426,7 +11446,7 @@ inline void Type::SetHash(intptr_t value) const {
 
 inline intptr_t FunctionType::Hash() const {
   ASSERT(IsFinalized());
-  intptr_t result = Smi::Value(untag()->hash_);
+  intptr_t result = Smi::Value(untag()->hash());
   if (result != 0) {
     return result;
   }

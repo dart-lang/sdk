@@ -40,8 +40,8 @@ class GCCompactor : public ValueObject,
   void ForwardPointer(ObjectPtr* ptr);
   void ForwardCompressedPointer(uword heap_base, CompressedObjectPtr* ptr);
   void VisitTypedDataViewPointers(TypedDataViewPtr view,
-                                  ObjectPtr* first,
-                                  ObjectPtr* last);
+                                  CompressedObjectPtr* first,
+                                  CompressedObjectPtr* last);
   void VisitPointers(ObjectPtr* first, ObjectPtr* last);
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,

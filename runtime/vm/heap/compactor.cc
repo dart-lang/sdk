@@ -275,7 +275,7 @@ void GCCompactor::Compact(OldPage* pages,
     for (intptr_t i = 0; i < length; ++i) {
       auto raw_view = typed_data_views_[i];
       const classid_t cid =
-          raw_view->untag()->typed_data_->GetClassIdMayBeSmi();
+          raw_view->untag()->typed_data()->GetClassIdMayBeSmi();
 
       // If we have external typed data we can simply return, since the backing
       // store lives in C-heap and will not move. Otherwise we have to update
@@ -668,12 +668,12 @@ void GCCompactor::ForwardCompressedPointer(uword heap_base,
 }
 
 void GCCompactor::VisitTypedDataViewPointers(TypedDataViewPtr view,
-                                             ObjectPtr* first,
-                                             ObjectPtr* last) {
+                                             CompressedObjectPtr* first,
+                                             CompressedObjectPtr* last) {
   // First we forward all fields of the typed data view.
-  ObjectPtr old_backing = view->untag()->typed_data_;
-  VisitPointers(first, last);
-  ObjectPtr new_backing = view->untag()->typed_data_;
+  ObjectPtr old_backing = view->untag()->typed_data();
+  VisitCompressedPointers(view->heap_base(), first, last);
+  ObjectPtr new_backing = view->untag()->typed_data();
 
   const bool backing_moved = old_backing != new_backing;
   if (backing_moved) {
@@ -694,9 +694,9 @@ void GCCompactor::VisitTypedDataViewPointers(TypedDataViewPtr view,
     // The backing store didn't move, we therefore don't need to update the
     // inner pointer.
     if (view->untag()->data_ == 0) {
-      ASSERT(RawSmiValue(view->untag()->offset_in_bytes_) == 0 &&
-             RawSmiValue(view->untag()->length_) == 0 &&
-             view->untag()->typed_data_ == Object::null());
+      ASSERT(RawSmiValue(view->untag()->offset_in_bytes()) == 0 &&
+             RawSmiValue(view->untag()->length()) == 0 &&
+             view->untag()->typed_data() == Object::null());
     }
   }
 }

@@ -28,9 +28,9 @@ class ObjectPointerVisitor {
   //
   // Range of pointers to visit 'first' <= pointer <= 'last'.
   virtual void VisitTypedDataViewPointers(TypedDataViewPtr view,
-                                          ObjectPtr* first,
-                                          ObjectPtr* last) {
-    VisitPointers(first, last);
+                                          CompressedObjectPtr* first,
+                                          CompressedObjectPtr* last) {
+    VisitCompressedPointers(view->heap_base(), first, last);
   }
 
   // Range of pointers to visit 'first' <= pointer <= 'last'.
