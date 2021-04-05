@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Code for reading an HTML API description.
 import 'dart:io';
 
@@ -77,8 +75,8 @@ class ApiReader {
     Api api;
     var versions = <String>[];
     var domains = <Domain>[];
-    Types types;
-    Refactorings refactorings;
+    var types = Types({}, null);
+    var refactorings = Refactorings([], null);
     recurse(html, 'api', {
       'domain': (dom.Element element) {
         domains.add(domainFromHtml(element));
@@ -111,6 +109,10 @@ class ApiReader {
       {List<String> optionalAttributes = const []}) {
     var attributesFound = <String>{};
     element.attributes.forEach((name, value) {
+      if (name is! String) {
+        throw Exception(
+            '$context: Only string attribute names expected: $name');
+      }
       if (!requiredAttributes.contains(name) &&
           !optionalAttributes.contains(name)) {
         throw Exception(
@@ -127,7 +129,7 @@ class ApiReader {
   }
 
   /// Check that the given [element] has the given [expectedName].
-  void checkName(dom.Element element, String expectedName, [String context]) {
+  void checkName(dom.Element element, String expectedName, [String? context]) {
     if (element.localName != expectedName) {
       context ??= element.localName;
       throw Exception(
@@ -145,19 +147,22 @@ class ApiReader {
   /// Child elements can occur in any order.
   Domain domainFromHtml(dom.Element html) {
     checkName(html, 'domain');
+
     var name = html.attributes['name'];
-    var context = name ?? 'domain';
+    if (name == null) {
+      throw Exception('domains: name not specified');
+    }
+
     var experimental = html.attributes['experimental'] == 'true';
-    checkAttributes(html, ['name'], context,
-        optionalAttributes: ['experimental']);
+    checkAttributes(html, ['name'], name, optionalAttributes: ['experimental']);
     var requests = <Request>[];
     var notifications = <Notification>[];
-    recurse(html, context, {
+    recurse(html, name, {
       'request': (dom.Element child) {
-        requests.add(requestFromHtml(child, context));
+        requests.add(requestFromHtml(child, name));
       },
       'notification': (dom.Element child) {
-        notifications.add(notificationFromHtml(child, context));
+        notifications.add(notificationFromHtml(child, name));
       }
     });
     return Domain(name, requests, notifications, html,
@@ -190,18 +195,30 @@ class ApiReader {
   /// Child elements can occur in any order.
   Notification notificationFromHtml(dom.Element html, String context) {
     var domainName = getAncestor(html, 'domain', context).attributes['name'];
+    if (domainName == null) {
+      throw Exception('$context: domain not specified');
+    }
+
     checkName(html, 'notification', context);
+
     var event = html.attributes['event'];
-    context = '$context.${event ?? 'event'}';
-    checkAttributes(html, ['event'], context,
-        optionalAttributes: ['experimental']);
-    var experimental = html.attributes['experimental'] == 'true';
-    TypeObject params;
+    if (event == null) {
+      throw Exception('$context: event not specified');
+    }
+
+    context = '$context.$event';
+
+    TypeObject? params;
     recurse(html, context, {
       'params': (dom.Element child) {
         params = typeObjectFromHtml(child, '$context.params');
       }
     });
+
+    checkAttributes(html, ['event'], context,
+        optionalAttributes: ['experimental']);
+    var experimental = html.attributes['experimental'] == 'true';
+
     return Notification(domainName, event, params, html,
         experimental: experimental);
   }
@@ -255,25 +272,29 @@ class ApiReader {
       },
       'map': (dom.Element child) {
         checkAttributes(child, [], context);
-        TypeDecl keyType;
-        TypeDecl valueType;
+        TypeDecl? keyTypeNullable;
+        TypeDecl? valueTypeNullable;
         recurse(child, context, {
           'key': (dom.Element child) {
-            if (keyType != null) {
+            if (keyTypeNullable != null) {
               throw Exception('$context: Key type already specified');
             }
-            keyType = processContentsAsType(child, '$context.key');
+            keyTypeNullable = processContentsAsType(child, '$context.key');
           },
           'value': (dom.Element child) {
-            if (valueType != null) {
+            if (valueTypeNullable != null) {
               throw Exception('$context: Value type already specified');
             }
-            valueType = processContentsAsType(child, '$context.value');
+            valueTypeNullable = processContentsAsType(child, '$context.value');
           }
         });
-        if (keyType == null) {
-          throw Exception('$context: Key type not specified');
+        var keyType = keyTypeNullable;
+        if (keyType is! TypeReference) {
+          throw Exception(
+            '$context: Key type not specified, or not a reference',
+          );
         }
+        var valueType = valueTypeNullable;
         if (valueType == null) {
           throw Exception('$context: Value type not specified');
         }
@@ -288,7 +309,7 @@ class ApiReader {
       },
       'union': (dom.Element child) {
         checkAttributes(child, ['field'], context);
-        var field = child.attributes['field'];
+        var field = child.attributes['field']!;
         types.add(
             TypeUnion(processContentsAsTypes(child, context), field, child));
       }
@@ -301,7 +322,7 @@ class ApiReader {
     var htmlContents = File(filePath).readAsStringSync();
     var document = parser.parse(htmlContents);
     var htmlElement = document.children
-        .singleWhere((element) => element.localName.toLowerCase() == 'html');
+        .singleWhere((element) => element.localName!.toLowerCase() == 'html');
     return apiFromHtml(htmlElement);
   }
 
@@ -314,8 +335,9 @@ class ApiReader {
     }
     for (var node in parent.nodes) {
       if (node is dom.Element) {
-        if (elementProcessors.containsKey(node.localName)) {
-          elementProcessors[node.localName](node);
+        var processor = elementProcessors[node.localName];
+        if (processor != null) {
+          processor(node);
         } else if (specialElements.contains(node.localName)) {
           throw Exception('$context: Unexpected use of <${node.localName}>');
         } else {
@@ -338,17 +360,21 @@ class ApiReader {
   /// Child elements can occur in any order.
   Refactoring refactoringFromHtml(dom.Element html) {
     checkName(html, 'refactoring');
+
     var kind = html.attributes['kind'];
-    var context = kind ?? 'refactoring';
-    checkAttributes(html, ['kind'], context);
-    TypeObject feedback;
-    TypeObject options;
-    recurse(html, context, {
+    if (kind == null) {
+      throw Exception('refactorings: kind not specified');
+    }
+
+    checkAttributes(html, ['kind'], kind);
+    TypeObject? feedback;
+    TypeObject? options;
+    recurse(html, kind, {
       'feedback': (dom.Element child) {
-        feedback = typeObjectFromHtml(child, '$context.feedback');
+        feedback = typeObjectFromHtml(child, '$kind.feedback');
       },
       'options': (dom.Element child) {
-        options = typeObjectFromHtml(child, '$context.options');
+        options = typeObjectFromHtml(child, '$kind.options');
       }
     });
     return Refactoring(kind, feedback, options, html);
@@ -387,15 +413,24 @@ class ApiReader {
   /// Child elements can occur in any order.
   Request requestFromHtml(dom.Element html, String context) {
     var domainName = getAncestor(html, 'domain', context).attributes['name'];
+    if (domainName == null) {
+      throw Exception('$context: domain not specified');
+    }
+
     checkName(html, 'request', context);
+
     var method = html.attributes['method'];
-    context = '$context.${method ?? 'method'}';
+    if (method == null) {
+      throw Exception('$context: method not specified');
+    }
+
+    context = '$context.$method}';
     checkAttributes(html, ['method'], context,
         optionalAttributes: ['experimental', 'deprecated']);
     var experimental = html.attributes['experimental'] == 'true';
     var deprecated = html.attributes['deprecated'] == 'true';
-    TypeObject params;
-    TypeObject result;
+    TypeObject? params;
+    TypeObject? result;
     recurse(html, context, {
       'params': (dom.Element child) {
         params = typeObjectFromHtml(child, '$context.params');
@@ -419,11 +454,15 @@ class ApiReader {
   /// Child elements can occur in any order.
   TypeDefinition typeDefinitionFromHtml(dom.Element html) {
     checkName(html, 'type');
+
     var name = html.attributes['name'];
-    var context = name ?? 'type';
-    checkAttributes(html, ['name'], context,
+    if (name == null) {
+      throw Exception('types: name not specified');
+    }
+
+    checkAttributes(html, ['name'], name,
         optionalAttributes: ['experimental', 'deprecated']);
-    var type = processContentsAsType(html, context);
+    var type = processContentsAsType(html, name);
     var experimental = html.attributes['experimental'] == 'true';
     var deprecated = html.attributes['deprecated'] == 'true';
     return TypeDefinition(name, type, html,
@@ -484,8 +523,13 @@ class ApiReader {
   /// Child elements can occur in any order.
   TypeObjectField typeObjectFieldFromHtml(dom.Element html, String context) {
     checkName(html, 'field', context);
+
     var name = html.attributes['name'];
-    context = '$context.${name ?? 'field'}';
+    if (name == null) {
+      throw Exception('$context: name not specified');
+    }
+
+    context = '$context.$name}';
     checkAttributes(html, ['name'], context,
         optionalAttributes: [
           'optional',
@@ -556,7 +600,7 @@ class ApiReader {
         var api = reader.readApi();
         for (var typeDefinition in api.types) {
           typeDefinition.isExternal = true;
-          childElements.add(typeDefinition.html);
+          childElements.add(typeDefinition.html!);
           typeMap[typeDefinition.name] = typeDefinition;
         }
       },

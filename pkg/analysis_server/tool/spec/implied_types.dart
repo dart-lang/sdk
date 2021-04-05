@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Code for enumerating the set of types implied by the API.
 import 'package:analyzer_utilities/tools.dart';
 
@@ -18,7 +16,7 @@ Map<String, ImpliedType> computeImpliedTypes(Api api) {
 class ImpliedType {
   final String camelName;
   final String humanReadableName;
-  final TypeDecl type;
+  final TypeDecl? type;
 
   /// Kind of implied type this is.  One of:
   /// - 'requestParams'
@@ -41,7 +39,7 @@ class _ImpliedTypesVisitor extends HierarchicalApiVisitor {
 
   _ImpliedTypesVisitor(Api api) : super(api);
 
-  void storeType(String name, String nameSuffix, TypeDecl type, String kind,
+  void storeType(String name, String? nameSuffix, TypeDecl? type, String kind,
       ApiNode apiNode) {
     var humanReadableName = name;
     var camelNameParts = name.split('.');

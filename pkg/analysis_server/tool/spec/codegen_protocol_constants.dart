@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer_utilities/tools.dart';
 
 import 'api.dart';
@@ -64,6 +62,15 @@ class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
     codeGeneratorSettings.languageName = 'dart';
   }
 
+  /// Generate the given [constant].
+  void generateConstant(_Constant constant) {
+    write('const String ');
+    write(constant.name);
+    write(' = ');
+    write(constant.value);
+    writeln(';');
+  }
+
   /// Generate all of the constants associates with the [api].
   void generateConstants() {
     writeln("const String PROTOCOL_VERSION = '${api.version}';");
@@ -73,17 +80,8 @@ class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
     var constants = visitor.constants;
     constants.sort((first, second) => first.name.compareTo(second.name));
     for (var constant in constants) {
-      generateContant(constant);
+      generateConstant(constant);
     }
-  }
-
-  /// Generate the given [constant].
-  void generateContant(_Constant constant) {
-    write('const String ');
-    write(constant.name);
-    write(' = ');
-    write(constant.value);
-    writeln(';');
   }
 
   @override
@@ -141,7 +139,7 @@ class _ConstantVisitor extends HierarchicalApiVisitor {
   /// Generate a constant for each of the fields in the given [type], where the
   /// name of each constant will be composed from the [parentName] and the name
   /// of the field.
-  void _addFieldConstants(String parentName, TypeObject type) {
+  void _addFieldConstants(String parentName, TypeObject? type) {
     if (type == null) {
       return;
     }

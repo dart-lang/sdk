@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Code generation for the file "AnalysisServer.java".
 import 'package:analyzer_utilities/tools.dart';
 
@@ -167,14 +165,18 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
       }));
       write('public void $methodName(');
       var arguments = <String>[];
-      if (request.params != null) {
-        for (var field in request.params.fields) {
+
+      var params = request.params;
+      if (params != null) {
+        for (var field in params.fields) {
           arguments.add('${javaType(field.type)} ${javaName(field.name)}');
         }
       }
+
       if (request.result != null) {
         arguments.add('${consumerName(request)} consumer');
       }
+
       write(arguments.join(', '));
       writeln(');');
     });
