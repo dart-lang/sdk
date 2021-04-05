@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -32,15 +30,15 @@ class BazelChangesTest extends AbstractAnalysisServerIntegrationTest {
   /// Path to the `command.log` file.
   ///
   /// Writing to it should trigger our change detection to run.
-  String commandLogPath;
+  late String commandLogPath;
 
-  String bazelRoot;
-  String tmpPath;
-  String workspacePath;
-  String bazelOutPath;
-  String bazelBinPath;
-  String bazelGenfilesPath;
-  Directory oldSourceDirectory;
+  late String bazelRoot;
+  late String tmpPath;
+  late String workspacePath;
+  late String bazelOutPath;
+  late String bazelBinPath;
+  late String bazelGenfilesPath;
+  late Directory oldSourceDirectory;
 
   String inTmpDir(String relative) =>
       path.join(tmpPath, relative.replaceAll('/', path.separator));

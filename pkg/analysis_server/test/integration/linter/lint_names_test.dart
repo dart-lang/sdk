@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/features.dart';
@@ -18,7 +16,6 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:linter/src/rules.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -50,22 +47,24 @@ void main() {
   });
 }
 
-List<LintRule> _registeredLints;
+List<LintRule>? _registeredLints;
 
 Iterable<String> get registeredLintNames => registeredLints.map((r) => r.name);
 
 List<LintRule> get registeredLints {
-  if (_registeredLints == null) {
+  var registeredLints = _registeredLints;
+  if (registeredLints == null) {
     if (Registry.ruleRegistry.isEmpty) {
       registerLintRules();
     }
-    _registeredLints = Registry.ruleRegistry.toList();
+    registeredLints = Registry.ruleRegistry.toList();
+    _registeredLints = registeredLints;
   }
-  return _registeredLints;
+  return registeredLints;
 }
 
 class CompilationUnitParser {
-  CompilationUnit parse({@required String contents, @required String name}) {
+  CompilationUnit parse({required String contents, required String name}) {
     var reader = CharSequenceReader(contents);
     var stringSource = StringSource(contents, name);
     var errorListener = _ErrorListener();

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -23,13 +21,13 @@ void main() {
 class AnalysisGetImportElementsIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   /// Pathname of the file containing Dart code.
-  String pathname;
+  late String pathname;
 
   /// Check that an edit.importElements request with the given list of
   /// [elements] produces the [expected] list of edits.
   Future<void> checkEdits(
       List<ImportedElements> elements, List<SourceEdit> expected,
-      {String expectedFile}) async {
+      {String? expectedFile}) async {
     bool equals(SourceEdit actualEdit, SourceEdit expectedEdit) {
       return actualEdit.offset == expectedEdit.offset &&
           actualEdit.length == expectedEdit.length &&
@@ -48,8 +46,7 @@ class AnalysisGetImportElementsIntegrationTest
 
     var result = await sendEditImportElements(pathname, elements);
 
-    var edit = result.edit;
-    expect(edit, isNotNull);
+    var edit = result.edit!;
     if (expectedFile == null) {
       expect(edit.file, pathname);
     } else {

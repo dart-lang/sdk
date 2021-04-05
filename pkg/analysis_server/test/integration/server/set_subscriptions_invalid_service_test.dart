@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,15 +16,13 @@ void main() {
 @reflectiveTest
 class SetSubscriptionsInvalidTest
     extends AbstractAnalysisServerIntegrationTest {
-  Future<void> test_setSubscriptions_invalidService() {
+  Future<void> test_setSubscriptions_invalidService() async {
     // TODO(paulberry): verify that if an invalid service is specified, the
     // current subscriptions are unchanged.
-    return server.send('server.setSubscriptions', {
-      'subscriptions': ['bogus']
-    }).then((_) {
-      fail('setSubscriptions should have produced an error');
-    }, onError: (error) {
-      // The expected error occurred.
-    });
+    expect(() async {
+      await server.send('server.setSubscriptions', {
+        'subscriptions': ['bogus']
+      });
+    }, throwsA(const TypeMatcher<ServerErrorMessage>()));
   }
 }
