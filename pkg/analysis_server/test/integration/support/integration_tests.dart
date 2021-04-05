@@ -139,6 +139,16 @@ abstract class AbstractAnalysisServerIntegrationTest
     server.debugStdio();
   }
 
+  /// If there was a set of errors (might be empty) received for the file
+  /// with the given [path], return it. If no errors - fail.
+  List<AnalysisError> existingErrorsForFile(String path) {
+    var errors = currentAnalysisErrors[path];
+    if (errors == null) {
+      fail('Expected errors for: $path');
+    }
+    return errors;
+  }
+
   List<AnalysisError>? getErrors(String pathname) =>
       currentAnalysisErrors[pathname];
 

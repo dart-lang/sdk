@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -19,7 +17,7 @@ void main() {
 
 @reflectiveTest
 class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
-  Map<HighlightRegionType, Set<String>> highlights;
+  late Map<HighlightRegionType, Set<String>> highlights;
 
   void check(HighlightRegionType type, List<String> expected) {
     expect(highlights[type], equals(expected.toSet()));
@@ -41,10 +39,7 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
         var endIndex = startIndex + region.length;
         var highlightedText = text.substring(startIndex, endIndex);
         var type = region.type;
-        if (!highlights.containsKey(type)) {
-          highlights[type] = <String>{};
-        }
-        highlights[type].add(highlightedText);
+        highlights.putIfAbsent(type, () => {}).add(highlightedText);
       }
     });
     await analysisFinished;
@@ -52,8 +47,8 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
 
   @override
   Future startServer({
-    int diagnosticPort,
-    int servicesPort,
+    int? diagnosticPort,
+    int? servicesPort,
   }) {
     return server.start(
         diagnosticPort: diagnosticPort,
