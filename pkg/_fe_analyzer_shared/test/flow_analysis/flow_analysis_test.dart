@@ -443,11 +443,11 @@ main() {
         x.expr.as_('int').stmt,
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
-        branchTarget((t) => do_([
-              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
-              checkNotPromoted(x),
-              x.write(expr('Null')).stmt,
-            ], expr('bool'))),
+        do_([
+          getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
+          checkNotPromoted(x),
+          x.write(expr('Null')).stmt,
+        ], expr('bool')),
       ]);
     });
 
@@ -473,19 +473,19 @@ main() {
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
-        branchTarget((t) => do_(
-                [
-                  if_(x.expr.notEq(nullLiteral), [
-                    continue_(t),
-                  ]),
-                  return_(),
-                  checkReachable(false),
-                  checkNotPromoted(x),
-                ],
-                block([
-                  checkReachable(true),
-                  checkPromoted(x, 'int'),
-                ]).thenExpr(expr('bool')))),
+        do_(
+            [
+              if_(x.expr.notEq(nullLiteral), [
+                continue_(),
+              ]),
+              return_(),
+              checkReachable(false),
+              checkNotPromoted(x),
+            ],
+            block([
+              checkReachable(true),
+              checkPromoted(x, 'int'),
+            ]).thenExpr(expr('bool'))),
       ]);
     });
 
@@ -494,8 +494,7 @@ main() {
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
-        branchTarget((t) =>
-            do_([], checkNotPromoted(x).thenExpr(x.expr.eq(nullLiteral)))),
+        do_([], checkNotPromoted(x).thenExpr(x.expr.eq(nullLiteral))),
         checkPromoted(x, 'int'),
       ]);
     });
@@ -697,23 +696,23 @@ main() {
         declare(x, initialized: true),
         declare(y, initialized: true),
         declare(z, initialized: true),
-        branchTarget((t) => for_(
-                null,
-                expr('bool'),
-                block([
-                  checkPromoted(x, 'int'),
-                  checkNotPromoted(y),
-                  checkNotPromoted(z),
-                ]).thenExpr(expr('Null')),
-                [
-                  if_(expr('bool'), [
-                    x.expr.as_('int').stmt,
-                    y.expr.as_('int').stmt,
-                    continue_(t),
-                  ]),
-                  x.expr.as_('int').stmt,
-                  z.expr.as_('int').stmt,
-                ])),
+        for_(
+            null,
+            expr('bool'),
+            block([
+              checkPromoted(x, 'int'),
+              checkNotPromoted(y),
+              checkNotPromoted(z),
+            ]).thenExpr(expr('Null')),
+            [
+              if_(expr('bool'), [
+                x.expr.as_('int').stmt,
+                y.expr.as_('int').stmt,
+                continue_(),
+              ]),
+              x.expr.as_('int').stmt,
+              z.expr.as_('int').stmt,
+            ]),
       ]);
     });
 
@@ -729,14 +728,13 @@ main() {
         declare(x, initialized: true),
         declare(y, initialized: true),
         declare(z, initialized: true),
-        branchTarget((t) => for_(
-                null, x.expr.eq(nullLiteral).or(z.expr.eq(nullLiteral)), null, [
-              if_(expr('bool'), [
-                x.expr.as_('int').stmt,
-                y.expr.as_('int').stmt,
-                break_(t),
-              ]),
-            ])),
+        for_(null, x.expr.eq(nullLiteral).or(z.expr.eq(nullLiteral)), null, [
+          if_(expr('bool'), [
+            x.expr.as_('int').stmt,
+            y.expr.as_('int').stmt,
+            break_(),
+          ]),
+        ]),
         checkPromoted(x, 'int'),
         checkNotPromoted(y),
         checkNotPromoted(z),
@@ -752,14 +750,14 @@ main() {
       h.run([
         declare(x, initialized: true),
         declare(y, initialized: true),
-        branchTarget((t) => for_(null, expr('bool'), null, [
-              x.write(expr('int?')).stmt,
-              if_(expr('bool'), [break_(t)]),
-              getSsaNodes((nodes) {
-                xSsaInsideLoop = nodes[x]!;
-                ySsaInsideLoop = nodes[y]!;
-              }),
-            ])),
+        for_(null, expr('bool'), null, [
+          x.write(expr('int?')).stmt,
+          if_(expr('bool'), [break_()]),
+          getSsaNodes((nodes) {
+            xSsaInsideLoop = nodes[x]!;
+            ySsaInsideLoop = nodes[y]!;
+          }),
+        ]),
         getSsaNodes((nodes) {
           // x's Ssa should have been changed because of the join at the end of
           // of the loop.  y's should not, since it retains the value it had
@@ -781,15 +779,15 @@ main() {
       h.run([
         declare(x, initialized: true),
         declare(y, initialized: true),
-        branchTarget((t) => for_(null, expr('bool'), null, [
-              x.write(expr('int?')).stmt,
-              if_(expr('bool'), [break_(t)]),
-              if_(x.expr.is_('int'), []),
-              getSsaNodes((nodes) {
-                xSsaInsideLoop = nodes[x]!;
-                ySsaInsideLoop = nodes[y]!;
-              }),
-            ])),
+        for_(null, expr('bool'), null, [
+          x.write(expr('int?')).stmt,
+          if_(expr('bool'), [break_()]),
+          if_(x.expr.is_('int'), []),
+          getSsaNodes((nodes) {
+            xSsaInsideLoop = nodes[x]!;
+            ySsaInsideLoop = nodes[y]!;
+          }),
+        ]),
         getSsaNodes((nodes) {
           // x's Ssa should have been changed because of the join at the end of
           // the loop.  y's should not, since it retains the value it had prior
@@ -867,12 +865,12 @@ main() {
       h.run([
         declare(x, initialized: false),
         checkUnassigned(x, true),
-        branchTarget((t) => forEachWithNonVariable(expr('List<int>'), [
-              // Since a write to x occurs somewhere in the loop, x should no
-              // longer be considered unassigned.
-              checkUnassigned(x, false),
-              break_(t), x.write(expr('int')).stmt,
-            ])),
+        forEachWithNonVariable(expr('List<int>'), [
+          // Since a write to x occurs somewhere in the loop, x should no
+          // longer be considered unassigned.
+          checkUnassigned(x, false),
+          break_(), x.write(expr('int')).stmt,
+        ]),
         // Even though the write to x is unreachable (since it occurs after a
         // break), x should still be considered "possibly assigned" because of
         // the conservative join done at the top of the loop.
@@ -1050,15 +1048,15 @@ main() {
     test('handleBreak handles deep nesting', () {
       var h = Harness();
       h.run([
-        branchTarget((t) => while_(booleanLiteral(true), [
-              if_(expr('bool'), [
-                if_(expr('bool'), [
-                  break_(t),
-                ]),
-              ]),
-              return_(),
-              checkReachable(false),
-            ])),
+        while_(booleanLiteral(true), [
+          if_(expr('bool'), [
+            if_(expr('bool'), [
+              break_(),
+            ]),
+          ]),
+          return_(),
+          checkReachable(false),
+        ]),
         checkReachable(true),
       ]);
     });
@@ -1066,16 +1064,16 @@ main() {
     test('handleBreak handles mixed nesting', () {
       var h = Harness();
       h.run([
-        branchTarget((t) => while_(booleanLiteral(true), [
-              if_(expr('bool'), [
-                if_(expr('bool'), [
-                  break_(t),
-                ]),
-                break_(t),
-              ]),
-              break_(t),
-              checkReachable(false),
-            ])),
+        while_(booleanLiteral(true), [
+          if_(expr('bool'), [
+            if_(expr('bool'), [
+              break_(),
+            ]),
+            break_(),
+          ]),
+          break_(),
+          checkReachable(false),
+        ]),
         checkReachable(true),
       ]);
     });
@@ -1083,15 +1081,15 @@ main() {
     test('handleContinue handles deep nesting', () {
       var h = Harness();
       h.run([
-        branchTarget((t) => do_([
-              if_(expr('bool'), [
-                if_(expr('bool'), [
-                  continue_(t),
-                ]),
-              ]),
-              return_(),
-              checkReachable(false),
-            ], checkReachable(true).thenExpr(booleanLiteral(true)))),
+        do_([
+          if_(expr('bool'), [
+            if_(expr('bool'), [
+              continue_(),
+            ]),
+          ]),
+          return_(),
+          checkReachable(false),
+        ], checkReachable(true).thenExpr(booleanLiteral(true))),
         checkReachable(false),
       ]);
     });
@@ -1099,16 +1097,16 @@ main() {
     test('handleContinue handles mixed nesting', () {
       var h = Harness();
       h.run([
-        branchTarget((t) => do_([
-              if_(expr('bool'), [
-                if_(expr('bool'), [
-                  continue_(t),
-                ]),
-                continue_(t),
-              ]),
-              continue_(t),
-              checkReachable(false),
-            ], checkReachable(true).thenExpr(booleanLiteral(true)))),
+        do_([
+          if_(expr('bool'), [
+            if_(expr('bool'), [
+              continue_(),
+            ]),
+            continue_(),
+          ]),
+          continue_(),
+          checkReachable(false),
+        ], checkReachable(true).thenExpr(booleanLiteral(true))),
         checkReachable(false),
       ]);
     });
@@ -1530,7 +1528,7 @@ main() {
       h.run([
         declare(x, initialized: true),
         if_(x.expr.isNot('int'), [
-          labeled(return_()),
+          labeled((_) => return_()),
         ]),
         checkPromoted(x, 'int'),
       ]);
@@ -1542,12 +1540,12 @@ main() {
       h.run([
         declare(x, initialized: true),
         if_(x.expr.isNot('int'), [
-          branchTarget((t) => labeled(block([
+          labeled((t) => block([
                 if_(expr('bool'), [
                   break_(t),
                 ]),
                 return_(),
-              ]))),
+              ])),
         ]),
         checkNotPromoted(x),
       ]);
@@ -1926,16 +1924,16 @@ main() {
         declare(z, initialized: true),
         y.expr.as_('int').stmt,
         z.expr.as_('int').stmt,
-        branchTarget((t) => switch_(
+        switch_(
             expr('Null'),
             [
               case_([
                 x.expr.as_('int').stmt,
                 y.write(expr('int?')).stmt,
-                break_(t),
+                break_(),
               ]),
             ],
-            isExhaustive: false)),
+            isExhaustive: false),
         checkNotPromoted(x),
         checkNotPromoted(y),
         checkPromoted(z, 'int'),
@@ -1956,23 +1954,23 @@ main() {
         x.expr.as_('int').stmt,
         y.expr.as_('int').stmt,
         z.expr.as_('int').stmt,
-        branchTarget((t) => switch_(
+        switch_(
             expr('Null'),
             [
               case_([
                 w.expr.as_('int').stmt,
                 y.expr.as_('int').stmt,
                 x.write(expr('int?')).stmt,
-                break_(t),
+                break_(),
               ]),
               case_([
                 w.expr.as_('int').stmt,
                 x.expr.as_('int').stmt,
                 y.write(expr('int?')).stmt,
-                break_(t),
+                break_(),
               ]),
             ],
-            isExhaustive: true)),
+            isExhaustive: true),
         checkPromoted(w, 'int'),
         checkNotPromoted(x),
         checkNotPromoted(y),
@@ -1985,16 +1983,16 @@ main() {
       var x = Var('x', 'int?');
       h.run([
         declare(x, initialized: true),
-        branchTarget((t) => switch_(
+        switch_(
             expr('Null'),
             [
               case_([
                 x.expr.as_('int').stmt,
-                break_(t),
+                break_(),
               ]),
               case_([]),
             ],
-            isExhaustive: true)),
+            isExhaustive: true),
         checkNotPromoted(x),
       ]);
     });
@@ -2825,14 +2823,13 @@ main() {
         declare(x, initialized: true),
         declare(y, initialized: true),
         declare(z, initialized: true),
-        branchTarget(
-            (t) => while_(x.expr.eq(nullLiteral).or(z.expr.eq(nullLiteral)), [
-                  if_(expr('bool'), [
-                    x.expr.as_('int').stmt,
-                    y.expr.as_('int').stmt,
-                    break_(t),
-                  ]),
-                ])),
+        while_(x.expr.eq(nullLiteral).or(z.expr.eq(nullLiteral)), [
+          if_(expr('bool'), [
+            x.expr.as_('int').stmt,
+            y.expr.as_('int').stmt,
+            break_(),
+          ]),
+        ]),
         checkPromoted(x, 'int'),
         checkNotPromoted(y),
         checkNotPromoted(z),
@@ -2848,14 +2845,14 @@ main() {
       h.run([
         declare(x, initialized: true),
         declare(y, initialized: true),
-        branchTarget((t) => while_(expr('bool'), [
-              x.write(expr('int?')).stmt,
-              if_(expr('bool'), [break_(t)]),
-              getSsaNodes((nodes) {
-                xSsaInsideLoop = nodes[x]!;
-                ySsaInsideLoop = nodes[y]!;
-              }),
-            ])),
+        while_(expr('bool'), [
+          x.write(expr('int?')).stmt,
+          if_(expr('bool'), [break_()]),
+          getSsaNodes((nodes) {
+            xSsaInsideLoop = nodes[x]!;
+            ySsaInsideLoop = nodes[y]!;
+          }),
+        ]),
         getSsaNodes((nodes) {
           // x's Ssa should have been changed because of the join at the end of
           // the loop.  y's should not, since it retains the value it had prior
@@ -2877,15 +2874,15 @@ main() {
       h.run([
         declare(x, initialized: true),
         declare(y, initialized: true),
-        branchTarget((t) => while_(expr('bool'), [
-              x.write(expr('int?')).stmt,
-              if_(expr('bool'), [break_(t)]),
-              if_(x.expr.is_('int'), []),
-              getSsaNodes((nodes) {
-                xSsaInsideLoop = nodes[x]!;
-                ySsaInsideLoop = nodes[y]!;
-              }),
-            ])),
+        while_(expr('bool'), [
+          x.write(expr('int?')).stmt,
+          if_(expr('bool'), [break_()]),
+          if_(x.expr.is_('int'), []),
+          getSsaNodes((nodes) {
+            xSsaInsideLoop = nodes[x]!;
+            ySsaInsideLoop = nodes[y]!;
+          }),
+        ]),
         getSsaNodes((nodes) {
           // x's Ssa should have been changed because of the join at the end of
           // the loop.  y's should not, since it retains the value it had prior
