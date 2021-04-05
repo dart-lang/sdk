@@ -782,9 +782,8 @@ class Assembler : public AssemblerBase {
     kValueCanBeSmi,
   };
 
-  void LoadCompressed(Register dest,
-                      const Address& slot,
-                      CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void LoadCompressed(Register dest, const Address& slot);
+  void LoadCompressedSmi(Register dest, const Address& slot);
 
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,
@@ -795,6 +794,14 @@ class Assembler : public AssemblerBase {
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
                        CanBeSmi can_be_smi = kValueCanBeSmi);
+  void StoreCompressedIntoObject(
+      Register object,      // Object we are storing into.
+      const Address& dest,  // Where we are storing into.
+      Register value,       // Value we are storing.
+      CanBeSmi can_be_smi = kValueCanBeSmi);
+  void StoreBarrier(Register object,  // Object we are storing into.
+                    Register value,   // Value we are storing.
+                    CanBeSmi can_be_smi);
   void StoreIntoArray(Register object,  // Object we are storing into.
                       Register slot,    // Where we are storing into.
                       Register value,   // Value we are storing.
@@ -803,9 +810,15 @@ class Assembler : public AssemblerBase {
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
+  void StoreCompressedIntoObjectNoBarrier(Register object,
+                                          const Address& dest,
+                                          Register value);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
+  void StoreCompressedIntoObjectNoBarrier(Register object,
+                                          const Address& dest,
+                                          const Object& value);
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,
@@ -815,6 +828,7 @@ class Assembler : public AssemblerBase {
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
   void ZeroInitSmiField(const Address& dest);
+  void ZeroInitCompressedSmiField(const Address& dest);
   // Increments a Smi field. Leaves flags in same state as an 'addq'.
   void IncrementSmiField(const Address& dest, int64_t increment);
 
@@ -932,6 +946,9 @@ class Assembler : public AssemblerBase {
                  FieldAddress address,
                  OperandSize sz = kEightBytes) {
     LoadFromOffset(dst, address, sz);
+  }
+  void LoadCompressedField(Register dst, FieldAddress address) {
+    LoadCompressed(dst, address);
   }
   void LoadFieldFromOffset(Register dst,
                            Register base,

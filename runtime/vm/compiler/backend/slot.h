@@ -60,8 +60,9 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, function_type_arguments, TypeArguments, FINAL)   \
   V(ClosureData, UntaggedClosureData, default_type_arguments, TypeArguments,   \
     FINAL_COMPRESSED)                                                          \
-  V(Type, UntaggedType, arguments, TypeArguments, FINAL)                       \
-  V(FunctionType, UntaggedFunctionType, type_parameters, TypeArguments, FINAL) \
+  V(Type, UntaggedType, arguments, TypeArguments, FINAL_COMPRESSED)            \
+  V(FunctionType, UntaggedFunctionType, type_parameters, TypeArguments,        \
+    FINAL_COMPRESSED)                                                          \
   V(WeakProperty, UntaggedWeakProperty, key, Dynamic, VAR)                     \
   V(WeakProperty, UntaggedWeakProperty, value, Dynamic, VAR)
 
@@ -84,14 +85,17 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, context, Context, FINAL)                         \
   V(Closure, UntaggedClosure, hash, Context, VAR)                              \
   V(Function, UntaggedFunction, data, Dynamic, FINAL_COMPRESSED)               \
-  V(FunctionType, UntaggedFunctionType, parameter_names, Array, FINAL)         \
-  V(FunctionType, UntaggedFunctionType, parameter_types, Array, FINAL)         \
+  V(FunctionType, UntaggedFunctionType, parameter_names, Array,                \
+    FINAL_COMPRESSED)                                                          \
+  V(FunctionType, UntaggedFunctionType, parameter_types, Array,                \
+    FINAL_COMPRESSED)                                                          \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, length, Smi, VAR)        \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, data, Array, VAR)        \
-  V(TypedDataBase, UntaggedTypedDataBase, length, Smi, FINAL)                  \
-  V(TypedDataView, UntaggedTypedDataView, offset_in_bytes, Smi, FINAL)         \
-  V(TypedDataView, UntaggedTypedDataView, data, Dynamic, FINAL)                \
-  V(String, UntaggedString, length, Smi, FINAL)                                \
+  V(TypedDataBase, UntaggedTypedDataBase, length, Smi, FINAL_COMPRESSED)       \
+  V(TypedDataView, UntaggedTypedDataView, offset_in_bytes, Smi,                \
+    FINAL_COMPRESSED)                                                          \
+  V(TypedDataView, UntaggedTypedDataView, data, Dynamic, FINAL_COMPRESSED)     \
+  V(String, UntaggedString, length, Smi, FINAL_COMPRESSED)                     \
   V(LinkedHashMap, UntaggedLinkedHashMap, index, TypedDataUint32Array, VAR)    \
   V(LinkedHashMap, UntaggedLinkedHashMap, data, Array, VAR)                    \
   V(LinkedHashMap, UntaggedLinkedHashMap, hash_mask, Smi, VAR)                 \
@@ -103,10 +107,12 @@ class ParsedFunction;
   V(ArgumentsDescriptor, UntaggedArray, size, Smi, FINAL)                      \
   V(PointerBase, UntaggedPointerBase, data_field, Dynamic, FINAL)              \
   V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL)                  \
-  V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL)               \
-  V(TypeParameter, UntaggedTypeParameter, name, Dynamic, FINAL)                \
-  V(UnhandledException, UntaggedUnhandledException, exception, Dynamic, FINAL) \
-  V(UnhandledException, UntaggedUnhandledException, stacktrace, Dynamic, FINAL)
+  V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL_COMPRESSED)    \
+  V(TypeParameter, UntaggedTypeParameter, name, Dynamic, FINAL_COMPRESSED)     \
+  V(UnhandledException, UntaggedUnhandledException, exception, Dynamic,        \
+    FINAL_COMPRESSED)                                                          \
+  V(UnhandledException, UntaggedUnhandledException, stacktrace, Dynamic,       \
+    FINAL_COMPRESSED)
 
 // List of slots that correspond to unboxed fields of native objects in the
 // following format:

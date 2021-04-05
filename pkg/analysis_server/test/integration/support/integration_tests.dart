@@ -9,8 +9,10 @@ import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart';
+import 'package:path/path.dart' as pkg_path;
 import 'package:test/test.dart';
 
 import 'integration_test_methods.dart';
@@ -167,6 +169,7 @@ abstract class AbstractAnalysisServerIntegrationTest
     sourceDirectory = Directory(Directory.systemTemp
         .createTempSync('analysisServer')
         .resolveSymbolicLinksSync());
+    writeTestPackageConfig();
 
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
@@ -255,6 +258,40 @@ abstract class AbstractAnalysisServerIntegrationTest
     var file = File(pathname);
     file.writeAsStringSync(contents);
     return file.resolveSymbolicLinksSync();
+  }
+
+  void writePackageConfig(
+    String path, {
+    required PackageConfigFileBuilder config,
+  }) {
+    writeFile(
+      path,
+      config.toContent(
+        toUriStr: (path) => '${pkg_path.toUri(path)}',
+      ),
+    );
+  }
+
+  void writeTestPackageConfig({
+    PackageConfigFileBuilder? config,
+    String? languageVersion,
+  }) {
+    if (config == null) {
+      config = PackageConfigFileBuilder();
+    } else {
+      config = config.copy();
+    }
+
+    config.add(
+      name: 'test',
+      rootPath: sourceDirectory.path,
+      languageVersion: languageVersion,
+    );
+
+    writePackageConfig(
+      sourcePath('.dart_tool/package_config.json'),
+      config: config,
+    );
   }
 }
 

@@ -1511,7 +1511,8 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(cid_ == kOneByteStringCid);
   const Register str = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  __ LoadFieldFromOffset(result, str, String::length_offset());
+  __ LoadCompressedSmi(result,
+                       compiler::FieldAddress(str, String::length_offset()));
   __ ldr(TMP,
          compiler::FieldAddress(str, OneByteString::data_offset(),
                                 compiler::kByte),
@@ -2364,7 +2365,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // offset_reg contains offset already corrected by -kHeapObjectTag that is
     // why we use Address instead of FieldAddress.
     __ ldr(TMP, compiler::Address(value_reg, offset_reg));
-    __ CompareRegisters(length_reg, TMP);
+    __ CompareObjectRegisters(length_reg, TMP);
 
     if (deopt == NULL) {
       __ b(&ok, EQ);
@@ -2665,19 +2666,34 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&store_pointer);
   }
 
-  ASSERT(!slot().is_compressed());  // Unimplemented.
+  const bool compressed = slot().is_compressed();
   if (ShouldEmitStoreBarrier()) {
     const Register value_reg = locs()->in(1).reg();
-    __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
-                             CanValueBeSmi());
+    if (!compressed) {
+      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
+                               CanValueBeSmi());
+    } else {
+      __ StoreCompressedIntoObjectOffset(instance_reg, offset_in_bytes,
+                                         value_reg, CanValueBeSmi());
+    }
   } else {
     if (locs()->in(1).IsConstant()) {
-      __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
-                                        locs()->in(1).constant());
+      if (!compressed) {
+        __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
+                                          locs()->in(1).constant());
+      } else {
+        __ StoreCompressedIntoObjectOffsetNoBarrier(
+            instance_reg, offset_in_bytes, locs()->in(1).constant());
+      }
     } else {
       const Register value_reg = locs()->in(1).reg();
-      __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
-                                        value_reg);
+      if (!compressed) {
+        __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
+                                          value_reg);
+      } else {
+        __ StoreCompressedIntoObjectOffsetNoBarrier(instance_reg,
+                                                    offset_in_bytes, value_reg);
+      }
     }
   }
   __ Bind(&skip_store);

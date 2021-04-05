@@ -131,14 +131,14 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
     case kOneByteStringCid: {
       const OneByteStringPtr raw_string =
           static_cast<const OneByteStringPtr>(this);
-      intptr_t string_length = Smi::Value(raw_string->untag()->length_);
+      intptr_t string_length = Smi::Value(raw_string->untag()->length());
       instance_size = OneByteString::InstanceSize(string_length);
       break;
     }
     case kTwoByteStringCid: {
       const TwoByteStringPtr raw_string =
           static_cast<const TwoByteStringPtr>(this);
-      intptr_t string_length = Smi::Value(raw_string->untag()->length_);
+      intptr_t string_length = Smi::Value(raw_string->untag()->length());
       instance_size = TwoByteString::InstanceSize(string_length);
       break;
     }
@@ -160,7 +160,7 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
 #define SIZE_FROM_CLASS(clazz) case kTypedData##clazz##Cid:
       CLASS_LIST_TYPED_DATA(SIZE_FROM_CLASS) {
         const TypedDataPtr raw_obj = static_cast<const TypedDataPtr>(this);
-        intptr_t array_len = Smi::Value(raw_obj->untag()->length_);
+        intptr_t array_len = Smi::Value(raw_obj->untag()->length());
         intptr_t lengthInBytes =
             array_len * TypedData::ElementSizeInBytes(class_id);
         instance_size = TypedData::InstanceSize(lengthInBytes);
@@ -460,7 +460,7 @@ bool UntaggedObject::FindObject(FindObjectVisitor* visitor) {
       Type##Ptr raw_obj, ObjectPointerVisitor* visitor) {                      \
     /* Make sure that we got here with the tagged pointer as this. */          \
     ASSERT(raw_obj->IsHeapObject());                                           \
-    ASSERT_UNCOMPRESSED(Type);                                                 \
+    ASSERT_COMPRESSED(Type);                                                   \
     visitor->VisitTypedDataViewPointers(raw_obj, raw_obj->untag()->from(),     \
                                         raw_obj->untag()->to());               \
     return Type::InstanceSize();                                               \
@@ -535,13 +535,13 @@ COMPRESSED_VISITOR(Library)
 COMPRESSED_VISITOR(Namespace)
 COMPRESSED_VISITOR(KernelProgramInfo)
 COMPRESSED_VISITOR(WeakSerializationReference)
-REGULAR_VISITOR(Type)
-REGULAR_VISITOR(FunctionType)
-REGULAR_VISITOR(TypeRef)
-REGULAR_VISITOR(TypeParameter)
+COMPRESSED_VISITOR(Type)
+COMPRESSED_VISITOR(FunctionType)
+COMPRESSED_VISITOR(TypeRef)
+COMPRESSED_VISITOR(TypeParameter)
 COMPRESSED_VISITOR(Function)
 REGULAR_VISITOR(Closure)
-REGULAR_VISITOR(LibraryPrefix)
+COMPRESSED_VISITOR(LibraryPrefix)
 REGULAR_VISITOR(SingleTargetCache)
 REGULAR_VISITOR(UnlinkedCall)
 REGULAR_VISITOR(MonomorphicSmiableCall)
@@ -551,18 +551,18 @@ COMPRESSED_VISITOR(ApiError)
 COMPRESSED_VISITOR(LanguageError)
 COMPRESSED_VISITOR(UnhandledException)
 COMPRESSED_VISITOR(UnwindError)
-REGULAR_VISITOR(ExternalOneByteString)
-REGULAR_VISITOR(ExternalTwoByteString)
+COMPRESSED_VISITOR(ExternalOneByteString)
+COMPRESSED_VISITOR(ExternalTwoByteString)
 REGULAR_VISITOR(GrowableObjectArray)
 REGULAR_VISITOR(LinkedHashMap)
-REGULAR_VISITOR(ExternalTypedData)
+COMPRESSED_VISITOR(ExternalTypedData)
 TYPED_DATA_VIEW_VISITOR(TypedDataView)
-REGULAR_VISITOR(ReceivePort)
-REGULAR_VISITOR(StackTrace)
-REGULAR_VISITOR(RegExp)
+COMPRESSED_VISITOR(ReceivePort)
+COMPRESSED_VISITOR(StackTrace)
+COMPRESSED_VISITOR(RegExp)
 REGULAR_VISITOR(WeakProperty)
-REGULAR_VISITOR(MirrorReference)
-REGULAR_VISITOR(UserTag)
+COMPRESSED_VISITOR(MirrorReference)
+COMPRESSED_VISITOR(UserTag)
 REGULAR_VISITOR(SubtypeTestCache)
 COMPRESSED_VISITOR(LoadingUnit)
 VARIABLE_VISITOR(TypeArguments, Smi::Value(raw_obj->untag()->length_))
@@ -570,9 +570,10 @@ VARIABLE_COMPRESSED_VISITOR(LocalVarDescriptors, raw_obj->untag()->num_entries_)
 VARIABLE_COMPRESSED_VISITOR(ExceptionHandlers, raw_obj->untag()->num_entries_)
 VARIABLE_VISITOR(Context, raw_obj->untag()->num_variables_)
 VARIABLE_VISITOR(Array, Smi::Value(raw_obj->untag()->length()))
-VARIABLE_VISITOR(TypedData,
-                 TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *
-                     Smi::Value(raw_obj->untag()->length_))
+VARIABLE_COMPRESSED_VISITOR(
+    TypedData,
+    TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *
+        Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(ContextScope, raw_obj->untag()->num_variables_)
 NULL_VISITOR(Mint)
 NULL_VISITOR(Double)
@@ -583,7 +584,7 @@ NULL_VISITOR(Bool)
 NULL_VISITOR(Capability)
 NULL_VISITOR(SendPort)
 NULL_VISITOR(TransferableTypedData)
-REGULAR_VISITOR(Pointer)
+COMPRESSED_VISITOR(Pointer)
 NULL_VISITOR(DynamicLibrary)
 VARIABLE_NULL_VISITOR(Instructions, Instructions::Size(raw_obj))
 VARIABLE_NULL_VISITOR(InstructionsSection, InstructionsSection::Size(raw_obj))
@@ -591,8 +592,8 @@ VARIABLE_NULL_VISITOR(PcDescriptors, raw_obj->untag()->length_)
 VARIABLE_NULL_VISITOR(CodeSourceMap, raw_obj->untag()->length_)
 VARIABLE_NULL_VISITOR(CompressedStackMaps,
                       CompressedStackMaps::PayloadSizeOf(raw_obj))
-VARIABLE_NULL_VISITOR(OneByteString, Smi::Value(raw_obj->untag()->length_))
-VARIABLE_NULL_VISITOR(TwoByteString, Smi::Value(raw_obj->untag()->length_))
+VARIABLE_NULL_VISITOR(OneByteString, Smi::Value(raw_obj->untag()->length()))
+VARIABLE_NULL_VISITOR(TwoByteString, Smi::Value(raw_obj->untag()->length()))
 // Abstract types don't have their visitor called.
 UNREACHABLE_VISITOR(AbstractType)
 UNREACHABLE_VISITOR(CallSiteData)

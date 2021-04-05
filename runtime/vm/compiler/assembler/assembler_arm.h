@@ -389,6 +389,9 @@ class Assembler : public AssemblerBase {
   void Jump(const Address& address) { Branch(address); }
 
   void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+  void LoadCompressedField(Register dst, FieldAddress address) {
+    LoadField(dst, address);
+  }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(dst, base, offset);
   }
@@ -1026,6 +1029,9 @@ class Assembler : public AssemblerBase {
   void PopNativeCalleeSavedRegisters();
 
   void CompareRegisters(Register rn, Register rm) { cmp(rn, Operand(rm)); }
+  void CompareObjectRegisters(Register rn, Register rm) {
+    CompareRegisters(rn, rm);
+  }
   // Branches to the given label if the condition holds.
   // [distance] is ignored on ARM.
   void BranchIf(Condition condition,

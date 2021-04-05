@@ -9994,7 +9994,7 @@ void FunctionType::SetNumOptionalParameters(
 FunctionTypePtr FunctionType::New(Heap::Space space) {
   ObjectPtr raw =
       Object::Allocate(FunctionType::kClassId, FunctionType::InstanceSize(),
-                       space, /*compressed*/ false);
+                       space, /*compressed*/ true);
   return static_cast<FunctionTypePtr>(raw);
 }
 
@@ -20616,7 +20616,7 @@ void Type::set_arguments(const TypeArguments& value) const {
 
 TypePtr Type::New(Heap::Space space) {
   ObjectPtr raw = Object::Allocate(Type::kClassId, Type::InstanceSize(), space,
-                                   /*compressed*/ false);
+                                   /*compressed*/ true);
   return static_cast<TypePtr>(raw);
 }
 
@@ -21011,7 +21011,7 @@ intptr_t TypeRef::Hash() const {
 
 TypeRefPtr TypeRef::New() {
   ObjectPtr raw = Object::Allocate(TypeRef::kClassId, TypeRef::InstanceSize(),
-                                   Heap::kOld, /*compressed*/ false);
+                                   Heap::kOld, /*compressed*/ true);
   return static_cast<TypeRefPtr>(raw);
 }
 
@@ -21518,7 +21518,7 @@ intptr_t TypeParameter::ComputeHash() const {
 TypeParameterPtr TypeParameter::New() {
   ObjectPtr raw =
       Object::Allocate(TypeParameter::kClassId, TypeParameter::InstanceSize(),
-                       Heap::kOld, /*compressed*/ false);
+                       Heap::kOld, /*compressed*/ true);
   return static_cast<TypeParameterPtr>(raw);
 }
 
@@ -23190,7 +23190,7 @@ OneByteStringPtr OneByteString::New(intptr_t len, Heap::Space space) {
   {
     ObjectPtr raw = Object::Allocate(OneByteString::kClassId,
                                      OneByteString::InstanceSize(len), space,
-                                     /*compressed*/ false);
+                                     /*compressed*/ true);
     NoSafepointScope no_safepoint;
     OneByteStringPtr result = static_cast<OneByteStringPtr>(raw);
     result->untag()->set_length(Smi::New(len));
@@ -23398,7 +23398,7 @@ TwoByteStringPtr TwoByteString::New(intptr_t len, Heap::Space space) {
   {
     ObjectPtr raw = Object::Allocate(TwoByteString::kClassId,
                                      TwoByteString::InstanceSize(len), space,
-                                     /*compressed*/ false);
+                                     /*compressed*/ true);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
@@ -23555,7 +23555,7 @@ ExternalOneByteStringPtr ExternalOneByteString::New(
   {
     ObjectPtr raw = Object::Allocate(ExternalOneByteString::kClassId,
                                      ExternalOneByteString::InstanceSize(),
-                                     space, /*compressed*/ false);
+                                     space, /*compressed*/ true);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
@@ -23585,7 +23585,7 @@ ExternalTwoByteStringPtr ExternalTwoByteString::New(
   {
     ObjectPtr raw = Object::Allocate(ExternalTwoByteString::kClassId,
                                      ExternalTwoByteString::InstanceSize(),
-                                     space, /*compressed*/ false);
+                                     space, /*compressed*/ true);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
@@ -24306,7 +24306,7 @@ TypedDataPtr TypedData::New(intptr_t class_id,
     const intptr_t length_in_bytes = len * ElementSizeInBytes(class_id);
     ObjectPtr raw =
         Object::Allocate(class_id, TypedData::InstanceSize(length_in_bytes),
-                         space, /*compressed*/ false);
+                         space, /*compressed*/ true);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
@@ -24353,7 +24353,7 @@ ExternalTypedDataPtr ExternalTypedData::New(
   {
     ObjectPtr raw =
         Object::Allocate(class_id, ExternalTypedData::InstanceSize(), space,
-                         /*compressed*/ false);
+                         /*compressed*/ true);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
@@ -24375,7 +24375,7 @@ TypedDataViewPtr TypedDataView::New(intptr_t class_id, Heap::Space space) {
   auto& result = TypedDataView::Handle();
   {
     ObjectPtr raw = Object::Allocate(class_id, TypedDataView::InstanceSize(),
-                                     space, /*compressed*/ false);
+                                     space, /*compressed*/ true);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.Clear();
@@ -24497,7 +24497,7 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
   {
     ObjectPtr raw =
         Object::Allocate(ReceivePort::kClassId, ReceivePort::InstanceSize(),
-                         space, /*compressed*/ false);
+                         space, /*compressed*/ true);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.untag()->set_send_port(send_port.ptr());
@@ -24802,7 +24802,7 @@ StackTracePtr StackTrace::New(const Array& code_array,
   {
     ObjectPtr raw =
         Object::Allocate(StackTrace::kClassId, StackTrace::InstanceSize(),
-                         space, /*compressed*/ false);
+                         space, /*compressed*/ true);
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -24822,7 +24822,7 @@ StackTracePtr StackTrace::New(const Array& code_array,
   {
     ObjectPtr raw =
         Object::Allocate(StackTrace::kClassId, StackTrace::InstanceSize(),
-                         space, /*compressed*/ false);
+                         space, /*compressed*/ true);
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -25128,7 +25128,29 @@ void RegExp::set_pattern(const String& pattern) const {
 void RegExp::set_function(intptr_t cid,
                           bool sticky,
                           const Function& value) const {
-  StorePointer(FunctionAddr(cid, sticky), value.ptr());
+  if (sticky) {
+    switch (cid) {
+      case kOneByteStringCid:
+        return untag()->set_one_byte_sticky(value.ptr());
+      case kTwoByteStringCid:
+        return untag()->set_two_byte_sticky(value.ptr());
+      case kExternalOneByteStringCid:
+        return untag()->set_external_one_byte_sticky(value.ptr());
+      case kExternalTwoByteStringCid:
+        return untag()->set_external_two_byte_sticky(value.ptr());
+    }
+  } else {
+    switch (cid) {
+      case kOneByteStringCid:
+        return untag()->set_one_byte(value.ptr());
+      case kTwoByteStringCid:
+        return untag()->set_two_byte(value.ptr());
+      case kExternalOneByteStringCid:
+        return untag()->set_external_one_byte(value.ptr());
+      case kExternalTwoByteStringCid:
+        return untag()->set_external_two_byte(value.ptr());
+    }
+  }
 }
 
 void RegExp::set_bytecode(bool is_one_byte,
@@ -25149,16 +25171,8 @@ void RegExp::set_bytecode(bool is_one_byte,
   }
 }
 
-void RegExp::set_num_bracket_expressions(SmiPtr value) const {
-  untag()->set_num_bracket_expressions(value);
-}
-
-void RegExp::set_num_bracket_expressions(const Smi& value) const {
-  untag()->set_num_bracket_expressions(value.ptr());
-}
-
 void RegExp::set_num_bracket_expressions(intptr_t value) const {
-  untag()->set_num_bracket_expressions(Smi::New(value));
+  untag()->num_bracket_expressions_ = value;
 }
 
 void RegExp::set_capture_name_map(const Array& array) const {
@@ -25169,11 +25183,12 @@ RegExpPtr RegExp::New(Heap::Space space) {
   RegExp& result = RegExp::Handle();
   {
     ObjectPtr raw = Object::Allocate(RegExp::kClassId, RegExp::InstanceSize(),
-                                     space, /*compressed*/ false);
+                                     space, /*compressed*/ true);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.set_type(kUninitialized);
     result.set_flags(RegExpFlags());
+    result.set_num_bracket_expressions(-1);
     result.set_num_registers(/*is_one_byte=*/false, -1);
     result.set_num_registers(/*is_one_byte=*/true, -1);
   }
@@ -25299,7 +25314,7 @@ MirrorReferencePtr MirrorReference::New(const Object& referent,
   {
     ObjectPtr raw = Object::Allocate(MirrorReference::kClassId,
                                      MirrorReference::InstanceSize(), space,
-                                     /*compressed*/ false);
+                                     /*compressed*/ true);
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
@@ -25337,7 +25352,7 @@ UserTagPtr UserTag::New(const String& label, Heap::Space space) {
   // No tag with label exists, create and register with isolate tag table.
   {
     ObjectPtr raw = Object::Allocate(UserTag::kClassId, UserTag::InstanceSize(),
-                                     space, /*compressed*/ false);
+                                     space, /*compressed*/ true);
     NoSafepointScope no_safepoint;
     result ^= raw;
   }

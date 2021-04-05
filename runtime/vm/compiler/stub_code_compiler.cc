@@ -321,7 +321,7 @@ static void GenerateTypeIsTopTypeForSubtyping(Assembler* assembler,
   // instantiation may result in a top type.
   // Function types cannot be top types.
   __ BranchIf(NOT_EQUAL, &done);
-  __ LoadField(
+  __ LoadCompressedField(
       scratch2_reg,
       compiler::FieldAddress(scratch1_reg,
                              compiler::target::Type::type_class_id_offset()));
@@ -351,9 +351,10 @@ static void GenerateTypeIsTopTypeForSubtyping(Assembler* assembler,
   __ Ret();
   // An uncommon case, so off the main trunk of the function.
   __ Bind(&unwrap_future_or);
-  __ LoadField(scratch2_reg,
-               compiler::FieldAddress(
-                   scratch1_reg, compiler::target::Type::arguments_offset()));
+  __ LoadCompressedField(
+      scratch2_reg,
+      compiler::FieldAddress(scratch1_reg,
+                             compiler::target::Type::arguments_offset()));
   __ CompareObject(scratch2_reg, Object::null_object());
   // If the arguments are null, then unwrapping gives dynamic, a top type.
   __ BranchIf(EQUAL, &is_top_type, compiler::Assembler::kNearJump);
@@ -441,16 +442,17 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     // FutureOr is a special case because it may have the non-nullable bit set,
     // but FutureOr<T> functions as the union of T and Future<T>, so it must be
     // unwrapped to see if T is nullable.
-    __ LoadField(
+    __ LoadCompressedField(
         kScratchReg,
         compiler::FieldAddress(kCurrentTypeReg,
                                compiler::target::Type::type_class_id_offset()));
     __ SmiUntag(kScratchReg);
     __ CompareImmediate(kScratchReg, kFutureOrCid);
     __ BranchIf(NOT_EQUAL, &done);
-    __ LoadField(kScratchReg, compiler::FieldAddress(
-                                  kCurrentTypeReg,
-                                  compiler::target::Type::arguments_offset()));
+    __ LoadCompressedField(
+        kScratchReg,
+        compiler::FieldAddress(kCurrentTypeReg,
+                               compiler::target::Type::arguments_offset()));
     __ CompareObject(kScratchReg, Object::null_object());
     // If the arguments are null, then unwrapping gives the dynamic type,
     // which can take null.

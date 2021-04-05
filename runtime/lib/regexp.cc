@@ -85,7 +85,7 @@ DEFINE_NATIVE_ENTRY(RegExp_getGroupCount, 0, 1) {
   const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!regexp.IsNull());
   if (regexp.is_initialized()) {
-    return regexp.num_bracket_expressions();
+    return Smi::New(regexp.num_bracket_expressions());
   }
   const String& pattern = String::Handle(regexp.pattern());
   const String& errmsg =

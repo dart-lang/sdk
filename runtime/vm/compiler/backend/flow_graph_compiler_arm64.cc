@@ -751,7 +751,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(
     // Stub returns result in flags (result of a cmp, we need Z computed).
     __ PopPair(right, left);
   } else {
-    __ CompareRegisters(left, right);
+    __ CompareObjectRegisters(left, right);
   }
   return EQ;
 }

@@ -3638,7 +3638,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     /* R0: new object start as a tagged pointer. */
     /* R1: new object end address. */
     __ mov(R2, AllocateTypedDataArrayABI::kLengthReg); /* Array length. */
-    __ StoreIntoObjectNoBarrier(
+    __ StoreCompressedIntoObjectNoBarrier(
         R0, FieldAddress(R0, target::TypedDataBase::length_offset()), R2);
     /* Initialize all array elements to 0. */
     /* R0: new object start as a tagged pointer. */

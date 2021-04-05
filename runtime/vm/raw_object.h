@@ -2368,19 +2368,22 @@ class UntaggedInstance : public UntaggedObject {
 class UntaggedLibraryPrefix : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix);
 
-  VISIT_FROM(ObjectPtr, name)
-  POINTER_FIELD(StringPtr, name)       // Library prefix name.
-  POINTER_FIELD(ArrayPtr, imports)     // Libraries imported with this prefix.
-  POINTER_FIELD(LibraryPtr, importer)  // Library which declares this prefix.
-  VISIT_TO(ObjectPtr, importer)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) {
+  VISIT_FROM(CompressedObjectPtr, name)
+  // Library prefix name.
+  COMPRESSED_POINTER_FIELD(StringPtr, name)
+  // Libraries imported with this prefix.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, imports)
+  // Library which declares this prefix.
+  COMPRESSED_POINTER_FIELD(LibraryPtr, importer)
+  VISIT_TO(CompressedObjectPtr, importer)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<ObjectPtr*>(&imports_);
+        return reinterpret_cast<CompressedObjectPtr*>(&imports_);
       case Snapshot::kFull:
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&importer_);
+        return reinterpret_cast<CompressedObjectPtr*>(&importer_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -2428,7 +2431,7 @@ class UntaggedAbstractType : public UntaggedInstance {
   static constexpr intptr_t kTypeStateBitSize = 2;
 
   uword type_test_stub_entry_point_;  // Accessed from generated code.
-  POINTER_FIELD(
+  COMPRESSED_POINTER_FIELD(
       CodePtr,
       type_test_stub)  // Must be the last field, since subclasses use it
                        // in their VISIT_FROM.
@@ -2444,15 +2447,15 @@ class UntaggedType : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
-  VISIT_FROM(ObjectPtr, type_test_stub)
-  POINTER_FIELD(SmiPtr, type_class_id)
-  POINTER_FIELD(TypeArgumentsPtr, arguments)
-  POINTER_FIELD(SmiPtr, hash)
-  VISIT_TO(ObjectPtr, hash)
+  VISIT_FROM(CompressedObjectPtr, type_test_stub)
+  COMPRESSED_POINTER_FIELD(SmiPtr, type_class_id)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, arguments)
+  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
+  VISIT_TO(CompressedObjectPtr, hash)
   uint8_t type_state_;
   uint8_t nullability_;
 
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class CidRewriteVisitor;
   friend class UntaggedTypeArguments;
@@ -2462,13 +2465,14 @@ class UntaggedFunctionType : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(FunctionType);
 
-  VISIT_FROM(ObjectPtr, type_test_stub)
-  POINTER_FIELD(TypeArgumentsPtr, type_parameters)  // Array of TypeParameter.
-  POINTER_FIELD(AbstractTypePtr, result_type)
-  POINTER_FIELD(ArrayPtr, parameter_types)
-  POINTER_FIELD(ArrayPtr, parameter_names);
-  POINTER_FIELD(SmiPtr, hash)
-  VISIT_TO(ObjectPtr, hash)
+  VISIT_FROM(CompressedObjectPtr, type_test_stub)
+  // Array of TypeParameter.
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_parameters)
+  COMPRESSED_POINTER_FIELD(AbstractTypePtr, result_type)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_types)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_names);
+  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
+  VISIT_TO(CompressedObjectPtr, hash)
   uint32_t packed_fields_;  // Number of parent type args and own parameters.
   uint8_t type_state_;
   uint8_t nullability_;
@@ -2515,7 +2519,7 @@ class UntaggedFunctionType : public UntaggedAbstractType {
                 "a Smi on the target architecture");
 
  private:
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class Function;
 };
@@ -2524,27 +2528,27 @@ class UntaggedTypeRef : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);
 
-  VISIT_FROM(ObjectPtr, type_test_stub)
-  POINTER_FIELD(AbstractTypePtr, type)  // The referenced type.
-  VISIT_TO(ObjectPtr, type)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_FROM(CompressedObjectPtr, type_test_stub)
+  COMPRESSED_POINTER_FIELD(AbstractTypePtr, type)  // The referenced type.
+  VISIT_TO(CompressedObjectPtr, type)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class UntaggedTypeParameter : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
-  VISIT_FROM(ObjectPtr, type_test_stub)
-  POINTER_FIELD(StringPtr, name)
-  POINTER_FIELD(SmiPtr, hash)
-  POINTER_FIELD(AbstractTypePtr,
-                bound)  // ObjectType if no explicit bound specified.
+  VISIT_FROM(CompressedObjectPtr, type_test_stub)
+  COMPRESSED_POINTER_FIELD(StringPtr, name)
+  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
+  // ObjectType if no explicit bound specified.
+  COMPRESSED_POINTER_FIELD(AbstractTypePtr, bound)
   // The instantiation to bounds of this parameter as calculated by the CFE.
   //
   // TODO(dartbug.com/43901): Once a separate TypeParameters class has been
   // added, move these there and remove them from TypeParameter objects.
-  POINTER_FIELD(AbstractTypePtr, default_argument)
-  VISIT_TO(ObjectPtr, default_argument)
+  COMPRESSED_POINTER_FIELD(AbstractTypePtr, default_argument)
+  VISIT_TO(CompressedObjectPtr, default_argument)
   ClassIdTagType parameterized_class_id_;  // Or kFunctionCid for function tp.
   // TODO(regis): Can we use uint8_t twice below? Or keep uint16_t?
   // Warning: BuildTypeParameterTypeTestStub assumes uint16_t.
@@ -2562,7 +2566,7 @@ class UntaggedTypeParameter : public UntaggedAbstractType {
   static constexpr intptr_t kFlagsBitSize = GenericCovariantImplBit::kNextBit;
 
  private:
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class CidRewriteVisitor;
 };
@@ -2653,13 +2657,13 @@ class UntaggedString : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(String);
 
  protected:
-  VISIT_FROM(ObjectPtr, length)
-  SMI_FIELD(SmiPtr, length)
+  VISIT_FROM(CompressedObjectPtr, length)
+  COMPRESSED_SMI_FIELD(SmiPtr, length)
 #if !defined(HASH_IN_OBJECT_HEADER)
-  SMI_FIELD(SmiPtr, hash)
-  VISIT_TO(ObjectPtr, hash)
+  COMPRESSED_SMI_FIELD(SmiPtr, hash)
+  VISIT_TO(CompressedObjectPtr, hash)
 #else
-  VISIT_TO(ObjectPtr, length)
+  VISIT_TO(CompressedObjectPtr, length)
 #endif
 
  private:
@@ -2728,7 +2732,7 @@ class UntaggedTypedDataBase : public UntaggedPointerBase {
  protected:
   // The length of the view in element sizes (obtainable via
   // [TypedDataBase::ElementSizeInBytes]).
-  SMI_FIELD(SmiPtr, length);
+  COMPRESSED_SMI_FIELD(SmiPtr, length);
 
  private:
   friend class UntaggedTypedDataView;
@@ -2747,8 +2751,8 @@ class UntaggedTypedData : public UntaggedTypedDataBase {
   void RecomputeDataField() { data_ = internal_data(); }
 
  protected:
-  VISIT_FROM(ObjectPtr, length)
-  VISIT_TO_LENGTH(ObjectPtr, &length_)
+  VISIT_FROM(CompressedObjectPtr, length)
+  VISIT_TO_LENGTH(CompressedObjectPtr, &length_)
 
   // Variable length data follows here.
 
@@ -2782,7 +2786,7 @@ class UntaggedTypedDataView : public UntaggedTypedDataBase {
  public:
   // Recompute [data_] based on internal/external [typed_data_].
   void RecomputeDataField() {
-    const intptr_t offset_in_bytes = RawSmiValue(offset_in_bytes_);
+    const intptr_t offset_in_bytes = RawSmiValue(this->offset_in_bytes());
     uint8_t* payload = typed_data()->untag()->data_;
     data_ = payload + offset_in_bytes;
   }
@@ -2798,7 +2802,7 @@ class UntaggedTypedDataView : public UntaggedTypedDataBase {
   }
 
   uint8_t* DataFieldForInternalTypedData() const {
-    const intptr_t offset_in_bytes = RawSmiValue(offset_in_bytes_);
+    const intptr_t offset_in_bytes = RawSmiValue(this->offset_in_bytes());
     uint8_t* payload =
         reinterpret_cast<uint8_t*>(UntaggedObject::ToAddr(typed_data()) +
                                    UntaggedTypedData::payload_offset());
@@ -2808,12 +2812,12 @@ class UntaggedTypedDataView : public UntaggedTypedDataBase {
   void ValidateInnerPointer() {
     if (typed_data()->untag()->GetClassId() == kNullCid) {
       // The view object must have gotten just initialized.
-      if (data_ != nullptr || RawSmiValue(offset_in_bytes_) != 0 ||
-          RawSmiValue(length_) != 0) {
+      if (data_ != nullptr || RawSmiValue(offset_in_bytes()) != 0 ||
+          RawSmiValue(length()) != 0) {
         FATAL("RawTypedDataView has invalid inner pointer.");
       }
     } else {
-      const intptr_t offset_in_bytes = RawSmiValue(offset_in_bytes_);
+      const intptr_t offset_in_bytes = RawSmiValue(this->offset_in_bytes());
       uint8_t* payload = typed_data()->untag()->data_;
       if ((payload + offset_in_bytes) != data_) {
         FATAL("RawTypedDataView has invalid inner pointer.");
@@ -2822,11 +2826,11 @@ class UntaggedTypedDataView : public UntaggedTypedDataBase {
   }
 
  protected:
-  VISIT_FROM(ObjectPtr, length)
-  POINTER_FIELD(TypedDataBasePtr, typed_data)
-  SMI_FIELD(SmiPtr, offset_in_bytes)
-  VISIT_TO(ObjectPtr, offset_in_bytes)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_FROM(CompressedObjectPtr, length)
+  COMPRESSED_POINTER_FIELD(TypedDataBasePtr, typed_data)
+  COMPRESSED_SMI_FIELD(SmiPtr, offset_in_bytes)
+  VISIT_TO(CompressedObjectPtr, offset_in_bytes)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class Api;
   friend class Object;
@@ -3002,16 +3006,16 @@ class UntaggedExternalTypedData : public UntaggedTypedDataBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalTypedData);
 
  protected:
-  VISIT_FROM(ObjectPtr, length)
-  VISIT_TO(ObjectPtr, length)
+  VISIT_FROM(CompressedObjectPtr, length)
+  VISIT_TO(CompressedObjectPtr, length)
 };
 
 class UntaggedPointer : public UntaggedPointerBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Pointer);
 
-  VISIT_FROM(ObjectPtr, type_arguments)
-  POINTER_FIELD(TypeArgumentsPtr, type_arguments)
-  VISIT_TO(ObjectPtr, type_arguments)
+  VISIT_FROM(CompressedObjectPtr, type_arguments)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  VISIT_TO(CompressedObjectPtr, type_arguments)
 
   friend class Pointer;
 };
@@ -3043,15 +3047,15 @@ class alignas(8) UntaggedSendPort : public UntaggedInstance {
 class UntaggedReceivePort : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ReceivePort);
 
-  VISIT_FROM(ObjectPtr, send_port)
-  POINTER_FIELD(SendPortPtr, send_port)
-  POINTER_FIELD(InstancePtr, handler)
+  VISIT_FROM(CompressedObjectPtr, send_port)
+  COMPRESSED_POINTER_FIELD(SendPortPtr, send_port)
+  COMPRESSED_POINTER_FIELD(InstancePtr, handler)
 #if !defined(PRODUCT)
-  POINTER_FIELD(StringPtr, debug_name)
-  POINTER_FIELD(StackTracePtr, allocation_location)
-  VISIT_TO(ObjectPtr, allocation_location)
+  COMPRESSED_POINTER_FIELD(StringPtr, debug_name)
+  COMPRESSED_POINTER_FIELD(StackTracePtr, allocation_location)
+  VISIT_TO(CompressedObjectPtr, allocation_location)
 #else
-  VISIT_TO(ObjectPtr, handler)
+  VISIT_TO(CompressedObjectPtr, handler)
 #endif  // !defined(PRODUCT)
 };
 
@@ -3067,15 +3071,16 @@ class UntaggedTransferableTypedData : public UntaggedInstance {
 class UntaggedStackTrace : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(StackTrace);
 
-  VISIT_FROM(ObjectPtr, async_link)
-  POINTER_FIELD(StackTracePtr,
-                async_link);  // Link to parent async stack trace.
-  POINTER_FIELD(ArrayPtr,
-                code_array);  // Code object for each frame in the stack trace.
-  POINTER_FIELD(TypedDataPtr, pc_offset_array);  // Offset of PC for each frame.
+  VISIT_FROM(CompressedObjectPtr, async_link)
+  // Link to parent async stack trace.
+  COMPRESSED_POINTER_FIELD(StackTracePtr, async_link);
+  // Code object for each frame in the stack trace.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, code_array);
+  // Offset of PC for each frame.
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, pc_offset_array);
 
-  VISIT_TO(ObjectPtr, pc_offset_array)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_TO(CompressedObjectPtr, pc_offset_array)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // False for pre-allocated stack trace (used in OOM and Stack overflow).
   bool expand_inlined_;
@@ -3089,20 +3094,22 @@ class UntaggedStackTrace : public UntaggedInstance {
 class UntaggedRegExp : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(RegExp);
 
-  VISIT_FROM(ObjectPtr, num_bracket_expressions)
-  POINTER_FIELD(SmiPtr, num_bracket_expressions)
-  POINTER_FIELD(ArrayPtr, capture_name_map)
-  POINTER_FIELD(StringPtr, pattern)   // Pattern to be used for matching.
-  POINTER_FIELD(ObjectPtr, one_byte)  // FunctionPtr or TypedDataPtr
-  POINTER_FIELD(ObjectPtr, two_byte)
-  POINTER_FIELD(ObjectPtr, external_one_byte)
-  POINTER_FIELD(ObjectPtr, external_two_byte)
-  POINTER_FIELD(ObjectPtr, one_byte_sticky)
-  POINTER_FIELD(ObjectPtr, two_byte_sticky)
-  POINTER_FIELD(ObjectPtr, external_one_byte_sticky)
-  POINTER_FIELD(ObjectPtr, external_two_byte_sticky)
-  VISIT_TO(ObjectPtr, external_two_byte_sticky)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  VISIT_FROM(CompressedObjectPtr, capture_name_map)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, capture_name_map)
+  // Pattern to be used for matching.
+  COMPRESSED_POINTER_FIELD(StringPtr, pattern)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, one_byte)  // FunctionPtr or TypedDataPtr
+  COMPRESSED_POINTER_FIELD(ObjectPtr, two_byte)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, external_one_byte)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, external_two_byte)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, one_byte_sticky)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, two_byte_sticky)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, external_one_byte_sticky)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, external_two_byte_sticky)
+  VISIT_TO(CompressedObjectPtr, external_two_byte_sticky)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+
+  intptr_t num_bracket_expressions_;
 
   // The same pattern may use different amount of registers if compiled
   // for a one-byte target than a two-byte target. For example, we do not
@@ -3144,18 +3151,18 @@ class UntaggedWeakProperty : public UntaggedInstance {
 class UntaggedMirrorReference : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MirrorReference);
 
-  VISIT_FROM(ObjectPtr, referent)
-  POINTER_FIELD(ObjectPtr, referent)
-  VISIT_TO(ObjectPtr, referent)
+  VISIT_FROM(CompressedObjectPtr, referent)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, referent)
+  VISIT_TO(CompressedObjectPtr, referent)
 };
 
 // UserTag are used by the profiler to track Dart script state.
 class UntaggedUserTag : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UserTag);
 
-  VISIT_FROM(ObjectPtr, label)
-  POINTER_FIELD(StringPtr, label)
-  VISIT_TO(ObjectPtr, label)
+  VISIT_FROM(CompressedObjectPtr, label)
+  COMPRESSED_POINTER_FIELD(StringPtr, label)
+  VISIT_TO(CompressedObjectPtr, label)
 
   // Isolate unique tag.
   uword tag_;

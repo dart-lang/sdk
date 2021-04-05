@@ -128,6 +128,8 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
   (IsNullableBit::encode(true) | IsImmutableBit::encode(true) |                \
    IsCompressedBit::encode(true))
 #define NULLABLE_FIELD_VAR (IsNullableBit::encode(true))
+#define NULLABLE_FIELD_VAR_COMPRESSED                                          \
+  (IsNullableBit::encode(true) | IsCompressedBit::encode(true))
 #define DEFINE_NULLABLE_BOXED_NATIVE_FIELD(ClassName, UnderlyingType,          \
                                            FieldName, cid, mutability)         \
   Slot(Kind::k##ClassName##_##FieldName, NULLABLE_FIELD_##mutability,          \
@@ -144,6 +146,7 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
 #define NONNULLABLE_FIELD_FINAL_COMPRESSED                                     \
   (Slot::IsImmutableBit::encode(true) | Slot::IsCompressedBit::encode(true))
 #define NONNULLABLE_FIELD_VAR (0)
+#define NONNULLABLE_FIELD_VAR_COMPRESSED (Slot::IsCompressedBit::encode(true))
 #define DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD(ClassName, UnderlyingType,       \
                                               FieldName, cid, mutability)      \
   Slot(Kind::k##ClassName##_##FieldName, NONNULLABLE_FIELD_##mutability,       \
@@ -208,9 +211,10 @@ const Slot& Slot::GetLengthFieldForArrayCid(intptr_t array_cid) {
 
 const Slot& Slot::GetTypeArgumentsSlotAt(Thread* thread, intptr_t offset) {
   ASSERT(offset != Class::kNoTypeArguments);
-  return SlotCache::Instance(thread).Canonicalize(Slot(
-      Kind::kTypeArguments, IsImmutableBit::encode(true), kTypeArgumentsCid,
-      offset, ":type_arguments", /*static_type=*/nullptr, kTagged));
+  return SlotCache::Instance(thread).Canonicalize(
+      Slot(Kind::kTypeArguments, IsImmutableBit::encode(true),
+           kTypeArgumentsCid, offset, ":type_arguments",
+           /*static_type=*/nullptr, kTagged));
 }
 
 const Slot& Slot::GetTypeArgumentsSlotFor(Thread* thread, const Class& cls) {

@@ -3389,7 +3389,8 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk"
+            "create_sdk",
+            "dartdevc_test"
           ]
         },
         {

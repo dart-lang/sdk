@@ -2543,8 +2543,9 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     __ LoadCompressedFieldFromOffset(
         kScratch1Reg, kScratch1Reg,
         compiler::target::Class::super_type_offset());
-    __ LoadFieldFromOffset(kScratch1Reg, kScratch1Reg,
-                           compiler::target::Type::type_class_id_offset());
+    __ LoadCompressedFieldFromOffset(
+        kScratch1Reg, kScratch1Reg,
+        compiler::target::Type::type_class_id_offset());
     __ CompareImmediate(kScratch1Reg, Smi::RawValue(type_class.id()));
     __ BranchIf(EQUAL, is_instance_lbl);
   }

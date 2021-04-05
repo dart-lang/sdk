@@ -3804,12 +3804,12 @@ class TypeSerializationCluster
 
     PushFromTo(type);
 
-    if (type->untag()->type_class_id_->IsHeapObject()) {
+    if (type->untag()->type_class_id()->IsHeapObject()) {
       // Type class is still an unresolved class.
       UNREACHABLE();
     }
 
-    SmiPtr raw_type_class_id = Smi::RawCast(type->untag()->type_class_id_);
+    SmiPtr raw_type_class_id = Smi::RawCast(type->untag()->type_class_id());
     ClassPtr type_class =
         s->isolate_group()->class_table()->At(Smi::Value(raw_type_class_id));
     s->Push(type_class);
@@ -3844,7 +3844,7 @@ class TypeSerializationCluster
   // inserted into the canonical_types set.
   // Keep in sync with Type::Canonicalize.
   virtual bool IsInCanonicalSet(Serializer* s, TypePtr type) {
-    SmiPtr raw_type_class_id = Smi::RawCast(type->untag()->type_class_id_);
+    SmiPtr raw_type_class_id = Smi::RawCast(type->untag()->type_class_id());
     ClassPtr type_class =
         s->isolate_group()->class_table()->At(Smi::Value(raw_type_class_id));
     if (type_class->untag()->declaration_type() != type) {
@@ -4627,7 +4627,7 @@ class TypedDataSerializationCluster : public SerializationCluster {
       TypedDataPtr data = objects_[i];
       s->AssignRef(data);
       AutoTraceObject(data);
-      const intptr_t length = Smi::Value(data->untag()->length_);
+      const intptr_t length = Smi::Value(data->untag()->length());
       s->WriteUnsigned(length);
       target_memory_size_ +=
           compiler::target::TypedData::InstanceSize(length * element_size);
@@ -4640,7 +4640,7 @@ class TypedDataSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       TypedDataPtr data = objects_[i];
       AutoTraceObject(data);
-      const intptr_t length = Smi::Value(data->untag()->length_);
+      const intptr_t length = Smi::Value(data->untag()->length());
       s->WriteUnsigned(length);
       uint8_t* cdata = reinterpret_cast<uint8_t*>(data->untag()->data());
       s->WriteBytes(cdata, length * element_size);
@@ -4805,7 +4805,7 @@ class ExternalTypedDataSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       ExternalTypedDataPtr data = objects_[i];
       AutoTraceObject(data);
-      const intptr_t length = Smi::Value(data->untag()->length_);
+      const intptr_t length = Smi::Value(data->untag()->length());
       s->WriteUnsigned(length);
       uint8_t* cdata = reinterpret_cast<uint8_t*>(data->untag()->data_);
       s->Align(ExternalTypedData::kDataSerializationAlignment);
@@ -5296,7 +5296,7 @@ class OneByteStringSerializationCluster : public SerializationCluster {
       OneByteStringPtr str = objects_[i];
       s->AssignRef(str);
       AutoTraceObject(str);
-      const intptr_t length = Smi::Value(str->untag()->length_);
+      const intptr_t length = Smi::Value(str->untag()->length());
       s->WriteUnsigned(length);
       target_memory_size_ +=
           compiler::target::OneByteString::InstanceSize(length);
@@ -5308,7 +5308,7 @@ class OneByteStringSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       OneByteStringPtr str = objects_[i];
       AutoTraceObject(str);
-      const intptr_t length = Smi::Value(str->untag()->length_);
+      const intptr_t length = Smi::Value(str->untag()->length());
       ASSERT(length <= compiler::target::kSmiMax);
       s->WriteUnsigned(length);
       s->WriteBytes(str->untag()->data(), length);
@@ -5406,7 +5406,7 @@ class TwoByteStringSerializationCluster : public SerializationCluster {
       TwoByteStringPtr str = objects_[i];
       s->AssignRef(str);
       AutoTraceObject(str);
-      const intptr_t length = Smi::Value(str->untag()->length_);
+      const intptr_t length = Smi::Value(str->untag()->length());
       s->WriteUnsigned(length);
       target_memory_size_ +=
           compiler::target::TwoByteString::InstanceSize(length);
@@ -5418,7 +5418,7 @@ class TwoByteStringSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       TwoByteStringPtr str = objects_[i];
       AutoTraceObject(str);
-      const intptr_t length = Smi::Value(str->untag()->length_);
+      const intptr_t length = Smi::Value(str->untag()->length());
       ASSERT(length <= (compiler::target::kSmiMax / 2));
       s->WriteUnsigned(length);
       s->WriteBytes(reinterpret_cast<uint8_t*>(str->untag()->data()),

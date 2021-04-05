@@ -116,7 +116,7 @@ part of foo;
     checkLocal('function(() => localVariable.field)',
         'function(FunctionTypeAlias parameter)', ElementKind.FUNCTION);
     checkLocal('FunctionTypeAlias parameter', 'FunctionTypeAlias();',
-        ElementKind.FUNCTION_TYPE_ALIAS);
+        ElementKind.TYPE_ALIAS);
     checkLocal('field)', 'field = (', ElementKind.GETTER);
     checkRemote("'dart:async'", r'async\.dart$', ElementKind.LIBRARY);
     checkLocal(

@@ -230,7 +230,7 @@ Future<List<StaticError>> runAnalyzer(String path, List<String> options) async {
   // mode.
   var result = await Process.run(_analyzerPath, [
     ...options,
-    "--format=machine",
+    "--format=json",
     path,
   ]);
 

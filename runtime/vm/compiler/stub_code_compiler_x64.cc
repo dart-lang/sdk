@@ -2380,7 +2380,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     // because we only emit calls to this stub when it is not null.
     __ movq(RCX,
             FieldAddress(RBX, target::ICData::receivers_static_type_offset()));
-    __ movq(RCX, FieldAddress(RCX, target::Type::arguments_offset()));
+    __ LoadCompressed(RCX, FieldAddress(RCX, target::Type::arguments_offset()));
     // RAX contains an offset to type arguments in words as a smi,
     // hence TIMES_4. RDX is guaranteed to be non-smi because it is expected
     // to have type arguments.
@@ -3593,7 +3593,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     /* RAX: new object start as a tagged pointer. */
     /* RCX: new object end address. */
     __ popq(RDI); /* Array length. */
-    __ StoreIntoObjectNoBarrier(
+    __ StoreCompressedIntoObjectNoBarrier(
         RAX, FieldAddress(RAX, target::TypedDataBase::length_offset()), RDI);
     /* Initialize all array elements to 0. */
     /* RAX: new object start as a tagged pointer. */

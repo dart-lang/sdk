@@ -102,7 +102,7 @@ vars = {
 
   "chromedriver_tag": "83.0.4103.39",
   "browser_launcher_rev": "12ab9f351a44ac803de9bc17bb2180bb312a9dd7",
-  "dartdoc_rev" : "e2d010ed74059be942a78ced5f35f1b8d667ed16",
+  "dartdoc_rev" : "505f163f7cb48e917503e4a23fbff1227e08b263",
   "ffi_rev": "f3346299c55669cc0db48afae85b8110088bf8da",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "file_rev": "0e09370f581ab6388d46fda4cdab66638c0171a1",
@@ -126,7 +126,6 @@ vars = {
   "matcher_rev": "1f7b6f0cb15eb6659a1de0513571575a5c8a51d0",
   "mime_rev": "c931f4bed87221beaece356494b43731445ce7b8",
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
-  "mustache_rev": "664737ecad027e6b96d0d1e627257efa0e46fcb1",
   "oauth2_rev": "7cd3284049fe5badbec9f2bea2afc41d14c01057",
   "package_config_rev": "a84c0d45401f215fbe9384df923a38f4022a3c45",
   "path_rev": "407ab76187fade41c31e39c745b39661b710106c",
@@ -379,10 +378,6 @@ deps = {
       Var("dart_git") + "mime.git" + "@" + Var("mime_rev"),
   Var("dart_root") + "/third_party/pkg/mockito":
       Var("dart_git") + "mockito.git" + "@" + Var("mockito_rev"),
-  Var("dart_root") + "/third_party/pkg/mustache":
-      Var("dart_git")
-      + "external/github.com/xxgreg/mustache"
-      + "@" + Var("mustache_rev"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       Var("dart_git") + "oauth2.git" + "@" + Var("oauth2_rev"),
   Var("dart_root") + "/third_party/pkg_tested/package_config":
