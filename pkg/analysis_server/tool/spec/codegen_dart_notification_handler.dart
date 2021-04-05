@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer_utilities/tools.dart';
 import 'package:html/dom.dart';
 
@@ -140,6 +138,6 @@ class _NotificationVisitor extends HierarchicalApiVisitor {
         _generateNotificationMethodName(
             notification.domainName, notification.event),
         _generateParamTypeName(notification.domainName, notification.event),
-        _generateDartDoc(notification.html)));
+        _generateDartDoc(notification.html!)));
   }
 }

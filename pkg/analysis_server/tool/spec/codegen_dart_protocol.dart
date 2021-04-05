@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 
 import 'package:analyzer_utilities/tools.dart';
@@ -268,8 +266,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       toHtmlVisitor.p(() {
         toHtmlVisitor.write(impliedType.humanReadableName);
       });
-      if (impliedType.type != null) {
-        toHtmlVisitor.showType(null, impliedType.type);
+      var impliedTypeType = impliedType.type;
+      if (impliedTypeType != null) {
+        toHtmlVisitor.showType(null, impliedTypeType);
       }
       toHtmlVisitor.p(() {
         toHtmlVisitor.write(disclaimer);
@@ -412,8 +411,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       toHtmlVisitor.p(() {
         toHtmlVisitor.write(impliedType.humanReadableName);
       });
-      if (impliedType.type != null) {
-        toHtmlVisitor.showType(null, impliedType.type);
+      var impliedTypeType = impliedType.type;
+      if (impliedTypeType != null) {
+        toHtmlVisitor.showType(null, impliedTypeType);
       }
       toHtmlVisitor.p(() {
         toHtmlVisitor.write(disclaimer);
@@ -523,7 +523,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   }
 
   /// Emit the operator== code for an object class.
-  void emitObjectEqualsMember(TypeObject type, String className) {
+  void emitObjectEqualsMember(TypeObject? type, String className) {
     writeln('@override');
     writeln('bool operator ==(other) {');
     indent(() {
@@ -639,7 +639,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   }
 
   /// Emit the hashCode getter for an object class.
-  void emitObjectHashCode(TypeObject type, String className) {
+  void emitObjectHashCode(TypeObject? type, String className) {
     writeln('@override');
     writeln('int get hashCode {');
     indent(() {

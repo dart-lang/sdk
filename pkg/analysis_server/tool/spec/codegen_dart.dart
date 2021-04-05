@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'api.dart';
 
 /// Visitor specialized for generating Dart code.
@@ -21,8 +19,9 @@ class DartCodegenVisitor extends HierarchicalApiVisitor {
     if (type is TypeReference) {
       var typeName = type.typeName;
       var referencedDefinition = api.types[typeName];
-      if (_typeRenames.containsKey(typeName)) {
-        return _typeRenames[typeName];
+      var typeRename = _typeRenames[typeName];
+      if (typeRename != null) {
+        return typeRename;
       }
       if (referencedDefinition == null) {
         return typeName;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Code generation for the file "AnalysisServer.java".
 import 'package:analyzer_utilities/tools.dart';
 import 'package:html/dom.dart' as dom;
@@ -60,15 +58,16 @@ final GeneratedDirectory targetDir =
         isRefactoringFeedback ||
         isRefactoringOption) {
       var type = impliedType.type;
-      if (type is TypeObject || type is TypeEnum) {
+      if (type != null && (type is TypeObject || type is TypeEnum)) {
         // This is for situations such as 'Override' where the name in the spec
         // doesn't match the java object that we generate:
         var typeNameInJava = typeNameInSpec;
-        if (_typeRenames.containsKey(typeNameInSpec)) {
-          typeNameInJava = _typeRenames[typeNameInSpec];
+        var renamedTo = _typeRenames[typeNameInSpec];
+        if (renamedTo != null) {
+          typeNameInJava = renamedTo;
         }
         map['$typeNameInJava.java'] = (String pkgPath) async {
-          String superclassName;
+          String? superclassName;
           if (isRefactoringFeedback) {
             superclassName = 'RefactoringFeedback';
           }
@@ -102,7 +101,7 @@ final GeneratedDirectory targetDir =
 
 class CodegenJavaType extends CodegenJavaVisitor {
   final String className;
-  final String superclassName;
+  final String? superclassName;
   final bool generateGetters;
   final bool generateSetters;
 
@@ -116,7 +115,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
     return camelJoin([request.method, 'consumer'], doCapitalize: true);
   }
 
-  void emitType(TypeDecl type, dom.Element html) {
+  void emitType(TypeDecl type, dom.Element? html) {
     outputHeader(javaStyle: true);
     writeln('package org.dartlang.analysis.server.protocol;');
     writeln();
@@ -233,7 +232,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
     }
   }
 
-  void _writeTypeEnum(TypeDecl type, dom.Element html) {
+  void _writeTypeEnum(TypeDecl type, dom.Element? html) {
     javadocComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.translateHtml(html);
       toHtmlVisitor.br();
@@ -257,7 +256,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
     });
   }
 
-  void _writeTypeObject(TypeDecl type, dom.Element html) {
+  void _writeTypeObject(TypeDecl type, dom.Element? html) {
     writeln('import java.util.Arrays;');
     writeln('import java.util.List;');
     writeln('import java.util.Map;');
