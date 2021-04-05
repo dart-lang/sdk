@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -67,8 +65,8 @@ final _appDir =
 final _client = http.Client();
 
 final _homeDir = Platform.isWindows
-    ? Platform.environment['LOCALAPPDATA']
-    : Platform.environment['HOME'];
+    ? Platform.environment['LOCALAPPDATA']!
+    : Platform.environment['HOME']!;
 
 final _package_config = path.join('.dart_tool', 'package_config.json');
 
@@ -143,7 +141,13 @@ class RepoList {
     final entries = doc.querySelectorAll('entry');
     for (var entry in entries) {
       final link = entry.querySelector('link');
+      if (link == null) {
+        continue;
+      }
       final href = link.attributes['href'];
+      if (href == null) {
+        continue;
+      }
       final body = await _getBody(href);
       final doc = parse(body);
       final links = doc.querySelectorAll('a');
