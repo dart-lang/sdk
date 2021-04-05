@@ -670,6 +670,7 @@ void SemiSpace::Cleanup() {
 }
 
 intptr_t SemiSpace::CachedSize() {
+  MutexLocker ml(page_cache_mutex);
   return page_cache_size * kNewPageSize;
 }
 
