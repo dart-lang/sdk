@@ -80,6 +80,9 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     var libraryElement = element.library;
     var libraryPath = libraryElement.source.fullName;
 
+    final oldDir = pathContext.dirname(oldFile);
+    final newDir = pathContext.dirname(newFile);
+
     // If this element is a library, update outgoing references inside the file.
     if (element == libraryElement.definingCompilationUnit) {
       // Handle part-of directives in this library
@@ -96,8 +99,6 @@ class MoveFileRefactoringImpl extends RefactoringImpl
             await changeBuilder.addDartFileEdit(
                 result.unit.declaredElement.source.fullName, (builder) {
               partOfs.forEach((po) {
-                final oldDir = pathContext.dirname(oldFile);
-                final newDir = pathContext.dirname(newFile);
                 var newLocation =
                     pathContext.join(newDir, pathos.basename(newFile));
                 var newUri = _getRelativeUri(newLocation, oldDir);
@@ -112,16 +113,16 @@ class MoveFileRefactoringImpl extends RefactoringImpl
         }
       }
 
-      await changeBuilder.addDartFileEdit(definingUnitResult.path, (builder) {
-        var oldDir = pathContext.dirname(oldFile);
-        var newDir = pathContext.dirname(newFile);
-        for (var directive in definingUnitResult.unit.directives) {
-          if (directive is UriBasedDirective) {
-            _updateUriReference(builder, directive, oldDir, newDir);
+      if (newDir != oldDir) {
+        await changeBuilder.addDartFileEdit(definingUnitResult.path, (builder) {
+          for (var directive in definingUnitResult.unit.directives) {
+            if (directive is UriBasedDirective) {
+              _updateUriReference(builder, directive, oldDir, newDir);
+            }
           }
-        }
-      });
-    } else {
+        });
+      }
+    } else if (newDir != oldDir) {
       // Otherwise, we need to update any relative part-of references.
       var partOfs = resolvedUnit.unit.directives
           .whereType<PartOfDirective>()
@@ -130,8 +131,6 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       if (partOfs.isNotEmpty) {
         await changeBuilder.addDartFileEdit(element.source.fullName, (builder) {
           partOfs.forEach((po) {
-            final oldDir = pathContext.dirname(oldFile);
-            final newDir = pathContext.dirname(newFile);
             var oldLocation = pathContext.join(oldDir, po.uri.stringValue);
             var newUri = _getRelativeUri(oldLocation, newDir);
             builder.addSimpleReplacement(
