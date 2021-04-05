@@ -22,19 +22,7 @@ Statement block(List<Statement> statements) => new _Block(statements);
 
 Expression booleanLiteral(bool value) => _BooleanLiteral(value);
 
-/// Wrapper allowing creation of a statement that can be used as the target of
-/// `break` or `continue` statements.  [callback] will be invoked to create the
-/// statement, and it will be passed a [BranchTargetPlaceholder] that can be
-/// passed to [break_] or [continue_].
-Statement branchTarget(Statement Function(BranchTargetPlaceholder) callback) {
-  var branchTargetPlaceholder = BranchTargetPlaceholder._();
-  var stmt = callback(branchTargetPlaceholder);
-  branchTargetPlaceholder._target = stmt;
-  return stmt;
-}
-
-Statement break_(BranchTargetPlaceholder branchTargetPlaceholder) =>
-    new _Break(branchTargetPlaceholder);
+Statement break_([LabeledStatement? target]) => new _Break(target);
 
 SwitchCase case_(List<Statement> body, {bool hasLabel = false}) =>
     SwitchCase._(hasLabel, new _Block(body));
@@ -64,8 +52,7 @@ Statement checkReachable(bool expectedReachable) =>
 Statement checkUnassigned(Var variable, bool expectedUnassignedState) =>
     new _CheckUnassigned(variable, expectedUnassignedState);
 
-Statement continue_(BranchTargetPlaceholder branchTargetPlaceholder) =>
-    new _Continue(branchTargetPlaceholder);
+Statement continue_() => new _Continue();
 
 Statement declare(Var variable,
         {required bool initialized,
@@ -148,7 +135,11 @@ Statement implicitThis_whyNotPromoted(String staticType,
         void Function(Map<Type, NonPromotionReason>) callback) =>
     new _WhyNotPromoted_ImplicitThis(Type(staticType), callback);
 
-Statement labeled(Statement body) => new _LabeledStatement(body);
+Statement labeled(Statement Function(LabeledStatement) callback) {
+  var labeledStatement = LabeledStatement._();
+  labeledStatement._body = callback(labeledStatement);
+  return labeledStatement;
+}
 
 Statement localFunction(List<Statement> body) => _LocalFunction(block(body));
 
@@ -168,14 +159,6 @@ TryBuilder try_(List<Statement> body) =>
 
 Statement while_(Expression condition, List<Statement> body) =>
     new _While(condition, block(body));
-
-/// Placeholder used by [branchTarget] to tie `break` and `continue` statements
-/// to their branch targets.
-class BranchTargetPlaceholder {
-  late Statement _target;
-
-  BranchTargetPlaceholder._();
-}
 
 /// Representation of an expression in the pseudo-Dart language used for flow
 /// analysis testing.  Methods in this class may be used to create more complex
@@ -398,6 +381,10 @@ class Harness extends TypeOperations<Var, Type> {
 
   Map<String, Map<String, String>> _promotionExceptions = {};
 
+  Statement? _currentBreakTarget;
+
+  Statement? _currentContinueTarget;
+
   Harness({this.legacy = false, String? thisType})
       : thisType = thisType == null ? null : Type(thisType);
 
@@ -543,6 +530,39 @@ class Harness extends TypeOperations<Var, Type> {
       throw UnimplementedError(
           'TODO(paulberry): least upper bound of $type1 and $type2');
     }
+  }
+
+  void _visitLoopBody(Statement loop, Statement body,
+      FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    var previousBreakTarget = _currentBreakTarget;
+    var previousContinueTarget = _currentContinueTarget;
+    _currentBreakTarget = loop;
+    _currentContinueTarget = loop;
+    body._visit(this, flow);
+    _currentBreakTarget = previousBreakTarget;
+    _currentContinueTarget = previousContinueTarget;
+  }
+}
+
+class LabeledStatement extends Statement {
+  late final Statement _body;
+
+  LabeledStatement._() : super._();
+
+  @override
+  String toString() => 'labeled: $_body';
+
+  @override
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    _body._preVisit(assignedVariables);
+  }
+
+  @override
+  void _visit(
+      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
+    flow.labeledStatement_begin(this);
+    _body._visit(h, flow);
+    flow.labeledStatement_end();
   }
 }
 
@@ -752,9 +772,9 @@ class _BooleanLiteral extends Expression {
 }
 
 class _Break extends Statement {
-  final BranchTargetPlaceholder branchTargetPlaceholder;
+  final LabeledStatement? target;
 
-  _Break(this.branchTargetPlaceholder) : super._();
+  _Break(this.target) : super._();
 
   @override
   String toString() => 'break;';
@@ -765,9 +785,7 @@ class _Break extends Statement {
   @override
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    // ignore: unnecessary_null_comparison
-    assert(branchTargetPlaceholder._target != null);
-    flow.handleBreak(branchTargetPlaceholder._target);
+    flow.handleBreak(target ?? h._currentBreakTarget!);
   }
 }
 
@@ -925,9 +943,7 @@ class _Conditional extends Expression {
 }
 
 class _Continue extends Statement {
-  final BranchTargetPlaceholder branchTargetPlaceholder;
-
-  _Continue(this.branchTargetPlaceholder) : super._();
+  _Continue() : super._();
 
   @override
   String toString() => 'continue;';
@@ -938,9 +954,7 @@ class _Continue extends Statement {
   @override
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    // ignore: unnecessary_null_comparison
-    assert(branchTargetPlaceholder._target != null);
-    flow.handleContinue(branchTargetPlaceholder._target);
+    flow.handleContinue(h._currentContinueTarget!);
   }
 }
 
@@ -1002,7 +1016,7 @@ class _Do extends Statement {
   void _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     flow.doStatement_bodyBegin(this);
-    body._visit(h, flow);
+    h._visitLoopBody(this, body, flow);
     flow.doStatement_conditionBegin();
     condition._visit(h, flow);
     flow.doStatement_end(condition);
@@ -1104,7 +1118,7 @@ class _For extends Statement {
     flow.for_conditionBegin(this);
     condition?._visit(h, flow);
     flow.for_bodyBegin(forCollection ? null : this, condition);
-    body._visit(h, flow);
+    h._visitLoopBody(this, body, flow);
     flow.for_updaterBegin();
     updater?._visit(h, flow);
     flow.for_end();
@@ -1157,7 +1171,7 @@ class _ForEach extends Statement {
     if (variable != null && !declaresVariable) {
       flow.write(this, variable, iteratedType, null);
     }
-    body._visit(h, flow);
+    h._visitLoopBody(this, body, flow);
     flow.forEach_end();
   }
 }
@@ -1281,28 +1295,6 @@ class _Is extends Expression {
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     flow.isExpression_end(this, target.._visit(h, flow), isInverted, type);
     return Type('bool');
-  }
-}
-
-class _LabeledStatement extends Statement {
-  final Statement body;
-
-  _LabeledStatement(this.body) : super._();
-
-  @override
-  String toString() => 'labeled: $body';
-
-  @override
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    body._preVisit(assignedVariables);
-  }
-
-  @override
-  void _visit(
-      Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    flow.labeledStatement_begin(this);
-    body._visit(h, flow);
-    flow.labeledStatement_end();
   }
 }
 
@@ -1581,11 +1573,14 @@ class _Switch extends Statement {
     expression._visit(h, flow);
     flow.switchStatement_expressionEnd(this);
     var oldSwitch = h._currentSwitch;
+    var previousBreakTarget = h._currentBreakTarget;
     h._currentSwitch = this;
+    h._currentBreakTarget = this;
     for (var case_ in cases) {
       case_._visit(h, flow);
     }
     h._currentSwitch = oldSwitch;
+    h._currentBreakTarget = previousBreakTarget;
     flow.switchStatement_end(isExhaustive);
   }
 }
@@ -1781,7 +1776,7 @@ class _While extends Statement {
     flow.whileStatement_conditionBegin(this);
     condition._visit(h, flow);
     flow.whileStatement_bodyBegin(this, condition);
-    body._visit(h, flow);
+    h._visitLoopBody(this, body, flow);
     flow.whileStatement_end();
   }
 }
