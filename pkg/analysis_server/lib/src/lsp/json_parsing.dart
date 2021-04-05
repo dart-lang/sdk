@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 final nullLspJsonReporter = _NullLspJsonReporter();
@@ -18,13 +16,13 @@ class LspJsonReporter {
   /// being validated.
   final ListQueue<String> path = ListQueue<String>();
 
-  LspJsonReporter([String initialField]) {
+  LspJsonReporter([String? initialField]) {
     if (initialField != null) {
       path.add(initialField);
     }
   }
 
-  /// Pops the last field off the stack to become the current gield.
+  /// Pops the last field off the stack to become the current field.
   void pop() => path.removeLast();
 
   /// Pushes the current field onto a stack to allow reporting errors in child
