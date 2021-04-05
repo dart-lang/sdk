@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -27,17 +25,17 @@ List<String> getCamelWordCombinations(String name) {
 
 /// Returns possible names for a variable with the given expected type and
 /// expression assigned.
-List<String> getVariableNameSuggestionsForExpression(
-    DartType expectedType, Expression assignedExpression, Set<String> excluded,
+List<String> getVariableNameSuggestionsForExpression(DartType? expectedType,
+    Expression? assignedExpression, Set<String> excluded,
     {bool isMethod = false}) {
-  String prefix;
+  String? prefix;
 
   if (isMethod) {
     // If we're in a build() method, use 'build' as the name prefix.
-    var method = assignedExpression.thisOrAncestorOfType<MethodDeclaration>();
+    var method = assignedExpression?.thisOrAncestorOfType<MethodDeclaration>();
     if (method != null) {
-      var enclosingName = method.name?.name;
-      if (enclosingName != null && enclosingName.startsWith('build')) {
+      var enclosingName = method.name.name;
+      if (enclosingName.startsWith('build')) {
         prefix = 'build';
       }
     }
@@ -48,7 +46,9 @@ List<String> getVariableNameSuggestionsForExpression(
   if (assignedExpression != null) {
     var nameFromExpression = _getBaseNameFromExpression(assignedExpression);
     if (nameFromExpression != null) {
-      nameFromExpression = removeStart(nameFromExpression, '_');
+      if (nameFromExpression.startsWith('_')) {
+        nameFromExpression = nameFromExpression.substring(1);
+      }
       _addAll(excluded, res, getCamelWordCombinations(nameFromExpression),
           prefix: prefix);
     }
@@ -95,7 +95,8 @@ List<String> getVariableNameSuggestionsForText(
     for (var i = 0; i < words.length; i++) {
       var word = words[i];
       if (i > 0) {
-        word = capitalize(word);
+        // `capitalize` won't return `null` unless `null` is passed in.
+        word = capitalize(word)!;
       }
       sb.write(word);
     }
@@ -109,7 +110,7 @@ List<String> getVariableNameSuggestionsForText(
 
 /// Adds [toAdd] items which are not excluded.
 void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd,
-    {String prefix}) {
+    {String? prefix}) {
   for (var item in toAdd) {
     // add name based on "item", but not "excluded"
     for (var suffix = 1;; suffix++) {
@@ -141,7 +142,7 @@ void _addSingleCharacterName(Set<String> excluded, Set<String> result, int c) {
   }
 }
 
-String _getBaseNameFromExpression(Expression expression) {
+String? _getBaseNameFromExpression(Expression expression) {
   if (expression is AsExpression) {
     return _getBaseNameFromExpression(expression.expression);
   } else if (expression is ParenthesizedExpression) {
@@ -150,7 +151,7 @@ String _getBaseNameFromExpression(Expression expression) {
   return _getBaseNameFromUnwrappedExpression(expression);
 }
 
-String _getBaseNameFromLocationInParent(Expression expression) {
+String? _getBaseNameFromLocationInParent(Expression expression) {
   // value in named expression
   if (expression.parent is NamedExpression) {
     var namedExpression = expression.parent as NamedExpression;
@@ -167,8 +168,8 @@ String _getBaseNameFromLocationInParent(Expression expression) {
   return null;
 }
 
-String _getBaseNameFromUnwrappedExpression(Expression expression) {
-  String name;
+String? _getBaseNameFromUnwrappedExpression(Expression expression) {
+  String? name;
   // analyze expressions
   if (expression is SimpleIdentifier) {
     return expression.name;
@@ -181,22 +182,20 @@ String _getBaseNameFromUnwrappedExpression(Expression expression) {
   } else if (expression is InstanceCreationExpression) {
     var constructorName = expression.constructorName;
     var typeName = constructorName.type;
-    if (typeName != null) {
-      var typeNameIdentifier = typeName.name;
-      // new ClassName()
-      if (typeNameIdentifier is SimpleIdentifier) {
-        return typeNameIdentifier.name;
+    var typeNameIdentifier = typeName.name;
+    // new ClassName()
+    if (typeNameIdentifier is SimpleIdentifier) {
+      return typeNameIdentifier.name;
+    }
+    // new prefix.name();
+    if (typeNameIdentifier is PrefixedIdentifier) {
+      var prefixed = typeNameIdentifier;
+      // new prefix.ClassName()
+      if (prefixed.prefix.staticElement is PrefixElement) {
+        return prefixed.identifier.name;
       }
-      // new prefix.name();
-      if (typeNameIdentifier is PrefixedIdentifier) {
-        var prefixed = typeNameIdentifier;
-        // new prefix.ClassName()
-        if (prefixed.prefix.staticElement is PrefixElement) {
-          return prefixed.identifier.name;
-        }
-        // new ClassName.constructorName()
-        return prefixed.prefix.name;
-      }
+      // new ClassName.constructorName()
+      return prefixed.prefix.name;
     }
   } else if (expression is IndexExpression) {
     name = _getBaseNameFromExpression(expression.realTarget);

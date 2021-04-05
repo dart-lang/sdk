@@ -18,7 +18,8 @@ class AddMissingParameter extends MultiCorrectionProducer {
     if (node.parent is! ArgumentList) {
       return;
     }
-    var context = ExecutableParameters(sessionHelper, node.parent.parent);
+    var context =
+        ExecutableParameters.forInvocation(sessionHelper, node.parent.parent);
     if (context == null) {
       return;
     }

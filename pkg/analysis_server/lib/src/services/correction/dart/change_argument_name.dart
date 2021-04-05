@@ -53,10 +53,8 @@ class ChangeArgumentName extends MultiCorrectionProducer {
         namedExpression is NamedExpression &&
         namedExpression.name == node.parent &&
         namedExpression.parent is ArgumentList) {
-      var parameters = ExecutableParameters(
-        sessionHelper,
-        namedExpression.parent.parent,
-      );
+      var parameters = ExecutableParameters.forInvocation(
+          sessionHelper, namedExpression.parent.parent);
       return parameters?.namedNames;
     }
     return null;

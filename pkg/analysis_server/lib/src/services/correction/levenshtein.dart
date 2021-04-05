@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:math' as math;
 
 /// The value returned by [levenshtein] if the distance is determined
@@ -24,9 +22,6 @@ const int _MAX_VALUE = 1 << 10;
 /// distance algorithm.
 int levenshtein(String s, String t, int threshold,
     {bool caseSensitive = true}) {
-  if (s == null || t == null) {
-    throw ArgumentError('Strings must not be null');
-  }
   if (threshold < 0) {
     throw ArgumentError('Threshold must not be negative');
   }
