@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override.dart';
 
 /// A description of a set of transform overrides.
@@ -24,5 +22,5 @@ class TransformOverrideSet {
 
   /// Return the override for the transform with the given [title] or `null` if
   /// there is no such override in this set.
-  TransformOverride overrideForTransform(String title) => overrideMap[title];
+  TransformOverride? overrideForTransform(String title) => overrideMap[title];
 }
