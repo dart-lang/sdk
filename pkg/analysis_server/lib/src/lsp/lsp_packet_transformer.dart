@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
+
+import 'package:analysis_server/src/utilities/stream.dart';
+import 'package:collection/collection.dart';
 
 class InvalidEncodingError {
   final String headers;
@@ -19,7 +20,7 @@ class InvalidEncodingError {
 class LspHeaders {
   final String rawHeaders;
   final int contentLength;
-  final String encoding;
+  final String? encoding;
   LspHeaders(this.rawHeaders, this.contentLength, this.encoding);
 }
 
@@ -35,44 +36,46 @@ class LspHeaders {
 class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
   @override
   Stream<String> bind(Stream<List<int>> stream) {
-    StreamSubscription<int> input;
-    StreamController<String> _output;
+    LspHeaders? headersState;
     final buffer = <int>[];
-    var isParsingHeaders = true;
-    LspHeaders headers;
-    _output = StreamController<String>(
-      onListen: () {
-        input = stream.expand((b) => b).listen(
+    var controller = MoreTypedStreamController<String,
+        _LspPacketTransformerListenData, _LspPacketTransformerPauseData>(
+      onListen: (controller) {
+        var input = stream.expand((b) => b).listen(
           (codeUnit) {
             buffer.add(codeUnit);
-            if (isParsingHeaders && _endsWithCrLfCrLf(buffer)) {
-              headers = _parseHeaders(buffer);
+            var headers = headersState;
+            if (headers == null && _endsWithCrLfCrLf(buffer)) {
+              headersState = _parseHeaders(buffer);
               buffer.clear();
-              isParsingHeaders = false;
-            } else if (!isParsingHeaders &&
+            } else if (headers != null &&
                 buffer.length >= headers.contentLength) {
               // UTF-8 is the default - and only supported - encoding for LSP.
               // The string 'utf8' is valid since it was published in the original spec.
               // Any other encodings should be rejected with an error.
               if ([null, 'utf-8', 'utf8']
                   .contains(headers.encoding?.toLowerCase())) {
-                _output.add(utf8.decode(buffer));
+                controller.add(utf8.decode(buffer));
               } else {
-                _output.addError(InvalidEncodingError(headers.rawHeaders));
+                controller.addError(InvalidEncodingError(headers.rawHeaders));
               }
               buffer.clear();
-              isParsingHeaders = true;
+              headersState = null;
             }
           },
-          onError: _output.addError,
-          onDone: _output.close,
+          onError: controller.addError,
+          onDone: controller.close,
         );
+        return _LspPacketTransformerListenData(input);
       },
-      onPause: () => input.pause(),
-      onResume: () => input.resume(),
-      onCancel: () => input.cancel(),
+      onPause: (listenData) {
+        listenData.input.pause();
+        return _LspPacketTransformerPauseData();
+      },
+      onResume: (listenData, pauseData) => listenData.input.resume(),
+      onCancel: (listenData) => listenData.input.cancel(),
     );
-    return _output.stream;
+    return controller.controller.stream;
   }
 
   /// Whether [buffer] ends in '\r\n\r\n'.
@@ -85,13 +88,13 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
         buffer[l - 4] == 13;
   }
 
-  static String _extractEncoding(String header) {
+  static String? _extractEncoding(String? header) {
     final charset = header
         ?.split(';')
-        ?.map((s) => s.trim().toLowerCase())
-        ?.firstWhere((s) => s.startsWith('charset='), orElse: () => null);
+        .map((s) => s.trim().toLowerCase())
+        .firstWhereOrNull((s) => s.startsWith('charset='));
 
-    return charset == null ? null : charset.split('=')[1];
+    return charset?.split('=')[1];
   }
 
   /// Decodes [buffer] into a String and returns the 'Content-Length' header value.
@@ -102,9 +105,19 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
     final lengthHeader =
         headers.firstWhere((h) => h.startsWith('Content-Length'));
     final length = lengthHeader.split(':').last.trim();
-    final contentTypeHeader = headers
-        .firstWhere((h) => h.startsWith('Content-Type'), orElse: () => null);
+    final contentTypeHeader =
+        headers.firstWhereOrNull((h) => h.startsWith('Content-Type'));
     final encoding = _extractEncoding(contentTypeHeader);
     return LspHeaders(asString, int.parse(length), encoding);
   }
 }
+
+/// The data class for [StreamController.onListen].
+class _LspPacketTransformerListenData {
+  final StreamSubscription<int> input;
+
+  _LspPacketTransformerListenData(this.input);
+}
+
+/// The marker class for [StreamController.onPause].
+class _LspPacketTransformerPauseData {}
