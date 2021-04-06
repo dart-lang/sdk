@@ -963,4 +963,99 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           breakpointId: 'bp', expression: 'e', expectedResult: '1');
     });
   });
+
+  group('Expression compiler tests in generic method:', () {
+    var source = '''
+        class C<T1> {
+          void generic<T2>(T1 a, T2 b) {
+            // Breakpoint: bp
+            print(a);
+            print(b);
+          }
+        }
+
+        void main() => C<int>().generic<String>(0, 'hi');
+        ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() {
+      driver.cleanupTest();
+    });
+
+    test('evaluate formals', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: "'\${a} \$b'",
+          expectedResult: '0 hi');
+    });
+
+    test('evaluate class type parameters', () async {
+      await driver.check(
+          breakpointId: 'bp', expression: "'\$T1'", expectedResult: 'int');
+    });
+
+    test('evaluate method type parameters', () async {
+      await driver.check(
+          breakpointId: 'bp', expression: "'\$T2'", expectedResult: 'String');
+    });
+  });
+
+  group('Expression compiler tests for interactions with module containers:',
+      () {
+    var source = '''
+        class A {
+          const A();
+        }
+        class B {
+          const B();
+        }
+        void foo() {
+          const a = A();
+          var check = a is int;
+          // Breakpoint: bp
+          return;
+        }
+
+        void main() => foo();
+        ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() {
+      driver.cleanupTest();
+    });
+
+    test('evaluation that non-destructively appends to the type container',
+        () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'a is String',
+          expectedResult: 'false');
+    });
+
+    test('evaluation that reuses the type container', () async {
+      await driver.check(
+          breakpointId: 'bp', expression: 'a is int', expectedResult: 'false');
+    });
+
+    test('evaluation that non-destructively appends to the constant container',
+        () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'const B() == const B()',
+          expectedResult: 'true');
+    });
+
+    test('evaluation that properly canonicalizes constants', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'a == const A()',
+          expectedResult: 'true');
+    });
+  });
 }
