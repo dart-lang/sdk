@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -15,10 +13,10 @@ import 'input_converter.dart';
 /// A [CompletionRequestOperation] tracks response time along with
 /// the first and last completion notifications.
 class CompletionRequestOperation extends RequestOperation {
-  Driver driver;
-  StreamSubscription<CompletionResultsParams> subscription;
-  String notificationId;
-  Stopwatch stopwatch;
+  late Driver driver;
+  late StreamSubscription<CompletionResultsParams> subscription;
+  late String notificationId;
+  late Stopwatch stopwatch;
   bool firstNotification = true;
 
   CompletionRequestOperation(
@@ -26,7 +24,7 @@ class CompletionRequestOperation extends RequestOperation {
       : super(converter, json);
 
   @override
-  Future perform(Driver driver) {
+  Future<void>? perform(Driver driver) {
     this.driver = driver;
     subscription = driver.onCompletionResults.listen(processNotification);
     return super.perform(driver);
@@ -50,8 +48,8 @@ class CompletionRequestOperation extends RequestOperation {
 
   @override
   void processResult(
-      String id, Map<String, dynamic> result, Stopwatch stopwatch) {
-    notificationId = result['id'];
+      String id, Map<String, Object?> result, Stopwatch stopwatch) {
+    notificationId = result['id'] as String;
     this.stopwatch = stopwatch;
     super.processResult(id, result, stopwatch);
   }
@@ -59,7 +57,7 @@ class CompletionRequestOperation extends RequestOperation {
 
 /// An [Operation] represents an action such as sending a request to the server.
 abstract class Operation {
-  Future perform(Driver driver);
+  Future<void>? perform(Driver driver);
 }
 
 /// A [RequestOperation] sends a [JSON] request to the server.
@@ -70,7 +68,7 @@ class RequestOperation extends Operation {
   RequestOperation(this.converter, this.json);
 
   @override
-  Future perform(Driver driver) {
+  Future<void>? perform(Driver driver) {
     var stopwatch = Stopwatch();
     String originalId = json['id'];
     String method = json['method'];
@@ -85,11 +83,9 @@ class RequestOperation extends Operation {
           .log(Level.FINE, 'Response received: $method : $elapsed\n  $result');
     }
 
-    driver
-        .send(method, converter.asMap(json['params']))
-        .then((Map<String, dynamic> result) {
+    driver.send(method, converter.asMap(json['params'])).then((result) {
       recordResult(true, result);
-      processResult(originalId, result, stopwatch);
+      processResult(originalId, result!, stopwatch);
     }).catchError((exception) {
       recordResult(false, exception);
       converter.processErrorResponse(originalId, exception);
@@ -98,7 +94,7 @@ class RequestOperation extends Operation {
   }
 
   void processResult(
-      String id, Map<String, dynamic> result, Stopwatch stopwatch) {
+      String id, Map<String, Object?> result, Stopwatch stopwatch) {
     converter.processResponseResult(id, result);
   }
 }
@@ -107,19 +103,20 @@ class RequestOperation extends Operation {
 class ResponseOperation extends Operation {
   static final Duration responseTimeout = Duration(seconds: 60);
   final CommonInputConverter converter;
-  final Map<String, dynamic> requestJson;
-  final Map<String, dynamic> responseJson;
+  final Map<String, Object?> requestJson;
+  final Map<String, Object?> responseJson;
   final Completer completer = Completer();
-  Driver driver;
+  late Driver driver;
 
   ResponseOperation(this.converter, this.requestJson, this.responseJson) {
     completer.future.then(_processResult).timeout(responseTimeout);
   }
 
   @override
-  Future perform(Driver driver) {
+  Future<void>? perform(Driver driver) {
     this.driver = driver;
-    return converter.processExpectedResponse(responseJson['id'], completer);
+    var id = responseJson['id'] as String;
+    return converter.processExpectedResponse(id, completer);
   }
 
   bool _equal(expectedResult, actualResult) {
@@ -161,7 +158,8 @@ class ResponseOperation extends Operation {
           'expected result:${format(expectedResult)}\n'
           'expected error:${format(expectedError)}\n'
           'but received:${format(actualResult)}';
-      driver.results.recordUnexpectedResults(requestJson['method']);
+      var method = requestJson['method'] as String;
+      driver.results.recordUnexpectedResults(method);
       converter.logOverlayContent();
       if (expectedError == null) {
         converter.logger.log(Level.SEVERE, message);
@@ -184,13 +182,14 @@ class WaitForAnalysisCompleteOperation extends Operation {
   Future perform(Driver driver) {
     var start = DateTime.now();
     driver.logger.log(Level.FINE, 'waiting for analysis to complete');
-    StreamSubscription<ServerStatusParams> subscription;
-    Timer timer;
+    late StreamSubscription<ServerStatusParams> subscription;
+    late Timer timer;
     var completer = Completer();
     var isAnalyzing = false;
     subscription = driver.onServerStatus.listen((ServerStatusParams params) {
-      if (params.analysis != null) {
-        if (params.analysis.isAnalyzing) {
+      var analysisStatus = params.analysis;
+      if (analysisStatus != null) {
+        if (analysisStatus.isAnalyzing) {
           isAnalyzing = true;
         } else {
           subscription.cancel();
@@ -214,7 +213,7 @@ class WaitForAnalysisCompleteOperation extends Operation {
       }
       // Timeout if no communication received within the last 60 seconds.
       var currentTime = driver.server.currentElapseTime;
-      var lastTime = driver.server.lastCommunicationTime;
+      var lastTime = driver.server.lastCommunicationTime!;
       if (currentTime - lastTime > 60) {
         subscription.cancel();
         timer.cancel();
