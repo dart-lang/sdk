@@ -2783,6 +2783,11 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       } else {
         name = '${target.enclosingClass.name}.${name}';
       }
+
+      if (enableConstFunctions) {
+        return _handleFunctionInvocation(
+            node.target.function, typeArguments, positionals, named);
+      }
     }
     return createInvalidExpressionConstant(node, "Invocation of $name");
   }

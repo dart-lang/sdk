@@ -2045,6 +2045,14 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void handleConstFactory(Token constKeyword) {
+    debugEvent("ConstFactory");
+    if (!libraryBuilder.enableConstFunctionsInLibrary) {
+      handleRecoverableError(messageConstFactory, constKeyword, constKeyword);
+    }
+  }
+
+  @override
   void endFieldInitializer(Token assignmentOperator, Token token) {
     debugEvent("FieldInitializer");
     Token beforeLast = assignmentOperator.next;

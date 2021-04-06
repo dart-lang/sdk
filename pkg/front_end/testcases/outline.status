@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
+const_functions/const_functions_const_factory: VerificationError
 extension_types/simple: ExpectationFileMismatchSerialized
 extension_types/simple_getter_resolution: ExpectationFileMismatchSerialized
 extension_types/simple_method_resolution: ExpectationFileMismatchSerialized

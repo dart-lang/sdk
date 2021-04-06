@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageAbstractLateField,
         messageAbstractStaticField,
         messageConstConstructorWithBody,
+        messageConstFactory,
         messageConstructorWithTypeParameters,
         messageDirectiveAfterDeclaration,
         messageExpectedStatement,
@@ -2572,6 +2573,13 @@ class AstBuilder extends StackListener {
   void handleCommentReferenceText(String referenceSource, int referenceOffset) {
     push(referenceSource);
     push(referenceOffset);
+  }
+
+  @override
+  void handleConstFactory(Token constKeyword) {
+    debugEvent("ConstFactory");
+    // TODO(kallentu): Removal of const factory error for const function feature
+    handleRecoverableError(messageConstFactory, constKeyword, constKeyword);
   }
 
   @override

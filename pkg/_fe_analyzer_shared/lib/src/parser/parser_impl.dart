@@ -4063,7 +4063,7 @@ class Parser {
     } else {
       if (varFinalOrConst != null && !optional('native', next)) {
         if (optional('const', varFinalOrConst)) {
-          reportRecoverableError(varFinalOrConst, codes.messageConstFactory);
+          listener.handleConstFactory(varFinalOrConst);
         }
       }
       token = parseFunctionBody(
