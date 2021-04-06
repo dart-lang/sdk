@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 
 import 'package:analyzer/exception/exception.dart';
@@ -13,15 +11,15 @@ import 'package:analyzer/src/generated/source.dart';
 /// Utility methods that can be mixed in to classes that produce an HTML
 /// representation of a tree structure.
 mixin TreeWriter {
-  /// The buffer on which the HTML is to be written.
-  StringBuffer buffer;
-
   /// The current level of indentation.
   int indentLevel = 0;
 
   /// A list containing the exceptions that were caught while attempting to
   /// write out the tree structure.
   List<CaughtException> exceptions = <CaughtException>[];
+
+  /// The buffer on which the HTML is to be written.
+  StringBuffer get buffer;
 
   void indent([int extra = 0]) {
     for (var i = 0; i < indentLevel; i++) {
@@ -36,7 +34,7 @@ mixin TreeWriter {
   }
 
   /// Write a representation of the given [properties] to the buffer.
-  void writeProperties(Map<String, Object> properties) {
+  void writeProperties(Map<String, Object?> properties) {
     var propertyNames = properties.keys.toList();
     propertyNames.sort();
     for (var propertyName in propertyNames) {
@@ -45,7 +43,7 @@ mixin TreeWriter {
   }
 
   /// Write the [value] of the property with the given [name].
-  void writeProperty(String name, Object value) {
+  void writeProperty(String name, Object? value) {
     if (value != null) {
       indent(2);
       buffer.write('$name = ');
@@ -54,7 +52,7 @@ mixin TreeWriter {
     }
   }
 
-  String _toString(Object value) {
+  String? _toString(Object? value) {
     try {
       if (value is Source) {
         return 'Source (uri="${value.uri}", path="${value.fullName}")';
