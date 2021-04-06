@@ -807,11 +807,7 @@ class MethodInvocationResolver {
         );
       }
       _resolver.flowAnalysis?.flow?.propertyGet(
-          functionExpression,
-          target,
-          node.methodName.name,
-          node.methodName.staticElement,
-          getterReturnType);
+          functionExpression, target, node.methodName.name, getterReturnType);
       functionExpression.staticType = targetType;
     }
 

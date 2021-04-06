@@ -130,11 +130,11 @@ class TypePropertyResolver {
       if (flow != null) {
         if (receiver != null) {
           messages = _resolver.computeWhyNotPromotedMessages(
-              nameErrorEntity, flow.whyNotPromoted(receiver)());
+              receiver, nameErrorEntity, flow.whyNotPromoted(receiver)());
         } else {
           var thisType = _resolver.thisType;
           if (thisType != null) {
-            messages = _resolver.computeWhyNotPromotedMessages(
+            messages = _resolver.computeWhyNotPromotedMessages(receiver,
                 nameErrorEntity, flow.whyNotPromotedImplicitThis(thisType)());
           }
         }

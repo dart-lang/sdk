@@ -57,7 +57,7 @@ class BoolExpressionVerifier {
             errorCode: CompileTimeErrorCode
                 .UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
             messages: _resolver.computeWhyNotPromotedMessages(
-                expression, whyNotPromoted?.call()));
+                expression, expression, whyNotPromoted?.call()));
       } else {
         _errorReporter.reportErrorForNode(errorCode, expression, arguments);
       }
