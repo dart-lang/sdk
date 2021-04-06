@@ -288,7 +288,9 @@ class LocalsHandler {
         element.isGenerativeConstructor &&
         _nativeData.isNativeOrExtendsNative(cls);
     if (_interceptorData.isInterceptedMethod(element)) {
-      SyntheticLocal parameter = createLocal('receiver');
+      bool isInterceptedClass = _interceptorData.isInterceptedClass(cls);
+      String name = isInterceptedClass ? 'receiver' : '_';
+      SyntheticLocal parameter = createLocal(name);
       HParameterValue value = new HParameterValue(parameter, getTypeOfThis());
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAfter(directLocals[scopeInfo.thisLocal], value);
@@ -296,7 +298,10 @@ class LocalsHandler {
         // If this is the first parameter inserted, make sure it stays first.
         builder.lastAddedParameter = value;
       }
-      directLocals[scopeInfo.thisLocal] = value;
+      if (isInterceptedClass) {
+        // Only use the extra parameter in intercepted classes.
+        directLocals[scopeInfo.thisLocal] = value;
+      }
     } else if (isNativeUpgradeFactory) {
       SyntheticLocal parameter = createLocal('receiver');
       // Unlike `this`, receiver is nullable since direct calls to generative

@@ -414,7 +414,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(graph.isValid(), 'Graph not valid after ${phase.name}');
     }
 
-    runPhase(new SsaInstructionSelection(_options, _closedWorld));
+    runPhase(
+        new SsaInstructionSelection(_options, _closedWorld, _interceptorData));
     runPhase(new SsaTypeKnownRemover());
     runPhase(new SsaTrustedCheckRemover(_options));
     runPhase(new SsaAssignmentChaining(_closedWorld));
