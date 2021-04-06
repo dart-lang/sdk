@@ -290,14 +290,13 @@ class TypeInferrerImpl implements TypeInferrer {
   /// promoted, to be used when reporting an error for a larger expression
   /// containing [receiver].  [node] is the containing tree node.
   List<LocatedMessage> getWhyNotPromotedContext(
-      Expression receiver,
       Map<DartType, NonPromotionReason> whyNotPromoted,
       TreeNode node,
       bool Function(DartType) typeFilter) {
     List<LocatedMessage> context;
     if (whyNotPromoted != null && whyNotPromoted.isNotEmpty) {
       _WhyNotPromotedVisitor whyNotPromotedVisitor =
-          new _WhyNotPromotedVisitor(this, receiver);
+          new _WhyNotPromotedVisitor(this);
       for (core.MapEntry<DartType, NonPromotionReason> entry
           in whyNotPromoted.entries) {
         if (!typeFilter(entry.key)) continue;
@@ -615,7 +614,6 @@ class TypeInferrerImpl implements TypeInferrer {
                 nullabilityErrorTemplate.withArguments(expressionType,
                     declaredContextType ?? contextType, isNonNullableByDefault),
                 context: getWhyNotPromotedContext(
-                    expression,
                     flowAnalysis?.whyNotPromoted(expression)(),
                     expression,
                     (type) => typeSchemaEnvironment.isSubtypeOf(type,
@@ -2826,7 +2824,6 @@ class TypeInferrerImpl implements TypeInferrer {
         //     void Function() get call => () {};
         //   }
         List<LocatedMessage> context = getWhyNotPromotedContext(
-            receiver,
             flowAnalysis?.whyNotPromoted(receiver)(),
             staticInvocation,
             (type) => !type.isPotentiallyNullable);
@@ -2858,7 +2855,6 @@ class TypeInferrerImpl implements TypeInferrer {
       Expression replacement = result.applyResult(staticInvocation);
       if (!isTopLevel && target.isNullable) {
         List<LocatedMessage> context = getWhyNotPromotedContext(
-            receiver,
             flowAnalysis?.whyNotPromoted(receiver)(),
             staticInvocation,
             (type) => !type.isPotentiallyNullable);
@@ -2972,7 +2968,6 @@ class TypeInferrerImpl implements TypeInferrer {
     Expression replacement = result.applyResult(expression);
     if (!isTopLevel && target.isNullableCallFunction) {
       List<LocatedMessage> context = getWhyNotPromotedContext(
-          receiver,
           flowAnalysis?.whyNotPromoted(receiver)(),
           expression,
           (type) => !type.isPotentiallyNullable);
@@ -3147,7 +3142,6 @@ class TypeInferrerImpl implements TypeInferrer {
     replacement = result.applyResult(replacement);
     if (!isTopLevel && target.isNullable) {
       List<LocatedMessage> context = getWhyNotPromotedContext(
-          receiver,
           flowAnalysis?.whyNotPromoted(receiver)(),
           expression,
           (type) => !type.isPotentiallyNullable);
@@ -3308,7 +3302,6 @@ class TypeInferrerImpl implements TypeInferrer {
       //     void Function() get foo => () {};
       //   }
       List<LocatedMessage> context = getWhyNotPromotedContext(
-          receiver,
           flowAnalysis?.whyNotPromoted(receiver)(),
           invocationResult.expression,
           (type) => !type.isPotentiallyNullable);
@@ -3465,8 +3458,8 @@ class TypeInferrerImpl implements TypeInferrer {
           new PropertyGet(originalReceiver, originalName, originalTarget)
             ..fileOffset = fileOffset;
     }
-    flowAnalysis.propertyGet(
-        originalPropertyGet, originalReceiver, originalName.text, calleeType);
+    flowAnalysis.propertyGet(originalPropertyGet, originalReceiver,
+        originalName.text, originalTarget, calleeType);
     Expression propertyGet = originalPropertyGet;
     if (receiver is! ThisExpression &&
         calleeType is! DynamicType &&
@@ -3518,11 +3511,8 @@ class TypeInferrerImpl implements TypeInferrer {
       //   }
       // TODO(paulberry): would it be better to report NullableMethodCallError
       // in this scenario?
-      List<LocatedMessage> context = getWhyNotPromotedContext(
-          receiver,
-          whyNotPromoted(),
-          invocationResult.expression,
-          (type) => !type.isPotentiallyNullable);
+      List<LocatedMessage> context = getWhyNotPromotedContext(whyNotPromoted(),
+          invocationResult.expression, (type) => !type.isPotentiallyNullable);
       invocationResult = wrapExpressionInferenceResultInProblem(
           invocationResult,
           templateNullableExpressionCallError.withArguments(
@@ -3853,7 +3843,7 @@ class TypeInferrerImpl implements TypeInferrer {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
     flowAnalysis.thisOrSuperPropertyGet(
-        expression, expression.name.name, inferredType);
+        expression, expression.name.name, member, inferredType);
     return new ExpressionInferenceResult(inferredType, expression);
   }
 
@@ -4644,6 +4634,17 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   }
 }
 
+/// The result of inference of a property get expression.
+class PropertyGetInferenceResult {
+  /// The main inference result.
+  final ExpressionInferenceResult expressionInferenceResult;
+
+  /// The property that was looked up, or `null` if no property was found.
+  final Member member;
+
+  PropertyGetInferenceResult(this.expressionInferenceResult, this.member);
+}
+
 /// The result of an expression inference.
 class ExpressionInferenceResult {
   /// The inferred type of the expression.
@@ -5134,13 +5135,11 @@ class _WhyNotPromotedVisitor
             DartType> {
   final TypeInferrerImpl inferrer;
 
-  final Expression receiver;
-
   Member propertyReference;
 
   DartType propertyType;
 
-  _WhyNotPromotedVisitor(this.inferrer, this.receiver);
+  _WhyNotPromotedVisitor(this.inferrer);
 
   @override
   LocatedMessage visitDemoteViaExplicitWrite(
@@ -5158,26 +5157,16 @@ class _WhyNotPromotedVisitor
 
   @override
   LocatedMessage visitPropertyNotPromoted(PropertyNotPromoted reason) {
-    Member member;
-    Expression receiver = this.receiver;
-    if (receiver is InstanceGet) {
-      member = receiver.interfaceTarget;
-    } else if (receiver is SuperPropertyGet) {
-      member = receiver.interfaceTarget;
-    } else if (receiver is StaticInvocation) {
-      member = receiver.target;
-    } else if (receiver is PropertyGet) {
-      member = receiver.interfaceTarget;
-    } else {
-      assert(false, 'Unrecognized receiver: ${receiver.runtimeType}');
-    }
-    if (member != null) {
+    Object member = reason.propertyMember;
+    if (member is Member) {
       propertyReference = member;
       propertyType = reason.staticType;
       return templateFieldNotPromoted
           .withArguments(reason.propertyName, reason.documentationLink)
           .withLocation(member.fileUri, member.fileOffset, noLength);
     } else {
+      assert(member == null,
+          'Unrecognized property member: ${member.runtimeType}');
       return null;
     }
   }

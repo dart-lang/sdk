@@ -312,7 +312,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
-      Expression? expression,
       SyntacticEntity errorEntity,
       Map<DartType, NonPromotionReason>? whyNotPromoted) {
     return [];
