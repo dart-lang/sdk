@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -23,17 +21,17 @@ void main() {
 
 @reflectiveTest
 class ByteStreamClientChannelTest {
-  ByteStreamClientChannel channel;
+  late ByteStreamClientChannel channel;
 
   /// Sink that may be used to deliver data to the channel, as though it's
   /// coming from the server.
-  IOSink inputSink;
+  late IOSink inputSink;
 
   /// Sink through which the channel delivers data to the server.
-  IOSink outputSink;
+  late IOSink outputSink;
 
   /// Stream of lines sent back to the client by the channel.
-  Stream<String> outputLineStream;
+  late Stream<String> outputLineStream;
 
   void setUp() {
     var inputStream = StreamController<List<int>>();
@@ -103,23 +101,23 @@ class ByteStreamClientChannelTest {
 
 @reflectiveTest
 class ByteStreamServerChannelTest {
-  ByteStreamServerChannel channel;
+  late ByteStreamServerChannel channel;
 
   /// Sink that may be used to deliver data to the channel, as though it's
   /// coming from the client.
-  IOSink inputSink;
+  late IOSink inputSink;
 
   /// Stream of lines sent back to the client by the channel.
-  Stream<String> outputLineStream;
+  late Stream<String> outputLineStream;
 
   /// Stream of requests received from the channel via [listen()].
-  Stream<Request> requestStream;
+  late Stream<Request> requestStream;
 
   /// Stream of errors received from the channel via [listen()].
-  Stream errorStream;
+  late Stream errorStream;
 
   /// Future which is completed when then [listen()] reports [onDone].
-  Future doneFuture;
+  late Future doneFuture;
 
   void setUp() {
     var inputStream = StreamController<List<int>>();
@@ -220,10 +218,10 @@ class ByteStreamServerChannelTest {
 
   Future<void> test_sendNotification_exceptionInSink() async {
     // This IOSink asynchronously throws an exception on any writeln().
-    var outputSink = _IOSinkMock();
+    var outputSink = _IOSinkThatAsyncThrowsOnWrite();
 
-    var channel = ByteStreamServerChannel(
-        null, outputSink, InstrumentationService.NULL_SERVICE);
+    var channel = ByteStreamServerChannel(StreamController<List<int>>().stream,
+        outputSink, InstrumentationService.NULL_SERVICE);
 
     // Attempt to send a notification.
     channel.sendNotification(Notification('foo'));
@@ -245,39 +243,14 @@ class ByteStreamServerChannelTest {
   }
 }
 
-class _IOSinkMock implements IOSink {
+class _IOSinkThatAsyncThrowsOnWrite implements IOSink {
   @override
-  Encoding encoding;
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
 
   @override
-  Future done;
-
-  @override
-  void add(List<int> data) {}
-
-  @override
-  void addError(Object error, [StackTrace stackTrace]) {}
-
-  @override
-  Future addStream(Stream<List<int>> stream) => null;
-
-  @override
-  Future close() => null;
-
-  @override
-  Future flush() => null;
-
-  @override
-  void write(Object obj) {}
-
-  @override
-  void writeAll(Iterable objects, [String separator = '']) {}
-
-  @override
-  void writeCharCode(int charCode) {}
-
-  @override
-  void writeln([Object obj = '']) {
+  void writeln([Object? obj = '']) {
     Timer(Duration(milliseconds: 10), () {
       throw '42';
     });
