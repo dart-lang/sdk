@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -42,7 +40,7 @@ class PubApi {
         ' (+https://github.com/dart-lang/sdk)',
   };
 
-  PubApi(this.instrumentationService, http.Client httpClient,
+  PubApi(this.instrumentationService, http.Client? httpClient,
       String envPubHostedUrl)
       : httpClient =
             httpClient != null ? _NoCloseHttpClient(httpClient) : http.Client(),
@@ -52,7 +50,7 @@ class PubApi {
   ///
   /// Failed requests will be retried a number of times. If no successful response
   /// is received, will return null.
-  Future<List<PubApiPackage>> allPackages() async {
+  Future<List<PubApiPackage>?> allPackages() async {
     final json = await _getJson('$_pubHostedUrl$packageNameListPath');
     if (json == null) {
       return null;
@@ -73,7 +71,7 @@ class PubApi {
   /// Automatically retries the request for specific types of failures after
   /// [_failedRetryInitialDelaySeconds] doubling each time. After [maxFailedRequests]
   /// requests or upon a 4XX response, will return `null` and not retry.
-  Future<Map<String, dynamic>> _getJson(String url) async {
+  Future<Map<String, Object?>?> _getJson(String url) async {
     var requestCount = 0;
     var retryAfterSeconds = _failedRetryInitialDelaySeconds;
     while (requestCount++ < maxFailedRequests) {
@@ -115,7 +113,7 @@ class PubApi {
 
   /// Returns a valid Pub base URL from [envPubHostedUrl] if valid, otherwise using
   /// the default 'https://pub.dartlang.org'.
-  static String _validPubHostedUrl(String envPubHostedUrl) {
+  static String _validPubHostedUrl(String? envPubHostedUrl) {
     final validUrl = envPubHostedUrl != null &&
             (Uri.tryParse(envPubHostedUrl)?.isAbsolute ?? false)
         ? envPubHostedUrl
