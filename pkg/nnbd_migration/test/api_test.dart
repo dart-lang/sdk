@@ -1570,6 +1570,28 @@ void test() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_do_not_surround_named_expression() async {
+    var content = '''
+void f(int/*?*/ x, int/*?*/ y) {
+  g(named: <int>[x, y]);
+}
+g({List<int/*!*/>/*!*/ named}) {}
+''';
+    // Note: this test is to ensure that we don't produce
+    // `g((named: <int?>[x, y]) as List<int>)` (which would be a parse error).
+    // The migration we produce (`g(named: <int?>[x, y])`) still isn't great,
+    // because it's a type mismatch, but it's better.
+    //
+    // TODO(paulberry): a better migration would be `g(named: <int>[x!, y!])`.
+    var expected = '''
+void f(int? x, int? y) {
+  g(named: <int?>[x, y]);
+}
+g({required List<int> named}) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_downcast_dynamic_function_to_functionType() async {
     var content = '''
 void f(Function a) {
