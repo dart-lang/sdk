@@ -149,7 +149,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url_in,
     UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
 
     Debugger* debugger = I->debugger();
-    bpt = debugger->SetBreakpointAtLine(script_url, line_number);
+    bpt = debugger->SetBreakpointAtLineCol(script_url, line_number, -1);
     if (bpt == NULL) {
       return Api::NewError("%s: could not set breakpoint at line %" Pd
                            " in '%s'",

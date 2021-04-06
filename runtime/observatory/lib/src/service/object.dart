@@ -2407,6 +2407,9 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
   // Either SourceLocation or UnresolvedSourceLocation.
   Location? location;
 
+  // Is the breakpoint enabled?
+  bool? enabled;
+
   // The breakpoint is in a file which is not yet loaded.
   bool? latent;
 
@@ -2425,6 +2428,7 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
     // number never changes.
     assert((number == null) || (number == newNumber));
     number = newNumber;
+    enabled = map['enabled'];
     resolved = map['resolved'];
 
     var oldLocation = location;
@@ -2446,6 +2450,15 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
     isSyntheticAsyncContinuation = map['isSyntheticAsyncContinuation'] != null;
 
     assert(resolved! || location is UnresolvedSourceLocation);
+  }
+
+  Future<void> setState(bool enable) {
+    return location!.script.isolate!.invokeRpcNoUpgrade('setBreakpointState', {
+      'breakpointId': 'breakpoints/$number',
+      'enable': enable,
+    }).then((Map result) {
+      _update(result, false);
+    });
   }
 
   void remove() {

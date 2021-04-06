@@ -4,6 +4,7 @@ src/org/dartlang/vm/service/VmService.java
 src/org/dartlang/vm/service/consumer/AddBreakpointAtEntryConsumer.java
 src/org/dartlang/vm/service/consumer/AddBreakpointConsumer.java
 src/org/dartlang/vm/service/consumer/AddBreakpointWithScriptUriConsumer.java
+src/org/dartlang/vm/service/consumer/BreakpointConsumer.java
 src/org/dartlang/vm/service/consumer/ClearCpuSamplesConsumer.java
 src/org/dartlang/vm/service/consumer/CpuSamplesConsumer.java
 src/org/dartlang/vm/service/consumer/EvaluateConsumer.java

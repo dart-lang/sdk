@@ -136,6 +136,7 @@ String assertEventKind(String obj) {
   if (obj == "BreakpointAdded") return obj;
   if (obj == "BreakpointRemoved") return obj;
   if (obj == "BreakpointResolved") return obj;
+  if (obj == "BreakpointUpdated") return obj;
   if (obj == "Extension") return obj;
   if (obj == "GC") return obj;
   if (obj == "Inspect") return obj;
@@ -293,6 +294,7 @@ vms.Breakpoint assertBreakpoint(vms.Breakpoint obj) {
   assertNotNull(obj);
   assertString(obj.id!);
   assertInt(obj.breakpointNumber!);
+  assertBool(obj.enabled!);
   assertBool(obj.resolved!);
   if (obj.location is vms.SourceLocation) {
     assertSourceLocation(obj.location!);

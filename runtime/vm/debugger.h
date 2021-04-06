@@ -81,6 +81,18 @@ class Breakpoint {
     closure_ = closure.ptr();
   }
 
+  void Enable() {
+    ASSERT(!enabled_);
+    enabled_ = true;
+  }
+
+  void Disable() {
+    ASSERT(enabled_);
+    enabled_ = false;
+  }
+
+  bool is_enabled() const { return enabled_; }
+
   // Mark that this breakpoint is a result of a step OverAwait request.
   void set_is_synthetic_async(bool is_synthetic_async) {
     is_synthetic_async_ = is_synthetic_async;
@@ -105,6 +117,7 @@ class Breakpoint {
   InstancePtr closure_;
   BreakpointLocation* bpt_location_;
   bool is_synthetic_async_;
+  bool enabled_ = false;
 
   friend class BreakpointLocation;
   DISALLOW_COPY_AND_ASSIGN(Breakpoint);
@@ -712,6 +725,9 @@ class Debugger {
   BreakpointLocation* BreakpointLocationAtLineCol(const String& script_url,
                                                   intptr_t line_number,
                                                   intptr_t column_number);
+
+  // Returns true if the breakpoint's state changed.
+  bool SetBreakpointState(Breakpoint* bpt, bool enable);
 
   void RemoveBreakpoint(intptr_t bp_id);
   Breakpoint* GetBreakpointById(intptr_t id);

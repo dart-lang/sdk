@@ -109,7 +109,14 @@ BreakpointLocation::~BreakpointLocation() {
 }
 
 bool BreakpointLocation::AnyEnabled() const {
-  return breakpoints() != NULL;
+  Breakpoint* bpt = breakpoints();
+  while (bpt != nullptr) {
+    if (bpt->is_enabled()) {
+      return true;
+    }
+    bpt = bpt->next();
+  }
+  return false;
 }
 
 void BreakpointLocation::SetResolved(const Function& func,
@@ -175,6 +182,7 @@ void Breakpoint::PrintJSON(JSONStream* stream) {
   jsobj.AddProperty("type", "Breakpoint");
 
   jsobj.AddFixedServiceId("breakpoints/%" Pd "", id());
+  jsobj.AddProperty("enabled", enabled_);
   jsobj.AddProperty("breakpointNumber", id());
   if (is_synthetic_async()) {
     jsobj.AddProperty("isSyntheticAsyncContinuation", is_synthetic_async());
@@ -358,7 +366,7 @@ void Debugger::SendBreakpointEvent(ServiceEvent::EventKind kind,
 void BreakpointLocation::AddBreakpoint(Breakpoint* bpt, Debugger* dbg) {
   bpt->set_next(breakpoints());
   set_breakpoints(bpt);
-
+  bpt->Enable();
   dbg->group_debugger()->SyncBreakpointLocation(this);
   dbg->SendBreakpointEvent(ServiceEvent::kBreakpointAdded, bpt);
 }
@@ -2945,7 +2953,6 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
 // associated with the breakpoint location loc.
 void GroupDebugger::SyncBreakpointLocation(BreakpointLocation* loc) {
   bool any_enabled = loc->AnyEnabled();
-
   SafepointWriteRwLocker sl(Thread::Current(), code_breakpoints_lock());
   CodeBreakpoint* cbpt = code_breakpoints_;
   while (cbpt != NULL) {
@@ -4281,6 +4288,21 @@ CodePtr GroupDebugger::GetPatchedStubAddress(uword breakpoint_address) {
   }
   UNREACHABLE();
   return Code::null();
+}
+
+bool Debugger::SetBreakpointState(Breakpoint* bpt, bool enable) {
+  SafepointWriteRwLocker sl(Thread::Current(),
+                            group_debugger()->breakpoint_locations_lock());
+  if (bpt->is_enabled() != enable) {
+    if (FLAG_verbose_debug) {
+      OS::PrintErr("Setting breakpoint %" Pd " to state: %s\n", bpt->id(),
+                   enable ? "enabled" : "disabled");
+    }
+    enable ? bpt->Enable() : bpt->Disable();
+    group_debugger()->SyncBreakpointLocation(bpt->bpt_location());
+    return true;
+  }
+  return false;
 }
 
 // Remove and delete the source breakpoint bpt and its associated
