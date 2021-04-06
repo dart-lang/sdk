@@ -2538,7 +2538,9 @@ void Precompiler::DropLibraryEntries() {
           program_info.set_libraries_cache(Array::null_array());
           program_info.set_classes_cache(Array::null_array());
         }
+#if defined(PRODUCT)
         script.set_resolved_url(String::null_string());
+#endif  // defined(PRODUCT)
         script.set_compile_time_constants(Array::null_array());
         script.set_line_starts(null_typed_data);
         script.set_debug_positions(Array::null_array());

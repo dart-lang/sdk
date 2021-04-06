@@ -128,7 +128,9 @@ dart_2/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
+dart/gen_snapshot_include_resolved_urls_test: SkipByDesign # Script URLs not included in product gen_snapshot
 dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
+dart_2/gen_snapshot_include_resolved_urls_test: SkipByDesign # Script URLs not included in product gen_snapshot
 dart_2/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 
 [ $nnbd == legacy ]
