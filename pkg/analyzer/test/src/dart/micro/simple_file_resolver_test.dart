@@ -679,6 +679,30 @@ void func() {
     expect(result, isNot(same(result1)));
   }
 
+  test_resolveLibrary() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(aPath, content: r'''
+part 'test.dart';
+
+class A {
+  int m;
+}
+''');
+
+    newFile('/workspace/dart/test/lib/test.dart', content: r'''
+part of 'a.dart';
+
+void func() {
+  var a = A();
+  print(a.m);
+}
+''');
+
+    var result = fileResolver.resolveLibrary(path: aPath);
+    expect(result.path, aPath);
+    expect(result.units?.length, 2);
+  }
+
   test_reuse_compatibleOptions() async {
     newFile('/workspace/dart/aaa/BUILD', content: '');
     newFile('/workspace/dart/bbb/BUILD', content: '');
