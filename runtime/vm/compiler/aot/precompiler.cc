@@ -144,6 +144,8 @@ struct RetainReasons : public AllStatic {
   static constexpr const char* kLocalParent = "parent of a local function";
   // The object has an entry point pragma that requires it be retained.
   static constexpr const char* kEntryPointPragma = "entry point pragma";
+  // The function is a target of FFI callback.
+  static constexpr const char* kFfiCallbackTarget = "ffi callback target";
 };
 
 class RetainedReasonsWriter : public ValueObject {
@@ -935,6 +937,13 @@ void Precompiler::AddCalleesOfHelper(const Object& entry,
     // Local closure function.
     const auto& target = Function::Cast(entry);
     AddFunction(target, RetainReasons::kLocalClosure);
+    if (target.IsFfiTrampoline()) {
+      const auto& callback_target =
+          Function::Handle(Z, target.FfiCallbackTarget());
+      if (!callback_target.IsNull()) {
+        AddFunction(callback_target, RetainReasons::kFfiCallbackTarget);
+      }
+    }
   } else if (entry.IsCode()) {
     const auto& target_code = Code::Cast(entry);
     if (target_code.IsAllocationStubCode()) {

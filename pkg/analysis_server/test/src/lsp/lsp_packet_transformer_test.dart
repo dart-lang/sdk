@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 
 import 'package:analysis_server/src/lsp/lsp_packet_transformer.dart';
@@ -85,7 +83,7 @@ void main() {
   });
 }
 
-List<int> makeLspPacket(String json, [String contentType]) {
+List<int> makeLspPacket(String json, [String? contentType]) {
   final utf8EncodedBody = utf8.encode(json);
   final header = 'Content-Length: ${utf8EncodedBody.length}' +
       (contentType != null ? '\r\nContent-Type: $contentType' : '') +

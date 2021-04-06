@@ -31,7 +31,7 @@ version: 1.0.0
 # homepage: https://www.example.com
 
 environment:
-  sdk: '>=2.10.0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 
 # dependencies:
 #   path: ^1.7.0
@@ -72,7 +72,7 @@ final String _main = '''
 import 'dart:html';
 
 void main() {
-  querySelector('#output').text = 'Your Dart app is running.';
+  querySelector('#output')?.text = 'Your Dart app is running.';
 }
 ''';
 
