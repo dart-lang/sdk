@@ -79,32 +79,19 @@ instance_getter_invocation(C6 c) {
 }
 
 class C8 {
-  C9? ok;
   C10? bad;
   //   ^^^
   // [context 4] 'bad' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
   // [context 10] 'bad' refers to a property so it couldn't be promoted.
 }
 
-class C9 {}
-
 class C10 {}
-
-extension on C9? {
-  void Function() get call => () {};
-}
 
 extension on C10 {
   void Function() get call => () {};
 }
 
 extension_invocation_getter(C8 c) {
-  if (c.ok == null) return;
-  // Note: the analyzer produces an extraneous error on the line below due to
-  // https://github.com/dart-lang/sdk/issues/45551
-  c.ok();
-//^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
   if (c.bad == null) return;
   c.bad();
 //^^^^^
