@@ -915,6 +915,7 @@ dart_vm_nightly_builder(
     "vm-kernel-nnbd-linux-debug-ia32",
     category = "vm|nnbd|jit|d3",
     channels = ["try"],
+    properties = {"shard_timeout": (90 * time.minute) // time.second},
 )
 dart_vm_nightly_builder(
     "vm-kernel-nnbd-linux-release-ia32",
@@ -935,6 +936,7 @@ dart_vm_nightly_builder(
     "vm-kernel-nnbd-mac-debug-x64",
     category = "vm|nnbd|jit|md",
     channels = ["try"],
+    properties = {"shard_timeout": (90 * time.minute) // time.second},
     dimensions = mac(),
 )
 dart_vm_nightly_builder(
@@ -953,6 +955,7 @@ dart_vm_nightly_builder(
     "vm-kernel-nnbd-win-debug-x64",
     category = "vm|nnbd|jit|wd",
     channels = ["try"],
+    properties = {"shard_timeout": (90 * time.minute) // time.second},
     dimensions = windows(),
 )
 dart_vm_nightly_builder(
