@@ -356,6 +356,7 @@ void handleAddHintLinkClick(MouseEvent event) async {
     // the response.
     await doPost(path);
     await loadFile(window.location.pathname, null, null, false);
+    document.body.classes.add('needs-rerun');
     _scrollContentTo(previousScrollPosition);
   } catch (e, st) {
     handleError("couldn't add/remove hint", e, st);
