@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 import 'package:analysis_server/src/services/search/element_visitors.dart';
@@ -11,7 +9,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 /// Returns direct children of [parent].
-List<Element> getChildren(Element parent, [String name]) {
+List<Element> getChildren(Element parent, [String? name]) {
   var children = <Element>[];
   visitChildren(parent, (Element element) {
     if (name == null || element.displayName == name) {
@@ -26,7 +24,7 @@ List<Element> getChildren(Element parent, [String name]) {
 ///
 /// Includes: fields, accessors and methods.
 /// Excludes: constructors and synthetic elements.
-List<Element> getClassMembers(ClassElement clazz, [String name]) {
+List<Element> getClassMembers(ClassElement clazz, [String? name]) {
   var members = <Element>[];
   visitChildren(clazz, (Element element) {
     if (element.isSynthetic) {
@@ -58,7 +56,7 @@ Future<Set<ClassElement>> getDirectSubClasses(
 
 /// Return the non-synthetic children of the given [extension]. This includes
 /// fields, accessors and methods, but excludes synthetic elements.
-List<Element> getExtensionMembers(ExtensionElement extension, [String name]) {
+List<Element> getExtensionMembers(ExtensionElement extension, [String? name]) {
   var members = <Element>[];
   visitChildren(extension, (Element element) {
     if (element.isSynthetic) {
@@ -84,7 +82,8 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
     SearchEngine searchEngine, ClassMemberElement member) async {
   Set<ClassMemberElement> result = HashSet<ClassMemberElement>();
   // extension member
-  if (member.enclosingElement is ExtensionElement) {
+  var enclosingElement = member.enclosingElement;
+  if (enclosingElement is ExtensionElement) {
     result.add(member);
     return Future.value(result);
   }
@@ -94,27 +93,29 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
     return Future.value(result);
   }
   // method, field, etc
-  var name = member.displayName;
-  ClassElement memberClass = member.enclosingElement;
-  var searchClasses = getSuperClasses(memberClass);
-  searchClasses.add(memberClass);
-  for (var superClass in searchClasses) {
-    // ignore if super- class does not declare member
-    if (getClassMembers(superClass, name).isEmpty) {
-      continue;
-    }
-    // check all sub- classes
-    var subClasses = await searchEngine.searchAllSubtypes(superClass);
-    subClasses.add(superClass);
-    for (var subClass in subClasses) {
-      var subClassMembers = getChildren(subClass, name);
-      for (var member in subClassMembers) {
-        if (member is ClassMemberElement) {
-          result.add(member);
+  if (enclosingElement is ClassElement) {
+    var name = member.displayName;
+    var searchClasses = getSuperClasses(enclosingElement);
+    searchClasses.add(enclosingElement);
+    for (var superClass in searchClasses) {
+      // ignore if super- class does not declare member
+      if (getClassMembers(superClass, name).isEmpty) {
+        continue;
+      }
+      // check all sub- classes
+      var subClasses = await searchEngine.searchAllSubtypes(superClass);
+      subClasses.add(superClass);
+      for (var subClass in subClasses) {
+        var subClassMembers = getChildren(subClass, name);
+        for (var member in subClassMembers) {
+          if (member is ClassMemberElement) {
+            result.add(member);
+          }
         }
       }
     }
   }
+
   return result;
 }
 
