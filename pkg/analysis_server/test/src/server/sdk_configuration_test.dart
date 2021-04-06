@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:analysis_server/src/server/sdk_configuration.dart';
@@ -12,7 +10,11 @@ import 'package:test/test.dart';
 
 void main() {
   group('SdkConfiguration', () {
-    Directory tempDir;
+    Directory? tempDir;
+
+    Directory createTempDir() {
+      return tempDir = Directory.systemTemp.createTempSync('SdkConfiguration');
+    }
 
     tearDown(() {
       tempDir?.deleteSync(recursive: true);
@@ -23,8 +25,8 @@ void main() {
     });
 
     test("custom settings file doesn't exist", () {
-      tempDir = Directory.systemTemp.createTempSync('SdkConfiguration');
-      var file = File(path.join(tempDir.path, 'config.json'));
+      var dir = createTempDir();
+      var file = File(path.join(dir.path, 'config.json'));
 
       expect(() {
         SdkConfiguration.readFromFile(file);
@@ -32,8 +34,8 @@ void main() {
     });
 
     test('is not configured', () {
-      tempDir = Directory.systemTemp.createTempSync('SdkConfiguration');
-      var file = File(path.join(tempDir.path, 'config.json'));
+      var dir = createTempDir();
+      var file = File(path.join(dir.path, 'config.json'));
       file.writeAsStringSync('''
 {}
 ''');
@@ -48,8 +50,8 @@ void main() {
     });
 
     test('is configured', () {
-      tempDir = Directory.systemTemp.createTempSync('SdkConfiguration');
-      var file = File(path.join(tempDir.path, 'config.json'));
+      var dir = createTempDir();
+      var file = File(path.join(dir.path, 'config.json'));
       file.writeAsStringSync('''
 {
   "server.analytics.id": "aaaa-1234",

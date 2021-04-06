@@ -205,6 +205,21 @@ import '22/new_name.dart';
     assertNoFileChange(testFile);
   }
 
+  Future<void> test_file_imported_with_relative_uri_same_folder() async {
+    // https://github.com/dart-lang/sdk/issues/45593
+    testFile = convertPath('/home/test/bin/aaa.dart');
+    var pathB = convertPath('/home/test/bin/bbb.dart');
+    addSource(pathB, '');
+    await resolveTestCode("import 'bbb.dart';");
+    await analyzeTestPackageFiles();
+
+    _createRefactoring('/home/test/bin/new_aaa.dart');
+    await _assertSuccessfulRefactoring();
+
+    assertNoFileChange(testFile);
+    assertNoFileChange(pathB);
+  }
+
   Future<void> test_file_imported_with_relative_uri_sideways() async {
     var pathA = convertPath('/home/test/000/1111/a.dart');
     testFile = convertPath('/home/test/000/1111/sub/folder/test.dart');
@@ -422,9 +437,7 @@ part 'a.dart';
     assertFileChangeResult(pathA, '''
 part of 'test2.dart';
 ''');
-    assertFileChangeResult(testFile, '''
-part 'a.dart';
-''');
+    assertNoFileChange(testFile);
   }
 
   Future<void> test_renaming_part_that_uses_uri_in_part_of_4() async {
@@ -472,9 +485,7 @@ part of 'a.dart';
     assertFileChangeResult(pathA, '''
 part 'test2.dart';
 ''');
-    assertFileChangeResult(testFile, '''
-part of 'a.dart';
-''');
+    assertNoFileChange(testFile);
   }
 
   Future _assertFailedRefactoring(RefactoringProblemSeverity expectedSeverity,
