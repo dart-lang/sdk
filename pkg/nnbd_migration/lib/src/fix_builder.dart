@@ -515,6 +515,12 @@ class MigrationResolutionHooksImpl
   @override
   DartType modifyExpressionType(Expression node, DartType type) =>
       _wrapExceptions(node, () => type, () {
+        if (node is NamedExpression) {
+          // Do not attempt to modify named expressions.  We should already have
+          // been called for [node.expression], and we should have made the
+          // necessary modifications then.
+          return type;
+        }
         var parent = node.parent;
         if (parent is AssignmentExpression) {
           if (parent.leftHandSide == node) {

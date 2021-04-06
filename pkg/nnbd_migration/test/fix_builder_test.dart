@@ -1429,9 +1429,7 @@ _f(Iterable<int> x) => x.firstWhere((n) => n.isEven, orElse: () => null);
       methodInvocation.methodName: isMethodNameChange('firstWhereOrNull'),
       methodInvocation.argumentList:
           isDropArgument({functionExpression.parent: anything}),
-      // Behavior of the function expression and its subexpression don't matter
-      // because they're being dropped.
-      functionExpression.parent: anything,
+      // Behavior of the null literal doesn't matter because it's being dropped.
       findNode.nullLiteral('null'): anything
     });
     expect(fixBuilder.needsIterableExtension, true);
