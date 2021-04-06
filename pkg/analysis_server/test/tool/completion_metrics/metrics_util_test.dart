@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:test/test.dart';
 
 import '../../../tool/code_completion/metrics_util.dart';
@@ -172,8 +170,6 @@ class _DoubleEquals extends Matcher {
   @override
   bool matches(item, Map matchState) {
     return item is num &&
-        item != null &&
-        _value != null &&
         num.parse(item.toStringAsFixed(fractionDigits)) ==
             num.parse(_value.toStringAsFixed(fractionDigits));
   }

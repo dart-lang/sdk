@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
@@ -96,12 +94,12 @@ class Counter {
   }
 
   void count(String id, [int countNumber = 1]) {
-    assert(id != null && id.isNotEmpty && 1 <= countNumber);
-    if (_buckets.containsKey(id)) {
-      _buckets[id] += countNumber;
-    } else {
-      _buckets.putIfAbsent(id, () => countNumber);
-    }
+    assert(id.isNotEmpty && 1 <= countNumber);
+    _buckets.update(
+      id,
+      (value) => value + countNumber,
+      ifAbsent: () => countNumber,
+    );
     _totalCount += countNumber;
   }
 
