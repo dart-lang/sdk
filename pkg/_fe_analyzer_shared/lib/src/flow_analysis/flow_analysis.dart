@@ -736,13 +736,8 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// expression to the left hand side of the `.`, and [propertyName] should be
   /// the identifier to the right hand side of the `.`.  [staticType] should be
   /// the static type of the value returned by the property get.
-  ///
-  /// [propertyMember] should be whatever data structure the client uses to keep
-  /// track of the field or property being accessed.  In the event of
-  /// non-promotion of a property get, this value can be retrieved from
-  /// [PropertyNotPromoted.propertyMember].
   void propertyGet(Expression wholeExpression, Expression target,
-      String propertyName, Object? propertyMember, Type staticType);
+      String propertyName, Type staticType);
 
   /// Retrieves the SSA node associated with [variable], or `null` if [variable]
   /// is not associated with an SSA node because it is write captured.  For
@@ -793,13 +788,8 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// the whole property get, and [propertyName] should be the name of the
   /// property being read.  [staticType] should be the static type of the value
   /// returned by the property get.
-  ///
-  /// [propertyMember] should be whatever data structure the client uses to keep
-  /// track of the field or property being accessed.  In the event of
-  /// non-promotion of a property get, this value can be retrieved from
-  /// [PropertyNotPromoted.propertyMember].
-  void thisOrSuperPropertyGet(Expression expression, String propertyName,
-      Object? propertyMember, Type staticType);
+  void thisOrSuperPropertyGet(
+      Expression expression, String propertyName, Type staticType);
 
   /// Call this method just before visiting the body of a "try/catch" statement.
   ///
@@ -1349,12 +1339,11 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   @override
   void propertyGet(Expression wholeExpression, Expression target,
-      String propertyName, Object? propertyMember, Type staticType) {
+      String propertyName, Type staticType) {
     _wrap(
-        'propertyGet($wholeExpression, $target, $propertyName, '
-        '$propertyMember, $staticType)',
+        'propertyGet($wholeExpression, $target, $propertyName, $staticType)',
         () => _wrapped.propertyGet(
-            wholeExpression, target, propertyName, propertyMember, staticType));
+            wholeExpression, target, propertyName, staticType));
   }
 
   @override
@@ -1389,13 +1378,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void thisOrSuperPropertyGet(Expression expression, String propertyName,
-      Object? propertyMember, Type staticType) {
+  void thisOrSuperPropertyGet(
+      Expression expression, String propertyName, Type staticType) {
     _wrap(
-        'thisOrSuperPropertyGet($expression, $propertyName, $propertyMember, '
-        '$staticType)',
+        'thisOrSuperPropertyGet($expression, $propertyName, $staticType)',
         () => _wrapped.thisOrSuperPropertyGet(
-            expression, propertyName, propertyMember, staticType));
+            expression, propertyName, staticType));
   }
 
   @override
@@ -2346,17 +2334,12 @@ class PropertyNotPromoted<Type extends Object> extends NonPromotionReason {
   /// The name of the property.
   final String propertyName;
 
-  /// The field or property being accessed.  This matches a `propertyMember`
-  /// value that was passed to either [FlowAnalysis.propertyGet] or
-  /// [FlowAnalysis.thisOrSuperPropertyGet].
-  final Object? propertyMember;
-
   /// The static type of the property at the time of the access.  This is the
   /// type that was passed to [FlowAnalysis.whyNotPromoted]; it is provided to
   /// the client as a convenience for ID testing.
   final Type staticType;
 
-  PropertyNotPromoted(this.propertyName, this.propertyMember, this.staticType);
+  PropertyNotPromoted(this.propertyName, this.staticType);
 
   @override
   String get documentationLink => 'http://dart.dev/go/non-promo-property';
@@ -2534,10 +2517,8 @@ abstract class Reference<Variable extends Object, Type extends Object> {
 
   /// Creates a reference representing a get of a property called [propertyName]
   /// on the reference represented by `this`.
-  Reference<Variable, Type> propertyGet(
-          String propertyName, Object? propertyMember) =>
-      new _PropertyGetReference<Variable, Type>(
-          this, propertyName, propertyMember);
+  Reference<Variable, Type> propertyGet(String propertyName) =>
+      new _PropertyGetReference<Variable, Type>(this, propertyName);
 
   /// Stores info for this reference in [variableInfo].
   void storeInfo(Map<Variable?, VariableModel<Variable, Type>> variableInfo,
@@ -3971,14 +3952,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void propertyGet(Expression wholeExpression, Expression target,
-      String propertyName, Object? propertyMember, Type staticType) {
+      String propertyName, Type staticType) {
     Reference<Variable, Type>? reference =
         _getExpressionReference(target)?.reference;
     if (reference != null) {
       _storeExpressionReference(
           wholeExpression,
           new ReferenceWithType<Variable, Type>(
-              reference.propertyGet(propertyName, propertyMember), staticType));
+              reference.propertyGet(propertyName), staticType));
     }
   }
 
@@ -4035,13 +4016,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void thisOrSuperPropertyGet(Expression expression, String propertyName,
-      Object? propertyMember, Type staticType) {
+  void thisOrSuperPropertyGet(
+      Expression expression, String propertyName, Type staticType) {
     _storeExpressionReference(
         expression,
         new ReferenceWithType<Variable, Type>(
-            new _ThisReference<Variable, Type>()
-                .propertyGet(propertyName, propertyMember),
+            new _ThisReference<Variable, Type>().propertyGet(propertyName),
             staticType));
   }
 
@@ -4706,7 +4686,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void propertyGet(Expression wholeExpression, Expression target,
-      String propertyName, Object? propertyMember, Type staticType) {}
+      String propertyName, Type staticType) {}
 
   @override
   SsaNode<Variable, Type>? ssaNodeForTesting(Variable variable) {
@@ -4726,8 +4706,8 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void thisOrSuper(Expression expression, Type staticType) {}
 
   @override
-  void thisOrSuperPropertyGet(Expression expression, String propertyName,
-      Object? propertyMember, Type staticType) {}
+  void thisOrSuperPropertyGet(
+      Expression expression, String propertyName, Type staticType) {}
 
   @override
   void tryCatchStatement_bodyBegin() {}
@@ -4928,12 +4908,7 @@ class _PropertyGetReference<Variable extends Object, Type extends Object>
   /// The name of the property.
   final String propertyName;
 
-  /// The field or property being accessed.  This matches a `propertyMember`
-  /// value that was passed to either [FlowAnalysis.propertyGet] or
-  /// [FlowAnalysis.thisOrSuperPropertyGet].
-  final Object? propertyMember;
-
-  _PropertyGetReference(this.target, this.propertyName, this.propertyMember);
+  _PropertyGetReference(this.target, this.propertyName);
 
   @override
   Map<Type, NonPromotionReason> Function() getNonPromotionReasons(
@@ -4945,8 +4920,7 @@ class _PropertyGetReference<Variable extends Object, Type extends Object>
       return () {
         Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
         for (Type type in promotedTypes) {
-          result[type] =
-              new PropertyNotPromoted(propertyName, propertyMember, staticType);
+          result[type] = new PropertyNotPromoted(propertyName, staticType);
         }
         return result;
       };

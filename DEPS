@@ -98,7 +98,7 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "2cf810073e0cc7e7ea05d3de51830e6fa6d62924",
+  "dart_style_rev": "0067cfcc5bfa64cf59888c3fed34c71d1272555a",
 
   "chromedriver_tag": "83.0.4103.39",
   "browser_launcher_rev": "12ab9f351a44ac803de9bc17bb2180bb312a9dd7",
@@ -331,7 +331,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/csslib":
       Var("dart_git") + "csslib.git" + "@" + Var("csslib_rev"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
-      Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_tag"),
+      Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_rev"),
   Var("dart_root") + "/third_party/pkg/dart2js_info":
       Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_rev"),
   Var("dart_root") + "/third_party/pkg/dartdoc":

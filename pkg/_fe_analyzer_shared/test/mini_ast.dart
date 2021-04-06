@@ -1510,7 +1510,7 @@ class _Property extends LValue {
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
     var targetType = target._visit(h, flow);
     var propertyType = h.getMember(targetType, propertyName);
-    flow.propertyGet(this, target, propertyName, propertyName, propertyType);
+    flow.propertyGet(this, target, propertyName, propertyType);
     return propertyType;
   }
 
@@ -1614,7 +1614,7 @@ class _ThisOrSuperPropertyGet extends Expression {
   @override
   Type _visit(
       Harness h, FlowAnalysis<Node, Statement, Expression, Var, Type> flow) {
-    flow.thisOrSuperPropertyGet(this, propertyName, propertyName, type);
+    flow.thisOrSuperPropertyGet(this, propertyName, type);
     return type;
   }
 }
