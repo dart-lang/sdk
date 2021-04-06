@@ -80,6 +80,13 @@
       - unused_import
   ```
 
+#### dart format
+
+*   Flatten indentation on nested chains of conditional (`?:`) operators.
+
+*   Correct constructor initializer indentation after `required` named
+    parameters.
+
 #### Linter
 
 Updated the Linter to `1.2.1`, which includes:

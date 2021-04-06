@@ -3,11 +3,10 @@ class A {
   factory A.named() = BAlias.named;
 }
 
-typedef BAlias = B;
-
 class B implements A {
   B();
   B.named();
 }
 
 main() {}
+typedef BAlias = B;
