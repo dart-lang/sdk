@@ -256,6 +256,12 @@ class TestDriver {
   /// Depends on SDK artifacts (such as the sound and unsound dart_sdk.js
   /// files) generated from the 'dartdevc_test' target.
   Future<void> initSource(SetupCompilerOptions setup, String source) async {
+    // Perform setup sanity checks.
+    var summaryPath = setup.options.sdkSummary.toFilePath();
+    if (!File(summaryPath).existsSync()) {
+      throw StateError('Unable to find SDK summary at path: $summaryPath.');
+    }
+
     // Prepend Dart nullability comment.
     source = '${setup.dartLangComment}\n\n$source';
     this.setup = setup;
