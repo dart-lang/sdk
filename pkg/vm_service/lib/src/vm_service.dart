@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.44.0';
+const String vmServiceVersion = '3.45.0';
 
 /// @optional
 const String optional = 'optional';
@@ -229,6 +229,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'removeBreakpoint': const ['Success'],
   'requestHeapSnapshot': const ['Success'],
   'resume': const ['Success'],
+  'setBreakpointState': const ['Breakpoint'],
   'setExceptionPauseMode': const ['Success'],
   'setFlag': const ['Success', 'Error'],
   'setLibraryDebuggable': const ['Success'],
@@ -1008,6 +1009,18 @@ abstract class VmServiceInterface {
   Future<Success> resume(String isolateId,
       {/*StepOption*/ String? step, int? frameIndex});
 
+  /// The `setBreakpointState` RPC allows for breakpoints to be enabled or
+  /// disabled, without requiring for the breakpoint to be completely removed.
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// The returned [Breakpoint] is the updated breakpoint with its new values.
+  ///
+  /// See [Breakpoint].
+  Future<Breakpoint> setBreakpointState(
+      String isolateId, String breakpointId, bool enable);
+
   /// The `setExceptionPauseMode` RPC is used to control if an isolate pauses
   /// when an exception is thrown.
   ///
@@ -1136,7 +1149,7 @@ abstract class VmServiceInterface {
   /// IsolateReload, ServiceExtensionAdded
   /// Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted,
   /// PauseException, PausePostRequest, Resume, BreakpointAdded,
-  /// BreakpointResolved, BreakpointRemoved, Inspect, None
+  /// BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
   /// GC | GC
   /// Extension | Extension
   /// Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
@@ -1471,6 +1484,13 @@ class VmServerConnection {
             frameIndex: params['frameIndex'],
           );
           break;
+        case 'setBreakpointState':
+          response = await _serviceImplementation.setBreakpointState(
+            params!['isolateId'],
+            params['breakpointId'],
+            params['enable'],
+          );
+          break;
         case 'setExceptionPauseMode':
           response = await _serviceImplementation.setExceptionPauseMode(
             params!['isolateId'],
@@ -1667,7 +1687,7 @@ class VmService implements VmServiceInterface {
   // IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, ServiceExtensionAdded
   Stream<Event> get onIsolateEvent => _getEventController('Isolate').stream;
 
-  // PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
+  // PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
   Stream<Event> get onDebugEvent => _getEventController('Debug').stream;
 
   // GC
@@ -1979,6 +1999,15 @@ class VmService implements VmServiceInterface {
         'isolateId': isolateId,
         if (step != null) 'step': step,
         if (frameIndex != null) 'frameIndex': frameIndex,
+      });
+
+  @override
+  Future<Breakpoint> setBreakpointState(
+          String isolateId, String breakpointId, bool enable) =>
+      _call('setBreakpointState', {
+        'isolateId': isolateId,
+        'breakpointId': breakpointId,
+        'enable': enable
       });
 
   @override
@@ -2430,6 +2459,9 @@ class EventKind {
   /// A breakpoint has been removed.
   static const String kBreakpointRemoved = 'BreakpointRemoved';
 
+  /// A breakpoint has been updated.
+  static const String kBreakpointUpdated = 'BreakpointUpdated';
+
   /// A garbage collection event.
   static const String kGC = 'GC';
 
@@ -2810,6 +2842,9 @@ class Breakpoint extends Obj {
   /// A number identifying this breakpoint to the user.
   int? breakpointNumber;
 
+  /// Is this breakpoint enabled?
+  bool? enabled;
+
   /// Has this breakpoint been assigned to a specific program location?
   bool? resolved;
 
@@ -2826,6 +2861,7 @@ class Breakpoint extends Obj {
 
   Breakpoint({
     required this.breakpointNumber,
+    required this.enabled,
     required this.resolved,
     required this.location,
     required String id,
@@ -2836,6 +2872,7 @@ class Breakpoint extends Obj {
 
   Breakpoint._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     breakpointNumber = json['breakpointNumber'] ?? -1;
+    enabled = json['enabled'] ?? false;
     resolved = json['resolved'] ?? false;
     isSyntheticAsyncContinuation = json['isSyntheticAsyncContinuation'];
     location = createServiceObject(json['location']!,
@@ -2851,6 +2888,7 @@ class Breakpoint extends Obj {
     json['type'] = type;
     json.addAll({
       'breakpointNumber': breakpointNumber,
+      'enabled': enabled,
       'resolved': resolved,
       'location': location?.toJson(),
     });
@@ -2864,8 +2902,8 @@ class Breakpoint extends Obj {
   operator ==(other) => other is Breakpoint && id == other.id;
 
   String toString() => '[Breakpoint ' //
-      'id: ${id}, breakpointNumber: ${breakpointNumber}, resolved: ${resolved}, ' //
-      'location: ${location}]';
+      'id: ${id}, breakpointNumber: ${breakpointNumber}, enabled: ${enabled}, ' //
+      'resolved: ${resolved}, location: ${location}]';
 }
 
 /// `ClassRef` is a reference to a `Class`.
@@ -3685,6 +3723,7 @@ class Event extends Response {
   ///  - BreakpointAdded
   ///  - BreakpointRemoved
   ///  - BreakpointResolved
+  ///  - BreakpointUpdated
   @optional
   Breakpoint? breakpoint;
 

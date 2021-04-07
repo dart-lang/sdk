@@ -44,6 +44,7 @@ class ServiceEvent {
     kBreakpointAdded,
     kBreakpointResolved,
     kBreakpointRemoved,
+    kBreakpointUpdated,
     kInspect,
     kDebuggerSettingsUpdate,
 
@@ -128,7 +129,8 @@ class ServiceEvent {
   Breakpoint* breakpoint() const { return breakpoint_; }
   void set_breakpoint(Breakpoint* bpt) {
     ASSERT(kind() == kPauseBreakpoint || kind() == kBreakpointAdded ||
-           kind() == kBreakpointResolved || kind() == kBreakpointRemoved);
+           kind() == kBreakpointResolved || kind() == kBreakpointRemoved ||
+           kind() == kBreakpointUpdated);
     breakpoint_ = bpt;
   }
 

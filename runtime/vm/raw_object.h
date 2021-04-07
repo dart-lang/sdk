@@ -1439,7 +1439,11 @@ class alignas(8) UntaggedScript : public UntaggedObject {
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
+#if defined(PRODUCT)
         return reinterpret_cast<CompressedObjectPtr*>(&url_);
+#else
+        return reinterpret_cast<CompressedObjectPtr*>(&resolved_url_);
+#endif
       case Snapshot::kFull:
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:

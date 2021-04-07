@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.3.0-dev
+- Add support for `setBreakpointState` RPC and updated `Breakpoint` class to include
+  `enabled` property.
+
 ## 6.2.0
 - Added support for `getHttpProfile` and `clearHttpProfile` `dart:io` service extensions.
 

@@ -489,9 +489,6 @@ class FileResolver {
         }
       });
 
-      results.forEach((key, value) {
-        print('$key: $value');
-      });
       var resolvedUnits = results.values.map((fileResult) {
         var file = fileResult.file;
         return ResolvedUnitResultImpl(

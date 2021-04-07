@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -51,20 +49,47 @@ class PackageDetailsCache {
     return PackageDetailsCache._(packages, DateTime.now().toUtc());
   }
 
-  /// Deserialises cached package data from JSON.
+  /// Deserializes cached package data from JSON.
   ///
   /// If the JSON version does not match the current version, will return null.
-  static PackageDetailsCache fromJson(Map<String, Object> json) {
+  static PackageDetailsCache? fromJson(Map<String, Object?> json) {
     if (json['version'] != cacheVersion) {
       return null;
     }
 
-    final packagesJson = json['packages'] as List<Object>;
-    final packages = packagesJson.map((json) => PubPackage.fromJson(json));
+    final packagesJson = json['packages'];
+    if (packagesJson is! List<Object>) {
+      return null;
+    }
+
+    final packages = <PubPackage>[];
+    for (final packageJson in packagesJson) {
+      if (packageJson is! Map<String, Object?>) {
+        return null;
+      }
+      final nameJson = packageJson['packageName'];
+      if (nameJson is! String) {
+        return null;
+      }
+      packages.add(PubPackage.fromJson(nameJson));
+    }
+
     final packageMap = Map.fromEntries(
-        packages.map((package) => MapEntry(package.packageName, package)));
-    return PackageDetailsCache._(
-        packageMap, DateTime.parse(json['lastUpdated']));
+      packages.map(
+        (package) => MapEntry(package.packageName, package),
+      ),
+    );
+
+    final lastUpdatedJson = json['lastUpdated'];
+    if (lastUpdatedJson is! String) {
+      return null;
+    }
+    final lastUpdated = DateTime.tryParse(lastUpdatedJson);
+    if (lastUpdated == null) {
+      return null;
+    }
+
+    return PackageDetailsCache._(packageMap, lastUpdated);
   }
 }
 
@@ -72,15 +97,14 @@ class PackageDetailsCache {
 class PubPackage {
   String packageName;
 
-  PubPackage.fromJson(Map<String, Object> json)
-      : packageName = json['packageName'];
+  PubPackage.fromJson(this.packageName);
 
   PubPackage.fromName(PubApiPackage package)
       : packageName = package.packageName;
 
   Map<String, Object> toJson() {
     return {
-      if (packageName != null) 'packageName': packageName,
+      'packageName': packageName,
     };
   }
 }
@@ -91,57 +115,60 @@ class PubPackage {
 class PubPackageService {
   final InstrumentationService _instrumentationService;
   final PubApi _api;
-  Timer _nextRequestTimer;
+  Timer? _nextRequestTimer;
 
   /// [ResourceProvider] used for caching. This should generally be a
   /// [PhysicalResourceProvider] outside of tests.
   final ResourceProvider cacheResourceProvider;
 
-  /// The current cache of package information. Initiailly null, but overwritten
-  /// after first read of cache from disk or fetch from the API.
+  /// The current cache of package information. Initially `null`, but
+  /// overwritten after first read of cache from disk or fetch from the API.
   @visibleForTesting
-  PackageDetailsCache packageCache;
+  PackageDetailsCache? packageCache;
 
   PubPackageService(
       this._instrumentationService, this.cacheResourceProvider, this._api);
 
   /// Gets the last set of package results or an empty List if no results.
   List<PubPackage> get cachedPackages =>
-      packageCache?.packages?.values?.toList() ?? [];
+      packageCache?.packages.values.toList() ?? [];
 
   bool get isRunning => _nextRequestTimer != null;
 
   @visibleForTesting
   File get packageCacheFile {
     final cacheFolder = cacheResourceProvider
-        .getStateLocation('.pub-package-details-cache')
-          ..create();
+        .getStateLocation('.pub-package-details-cache')!
+      ..create();
     return cacheFolder.getChildAssumingFile('packages.json');
   }
 
   /// Begin a request to pre-load the package name list.
   void beginPackageNamePreload() {
     // If first time, try to read from disk.
-    packageCache ??= readDiskCache() ?? PackageDetailsCache.empty();
+    var packageCache = this.packageCache;
+    if (packageCache == null) {
+      packageCache ??= readDiskCache() ?? PackageDetailsCache.empty();
+      this.packageCache = packageCache;
+    }
 
     // If there is no queued request, initialize one when the current cache expires.
     _nextRequestTimer ??=
         Timer(packageCache.cacheTimeRemaining, _fetchFromServer);
   }
 
-  PubPackage cachedPackageDetails(String packageName) =>
-      packageCache.packages[packageName];
-
   @visibleForTesting
-  PackageDetailsCache readDiskCache() {
+  PackageDetailsCache? readDiskCache() {
     final file = packageCacheFile;
     if (!file.exists) {
       return null;
     }
     try {
       final contents = file.readAsStringSync();
-      final json = jsonDecode(contents) as Map<String, Object>;
-      return PackageDetailsCache.fromJson(json);
+      final json = jsonDecode(contents);
+      if (json is Map<String, Object?>) {
+        return PackageDetailsCache.fromJson(json);
+      }
     } catch (e) {
       _instrumentationService.logError('Error reading pub cache file: $e');
       return null;
@@ -159,11 +186,14 @@ class PubPackageService {
   Future<void> _fetchFromServer() async {
     try {
       final packages = await _api.allPackages();
+
+      // If we never got a valid response, just skip until the next refresh.
       if (packages == null) {
-        // If we never got a valid response, just skip until the next refresh.
         return;
       }
-      packageCache = PackageDetailsCache.fromApiResults(packages);
+
+      final packageCache = PackageDetailsCache.fromApiResults(packages);
+      this.packageCache = packageCache;
       writeDiskCache(packageCache);
     } catch (e) {
       _instrumentationService.logError('Failed to fetch packages from Pub: $e');

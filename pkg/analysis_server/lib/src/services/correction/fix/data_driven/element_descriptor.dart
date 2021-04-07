@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show ClassElement;
 import 'package:analyzer/dart/element/type.dart';
-import 'package:meta/meta.dart';
 
 /// The path to an element.
 class ElementDescriptor {
@@ -27,9 +24,9 @@ class ElementDescriptor {
   /// within the library is given by the list of [components]. The [kind] of the
   /// element is represented by the key used in the data file.
   ElementDescriptor(
-      {@required this.libraryUris,
-      @required this.kind,
-      @required this.components});
+      {required this.libraryUris,
+      required this.kind,
+      required this.components});
 
   /// Return `true` if the described element is a constructor.
   bool get isConstructor => kind == ElementKind.constructorKind;
@@ -118,7 +115,7 @@ class ElementDescriptor {
                 // that the method might have been in the element's class.
                 return true;
               }
-              if (components[1] == type.element.name) {
+              if (components[1] == type.element?.name) {
                 return true;
               }
               if (type is InterfaceType) {
@@ -145,7 +142,6 @@ class ElementDescriptor {
         // TODO: Handle this case.
         return false;
     }
-    return false;
   }
 
   String _nameFromIdentifier(Identifier identifier) {

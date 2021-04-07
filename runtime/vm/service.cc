@@ -4805,6 +4805,36 @@ static bool SetExceptionPauseMode(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* set_breakpoint_state_params[] = {
+    ISOLATE_PARAMETER,
+    new IdParameter("breakpointId", true),
+    new BoolParameter("enable", true),
+    nullptr,
+};
+
+static bool SetBreakpointState(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  const char* bpt_id = js->LookupParam("breakpointId");
+  bool enable = BoolParameter::Parse(js->LookupParam("enable"), true);
+  ObjectIdRing::LookupResult lookup_result;
+  Breakpoint* bpt = LookupBreakpoint(isolate, bpt_id, &lookup_result);
+  // TODO(bkonyi): Should we return a different error for bpts which
+  // have been already removed?
+  if (bpt == nullptr) {
+    PrintInvalidParamError(js, "breakpointId");
+    return true;
+  }
+  if (isolate->debugger()->SetBreakpointState(bpt, enable)) {
+    if (Service::debug_stream.enabled()) {
+      ServiceEvent event(isolate, ServiceEvent::kBreakpointUpdated);
+      event.set_breakpoint(bpt);
+      Service::HandleEvent(&event);
+    }
+  }
+  bpt->PrintJSON(js);
+  return true;
+}
+
 static const MethodParameter* get_flag_list_params[] = {
     NO_ISOLATE_PARAMETER,
     NULL,
@@ -5188,6 +5218,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     request_heap_snapshot_params },
   { "_evaluateCompiledExpression", EvaluateCompiledExpression,
     evaluate_compiled_expression_params },
+  { "setBreakpointState", SetBreakpointState,
+    set_breakpoint_state_params },
   { "setExceptionPauseMode", SetExceptionPauseMode,
     set_exception_pause_mode_params },
   { "setFlag", SetFlag,

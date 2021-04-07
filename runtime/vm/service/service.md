@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.44
+# Dart VM Service Protocol 3.45
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.44_ of the Dart VM Service Protocol. This
+This document describes of _version 3.45_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -67,6 +67,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [reloadSources](#reloadsources)
   - [removeBreakpoint](#removebreakpoint)
   - [resume](#resume)
+  - [setBreakpointState](#setbreakpointstate)
   - [setExceptionPauseMode](#setexceptionpausemode)
   - [setFlag](#setflag)
   - [setLibraryDebuggable](#setlibrarydebuggable)
@@ -1305,6 +1306,24 @@ _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success), [StepOption](#StepOption).
 
+### setBreakpointState
+
+```
+Breakpoint setBreakpointState(string isolateId,
+                              string breakpointId,
+                              bool enable)
+```
+
+The _setBreakpointState_ RPC allows for breakpoints to be enabled or disabled,
+without requiring for the breakpoint to be completely removed.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+The returned [Breakpoint](#breakpoint) is the updated breakpoint with its new
+values.
+
+See [Breakpoint](#breakpoint).
 ### setExceptionPauseMode
 
 ```
@@ -1457,7 +1476,7 @@ streamId | event types provided
 -------- | -----------
 VM | VMUpdate, VMFlagUpdate
 Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, ServiceExtensionAdded
-Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
+Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
 GC | GC
 Extension | Extension
 Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
@@ -1638,6 +1657,9 @@ will be the _OptimizedOut_ [Sentinel](#sentinel).
 class Breakpoint extends Object {
   // A number identifying this breakpoint to the user.
   int breakpointNumber;
+
+  // Is this breakpoint enabled?
+  bool enabled;
 
   // Has this breakpoint been assigned to a specific program location?
   bool resolved;
@@ -2002,6 +2024,7 @@ class Event extends Response {
   //   BreakpointAdded
   //   BreakpointRemoved
   //   BreakpointResolved
+  //   BreakpointUpdated
   Breakpoint breakpoint [optional];
 
   // The list of breakpoints at which we are currently paused
@@ -2198,6 +2221,9 @@ enum EventKind {
 
   // A breakpoint has been removed.
   BreakpointRemoved,
+
+  // A breakpoint has been updated.
+  BreakpointUpdated,
 
   // A garbage collection event.
   GC,
@@ -4011,5 +4037,6 @@ version | comments
 3.42 | Added `limit` optional parameter to `getStack` RPC.
 3.43 | Updated heap snapshot format to include identity hash codes. Added `getAllocationTraces` and `setTraceClassAllocation` RPCs, updated `CpuSample` to include `identityHashCode` and `classId` properties, updated `Class` to include `traceAllocations` property.
 3.44 | Added `identityHashCode` property to `@Instance` and `Instance`.
+3.45 | Added `setBreakpointState` RPC and `BreakpointUpdated` event kind.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

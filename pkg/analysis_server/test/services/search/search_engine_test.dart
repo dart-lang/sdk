@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -26,9 +24,9 @@ void main() {
 /// TODO(scheglov) This class does not really belong here.
 /// Consider merging it into [AbstractContextTest].
 class PubPackageResolutionTest extends AbstractContextTest {
-  ResolvedUnitResult result;
-  FindNode findNode;
-  FindElement findElement;
+  late ResolvedUnitResult result;
+  late FindNode findNode;
+  late FindElement findElement;
 
   String get testFilePath => '$testPackageLibPath/test.dart';
 
@@ -43,8 +41,8 @@ class PubPackageResolutionTest extends AbstractContextTest {
     result = await resolveFile(path);
     expect(result.state, ResultState.VALID);
 
-    findNode = FindNode(result.content, result.unit);
-    findElement = FindElement(result.unit);
+    findNode = FindNode(result.content!, result.unit!);
+    findElement = FindElement(result.unit!);
   }
 
   /// Put the [code] into the test file, and resolve it.
@@ -331,14 +329,14 @@ int t;
 ''').path;
 
     var coreLib = await driverFor(testFilePath).getLibraryByUri('dart:core');
-    var intElement = coreLib.getType('int');
+    var intElement = coreLib.getType('int')!;
 
     var matches = await searchEngine.searchReferences(intElement);
 
     void assertHasOne(String path, String name) {
       expect(matches.where((m) {
         var element = m.element;
-        return element.name == name && element.source.fullName == path;
+        return element.name == name && element.source!.fullName == path;
       }), hasLength(1));
     }
 
@@ -426,7 +424,7 @@ class B extends A {}
 
   Future _ensureContainedFilesKnown() async {
     for (var driver in allDrivers) {
-      var contextRoot = driver.analysisContext.contextRoot;
+      var contextRoot = driver.analysisContext!.contextRoot;
       for (var file in contextRoot.analyzedFiles()) {
         if (file.endsWith('.dart')) {
           await driver.getUnitElement(file);

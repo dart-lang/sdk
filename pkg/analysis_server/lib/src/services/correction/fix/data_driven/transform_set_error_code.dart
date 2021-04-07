@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // ignore_for_file: prefer_single_quotes, slash_for_doc_comments
 import 'package:analyzer/error/error.dart';
 
@@ -160,7 +158,7 @@ class TransformSetErrorCode extends ErrorCode {
   const TransformSetErrorCode(
     String name,
     String message, {
-    String correction,
+    String? correction,
     bool hasPublishedDocs = false,
   }) : super(
           correction: correction,

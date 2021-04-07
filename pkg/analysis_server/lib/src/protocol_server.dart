@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     as engine;
+import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/analysis/results.dart' as engine;
 import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
@@ -35,7 +34,7 @@ List<AnalysisError> doAnalysisError_listFromEngine(
 /// Adds [edit] to the file containing the given [element].
 void doSourceChange_addElementEdit(
     SourceChange change, engine.Element element, SourceEdit edit) {
-  var source = element.source;
+  var source = element.source!;
   doSourceChange_addSourceEdit(change, source, edit);
 }
 
@@ -47,7 +46,7 @@ void doSourceChange_addSourceEdit(
   change.addEdit(file, isNewFile ? -1 : 0, edit);
 }
 
-String getAliasedTypeString(engine.Element element) {
+String? getAliasedTypeString(engine.Element element) {
   if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
     return aliasedType.getDisplayString(withNullability: false);
@@ -55,18 +54,16 @@ String getAliasedTypeString(engine.Element element) {
   return null;
 }
 
-String getReturnTypeString(engine.Element element) {
+String? getReturnTypeString(engine.Element element) {
   if (element is engine.ExecutableElement) {
     if (element.kind == engine.ElementKind.SETTER) {
       return null;
     } else {
-      return element.returnType?.getDisplayString(withNullability: false);
+      return element.returnType.getDisplayString(withNullability: false);
     }
   } else if (element is engine.VariableElement) {
     var type = element.type;
-    return type != null
-        ? type.getDisplayString(withNullability: false)
-        : 'dynamic';
+    return type.getDisplayString(withNullability: false);
   } else if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
@@ -107,7 +104,7 @@ List<T> mapEngineErrors<T>(
 /// If an [errorSeverity] is specified, it will override the one in [error].
 AnalysisError newAnalysisError_fromEngine(
     engine.ResolvedUnitResult result, engine.AnalysisError error,
-    [engine.ErrorSeverity errorSeverity]) {
+    [engine.ErrorSeverity? errorSeverity]) {
   var errorCode = error.errorCode;
   // prepare location
   Location location;
@@ -115,23 +112,16 @@ AnalysisError newAnalysisError_fromEngine(
     var file = error.source.fullName;
     var offset = error.offset;
     var length = error.length;
-    var startLine = -1;
-    var startColumn = -1;
-    var endLine = -1;
-    var endColumn = -1;
     var lineInfo = result.lineInfo;
-    if (lineInfo != null) {
-      var startLocation = lineInfo.getLocation(offset);
-      if (startLocation != null) {
-        startLine = startLocation.lineNumber;
-        startColumn = startLocation.columnNumber;
-      }
-      var endLocation = lineInfo.getLocation(offset + length);
-      if (endLocation != null) {
-        endLine = endLocation.lineNumber;
-        endColumn = endLocation.columnNumber;
-      }
-    }
+
+    var startLocation = lineInfo.getLocation(offset);
+    var startLine = startLocation.lineNumber;
+    var startColumn = startLocation.columnNumber;
+
+    var endLocation = lineInfo.getLocation(offset + length);
+    var endLine = endLocation.lineNumber;
+    var endColumn = endLocation.columnNumber;
+
     location = Location(
         file, offset, length, startLine, startColumn, endLine, endColumn);
   }
@@ -144,7 +134,7 @@ AnalysisError newAnalysisError_fromEngine(
   var type = AnalysisErrorType(errorCode.type.name);
   var message = error.message;
   var code = errorCode.name.toLowerCase();
-  List<DiagnosticMessage> contextMessages;
+  List<DiagnosticMessage>? contextMessages;
   if (error.contextMessages.isNotEmpty) {
     contextMessages = error.contextMessages
         .map((message) => newDiagnosticMessage(result, message))
@@ -182,7 +172,7 @@ DiagnosticMessage newDiagnosticMessage(
 }
 
 /// Create a Location based on an [engine.Element].
-Location newLocation_fromElement(engine.Element element) {
+Location? newLocation_fromElement(engine.Element? element) {
   if (element == null || element.source == null) {
     return null;
   }
@@ -206,8 +196,8 @@ Location newLocation_fromMatch(engine.SearchMatch match) {
 
 /// Create a Location based on an [engine.AstNode].
 Location newLocation_fromNode(engine.AstNode node) {
-  var unit = node.thisOrAncestorOfType<engine.CompilationUnit>();
-  var unitElement = unit.declaredElement;
+  var unit = node.thisOrAncestorOfType<engine.CompilationUnit>()!;
+  var unitElement = unit.declaredElement!;
   var range = engine.SourceRange(node.offset, node.length);
   return _locationForArgs(unitElement, range);
 }
@@ -215,13 +205,13 @@ Location newLocation_fromNode(engine.AstNode node) {
 /// Create a Location based on an [engine.CompilationUnit].
 Location newLocation_fromUnit(
     engine.CompilationUnit unit, engine.SourceRange range) {
-  return _locationForArgs(unit.declaredElement, range);
+  return _locationForArgs(unit.declaredElement!, range);
 }
 
 /// Construct based on an element from the analyzer engine.
 OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
   var element = convertElement(member);
-  var className = member.enclosingElement.displayName;
+  var className = member.enclosingElement!.displayName;
   return OverriddenMember(element, className);
 }
 
@@ -258,22 +248,19 @@ SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
 
 /// Construct based on a SourceRange.
 SourceEdit newSourceEdit_range(engine.SourceRange range, String replacement,
-    {String id}) {
+    {String? id}) {
   return SourceEdit(range.offset, range.length, replacement, id: id);
 }
 
 List<Element> _computePath(engine.Element element) {
   var path = <Element>[];
-  while (element != null) {
-    path.add(convertElement(element));
-    // go up
-    if (element is engine.PrefixElement) {
-      // imports are library children, but they are physically in the unit
-      engine.LibraryElement library = element.enclosingElement;
-      element = library.definingCompilationUnit;
-    } else {
-      element = element.enclosingElement;
-    }
+
+  if (element is engine.PrefixElement) {
+    element = element.enclosingElement.definingCompilationUnit;
+  }
+
+  for (var e in element.withAncestors) {
+    path.add(convertElement(e));
   }
   return path;
 }
@@ -282,18 +269,23 @@ engine.CompilationUnitElement _getUnitElement(engine.Element element) {
   if (element is engine.CompilationUnitElement) {
     return element;
   }
-  if (element?.enclosingElement is engine.LibraryElement) {
-    element = element.enclosingElement;
+
+  var enclosingElement = element.enclosingElement;
+  if (enclosingElement is engine.LibraryElement) {
+    element = enclosingElement;
   }
+
   if (element is engine.LibraryElement) {
     return element.definingCompilationUnit;
   }
-  for (; element != null; element = element.enclosingElement) {
-    if (element is engine.CompilationUnitElement) {
-      return element;
+
+  for (var e in element.withAncestors) {
+    if (e is engine.CompilationUnitElement) {
+      return e;
     }
   }
-  return null;
+
+  throw StateError('No unit: $element');
 }
 
 /// Creates a new [Location].

@@ -32,6 +32,7 @@ import 'package:test/test.dart' hide expect;
 import 'package:test/test.dart' as test show expect;
 
 import '../mocks.dart';
+import '../mocks_lsp.dart';
 import '../src/utilities/mock_packages.dart';
 
 const dartLanguageId = 'dart';

@@ -40,6 +40,19 @@ extension ElementExtension on Element {
     return ancestor is CompilationUnitElement &&
         ancestor.enclosingElement.hasDeprecated;
   }
+
+  /// Return this element and all its enclosing elements.
+  Iterable<Element> get withAncestors sync* {
+    var current = this;
+    while (true) {
+      yield current;
+      var enclosing = current.enclosingElement;
+      if (enclosing == null) {
+        break;
+      }
+      current = enclosing;
+    }
+  }
 }
 
 extension MethodElementExtensions on MethodElement {

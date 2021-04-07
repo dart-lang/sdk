@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Utilities for converting Dart entities into analysis server's protocol
 /// entities.
 import 'package:analysis_server/src/protocol_server.dart';
@@ -130,7 +128,7 @@ String getElementDisplayName(engine.Element element) {
   }
 }
 
-String _getParametersString(engine.Element element) {
+String? _getParametersString(engine.Element element) {
   // TODO(scheglov) expose the corresponding feature from ExecutableElement
   List<engine.ParameterElement> parameters;
   if (element is engine.ExecutableElement) {
@@ -179,8 +177,8 @@ String _getParametersString(engine.Element element) {
   return '(' + sb.toString() + ')';
 }
 
-String _getTypeParametersString(engine.Element element) {
-  List<engine.TypeParameterElement> typeParameters;
+String? _getTypeParametersString(engine.Element element) {
+  List<engine.TypeParameterElement>? typeParameters;
   if (element is engine.ClassElement) {
     typeParameters = element.typeParameters;
   } else if (element is engine.TypeAliasElement) {
