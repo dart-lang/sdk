@@ -190,7 +190,7 @@ function lazyFinal(holder, name, getterName, initializer) {
     if (holder[name] === uninitializedSentinel) {
       var value = initializer();
       if (holder[name] !== uninitializedSentinel) {
-        #throwLateInitializationError(name);
+        #throwLateFieldADI(name);
       }
       holder[name] = value;
     }
@@ -766,8 +766,8 @@ class FragmentEmitter {
       'directAccessTestExpression': js.js(_directAccessTestExpression),
       'cyclicThrow': _emitter
           .staticFunctionAccess(_closedWorld.commonElements.cyclicThrowHelper),
-      'throwLateInitializationError': _emitter.staticFunctionAccess(
-          _closedWorld.commonElements.throwLateInitializationError),
+      'throwLateFieldADI': _emitter
+          .staticFunctionAccess(_closedWorld.commonElements.throwLateFieldADI),
       'operatorIsPrefix': js.string(_namer.fixedNames.operatorIsPrefix),
       'tearOffCode': new js.Block(buildTearOffCode(
           _options, _emitter, _namer, _closedWorld.commonElements)),
