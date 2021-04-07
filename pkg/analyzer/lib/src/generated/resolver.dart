@@ -533,17 +533,13 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
   @override
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
-      Expression? expression,
       SyntacticEntity errorEntity,
       Map<DartType, NonPromotionReason>? whyNotPromoted) {
-    if (expression is NamedExpression) {
-      expression = expression.expression;
-    }
     List<DiagnosticMessage> messages = [];
     if (whyNotPromoted != null) {
       for (var entry in whyNotPromoted.entries) {
         var whyNotPromotedVisitor = _WhyNotPromotedVisitor(
-            source, expression, errorEntity, flowAnalysis!.dataForTesting);
+            source, errorEntity, flowAnalysis!.dataForTesting);
         if (typeSystem.isPotentiallyNullable(entry.key)) continue;
         var message = entry.value.accept(whyNotPromotedVisitor);
         if (message != null) {
@@ -3447,10 +3443,6 @@ class _WhyNotPromotedVisitor
             PromotableElement, DartType> {
   final Source source;
 
-  /// The expression that was not promoted, or `null` if the thing that was not
-  /// promoted was an implicit `this`.
-  final Expression? _expression;
-
   final SyntacticEntity _errorEntity;
 
   final FlowAnalysisDataForTesting? _dataForTesting;
@@ -3459,8 +3451,7 @@ class _WhyNotPromotedVisitor
 
   DartType? propertyType;
 
-  _WhyNotPromotedVisitor(
-      this.source, this._expression, this._errorEntity, this._dataForTesting);
+  _WhyNotPromotedVisitor(this.source, this._errorEntity, this._dataForTesting);
 
   @override
   DiagnosticMessage? visitDemoteViaExplicitWrite(
@@ -3480,18 +3471,7 @@ class _WhyNotPromotedVisitor
   @override
   DiagnosticMessage? visitPropertyNotPromoted(
       PropertyNotPromoted<DartType> reason) {
-    var expression = _expression;
-    Element? receiverElement;
-    if (expression is SimpleIdentifier) {
-      receiverElement = expression.staticElement;
-    } else if (expression is PropertyAccess) {
-      receiverElement = expression.propertyName.staticElement;
-    } else if (expression is PrefixedIdentifier) {
-      receiverElement = expression.identifier.staticElement;
-    } else {
-      assert(false,
-          'Unrecognized property access expression: ${expression.runtimeType}');
-    }
+    var receiverElement = reason.propertyMember;
     if (receiverElement is PropertyAccessorElement) {
       propertyReference = receiverElement;
       propertyType = reason.staticType;
