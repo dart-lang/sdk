@@ -31,7 +31,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
 
     final namedExtensions =
         symbols.firstWhere((s) => s.name == 'StringExtensions');
-    expect(namedExtensions.kind, equals(SymbolKind.Obj));
+    expect(namedExtensions.kind, equals(SymbolKind.Class));
     expect(namedExtensions.containerName, isNull);
 
     // Unnamed extensions are not returned in Workspace Symbols.
