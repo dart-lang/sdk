@@ -161,11 +161,11 @@ class CoreTypes {
   late final Constructor futureImplConstructor =
       index.getMember('dart:async', '_Future', '') as Constructor;
 
-  late final Member completeOnAsyncReturn =
-      index.getTopLevelMember('dart:async', '_completeOnAsyncReturn');
+  late final Procedure completeOnAsyncReturn = index.getTopLevelMember(
+      'dart:async', '_completeOnAsyncReturn') as Procedure;
 
-  late final Member completeOnAsyncError =
-      index.getTopLevelMember('dart:async', '_completeOnAsyncError');
+  late final Procedure completeOnAsyncError = index.getTopLevelMember(
+      'dart:async', '_completeOnAsyncError') as Procedure;
 
   late final Library coreLibrary = index.getLibrary('dart:core');
 

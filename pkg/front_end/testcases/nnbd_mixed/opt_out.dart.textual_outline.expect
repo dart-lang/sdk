@@ -1,3 +1,4 @@
+// @dart = 2.12
 import 'opt_out_lib.dart';
 
 class A<T> {

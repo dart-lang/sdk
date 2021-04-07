@@ -1266,7 +1266,7 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Evaluated constants");
 
     backendTarget.performTransformationsOnProcedure(
-        loader.coreTypes, loader.hierarchy, procedure,
+        loader.coreTypes, loader.hierarchy, procedure, environmentDefines,
         logger: (String msg) => ticker.logMs(msg));
   }
 

@@ -252,7 +252,7 @@ abstract class Target {
       // transformations.
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex referenceFromIndex,
+      ReferenceFromIndex? referenceFromIndex,
       {void logger(String msg),
       ChangedStructureNotifier changedStructureNotifier});
 
@@ -262,7 +262,12 @@ abstract class Target {
   /// purposes. It is illegal to modify any of the enclosing nodes of the
   /// procedure.
   void performTransformationsOnProcedure(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, Procedure procedure,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      Procedure procedure,
+      // TODO(askesc): Consider how to generally pass compiler options to
+      // transformations.
+      Map<String, String> environmentDefines,
       {void Function(String msg)? logger}) {}
 
   /// Whether a platform library may define a restricted type, such as `bool`,
@@ -463,7 +468,7 @@ class NoneTarget extends Target {
       List<Library> libraries,
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex referenceFromIndex,
+      ReferenceFromIndex? referenceFromIndex,
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {}
 

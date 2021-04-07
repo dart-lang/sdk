@@ -196,10 +196,15 @@ class VmTarget extends Target {
 
   @override
   void performTransformationsOnProcedure(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, Procedure procedure,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      Procedure procedure,
+      Map<String, String> environmentDefines,
       {void logger(String msg)}) {
+    bool productMode = environmentDefines["dart.vm.product"] == "true";
     transformAsync.transformProcedure(
-        new TypeEnvironment(coreTypes, hierarchy), procedure);
+        new TypeEnvironment(coreTypes, hierarchy), procedure,
+        productMode: productMode);
     logger?.call("Transformed async functions");
 
     lowering.transformProcedure(

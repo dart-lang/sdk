@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd_mixed/opt_out.dart:16:11: Error: Can't create typedef from nullable type.
+// pkg/front_end/testcases/nnbd_mixed/opt_out.dart:18:11: Error: Can't create typedef from nullable type.
 // typedef F = void Function()?;
 //           ^
 //
