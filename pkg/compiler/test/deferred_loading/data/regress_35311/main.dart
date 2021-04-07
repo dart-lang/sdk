@@ -5,8 +5,9 @@
 // @dart = 2.7
 
 /*library: 
- output_units=[f1: {units: [1{lib}], usedBy: [], needs: []}],
- steps=[lib=(f1)]
+ a_pre_fragments=[p1: {units: [1{lib}], usedBy: [], needs: []}],
+ b_finalized_fragments=[f1: [1{lib}]],
+ c_steps=[lib=(f1)]
 */
 import 'lib.dart' deferred as lib;
 
