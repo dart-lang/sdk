@@ -55,6 +55,7 @@ general/error_recovery/issue_39024.crash: RuntimeError
 general/error_recovery/issue_39026.crash: RuntimeError
 general/error_recovery/issue_39026_prime.crash: RuntimeError
 general/error_recovery/issue_39033.crash: RuntimeError
+general/error_recovery/issue_39033b.crash: RuntimeError
 general/error_recovery/issue_39058.crash: RuntimeError
 general/error_recovery/issue_39058_prime.crash: RuntimeError
 general/error_recovery/issue_39202.crash: RuntimeError
