@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.transformations.async;
 
 import '../kernel.dart';
@@ -83,7 +81,7 @@ class ExpressionLifter extends Transformer {
 
   ExpressionLifter(this.continuationRewriter);
 
-  StaticTypeContext get _staticTypeContext =>
+  StatefulStaticTypeContext get _staticTypeContext =>
       continuationRewriter.staticTypeContext;
 
   Block blockOf(List<Statement> statements) {
@@ -100,7 +98,7 @@ class ExpressionLifter extends Transformer {
     assert(statements.isEmpty);
     var saved = seenAwait;
     seenAwait = false;
-    Expression result = expression.accept<TreeNode>(this);
+    Expression result = transform(expression);
     outer.addAll(statements.reversed);
     statements.clear();
     seenAwait = seenAwait || saved;
@@ -224,18 +222,18 @@ class ExpressionLifter extends Transformer {
 
   TreeNode visitPropertySet(PropertySet expr) {
     return transformTreeNode(expr, () {
-      expr.value = expr.value.accept<TreeNode>(this)..parent = expr;
-      expr.receiver = expr.receiver.accept<TreeNode>(this)..parent = expr;
+      expr.value = transform(expr.value)..parent = expr;
+      expr.receiver = transform(expr.receiver)..parent = expr;
     });
   }
 
   TreeNode visitArguments(Arguments args) {
     for (var named in args.named.reversed) {
-      named.value = named.value.accept<TreeNode>(this)..parent = named;
+      named.value = transform(named.value)..parent = named;
     }
     var positional = args.positional;
     for (var i = positional.length - 1; i >= 0; --i) {
-      positional[i] = positional[i].accept<TreeNode>(this)..parent = args;
+      positional[i] = transform(positional[i])..parent = args;
     }
     // Returns the arguments, which is assumed at the call sites because they do
     // not replace the arguments or set parent pointers.
@@ -245,7 +243,7 @@ class ExpressionLifter extends Transformer {
   TreeNode visitMethodInvocation(MethodInvocation expr) {
     return transformTreeNode(expr, () {
       visitArguments(expr.arguments);
-      expr.receiver = expr.receiver.accept<TreeNode>(this)..parent = expr;
+      expr.receiver = transform(expr.receiver)..parent = expr;
     });
   }
 
@@ -271,7 +269,7 @@ class ExpressionLifter extends Transformer {
     return transformTreeNode(expr, () {
       var expressions = expr.expressions;
       for (var i = expressions.length - 1; i >= 0; --i) {
-        expressions[i] = expressions[i].accept<TreeNode>(this)..parent = expr;
+        expressions[i] = transform(expressions[i])..parent = expr;
       }
     });
   }
@@ -280,8 +278,7 @@ class ExpressionLifter extends Transformer {
     return transformTreeNode(expr, () {
       var expressions = expr.expressions;
       for (var i = expressions.length - 1; i >= 0; --i) {
-        expressions[i] = expr.expressions[i].accept<TreeNode>(this)
-          ..parent = expr;
+        expressions[i] = transform(expr.expressions[i])..parent = expr;
       }
     });
   }
@@ -289,8 +286,8 @@ class ExpressionLifter extends Transformer {
   TreeNode visitMapLiteral(MapLiteral expr) {
     return transformTreeNode(expr, () {
       for (var entry in expr.entries.reversed) {
-        entry.value = entry.value.accept<TreeNode>(this)..parent = entry;
-        entry.key = entry.key.accept<TreeNode>(this)..parent = entry;
+        entry.value = transform(entry.value)..parent = entry;
+        entry.key = transform(entry.key)..parent = entry;
       }
     });
   }
@@ -302,16 +299,15 @@ class ExpressionLifter extends Transformer {
     // Right is delimited because it is conditionally evaluated.
     var rightStatements = <Statement>[];
     seenAwait = false;
-    expr.right =
-        delimit(() => expr.right.accept<TreeNode>(this), rightStatements)
-          ..parent = expr;
+    expr.right = delimit(() => transform(expr.right), rightStatements)
+      ..parent = expr;
     var rightAwait = seenAwait;
 
     if (rightStatements.isEmpty) {
       // Easy case: right did not emit any statements.
       seenAwait = shouldName;
       return transformTreeNode(expr, () {
-        expr.left = expr.left.accept<TreeNode>(this)..parent = expr;
+        expr.left = transform(expr.left)..parent = expr;
         seenAwait = seenAwait || rightAwait;
       });
     }
@@ -352,7 +348,7 @@ class ExpressionLifter extends Transformer {
     statements.add(new ExpressionStatement(new VariableSet(result, test)));
 
     seenAwait = false;
-    test.receiver = test.receiver.accept<TreeNode>(this)..parent = test;
+    test.receiver = transform(test.receiver)..parent = test;
 
     ++nameIndex;
     seenAwait = seenAwait || rightAwait;
@@ -368,7 +364,7 @@ class ExpressionLifter extends Transformer {
 
     var thenStatements = <Statement>[];
     seenAwait = false;
-    expr.then = delimit(() => expr.then.accept<TreeNode>(this), thenStatements)
+    expr.then = delimit(() => transform(expr.then), thenStatements)
       ..parent = expr;
     var thenAwait = seenAwait;
 
@@ -377,9 +373,9 @@ class ExpressionLifter extends Transformer {
 
     var otherwiseStatements = <Statement>[];
     seenAwait = false;
-    expr.otherwise = delimit(
-        () => expr.otherwise.accept<TreeNode>(this), otherwiseStatements)
-      ..parent = expr;
+    expr.otherwise =
+        delimit(() => transform(expr.otherwise), otherwiseStatements)
+          ..parent = expr;
     var otherwiseAwait = seenAwait;
 
     // Only one side of this branch will get executed at a time, so just make
@@ -392,7 +388,7 @@ class ExpressionLifter extends Transformer {
       // Easy case: neither then nor otherwise emitted any statements.
       seenAwait = shouldName;
       return transformTreeNode(expr, () {
-        expr.condition = expr.condition.accept<TreeNode>(this)..parent = expr;
+        expr.condition = transform(expr.condition)..parent = expr;
         seenAwait = seenAwait || thenAwait || otherwiseAwait;
       });
     }
@@ -416,7 +412,7 @@ class ExpressionLifter extends Transformer {
     statements.add(branch);
 
     seenAwait = false;
-    branch.condition = branch.condition.accept<TreeNode>(this)..parent = branch;
+    branch.condition = transform(branch.condition)..parent = branch;
 
     ++nameIndex;
     seenAwait = seenAwait || thenAwait || otherwiseAwait;
@@ -473,8 +469,7 @@ class ExpressionLifter extends Transformer {
 
     seenAwait = false;
     var index = nameIndex;
-    arguments.positional[0] = expr.operand.accept<TreeNode>(this)
-      ..parent = arguments;
+    arguments.positional[0] = transform(expr.operand)..parent = arguments;
 
     if (shouldName && index + 1 > nameIndex) nameIndex = index + 1;
     seenAwait = true;
@@ -487,7 +482,7 @@ class ExpressionLifter extends Transformer {
   }
 
   TreeNode visitLet(Let expr) {
-    var body = expr.body.accept<TreeNode>(this);
+    var body = transform(expr.body);
 
     VariableDeclaration variable = expr.variable;
     if (seenAwait) {
@@ -508,7 +503,7 @@ class ExpressionLifter extends Transformer {
       statements.add(variable);
       var index = nameIndex;
       seenAwait = false;
-      variable.initializer = variable.initializer.accept<TreeNode>(this)
+      variable.initializer = transform(variable.initializer!)
         ..parent = variable;
       // Temporaries used in the initializer or the body are not live but the
       // temporary used for the body is.
@@ -521,7 +516,7 @@ class ExpressionLifter extends Transformer {
       return transformTreeNode(expr, () {
         // The body has already been translated.
         expr.body = body..parent = expr;
-        variable.initializer = variable.initializer.accept<TreeNode>(this)
+        variable.initializer = transform(variable.initializer!)
           ..parent = variable;
       });
     }
@@ -535,17 +530,17 @@ class ExpressionLifter extends Transformer {
 
   TreeNode visitBlockExpression(BlockExpression expr) {
     return transformTreeNode(expr, () {
-      expr.value = expr.value.accept<TreeNode>(this)..parent = expr;
+      expr.value = transform(expr.value)..parent = expr;
       List<Statement> body = <Statement>[];
       for (Statement stmt in expr.body.statements.reversed) {
-        Statement translation = stmt.accept<TreeNode>(this);
+        Statement? translation = _rewriteStatement(stmt);
         if (translation != null) body.add(translation);
       }
       expr.body = new Block(body.reversed.toList())..parent = expr;
     });
   }
 
-  TreeNode defaultStatement(Statement stmt) {
+  Statement? _rewriteStatement(Statement stmt) {
     // This method translates a statement nested in an expression (e.g., in a
     // block expression).  It produces a translated statement, a list of
     // statements which are side effects necessary for any await, and a flag
@@ -569,5 +564,10 @@ class ExpressionLifter extends Transformer {
     if (!seenAwait && results.length == 1) return results.first;
     statements.addAll(results.reversed);
     return null;
+  }
+
+  TreeNode defaultStatement(Statement stmt) {
+    throw new UnsupportedError(
+        "Use _rewriteStatement to transform statement: ${stmt}");
   }
 }

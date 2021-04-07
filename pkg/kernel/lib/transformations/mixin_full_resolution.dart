@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.transformations.mixin_full_resolution;
 
 import '../ast.dart';
@@ -22,7 +20,7 @@ void transformLibraries(
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
     List<Library> libraries,
-    ReferenceFromIndex referenceFromIndex) {
+    ReferenceFromIndex? referenceFromIndex) {
   new MixinFullResolution(targetInfo, coreTypes, hierarchy)
       .transform(libraries, referenceFromIndex);
 }
@@ -46,7 +44,7 @@ class MixinFullResolution {
   /// Transform the given new [libraries].  It is expected that all other
   /// libraries have already been transformed.
   void transform(
-      List<Library> libraries, ReferenceFromIndex referenceFromIndex) {
+      List<Library> libraries, ReferenceFromIndex? referenceFromIndex) {
     if (libraries.isEmpty) return;
 
     var transformedClasses = new Set<Class>();
@@ -71,7 +69,7 @@ class MixinFullResolution {
       Set<Class> processedClasses,
       Set<Class> transformedClasses,
       Class class_,
-      ReferenceFromIndex referenceFromIndex) {
+      ReferenceFromIndex? referenceFromIndex) {
     // If this class was already handled then so were all classes up to the
     // [Object] class.
     if (!processedClasses.add(class_)) return;
@@ -79,7 +77,7 @@ class MixinFullResolution {
     Library enclosingLibrary = class_.enclosingLibrary;
 
     if (!librariesToBeTransformed.contains(enclosingLibrary) &&
-        enclosingLibrary.importUri?.scheme == "dart") {
+        enclosingLibrary.importUri.scheme == "dart") {
       // If we're not asked to transform the platform libraries then we expect
       // that they will be already transformed.
       return;
@@ -88,7 +86,7 @@ class MixinFullResolution {
     // Ensure super classes have been transformed before this class.
     if (class_.superclass != null) {
       transformClass(librariesToBeTransformed, processedClasses,
-          transformedClasses, class_.superclass, referenceFromIndex);
+          transformedClasses, class_.superclass!, referenceFromIndex);
     }
 
     // If this is not a mixin application we don't need to make forwarding
@@ -99,12 +97,13 @@ class MixinFullResolution {
     transformedClasses.add(class_);
 
     // Clone fields and methods from the mixin class.
-    var substitution = getSubstitutionMap(class_.mixedInType);
+    var substitution = getSubstitutionMap(class_.mixedInType!);
     var cloner = new CloneVisitorWithMembers(typeSubstitution: substitution);
 
-    IndexedLibrary indexedLibrary =
+    IndexedLibrary? indexedLibrary =
         referenceFromIndex?.lookupLibrary(enclosingLibrary);
-    IndexedClass indexedClass = indexedLibrary?.lookupIndexedClass(class_.name);
+    IndexedClass? indexedClass =
+        indexedLibrary?.lookupIndexedClass(class_.name);
 
     if (class_.mixin.fields.isNotEmpty) {
       // When we copy a field from the mixed in class, we remove any
@@ -114,17 +113,17 @@ class MixinFullResolution {
       var setters = <Name, Procedure>{};
       for (var procedure in class_.procedures) {
         if (procedure.isSetter) {
-          setters[procedure.name] = procedure;
+          setters[procedure.name!] = procedure;
         } else {
-          nonSetters[procedure.name] = procedure;
+          nonSetters[procedure.name!] = procedure;
         }
       }
 
       for (var field in class_.mixin.fields) {
-        Reference getterReference =
-            indexedClass?.lookupGetterReference(field.name);
-        Reference setterReference =
-            indexedClass?.lookupSetterReference(field.name);
+        Reference? getterReference =
+            indexedClass?.lookupGetterReference(field.name!);
+        Reference? setterReference =
+            indexedClass?.lookupSetterReference(field.name!);
         if (getterReference == null) {
           getterReference = nonSetters[field.name]?.reference;
           getterReference?.canonicalName?.unbind();
@@ -135,11 +134,11 @@ class MixinFullResolution {
         }
         Field clone =
             cloner.cloneField(field, getterReference, setterReference);
-        Procedure setter = setters[field.name];
+        Procedure? setter = setters[field.name!];
         if (setter != null) {
           setters.remove(field.name);
           VariableDeclaration parameter =
-              setter.function.positionalParameters.first;
+              setter.function!.positionalParameters.first;
           clone.isCovariant = parameter.isCovariant;
           clone.isGenericCovariantImpl = parameter.isGenericCovariantImpl;
         }
@@ -168,21 +167,21 @@ class MixinFullResolution {
       // NoSuchMethod forwarders aren't cloned.
       if (procedure.isNoSuchMethodForwarder) continue;
 
-      Reference reference;
+      Reference? reference;
       if (procedure.isSetter) {
-        reference = indexedClass?.lookupSetterReference(procedure.name);
+        reference = indexedClass?.lookupSetterReference(procedure.name!);
       } else {
-        reference = indexedClass?.lookupGetterReference(procedure.name);
+        reference = indexedClass?.lookupGetterReference(procedure.name!);
       }
 
       // Linear search for a forwarding stub with the same name.
-      int originalIndex;
+      int? originalIndex;
       for (int i = 0; i < originalLength; ++i) {
         var originalProcedure = class_.procedures[i];
         if (originalProcedure.name == procedure.name &&
             originalProcedure.kind == procedure.kind) {
-          FunctionNode src = originalProcedure.function;
-          FunctionNode dst = procedure.function;
+          FunctionNode src = originalProcedure.function!;
+          FunctionNode dst = procedure.function!;
 
           if (src.positionalParameters.length !=
                   dst.positionalParameters.length ||
@@ -196,13 +195,13 @@ class MixinFullResolution {
         }
       }
       if (originalIndex != null) {
-        reference ??= class_.procedures[originalIndex]?.reference;
+        reference ??= class_.procedures[originalIndex].reference;
       }
       Procedure clone = cloner.cloneProcedure(procedure, reference);
       if (originalIndex != null) {
         Procedure originalProcedure = class_.procedures[originalIndex];
-        FunctionNode src = originalProcedure.function;
-        FunctionNode dst = clone.function;
+        FunctionNode src = originalProcedure.function!;
+        FunctionNode dst = clone.function!;
         assert(src.typeParameters.length == dst.typeParameters.length);
         for (int j = 0; j < src.typeParameters.length; ++j) {
           dst.typeParameters[j].flags = src.typeParameters[j].flags;
@@ -229,7 +228,7 @@ class MixinFullResolution {
 
     // This class implements the mixin type. Also, backends rely on the fact
     // that eliminated mixin is appended into the end of interfaces list.
-    class_.implementedTypes.add(class_.mixedInType);
+    class_.implementedTypes.add(class_.mixedInType!);
 
     // This class is now a normal class.
     class_.mixedInType = null;
