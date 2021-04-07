@@ -23,7 +23,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   late String testCode;
   late String testFile;
-  ResolvedUnitResult? testAnalysisResult;
+  late ResolvedUnitResult testAnalysisResult;
   late CompilationUnit testUnit;
   late CompilationUnitElement testUnitElement;
   late LibraryElement testLibraryElement;

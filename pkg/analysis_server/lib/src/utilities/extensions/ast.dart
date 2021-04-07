@@ -60,6 +60,19 @@ extension AstNodeExtensions on AstNode {
   bool get inSwitch => thisOrAncestorOfType<SwitchStatement>() != null;
 
   bool get inWhileLoop => thisOrAncestorOfType<WhileStatement>() != null;
+
+  /// Return this node and all its parents.
+  Iterable<AstNode> get withParents sync* {
+    var current = this;
+    while (true) {
+      yield current;
+      var parent = current.parent;
+      if (parent == null) {
+        break;
+      }
+      current = parent;
+    }
+  }
 }
 
 extension ExpressionExtensions on Expression {
