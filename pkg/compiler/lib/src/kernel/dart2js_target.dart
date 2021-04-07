@@ -62,10 +62,6 @@ int _foldLateLowerings(List<int> lowerings) =>
 
 /// Late lowerings which the frontend performs for dart2js.
 const List<int> _allEnabledLateLowerings = [
-  LateLowering.nullableUninitializedNonFinalLocal,
-  LateLowering.nonNullableUninitializedNonFinalLocal,
-  LateLowering.nullableUninitializedFinalLocal,
-  LateLowering.nonNullableUninitializedFinalLocal,
   LateLowering.nullableInitializedNonFinalLocal,
   LateLowering.nonNullableInitializedNonFinalLocal,
   LateLowering.nullableInitializedFinalLocal,
@@ -167,8 +163,7 @@ class Dart2jsTarget extends Target {
               _nativeClasses)
           .visitLibrary(library);
     }
-    lowering.transformLibraries(
-        libraries, coreTypes, hierarchy, flags.enableNullSafety);
+    lowering.transformLibraries(libraries, coreTypes, hierarchy);
     logger?.call("Lowering transformations performed");
   }
 
