@@ -41,7 +41,7 @@ class PubApi {
   };
 
   PubApi(this.instrumentationService, http.Client? httpClient,
-      String envPubHostedUrl)
+      String? envPubHostedUrl)
       : httpClient =
             httpClient != null ? _NoCloseHttpClient(httpClient) : http.Client(),
         _pubHostedUrl = _validPubHostedUrl(envPubHostedUrl);

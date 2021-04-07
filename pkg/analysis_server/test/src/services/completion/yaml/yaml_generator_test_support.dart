@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -11,7 +9,7 @@ import 'package:test/test.dart';
 
 abstract class YamlGeneratorTest with ResourceProviderMixin {
   /// The completion results produced by [getCompletions].
-  /* late */ List<CompletionSuggestion> results;
+  late List<CompletionSuggestion> results;
 
   /// Return the name of the file being tested.
   String get fileName;

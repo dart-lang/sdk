@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:test/test.dart';
@@ -19,10 +17,10 @@ void main() {
 
 @reflectiveTest
 class ContextTypeTest extends FeatureComputerTest {
-  Future<void> assertContextType(String content, String expectedType) async {
+  Future<void> assertContextType(String content, [String? expectedType]) async {
     await completeIn(content);
-    var computer = FeatureComputer(
-        testAnalysisResult.typeSystem, testAnalysisResult.typeProvider);
+    var result = testAnalysisResult!;
+    var computer = FeatureComputer(result.typeSystem, result.typeProvider);
     var type = computer.computeContextType(
         completionTarget.containingNode, cursorIndex);
 
@@ -68,7 +66,7 @@ void f({int i = 0}) {}
 void g() {
   f(i^:);
 }
-''', null);
+''');
   }
 
   Future<void> test_argumentList_named_beforeLabel() async {
@@ -77,7 +75,7 @@ void f({int i = 0}) {}
 void g() {
   f(^i:);
 }
-''', null);
+''');
   }
 
   Future<void>
@@ -118,7 +116,7 @@ void f({int i}) {}
 void g() {
   f(j: ^);
 }
-''', null);
+''');
   }
 
   Future<void> test_argumentList_named_unresolved_noNamedParameters() async {
@@ -128,7 +126,7 @@ void f() {}
 void g() {
   f(j: ^);
 }
-''', null);
+''');
   }
 
   Future<void> test_argumentList_named_with_requiredPositional() async {
@@ -156,7 +154,7 @@ void f() {}
 void g() {
   f(^);
 }
-''', null);
+''');
   }
 
   Future<void> test_argumentList_noParameters_whitespace() async {
@@ -165,7 +163,7 @@ void f() {}
 void g() {
   f(  ^  );
 }
-''', null);
+''');
   }
 
   Future<void> test_argumentList_noParameters_whitespace_left() async {
@@ -174,7 +172,7 @@ void f() {}
 void g() {
   f(  ^);
 }
-''', null);
+''');
   }
 
   Future<void> test_argumentList_noParameters_whitespace_right() async {
@@ -183,7 +181,7 @@ void f() {}
 void g() {
   f(^  );
 }
-''', null);
+''');
   }
 
   Future<void> test_argumentList_positional() async {
@@ -201,7 +199,7 @@ void f([int i]) {}
 void g() {
   f(i: ^);
 }
-''', null);
+''');
   }
 
   Future<void> test_argumentList_positional_asNamed_beforeColon() async {
@@ -210,7 +208,7 @@ void f(String s, bool b, [int i = 0]) {}
 void g() {
   f(i^:);
 }
-''', null);
+''');
   }
 
   Future<void> test_argumentList_positional_asNamed_beforeLabel() async {
@@ -266,7 +264,7 @@ void f(int i, String str, bool b) {}
 void g() {
   f(i: ^);
 }
-''', null);
+''');
   }
 
   Future<void> test_argumentList_requiredPositional_first() async {
@@ -421,7 +419,7 @@ class C {
 void g(String s) {
   var x = ^s.length;
 }
-''', null);
+''');
   }
 
   Future<void> test_assignmentExpression_withType() async {
@@ -485,7 +483,7 @@ class Foo {
 class Foo {
   var x =^;
 }
-''', null);
+''');
   }
 
   Future<void> test_fieldDeclaration_var_impliedType_int() async {
@@ -517,7 +515,7 @@ class Foo {
 class Foo {
   var x = ^ ;
 }
-''', null);
+''');
   }
 
   Future<void> test_ifElement() async {
@@ -565,7 +563,7 @@ void foo() {
 void f(int e) {
   var l = ^<int>[e];
 }
-''', null);
+''');
   }
 
   Future<void> test_listLiteral_element() async {
@@ -589,7 +587,7 @@ void f(int e) {
 void f(int e) {
   var l = <^int>[e];
 }
-''', null);
+''');
   }
 
   Future<void> test_mapLiteralEntry_key() async {
@@ -633,7 +631,7 @@ void g(C c) {
 void f() {
   var m = ^<int, int>{};
 }
-''', null);
+''');
   }
 
   Future<void> test_setOrMapLiteral_map_element() async {
@@ -649,7 +647,7 @@ void f(bool b, int e) {
 void f() {
   var m = <int, ^int>{};
 }
-''', null);
+''');
   }
 
   Future<void> test_setOrMapLiteral_set_beforeTypeParameter() async {
@@ -657,7 +655,7 @@ void f() {
 void f() {
   var s = ^<int>{};
 }
-''', null);
+''');
   }
 
   Future<void> test_setOrMapLiteral_set_element() async {
@@ -673,7 +671,7 @@ void f(int e) {
 void f() {
   var s = <^int>{};
 }
-''', null);
+''');
   }
 
   Future<void> test_topLevelVariableDeclaration_int() async {
@@ -710,26 +708,26 @@ int i =  ^  ;
   Future<void> test_topLevelVariableDeclaration_var() async {
     await assertContextType('''
 var x=^;
-''', null);
+''');
   }
 
   Future<void> test_topLevelVariableDeclaration_var_noEqual() async {
     await assertContextType('''
 int x^;
-''', null);
+''');
   }
 
   Future<void> test_topLevelVariableDeclaration_var_whitespace() async {
     await assertContextType('''
 var x=  ^  ;
-''', null);
+''');
   }
 }
 
 abstract class FeatureComputerTest extends AbstractSingleUnitTest {
   int cursorIndex = 0;
 
-  CompletionTarget completionTarget;
+  late CompletionTarget completionTarget;
 
   @override
   bool verifyNoTestUnitErrors = false;
