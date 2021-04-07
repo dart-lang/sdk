@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
- output_units=[f1: {units: [1{s1, s2}], usedBy: [], needs: []}],
- steps=[
+ a_pre_fragments=[p1: {units: [1{s1, s2}], usedBy: [], needs: []}],
+ b_finalized_fragments=[f1: [1{s1, s2}]],
+ c_steps=[
   s1=(f1),
   s2=(f1)]
 */

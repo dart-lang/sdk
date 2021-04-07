@@ -3,23 +3,31 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*spec.library: 
- output_units=[
-  f1: {units: [2{lib1, lib2}], usedBy: [], needs: []},
-  f2: {units: [1{lib1}], usedBy: [], needs: []},
-  f3: {units: [3{lib2}], usedBy: [], needs: []}],
- steps=[
-  lib1=(f1, f2),
-  lib2=(f1, f3)]
+ a_pre_fragments=[
+  p1: {units: [1{lib1}], usedBy: [], needs: []},
+  p2: {units: [3{lib2}], usedBy: [], needs: []},
+  p3: {units: [2{lib1, lib2}], usedBy: [], needs: []}],
+ b_finalized_fragments=[
+  f1: [1{lib1}],
+  f2: [3{lib2}],
+  f3: [2{lib1, lib2}]],
+ c_steps=[
+  lib1=(f3, f1),
+  lib2=(f3, f2)]
 */
 
 /*two-frag|three-frag.library: 
- output_units=[
-  f1: {units: [2{lib1, lib2}], usedBy: [], needs: [2, 3]},
-  f2: {units: [1{lib1}], usedBy: [1], needs: []},
-  f3: {units: [3{lib2}], usedBy: [1], needs: []}],
- steps=[
-  lib1=(f1, f2),
-  lib2=(f1, f3)]
+ a_pre_fragments=[
+  p1: {units: [1{lib1}], usedBy: [p3], needs: []},
+  p2: {units: [3{lib2}], usedBy: [p3], needs: []},
+  p3: {units: [2{lib1, lib2}], usedBy: [], needs: [p1, p2]}],
+ b_finalized_fragments=[
+  f1: [1{lib1}],
+  f2: [3{lib2}],
+  f3: [2{lib1, lib2}]],
+ c_steps=[
+  lib1=(f3, f1),
+  lib2=(f3, f2)]
 */
 
 // @dart = 2.7

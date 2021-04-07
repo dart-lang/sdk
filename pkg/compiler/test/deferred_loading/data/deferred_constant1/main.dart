@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
- output_units=[f1: {units: [1{lib2}], usedBy: [], needs: []}],
- steps=[lib2=(f1)]
+ a_pre_fragments=[p1: {units: [1{lib2}], usedBy: [], needs: []}],
+ b_finalized_fragments=[f1: [1{lib2}]],
+ c_steps=[lib2=(f1)]
 */
 
 // @dart = 2.7
