@@ -219,6 +219,9 @@ ConstEvalExtension:
 ConstEvalUnevaluated:
   template: "Couldn't evaluate constant expression."
 
+ConstEvalUnhandledException:
+  template: "Unhandled exception: #constant"
+
 NotConstantExpression:
   template: "#string is not a constant expression."
   analyzerCode: NOT_CONSTANT_EXPRESSION
