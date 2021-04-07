@@ -5661,7 +5661,13 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
     return GetDeoptId() != DeoptId::kNone;
   }
 
-  virtual Representation representation() const;
+  // Representation of LoadIndexed from arrays with given cid.
+  static Representation RepresentationOfArrayElement(intptr_t array_cid);
+
+  Representation representation() const {
+    return RepresentationOfArrayElement(class_id());
+  }
+
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -5956,6 +5962,9 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
+
+  // Representation of value passed to StoreIndexed for arrays with given cid.
+  static Representation RepresentationOfArrayElement(intptr_t array_cid);
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
 
