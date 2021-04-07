@@ -744,13 +744,8 @@ SuperclassMethodArgumentMismatch/analyzerCode: Fail
 SuperclassMethodArgumentMismatch/example: Fail
 SupertypeIsFunction/analyzerCode: Fail
 SupertypeIsFunction/example: Fail
-SupertypeIsIllegal/example: Fail
-SupertypeIsIllegalAliased/example: Fail
-SupertypeIsNullableAliased/example: Fail
-SupertypeIsTypeVariable/example: Fail
 SwitchCaseFallThrough/example: Fail
 SwitchExpressionNotSubtype/analyzerCode: Fail
-SwitchExpressionNotSubtype/example: Fail
 SwitchExpressionUserDefinedEquals/analyzerCode: Fail
 SwitchExpressionUserDefinedEquals/example: Fail
 SyntheticToken/example: Fail # Can't be tested, used to recover from other errors.
@@ -786,7 +781,6 @@ UndefinedExtensionOperator/analyzerCode: Fail
 UndefinedExtensionOperator/example: Fail
 UndefinedExtensionSetter/analyzerCode: Fail
 UndefinedExtensionSetter/example: Fail
-UnexpectedModifierInNonNnbd/part_wrapped_script: Fail # Test requires @dart= annotation
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
 UnmatchedToken/part_wrapped_script1: Fail

@@ -9,26 +9,25 @@ import "package:ffi/ffi.dart";
 @#C7
 class Coordinate extends ffi::Struct {
   static final field core::int* #sizeOf = (#C10).{core::List::[]}(ffi::_abi())/*isLegacy*/;
-  @#C12
-  constructor #fromTypedDataBase(dynamic #pointer) → dynamic
-    : super ffi::Struct::_fromPointer(#pointer)
+  constructor #fromTypedDataBase(core::Object #typedDataBase) → self::Coordinate
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
-  @#C13
+  @#C11
   get x() → core::double
-    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C15).{core::List::[]}(ffi::_abi()));
-  @#C13
+    return ffi::_loadDouble(this.{ffi::Struct::_typedDataBase}, (#C13).{core::List::[]}(ffi::_abi()));
+  @#C11
   set x(core::double #externalFieldValue) → void
-    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C15).{core::List::[]}(ffi::_abi()), #externalFieldValue);
-  @#C13
+    return ffi::_storeDouble(this.{ffi::Struct::_typedDataBase}, (#C13).{core::List::[]}(ffi::_abi()), #externalFieldValue);
+  @#C11
   get y() → core::double
-    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C17).{core::List::[]}(ffi::_abi()));
-  @#C13
+    return ffi::_loadDouble(this.{ffi::Struct::_typedDataBase}, (#C15).{core::List::[]}(ffi::_abi()));
+  @#C11
   set y(core::double #externalFieldValue) → void
-    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C17).{core::List::[]}(ffi::_abi()), #externalFieldValue);
+    return ffi::_storeDouble(this.{ffi::Struct::_typedDataBase}, (#C15).{core::List::[]}(ffi::_abi()), #externalFieldValue);
   get next() → ffi::Pointer<self::Coordinate>
-    return ffi::_fromAddress<self::Coordinate>(ffi::_loadIntPtr(this.{ffi::Struct::_addressOf}, (#C19).{core::List::[]}(ffi::_abi())));
+    return ffi::_fromAddress<self::Coordinate>(ffi::_loadIntPtr(this.{ffi::Struct::_typedDataBase}, (#C17).{core::List::[]}(ffi::_abi())));
   set next(ffi::Pointer<self::Coordinate> #externalFieldValue) → void
-    return ffi::_storeIntPtr(this.{ffi::Struct::_addressOf}, (#C19).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Pointer::address});
+    return ffi::_storeIntPtr(this.{ffi::Struct::_typedDataBase}, (#C17).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Pointer::address});
   static factory allocate(ffi::Allocator allocator, core::double x, core::double y, ffi::Pointer<self::Coordinate> next) → self::Coordinate {
     return let final self::Coordinate #t1 = new self::Coordinate::#fromTypedDataBase(allocator.{ffi::Allocator::allocate}<self::Coordinate>(self::Coordinate::#sizeOf)!) in block {
       #t1.{self::Coordinate::x} = x;
@@ -50,15 +49,13 @@ constants  {
   #C8 = 24
   #C9 = 20
   #C10 = <core::int*>[#C8, #C9, #C8]
-  #C11 = "vm:entry-point"
-  #C12 = core::pragma {name:#C11, options:#C5}
-  #C13 = ffi::Double {}
-  #C14 = 0
+  #C11 = ffi::Double {}
+  #C12 = 0
+  #C13 = <core::int*>[#C12, #C12, #C12]
+  #C14 = 8
   #C15 = <core::int*>[#C14, #C14, #C14]
-  #C16 = 8
+  #C16 = 16
   #C17 = <core::int*>[#C16, #C16, #C16]
-  #C18 = 16
-  #C19 = <core::int*>[#C18, #C18, #C18]
 }
 
 

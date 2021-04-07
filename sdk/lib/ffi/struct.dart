@@ -44,19 +44,20 @@ part of dart.ffi;
 /// Dart object is being created.
 ///
 /// Instances of a subclass of [Struct] have reference semantics and are backed
-/// by native memory. The may allocated via allocation or loaded from a
-/// [Pointer], but cannot be created by a generative constructor.
+/// by native memory or typed data. They may allocated via allocation or loaded
+/// from a [Pointer] or created by ffi calls or callbacks. They cannot be
+/// created by a generative constructor.
 abstract class Struct extends NativeType {
   @pragma("vm:entry-point")
-  final Object _addressOf;
+  final Object _typedDataBase;
 
   /// Construct a reference to the [nullptr].
   ///
   /// Use [StructPointer]'s `.ref` to gain references to native memory backed
   /// structs.
-  Struct() : _addressOf = nullptr;
+  Struct() : _typedDataBase = nullptr;
 
-  Struct._fromPointer(this._addressOf);
+  Struct._fromTypedDataBase(this._typedDataBase);
 }
 
 /// Annotation to specify on `Struct` subtypes to indicate that its members

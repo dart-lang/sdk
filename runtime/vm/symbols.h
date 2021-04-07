@@ -432,7 +432,7 @@ class ObjectPointerVisitor;
   V(_Utf8Decoder, "_Utf8Decoder")                                              \
   V(_VariableMirror, "_VariableMirror")                                        \
   V(_WeakProperty, "_WeakProperty")                                            \
-  V(_addressOf, "_addressOf")                                                  \
+  V(_typedDataBase, "_typedDataBase")                                          \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \

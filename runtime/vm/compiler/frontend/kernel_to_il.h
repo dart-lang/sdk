@@ -318,7 +318,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Wraps a TypedDataBase from the stack and wraps it in a subclass of Struct.
   Fragment WrapTypedDataBaseInStruct(const AbstractType& struct_type);
 
-  // Loads the addressOf field from a subclass of Struct.
+  // Loads the _typedDataBase field from a subclass of Struct.
   Fragment LoadTypedDataBaseFromStruct();
 
   // Breaks up a subclass of Struct in multiple definitions and puts them on

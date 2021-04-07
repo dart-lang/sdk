@@ -51,17 +51,14 @@ import 'ffi.dart';
 /// class Coord extends Struct {
 ///   Coord.#fromTypedDataBase(Pointer<Coord> coord) : super._(coord);
 ///
-///   Pointer<Double> get _xPtr => addressOf.cast();
-///   set x(double v) => _xPtr.store(v);
-///   double get x => _xPtr.load();
+///   set x(double v) => ...;
+///   double get x => ...;
 ///
-///   Pointer<Double> get _yPtr => addressOf.offsetBy(...).cast();
-///   set y(double v) => _yPtr.store(v);
-///   double get y => _yPtr.load();
+///   set y(double v) => ...;
+///   double get y => ...;
 ///
-///   ffi.Pointer<Coordinate> get _nextPtr => addressof.offsetBy(...).cast();
-///   set next(Coordinate v) => _nextPtr.store(v);
-///   Coordinate get next => _nextPtr.load();
+///   set next(Coordinate v) => ...;
+///   Coordinate get next => ...;
 ///
 ///   static final int #sizeOf = 24;
 /// }
@@ -422,16 +419,25 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       c.initializers.remove(i);
     }
 
-    // Add a constructor which 'load' can use.
-    // C.#fromTypedDataBase(Object address) : super.fromPointer(address);
-    final VariableDeclaration pointer = new VariableDeclaration("#pointer");
+    /// Add a constructor which 'load' can use.
+    ///
+    /// ```dart
+    /// #fromTypedDataBase(Object #typedDataBase) :
+    ///   super._fromTypedDataBase(#typedDataBase);
+    /// ```
+    final VariableDeclaration typedDataBase = new VariableDeclaration(
+        "#typedDataBase",
+        type: coreTypes.objectNonNullableRawType);
     final name = Name("#fromTypedDataBase");
     final referenceFrom = indexedClass?.lookupConstructor(name);
     final Constructor ctor = Constructor(
-        FunctionNode(EmptyStatement(), positionalParameters: [pointer]),
+        FunctionNode(EmptyStatement(),
+            positionalParameters: [typedDataBase],
+            returnType: InterfaceType(node, Nullability.nonNullable)),
         name: name,
         initializers: [
-          SuperInitializer(structFromPointer, Arguments([VariableGet(pointer)]))
+          SuperInitializer(
+              structFromTypedDataBase, Arguments([VariableGet(typedDataBase)]))
         ],
         fileUri: node.fileUri,
         reference: referenceFrom?.reference)
@@ -441,8 +447,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     // Struct objects are manufactured in the VM by being passed by value
     // in return position in FFI calls, and by value in arguments in FFI
     // callbacks.
-    // TODO(http://dartbug.com/38721): Support tree-shaking, remove this.
-    _makeEntryPoint(ctor);
     node.addConstructor(ctor);
   }
 
@@ -640,15 +644,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     struct.addField(sizeOf);
   }
 
-  void _makeEntryPoint(Annotatable node) {
-    node.addAnnotation(ConstantExpression(
-        InstanceConstant(pragmaClass.reference, [], {
-          pragmaName.getterReference: StringConstant("vm:entry-point"),
-          pragmaOptions.getterReference: NullConstant()
-        }),
-        InterfaceType(pragmaClass, Nullability.legacy, [])));
-  }
-
   NativeType _getFieldType(Class c) {
     final fieldType = getType(c);
 
@@ -842,7 +837,7 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
   /// Sample output for `int get x =>`:
   ///
   /// ```
-  /// _loadInt8(_addressOf, offset);
+  /// _loadInt8(_typedDataBase, offset);
   /// ```
   @override
   ReturnStatement generateGetterStatement(
@@ -856,8 +851,10 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
               ? transformer.loadUnalignedMethods
               : transformer.loadMethods)[nativeType],
           Arguments([
-            PropertyGet(ThisExpression(), transformer.addressOfField.name,
-                transformer.addressOfField)
+            PropertyGet(
+                ThisExpression(),
+                transformer.structTypedDataBaseField.name,
+                transformer.structTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets)
           ]))
@@ -866,7 +863,7 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
   /// Sample output for `set x(int #v) =>`:
   ///
   /// ```
-  /// _storeInt8(_addressOf, offset, #v);
+  /// _storeInt8(_typedDataBase, offset, #v);
   /// ```
   @override
   ReturnStatement generateSetterStatement(
@@ -881,8 +878,10 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
               ? transformer.storeUnalignedMethods
               : transformer.storeMethods)[nativeType],
           Arguments([
-            PropertyGet(ThisExpression(), transformer.addressOfField.name,
-                transformer.addressOfField)
+            PropertyGet(
+                ThisExpression(),
+                transformer.structTypedDataBaseField.name,
+                transformer.structTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets),
             VariableGet(argument)
@@ -907,7 +906,7 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
   /// Sample output for `Pointer<Int8> get x =>`:
   ///
   /// ```
-  /// _fromAddress<Int8>(_loadIntPtr(_addressOf, offset));
+  /// _fromAddress<Int8>(_loadIntPtr(_typedDataBase, offset));
   /// ```
   @override
   ReturnStatement generateGetterStatement(
@@ -922,8 +921,10 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
             StaticInvocation(
                 transformer.loadMethods[NativeType.kIntptr],
                 Arguments([
-                  PropertyGet(ThisExpression(), transformer.addressOfField.name,
-                      transformer.addressOfField)
+                  PropertyGet(
+                      ThisExpression(),
+                      transformer.structTypedDataBaseField.name,
+                      transformer.structTypedDataBaseField)
                     ..fileOffset = fileOffset,
                   transformer.runtimeBranchOnLayout(offsets)
                 ]))
@@ -936,7 +937,7 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
   /// Sample output for `set x(Pointer<Int8> #v) =>`:
   ///
   /// ```
-  /// _storeIntPtr(_addressOf, offset, (#v as Pointer<Int8>).address);
+  /// _storeIntPtr(_typedDataBase, offset, (#v as Pointer<Int8>).address);
   /// ```
   @override
   ReturnStatement generateSetterStatement(
@@ -949,8 +950,10 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
       ReturnStatement(StaticInvocation(
           transformer.storeMethods[NativeType.kIntptr],
           Arguments([
-            PropertyGet(ThisExpression(), transformer.addressOfField.name,
-                transformer.addressOfField)
+            PropertyGet(
+                ThisExpression(),
+                transformer.structTypedDataBaseField.name,
+                transformer.structTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets),
             PropertyGet(VariableGet(argument), transformer.addressGetter.name,
@@ -1017,7 +1020,7 @@ class StructNativeTypeCfe implements NativeTypeCfe {
   ///
   /// ```
   /// MyStruct.#fromTypedDataBase(
-  ///   typedDataBaseOffset(_addressOf, offset, size, dartType)
+  ///   typedDataBaseOffset(_typedDataBase, offset, size, dartType)
   /// );
   /// ```
   @override
@@ -1030,8 +1033,10 @@ class StructNativeTypeCfe implements NativeTypeCfe {
         constructor,
         Arguments([
           transformer.typedDataBaseOffset(
-              PropertyGet(ThisExpression(), transformer.addressOfField.name,
-                  transformer.addressOfField)
+              PropertyGet(
+                  ThisExpression(),
+                  transformer.structTypedDataBaseField.name,
+                  transformer.structTypedDataBaseField)
                 ..fileOffset = fileOffset,
               transformer.runtimeBranchOnLayout(offsets),
               transformer.runtimeBranchOnLayout(size),
@@ -1044,7 +1049,7 @@ class StructNativeTypeCfe implements NativeTypeCfe {
   /// Sample output for `set x(MyStruct #v) =>`:
   ///
   /// ```
-  /// _memCopy(_addressOf, offset, #v._addressOf, 0, size);
+  /// _memCopy(_typedDataBase, offset, #v._typedDataBase, 0, size);
   /// ```
   @override
   ReturnStatement generateSetterStatement(
@@ -1057,12 +1062,16 @@ class StructNativeTypeCfe implements NativeTypeCfe {
       ReturnStatement(StaticInvocation(
           transformer.memCopy,
           Arguments([
-            PropertyGet(ThisExpression(), transformer.addressOfField.name,
-                transformer.addressOfField)
+            PropertyGet(
+                ThisExpression(),
+                transformer.structTypedDataBaseField.name,
+                transformer.structTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets),
-            PropertyGet(VariableGet(argument), transformer.addressOfField.name,
-                transformer.addressOfField)
+            PropertyGet(
+                VariableGet(argument),
+                transformer.structTypedDataBaseField.name,
+                transformer.structTypedDataBaseField)
               ..fileOffset = fileOffset,
             ConstantExpression(IntConstant(0)),
             transformer.runtimeBranchOnLayout(size),
@@ -1128,7 +1137,7 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
   ///
   /// ```
   /// Array<Int8>._(
-  ///   typedDataBaseOffset(_addressOf, offset, size, typeArgument)
+  ///   typedDataBaseOffset(_typedDataBase, offset, size, typeArgument)
   /// );
   /// ```
   @override
@@ -1140,8 +1149,10 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
         transformer.arrayConstructor,
         Arguments([
           transformer.typedDataBaseOffset(
-              PropertyGet(ThisExpression(), transformer.addressOfField.name,
-                  transformer.addressOfField)
+              PropertyGet(
+                  ThisExpression(),
+                  transformer.structTypedDataBaseField.name,
+                  transformer.structTypedDataBaseField)
                 ..fileOffset = fileOffset,
               transformer.runtimeBranchOnLayout(offsets),
               transformer.runtimeBranchOnLayout(size),
@@ -1158,7 +1169,7 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
   /// Sample output for `set x(Array #v) =>`:
   ///
   /// ```
-  /// _memCopy(_addressOf, offset, #v._typedDataBase, 0, size);
+  /// _memCopy(_typedDataBase, offset, #v._typedDataBase, 0, size);
   /// ```
   @override
   ReturnStatement generateSetterStatement(
@@ -1171,8 +1182,10 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
       ReturnStatement(StaticInvocation(
           transformer.memCopy,
           Arguments([
-            PropertyGet(ThisExpression(), transformer.addressOfField.name,
-                transformer.addressOfField)
+            PropertyGet(
+                ThisExpression(),
+                transformer.structTypedDataBaseField.name,
+                transformer.structTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets),
             PropertyGet(

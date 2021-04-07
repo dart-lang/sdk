@@ -9,9 +9,8 @@ import "package:ffi/ffi.dart";
 @#C7
 class Coordinate extends ffi::Struct {
   static final field core::int* #sizeOf = (#C10).{core::List::[]}(ffi::_abi());
-  @#C12
-  constructor #fromTypedDataBase(dynamic #pointer) → dynamic
-    : super ffi::Struct::_fromPointer(#pointer)
+  constructor #fromTypedDataBase(core::Object #typedDataBase) → self::Coordinate
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
   static factory allocate(ffi::Allocator* allocator, core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
     return let final self::Coordinate* #t1 = new self::Coordinate::#fromTypedDataBase(allocator.{ffi::Allocator::allocate}<self::Coordinate*>(self::Coordinate::#sizeOf)!) in block {
@@ -20,7 +19,7 @@ class Coordinate extends ffi::Struct {
       #t1.{self::Coordinate::next} = next;
     } =>#t1;
   }
-  abstract member-signature get _addressOf() → core::Object*; -> ffi::Struct::_addressOf
+  abstract member-signature get _typedDataBase() → core::Object*; -> ffi::Struct::_typedDataBase
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -32,17 +31,17 @@ class Coordinate extends ffi::Struct {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   get x() → core::double*
-    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C14).{core::List::[]}(ffi::_abi()));
+    return ffi::_loadDouble(this.{ffi::Struct::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()));
   set x(core::double* #v) → void
-    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C14).{core::List::[]}(ffi::_abi()), #v);
+    return ffi::_storeDouble(this.{ffi::Struct::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()), #v);
   get y() → core::double*
-    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C16).{core::List::[]}(ffi::_abi()));
+    return ffi::_loadDouble(this.{ffi::Struct::_typedDataBase}, (#C14).{core::List::[]}(ffi::_abi()));
   set y(core::double* #v) → void
-    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C16).{core::List::[]}(ffi::_abi()), #v);
+    return ffi::_storeDouble(this.{ffi::Struct::_typedDataBase}, (#C14).{core::List::[]}(ffi::_abi()), #v);
   get next() → ffi::Pointer<self::Coordinate*>*
-    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::Struct::_addressOf}, (#C18).{core::List::[]}(ffi::_abi())));
+    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::Struct::_typedDataBase}, (#C16).{core::List::[]}(ffi::_abi())));
   set next(ffi::Pointer<self::Coordinate*>* #v) → void
-    return ffi::_storeIntPtr(this.{ffi::Struct::_addressOf}, (#C18).{core::List::[]}(ffi::_abi()), #v.{ffi::Pointer::address});
+    return ffi::_storeIntPtr(this.{ffi::Struct::_typedDataBase}, (#C16).{core::List::[]}(ffi::_abi()), #v.{ffi::Pointer::address});
 }
 static method main() → dynamic {}
 
@@ -57,14 +56,12 @@ constants  {
   #C8 = 24
   #C9 = 20
   #C10 = <core::int*>[#C8, #C9, #C8]
-  #C11 = "vm:entry-point"
-  #C12 = core::pragma {name:#C11, options:#C5}
-  #C13 = 0
+  #C11 = 0
+  #C12 = <core::int*>[#C11, #C11, #C11]
+  #C13 = 8
   #C14 = <core::int*>[#C13, #C13, #C13]
-  #C15 = 8
+  #C15 = 16
   #C16 = <core::int*>[#C15, #C15, #C15]
-  #C17 = 16
-  #C18 = <core::int*>[#C17, #C17, #C17]
 }
 
 

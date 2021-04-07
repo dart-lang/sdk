@@ -207,15 +207,20 @@ class ResultLogger implements Logger {
   @override
   void logSuiteComplete(testing.Suite suite) {}
 
-  handleTestResult(TestDescription testDescription, Result result,
-      String fullSuiteName, bool matchedExpectations) {
+  handleTestResult(
+      testing.Suite suite,
+      TestDescription testDescription,
+      Result result,
+      String fullSuiteName,
+      bool matchedExpectations,
+      Set<Expectation> expectedOutcomes) {
     String testName = getTestName(testDescription);
-    String suite = "pkg";
-    String shortTestName = testName.substring(suite.length + 1);
+    String suiteName = "pkg";
+    String shortTestName = testName.substring(suiteName.length + 1);
     resultsPort.send(jsonEncode({
       "name": testName,
       "configuration": configurationName,
-      "suite": suite,
+      "suite": suiteName,
       "test_name": shortTestName,
       "time_ms": stopwatches[testName]!.elapsedMilliseconds,
       "expected": "Pass",
@@ -224,6 +229,10 @@ class ResultLogger implements Logger {
     }));
     if (!matchedExpectations) {
       StringBuffer sb = new StringBuffer();
+      if (printFailureLog) {
+        String outcome = "${result.outcome}";
+        sb.write("FAILED: $testName: $outcome");
+      }
       sb.write(result.log);
       if (result.error != null) {
         sb.write("\n\n${result.error}");
@@ -246,6 +255,26 @@ class ResultLogger implements Logger {
               'used when many tests need updating.\n');
         }
       }
+      if (result.outcome == Expectation.Pass) {
+        String expectedString =
+            expectedOutcomes.map((e) => e.toString()).join(", ");
+        sb.write("\n\nThe test passed, but wasn't expected to. "
+            "You should update the status file for this test."
+            "\nThere's a status entry looking something like"
+            "\n\n  ${testDescription.shortName}: ${expectedString}"
+            "\n\nwhich should be removed."
+            "\n\nThe status file is ${suite.statusFile}.");
+      } else if (result.autoFixCommand == null) {
+        String expectedString =
+            expectedOutcomes.map((e) => e.toString()).join(", ");
+        sb.write("\n\nThe test has outcome ${result.outcome}, "
+            "but was expected to have outcome(s) ${expectedOutcomes}. "
+            "You might have to update the status file to the new outcome"
+            "\nThere's a status entry looking something like"
+            "\n\n  ${testDescription.shortName}: ${expectedString}"
+            "\n\nwhich should be updated."
+            "\n\nThe status file is ${suite.statusFile}.");
+      }
       String failureLog = sb.toString();
       String outcome = "${result.outcome}";
       logsPort.send(jsonEncode({
@@ -255,7 +284,6 @@ class ResultLogger implements Logger {
         "log": failureLog,
       }));
       if (printFailureLog) {
-        print('FAILED: $testName: $outcome');
         print(failureLog);
       }
     }
@@ -280,7 +308,8 @@ class ResultLogger implements Logger {
 
   void logExpectedResult(testing.Suite suite, TestDescription description,
       Result result, Set<Expectation> expectedOutcomes) {
-    handleTestResult(description, result, prefix, true);
+    handleTestResult(
+        suite, description, result, prefix, true, expectedOutcomes);
   }
 
   @override
@@ -292,7 +321,8 @@ class ResultLogger implements Logger {
     String testName = getTestName(description);
     if (seenTests.contains(testName)) return;
     seenTests.add(testName);
-    handleTestResult(description, result, prefix, false);
+    handleTestResult(
+        suite, description, result, prefix, false, expectedOutcomes);
   }
 
   @override
