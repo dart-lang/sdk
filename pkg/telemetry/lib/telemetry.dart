@@ -59,7 +59,7 @@ Analytics createAnalyticsInstance(
   bool disableForSession = false,
   bool forceEnabled = false,
 }) {
-  Directory dir = getDartStorageDirectory();
+  final dir = getDartStorageDirectory();
   if (dir == null) {
     // Some systems don't support user home directories; for those, fail
     // gracefully by returning a disabled analytics object.
@@ -95,7 +95,7 @@ Analytics createAnalyticsInstance(
 /// This can return null under some conditions, including when the user's home
 /// directory does not exist.
 @visibleForTesting
-Directory getDartStorageDirectory() {
+Directory? getDartStorageDirectory() {
   Directory homeDirectory = new Directory(userHomeDir());
   if (!homeDirectory.existsSync()) return null;
 
@@ -114,8 +114,8 @@ class _TelemetryAnalytics extends AnalyticsImpl {
     String applicationName,
     String applicationVersion,
     File settingsFile, {
-    @required this.disableForSession,
-    @required this.forceEnabled,
+    required this.disableForSession,
+    required this.forceEnabled,
   }) : super(
           trackingId,
           new IOPersistentProperties.fromFile(settingsFile),
@@ -123,7 +123,7 @@ class _TelemetryAnalytics extends AnalyticsImpl {
           applicationName: applicationName,
           applicationVersion: applicationVersion,
         ) {
-    final String locale = getPlatformLocale();
+    final locale = getPlatformLocale();
     if (locale != null) {
       setSessionValue('ul', locale);
     }
@@ -141,7 +141,7 @@ class _TelemetryAnalytics extends AnalyticsImpl {
     }
 
     // If there's no explicit setting (enabled or disabled) then we don't send.
-    return (properties['enabled'] as bool) ?? false;
+    return (properties['enabled'] as bool?) ?? false;
   }
 }
 

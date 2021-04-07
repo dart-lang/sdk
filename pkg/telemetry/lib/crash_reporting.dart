@@ -54,7 +54,7 @@ class CrashReportSender {
   CrashReportSender._(
     this.crashProductId,
     this.shouldSend, {
-    http.Client httpClient,
+    http.Client? httpClient,
     String endpointPath = _crashEndpointPathStaging,
   })  : _httpClient = httpClient ?? new http.Client(),
         _baseUri = new Uri(
@@ -64,7 +64,7 @@ class CrashReportSender {
   CrashReportSender.staging(
     String crashProductId,
     EnablementCallback shouldSend, {
-    http.Client httpClient,
+    http.Client? httpClient,
   }) : this._(crashProductId, shouldSend,
             httpClient: httpClient, endpointPath: _crashEndpointPathStaging);
 
@@ -72,7 +72,7 @@ class CrashReportSender {
   CrashReportSender.prod(
     String crashProductId,
     EnablementCallback shouldSend, {
-    http.Client httpClient,
+    http.Client? httpClient,
   }) : this._(crashProductId, shouldSend,
             httpClient: httpClient, endpointPath: _crashEndpointPathProd);
 
@@ -86,7 +86,7 @@ class CrashReportSender {
     dynamic error,
     StackTrace stackTrace, {
     List<CrashReportAttachment> attachments = const [],
-    String comment,
+    String? comment,
   }) async {
     if (!shouldSend()) {
       return;
@@ -192,9 +192,9 @@ class CrashReportAttachment {
   final String _value;
 
   CrashReportAttachment.string({
-    @required String field,
-    @required String value,
-  })  : _field = field,
+    required String field,
+    required String value,
+  })   : _field = field,
         _value = value;
 }
 
