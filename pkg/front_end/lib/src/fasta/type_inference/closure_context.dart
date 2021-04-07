@@ -427,7 +427,7 @@ class _SyncClosureContext implements ClosureContext {
       returnType = _declaredReturnType;
     }
     if (inferrer.library.isNonNullableByDefault &&
-        (containsInvalidType(returnType) ||
+        (!containsInvalidType(returnType) &&
             returnType.isPotentiallyNonNullable) &&
         inferrer.flowAnalysis.isReachable) {
       Statement resultStatement =
@@ -830,7 +830,7 @@ class _AsyncClosureContext implements ClosureContext {
     }
     returnType = inferrer.typeSchemaEnvironment.flatten(returnType);
     if (inferrer.library.isNonNullableByDefault &&
-        (containsInvalidType(returnType) ||
+        (!containsInvalidType(returnType) &&
             returnType.isPotentiallyNonNullable) &&
         inferrer.flowAnalysis.isReachable) {
       Statement resultStatement =
