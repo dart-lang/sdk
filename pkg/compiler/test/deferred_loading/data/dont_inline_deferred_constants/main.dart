@@ -36,7 +36,7 @@
   p2: {units: [2{lib1, lib2}, 3{lib2}], usedBy: [], needs: [p1]}],
  b_finalized_fragments=[
   f1: [1{lib1}],
-  f2: [2{lib1, lib2}, 3{lib2}]],
+  f2: [2{lib1, lib2}+3{lib2}]],
  c_steps=[
   lib1=(f2, f1),
   lib2=(f2)]

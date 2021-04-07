@@ -14,6 +14,8 @@
   f1: [6{libA}],
   f2: [1{libB}],
   f3: [2{libC}],
+  f4: [],
+  f5: [],
   f6: [3{libA, libB, libC}]],
  c_steps=[
   libA=(f6, f1),
@@ -27,12 +29,12 @@
   p2: {units: [5{libB, libC}, 4{libA, libC}, 2{libC}], usedBy: [p3], needs: [p1]},
   p3: {units: [3{libA, libB, libC}], usedBy: [], needs: [p2]}],
  b_finalized_fragments=[
-  f1: [1{libB}, 6{libA}],
-  f2: [2{libC}],
+  f1: [1{libB}+6{libA}],
+  f2: [5{libB, libC}+4{libA, libC}+2{libC}],
   f3: [3{libA, libB, libC}]],
  c_steps=[
-  libA=(f3, f1),
-  libB=(f3, f1),
+  libA=(f3, f2, f1),
+  libB=(f3, f2, f1),
   libC=(f3, f2)]
 */
 
@@ -46,7 +48,7 @@
   f1: [6{libA}],
   f2: [1{libB}],
   f3: [2{libC}],
-  f4: [3{libA, libB, libC}]],
+  f4: [3{libA, libB, libC}+5{libB, libC}+4{libA, libC}]],
  c_steps=[
   libA=(f4, f1),
   libB=(f4, f2),

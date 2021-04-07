@@ -245,9 +245,7 @@ class PreFragmentsIrComputer extends IrDataExtractor<Features> {
             outputUnitStrings.add(outputUnitString(outputUnit));
           }
         }
-        if (outputUnitStrings.isNotEmpty) {
-          supplied.add(outputUnitStrings.join('+'));
-        }
+        supplied.add(outputUnitStrings.join('+'));
       }
 
       if (supplied.isNotEmpty) {

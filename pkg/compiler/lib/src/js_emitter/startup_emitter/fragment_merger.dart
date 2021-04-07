@@ -165,8 +165,7 @@ class PreFragment {
   final Set<PreFragment> predecessors = {};
   FinalizedFragment finalizedFragment;
   int size = 0;
-  // TODO(joshualitt): interleave dynamically when it makes sense.
-  bool shouldInterleave = false;
+  bool shouldInterleave = true;
 
   PreFragment(
       this.outputFileName, EmittedOutputUnit emittedOutputUnit, this.size) {

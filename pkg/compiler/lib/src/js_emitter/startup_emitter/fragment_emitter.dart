@@ -1894,16 +1894,11 @@ class FragmentEmitter {
   void finalizeDeferredLoadingData(
       Map<String, List<CodeFragment>> codeFragmentsToLoad,
       Map<CodeFragment, FinalizedFragment> codeFragmentMap,
-      Map<CodeFragment, String> deferredLoadHashes,
+      Map<FinalizedFragment, String> deferredLoadHashes,
       DeferredLoadingState deferredLoadingState) {
     if (codeFragmentsToLoad.isEmpty) return;
 
-    // We store a map of indices to uris and hashes. Because multiple
-    // [CodeFragments] can map to a single file, a uri may appear multiple times
-    // in [fragmentUris] once per [CodeFragment] reference in that file.
-    // TODO(joshualitt): Use a string table to avoid duplicating part file
-    // names.
-    Map<CodeFragment, int> fragmentIndexes = {};
+    Map<FinalizedFragment, int> fragmentIndexes = {};
     List<String> fragmentUris = [];
     List<String> fragmentHashes = [];
 
@@ -1914,14 +1909,14 @@ class FragmentEmitter {
       List<js.Expression> indexes = [];
       for (var codeFragment in codeFragments) {
         var fragment = codeFragmentMap[codeFragment];
-        String codeFragmentHash = deferredLoadHashes[codeFragment];
-        if (codeFragmentHash == null) continue;
-        int index = fragmentIndexes[codeFragment];
+        String fragmentHash = deferredLoadHashes[fragment];
+        if (fragmentHash == null) continue;
+        int index = fragmentIndexes[fragment];
         if (index == null) {
-          index = fragmentIndexes[codeFragment] = fragmentIndexes.length;
+          index = fragmentIndexes[fragment] = fragmentIndexes.length;
           fragmentUris.add(
               "${fragment.outputFileName}.${ModelEmitter.deferredExtension}");
-          fragmentHashes.add(codeFragmentHash);
+          fragmentHashes.add(fragmentHash);
         }
         indexes.add(js.number(index));
       }
