@@ -9,7 +9,7 @@ import 'package:js_ast/js_ast.dart';
 import '../common.dart';
 import '../options.dart';
 import '../dump_info.dart' show DumpInfoTask;
-import '../io/code_output.dart' show CodeBuffer;
+import '../io/code_output.dart' show CodeBuffer, CodeOutputListener;
 import 'js_source_mapping.dart';
 
 export 'package:js_ast/js_ast.dart';
@@ -38,12 +38,13 @@ CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
     JavaScriptSourceInformationStrategy sourceInformationStrategy,
     {DumpInfoTask monitor,
     bool allowVariableMinification: true,
-    Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer}) {
+    Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer,
+    List<CodeOutputListener> listeners: const []}) {
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
       shouldCompressOutput: compilerOptions.enableMinification,
       minifyLocalVariables: allowVariableMinification,
       renamerForNames: renamerForNames);
-  CodeBuffer outBuffer = new CodeBuffer();
+  CodeBuffer outBuffer = new CodeBuffer(listeners);
   SourceInformationProcessor sourceInformationProcessor =
       sourceInformationStrategy.createProcessor(
           new SourceMapperProviderImpl(outBuffer),

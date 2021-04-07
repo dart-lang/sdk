@@ -10,9 +10,9 @@ import "deferred_overlapping_lib2.dart" deferred as lib2;
 // will fail because the base class does not exist.
 void main() {
   lib1.loadLibrary().then((_) {
-    var a = new lib1.C1();
+    print(new lib1.C1());
     lib2.loadLibrary().then((_) {
-      var b = new lib2.C2();
+      print(new lib2.C2());
     });
   });
 }
