@@ -633,6 +633,11 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void handleConstFactory(Token constKeyword) {
+    debugEvent("ConstFactory");
+  }
+
+  @override
   void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
     debugEvent("NativeFunctionBody");
   }

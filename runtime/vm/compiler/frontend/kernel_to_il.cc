@@ -1332,6 +1332,16 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           body += FloatToDouble();
         }
         body += Box(kUnboxedDouble);
+      } else if (kind == MethodRecognizer::kFfiLoadInt8 ||
+                 kind == MethodRecognizer::kFfiLoadInt16 ||
+                 kind == MethodRecognizer::kFfiLoadUint8 ||
+                 kind == MethodRecognizer::kFfiLoadUint16) {
+        // LoadIndexed instruction with 8-bit and 16-bit elements
+        // results in value with kUnboxedIntPtr representation
+        // (see LoadIndexedInstr::representation).
+        // Avoid any unnecessary (and potentially deoptimizing) int
+        // conversions by using the correct representation at the first place.
+        body += Box(kUnboxedIntPtr);
       } else {
         body += Box(native_rep.AsRepresentationOverApprox(zone_));
         if (kind == MethodRecognizer::kFfiLoadPointer) {
@@ -1462,6 +1472,16 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
             kind == MethodRecognizer::kFfiStoreFloatUnaligned) {
           body += DoubleToFloat();
         }
+      } else if (kind == MethodRecognizer::kFfiStoreInt8 ||
+                 kind == MethodRecognizer::kFfiStoreInt16 ||
+                 kind == MethodRecognizer::kFfiStoreUint8 ||
+                 kind == MethodRecognizer::kFfiStoreUint16) {
+        // StoreIndexed instruction with 8-bit and 16-bit elements
+        // takes value with kUnboxedIntPtr representation
+        // (see StoreIndexedInstr::RequiredInputRepresentation).
+        // Avoid any unnecessary (and potentially deoptimizing) int
+        // conversions by using the correct representation at the first place.
+        body += UnboxTruncate(kUnboxedIntPtr);
       } else {
         body += UnboxTruncate(native_rep.AsRepresentationOverApprox(zone_));
       }

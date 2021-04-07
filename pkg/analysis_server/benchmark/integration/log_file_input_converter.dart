@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 
 import 'package:analyzer/exception/exception.dart';
@@ -25,7 +23,7 @@ class LogFileInputConverter extends CommonInputConverter {
       : super(tmpSrcDirPath, srcPathMap);
 
   @override
-  Operation convert(String line) {
+  Operation? convert(String line) {
     try {
       var timeStampString = _parseTimeStamp(line);
       var data = line.substring(timeStampString.length);

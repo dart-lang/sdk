@@ -4769,6 +4769,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void handleConstFactory(Token constKeyword) {
+    debugEvent("ConstFactory");
+    if (!libraryBuilder.enableConstFunctionsInLibrary) {
+      handleRecoverableError(
+          fasta.messageConstFactory, constKeyword, constKeyword);
+    }
+  }
+
+  @override
   void beginIfControlFlow(Token ifToken) {
     // TODO(danrubel): consider removing this when control flow support is added
     // if the ifToken is not needed for error reporting

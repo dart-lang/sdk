@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:math' show max, sqrt;
 
@@ -42,13 +40,13 @@ class Driver extends IntegrationTestMixin {
   final Logger logger = Logger('Driver');
 
   /// The diagnostic port for Analysis Server or `null` if none.
-  final int diagnosticPort;
+  final int? diagnosticPort;
 
   /// A flag indicating whether the server is running.
   bool running = false;
 
   @override
-  Server server;
+  late Server server;
 
   /// The results collected while running analysis server.
   final Results results = Results();
@@ -65,7 +63,7 @@ class Driver extends IntegrationTestMixin {
   /// Perform the given operation.
   /// Return a [Future] that completes when the next operation can be performed,
   /// or `null` if the next operation can be performed immediately
-  Future perform(Operation op) {
+  Future<void>? perform(Operation op) {
     return op.perform(this);
   }
 
@@ -75,7 +73,7 @@ class Driver extends IntegrationTestMixin {
   /// normal (non-error) response, the future will be completed with the
   /// 'result' field from the response.  If the server acknowledges the command
   /// with an error response, the future will be completed with an error.
-  Future<Map<String, dynamic>> send(
+  Future<Map<String, Object?>?> send(
       String method, Map<String, dynamic> params) {
     return server.send(method, params);
   }
@@ -206,14 +204,17 @@ class Results {
     print('');
     print('==================================================================');
     print('');
-    var keys = measurements.keys.toList()..sort();
-    var keyLen = keys.fold(0, (int len, String key) => max(len, key.length));
+    var sortedEntries = measurements.entries.toList();
+    sortedEntries.sort((a, b) => a.key.compareTo(b.key));
+    var keyLen = sortedEntries
+        .map((e) => e.key)
+        .fold(0, (int len, String key) => max(len, key.length));
     _printGroupHeader('Request/Response', keyLen);
     var totalCount = 0;
     var totalErrorCount = 0;
     var totalUnexpectedResultCount = 0;
-    for (var tag in keys) {
-      var m = measurements[tag];
+    for (var entry in sortedEntries) {
+      var m = entry.value;
       if (!m.notification) {
         m.printSummary(keyLen);
         totalCount += m.count;
@@ -225,8 +226,8 @@ class Results {
         keyLen, totalCount, totalErrorCount, totalUnexpectedResultCount);
     print('');
     _printGroupHeader('Notifications', keyLen);
-    for (var tag in keys) {
-      var m = measurements[tag];
+    for (var entry in sortedEntries) {
+      var m = entry.value;
       if (m.notification) {
         m.printSummary(keyLen);
       }
@@ -252,7 +253,7 @@ class Results {
   }
 
   void recordUnexpectedResults(String tag) {
-    measurements[tag].recordUnexpectedResults();
+    measurements[tag]!.recordUnexpectedResults();
   }
 
   void _printGroupHeader(String groupName, int keyLen) {

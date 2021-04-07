@@ -1360,6 +1360,10 @@ class Listener implements UnescapeErrorListener {
     logEvent("ConstExpression");
   }
 
+  void handleConstFactory(Token constKeyword) {
+    logEvent("ConstFactory");
+  }
+
   /// Called before parsing a "for" control flow list, set, or map entry.
   /// Ended by either [endForControlFlow] or [endForInControlFlow].
   void beginForControlFlow(Token? awaitToken, Token forToken) {}
