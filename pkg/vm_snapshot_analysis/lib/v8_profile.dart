@@ -228,6 +228,12 @@ class Node {
     }.toString();
   }
 
+  /// Returns the target of an outgoing edge with the given name (if any),
+  /// but first checks for a corresponding artificial edge indicating a dropped
+  /// object.
+  Node possiblyDroppedTarget(String edgeName) =>
+      this[':$edgeName'] ?? this[edgeName];
+
   /// Returns the target of an outgoing edge with the given name (if any).
   Node operator [](String edgeName) => this
       .edges
@@ -398,7 +404,7 @@ class _ProgramInfoBuilder {
   ProgramInfoNode createInfoNodeFor(Node node) {
     switch (node.type) {
       case 'Code':
-        var owner = node[':owner_'] ?? node['owner_'];
+        var owner = node.possiblyDroppedTarget('owner_');
         if (owner.type != 'Type') {
           final ownerNode =
               owner.type == 'Null' ? program.stubs : getInfoNodeFor(owner);
@@ -419,9 +425,10 @@ class _ProgramInfoBuilder {
         if (node.name != '<anonymous signature>') {
           var owner = node['owner_'];
 
-          // Artificial nodes will not have data_ field.
-          if (node['data_']?.type == 'ClosureData') {
-            owner = node['data_']['parent_function_'];
+          // Artificial nodes may not have a data_ field.
+          var data = node['data_'];
+          if (data?.type == 'ClosureData') {
+            owner = data.possiblyDroppedTarget('parent_function_');
           }
           return makeInfoNode(node.index,
               name: node.name,

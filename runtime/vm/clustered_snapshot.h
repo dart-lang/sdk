@@ -397,7 +397,7 @@ class Serializer : public ThreadStackResource {
   // yet gotten an artificial node created for it create an artificial node
   // in the profile representing this object.
   // Returns true if [obj] has an artificial profile node associated with it.
-  bool CreateArtificalNodeIfNeeded(ObjectPtr obj);
+  bool CreateArtificialNodeIfNeeded(ObjectPtr obj);
 
   bool InCurrentLoadingUnit(ObjectPtr obj, bool record = false);
   GrowableArray<LoadingUnitSerializationData*>* loading_units() const {
