@@ -207,6 +207,7 @@ class FfiTransformer extends Transformer {
   final Procedure typedDataBufferGetter;
   final Procedure typedDataOffsetInBytesGetter;
   final Procedure byteBufferAsUint8List;
+  final Procedure uint8ListFactory;
   final Class pragmaClass;
   final Field pragmaName;
   final Field pragmaOptions;
@@ -252,7 +253,7 @@ class FfiTransformer extends Transformer {
   final Procedure sizeOfMethod;
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
-  final Field addressOfField;
+  final Field structTypedDataBaseField;
   final Field arrayTypedDataBaseField;
   final Field arraySizeField;
   final Field arrayNestedDimensionsField;
@@ -260,7 +261,7 @@ class FfiTransformer extends Transformer {
   final Field arrayNestedDimensionsFlattened;
   final Field arrayNestedDimensionsFirst;
   final Field arrayNestedDimensionsRest;
-  final Constructor structFromPointer;
+  final Constructor structFromTypedDataBase;
   final Constructor arrayConstructor;
   final Procedure fromAddressInternal;
   final Procedure libraryLookupMethod;
@@ -300,6 +301,7 @@ class FfiTransformer extends Transformer {
             'dart:typed_data', 'TypedData', 'get:offsetInBytes'),
         byteBufferAsUint8List =
             index.getMember('dart:typed_data', 'ByteBuffer', 'asUint8List'),
+        uint8ListFactory = index.getMember('dart:typed_data', 'Uint8List', ''),
         pragmaClass = coreTypes.pragmaClass,
         pragmaName = coreTypes.pragmaName,
         pragmaOptions = coreTypes.pragmaOptions,
@@ -346,7 +348,8 @@ class FfiTransformer extends Transformer {
         offsetByMethod = index.getMember('dart:ffi', 'Pointer', '_offsetBy'),
         elementAtMethod = index.getMember('dart:ffi', 'Pointer', 'elementAt'),
         addressGetter = index.getMember('dart:ffi', 'Pointer', 'get:address'),
-        addressOfField = index.getMember('dart:ffi', 'Struct', '_addressOf'),
+        structTypedDataBaseField =
+            index.getMember('dart:ffi', 'Struct', '_typedDataBase'),
         arrayTypedDataBaseField =
             index.getMember('dart:ffi', 'Array', '_typedDataBase'),
         arraySizeField = index.getMember('dart:ffi', 'Array', '_size'),
@@ -359,8 +362,8 @@ class FfiTransformer extends Transformer {
             index.getMember('dart:ffi', 'Array', '_nestedDimensionsFirst'),
         arrayNestedDimensionsRest =
             index.getMember('dart:ffi', 'Array', '_nestedDimensionsRest'),
-        structFromPointer =
-            index.getMember('dart:ffi', 'Struct', '_fromPointer'),
+        structFromTypedDataBase =
+            index.getMember('dart:ffi', 'Struct', '_fromTypedDataBase'),
         arrayConstructor = index.getMember('dart:ffi', 'Array', '_'),
         fromAddressInternal =
             index.getTopLevelMember('dart:ffi', '_fromAddress'),

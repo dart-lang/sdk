@@ -1665,7 +1665,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
         Library::Handle(Z, klass.library()).url() == Symbols::DartFfi().ptr()) {
       ASSERT(fields_.length() == 1);
       ASSERT(String::Handle(Z, fields_[0]->name())
-                 .StartsWith(Symbols::_addressOf()));
+                 .StartsWith(Symbols::_typedDataBase()));
       fields_[0]->set_guarded_cid(kDynamicCid);
       fields_[0]->set_is_nullable(true);
     }

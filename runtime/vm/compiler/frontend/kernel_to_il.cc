@@ -3814,7 +3814,8 @@ Fragment FlowGraphBuilder::WrapTypedDataBaseInStruct(
   const auto& struct_class =
       Class::Handle(Z, lib_ffi.LookupClass(Symbols::Struct()));
   const auto& struct_addressof = Field::ZoneHandle(
-      Z, struct_class.LookupInstanceFieldAllowPrivate(Symbols::_addressOf()));
+      Z,
+      struct_class.LookupInstanceFieldAllowPrivate(Symbols::_typedDataBase()));
   ASSERT(!struct_addressof.IsNull());
 
   Fragment body;
@@ -3834,7 +3835,7 @@ Fragment FlowGraphBuilder::LoadTypedDataBaseFromStruct() {
       Class::Handle(zone_, lib_ffi.LookupClass(Symbols::Struct()));
   const Field& struct_addressof = Field::ZoneHandle(
       zone_,
-      struct_class.LookupInstanceFieldAllowPrivate(Symbols::_addressOf()));
+      struct_class.LookupInstanceFieldAllowPrivate(Symbols::_typedDataBase()));
   ASSERT(!struct_addressof.IsNull());
 
   Fragment body;

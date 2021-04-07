@@ -205,11 +205,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       } else if (target == sizeOfMethod) {
         final DartType nativeType = node.arguments.types[0];
 
-        // TODO(http://dartbug.com/38721): Change this to an error after
-        // package:ffi is no longer using sizeOf generically.
-        if (!isFfiLibrary) {
-          _ensureNativeTypeValid(nativeType, node);
-        }
+        _ensureNativeTypeValid(nativeType, node);
 
         if (nativeType is InterfaceType) {
           Expression inlineSizeOf = _inlineSizeOf(nativeType);
@@ -225,7 +221,19 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
         _ensureNoEmptyStructs(dartType, node);
-        return _replaceLookupFunction(node);
+
+        final replacement = _replaceLookupFunction(node);
+
+        if (dartType is FunctionType) {
+          final returnType = dartType.returnType;
+          if (returnType is InterfaceType) {
+            final clazz = returnType.classNode;
+            if (clazz.superclass == structClass) {
+              return _invokeStructConstructor(replacement, clazz);
+            }
+          }
+        }
+        return replacement;
       } else if (target == asFunctionMethod) {
         final DartType dartType = node.arguments.types[1];
         final DartType nativeType = InterfaceType(
@@ -237,11 +245,23 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         final DartType nativeSignature =
             (nativeType as InterfaceType).typeArguments[0];
+
         // Inline function body to make all type arguments instatiated.
-        return StaticInvocation(
+        final replacement = StaticInvocation(
             asFunctionInternal,
             Arguments([node.arguments.positional[0]],
                 types: [dartType, nativeSignature]));
+
+        if (dartType is FunctionType) {
+          final returnType = dartType.returnType;
+          if (returnType is InterfaceType) {
+            final clazz = returnType.classNode;
+            if (clazz.superclass == structClass) {
+              return _invokeStructConstructor(replacement, clazz);
+            }
+          }
+        }
+        return replacement;
       } else if (target == fromFunctionMethod) {
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
@@ -254,8 +274,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         _ensureNativeTypeToDartType(nativeType, dartType, node);
         _ensureNoEmptyStructs(dartType, node);
 
+        final funcType = dartType as FunctionType;
+
         // Check `exceptionalReturn`'s type.
-        final FunctionType funcType = dartType;
         final Class expectedReturnClass =
             ((node.arguments.types[0] as FunctionType).returnType
                     as InterfaceType)
@@ -324,17 +345,19 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             return node;
           }
         }
-        return _replaceFromFunction(node);
+
+        final replacement = _replaceFromFunction(node);
+
+        final structClasses = funcType.positionalParameters
+            .whereType<InterfaceType>()
+            .map((t) => t.classNode)
+            .where((c) => c.superclass == structClass)
+            .toList();
+        return _invokeStructConstructors(replacement, structClasses);
       } else if (target == allocateMethod) {
         final DartType nativeType = node.arguments.types[0];
 
         _ensureNativeTypeValid(nativeType, node);
-
-        // TODO(http://dartbug.com/38721): Change this to an error.
-        if (nativeType is TypeParameterType) {
-          // Do not rewire generic invocations.
-          return node;
-        }
 
         // Inline the body to get rid of a generic invocation of sizeOf.
         // TODO(http://dartbug.com/39964): Add `allignmentOf<T>()` call.
@@ -362,6 +385,38 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
     return node;
   }
+
+  /// Prevents the struct from being tree-shaken in TFA by invoking its
+  /// constructor in a let expression.
+  ///
+  /// TFA does not recognize this as dead code, only the VM does.
+  /// TODO(http://dartbug.com/45607): Wrap with `_nativeEffect` to make the
+  /// intent of this code clear.
+  Expression _invokeStructConstructor(
+      Expression nestedExpression, Class structClass) {
+    final constructor = structClass.constructors
+        .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
+    return Let(
+        VariableDeclaration.forValue(
+            ConstructorInvocation(
+                constructor,
+                Arguments([
+                  StaticInvocation(
+                      uint8ListFactory,
+                      Arguments([
+                        ConstantExpression(IntConstant(1)),
+                      ]))
+                    ..fileOffset = nestedExpression.fileOffset,
+                ]))
+              ..fileOffset = nestedExpression.fileOffset,
+            type: InterfaceType(structClass, Nullability.nonNullable)),
+        nestedExpression)
+      ..fileOffset = nestedExpression.fileOffset;
+  }
+
+  Expression _invokeStructConstructors(
+          Expression nestedExpression, List<Class> structClasses) =>
+      structClasses.distinct().fold(nestedExpression, _invokeStructConstructor);
 
   Expression _inlineSizeOf(InterfaceType nativeType) {
     final Class nativeClass = nativeType.classNode;
@@ -807,3 +862,11 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 /// Used internally for abnormal control flow to prevent cascading error
 /// messages.
 class _FfiStaticTypeError implements Exception {}
+
+extension<T extends Object> on List<T> {
+  /// Order-preserved distinct elements.
+  List<T> distinct() {
+    final seen = <T>{};
+    return where((element) => seen.add(element)).toList();
+  }
+}

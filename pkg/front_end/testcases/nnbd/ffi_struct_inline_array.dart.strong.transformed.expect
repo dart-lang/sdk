@@ -14,19 +14,18 @@ class StructInlineArray extends ffi::Struct {
   synthetic constructor •() → self::StructInlineArray
     : super ffi::Struct::•()
     ;
-  @#C11
-  constructor #fromTypedDataBase(dynamic #pointer) → dynamic
-    : super ffi::Struct::_fromPointer(#pointer)
+  constructor #fromTypedDataBase(core::Object #typedDataBase) → self::StructInlineArray
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
     ;
-  @#C12
+  @#C10
   get a0() → ffi::Array<ffi::Uint8>
     return new ffi::Array::_<ffi::Uint8>( block {
-      core::Object #typedDataBase = this.{ffi::Struct::_addressOf};
-      core::int #offset = (#C14).{core::List::[]}(ffi::_abi());
-    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Uint8>(#typedDataBase.{ffi::Pointer::address}.{core::num::+}(#offset)) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}.{core::num::+}(#offset), (#C9).{core::List::[]}(ffi::_abi())), #C3, #C15);
-  @#C12
+      core::Object #typedDataBase = this.{ffi::Struct::_typedDataBase};
+      core::int #offset = (#C12).{core::List::[]}(ffi::_abi());
+    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Uint8>(#typedDataBase.{ffi::Pointer::address}.{core::num::+}(#offset)) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}.{core::num::+}(#offset), (#C9).{core::List::[]}(ffi::_abi())), #C3, #C13);
+  @#C10
   set a0(ffi::Array<ffi::Uint8> #externalFieldValue) → void
-    return ffi::_memCopy(this.{ffi::Struct::_addressOf}, (#C14).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Array::_typedDataBase}, #C13, (#C9).{core::List::[]}(ffi::_abi()));
+    return ffi::_memCopy(this.{ffi::Struct::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Array::_typedDataBase}, #C11, (#C9).{core::List::[]}(ffi::_abi()));
 }
 static method main() → dynamic {}
 
@@ -40,12 +39,10 @@ constants  {
   #C7 = ffi::_FfiStructLayout {fieldTypes:#C5, packing:#C6}
   #C8 = core::pragma {name:#C1, options:#C7}
   #C9 = <core::int*>[#C3, #C3, #C3]
-  #C10 = "vm:entry-point"
-  #C11 = core::pragma {name:#C10, options:#C6}
-  #C12 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C3, dimension2:#C6, dimension3:#C6, dimension4:#C6, dimension5:#C6, dimensions:#C6}
-  #C13 = 0
-  #C14 = <core::int*>[#C13, #C13, #C13]
-  #C15 = <core::int*>[]
+  #C10 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C3, dimension2:#C6, dimension3:#C6, dimension4:#C6, dimension5:#C6, dimensions:#C6}
+  #C11 = 0
+  #C12 = <core::int*>[#C11, #C11, #C11]
+  #C13 = <core::int*>[]
 }
 
 
