@@ -429,11 +429,10 @@ class C29 {
 }
 
 indexSetCompound(C29 c, List<int> values) {
-  // TODO(paulberry): get this to work with the CFE
   if (c.bad == null) return;
   values[
       /*analyzer.notPromoted(propertyNotPromoted(target: member:C29.bad, type: int?))*/ c
-          .bad] += 1;
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C29.bad, type: int?))*/ bad] += 1;
 }
 
 class C30 {
@@ -441,11 +440,10 @@ class C30 {
 }
 
 indexSetIfNull(C30 c, List<int?> values) {
-  // TODO(paulberry): get this to work with the CFE
   if (c.bad == null) return;
   values[
       /*analyzer.notPromoted(propertyNotPromoted(target: member:C30.bad, type: int?))*/ c
-          .bad] ??= 1;
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C30.bad, type: int?))*/ bad] ??= 1;
 }
 
 class C31 {
@@ -453,14 +451,13 @@ class C31 {
 }
 
 indexSetPreIncDec(C31 c, List<int> values) {
-  // TODO(paulberry): get this to work with the CFE
   if (c.bad == null) return;
   ++values[
       /*analyzer.notPromoted(propertyNotPromoted(target: member:C31.bad, type: int?))*/ c
-          .bad];
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C31.bad, type: int?))*/ bad];
   --values[
       /*analyzer.notPromoted(propertyNotPromoted(target: member:C31.bad, type: int?))*/ c
-          .bad];
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C31.bad, type: int?))*/ bad];
 }
 
 class C32 {
@@ -468,12 +465,11 @@ class C32 {
 }
 
 indexSetPostIncDec(C32 c, List<int> values) {
-  // TODO(paulberry): get this to work with the CFE
   if (c.bad == null) return;
   values[
       /*analyzer.notPromoted(propertyNotPromoted(target: member:C32.bad, type: int?))*/ c
-          .bad]++;
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C32.bad, type: int?))*/ bad]++;
   values[
       /*analyzer.notPromoted(propertyNotPromoted(target: member:C32.bad, type: int?))*/ c
-          .bad]--;
+          . /*cfe.notPromoted(propertyNotPromoted(target: member:C32.bad, type: int?))*/ bad]--;
 }

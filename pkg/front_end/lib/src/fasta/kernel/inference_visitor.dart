@@ -4,6 +4,7 @@
 
 // @dart = 2.9
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
@@ -3372,6 +3373,8 @@ class InferenceVisitor
 
     VariableDeclaration indexVariable;
     Expression readIndex = indexResult.expression;
+    Map<DartType, NonPromotionReason> Function() whyNotPromotedIndex =
+        inferrer.flowAnalysis?.whyNotPromoted(readIndex);
     Expression writeIndex;
     if (isPureExpression(readIndex)) {
       writeIndex = clonePureExpression(readIndex);
@@ -3382,7 +3385,8 @@ class InferenceVisitor
     }
 
     readIndex = inferrer.ensureAssignable(
-        readIndexType, indexResult.inferredType, readIndex);
+        readIndexType, indexResult.inferredType, readIndex,
+        whyNotPromoted: whyNotPromotedIndex);
 
     ExpressionInferenceResult readResult = _computeIndexGet(
         node.readOffset,
@@ -3403,7 +3407,8 @@ class InferenceVisitor
         .member;
 
     writeIndex = inferrer.ensureAssignable(
-        writeIndexType, indexResult.inferredType, writeIndex);
+        writeIndexType, indexResult.inferredType, writeIndex,
+        whyNotPromoted: whyNotPromotedIndex);
 
     ExpressionInferenceResult valueResult = inferrer
         .inferExpression(node.value, valueType, true, isVoidAllowed: true);
@@ -5055,6 +5060,8 @@ class InferenceVisitor
 
     VariableDeclaration indexVariable;
     Expression readIndex = indexResult.expression;
+    Map<DartType, NonPromotionReason> Function() whyNotPromotedIndex =
+        inferrer.flowAnalysis?.whyNotPromoted(readIndex);
     Expression writeIndex;
     if (isPureExpression(readIndex)) {
       writeIndex = clonePureExpression(readIndex);
@@ -5065,7 +5072,8 @@ class InferenceVisitor
     }
 
     readIndex = inferrer.ensureAssignable(
-        readIndexType, indexResult.inferredType, readIndex);
+        readIndexType, indexResult.inferredType, readIndex,
+        whyNotPromoted: whyNotPromotedIndex);
 
     ExpressionInferenceResult readResult = _computeIndexGet(
         node.readOffset,
@@ -5110,7 +5118,8 @@ class InferenceVisitor
     DartType binaryType = binaryResult.inferredType;
 
     writeIndex = inferrer.ensureAssignable(
-        writeIndexType, indexResult.inferredType, writeIndex);
+        writeIndexType, indexResult.inferredType, writeIndex,
+        whyNotPromoted: whyNotPromotedIndex);
 
     binary = inferrer.ensureAssignable(valueType, binaryType, binary,
         fileOffset: node.fileOffset);

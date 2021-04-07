@@ -316,7 +316,17 @@ class TypeInferrerImpl implements TypeInferrer {
           if (args.isNotEmpty) {
             nonPromotionReasonText += '(${args.join(', ')})';
           }
-          dataForTesting.flowAnalysisResult.nonPromotionReasons[node] =
+          TreeNode origNode = node;
+          while (origNode is VariableGet &&
+              origNode.variable.name == null &&
+              origNode.variable.initializer != null) {
+            // This is a read of a synthetic variable, presumably from a "let".
+            // Find the original expression.
+            // TODO(johnniwinther): add a general solution for getting the
+            // original node for testing.
+            origNode = (origNode as VariableGet).variable.initializer;
+          }
+          dataForTesting.flowAnalysisResult.nonPromotionReasons[origNode] =
               nonPromotionReasonText;
         }
         // Note: this will always pick the first viable reason (only).  I
@@ -478,7 +488,8 @@ class TypeInferrerImpl implements TypeInferrer {
       Template<Message Function(DartType, DartType, bool)>
           nullabilityNullTypeErrorTemplate,
       Template<Message Function(DartType, DartType, DartType, DartType, bool)>
-          nullabilityPartErrorTemplate}) {
+          nullabilityPartErrorTemplate,
+      Map<DartType, NonPromotionReason> Function() whyNotPromoted}) {
     assert(contextType != null);
 
     // [errorTemplate], [nullabilityErrorTemplate], and
@@ -607,6 +618,7 @@ class TypeInferrerImpl implements TypeInferrer {
                     declaredContextType ?? contextType,
                     isNonNullableByDefault));
           } else {
+            whyNotPromoted ??= flowAnalysis?.whyNotPromoted(expression);
             result = _wrapUnassignableExpression(
                 expression,
                 expressionType,
@@ -614,7 +626,7 @@ class TypeInferrerImpl implements TypeInferrer {
                 nullabilityErrorTemplate.withArguments(expressionType,
                     declaredContextType ?? contextType, isNonNullableByDefault),
                 context: getWhyNotPromotedContext(
-                    flowAnalysis?.whyNotPromoted(expression)(),
+                    whyNotPromoted?.call(),
                     expression,
                     (type) => typeSchemaEnvironment.isSubtypeOf(type,
                         contextType, SubtypeCheckMode.withNullabilities)));

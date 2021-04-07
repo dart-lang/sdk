@@ -809,6 +809,7 @@ ordered
 orders
 ordinal
 org
+orig
 orphancy
 orphans
 ors
@@ -884,6 +885,7 @@ preexisting
 preorder
 presented
 presubmit
+presumably
 prev
 prime
 printer
