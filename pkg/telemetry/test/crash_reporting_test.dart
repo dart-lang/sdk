@@ -12,10 +12,10 @@ import 'package:usage/usage.dart';
 
 void main() {
   group('CrashReportSender', () {
-    MockClient mockClient;
-    AnalyticsMock analytics;
+    late MockClient mockClient;
+    late AnalyticsMock analytics;
 
-    Request request;
+    late Request request;
 
     setUp(() {
       mockClient = new MockClient((Request r) async {

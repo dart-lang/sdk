@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-04-06T11:20:39.965073",
+  "generated": "2021-04-06T16:51:44.463801",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -659,7 +659,7 @@
       "name": "telemetry",
       "rootUri": "../pkg/telemetry",
       "packageUri": "lib/",
-      "languageVersion": "1.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "term_glyph",
@@ -726,12 +726,6 @@
       "rootUri": "../third_party/pkg/usage",
       "packageUri": "lib/",
       "languageVersion": "2.12"
-    },
-    {
-      "name": "uuid",
-      "rootUri": "../third_party/pkg/uuid",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
     },
     {
       "name": "vector_math",

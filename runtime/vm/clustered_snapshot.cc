@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include <memory>
+#include <utility>
 
 #include "vm/clustered_snapshot.h"
 
@@ -1051,6 +1052,12 @@ class FunctionDeserializationCluster : public DeserializationCluster {
   }
 };
 
+// If DROPPED_NAME(name) is used for a v8 snapshot profile edge, then
+// possiblyDroppedTarget() should be used to retrieve the edge target in
+// pkg/vm_snapshot_analysis/v8_profile.dart so the artificial node is found
+// instead of its in-snapshot replacement.
+#define DROPPED_NAME(name) (":" #name)
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class ClosureDataSerializationCluster : public SerializationCluster {
  public:
@@ -1094,6 +1101,25 @@ class ClosureDataSerializationCluster : public SerializationCluster {
       WriteCompressedField(data, default_type_arguments);
       s->WriteUnsigned(
           static_cast<intptr_t>(data->untag()->default_type_arguments_kind_));
+    }
+  }
+
+  // Some closure data objects have their parent functions dropped from the
+  // snapshot, which makes it is impossible to recover program structure when
+  // analysing snapshot profile. To facilitate analysis of snapshot profiles
+  // we include artificial nodes into profile representing such dropped
+  // parent functions.
+  void WriteDroppedParentFunctionsIntoProfile(Serializer* s) {
+    ASSERT(s->profile_writer() != nullptr);
+
+    for (auto data : objects_) {
+      ObjectPtr parent_function =
+          WeakSerializationReference::Unwrap(data->untag()->parent_function());
+      if (s->CreateArtificialNodeIfNeeded(parent_function)) {
+        AutoTraceObject(data);
+        s->AttributePropertyRef(parent_function, DROPPED_NAME(parent_function_),
+                                /*permit_artificial_ref=*/true);
+      }
     }
   }
 
@@ -2035,9 +2061,9 @@ class CodeSerializationCluster : public SerializationCluster {
     for (auto code : objects_) {
       ObjectPtr owner =
           WeakSerializationReference::Unwrap(code->untag()->owner_);
-      if (s->CreateArtificalNodeIfNeeded(owner) || Code::IsDiscarded(code)) {
+      if (s->CreateArtificialNodeIfNeeded(owner) || Code::IsDiscarded(code)) {
         AutoTraceObject(code);
-        s->AttributePropertyRef(owner, ":owner_",
+        s->AttributePropertyRef(owner, DROPPED_NAME(owner_),
                                 /*permit_artificial_ref=*/true);
       }
     }
@@ -6194,8 +6220,13 @@ void Serializer::TraceEndWritingObject() {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
+bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
   ASSERT(profile_writer() != nullptr);
+
+  if (obj->GetClassId() == kWeakSerializationReferenceCid) {
+    auto wsr = static_cast<WeakSerializationReferencePtr>(obj);
+    return CreateArtificialNodeIfNeeded(wsr->untag()->target());
+  }
 
   intptr_t id = heap_->GetObjectId(obj);
   if (IsAllocatedReference(id)) {
@@ -6210,31 +6241,37 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
   const char* type = nullptr;
   StringPtr name_string = nullptr;
   const char* name = nullptr;
-  ObjectPtr owner = nullptr;
-  const char* owner_ref_name = nullptr;
+  GrowableArray<std::pair<ObjectPtr, const char*>> links;
   switch (obj->GetClassId()) {
     case kFunctionCid: {
       FunctionPtr func = static_cast<FunctionPtr>(obj);
       type = "Function";
       name = FunctionSerializationCluster::MakeDisambiguatedFunctionName(this,
                                                                          func);
-      owner_ref_name = "owner_";
-      owner = func->untag()->owner();
+      links.Add({func->untag()->owner(), "owner_"});
+      ObjectPtr data = func->untag()->data();
+      if (data->GetClassId() == kClosureDataCid) {
+        links.Add({func->untag()->data(), "data_"});
+      }
+      break;
+    }
+    case kClosureDataCid: {
+      auto data = static_cast<ClosureDataPtr>(obj);
+      type = "ClosureData";
+      links.Add({data->untag()->parent_function(), "parent_function_"});
       break;
     }
     case kClassCid: {
       ClassPtr cls = static_cast<ClassPtr>(obj);
       type = "Class";
       name_string = cls->untag()->name();
-      owner_ref_name = "library_";
-      owner = cls->untag()->library();
+      links.Add({cls->untag()->library(), "library_"});
       break;
     }
     case kPatchClassCid: {
       PatchClassPtr patch_cls = static_cast<PatchClassPtr>(obj);
       type = "PatchClass";
-      owner_ref_name = "patched_class_";
-      owner = patch_cls->untag()->patched_class();
+      links.Add({patch_cls->untag()->patched_class(), "patched_class_"});
       break;
     }
     case kLibraryCid: {
@@ -6254,16 +6291,16 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
     name = str.ToCString();
   }
 
-  // CreateArtificalNodeIfNeeded might call TraceStartWritingObject
+  // CreateArtificialNodeIfNeeded might call TraceStartWritingObject
   // and these calls don't nest, so we need to call this outside
   // of the tracing scope created below.
-  if (owner != nullptr) {
-    CreateArtificalNodeIfNeeded(owner);
+  for (const auto& link : links) {
+    CreateArtificialNodeIfNeeded(link.first);
   }
 
   TraceStartWritingObject(type, obj, name);
-  if (owner != nullptr) {
-    AttributePropertyRef(owner, owner_ref_name,
+  for (const auto& link : links) {
+    AttributePropertyRef(link.first, link.second,
                          /*permit_artificial_ref=*/true);
   }
   TraceEndWritingObject();
@@ -6817,6 +6854,10 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   if (FLAG_write_v8_snapshot_profile_to != nullptr) {
     static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid])
         ->WriteDroppedOwnersIntoProfile(this);
+    if (auto const cluster = static_cast<ClosureDataSerializationCluster*>(
+            clusters_by_cid_[kClosureDataCid])) {
+      cluster->WriteDroppedParentFunctionsIntoProfile(this);
+    }
   }
 #endif
 
