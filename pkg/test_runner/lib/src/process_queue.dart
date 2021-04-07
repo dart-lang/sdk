@@ -1082,11 +1082,19 @@ class BatchRunnerProcess {
     if (outcome == "CRASH") exitCode = unhandledCompilerExceptionExitCode;
     if (outcome == "PARSE_FAIL") exitCode = parseFailExitCode;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
+
+    // Fail if the output was too long or incorrectly formatted.
+    if (_testStdout.hasNonUtf8 || _testStderr.hasNonUtf8) {
+      exitCode = nonUtfFakeExitCode;
+    } else if (_testStdout.wasTruncated || _testStderr.wasTruncated) {
+      exitCode = truncatedFakeExitCode;
+    }
+
     var output = _command.createOutput(
         exitCode,
         outcome == "TIMEOUT",
-        _testStdout.toList(),
-        _testStderr.toList(),
+        _testStdout.bytes,
+        _testStderr.bytes,
         DateTime.now().difference(_startTime),
         false);
     assert(_completer != null);

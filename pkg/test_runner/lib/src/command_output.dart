@@ -53,6 +53,7 @@ class CommandOutput {
     if (hasTimedOut) return Expectation.timeout;
     if (_didFail(testCase)) return Expectation.fail;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     return Expectation.pass;
   }
@@ -64,6 +65,7 @@ class CommandOutput {
     if (hasTimedOut) return Expectation.timeout;
     if (_didFail(testCase)) return Expectation.fail;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     return Expectation.pass;
   }
@@ -116,6 +118,9 @@ class CommandOutput {
   }
 
   bool get hasNonUtf8 => exitCode == nonUtfFakeExitCode;
+
+  /// Whether the command's output was too long and was truncated.
+  bool get truncatedOutput => exitCode == truncatedFakeExitCode;
 
   /// Called when producing output for a test failure to describe this output.
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
@@ -335,6 +340,7 @@ class BrowserCommandOutput extends CommandOutput
     }
 
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // Multitests are handled specially.
     if (testCase.hasRuntimeError) {
@@ -354,6 +360,7 @@ class BrowserCommandOutput extends CommandOutput
     }
 
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
     return _outcome;
   }
 
@@ -622,6 +629,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     List<StaticError> errors;
     try {
@@ -683,6 +691,7 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     List<StaticError> errors;
     try {
@@ -791,6 +800,7 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     if (exitCode != 0) return Expectation.fail;
     for (var line in decodeUtf8(stdout).split('\n')) {
@@ -807,6 +817,7 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     if (exitCode != 0) return Expectation.fail;
     for (var line in decodeUtf8(stdout).split('\n')) {
@@ -836,6 +847,7 @@ class SpecParseCommandOutput extends CommandOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     if (testCase.hasCompileError) {
       if (testCase.hasSyntaxError) {
@@ -861,6 +873,7 @@ class SpecParseCommandOutput extends CommandOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
     if (hasSyntaxError) return Expectation.syntaxError;
     if (exitCode != 0) return Expectation.syntaxError;
     return Expectation.pass;
@@ -884,6 +897,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // Multitests are handled specially.
     if (testCase.hasCompileError) {
@@ -924,6 +938,7 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // The actual outcome depends on the exitCode.
     if (exitCode == _compileErrorExitCode) return Expectation.compileTimeError;
@@ -986,6 +1001,7 @@ class CompilationCommandOutput extends CommandOutput {
           : Expectation.timeout;
     }
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // Handle dart2js specific crash detection
     if (exitCode == _crashExitCode ||
@@ -1010,6 +1026,7 @@ class CompilationCommandOutput extends CommandOutput {
           : Expectation.timeout;
     }
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // Handle dart2js specific crash detection
     if (exitCode == _crashExitCode ||
@@ -1112,6 +1129,7 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
@@ -1134,6 +1152,7 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
@@ -1185,6 +1204,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     if (hasCrashed) return Expectation.dartkCrash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // If the frontend had an uncaught exception, then we'll consider this a
     // crash.
@@ -1227,6 +1247,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     if (hasCrashed) return Expectation.dartkCrash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     // If the frontend had an uncaught exception, then we'll consider this a
     // crash.
@@ -1267,6 +1288,7 @@ class JSCommandLineOutput extends CommandOutput
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     if (testCase.hasRuntimeError) {
       if (exitCode != 0) return Expectation.pass;
@@ -1284,6 +1306,7 @@ class JSCommandLineOutput extends CommandOutput
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
 
     if (exitCode != 0) return Expectation.runtimeError;
     var output = decodeUtf8(stdout);
@@ -1435,7 +1458,11 @@ mixin _StaticErrorOutput on CommandOutput {
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
     // Handle static error test output specially. We don't want to show the raw
     // stdout if we can give the user the parsed expectations instead.
-    if (testCase.testFile.isStaticErrorTest && !hasCrashed && !hasTimedOut) {
+    if (testCase.testFile.isStaticErrorTest &&
+        !hasCrashed &&
+        !hasTimedOut &&
+        !hasNonUtf8 &&
+        !truncatedOutput) {
       try {
         _validateExpectedErrors(testCase, output);
       } catch (_) {
@@ -1444,19 +1471,21 @@ mixin _StaticErrorOutput on CommandOutput {
         super.describe(testCase, progress, output);
         return;
       }
-    }
 
-    // Don't show the "raw" output unless something strange happened or the
-    // user explicitly requests all the output.
-    if (hasTimedOut ||
-        hasCrashed ||
-        !testCase.testFile.isStaticErrorTest ||
-        progress == Progress.verbose) {
+      // Always show the raw output when specifically requested.
+      if (progress == Progress.verbose) {
+        super.describe(testCase, progress, output);
+      }
+    } else {
+      // Something strange happened, so show the raw output.
       super.describe(testCase, progress, output);
     }
   }
 
   Expectation result(TestCase testCase) {
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
+
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
       return _validateExpectedErrors(testCase);
@@ -1466,6 +1495,9 @@ mixin _StaticErrorOutput on CommandOutput {
   }
 
   Expectation realResult(TestCase testCase) {
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
+
     // If it's a static error test, validate the exact errors.
     if (testCase.testFile.isStaticErrorTest) {
       return _validateExpectedErrors(testCase);

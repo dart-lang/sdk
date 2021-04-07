@@ -20,7 +20,8 @@ import 'utils.dart';
 
 const _slowTimeoutMultiplier = 4;
 const _extraSlowTimeoutMultiplier = 8;
-const nonUtfFakeExitCode = 0xFFFD;
+const nonUtfFakeExitCode = 0xfffd;
+const truncatedFakeExitCode = 0xfffc;
 
 /// Some IO tests use these variables and get confused if the host environment
 /// variables are inherited so they are excluded.
@@ -220,25 +221,24 @@ Future<List<int>> _getPidList(int parentId, List<String> diagnostics) async {
 /// are no pointers to it, so it should be available to be garbage collected as
 /// soon as it is done.
 class RunningProcess {
-  ProcessCommand command;
-  int timeout;
+  final ProcessCommand command;
+  final int timeout;
   bool timedOut = false;
   DateTime startTime;
   int pid;
-  OutputLog stdout;
-  OutputLog stderr = OutputLog();
-  List<String> diagnostics = <String>[];
+  final OutputLog _stdout;
+  final OutputLog _stderr = OutputLog();
+  final List<String> diagnostics = [];
   bool compilationSkipped = false;
   Completer<CommandOutput> completer;
-  TestConfiguration configuration;
+  final TestConfiguration configuration;
 
   RunningProcess(this.command, this.timeout,
-      {this.configuration, io.File outputFile}) {
-    stdout = outputFile != null ? FileOutputLog(outputFile) : OutputLog();
-  }
+      {this.configuration, io.File outputFile})
+      : _stdout = outputFile != null ? FileOutputLog(outputFile) : OutputLog();
 
   Future<CommandOutput> run() {
-    completer = Completer<CommandOutput>();
+    completer = Completer();
     startTime = DateTime.now();
     _runCommand();
     return completer.future;
@@ -255,8 +255,8 @@ class RunningProcess {
           environment: processEnvironment,
           workingDirectory: command.workingDirectory);
       processFuture.then<dynamic>((io.Process process) {
-        var stdoutFuture = process.stdout.pipe(stdout);
-        var stderrFuture = process.stderr.pipe(stderr);
+        var stdoutFuture = process.stdout.pipe(_stdout);
+        var stderrFuture = process.stderr.pipe(_stderr);
         pid = process.pid;
 
         // Close stdin so that tests that try to block on input will fail.
@@ -329,15 +329,15 @@ class RunningProcess {
               onTimeout: () async {
             DebugLogger.warning(
                 "$maxStdioDelayPassedMessage (command: $command)");
-            await stdout.cancel();
-            await stderr.cancel();
+            await _stdout.cancel();
+            await _stderr.cancel();
             return null;
           }).then((_) {
-            if (stdout is FileOutputLog) {
+            if (_stdout is FileOutputLog) {
               // Prevent logging data that has already been written to a file
-              // and is unlikely too add value in the logs because the command
+              // and is unlikely to add value in the logs because the command
               // succeeded.
-              stdout.complete = <int>[];
+              _stdout.clear();
             }
             _commandComplete(exitCode);
           });
@@ -359,15 +359,16 @@ class RunningProcess {
   }
 
   CommandOutput _createCommandOutput(ProcessCommand command, int exitCode) {
-    var stdoutData = stdout.toList();
-    var stderrData = stderr.toList();
-    if (stdout.hasNonUtf8 || stderr.hasNonUtf8) {
-      // If the output contained non-utf8 formatted data, then make the exit
-      // code non-zero if it isn't already.
-      if (exitCode == 0) {
-        exitCode = nonUtfFakeExitCode;
-      }
+    var stdoutData = _stdout.bytes;
+    var stderrData = _stderr.bytes;
+
+    // Fail if the output was too long or incorrectly formatted.
+    if (_stdout.hasNonUtf8 || _stderr.hasNonUtf8) {
+      exitCode = nonUtfFakeExitCode;
+    } else if (_stdout.wasTruncated || _stderr.wasTruncated) {
+      exitCode = truncatedFakeExitCode;
     }
+
     var commandOutput = command.createOutput(
         exitCode,
         timedOut,
