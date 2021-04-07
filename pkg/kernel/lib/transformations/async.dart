@@ -530,7 +530,7 @@ class ExpressionLifter extends Transformer {
   visitFunctionNode(FunctionNode node) {
     var nestedRewriter = new RecursiveContinuationRewriter(
         continuationRewriter.helper, _staticTypeContext);
-    return node.accept(nestedRewriter);
+    return nestedRewriter.transform(node);
   }
 
   TreeNode visitBlockExpression(BlockExpression expr) {
@@ -561,7 +561,7 @@ class ExpressionLifter extends Transformer {
     List<Statement> savedOuter = continuationRewriter.statements;
     statements = <Statement>[];
     continuationRewriter.statements = <Statement>[];
-    stmt.accept(continuationRewriter);
+    continuationRewriter.transform(stmt);
 
     List<Statement> results = continuationRewriter.statements;
     statements = savedInner;

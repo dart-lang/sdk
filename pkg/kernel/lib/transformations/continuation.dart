@@ -77,10 +77,10 @@ Procedure transformProcedure(
       new HelperNodes.fromCoreTypes(typeEnvironment.coreTypes, productMode);
   var rewriter = new RecursiveContinuationRewriter(
       helper, new StatefulStaticTypeContext.stacked(typeEnvironment));
-  return rewriter.visitProcedure(procedure);
+  return rewriter.transform(procedure);
 }
 
-class RecursiveContinuationRewriter extends Transformer {
+class RecursiveContinuationRewriter extends RemovingTransformer {
   final HelperNodes helper;
 
   final VariableDeclaration awaitJumpVariable = new VariableDeclaration(
@@ -94,49 +94,50 @@ class RecursiveContinuationRewriter extends Transformer {
   RecursiveContinuationRewriter(this.helper, this.staticTypeContext);
 
   Component rewriteComponent(Component node) {
-    return node.accept<TreeNode>(this);
+    return transform(node);
   }
 
   Library rewriteLibrary(Library node) {
-    return node.accept<TreeNode>(this);
+    return transform(node);
   }
 
-  visitField(Field node) {
+  visitField(Field node, TreeNode removalSentinel) {
     staticTypeContext.enterMember(node);
-    final result = super.visitField(node);
+    final result = super.visitField(node, removalSentinel);
     staticTypeContext.leaveMember(node);
     return result;
   }
 
-  visitConstructor(Constructor node) {
+  visitConstructor(Constructor node, TreeNode removalSentinel) {
     staticTypeContext.enterMember(node);
-    final result = super.visitConstructor(node);
-    staticTypeContext.leaveMember(node);
-    return result;
-  }
-
-  @override
-  visitProcedure(Procedure node) {
-    staticTypeContext.enterMember(node);
-    final result = node.isAbstract ? node : super.visitProcedure(node);
+    final result = super.visitConstructor(node, removalSentinel);
     staticTypeContext.leaveMember(node);
     return result;
   }
 
   @override
-  visitLibrary(Library node) {
+  visitProcedure(Procedure node, TreeNode removalSentinel) {
+    staticTypeContext.enterMember(node);
+    final result =
+        node.isAbstract ? node : super.visitProcedure(node, removalSentinel);
+    staticTypeContext.leaveMember(node);
+    return result;
+  }
+
+  @override
+  visitLibrary(Library node, TreeNode removalSentinel) {
     staticTypeContext.enterLibrary(node);
-    Library result = super.visitLibrary(node);
+    Library result = super.visitLibrary(node, removalSentinel);
     staticTypeContext.leaveLibrary(node);
     return result;
   }
 
   @override
-  visitFunctionNode(FunctionNode node) {
+  visitFunctionNode(FunctionNode node, TreeNode removalSentinel) {
     switch (node.asyncMarker) {
       case AsyncMarker.Sync:
       case AsyncMarker.SyncYielding:
-        node.transformChildren(
+        node.transformOrRemoveChildren(
             new RecursiveContinuationRewriter(helper, staticTypeContext));
         return node;
       case AsyncMarker.SyncStar:
@@ -154,9 +155,9 @@ class RecursiveContinuationRewriter extends Transformer {
   }
 
   @override
-  TreeNode visitForInStatement(ForInStatement stmt) {
+  TreeNode visitForInStatement(ForInStatement stmt, TreeNode removalSentinel) {
     if (stmt.isAsync) {
-      return super.visitForInStatement(stmt);
+      return super.visitForInStatement(stmt, removalSentinel);
     }
 
     // Transform
@@ -217,8 +218,8 @@ class RecursiveContinuationRewriter extends Transformer {
 
     final Block body = Block([variable, stmt.body]);
 
-    return Block([syncForIterator, ForStatement([], condition, [], body)])
-        .accept<TreeNode>(this);
+    return transform(
+        Block([syncForIterator, ForStatement([], condition, [], body)]));
   }
 }
 
@@ -277,30 +278,30 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
     return new YieldStatement(value, isNative: true);
   }
 
-  TreeNode visitTryCatch(TryCatch node) {
+  TreeNode visitTryCatch(TryCatch node, TreeNode removalSentinel) {
     if (node.body != null) {
       ++currentTryDepth;
-      node.body = node.body.accept<TreeNode>(this);
+      node.body = transform(node.body);
       node.body?.parent = node;
       --currentTryDepth;
     }
 
     ++currentCatchDepth;
-    transformList(node.catches, node);
+    transformCatchList(node.catches, node);
     --currentCatchDepth;
     return node;
   }
 
-  TreeNode visitTryFinally(TryFinally node) {
+  TreeNode visitTryFinally(TryFinally node, TreeNode removalSentinel) {
     if (node.body != null) {
       ++currentTryDepth;
-      node.body = node.body.accept<TreeNode>(this);
+      node.body = transform(node.body);
       node.body?.parent = node;
       --currentTryDepth;
     }
     if (node.finalizer != null) {
       ++currentCatchDepth;
-      node.finalizer = node.finalizer.accept<TreeNode>(this);
+      node.finalizer = transform(node.finalizer);
       node.finalizer?.parent = node;
       --currentCatchDepth;
     }
@@ -477,14 +478,14 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     //    :iterator.isYieldEach=
     // and return `true` as long as it did something and `false` when it's done.
     return new Block(<Statement>[
-      enclosingFunction.body.accept<TreeNode>(this),
+      transform(enclosingFunction.body),
       new ReturnStatement(new BoolLiteral(false))
         ..fileOffset = enclosingFunction.fileEndOffset
     ]);
   }
 
-  visitYieldStatement(YieldStatement node) {
-    Expression transformedExpression = node.expression.accept<TreeNode>(this);
+  visitYieldStatement(YieldStatement node, TreeNode removalSentinel) {
+    Expression transformedExpression = transform(node.expression);
 
     var statements = <Statement>[];
     if (node.isYieldStar) {
@@ -506,7 +507,8 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     return new Block(statements);
   }
 
-  TreeNode visitReturnStatement(ReturnStatement node) {
+  TreeNode visitReturnStatement(
+      ReturnStatement node, TreeNode removalSentinel) {
     // sync* functions cannot return a value.
     assert(node.expression == null || node.expression is NullLiteral);
     node.expression = new BoolLiteral(false)..parent = node;
@@ -643,41 +645,43 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
   List<Statement> statements = <Statement>[];
 
-  TreeNode visitExpressionStatement(ExpressionStatement stmt) {
+  TreeNode visitExpressionStatement(
+      ExpressionStatement stmt, TreeNode removalSentinel) {
     stmt.expression = expressionRewriter.rewrite(stmt.expression, statements)
       ..parent = stmt;
     statements.add(stmt);
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitBlock(Block stmt) {
+  TreeNode visitBlock(Block stmt, TreeNode removalSentinel) {
     var saved = statements;
     statements = <Statement>[];
     for (var statement in stmt.statements) {
-      statement.accept<TreeNode>(this);
+      transform(statement);
     }
     saved.add(new Block(statements));
     statements = saved;
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitEmptyStatement(EmptyStatement stmt) {
+  TreeNode visitEmptyStatement(EmptyStatement stmt, TreeNode removalSentinel) {
     statements.add(stmt);
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitAssertBlock(AssertBlock stmt) {
+  TreeNode visitAssertBlock(AssertBlock stmt, TreeNode removalSentinel) {
     var saved = statements;
     statements = <Statement>[];
     for (var statement in stmt.statements) {
-      statement.accept<TreeNode>(this);
+      transform(statement);
     }
     saved.add(new Block(statements));
     statements = saved;
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitAssertStatement(AssertStatement stmt) {
+  TreeNode visitAssertStatement(
+      AssertStatement stmt, TreeNode removalSentinel) {
     var condEffects = <Statement>[];
     var cond = expressionRewriter.rewrite(stmt.condition, condEffects);
     if (stmt.message == null) {
@@ -686,7 +690,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       // statements, ensure they are guarded by whether asserts are enabled.
       statements.add(
           condEffects.isEmpty ? stmt : new AssertBlock(condEffects..add(stmt)));
-      return null;
+      return removalSentinel;
     }
 
     // The translation depends on the translation of the message, by cases.
@@ -733,31 +737,32 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       result = new AssertBlock(condEffects);
     }
     statements.add(result);
-    return null;
+    return removalSentinel;
   }
 
   Statement visitDelimited(Statement stmt) {
     var saved = statements;
     statements = <Statement>[];
-    stmt.accept<TreeNode>(this);
+    transform(stmt);
     Statement result =
         statements.length == 1 ? statements.first : new Block(statements);
     statements = saved;
     return result;
   }
 
-  Statement visitLabeledStatement(LabeledStatement stmt) {
+  Statement visitLabeledStatement(
+      LabeledStatement stmt, TreeNode removalSentinel) {
     stmt.body = visitDelimited(stmt.body)..parent = stmt;
     statements.add(stmt);
-    return null;
+    return removalSentinel;
   }
 
-  Statement visitBreakStatement(BreakStatement stmt) {
+  Statement visitBreakStatement(BreakStatement stmt, TreeNode removalSentinel) {
     statements.add(stmt);
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitWhileStatement(WhileStatement stmt) {
+  TreeNode visitWhileStatement(WhileStatement stmt, TreeNode removalSentinel) {
     Statement body = visitDelimited(stmt.body);
     List<Statement> effects = <Statement>[];
     Expression cond = expressionRewriter.rewrite(stmt.condition, effects);
@@ -783,10 +788,10 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       stmt.body = new Block(effects)..parent = stmt;
       statements.add(labeled);
     }
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitDoStatement(DoStatement stmt) {
+  TreeNode visitDoStatement(DoStatement stmt, TreeNode removalSentinel) {
     Statement body = visitDelimited(stmt.body);
     List<Statement> effects = <Statement>[];
     stmt.condition = expressionRewriter.rewrite(stmt.condition, effects)
@@ -802,10 +807,10 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     }
     stmt.body = body..parent = stmt;
     statements.add(stmt);
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitForStatement(ForStatement stmt) {
+  TreeNode visitForStatement(ForStatement stmt, TreeNode removalSentinel) {
     // Because of for-loop scoping and variable capture, it is tricky to deal
     // with await in the loop's variable initializers or update expressions.
     bool isSimple = true;
@@ -859,7 +864,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
         stmt.body = new Block(condEffects)..parent = stmt;
         statements.add(labeled);
       }
-      return null;
+      return removalSentinel;
     }
 
     // If the rewrite of the initializer or update expressions produces a
@@ -946,10 +951,10 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     statements.add(new Block(<Statement>[]
       ..addAll(temps)
       ..add(labeled)));
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitForInStatement(ForInStatement stmt) {
+  TreeNode visitForInStatement(ForInStatement stmt, TreeNode removalSentinel) {
     if (stmt.isAsync) {
       // Transform
       //
@@ -1058,15 +1063,16 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
       var block = new Block(
           <Statement>[streamVariable, forIteratorVariable, tryFinally]);
-      block.accept<TreeNode>(this);
-      return null;
+      transform(block);
+      return removalSentinel;
     } else {
-      super.visitForInStatement(stmt);
-      return null;
+      super.visitForInStatement(stmt, removalSentinel);
+      return removalSentinel;
     }
   }
 
-  TreeNode visitSwitchStatement(SwitchStatement stmt) {
+  TreeNode visitSwitchStatement(
+      SwitchStatement stmt, TreeNode removalSentinel) {
     stmt.expression = expressionRewriter.rewrite(stmt.expression, statements)
       ..parent = stmt;
     for (var switchCase in stmt.cases) {
@@ -1075,15 +1081,16 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       switchCase.body = visitDelimited(switchCase.body)..parent = switchCase;
     }
     statements.add(stmt);
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitContinueSwitchStatement(ContinueSwitchStatement stmt) {
+  TreeNode visitContinueSwitchStatement(
+      ContinueSwitchStatement stmt, TreeNode removalSentinel) {
     statements.add(stmt);
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitIfStatement(IfStatement stmt) {
+  TreeNode visitIfStatement(IfStatement stmt, TreeNode removalSentinel) {
     stmt.condition = expressionRewriter.rewrite(stmt.condition, statements)
       ..parent = stmt;
     stmt.then = visitDelimited(stmt.then)..parent = stmt;
@@ -1091,10 +1098,10 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       stmt.otherwise = visitDelimited(stmt.otherwise)..parent = stmt;
     }
     statements.add(stmt);
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitTryCatch(TryCatch stmt) {
+  TreeNode visitTryCatch(TryCatch stmt, TreeNode removalSentinel) {
     ++currentTryDepth;
     stmt.body = visitDelimited(stmt.body)..parent = stmt;
     --currentTryDepth;
@@ -1105,10 +1112,10 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     }
     --currentCatchDepth;
     statements.add(stmt);
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitTryFinally(TryFinally stmt) {
+  TreeNode visitTryFinally(TryFinally stmt, TreeNode removalSentinel) {
     ++currentTryDepth;
     stmt.body = visitDelimited(stmt.body)..parent = stmt;
     --currentTryDepth;
@@ -1116,33 +1123,36 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     stmt.finalizer = visitDelimited(stmt.finalizer)..parent = stmt;
     --currentCatchDepth;
     statements.add(stmt);
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitYieldStatement(YieldStatement stmt) {
+  TreeNode visitYieldStatement(YieldStatement stmt, TreeNode removalSentinel) {
     stmt.expression = expressionRewriter.rewrite(stmt.expression, statements)
       ..parent = stmt;
     statements.add(stmt);
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitVariableDeclaration(VariableDeclaration stmt) {
+  TreeNode visitVariableDeclaration(
+      VariableDeclaration stmt, TreeNode removalSentinel) {
     if (stmt.initializer != null) {
       stmt.initializer = expressionRewriter.rewrite(
           stmt.initializer, statements)
         ..parent = stmt;
     }
     statements.add(stmt);
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitFunctionDeclaration(FunctionDeclaration stmt) {
-    stmt.function = stmt.function.accept<TreeNode>(this)..parent = stmt;
+  TreeNode visitFunctionDeclaration(
+      FunctionDeclaration stmt, TreeNode removalSentinel) {
+    stmt.function = transform(stmt.function)..parent = stmt;
     statements.add(stmt);
-    return null;
+    return removalSentinel;
   }
 
-  defaultExpression(TreeNode node) => throw 'unreachable $node';
+  defaultExpression(TreeNode node, TreeNode removalSentinel) =>
+      throw 'unreachable $node';
 }
 
 class AsyncStarFunctionRewriter extends AsyncRewriterBase {
@@ -1235,7 +1245,7 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     ]);
   }
 
-  TreeNode visitYieldStatement(YieldStatement stmt) {
+  TreeNode visitYieldStatement(YieldStatement stmt, TreeNode removalSentinel) {
     Expression expr = expressionRewriter.rewrite(stmt.expression, statements);
 
     var addExpression = new MethodInvocation(
@@ -1251,15 +1261,16 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
         addExpression,
         new ReturnStatement(new NullLiteral()),
         createContinuationPoint()..fileOffset = stmt.fileOffset));
-    return null;
+    return removalSentinel;
   }
 
-  TreeNode visitReturnStatement(ReturnStatement node) {
+  TreeNode visitReturnStatement(
+      ReturnStatement node, TreeNode removalSentinel) {
     // Async* functions cannot return a value.
     assert(node.expression == null || node.expression is NullLiteral);
     statements
         .add(new BreakStatement(labeledBody)..fileOffset = node.fileOffset);
-    return null;
+    return removalSentinel;
   }
 }
 
@@ -1369,14 +1380,14 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     ]);
   }
 
-  visitReturnStatement(ReturnStatement node) {
+  visitReturnStatement(ReturnStatement node, TreeNode removalSentinel) {
     var expr = node.expression == null
         ? new NullLiteral()
         : expressionRewriter.rewrite(node.expression, statements);
     statements.add(new ExpressionStatement(
         new VariableSet(returnVariable, expr)..fileOffset = node.fileOffset));
     statements.add(new BreakStatement(labeledBody));
-    return null;
+    return removalSentinel;
   }
 }
 
