@@ -17,9 +17,29 @@ class ServiceProtocolInfo {
   /// not support the service protocol, this is 0.
   final int minorVersion = _getServiceMinorVersion();
 
-  /// The Uri to access the service. If the web server is not running, this
-  /// will be null.
+  /// The Uri to connect to the debugger client hosted by the service. If the
+  /// web server is not running, this will be null.
   final Uri? serverUri;
+
+  /// The Uri to connect to the service via web socket. If the web server is
+  /// not running, this will be null.
+  Uri? get serverWebSocketUri {
+    Uri? uri = serverUri;
+    if (uri != null) {
+      final pathSegments = <String>[];
+      if (uri.pathSegments.isNotEmpty) {
+        pathSegments.addAll(uri.pathSegments.where(
+          // Strip out the empty string that appears at the end of path segments.
+          // Empty string elements will result in an extra '/' being added to the
+          // URI.
+          (s) => s.isNotEmpty,
+        ));
+      }
+      pathSegments.add('ws');
+      uri = uri.replace(scheme: 'ws', pathSegments: pathSegments);
+    }
+    return uri;
+  }
 
   ServiceProtocolInfo(this.serverUri);
 

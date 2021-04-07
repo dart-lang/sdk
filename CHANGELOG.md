@@ -58,6 +58,10 @@
   *even if the set is empty* (in which case it just compares the element
   to itself).
 
+#### `dart:developer`
+
+- Added `serverWebSocketUri` property to `ServiceProtocolInfo`.
+
 ### Dart VM
 
 ### Tools
