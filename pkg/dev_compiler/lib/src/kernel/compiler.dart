@@ -5294,8 +5294,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // Inline `debugger()` with no arguments, as a statement if possible,
       // otherwise as an immediately invoked function.
       return isStatement
-          ? js.statement('debugger;')
-          : js.call('(() => { debugger; return true})()');
+          ? js_ast.DebuggerStatement()
+          : js.call(
+              '(() => { #; return true})()', [js_ast.DebuggerStatement()]);
     }
 
     // The signature of `debugger()` is:
