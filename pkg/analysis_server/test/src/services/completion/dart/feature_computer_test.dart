@@ -19,7 +19,7 @@ void main() {
 class ContextTypeTest extends FeatureComputerTest {
   Future<void> assertContextType(String content, [String? expectedType]) async {
     await completeIn(content);
-    var result = testAnalysisResult!;
+    var result = testAnalysisResult;
     var computer = FeatureComputer(result.typeSystem, result.typeProvider);
     var type = computer.computeContextType(
         completionTarget.containingNode, cursorIndex);
