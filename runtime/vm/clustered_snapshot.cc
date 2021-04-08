@@ -2415,6 +2415,15 @@ class WeakSerializationReferenceSerializationCluster
     objects_.Add(weak);
   }
 
+  void RetraceEphemerons(Serializer* s) {
+    for (intptr_t i = 0; i < objects_.length(); i++) {
+      WeakSerializationReferencePtr weak = objects_[i];
+      if (!s->HasRef(weak->untag()->target())) {
+        s->Push(weak->untag()->replacement());
+      }
+    }
+  }
+
   intptr_t FinalizeWeak(Serializer* s) { return objects_.length(); }
 
   void WriteAlloc(Serializer* s) {
@@ -5029,7 +5038,15 @@ class WeakPropertySerializationCluster : public SerializationCluster {
   void Trace(Serializer* s, ObjectPtr object) {
     WeakPropertyPtr property = WeakProperty::RawCast(object);
     objects_.Add(property);
-    PushFromTo(property);
+  }
+
+  void RetraceEphemerons(Serializer* s) {
+    for (intptr_t i = 0; i < objects_.length(); i++) {
+      WeakPropertyPtr property = objects_[i];
+      if (s->HasRef(property->untag()->key())) {
+        s->Push(property->untag()->value());
+      }
+    }
   }
 
   void WriteAlloc(Serializer* s) {
@@ -5047,7 +5064,14 @@ class WeakPropertySerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       WeakPropertyPtr property = objects_[i];
       AutoTraceObject(property);
-      WriteFromTo(property);
+      if (s->HasRef(property->untag()->key())) {
+        s->WriteOffsetRef(property->untag()->key(), WeakProperty::key_offset());
+        s->WriteOffsetRef(property->untag()->value(),
+                          WeakProperty::value_offset());
+      } else {
+        s->WriteOffsetRef(Object::null(), WeakProperty::key_offset());
+        s->WriteOffsetRef(Object::null(), WeakProperty::value_offset());
+      }
     }
   }
 
@@ -6759,7 +6783,24 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   roots->PushRoots(this);
 
   while (stack_.length() > 0) {
-    Trace(stack_.RemoveLast());
+    // Strong references.
+    while (stack_.length() > 0) {
+      Trace(stack_.RemoveLast());
+    }
+
+    // Ephemeron references.
+#if defined(DART_PRECOMPILER)
+    if (auto const cluster =
+            reinterpret_cast<WeakSerializationReferenceSerializationCluster*>(
+                clusters_by_cid_[kWeakSerializationReferenceCid])) {
+      cluster->RetraceEphemerons(this);
+    }
+#endif
+    if (auto const cluster =
+            reinterpret_cast<WeakPropertySerializationCluster*>(
+                clusters_by_cid_[kWeakPropertyCid])) {
+      cluster->RetraceEphemerons(this);
+    }
   }
 
   GrowableArray<SerializationCluster*> canonical_clusters;
