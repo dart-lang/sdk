@@ -406,8 +406,8 @@ class DartTypeUtilities {
         .map(node.isGetter
             ? (InterfaceType t) => t.lookUpGetter2
             : node.isSetter
-                ? (InterfaceType t) => t.lookUpSetter2
-                : (InterfaceType t) => t.lookUpMethod2)
+            ? (InterfaceType t) => t.lookUpSetter2
+            : (InterfaceType t) => t.lookUpMethod2)
         .any((lookUp) => lookUp(name, library) != null);
   }
 

@@ -75,8 +75,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         .map((e) => e.rightOperand is NullLiteral
             ? e.leftOperand
             : e.leftOperand is NullLiteral
-                ? e.rightOperand
-                : null)
+            ? e.rightOperand
+            : null)
         .whereType<Identifier>()
         .where((e) {
           var staticType = e.staticType;

@@ -58,10 +58,6 @@ void main() {
   d.setInnerHtml('<script>'); // LINT
   (script as dynamic).src = 'foo.js'; // LINT
   (C() as dynamic).src = 'foo.js'; // LINT
-
-  // As a SecurityLintCode, unsafe_html reports cannot be ignored.
-  // ignore: unsafe_html
-  IFrameElement()..srcdoc = 'foo'; // LINT
 }
 
 class C {
