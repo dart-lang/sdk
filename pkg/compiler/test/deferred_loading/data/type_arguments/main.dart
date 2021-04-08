@@ -9,8 +9,7 @@
   p3: {units: [3{lib1, lib3}], usedBy: [], needs: []}],
  b_finalized_fragments=[
   f1: [1{lib1}],
-  f2: [2{lib3}],
-  f3: []],
+  f2: [2{lib3}]],
  c_steps=[
   lib1=(f1),
   lib3=(f2)]
@@ -23,8 +22,7 @@
   p3: {units: [3{lib1, lib3}], usedBy: [], needs: [p1, p2]}],
  b_finalized_fragments=[
   f1: [1{lib1}],
-  f2: [2{lib3}],
-  f3: []],
+  f2: [2{lib3}]],
  c_steps=[
   lib1=(f1),
   lib3=(f2)]
