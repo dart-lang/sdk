@@ -34,6 +34,7 @@ import '../universe/use.dart' show StaticUse;
 import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
 import 'interceptor_simplifier.dart';
+import 'interceptor_finalizer.dart';
 import 'logging.dart';
 import 'nodes.dart';
 import 'types.dart';
@@ -129,9 +130,9 @@ class SsaOptimizerTask extends CompilerTask {
       ];
       phases.forEach(runPhase);
 
-      // Simplifying interceptors is not strictly just an optimization, it is
-      // required for implementation correctness because the code generator
-      // assumes it is always performed.
+      // Simplifying interceptors is just an optimization, it is required for
+      // implementation correctness because the code generator assumes it is
+      // always performed to compute the intercepted classes sets.
       runPhase(new SsaSimplifyInterceptors(closedWorld, member.enclosingClass));
 
       SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(closedWorld, this);
@@ -163,6 +164,13 @@ class SsaOptimizerTask extends CompilerTask {
       }
       phases.forEach(runPhase);
     });
+
+    // SsaFinalizeInterceptors must always be run to ensure consistent calling
+    // conventions between SSA-generated code and other code fragments generated
+    // by the emitter.
+    // TODO(sra): Generate these other fragments via SSA, then this phase
+    // becomes an opt-in optimization.
+    runPhase(SsaFinalizeInterceptors(closedWorld));
   }
 }
 
