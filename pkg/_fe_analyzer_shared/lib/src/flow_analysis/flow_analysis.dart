@@ -379,6 +379,8 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Return `true` if the current state is reachable.
   bool get isReachable;
 
+  TypeOperations<Variable, Type> get typeOperations;
+
   /// Call this method after visiting an "as" expression.
   ///
   /// [subExpression] should be the expression to which the "as" check was
@@ -1003,6 +1005,9 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   @override
   bool get isReachable =>
       _wrap('isReachable', () => _wrapped.isReachable, isQuery: true);
+
+  @override
+  TypeOperations<Variable, Type> get typeOperations => _wrapped.typeOperations;
 
   @override
   void asExpression_end(Expression subExpression, Type type) {
@@ -3407,6 +3412,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         Expression extends Object, Variable extends Object, Type extends Object>
     implements FlowAnalysis<Node, Statement, Expression, Variable, Type> {
   /// The [TypeOperations], used to access types, and check subtyping.
+  @override
   final TypeOperations<Variable, Type> typeOperations;
 
   /// Stack of [_FlowContext] objects representing the statements and
@@ -4401,6 +4407,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   bool get isReachable => true;
+
+  @override
+  TypeOperations<Variable, Type> get typeOperations => _typeOperations;
 
   @override
   void asExpression_end(Expression subExpression, Type type) {}
