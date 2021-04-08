@@ -106,6 +106,8 @@ ConstEvalFailedAssertion/example: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail
 ConstEvalFreeTypeParameter/analyzerCode: Fail
 ConstEvalFreeTypeParameter/example: Fail
+ConstEvalGetterNotFound/analyzerCode: Fail
+ConstEvalGetterNotFound/example: Fail
 ConstEvalInvalidBinaryOperandType/analyzerCode: Fail # CONST_EVAL_TYPE_NUM / CONST_EVAL_TYPE_BOOL
 ConstEvalInvalidBinaryOperandType/example: Fail
 ConstEvalInvalidEqualsOperandType/analyzerCode: Fail

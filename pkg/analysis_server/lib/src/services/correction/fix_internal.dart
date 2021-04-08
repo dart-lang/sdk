@@ -210,16 +210,19 @@ class FixInFileProcessor {
     var workspace = context.workspace;
     var resolveResult = context.resolveResult;
 
-    var generators = _getGenerators(
-        error.errorCode,
-        CorrectionProducerContext(
-          dartFixContext: context,
-          diagnostic: error,
-          resolvedResult: resolveResult,
-          selectionOffset: context.error.offset,
-          selectionLength: context.error.length,
-          workspace: workspace,
-        ));
+    var correctionContext = CorrectionProducerContext.create(
+      dartFixContext: context,
+      diagnostic: error,
+      resolvedResult: resolveResult,
+      selectionOffset: context.error.offset,
+      selectionLength: context.error.length,
+      workspace: workspace,
+    );
+    if (correctionContext == null) {
+      return const <Fix>[];
+    }
+
+    var generators = _getGenerators(error.errorCode, correctionContext);
 
     var fixes = <Fix>[];
     for (var generator in generators) {
@@ -248,7 +251,7 @@ class FixInFileProcessor {
 
   Future<void> _fixError(DartFixContext fixContext, FixState fixState,
       CorrectionProducer producer, AnalysisError diagnostic) async {
-    var context = CorrectionProducerContext(
+    var context = CorrectionProducerContext.create(
       applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
@@ -257,9 +260,7 @@ class FixInFileProcessor {
       selectionLength: diagnostic.length,
       workspace: fixContext.workspace,
     );
-
-    var setupSuccess = context.setupCompute();
-    if (!setupSuccess) {
+    if (context == null) {
       return;
     }
 
@@ -1745,7 +1746,7 @@ class FixProcessor extends BaseProcessor {
 
   Future<void> _addFromProducers() async {
     var error = fixContext.error;
-    var context = CorrectionProducerContext(
+    var context = CorrectionProducerContext.create(
       dartFixContext: fixContext,
       diagnostic: error,
       resolvedResult: resolvedResult,
@@ -1753,9 +1754,7 @@ class FixProcessor extends BaseProcessor {
       selectionLength: fixContext.error.length,
       workspace: workspace,
     );
-
-    var setupSuccess = context.setupCompute();
-    if (!setupSuccess) {
+    if (context == null) {
       return;
     }
 

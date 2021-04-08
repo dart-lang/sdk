@@ -150,6 +150,9 @@ ConstEvalTruncateError:
 ConstEvalNonNull:
   template: "Constant expression must be non-null."
 
+ConstEvalGetterNotFound:
+  template: "Variable get not found: '#nameOKEmpty'"
+
 ConstEvalInvalidMethodInvocation:
   template: "The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression."
   analyzerCode: UNDEFINED_OPERATOR

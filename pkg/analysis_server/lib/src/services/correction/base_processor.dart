@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -31,18 +29,18 @@ abstract class BaseProcessor {
   final ResolvedUnitResult resolvedResult;
   final ChangeWorkspace workspace;
 
-  AstNode node;
+  AstNode? node;
 
   BaseProcessor({
     this.selectionOffset = -1,
     this.selectionLength = 0,
-    @required this.resolvedResult,
-    @required this.workspace,
-  })  : file = resolvedResult.path,
+    required this.resolvedResult,
+    required this.workspace,
+  })   : file = resolvedResult.path!,
         session = resolvedResult.session,
         sessionHelper = AnalysisSessionHelper(resolvedResult.session),
         typeProvider = resolvedResult.typeProvider,
-        selectionEnd = (selectionOffset ?? 0) + (selectionLength ?? 0),
+        selectionEnd = selectionOffset + selectionLength,
         utils = CorrectionUtils(resolvedResult);
 
   Flutter get flutter => Flutter.instance;

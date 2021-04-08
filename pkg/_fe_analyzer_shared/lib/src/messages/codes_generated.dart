@@ -1354,6 +1354,28 @@ Message _withArgumentsConstEvalFailedAssertionWithMessage(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String nameOKEmpty)>
+    templateConstEvalGetterNotFound =
+    const Template<Message Function(String nameOKEmpty)>(
+        messageTemplate: r"""Variable get not found: '#nameOKEmpty'""",
+        withArguments: _withArgumentsConstEvalGetterNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String nameOKEmpty)> codeConstEvalGetterNotFound =
+    const Code<Message Function(String nameOKEmpty)>(
+  "ConstEvalGetterNotFound",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalGetterNotFound(String nameOKEmpty) {
+  // ignore: unnecessary_null_comparison
+  if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
+  return new Message(codeConstEvalGetterNotFound,
+      message: """Variable get not found: '${nameOKEmpty}'""",
+      arguments: {'nameOKEmpty': nameOKEmpty});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String nameOKEmpty)>
     templateConstEvalInvalidStaticInvocation =
     const Template<Message Function(String nameOKEmpty)>(
         messageTemplate:

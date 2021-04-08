@@ -180,15 +180,13 @@ class AssistProcessor extends BaseProcessor {
       return assists;
     }
 
-    var context = CorrectionProducerContext(
+    var context = CorrectionProducerContext.create(
       selectionOffset: selectionOffset,
       selectionLength: selectionLength,
       resolvedResult: resolvedResult,
       workspace: workspace,
     );
-
-    var setupSuccess = context.setupCompute();
-    if (!setupSuccess) {
+    if (context == null) {
       return assists;
     }
 
@@ -233,16 +231,14 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addFromProducers() async {
-    var context = CorrectionProducerContext(
+    var context = CorrectionProducerContext.create(
       selectionOffset: selectionOffset,
       selectionLength: selectionLength,
       resolvedResult: resolvedResult,
       workspace: workspace,
     );
-
-    var setupSuccess = context.setupCompute();
-    if (!setupSuccess) {
-      return;
+    if (context == null) {
+      return assists;
     }
 
     Future<void> compute(CorrectionProducer producer) async {

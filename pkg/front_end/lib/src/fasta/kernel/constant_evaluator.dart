@@ -59,6 +59,7 @@ import '../fasta_codes.dart'
         templateConstEvalElementImplementsEqual,
         templateConstEvalFailedAssertionWithMessage,
         templateConstEvalFreeTypeParameter,
+        templateConstEvalGetterNotFound,
         templateConstEvalInvalidType,
         templateConstEvalInvalidBinaryOperandType,
         templateConstEvalInvalidEqualsOperandType,
@@ -559,7 +560,7 @@ class ConstantsTransformer extends RemovingTransformer {
         node.function = transform(node.function)..parent = node;
       }
       constantEvaluator.env.addVariableValue(
-          node.variable, new IntermediateValue(node.function));
+          node.variable, new FunctionValue(node.function, null));
     } else {
       return super.visitFunctionDeclaration(node, removalSentinel);
     }
@@ -1394,6 +1395,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitFunctionExpression(FunctionExpression node) {
+    if (enableConstFunctions) {
+      return new FunctionValue(node.function, env);
+    }
     return createInvalidExpressionConstant(node, "Function literal");
   }
 
@@ -2165,6 +2169,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           node, "method invocation with named arguments");
     }
 
+    final Constant receiver = _evaluateSubexpression(node.receiver);
+    if (receiver is AbortConstant) return receiver;
+
     final List<Constant> arguments =
         _evaluatePositionalArguments(node.arguments);
 
@@ -2176,12 +2183,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     assert(_gotError == null);
     assert(arguments != null);
 
-    final Constant receiver = _evaluateSubexpression(node.receiver);
-    if (receiver is AbortConstant) {
-      return receiver;
-    } else if (enableConstFunctions &&
-        receiver is IntermediateValue &&
-        receiver.value is FunctionNode) {
+    if (enableConstFunctions && receiver is FunctionValue) {
       // Evaluate type arguments of the method invoked.
       List<DartType> types = _evaluateTypeArguments(node, node.arguments);
       if (types == null && _gotError != null) {
@@ -2203,7 +2205,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       assert(_gotError == null);
       assert(named != null);
 
-      return _handleFunctionInvocation(receiver.value, types, arguments, named);
+      return _handleFunctionInvocation(
+          receiver.function, types, arguments, named,
+          functionEnvironment: receiver.environment);
     }
 
     if (shouldBeUnevaluated) {
@@ -2465,8 +2469,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     final VariableDeclaration variable = node.variable;
     if (enableConstFunctions) {
       return env.lookupVariable(variable) ??
-          createInvalidExpressionConstant(
-              node, 'Variable get of an unknown value.');
+          createErrorConstant(node,
+              templateConstEvalGetterNotFound.withArguments(variable.name));
     } else {
       if (variable.parent is Let || _isFormalParameter(variable)) {
         return env.lookupVariable(node.variable) ??
@@ -2815,8 +2819,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       FunctionNode function,
       List<DartType> typeArguments,
       List<Constant> positionalArguments,
-      Map<String, Constant> namedArguments) {
-    return withNewEnvironment(() {
+      Map<String, Constant> namedArguments,
+      {EvaluationEnvironment functionEnvironment}) {
+    Constant executeFunction() {
       // Map arguments from caller to callee.
       for (int i = 0; i < function.typeParameters.length; i++) {
         env.addTypeParameterValue(function.typeParameters[i], typeArguments[i]);
@@ -2838,7 +2843,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         env.addVariableValue(parameter, value);
       }
       return execute(function.body);
-    });
+    }
+
+    if (functionEnvironment != null) {
+      return withEnvironment(functionEnvironment, executeFunction);
+    }
+    return withNewEnvironment(executeFunction);
   }
 
   @override
@@ -3264,6 +3274,14 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     return result;
   }
 
+  T withEnvironment<T>(EvaluationEnvironment newEnv, T fn()) {
+    final EvaluationEnvironment oldEnv = env;
+    env = newEnv;
+    T result = fn();
+    env = oldEnv;
+    return result;
+  }
+
   /// Binary operation between two operands, at least one of which is a double.
   Constant evaluateBinaryNumericOperation(
       String op, num a, num b, TreeNode node) {
@@ -3420,6 +3438,17 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
       return new AbortStatus(condition);
     }
     assert(condition is BoolConstant);
+    return const ProceedStatus();
+  }
+
+  @override
+  ExecutionStatus visitFunctionDeclaration(FunctionDeclaration node) {
+    final EvaluationEnvironment newEnv =
+        new EvaluationEnvironment.withParent(exprEvaluator.env);
+    newEnv.addVariableValue(
+        node.variable, new FunctionValue(node.function, null));
+    final FunctionValue function = new FunctionValue(node.function, newEnv);
+    exprEvaluator.env.addVariableValue(node.variable, function);
     return const ProceedStatus();
   }
 
@@ -3740,11 +3769,13 @@ class BreakStatus extends ExecutionStatus {
   BreakStatus(this.target);
 }
 
-/// An intermediate result that is used within the [ConstantEvaluator].
-class IntermediateValue implements Constant {
-  dynamic value;
+/// An intermediate result that is used for invoking function nodes with their
+/// respective environment within the [ConstantEvaluator].
+class FunctionValue implements Constant {
+  final FunctionNode function;
+  final EvaluationEnvironment environment;
 
-  IntermediateValue(this.value);
+  FunctionValue(this.function, this.environment);
 
   @override
   R accept<R>(ConstantVisitor<R> v) {
