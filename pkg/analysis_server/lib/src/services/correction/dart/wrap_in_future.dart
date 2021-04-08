@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -20,21 +18,26 @@ class WrapInFuture extends CorrectionProducer {
     //
     // Extract the information needed to build the edit.
     //
-    Expression expression;
+    Expression? expression;
+    var node = this.node;
     if (node is ReturnStatement) {
-      expression = (node as ReturnStatement).expression;
+      expression = node.expression;
     } else if (node is Expression) {
       expression = node;
-    } else {
+    }
+    if (expression == null) {
       return;
     }
     var value = utils.getNodeText(expression);
     //
     // Build the edit.
     //
+    var final_expression = expression;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-          range.node(expression), 'Future.value($value)');
+        range.node(final_expression),
+        'Future.value($value)',
+      );
     });
   }
 

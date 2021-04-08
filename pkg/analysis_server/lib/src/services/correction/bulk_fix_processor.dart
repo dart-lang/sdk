@@ -263,7 +263,7 @@ class BulkFixProcessor {
         (name) => [],
       );
 
-      var context = CorrectionProducerContext(
+      var context = CorrectionProducerContext.create(
         applyingBulkFixes: true,
         dartFixContext: fixContext,
         diagnostic: diagnostic,
@@ -272,6 +272,9 @@ class BulkFixProcessor {
         selectionLength: diagnostic.length,
         workspace: workspace,
       );
+      if (context == null) {
+        return;
+      }
 
       for (final multiGenerator in multiGenerators) {
         final multiProducer = multiGenerator();
@@ -314,7 +317,7 @@ class BulkFixProcessor {
       ResolvedUnitResult result,
       AnalysisError diagnostic,
       TransformOverrideSet overrideSet) async {
-    var context = CorrectionProducerContext(
+    var context = CorrectionProducerContext.create(
       applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
@@ -324,9 +327,7 @@ class BulkFixProcessor {
       selectionLength: diagnostic.length,
       workspace: workspace,
     );
-
-    var setupSuccess = context.setupCompute();
-    if (!setupSuccess) {
+    if (context == null) {
       return;
     }
 
