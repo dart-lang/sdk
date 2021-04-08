@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -14,7 +12,6 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:meta/meta.dart';
 
 class AddDiagnosticPropertyReference extends CorrectionProducer {
   @override
@@ -36,12 +33,11 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
 
     var classDeclaration = node.thisOrAncestorOfType<ClassOrMixinDeclaration>();
     if (classDeclaration == null ||
-        !flutter.isDiagnosticable(classDeclaration.declaredElement.thisType)) {
+        !flutter.isDiagnosticable(classDeclaration.declaredElement!.thisType)) {
       return;
     }
 
-    SimpleIdentifier name = node;
-    final parent = node.parent;
+    final parent = node.parent!;
 
     var type = _getReturnType(parent);
     if (type == null) {
@@ -49,7 +45,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
     }
 
     String constructorId;
-    List<DartType> typeArgs;
+    List<DartType>? typeArgs;
     var constructorName = '';
 
     if (type is FunctionType) {
@@ -81,8 +77,8 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
 
     void writePropertyReference(
       DartEditBuilder builder, {
-      @required String prefix,
-      @required String builderName,
+      required String prefix,
+      required String builderName,
     }) {
       builder.write('$prefix$builderName.add($constructorId');
       if (typeArgs != null) {
@@ -90,7 +86,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
         builder.writeTypes(typeArgs);
         builder.write('>');
       } else if (type.isDynamic) {
-        TypeAnnotation declType;
+        TypeAnnotation? declType;
         final decl = node.thisOrAncestorOfType<VariableDeclarationList>();
         if (decl != null) {
           declType = decl.type;
@@ -108,14 +104,18 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
           }
         }
       }
-      builder.writeln("$constructorName('${name.name}', ${name.name}));");
+      builder.writeln("$constructorName('${node.name}', ${node.name}));");
     }
 
     final debugFillProperties =
         classDeclaration.getMethod('debugFillProperties');
     if (debugFillProperties == null) {
-      final insertOffset =
-          utils.prepareNewMethodLocation(classDeclaration).offset;
+      var location = utils.prepareNewMethodLocation(classDeclaration);
+      if (location == null) {
+        return;
+      }
+
+      final insertOffset = location.offset;
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(utils.getLineNext(insertOffset), (builder) {
           final declPrefix =
@@ -149,14 +149,19 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
         prefix = utils.getLinePrefix(offset);
       }
 
-      var parameters = debugFillProperties.parameters.parameters;
-      String propertiesBuilderName;
-      for (var parameter in parameters) {
+      var parameterList = debugFillProperties.parameters;
+      if (parameterList == null) {
+        return;
+      }
+
+      String? propertiesBuilderName;
+      for (var parameter in parameterList.parameters) {
         if (parameter is SimpleFormalParameter) {
           final type = parameter.type;
-          if (type is TypeName) {
+          final identifier = parameter.identifier;
+          if (type is TypeName && identifier != null) {
             if (type.name.name == 'DiagnosticPropertiesBuilder') {
-              propertiesBuilderName = parameter.identifier.name;
+              propertiesBuilderName = identifier.name;
               break;
             }
           }
@@ -166,17 +171,18 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
         return null;
       }
 
+      final final_propertiesBuilderName = propertiesBuilderName;
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(utils.getLineNext(offset), (builder) {
           writePropertyReference(builder,
-              prefix: prefix, builderName: propertiesBuilderName);
+              prefix: prefix, builderName: final_propertiesBuilderName);
         });
       });
     }
   }
 
   /// Return the return type of the given [node].
-  DartType _getReturnType(AstNode node) {
+  DartType? _getReturnType(AstNode node) {
     if (node is MethodDeclaration) {
       // Getter.
       var element = node.declaredElement;

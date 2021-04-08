@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -51,41 +49,10 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
     var secondArg = arguments[1];
     var thirdArg = arguments[2];
 
-    Expression extractBody(FunctionExpression expression) {
-      var body = expression.body;
-      if (body is ExpressionFunctionBody) {
-        return body.expression;
-      } else if (body is BlockFunctionBody) {
-        var statements = body.block.statements;
-        if (statements.length == 1) {
-          var statement = statements[0];
-          if (statement is ReturnStatement) {
-            return statement.expression;
-          }
-        }
-      }
-      return null;
-    }
-
-    FunctionExpression extractClosure(String name, Expression argument) {
-      if (argument is NamedExpression && argument.name.label.name == name) {
-        var expression = argument.expression.unParenthesized;
-        if (expression is FunctionExpression) {
-          var parameters = expression.parameters.parameters;
-          if (parameters.length == 1 && parameters[0].isRequiredPositional) {
-            if (extractBody(expression) != null) {
-              return expression;
-            }
-          }
-        }
-      }
-      return null;
-    }
-
     var keyClosure =
-        extractClosure('key', secondArg) ?? extractClosure('key', thirdArg);
-    var valueClosure =
-        extractClosure('value', thirdArg) ?? extractClosure('value', secondArg);
+        _extractClosure('key', secondArg) ?? _extractClosure('key', thirdArg);
+    var valueClosure = _extractClosure('value', thirdArg) ??
+        _extractClosure('value', secondArg);
     if (keyClosure == null || valueClosure == null) {
       return null;
     }
@@ -93,26 +60,23 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
     // Compute the loop variable name and convert the key and value closures if
     // necessary.
     //
-    SimpleFormalParameter keyParameter = keyClosure.parameters.parameters[0];
-    var keyParameterName = keyParameter.identifier.name;
-    SimpleFormalParameter valueParameter =
-        valueClosure.parameters.parameters[0];
-    var valueParameterName = valueParameter.identifier.name;
-    var keyBody = extractBody(keyClosure);
-    var keyExpressionText = utils.getNodeText(keyBody);
-    var valueBody = extractBody(valueClosure);
-    var valueExpressionText = utils.getNodeText(valueBody);
+    var keyParameter = keyClosure.parameter;
+    var keyParameterName = keyClosure.parameterIdentifier.name;
+    var valueParameter = valueClosure.parameter;
+    var valueParameterName = valueClosure.parameterIdentifier.name;
+    var keyExpressionText = utils.getNodeText(keyClosure.body);
+    var valueExpressionText = utils.getNodeText(valueClosure.body);
 
     String loopVariableName;
     if (keyParameterName == valueParameterName) {
       loopVariableName = keyParameterName;
     } else {
-      var keyFinder = _ParameterReferenceFinder(keyParameter.declaredElement);
-      keyBody.accept(keyFinder);
+      var keyFinder = _ParameterReferenceFinder(keyParameter.declaredElement!);
+      keyClosure.body.accept(keyFinder);
 
       var valueFinder =
-          _ParameterReferenceFinder(valueParameter.declaredElement);
-      valueBody.accept(valueFinder);
+          _ParameterReferenceFinder(valueParameter.declaredElement!);
+      valueClosure.body.accept(valueFinder);
 
       String computeUnusedVariableName() {
         var candidate = 'e';
@@ -131,7 +95,7 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
           // referenced in the value expression.
           loopVariableName = computeUnusedVariableName();
           keyExpressionText = keyFinder.replaceName(
-              keyExpressionText, loopVariableName, keyBody.offset);
+              keyExpressionText, loopVariableName, keyClosure.body.offset);
         } else {
           loopVariableName = keyParameterName;
         }
@@ -142,7 +106,7 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
           // referenced in the key expression.
           loopVariableName = computeUnusedVariableName();
           valueExpressionText = valueFinder.replaceName(
-              valueExpressionText, loopVariableName, valueBody.offset);
+              valueExpressionText, loopVariableName, valueClosure.body.offset);
         } else {
           loopVariableName = valueParameterName;
         }
@@ -152,9 +116,9 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
         // either the key or value expressions.
         loopVariableName = computeUnusedVariableName();
         keyExpressionText = keyFinder.replaceName(
-            keyExpressionText, loopVariableName, keyBody.offset);
+            keyExpressionText, loopVariableName, keyClosure.body.offset);
         valueExpressionText = valueFinder.replaceName(
-            valueExpressionText, loopVariableName, valueBody.offset);
+            valueExpressionText, loopVariableName, valueClosure.body.offset);
       }
     }
     //
@@ -178,6 +142,56 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
   static ConvertMapFromIterableToForLiteral newInstance() =>
       ConvertMapFromIterableToForLiteral();
+
+  static Expression? _extractBody(FunctionExpression expression) {
+    var body = expression.body;
+    if (body is ExpressionFunctionBody) {
+      return body.expression;
+    } else if (body is BlockFunctionBody) {
+      var statements = body.block.statements;
+      if (statements.length == 1) {
+        var statement = statements[0];
+        if (statement is ReturnStatement) {
+          return statement.expression;
+        }
+      }
+    }
+    return null;
+  }
+
+  static _Closure? _extractClosure(String name, Expression argument) {
+    if (argument is NamedExpression && argument.name.label.name == name) {
+      var expression = argument.expression.unParenthesized;
+      if (expression is FunctionExpression) {
+        var parameterList = expression.parameters;
+        if (parameterList != null) {
+          var parameters = parameterList.parameters;
+          if (parameters.length == 1) {
+            var parameter = parameters[0];
+            if (parameter is SimpleFormalParameter &&
+                parameter.isRequiredPositional) {
+              var parameterIdentifier = parameter.identifier;
+              if (parameterIdentifier != null) {
+                var body = _extractBody(expression);
+                if (body != null) {
+                  return _Closure(parameter, parameterIdentifier, body);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+}
+
+class _Closure {
+  final SimpleFormalParameter parameter;
+  final SimpleIdentifier parameterIdentifier;
+  final Expression body;
+
+  _Closure(this.parameter, this.parameterIdentifier, this.body);
 }
 
 /// A visitor that can be used to find references to a parameter.
@@ -195,7 +209,7 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
   final Set<String> otherNames = <String>{};
 
   /// Initialize a newly created finder to find references to the [parameter].
-  _ParameterReferenceFinder(this.parameter) : assert(parameter != null);
+  _ParameterReferenceFinder(this.parameter);
 
   /// Return `true` if the parameter is unreferenced in the nodes that have been
   /// visited.

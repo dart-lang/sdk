@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
@@ -16,7 +14,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertAddAllToSpread extends CorrectionProducer {
   /// The arguments used to compose the message.
-  List<String> _args;
+  List<String> _args = [];
 
   /// A flag indicating whether the change that was built is one that inlines
   /// the elements of another list into the target list.
@@ -45,22 +43,31 @@ class ConvertAddAllToSpread extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
+    var name = node;
+    if (name is! SimpleIdentifier) {
       return;
     }
-    SimpleIdentifier name = node;
-    MethodInvocation invocation = node.parent;
+
+    var invocation = name.parent;
+    if (invocation is! MethodInvocation) {
+      return;
+    }
+
     if (name != invocation.methodName ||
         name.name != 'addAll' ||
         !invocation.isCascaded ||
         invocation.argumentList.arguments.length != 1) {
       return;
     }
+
     var cascade = invocation.thisOrAncestorOfType<CascadeExpression>();
+    if (cascade == null) {
+      return;
+    }
+
     var sections = cascade.cascadeSections;
-    var target = cascade.target;
-    if (target is! ListLiteral || sections[0] != invocation) {
+    var targetList = cascade.target;
+    if (targetList is! ListLiteral || sections[0] != invocation) {
       // TODO(brianwilkerson) Consider extending this to handle set literals.
       return;
     }
@@ -68,9 +75,8 @@ class ConvertAddAllToSpread extends CorrectionProducer {
     bool isEmptyListLiteral(Expression expression) =>
         expression is ListLiteral && expression.elements.isEmpty;
 
-    ListLiteral list = target;
     var argument = invocation.argumentList.arguments[0];
-    String elementText;
+    String? elementText;
     if (argument is BinaryExpression &&
         argument.operator.type == TokenType.QUESTION_QUESTION) {
       var right = argument.rightOperand;
@@ -105,13 +111,20 @@ class ConvertAddAllToSpread extends CorrectionProducer {
     }
     elementText ??= '...${utils.getNodeText(argument)}';
 
+    final elementText_final = elementText;
     await builder.addDartFileEdit(file, (builder) {
-      if (list.elements.isNotEmpty) {
+      if (targetList.elements.isNotEmpty) {
         // ['a']..addAll(['b', 'c']);
-        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+        builder.addSimpleInsertion(
+          targetList.elements.last.end,
+          ', $elementText_final',
+        );
       } else {
         // []..addAll(['b', 'c']);
-        builder.addSimpleInsertion(list.leftBracket.end, elementText);
+        builder.addSimpleInsertion(
+          targetList.leftBracket.end,
+          elementText_final,
+        );
       }
       builder.addDeletion(range.node(invocation));
     });

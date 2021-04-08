@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -19,15 +17,14 @@ class AddConst extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
+    AstNode? node = this.node;
     if (node is SimpleIdentifier) {
       node = node.parent;
     }
     if (node is ConstructorDeclaration) {
+      var node_final = node;
       await builder.addDartFileEdit(file, (builder) {
-        final offset = (node as ConstructorDeclaration)
-            .firstTokenAfterCommentAndMetadata
-            .offset;
+        final offset = node_final.firstTokenAfterCommentAndMetadata.offset;
         builder.addSimpleInsertion(offset, 'const ');
       });
       return;
@@ -39,9 +36,10 @@ class AddConst extends CorrectionProducer {
       node = node.parent;
     }
     if (node is InstanceCreationExpression) {
-      if ((node as InstanceCreationExpression).keyword == null) {
+      if (node.keyword == null) {
+        var node_final = node;
         await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleInsertion(node.offset, 'const ');
+          builder.addSimpleInsertion(node_final.offset, 'const ');
         });
       }
     }

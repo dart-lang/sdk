@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
@@ -20,8 +18,8 @@ class ConvertIntoIsNotEmpty extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // prepare "expr.isEmpty"
-    AstNode isEmptyAccess;
-    SimpleIdentifier isEmptyIdentifier;
+    SimpleIdentifier? isEmptyIdentifier;
+    AstNode? isEmptyAccess;
     if (node is SimpleIdentifier) {
       var identifier = node as SimpleIdentifier;
       var parent = identifier.parent;
@@ -36,7 +34,7 @@ class ConvertIntoIsNotEmpty extends CorrectionProducer {
         isEmptyAccess = parent;
       }
     }
-    if (isEmptyIdentifier == null) {
+    if (isEmptyIdentifier == null || isEmptyAccess == null) {
       return;
     }
     // should be "isEmpty"
@@ -60,10 +58,12 @@ class ConvertIntoIsNotEmpty extends CorrectionProducer {
       return;
     }
 
+    final isEmptyIdentifier_final = isEmptyIdentifier;
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
           range.startStart(prefixExpression, prefixExpression.operand));
-      builder.addSimpleReplacement(range.node(isEmptyIdentifier), 'isNotEmpty');
+      builder.addSimpleReplacement(
+          range.node(isEmptyIdentifier_final), 'isNotEmpty');
     });
   }
 

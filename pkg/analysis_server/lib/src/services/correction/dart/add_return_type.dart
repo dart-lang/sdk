@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -13,6 +11,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -26,8 +25,8 @@ class AddReturnType extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    SyntacticEntity insertBeforeEntity;
-    FunctionBody body;
+    SyntacticEntity? insertBeforeEntity;
+    FunctionBody? body;
     if (node is SimpleIdentifier) {
       var executable = node.parent;
       if (executable is MethodDeclaration && executable.name == node) {
@@ -55,13 +54,18 @@ class AddReturnType extends CorrectionProducer {
       }
     }
 
+    if (insertBeforeEntity == null || body == null) {
+      return;
+    }
+
     var returnType = _inferReturnType(body);
     if (returnType == null) {
       return null;
     }
 
+    final insertBeforeEntity_final = insertBeforeEntity;
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(insertBeforeEntity.offset, (builder) {
+      builder.addInsertion(insertBeforeEntity_final.offset, (builder) {
         if (returnType.isDynamic) {
           builder.write('dynamic');
         } else {
@@ -74,10 +78,10 @@ class AddReturnType extends CorrectionProducer {
 
   /// Return the type of value returned by the function [body], or `null` if a
   /// type can't be inferred.
-  DartType _inferReturnType(FunctionBody body) {
-    DartType baseType;
+  DartType? _inferReturnType(FunctionBody body) {
+    DartType? baseType;
     if (body is ExpressionFunctionBody) {
-      baseType = body.expression.staticType;
+      baseType = body.expression.typeOrThrow;
     } else if (body is BlockFunctionBody) {
       var computer = _ReturnTypeComputer(resolvedResult.typeSystem);
       body.block.accept(computer);
@@ -124,7 +128,7 @@ class AddReturnType extends CorrectionProducer {
 class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
   final TypeSystem typeSystem;
 
-  DartType returnType;
+  DartType? returnType;
 
   /// A flag indicating whether at least one return statement was found.
   bool hasReturn = false;
@@ -143,18 +147,19 @@ class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
       return;
     }
     // prepare type
-    var type = expression.staticType;
+    var type = expression.typeOrThrow;
     if (type.isBottom) {
       return;
     }
     // combine types
-    if (returnType == null) {
+    var current = returnType;
+    if (current == null) {
       returnType = type;
     } else {
-      if (returnType is InterfaceType && type is InterfaceType) {
-        returnType = InterfaceType.getSmartLeastUpperBound(returnType, type);
+      if (current is InterfaceType && type is InterfaceType) {
+        returnType = InterfaceType.getSmartLeastUpperBound(current, type);
       } else {
-        returnType = typeSystem.leastUpperBound(returnType, type);
+        returnType = typeSystem.leastUpperBound(current, type);
       }
     }
   }
