@@ -58,7 +58,7 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
       {}, // Empty config
     );
 
-    // Ensure the roots are as expected before we udpate the config.
+    // Ensure the roots are as expected before we update the config.
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
     expect(server.contextManager.excludedPaths, isEmpty);
 

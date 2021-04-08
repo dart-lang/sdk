@@ -10,7 +10,6 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
-import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -299,15 +298,22 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     // Closing only one of the files should not remove the project folder
     // since there are still open files.
+    resetContextBuildCounter();
     await closeFile(file1Uri);
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expectNoContextBuilds();
 
-    // Closing the last file should remove the project folder.
+    // Closing the last file should remove the project folder and remove
+    // the context.
+    resetContextBuildCounter();
     await closeFile(file2Uri);
     expect(server.contextManager.includedPaths, equals([]));
+    expect(server.contextManager.driverMap, hasLength(0));
+    expectContextBuilds();
   }
 
   Future<void> test_emptyAnalysisRoots_projectWithoutPubspec() async {
+    projectFolderPath = '/home/empty';
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
@@ -317,10 +323,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await initialize(allowEmptyRootUri: true);
     expect(server.contextManager.includedPaths, equals([]));
 
-    // Opening the file should trigger the immediate parent folder to be added.
+    // Opening the file will add a root for it.
     await openFile(nestedFileUri, '');
-    expect(server.contextManager.includedPaths,
-        equals([path.dirname(nestedFilePath)]));
+    expect(server.contextManager.includedPaths, equals([nestedFilePath]));
   }
 
   Future<void> test_emptyAnalysisRoots_projectWithPubspec() async {
@@ -510,18 +515,26 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await openFile(file1Uri, '');
     await openFile(file2Uri, '');
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.driverMap, hasLength(1));
 
-    // Closing only one of the files should not remove the project folder
-    // since there are still open files.
+    // Closing only one of the files should not remove the root or rebuild the context.
+    resetContextBuildCounter();
     await closeFile(file1Uri);
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.driverMap, hasLength(1));
+    expectNoContextBuilds();
 
-    // Closing the last file should remove the project folder.
+    // Closing the last file should remove the project folder and remove
+    // the context.
+    resetContextBuildCounter();
     await closeFile(file2Uri);
     expect(server.contextManager.includedPaths, equals([]));
+    expect(server.contextManager.driverMap, hasLength(0));
+    expectContextBuilds();
   }
 
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_withoutPubpsec() async {
+    projectFolderPath = '/home/empty';
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
@@ -534,10 +547,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     );
     expect(server.contextManager.includedPaths, equals([]));
 
-    // Opening the file should trigger the immediate parent folder to be added.
+    // Opening the file should trigger it to be added.
     await openFile(nestedFileUri, '');
-    expect(server.contextManager.includedPaths,
-        equals([path.dirname(nestedFilePath)]));
+    expect(server.contextManager.includedPaths, equals([nestedFilePath]));
   }
 
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_withPubpsec() async {
@@ -555,7 +567,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     );
     expect(server.contextManager.includedPaths, equals([]));
 
-    // Opening a file nested within the project should add the project folder.
+    // Opening a file nested within the project should cause the project folder
+    // to be added
     await openFile(nestedFileUri, '');
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 
