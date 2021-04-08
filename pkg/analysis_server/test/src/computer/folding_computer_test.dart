@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/computer/computer_folding.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
@@ -25,7 +23,7 @@ class FoldingComputerTest extends AbstractContextTest {
     FoldingKind.DOCUMENTATION_COMMENT
   };
 
-  String sourcePath;
+  late String sourcePath;
 
   @override
   void setUp() {
@@ -515,7 +513,7 @@ main() {}
   ///
   /// If [onlyKinds] is supplied only regions of that type will be compared.
   void _compareRegions(List<FoldingRegion> regions, String content,
-      [Set<FoldingKind> onlyKinds]) {
+      [Set<FoldingKind>? onlyKinds]) {
     // Find all numeric markers for region starts.
     final regex = RegExp(r'/\*(\d+):(INC|EXC)\*/');
     final expectedRegions = regex.allMatches(content);
@@ -535,7 +533,8 @@ main() {}
       final i = m.group(1);
       final inclusiveStart = m.group(2) == 'INC';
       // Find the end marker.
-      final endMatch = RegExp('/\\*$i:(INC|EXC):(.+?)\\*/').firstMatch(content);
+      final endMatch =
+          RegExp('/\\*$i:(INC|EXC):(.+?)\\*/').firstMatch(content)!;
 
       final inclusiveEnd = endMatch.group(1) == 'INC';
       final expectedKindString = endMatch.group(2);
@@ -557,7 +556,7 @@ main() {}
   Future<List<FoldingRegion>> _computeRegions(String sourceContent) async {
     newFile(sourcePath, content: sourceContent);
     var result = await session.getResolvedUnit(sourcePath);
-    var computer = DartUnitFoldingComputer(result.lineInfo, result.unit);
+    var computer = DartUnitFoldingComputer(result.lineInfo, result.unit!);
     return computer.compute();
   }
 }

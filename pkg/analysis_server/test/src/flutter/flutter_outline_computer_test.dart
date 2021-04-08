@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -20,10 +18,10 @@ void main() {
 
 @reflectiveTest
 class FlutterOutlineComputerTest extends AbstractContextTest {
-  String testPath;
-  String testCode;
-  ResolvedUnitResult resolveResult;
-  FlutterOutlineComputer computer;
+  late String testPath;
+  late String testCode;
+  late ResolvedUnitResult resolveResult;
+  late FlutterOutlineComputer computer;
 
   @override
   void setUp() {
@@ -46,15 +44,15 @@ class WidgetA extends StatelessWidget {
   WidgetA({int value});
 }
 ''');
-    var main = unitOutline.children[0];
-    var widget = main.children[0];
+    var main = unitOutline.children![0];
+    var widget = main.children![0];
     expect(widget.attributes, hasLength(1));
 
-    var attribute = widget.attributes[0];
+    var attribute = widget.attributes![0];
     expect(attribute.name, 'value');
     expect(attribute.label, '42');
-    _assertLocation(attribute.nameLocation, 75, 5);
-    _assertLocation(attribute.valueLocation, 82, 2);
+    _assertLocation(attribute.nameLocation!, 75, 5);
+    _assertLocation(attribute.valueLocation!, 82, 2);
   }
 
   Future<void> test_attributes_bool() async {
@@ -125,13 +123,13 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    var myWidget = unitOutline.children[0];
-    var build = myWidget.children[0];
-    var textOutline = build.children[0];
+    var myWidget = unitOutline.children![0];
+    var build = myWidget.children![0];
+    var textOutline = build.children![0];
 
     expect(textOutline.attributes, hasLength(1));
 
-    var attribute = textOutline.attributes[0];
+    var attribute = textOutline.attributes![0];
     expect(attribute.name, 'data');
     expect(attribute.label, r"'Hello, $name!'");
     expect(attribute.literalValueString, isNull);
@@ -154,10 +152,10 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    var myWidget = unitOutline.children[0];
-    var build = myWidget.children[0];
+    var myWidget = unitOutline.children![0];
+    var build = myWidget.children![0];
 
-    var rowOutline = build.children[0];
+    var rowOutline = build.children![0];
     expect(rowOutline.attributes, isEmpty);
   }
 
@@ -207,10 +205,10 @@ class MyWidget extends StatelessWidget {
       Text
       Text
 ''');
-    var myWidget = unitOutline.children[0];
-    var build = myWidget.children[0];
+    var myWidget = unitOutline.children![0];
+    var build = myWidget.children![0];
 
-    var columnOutline = build.children[0];
+    var columnOutline = build.children![0];
     {
       var offset = testCode.indexOf('new Column');
       var length = testCode.indexOf('; // Column') - offset;
@@ -219,7 +217,7 @@ class MyWidget extends StatelessWidget {
     }
 
     {
-      var textOutline = columnOutline.children[0];
+      var textOutline = columnOutline.children![0];
       var text = "const Text('aaa')";
       var offset = testCode.indexOf(text);
       expect(textOutline.offset, offset);
@@ -227,7 +225,7 @@ class MyWidget extends StatelessWidget {
     }
 
     {
-      var textOutline = columnOutline.children[1];
+      var textOutline = columnOutline.children![1];
       var text = "const Text('bbb')";
       var offset = testCode.indexOf(text);
       expect(textOutline.offset, offset);
@@ -369,19 +367,19 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    var myWidget = unitOutline.children[0];
+    var myWidget = unitOutline.children![0];
     expect(myWidget.offset, 40);
     expect(myWidget.length, 137);
     expect(myWidget.codeOffset, 52);
     expect(myWidget.codeLength, 125);
 
-    var build = myWidget.children[0];
+    var build = myWidget.children![0];
     expect(build.offset, 95);
     expect(build.length, 80);
     expect(build.codeOffset, 107);
     expect(build.codeLength, 68);
 
-    var container = build.children[0];
+    var container = build.children![0];
     expect(container.offset, 155);
     expect(container.length, 15);
     expect(container.codeOffset, 155);
@@ -413,31 +411,31 @@ class WidgetFactory {
   static Text createMyText() => new Text('');
 }
 ''');
-    var myWidget = unitOutline.children[0];
-    var build = myWidget.children[0];
+    var myWidget = unitOutline.children![0];
+    var build = myWidget.children![0];
     expect(build.children, hasLength(1));
 
-    var row = build.children[0];
+    var row = build.children![0];
     expect(row.kind, FlutterOutlineKind.NEW_INSTANCE);
     expect(row.className, 'Row');
     expect(row.children, hasLength(3));
 
     {
-      var text = row.children[0];
+      var text = row.children![0];
       expect(text.kind, FlutterOutlineKind.GENERIC);
       expect(text.className, 'Text');
       expect(text.label, 'createText(…)');
     }
 
     {
-      var text = row.children[1];
+      var text = row.children![1];
       expect(text.kind, FlutterOutlineKind.GENERIC);
       expect(text.className, 'Text');
       expect(text.label, 'createEmptyText()');
     }
 
     {
-      var text = row.children[2];
+      var text = row.children![2];
       expect(text.kind, FlutterOutlineKind.GENERIC);
       expect(text.className, 'Text');
       expect(text.label, 'WidgetFactory.createMyText()');
@@ -490,20 +488,20 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    var myWidget = unitOutline.children[0];
-    var build = myWidget.children[0];
+    var myWidget = unitOutline.children![0];
+    var build = myWidget.children![0];
     expect(build.children, hasLength(2));
 
-    var textNew = build.children[0];
+    var textNew = build.children![0];
     expect(textNew.kind, FlutterOutlineKind.NEW_INSTANCE);
     expect(textNew.className, 'Text');
 
-    var center = build.children[1];
+    var center = build.children![1];
     expect(center.kind, FlutterOutlineKind.NEW_INSTANCE);
     expect(center.className, 'Center');
     expect(center.children, hasLength(1));
 
-    var textRef = center.children[0];
+    var textRef = center.children![0];
     expect(textRef.kind, FlutterOutlineKind.VARIABLE);
     expect(textRef.className, 'Text');
     expect(textRef.variableName, 'text');
@@ -541,15 +539,15 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    var main = unitOutline.children[0];
-    var newMyWidget = main.children[0];
+    var main = unitOutline.children![0];
+    var newMyWidget = main.children![0];
 
     expect(newMyWidget.attributes, hasLength(1));
 
-    var attribute = newMyWidget.attributes[0];
+    var attribute = newMyWidget.attributes![0];
     expect(attribute.name, name);
     expect(attribute.nameLocation, isNull);
-    _assertLocation(attribute.valueLocation, 64, value.length);
+    _assertLocation(attribute.valueLocation!, 64, value.length);
 
     return attribute;
   }
@@ -562,7 +560,7 @@ class MyWidget extends StatelessWidget {
 
       if (outline.kind == FlutterOutlineKind.DART_ELEMENT) {
         buffer.write('(D) ');
-        buffer.writeln(outline.dartElement.name);
+        buffer.writeln(outline.dartElement!.name);
       } else {
         if (outline.kind == FlutterOutlineKind.NEW_INSTANCE) {
           if (outline.parentAssociationLabel != null) {
@@ -576,13 +574,13 @@ class MyWidget extends StatelessWidget {
       }
 
       if (outline.children != null) {
-        for (var child in outline.children) {
+        for (var child in outline.children!) {
           writeOutline(child, '$indent  ');
         }
       }
     }
 
-    for (var child in outline.children) {
+    for (var child in outline.children!) {
       writeOutline(child, '');
     }
     return buffer.toString();

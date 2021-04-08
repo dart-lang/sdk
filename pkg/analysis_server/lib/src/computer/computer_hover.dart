@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart'
     show HoverInformation;
 import 'package:analysis_server/src/computer/computer_overrides.dart';
@@ -25,23 +23,24 @@ class DartUnitHoverComputer {
   DartUnitHoverComputer(this._dartdocInfo, this._unit, this._offset);
 
   bool get _isNonNullableByDefault {
-    return _unit.declaredElement.library.isNonNullableByDefault;
+    return _unit.declaredElement?.library.isNonNullableByDefault ?? false;
   }
 
   /// Returns the computed hover, maybe `null`.
-  HoverInformation compute() {
+  HoverInformation? compute() {
     var node = NodeLocator(_offset).searchWithin(_unit);
     if (node == null) {
       return null;
     }
-    if (node.parent is TypeName &&
-        node.parent.parent is ConstructorName &&
-        node.parent.parent.parent is InstanceCreationExpression) {
-      node = node.parent.parent.parent;
-    }
-    if (node.parent is ConstructorName &&
-        node.parent.parent is InstanceCreationExpression) {
-      node = node.parent.parent;
+    var parent = node.parent;
+    var grandParent = parent?.parent;
+    if (parent is TypeName &&
+        grandParent is ConstructorName &&
+        grandParent.parent is InstanceCreationExpression) {
+      node = grandParent.parent;
+    } else if (parent is ConstructorName &&
+        grandParent is InstanceCreationExpression) {
+      node = grandParent;
     }
     if (node is Expression) {
       var expression = node;
@@ -59,16 +58,18 @@ class DartUnitHoverComputer {
       if (element != null) {
         // variable, if synthetic accessor
         if (element is PropertyAccessorElement) {
-          PropertyAccessorElement accessor = element;
-          if (accessor.isSynthetic) {
-            element = accessor.variable;
+          if (element.isSynthetic) {
+            element = element.variable;
           }
         }
         // description
-        hover.elementDescription = _elementDisplayString(element);
-        if (node is InstanceCreationExpression && node.keyword == null) {
+        var description = _elementDisplayString(element);
+        hover.elementDescription = description;
+        if (description != null &&
+            node is InstanceCreationExpression &&
+            node.keyword == null) {
           var prefix = node.isConst ? '(const) ' : '(new) ';
-          hover.elementDescription = prefix + hover.elementDescription;
+          hover.elementDescription = prefix + description;
         }
         hover.elementKind = element.kind.displayName;
         hover.isDeprecated = element.hasDeprecated;
@@ -83,9 +84,9 @@ class DartUnitHoverComputer {
           var library = element.library;
           if (library != null) {
             var uri = library.source.uri;
-            if (uri.scheme != '' && uri.scheme == 'file') {
+            var analysisSession = _unit.declaredElement?.session;
+            if (uri.scheme == 'file' && analysisSession != null) {
               // for 'file:' URIs, use the path after the project root
-              var analysisSession = _unit.declaredElement.session;
               var context = analysisSession.resourceProvider.pathContext;
               var projectRootDir =
                   analysisSession.analysisContext.contextRoot.root.path;
@@ -113,7 +114,7 @@ class DartUnitHoverComputer {
       // types
       {
         var parent = expression.parent;
-        DartType staticType;
+        DartType? staticType;
         if (element == null || element is VariableElement) {
           staticType = _getTypeOfDeclarationOrReference(node);
         }
@@ -132,22 +133,23 @@ class DartUnitHoverComputer {
     return null;
   }
 
-  String _elementDisplayString(Element element) {
+  String? _elementDisplayString(Element? element) {
     return element?.getDisplayString(
       withNullability: _isNonNullableByDefault,
     );
   }
 
-  String _typeDisplayString(DartType type) {
+  String? _typeDisplayString(DartType? type) {
     return type?.getDisplayString(withNullability: _isNonNullableByDefault);
   }
 
-  static String computeDocumentation(
-      DartdocDirectiveInfo dartdocInfo, Element element) {
+  static String? computeDocumentation(
+      DartdocDirectiveInfo dartdocInfo, Element elementBeingDocumented) {
     // TODO(dantup) We're reusing this in parameter information - move it
     // somewhere shared?
+    Element? element = elementBeingDocumented;
     if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
+      element = element.field;
     }
     if (element is ParameterElement) {
       element = element.enclosingElement;
@@ -158,8 +160,8 @@ class DartUnitHoverComputer {
       return null;
     }
 
-    Element documentedElement;
-    Element documentedGetter;
+    Element? documentedElement;
+    Element? documentedGetter;
 
     // Look for documentation comments of overridden members
     var overridden = findOverriddenElements(element);
@@ -189,24 +191,28 @@ class DartUnitHoverComputer {
     }
 
     var rawDoc = documentedElement.documentationComment;
+    if (rawDoc == null) {
+      return null;
+    }
     var result = dartdocInfo.processDartdoc(rawDoc);
 
     var documentedElementClass = documentedElement.enclosingElement;
-    if (documentedElementClass != element.enclosingElement) {
+    if (documentedElementClass != null &&
+        documentedElementClass != element.enclosingElement) {
       result += '\n\nCopied from `${documentedElementClass.displayName}`.';
     }
 
     return result;
   }
 
-  static DartType _getTypeOfDeclarationOrReference(Expression node) {
+  static DartType? _getTypeOfDeclarationOrReference(Expression node) {
     if (node is SimpleIdentifier) {
       var element = node.staticElement;
       if (element is VariableElement) {
         if (node.inDeclarationContext()) {
           return element.type;
         }
-        var parent2 = node.parent.parent;
+        var parent2 = node.parent?.parent;
         if (parent2 is NamedExpression && parent2.name.label == node) {
           return element.type;
         }

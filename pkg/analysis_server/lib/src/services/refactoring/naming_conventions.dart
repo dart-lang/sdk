@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Keyword;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
@@ -21,7 +19,7 @@ RefactoringStatus validateClassName(String name) {
 /// - OK if the name is valid;
 /// - WARNING if the name is discouraged;
 /// - FATAL if the name is illegal.
-RefactoringStatus validateConstructorName(String name) {
+RefactoringStatus validateConstructorName(String? name) {
   if (name != null && name.isEmpty) {
     return RefactoringStatus();
   }
@@ -48,7 +46,7 @@ RefactoringStatus validateFunctionName(String name) {
 /// - OK if the name is valid;
 /// - WARNING if the name is discouraged;
 /// - FATAL if the name is illegal.
-RefactoringStatus validateImportPrefixName(String name) {
+RefactoringStatus validateImportPrefixName(String? name) {
   if (name != null && name.isEmpty) {
     return RefactoringStatus();
   }
@@ -67,7 +65,7 @@ RefactoringStatus validateLabelName(String name) {
 /// - OK if the name is valid;
 /// - WARNING if the name is discouraged;
 /// - FATAL if the name is illegal.
-RefactoringStatus validateLibraryName(String name) {
+RefactoringStatus validateLibraryName(String? name) {
   // null
   if (name == null) {
     return RefactoringStatus.fatal('Library name must not be null.');
@@ -182,7 +180,7 @@ RefactoringStatus _validateIdentifier(
 }
 
 /// Validates [identifier], should be lower camel case.
-RefactoringStatus _validateLowerCamelCase(String identifier, String desc,
+RefactoringStatus _validateLowerCamelCase(String? identifier, String desc,
     {bool allowBuiltIn = false}) {
   desc += ' name';
   // null
@@ -215,7 +213,7 @@ RefactoringStatus _validateLowerCamelCase(String identifier, String desc,
 }
 
 /// Validate the given identifier, which should be upper camel case.
-RefactoringStatus _validateUpperCamelCase(String identifier, String desc) {
+RefactoringStatus _validateUpperCamelCase(String? identifier, String desc) {
   desc += ' name';
   // null
   if (identifier == null) {

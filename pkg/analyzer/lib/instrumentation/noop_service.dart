@@ -34,7 +34,7 @@ class NoopInstrumentationService implements InstrumentationService {
 
   @override
   void logPluginException(
-      PluginData plugin, dynamic exception, StackTrace? stackTrace) {}
+      PluginData plugin, Object exception, StackTrace? stackTrace) {}
 
   @override
   void logPluginNotification(String pluginId, String notification) {}

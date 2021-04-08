@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/utilities/flutter.dart';
@@ -33,15 +31,15 @@ class FlutterOutlineComputer {
 
     // Create outlines for widgets.
     var visitor = _FlutterOutlineBuilder(this);
-    resolvedUnit.unit.accept(visitor);
+    resolvedUnit.unit!.accept(visitor);
 
     // Associate Flutter outlines with Dart outlines.
     for (var outline in visitor.outlines) {
       for (var parent in _depthFirstOrder) {
         if (parent.offset < outline.offset &&
             outline.offset + outline.length < parent.offset + parent.length) {
-          parent.children ??= <protocol.FlutterOutline>[];
-          parent.children.add(outline);
+          var children = parent.children ??= <protocol.FlutterOutline>[];
+          children.add(outline);
           break;
         }
       }
@@ -53,30 +51,29 @@ class FlutterOutlineComputer {
   /// If the given [argument] for the [parameter] can be represented as a
   /// Flutter attribute, add it to the [attributes].
   void _addAttribute(List<protocol.FlutterOutlineAttribute> attributes,
-      Expression argument, ParameterElement parameter) {
+      Expression argument, ParameterElement? parameter) {
     if (parameter == null) {
       return;
     }
 
-    protocol.Location nameLocation;
+    protocol.Location? nameLocation;
     if (argument is NamedExpression) {
-      NamedExpression namedExpression = argument;
-      nameLocation = protocol.newLocation_fromNode(namedExpression.name.label);
-      argument = namedExpression.expression;
+      nameLocation = protocol.newLocation_fromNode(argument.name.label);
+      argument = argument.expression;
     }
 
     var valueLocation = protocol.newLocation_fromNode(argument);
 
     var name = parameter.displayName;
 
-    var label = resolvedUnit.content.substring(argument.offset, argument.end);
+    var label = resolvedUnit.content!.substring(argument.offset, argument.end);
     if (label.contains('\n')) {
       label = '…';
     }
 
-    bool literalValueBoolean;
-    int literalValueInteger;
-    String literalValueString;
+    bool? literalValueBoolean;
+    int? literalValueInteger;
+    String? literalValueString;
     if (argument is BooleanLiteral) {
       literalValueBoolean = argument.value;
     } else if (argument is IntegerLiteral) {
@@ -85,8 +82,9 @@ class FlutterOutlineComputer {
       literalValueString = argument.stringValue;
     } else {
       if (argument is FunctionExpression) {
-        var hasParameters = argument.parameters != null &&
-            argument.parameters.parameters.isNotEmpty;
+        var parameters = argument.parameters;
+        var hasParameters =
+            parameters != null && parameters.parameters.isNotEmpty;
         if (argument.body is ExpressionFunctionBody) {
           label = hasParameters ? '(…) => …' : '() => …';
         } else {
@@ -118,8 +116,9 @@ class FlutterOutlineComputer {
         dartOutline.codeOffset,
         dartOutline.codeLength,
         dartElement: dartOutline.element);
-    if (dartOutline.children != null) {
-      flutterOutline.children = dartOutline.children.map(_convert).toList();
+    var children = dartOutline.children;
+    if (children != null) {
+      flutterOutline.children = children.map(_convert).toList();
     }
 
     _depthFirstOrder.add(flutterOutline);
@@ -130,22 +129,23 @@ class FlutterOutlineComputer {
   /// outline item for it. If the node is not a widget creation, but its type
   /// is a Flutter Widget class subtype, and [withGeneric] is `true`, return
   /// a widget reference outline item.
-  protocol.FlutterOutline _createOutline(Expression node, bool withGeneric) {
+  protocol.FlutterOutline? _createOutline(Expression node, bool withGeneric) {
     var type = node.staticType;
-    if (!_flutter.isWidgetType(type)) {
+    if (type == null || !_flutter.isWidgetType(type)) {
       return null;
     }
-    var className = type.element.displayName;
+    var className = type.element!.displayName;
 
     if (node is InstanceCreationExpression) {
       var attributes = <protocol.FlutterOutlineAttribute>[];
       var children = <protocol.FlutterOutline>[];
       for (var argument in node.argumentList.arguments) {
-        var isWidgetArgument = _flutter.isWidgetType(argument.staticType);
+        var argumentType = argument.staticType;
+        var isWidgetArgument = _flutter.isWidgetType(argumentType);
         var isWidgetListArgument =
-            _flutter.isListOfWidgetsType(argument.staticType);
+            argumentType != null && _flutter.isListOfWidgetsType(argumentType);
 
-        String parentAssociationLabel;
+        String? parentAssociationLabel;
         Expression childrenExpression;
 
         if (argument is NamedExpression) {
@@ -155,7 +155,7 @@ class FlutterOutlineComputer {
           childrenExpression = argument;
         }
 
-        void addChildrenFrom(CollectionElement element) {
+        void addChildrenFrom(CollectionElement? element) {
           if (element is ConditionalExpression) {
             addChildrenFrom(element.thenExpression);
             addChildrenFrom(element.elseExpression);
@@ -212,13 +212,13 @@ class FlutterOutlineComputer {
     if (withGeneric) {
       var kind = protocol.FlutterOutlineKind.GENERIC;
 
-      String variableName;
+      String? variableName;
       if (node is SimpleIdentifier) {
         kind = protocol.FlutterOutlineKind.VARIABLE;
         variableName = node.name;
       }
 
-      String label;
+      String? label;
       if (kind == protocol.FlutterOutlineKind.GENERIC) {
         label = _getShortLabel(node);
       }
@@ -235,14 +235,15 @@ class FlutterOutlineComputer {
     if (node is MethodInvocation) {
       var buffer = StringBuffer();
 
-      if (node.target != null) {
-        buffer.write(_getShortLabel(node.target));
+      var target = node.target;
+      if (target != null) {
+        buffer.write(_getShortLabel(target));
         buffer.write('.');
       }
 
       buffer.write(node.methodName.name);
 
-      if (node.argumentList == null || node.argumentList.arguments.isEmpty) {
+      if (node.argumentList.arguments.isEmpty) {
         buffer.write('()');
       } else {
         buffer.write('(…)');
