@@ -13,6 +13,17 @@ int fn() {
   return x;
 }
 
+const var2 = fn2();
+int fn2() {
+  int x = 0;
+  assert(() {
+    var y = x + 1;
+    return y == 1;
+  }());
+  return x;
+}
+
 void main() {
   Expect.equals(var1, 0);
+  Expect.equals(var2, 0);
 }

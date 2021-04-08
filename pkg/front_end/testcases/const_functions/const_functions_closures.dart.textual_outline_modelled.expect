@@ -1,0 +1,16 @@
+import "package:expect/expect.dart";
+
+const var1 = foo();
+const var2 = fn();
+const var3 = fn3();
+const var4 = fn4();
+const var5 = fn5(3);
+const var6 = fn6(4);
+const y = 1;
+int fn() {}
+int fn3() {}
+int fn4() {}
+int fn5(int a) {}
+int fn6(int a) {}
+int foo() {}
+void main() {}
