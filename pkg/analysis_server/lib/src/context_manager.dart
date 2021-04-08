@@ -32,7 +32,7 @@ import 'package:analyzer/src/workspace/bazel_watcher.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as pathos;
+import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
 import 'package:yaml/yaml.dart';
 
@@ -163,7 +163,7 @@ class ContextManagerImpl implements ContextManager {
   AnalysisContextCollectionImpl _collection;
 
   /// The context used to work with file system paths.
-  pathos.Context pathContext;
+  path.Context pathContext;
 
   /// The list of excluded paths (folders and files) most recently passed to
   /// [setRoots].

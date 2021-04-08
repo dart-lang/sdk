@@ -28,7 +28,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:path/path.dart' as pathos;
+import 'package:path/path.dart' as path;
 
 /// Adds edits to the given [change] that ensure that all the [libraries] are
 /// imported into the given [targetLibrary].
@@ -317,7 +317,7 @@ Map<String, Element> getImportNamespace(ImportElement imp) {
 
 /// Computes the best URI to import [what] into [from].
 String getLibrarySourceUri(
-    pathos.Context pathContext, LibraryElement from, Uri what) {
+    path.Context pathContext, LibraryElement from, Uri what) {
   if (what.scheme == 'file') {
     var fromFolder = pathContext.dirname(from.source.fullName);
     var relativeFile = pathContext.relative(what.path, from: fromFolder);

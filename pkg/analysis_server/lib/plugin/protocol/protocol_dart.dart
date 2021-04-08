@@ -6,7 +6,7 @@
 /// entities.
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
-import 'package:path/path.dart' as pathos;
+import 'package:path/path.dart' as path;
 
 /// Return a protocol [Element] corresponding to the given [engine.Element].
 Element convertElement(engine.Element element) {
@@ -122,7 +122,7 @@ ElementKind convertElementToElementKind(engine.Element element) {
 
 String getElementDisplayName(engine.Element element) {
   if (element is engine.CompilationUnitElement) {
-    return pathos.basename(element.source.fullName);
+    return path.basename(element.source.fullName);
   } else {
     return element.displayName;
   }
