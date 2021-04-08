@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:math';
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit;
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -18,6 +18,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -26,7 +28,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
 
 /// Adds edits to the given [change] that ensure that all the [libraries] are
@@ -38,14 +39,18 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
   var libUtils = CorrectionUtils(resolveResult);
   var eol = libUtils.endOfLine;
   // Prepare information about existing imports.
-  LibraryDirective libraryDirective;
+  LibraryDirective? libraryDirective;
   var importDirectives = <_ImportDirectiveInfo>[];
   for (var directive in libUtils.unit.directives) {
     if (directive is LibraryDirective) {
       libraryDirective = directive;
     } else if (directive is ImportDirective) {
-      importDirectives.add(_ImportDirectiveInfo(
-          directive.uri.stringValue, directive.offset, directive.end));
+      var uriStr = directive.uri.stringValue;
+      if (uriStr != null) {
+        importDirectives.add(
+          _ImportDirectiveInfo(uriStr, directive.offset, directive.end),
+        );
+      }
     }
   }
 
@@ -126,7 +131,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
 
 /// Climbs up [PrefixedIdentifier] and [PropertyAccess] nodes that include
 /// [node].
-Expression climbPropertyAccess(AstNode node) {
+Expression climbPropertyAccess(Expression node) {
   while (true) {
     var parent = node.parent;
     if (parent is PrefixedIdentifier && parent.identifier == node) {
@@ -156,31 +161,29 @@ List<SimpleIdentifier> findLocalElementReferences(
 List<SourceRange> getCommentRanges(CompilationUnit unit) {
   var ranges = <SourceRange>[];
   var token = unit.beginToken;
-  while (token != null && token.type != TokenType.EOF) {
-    Token commentToken = token.precedingComments;
+  while (token.type != TokenType.EOF) {
+    var commentToken = token.precedingComments;
     while (commentToken != null) {
       ranges.add(range.token(commentToken));
-      commentToken = commentToken.next;
+      commentToken = commentToken.next as CommentToken?;
     }
-    token = token.next;
+    token = token.next!;
   }
   return ranges;
 }
 
 String getDefaultValueCode(DartType type) {
-  if (type != null) {
-    if (type.isDartCoreBool) {
-      return 'false';
-    }
-    if (type.isDartCoreInt) {
-      return '0';
-    }
-    if (type.isDartCoreDouble) {
-      return '0.0';
-    }
-    if (type.isDartCoreString) {
-      return "''";
-    }
+  if (type.isDartCoreBool) {
+    return 'false';
+  }
+  if (type.isDartCoreInt) {
+    return '0';
+  }
+  if (type.isDartCoreDouble) {
+    return '0.0';
+  }
+  if (type.isDartCoreString) {
+    return "''";
   }
   // no better guess
   return 'null';
@@ -204,10 +207,10 @@ String getElementQualifiedName(Element element) {
   if (kind == ElementKind.CONSTRUCTOR ||
       kind == ElementKind.FIELD ||
       kind == ElementKind.METHOD) {
-    return '${element.enclosingElement.displayName}.${element.displayName}';
+    return '${element.enclosingElement!.displayName}.${element.displayName}';
   } else if (kind == ElementKind.LIBRARY) {
     // Libraries may not have names, so use a path relative to the context root.
-    final session = element.session;
+    final session = element.session!;
     final pathContext = session.resourceProvider.pathContext;
     final rootPath = session.analysisContext.contextRoot.root.path;
     final library = element as LibraryElement;
@@ -220,13 +223,13 @@ String getElementQualifiedName(Element element) {
 
 /// If the given [node] is in a class, enum or mixin declaration, return the
 /// declared [ClassElement]. Otherwise return `null`.
-ClassElement getEnclosingClassElement(AstNode node) =>
+ClassElement? getEnclosingClassElement(AstNode node) =>
     node.thisOrAncestorOfType<ClassOrMixinDeclaration>()?.declaredElement;
 
-/// Returns a class or an unit member enclosing the given [node].
-AstNode getEnclosingClassOrUnitMember(AstNode node) {
-  var member = node;
-  while (node != null) {
+/// Returns a class or an unit member enclosing the given [input].
+AstNode? getEnclosingClassOrUnitMember(AstNode input) {
+  var member = input;
+  for (var node in input.withParents) {
     if (node is ClassDeclaration) {
       return member;
     }
@@ -234,14 +237,13 @@ AstNode getEnclosingClassOrUnitMember(AstNode node) {
       return member;
     }
     member = node;
-    node = node.parent;
   }
   return null;
 }
 
 /// Return the [ExecutableElement] of the enclosing executable [AstNode].
-ExecutableElement getEnclosingExecutableElement(AstNode node) {
-  while (node != null) {
+ExecutableElement? getEnclosingExecutableElement(AstNode input) {
+  for (var node in input.withParents) {
     if (node is FunctionDeclaration) {
       return node.declaredElement;
     }
@@ -251,14 +253,13 @@ ExecutableElement getEnclosingExecutableElement(AstNode node) {
     if (node is MethodDeclaration) {
       return node.declaredElement;
     }
-    node = node.parent;
   }
   return null;
 }
 
 /// Return the enclosing executable [AstNode].
-AstNode getEnclosingExecutableNode(AstNode node) {
-  while (node != null) {
+AstNode? getEnclosingExecutableNode(AstNode input) {
+  for (var node in input.withParents) {
     if (node is FunctionDeclaration) {
       return node;
     }
@@ -268,14 +269,13 @@ AstNode getEnclosingExecutableNode(AstNode node) {
     if (node is MethodDeclaration) {
       return node;
     }
-    node = node.parent;
   }
   return null;
 }
 
 /// If the given [node] is in an extension, return the declared
 /// [ExtensionElement]. Otherwise return `null`.
-ExtensionElement getEnclosingExtensionElement(AstNode node) =>
+ExtensionElement? getEnclosingExtensionElement(AstNode node) =>
     node.thisOrAncestorOfType<ExtensionDeclaration>()?.declaredElement;
 
 /// Returns [getExpressionPrecedence] for the parent of [node], or
@@ -283,7 +283,7 @@ ExtensionElement getEnclosingExtensionElement(AstNode node) =>
 ///
 /// The reason is that `(expr)` is always executed after `expr`.
 Precedence getExpressionParentPrecedence(AstNode node) {
-  var parent = node.parent;
+  var parent = node.parent!;
   if (parent is ParenthesizedExpression) {
     return Precedence.assignment;
   } else if (parent is IndexExpression && parent.index == node) {
@@ -342,7 +342,7 @@ String getLinePrefix(String line) {
 
 /// Return the [LocalVariableElement] if given [node] is a reference to a local
 /// variable, or `null` in the other case.
-LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
+LocalVariableElement? getLocalVariableElement(SimpleIdentifier node) {
   var element = node.staticElement;
   if (element is LocalVariableElement) {
     return element;
@@ -351,7 +351,7 @@ LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
 }
 
 /// Return the nearest common ancestor of the given [nodes].
-AstNode getNearestCommonAncestor(List<AstNode> nodes) {
+AstNode? getNearestCommonAncestor(List<AstNode> nodes) {
   // may be no nodes
   if (nodes.isEmpty) {
     return null;
@@ -378,7 +378,7 @@ AstNode getNearestCommonAncestor(List<AstNode> nodes) {
 
 /// Returns the [Expression] qualifier if given [node] is the name part of a
 /// [PropertyAccess] or a [PrefixedIdentifier]. Maybe `null`.
-Expression getNodeQualifier(SimpleIdentifier node) {
+Expression? getNodeQualifier(SimpleIdentifier node) {
   var parent = node.parent;
   if (parent is MethodInvocation && identical(parent.methodName, node)) {
     return parent.target;
@@ -394,7 +394,7 @@ Expression getNodeQualifier(SimpleIdentifier node) {
 
 /// Returns the [ParameterElement] if the given [node] is a reference to a
 /// parameter, or `null` in the other case.
-ParameterElement getParameterElement(SimpleIdentifier node) {
+ParameterElement? getParameterElement(SimpleIdentifier node) {
   var element = node.staticElement;
   if (element is ParameterElement) {
     return element;
@@ -405,29 +405,12 @@ ParameterElement getParameterElement(SimpleIdentifier node) {
 /// Return parent [AstNode]s from compilation unit (at index "0") to the given
 /// [node].
 List<AstNode> getParents(AstNode node) {
-  // prepare number of parents
-  var numParents = 0;
-  {
-    var current = node.parent;
-    while (current != null) {
-      numParents++;
-      current = current.parent;
-    }
-  }
-  // fill array of parents
-  var parents = List<AstNode>.filled(numParents, null);
-  var current = node.parent;
-  var index = numParents;
-  while (current != null) {
-    parents[--index] = current;
-    current = current.parent;
-  }
-  return parents;
+  return node.withParents.toList().reversed.toList();
 }
 
 /// If given [node] is name of qualified property extraction, returns target
 /// from which this property is extracted, otherwise `null`.
-Expression getQualifiedPropertyTarget(AstNode node) {
+Expression? getQualifiedPropertyTarget(AstNode node) {
   var parent = node.parent;
   if (parent is PrefixedIdentifier) {
     var prefixed = parent;
@@ -446,7 +429,7 @@ Expression getQualifiedPropertyTarget(AstNode node) {
 
 /// Returns the given [statement] if not a block, or the first child statement
 /// if a block, or `null` if more than one child.
-Statement getSingleStatement(Statement statement) {
+Statement? getSingleStatement(Statement statement) {
   if (statement is Block) {
     List<Statement> blockStatements = statement.statements;
     if (blockStatements.length != 1) {
@@ -467,11 +450,8 @@ List<Statement> getStatements(Statement statement) {
 }
 
 /// Checks if the given [element]'s display name equals to the given [name].
-bool hasDisplayName(Element element, String name) {
-  if (element == null) {
-    return false;
-  }
-  return element.displayName == name;
+bool hasDisplayName(Element? element, String name) {
+  return element?.displayName == name;
 }
 
 /// Checks if given [DartNode] is the left hand side of an assignment, or a
@@ -502,7 +482,7 @@ bool isNamedExpressionName(SimpleIdentifier node) {
 /// If the given [expression] is the `expression` property of a
 /// [NamedExpression] then returns this [NamedExpression], otherwise returns
 /// [expression].
-Expression stepUpNamedExpression(Expression expression) {
+Expression? stepUpNamedExpression(Expression? expression) {
   if (expression != null) {
     var parent = expression.parent;
     if (parent is NamedExpression && parent.expression == expression) {
@@ -528,7 +508,7 @@ bool _allListsIdentical(List<List> lists, int position) {
 /// These inconsistencies may happen as a part of normal workflow, e.g. because
 /// a resource was deleted, or an analysis result was invalidated.
 class CancelCorrectionException {
-  final Object exception;
+  final Object? exception;
 
   CancelCorrectionException({this.exception});
 }
@@ -549,37 +529,39 @@ class CorrectionUtils {
 
   /// The [ClassElement] the generated code is inserted to, so we can decide if
   /// a type parameter may or may not be used.
-  ClassElement targetClassElement;
+  ClassElement? targetClassElement;
 
-  ExecutableElement targetExecutableElement;
+  ExecutableElement? targetExecutableElement;
 
-  String _endOfLine;
+  String? _endOfLine;
 
   CorrectionUtils(ResolvedUnitResult result)
-      : unit = result.unit,
+      : unit = result.unit!,
         _library = result.libraryElement,
-        _buffer = result.content;
+        _buffer = result.content!;
 
   /// Returns the EOL to use for this [CompilationUnit].
   String get endOfLine {
-    if (_endOfLine == null) {
-      if (_buffer.contains('\r\n')) {
-        _endOfLine = '\r\n';
-      } else {
-        _endOfLine = '\n';
-      }
+    var endOfLine = _endOfLine;
+    if (endOfLine != null) {
+      return endOfLine;
     }
-    return _endOfLine;
+
+    if (_buffer.contains('\r\n')) {
+      return _endOfLine = '\r\n';
+    } else {
+      return _endOfLine = '\n';
+    }
   }
 
   /// Returns the [AstNode] that encloses the given offset.
-  AstNode findNode(int offset) => NodeLocator(offset).searchWithin(unit);
+  AstNode? findNode(int offset) => NodeLocator(offset).searchWithin(unit);
 
   /// Returns names of elements that might conflict with a new local variable
   /// declared at [offset].
   Set<String> findPossibleLocalVariableConflicts(int offset) {
     var conflicts = <String>{};
-    var enclosingNode = findNode(offset);
+    var enclosingNode = findNode(offset)!;
     var enclosingBlock = enclosingNode.thisOrAncestorOfType<Block>();
     if (enclosingBlock != null) {
       var visitor = _CollectReferencedUnprefixedNames();
@@ -747,8 +729,9 @@ class CorrectionUtils {
     // end
     var endOffset = sourceRange.end;
     var afterEndLineOffset = endOffset;
-    var lineStart = unit.lineInfo.getOffsetOfLine(
-        unit.lineInfo.getLocation(startLineOffset).lineNumber - 1);
+    var lineInfo = unit.lineInfo!;
+    var lineStart = lineInfo
+        .getOffsetOfLine(lineInfo.getLocation(startLineOffset).lineNumber - 1);
     if (lineStart == startLineOffset) {
       // Only consume line ends after the end of the range if there is nothing
       // else on the line containing the beginning of the range. Otherwise this
@@ -814,13 +797,15 @@ class CorrectionUtils {
   ///
   /// Fills [librariesToImport] with [LibraryElement]s whose elements are
   /// used by the generated source, but not imported.
-  String getTypeSource(DartType type, Set<Source> librariesToImport,
-      {StringBuffer parametersBuffer}) {
-    if (type.aliasElement != null) {
+  String? getTypeSource(DartType type, Set<Source> librariesToImport,
+      {StringBuffer? parametersBuffer}) {
+    var aliasElement = type.aliasElement;
+    var aliasArguments = type.aliasArguments;
+    if (aliasElement != null && aliasArguments != null) {
       return _getTypeCodeElementArguments(
         librariesToImport: librariesToImport,
-        element: type.aliasElement,
-        typeArguments: type.aliasArguments,
+        element: aliasElement,
+        typeArguments: aliasArguments,
       );
     }
 
@@ -888,7 +873,7 @@ class CorrectionUtils {
       }
       // update line
       if (indentLeft) {
-        line = removeStart(line, indent);
+        line = removeStart(line, indent)!;
       } else {
         line = '$indent$line';
       }
@@ -907,8 +892,8 @@ class CorrectionUtils {
   /// Return `true` if the given class, mixin, enum or extension [declaration]
   /// has open '{' and close '}' on the same line, e.g. `class X {}`.
   bool isClassWithEmptyBody(CompilationUnitMember declaration) {
-    return getLineThis(_getLeftBracket(declaration).offset) ==
-        getLineThis(_getRightBracket(declaration).offset);
+    return getLineThis(_getLeftBracket(declaration)!.offset) ==
+        getLineThis(_getRightBracket(declaration)!.offset);
   }
 
   /// Return <code>true</code> if [range] contains only whitespace or comments.
@@ -922,12 +907,12 @@ class CorrectionUtils {
     return TokenUtils.getTokens(trimmedText, unit.featureSet).isEmpty;
   }
 
-  ClassMemberLocation prepareNewClassMemberLocation(
+  ClassMemberLocation? prepareNewClassMemberLocation(
       CompilationUnitMember declaration,
       bool Function(ClassMember existingMember) shouldSkip) {
     var indent = getIndent(1);
     // Find the last target member.
-    ClassMember targetMember;
+    ClassMember? targetMember;
     var members = _getMembers(declaration);
     if (members == null) {
       return null;
@@ -949,10 +934,10 @@ class CorrectionUtils {
         ? endOfLine
         : '';
     return ClassMemberLocation(
-        endOfLine + indent, _getLeftBracket(declaration).end, suffix);
+        endOfLine + indent, _getLeftBracket(declaration)!.end, suffix);
   }
 
-  ClassMemberLocation prepareNewConstructorLocation(
+  ClassMemberLocation? prepareNewConstructorLocation(
       ClassDeclaration classDeclaration) {
     return prepareNewClassMemberLocation(
         classDeclaration,
@@ -960,13 +945,13 @@ class CorrectionUtils {
             member is FieldDeclaration || member is ConstructorDeclaration);
   }
 
-  ClassMemberLocation prepareNewFieldLocation(
+  ClassMemberLocation? prepareNewFieldLocation(
       CompilationUnitMember declaration) {
     return prepareNewClassMemberLocation(
         declaration, (member) => member is FieldDeclaration);
   }
 
-  ClassMemberLocation prepareNewGetterLocation(
+  ClassMemberLocation? prepareNewGetterLocation(
       CompilationUnitMember declaration) {
     return prepareNewClassMemberLocation(
         declaration,
@@ -976,7 +961,7 @@ class CorrectionUtils {
             member is MethodDeclaration && member.isGetter);
   }
 
-  ClassMemberLocation prepareNewMethodLocation(
+  ClassMemberLocation? prepareNewMethodLocation(
       CompilationUnitMember declaration) {
     return prepareNewClassMemberLocation(
         declaration,
@@ -998,7 +983,6 @@ class CorrectionUtils {
         if (token.type == TokenType.STRING) {
           lineRanges.add(range.token(token));
         }
-        token = token.next;
       }
     }
     // re-indent lines
@@ -1072,7 +1056,7 @@ class CorrectionUtils {
 
   /// Return the import element used to import given [element] into the library.
   /// May be `null` if was not imported, i.e. declared in the same library.
-  ImportElement _getImportElement(Element element) {
+  ImportElement? _getImportElement(Element element) {
     for (var imp in _library.imports) {
       var definedNames = getImportNamespace(imp);
       if (definedNames.containsValue(element)) {
@@ -1082,7 +1066,7 @@ class CorrectionUtils {
     return null;
   }
 
-  Token _getLeftBracket(CompilationUnitMember declaration) {
+  Token? _getLeftBracket(CompilationUnitMember declaration) {
     if (declaration is ClassOrMixinDeclaration) {
       return declaration.leftBracket;
     } else if (declaration is ExtensionDeclaration) {
@@ -1091,7 +1075,7 @@ class CorrectionUtils {
     return null;
   }
 
-  List<ClassMember> _getMembers(CompilationUnitMember declaration) {
+  List<ClassMember>? _getMembers(CompilationUnitMember declaration) {
     if (declaration is ClassOrMixinDeclaration) {
       return declaration.members;
     } else if (declaration is ExtensionDeclaration) {
@@ -1100,7 +1084,7 @@ class CorrectionUtils {
     return null;
   }
 
-  Token _getRightBracket(CompilationUnitMember declaration) {
+  Token? _getRightBracket(CompilationUnitMember declaration) {
     if (declaration is ClassOrMixinDeclaration) {
       return declaration.rightBracket;
     } else if (declaration is ExtensionDeclaration) {
@@ -1109,10 +1093,10 @@ class CorrectionUtils {
     return null;
   }
 
-  String _getTypeCodeElementArguments({
-    @required Set<Source> librariesToImport,
-    @required Element element,
-    @required List<DartType> typeArguments,
+  String? _getTypeCodeElementArguments({
+    required Set<Source> librariesToImport,
+    required Element element,
+    required List<DartType> typeArguments,
   }) {
     var sb = StringBuffer();
 
@@ -1126,8 +1110,9 @@ class CorrectionUtils {
       // ensure import
       var importElement = _getImportElement(element);
       if (importElement != null) {
-        if (importElement.prefix != null) {
-          sb.write(importElement.prefix.displayName);
+        var prefix = importElement.prefix;
+        if (prefix != null) {
+          sb.write(prefix.displayName);
           sb.write('.');
         }
       } else {
@@ -1222,7 +1207,7 @@ class CorrectionUtils {
     } else if (expression is ParenthesizedExpression) {
       return _invertCondition0(expression.unParenthesized);
     }
-    var type = expression.staticType;
+    var type = expression.typeOrThrow;
     if (type.isDartCoreBool) {
       return _InvertedCondition._simple('!${getNodeText(expression)}');
     }
@@ -1271,7 +1256,7 @@ class CorrectionUtils_InsertDesc {
 class TokenUtils {
   static List<Token> getNodeTokens(AstNode node) {
     var result = <Token>[];
-    for (var token = node.beginToken;; token = token.next) {
+    for (var token = node.beginToken;; token = token.next!) {
       result.add(token);
       if (token == node.endToken) {
         break;
@@ -1285,15 +1270,18 @@ class TokenUtils {
   static List<Token> getTokens(String s, FeatureSet featureSet) {
     try {
       var tokens = <Token>[];
-      var scanner = Scanner(null, CharSequenceReader(s), null)
-        ..configureFeatures(
+      var scanner = Scanner(
+        _SourceMock(),
+        CharSequenceReader(s),
+        AnalysisErrorListener.NULL_LISTENER,
+      )..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet,
         );
       var token = scanner.tokenize();
       while (token.type != TokenType.EOF) {
         tokens.add(token);
-        token = token.next;
+        token = token.next!;
       }
       return tokens;
     } catch (e) {
@@ -1395,4 +1383,9 @@ class _LocalElementsCollector extends RecursiveAstVisitor<void> {
       }
     }
   }
+}
+
+class _SourceMock implements Source {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

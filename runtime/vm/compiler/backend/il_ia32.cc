@@ -1433,46 +1433,6 @@ DEFINE_BACKEND(StoreUntagged, (NoLocation, Register obj, Register value)) {
   __ movl(compiler::Address(obj, instr->offset_from_tagged()), value);
 }
 
-Representation LoadIndexedInstr::representation() const {
-  switch (class_id_) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-    case kTypeArgumentsCid:
-      return kTagged;
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      return kUnboxedIntPtr;
-    case kTypedDataInt32ArrayCid:
-      return kUnboxedInt32;
-    case kTypedDataUint32ArrayCid:
-      return kUnboxedUint32;
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
-      return kUnboxedInt64;
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
-      return kUnboxedDouble;
-    case kTypedDataFloat32x4ArrayCid:
-      return kUnboxedFloat32x4;
-    case kTypedDataInt32x4ArrayCid:
-      return kUnboxedInt32x4;
-    case kTypedDataFloat64x2ArrayCid:
-      return kUnboxedFloat64x2;
-    default:
-      UNIMPLEMENTED();
-      return kTagged;
-  }
-}
-
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -1624,54 +1584,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movl(result, element_address);
       break;
     }
-  }
-}
-
-Representation StoreIndexedInstr::RequiredInputRepresentation(
-    intptr_t idx) const {
-  // Array can be a Dart object or a pointer to external data.
-  if (idx == 0) return kNoRepresentation;  // Flexible input representation.
-  if (idx == 1) {
-    if (index_unboxed_) {
-      // TODO(dartbug.com/39432): kUnboxedInt32 || kUnboxedUint32.
-      return kNoRepresentation;
-    } else {
-      return kTagged;  // Index is a smi.
-    }
-  }
-  ASSERT(idx == 2);
-  switch (class_id_) {
-    case kArrayCid:
-      return kTagged;
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      return kUnboxedIntPtr;
-    case kTypedDataInt32ArrayCid:
-      return kUnboxedInt32;
-    case kTypedDataUint32ArrayCid:
-      return kUnboxedUint32;
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
-      return kUnboxedInt64;
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
-      return kUnboxedDouble;
-    case kTypedDataFloat32x4ArrayCid:
-      return kUnboxedFloat32x4;
-    case kTypedDataInt32x4ArrayCid:
-      return kUnboxedInt32x4;
-    case kTypedDataFloat64x2ArrayCid:
-      return kUnboxedFloat64x2;
-    default:
-      UNIMPLEMENTED();
-      return kTagged;
   }
 }
 

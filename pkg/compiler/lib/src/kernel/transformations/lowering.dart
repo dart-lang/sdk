@@ -5,52 +5,57 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/type_environment.dart'
-    show StaticTypeContext, TypeEnvironment;
 import 'factory_specializer.dart';
+import 'late_lowering.dart';
 
 /// dart2js-specific lowering transformations and optimizations combined into a
 /// single transformation pass.
 ///
 /// Each transformation is applied locally to AST nodes of certain types after
 /// transforming children nodes.
-void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, bool nullSafety) {
-  final transformer = _Lowering(coreTypes, hierarchy, nullSafety);
+void transformLibraries(
+    List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy) {
+  final transformer = _Lowering(coreTypes, hierarchy);
   libraries.forEach(transformer.visitLibrary);
 }
 
 class _Lowering extends Transformer {
-  final TypeEnvironment env;
-  final bool nullSafety;
   final FactorySpecializer factorySpecializer;
+  final LateLowering _lateLowering;
 
   Member _currentMember;
-  StaticTypeContext _cachedStaticTypeContext;
 
-  _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy, this.nullSafety)
-      : env = TypeEnvironment(coreTypes, hierarchy),
-        factorySpecializer = FactorySpecializer(coreTypes, hierarchy);
-
-  // ignore: unused_element
-  StaticTypeContext get _staticTypeContext =>
-      _cachedStaticTypeContext ??= StaticTypeContext(_currentMember, env);
+  _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy)
+      : factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
+        _lateLowering = LateLowering(coreTypes.index);
 
   @override
-  defaultMember(Member node) {
+  TreeNode defaultMember(Member node) {
     _currentMember = node;
-    _cachedStaticTypeContext = null;
-
-    final result = super.defaultMember(node);
-
-    _currentMember = null;
-    _cachedStaticTypeContext = null;
-    return result;
+    return super.defaultMember(node);
   }
 
   @override
-  visitStaticInvocation(StaticInvocation node) {
+  TreeNode visitStaticInvocation(StaticInvocation node) {
     node.transformChildren(this);
     return factorySpecializer.transformStaticInvocation(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitVariableDeclaration(VariableDeclaration node) {
+    node.transformChildren(this);
+    return _lateLowering.transformVariableDeclaration(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitVariableGet(VariableGet node) {
+    node.transformChildren(this);
+    return _lateLowering.transformVariableGet(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitVariableSet(VariableSet node) {
+    node.transformChildren(this);
+    return _lateLowering.transformVariableSet(node, _currentMember);
   }
 }

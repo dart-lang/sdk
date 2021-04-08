@@ -1302,8 +1302,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           compiler::ffi::RecognizedMethodAlignment(kind);
       const classid_t typed_data_cid =
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
-      const auto& native_rep = compiler::ffi::NativeType::FromTypedDataClassId(
-          zone_, ffi_type_arg_cid);
 
       ASSERT(function.NumParameters() == 2);
       LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
@@ -1324,59 +1322,45 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadIndexed(typed_data_cid, /*index_scale=*/1,
                           /*index_unboxed=*/true, alignment);
       if (kind == MethodRecognizer::kFfiLoadFloat ||
-          kind == MethodRecognizer::kFfiLoadFloatUnaligned ||
-          kind == MethodRecognizer::kFfiLoadDouble ||
-          kind == MethodRecognizer::kFfiLoadDoubleUnaligned) {
-        if (kind == MethodRecognizer::kFfiLoadFloat ||
-            kind == MethodRecognizer::kFfiLoadFloatUnaligned) {
-          body += FloatToDouble();
-        }
-        body += Box(kUnboxedDouble);
-      } else if (kind == MethodRecognizer::kFfiLoadInt8 ||
-                 kind == MethodRecognizer::kFfiLoadInt16 ||
-                 kind == MethodRecognizer::kFfiLoadUint8 ||
-                 kind == MethodRecognizer::kFfiLoadUint16) {
-        // LoadIndexed instruction with 8-bit and 16-bit elements
-        // results in value with kUnboxedIntPtr representation
-        // (see LoadIndexedInstr::representation).
-        // Avoid any unnecessary (and potentially deoptimizing) int
-        // conversions by using the correct representation at the first place.
-        body += Box(kUnboxedIntPtr);
-      } else {
-        body += Box(native_rep.AsRepresentationOverApprox(zone_));
-        if (kind == MethodRecognizer::kFfiLoadPointer) {
-          const auto class_table = thread_->isolate_group()->class_table();
-          ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
-          const auto& pointer_class =
-              Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
+          kind == MethodRecognizer::kFfiLoadFloatUnaligned) {
+        body += FloatToDouble();
+      }
+      // Avoid any unnecessary (and potentially deoptimizing) int
+      // conversions by using the representation returned from LoadIndexed.
+      body +=
+          Box(LoadIndexedInstr::RepresentationOfArrayElement(typed_data_cid));
+      if (kind == MethodRecognizer::kFfiLoadPointer) {
+        const auto class_table = thread_->isolate_group()->class_table();
+        ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
+        const auto& pointer_class =
+            Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
 
-          // We find the reified type to use for the pointer allocation.
-          //
-          // Call sites to this recognized method are guaranteed to pass a
-          // Pointer<Pointer<X>> as RawParameterVariable(0). This function
-          // will return a Pointer<X> object - for which we inspect the
-          // reified type on the argument.
-          //
-          // The following is safe to do, as (1) we are guaranteed to have a
-          // Pointer<Pointer<X>> as argument, and (2) the bound on the pointer
-          // type parameter guarantees X is an interface type.
-          ASSERT(function.NumTypeParameters() == 1);
-          LocalVariable* address = MakeTemporary();
-          body += LoadLocal(parsed_function_->RawParameterVariable(0));
-          body += LoadNativeField(
-              Slot::GetTypeArgumentsSlotFor(thread_, pointer_class));
-          body += LoadNativeField(Slot::GetTypeArgumentsIndexSlot(
-              thread_, Pointer::kNativeTypeArgPos));
-          body += LoadNativeField(Slot::Type_arguments());
-          body += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
-          LocalVariable* pointer = MakeTemporary();
-          body += LoadLocal(pointer);
-          body += LoadLocal(address);
-          body += UnboxTruncate(kUnboxedFfiIntPtr);
-          body += ConvertUnboxedToUntagged(kUnboxedFfiIntPtr);
-          body += StoreUntagged(compiler::target::Pointer::data_field_offset());
-          body += DropTempsPreserveTop(1);  // Drop [address] keep [pointer].
-        }
+        // We find the reified type to use for the pointer allocation.
+        //
+        // Call sites to this recognized method are guaranteed to pass a
+        // Pointer<Pointer<X>> as RawParameterVariable(0). This function
+        // will return a Pointer<X> object - for which we inspect the
+        // reified type on the argument.
+        //
+        // The following is safe to do, as (1) we are guaranteed to have a
+        // Pointer<Pointer<X>> as argument, and (2) the bound on the pointer
+        // type parameter guarantees X is an interface type.
+        ASSERT(function.NumTypeParameters() == 1);
+        LocalVariable* address = MakeTemporary();
+        body += LoadLocal(parsed_function_->RawParameterVariable(0));
+        body += LoadNativeField(
+            Slot::GetTypeArgumentsSlotFor(thread_, pointer_class));
+        body += LoadNativeField(Slot::GetTypeArgumentsIndexSlot(
+            thread_, Pointer::kNativeTypeArgPos));
+        body += LoadNativeField(Slot::Type_arguments());
+        body += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
+        LocalVariable* pointer = MakeTemporary();
+        body += LoadLocal(pointer);
+        body += LoadLocal(address);
+        body += UnboxTruncate(kUnboxedFfiIntPtr);
+        body += ConvertUnboxedToUntagged(kUnboxedFfiIntPtr);
+        body += StoreUntagged(compiler::target::Pointer::data_field_offset());
+        body += DropTempsPreserveTop(1);  // Drop [address] keep [pointer].
       }
       body += DropTempsPreserveTop(1);  // Drop [arg_offset].
     } break;
@@ -1400,8 +1384,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           compiler::ffi::RecognizedMethodAlignment(kind);
       const classid_t typed_data_cid =
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
-      const auto& native_rep = compiler::ffi::NativeType::FromTypedDataClassId(
-          zone_, ffi_type_arg_cid);
 
       LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
       LocalVariable* arg_offset = parsed_function_->RawParameterVariable(1);
@@ -1463,27 +1445,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         // This can only be Pointer, so it is always safe to LoadUntagged.
         body += LoadUntagged(compiler::target::Pointer::data_field_offset());
         body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
-      } else if (kind == MethodRecognizer::kFfiStoreFloat ||
-                 kind == MethodRecognizer::kFfiStoreFloatUnaligned ||
-                 kind == MethodRecognizer::kFfiStoreDouble ||
-                 kind == MethodRecognizer::kFfiStoreDoubleUnaligned) {
-        body += UnboxTruncate(kUnboxedDouble);
+      } else {
+        // Avoid any unnecessary (and potentially deoptimizing) int
+        // conversions by using the representation consumed by StoreIndexed.
+        body += UnboxTruncate(
+            StoreIndexedInstr::RepresentationOfArrayElement(typed_data_cid));
         if (kind == MethodRecognizer::kFfiStoreFloat ||
             kind == MethodRecognizer::kFfiStoreFloatUnaligned) {
           body += DoubleToFloat();
         }
-      } else if (kind == MethodRecognizer::kFfiStoreInt8 ||
-                 kind == MethodRecognizer::kFfiStoreInt16 ||
-                 kind == MethodRecognizer::kFfiStoreUint8 ||
-                 kind == MethodRecognizer::kFfiStoreUint16) {
-        // StoreIndexed instruction with 8-bit and 16-bit elements
-        // takes value with kUnboxedIntPtr representation
-        // (see StoreIndexedInstr::RequiredInputRepresentation).
-        // Avoid any unnecessary (and potentially deoptimizing) int
-        // conversions by using the correct representation at the first place.
-        body += UnboxTruncate(kUnboxedIntPtr);
-      } else {
-        body += UnboxTruncate(native_rep.AsRepresentationOverApprox(zone_));
       }
       body += StoreIndexedTypedData(typed_data_cid, /*index_scale=*/1,
                                     /*index_unboxed=*/true, alignment);

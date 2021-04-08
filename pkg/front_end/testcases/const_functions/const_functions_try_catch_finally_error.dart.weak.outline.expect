@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static const field core::int var1 = self::finallyThrow(0);
+static const field core::int var2 = self::finallyThrow(1);
+static const field core::int var3 = self::unhandledThrow(0);
+static const field core::int var4 = self::unhandledThrow("string");
+static const field core::int var5 = self::unhandledThrow2();
+static method finallyThrow(core::int x) → core::int
+  ;
+static method unhandledThrow(dynamic x) → core::int
+  ;
+static method unhandledThrow2() → core::int
+  ;
+static method main() → dynamic
+  ;

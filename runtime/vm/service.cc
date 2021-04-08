@@ -41,6 +41,7 @@
 #include "vm/port.h"
 #include "vm/profiler.h"
 #include "vm/profiler_service.h"
+#include "vm/raw_object_fields.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
 #include "vm/service_event.h"
@@ -2127,6 +2128,7 @@ static bool PrintInboundReferences(Thread* thread,
   ObjectGraph graph(thread);
   Array& path = Array::Handle(Array::New(limit * 2));
   intptr_t length = graph.InboundReferences(target, path);
+  OffsetsTable offsets_table(thread->zone());
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "InboundReferences");
   {
@@ -2147,17 +2149,35 @@ static bool PrintInboundReferences(Thread* thread,
         intptr_t element_index =
             slot_offset.Value() - (Array::element_offset(0) >> kWordSizeLog2);
         jselement.AddProperty("parentListIndex", element_index);
-      } else if (source.IsInstance()) {
-        source_class = source.clazz();
-        parent_field_map = source_class.OffsetToFieldMap();
-        intptr_t offset = slot_offset.Value();
-        if (offset > 0 && offset < parent_field_map.Length()) {
-          field ^= parent_field_map.At(offset);
-          jselement.AddProperty("parentField", field);
-        }
       } else {
-        intptr_t element_index = slot_offset.Value();
-        jselement.AddProperty("_parentWordOffset", element_index);
+        if (source.IsInstance()) {
+          source_class = source.clazz();
+          parent_field_map = source_class.OffsetToFieldMap();
+          intptr_t offset = slot_offset.Value();
+          if (offset > 0 && offset < parent_field_map.Length()) {
+            field ^= parent_field_map.At(offset);
+            if (!field.IsNull()) {
+              jselement.AddProperty("parentField", field);
+              continue;
+            }
+          }
+        }
+        const char* field_name = offsets_table.FieldNameForOffset(
+            source.GetClassId(), slot_offset.Value() * kWordSize);
+        if (field_name != nullptr) {
+          jselement.AddProperty("_parentWordOffset", slot_offset.Value());
+          // TODO(vm-service): Adjust RPC type to allow returning a field name
+          // without a field object, or reify the fields described by
+          // raw_object_fields.cc
+          // jselement.AddProperty("_parentFieldName", field_name);
+        } else if (source.IsContext()) {
+          intptr_t element_index =
+              slot_offset.Value() -
+              (Context::variable_offset(0) >> kWordSizeLog2);
+          jselement.AddProperty("parentListIndex", element_index);
+        } else {
+          jselement.AddProperty("_parentWordOffset", slot_offset.Value());
+        }
       }
     }
   }
@@ -2236,6 +2256,7 @@ static bool PrintRetainingPath(Thread* thread,
   WeakProperty& wp = WeakProperty::Handle();
   String& name = String::Handle();
   limit = Utils::Minimum(limit, length);
+  OffsetsTable offsets_table(thread->zone());
   for (intptr_t i = 0; i < limit; ++i) {
     JSONObject jselement(&elements);
     element = path.At(i * 2);
@@ -2266,23 +2287,32 @@ static bool PrintRetainingPath(Thread* thread,
         wp ^= static_cast<WeakPropertyPtr>(element.ptr());
         element = wp.key();
         jselement.AddProperty("parentMapKey", element);
-      } else if (element.IsInstance()) {
-        element_class = element.clazz();
-        element_field_map = element_class.OffsetToFieldMap();
-        OS::PrintErr("Class: %s Map: %s\n", element_class.ToCString(),
-                     element_field_map.ToCString());
-        intptr_t offset = slot_offset.Value();
-        if (offset > 0 && offset < element_field_map.Length()) {
-          field ^= element_field_map.At(offset);
-          ASSERT(!field.IsNull());
-          // TODO(bkonyi): check for mapping between C++ name and Dart name (V8
-          // snapshot writer?)
-          name ^= field.name();
-          jselement.AddProperty("parentField", name.ToCString());
-        }
       } else {
-        intptr_t element_index = slot_offset.Value();
-        jselement.AddProperty("_parentWordOffset", element_index);
+        if (element.IsInstance()) {
+          element_class = element.clazz();
+          element_field_map = element_class.OffsetToFieldMap();
+          intptr_t offset = slot_offset.Value();
+          if ((offset > 0) && (offset < element_field_map.Length())) {
+            field ^= element_field_map.At(offset);
+            if (!field.IsNull()) {
+              name ^= field.name();
+              jselement.AddProperty("parentField", name.ToCString());
+              continue;
+            }
+          }
+        }
+        const char* field_name = offsets_table.FieldNameForOffset(
+            element.GetClassId(), slot_offset.Value() * kWordSize);
+        if (field_name != nullptr) {
+          jselement.AddProperty("parentField", field_name);
+        } else if (element.IsContext()) {
+          intptr_t element_index =
+              slot_offset.Value() -
+              (Context::variable_offset(0) >> kWordSizeLog2);
+          jselement.AddProperty("parentListIndex", element_index);
+        } else {
+          jselement.AddProperty("_parentWordOffset", slot_offset.Value());
+        }
       }
     }
   }

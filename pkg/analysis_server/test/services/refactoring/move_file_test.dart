@@ -339,6 +339,7 @@ part '22/new_name.dart';
   }
 
   Future<void> test_folder_outside_workspace_returns_failure() async {
+    await resolveTestFile();
     _createRefactoring('/tmp-new', oldFile: '/tmp');
     // TODO(dantup): These paths should all use convertPath so they're as expected
     // on Windows.
@@ -348,6 +349,7 @@ part '22/new_name.dart';
   }
 
   Future<void> test_nonexistent_file_returns_failure() async {
+    await resolveTestFile();
     _createRefactoring(convertPath('/home/test/test_missing_new.dart'),
         oldFile: convertPath('/home/test/test_missing.dart'));
     await _assertFailedRefactoring(RefactoringProblemSeverity.FATAL,
@@ -363,6 +365,7 @@ part '22/new_name.dart';
   }
 
   Future<void> test_projectFolder() async {
+    await resolveTestFile();
     _createRefactoring('/home/test2', oldFile: '/home/test');
     await _assertFailedRefactoring(RefactoringProblemSeverity.FATAL,
         expectedMessage: 'Renaming an analysis root is not supported '

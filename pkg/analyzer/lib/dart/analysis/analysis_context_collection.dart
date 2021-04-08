@@ -17,10 +17,15 @@ abstract class AnalysisContextCollection {
   ///
   /// If a [resourceProvider] is given, then it will be used to access the file
   /// system, otherwise the default resource provider will be used.
-  factory AnalysisContextCollection(
-      {required List<String> includedPaths,
-      List<String>? excludedPaths,
-      ResourceProvider? resourceProvider}) = AnalysisContextCollectionImpl;
+  ///
+  /// If [sdkPath] is given, then Dart SDK at this path will be used, otherwise
+  /// the default Dart SDK will be used.
+  factory AnalysisContextCollection({
+    required List<String> includedPaths,
+    List<String>? excludedPaths,
+    ResourceProvider? resourceProvider,
+    String? sdkPath,
+  }) = AnalysisContextCollectionImpl;
 
   /// Return all of the analysis contexts in this collection.
   List<AnalysisContext> get contexts;

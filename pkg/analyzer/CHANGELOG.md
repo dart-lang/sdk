@@ -1,6 +1,10 @@
-## 1.4.0-dev
+## 1.4.0
 * Deprecated `TypeProvider.nonSubtypableClasses`.
   Use `TypeProvider.isNonSubtypableClass` instead.
+* Added `sdkPath` to `AnalysisContextCollection` constructor.
+* Improved support for generalized type aliases.
+* The feature `nonfunction-type-aliases` is enabled by default in the
+  language version `2.13`.
 
 ## 1.3.0
 * Added `Expression.inConstantContext` to API.

@@ -48,7 +48,6 @@ import 'dart:_internal' as _symbol_dev;
 import 'dart:_internal'
     show
         EfficientLengthIterable,
-        LateError,
         MappedIterable,
         IterableElementError,
         SubListIterable;
@@ -3024,9 +3023,6 @@ class _Required {
 
 const kRequiredSentinel = const _Required();
 bool isRequired(Object? value) => identical(kRequiredSentinel, value);
-
-/// Called by generated code to throw a LateInitializationError.
-void throwLateInitializationError(String name) => throw LateError(name);
 
 /// Checks that [f] is a function that supports interop.
 @pragma('dart2js:tryInline')

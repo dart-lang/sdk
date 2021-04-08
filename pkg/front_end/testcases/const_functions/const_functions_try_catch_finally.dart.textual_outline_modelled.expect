@@ -1,0 +1,24 @@
+import "package:expect/expect.dart";
+
+String orderFn() {}
+const var1 = fn("s");
+const var10 = finallyMutate();
+const var11 = subtypeFn();
+const var12 = orderFn();
+const var13 = notThrowStatement();
+const var2 = fn(1);
+const var3 = fn1(10);
+const var4 = fn1("s");
+const var5 = finallyReturn(10);
+const var6 = finallyReturn("s");
+const var7 = finallyReturn(1);
+const var8 = finallyReturn1(0);
+const var9 = finallyReturn1(1);
+int finallyMutate() {}
+int finallyReturn(dynamic error) {}
+int finallyReturn1(int x) {}
+int fn(dynamic error) {}
+int fn1(dynamic error) {}
+int notThrowStatement() {}
+int subtypeFn() {}
+void main() {}

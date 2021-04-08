@@ -463,7 +463,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
                   closedWorld.commonElements.cyclicThrowHelper,
                   CallStructure.ONE_ARG));
               registry.registerStaticUse(new StaticUse.staticInvoke(
-                  closedWorld.commonElements.throwLateInitializationError,
+                  closedWorld.commonElements.throwLateFieldADI,
                   CallStructure.ONE_ARG));
             }
             if (targetElement.isInstanceMember) {

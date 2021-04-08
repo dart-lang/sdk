@@ -1683,46 +1683,6 @@ class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
   const Register result_;
 };
 
-Representation LoadIndexedInstr::representation() const {
-  switch (class_id_) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-    case kTypeArgumentsCid:
-      return kTagged;
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      return kUnboxedIntPtr;
-    case kTypedDataInt32ArrayCid:
-      return kUnboxedInt32;
-    case kTypedDataUint32ArrayCid:
-      return kUnboxedUint32;
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
-      return kUnboxedInt64;
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
-      return kUnboxedDouble;
-    case kTypedDataInt32x4ArrayCid:
-      return kUnboxedInt32x4;
-    case kTypedDataFloat32x4ArrayCid:
-      return kUnboxedFloat32x4;
-    case kTypedDataFloat64x2ArrayCid:
-      return kUnboxedFloat64x2;
-    default:
-      UNIMPLEMENTED();
-      return kTagged;
-  }
-}
-
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -1930,52 +1890,6 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
       break;
-  }
-}
-
-Representation StoreIndexedInstr::RequiredInputRepresentation(
-    intptr_t idx) const {
-  if (idx == 0) return kNoRepresentation;
-  if (idx == 1) {
-    if (index_unboxed_) {
-      return kUnboxedInt64;
-    } else {
-      return kTagged;  // Index is a smi.
-    }
-  }
-  ASSERT(idx == 2);
-  switch (class_id_) {
-    case kArrayCid:
-      return kTagged;
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      return kUnboxedIntPtr;
-    case kTypedDataInt32ArrayCid:
-      return kUnboxedInt32;
-    case kTypedDataUint32ArrayCid:
-      return kUnboxedUint32;
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
-      return kUnboxedInt64;
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
-      return kUnboxedDouble;
-    case kTypedDataFloat32x4ArrayCid:
-      return kUnboxedFloat32x4;
-    case kTypedDataInt32x4ArrayCid:
-      return kUnboxedInt32x4;
-    case kTypedDataFloat64x2ArrayCid:
-      return kUnboxedFloat64x2;
-    default:
-      UNIMPLEMENTED();
-      return kTagged;
   }
 }
 

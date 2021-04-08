@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -52,7 +50,7 @@ abstract class CompletionRequest {
 
   /// Return the content of the [source] in which the completion is being
   /// requested, or `null` if the content could not be accessed.
-  String get sourceContents;
+  String? get sourceContents;
 
   /// Throw [AbortCompletion] if the completion request has been aborted.
   void checkAborted();

@@ -69,6 +69,7 @@ import '../fasta_codes.dart'
         templateConstEvalInvalidSymbolName,
         templateConstEvalKeyImplementsEqual,
         templateConstEvalNonConstantVariableGet,
+        templateConstEvalUnhandledException,
         templateConstEvalZeroDivisor;
 
 import 'constant_int_folder.dart';
@@ -1003,6 +1004,24 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           ..fileOffset = node.fileOffset;
         errorReporter.reportInvalidExpression(invalid);
         return new UnevaluatedConstant(invalid);
+      } else if (result is _AbortDueToThrowConstant) {
+        final Message message = templateConstEvalUnhandledException
+            .withArguments(result.throwValue, isNonNullableByDefault);
+        final Uri uri = getFileUri(result.node);
+        final int fileOffset = getFileOffset(uri, result.node);
+        final LocatedMessage locatedMessageActualError =
+            message.withLocation(uri, fileOffset, noLength);
+        final List<LocatedMessage> contextMessages = <LocatedMessage>[
+          locatedMessageActualError
+        ];
+        {
+          final Uri uri = getFileUri(node);
+          final int fileOffset = getFileOffset(uri, node);
+          final LocatedMessage locatedMessage = messageConstEvalStartingPoint
+              .withLocation(uri, fileOffset, noLength);
+          errorReporter.report(locatedMessage, contextMessages);
+        }
+        return new UnevaluatedConstant(new InvalidExpression(message.message));
       }
       throw "Unexpected error constant";
     }
@@ -2953,6 +2972,16 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 
   @override
+  Constant visitThrow(Throw node) {
+    if (enableConstFunctions) {
+      final Constant value = _evaluateSubexpression(node.expression);
+      if (value is AbortConstant) return value;
+      return new _AbortDueToThrowConstant(node, value);
+    }
+    return defaultExpression(node);
+  }
+
+  @override
   Constant visitInstantiation(Instantiation node) {
     final Constant constant = _evaluateSubexpression(node.expression);
     if (constant is AbortConstant) return constant;
@@ -3329,9 +3358,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitThisExpression(ThisExpression node) => defaultExpression(node);
-
-  @override
-  Constant visitThrow(Throw node) => defaultExpression(node);
 }
 
 class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
@@ -3475,6 +3501,42 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
       }
     }
     return const ProceedStatus();
+  }
+
+  @override
+  ExecutionStatus visitTryCatch(TryCatch node) {
+    final ExecutionStatus tryStatus = node.body.accept(this);
+    if (tryStatus is AbortStatus) {
+      final Constant error = tryStatus.error;
+      if (error is _AbortDueToThrowConstant) {
+        final Constant throwConstant = error.throwValue;
+        final DartType defaultType =
+            exprEvaluator.typeEnvironment.coreTypes.objectNonNullableRawType;
+        for (Catch catchClause in node.catches) {
+          if (exprEvaluator.isSubtype(throwConstant, catchClause.guard,
+                  SubtypeCheckMode.withNullabilities) ||
+              catchClause.guard == defaultType) {
+            return exprEvaluator.withNewEnvironment(() {
+              if (catchClause.exception != null) {
+                exprEvaluator.env
+                    .addVariableValue(catchClause.exception, throwConstant);
+              }
+              // TODO(kallentu): Store appropriate stack trace in environment.
+              return catchClause.body.accept(this);
+            });
+          }
+        }
+      }
+    }
+    return tryStatus;
+  }
+
+  @override
+  ExecutionStatus visitTryFinally(TryFinally node) {
+    final ExecutionStatus tryStatus = node.body.accept(this);
+    final ExecutionStatus finallyStatus = node.finalizer.accept(this);
+    if (finallyStatus is! ProceedStatus) return finallyStatus;
+    return tryStatus;
   }
 
   @override
@@ -3800,6 +3862,63 @@ class _AbortDueToInvalidExpressionConstant extends AbortConstant {
   final String message;
 
   _AbortDueToInvalidExpressionConstant(this.node, this.message);
+
+  @override
+  R accept<R>(ConstantVisitor<R> v) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  R acceptReference<R>(Visitor<R> v) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  Expression asExpression() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  DartType getType(StaticTypeContext context) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String leakingDebugToString() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toString() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toStringInternal() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toText(AstTextStrategy strategy) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    throw new UnimplementedError();
+  }
+}
+
+class _AbortDueToThrowConstant extends AbortConstant {
+  final Throw node;
+  final Constant throwValue;
+
+  _AbortDueToThrowConstant(this.node, this.throwValue);
 
   @override
   R accept<R>(ConstantVisitor<R> v) {

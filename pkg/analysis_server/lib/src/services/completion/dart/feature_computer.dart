@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Utility methods to compute the value of the features used for code
 /// completion.
 import 'dart:math' as math;
@@ -46,27 +44,6 @@ const List<String> stringNames = [
   'string'
 ];
 
-DartType impliedDartTypeWithName(TypeProvider typeProvider, String name) {
-  if (typeProvider == null || name == null || name.isEmpty) {
-    return null;
-  }
-  if (intNames.contains(name)) {
-    return typeProvider.intType;
-  } else if (numNames.contains(name)) {
-    return typeProvider.numType;
-  } else if (listNames.contains(name)) {
-    return typeProvider.listType(typeProvider.dynamicType);
-  } else if (stringNames.contains(name)) {
-    return typeProvider.stringType;
-  } else if (name == 'iterator') {
-    return typeProvider.iterableDynamicType;
-  } else if (name == 'map') {
-    return typeProvider.mapType(
-        typeProvider.dynamicType, typeProvider.dynamicType);
-  }
-  return null;
-}
-
 /// Convert a relevance score (assumed to be between `0.0` and `1.0` inclusive)
 /// to a relevance value between `0` and `1000`.
 int toRelevance(double score) {
@@ -104,6 +81,27 @@ double weightedAverage(
     superMatches,
   ], FeatureComputer.featureWeights);
   return (average + 1.0) / 2.0;
+}
+
+DartType? _impliedDartTypeWithName(TypeProvider typeProvider, String name) {
+  if (name.isEmpty) {
+    return null;
+  }
+  if (intNames.contains(name)) {
+    return typeProvider.intType;
+  } else if (numNames.contains(name)) {
+    return typeProvider.numType;
+  } else if (listNames.contains(name)) {
+    return typeProvider.listType(typeProvider.dynamicType);
+  } else if (stringNames.contains(name)) {
+    return typeProvider.stringType;
+  } else if (name == 'iterator') {
+    return typeProvider.iterableDynamicType;
+  } else if (name == 'map') {
+    return typeProvider.mapType(
+        typeProvider.dynamicType, typeProvider.dynamicType);
+  }
+  return null;
 }
 
 /// Return the weighted average of the given [values], applying the given
@@ -165,7 +163,7 @@ class FeatureComputer {
   /// Return the type imposed when completing at the given [offset], where the
   /// offset is within the given [node], or `null` if the context does not
   /// impose any type.
-  DartType computeContextType(AstNode node, int offset) {
+  DartType? computeContextType(AstNode node, int offset) {
     var type = node
         .accept(_ContextTypeVisitor(typeProvider, offset))
         ?.resolveToBound(typeProvider.objectType);
@@ -193,7 +191,7 @@ class FeatureComputer {
     } else if (element is FieldElement && element.isEnumConstant) {
       return protocol.ElementKind.ENUM_CONSTANT;
     } else if (element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
+      element = element.variable;
     }
     var kind = element.kind;
     if (kind == ElementKind.CONSTRUCTOR) {
@@ -229,7 +227,7 @@ class FeatureComputer {
   /// Return the value of the _context type_ feature for an element with the
   /// given [elementType] when completing in a location with the given
   /// [contextType].
-  double contextTypeFeature(DartType contextType, DartType elementType) {
+  double contextTypeFeature(DartType? contextType, DartType? elementType) {
     if (contextType == null || elementType == null) {
       // Disable the feature if we don't have both types.
       return 0.0;
@@ -252,8 +250,8 @@ class FeatureComputer {
   /// Return the value of the _element kind_ feature for the [element] when
   /// completing at the given [completionLocation]. If a [distance] is given it
   /// will be used to provide finer-grained relevance scores.
-  double elementKindFeature(Element element, String completionLocation,
-      {double distance}) {
+  double elementKindFeature(Element element, String? completionLocation,
+      {double? distance}) {
     if (completionLocation == null) {
       return 0.0;
     }
@@ -327,7 +325,7 @@ class FeatureComputer {
 
   /// Return the value of the _keyword_ feature for the [keyword] when
   /// completing at the given [completionLocation].
-  double keywordFeature(String keyword, String completionLocation) {
+  double keywordFeature(String keyword, String? completionLocation) {
     if (completionLocation == null) {
       return 0.0;
     }
@@ -357,7 +355,7 @@ class FeatureComputer {
   /// declarations between the local variable and the reference.
   int localVariableDistance(AstNode reference, LocalVariableElement variable) {
     var distance = 0;
-    var node = reference;
+    AstNode? node = reference;
     while (node != null) {
       if (node is ForStatement || node is ForElement) {
         var loopParts = node is ForStatement
@@ -440,7 +438,7 @@ class FeatureComputer {
 
   /// Return the value of the _super matches_ feature.
   double superMatchesFeature(
-          String containingMethodName, String proposedMemberName) =>
+          String? containingMethodName, String proposedMemberName) =>
       containingMethodName == null
           ? 0.0
           : (proposedMemberName == containingMethodName ? 1.0 : 0.0);
@@ -451,7 +449,7 @@ class FeatureComputer {
     if (distance < 0) {
       return 0.0;
     }
-    return math.pow(0.9, distance);
+    return math.pow(0.9, distance) as double;
   }
 
   /// Return the inheritance distance between the [subclass] and the
@@ -459,7 +457,7 @@ class FeatureComputer {
   /// cycles in the type graph.
   ///
   /// This is the implementation of [inheritanceDistance].
-  int _inheritanceDistance(ClassElement subclass, ClassElement superclass,
+  int _inheritanceDistance(ClassElement? subclass, ClassElement superclass,
       Set<ClassElement> visited) {
     if (subclass == null) {
       return -1;
@@ -504,7 +502,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   _ContextTypeVisitor(this.typeProvider, this.offset);
 
   @override
-  DartType visitAdjacentStrings(AdjacentStrings node) {
+  DartType? visitAdjacentStrings(AdjacentStrings node) {
     if (offset == node.offset) {
       return _visitParent(node);
     }
@@ -512,7 +510,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
-  DartType visitArgumentList(ArgumentList node) {
+  DartType? visitArgumentList(ArgumentList node) {
     if (range
         .endStart(node.leftParenthesis, node.rightParenthesis)
         .contains(offset)) {
@@ -523,7 +521,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 
       var index = 0;
 
-      DartType typeOfIndexPositionalParameter() {
+      DartType? typeOfIndexPositionalParameter() {
         if (index < parameters.length) {
           var parameter = parameters[index];
           if (parameter.isPositional) {
@@ -533,7 +531,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
         return null;
       }
 
-      Expression previousArgument;
+      Expression? previousArgument;
       for (var argument in node.arguments) {
         if (argument is NamedExpression) {
           if (offset <= argument.offset) {
@@ -560,7 +558,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
-  DartType visitAsExpression(AsExpression node) {
+  DartType? visitAsExpression(AsExpression node) {
     if (node.asOperator.end < offset) {
       return node.expression.staticType;
     }
@@ -568,10 +566,10 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
-  DartType visitAssertInitializer(AssertInitializer node) {
+  DartType? visitAssertInitializer(AssertInitializer node) {
     if (range
         .endStart(node.leftParenthesis,
-            node.message?.beginToken?.previous ?? node.rightParenthesis)
+            node.message?.beginToken.previous ?? node.rightParenthesis)
         .contains(offset)) {
       return typeProvider.boolType;
     }
@@ -579,10 +577,10 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
-  DartType visitAssertStatement(AssertStatement node) {
+  DartType? visitAssertStatement(AssertStatement node) {
     if (range
         .endStart(node.leftParenthesis,
-            node.message?.beginToken?.previous ?? node.rightParenthesis)
+            node.message?.beginToken.previous ?? node.rightParenthesis)
         .contains(offset)) {
       return typeProvider.boolType;
     }
@@ -590,7 +588,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
-  DartType visitAssignmentExpression(AssignmentExpression node) {
+  DartType? visitAssignmentExpression(AssignmentExpression node) {
     if (node.operator.end <= offset) {
       // RHS
       if (node.operator.type == TokenType.EQ) {
@@ -599,7 +597,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       var method = node.staticElement;
       if (method != null) {
         var parameters = method.parameters;
-        if (parameters != null && parameters.isNotEmpty) {
+        if (parameters.isNotEmpty) {
           return parameters[0].type;
         }
       }
@@ -608,12 +606,12 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
-  DartType visitAwaitExpression(AwaitExpression node) {
+  DartType? visitAwaitExpression(AwaitExpression node) {
     return _visitParent(node);
   }
 
   @override
-  DartType visitBinaryExpression(BinaryExpression node) {
+  DartType? visitBinaryExpression(BinaryExpression node) {
     if (node.operator.end <= offset) {
       return node.rightOperand.staticParameterElement?.type;
     }
@@ -621,15 +619,15 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
-  DartType visitCascadeExpression(CascadeExpression node) {
-    if (node.target != null && offset == node.target.offset) {
+  DartType? visitCascadeExpression(CascadeExpression node) {
+    if (offset == node.target.offset) {
       return _visitParent(node);
     }
     return null;
   }
 
   @override
-  DartType visitConditionalExpression(ConditionalExpression node) {
+  DartType? visitConditionalExpression(ConditionalExpression node) {
     if (offset <= node.question.offset) {
       return typeProvider.boolType;
     } else {
@@ -638,8 +636,8 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
-  DartType visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (node.equals != null && node.equals.end <= offset) {
+  DartType? visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    if (node.equals.end <= offset) {
       var element = node.fieldName.staticElement;
       if (element is FieldElement) {
         return element.type;
@@ -649,15 +647,16 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
-  DartType visitDefaultFormalParameter(DefaultFormalParameter node) {
-    if (node.separator != null && node.separator.end <= offset) {
-      return node.parameter.declaredElement.type;
+  DartType? visitDefaultFormalParameter(DefaultFormalParameter node) {
+    var separator = node.separator;
+    if (separator != null && separator.end <= offset) {
+      return node.parameter.declaredElement?.type;
     }
     return null;
   }
 
   @override
-  DartType visitDoStatement(DoStatement node) {
+  DartType? visitDoStatement(DoStatement node) {
     if (range
         .endStart(node.leftParenthesis, node.rightParenthesis)
         .contains(offset)) {
@@ -667,7 +666,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
-  DartType visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  DartType? visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (range.endEnd(node.functionDefinition, node).contains(offset)) {
       var parent = node.parent;
       if (parent is MethodDeclaration) {
@@ -684,7 +683,7 @@ Class: ${parent.parent}
       } else if (parent is FunctionExpression) {
         var grandparent = parent.parent;
         if (grandparent is FunctionDeclaration) {
-          return BodyInferenceContext.of(parent.body).contextType;
+          return BodyInferenceContext.of(parent.body)?.contextType;
         }
         return _visitParent(parent);
       }
@@ -693,15 +692,15 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitFieldDeclaration(FieldDeclaration node) {
-    if (node.fields != null && node.fields.contains(offset)) {
+  DartType? visitFieldDeclaration(FieldDeclaration node) {
+    if (node.fields.contains(offset)) {
       return node.fields.accept(this);
     }
     return null;
   }
 
   @override
-  DartType visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+  DartType? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     if (range
         .startOffsetEndOffset(node.inKeyword.end, node.end)
         .contains(offset)) {
@@ -716,7 +715,7 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+  DartType? visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     if (range.endEnd(node.inKeyword, node).contains(offset)) {
       var parent = node.parent;
       if ((parent is ForStatement && parent.awaitKeyword != null) ||
@@ -729,31 +728,27 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    if (node.leftSeparator != null &&
-        node.rightSeparator != null &&
-        range
-            .endStart(node.leftSeparator, node.rightSeparator)
-            .contains(offset)) {
+  DartType? visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    if (range
+        .endStart(node.leftSeparator, node.rightSeparator)
+        .contains(offset)) {
       return typeProvider.boolType;
     }
     return null;
   }
 
   @override
-  DartType visitForPartsWithExpression(ForPartsWithExpression node) {
-    if (node.leftSeparator != null &&
-        node.rightSeparator != null &&
-        range
-            .endStart(node.leftSeparator, node.rightSeparator)
-            .contains(offset)) {
+  DartType? visitForPartsWithExpression(ForPartsWithExpression node) {
+    if (range
+        .endStart(node.leftSeparator, node.rightSeparator)
+        .contains(offset)) {
       return typeProvider.boolType;
     }
     return null;
   }
 
   @override
-  DartType visitFunctionExpressionInvocation(
+  DartType? visitFunctionExpressionInvocation(
       FunctionExpressionInvocation node) {
     if (node.function.contains(offset)) {
       return _visitParent(node);
@@ -762,7 +757,7 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitIfElement(IfElement node) {
+  DartType? visitIfElement(IfElement node) {
     if (range
         .endStart(node.leftParenthesis, node.rightParenthesis)
         .contains(offset)) {
@@ -772,7 +767,7 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitIfStatement(IfStatement node) {
+  DartType? visitIfStatement(IfStatement node) {
     if (range
         .endStart(node.leftParenthesis, node.rightParenthesis)
         .contains(offset)) {
@@ -782,7 +777,7 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitIndexExpression(IndexExpression node) {
+  DartType? visitIndexExpression(IndexExpression node) {
     if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
       var parameters = node.staticElement?.parameters;
       if (parameters != null && parameters.isNotEmpty) {
@@ -793,7 +788,7 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitIsExpression(IsExpression node) {
+  DartType? visitIsExpression(IsExpression node) {
     if (node.isOperator.end < offset) {
       return node.expression.staticType;
     }
@@ -801,7 +796,7 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitLabel(Label node) {
+  DartType? visitLabel(Label node) {
     if (offset == node.offset) {
       return _visitParent(node);
     }
@@ -812,7 +807,7 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitListLiteral(ListLiteral node) {
+  DartType? visitListLiteral(ListLiteral node) {
     if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
       return (node.staticType as InterfaceType).typeArguments[0];
     }
@@ -820,10 +815,11 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitMapLiteralEntry(MapLiteralEntry node) {
+  DartType? visitMapLiteralEntry(MapLiteralEntry node) {
     var literal = node.thisOrAncestorOfType<SetOrMapLiteral>();
-    if (literal != null && literal.staticType.isDartCoreMap) {
-      var typeArguments = (literal.staticType as InterfaceType).typeArguments;
+    var literalType = literal?.staticType;
+    if (literalType is InterfaceType && literalType.isDartCoreMap) {
+      var typeArguments = literalType.typeArguments;
       if (offset <= node.separator.offset) {
         return typeArguments[0];
       } else {
@@ -834,7 +830,7 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitMethodInvocation(MethodInvocation node) {
+  DartType? visitMethodInvocation(MethodInvocation node) {
     if (offset == node.offset) {
       return _visitParent(node);
     }
@@ -842,7 +838,7 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitNamedExpression(NamedExpression node) {
+  DartType? visitNamedExpression(NamedExpression node) {
     if (offset == node.offset) {
       return _visitParent(node);
     }
@@ -853,65 +849,66 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitParenthesizedExpression(ParenthesizedExpression node) {
+  DartType? visitParenthesizedExpression(ParenthesizedExpression node) {
     return _visitParent(node);
   }
 
   @override
-  DartType visitPostfixExpression(PostfixExpression node) {
+  DartType? visitPostfixExpression(PostfixExpression node) {
     return node.operand.staticParameterElement?.type;
   }
 
   @override
-  DartType visitPrefixedIdentifier(PrefixedIdentifier node) {
+  DartType? visitPrefixedIdentifier(PrefixedIdentifier node) {
     return _visitParent(node);
   }
 
   @override
-  DartType visitPrefixExpression(PrefixExpression node) {
+  DartType? visitPrefixExpression(PrefixExpression node) {
     return node.operand.staticParameterElement?.type;
   }
 
   @override
-  DartType visitPropertyAccess(PropertyAccess node) {
+  DartType? visitPropertyAccess(PropertyAccess node) {
     return _visitParent(node);
   }
 
   @override
-  DartType visitReturnStatement(ReturnStatement node) {
+  DartType? visitReturnStatement(ReturnStatement node) {
     if (node.returnKeyword.end < offset) {
       var functionBody = node.thisOrAncestorOfType<FunctionBody>();
       if (functionBody != null) {
-        return BodyInferenceContext.of(functionBody).contextType;
+        return BodyInferenceContext.of(functionBody)?.contextType;
       }
     }
     return null;
   }
 
   @override
-  DartType visitSetOrMapLiteral(SetOrMapLiteral node) {
+  DartType? visitSetOrMapLiteral(SetOrMapLiteral node) {
     var type = node.staticType;
-    if (range.endStart(node.leftBracket, node.rightBracket).contains(offset) &&
+    if (type is InterfaceType &&
+        range.endStart(node.leftBracket, node.rightBracket).contains(offset) &&
         (type.isDartCoreMap || type.isDartCoreSet)) {
-      return (type as InterfaceType).typeArguments[0];
+      return type.typeArguments[0];
     }
     return null;
   }
 
   @override
-  DartType visitSimpleIdentifier(SimpleIdentifier node) {
+  DartType? visitSimpleIdentifier(SimpleIdentifier node) {
     return _visitParent(node);
   }
 
   @override
-  DartType visitSimpleStringLiteral(SimpleStringLiteral node) {
+  DartType? visitSimpleStringLiteral(SimpleStringLiteral node) {
     // The only completion inside of a String literal would be a directive,
     // where the context type would not be of value.
     return null;
   }
 
   @override
-  DartType visitSpreadElement(SpreadElement node) {
+  DartType? visitSpreadElement(SpreadElement node) {
     if (node.spreadOperator.end <= offset) {
       var currentNode = node.parent;
       while (currentNode != null) {
@@ -931,44 +928,45 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitSwitchCase(SwitchCase node) {
+  DartType? visitSwitchCase(SwitchCase node) {
     if (range.endStart(node.keyword, node.colon).contains(offset)) {
       var parent = node.parent;
       if (parent is SwitchStatement) {
-        return parent.expression?.staticType;
+        return parent.expression.staticType;
       }
     }
     return super.visitSwitchCase(node);
   }
 
   @override
-  DartType visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    if (node.variables != null && node.variables.contains(offset)) {
+  DartType? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    if (node.variables.contains(offset)) {
       return node.variables.accept(this);
     }
     return null;
   }
 
   @override
-  DartType visitVariableDeclaration(VariableDeclaration node) {
-    if (node.equals != null && node.equals.end <= offset) {
+  DartType? visitVariableDeclaration(VariableDeclaration node) {
+    var equals = node.equals;
+    if (equals != null && equals.end <= offset) {
       var parent = node.parent;
       if (parent is VariableDeclarationList) {
         return parent.type?.type ??
-            impliedDartTypeWithName(typeProvider, node.name?.name);
+            _impliedDartTypeWithName(typeProvider, node.name.name);
       }
     }
     return null;
   }
 
   @override
-  DartType visitVariableDeclarationList(VariableDeclarationList node) {
+  DartType? visitVariableDeclarationList(VariableDeclarationList node) {
     for (var varDecl in node.variables) {
-      if (varDecl != null && varDecl.contains(offset)) {
+      if (varDecl.contains(offset)) {
         var equals = varDecl.equals;
         if (equals != null && equals.end <= offset) {
           return node.type?.type ??
-              impliedDartTypeWithName(typeProvider, varDecl.name?.name);
+              _impliedDartTypeWithName(typeProvider, varDecl.name.name);
         }
       }
     }
@@ -976,7 +974,7 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitWhileStatement(WhileStatement node) {
+  DartType? visitWhileStatement(WhileStatement node) {
     if (range
         .endStart(node.leftParenthesis, node.rightParenthesis)
         .contains(offset)) {
@@ -986,11 +984,11 @@ Class: ${parent.parent}
   }
 
   @override
-  DartType visitYieldStatement(YieldStatement node) {
+  DartType? visitYieldStatement(YieldStatement node) {
     if (range.endStart(node.yieldKeyword, node.semicolon).contains(offset)) {
       var functionBody = node.thisOrAncestorOfType<FunctionBody>();
       if (functionBody != null) {
-        return BodyInferenceContext.of(functionBody).contextType;
+        return BodyInferenceContext.of(functionBody)?.contextType;
       }
     }
     return null;
@@ -999,7 +997,7 @@ Class: ${parent.parent}
   /// Return the result of visiting the parent of the [node] after setting the
   /// [childNode] to the [node]. Note that this method is destructive in that it
   /// does not reset the [childNode] before returning.
-  DartType _visitParent(AstNode node) {
+  DartType? _visitParent(AstNode node) {
     var parent = node.parent;
     if (parent == null) {
       return null;
@@ -1016,7 +1014,7 @@ extension on AstNode {
 /// Some useful extensions on [ArgumentList] for this computer.
 extension on ArgumentList {
   /// Return the [FunctionType], if there is one, for this [ArgumentList].
-  FunctionType get functionType {
+  FunctionType? get functionType {
     var parent = this.parent;
     if (parent is InstanceCreationExpression) {
       return parent.constructorName.staticElement?.type;

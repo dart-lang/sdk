@@ -91,6 +91,11 @@ class Expectation {
   static final Expectation nonUtf8Error =
       new Expectation._('NonUtf8Output', group: fail);
 
+  /// The stdout or stderr produced by the test was too long and had to be
+  /// truncated by the test runner.
+  static final Expectation truncatedOutput =
+      new Expectation._('TruncatedOutput', group: fail);
+
   /// The VM exited with the special exit code 252.
   static final Expectation dartkCrash =
       new Expectation._('DartkCrash', group: crash);

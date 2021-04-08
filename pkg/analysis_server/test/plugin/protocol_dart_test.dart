@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/src/dart/element/element.dart' as engine;
@@ -88,7 +86,7 @@ class B<K, V> {}''');
       expect(element.name, '_A');
       expect(element.typeParameters, isNull);
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.file, testFile);
         expect(location.offset, 27);
         expect(location.length, '_A'.length);
@@ -125,7 +123,7 @@ class A {
     expect(element.name, 'myConstructor');
     expect(element.typeParameters, isNull);
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 20);
       expect(location.length, 'myConstructor'.length);
@@ -210,7 +208,7 @@ enum E2 { three, four }''');
       expect(element.name, '_E1');
       expect(element.typeParameters, isNull);
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.file, testFile);
         expect(location.offset, 17);
         expect(location.length, '_E1'.length);
@@ -246,7 +244,7 @@ enum E2 { three, four }''');
       expect(element.kind, ElementKind.ENUM_CONSTANT);
       expect(element.name, 'one');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.file, testFile);
         expect(location.offset, 23);
         expect(location.length, 'one'.length);
@@ -270,7 +268,7 @@ enum E2 { three, four }''');
       expect(element.kind, ElementKind.ENUM_CONSTANT);
       expect(element.name, 'three');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.file, testFile);
         expect(location.offset, 44);
         expect(location.length, 'three'.length);
@@ -288,7 +286,7 @@ enum E2 { three, four }''');
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'index');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.file, testFile);
         expect(location.offset, -1);
         expect(location.length, 'index'.length);
@@ -306,7 +304,7 @@ enum E2 { three, four }''');
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'values');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.file, testFile);
         expect(location.offset, -1);
         expect(location.length, 'values'.length);
@@ -330,7 +328,7 @@ class A {
     expect(element.kind, ElementKind.FIELD);
     expect(element.name, 'myField');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 25);
       expect(location.length, 'myField'.length);
@@ -353,7 +351,7 @@ typedef F<T> = int Function(String x);
     expect(element.name, 'F');
     expect(element.typeParameters, '<T>');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 8);
       expect(location.length, 'F'.length);
@@ -376,7 +374,7 @@ typedef F<T> = Map<int, T>;
     expect(element.name, 'F');
     expect(element.typeParameters, '<out T>');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 8);
       expect(location.length, 'F'.length);
@@ -400,7 +398,7 @@ typedef int F<T>(String x);
     expect(element.name, 'F');
     expect(element.typeParameters, '<T>');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 12);
       expect(location.length, 'F'.length);
@@ -424,7 +422,7 @@ class A {
     expect(element.kind, ElementKind.GETTER);
     expect(element.name, 'myGetter');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 23);
       expect(location.length, 'myGetter'.length);
@@ -450,7 +448,7 @@ myLabel:
     expect(element.kind, ElementKind.LABEL);
     expect(element.name, 'myLabel');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 9);
       expect(location.length, 'myLabel'.length);
@@ -475,7 +473,7 @@ class A {
     expect(element.kind, ElementKind.METHOD);
     expect(element.name, 'myMethod');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 32);
       expect(location.length, 'myGetter'.length);
@@ -499,7 +497,7 @@ mixin A {}
       expect(element.name, 'A');
       expect(element.typeParameters, isNull);
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.file, testFile);
         expect(location.offset, 6);
         expect(location.length, 'A'.length);
@@ -522,7 +520,7 @@ class A {
     expect(element.kind, ElementKind.SETTER);
     expect(element.name, 'mySetter');
     {
-      var location = element.location;
+      var location = element.location!;
       expect(location.file, testFile);
       expect(location.offset, 16);
       expect(location.length, 'mySetter'.length);
