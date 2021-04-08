@@ -1,3 +1,13 @@
+## 2.14.0
+
+### Core libraries
+
+#### `dart:core`
+
+*   The native `DateTime` class now better handles local time around
+    daylight saving changes that are not precisely one hour.
+    (No change on the Web which uses the JavaScript `Date` object.)
+
 ## 2.13.0
 
 ### Language
