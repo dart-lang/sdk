@@ -5,7 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:smith/smith.dart';
 import 'package:test_runner/src/test_configurations.dart';
 import 'package:path/path.dart' as path;
 
