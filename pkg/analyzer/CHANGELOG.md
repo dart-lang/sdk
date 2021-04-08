@@ -1,6 +1,7 @@
 ## 1.4.0-dev
 * Deprecated `TypeProvider.nonSubtypableClasses`.
   Use `TypeProvider.isNonSubtypableClass` instead.
+* Added `sdkPath` to `AnalysisContextCollection` constructor.
 
 ## 1.3.0
 * Added `Expression.inConstantContext` to API.
