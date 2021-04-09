@@ -1732,15 +1732,15 @@ class FixProcessor extends BaseProcessor {
     return fixes.isNotEmpty ? fixes.first : null;
   }
 
-  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
-      {List<Object> args, bool importsOnly = false}) {
+  void _addFixFromBuilder(ChangeBuilder builder, CorrectionProducer producer) {
     if (builder == null) return;
     var change = builder.sourceChange;
-    if (change.edits.isEmpty && !importsOnly) {
+    if (change.edits.isEmpty) {
       return;
     }
+    var kind = producer.fixKind;
     change.id = kind.id;
-    change.message = formatList(kind.message, args);
+    change.message = formatList(kind.message, producer.fixArguments);
     fixes.add(Fix(kind, change));
   }
 
@@ -1764,8 +1764,7 @@ class FixProcessor extends BaseProcessor {
           workspace: context.workspace, eol: context.utils.endOfLine);
       try {
         await producer.compute(builder);
-        _addFixFromBuilder(builder, producer.fixKind,
-            args: producer.fixArguments);
+        _addFixFromBuilder(builder, producer);
       } on ConflictingEditException catch (exception, stackTrace) {
         // Handle the exception by (a) not adding a fix based on the producer
         // and (b) logging the exception.

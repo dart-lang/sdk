@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -28,15 +26,17 @@ class ConvertToNullAware extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
-    if (node.parent is BinaryExpression &&
-        node.parent.parent is ConditionalExpression) {
-      node = node.parent.parent;
+    var parent = node.parent;
+    if (parent is BinaryExpression) {
+      var grandParent = parent.parent;
+      if (grandParent is ConditionalExpression) {
+        node = grandParent;
+      }
     }
     if (node is! ConditionalExpression) {
       return;
     }
-    ConditionalExpression conditional = node;
-    var condition = conditional.condition.unParenthesized;
+    var condition = node.condition.unParenthesized;
     SimpleIdentifier identifier;
     Expression nullExpression;
     Expression nonNullExpression;
@@ -67,21 +67,20 @@ class ConvertToNullAware extends CorrectionProducer {
       // is the save variable being compared to `null`.
       //
       if (condition.operator.type == TokenType.EQ_EQ) {
-        nullExpression = conditional.thenExpression;
-        nonNullExpression = conditional.elseExpression;
+        nullExpression = node.thenExpression;
+        nonNullExpression = node.elseExpression;
       } else if (condition.operator.type == TokenType.BANG_EQ) {
-        nonNullExpression = conditional.thenExpression;
-        nullExpression = conditional.elseExpression;
-      }
-      if (nullExpression == null || nonNullExpression == null) {
+        nonNullExpression = node.thenExpression;
+        nullExpression = node.elseExpression;
+      } else {
         return;
       }
       if (nullExpression.unParenthesized is! NullLiteral) {
         return;
       }
       var unwrappedExpression = nonNullExpression.unParenthesized;
-      Expression target;
-      Token operator;
+      Expression? target;
+      Token? operator;
       if (unwrappedExpression is MethodInvocation) {
         target = unwrappedExpression.target;
         operator = unwrappedExpression.operator;

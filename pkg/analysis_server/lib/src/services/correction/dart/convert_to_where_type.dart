@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -20,33 +18,46 @@ class ConvertToWhereType extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
+    var methodName = node;
+    if (methodName is! SimpleIdentifier) {
       return;
     }
-    var methodName = node as SimpleIdentifier;
-    var invocation = node.parent as MethodInvocation;
+
+    var invocation = methodName.parent;
+    if (invocation is! MethodInvocation) {
+      return;
+    }
+
     var arguments = invocation.argumentList.arguments;
-    if (arguments.length != 1 || arguments[0] is! FunctionExpression) {
+    if (arguments.length != 1) {
       return;
     }
-    var body = (arguments[0] as FunctionExpression).body;
-    Expression returnValue;
+
+    var argument = arguments[0];
+    if (argument is! FunctionExpression) {
+      return;
+    }
+
+    Expression? returnValue;
+    var body = argument.body;
     if (body is ExpressionFunctionBody) {
       returnValue = body.expression;
     } else if (body is BlockFunctionBody) {
       var statements = body.block.statements;
-      if (statements.length != 1 || statements[0] is! ReturnStatement) {
+      if (statements.length != 1) {
         return;
       }
-      returnValue = (statements[0] as ReturnStatement).expression;
-    } else {
-      return;
+      var returnStatement = statements[0];
+      if (returnStatement is! ReturnStatement) {
+        return;
+      }
+      returnValue = returnStatement.expression;
     }
+
     if (returnValue is! IsExpression) {
       return;
     }
-    var isExpression = returnValue as IsExpression;
+    var isExpression = returnValue;
     if (isExpression.notOperator != null) {
       return;
     }

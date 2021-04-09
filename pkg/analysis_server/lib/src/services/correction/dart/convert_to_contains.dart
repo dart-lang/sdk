@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -29,6 +27,9 @@ class ConvertToContains extends CorrectionProducer {
     var rightOperand = comparison.rightOperand;
     if (leftOperand is MethodInvocation && _isInteger(rightOperand)) {
       var value = _integerValue(rightOperand);
+      if (value == null) {
+        return;
+      }
       var methodName = leftOperand.methodName;
       var deletionRange = range.endEnd(leftOperand, rightOperand);
       var notOffset = -1;
@@ -48,6 +49,9 @@ class ConvertToContains extends CorrectionProducer {
       });
     } else if (_isInteger(leftOperand) && rightOperand is MethodInvocation) {
       var value = _integerValue(leftOperand);
+      if (value == null) {
+        return;
+      }
       var methodName = rightOperand.methodName;
       var deletionRange = range.startStart(leftOperand, rightOperand);
       var notOffset = -1;
@@ -71,17 +75,20 @@ class ConvertToContains extends CorrectionProducer {
 
   /// Return the value of the given [expression], given that [_isInteger]
   /// returned `true`.
-  int _integerValue(Expression expression) {
+  int? _integerValue(Expression expression) {
     if (expression is IntegerLiteral) {
       return expression.value;
     } else if (expression is PrefixExpression &&
         expression.operator.type == TokenType.MINUS) {
       var operand = expression.operand;
       if (operand is IntegerLiteral) {
-        return -operand.value;
+        var value = operand.value;
+        if (value != null) {
+          return -value;
+        }
       }
     }
-    throw StateError('invalid integer value');
+    return null;
   }
 
   TokenType _invertedTokenType(TokenType type) {

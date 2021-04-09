@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -28,16 +26,14 @@ class ConvertToRelativeImport extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is StringLiteral) {
-      node = node.parent;
+      node = node.parent!;
     }
     if (node is! ImportDirective) {
       return;
     }
 
-    ImportDirective importDirective = node;
-
     // Ignore if invalid URI.
-    if (importDirective.uriSource == null) {
+    if (node.uriSource == null) {
       return;
     }
 
@@ -49,7 +45,11 @@ class ConvertToRelativeImport extends CorrectionProducer {
 
     Uri importUri;
     try {
-      importUri = Uri.parse(importDirective.uriContent);
+      var uriContent = node.uriContent;
+      if (uriContent == null) {
+        return;
+      }
+      importUri = Uri.parse(uriContent);
     } on FormatException {
       return;
     }
@@ -75,9 +75,10 @@ class ConvertToRelativeImport extends CorrectionProducer {
       from: path.dirname(sourceUri.path),
     );
 
+    final node_final = node;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-        range.node(importDirective.uri).getExpanded(-1),
+        range.node(node_final.uri).getExpanded(-1),
         relativePath,
       );
     });
