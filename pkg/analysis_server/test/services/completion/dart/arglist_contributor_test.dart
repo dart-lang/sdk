@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -34,7 +32,9 @@ mixin ArgListContributorMixin on DartCompletionContributorTest {
   /// Assert that there is a suggestion with the given parameter [name] that has
   /// the given [completion], [selectionOffset] and [selectionLength].
   void assertSuggestArgumentAndCompletion(String name,
-      {String completion, int selectionOffset, int selectionLength = 0}) {
+      {required String completion,
+      required int selectionOffset,
+      int selectionLength = 0}) {
     var suggestion = suggestions.firstWhere((s) => s.parameterName == name);
     expect(suggestion, isNotNull);
     expect(suggestion.completion, completion);
@@ -45,8 +45,8 @@ mixin ArgListContributorMixin on DartCompletionContributorTest {
   void assertSuggestArgumentList_params(
       List<String> expectedNames,
       List<String> expectedTypes,
-      List<String> actualNames,
-      List<String> actualTypes) {
+      List<String>? actualNames,
+      List<String>? actualTypes) {
     if (actualNames != null &&
         actualNames.length == expectedNames.length &&
         actualTypes != null &&
@@ -75,7 +75,7 @@ mixin ArgListContributorMixin on DartCompletionContributorTest {
   /// Assert that the specified named argument suggestions with their types are
   /// the only suggestions.
   void assertSuggestArgumentsAndTypes(
-      {Map<String, String> namedArgumentsWithTypes,
+      {required Map<String, String> namedArgumentsWithTypes,
       List<int> requiredParamIndices = const <int>[],
       bool includeColon = true,
       bool includeComma = false}) {
@@ -797,11 +797,10 @@ main() {
     expect(suggestion.docSummary, 'aaa');
     expect(suggestion.docComplete, 'aaa\n\nbbb\nccc');
 
-    var element = suggestion.element;
-    expect(element, isNotNull);
+    var element = suggestion.element!;
     expect(element.kind, ElementKind.PARAMETER);
     expect(element.name, 'fff');
-    expect(element.location.offset, content.indexOf('fff})'));
+    expect(element.location!.offset, content.indexOf('fff})'));
   }
 
   Future<void>
@@ -823,11 +822,10 @@ main() {
     expect(suggestion.docSummary, isNull);
     expect(suggestion.docComplete, isNull);
 
-    var element = suggestion.element;
-    expect(element, isNotNull);
+    var element = suggestion.element!;
     expect(element.kind, ElementKind.PARAMETER);
     expect(element.name, 'fff');
-    expect(element.location.offset, content.indexOf('fff})'));
+    expect(element.location!.offset, content.indexOf('fff})'));
   }
 
   Future<void> test_ArgumentList_local_constructor_named_param() async {

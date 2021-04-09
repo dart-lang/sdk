@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -63,7 +61,7 @@ ArgParser createArgParser() {
 }
 
 /// Print usage information for this tool.
-void printUsage(ArgParser parser, {String error}) {
+void printUsage(ArgParser parser, {String? error}) {
   if (error != null) {
     print(error);
     print('');

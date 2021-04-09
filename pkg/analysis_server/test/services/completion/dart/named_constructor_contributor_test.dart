@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -24,12 +22,10 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
       String name, String returnType,
       [CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     var cs = assertSuggest(name, csKind: kind);
-    var element = cs.element;
-    expect(element, isNotNull);
+    var element = cs.element!;
     expect(element.kind, equals(ElementKind.CONSTRUCTOR));
     expect(element.name, equals(name));
-    var param = element.parameters;
-    expect(param, isNotNull);
+    var param = element.parameters!;
     expect(param[0], equals('('));
     expect(param[param.length - 1], equals(')'));
     expect(element.returnType, equals(returnType));
@@ -121,7 +117,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     addTestSource('''
         main() {new String.fr^omCharCodes([]);}''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 2);
+    expect(replacementOffset, completionOffset! - 2);
     expect(replacementLength, 13);
     assertSuggestNamedConstructor('fromCharCodes', 'String');
     assertNotSuggested('isEmpty');

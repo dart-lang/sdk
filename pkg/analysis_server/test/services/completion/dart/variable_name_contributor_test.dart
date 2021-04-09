@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
 import 'package:test/test.dart';
@@ -215,7 +213,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     f() { for(AbstractCrazyNonsenseClassName a^) {} }
     ''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertSuggestName('abstractCrazyNonsenseClassName');
     assertSuggestName('crazyNonsenseClassName');
@@ -236,7 +234,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     f() { for(prefix.AbstractCrazyNonsenseClassName ^) {} }
     ''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertSuggestName('abstractCrazyNonsenseClassName');
     assertSuggestName('crazyNonsenseClassName');
@@ -256,7 +254,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     f() { for(prefix.AbstractCrazyNonsenseClassName a^) {} }
     ''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertSuggestName('abstractCrazyNonsenseClassName');
     assertSuggestName('crazyNonsenseClassName');
@@ -365,7 +363,7 @@ f(A n^) {}
     AbstractCrazyNonsenseClassName abs^
     ''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 3);
+    expect(replacementOffset, completionOffset! - 3);
     expect(replacementLength, 3);
     assertSuggestName('abstractCrazyNonsenseClassName');
     assertSuggestName('crazyNonsenseClassName');
@@ -385,7 +383,7 @@ f(A n^) {}
     AbstractCrazyNonsenseClassName abs^
     ''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 3);
+    expect(replacementOffset, completionOffset! - 3);
     expect(replacementLength, 3);
     assertSuggestName('abstractCrazyNonsenseClassName');
     assertSuggestName('crazyNonsenseClassName');
