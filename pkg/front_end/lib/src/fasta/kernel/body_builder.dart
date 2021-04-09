@@ -5912,10 +5912,26 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginTypeVariable(Token token) {
     debugEvent("beginTypeVariable");
-    Identifier name = pop();
+    assert(checkState(token, [
+      unionOfKinds([ValueKinds.Identifier, ValueKinds.ParserRecovery]),
+      ValueKinds.AnnotationListOrNull,
+    ]));
+    Object name = pop();
     List<Expression> annotations = pop();
+    String typeVariableName;
+    int typeVariableCharOffset;
+    if (name is Identifier) {
+      typeVariableName = name.name;
+      typeVariableCharOffset = name.charOffset;
+    } else if (name is ParserRecovery) {
+      typeVariableName = null;
+      typeVariableCharOffset = name.charOffset;
+    } else {
+      return unhandled("${name.runtimeType}", "beginTypeVariable.name",
+          token.charOffset, uri);
+    }
     TypeVariableBuilder variable = new TypeVariableBuilder(
-        name.name, libraryBuilder, name.charOffset, uri);
+        typeVariableName, libraryBuilder, typeVariableCharOffset, uri);
     if (annotations != null) {
       inferAnnotations(variable.parameter, annotations);
       for (Expression annotation in annotations) {
