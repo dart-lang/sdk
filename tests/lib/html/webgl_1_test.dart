@@ -37,8 +37,9 @@ main() {
       test('simple', () {
         var canvas = new CanvasElement();
         var context =
-            canvas.getContext('experimental-webgl') as gl.RenderingContext;
-        var shader = context.createShader(gl.WebGL.VERTEX_SHADER);
+            canvas.getContext('experimental-webgl') as gl.RenderingContext?;
+        expect(context, isNotNull);
+        var shader = context!.createShader(gl.WebGL.VERTEX_SHADER);
         context.shaderSource(shader, 'void main() { }');
         context.compileShader(shader);
         var success =
@@ -59,7 +60,7 @@ main() {
 
       test('texImage2D', () {
         var canvas = new CanvasElement();
-        gl.RenderingContext context = canvas.getContext3d();
+        var context = canvas.getContext3d()!;
         var pixels = new Uint8List.fromList([0, 0, 3, 255, 0, 0, 0, 0, 0, 0]);
         context.texImage2D(1, 1, 1, 1, 10, 10, 1, 1, pixels);
 
@@ -77,7 +78,7 @@ main() {
 
       test('texSubImage2D', () {
         var canvas = new CanvasElement();
-        gl.RenderingContext context = canvas.getContext3d();
+        var context = canvas.getContext3d()!;
         var pixels = new Uint8List.fromList([0, 0, 3, 255, 0, 0, 0, 0, 0, 0]);
         context.texSubImage2D(1, 1, 1, 1, 1, 10, 10, 1, pixels);
 
@@ -95,7 +96,7 @@ main() {
 
       test('getContextAttributes', () {
         var canvas = new CanvasElement();
-        var context = canvas.getContext3d();
+        var context = canvas.getContext3d()!;
         var attributes = context.getContextAttributes();
 
         expect(attributes, isNotNull);

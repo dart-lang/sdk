@@ -2185,7 +2185,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
-  gl.RenderingContext getContext3d(
+  gl.RenderingContext? getContext3d(
       {alpha: true,
       depth: true,
       stencil: false,
@@ -2204,7 +2204,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
     if (context == null) {
       context = getContext('experimental-webgl', options);
     }
-    return context as gl.RenderingContext;
+    return context as gl.RenderingContext?;
   }
 
   /**
