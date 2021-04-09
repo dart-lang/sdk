@@ -1613,7 +1613,6 @@ class _TryStatement extends TryStatement {
   final Statement _body;
   final List<_CatchClause> _catches;
   final Statement? _finally;
-  final _bodyNode = Node._();
 
   _TryStatement(this._body, this._catches, this._finally) : super._();
 
@@ -1640,7 +1639,7 @@ class _TryStatement extends TryStatement {
       assignedVariables.beginNode();
     }
     _body._preVisit(assignedVariables);
-    assignedVariables.endNode(_bodyNode);
+    assignedVariables.endNode(_body);
     for (var catch_ in _catches) {
       catch_._preVisit(assignedVariables);
     }
@@ -1662,15 +1661,15 @@ class _TryStatement extends TryStatement {
     }
     _body._visit(h);
     if (_catches.isNotEmpty) {
-      h._flow.tryCatchStatement_bodyEnd(_bodyNode);
+      h._flow.tryCatchStatement_bodyEnd(_body);
       for (var catch_ in _catches) {
         catch_._visit(h);
       }
       h._flow.tryCatchStatement_end();
     }
     if (_finally != null) {
-      h._flow.tryFinallyStatement_finallyBegin(
-          _catches.isNotEmpty ? this : _bodyNode);
+      h._flow
+          .tryFinallyStatement_finallyBegin(_catches.isNotEmpty ? this : _body);
       _finally!._visit(h);
       h._flow.tryFinallyStatement_end();
     }
