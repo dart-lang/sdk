@@ -37,6 +37,7 @@ import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart'
     show CompletionPerformance;
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -50,6 +51,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 import 'package:watcher/watcher.dart';
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
@@ -104,29 +106,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   StreamSubscription _pluginChangeSubscription;
 
-  /// Temporary analysis roots for open files.
-  ///
-  /// When a file is opened and there is no driver available (for example no
-  /// folder was opened in the editor, so the set of analysis roots is empty)
-  /// we add temporary roots for the project (or containing) folder. When the
-  /// file is closed, it is removed from this map and if no other open file
-  /// uses that root, it will be removed from the set of analysis roots.
-  ///
-  /// key: file path of the open file
-  /// value: folder to be used as a root.
-  final _temporaryAnalysisRoots = <String, String>{};
-
-  /// The set of analysis roots explicitly added to the workspace.
-  final _explicitAnalysisRoots = <String>{};
+  /// The current workspace folders provided by the client. Used as analysis roots.
+  final _workspaceFolders = <String>{};
 
   /// A progress reporter for analysis status.
   ProgressReporter analyzingProgressReporter;
 
-  /// The last paths that were set as included analysis roots.
-  Set<String> _lastIncludedRootPaths;
-
-  /// The last paths that were set as excluded analysis roots.
-  Set<String> _lastExcludedRootPaths;
+  /// The number of times contexts have been created/recreated.
+  @visibleForTesting
+  int contextBuilds = 0;
 
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
@@ -204,13 +192,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     assert(didAdd);
     if (didAdd) {
       _updateDriversAndPluginsPriorityFiles();
+      _refreshAnalysisRoots();
     }
-  }
-
-  /// Adds a temporary analysis root for an open file.
-  void addTemporaryAnalysisRoot(String filePath, String folderPath) {
-    _temporaryAnalysisRoots[filePath] = folderPath;
-    _refreshAnalysisRoots();
   }
 
   /// The socket from which messages are being read has been closed.
@@ -479,13 +462,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     assert(didRemove);
     if (didRemove) {
       _updateDriversAndPluginsPriorityFiles();
+      _refreshAnalysisRoots();
     }
-  }
-
-  /// Removes any temporary analysis root for a file that was closed.
-  void removeTemporaryAnalysisRoot(String filePath) {
-    _temporaryAnalysisRoots.remove(filePath);
-    _refreshAnalysisRoots();
   }
 
   void sendErrorResponse(Message message, ResponseError error) {
@@ -651,10 +629,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     sendServerErrorNotification('Socket error', error, stack);
   }
 
-  void updateAnalysisRoots(List<String> addedPaths, List<String> removedPaths) {
+  void updateWorkspaceFolders(
+      List<String> addedPaths, List<String> removedPaths) {
     // TODO(dantup): This is currently case-sensitive!
 
-    _explicitAnalysisRoots
+    _workspaceFolders
       ..addAll(addedPaths ?? const [])
       ..removeAll(removedPaths ?? const []);
 
@@ -671,14 +650,40 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     notifyFlutterWidgetDescriptions(path);
   }
 
+  /// Computes analysis roots for a set of open files.
+  ///
+  /// This is used when there are no workspace folders open directly.
+  List<String> _getRootsForOpenFiles() {
+    final openFiles = priorityFiles.toList();
+    final contextLocator = ContextLocator(resourceProvider: resourceProvider);
+    final roots = contextLocator.locateRoots(includedPaths: openFiles);
+
+    // For files in folders that don't have pubspecs, a root would be
+    // produced for the root of the drive which we do not want, so filter those out.
+    roots.removeWhere((root) => root.root.isRoot);
+
+    // Find any files that are no longer covered by roots because of the above
+    // removal.
+    final additionalFiles =
+        openFiles.where((file) => !roots.any((root) => root.isAnalyzed(file)));
+
+    return [
+      ...roots.map((root) => root.root.path),
+      ...additionalFiles,
+    ];
+  }
+
   void _onPluginsChanged() {
     capabilitiesComputer.performDynamicRegistration();
   }
 
   void _refreshAnalysisRoots() {
-    // Always include any temporary analysis roots for open files.
-    final includedPaths = _explicitAnalysisRoots.toSet()
-      ..addAll(_temporaryAnalysisRoots.values);
+    // When there are open folders, they are always the roots. If there are no
+    // open workspace folders, then we use the open (priority) files to compute
+    // roots.
+    final includedPaths = _workspaceFolders.isNotEmpty
+        ? _workspaceFolders.toSet()
+        : _getRootsForOpenFiles();
 
     final excludedPaths = clientConfiguration.analysisExcludedFolders
         .expand((excludePath) => resourceProvider.pathContext
@@ -688,24 +693,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
             // TODO(dantup): Consider supporting per-workspace config by
             // calling workspace/configuration whenever workspace folders change
             // and caching the config for each one.
-            : _explicitAnalysisRoots.map(
+            : _workspaceFolders.map(
                 (root) => resourceProvider.pathContext.join(root, excludePath)))
         .toSet();
-
-    // If the roots didn't actually change from the last time they were set
-    // (this can happen a lot as temporary roots are collected for open files)
-    // we can avoid doing expensive work like discarding/re-scanning the
-    // declarations.
-    final rootsChanged =
-        includedPaths.length != _lastIncludedRootPaths?.length ||
-            !includedPaths.every(_lastIncludedRootPaths.contains) ||
-            excludedPaths.length != _lastExcludedRootPaths?.length ||
-            !excludedPaths.every(_lastExcludedRootPaths.contains);
-
-    if (!rootsChanged) return;
-
-    _lastIncludedRootPaths = includedPaths;
-    _lastExcludedRootPaths = excludedPaths;
 
     notificationManager.setAnalysisRoots(
         includedPaths.toList(), excludedPaths.toList());
@@ -780,6 +770,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void afterContextsCreated() {
+    analysisServer.contextBuilds++;
     analysisServer.addContextsToDeclarationsTracker();
   }
 

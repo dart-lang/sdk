@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -38,7 +36,7 @@ class ConvertClassToMixin extends CorrectionProducer {
     var superclassConstraints = <InterfaceType>[];
     var interfaces = <InterfaceType>[];
 
-    var classElement = classDeclaration.declaredElement;
+    var classElement = classDeclaration.declaredElement!;
     for (var type in classElement.mixins) {
       if (referencedClasses.contains(type.element)) {
         superclassConstraints.add(type);
@@ -46,12 +44,13 @@ class ConvertClassToMixin extends CorrectionProducer {
         interfaces.add(type);
       }
     }
-    var extendsClause = classDeclaration.extendsClause;
-    if (extendsClause != null) {
+
+    var superType = classElement.supertype;
+    if (classDeclaration.extendsClause != null && superType != null) {
       if (referencedClasses.length > superclassConstraints.length) {
-        superclassConstraints.insert(0, classElement.supertype);
+        superclassConstraints.insert(0, superType);
       } else {
-        interfaces.insert(0, classElement.supertype);
+        interfaces.insert(0, superType);
       }
     }
     interfaces.addAll(classElement.interfaces);
@@ -63,8 +62,7 @@ class ConvertClassToMixin extends CorrectionProducer {
               classDeclaration.leftBracket), (builder) {
         builder.write('mixin ');
         builder.write(classDeclaration.name.name);
-        builder.writeTypeParameters(
-            classDeclaration.declaredElement.typeParameters);
+        builder.writeTypeParameters(classElement.typeParameters);
         builder.writeTypes(superclassConstraints, prefix: ' on ');
         builder.writeTypes(interfaces, prefix: ' implements ');
         builder.write(' ');
@@ -100,7 +98,7 @@ class _SuperclassReferenceFinder extends RecursiveAstVisitor<void> {
     return super.visitSuperExpression(node);
   }
 
-  void _addElement(Element element) {
+  void _addElement(Element? element) {
     if (element is ExecutableElement) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement) {

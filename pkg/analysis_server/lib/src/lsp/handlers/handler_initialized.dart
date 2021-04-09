@@ -33,7 +33,7 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
     await server.fetchClientConfigurationAndPerformDynamicRegistration();
 
     if (!server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles) {
-      server.updateAnalysisRoots(openWorkspacePaths, const []);
+      server.updateWorkspaceFolders(openWorkspacePaths, const []);
     }
 
     return success();

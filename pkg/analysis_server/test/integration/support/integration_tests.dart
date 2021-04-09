@@ -11,8 +11,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:path/path.dart';
-import 'package:path/path.dart' as pkg_path;
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import 'integration_test_methods.dart';
@@ -213,7 +212,8 @@ abstract class AbstractAnalysisServerIntegrationTest
   /// relative to [sourceDirectory].  On Windows any forward slashes in
   /// [relativePath] are converted to backslashes.
   String sourcePath(String relativePath) {
-    return join(sourceDirectory.path, relativePath.replaceAll('/', separator));
+    return path.join(
+        sourceDirectory.path, relativePath.replaceAll('/', path.separator));
   }
 
   /// Send the server an 'analysis.setAnalysisRoots' command directing it to
@@ -254,20 +254,20 @@ abstract class AbstractAnalysisServerIntegrationTest
   ///
   /// Return a normalized path to the file (with symbolic links resolved).
   String writeFile(String pathname, String contents) {
-    Directory(dirname(pathname)).createSync(recursive: true);
+    Directory(path.dirname(pathname)).createSync(recursive: true);
     var file = File(pathname);
     file.writeAsStringSync(contents);
     return file.resolveSymbolicLinksSync();
   }
 
   void writePackageConfig(
-    String path, {
+    String pathname, {
     required PackageConfigFileBuilder config,
   }) {
     writeFile(
-      path,
+      pathname,
       config.toContent(
-        toUriStr: (path) => '${pkg_path.toUri(path)}',
+        toUriStr: (p) => '${path.toUri(p)}',
       ),
     );
   }
@@ -483,14 +483,14 @@ class Server {
   /// Find the root directory of the analysis_server package by proceeding
   /// upward to the 'test' dir, and then going up one more directory.
   String findRoot(String pathname) {
-    while (!['benchmark', 'test'].contains(basename(pathname))) {
-      var parent = dirname(pathname);
+    while (!['benchmark', 'test'].contains(path.basename(pathname))) {
+      var parent = path.dirname(pathname);
       if (parent.length >= pathname.length) {
         throw Exception("Can't find root directory");
       }
       pathname = parent;
     }
-    return dirname(pathname);
+    return path.dirname(pathname);
   }
 
   /// Return a future that will complete when all commands that have been sent
@@ -620,18 +620,24 @@ class Server {
 
     if (useSnapshot) {
       // Look for snapshots/analysis_server.dart.snapshot.
-      serverPath = normalize(join(dirname(Platform.resolvedExecutable),
-          'snapshots', 'analysis_server.dart.snapshot'));
+      serverPath = path.normalize(path.join(
+          path.dirname(Platform.resolvedExecutable),
+          'snapshots',
+          'analysis_server.dart.snapshot'));
 
       if (!FileSystemEntity.isFileSync(serverPath)) {
         // Look for dart-sdk/bin/snapshots/analysis_server.dart.snapshot.
-        serverPath = normalize(join(dirname(Platform.resolvedExecutable),
-            'dart-sdk', 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
+        serverPath = path.normalize(path.join(
+            path.dirname(Platform.resolvedExecutable),
+            'dart-sdk',
+            'bin',
+            'snapshots',
+            'analysis_server.dart.snapshot'));
       }
     } else {
       var rootDir =
           findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
-      serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
+      serverPath = path.normalize(path.join(rootDir, 'bin', 'server.dart'));
     }
 
     var arguments = <String>[

@@ -293,6 +293,12 @@ class CorrectionProducerContext {
   }
 }
 
+abstract class CorrectionProducerWithDiagnostic extends CorrectionProducer {
+  /// TODO(migration) Consider providing it via constructor.
+  @override
+  Diagnostic get diagnostic => super.diagnostic!;
+}
+
 /// An object that can dynamically compute multiple corrections (fixes or
 /// assists).
 abstract class MultiCorrectionProducer extends _AbstractCorrectionProducer {

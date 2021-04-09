@@ -249,9 +249,7 @@ String f(String? s) => s!.substring(0);
     await resolveTestCode('''
 f(int? i) => i++;
 ''');
-    await assertHasFix('''
-f(int? i) => i!++;
-''');
+    await assertNoFix();
   }
 
   Future<void> test_prefixedIdentifier() async {

@@ -1,4 +1,4 @@
-Compound(size: 88, field alignment: 8, stack alignment: 8, members: {
+Struct(size: 88, field alignment: 8, stack alignment: 8, members: {
   0: int8,
   2: int16,
   4: int32,

@@ -5664,7 +5664,9 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
   // Handle modulo/division by zero exception on slow path.
   if (slow_path->has_divide_by_zero()) {
     __ CompareRegisters(right, ZR);
-    __ b(slow_path->entry_label(), EQ);
+    __ b(compiler->intrinsic_mode() ? compiler->intrinsic_slow_path_label()
+                                    : slow_path->entry_label(),
+         EQ);
   }
 
   // Perform actual operation
@@ -5677,12 +5679,14 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
     // For the % operator, the sdiv instruction does not
     // quite do what we want. Adjust for sign on slow path.
     __ CompareRegisters(out, ZR);
-    __ b(slow_path->adjust_sign_label(), LT);
+    __ b(compiler->intrinsic_mode() ? compiler->intrinsic_slow_path_label()
+                                    : slow_path->adjust_sign_label(),
+         LT);
   } else {
     __ sdiv(out, left, right);
   }
 
-  if (slow_path->is_needed()) {
+  if (!compiler->intrinsic_mode() && slow_path->is_needed()) {
     __ Bind(slow_path->exit_label());
     compiler->AddSlowPathCode(slow_path);
   }

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 extension AstNodeExtensions on AstNode {
@@ -101,4 +102,20 @@ extension FunctionBodyExtensions on FunctionBody {
   bool get isEmpty =>
       this is EmptyFunctionBody ||
       (this is BlockFunctionBody && beginToken.isSynthetic);
+}
+
+extension MethodDeclarationExtension on MethodDeclaration {
+  Token? get propertyKeywordGet {
+    var propertyKeyword = this.propertyKeyword;
+    return propertyKeyword != null && propertyKeyword.keyword == Keyword.GET
+        ? propertyKeyword
+        : null;
+  }
+}
+
+extension VariableDeclarationListExtension on VariableDeclarationList {
+  Token? get finalKeyword {
+    var keyword = this.keyword;
+    return keyword != null && keyword.keyword == Keyword.FINAL ? keyword : null;
+  }
 }

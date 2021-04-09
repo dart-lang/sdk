@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:test_runner/src/configuration.dart';
 import 'package:test_runner/src/options.dart';
 import 'package:test_runner/src/repository.dart';
 import 'package:test_runner/src/test_configurations.dart';

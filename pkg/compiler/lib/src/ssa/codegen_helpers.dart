@@ -5,7 +5,6 @@
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../js_backend/interceptor_data.dart';
 import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
@@ -27,21 +26,14 @@ bool canUseAliasedSuperMember(MemberEntity member, Selector selector) {
 ///
 /// - Remove NullChecks where the next instruction would fail on the operand.
 ///
-/// - Dummy receiver optimization.
-///
-/// - One-shot interceptor optimization.
-///
 /// - Combine read/modify/write sequences into HReadModifyWrite instructions to
 ///   simplify codegen of expressions like `a.x += y`.
-
 class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
   final JClosedWorld _closedWorld;
-  final InterceptorData _interceptorData;
   final CompilerOptions _options;
   HGraph graph;
 
-  SsaInstructionSelection(
-      this._options, this._closedWorld, this._interceptorData);
+  SsaInstructionSelection(this._options, this._closedWorld);
 
   AbstractValueDomain get _abstractValueDomain =>
       _closedWorld.abstractValueDomain;
@@ -227,128 +219,6 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
   bool _intercepted(AbstractValue type) => _abstractValueDomain
       .isInterceptor(_abstractValueDomain.excludeNull(type))
       .isPotentiallyTrue;
-
-  @override
-  HInstruction visitInvokeDynamic(HInvokeDynamic node) {
-    if (!node.isInterceptedCall) return node;
-
-    tryReplaceExplicitReceiverWithDummy(
-        node, node.selector, node.element, node.receiverType);
-
-    // Try to replace
-    //
-    //     getInterceptor(o).method(o, ...)
-    //
-    // with a 'one shot interceptor' which is a call to a synthesized static
-    // helper function that combines the two operations.
-    //
-    //     oneShotMethod(o, 1, 2)
-    //
-    // This saves code size and makes the receiver of an intercepted call a
-    // candidate for being generated at use site.
-    //
-    // Avoid combining a hoisted interceptor back into a loop, and the faster
-    // almost-constant kind of interceptor.
-
-    HInstruction interceptor = node.inputs[0];
-    if (interceptor is HInterceptor &&
-        interceptor.usedBy.length == 1 &&
-        !interceptor.isConditionalConstantInterceptor &&
-        interceptor.hasSameLoopHeaderAs(node)) {
-      // Copy inputs and replace interceptor with `null`.
-      List<HInstruction> inputs = List.of(node.inputs);
-      inputs[0] = graph.addConstantNull(_closedWorld);
-
-      HOneShotInterceptor oneShot = HOneShotInterceptor(
-          node.selector,
-          node.receiverType,
-          inputs,
-          node.instructionType,
-          node.typeArguments,
-          interceptor.interceptedClasses);
-      oneShot.sourceInformation = node.sourceInformation;
-      oneShot.sourceElement = node.sourceElement;
-      oneShot.sideEffects.setTo(node.sideEffects);
-
-      HBasicBlock block = node.block;
-      block.addAfter(node, oneShot);
-      block.rewrite(node, oneShot);
-      block.remove(node);
-      interceptor.block.remove(interceptor);
-      return null;
-    }
-
-    return node;
-  }
-
-  @override
-  HInstruction visitInvokeSuper(HInvokeSuper node) {
-    tryReplaceExplicitReceiverWithDummy(
-        node, node.selector, node.element, null);
-    return node;
-  }
-
-  @override
-  HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
-    throw StateError('Should not see HOneShotInterceptor: $node');
-  }
-
-  void tryReplaceExplicitReceiverWithDummy(HInvoke node, Selector selector,
-      MemberEntity target, AbstractValue mask) {
-    // Calls of the form
-    //
-    //     a.foo$1(a, x)
-    //
-    // where the interceptor calling convention is used come from recognizing
-    // that 'a' is a 'self-interceptor'.  If the selector matches only methods
-    // that ignore the explicit receiver parameter, replace occurrences of the
-    // receiver argument with a dummy receiver '0':
-    //
-    //     a.foo$1(a, x)   --->   a.foo$1(0, x)
-    //
-    // This often reduces the number of references to 'a' to one, allowing 'a'
-    // to be generated at use to avoid a temporary, e.g.
-    //
-    //     t1 = b.get$thing();
-    //     t1.foo$1(t1, x)
-    // --->
-    //     b.get$thing().foo$1(0, x)
-    //
-    assert(target != null || mask != null);
-
-    if (!node.isInterceptedCall) return;
-
-    // TODO(15933): Make automatically generated property extraction closures
-    // work with the dummy receiver optimization.
-    if (selector.isGetter) return;
-
-    // This assignment of inputs is uniform for HInvokeDynamic and HInvokeSuper.
-    HInstruction interceptor = node.inputs[0];
-    HInstruction receiverArgument = node.inputs[1];
-
-    // A 'self-interceptor'?
-    if (interceptor.nonCheck() != receiverArgument.nonCheck()) return;
-
-    // TODO(sra): Should this be an assert?
-    if (!_interceptorData.isInterceptedSelector(selector)) return;
-
-    if (target != null) {
-      // A call that resolves to a single instance method (element) requires the
-      // calling convention consistent with the method.
-      ClassEntity cls = target.enclosingClass;
-      assert(_interceptorData.isInterceptedMethod(target));
-      if (_interceptorData.isInterceptedClass(cls)) return;
-    } else if (_interceptorData.isInterceptedMixinSelector(
-        selector, mask, _closedWorld)) {
-      return;
-    }
-
-    ConstantValue constant = DummyInterceptorConstantValue();
-    HConstant dummy = graph.addConstant(constant, _closedWorld);
-    receiverArgument.usedBy.remove(node);
-    node.inputs[1] = dummy;
-    dummy.usedBy.add(node);
-  }
 
   @override
   HInstruction visitFieldSet(HFieldSet setter) {

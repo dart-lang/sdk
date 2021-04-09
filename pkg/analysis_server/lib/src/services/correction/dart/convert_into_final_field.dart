@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -19,8 +18,8 @@ class ConvertIntoFinalField extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // Find the enclosing getter.
-    MethodDeclaration getter;
-    for (var n = node; n != null; n = n.parent) {
+    MethodDeclaration? getter;
+    for (var n in node.withParents) {
       if (n is MethodDeclaration) {
         getter = n;
         break;
@@ -32,9 +31,15 @@ class ConvertIntoFinalField extends CorrectionProducer {
       }
       break;
     }
-    if (getter == null || !getter.isGetter) {
+    if (getter == null) {
       return;
     }
+
+    var propertyKeywordGet = getter.propertyKeywordGet;
+    if (propertyKeywordGet == null) {
+      return;
+    }
+
     // Check that there is no corresponding setter.
     {
       var element = getter.declaredElement;
@@ -49,7 +54,7 @@ class ConvertIntoFinalField extends CorrectionProducer {
       }
     }
     // Try to find the returned expression.
-    Expression expression;
+    Expression? expression;
     {
       var body = getter.body;
       if (body is ExpressionFunctionBody) {
@@ -66,9 +71,10 @@ class ConvertIntoFinalField extends CorrectionProducer {
     }
     // Use the returned expression as the field initializer.
     if (expression != null) {
+      var returnType = getter.returnType;
       var code = 'final';
-      if (getter.returnType != null) {
-        code += ' ' + utils.getNodeText(getter.returnType);
+      if (returnType != null) {
+        code += ' ' + utils.getNodeText(returnType);
       }
       code += ' ' + utils.getNodeText(getter.name);
       if (expression is! NullLiteral) {
@@ -76,7 +82,7 @@ class ConvertIntoFinalField extends CorrectionProducer {
       }
       code += ';';
       var replacementRange =
-          range.startEnd(getter.returnType ?? getter.propertyKeyword, getter);
+          range.startEnd(returnType ?? propertyKeywordGet, getter);
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(replacementRange, code);
       });

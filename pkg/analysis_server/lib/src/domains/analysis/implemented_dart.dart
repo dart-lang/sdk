@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -15,7 +13,7 @@ class ImplementedComputer {
   List<protocol.ImplementedClass> classes = <protocol.ImplementedClass>[];
   List<protocol.ImplementedMember> members = <protocol.ImplementedMember>[];
 
-  Set<String> subtypeMembers;
+  Set<String>? subtypeMembers;
 
   ImplementedComputer(this.searchEngine, this.unitElement);
 
@@ -71,7 +69,7 @@ class ImplementedComputer {
 
   bool _hasOverride(Element element) {
     var name = element.displayName;
-    return subtypeMembers.contains(name);
+    return subtypeMembers!.contains(name);
   }
 
   /// Return `true` if the given [element] is a static element.

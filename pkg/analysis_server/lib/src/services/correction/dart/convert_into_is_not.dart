@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -26,13 +24,17 @@ class ConvertIntoIsNot extends CorrectionProducer {
       var node = this.node;
       if (node is PrefixExpression) {
         var operand = node.operand;
-        if (operand is ParenthesizedExpression &&
-            operand.expression is IsExpression) {
-          isExpression = operand.expression as IsExpression;
+        if (operand is ParenthesizedExpression) {
+          var expression = operand.expression;
+          if (expression is IsExpression) {
+            isExpression = expression;
+          }
         }
-      } else if (node is ParenthesizedExpression &&
-          node.expression is IsExpression) {
-        isExpression = node.expression as IsExpression;
+      } else if (node is ParenthesizedExpression) {
+        var expression = node.expression;
+        if (expression is IsExpression) {
+          isExpression = expression;
+        }
       }
     }
     if (isExpression == null) {
@@ -42,21 +44,20 @@ class ConvertIntoIsNot extends CorrectionProducer {
       return;
     }
     // prepare enclosing ()
-    var parent = isExpression.parent;
-    if (parent is! ParenthesizedExpression) {
+    var parExpression = isExpression.parent;
+    if (parExpression is! ParenthesizedExpression) {
       return;
     }
-    var parExpression = parent as ParenthesizedExpression;
     // prepare enclosing !()
-    var parent2 = parent.parent;
-    if (parent2 is! PrefixExpression) {
+    var prefExpression = parExpression.parent;
+    if (prefExpression is! PrefixExpression) {
       return;
     }
-    var prefExpression = parent2 as PrefixExpression;
     if (prefExpression.operator.type != TokenType.BANG) {
       return;
     }
 
+    final isExpression_final = isExpression;
     await builder.addDartFileEdit(file, (builder) {
       if (getExpressionParentPrecedence(prefExpression) >=
           Precedence.relational) {
@@ -67,7 +68,7 @@ class ConvertIntoIsNot extends CorrectionProducer {
         builder.addDeletion(
             range.startEnd(parExpression.rightParenthesis, prefExpression));
       }
-      builder.addSimpleInsertion(isExpression.isOperator.end, '!');
+      builder.addSimpleInsertion(isExpression_final.isOperator.end, '!');
     });
   }
 

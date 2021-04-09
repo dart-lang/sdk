@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/executable_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -15,11 +13,17 @@ class AddMissingParameter extends MultiCorrectionProducer {
   @override
   Iterable<CorrectionProducer> get producers sync* {
     // node is the unmatched argument.
-    if (node.parent is! ArgumentList) {
+    var argumentList = node.parent;
+    if (argumentList is! ArgumentList) {
       return;
     }
-    var context =
-        ExecutableParameters.forInvocation(sessionHelper, node.parent.parent);
+
+    var invocation = argumentList.parent;
+    if (invocation == null) {
+      return;
+    }
+
+    var context = ExecutableParameters.forInvocation(sessionHelper, invocation);
     if (context == null) {
       return;
     }
@@ -54,7 +58,7 @@ class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
       await _addParameter(builder, prevNode?.end, prefix, ']');
     } else {
       var parameterList = await context.getParameterList();
-      var offset = parameterList?.leftParenthesis?.end;
+      var offset = parameterList?.leftParenthesis.end;
       await _addParameter(builder, offset, prefix, ']');
     }
   }
@@ -68,9 +72,12 @@ abstract class _AddMissingParameter extends CorrectionProducer {
   _AddMissingParameter(this.context);
 
   Future<void> _addParameter(
-      ChangeBuilder builder, int offset, String prefix, String suffix) async {
+      ChangeBuilder builder, int? offset, String prefix, String suffix) async {
     // node is the unmatched argument.
-    ArgumentList argumentList = node.parent;
+    var argumentList = node.parent;
+    if (argumentList is! ArgumentList) {
+      return;
+    }
     List<Expression> arguments = argumentList.arguments;
     var numRequired = context.required.length;
     if (numRequired >= arguments.length) {
@@ -106,7 +113,7 @@ class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
       await _addParameter(builder, prevNode?.end, ', ', '');
     } else {
       var parameterList = await context.getParameterList();
-      var offset = parameterList?.leftParenthesis?.end;
+      var offset = parameterList?.leftParenthesis.end;
       var suffix = context.executable.parameters.isNotEmpty ? ', ' : '';
       await _addParameter(builder, offset, '', suffix);
     }

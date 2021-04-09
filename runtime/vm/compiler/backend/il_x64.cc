@@ -6117,14 +6117,18 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
   // Handle modulo/division by zero exception on slow path.
   if (slow_path->has_divide_by_zero()) {
     __ testq(right, right);
-    __ j(EQUAL, slow_path->entry_label());
+    __ j(EQUAL, compiler->intrinsic_mode()
+                    ? compiler->intrinsic_slow_path_label()
+                    : slow_path->entry_label());
   }
 
   // Handle modulo/division by minus one explicitly on slow path
   // (to avoid arithmetic exception on 0x8000000000000000 / -1).
   if (slow_path->has_divide_by_minus_one()) {
     __ cmpq(right, compiler::Immediate(-1));
-    __ j(EQUAL, slow_path->div_by_minus_one_label());
+    __ j(EQUAL, compiler->intrinsic_mode()
+                    ? compiler->intrinsic_slow_path_label()
+                    : slow_path->div_by_minus_one_label());
   }
 
   // Perform actual operation
@@ -6163,13 +6167,15 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
     // For the % operator, again the idiv instruction does
     // not quite do what we want. Adjust for sign on slow path.
     __ testq(out, out);
-    __ j(LESS, slow_path->adjust_sign_label());
+    __ j(LESS, compiler->intrinsic_mode()
+                   ? compiler->intrinsic_slow_path_label()
+                   : slow_path->adjust_sign_label());
   } else {
     ASSERT(out == RAX);
     ASSERT(tmp == RDX);
   }
 
-  if (slow_path->is_needed()) {
+  if (!compiler->intrinsic_mode() && slow_path->is_needed()) {
     __ Bind(slow_path->exit_label());
     compiler->AddSlowPathCode(slow_path);
   }

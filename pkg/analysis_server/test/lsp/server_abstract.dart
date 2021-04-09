@@ -56,6 +56,10 @@ abstract class AbstractLspAnalysisServerTest
   LspAnalysisServer server;
   MockHttpClient httpClient;
 
+  /// The number of context builds that had already occurred the last time
+  /// resetContextBuildCounter() was called.
+  int _previousContextBuilds = 0;
+
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
   @override
@@ -84,6 +88,14 @@ abstract class AbstractLspAnalysisServerTest
     return info;
   }
 
+  void expectContextBuilds() =>
+      expect(server.contextBuilds - _previousContextBuilds, greaterThan(0),
+          reason: 'Contexts should have been rebuilt');
+
+  void expectNoContextBuilds() =>
+      expect(server.contextBuilds - _previousContextBuilds, equals(0),
+          reason: 'Contexts should not have been rebuilt');
+
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
   @override
@@ -104,6 +116,10 @@ abstract class AbstractLspAnalysisServerTest
   ) {
     return registrations.singleWhere((r) => r.method == method.toJson(),
         orElse: () => null);
+  }
+
+  void resetContextBuildCounter() {
+    _previousContextBuilds = server.contextBuilds;
   }
 
   @override

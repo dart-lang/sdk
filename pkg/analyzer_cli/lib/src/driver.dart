@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_engine.dart';

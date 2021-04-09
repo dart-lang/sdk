@@ -8,23 +8,19 @@ abstract class _IntegerImplementation implements int {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
-  @pragma("vm:disable-unboxed-parameters")
   num operator +(num other) => other._addFromInteger(this);
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
-  @pragma("vm:disable-unboxed-parameters")
   num operator -(num other) => other._subFromInteger(this);
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
-  @pragma("vm:disable-unboxed-parameters")
   num operator *(num other) => other._mulFromInteger(this);
 
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
-  @pragma("vm:disable-unboxed-parameters")
   int operator ~/(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
@@ -39,7 +35,6 @@ abstract class _IntegerImplementation implements int {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
-  @pragma("vm:disable-unboxed-parameters")
   num operator %(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
@@ -50,7 +45,6 @@ abstract class _IntegerImplementation implements int {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
-  @pragma("vm:disable-unboxed-parameters")
   int operator -() {
     // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
     // result type as `num`.
@@ -60,17 +54,14 @@ abstract class _IntegerImplementation implements int {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
-  @pragma("vm:disable-unboxed-parameters")
   int operator &(int other) => other._bitAndFromInteger(this);
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
-  @pragma("vm:disable-unboxed-parameters")
   int operator |(int other) => other._bitOrFromInteger(this);
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
-  @pragma("vm:disable-unboxed-parameters")
   int operator ^(int other) => other._bitXorFromInteger(this);
 
   num remainder(num other) {
@@ -108,17 +99,14 @@ abstract class _IntegerImplementation implements int {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
-  @pragma("vm:disable-unboxed-parameters")
   int operator >>(int other) => other._shrFromInteger(this);
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
-  @pragma("vm:disable-unboxed-parameters")
   int operator >>>(int other) => other._ushrFromInteger(this);
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
-  @pragma("vm:disable-unboxed-parameters")
   int operator <<(int other) => other._shlFromInteger(this);
 
   @pragma("vm:recognized", "asm-intrinsic")
@@ -556,7 +544,6 @@ class _Smi extends _IntegerImplementation {
   int get _identityHashCode => this;
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:disable-unboxed-parameters")
   int operator ~() native "Smi_bitNegate";
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")

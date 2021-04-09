@@ -8,7 +8,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
-import 'package:analyzer/source/line_info.dart' as analyzer;
 import 'package:analyzer/src/generated/engine.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;

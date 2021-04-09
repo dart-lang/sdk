@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -86,22 +84,26 @@ class _Visitor extends UnifyingAstVisitor<void> {
       if (nodeElement != null &&
           nodeElement.enclosingElement is CompilationUnitElement) {
         var nodeLibrary = nodeElement.library;
-        var path = nodeLibrary.definingCompilationUnit.source.fullName;
+        var path = nodeLibrary?.definingCompilationUnit.source.fullName;
+        if (path == null) {
+          return;
+        }
         var prefix = '';
         var parent = node.parent;
         if (parent is PrefixedIdentifier && parent.identifier == node) {
           prefix = _getPrefixFrom(parent.prefix);
-        } else if (parent is MethodInvocation &&
-            parent.methodName == node &&
-            parent.target is SimpleIdentifier) {
-          prefix = _getPrefixFrom(parent.target);
+        } else if (parent is MethodInvocation && parent.methodName == node) {
+          var target = parent.target;
+          if (target is SimpleIdentifier) {
+            prefix = _getPrefixFrom(target);
+          }
         }
         var key = '$prefix;$path';
         var elements = importedElements.putIfAbsent(
             key, () => ImportedElements(path, prefix, <String>[]));
         var elementNames = elements.elements;
         var elementName = nodeElement.name;
-        if (!elementNames.contains(elementName)) {
+        if (elementName != null && !elementNames.contains(elementName)) {
           elementNames.add(elementName);
         }
       }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -25,14 +23,15 @@ class AddLate extends CorrectionProducer {
     }
     var node = this.node;
     if (node is SimpleIdentifier) {
-      if (node.parent is VariableDeclaration &&
-          node.parent.parent is VariableDeclarationList) {
-        var list = node.parent.parent as VariableDeclarationList;
-        if (!list.isLate) {
-          if (list.type == null) {
-            var keyword = list.keyword;
+      var variable = node.parent;
+      var variableList = variable?.parent;
+      if (variable is VariableDeclaration &&
+          variableList is VariableDeclarationList) {
+        if (!variableList.isLate) {
+          if (variableList.type == null) {
+            var keyword = variableList.keyword;
             if (keyword == null) {
-              await _insertAt(builder, list.variables[0].offset);
+              await _insertAt(builder, variableList.variables[0].offset);
               // TODO(brianwilkerson) Consider converting this into an assist and
               //  expand it to support converting `var` to `late` as well as
               //  working anywhere a non-late local variable or field is selected.
@@ -41,14 +40,14 @@ class AddLate extends CorrectionProducer {
 //              builder.addSimpleReplacement(range.token(keyword), 'late');
 //            });
             } else if (keyword.type != Keyword.CONST) {
-              await _insertAt(builder, list.variables[0].offset);
+              await _insertAt(builder, variableList.variables[0].offset);
             }
           } else {
-            var keyword = list.keyword;
+            var keyword = variableList.keyword;
             if (keyword != null) {
               await _insertAt(builder, keyword.offset);
             } else {
-              var type = list.type;
+              var type = variableList.type;
               if (type != null) {
                 await _insertAt(builder, type.offset);
               }
@@ -65,13 +64,17 @@ class AddLate extends CorrectionProducer {
             getter.enclosingElement is ClassElement) {
           var declarationResult =
               await sessionHelper.getElementDeclaration(getter.variable);
+          if (declarationResult == null) {
+            return;
+          }
           var variable = declarationResult.node;
+          var variableList = variable.parent;
           if (variable is VariableDeclaration &&
-              variable.parent is VariableDeclarationList &&
-              variable.parent.parent is FieldDeclaration) {
-            VariableDeclarationList declarationList = variable.parent;
-            var keywordToken = declarationList.keyword;
-            if (declarationList.variables.length == 1 &&
+              variableList is VariableDeclarationList &&
+              variableList.parent is FieldDeclaration) {
+            var keywordToken = variableList.keyword;
+            if (variableList.variables.length == 1 &&
+                keywordToken != null &&
                 keywordToken.keyword == Keyword.FINAL) {
               await _insertAt(builder, keywordToken.offset,
                   source: declarationResult.element.source);
@@ -83,7 +86,7 @@ class AddLate extends CorrectionProducer {
   }
 
   Future<void> _insertAt(ChangeBuilder builder, int offset,
-      {Source source}) async {
+      {Source? source}) async {
     await builder.addDartFileEdit(source?.fullName ?? file, (builder) {
       builder.addSimpleInsertion(offset, 'late ');
     });
