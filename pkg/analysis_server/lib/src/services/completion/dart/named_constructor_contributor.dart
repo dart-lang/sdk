@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -24,13 +22,11 @@ class NamedConstructorContributor extends DartCompletionContributor {
         return;
       }
       var typeName = node.type;
-      if (typeName != null) {
-        var type = typeName.type;
-        if (type != null) {
-          var element = type.element;
-          if (element is ClassElement) {
-            _buildSuggestions(request, builder, libraryElement, element);
-          }
+      var type = typeName.type;
+      if (type != null) {
+        var element = type.element;
+        if (element is ClassElement) {
+          _buildSuggestions(request, builder, libraryElement, element);
         }
       }
     }
@@ -45,10 +41,7 @@ class NamedConstructorContributor extends DartCompletionContributor {
     for (var constructor in classElem.constructors) {
       if (isLocalClassDecl || !constructor.isPrivate) {
         if (!classElem.isAbstract || constructor.isFactory) {
-          var name = constructor.name;
-          if (name != null) {
-            builder.suggestConstructor(constructor, hasClassName: true);
-          }
+          builder.suggestConstructor(constructor, hasClassName: true);
         }
       }
     }

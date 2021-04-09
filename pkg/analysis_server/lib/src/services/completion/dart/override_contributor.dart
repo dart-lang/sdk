@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -29,6 +27,9 @@ class OverrideContributor implements DartCompletionContributor {
 
     // Generate a collection of inherited members
     var classElem = classDecl.declaredElement;
+    if (classElem == null) {
+      return;
+    }
     var interface = inheritance.getInterface(classElem);
     var interfaceMap = interface.map;
     var namesToOverride =
@@ -38,7 +39,7 @@ class OverrideContributor implements DartCompletionContributor {
     for (var name in namesToOverride) {
       var element = interfaceMap[name];
       // Gracefully degrade if the overridden element has not been resolved.
-      if (element.returnType != null) {
+      if (element != null) {
         var invokeSuper = interface.isSuperImplemented(name);
         await builder.suggestOverride(targetId, element, invokeSuper);
       }
@@ -47,7 +48,7 @@ class OverrideContributor implements DartCompletionContributor {
 
   /// If the target looks like a partial identifier inside a class declaration
   /// then return that identifier, otherwise return `null`.
-  SimpleIdentifier _getTargetId(CompletionTarget target) {
+  SimpleIdentifier? _getTargetId(CompletionTarget target) {
     var node = target.containingNode;
     if (node is ClassOrMixinDeclaration) {
       var entity = target.entity;
@@ -63,7 +64,7 @@ class OverrideContributor implements DartCompletionContributor {
     return null;
   }
 
-  SimpleIdentifier _getTargetIdFromVarList(VariableDeclarationList fields) {
+  SimpleIdentifier? _getTargetIdFromVarList(VariableDeclarationList fields) {
     var variables = fields.variables;
     if (variables.length == 1) {
       var variable = variables[0];

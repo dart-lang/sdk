@@ -576,7 +576,7 @@ main() {
       });
 
       test('on implicit this/super', () {
-        var h = Harness();
+        var h = Harness(thisType: 'C')..addMember('C', 'f', 'Object?');
         h.run([
           if_(thisOrSuperPropertyGet('f').is_('Null'), [
             if_(thisOrSuperPropertyGet('f').eq(nullLiteral), [
@@ -1511,7 +1511,7 @@ main() {
       });
 
       test('on implicit this/super', () {
-        var h = Harness();
+        var h = Harness(thisType: 'C')..addMember('C', 'f', 'Object?');
         h.run([
           if_(thisOrSuperPropertyGet('f').is_('Never'), [
             checkReachable(true),
@@ -5613,7 +5613,7 @@ main() {
       });
 
       test('via implicit this/super', () {
-        var h = Harness();
+        var h = Harness(thisType: 'C')..addMember('C', 'field', 'Object?');
         h.run([
           if_(thisOrSuperPropertyGet('field').eq(nullLiteral), [
             return_(),

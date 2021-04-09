@@ -314,7 +314,7 @@ class FeatureComputer {
 
   /// Return the value of the _is noSuchMethod_ feature.
   double isNoSuchMethodFeature(
-      String containingMethodName, String proposedMemberName) {
+      String? containingMethodName, String proposedMemberName) {
     if (proposedMemberName == containingMethodName) {
       // Don't penalize `noSuchMethod` when completing after `super` in an
       // override of `noSuchMethod`.
