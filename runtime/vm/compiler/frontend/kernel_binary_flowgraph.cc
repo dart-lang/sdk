@@ -2643,7 +2643,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
-  const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
+  const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
 
   const uint8_t flags = ReadFlags();  // read flags.
   const bool is_invariant = (flags & kMethodInvocationFlagInvariant) != 0;
@@ -3007,7 +3007,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
   }
 
   const auto recognized_kind = target.recognized_kind();
-  if (recognized_kind == MethodRecognizer::kFfiAsFunctionInternal) {
+  if (recognized_kind == MethodRecognizer::kNativeEffect) {
+    return BuildNativeEffect();
+  } else if (recognized_kind == MethodRecognizer::kFfiAsFunctionInternal) {
     return BuildFfiAsFunctionInternal();
   } else if (CompilerState::Current().is_aot() &&
              recognized_kind == MethodRecognizer::kFfiNativeCallbackFunction) {
@@ -5018,20 +5020,42 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   return instructions;
 }
 
+Fragment StreamingFlowGraphBuilder::BuildNativeEffect() {
+  const intptr_t argc = ReadUInt();  // Read argument count.
+  ASSERT(argc == 1);                 // Native side effect to ignore.
+  const intptr_t list_length = ReadListLength();  // Read types list length.
+  ASSERT(list_length == 0);
+
+  const intptr_t positional_count =
+      ReadListLength();  // Read positional argument count.
+  ASSERT(positional_count == 1);
+
+  BuildExpression();  // Consume expression but don't save the fragment.
+  Pop();              // Restore the stack.
+
+  const intptr_t named_args_len =
+      ReadListLength();  // Skip empty named arguments.
+  ASSERT(named_args_len == 0);
+
+  Fragment code;
+  code += NullConstant();  // Return type is void.
+  return code;
+}
+
 Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
-  const intptr_t argc = ReadUInt();               // read argument count.
-  ASSERT(argc == 1);                              // pointer
-  const intptr_t list_length = ReadListLength();  // read types list length.
-  ASSERT(list_length == 2);  // dart signature, then native signature
+  const intptr_t argc = ReadUInt();               // Read argument count.
+  ASSERT(argc == 1);                              // Pointer.
+  const intptr_t list_length = ReadListLength();  // Read types list length.
+  ASSERT(list_length == 2);  // Dart signature, then native signature.
   const TypeArguments& type_arguments =
-      T.BuildTypeArguments(list_length);  // read types.
+      T.BuildTypeArguments(list_length);  // Read types.
   Fragment code;
   const intptr_t positional_count =
-      ReadListLength();  // read positional argument count
+      ReadListLength();  // Read positional argument count.
   ASSERT(positional_count == 1);
-  code += BuildExpression();  // build first positional argument (pointer)
+  code += BuildExpression();  // Build first positional argument (pointer).
   const intptr_t named_args_len =
-      ReadListLength();  // skip (empty) named arguments list
+      ReadListLength();  // Skip empty named arguments list.
   ASSERT(named_args_len == 0);
   code += B->BuildFfiAsFunctionInternalCall(type_arguments);
   return code;
@@ -5044,24 +5068,24 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   //
   // The FE also guarantees that all three arguments are constants.
 
-  const intptr_t argc = ReadUInt();  // read argument count
-  ASSERT(argc == 2);                 // target, exceptionalReturn
+  const intptr_t argc = ReadUInt();  // Read argument count.
+  ASSERT(argc == 2);                 // Target, exceptionalReturn.
 
-  const intptr_t list_length = ReadListLength();  // read types list length
-  ASSERT(list_length == 1);                       // native signature
+  const intptr_t list_length = ReadListLength();  // Read types list length.
+  ASSERT(list_length == 1);                       // The native signature.
   const TypeArguments& type_arguments =
-      T.BuildTypeArguments(list_length);  // read types.
+      T.BuildTypeArguments(list_length);  // Read types.
   ASSERT(type_arguments.Length() == 1 && type_arguments.IsInstantiated());
   const FunctionType& native_sig =
       FunctionType::CheckedHandle(Z, type_arguments.TypeAt(0));
 
   Fragment code;
   const intptr_t positional_count =
-      ReadListLength();  // read positional argument count
+      ReadListLength();  // Read positional argument count.
   ASSERT(positional_count == 2);
 
   // Read target expression and extract the target function.
-  code += BuildExpression();  // build first positional argument (target)
+  code += BuildExpression();  // Build first positional argument (target).
   Definition* target_def = B->Peek();
   ASSERT(target_def->IsConstant());
   const Closure& target_closure =
@@ -5081,7 +5105,7 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   code += Drop();
 
   const intptr_t named_args_len =
-      ReadListLength();  // skip (empty) named arguments list
+      ReadListLength();  // Skip (empty) named arguments list.
   ASSERT(named_args_len == 0);
 
   const Function& result =

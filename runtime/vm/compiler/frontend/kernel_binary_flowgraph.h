@@ -344,11 +344,14 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildFunctionNode(TokenPosition parent_position,
                              StringIndex name_index);
 
-  // Build build FG for '_asFunctionInternal'. Reads an Arguments from the
+  // Build flow graph for '_nativeEffect'.
+  Fragment BuildNativeEffect();
+
+  // Build FG for '_asFunctionInternal'. Reads an Arguments from the
   // Kernel buffer and pushes the resulting closure.
   Fragment BuildFfiAsFunctionInternal();
 
-  // Build build FG for '_nativeCallbackFunction'. Reads an Arguments from the
+  // Build FG for '_nativeCallbackFunction'. Reads an Arguments from the
   // Kernel buffer and pushes the resulting Function object.
   Fragment BuildFfiNativeCallbackFunction();
 

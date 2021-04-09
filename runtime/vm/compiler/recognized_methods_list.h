@@ -166,6 +166,7 @@ namespace dart {
   V(::, _abi, FfiAbi, 0x7c4ab775)                                              \
   V(::, _asFunctionInternal, FfiAsFunctionInternal, 0xbbcb235a)                \
   V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x3ff5ae9c)        \
+  V(::, _nativeEffect, NativeEffect, 0x61e00b59)                               \
   V(::, _loadInt8, FfiLoadInt8, 0x0f04dfd6)                                    \
   V(::, _loadInt16, FfiLoadInt16, 0xec44312d)                                  \
   V(::, _loadInt32, FfiLoadInt32, 0xee223fc3)                                  \

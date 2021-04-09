@@ -387,29 +387,29 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   /// Prevents the struct from being tree-shaken in TFA by invoking its
-  /// constructor in a let expression.
-  ///
-  /// TFA does not recognize this as dead code, only the VM does.
-  /// TODO(http://dartbug.com/45607): Wrap with `_nativeEffect` to make the
-  /// intent of this code clear.
+  /// constructor in a `_nativeEffect` expression.
   Expression _invokeStructConstructor(
-      Expression nestedExpression, Class structClass) {
-    final constructor = structClass.constructors
+      Expression nestedExpression, Class compositeClass) {
+    final constructor = compositeClass.constructors
         .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
-    return Let(
-        VariableDeclaration.forValue(
-            ConstructorInvocation(
-                constructor,
-                Arguments([
-                  StaticInvocation(
-                      uint8ListFactory,
-                      Arguments([
-                        ConstantExpression(IntConstant(1)),
-                      ]))
-                    ..fileOffset = nestedExpression.fileOffset,
-                ]))
-              ..fileOffset = nestedExpression.fileOffset,
-            type: InterfaceType(structClass, Nullability.nonNullable)),
+    return BlockExpression(
+        Block([
+          ExpressionStatement(StaticInvocation(
+              nativeEffectMethod,
+              Arguments([
+                ConstructorInvocation(
+                    constructor,
+                    Arguments([
+                      StaticInvocation(
+                          uint8ListFactory,
+                          Arguments([
+                            ConstantExpression(IntConstant(1)),
+                          ]))
+                        ..fileOffset = nestedExpression.fileOffset,
+                    ]))
+                  ..fileOffset = nestedExpression.fileOffset
+              ])))
+        ]),
         nestedExpression)
       ..fileOffset = nestedExpression.fileOffset;
   }

@@ -333,6 +333,7 @@ namespace dart {
   V(GrowableList_setLength, 2)                                                 \
   V(GrowableList_setData, 2)                                                   \
   V(Internal_unsafeCast, 1)                                                    \
+  V(Internal_nativeEffect, 1)                                                  \
   V(Internal_reachabilityFence, 1)                                             \
   V(Internal_collectAllGarbage, 0)                                             \
   V(Internal_makeListFixedLength, 1)                                           \

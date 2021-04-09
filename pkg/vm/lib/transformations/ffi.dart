@@ -203,6 +203,7 @@ class FfiTransformer extends Transformer {
   final Class listClass;
   final Class typeClass;
   final Procedure unsafeCastMethod;
+  final Procedure nativeEffectMethod;
   final Class typedDataClass;
   final Procedure typedDataBufferGetter;
   final Procedure typedDataOffsetInBytesGetter;
@@ -294,6 +295,8 @@ class FfiTransformer extends Transformer {
         typeClass = coreTypes.typeClass,
         unsafeCastMethod =
             index.getTopLevelMember('dart:_internal', 'unsafeCast'),
+        nativeEffectMethod =
+            index.getTopLevelMember('dart:_internal', '_nativeEffect'),
         typedDataClass = index.getClass('dart:typed_data', 'TypedData'),
         typedDataBufferGetter =
             index.getMember('dart:typed_data', 'TypedData', 'get:buffer'),
