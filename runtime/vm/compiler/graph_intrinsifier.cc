@@ -201,6 +201,19 @@ static Definition* CreateBoxedParameterIfNeeded(BlockBuilder* builder,
   }
 }
 
+static Definition* CreateUnboxedParameterIfNeeded(BlockBuilder* builder,
+                                                  Definition* value,
+                                                  Representation representation,
+                                                  intptr_t arg_index) {
+  const auto& function = builder->function();
+  if (!function.is_unboxed_parameter_at(arg_index)) {
+    return builder->AddUnboxInstr(representation, new Value(value),
+                                  /* is_checked = */ false);
+  } else {
+    return value;
+  }
+}
+
 static Definition* CreateBoxedResultIfNeeded(BlockBuilder* builder,
                                              Definition* value,
                                              Representation representation) {
@@ -920,96 +933,129 @@ bool GraphIntrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
   return true;
 }
 
-static bool BuildUnarySmiOp(FlowGraph* flow_graph, Token::Kind op_kind) {
-  ASSERT(!flow_graph->function().has_unboxed_return());
-  ASSERT(!flow_graph->function().is_unboxed_parameter_at(0));
+static bool BuildUnaryIntegerOp(FlowGraph* flow_graph, Token::Kind op_kind) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
   Definition* left = builder.AddParameter(0, /*with_frame=*/false);
-  builder.AddInstruction(
-      new CheckSmiInstr(new Value(left), DeoptId::kNone, builder.Source()));
-  Definition* result = builder.AddDefinition(
-      new UnarySmiOpInstr(op_kind, new Value(left), DeoptId::kNone));
+  Definition* result;
+  if (flow_graph->function().HasUnboxedParameters() ||
+      flow_graph->function().HasUnboxedReturnValue()) {
+    left = CreateUnboxedParameterIfNeeded(&builder, left, kUnboxedInt64, 0);
+    result = builder.AddDefinition(
+        new UnaryInt64OpInstr(op_kind, new Value(left), DeoptId::kNone));
+    result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedInt64);
+  } else {
+    builder.AddInstruction(
+        new CheckSmiInstr(new Value(left), DeoptId::kNone, builder.Source()));
+    result = builder.AddDefinition(
+        new UnarySmiOpInstr(op_kind, new Value(left), DeoptId::kNone));
+  }
   builder.AddReturn(new Value(result));
   return true;
 }
 
 bool GraphIntrinsifier::Build_Smi_bitNegate(FlowGraph* flow_graph) {
-  return BuildUnarySmiOp(flow_graph, Token::kBIT_NOT);
+  return BuildUnaryIntegerOp(flow_graph, Token::kBIT_NOT);
 }
 
 bool GraphIntrinsifier::Build_Integer_negate(FlowGraph* flow_graph) {
-  return BuildUnarySmiOp(flow_graph, Token::kNEGATE);
+  return BuildUnaryIntegerOp(flow_graph, Token::kNEGATE);
 }
 
-static bool BuildBinarySmiOp(FlowGraph* flow_graph, Token::Kind op_kind) {
-  ASSERT(!flow_graph->function().has_unboxed_return());
-  ASSERT(!flow_graph->function().is_unboxed_parameter_at(0));
-  ASSERT(!flow_graph->function().is_unboxed_parameter_at(1));
+static bool BuildBinaryIntegerOp(FlowGraph* flow_graph,
+                                 Token::Kind op_kind,
+                                 bool force_boxed = false) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
   Definition* left = builder.AddParameter(0, /*with_frame=*/false);
   Definition* right = builder.AddParameter(1, /*with_frame=*/false);
-  builder.AddInstruction(
-      new CheckSmiInstr(new Value(left), DeoptId::kNone, builder.Source()));
-  builder.AddInstruction(
-      new CheckSmiInstr(new Value(right), DeoptId::kNone, builder.Source()));
-  Definition* result = builder.AddDefinition(new BinarySmiOpInstr(
-      op_kind, new Value(left), new Value(right), DeoptId::kNone));
+  Definition* result;
+  if (!force_boxed && (flow_graph->function().HasUnboxedParameters() ||
+                       flow_graph->function().HasUnboxedReturnValue())) {
+    left = CreateUnboxedParameterIfNeeded(&builder, left, kUnboxedInt64, 0);
+    right = CreateUnboxedParameterIfNeeded(&builder, right, kUnboxedInt64, 1);
+    switch (op_kind) {
+      case Token::kSHL:
+      case Token::kSHR:
+      case Token::kUSHR:
+        result = builder.AddDefinition(new ShiftInt64OpInstr(
+            op_kind, new Value(left), new Value(right), DeoptId::kNone));
+        break;
+      default:
+        result = builder.AddDefinition(new BinaryInt64OpInstr(
+            op_kind, new Value(left), new Value(right), DeoptId::kNone));
+        break;
+    }
+    result = CreateBoxedResultIfNeeded(&builder, result, kUnboxedInt64);
+  } else {
+    left = CreateBoxedParameterIfNeeded(&builder, left, kUnboxedInt64, 0);
+    right = CreateBoxedParameterIfNeeded(&builder, right, kUnboxedInt64, 1);
+    builder.AddInstruction(
+        new CheckSmiInstr(new Value(left), DeoptId::kNone, builder.Source()));
+    builder.AddInstruction(
+        new CheckSmiInstr(new Value(right), DeoptId::kNone, builder.Source()));
+    result = builder.AddDefinition(new BinarySmiOpInstr(
+        op_kind, new Value(left), new Value(right), DeoptId::kNone));
+    result = CreateUnboxedResultIfNeeded(&builder, result);
+  }
   builder.AddReturn(new Value(result));
   return true;
 }
 
 bool GraphIntrinsifier::Build_Integer_add(FlowGraph* flow_graph) {
-  return BuildBinarySmiOp(flow_graph, Token::kADD);
+  return BuildBinaryIntegerOp(flow_graph, Token::kADD);
 }
 
 bool GraphIntrinsifier::Build_Integer_sub(FlowGraph* flow_graph) {
-  return BuildBinarySmiOp(flow_graph, Token::kSUB);
+  return BuildBinaryIntegerOp(flow_graph, Token::kSUB);
 }
 
 bool GraphIntrinsifier::Build_Integer_mul(FlowGraph* flow_graph) {
-  return BuildBinarySmiOp(flow_graph, Token::kMUL);
+  return BuildBinaryIntegerOp(flow_graph, Token::kMUL);
 }
 
 bool GraphIntrinsifier::Build_Integer_mod(FlowGraph* flow_graph) {
+  bool force_boxed = false;
 #if defined(TARGET_ARCH_ARM)
   if (!TargetCPUFeatures::can_divide()) {
     return false;
   }
+  force_boxed = true;  // BinaryInt64Op(kMOD) not implemented
 #endif
-  return BuildBinarySmiOp(flow_graph, Token::kMOD);
+  return BuildBinaryIntegerOp(flow_graph, Token::kMOD, force_boxed);
 }
 
 bool GraphIntrinsifier::Build_Integer_truncDivide(FlowGraph* flow_graph) {
+  bool force_boxed = false;
 #if defined(TARGET_ARCH_ARM)
   if (!TargetCPUFeatures::can_divide()) {
     return false;
   }
+  force_boxed = true;  // BinaryInt64Op(kTRUNCDIV) not implemented
 #endif
-  return BuildBinarySmiOp(flow_graph, Token::kTRUNCDIV);
+  return BuildBinaryIntegerOp(flow_graph, Token::kTRUNCDIV, force_boxed);
 }
 
 bool GraphIntrinsifier::Build_Integer_bitAnd(FlowGraph* flow_graph) {
-  return BuildBinarySmiOp(flow_graph, Token::kBIT_AND);
+  return BuildBinaryIntegerOp(flow_graph, Token::kBIT_AND);
 }
 
 bool GraphIntrinsifier::Build_Integer_bitOr(FlowGraph* flow_graph) {
-  return BuildBinarySmiOp(flow_graph, Token::kBIT_OR);
+  return BuildBinaryIntegerOp(flow_graph, Token::kBIT_OR);
 }
 
 bool GraphIntrinsifier::Build_Integer_bitXor(FlowGraph* flow_graph) {
-  return BuildBinarySmiOp(flow_graph, Token::kBIT_XOR);
+  return BuildBinaryIntegerOp(flow_graph, Token::kBIT_XOR);
 }
 
 bool GraphIntrinsifier::Build_Integer_sar(FlowGraph* flow_graph) {
-  return BuildBinarySmiOp(flow_graph, Token::kSHR);
+  return BuildBinaryIntegerOp(flow_graph, Token::kSHR);
 }
 
 bool GraphIntrinsifier::Build_Integer_shr(FlowGraph* flow_graph) {
-  return BuildBinarySmiOp(flow_graph, Token::kUSHR);
+  return BuildBinaryIntegerOp(flow_graph, Token::kUSHR);
 }
 
 static Definition* ConvertOrUnboxDoubleParameter(BlockBuilder* builder,

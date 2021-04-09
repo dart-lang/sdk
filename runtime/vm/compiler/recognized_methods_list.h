@@ -263,7 +263,7 @@ namespace dart {
   V(_IntegerImplementation, <, Integer_lessThan, 0x39643178)                   \
   V(_IntegerImplementation, <=, Integer_lessEqualThan, 0x73d2a9f5)             \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, 0xbc280c13)          \
-  V(_IntegerImplementation, <<, Integer_shl, 0x766f04a6)                       \
+  V(_IntegerImplementation, <<, Integer_shl, 0x766f00e5)                       \
   V(_Double, toInt, DoubleToInteger, 0x676f1ce8)                               \
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
@@ -351,18 +351,18 @@ namespace dart {
     0x17f90910)                                                                \
   V(_ExternalTwoByteString, codeUnitAt, ExternalTwoByteStringCodeUnitAt,       \
     0x17f90910)                                                                \
-  V(_Smi, ~, Smi_bitNegate, 0x8254f8dc)                                        \
-  V(_IntegerImplementation, +, Integer_add, 0xd5610450)                        \
-  V(_IntegerImplementation, -, Integer_sub, 0xc96a1341)                        \
-  V(_IntegerImplementation, *, Integer_mul, 0xacd967de)                        \
-  V(_IntegerImplementation, %, Integer_mod, 0xfcf7cfd4)                        \
-  V(_IntegerImplementation, ~/, Integer_truncDivide, 0xdda4a240)               \
-  V(_IntegerImplementation, unary-, Integer_negate, 0xf7a9aa57)                \
-  V(_IntegerImplementation, &, Integer_bitAnd, 0x8b9d7ff4)                     \
-  V(_IntegerImplementation, |, Integer_bitOr, 0x8f47f9ac)                      \
-  V(_IntegerImplementation, ^, Integer_bitXor, 0xd838c2b3)                     \
-  V(_IntegerImplementation, >>, Integer_sar, 0x931fbf4b)                       \
-  V(_IntegerImplementation, >>>, Integer_shr, 0x7495fbad)                      \
+  V(_Smi, ~, Smi_bitNegate, 0x8254f51b)                                        \
+  V(_IntegerImplementation, +, Integer_add, 0xd561008f)                        \
+  V(_IntegerImplementation, -, Integer_sub, 0xc96a0f80)                        \
+  V(_IntegerImplementation, *, Integer_mul, 0xacd9641d)                        \
+  V(_IntegerImplementation, %, Integer_mod, 0xfcf7cc13)                        \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, 0xdda49e7f)               \
+  V(_IntegerImplementation, unary-, Integer_negate, 0xf7a9a696)                \
+  V(_IntegerImplementation, &, Integer_bitAnd, 0x8b9d7c33)                     \
+  V(_IntegerImplementation, |, Integer_bitOr, 0x8f47f5eb)                      \
+  V(_IntegerImplementation, ^, Integer_bitXor, 0xd838bef2)                     \
+  V(_IntegerImplementation, >>, Integer_sar, 0x931fbb8a)                       \
+  V(_IntegerImplementation, >>>, Integer_shr, 0x7495f7ec)                      \
   V(_Double, unary-, DoubleFlipSignBit, 0x3d39082b)                            \
   V(_Double, truncateToDouble, DoubleTruncate, 0x62d48298)                     \
   V(_Double, roundToDouble, DoubleRound, 0x5649c63f)                           \
