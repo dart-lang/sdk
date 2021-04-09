@@ -58,4 +58,22 @@ class _Lowering extends Transformer {
     node.transformChildren(this);
     return _lateLowering.transformVariableSet(node, _currentMember);
   }
+
+  @override
+  TreeNode visitField(Field node) {
+    node.transformChildren(this);
+    return _lateLowering.transformField(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitStaticGet(StaticGet node) {
+    node.transformChildren(this);
+    return _lateLowering.transformStaticGet(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitStaticSet(StaticSet node) {
+    node.transformChildren(this);
+    return _lateLowering.transformStaticSet(node, _currentMember);
+  }
 }

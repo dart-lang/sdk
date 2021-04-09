@@ -66,8 +66,6 @@ const List<int> _allEnabledLateLowerings = [
   LateLowering.nonNullableInitializedNonFinalLocal,
   LateLowering.nullableInitializedFinalLocal,
   LateLowering.nonNullableInitializedFinalLocal,
-  LateLowering.uninitializedNonFinalStaticField,
-  LateLowering.uninitializedFinalStaticField,
   LateLowering.initializedNonFinalStaticField,
   LateLowering.initializedFinalStaticField,
   LateLowering.uninitializedNonFinalInstanceField,
