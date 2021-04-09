@@ -313,7 +313,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_emptyAnalysisRoots_projectWithoutPubspec() async {
-    projectFolderPath = '/home/empty';
+    projectFolderPath = convertPath('/home/empty');
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
@@ -534,7 +534,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_withoutPubpsec() async {
-    projectFolderPath = '/home/empty';
+    projectFolderPath = convertPath('/home/empty');
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
