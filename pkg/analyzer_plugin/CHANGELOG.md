@@ -1,3 +1,6 @@
+## 0.6.0
+- Bug fixes to the protocol.
+
 ## 0.5.0
 - Changed the support version range of the analyzer to `^1.3.0`.
 - Removed `Plugin.fileContentOverlay`, instead `Plugin.resourceProvider` is
