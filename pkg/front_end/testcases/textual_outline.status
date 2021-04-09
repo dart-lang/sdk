@@ -20,9 +20,11 @@ regress/issue_39035.crash: EmptyOutput
 regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
+const_functions/const_functions_const_ctor: FormatterCrash
+const_functions/const_functions_const_ctor_error: FormatterCrash
+const_functions/const_functions_const_factory: FormatterCrash
 dart2js/late_fields: FormatterCrash
 dart2js/late_statics: FormatterCrash
-const_functions/const_functions_const_factory: FormatterCrash
 extensions/extension_constructor: FormatterCrash
 extensions/extension_field_with_type_parameter_usage: FormatterCrash
 extensions/issue38600: FormatterCrash

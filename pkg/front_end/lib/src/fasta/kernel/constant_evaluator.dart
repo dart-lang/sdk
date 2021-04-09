@@ -1050,6 +1050,27 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         'No valid constant returned from the execution of $statement.');
   }
 
+  /// Returns [null] on success and an error-"constant" on failure, as such the
+  /// return value should be checked.
+  AbortConstant executeConstructorBody(Constructor constructor) {
+    final Statement body = constructor.function.body;
+    StatementConstantEvaluator statementEvaluator =
+        new StatementConstantEvaluator(this);
+    ExecutionStatus status = body.accept(statementEvaluator);
+    if (status is AbortStatus) {
+      return status.error;
+    } else if (status is ReturnStatus) {
+      if (status.value == null) return null;
+      // Should not be reachable.
+      return createInvalidExpressionConstant(
+          constructor, "Constructors can't have a return value.");
+    } else if (status is! ProceedStatus) {
+      return createInvalidExpressionConstant(
+          constructor, "Invalid execution status of constructor body.");
+    }
+    return null;
+  }
+
   /// Create an error-constant indicating that an error has been detected during
   /// constant evaluation.
   AbortConstant createErrorConstant(TreeNode node, Message message,
@@ -1508,7 +1529,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           node, 'Non-const constructor invocation.');
     }
     if (constructor.function.body != null &&
-        constructor.function.body is! EmptyStatement) {
+        constructor.function.body is! EmptyStatement &&
+        !enableConstFunctions) {
       // Probably unreachable.
       return createInvalidExpressionConstant(
           node,
@@ -1822,6 +1844,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       for (UnevaluatedConstant constant in env.unevaluatedUnreadConstants) {
         instanceBuilder.unusedArguments.add(extract(constant));
       }
+
+      if (enableConstFunctions && constructor.function != null) {
+        AbortConstant error = executeConstructorBody(constructor);
+        if (error != null) return error;
+      }
+
       return null;
     });
   }
@@ -3442,6 +3470,10 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   }
 
   @override
+  ExecutionStatus visitEmptyStatement(EmptyStatement node) =>
+      const ProceedStatus();
+
+  @override
   ExecutionStatus visitFunctionDeclaration(FunctionDeclaration node) {
     final EvaluationEnvironment newEnv =
         new EvaluationEnvironment.withParent(exprEvaluator.env);
@@ -3514,8 +3546,13 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   }
 
   @override
-  ExecutionStatus visitReturnStatement(ReturnStatement node) =>
-      new ReturnStatus(evaluate(node.expression));
+  ExecutionStatus visitReturnStatement(ReturnStatement node) {
+    Constant result;
+    if (node.expression != null) {
+      result = evaluate(node.expression);
+    }
+    return new ReturnStatus(result);
+  }
 
   @override
   ExecutionStatus visitSwitchStatement(SwitchStatement node) {
