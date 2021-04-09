@@ -149,8 +149,8 @@ Statement switch_(Expression expression, List<SwitchCase> cases,
         {required bool isExhaustive}) =>
     new _Switch(expression, cases, isExhaustive);
 
-Expression thisOrSuperPropertyGet(String name, {String type = 'Object?'}) =>
-    new _ThisOrSuperPropertyGet(name, Type(type));
+Expression thisOrSuperPropertyGet(String name) =>
+    new _ThisOrSuperPropertyGet(name);
 
 Expression throw_(Expression operand) => new _Throw(operand);
 
@@ -1575,15 +1575,14 @@ class _This extends Expression {
 class _ThisOrSuperPropertyGet extends Expression {
   final String propertyName;
 
-  final Type type;
-
-  _ThisOrSuperPropertyGet(this.propertyName, this.type);
+  _ThisOrSuperPropertyGet(this.propertyName);
 
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
 
   @override
   Type _visit(Harness h) {
+    var type = h.getMember(h.thisType!, propertyName);
     h._flow.thisOrSuperPropertyGet(this, propertyName, propertyName, type);
     return type;
   }
