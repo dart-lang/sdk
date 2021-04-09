@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -27,7 +25,7 @@ class ConvertToPackageImport extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is StringLiteral) {
-      node = node.parent;
+      node = node.parent!;
     }
     if (node is ImportDirective) {
       var importDirective = node;
@@ -45,7 +43,8 @@ class ConvertToPackageImport extends CorrectionProducer {
 
       // Don't offer to convert a 'package:' URI to itself.
       try {
-        if (Uri.parse(importDirective.uriContent).scheme == 'package') {
+        var uriContent = importDirective.uriContent;
+        if (uriContent == null || Uri.parse(uriContent).scheme == 'package') {
           return;
         }
       } on FormatException {

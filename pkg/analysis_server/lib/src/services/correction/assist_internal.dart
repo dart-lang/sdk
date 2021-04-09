@@ -107,7 +107,7 @@ class AssistProcessor extends BaseProcessor {
     ConvertPartOfToUri.newInstance,
     ConvertToDoubleQuotes.newInstance,
     ConvertToFieldParameter.newInstance,
-    ConvertToMutilineString.newInstance,
+    ConvertToMultilineString.newInstance,
     ConvertToNormalParameter.newInstance,
     ConvertToSingleQuotes.newInstance,
     ConvertToExpressionFunctionBody.newInstance,

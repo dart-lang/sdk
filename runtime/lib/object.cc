@@ -279,6 +279,10 @@ DEFINE_NATIVE_ENTRY(Internal_unsafeCast, 0, 1) {
   return arguments->NativeArgAt(0);
 }
 
+DEFINE_NATIVE_ENTRY(Internal_nativeEffect, 0, 1) {
+  UNREACHABLE();
+}
+
 DEFINE_NATIVE_ENTRY(Internal_reachabilityFence, 0, 1) {
   UNREACHABLE();
 }
