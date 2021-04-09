@@ -15,17 +15,7 @@ debugger_location_second_test: SkipByDesign # No script sources available.
 eval_internal_class_test: SkipByDesign # No incremental compiler available.
 eval_regression_flutter20255_test: SkipByDesign # No incremental compiler available.
 eval_test: SkipByDesign # No incremental compiler available.
-evaluate_activation_test: SkipByDesign # No incremental compiler available.
-evaluate_async_closure_test: SkipByDesign # No incremental compiler available.
-evaluate_class_type_parameters_test: SkipByDesign # No incremental compiler available.
-evaluate_function_type_parameters_test: SkipByDesign # No incremental compiler available.
-evaluate_in_async_activation_test: SkipByDesign # No incremental compiler available.
-evaluate_in_async_star_activation_test: SkipByDesign # No incremental compiler available.
-evaluate_in_frame_rpc_test: SkipByDesign # No incremental compiler available.
-evaluate_in_frame_with_scope_test: SkipByDesign # No incremental compiler available.
-evaluate_in_sync_star_activation_test: SkipByDesign # No incremental compiler available.
-evaluate_with_escaping_closure_test: SkipByDesign # No incremental compiler available.
-evaluate_with_scope_test: SkipByDesign # No incremental compiler available.
+evaluate_*: SkipByDesign # No incremental compiler available.
 get_allocation_traces_test: SkipByDesign # Allocation traces aren't consistent when running from snapshot.
 get_object_rpc_test: SkipByDesign # App-JIT snapshots don't contain script sources.
 pause_on_exceptions_test: SkipByDesign # No incremental compiler available.
@@ -161,6 +151,7 @@ next_through_simple_linear_test: SkipByDesign # Debugger is disabled in AOT mode
 notify_debugger_on_exception_test: SkipByDesign # Debugger is disabled in AOT mode.
 parameters_in_scope_at_entry_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_idle_isolate_test: SkipByDesign # Debugger is disabled in AOT mode.
+pause_on_exception_from_slow_path_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_exceptions_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_start_then_step_test: SkipByDesign # Debugger is disabled in AOT mode.
 pause_on_unhandled_async_exceptions2_test: SkipByDesign # Debugger is disabled in AOT mode.
