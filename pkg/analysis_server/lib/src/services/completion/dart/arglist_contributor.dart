@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
@@ -17,15 +15,15 @@ import 'package:analyzer/dart/element/type.dart';
 /// correspond to named parameters when completing in argument lists.
 class ArgListContributor extends DartCompletionContributor {
   /// The request that is currently being handled.
-  DartCompletionRequest request;
+  late DartCompletionRequest request;
 
   /// The suggestion builder used to build suggestions.
-  SuggestionBuilder builder;
+  late SuggestionBuilder builder;
 
   /// The argument list that is the containing node of the target, or `null` if
   /// the containing node of the target is not an argument list (such as when
   /// it's a named expression).
-  ArgumentList argumentList;
+  ArgumentList? argumentList;
 
   @override
   Future<void> computeSuggestions(
@@ -47,7 +45,7 @@ class ArgListContributor extends DartCompletionContributor {
   }
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,
-      {bool appendComma = false, int replacementLength}) {
+      {bool appendComma = false, int? replacementLength}) {
     var appendColon = !_isInNamedExpression();
     var namedArgs = _namedArgs();
     for (var parameter in parameters) {
@@ -61,7 +59,7 @@ class ArgListContributor extends DartCompletionContributor {
 
   void _addNamedParameterSuggestion(List<String> namedArgs,
       ParameterElement parameter, bool appendColon, bool appendComma,
-      {int replacementLength}) {
+      {int? replacementLength}) {
     var name = parameter.name;
 
     // Check whether anything after the caret is being replaced. If so, we will
@@ -74,7 +72,7 @@ class ArgListContributor extends DartCompletionContributor {
         request.completionPreference == CompletionPreference.replace &&
             replacementEnd > request.offset;
 
-    if (name != null && name.isNotEmpty && !namedArgs.contains(name)) {
+    if (name.isNotEmpty && !namedArgs.contains(name)) {
       builder.suggestNamedArgument(parameter,
           // If there's a replacement length and the preference is to replace,
           // we should not include colons/commas.
@@ -85,7 +83,7 @@ class ArgListContributor extends DartCompletionContributor {
   }
 
   void _addSuggestions(Iterable<ParameterElement> parameters) {
-    if (parameters == null || parameters.isEmpty) {
+    if (parameters.isEmpty) {
       return;
     }
     var requiredParam =
@@ -110,7 +108,7 @@ class ArgListContributor extends DartCompletionContributor {
         // for an identifier that is not the named label and therefore it should
         // not be replaced.
         var replacementLength =
-            request.offset == request.target.entity.offset &&
+            request.offset == request.target.entity?.offset &&
                     request.replacementRange.length != 0
                 ? 0
                 : null;
@@ -135,6 +133,7 @@ class ArgListContributor extends DartCompletionContributor {
 
   /// Return the number of arguments in the argument list.
   int _argCount() {
+    var argumentList = this.argumentList;
     if (argumentList != null) {
       var paren = argumentList.rightParenthesis;
       if (request.target.entity == paren) {
@@ -157,11 +156,15 @@ class ArgListContributor extends DartCompletionContributor {
     }
   }
 
-  /// Return `true` if the caret is preceeding an arg where a name could be added
+  /// Return `true` if the caret is preceding an arg where a name could be added
   /// (turning a positional arg into a named arg).
   bool _isAddingLabelToPositional() {
+    var argumentList = this.argumentList;
     if (argumentList != null) {
       var entity = request.target.entity;
+      if (entity is! Expression) {
+        return false;
+      }
       if (entity is! NamedExpression) {
         // Caret is in front of a value
         //     f(one: 1, ^2);
@@ -191,6 +194,7 @@ class ArgListContributor extends DartCompletionContributor {
   /// Return `true` if the completion target is at the end of the list of
   /// arguments.
   bool _isAppendingToArgList() {
+    var argumentList = this.argumentList;
     if (argumentList != null) {
       var entity = request.target.entity;
       if (entity == argumentList.rightParenthesis) {
@@ -231,17 +235,16 @@ class ArgListContributor extends DartCompletionContributor {
         : entity is Token
             ? entity
             : null;
-    return (token != containingNode?.endToken) &&
+    return (token != containingNode.endToken) &&
         token?.next?.type == TokenType.COMMA &&
-        !token.next.isSynthetic;
+        !(token?.next?.isSynthetic ?? false);
   }
 
   bool _isInFlutterCreation() {
     var flutter = Flutter.instance;
-    var containingNode = request.target?.containingNode;
-    var newExpr = containingNode != null
-        ? flutter.identifyNewExpression(containingNode.parent)
-        : null;
+    var containingNode = request.target.containingNode;
+    var parent = containingNode.parent;
+    var newExpr = parent != null ? flutter.identifyNewExpression(parent) : null;
     return newExpr != null && flutter.isWidgetCreation(newExpr);
   }
 
@@ -272,10 +275,11 @@ class ArgListContributor extends DartCompletionContributor {
   /// [_isInsertingToArgListWithNoSynthetic] have been called and both returned
   /// `false`.
   bool _isInsertingToArgListWithSynthetic() {
+    var argumentList = this.argumentList;
     if (argumentList != null) {
       var entity = request.target.entity;
       if (entity is SimpleIdentifier) {
-        var argIndex = request.target.argIndex;
+        var argIndex = request.target.argIndex!;
         // if the next argument is a NamedExpression, then we are in the named
         // parameter list, guard first against end of list
         if (argumentList.arguments.length == argIndex + 1 ||
@@ -291,6 +295,7 @@ class ArgListContributor extends DartCompletionContributor {
   /// Return a list containing the currently specified named arguments.
   List<String> _namedArgs() {
     var namedArgs = <String>[];
+    var argumentList = this.argumentList;
     if (argumentList != null) {
       for (var arg in argumentList.arguments) {
         if (arg is NamedExpression) {
