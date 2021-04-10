@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -14,7 +12,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateSetter extends CorrectionProducer {
-  String _setterName;
+  String _setterName = '';
 
   @override
   List<Object> get fixArguments => [_setterName];
@@ -24,15 +22,15 @@ class CreateSetter extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! SimpleIdentifier) {
+    var nameNode = node;
+    if (nameNode is! SimpleIdentifier) {
       return;
     }
-    SimpleIdentifier nameNode = node;
     if (!nameNode.inSetterContext()) {
       return;
     }
     // prepare target
-    Expression target;
+    Expression? target;
     {
       var nameParent = nameNode.parent;
       if (nameParent is PrefixedIdentifier) {
@@ -43,7 +41,7 @@ class CreateSetter extends CorrectionProducer {
     }
     // prepare target element
     var staticModifier = false;
-    Element targetElement;
+    Element? targetElement;
     if (target is ExtensionOverride) {
       targetElement = target.staticElement;
     } else if (target is Identifier &&
@@ -71,7 +69,11 @@ class CreateSetter extends CorrectionProducer {
       }
       staticModifier = inStaticContext;
     }
-    if (targetElement.librarySource.isInSystemLibrary) {
+    if (targetElement == null) {
+      return;
+    }
+    var targetSource = targetElement.source;
+    if (targetSource == null || targetSource.isInSystemLibrary) {
       return;
     }
     // prepare target declaration
@@ -80,16 +82,26 @@ class CreateSetter extends CorrectionProducer {
     if (targetDeclarationResult == null) {
       return;
     }
-    if (targetDeclarationResult.node is! ClassOrMixinDeclaration &&
-        targetDeclarationResult.node is! ExtensionDeclaration) {
+    var targetNode = targetDeclarationResult.node;
+    if (targetNode is CompilationUnitMember) {
+      if (targetDeclarationResult.node is! ClassOrMixinDeclaration &&
+          targetDeclarationResult.node is! ExtensionDeclaration) {
+        return;
+      }
+    } else {
       return;
     }
-    CompilationUnitMember targetNode = targetDeclarationResult.node;
     // prepare location
-    var targetLocation = CorrectionUtils(targetDeclarationResult.resolvedUnit)
+    var targetUnit = targetDeclarationResult.resolvedUnit;
+    if (targetUnit == null) {
+      return;
+    }
+    var targetLocation = CorrectionUtils(targetUnit)
         .prepareNewGetterLocation(targetNode); // Rename to "AccessorLocation"
+    if (targetLocation == null) {
+      return;
+    }
     // build method source
-    var targetSource = targetElement.source;
     var targetFile = targetSource.fullName;
     _setterName = nameNode.name;
     await builder.addDartFileEdit(targetFile, (builder) {

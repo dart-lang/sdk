@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -32,35 +30,42 @@ class InlineInvocation extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
-    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
+    if (node is! SimpleIdentifier || node.name != 'add') {
       return;
     }
-    SimpleIdentifier name = node;
-    MethodInvocation invocation = node.parent;
-    if (name != invocation.methodName ||
-        name.name != 'add' ||
+
+    var invocation = node.parent;
+    if (invocation is! MethodInvocation) {
+      return;
+    }
+
+    if (node != invocation.methodName ||
         !invocation.isCascaded ||
         invocation.argumentList.arguments.length != 1) {
       return;
     }
-    var cascade = invocation.thisOrAncestorOfType<CascadeExpression>();
+
+    var cascade = invocation.parent;
+    if (cascade is! CascadeExpression) {
+      return;
+    }
+
     var sections = cascade.cascadeSections;
     var target = cascade.target;
     if (target is! ListLiteral || sections[0] != invocation) {
       // TODO(brianwilkerson) Consider extending this to handle set literals.
       return;
     }
-    ListLiteral list = target;
     var argument = invocation.argumentList.arguments[0];
     var elementText = utils.getNodeText(argument);
 
     await builder.addDartFileEdit(file, (builder) {
-      if (list.elements.isNotEmpty) {
+      if (target.elements.isNotEmpty) {
         // ['a']..add(e);
-        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+        builder.addSimpleInsertion(target.elements.last.end, ', $elementText');
       } else {
         // []..add(e);
-        builder.addSimpleInsertion(list.leftBracket.end, elementText);
+        builder.addSimpleInsertion(target.leftBracket.end, elementText);
       }
       builder.addDeletion(range.node(invocation));
     });

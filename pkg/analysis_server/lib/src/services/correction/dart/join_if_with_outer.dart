@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -19,22 +18,18 @@ class JoinIfWithOuter extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // climb up condition to the (supposedly) "if" statement
-    var node = this.node;
-    while (node is Expression) {
-      node = node.parent;
-    }
+    var targetIfStatement = node.enclosingIfStatement;
     // prepare target "if" statement
-    if (node is! IfStatement) {
+    if (targetIfStatement == null) {
       return;
     }
-    var targetIfStatement = node as IfStatement;
     if (targetIfStatement.elseStatement != null) {
       return;
     }
     // prepare outer "if" statement
     var parent = targetIfStatement.parent;
     if (parent is Block) {
-      if ((parent as Block).statements.length != 1) {
+      if (parent.statements.length != 1) {
         return;
       }
       parent = parent.parent;
@@ -42,7 +37,7 @@ class JoinIfWithOuter extends CorrectionProducer {
     if (parent is! IfStatement) {
       return;
     }
-    var outerIfStatement = parent as IfStatement;
+    var outerIfStatement = parent;
     if (outerIfStatement.elseStatement != null) {
       return;
     }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -519,7 +517,7 @@ method() {
   }
 
   CompletionSuggestion _assertOverride(String completion,
-      {String displayText, int selectionOffset, int selectionLength}) {
+      {String? displayText, int? selectionOffset, int? selectionLength}) {
     var cs = getSuggest(
         completion: completion,
         csKind: CompletionSuggestionKind.OVERRIDE,

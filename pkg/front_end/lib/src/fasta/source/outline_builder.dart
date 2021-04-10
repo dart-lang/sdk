@@ -1176,7 +1176,9 @@ class OutlineBuilder extends StackListenerImpl {
 
     declarationBuilder.resolveTypes(typeVariables, libraryBuilder);
     if (constructorName != null) {
-      if (isConst && bodyKind != MethodBody.Abstract) {
+      if (isConst &&
+          bodyKind != MethodBody.Abstract &&
+          !libraryBuilder.enableConstFunctionsInLibrary) {
         addProblem(messageConstConstructorWithBody, varFinalOrConstOffset, 5);
         modifiers &= ~constMask;
       }

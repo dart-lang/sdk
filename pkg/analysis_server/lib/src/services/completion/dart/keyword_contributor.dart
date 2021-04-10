@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
@@ -45,11 +43,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   final SuggestionBuilder builder;
 
-  final Object entity;
+  final SyntacticEntity? entity;
 
   _KeywordVisitor(this.request, this.builder) : entity = request.target.entity;
 
-  Token get droppedToken => request.target.droppedToken;
+  Token? get droppedToken => request.target.droppedToken;
 
   @override
   void visitArgumentList(ArgumentList node) {
@@ -58,6 +56,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         return;
       }
     }
+    var entity = this.entity;
     if (entity == node.rightParenthesis) {
       _addExpressionKeywords(node);
       var previous = node.findPrevious(entity as Token);
@@ -75,10 +74,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       var index = node.arguments.indexOf(entity);
       if (index > 0) {
         var previousArgument = node.arguments[index - 1];
-        var endToken = previousArgument?.endToken;
-        if (endToken?.lexeme == ')' &&
-            endToken.next?.lexeme == ',' &&
-            endToken.next.isSynthetic) {
+        var endToken = previousArgument.endToken;
+        var tokenAfterEnd = endToken.next!;
+        if (endToken.lexeme == ')' &&
+            tokenAfterEnd.lexeme == ',' &&
+            tokenAfterEnd.isSynthetic) {
           _addSuggestion(Keyword.ASYNC);
           _addSuggestion2(ASYNC_STAR);
           _addSuggestion2(SYNC_STAR);
@@ -121,9 +121,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         if (previous != null && previous.isSynthetic) {
           previous = node.findPrevious(previous);
         }
-        var next = token.next;
+        var next = token.next!;
         if (next.isSynthetic) {
-          next = next.next;
+          next = next.next!;
         }
         if (previous != null &&
             previous.type == TokenType.CLOSE_PAREN &&
@@ -142,6 +142,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    var entity = this.entity;
     // Don't suggest class name
     if (entity == node.name) {
       return;
@@ -164,7 +165,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    SyntacticEntity previousMember;
+    SyntacticEntity? previousMember;
     for (var member in node.childEntities) {
       if (entity == member) {
         break;
@@ -172,8 +173,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       previousMember = member;
     }
     if (previousMember is ClassDeclaration) {
-      if (previousMember.leftBracket == null ||
-          previousMember.leftBracket.isSynthetic) {
+      if (previousMember.leftBracket.isSynthetic) {
         // If the prior member is an unfinished class declaration
         // then the user is probably finishing that.
         _addClassDeclarationKeywords(previousMember);
@@ -181,8 +181,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       }
     }
     if (previousMember is ExtensionDeclaration) {
-      if (previousMember.leftBracket == null ||
-          previousMember.leftBracket.isSynthetic) {
+      if (previousMember.leftBracket.isSynthetic) {
         // If the prior member is an unfinished extension declaration then the
         // user is probably finishing that.
         _addExtensionDeclarationKeywords(previousMember);
@@ -190,8 +189,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       }
     }
     if (previousMember is MixinDeclaration) {
-      if (previousMember.leftBracket == null ||
-          previousMember.leftBracket.isSynthetic) {
+      if (previousMember.leftBracket.isSynthetic) {
         // If the prior member is an unfinished mixin declaration
         // then the user is probably finishing that.
         _addMixinDeclarationKeywords(previousMember);
@@ -199,8 +197,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       }
     }
     if (previousMember is ImportDirective) {
-      if (previousMember.semicolon == null ||
-          previousMember.semicolon.isSynthetic) {
+      if (previousMember.semicolon.isSynthetic) {
         // If the prior member is an unfinished import directive
         // then the user is probably finishing that
         _addImportDirectiveKeywords(previousMember);
@@ -246,7 +243,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       var separator = node.separator;
       if (separator != null) {
         var offset = request.offset;
-        if (separator.end <= offset && offset <= separator.next.offset) {
+        if (separator.end <= offset && offset <= separator.next!.offset) {
           _addSuggestion(Keyword.ASSERT);
           _addSuggestion(Keyword.SUPER);
           _addSuggestion(Keyword.THIS);
@@ -362,7 +359,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       }
     } else if (entity is FormalParameter) {
       var beginToken = (entity as FormalParameter).beginToken;
-      if (beginToken != null && request.target.offset == beginToken.end) {
+      if (request.target.offset == beginToken.end) {
         _addSuggestion(Keyword.COVARIANT);
         _addSuggestion(Keyword.DYNAMIC);
         _addSuggestion(Keyword.VOID);
@@ -387,8 +384,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     // Handle the degenerate case while typing - for (int x i^)
     if (node.condition == entity &&
         entity is SimpleIdentifier &&
-        node is ForPartsWithDeclarations &&
-        node.variables != null) {
+        node is ForPartsWithDeclarations) {
       if (_isPreviousTokenSynthetic(entity, TokenType.SEMICOLON)) {
         _addSuggestion(Keyword.IN);
       }
@@ -425,9 +421,10 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
           _addSuggestion2(SYNC_STAR);
         }
       }
+      var grandParent = node.parent;
       if (body is EmptyFunctionBody &&
-          node.parent is FunctionDeclaration &&
-          node.parent.parent is CompilationUnit) {
+          grandParent is FunctionDeclaration &&
+          grandParent.parent is CompilationUnit) {
         _addCompilationUnitKeywords();
       }
     }
@@ -471,9 +468,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     }
     // Handle degenerate case where import statement does not have a semicolon
     // and the cursor is in the uri string
-    if ((entity == node.semicolon &&
-            node.uri != null &&
-            node.uri.offset + 1 != request.offset) ||
+    if ((entity == node.semicolon && node.uri.offset + 1 != request.offset) ||
         node.combinators.contains(entity)) {
       _addImportDirectiveKeywords(node);
     }
@@ -549,6 +544,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
+    var entity = this.entity;
     // Don't suggest mixin name
     if (entity == node.name) {
       return;
@@ -699,7 +695,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         (obj is KeywordToken && obj.value() == Keyword.FINALLY)) {
       _addSuggestion(Keyword.ON);
       _addSuggestion(Keyword.CATCH);
-      return null;
+      return;
     }
     return visitStatement(node);
   }
@@ -813,7 +809,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   void _addExtensionDeclarationKeywords(ExtensionDeclaration node) {
-    if (node.onKeyword == null || node.onKeyword.isSynthetic) {
+    if (node.onKeyword.isSynthetic) {
       _addSuggestion(Keyword.ON);
     }
   }
@@ -895,7 +891,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     _addSuggestion2(keyword.lexeme);
   }
 
-  void _addSuggestion2(String keyword, {int offset}) {
+  void _addSuggestion2(String keyword, {int? offset}) {
     builder.suggestKeyword(keyword, offset: offset);
   }
 
@@ -906,7 +902,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   bool _isEntityAfterIfWithoutElse(AstNode node) {
-    var block = node?.thisOrAncestorOfType<Block>();
+    var block = node.thisOrAncestorOfType<Block>();
     if (block == null) {
       return false;
     }
@@ -929,7 +925,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     return false;
   }
 
-  static bool _isPreviousTokenSynthetic(Object entity, TokenType type) {
+  static bool _isPreviousTokenSynthetic(Object? entity, TokenType type) {
     if (entity is AstNode) {
       var token = entity.beginToken;
       var previousToken = entity.findPrevious(token);

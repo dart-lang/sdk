@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
 import 'package:test/test.dart';
@@ -86,7 +84,7 @@ mixin M {
           m(X x) {} I _n(X x) {}}
         class X{}''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertSuggestField('b', null);
     assertSuggestField('_c', 'X');

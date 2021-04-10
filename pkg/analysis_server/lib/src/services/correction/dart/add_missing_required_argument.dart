@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
@@ -12,10 +10,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:collection/collection.dart';
 
 class AddMissingRequiredArgument extends CorrectionProducer {
   /// The name of the parameter that was missing.
-  String _missingParameterName;
+  String _missingParameterName = '';
 
   @override
   List<Object> get fixArguments => [_missingParameterName];
@@ -25,9 +24,9 @@ class AddMissingRequiredArgument extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    InstanceCreationExpression creation;
-    Element targetElement;
-    ArgumentList argumentList;
+    InstanceCreationExpression? creation;
+    Element? targetElement;
+    ArgumentList? argumentList;
 
     if (node is SimpleIdentifier || node is ConstructorName) {
       var invocation = node.parent;
@@ -35,8 +34,7 @@ class AddMissingRequiredArgument extends CorrectionProducer {
         targetElement = invocation.methodName.staticElement;
         argumentList = invocation.argumentList;
       } else {
-        creation =
-            invocation.thisOrAncestorOfType<InstanceCreationExpression>();
+        creation = invocation?.thisOrAncestorOfType();
         if (creation != null) {
           targetElement = creation.constructorName.staticElement;
           argumentList = creation.argumentList;
@@ -44,7 +42,12 @@ class AddMissingRequiredArgument extends CorrectionProducer {
       }
     }
 
-    if (targetElement is ExecutableElement) {
+    var diagnostic = this.diagnostic;
+    if (diagnostic == null) {
+      return;
+    }
+
+    if (targetElement is ExecutableElement && argumentList != null) {
       // Format: "Missing required argument 'foo'."
       var messageParts = diagnostic.problemMessage.message.split("'");
       if (messageParts.length < 2) {
@@ -52,9 +55,9 @@ class AddMissingRequiredArgument extends CorrectionProducer {
       }
       _missingParameterName = messageParts[1];
 
-      var missingParameter = targetElement.parameters.firstWhere(
-          (p) => p.name == _missingParameterName,
-          orElse: () => null);
+      var missingParameter = targetElement.parameters.firstWhereOrNull(
+        (p) => p.name == _missingParameterName,
+      );
       if (missingParameter == null) {
         return;
       }
@@ -68,7 +71,7 @@ class AddMissingRequiredArgument extends CorrectionProducer {
       } else {
         var lastArgument = arguments.last;
         offset = lastArgument.end;
-        hasTrailingComma = lastArgument.endToken.next.type == TokenType.COMMA;
+        hasTrailingComma = lastArgument.endToken.next!.type == TokenType.COMMA;
 
         if (lastArgument is NamedExpression &&
             flutter.isWidgetExpression(creation)) {
@@ -80,9 +83,10 @@ class AddMissingRequiredArgument extends CorrectionProducer {
           }
         }
       }
+
       var defaultValue = getDefaultStringParameterValue(missingParameter,
           withNullability: libraryElement.isNonNullableByDefault &&
-              missingParameter.library.isNonNullableByDefault);
+              (missingParameter.library?.isNonNullableByDefault ?? false));
 
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(offset, (builder) {
@@ -93,14 +97,17 @@ class AddMissingRequiredArgument extends CorrectionProducer {
           builder.write('$_missingParameterName: ');
 
           // Use defaultValue.cursorPosition if it's not null.
-          if (defaultValue?.cursorPosition != null) {
-            builder.write(
-                defaultValue.text.substring(0, defaultValue.cursorPosition));
-            builder.selectHere();
-            builder.write(
-                defaultValue.text.substring(defaultValue.cursorPosition));
+          if (defaultValue != null) {
+            var cursorPosition = defaultValue.cursorPosition;
+            if (cursorPosition != null) {
+              builder.write(defaultValue.text.substring(0, cursorPosition));
+              builder.selectHere();
+              builder.write(defaultValue.text.substring(cursorPosition));
+            } else {
+              builder.addSimpleLinkedEdit('VALUE', defaultValue.text);
+            }
           } else {
-            builder.addSimpleLinkedEdit('VALUE', defaultValue?.text);
+            builder.addSimpleLinkedEdit('VALUE', 'null');
           }
 
           if (flutter.isWidgetExpression(creation)) {

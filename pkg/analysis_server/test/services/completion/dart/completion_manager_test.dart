@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -52,7 +50,7 @@ part 'test.dart';
     // Build the request
     var baseRequest = CompletionRequestImpl(
         await session.getResolvedUnit(testFile),
-        completionOffset,
+        completionOffset!,
         CompletionPerformance());
     await baseRequest.performance.runRequestOperation((performance) async {
       var requestCompleter = Completer<DartCompletionRequest>();
@@ -66,13 +64,13 @@ part 'test.dart';
 
     var directives = request.target.unit.directives;
 
-    var imports = request.libraryElement.imports;
+    var imports = request.libraryElement!.imports;
     expect(imports, hasLength(directives.length + 1));
 
     ImportElement importNamed(String expectedUri) {
       var uriList = <String>[];
       for (var importElement in imports) {
-        var uri = importElement.importedLibrary.source.uri.toString();
+        var uri = importElement.importedLibrary!.source.uri.toString();
         uriList.add(uri);
         if (uri.endsWith(expectedUri)) {
           return importElement;
@@ -83,7 +81,7 @@ part 'test.dart';
 
     void assertImportedLib(String expectedUri) {
       var importElem = importNamed(expectedUri);
-      expect(importElem.importedLibrary.exportNamespace, isNotNull);
+      expect(importElem.importedLibrary!.exportNamespace, isNotNull);
     }
 
     // Assert that the new imports each have an export namespace

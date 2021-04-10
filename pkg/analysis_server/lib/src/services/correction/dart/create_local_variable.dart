@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -14,7 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateLocalVariable extends CorrectionProducer {
-  String _variableName;
+  String _variableName = '';
 
   @override
   List<Object> get fixArguments => [_variableName];
@@ -24,14 +22,14 @@ class CreateLocalVariable extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! SimpleIdentifier) {
+    var nameNode = node;
+    if (nameNode is! SimpleIdentifier) {
       return;
     }
-    SimpleIdentifier nameNode = node;
     _variableName = nameNode.name;
     // if variable is assigned, convert assignment into declaration
-    if (node.parent is AssignmentExpression) {
-      AssignmentExpression assignment = node.parent;
+    var assignment = node.parent;
+    if (assignment is AssignmentExpression) {
       if (assignment.leftHandSide == node &&
           assignment.operator.type == TokenType.EQ &&
           assignment.parent is ExpressionStatement) {
@@ -48,7 +46,7 @@ class CreateLocalVariable extends CorrectionProducer {
     }
     var prefix = utils.getNodePrefix(target);
     // compute type
-    var type = inferUndefinedExpressionType(node);
+    var type = inferUndefinedExpressionType(nameNode);
     if (!(type == null || type is InterfaceType || type is FunctionType)) {
       return;
     }

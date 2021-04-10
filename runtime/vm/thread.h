@@ -1159,8 +1159,7 @@ class NoSafepointScope : public ValueObject {
 
 class NoReloadScope : public ThreadStackResource {
  public:
-  explicit NoReloadScope(Thread* thread)
-      : ThreadStackResource(thread), thread_(thread) {
+  explicit NoReloadScope(Thread* thread) : ThreadStackResource(thread) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     thread->no_reload_scope_depth_++;
     ASSERT(thread->no_reload_scope_depth_ >= 0);
@@ -1169,20 +1168,18 @@ class NoReloadScope : public ThreadStackResource {
 
   ~NoReloadScope() {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-    thread_->no_reload_scope_depth_ -= 1;
-    ASSERT(thread_->no_reload_scope_depth_ >= 0);
+    thread()->no_reload_scope_depth_ -= 1;
+    ASSERT(thread()->no_reload_scope_depth_ >= 0);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   }
 
  private:
-  Thread* thread_;
   DISALLOW_COPY_AND_ASSIGN(NoReloadScope);
 };
 
 class StoppedMutatorsScope : public ThreadStackResource {
  public:
-  explicit StoppedMutatorsScope(Thread* thread)
-      : ThreadStackResource(thread), thread_(thread) {
+  explicit StoppedMutatorsScope(Thread* thread) : ThreadStackResource(thread) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     thread->stopped_mutators_scope_depth_++;
     ASSERT(thread->stopped_mutators_scope_depth_ >= 0);
@@ -1191,13 +1188,12 @@ class StoppedMutatorsScope : public ThreadStackResource {
 
   ~StoppedMutatorsScope() {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-    thread_->stopped_mutators_scope_depth_ -= 1;
-    ASSERT(thread_->stopped_mutators_scope_depth_ >= 0);
+    thread()->stopped_mutators_scope_depth_ -= 1;
+    ASSERT(thread()->stopped_mutators_scope_depth_ >= 0);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   }
 
  private:
-  Thread* thread_;
   DISALLOW_COPY_AND_ASSIGN(StoppedMutatorsScope);
 };
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/label_contributor.dart';
@@ -24,8 +22,7 @@ class LabelContributorTest extends DartCompletionContributorTest {
       {CompletionSuggestionKind kind = CompletionSuggestionKind.IDENTIFIER}) {
     var cs = assertSuggest(name, csKind: kind);
     expect(cs.returnType, isNull);
-    var element = cs.element;
-    expect(element, isNotNull);
+    var element = cs.element!;
     expect(element.flags, 0);
     expect(element.kind, equals(ElementKind.LABEL));
     expect(element.name, equals(name));

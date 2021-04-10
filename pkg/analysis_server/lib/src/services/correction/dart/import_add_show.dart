@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 import 'package:analysis_server/src/services/correction/assist.dart';
@@ -39,7 +37,7 @@ class ImportAddShow extends CorrectionProducer {
     var namespace = getImportNamespace(importElement);
     // prepare names of referenced elements (from this import)
     var visitor = _ReferenceFinder(namespace);
-    resolvedResult.unit.accept(visitor);
+    unit.accept(visitor);
     var referencedNames = visitor.referencedNames;
     // ignore if unused
     if (referencedNames.isEmpty) {

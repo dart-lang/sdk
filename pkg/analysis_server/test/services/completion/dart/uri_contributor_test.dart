@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -120,7 +118,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   Future<void> test_import_dart() async {
     addTestSource('import "d^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('dart:core', csKind: CompletionSuggestionKind.IMPORT);
@@ -132,7 +130,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   Future<void> test_import_dart2() async {
     addTestSource('import "dart:async"; import "d^"');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('dart:core', csKind: CompletionSuggestionKind.IMPORT);
@@ -167,7 +165,7 @@ class UriContributorTest extends DartCompletionContributorTest {
 
     addTestSource('import "..^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 2);
+    expect(replacementOffset, completionOffset! - 2);
     expect(replacementLength, 2);
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
@@ -185,7 +183,7 @@ class UriContributorTest extends DartCompletionContributorTest {
 
     addTestSource('import "foo/^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 4);
+    expect(replacementOffset, completionOffset! - 4);
     expect(replacementLength, 4);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
@@ -203,7 +201,7 @@ class UriContributorTest extends DartCompletionContributorTest {
 
     addTestSource('import "../^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 3);
+    expect(replacementOffset, completionOffset! - 3);
     expect(replacementLength, 3);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
@@ -224,7 +222,7 @@ class UriContributorTest extends DartCompletionContributorTest {
 
     addTestSource('import "../^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 3);
+    expect(replacementOffset, completionOffset! - 3);
     expect(replacementLength, 3);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
@@ -243,7 +241,7 @@ class UriContributorTest extends DartCompletionContributorTest {
 
     addTestSource('import "../b^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 4);
+    expect(replacementOffset, completionOffset! - 4);
     expect(replacementLength, 4);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
@@ -287,7 +285,7 @@ class UriContributorTest extends DartCompletionContributorTest {
 
     addTestSource('import "p^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:foo/', csKind: CompletionSuggestionKind.IMPORT);
@@ -355,7 +353,7 @@ class UriContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     assertSuggest('package:foo/baz/too.dart',
         csKind: CompletionSuggestionKind.IMPORT);
-    expect(replacementOffset, completionOffset - 16);
+    expect(replacementOffset, completionOffset! - 16);
     expect(replacementLength, 5 + 16);
   }
 
@@ -368,7 +366,7 @@ class UriContributorTest extends DartCompletionContributorTest {
 
     addTestSource('import "p^" class');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:bar/', csKind: CompletionSuggestionKind.IMPORT);
@@ -390,7 +388,7 @@ class UriContributorTest extends DartCompletionContributorTest {
 
     addTestSource('import r"p^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:foo/', csKind: CompletionSuggestionKind.IMPORT);
@@ -449,7 +447,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   Future<void> test_import_without_closing_quote_eof3() async {
     addTestSource('import "d^');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
@@ -458,7 +456,7 @@ class UriContributorTest extends DartCompletionContributorTest {
   Future<void> test_import_without_closing_quote_eof4() async {
     addTestSource('import "d^"');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
@@ -502,7 +500,7 @@ class UriContributorTest extends DartCompletionContributorTest {
 
     addTestSource('library x; part "..^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 2);
+    expect(replacementOffset, completionOffset! - 2);
     expect(replacementLength, 2);
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
@@ -520,7 +518,7 @@ class UriContributorTest extends DartCompletionContributorTest {
 
     addTestSource('library x; part "foo/^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 4);
+    expect(replacementOffset, completionOffset! - 4);
     expect(replacementLength, 4);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
@@ -538,7 +536,7 @@ class UriContributorTest extends DartCompletionContributorTest {
 
     addTestSource('library x; part "../^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 3);
+    expect(replacementOffset, completionOffset! - 3);
     expect(replacementLength, 3);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
@@ -587,7 +585,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
     addTestSource('import "..^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 2);
+    expect(replacementOffset, completionOffset! - 2);
     expect(replacementLength, 2);
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
@@ -605,7 +603,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
     addTestSource('import "foo/^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 4);
+    expect(replacementOffset, completionOffset! - 4);
     expect(replacementLength, 4);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
@@ -623,7 +621,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
     addTestSource('import "../^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 3);
+    expect(replacementOffset, completionOffset! - 3);
     expect(replacementLength, 3);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
@@ -641,7 +639,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
     addTestSource('import "../b^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 4);
+    expect(replacementOffset, completionOffset! - 4);
     expect(replacementLength, 4);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
@@ -677,7 +675,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
     addTestSource('library x; part "..^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 2);
+    expect(replacementOffset, completionOffset! - 2);
     expect(replacementLength, 2);
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
@@ -695,7 +693,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
     addTestSource('library x; part "foo/^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 4);
+    expect(replacementOffset, completionOffset! - 4);
     expect(replacementLength, 4);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
@@ -713,7 +711,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
     addTestSource('library x; part "../^" import');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 3);
+    expect(replacementOffset, completionOffset! - 3);
     expect(replacementLength, 3);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');

@@ -96,8 +96,6 @@
 
 #### dart format
 
-*   Flatten indentation on nested chains of conditional (`?:`) operators.
-
 *   Correct constructor initializer indentation after `required` named
     parameters.
 

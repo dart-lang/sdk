@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,7 +10,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateFunction extends CorrectionProducer {
-  String _functionName;
+  String _functionName = '';
 
   @override
   List<Object> get fixArguments => [_functionName];
@@ -37,8 +35,10 @@ class CreateFunction extends CorrectionProducer {
     // prepare environment
     int insertOffset;
     String sourcePrefix;
-    AstNode enclosingMember =
-        node.thisOrAncestorOfType<CompilationUnitMember>();
+    var enclosingMember = node.thisOrAncestorOfType<CompilationUnitMember>();
+    if (enclosingMember == null) {
+      return;
+    }
     insertOffset = enclosingMember.end;
     sourcePrefix = '$eol$eol';
     utils.targetClassElement = null;
