@@ -42,6 +42,7 @@ final allFixes = <DartFixInfo>[
 //  LintFixInfo.alwaysDeclareReturnTypes,
 //  LintFixInfo.alwaysRequireNonNullNamedParameters
 //  LintFixInfo.alwaysSpecifyTypes,
+  LintFixInfo.alwaysUsePackageImports,
   LintFixInfo.annotateOverrides,
   LintFixInfo.avoidAnnotatingWithDynamic,
   LintFixInfo.avoidEmptyElse,
@@ -165,6 +166,12 @@ class LintFixInfo extends DartFixInfo {
     'always_specify_types',
     DartFixKind.ADD_TYPE_ANNOTATION,
     'Add a type annotation.',
+  );
+
+  static final alwaysUsePackageImports = LintFixInfo(
+    'always_use_package_imports',
+    DartFixKind.CONVERT_TO_PACKAGE_IMPORT,
+    'Convert to a package import.',
   );
 
   static final annotateOverrides = LintFixInfo(
