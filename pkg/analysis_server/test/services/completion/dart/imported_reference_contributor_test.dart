@@ -473,7 +473,7 @@ void main() {f^}''');
           int^ b = 1;}''');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 3);
+    expect(replacementOffset, completionOffset - 3);
     expect(replacementLength, 3);
     assertNotSuggested('A');
     assertSuggestClass('int');
@@ -497,7 +497,7 @@ void main() {f^}''');
           b = 1;}''');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertNotSuggested('A');
     assertSuggestClass('int');
@@ -1044,7 +1044,7 @@ class B extends A {
         class X {a() {var f; {var x;} D^ var r;} void b() { }}
         class Z { }''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
 
     assertNotSuggested('X');
@@ -1186,7 +1186,7 @@ class B extends A {
         class Z { }''');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
 
     assertNotSuggested('partT8');
@@ -1326,7 +1326,7 @@ class B extends A {
         main() {A a; a^..b}''');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertNotSuggested('b');
     assertNotSuggested('_c');
@@ -1468,7 +1468,7 @@ class B extends A {
         A Sew;''');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertNotSuggested('A');
     assertNotSuggested('_B');
@@ -1745,7 +1745,7 @@ class B extends A {
         main() {new String.fr^omCharCodes([]);}''');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 2);
+    expect(replacementOffset, completionOffset - 2);
     expect(replacementLength, 13);
     // Suggested by NamedConstructorContributor
     assertNotSuggested('fromCharCodes');
@@ -2183,7 +2183,7 @@ extension E on A { ^ }
     addTestSource('main(args) {for (S^ foo in args) {}}');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertNotSuggested('args');
     assertNotSuggested('foo');
@@ -2224,7 +2224,7 @@ extension E on A { ^ }
     addTestSource('main() {for (int index = 0; i^)}');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertNotSuggested('index');
   }
@@ -2264,7 +2264,7 @@ main() {
     addTestSource('main() {for (int index = 0; index < 10; i^)}');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertNotSuggested('index');
   }
@@ -2276,7 +2276,7 @@ main() {
         main() {for (int index = 0; index < 10; ++i^)}''');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertNotSuggested('index');
     assertNotSuggested('main');
@@ -2887,7 +2887,7 @@ main() {
     addTestSource('class A {foo(){new C^}}');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     // Not imported, so not suggested
     assertNotSuggested('Completer');
@@ -3076,7 +3076,7 @@ main() {
         main(){var a; if (a is Obj^)}''');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 3);
+    expect(replacementOffset, completionOffset - 3);
     expect(replacementLength, 3);
     assertNotSuggested('a');
     assertNotSuggested('main');
@@ -3152,7 +3152,7 @@ main() {
         main() {new^ X.c();}''');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 3);
+    expect(replacementOffset, completionOffset - 3);
     expect(replacementLength, 3);
     assertNotSuggested('c');
     assertNotSuggested('_d');
@@ -3252,7 +3252,7 @@ main() {
         foo = {T^''');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     // Simulate unresolved imported library,
     // in which case suggestions will have null return types (unresolved)
@@ -3279,7 +3279,7 @@ main() {
         foo = {7:T^};''');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertSuggestTopLevelVar('T1', 'int');
     assertNotSuggested('T2');
@@ -4107,7 +4107,7 @@ class B extends A {
         class X {foo(){A^.bar}}''');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertSuggestClass('A');
     if (suggestConstructorsWithoutNew) {
@@ -4234,7 +4234,7 @@ class B extends A {
     addTestSource('class A {a() {"hello".to^String().length}}');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 2);
+    expect(replacementOffset, completionOffset - 2);
     expect(replacementLength, 8);
     assertNotSuggested('length');
     assertNotSuggested('A');
@@ -4428,7 +4428,7 @@ class B extends A {
         class X{}''');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     // Contributed by FieldFormalConstructorContributor
     assertNotSuggested('b');
@@ -4698,7 +4698,7 @@ typedef void F(^);
         main() { C<C^> c; }''');
 
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertSuggestClass('C1');
     assertNotSuggested('C2');

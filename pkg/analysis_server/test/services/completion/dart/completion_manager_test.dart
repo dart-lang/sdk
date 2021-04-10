@@ -50,7 +50,7 @@ part 'test.dart';
     // Build the request
     var baseRequest = CompletionRequestImpl(
         await session.getResolvedUnit(testFile),
-        completionOffset!,
+        completionOffset,
         CompletionPerformance());
     await baseRequest.performance.runRequestOperation((performance) async {
       var requestCompleter = Completer<DartCompletionRequest>();

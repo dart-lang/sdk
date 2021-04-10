@@ -67,7 +67,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest
     with WithNonFunctionTypeAliasesMixin {
   static const String _UNCHECKED = '__UNCHECKED__';
   late String testFile;
-  int? completionOffset;
+  int _completionOffset = -1;
   late int replacementOffset;
   late int replacementLength;
 
@@ -79,6 +79,14 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest
   late DartCompletionRequest request;
 
   late List<CompletionSuggestion> suggestions;
+
+  /// Return the offset at which completion was requested.
+  int get completionOffset {
+    if (_completionOffset < 0) {
+      fail('Must call addTestSource exactly once');
+    }
+    return _completionOffset;
+  }
 
   /// If `true` and `null` is specified as the suggestion's expected returnType
   /// then the actual suggestion is expected to have a `dynamic` returnType.
@@ -92,13 +100,14 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest
   bool get suggestConstructorsWithoutNew => true;
 
   void addTestSource(String content) {
-    expect(completionOffset, isNull, reason: 'Call addTestUnit exactly once');
-    completionOffset = content.indexOf('^');
-    expect(completionOffset, greaterThanOrEqualTo(0), reason: 'missing ^');
-    var nextOffset = content.indexOf('^', completionOffset! + 1);
+    expect(_completionOffset, lessThan(0),
+        reason: 'Must call addTestSource exactly once');
+    _completionOffset = content.indexOf('^');
+    expect(_completionOffset, greaterThanOrEqualTo(0), reason: 'missing ^');
+    var nextOffset = content.indexOf('^', _completionOffset + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
-    content = content.substring(0, completionOffset) +
-        content.substring(completionOffset! + 1);
+    content = content.substring(0, _completionOffset) +
+        content.substring(_completionOffset + 1);
     addSource(testFile, content);
   }
 
@@ -529,7 +538,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest
   Future computeSuggestions({int times = 200}) async {
     result = await session.getResolvedUnit(testFile);
     var baseRequest = CompletionRequestImpl(
-        result, completionOffset!, CompletionPerformance());
+        result, completionOffset, CompletionPerformance());
 
     return await baseRequest.performance.runRequestOperation(
       (performance) async {

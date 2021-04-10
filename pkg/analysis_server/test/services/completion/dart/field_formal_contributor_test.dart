@@ -84,7 +84,7 @@ mixin M {
           m(X x) {} I _n(X x) {}}
         class X{}''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertSuggestField('b', null);
     assertSuggestField('_c', 'X');
