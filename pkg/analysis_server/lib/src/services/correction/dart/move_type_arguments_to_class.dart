@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -18,26 +17,29 @@ class MoveTypeArgumentsToClass extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (coveredNode is TypeArgumentList) {
-      TypeArgumentList typeArguments = coveredNode;
-      if (typeArguments.parent is! InstanceCreationExpression) {
-        return;
-      }
-      InstanceCreationExpression creation = typeArguments.parent;
-      var typeName = creation.constructorName.type;
-      if (typeName.typeArguments != null) {
-        return;
-      }
-      var element = typeName.type.element;
-      if (element is ClassElement &&
-          element.typeParameters != null &&
-          element.typeParameters.length == typeArguments.arguments.length) {
-        await builder.addDartFileEdit(file, (builder) {
-          var argumentText = utils.getNodeText(typeArguments);
-          builder.addSimpleInsertion(typeName.end, argumentText);
-          builder.addDeletion(range.node(typeArguments));
-        });
-      }
+    var typeArguments = coveredNode;
+    if (typeArguments is! TypeArgumentList) {
+      return;
+    }
+
+    var creation = typeArguments.parent;
+    if (creation is! InstanceCreationExpression) {
+      return;
+    }
+
+    var typeName = creation.constructorName.type;
+    if (typeName.typeArguments != null) {
+      return;
+    }
+
+    var element = typeName.typeOrThrow.element;
+    if (element is ClassElement &&
+        element.typeParameters.length == typeArguments.arguments.length) {
+      await builder.addDartFileEdit(file, (builder) {
+        var argumentText = utils.getNodeText(typeArguments);
+        builder.addSimpleInsertion(typeName.end, argumentText);
+        builder.addDeletion(range.node(typeArguments));
+      });
     }
   }
 

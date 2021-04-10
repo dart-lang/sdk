@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -15,7 +13,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class MakeFieldNotFinal extends CorrectionProducer {
-  String _fieldName;
+  String _fieldName = '';
 
   @override
   List<Object> get fixArguments => [_fieldName];
@@ -26,40 +24,72 @@ class MakeFieldNotFinal extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
-    if (node is SimpleIdentifier &&
-        node.writeOrReadElement is PropertyAccessorElement) {
-      PropertyAccessorElement getter = node.writeOrReadElement;
-      if (getter.isGetter &&
-          getter.isSynthetic &&
-          !getter.variable.isSynthetic &&
-          getter.variable.setter == null &&
-          getter.enclosingElement is ClassElement) {
-        var declarationResult =
-            await sessionHelper.getElementDeclaration(getter.variable);
-        var variable = declarationResult.node;
-        if (variable is VariableDeclaration &&
-            variable.parent is VariableDeclarationList &&
-            variable.parent.parent is FieldDeclaration) {
-          VariableDeclarationList declarationList = variable.parent;
-          var keywordToken = declarationList.keyword;
-          if (declarationList.variables.length == 1 &&
-              keywordToken.keyword == Keyword.FINAL) {
-            await builder.addDartFileEdit(file, (builder) {
-              if (declarationList.type != null) {
-                builder.addDeletion(
-                    range.startStart(keywordToken, declarationList.type));
-              } else {
-                builder.addReplacement(range.startStart(keywordToken, variable),
-                    (builder) {
-                  builder.write('var ');
-                });
-              }
-            });
-            _fieldName = getter.variable.displayName;
-          }
-        }
-      }
+    if (node is! SimpleIdentifier) {
+      return;
     }
+
+    var getter = node.writeOrReadElement;
+    if (getter is! PropertyAccessorElement) {
+      return;
+    }
+
+    // The accessor must be a getter, and it must be synthetic.
+    if (!(getter.isGetter && getter.isSynthetic)) {
+      return;
+    }
+
+    // The variable must be not synthetic, and have no setter yet.
+    var variable = getter.variable;
+    if (variable.isSynthetic || variable.setter != null) {
+      return;
+    }
+
+    // It must be a field declaration.
+    if (getter.enclosingElement is! ClassElement) {
+      return;
+    }
+
+    var declaration = await sessionHelper.getElementDeclaration(variable);
+    var variableNode = declaration?.node;
+    if (variableNode is! VariableDeclaration) {
+      return;
+    }
+
+    // The declaration list must have exactly one variable.
+    var declarationList = variableNode.parent;
+    if (declarationList is! VariableDeclarationList) {
+      return;
+    }
+    if (declarationList.variables.length != 1) {
+      return;
+    }
+
+    // It must be a field declaration.
+    if (declarationList.parent is! FieldDeclaration) {
+      return;
+    }
+
+    var finalKeyword = declarationList.finalKeyword;
+    if (finalKeyword == null) {
+      return;
+    }
+
+    _fieldName = variable.displayName;
+    await builder.addDartFileEdit(file, (builder) {
+      var typeAnnotation = declarationList.type;
+      if (typeAnnotation != null) {
+        builder.addDeletion(
+          range.startStart(finalKeyword, typeAnnotation),
+        );
+      } else {
+        builder.addReplacement(
+          range.startStart(finalKeyword, variableNode),
+          (builder) {
+            builder.write('var ');
+          },
+        );
+      }
+    });
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
