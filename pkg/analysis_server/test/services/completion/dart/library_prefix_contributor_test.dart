@@ -234,7 +234,7 @@ class A {final S^ A();}
 class _B {}
 A Sew;''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 1);
+    expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertSuggestLibraryPrefixes(['Soo']);
   }

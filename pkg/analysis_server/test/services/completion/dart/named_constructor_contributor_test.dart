@@ -117,7 +117,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     addTestSource('''
         main() {new String.fr^omCharCodes([]);}''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset! - 2);
+    expect(replacementOffset, completionOffset - 2);
     expect(replacementLength, 13);
     assertSuggestNamedConstructor('fromCharCodes', 'String');
     assertNotSuggested('isEmpty');
