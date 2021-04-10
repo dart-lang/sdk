@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' as math;
@@ -53,7 +51,6 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:args/args.dart';
-import 'package:meta/meta.dart';
 
 import 'metrics_util.dart';
 import 'output_utilities.dart';
@@ -65,7 +62,7 @@ Future<void> main(List<String> args) async {
   var result = parser.parse(args);
 
   if (!validArguments(parser, result)) {
-    return io.exit(1);
+    io.exit(1);
   }
 
   var options = CompletionMetricsOptions(result);
@@ -116,7 +113,7 @@ Future<void> main(List<String> args) async {
   } else {
     computer.printResults();
   }
-  return io.exit(code);
+  io.exit(code);
 }
 
 /// A [Counter] to track the performance of each of the completion strategies
@@ -203,7 +200,7 @@ ArgParser createArgParser() {
 }
 
 /// Print usage information for this tool.
-void printUsage(ArgParser parser, {String error}) {
+void printUsage(ArgParser parser, {String? error}) {
   if (error != null) {
     print(error);
     print('');
@@ -286,10 +283,10 @@ class CompletionMetrics {
   final String name;
 
   /// The function to be executed when this metrics collector is enabled.
-  final void Function() enableFunction;
+  final void Function()? enableFunction;
 
   /// The function to be executed when this metrics collector is disabled.
-  final void Function() disableFunction;
+  final void Function()? disableFunction;
 
   final Counter completionCounter = Counter('all completions');
 
@@ -441,6 +438,7 @@ class CompletionMetrics {
   /// Perform any operations required in order to revert computing the kind of
   /// completions represented by this metrics collector.
   void disable() {
+    var disableFunction = this.disableFunction;
     if (disableFunction != null) {
       disableFunction();
     }
@@ -449,6 +447,7 @@ class CompletionMetrics {
   /// Perform any initialization required in order to compute the kind of
   /// completions represented by this metrics collector.
   void enable() {
+    var enableFunction = this.enableFunction;
     if (enableFunction != null) {
       enableFunction();
     }
@@ -497,11 +496,11 @@ class CompletionMetrics {
   /// If the completion location was requested but missing when computing the
   /// [result], then record where that happened.
   void _recordMissingInformation(MetricsSuggestionListener listener) {
-    var location = listener?.missingCompletionLocation;
+    var location = listener.missingCompletionLocation;
     if (location != null) {
       missingCompletionLocations.add(location);
     } else {
-      location = listener?.missingCompletionLocationTable;
+      location = listener.missingCompletionLocationTable;
       if (location != null) {
         missingCompletionLocationTables.add(location);
       }
@@ -568,10 +567,10 @@ class CompletionMetricsComputer {
 
   final CompletionMetricsOptions options;
 
-  ResolvedUnitResult _resolvedUnitResult;
+  late ResolvedUnitResult _resolvedUnitResult;
 
   /// The int to be returned from the [computeMetrics] call.
-  int resultCode;
+  int resultCode = 0;
 
   /// A list of the metrics to be computed.
   final List<CompletionMetrics> targetMetrics = [];
@@ -642,12 +641,10 @@ class CompletionMetricsComputer {
       CompletionRequestImpl request,
       MetricsSuggestionListener listener,
       ExpectedCompletion expectedCompletion,
-      String completionLocation,
+      String? completionLocation,
       List<protocol.CompletionSuggestion> suggestions,
       CompletionMetrics metrics,
       int elapsedMS) {
-    assert(suggestions != null);
-
     var place = placementInSuggestionList(suggestions, expectedCompletion);
 
     metrics.mrrComputer.addRank(place.rank);
@@ -658,14 +655,14 @@ class CompletionMetricsComputer {
       var rank = place.rank;
       var suggestion = suggestions[rank - 1];
       var actualSuggestion =
-          SuggestionData(suggestion, listener.featureMap[suggestion]);
-      List<SuggestionData> topSuggestions;
-      Map<int, int> precedingRelevanceCounts;
+          SuggestionData(suggestion, listener.featureMap[suggestion]!);
+      List<SuggestionData>? topSuggestions;
+      Map<int, int>? precedingRelevanceCounts;
       if (options.printWorstResults) {
         topSuggestions = suggestions
             .sublist(0, math.min(10, suggestions.length))
             .map((suggestion) =>
-                SuggestionData(suggestion, listener.featureMap[suggestion]))
+                SuggestionData(suggestion, listener.featureMap[suggestion]!))
             .toList();
         precedingRelevanceCounts = <int, int>{};
         for (var i = 0; i < rank - 1; i++) {
@@ -704,7 +701,7 @@ class CompletionMetricsComputer {
           .count(expectedCompletion.elementKind.toString());
 
       if (options.printMissedCompletionDetails) {
-        protocol.CompletionSuggestion closeMatchSuggestion;
+        protocol.CompletionSuggestion? closeMatchSuggestion;
         for (var suggestion in suggestions) {
           if (suggestion.completion == expectedCompletion.completion) {
             closeMatchSuggestion = suggestion;
@@ -790,14 +787,14 @@ class CompletionMetricsComputer {
       ];
     }
 
-    var groups = metrics.groupMrrComputers.keys.toList();
-    groups.sort((first, second) => first.name.compareTo(second.name));
+    var entries = metrics.groupMrrComputers.entries.toList();
+    entries.sort((first, second) => first.key.name.compareTo(second.key.name));
     var table = [
       ['', 'mrr', 'inverse mrr', 'mrr_5', 'inverse mrr_5', 'count'],
       toRow(metrics.mrrComputer),
       toRow(metrics.successfulMrrComputer),
       ['', '', '', '', '', ''],
-      for (var group in groups) toRow(metrics.groupMrrComputers[group]),
+      for (var entry in entries) toRow(entry.value),
     ];
     rightJustifyColumns(table, [2, 4, 5]);
 
@@ -890,7 +887,7 @@ class CompletionMetricsComputer {
     elementKinds.sort((first, second) => first.name.compareTo(second.name));
     for (var kind in elementKinds) {
       table.add(toRow(
-          targetMetrics.map((metrics) => metrics.groupMrrComputers[kind])));
+          targetMetrics.map((metrics) => metrics.groupMrrComputers[kind]!)));
     }
     if (options.printMrrByLocation) {
       table.add(blankRow);
@@ -901,7 +898,7 @@ class CompletionMetricsComputer {
       locations.sort();
       for (var location in locations) {
         table.add(toRow(targetMetrics
-            .map((metrics) => metrics.locationMrrComputers[location])));
+            .map((metrics) => metrics.locationMrrComputers[location]!)));
       }
     }
     rightJustifyColumns(table, range(1, table[0].length));
@@ -963,23 +960,23 @@ class CompletionMetricsComputer {
 
   void printSlowestResults(CompletionMetrics metrics) {
     var slowestResults = metrics.slowestResults;
-    var groups = slowestResults.keys.toList();
-    groups.sort((first, second) => first.name.compareTo(second.name));
+    var entries = slowestResults.entries.toList();
+    entries.sort((first, second) => first.key.name.compareTo(second.key.name));
     print('');
     printHeading(2, 'The slowest completion results to compute');
-    for (var group in groups) {
-      _printSlowestResults('In ${group.name}', slowestResults[group]);
+    for (var entry in entries) {
+      _printSlowestResults('In ${entry.key.name}', entry.value);
     }
   }
 
   void printWorstResults(CompletionMetrics metrics) {
     var worstResults = metrics.worstResults;
-    var groups = worstResults.keys.toList();
-    groups.sort((first, second) => first.name.compareTo(second.name));
+    var entries = worstResults.entries.toList();
+    entries.sort((first, second) => first.key.name.compareTo(second.key.name));
     print('');
     printHeading(2, 'The worst completion results');
-    for (var group in groups) {
-      _printWorstResults('In ${group.name}', worstResults[group]);
+    for (var entry in entries) {
+      _printWorstResults('In ${entry.key.name}', entry.value);
     }
   }
 
@@ -1006,8 +1003,8 @@ class CompletionMetricsComputer {
       MetricsSuggestionListener listener,
       OperationPerformanceImpl performance,
       CompletionRequestImpl request,
-      [DeclarationsTracker declarationsTracker,
-      protocol.CompletionAvailableSuggestionsParams
+      [DeclarationsTracker? declarationsTracker,
+      protocol.CompletionAvailableSuggestionsParams?
           availableSuggestionsParams]) async {
     List<protocol.CompletionSuggestion> suggestions;
 
@@ -1048,25 +1045,24 @@ class CompletionMetricsComputer {
       };
 
       for (var availableSuggestionSet
-          in availableSuggestionsParams.changedLibraries) {
+          in availableSuggestionsParams!.changedLibraries!) {
         var id = availableSuggestionSet.id;
         for (var availableSuggestion in availableSuggestionSet.items) {
           // Exclude available suggestions where this element kind doesn't match
           // an element kind in includedElementKinds.
-          var elementKind = availableSuggestion.element?.kind;
-          if (elementKind != null &&
-              includedElementKinds.contains(elementKind)) {
+          var elementKind = availableSuggestion.element.kind;
+          if (includedElementKinds.contains(elementKind)) {
             if (includedSuggestionSetMap.containsKey(id)) {
-              var relevance = includedSuggestionSetMap[id].relevance;
+              var relevance = includedSuggestionSetMap[id]!.relevance;
 
               // Search for any matching relevance tags to apply any boosts
               if (includedSuggestionRelevanceTagList.isNotEmpty &&
                   availableSuggestion.relevanceTags != null &&
-                  availableSuggestion.relevanceTags.isNotEmpty) {
-                for (var tag in availableSuggestion.relevanceTags) {
+                  availableSuggestion.relevanceTags!.isNotEmpty) {
+                for (var tag in availableSuggestion.relevanceTags!) {
                   if (includedSuggestionRelevanceTagMap.containsKey(tag)) {
                     // apply the boost
-                    relevance += includedSuggestionRelevanceTagMap[tag];
+                    relevance += includedSuggestionRelevanceTagMap[tag]!;
                   }
                 }
               }
@@ -1097,8 +1093,8 @@ class CompletionMetricsComputer {
 
     // Set the DeclarationsTracker, only call doWork to build up the available
     // suggestions if doComputeCompletionsFromAnalysisServer is true.
-    DeclarationsTracker declarationsTracker;
-    protocol.CompletionAvailableSuggestionsParams availableSuggestionsParams;
+    DeclarationsTracker? declarationsTracker;
+    protocol.CompletionAvailableSuggestionsParams? availableSuggestionsParams;
     if (options.availableSuggestions) {
       declarationsTracker = DeclarationsTracker(
           MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
@@ -1110,11 +1106,6 @@ class CompletionMetricsComputer {
       // Have the AvailableDeclarationsSet computed to use later.
       availableSuggestionsParams = createCompletionAvailableSuggestions(
           declarationsTracker.allLibraries.toList(), []);
-
-      // assert that this object is not null, throw if it is.
-      if (availableSuggestionsParams == null) {
-        throw Exception('availableSuggestionsParam not computable.');
-      }
     }
 
     // Loop through each file, resolve the file and call
@@ -1138,7 +1129,7 @@ class CompletionMetricsComputer {
           // Use the ExpectedCompletionsVisitor to compute the set of expected
           // completions for this CompilationUnit.
           final visitor = ExpectedCompletionsVisitor(filePath);
-          _resolvedUnitResult.unit.accept(visitor);
+          _resolvedUnitResult.unit!.accept(visitor);
 
           for (var expectedCompletion in visitor.expectedCompletions) {
             var resolvedUnitResult = _resolvedUnitResult;
@@ -1147,7 +1138,7 @@ class CompletionMetricsComputer {
             // have the context reanalyze the file
             if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
               var overlayContents = _getOverlayContents(
-                  _resolvedUnitResult.content, expectedCompletion);
+                  _resolvedUnitResult.content!, expectedCompletion);
 
               _provider.setOverlay(filePath,
                   content: overlayContents,
@@ -1162,8 +1153,8 @@ class CompletionMetricsComputer {
             // comparison:
 
             Future<int> handleExpectedCompletion(
-                {MetricsSuggestionListener listener,
-                @required CompletionMetrics metrics}) async {
+                {required MetricsSuggestionListener listener,
+                required CompletionMetrics metrics}) async {
               var stopwatch = Stopwatch()..start();
               var request = CompletionRequestImpl(
                 resolvedUnitResult,
@@ -1172,8 +1163,8 @@ class CompletionMetricsComputer {
               );
               var directiveInfo = DartdocDirectiveInfo();
 
-              OpType opType;
-              List<protocol.CompletionSuggestion> suggestions;
+              late OpType opType;
+              late List<protocol.CompletionSuggestion> suggestions;
               await request.performance.runRequestOperation(
                 (performance) async {
                   var dartRequest = await DartCompletionRequestImpl.from(
@@ -1314,10 +1305,10 @@ class CompletionMetricsComputer {
       var actualSuggestion = result.actualSuggestion;
       var expected = result.expectedCompletion;
 
-      var topSuggestions = result.topSuggestions;
+      var topSuggestions = result.topSuggestions!;
       var topSuggestionCount = topSuggestions.length;
 
-      var preceding = result.precedingRelevanceCounts;
+      var preceding = result.precedingRelevanceCounts!;
       var precedingRelevances = preceding.keys.toList();
       precedingRelevances.sort();
 
@@ -1372,7 +1363,7 @@ class CompletionMetricsComputer {
 
   /// Given some [ResolvedUnitResult] return the first error of high severity
   /// if such an error exists, `null` otherwise.
-  static err.AnalysisError getFirstErrorOrNull(
+  static err.AnalysisError? getFirstErrorOrNull(
       ResolvedUnitResult resolvedUnitResult) {
     for (var error in resolvedUnitResult.errors) {
       if (error.severity == Severity.error) {
@@ -1492,14 +1483,14 @@ class CompletionMetricsOptions {
   }
 
   CompletionMetricsOptions._(
-      {@required this.availableSuggestions,
-      @required this.overlay,
-      @required this.printMissedCompletionDetails,
-      @required this.printMissedCompletionSummary,
-      @required this.printMissingInformation,
-      @required this.printMrrByLocation,
-      @required this.printSlowestResults,
-      @required this.printWorstResults})
+      {required this.availableSuggestions,
+      required this.overlay,
+      required this.printMissedCompletionDetails,
+      required this.printMissedCompletionSummary,
+      required this.printMissingInformation,
+      required this.printMrrByLocation,
+      required this.printSlowestResults,
+      required this.printWorstResults})
       : assert(overlay == OVERLAY_NONE ||
             overlay == OVERLAY_REMOVE_TOKEN ||
             overlay == OVERLAY_REMOVE_REST_OF_FILE);
@@ -1509,19 +1500,19 @@ class CompletionMetricsOptions {
 class CompletionResult {
   final Place place;
 
-  final CompletionRequestImpl request;
+  final CompletionRequestImpl? request;
 
   final SuggestionData actualSuggestion;
 
-  final List<SuggestionData> topSuggestions;
+  final List<SuggestionData>? topSuggestions;
 
   final ExpectedCompletion expectedCompletion;
 
-  final String completionLocation;
+  final String? completionLocation;
 
   final int elapsedMS;
 
-  final Map<int, int> precedingRelevanceCounts;
+  final Map<int, int>? precedingRelevanceCounts;
 
   CompletionResult(
       this.place,
@@ -1539,11 +1530,11 @@ class CompletionResult {
     var actualSuggestion = SuggestionData.fromJson(
         map['actualSuggestion'] as Map<String, dynamic>);
     var topSuggestions = (map['topSuggestions'] as List<dynamic>)
-        ?.map((map) => SuggestionData.fromJson(map as Map<String, dynamic>))
-        ?.toList();
+        .map((map) => SuggestionData.fromJson(map as Map<String, dynamic>))
+        .toList();
     var precedingRelevanceCounts =
         (map['precedingRelevanceCounts'] as Map<String, dynamic>)
-            ?.map((key, value) => MapEntry(int.parse(key), value as int));
+            .map((key, value) => MapEntry(int.parse(key), value as int));
     var expectedCompletion = ExpectedCompletion.fromJson(
         map['expectedCompletion'] as Map<String, dynamic>);
     var completionLocation = map['completionLocation'] as String;
@@ -1585,8 +1576,8 @@ class CompletionResult {
         }
         if (entity is SimpleIdentifier &&
             entity.parent is TypeName &&
-            entity.parent.parent is ConstructorName &&
-            entity.parent.parent.parent is InstanceCreationExpression) {
+            entity.parent!.parent is ConstructorName &&
+            entity.parent!.parent!.parent is InstanceCreationExpression) {
           return CompletionGroup.constructorElement;
         }
         return CompletionGroup.classElement;
@@ -1622,9 +1613,9 @@ class CompletionResult {
       'actualSuggestion': actualSuggestion.toJson(),
       if (topSuggestions != null)
         'topSuggestions':
-            topSuggestions.map((suggestion) => suggestion.toJson()).toList(),
+            topSuggestions!.map((suggestion) => suggestion.toJson()).toList(),
       if (precedingRelevanceCounts != null)
-        'precedingRelevanceCounts': precedingRelevanceCounts
+        'precedingRelevanceCounts': precedingRelevanceCounts!
             .map((key, value) => MapEntry(key.toString(), value)),
       'expectedCompletion': expectedCompletion.toJson(),
       'completionLocation': completionLocation,
@@ -1634,13 +1625,13 @@ class CompletionResult {
 
   /// Return the element associated with the syntactic [entity], or `null` if
   /// there is no such element.
-  Element _getElement(SyntacticEntity entity) {
+  Element? _getElement(SyntacticEntity entity) {
     if (entity is SimpleIdentifier) {
       var element = entity.staticElement;
       if (element != null) {
         return element;
       }
-      AstNode node = entity;
+      AstNode? node = entity;
       while (node != null) {
         var parent = node.parent;
         if (parent is AssignmentExpression) {
@@ -1688,11 +1679,11 @@ class LocationTableLine {
   final double mrr_5;
 
   LocationTableLine(
-      {@required this.label,
-      @required this.product,
-      @required this.count,
-      @required this.mrr,
-      @required this.mrr_5});
+      {required this.label,
+      required this.product,
+      required this.count,
+      required this.mrr,
+      required this.mrr_5});
 }
 
 class MetricsSuggestionListener implements SuggestionListener {
@@ -1710,9 +1701,9 @@ class MetricsSuggestionListener implements SuggestionListener {
     0.0
   ];
 
-  String missingCompletionLocation;
+  String? missingCompletionLocation;
 
-  String missingCompletionLocationTable;
+  String? missingCompletionLocationTable;
 
   @override
   void builtSuggestion(protocol.CompletionSuggestion suggestion) {
@@ -1854,7 +1845,6 @@ extension on CompletionGroup {
       case CompletionGroup.unknown:
         return 'unknown';
     }
-    return '<unknown>';
   }
 }
 
