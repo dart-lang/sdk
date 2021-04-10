@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -17,15 +15,15 @@ class InvertIfStatement extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! IfStatement) {
+    var ifStatement = node;
+    if (ifStatement is! IfStatement) {
       return;
     }
-    var ifStatement = node as IfStatement;
     var condition = ifStatement.condition;
     // should have both "then" and "else"
     var thenStatement = ifStatement.thenStatement;
     var elseStatement = ifStatement.elseStatement;
-    if (thenStatement == null || elseStatement == null) {
+    if (elseStatement == null) {
       return;
     }
     // prepare source

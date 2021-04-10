@@ -62,6 +62,17 @@ extension AstNodeExtensions on AstNode {
 
   bool get inWhileLoop => thisOrAncestorOfType<WhileStatement>() != null;
 
+  /// Return the [IfStatement] associated with `this`.
+  IfStatement? get enclosingIfStatement {
+    for (var node in withParents) {
+      if (node is IfStatement) {
+        return node;
+      } else if (node is! Expression) {
+        return null;
+      }
+    }
+  }
+
   /// Return this node and all its parents.
   Iterable<AstNode> get withParents sync* {
     var current = this;

@@ -482,14 +482,9 @@ bool isNamedExpressionName(SimpleIdentifier node) {
 /// If the given [expression] is the `expression` property of a
 /// [NamedExpression] then returns this [NamedExpression], otherwise returns
 /// [expression].
-Expression? stepUpNamedExpression(Expression? expression) {
-  if (expression != null) {
-    var parent = expression.parent;
-    if (parent is NamedExpression && parent.expression == expression) {
-      return parent;
-    }
-  }
-  return expression;
+Expression stepUpNamedExpression(Expression expression) {
+  var parent = expression.parent;
+  return parent is NamedExpression ? parent : expression;
 }
 
 /// Return `true` if the given [lists] are identical at the given [position].

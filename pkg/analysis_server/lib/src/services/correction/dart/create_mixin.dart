@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -14,7 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateMixin extends CorrectionProducer {
-  String _mixinName;
+  String _mixinName = '';
 
   @override
   List<Object> get fixArguments => [_mixinName];
@@ -24,13 +22,15 @@ class CreateMixin extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    Element prefixElement;
+    Element? prefixElement;
     SimpleIdentifier nameNode;
+    var node = this.node;
     if (node is SimpleIdentifier) {
       var parent = node.parent;
+      var grandParent = parent?.parent;
       if (parent is TypeName &&
-          parent.parent is ConstructorName &&
-          parent.parent.parent is InstanceCreationExpression) {
+          grandParent is ConstructorName &&
+          grandParent.parent is InstanceCreationExpression) {
         return;
       } else {
         nameNode = node;
@@ -40,13 +40,12 @@ class CreateMixin extends CorrectionProducer {
       if (node.parent is InstanceCreationExpression) {
         return;
       }
-      PrefixedIdentifier prefixedIdentifier = node;
-      prefixElement = prefixedIdentifier.prefix.staticElement;
+      prefixElement = node.prefix.staticElement;
       if (prefixElement == null) {
         return;
       }
-      nameNode = prefixedIdentifier.identifier;
-      _mixinName = prefixedIdentifier.identifier.name;
+      nameNode = node.identifier;
+      _mixinName = node.identifier.name;
     } else {
       return;
     }
@@ -58,9 +57,9 @@ class CreateMixin extends CorrectionProducer {
     var prefix = '';
     var suffix = '';
     var offset = -1;
-    String filePath;
+    String? filePath;
     if (prefixElement == null) {
-      targetUnit = unit.declaredElement;
+      targetUnit = unit.declaredElement!;
       var enclosingMember = node.thisOrAncestorMatching((node) =>
           node is CompilationUnitMember && node.parent is CompilationUnit);
       if (enclosingMember == null) {
@@ -77,8 +76,10 @@ class CreateMixin extends CorrectionProducer {
             targetUnit = library.definingCompilationUnit;
             var targetSource = targetUnit.source;
             try {
-              offset = targetSource.contents.data.length;
-              filePath = targetSource.fullName;
+              if (targetSource != null) {
+                offset = targetSource.contents.data.length;
+                filePath = targetSource.fullName;
+              }
               prefix = '$eol';
               suffix = '$eol';
             } on FileSystemException {
@@ -90,7 +91,7 @@ class CreateMixin extends CorrectionProducer {
         }
       }
     }
-    if (offset < 0) {
+    if (filePath == null || offset < 0) {
       return;
     }
     await builder.addDartFileEdit(filePath, (builder) {

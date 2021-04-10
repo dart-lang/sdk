@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -17,9 +15,9 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateMethodOrFunction extends CorrectionProducer {
-  FixKind _fixKind;
+  FixKind _fixKind = DartFixKind.CREATE_METHOD;
 
-  String _functionName;
+  String _functionName = '';
 
   @override
   List<Object> get fixArguments => [_functionName];
@@ -29,10 +27,10 @@ class CreateMethodOrFunction extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is SimpleIdentifier) {
-      var nameNode = node as SimpleIdentifier;
+    var nameNode = node;
+    if (nameNode is SimpleIdentifier) {
       // prepare argument expression (to get parameter)
-      ClassElement targetElement;
+      ClassElement? targetElement;
       Expression argument;
       {
         var target = getQualifiedPropertyTarget(node);
@@ -70,12 +68,11 @@ class CreateMethodOrFunction extends CorrectionProducer {
       if (parameterType is! FunctionType) {
         return;
       }
-      var functionType = parameterType as FunctionType;
       // add proposal
       if (targetElement != null) {
-        await _createMethod(builder, targetElement, functionType);
+        await _createMethod(builder, targetElement, parameterType);
       } else {
-        await _createFunction(builder, functionType);
+        await _createFunction(builder, parameterType);
       }
     }
   }
@@ -135,7 +132,7 @@ class CreateMethodOrFunction extends CorrectionProducer {
     var sourcePrefix = '$eol';
     var sourceSuffix = eol;
     await _createExecutable(builder, functionType, name, file, insertOffset,
-        false, prefix, sourcePrefix, sourceSuffix, unit.declaredElement);
+        false, prefix, sourcePrefix, sourceSuffix, unit.declaredElement!);
     _fixKind = DartFixKind.CREATE_FUNCTION;
     _functionName = name;
   }

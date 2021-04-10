@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
@@ -56,10 +54,9 @@ class ImportLibrary extends MultiCorrectionProducer {
     } else if (_importKind == _ImportKind.forTopLevelVariable) {
       var node = this.node;
       if (node is Annotation) {
-        Annotation annotation = node;
-        var name = annotation.name;
-        if (name != null && name.staticElement == null) {
-          if (annotation.arguments != null) {
+        var name = node.name;
+        if (name.staticElement == null) {
+          if (node.arguments != null) {
             return;
           }
           node = name;
@@ -75,10 +72,9 @@ class ImportLibrary extends MultiCorrectionProducer {
     } else if (_importKind == _ImportKind.forType) {
       var node = this.node;
       if (node is Annotation) {
-        Annotation annotation = node;
-        var name = annotation.name;
-        if (name != null && name.staticElement == null) {
-          if (annotation.arguments == null) {
+        var name = node.name;
+        if (name.staticElement == null) {
+          if (node.arguments == null) {
             return;
           }
           node = name;
@@ -116,11 +112,8 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   /// Return the relative uri from the passed [library] to the given [path].
   /// If the [path] is not in the LibraryElement, `null` is returned.
-  String _getRelativeURIFromLibrary(LibraryElement library, String path) {
-    var librarySource = library?.librarySource;
-    if (librarySource == null) {
-      return null;
-    }
+  String? _getRelativeURIFromLibrary(LibraryElement library, String path) {
+    var librarySource = library.librarySource;
     var pathCtx = resourceProvider.pathContext;
     var libraryDirectory = pathCtx.dirname(librarySource.fullName);
     var sourceDirectory = pathCtx.dirname(path);
@@ -133,7 +126,7 @@ class ImportLibrary extends MultiCorrectionProducer {
   }
 
   Iterable<CorrectionProducer> _importLibrary(FixKind fixKind, Uri library,
-      [String relativeURI]) sync* {
+      [String? relativeURI]) sync* {
     yield _ImportAbsoluteLibrary(fixKind, library);
     if (relativeURI != null && relativeURI.isNotEmpty) {
       yield _ImportRelativeLibrary(fixKind, relativeURI);
@@ -154,12 +147,15 @@ class ImportLibrary extends MultiCorrectionProducer {
     for (var imp in libraryElement.imports) {
       // prepare element
       var libraryElement = imp.importedLibrary;
+      if (libraryElement == null) {
+        continue;
+      }
       var element = getExportedElement(libraryElement, name);
       if (element == null) {
         continue;
       }
       if (element is PropertyAccessorElement) {
-        element = (element as PropertyAccessorElement).variable;
+        element = element.variable;
       }
       if (!elementKinds.contains(element.kind)) {
         continue;
@@ -167,7 +163,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       // may be apply prefix
       var prefix = imp.prefix;
       if (prefix != null) {
-        yield _ImportLibraryPrefix(imp);
+        yield _ImportLibraryPrefix(libraryElement, prefix);
         continue;
       }
       // may be update "show" directive
@@ -265,7 +261,7 @@ class _ImportAbsoluteLibrary extends CorrectionProducer {
 
   final Uri _library;
 
-  String _uriText;
+  String _uriText = '';
 
   _ImportAbsoluteLibrary(this._fixKind, this._library);
 
@@ -294,13 +290,14 @@ enum _ImportKind {
 /// A correction processor that can make one of the possible change computed by
 /// the [ImportLibrary] producer.
 class _ImportLibraryPrefix extends CorrectionProducer {
-  final ImportElement _importElement;
+  final LibraryElement _importedLibrary;
+  final PrefixElement _importPrefix;
 
-  String _libraryName;
+  String _libraryName = '';
 
-  String _prefixName;
+  String _prefixName = '';
 
-  _ImportLibraryPrefix(this._importElement);
+  _ImportLibraryPrefix(this._importedLibrary, this._importPrefix);
 
   @override
   List<Object> get fixArguments => [_libraryName, _prefixName];
@@ -310,10 +307,8 @@ class _ImportLibraryPrefix extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var libraryElement = _importElement.importedLibrary;
-    var prefix = _importElement.prefix;
-    _libraryName = libraryElement.displayName;
-    _prefixName = prefix.displayName;
+    _libraryName = _importedLibrary.displayName;
+    _prefixName = _importPrefix.displayName;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.startLength(node, 0), '$_prefixName.');
     });
