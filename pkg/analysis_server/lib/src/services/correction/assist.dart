@@ -151,7 +151,7 @@ class DartAssistKind {
   static const FLUTTER_WRAP_SIZED_BOX =
       AssistKind('dart.assist.flutter.wrap.sizedBox', 32, 'Wrap with SizedBox');
   static const FLUTTER_WRAP_BUILDER = AssistKind(
-      'dart.assist.flutter.wrap.Builder', 32, 'Wrap with Builder');
+      'dart.assist.flutter.wrap.builder', 32, 'Wrap with Builder');
   static const FLUTTER_WRAP_STREAM_BUILDER = AssistKind(
       'dart.assist.flutter.wrap.streamBuilder', 32, 'Wrap with StreamBuilder');
 
