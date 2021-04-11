@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
 import 'package:test/test.dart';
@@ -28,7 +26,7 @@ void main() {
 }
 
 class StatementCompletionTest extends AbstractSingleUnitTest {
-  SourceChange change;
+  late SourceChange change;
 
   int _after(String source, String match) =>
       source.indexOf(match) + match.length;
@@ -39,7 +37,7 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
   void _assertHasChange(
     String message,
     String expectedCode, [
-    int Function(String) cmp,
+    int Function(String)? cmp,
   ]) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
@@ -48,13 +46,13 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
         expect(resultCode, expectedCode.replaceAll('////', ''));
         if (cmp != null) {
           var offset = cmp(resultCode);
-          expect(change.selection.offset, offset);
+          expect(change.selection!.offset, offset);
         }
       } else {
         expect(testCode, expectedCode.replaceAll('////', ''));
         if (cmp != null) {
           var offset = cmp(testCode);
-          expect(change.selection.offset, offset);
+          expect(change.selection!.offset, offset);
         }
       }
       return;
