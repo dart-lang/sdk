@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
@@ -18,7 +16,7 @@ class OrganizeImports extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var organizer =
-        ImportOrganizer(resolvedResult.content, unit, resolvedResult.errors);
+        ImportOrganizer(resolvedResult.content!, unit, resolvedResult.errors);
     // todo (pq): consider restructuring organizer to allow a passed-in change
     //  builder
     for (var edit in organizer.organize()) {

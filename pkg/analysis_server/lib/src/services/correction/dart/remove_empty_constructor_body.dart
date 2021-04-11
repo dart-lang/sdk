@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -20,14 +18,15 @@ class RemoveEmptyConstructorBody extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    await builder.addDartFileEdit(file, (builder) {
-      if (node is Block && node.parent is BlockFunctionBody) {
+    var parent = node.parent;
+    if (node is Block && parent is BlockFunctionBody) {
+      await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(
-          utils.getLinesRange(range.node(node.parent)),
+          utils.getLinesRange(range.node(parent)),
           ';',
         );
-      }
-    });
+      });
+    }
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

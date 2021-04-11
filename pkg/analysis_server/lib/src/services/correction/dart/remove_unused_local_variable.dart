@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -24,8 +22,9 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
     if (!(declaration is VariableDeclaration && declaration.name == node)) {
       return;
     }
-    Element element = (declaration as VariableDeclaration).declaredElement;
-    if (element is! LocalElement) {
+
+    var element = declaration.declaredElement;
+    if (element is! LocalVariableElement) {
       return;
     }
 
@@ -41,7 +40,7 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
       final node = reference.thisOrAncestorMatching((node) =>
           node is VariableDeclaration || node is AssignmentExpression);
 
-      SourceRange sourceRange;
+      SourceRange? sourceRange;
       if (node is AssignmentExpression) {
         sourceRange = _forAssignmentExpression(node);
       } else if (node is VariableDeclaration) {
@@ -78,14 +77,15 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
   SourceRange _forAssignmentExpression(AssignmentExpression node) {
     // todo (pq): consider node.parent is! ExpressionStatement to handle
     // assignments in parens, etc.
-    if (node.parent is ArgumentList) {
-      return range.startStart(node, node.operator.next);
+    var parent = node.parent!;
+    if (parent is ArgumentList) {
+      return range.startStart(node, node.operator.next!);
     } else {
-      return utils.getLinesRange(range.node(node.parent));
+      return utils.getLinesRange(range.node(parent));
     }
   }
 
-  SourceRange _forVariableDeclaration(VariableDeclaration node) {
+  SourceRange? _forVariableDeclaration(VariableDeclaration node) {
     var declarationList = node.parent as VariableDeclarationList;
 
     var declarationListParent = declarationList.parent;
