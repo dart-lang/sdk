@@ -247,7 +247,7 @@ abstract class Expression extends Node {
 
   void _preVisit(AssignedVariables<Node, Var> assignedVariables);
 
-  Type _visit(Harness h);
+  Type _visit(Harness h, Type context);
 }
 
 /// Test harness for creating flow analysis tests.  This class implements all
@@ -679,7 +679,7 @@ class _As extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeTypeCast(this, target, type);
   }
 }
@@ -740,7 +740,7 @@ class _BooleanLiteral extends Expression {
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeBoolLiteral(this, value);
   }
 }
@@ -892,7 +892,7 @@ class _Conditional extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer
         .analyzeConditionalExpression(this, condition, ifTrue, ifFalse);
   }
@@ -983,7 +983,7 @@ class _Equal extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     var operatorName = isInverted ? '!=' : '==';
     return h._typeAnalyzer
         .analyzeBinaryExpression(this, lhs, operatorName, rhs);
@@ -1139,7 +1139,7 @@ class _GetExpressionInfo extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     var type = h._typeAnalyzer.analyzeExpression(target);
     h._flow.forwardExpression(this, target);
     callback(h._flow.expressionInfoForTesting(this));
@@ -1203,7 +1203,7 @@ class _IfNull extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeIfNullExpression(this, lhs, rhs);
   }
 }
@@ -1224,7 +1224,7 @@ class _Is extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer
         .analyzeTypeTest(this, target, type, isInverted: isInverted);
   }
@@ -1272,7 +1272,7 @@ class _Logical extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     var operatorName = isAnd ? '&&' : '||';
     return h._typeAnalyzer
         .analyzeBinaryExpression(this, lhs, operatorName, rhs);
@@ -1307,6 +1307,8 @@ class _MiniAstTypeAnalyzer {
   late final Type neverType = Type('Never');
 
   late final Type nullType = Type('Null');
+
+  late final Type unknownType = Type('?');
 
   _MiniAstTypeAnalyzer(this._harness);
 
@@ -1414,8 +1416,10 @@ class _MiniAstTypeAnalyzer {
     flow.doStatement_end(condition);
   }
 
-  Type analyzeExpression(Expression expression) {
-    return dispatchExpression(expression);
+  Type analyzeExpression(Expression expression, [Type? context]) {
+    // TODO(paulberry): make the [context] argument required.
+    context ??= unknownType;
+    return dispatchExpression(expression, context);
   }
 
   void analyzeExpressionStatement(Expression expression) {
@@ -1592,7 +1596,8 @@ class _MiniAstTypeAnalyzer {
     flow.whileStatement_end();
   }
 
-  Type dispatchExpression(Expression expression) => expression._visit(_harness);
+  Type dispatchExpression(Expression expression, Type context) =>
+      expression._visit(_harness, context);
 
   void dispatchStatement(Statement statement) => statement._visit(_harness);
 
@@ -1647,7 +1652,7 @@ class _NonNullAssert extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeNonNullAssert(this, operand);
   }
 }
@@ -1666,7 +1671,7 @@ class _Not extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeLogicalNot(this, operand);
   }
 }
@@ -1688,7 +1693,7 @@ class _NullAwareAccess extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     var lhsType = h._typeAnalyzer.analyzeExpression(lhs);
     h._flow.nullAwareAccess_rightBegin(isCascaded ? null : lhs, lhsType);
     var rhsType = h._typeAnalyzer.analyzeExpression(rhs);
@@ -1707,7 +1712,7 @@ class _NullLiteral extends Expression {
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeNullLiteral(this);
   }
 }
@@ -1726,7 +1731,7 @@ class _ParenthesizedExpression extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeParenthesizedExpression(this, expr);
   }
 }
@@ -1743,7 +1748,7 @@ class _PlaceholderExpression extends Expression {
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
 
   @override
-  Type _visit(Harness h) => type;
+  Type _visit(Harness h, Type context) => type;
 }
 
 class _Property extends LValue {
@@ -1760,7 +1765,7 @@ class _Property extends LValue {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzePropertyGet(this, target, propertyName);
   }
 
@@ -1830,7 +1835,7 @@ class _This extends Expression {
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeThis(this);
   }
 }
@@ -1844,7 +1849,7 @@ class _ThisOrSuperPropertyGet extends Expression {
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeThisPropertyGet(this, propertyName);
   }
 }
@@ -1863,7 +1868,7 @@ class _Throw extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeThrow(this, operand);
   }
 }
@@ -1938,7 +1943,7 @@ class _VariableReference extends LValue {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeVariableGet(this, variable, callback);
   }
 
@@ -1988,7 +1993,7 @@ class _WhyNotPromoted extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     var type = h._typeAnalyzer.analyzeExpression(target);
     h._flow.forwardExpression(this, target);
     Type.withComparisonsAllowed(() {
@@ -2048,7 +2053,7 @@ class _WrappedExpression extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     if (before != null) {
       h._typeAnalyzer.dispatchStatement(before!);
     }
@@ -2080,7 +2085,7 @@ class _Write extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     var rhs = this.rhs;
     Type type;
     if (rhs == null) {
