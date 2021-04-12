@@ -106,7 +106,7 @@ class EditDomainHandler extends AbstractRequestHandler {
 
       var workspace = DartChangeWorkspace(server.currentSessions);
       var processor = BulkFixProcessor(server.instrumentationService, workspace,
-          useConfigFiles: params.inTestMode);
+          useConfigFiles: params.inTestMode ?? false);
 
       var collection = AnalysisContextCollectionImpl(
         includedPaths: params.included,

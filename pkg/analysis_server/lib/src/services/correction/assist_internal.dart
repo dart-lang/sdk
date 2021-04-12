@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
@@ -169,19 +167,11 @@ class AssistProcessor extends BaseProcessor {
         );
 
   Future<List<Assist>> compute() async {
-    if (!setupCompute()) {
-      return assists;
-    }
     await _addFromProducers();
-
     return assists;
   }
 
   Future<List<Assist>> computeAssist(AssistKind assistKind) async {
-    if (!setupCompute()) {
-      return assists;
-    }
-
     var context = CorrectionProducerContext.create(
       selectionOffset: selectionOffset,
       selectionLength: selectionLength,
@@ -199,8 +189,11 @@ class AssistProcessor extends BaseProcessor {
           workspace: context.workspace, eol: context.utils.endOfLine);
       await producer.compute(builder);
 
-      _addAssistFromBuilder(builder, producer.assistKind,
-          args: producer.assistArguments);
+      var assistKind = producer.assistKind;
+      if (assistKind != null) {
+        _addAssistFromBuilder(builder, assistKind,
+            args: producer.assistArguments);
+      }
     }
 
     // Calculate only specific assists for edit.dartFix
@@ -219,10 +212,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   void _addAssistFromBuilder(ChangeBuilder builder, AssistKind kind,
-      {List<Object> args}) {
-    if (builder == null) {
-      return;
-    }
+      {List<Object>? args}) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
@@ -240,7 +230,7 @@ class AssistProcessor extends BaseProcessor {
       workspace: workspace,
     );
     if (context == null) {
-      return assists;
+      return;
     }
 
     Future<void> compute(CorrectionProducer producer) async {
@@ -249,8 +239,11 @@ class AssistProcessor extends BaseProcessor {
           workspace: context.workspace, eol: context.utils.endOfLine);
       try {
         await producer.compute(builder);
-        _addAssistFromBuilder(builder, producer.assistKind,
-            args: producer.assistArguments);
+        var assistKind = producer.assistKind;
+        if (assistKind != null) {
+          _addAssistFromBuilder(builder, assistKind,
+              args: producer.assistArguments);
+        }
       } on ConflictingEditException catch (exception, stackTrace) {
         // Handle the exception by (a) not adding an assist based on the
         // producer and (b) logging the exception.
@@ -276,6 +269,11 @@ class AssistProcessor extends BaseProcessor {
   }
 
   bool _containsErrorCode(Set<String> errorCodes) {
+    final node = findSelectedNode();
+    if (node == null) {
+      return false;
+    }
+
     final fileOffset = node.offset;
     for (var error in assistContext.resolveResult.errors) {
       final errorSource = error.source;
