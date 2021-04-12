@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -42,27 +42,6 @@ main() {
     await assertNoAssist();
   }
 
-  Future<void> test_aroundText() async {
-    await resolveTestCode('''
-import 'package:flutter/widgets.dart';
-
-main() {
-  /*caret*/Text('a');
-}
-''');
-    await assertHasAssist('''
-import 'package:flutter/widgets.dart';
-
-main() {
-  Builder(
-    builder: (context) {
-      return Text('a');
-    }
-  );
-}
-''');
-  }
-
   Future<void> test_aroundNamedConstructor() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
@@ -90,6 +69,27 @@ main() {
   return Builder(
     builder: (context) {
       return MyWidget.named();
+    }
+  );
+}
+''');
+  }
+
+  Future<void> test_aroundText() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+main() {
+  /*caret*/Text('a');
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/widgets.dart';
+
+main() {
+  Builder(
+    builder: (context) {
+      return Text('a');
     }
   );
 }

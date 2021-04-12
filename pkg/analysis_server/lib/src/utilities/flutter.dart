@@ -444,6 +444,12 @@ class Flutter {
         _isExactWidget(type.element, _nameAlign, _uriBasic);
   }
 
+  /// Return `true` if the given [type] is the Flutter class `StreamBuilder`.
+  bool isExactWidgetTypeBuilder(DartType type) {
+    return type is InterfaceType &&
+        _isExactWidget(type.element, _nameBuilder, _uriBasic);
+  }
+
   /// Return `true` if the given [type] is the Flutter class `Center`.
   bool isExactWidgetTypeCenter(DartType type) {
     return type is InterfaceType &&
@@ -472,12 +478,6 @@ class Flutter {
   bool isExactWidgetTypeStreamBuilder(DartType type) {
     return type is InterfaceType &&
         _isExactWidget(type.element, _nameStreamBuilder, _uriAsync);
-  }
-
-  /// Return `true` if the given [type] is the Flutter class `StreamBuilder`.
-  bool isExactWidgetTypeBuilder(DartType type) {
-    return type is InterfaceType &&
-        _isExactWidget(type.element, _nameBuilder, _uriBasic);
   }
 
   /// Return `true` if the given [type] is the Flutter class `Widget`, or its

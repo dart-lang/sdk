@@ -51,8 +51,8 @@ import 'package:analysis_server/src/services/correction/dart/flutter_remove_widg
 import 'package:analysis_server/src/services/correction/dart/flutter_swap_with_child.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_swap_with_parent.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_wrap.dart';
-import 'package:analysis_server/src/services/correction/dart/flutter_wrap_generic.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_wrap_builder.dart';
+import 'package:analysis_server/src/services/correction/dart/flutter_wrap_generic.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_wrap_stream_builder.dart';
 import 'package:analysis_server/src/services/correction/dart/import_add_show.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
@@ -129,8 +129,8 @@ class AssistProcessor extends BaseProcessor {
     FlutterRemoveWidget.newInstance,
     FlutterSwapWithChild.newInstance,
     FlutterSwapWithParent.newInstance,
-    FlutterWrapGeneric.newInstance,
     FlutterWrapBuilder.newInstance,
+    FlutterWrapGeneric.newInstance,
     FlutterWrapStreamBuilder.newInstance,
     ImportAddShow.newInstance,
     InlineInvocation.newInstance,
