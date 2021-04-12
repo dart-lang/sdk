@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/domains/execution/completion.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -20,11 +18,11 @@ void main() {
 
 @reflectiveTest
 class RuntimeCompletionComputerTest extends AbstractContextTest {
-  OverlayResourceProvider overlayResourceProvider;
-  String contextFile;
-  int contextOffset;
+  late OverlayResourceProvider overlayResourceProvider;
+  late String contextFile;
+  late int contextOffset;
 
-  RuntimeCompletionResult result;
+  late RuntimeCompletionResult result;
 
   void addContextFile(String content) {
     contextFile = convertPath('/home/test/lib/context.dart');
@@ -42,7 +40,7 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
     }
   }
 
-  void assertSuggested(String completion, {String returnType}) {
+  void assertSuggested(String completion, {String? returnType}) {
     var suggestion = getSuggest(completion);
     if (suggestion == null) {
       failedCompletion('expected $completion');
@@ -52,41 +50,28 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
     }
   }
 
-  Future<void> computeCompletion(
-    String code, {
-    List<RuntimeCompletionVariable> variables,
-    List<RuntimeCompletionExpression> expressions,
-  }) async {
+  Future<void> computeCompletion(String code) async {
     var codeOffset = code.indexOf('^');
     expect(codeOffset, isNonNegative);
     code = code.replaceAll('^', '');
 
-    var computer = RuntimeCompletionComputer(
-        overlayResourceProvider,
-        driverFor(contextFile),
-        code,
-        codeOffset,
-        contextFile,
-        contextOffset,
-        variables,
-        expressions);
+    var computer = RuntimeCompletionComputer(overlayResourceProvider,
+        driverFor(contextFile), code, codeOffset, contextFile, contextOffset);
     result = await computer.compute();
   }
 
-  void failedCompletion(String message) {
+  Never failedCompletion(String message) {
     var sb = StringBuffer(message);
-    if (result.suggestions != null) {
-      sb.write('\n  found');
-      result.suggestions.toList()
-        ..sort((a, b) => a.completion.compareTo(b.completion))
-        ..forEach((suggestion) {
-          sb.write('\n    ${suggestion.completion} -> $suggestion');
-        });
-    }
+    sb.write('\n  found');
+    result.suggestions.toList()
+      ..sort((a, b) => a.completion.compareTo(b.completion))
+      ..forEach((suggestion) {
+        sb.write('\n    ${suggestion.completion} -> $suggestion');
+      });
     fail(sb.toString());
   }
 
-  CompletionSuggestion getSuggest(String completion) {
+  CompletionSuggestion? getSuggest(String completion) {
     expect(result.suggestions, isNotNull);
     for (var suggestion in result.suggestions) {
       if (suggestion.completion == completion) {

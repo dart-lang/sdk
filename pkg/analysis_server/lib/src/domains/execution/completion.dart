@@ -2,18 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart'
-    show
-        CompletionSuggestion,
-        RuntimeCompletionExpression,
-        RuntimeCompletionVariable,
-        SourceEdit;
+    show CompletionSuggestion, RuntimeCompletionExpression, SourceEdit;
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -28,18 +21,8 @@ class RuntimeCompletionComputer {
   final String contextPath;
   final int contextOffset;
 
-  final List<RuntimeCompletionVariable> variables;
-  final List<RuntimeCompletionExpression> expressions;
-
-  RuntimeCompletionComputer(
-      this.resourceProvider,
-      this.analysisDriver,
-      this.code,
-      this.offset,
-      this.contextPath,
-      this.contextOffset,
-      this.variables,
-      this.expressions);
+  RuntimeCompletionComputer(this.resourceProvider, this.analysisDriver,
+      this.code, this.offset, this.contextPath, this.contextOffset);
 
   Future<RuntimeCompletionResult> compute() async {
     var contextResult = await analysisDriver.getResult(contextPath);
@@ -65,7 +48,7 @@ class RuntimeCompletionComputer {
 
     // Compute the patched context file content.
     var targetCode = SourceEdit.applySequence(
-      contextResult.content,
+      contextResult.content!,
       changeBuilder.sourceChange.edits[0].edits,
     );
 
@@ -75,9 +58,8 @@ class RuntimeCompletionComputer {
 
     // Update the context file content to include the code being completed.
     // Then resolve it, and restore the file to its initial state.
-    ResolvedUnitResult targetResult;
-    await _withContextFileContent(targetCode, () async {
-      targetResult = await analysisDriver.getResult(contextPath);
+    var targetResult = await _withContextFileContent(targetCode, () async {
+      return await analysisDriver.getResult(contextPath);
     });
 
     var contributor = DartCompletionManager(
@@ -106,8 +88,8 @@ class RuntimeCompletionComputer {
     return RuntimeCompletionResult(expressions, suggestions);
   }
 
-  Future<void> _withContextFileContent(
-      String newContent, Future<void> Function() f) async {
+  Future<R> _withContextFileContent<R>(
+      String newContent, Future<R> Function() f) async {
     if (resourceProvider.hasOverlay(contextPath)) {
       var contextFile = resourceProvider.getFile(contextPath);
       var prevOverlayContent = contextFile.readAsStringSync();
@@ -119,7 +101,7 @@ class RuntimeCompletionComputer {
           modificationStamp: 0,
         );
         analysisDriver.changeFile(contextPath);
-        await f();
+        return await f();
       } finally {
         resourceProvider.setOverlay(
           contextPath,
@@ -136,7 +118,7 @@ class RuntimeCompletionComputer {
           modificationStamp: 0,
         );
         analysisDriver.changeFile(contextPath);
-        await f();
+        return await f();
       } finally {
         resourceProvider.removeOverlay(contextPath);
         analysisDriver.changeFile(contextPath);
