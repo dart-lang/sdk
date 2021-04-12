@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -14,7 +12,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithNotNullAware extends CorrectionProducer {
   /// The operator that will replace the existing operator.
-  String _newOperator;
+  String _newOperator = '';
 
   @override
   List<Object> get fixArguments => [_newOperator];
@@ -26,11 +24,13 @@ class ReplaceWithNotNullAware extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = coveredNode;
     if (node is MethodInvocation) {
-      _newOperator =
-          node.operator.type == TokenType.QUESTION_PERIOD ? '.' : '..';
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.token(node.operator), _newOperator);
-      });
+      var operator = node.operator;
+      if (operator != null) {
+        _newOperator = operator.type == TokenType.QUESTION_PERIOD ? '.' : '..';
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleReplacement(range.token(operator), _newOperator);
+        });
+      }
     } else if (node is PropertyAccess) {
       _newOperator =
           node.operator.type == TokenType.QUESTION_PERIOD ? '.' : '..';
@@ -38,15 +38,17 @@ class ReplaceWithNotNullAware extends CorrectionProducer {
         builder.addSimpleReplacement(range.token(node.operator), _newOperator);
       });
     } else if (node is IndexExpression) {
-      if (node.period != null) {
+      var period = node.period;
+      var question = node.question;
+      if (period != null) {
         _newOperator = '..';
         await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleReplacement(range.token(node.period), '..');
+          builder.addSimpleReplacement(range.token(period), '..');
         });
-      } else if (node.question != null) {
+      } else if (question != null) {
         _newOperator = '[';
         await builder.addDartFileEdit(file, (builder) {
-          builder.addDeletion(range.token(node.question));
+          builder.addDeletion(range.token(question));
         });
       }
     } else if (node is SpreadElement) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -20,12 +18,19 @@ class ReplaceColonWithEquals extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is DefaultFormalParameter) {
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-            range.token((node as DefaultFormalParameter).separator), ' =');
-      });
+    final node = this.node;
+    if (node is! DefaultFormalParameter) {
+      return;
     }
+
+    var separator = node.separator;
+    if (separator == null) {
+      return;
+    }
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleReplacement(range.token(separator), ' =');
+    });
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

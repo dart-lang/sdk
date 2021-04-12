@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:meta/meta.dart';
 
 class ReplaceWithInterpolation extends CorrectionProducer {
   @override
@@ -22,9 +20,9 @@ class ReplaceWithInterpolation extends CorrectionProducer {
     //
     // Validate the fix.
     //
-    BinaryExpression binary;
-    var candidate = node;
-    while (_isStringConcatenation(candidate)) {
+    BinaryExpression? binary;
+    AstNode? candidate = node;
+    while (candidate is BinaryExpression && _isStringConcatenation(candidate)) {
       binary = candidate;
       candidate = candidate.parent;
     }
@@ -43,8 +41,9 @@ class ReplaceWithInterpolation extends CorrectionProducer {
     //
     // Build the edit.
     //
+    final binary_final = binary;
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(range.node(binary), interpolation);
+      builder.addSimpleReplacement(range.node(binary_final), interpolation);
     });
   }
 
@@ -82,9 +81,11 @@ class ReplaceWithInterpolation extends CorrectionProducer {
         return leftStyle;
       }
       return leftStyle == rightStyle ? leftStyle : _StringStyle.invalid;
-    } else if (expression is MethodInvocation &&
-        expression.methodName.name == 'toString') {
-      return _extractComponentsInto(expression.target, components);
+    } else if (expression is MethodInvocation) {
+      var target = expression.target;
+      if (target != null && expression.methodName.name == 'toString') {
+        return _extractComponentsInto(target, components);
+      }
     } else if (expression is ParenthesizedExpression) {
       return _extractComponentsInto(expression.expression, components);
     }
@@ -95,8 +96,8 @@ class ReplaceWithInterpolation extends CorrectionProducer {
   bool _isStringConcatenation(AstNode node) =>
       node is BinaryExpression &&
       node.operator.type == TokenType.PLUS &&
-      node.leftOperand.staticType.isDartCoreString &&
-      node.rightOperand.staticType.isDartCoreString;
+      node.leftOperand.typeOrThrow.isDartCoreString &&
+      node.rightOperand.typeOrThrow.isDartCoreString;
 
   String _mergeComponents(_StringStyle style, List<AstNode> components) {
     var quotes = style.quotes;
@@ -161,10 +162,11 @@ class _StringStyle {
 
   final int state;
 
-  factory _StringStyle(
-      {@required bool multiline,
-      @required bool raw,
-      @required bool singleQuoted}) {
+  factory _StringStyle({
+    required bool multiline,
+    required bool raw,
+    required bool singleQuoted,
+  }) {
     return _StringStyle._((multiline ? multilineBit : 0) +
         (raw ? rawBit : 0) +
         (singleQuoted ? singleQuotedBit : 0));

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -19,18 +17,22 @@ class ReplaceWithNullAware extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = coveredNode;
     if (node is Expression) {
+      final node_final = node;
       await builder.addDartFileEdit(file, (builder) {
-        var parent = node.parent;
+        var parent = node_final.parent;
         while (parent != null) {
           if (parent is MethodInvocation && parent.target == node) {
-            builder.addSimpleReplacement(range.token(parent.operator), '?.');
+            var operator = parent.operator;
+            if (operator != null) {
+              builder.addSimpleReplacement(range.token(operator), '?.');
+            }
           } else if (parent is PropertyAccess && parent.target == node) {
             builder.addSimpleReplacement(range.token(parent.operator), '?.');
           } else {
             break;
           }
           node = parent;
-          parent = node.parent;
+          parent = node?.parent;
         }
       });
     }

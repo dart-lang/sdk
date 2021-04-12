@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,7 +10,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithExtensionName extends CorrectionProducer {
-  String _extensionName;
+  String _extensionName = '';
 
   @override
   List<Object> get fixArguments => [_extensionName];
@@ -35,7 +33,7 @@ class ReplaceWithExtensionName extends CorrectionProducer {
     }
   }
 
-  AstNode _getTarget(AstNode invocation) {
+  AstNode? _getTarget(AstNode? invocation) {
     if (invocation is MethodInvocation && node == invocation.methodName) {
       return invocation.target;
     } else if (invocation is PropertyAccess &&

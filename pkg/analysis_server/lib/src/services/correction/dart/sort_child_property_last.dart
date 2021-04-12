@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -32,13 +30,12 @@ class SortChildPropertyLast extends CorrectionProducer {
       return;
     }
 
-    var parent = childProp.parent?.parent;
-    if (parent is! InstanceCreationExpression ||
-        !flutter.isWidgetCreation(parent)) {
+    var creationExpression = childProp.parent?.parent;
+    if (creationExpression is! InstanceCreationExpression ||
+        !flutter.isWidgetCreation(creationExpression)) {
       return;
     }
 
-    InstanceCreationExpression creationExpression = parent;
     var args = creationExpression.argumentList;
 
     var last = args.arguments.last;
@@ -48,10 +45,10 @@ class SortChildPropertyLast extends CorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (fileEditBuilder) {
-      var hasTrailingComma = last.endToken.next.type == TokenType.COMMA;
+      var hasTrailingComma = last.endToken.next!.type == TokenType.COMMA;
 
-      var childStart = childProp.beginToken.previous.end;
-      var childEnd = childProp.endToken.next.end;
+      var childStart = childProp.beginToken.previous!.end;
+      var childEnd = childProp.endToken.next!.end;
       var childRange = range.startOffsetEndOffset(childStart, childEnd);
 
       var deletionRange = childRange;
@@ -69,7 +66,7 @@ class SortChildPropertyLast extends CorrectionProducer {
 
       var insertionPoint = last.end;
       if (hasTrailingComma) {
-        insertionPoint = last.endToken.next.end;
+        insertionPoint = last.endToken.next!.end;
       } else if (childStart == childProp.offset) {
         childText = ', $childText';
       } else {
@@ -85,7 +82,7 @@ class SortChildPropertyLast extends CorrectionProducer {
 
   /// Using the [node] as the starting point, find the named expression that is
   /// for either the `child` or `children` parameter.
-  NamedExpression _findNamedExpression(AstNode node) {
+  NamedExpression? _findNamedExpression(AstNode node) {
     if (node is NamedExpression) {
       var name = node.name.label.name;
       if (name == 'child' || name == 'children') {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -20,34 +18,45 @@ class ShadowField extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    final node = this.node;
     if (node is! SimpleIdentifier) {
       return;
     }
-    var element = (node as SimpleIdentifier).writeOrReadElement;
-    if (element is! PropertyAccessorElement) {
+
+    var accessor = node.writeOrReadElement;
+    if (accessor is! PropertyAccessorElement) {
       return;
     }
-    var accessor = element as PropertyAccessorElement;
+
     if (!accessor.isGetter || accessor.enclosingElement is! ClassElement) {
       // TODO(brianwilkerson) Should we also require that the getter be synthetic?
       return;
     }
+
     var statement = _getStatement();
     if (statement == null) {
       return;
     }
-    if (statement.parent is! Block) {
+
+    var enclosingBlock = statement.parent;
+    if (enclosingBlock is! Block) {
       // TODO(brianwilkerson) Support adding a block between the statement and
       //  its parent (where the parent will be something like a while or if
       //  statement). Also support the case where the parent is a case clause.
       return;
     }
-    var enclosingBlock = statement.parent as Block;
-    var finder = _ReferenceFinder(accessor.correspondingSetter);
+
+    var correspondingSetter = accessor.correspondingSetter;
+    if (correspondingSetter == null) {
+      return;
+    }
+
+    var finder = _ReferenceFinder(correspondingSetter);
     enclosingBlock.accept(finder);
     if (finder.hasSetterReference) {
       return;
     }
+
     var fieldName = accessor.name;
     var offset = statement.offset;
     var prefix = utils.getLinePrefix(offset);
@@ -74,13 +83,13 @@ class ShadowField extends CorrectionProducer {
 
   /// Return the statement immediately enclosing the [node] that would promote
   /// the type of the field if it were replaced by a local variable.
-  Statement _getStatement() {
+  Statement? _getStatement() {
     var parent = node.parent;
 
-    Statement enclosingIf(Expression expression) {
+    Statement? enclosingIf(Expression expression) {
       var parent = expression.parent;
       while (parent is BinaryExpression) {
-        var opType = (parent as BinaryExpression).operator.type;
+        var opType = parent.operator.type;
         if (opType != TokenType.AMPERSAND_AMPERSAND) {
           break;
         }
