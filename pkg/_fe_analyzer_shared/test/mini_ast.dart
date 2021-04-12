@@ -9,6 +9,7 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:test/test.dart';
 
+import 'mini_ir.dart';
 import 'mini_types.dart';
 
 Expression get nullLiteral => new _NullLiteral();
@@ -247,7 +248,7 @@ abstract class Expression extends Node {
 
   void _preVisit(AssignedVariables<Node, Var> assignedVariables);
 
-  Type _visit(Harness h);
+  Type _visit(Harness h, Type context);
 }
 
 /// Test harness for creating flow analysis tests.  This class implements all
@@ -389,6 +390,8 @@ class Harness extends TypeOperations<Var, Type> {
 
   Harness({this.legacy = false, String? thisType})
       : thisType = thisType == null ? null : Type(thisType);
+
+  MiniIrBuilder get _irBuilder => _typeAnalyzer._irBuilder;
 
   /// Updates the harness so that when a [factor] query is invoked on types
   /// [from] and [what], [result] will be returned.
@@ -679,7 +682,7 @@ class _As extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeTypeCast(this, target, type);
   }
 }
@@ -703,6 +706,7 @@ class _Assert extends Statement {
   @override
   void _visit(Harness h) {
     h._typeAnalyzer.analyzeAssertStatement(condition, message);
+    h._irBuilder.apply('assert', 2);
   }
 }
 
@@ -725,6 +729,7 @@ class _Block extends Statement {
   @override
   void _visit(Harness h) {
     h._typeAnalyzer.analyzeBlock(statements);
+    h._irBuilder.apply('block', statements.length);
   }
 }
 
@@ -740,8 +745,10 @@ class _BooleanLiteral extends Expression {
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
 
   @override
-  Type _visit(Harness h) {
-    return h._typeAnalyzer.analyzeBoolLiteral(this, value);
+  Type _visit(Harness h, Type context) {
+    var type = h._typeAnalyzer.analyzeBoolLiteral(this, value);
+    h._irBuilder.atom('$value');
+    return type;
   }
 }
 
@@ -759,6 +766,7 @@ class _Break extends Statement {
   @override
   void _visit(Harness h) {
     h._typeAnalyzer.analyzeBreakStatement(target);
+    h._irBuilder.apply('break', 0);
   }
 }
 
@@ -806,6 +814,7 @@ class _CheckAssigned extends Statement {
   @override
   void _visit(Harness h) {
     expect(h._flow.isAssigned(variable), expectedAssignedState);
+    h._irBuilder.atom('null');
   }
 }
 
@@ -831,6 +840,7 @@ class _CheckPromoted extends Statement {
   void _visit(Harness h) {
     var promotedType = h._flow.promotedType(variable);
     expect(promotedType?.type, expectedTypeStr, reason: '$_creationTrace');
+    h._irBuilder.atom('null');
   }
 }
 
@@ -848,6 +858,7 @@ class _CheckReachable extends Statement {
   @override
   void _visit(Harness h) {
     expect(h._flow.isReachable, expectedReachable);
+    h._irBuilder.atom('null');
   }
 }
 
@@ -869,6 +880,7 @@ class _CheckUnassigned extends Statement {
   @override
   void _visit(Harness h) {
     expect(h._flow.isUnassigned(variable), expectedUnassignedState);
+    h._irBuilder.atom('null');
   }
 }
 
@@ -892,9 +904,11 @@ class _Conditional extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
-    return h._typeAnalyzer
+  Type _visit(Harness h, Type context) {
+    var type = h._typeAnalyzer
         .analyzeConditionalExpression(this, condition, ifTrue, ifFalse);
+    h._irBuilder.apply('if', 3);
+    return type;
   }
 }
 
@@ -910,6 +924,7 @@ class _Continue extends Statement {
   @override
   void _visit(Harness h) {
     h._typeAnalyzer.analyzeContinueStatement();
+    h._irBuilder.apply('continue', 0);
   }
 }
 
@@ -937,9 +952,12 @@ class _Declare extends Statement {
 
   @override
   void _visit(Harness h) {
+    h._irBuilder.atom(variable.name);
     h._typeAnalyzer.analyzeVariableDeclaration(
         this, variable.type, variable, initializer,
         isFinal: isFinal, isLate: isLate);
+    h._irBuilder.apply(
+        ['declare', if (isLate) 'late', if (isFinal) 'final'].join('_'), 2);
   }
 }
 
@@ -963,6 +981,7 @@ class _Do extends Statement {
   @override
   void _visit(Harness h) {
     h._typeAnalyzer.analyzeDoLoop(this, body, condition);
+    h._irBuilder.apply('do', 2);
   }
 }
 
@@ -983,10 +1002,12 @@ class _Equal extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     var operatorName = isInverted ? '!=' : '==';
-    return h._typeAnalyzer
-        .analyzeBinaryExpression(this, lhs, operatorName, rhs);
+    var type =
+        h._typeAnalyzer.analyzeBinaryExpression(this, lhs, operatorName, rhs);
+    h._irBuilder.apply(operatorName, 2);
+    return type;
   }
 }
 
@@ -1072,6 +1093,7 @@ class _For extends Statement {
       h._typeAnalyzer.handleNoStatement();
     }
     h._flow.for_end();
+    h._irBuilder.apply('for', 4);
   }
 }
 
@@ -1123,6 +1145,7 @@ class _ForEach extends Statement {
     }
     h._typeAnalyzer._visitLoopBody(this, body);
     h._flow.forEach_end();
+    h._irBuilder.apply('forEach', 2);
   }
 }
 
@@ -1139,7 +1162,7 @@ class _GetExpressionInfo extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     var type = h._typeAnalyzer.analyzeExpression(target);
     h._flow.forwardExpression(this, target);
     callback(h._flow.expressionInfoForTesting(this));
@@ -1158,6 +1181,7 @@ class _GetSsaNodes extends Statement {
   @override
   void _visit(Harness h) {
     callback(SsaNodeHarness(h._flow));
+    h._irBuilder.atom('null');
   }
 }
 
@@ -1184,6 +1208,7 @@ class _If extends Statement {
   @override
   void _visit(Harness h) {
     h._typeAnalyzer.analyzeIfStatement(this, condition, ifTrue, ifFalse);
+    h._irBuilder.apply('if', 3);
   }
 }
 
@@ -1203,8 +1228,10 @@ class _IfNull extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
-    return h._typeAnalyzer.analyzeIfNullExpression(this, lhs, rhs);
+  Type _visit(Harness h, Type context) {
+    var type = h._typeAnalyzer.analyzeIfNullExpression(this, lhs, rhs);
+    h._irBuilder.apply('ifNull', 2);
+    return type;
   }
 }
 
@@ -1224,7 +1251,7 @@ class _Is extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer
         .analyzeTypeTest(this, target, type, isInverted: isInverted);
   }
@@ -1272,10 +1299,12 @@ class _Logical extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     var operatorName = isAnd ? '&&' : '||';
-    return h._typeAnalyzer
-        .analyzeBinaryExpression(this, lhs, operatorName, rhs);
+    var type =
+        h._typeAnalyzer.analyzeBinaryExpression(this, lhs, operatorName, rhs);
+    h._irBuilder.apply(operatorName, 2);
+    return type;
   }
 }
 
@@ -1302,11 +1331,15 @@ class _MiniAstTypeAnalyzer {
 
   Statement? _currentContinueTarget;
 
+  final _irBuilder = MiniIrBuilder();
+
   late final Type boolType = Type('bool');
 
   late final Type neverType = Type('Never');
 
   late final Type nullType = Type('Null');
+
+  late final Type unknownType = Type('?');
 
   _MiniAstTypeAnalyzer(this._harness);
 
@@ -1414,8 +1447,10 @@ class _MiniAstTypeAnalyzer {
     flow.doStatement_end(condition);
   }
 
-  Type analyzeExpression(Expression expression) {
-    return dispatchExpression(expression);
+  Type analyzeExpression(Expression expression, [Type? context]) {
+    // TODO(paulberry): make the [context] argument required.
+    context ??= unknownType;
+    return dispatchExpression(expression, context);
   }
 
   void analyzeExpressionStatement(Expression expression) {
@@ -1592,21 +1627,31 @@ class _MiniAstTypeAnalyzer {
     flow.whileStatement_end();
   }
 
-  Type dispatchExpression(Expression expression) => expression._visit(_harness);
+  Type dispatchExpression(Expression expression, Type context) =>
+      _irBuilder.guard(expression, () => expression._visit(_harness, context));
 
-  void dispatchStatement(Statement statement) => statement._visit(_harness);
+  void dispatchStatement(Statement statement) =>
+      _irBuilder.guard(statement, () => statement._visit(_harness));
 
   void finish() {
     flow.finish();
   }
 
-  void handleNoCondition() {}
+  void handleNoCondition() {
+    _irBuilder.atom('true');
+  }
 
-  void handleNoInitializer() {}
+  void handleNoInitializer() {
+    _irBuilder.atom('uninitialized');
+  }
 
-  void handleNoMessage() {}
+  void handleNoMessage() {
+    _irBuilder.atom('failure');
+  }
 
-  void handleNoStatement() {}
+  void handleNoStatement() {
+    _irBuilder.atom('noop');
+  }
 
   bool isSwitchExhaustive(_Switch node) {
     return node.isExhaustive;
@@ -1647,7 +1692,7 @@ class _NonNullAssert extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeNonNullAssert(this, operand);
   }
 }
@@ -1666,12 +1711,14 @@ class _Not extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeLogicalNot(this, operand);
   }
 }
 
 class _NullAwareAccess extends Expression {
+  static String _fakeMethodName = 'm';
+
   final Expression lhs;
   final Expression rhs;
   final bool isCascaded;
@@ -1688,12 +1735,14 @@ class _NullAwareAccess extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     var lhsType = h._typeAnalyzer.analyzeExpression(lhs);
     h._flow.nullAwareAccess_rightBegin(isCascaded ? null : lhs, lhsType);
     var rhsType = h._typeAnalyzer.analyzeExpression(rhs);
     h._flow.nullAwareAccess_end();
-    return h._lub(rhsType, Type('Null'));
+    var type = h._lub(rhsType, Type('Null'));
+    h._irBuilder.apply(_fakeMethodName, 2);
+    return type;
   }
 }
 
@@ -1707,8 +1756,10 @@ class _NullLiteral extends Expression {
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
 
   @override
-  Type _visit(Harness h) {
-    return h._typeAnalyzer.analyzeNullLiteral(this);
+  Type _visit(Harness h, Type context) {
+    var type = h._typeAnalyzer.analyzeNullLiteral(this);
+    h._irBuilder.atom('null');
+    return type;
   }
 }
 
@@ -1726,7 +1777,7 @@ class _ParenthesizedExpression extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeParenthesizedExpression(this, expr);
   }
 }
@@ -1743,7 +1794,11 @@ class _PlaceholderExpression extends Expression {
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
 
   @override
-  Type _visit(Harness h) => type;
+  Type _visit(Harness h, Type context) {
+    h._irBuilder.atom(type.type);
+    h._irBuilder.apply('expr', 1);
+    return type;
+  }
 }
 
 class _Property extends LValue {
@@ -1760,7 +1815,7 @@ class _Property extends LValue {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzePropertyGet(this, target, propertyName);
   }
 
@@ -1783,6 +1838,7 @@ class _Return extends Statement {
   @override
   void _visit(Harness h) {
     h._typeAnalyzer.analyzeReturnStatement();
+    h._irBuilder.apply('return', 0);
   }
 }
 
@@ -1819,6 +1875,7 @@ class _Switch extends Statement {
   @override
   void _visit(Harness h) {
     h._typeAnalyzer.analyzeSwitchStatement(this, expression, cases);
+    h._irBuilder.apply('switch', cases.length + 1);
   }
 }
 
@@ -1830,8 +1887,10 @@ class _This extends Expression {
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
 
   @override
-  Type _visit(Harness h) {
-    return h._typeAnalyzer.analyzeThis(this);
+  Type _visit(Harness h, Type context) {
+    var type = h._typeAnalyzer.analyzeThis(this);
+    h._irBuilder.atom('this');
+    return type;
   }
 }
 
@@ -1844,8 +1903,10 @@ class _ThisOrSuperPropertyGet extends Expression {
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {}
 
   @override
-  Type _visit(Harness h) {
-    return h._typeAnalyzer.analyzeThisPropertyGet(this, propertyName);
+  Type _visit(Harness h, Type context) {
+    var type = h._typeAnalyzer.analyzeThisPropertyGet(this, propertyName);
+    h._irBuilder.atom('this.$propertyName');
+    return type;
   }
 }
 
@@ -1863,7 +1924,7 @@ class _Throw extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     return h._typeAnalyzer.analyzeThrow(this, operand);
   }
 }
@@ -1913,6 +1974,7 @@ class _TryStatement extends TryStatement {
   @override
   void _visit(Harness h) {
     h._typeAnalyzer.analyzeTryStatement(this, _body, _catches, _finally);
+    h._irBuilder.apply('try', 2 + _catches.length);
   }
 }
 
@@ -1938,8 +2000,10 @@ class _VariableReference extends LValue {
   }
 
   @override
-  Type _visit(Harness h) {
-    return h._typeAnalyzer.analyzeVariableGet(this, variable, callback);
+  Type _visit(Harness h, Type context) {
+    var type = h._typeAnalyzer.analyzeVariableGet(this, variable, callback);
+    h._irBuilder.atom(variable.name);
+    return type;
   }
 
   @override
@@ -1969,6 +2033,7 @@ class _While extends Statement {
   @override
   void _visit(Harness h) {
     h._typeAnalyzer.analyzeWhileLoop(this, condition, body);
+    h._irBuilder.apply('while', 2);
   }
 }
 
@@ -1988,7 +2053,7 @@ class _WhyNotPromoted extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     var type = h._typeAnalyzer.analyzeExpression(target);
     h._flow.forwardExpression(this, target);
     Type.withComparisonsAllowed(() {
@@ -2016,6 +2081,7 @@ class _WhyNotPromoted_ImplicitThis extends Statement {
     Type.withComparisonsAllowed(() {
       callback(h._flow.whyNotPromotedImplicitThis(staticType)());
     });
+    h._irBuilder.atom('noop');
   }
 }
 
@@ -2048,15 +2114,25 @@ class _WrappedExpression extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
+    late MiniIrTmp beforeTmp;
     if (before != null) {
       h._typeAnalyzer.dispatchStatement(before!);
+      beforeTmp = h._irBuilder.allocateTmp();
     }
     var type = h._typeAnalyzer.analyzeExpression(expr);
     if (after != null) {
+      var exprTmp = h._irBuilder.allocateTmp();
       h._typeAnalyzer.dispatchStatement(after!);
+      var afterTmp = h._irBuilder.allocateTmp();
+      h._irBuilder.readTmp(exprTmp);
+      h._irBuilder.let(afterTmp);
+      h._irBuilder.let(exprTmp);
     }
     h._flow.forwardExpression(this, expr);
+    if (before != null) {
+      h._irBuilder.let(beforeTmp);
+    }
     return type;
   }
 }
@@ -2080,7 +2156,7 @@ class _Write extends Expression {
   }
 
   @override
-  Type _visit(Harness h) {
+  Type _visit(Harness h, Type context) {
     var rhs = this.rhs;
     Type type;
     if (rhs == null) {
