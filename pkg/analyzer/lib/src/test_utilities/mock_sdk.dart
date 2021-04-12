@@ -670,12 +670,18 @@ class Pointer<T extends NativeType> extends NativeType {
       [Object exceptionalReturn]) {}
 }
 
+final Pointer<Never> nullptr = Pointer.fromAddress(0);
+
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
   external DF asFunction<DF extends Function>();
 }
 
-class Struct extends NativeType {}
+class _Compound extends NativeType {}
+
+class Struct extends _Compound {}
+
+class Union extends _Compound {}
 
 class Packed {
   final int memberAlignment;

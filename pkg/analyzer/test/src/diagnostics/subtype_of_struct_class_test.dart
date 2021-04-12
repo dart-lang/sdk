@@ -18,22 +18,34 @@ main() {
 
 @reflectiveTest
 class SubtypeOfStructClassInExtendsTest extends PubPackageResolutionTest {
-  test_extends() async {
+  test_extends_struct() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class S extends Struct {
-  Pointer notEmpty;
+  external Pointer notEmpty;
 }
 class C extends S {}
 ''', [
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 82, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 91, 1),
+    ]);
+  }
+
+  test_extends_union() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+class S extends Union {
+  external Pointer notEmpty;
+}
+class C extends S {}
+''', [
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 90, 1),
     ]);
   }
 }
 
 @reflectiveTest
 class SubtypeOfStructClassInImplementsTest extends PubPackageResolutionTest {
-  test_implements() async {
+  test_implements_struct() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class S extends Struct {}
@@ -43,11 +55,22 @@ class C implements S {}
       error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 64, 1),
     ]);
   }
+
+  test_implements_union() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+class S extends Union {}
+class C implements S {}
+''', [
+      error(FfiCode.EMPTY_STRUCT, 19, 24),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 63, 1),
+    ]);
+  }
 }
 
 @reflectiveTest
 class SubtypeOfStructClassInWithTest extends PubPackageResolutionTest {
-  test_with() async {
+  test_with_struct() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class S extends Struct {}
@@ -56,6 +79,18 @@ class C with S {}
       error(FfiCode.EMPTY_STRUCT, 19, 25),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 58, 1),
       error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 58, 1),
+    ]);
+  }
+
+  test_with_union() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+class S extends Union {}
+class C with S {}
+''', [
+      error(FfiCode.EMPTY_STRUCT, 19, 24),
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 57, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 57, 1),
     ]);
   }
 }
