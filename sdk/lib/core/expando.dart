@@ -6,8 +6,7 @@ part of dart.core;
 
 /// An [Expando] allows adding new properties to objects.
 ///
-/// Does not work on numbers, strings, booleans, `null`, `dart:ffi` pointers
-/// or `dart:ffi` structs.
+/// Does not work on numbers, strings, booleans or `null`.
 ///
 /// An `Expando` does not hold on to the added property value after an object
 /// becomes inaccessible.
@@ -39,15 +38,13 @@ class Expando<T extends Object> {
   /// object. If the object hasn't been expanded, the method returns
   /// `null`.
   ///
-  /// The object must not be a number, a string, a boolean, `null`, a
-  /// `dart:ffi` pointer, or a `dart:ffi` struct.
+  /// The object must not be a number, a string or a boolean.
   external T? operator [](Object object);
 
   /// Sets the value of this [Expando]'s property on the given
   /// object. Properties can effectively be removed again by setting
   /// their value to `null`.
   ///
-  /// The object must not be a number, a string, a boolean, `null`, a
-  /// `dart:ffi` pointer, or a `dart:ffi` struct.
+  /// The object must not be a number, a string or a boolean.
   external void operator []=(Object object, T? value);
 }
