@@ -403,8 +403,8 @@ class Flutter {
   }
 
   /// Return `true` if the [node] is creation of `Align`.
-  bool isExactlyAlignCreation(InstanceCreationExpression? node) {
-    var type = node?.staticType;
+  bool isExactlyAlignCreation(InstanceCreationExpression node) {
+    var type = node.staticType;
     return isExactWidgetTypeAlign(type);
   }
 
@@ -415,8 +415,8 @@ class Flutter {
   }
 
   /// Return `true` if the [node] is creation of `Padding`.
-  bool isExactlyPaddingCreation(InstanceCreationExpression? node) {
-    var type = node?.staticType;
+  bool isExactlyPaddingCreation(InstanceCreationExpression node) {
+    var type = node.staticType;
     return isExactWidgetTypePadding(type);
   }
 
