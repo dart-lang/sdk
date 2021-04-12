@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/postfix/postfix_completion.dart';
 import 'package:test/test.dart';
@@ -28,10 +26,10 @@ void main() {
 }
 
 class PostfixCompletionTest extends AbstractSingleUnitTest {
-  PostfixCompletionProcessor processor;
-  SourceChange change;
+  late PostfixCompletionProcessor processor;
+  late SourceChange change;
 
-  void _assertHasChange(String message, String expectedCode, [Function cmp]) {
+  void _assertHasChange(String message, String expectedCode, [Function? cmp]) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
         var resultCode =
@@ -39,12 +37,12 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
         if (cmp != null) {
           int offset = cmp(resultCode);
-          expect(change.selection.offset, offset);
+          expect(change.selection!.offset, offset);
         }
       } else {
         if (cmp != null) {
           int offset = cmp(testCode);
-          expect(change.selection.offset, offset);
+          expect(change.selection!.offset, offset);
         }
       }
       return;
