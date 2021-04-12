@@ -17,6 +17,12 @@ void transformLibraries(
     List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy) {
   final transformer = _Lowering(coreTypes, hierarchy);
   libraries.forEach(transformer.visitLibrary);
+
+  // Do a second pass to remove/replace now-unused nodes.
+
+  // Since the transformer API doesn't visit `Library.additionalExports`, we
+  // have to manually replace references to transformed nodes.
+  libraries.forEach(transformer.transformAdditionalExports);
 }
 
 class _Lowering extends Transformer {
@@ -28,6 +34,10 @@ class _Lowering extends Transformer {
   _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy)
       : factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
         _lateLowering = LateLowering(coreTypes.index);
+
+  void transformAdditionalExports(Library node) {
+    _lateLowering.transformAdditionalExports(node);
+  }
 
   @override
   TreeNode defaultMember(Member node) {
@@ -57,5 +67,23 @@ class _Lowering extends Transformer {
   TreeNode visitVariableSet(VariableSet node) {
     node.transformChildren(this);
     return _lateLowering.transformVariableSet(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitField(Field node) {
+    node.transformChildren(this);
+    return _lateLowering.transformField(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitStaticGet(StaticGet node) {
+    node.transformChildren(this);
+    return _lateLowering.transformStaticGet(node, _currentMember);
+  }
+
+  @override
+  TreeNode visitStaticSet(StaticSet node) {
+    node.transformChildren(this);
+    return _lateLowering.transformStaticSet(node, _currentMember);
   }
 }

@@ -1,20 +1,27 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
+import "late_statics_lib.dart" as lat;
+additionalExports = (lat::a,
+  lat::a,
+  lat::b,
+  lat::b,
+  lat::c,
+  lat::c,
+  lat::d)
+
+import "org-dartlang-testcase:///late_statics_lib.dart" as lib;
+export "org-dartlang-testcase:///late_statics_lib.dart";
 
 class Statics extends core::Object {
-  static field core::int? _#a;
-  static field core::int? _#b;
+  late static field core::int a;
+  late static final [setter] field core::int b;
   static field core::int? _#c;
   static field core::int? _#d;
   synthetic constructor •() → self::Statics
     ;
-  static get a() → core::int;
-  static set a(core::int #t1) → void;
-  static get b() → core::int;
-  static set b(core::int #t2) → void;
   static get c() → core::int;
-  static set c(core::int #t3) → void;
+  static set c(core::int #t1) → void;
   static get d() → core::int;
 }
 static method main() → void
@@ -27,3 +34,23 @@ static method testInitializedNonFinalStaticField() → void
   ;
 static method testInitializedFinalStaticField() → void
   ;
+static method testUninitializedNonFinalTopLevelField() → void
+  ;
+static method testUninitializedFinalTopLevelField() → void
+  ;
+static method testInitializedNonFinalTopLevelField() → void
+  ;
+static method testInitializedFinalTopLevelField() → void
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as lat;
+import "dart:core" as core;
+
+late static field core::int a;
+late static final [setter] field core::int b;
+static field core::int? _#c;
+static field core::int? _#d;
+static get c() → core::int;
+static set c(core::int #t2) → void;
+static get d() → core::int;
