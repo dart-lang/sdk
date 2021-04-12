@@ -3607,8 +3607,11 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
 
   @override
   ExecutionStatus visitVariableDeclaration(VariableDeclaration node) {
-    Constant value = evaluate(node.initializer);
-    if (value is AbortConstant) return new AbortStatus(value);
+    Constant value;
+    if (node.initializer != null) {
+      value = evaluate(node.initializer);
+      if (value is AbortConstant) return new AbortStatus(value);
+    }
     exprEvaluator.env.addVariableValue(node, value);
     return const ProceedStatus();
   }
