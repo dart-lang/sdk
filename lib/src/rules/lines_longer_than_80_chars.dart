@@ -198,7 +198,10 @@ class _Visitor extends SimpleAstVisitor {
       }
       var length = end - start;
       if (length > 80) {
-        var line = _LineInfo(index: i, offset: start, end: end);
+        // Use 80 as the start of the range so that navigating to the lint
+        // will place the caret at exactly the location where the line needs
+        // to wrap.
+        var line = _LineInfo(index: i, offset: start + 80, end: end);
         longLines.add(line);
       }
     }
