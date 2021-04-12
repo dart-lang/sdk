@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
@@ -249,7 +247,8 @@ class _SurroundWithSetState extends _SurroundWith {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var classDeclaration = node.parent.thisOrAncestorOfType<ClassDeclaration>();
+    var classDeclaration =
+        node.parent?.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration != null &&
         flutter.isState(classDeclaration.declaredElement)) {
       await builder.addDartFileEdit(file, (builder) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -13,18 +11,18 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class SelectionAnalyzer extends GeneralizingAstVisitor<void> {
   final SourceRange selection;
 
-  AstNode _coveringNode;
-  List<AstNode> _selectedNodes;
+  AstNode? _coveringNode;
+  List<AstNode> _selectedNodes = [];
 
   SelectionAnalyzer(this.selection);
 
   /// Return the [AstNode] with the shortest length which completely covers the
   /// specified selection.
-  AstNode get coveringNode => _coveringNode;
+  AstNode? get coveringNode => _coveringNode;
 
   /// Returns the first selected [AstNode], may be `null`.
-  AstNode get firstSelectedNode {
-    if (_selectedNodes == null || _selectedNodes.isEmpty) {
+  AstNode? get firstSelectedNode {
+    if (_selectedNodes.isEmpty) {
       return null;
     }
     return _selectedNodes[0];
@@ -32,15 +30,14 @@ class SelectionAnalyzer extends GeneralizingAstVisitor<void> {
 
   /// Returns `true` if there are [AstNode]s fully covered by the
   /// selection [SourceRange].
-  bool get hasSelectedNodes =>
-      _selectedNodes != null && _selectedNodes.isNotEmpty;
+  bool get hasSelectedNodes => _selectedNodes.isNotEmpty;
 
   /// Returns `true` if there was no selected nodes yet.
-  bool get isFirstNode => _selectedNodes == null;
+  bool get isFirstNode => _selectedNodes.isEmpty;
 
   /// Returns the last selected [AstNode], may be `null`.
-  AstNode get lastSelectedNode {
-    if (_selectedNodes == null || _selectedNodes.isEmpty) {
+  AstNode? get lastSelectedNode {
+    if (_selectedNodes.isEmpty) {
       return null;
     }
     return _selectedNodes[_selectedNodes.length - 1];
@@ -48,9 +45,6 @@ class SelectionAnalyzer extends GeneralizingAstVisitor<void> {
 
   /// Return the [AstNode]s fully covered by the selection [SourceRange].
   List<AstNode> get selectedNodes {
-    if (_selectedNodes == null || _selectedNodes.isEmpty) {
-      return [];
-    }
     return _selectedNodes;
   }
 
@@ -62,7 +56,7 @@ class SelectionAnalyzer extends GeneralizingAstVisitor<void> {
 
   /// Adds second or more selected [AstNode].
   void handleNextSelectedNode(AstNode node) {
-    if (firstSelectedNode.parent == node.parent) {
+    if (firstSelectedNode?.parent == node.parent) {
       _selectedNodes.add(node);
     }
   }
@@ -75,7 +69,7 @@ class SelectionAnalyzer extends GeneralizingAstVisitor<void> {
 
   /// Resets selected nodes.
   void reset() {
-    _selectedNodes = null;
+    _selectedNodes = [];
   }
 
   @override
