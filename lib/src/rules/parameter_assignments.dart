@@ -192,8 +192,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       var node = assignmentsNodes.length > 1
           ? assignmentsNodes.last
           : nonNullCoalescingAssignments.isNotEmpty
-          ? nonNullCoalescingAssignments.first
-          : parameter;
+              ? nonNullCoalescingAssignments.first
+              : parameter;
       rule.reportLint(node);
     }
   }
