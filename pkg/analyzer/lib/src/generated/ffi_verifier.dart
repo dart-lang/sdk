@@ -41,6 +41,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   static const _structClassName = 'Struct';
 
+  static const _unionClassName = 'Union';
+
   /// The type system used to check types.
   final TypeSystemImpl typeSystem;
 
@@ -49,18 +51,18 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   /// A flag indicating whether we are currently visiting inside a subclass of
   /// `Struct`.
-  bool inStruct = false;
+  bool inCompound = false;
 
-  /// Subclass of `Struct` we are currently visiting, or `null`.
-  ClassDeclaration? struct;
+  /// Subclass of `Struct` or `Union` we are currently visiting, or `null`.
+  ClassDeclaration? compound;
 
   /// Initialize a newly created verifier.
   FfiVerifier(this.typeSystem, this._errorReporter);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    inStruct = false;
-    struct = null;
+    inCompound = false;
+    compound = null;
     // Only the Allocator, Opaque and Struct class may be extended.
     var extendsClause = node.extendsClause;
     if (extendsClause != null) {
@@ -68,14 +70,16 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       final ffiClass = superclass.ffiClass;
       if (ffiClass != null) {
         final className = ffiClass.name;
-        if (className == _structClassName) {
-          inStruct = true;
-          struct = node;
+        if (className == _structClassName || className == _unionClassName) {
+          inCompound = true;
+          compound = node;
           if (node.declaredElement!.isEmptyStruct) {
             _errorReporter
                 .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [node.name]);
           }
-          _validatePackedAnnotation(node.metadata);
+          if (className == _structClassName) {
+            _validatePackedAnnotation(node.metadata);
+          }
         } else if (className != _allocatorClassName &&
             className != _opaqueClassName) {
           _errorReporter.reportErrorForNode(
@@ -83,7 +87,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
               superclass.name,
               [node.name.name, superclass.name.name]);
         }
-      } else if (superclass.isStructSubtype) {
+      } else if (superclass.isCompoundSubtype) {
         _errorReporter.reportErrorForNode(
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS,
             superclass,
@@ -101,7 +105,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (typename.ffiClass != null) {
         _errorReporter.reportErrorForNode(
             subtypeOfFfiCode, typename, [node.name, typename.name]);
-      } else if (typename.isStructSubtype) {
+      } else if (typename.isCompoundSubtype) {
         _errorReporter.reportErrorForNode(
             subtypeOfStructCode, typename, [node.name, typename.name]);
       }
@@ -122,7 +126,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (inStruct && node.declaredElement!.typeParameters.isNotEmpty) {
+    if (inCompound && node.declaredElement!.typeParameters.isNotEmpty) {
       _errorReporter.reportErrorForNode(
           FfiCode.GENERIC_STRUCT_SUBCLASS, node.name, [node.name]);
     }
@@ -131,7 +135,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (inStruct) {
+    if (inCompound) {
       _errorReporter.reportErrorForNode(
           FfiCode.FIELD_INITIALIZER_IN_STRUCT, node);
     }
@@ -140,8 +144,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    if (inStruct) {
-      _validateFieldsInStruct(node);
+    if (inCompound) {
+      _validateFieldsInCompound(node);
     }
     super.visitFieldDeclaration(node);
   }
@@ -248,7 +252,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       case _PrimitiveDartType.none:
         break;
     }
-    if (nativeType.isStructSubtype) {
+    if (nativeType.isCompoundSubtype) {
       return true;
     }
     if (nativeType.isPointer) {
@@ -311,10 +315,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final nativeArgumentType = nativeType.typeArguments.single;
         return _isValidFfiNativeType(nativeArgumentType,
                 allowVoid: true, allowEmptyStruct: true, allowHandle: true) ||
-            nativeArgumentType.isStructSubtype ||
+            nativeArgumentType.isCompoundSubtype ||
             nativeArgumentType.isNativeType;
       }
-      if (nativeType.isStructSubtype) {
+      if (nativeType.isCompoundSubtype) {
         if (!allowEmptyStruct) {
           if (nativeType.element.isEmptyStruct) {
             // TODO(dartbug.com/36780): This results in an error message not
@@ -548,8 +552,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Validate that the fields declared by the given [node] meet the
-  /// requirements for fields within a struct class.
-  void _validateFieldsInStruct(FieldDeclaration node) {
+  /// requirements for fields within a struct or union class.
+  void _validateFieldsInCompound(FieldDeclaration node) {
     if (node.isStatic) {
       return;
     }
@@ -576,18 +580,18 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final arrayDimensions = declaredType.arrayDimensions;
         _validateSizeOfAnnotation(fieldType, annotations, arrayDimensions);
         final arrayElement = declaredType.arrayElementType;
-        if (arrayElement.isStructSubtype) {
+        if (arrayElement.isCompoundSubtype) {
           final elementClass = (arrayElement as InterfaceType).element;
-          _validatePackingNesting(struct!.declaredElement!, elementClass,
+          _validatePackingNesting(compound!.declaredElement!, elementClass,
               errorNode: fieldType);
         }
-      } else if (declaredType.isStructSubtype) {
+      } else if (declaredType.isCompoundSubtype) {
         final clazz = (declaredType as InterfaceType).element;
         if (clazz.isEmptyStruct) {
           _errorReporter
               .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [clazz.name]);
         }
-        _validatePackingNesting(struct!.declaredElement!, clazz,
+        _validatePackingNesting(compound!.declaredElement!, clazz,
             errorNode: fieldType);
       } else {
         _errorReporter.reportErrorForNode(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
@@ -632,7 +636,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if ((FT as FunctionType).returnType.isVoid ||
         R.isPointer ||
         R.isHandle ||
-        R.isStructSubtype) {
+        R.isCompoundSubtype) {
       if (argCount != 1) {
         _errorReporter.reportErrorForNode(
             FfiCode.INVALID_EXCEPTION_VALUE, node.argumentList.arguments[1]);
@@ -975,7 +979,7 @@ extension on ClassElement {
         return false;
       } else if (declaredType.isPointer) {
         return false;
-      } else if (declaredType.isStructSubtype) {
+      } else if (declaredType.isCompoundSubtype) {
         return false;
       } else if (declaredType.isArray) {
         return false;
@@ -1087,22 +1091,25 @@ extension on DartType {
     return false;
   }
 
-  bool get isStruct {
+  bool get isCompound {
     final self = this;
     if (self is InterfaceType) {
       final element = self.element;
-      return element.name == FfiVerifier._structClassName && element.isFfiClass;
+      final name = element.name;
+      return (name == FfiVerifier._structClassName ||
+              name == FfiVerifier._unionClassName) &&
+          element.isFfiClass;
     }
     return false;
   }
 
   /// Returns `true` if this is a struct type, i.e. a subtype of `Struct`.
-  bool get isStructSubtype {
+  bool get isCompoundSubtype {
     final self = this;
     if (self is InterfaceType) {
       final superType = self.element.supertype;
       if (superType != null) {
-        return superType.isStruct;
+        return superType.isCompound;
       }
     }
     return false;
@@ -1115,17 +1122,17 @@ extension on TypeName {
     return name.staticElement.ffiClass;
   }
 
-  /// Return `true` if this represents a subtype of `Struct`.
-  bool get isStructSubtype {
+  /// Return `true` if this represents a subtype of `Struct` or `Union`.
+  bool get isCompoundSubtype {
     var element = name.staticElement;
     if (element is ClassElement) {
-      bool isStruct(InterfaceType? type) {
-        return type != null && type.isStruct;
+      bool isCompound(InterfaceType? type) {
+        return type != null && type.isCompound;
       }
 
-      return isStruct(element.supertype) ||
-          element.interfaces.any(isStruct) ||
-          element.mixins.any(isStruct);
+      return isCompound(element.supertype) ||
+          element.interfaces.any(isCompound) ||
+          element.mixins.any(isCompound);
     }
     return false;
   }

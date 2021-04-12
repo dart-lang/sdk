@@ -859,8 +859,8 @@ class OutlineBuilder extends StackListenerImpl {
         endToken.charOffset,
         nativeMethodName,
         asyncModifier,
-        isTopLevel: true,
-        isExtensionInstanceMember: false);
+        isInstanceMember: false,
+        isExtensionMember: false);
     nativeMethodName = null;
   }
 
@@ -1211,6 +1211,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+      bool isExtensionMember = methodKind == _MethodKind.extensionMethod;
       libraryBuilder.addProcedure(
           metadata,
           modifiers,
@@ -1225,9 +1226,8 @@ class OutlineBuilder extends StackListenerImpl {
           endToken.charOffset,
           nativeMethodName,
           asyncModifier,
-          isTopLevel: false,
-          isExtensionInstanceMember:
-              methodKind == _MethodKind.extensionMethod && !isStatic);
+          isInstanceMember: !isStatic,
+          isExtensionMember: isExtensionMember);
     }
     nativeMethodName = null;
     inConstructor = false;

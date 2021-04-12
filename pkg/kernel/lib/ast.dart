@@ -1617,8 +1617,7 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  // TODO(johnniwinther): Make this non-nullable.
-  Name? name;
+  Name name;
 
   /// The URI of the source file this member was loaded from.
   @override
@@ -1641,7 +1640,10 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   // TODO(asgerf): It might be worthwhile to put this on classes as well.
   int transformerFlags = 0;
 
-  Member(this.name, this.fileUri, Reference? reference) : super(reference);
+  Member(this.name, this.fileUri, Reference? reference)
+      // ignore: unnecessary_null_comparison
+      : assert(name != null),
+        super(reference);
 
   Class? get enclosingClass => parent is Class ? parent as Class : null;
   Library get enclosingLibrary =>
@@ -1751,7 +1753,7 @@ class Field extends Member {
 
   Reference get getterReference => super.reference;
 
-  Field.mutable(Name? name,
+  Field.mutable(Name name,
       {this.type: const DynamicType(),
       this.initializer,
       bool isCovariant: false,
@@ -1775,7 +1777,7 @@ class Field extends Member {
     this.transformerFlags = transformerFlags;
   }
 
-  Field.immutable(Name? name,
+  Field.immutable(Name name,
       {this.type: const DynamicType(),
       this.initializer,
       bool isCovariant: false,
@@ -1925,7 +1927,7 @@ class Field extends Member {
   void visitChildren(Visitor v) {
     visitList(annotations, v);
     type.accept(v);
-    name?.accept(v);
+    name.accept(v);
     initializer?.accept(v);
   }
 
@@ -1993,7 +1995,7 @@ class Constructor extends Member {
   List<Initializer> initializers;
 
   Constructor(this.function,
-      {Name? name,
+      {required Name name,
       bool isConst: false,
       bool isExternal: false,
       bool isSynthetic: false,
@@ -2078,7 +2080,7 @@ class Constructor extends Member {
   @override
   void visitChildren(Visitor v) {
     visitList(annotations, v);
-    name?.accept(v);
+    name.accept(v);
     visitList(initializers, v);
     function?.accept(v);
   }
@@ -2166,7 +2168,7 @@ class RedirectingFactoryConstructor extends Member {
   List<VariableDeclaration> namedParameters;
 
   RedirectingFactoryConstructor(this.targetReference,
-      {Name? name,
+      {required Name name,
       bool isConst: false,
       bool isExternal: false,
       int transformerFlags: 0,
@@ -2263,7 +2265,7 @@ class RedirectingFactoryConstructor extends Member {
     visitList(annotations, v);
     target?.acceptReference(v);
     visitList(typeArguments, v);
-    name?.accept(v);
+    name.accept(v);
   }
 
   @override
@@ -2534,7 +2536,7 @@ class Procedure extends Member {
   ProcedureStubKind stubKind;
   Reference? stubTargetReference;
 
-  Procedure(Name? name, ProcedureKind kind, FunctionNode? function,
+  Procedure(Name name, ProcedureKind kind, FunctionNode? function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
@@ -2560,7 +2562,7 @@ class Procedure extends Member {
             stubTargetReference:
                 getMemberReferenceBasedOnProcedureKind(stubTarget, kind));
 
-  Procedure._byReferenceRenamed(Name? name, this.kind, this.function,
+  Procedure._byReferenceRenamed(Name name, this.kind, this.function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
@@ -2750,7 +2752,7 @@ class Procedure extends Member {
   @override
   void visitChildren(Visitor v) {
     visitList(annotations, v);
-    name?.accept(v);
+    name.accept(v);
     function?.accept(v);
   }
 
@@ -6088,7 +6090,7 @@ class StaticInvocation extends InvocationExpression {
   bool isConst;
 
   @override
-  Name get name => target.name!;
+  Name get name => target.name;
 
   StaticInvocation(Procedure target, Arguments arguments, {bool isConst: false})
       : this.byReference(
@@ -6175,7 +6177,7 @@ class ConstructorInvocation extends InvocationExpression {
   bool isConst;
 
   @override
-  Name get name => target.name!;
+  Name get name => target.name;
 
   ConstructorInvocation(Constructor target, Arguments arguments,
       {bool isConst: false})
@@ -6263,9 +6265,9 @@ class ConstructorInvocation extends InvocationExpression {
     }
     printer.writeClassName(target.enclosingClass.reference);
     printer.writeTypeArguments(arguments.types);
-    if (target.name!.text.isNotEmpty) {
+    if (target.name.text.isNotEmpty) {
       printer.write('.');
-      printer.write(target.name!.text);
+      printer.write(target.name.text);
     }
     printer.writeArguments(arguments, includeTypeArguments: false);
   }
@@ -13613,7 +13615,8 @@ final Class dummyClass = new Class(name: '');
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Constructor dummyConstructor = new Constructor(dummyFunctionNode);
+final Constructor dummyConstructor =
+    new Constructor(dummyFunctionNode, name: dummyName);
 
 /// Non-nullable [Extension] dummy value.
 ///
@@ -13649,7 +13652,7 @@ final Field dummyField = new Field.mutable(dummyName);
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final RedirectingFactoryConstructor dummyRedirectingFactoryConstructor =
-    new RedirectingFactoryConstructor(null);
+    new RedirectingFactoryConstructor(null, name: dummyName);
 
 /// Non-nullable [Typedef] dummy value.
 ///

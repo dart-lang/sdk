@@ -1967,7 +1967,7 @@ class MemberTagger implements Tagger<Member> {
 
 TextSerializer<Field> mutableFieldSerializer =
     Wrapped<Tuple4<Name, int, DartType, Expression?>, Field>(
-        (w) => Tuple4(w.name!, w.flags, w.type, w.initializer),
+        (w) => Tuple4(w.name, w.flags, w.type, w.initializer),
         (u) => Field.mutable(u.first, type: u.third, initializer: u.fourth)
           ..flags = u.second,
         Tuple4Serializer(nameSerializer, fieldFlagsSerializer,
@@ -1975,7 +1975,7 @@ TextSerializer<Field> mutableFieldSerializer =
 
 TextSerializer<Field> immutableFieldSerializer =
     Wrapped<Tuple4<Name, int, DartType, Expression?>, Field>(
-        (w) => Tuple4(w.name!, w.flags, w.type, w.initializer),
+        (w) => Tuple4(w.name, w.flags, w.type, w.initializer),
         (u) => Field.immutable(u.first, type: u.third, initializer: u.fourth)
           ..flags = u.second,
         Tuple4Serializer(nameSerializer, fieldFlagsSerializer,
@@ -1983,7 +1983,7 @@ TextSerializer<Field> immutableFieldSerializer =
 
 TextSerializer<Procedure> methodSerializer =
     Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name!, w.flags, w.function!),
+        (w) => Tuple3(w.name, w.flags, w.function!),
         (u) =>
             Procedure(u.first, ProcedureKind.Method, u.third)..flags = u.second,
         Tuple3Serializer(
@@ -1991,7 +1991,7 @@ TextSerializer<Procedure> methodSerializer =
 
 TextSerializer<Procedure> getterSerializer =
     Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name!, w.flags, w.function!),
+        (w) => Tuple3(w.name, w.flags, w.function!),
         (u) =>
             Procedure(u.first, ProcedureKind.Getter, u.third)..flags = u.second,
         Tuple3Serializer(
@@ -1999,7 +1999,7 @@ TextSerializer<Procedure> getterSerializer =
 
 TextSerializer<Procedure> setterSerializer =
     Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name!, w.flags, w.function!),
+        (w) => Tuple3(w.name, w.flags, w.function!),
         (u) =>
             Procedure(u.first, ProcedureKind.Setter, u.third)..flags = u.second,
         Tuple3Serializer(
@@ -2007,7 +2007,7 @@ TextSerializer<Procedure> setterSerializer =
 
 TextSerializer<Procedure> operatorSerializer =
     Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name!, w.flags, w.function!),
+        (w) => Tuple3(w.name, w.flags, w.function!),
         (u) => Procedure(u.first, ProcedureKind.Operator, u.third)
           ..flags = u.second,
         Tuple3Serializer(
@@ -2015,7 +2015,7 @@ TextSerializer<Procedure> operatorSerializer =
 
 TextSerializer<Procedure> factorySerializer =
     Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name!, w.flags, w.function!),
+        (w) => Tuple3(w.name, w.flags, w.function!),
         (u) => Procedure(u.first, ProcedureKind.Factory, u.third)
           ..flags = u.second,
         Tuple3Serializer(
@@ -2024,7 +2024,7 @@ TextSerializer<Procedure> factorySerializer =
 TextSerializer<Constructor> constructorSerializer = Wrapped<
         Tuple3<Name, int, Tuple2<FunctionNode, List<Initializer>?>>,
         Constructor>(
-    (w) => Tuple3(w.name!, w.flags, Tuple2(w.function!, w.initializers)),
+    (w) => Tuple3(w.name, w.flags, Tuple2(w.function!, w.initializers)),
     (u) =>
         Constructor(u.third.first, name: u.first, initializers: u.third.second)
           ..flags = u.second,
@@ -2043,7 +2043,7 @@ TextSerializer<RedirectingFactoryConstructor>
                         List<VariableDeclaration>, List<DartType>>>>,
             RedirectingFactoryConstructor>(
         (w) => Tuple4(
-            w.name!,
+            w.name,
             w.flags,
             w.targetReference!.canonicalName!,
             Tuple2(

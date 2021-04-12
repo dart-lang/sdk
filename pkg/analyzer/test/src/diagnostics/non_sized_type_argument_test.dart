@@ -15,27 +15,40 @@ main() {
 
 @reflectiveTest
 class NonSizedTypeArgument extends PubPackageResolutionTest {
-  test_one() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:ffi';
-
-class C extends Struct {
-  @Array(8)
-  Array<Uint8> a0;
-}
-''');
-  }
-
-  test_two() async {
+  test_invalid_struct() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
 class C extends Struct {
   @Array(8)
-  Array<Void> a0;
+  external Array<Void> a0;
 }
 ''', [
-      error(FfiCode.NON_SIZED_TYPE_ARGUMENT, 59, 11),
+      error(FfiCode.NON_SIZED_TYPE_ARGUMENT, 68, 11),
     ]);
+  }
+
+  test_invalid_union() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+class C extends Union {
+  @Array(8)
+  external Array<Void> a0;
+}
+''', [
+      error(FfiCode.NON_SIZED_TYPE_ARGUMENT, 67, 11),
+    ]);
+  }
+
+  test_valid() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+class C extends Struct {
+  @Array(8)
+  external Array<Uint8> a0;
+}
+''');
   }
 }

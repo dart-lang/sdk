@@ -1192,8 +1192,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _currentlyInNonimplementation = false;
   }
 
-  static final Name _emptyName = new Name('');
-
   @override
   void visitConstructor(Constructor node) {
     if (node.reference.canonicalName == null) {
@@ -1208,7 +1206,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileEndOffset);
 
     writeByte(node.flags);
-    writeName(node.name ?? _emptyName);
+    writeName(node.name);
 
     writeAnnotationList(node.annotations);
     assert(node.function!.typeParameters.isEmpty);
@@ -1272,7 +1270,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(node.kind.index);
     writeByte(node.stubKind.index);
     writeUInt30(node.flags);
-    writeName(node.name ?? _emptyName);
+    writeName(node.name);
     writeAnnotationList(node.annotations);
     writeNullAllowedReference(node.stubTargetReference);
     writeOptionalFunctionNode(node.function);
@@ -1334,7 +1332,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeUInt30(node.flags);
-    writeName(node.name!);
+    writeName(node.name);
     writeAnnotationList(node.annotations);
     writeNode(node.type);
     writeOptionalNode(node.initializer);
@@ -1356,7 +1354,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
-    writeName(node.name!);
+    writeName(node.name);
 
     writeAnnotationList(node.annotations);
     writeNonNullReference(node.targetReference!);

@@ -369,7 +369,7 @@ class WidgetCreatorTracker {
   void _transformClassImplementingWidget(
       Class clazz, ChangedStructureNotifier? changedStructureNotifier) {
     if (clazz.fields
-        .any((Field field) => field.name!.text == _locationFieldName)) {
+        .any((Field field) => field.name.text == _locationFieldName)) {
       // This class has already been transformed. Skip
       return;
     }

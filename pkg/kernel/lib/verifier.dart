@@ -283,11 +283,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     TreeNode? oldParent = enterParent(node);
     bool isTopLevel = node.parent == currentLibrary;
     if (isTopLevel && !node.isStatic) {
-      problem(node, "The top-level field '${node.name!.text}' should be static",
+      problem(node, "The top-level field '${node.name.text}' should be static",
           context: node);
     }
     if (node.isConst && !node.isStatic) {
-      problem(node, "The const field '${node.name!.text}' should be static",
+      problem(node, "The const field '${node.name.text}' should be static",
           context: node);
     }
     bool isImmutable = node.isLate
@@ -296,7 +296,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (isImmutable == node.hasSetter) {
       if (node.hasSetter) {
         problem(node,
-            "The immutable field '${node.name!.text}' has a setter reference",
+            "The immutable field '${node.name.text}' has a setter reference",
             context: node);
       } else {
         if (isOutline && node.isLate) {
@@ -306,7 +306,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           // whether it has an initializer or not.
         } else {
           problem(node,
-              "The mutable field '${node.name!.text}' has no setter reference",
+              "The mutable field '${node.name.text}' has no setter reference",
               context: node);
         }
       }

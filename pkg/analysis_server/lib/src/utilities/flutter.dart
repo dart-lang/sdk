@@ -13,6 +13,7 @@ class Flutter {
   static final Flutter instance = Flutter();
 
   static const _nameAlign = 'Align';
+  static const _nameBuilder = 'Builder';
   static const _nameCenter = 'Center';
   static const _nameContainer = 'Container';
   static const _namePadding = 'Padding';
@@ -403,8 +404,8 @@ class Flutter {
   }
 
   /// Return `true` if the [node] is creation of `Align`.
-  bool isExactlyAlignCreation(InstanceCreationExpression? node) {
-    var type = node?.staticType;
+  bool isExactlyAlignCreation(InstanceCreationExpression node) {
+    var type = node.staticType;
     return isExactWidgetTypeAlign(type);
   }
 
@@ -415,8 +416,8 @@ class Flutter {
   }
 
   /// Return `true` if the [node] is creation of `Padding`.
-  bool isExactlyPaddingCreation(InstanceCreationExpression? node) {
-    var type = node?.staticType;
+  bool isExactlyPaddingCreation(InstanceCreationExpression node) {
+    var type = node.staticType;
     return isExactWidgetTypePadding(type);
   }
 
@@ -441,6 +442,12 @@ class Flutter {
   bool isExactWidgetTypeAlign(DartType? type) {
     return type is InterfaceType &&
         _isExactWidget(type.element, _nameAlign, _uriBasic);
+  }
+
+  /// Return `true` if the given [type] is the Flutter class `StreamBuilder`.
+  bool isExactWidgetTypeBuilder(DartType type) {
+    return type is InterfaceType &&
+        _isExactWidget(type.element, _nameBuilder, _uriBasic);
   }
 
   /// Return `true` if the given [type] is the Flutter class `Center`.

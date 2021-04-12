@@ -113,17 +113,17 @@ class MixinFullResolution {
       var setters = <Name, Procedure>{};
       for (var procedure in class_.procedures) {
         if (procedure.isSetter) {
-          setters[procedure.name!] = procedure;
+          setters[procedure.name] = procedure;
         } else {
-          nonSetters[procedure.name!] = procedure;
+          nonSetters[procedure.name] = procedure;
         }
       }
 
       for (var field in class_.mixin.fields) {
         Reference? getterReference =
-            indexedClass?.lookupGetterReference(field.name!);
+            indexedClass?.lookupGetterReference(field.name);
         Reference? setterReference =
-            indexedClass?.lookupSetterReference(field.name!);
+            indexedClass?.lookupSetterReference(field.name);
         if (getterReference == null) {
           getterReference = nonSetters[field.name]?.reference;
           getterReference?.canonicalName?.unbind();
@@ -134,7 +134,7 @@ class MixinFullResolution {
         }
         Field clone =
             cloner.cloneField(field, getterReference, setterReference);
-        Procedure? setter = setters[field.name!];
+        Procedure? setter = setters[field.name];
         if (setter != null) {
           setters.remove(field.name);
           VariableDeclaration parameter =
@@ -169,9 +169,9 @@ class MixinFullResolution {
 
       Reference? reference;
       if (procedure.isSetter) {
-        reference = indexedClass?.lookupSetterReference(procedure.name!);
+        reference = indexedClass?.lookupSetterReference(procedure.name);
       } else {
-        reference = indexedClass?.lookupGetterReference(procedure.name!);
+        reference = indexedClass?.lookupGetterReference(procedure.name);
       }
 
       // Linear search for a forwarding stub with the same name.

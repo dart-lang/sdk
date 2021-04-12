@@ -152,7 +152,7 @@ abstract class TypeEnvironment extends Types {
       if (class_ == coreTypes.intClass ||
           class_ == coreTypes.numClass ||
           class_ == coreTypes.doubleClass) {
-        String name = member.name!.text;
+        String name = member.name.text;
         return name == '+' ||
             name == '-' ||
             name == '*' ||
@@ -162,7 +162,7 @@ abstract class TypeEnvironment extends Types {
     } else {
       Class? class_ = member.enclosingClass;
       if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
-        String name = member.name!.text;
+        String name = member.name.text;
         return name == '+' ||
             name == '-' ||
             name == '*' ||
@@ -180,7 +180,7 @@ abstract class TypeEnvironment extends Types {
     if (isNonNullableByDefault) {
       Class? class_ = member.enclosingClass;
       if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
-        String name = member.name!.text;
+        String name = member.name.text;
         return name == 'clamp';
       }
     }

@@ -172,6 +172,33 @@ class EnumBuilder extends SourceClassBuilder {
     ///   static const List<E> values = const <E>[id0, ..., idn-1];
     ///   String toString() => _name;
     /// }
+
+    FieldNameScheme instanceFieldNameScheme = new FieldNameScheme(
+        isInstanceMember: true,
+        className: name,
+        isExtensionMember: false,
+        extensionName: null,
+        libraryReference: referencesFrom != null
+            ? referencesFromIndexed.library.reference
+            : parent.library.reference);
+
+    FieldNameScheme staticFieldNameScheme = new FieldNameScheme(
+        isInstanceMember: false,
+        className: name,
+        isExtensionMember: false,
+        extensionName: null,
+        libraryReference: referencesFrom != null
+            ? referencesFromIndexed.library.reference
+            : parent.library.reference);
+
+    ProcedureNameScheme procedureNameScheme = new ProcedureNameScheme(
+        isStatic: false,
+        isExtensionMember: false,
+        extensionName: null,
+        libraryReference: referencesFrom != null
+            ? referencesFromIndexed.library.reference
+            : parent.library.reference);
+
     Constructor constructorReference;
     Reference toStringReference;
     Reference indexGetterReference;
@@ -210,6 +237,8 @@ class EnumBuilder extends SourceClassBuilder {
         parent,
         charOffset,
         charOffset,
+        instanceFieldNameScheme,
+        isInstanceMember: true,
         fieldGetterReference: indexGetterReference,
         fieldSetterReference: indexSetterReference);
     members["_name"] = new SourceFieldBuilder(
@@ -221,6 +250,8 @@ class EnumBuilder extends SourceClassBuilder {
         parent,
         charOffset,
         charOffset,
+        instanceFieldNameScheme,
+        isInstanceMember: true,
         fieldGetterReference: _nameGetterReference,
         fieldSetterReference: _nameSetterReference);
     ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
@@ -251,6 +282,8 @@ class EnumBuilder extends SourceClassBuilder {
         parent,
         charOffset,
         charOffset,
+        staticFieldNameScheme,
+        isInstanceMember: false,
         fieldGetterReference: valuesGetterReference,
         fieldSetterReference: valuesSetterReference);
     members["values"] = valuesBuilder;
@@ -263,8 +296,8 @@ class EnumBuilder extends SourceClassBuilder {
         0,
         stringType,
         "toString",
-        null,
-        null,
+        /* typeVariables = */ null,
+        /* formals = */ null,
         ProcedureKind.Method,
         parent,
         charOffset,
@@ -272,9 +305,11 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charEndOffset,
         toStringReference,
-        null,
+        /* tearOffReference = */ null,
         AsyncMarker.Sync,
-        /* isExtensionInstanceMember = */ false);
+        procedureNameScheme,
+        isExtensionMember: false,
+        isInstanceMember: true);
     members["toString"] = toStringBuilder;
     String className = name;
     if (enumConstantInfos != null) {
@@ -329,6 +364,8 @@ class EnumBuilder extends SourceClassBuilder {
             parent,
             enumConstantInfo.charOffset,
             enumConstantInfo.charOffset,
+            staticFieldNameScheme,
+            isInstanceMember: false,
             fieldGetterReference: getterReference,
             fieldSetterReference: setterReference);
         members[name] = fieldBuilder..next = existing;

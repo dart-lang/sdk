@@ -11,6 +11,9 @@ static const field core::String var2 = #C3;
 static const field core::int var3 = #C4;
 static const field core::int var4 = #C5;
 static const field core::int var5 = #C6;
+static const field core::int var6 = #C5;
+static const field core::int var7 = #C5;
+static const field core::int var8 = #C5;
 static method function1(core::int a, core::int b) → core::int {
   core::int x = 1.{core::num::+}(a).{core::num::+}(b);
   return x;
@@ -32,6 +35,23 @@ static method function4() → core::int {
 static method function5() → core::int {
   return #C6;
 }
+static method function6() → core::int {
+  dynamic a;
+  a = 2;
+  return a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+}
+static method function7() → core::int {
+  dynamic a;
+  dynamic b;
+  a = 2;
+  return a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+}
+static method function8() → core::int {
+  dynamic a;
+  core::int? b;
+  a = 2;
+  return a as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+}
 static method main() → void {
   exp::Expect::equals(#C1, 4);
   exp::Expect::equals(#C2, 5);
@@ -39,6 +59,9 @@ static method main() → void {
   exp::Expect::equals(#C4, 6);
   exp::Expect::equals(#C5, 2);
   exp::Expect::equals(#C6, 2.{core::int::unary-}());
+  exp::Expect::equals(#C5, 2);
+  exp::Expect::equals(#C5, 2);
+  exp::Expect::equals(#C5, 2);
 }
 
 constants  {
@@ -51,5 +74,5 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: MethodInvocation @ org-dartlang-testcase:///const_functions_variable_declarations.dart:48:23 -> IntConstant(-2)
-Extra constant evaluation: evaluated: 21, effectively constant: 1
+Evaluated: MethodInvocation @ org-dartlang-testcase:///const_functions_variable_declarations.dart:71:23 -> IntConstant(-2)
+Extra constant evaluation: evaluated: 33, effectively constant: 1

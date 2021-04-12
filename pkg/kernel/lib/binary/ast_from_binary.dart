@@ -1443,19 +1443,19 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    if (node == null) {
-      if (setterReference != null) {
-        node = new Field.mutable(null,
-            getterReference: getterReference, setterReference: setterReference);
-      } else {
-        node = new Field.immutable(null, getterReference: getterReference);
-      }
-    }
     Uri? fileUri = readUriReference();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readUInt30();
     Name name = readName();
+    if (node == null) {
+      if (setterReference != null) {
+        node = new Field.mutable(name,
+            getterReference: getterReference, setterReference: setterReference);
+      } else {
+        node = new Field.immutable(name, getterReference: getterReference);
+      }
+    }
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(name.text);
@@ -1487,15 +1487,15 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    if (node == null) {
-      node = new Constructor(null, reference: reference);
-    }
     Uri? fileUri = readUriReference();
     int startFileOffset = readOffset();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readByte();
     Name name = readName();
+    if (node == null) {
+      node = new Constructor(null, reference: reference, name: name);
+    }
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(name.text);
@@ -1536,13 +1536,13 @@ class BinaryBuilder {
     int kindIndex = readByte();
     ProcedureKind kind = ProcedureKind.values[kindIndex];
     ProcedureStubKind stubKind = ProcedureStubKind.values[readByte()];
+    int flags = readUInt30();
+    Name name = readName();
     if (node == null) {
-      node = new Procedure(null, kind, null, reference: reference);
+      node = new Procedure(name, kind, null, reference: reference);
     } else {
       assert(node.kind == kind);
     }
-    int flags = readUInt30();
-    Name name = readName();
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(name.text);
@@ -1589,14 +1589,15 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    if (node == null) {
-      node = new RedirectingFactoryConstructor(null, reference: reference);
-    }
     Uri? fileUri = readUriReference();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readByte();
     Name name = readName();
+    if (node == null) {
+      node = new RedirectingFactoryConstructor(null,
+          reference: reference, name: name);
+    }
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(name.text);

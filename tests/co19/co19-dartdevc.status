@@ -3,63 +3,63 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
-Language/Classes/Constructors/Generative_Constructors/formal_parameter_t07: Skip # Times out
-Language/Classes/Constructors/Generative_Constructors/fresh_instance_t01: Skip # Times out
-Language/Classes/Constructors/Generative_Constructors/implicit_superinitializer_t01: Skip # Times out
-Language/Classes/Constructors/Generative_Constructors/implicit_superinitializer_t02: Skip # Times out
-Language/Classes/Constructors/Generative_Constructors/initializers_t01: Skip # Times out
-Language/Classes/Constructors/Generative_Constructors/initializers_t15: Skip # Times out
-Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t01: Skip # Times out
-Language/Classes/Constructors/Generative_Constructors/initializing_this_t01: Skip # Times out
-Language/Classes/Constructors/Generative_Constructors/redirection_t01: Skip # Times out
-Language/Classes/Constructors/Generative_Constructors/syntax_t01: Skip # Times out
-Language/Classes/Constructors/implicit_constructor_t01: Skip # Times out
-Language/Classes/Constructors/implicit_constructor_t02: Skip # Times out
-Language/Classes/Constructors/name_t01: Skip # Times out
-Language/Classes/Constructors/name_t02: Skip # Times out
-Language/Classes/Constructors/name_t03: Skip # Times out
-Language/Classes/Getters/instance_getter_t01: Skip # Times out
-Language/Classes/Getters/instance_getter_t02: Skip # Times out
-Language/Classes/Getters/instance_getter_t03: Skip # Times out
-Language/Classes/Getters/instance_getter_t04: Skip # Times out
-Language/Classes/Getters/instance_getter_t05: Skip # Times out
-Language/Classes/Getters/instance_getter_t06: Skip # Times out
-Language/Classes/Getters/override_t04: Skip # Times out
-Language/Classes/Getters/return_type_t01: Skip # Times out
-Language/Classes/Getters/static_t01/none: Skip # Times out
-Language/Classes/Getters/static_t02: Skip # Times out
-Language/Classes/Getters/syntax_t01: Skip # Times out
-Language/Classes/Getters/void_return_type_t01: Skip # Times out
-Language/Classes/Instance_Methods/Operators/allowed_names_t01: Skip # Times out
-Language/Classes/Instance_Methods/Operators/arity_0_or_1_t01: Skip # Times out
-Language/Classes/Instance_Methods/Operators/arity_0_t01: Skip # Times out
-Language/Classes/Instance_Methods/Operators/syntax_t01: Skip # Times out
-Language/Classes/Instance_Methods/Operators/syntax_t03: Skip # Times out
-Language/Classes/Instance_Methods/override_named_parameters_t03: Skip # Times out
-Language/Classes/Instance_Methods/override_named_parameters_t04: Skip # Times out
-Language/Classes/Instance_Methods/override_named_parameters_t06: Skip # Times out
-Language/Classes/Instance_Methods/override_subtype_t05: Skip # Times out
-Language/Classes/Instance_Methods/override_subtype_t06: Skip # Times out
-Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t01: Skip # Times out
-Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t02: Skip # Times out
-Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t04: Skip # Times out
-Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t05: Skip # Times out
-Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t06: Skip # Times out
-Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t07: Skip # Times out
-Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t08: Skip # Times out
-Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t09: Skip # Times out
-Language/Classes/Instance_Variables/definition_t01: Skip # Times out
-Language/Classes/Instance_Variables/definition_t02: Skip # Times out
-Language/Classes/Instance_Variables/definition_t04: Skip # Times out
-Language/Classes/Setters/instance_setter_t01: Skip # Times out
+Language/Classes/Constructors/Generative_Constructors/formal_parameter_t07: SkipSlow
+Language/Classes/Constructors/Generative_Constructors/fresh_instance_t01: SkipSlow
+Language/Classes/Constructors/Generative_Constructors/implicit_superinitializer_t01: SkipSlow
+Language/Classes/Constructors/Generative_Constructors/implicit_superinitializer_t02: SkipSlow
+Language/Classes/Constructors/Generative_Constructors/initializers_t01: SkipSlow
+Language/Classes/Constructors/Generative_Constructors/initializers_t15: SkipSlow
+Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t01: SkipSlow
+Language/Classes/Constructors/Generative_Constructors/initializing_this_t01: SkipSlow
+Language/Classes/Constructors/Generative_Constructors/redirection_t01: SkipSlow
+Language/Classes/Constructors/Generative_Constructors/syntax_t01: SkipSlow
+Language/Classes/Constructors/implicit_constructor_t01: SkipSlow
+Language/Classes/Constructors/implicit_constructor_t02: SkipSlow
+Language/Classes/Constructors/name_t01: SkipSlow
+Language/Classes/Constructors/name_t02: SkipSlow
+Language/Classes/Constructors/name_t03: SkipSlow
+Language/Classes/Getters/instance_getter_t01: SkipSlow
+Language/Classes/Getters/instance_getter_t02: SkipSlow
+Language/Classes/Getters/instance_getter_t03: SkipSlow
+Language/Classes/Getters/instance_getter_t04: SkipSlow
+Language/Classes/Getters/instance_getter_t05: SkipSlow
+Language/Classes/Getters/instance_getter_t06: SkipSlow
+Language/Classes/Getters/override_t04: SkipSlow
+Language/Classes/Getters/return_type_t01: SkipSlow
+Language/Classes/Getters/static_t01/none: SkipSlow
+Language/Classes/Getters/static_t02: SkipSlow
+Language/Classes/Getters/syntax_t01: SkipSlow
+Language/Classes/Getters/void_return_type_t01: SkipSlow
+Language/Classes/Instance_Methods/Operators/allowed_names_t01: SkipSlow
+Language/Classes/Instance_Methods/Operators/arity_0_or_1_t01: SkipSlow
+Language/Classes/Instance_Methods/Operators/arity_0_t01: SkipSlow
+Language/Classes/Instance_Methods/Operators/syntax_t01: SkipSlow
+Language/Classes/Instance_Methods/Operators/syntax_t03: SkipSlow
+Language/Classes/Instance_Methods/override_named_parameters_t03: SkipSlow
+Language/Classes/Instance_Methods/override_named_parameters_t04: SkipSlow
+Language/Classes/Instance_Methods/override_named_parameters_t06: SkipSlow
+Language/Classes/Instance_Methods/override_subtype_t05: SkipSlow
+Language/Classes/Instance_Methods/override_subtype_t06: SkipSlow
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t01: SkipSlow
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t02: SkipSlow
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t04: SkipSlow
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t05: SkipSlow
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t06: SkipSlow
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t07: SkipSlow
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t08: SkipSlow
+Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t09: SkipSlow
+Language/Classes/Instance_Variables/definition_t01: SkipSlow
+Language/Classes/Instance_Variables/definition_t02: SkipSlow
+Language/Classes/Instance_Variables/definition_t04: SkipSlow
+Language/Classes/Setters/instance_setter_t01: SkipSlow
 Language/Expressions/Constants/integer_size_t03: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/integer_size_t04: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/literal_number_t01: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/math_operators_t01: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/math_operators_t06: SkipByDesign # uses integer literal not representable as JavaScript number
-Language/Expressions/Function_Invocation/async_generator_invokation_t08: Skip # Times out
-Language/Expressions/Function_Invocation/async_generator_invokation_t10: Skip # Times out
-Language/Expressions/Null/instance_of_class_null_t01: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/522.
+Language/Expressions/Function_Invocation/async_generator_invokation_t08: SkipSlow
+Language/Expressions/Function_Invocation/async_generator_invokation_t10: SkipSlow
+Language/Expressions/Null/instance_of_class_null_t01: SkipByDesign # dart:mirrors not supported https://github.com/dart-lang/co19/issues/522
 Language/Expressions/Numbers/integer_size_t03: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Numbers/static_type_of_int_t01: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Numbers/syntax_t06: SkipByDesign # uses integer literal not representable as JavaScript number
@@ -71,11 +71,11 @@ Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign # dart:is
 Language/Functions/External_Functions/not_connected_to_a_body_t01: SkipByDesign # External variables are not supported
 Language/Libraries_and_Scripts/Scripts/top_level_syntax_t01: SkipByDesign # External variables are not supported
 Language/Libraries_and_Scripts/top_level_syntax_t01: SkipByDesign # External variables are not supported
-Language/Metadata/before*: Skip # dart:mirrors not supported https://github.com/dart-lang/co19/issues/523.
+Language/Metadata/before*: SkipByDesign # dart:mirrors not supported https://github.com/dart-lang/co19/issues/523
 Language/Metadata/syntax_t10: SkipByDesign # dart:mirrors is not supported
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
-Language/Types/Interface_Types/subtype_t27: Skip # Times out
-Language/Types/Interface_Types/subtype_t28: Skip # Times out
+Language/Types/Interface_Types/subtype_t27: SkipSlow
+Language/Types/Interface_Types/subtype_t28: SkipSlow
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t01: SkipByDesign # External variables are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t02: SkipByDesign # External variables are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t03: SkipByDesign # External variables are not supported
@@ -105,30 +105,30 @@ LibTest/core/int/operator_truncating_division_A01_t02: SkipByDesign # Division b
 LibTest/core/int/parse_A01_t02: SkipByDesign # big integers cannot be represented in JavaScript
 LibTest/core/int/remainder_A01_t03: SkipByDesign # Division by zero is not an error in JavaScript
 LibTest/ffi/*: SkipByDesign # dart:ffi is not supported
-LibTest/html/Element/blur_A01_t01: Skip # Times out
-LibTest/html/Element/focus_A01_t01: Skip # Times out
+LibTest/html/Element/blur_A01_t01: SkipSlow
+LibTest/html/Element/focus_A01_t01: SkipSlow
 LibTest/html/HttpRequest/responseText_A01_t02: Skip # https://github.com/dart-lang/co19/issues/932
 LibTest/html/HttpRequestUpload/*: Skip # https://github.com/dart-lang/co19/issues/932
-LibTest/html/IFrameElement/blur_A01_t01: Skip # Times out
-LibTest/html/IFrameElement/focus_A01_t01: Skip # Times out
+LibTest/html/IFrameElement/blur_A01_t01: SkipSlow
+LibTest/html/IFrameElement/focus_A01_t01: SkipSlow
 LibTest/io/*: SkipByDesign # dart:io not supported.
 LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
 LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported
 LibTest/typed_data/ByteBuffer/*: SkipByDesign # not supported on the web
-LibTest/typed_data/ByteData/getInt64_A01_t01: Skip # Big integers cannot be represented in JS
-LibTest/typed_data/ByteData/getInt64_A02_t01: Skip # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/getInt64_A02_t02: Skip # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/getUint64_A01_t01: Skip # Big integers cannot be represented in JS
-LibTest/typed_data/ByteData/getUint64_A02_t01: Skip # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/getUint64_A02_t02: Skip # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/setInt64_A01_t01: Skip # Big integers cannot be represented in JS
-LibTest/typed_data/ByteData/setInt64_A02_t01: Skip # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/setInt64_A02_t02: Skip # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/setUint64_A01_t01: Skip # Big integers cannot be represented in JS
-LibTest/typed_data/ByteData/setUint64_A02_t01: Skip # Uint64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/setUint64_A02_t02: Skip # Uint64 accessor not supported by dart2js
-LibTest/typed_data/Int32x4/operator_OR_A01_t01: Skip # Bitwise operations in JS are unsigned.
-LibTest/typed_data/Int32x4List/join_A01_t01: Skip # Differen string represrntation on VM and in JS
-LibTest/typed_data/Int32x4List/join_A01_t02: Skip # Differen string represrntation on VM and in JS
+LibTest/typed_data/ByteData/getInt64_A01_t01: SkipByDesign # uses integer literal not representable as JavaScript number
+LibTest/typed_data/ByteData/getInt64_A02_t01: SkipByDesign # Int64 accessor not supported by dart2js
+LibTest/typed_data/ByteData/getInt64_A02_t02: SkipByDesign # Int64 accessor not supported by dart2js
+LibTest/typed_data/ByteData/getUint64_A01_t01: SkipByDesign # uses integer literal not representable as JavaScript number
+LibTest/typed_data/ByteData/getUint64_A02_t01: SkipByDesign # Int64 accessor not supported by dart2js
+LibTest/typed_data/ByteData/getUint64_A02_t02: SkipByDesign # Int64 accessor not supported by dart2js
+LibTest/typed_data/ByteData/setInt64_A01_t01: SkipByDesign # Buses integer literal not representable as JavaScript number
+LibTest/typed_data/ByteData/setInt64_A02_t01: SkipByDesign # Int64 accessor not supported by dart2js
+LibTest/typed_data/ByteData/setInt64_A02_t02: SkipByDesign # Int64 accessor not supported by dart2js
+LibTest/typed_data/ByteData/setUint64_A01_t01: SkipByDesign # uses integer literal not representable as JavaScript number
+LibTest/typed_data/ByteData/setUint64_A02_t01: SkipByDesign # Uint64 accessor not supported by dart2js
+LibTest/typed_data/ByteData/setUint64_A02_t02: SkipByDesign # Uint64 accessor not supported by dart2js
+LibTest/typed_data/Int32x4/operator_OR_A01_t01: SkipByDesign # Bitwise operations in JS are unsigned.
+LibTest/typed_data/Int32x4List/join_A01_t01: SkipByDesign # Different string represrntation on VM and in JS
+LibTest/typed_data/Int32x4List/join_A01_t02: SkipByDesign # Different string represrntation on VM and in JS
 LibTest/typed_data/Int64List/*: SkipByDesign # Int64List not supported on the web
 LibTest/typed_data/Uint64List/*: SkipByDesign # Uint64List not supported on the web

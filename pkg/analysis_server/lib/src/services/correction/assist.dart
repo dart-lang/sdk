@@ -138,6 +138,8 @@ class DartAssistKind {
   static const FLUTTER_WRAP_GENERIC =
       AssistKind('dart.assist.flutter.wrap.generic', 31, 'Wrap with widget...');
 
+  static const FLUTTER_WRAP_BUILDER = AssistKind(
+      'dart.assist.flutter.wrap.builder', 32, 'Wrap with Builder');
   static const FLUTTER_WRAP_CENTER =
       AssistKind('dart.assist.flutter.wrap.center', 32, 'Wrap with Center');
   static const FLUTTER_WRAP_COLUMN =

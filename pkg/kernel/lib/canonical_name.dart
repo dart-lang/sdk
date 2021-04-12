@@ -133,26 +133,26 @@ class CanonicalName {
 
   CanonicalName getChildFromProcedure(Procedure procedure) {
     return getChild(getProcedureQualifier(procedure))
-        .getChildFromQualifiedName(procedure.name!);
+        .getChildFromQualifiedName(procedure.name);
   }
 
   CanonicalName getChildFromField(Field field) {
-    return getChild('@getters').getChildFromQualifiedName(field.name!);
+    return getChild('@getters').getChildFromQualifiedName(field.name);
   }
 
   CanonicalName getChildFromFieldSetter(Field field) {
-    return getChild('@setters').getChildFromQualifiedName(field.name!);
+    return getChild('@setters').getChildFromQualifiedName(field.name);
   }
 
   CanonicalName getChildFromConstructor(Constructor constructor) {
     return getChild('@constructors')
-        .getChildFromQualifiedName(constructor.name!);
+        .getChildFromQualifiedName(constructor.name);
   }
 
   CanonicalName getChildFromRedirectingFactoryConstructor(
       RedirectingFactoryConstructor redirectingFactoryConstructor) {
     return getChild('@factories')
-        .getChildFromQualifiedName(redirectingFactoryConstructor.name!);
+        .getChildFromQualifiedName(redirectingFactoryConstructor.name);
   }
 
   CanonicalName getChildFromFieldWithName(Name name) {
