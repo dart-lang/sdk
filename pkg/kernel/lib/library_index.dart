@@ -221,14 +221,14 @@ class _MemberTable {
 
   String getDisambiguatedName(Member member) {
     if (member is Procedure) {
-      if (member.isGetter) return LibraryIndex.getterPrefix + member.name!.text;
-      if (member.isSetter) return LibraryIndex.setterPrefix + member.name!.text;
+      if (member.isGetter) return LibraryIndex.getterPrefix + member.name.text;
+      if (member.isSetter) return LibraryIndex.setterPrefix + member.name.text;
     }
-    return member.name!.text;
+    return member.name.text;
   }
 
   void _addMember(Member member) {
-    if (member.name!.isPrivate && member.name!.library != library) {
+    if (member.name.isPrivate && member.name.library != library) {
       // Members whose name is private to other libraries cannot currently
       // be found with the LibraryIndex class.
       return;
@@ -254,7 +254,7 @@ class _MemberTable {
     final NamedNode? replacement = extensionMember.member.node;
     if (replacement is! Member) return;
     Member member = replacement;
-    if (member.name!.isPrivate && member.name!.library != library) {
+    if (member.name.isPrivate && member.name.library != library) {
       // Members whose name is private to other libraries cannot currently
       // be found with the LibraryIndex class.
       return;

@@ -120,7 +120,7 @@ String debugQualifiedClassName(Class node) {
 }
 
 String debugMemberName(Member node) {
-  return node.name?.text ?? globalDebuggingNames.nameMember(node);
+  return node.name.text;
 }
 
 String debugQualifiedMemberName(Member node) {
@@ -367,8 +367,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   static final Name emptyName = new Name(emptyNameString);
 
   Name getMemberName(Member node) {
-    if (node.name?.text == '') return emptyName;
-    if (node.name != null) return node.name!;
+    if (node.name.text == '') return emptyName;
+    // ignore: unnecessary_null_comparison
+    if (node.name != null) return node.name;
     return new Name(syntheticNames.nameMember(node));
   }
 
@@ -514,11 +515,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       } else if (node is Field) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-        write(prefix + '::' + node.name!.text);
+        write(prefix + '::' + node.name.text);
       } else if (node is Procedure) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-        write(prefix + '::' + node.name!.text);
+        write(prefix + '::' + node.name.text);
       } else if (node is Typedef) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
@@ -1251,8 +1252,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeModifier(node.isConst, 'const');
     writeWord('redirecting_factory');
 
+    // ignore: unnecessary_null_comparison
     if (node.name != null) {
-      writeName(node.name!);
+      writeName(node.name);
     }
     writeTypeParameterList(node.typeParameters);
     writeParameterList(node.positionalParameters, node.namedParameters,
@@ -1655,7 +1657,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       if (!first) {
         writeComma();
       }
-      writeWord('${fieldRef.asField.name!.text}');
+      writeWord('${fieldRef.asField.name.text}');
       writeSymbol(':');
       writeExpression(value);
       first = false;
@@ -2635,7 +2637,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeList(node.fieldValues.entries,
         (core.MapEntry<Reference, Constant> entry) {
       if (entry.key.node != null) {
-        writeWord('${entry.key.asField.name!.text}');
+        writeWord('${entry.key.asField.name.text}');
       } else {
         writeWord('${entry.key.canonicalName!.name}');
       }

@@ -142,6 +142,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       Member referenceFrom,
       [String nativeMethodName])
       : _constructor = new Constructor(null,
+            name: new Name(name, compilationUnit.library),
             fileUri: compilationUnit.fileUri,
             reference: referenceFrom?.reference)
           ..startFileOffset = startCharOffset
@@ -196,9 +197,11 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     f(member, BuiltMemberKind.Constructor);
   }
 
+  bool _hasBeenBuilt = false;
+
   @override
   Constructor build(SourceLibraryBuilder libraryBuilder) {
-    if (_constructor.name == null) {
+    if (!_hasBeenBuilt) {
       _constructor.function = buildFunction(libraryBuilder);
       _constructor.function.parent = _constructor;
       _constructor.function.fileOffset = charOpenParenOffset;
@@ -206,7 +209,8 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       _constructor.function.typeParameters = const <TypeParameter>[];
       _constructor.isConst = isConst;
       _constructor.isExternal = isExternal;
-      _constructor.name = new Name(name, libraryBuilder.library);
+      updatePrivateMemberName(_constructor, libraryBuilder);
+      _hasBeenBuilt = true;
     }
     if (formals != null) {
       bool needsInference = false;

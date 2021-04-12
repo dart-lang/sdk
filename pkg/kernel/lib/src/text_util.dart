@@ -201,8 +201,7 @@ String qualifiedMemberNameToStringByReference(Reference? reference,
 }
 
 String memberNameToString(Member node) {
-  return node.name?.text ??
-      "null-named member ${node.runtimeType} ${node.hashCode}";
+  return node.name.text;
 }
 
 String qualifiedTypeParameterNameToString(TypeParameter node,

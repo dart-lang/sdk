@@ -494,15 +494,15 @@ class SourceLoader extends Loader {
 
   // TODO(johnniwinther,jensj): Handle expression in extensions?
   Future<Expression> buildExpression(
-      SourceLibraryBuilder library,
+      SourceLibraryBuilder libraryBuilder,
       String enclosingClass,
       bool isClassInstanceMember,
       FunctionNode parameters) async {
-    Token token = await tokenize(library, suppressLexicalErrors: false);
+    Token token = await tokenize(libraryBuilder, suppressLexicalErrors: false);
     if (token == null) return null;
-    DietListener dietListener = createDietListener(library);
+    DietListener dietListener = createDietListener(libraryBuilder);
 
-    Builder parent = library;
+    Builder parent = libraryBuilder;
     if (enclosingClass != null) {
       Builder cls = dietListener.memberScope.lookup(enclosingClass, -1, null);
       if (cls is ClassBuilder) {
@@ -522,7 +522,7 @@ class SourceLoader extends Loader {
         null,
         null,
         ProcedureKind.Method,
-        library,
+        libraryBuilder,
         0,
         0,
         -1,
@@ -530,7 +530,12 @@ class SourceLoader extends Loader {
         null,
         null,
         AsyncMarker.Sync,
-        /* isExtensionInstanceMember = */ false)
+        new ProcedureNameScheme(
+            isExtensionMember: false,
+            isStatic: true,
+            libraryReference: libraryBuilder.library.reference),
+        isInstanceMember: false,
+        isExtensionMember: false)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,

@@ -297,3 +297,13 @@ abstract class BuilderClassMember implements ClassMember {
   @override
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';
 }
+
+/// If the name of [member] is private, update it to use the library reference
+/// of [libraryBuilder].
+// TODO(johnniwinther): Avoid having to update private names by setting
+// the correct library reference when creating parts.
+void updatePrivateMemberName(Member member, LibraryBuilder libraryBuilder) {
+  if (member.name.isPrivate) {
+    member.name = new Name(member.name.text, libraryBuilder.library);
+  }
+}

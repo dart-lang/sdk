@@ -91,8 +91,8 @@ main() {
       'types:1)',
       covariance.toString());
 
-  Procedure noParameterProcedure =
-      new Procedure(null, ProcedureKind.Method, new FunctionNode(null));
+  Procedure noParameterProcedure = new Procedure(
+      new Name('foo'), ProcedureKind.Method, new FunctionNode(null));
   Covariance noParameterProcedureCovariance =
       new Covariance.fromMember(noParameterProcedure, forSetter: false);
   Expect.isTrue(noParameterProcedureCovariance.isEmpty);
@@ -103,7 +103,7 @@ main() {
   Expect.isTrue(noParameterProcedureCovariance.isEmpty);
 
   Procedure oneParameterProcedure = new Procedure(
-      null,
+      new Name('foo'),
       ProcedureKind.Method,
       new FunctionNode(null,
           positionalParameters: [new VariableDeclaration(null)]));
@@ -119,7 +119,7 @@ main() {
       oneParameterProcedureCovariance);
 
   Procedure positionalParametersProcedure = new Procedure(
-      null,
+      new Name('foo'),
       ProcedureKind.Method,
       new FunctionNode(null, positionalParameters: [
         new VariableDeclaration(null),
@@ -148,7 +148,7 @@ main() {
       positionalParametersProcedureCovariance);
 
   Procedure namedParametersProcedure = new Procedure(
-      null,
+      new Name('foo'),
       ProcedureKind.Method,
       new FunctionNode(null, namedParameters: [
         new VariableDeclaration('a'),
@@ -177,7 +177,7 @@ main() {
       namedParametersProcedureCovariance);
 
   Procedure typeParametersProcedure = new Procedure(
-      null,
+      new Name('foo'),
       ProcedureKind.Method,
       new FunctionNode(null, typeParameters: [
         new TypeParameter(null),
