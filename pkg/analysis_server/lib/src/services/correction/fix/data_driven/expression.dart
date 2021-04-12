@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 
@@ -23,7 +21,7 @@ class BinaryExpression extends Expression {
   BinaryExpression(this.leftOperand, this.operator, this.rightOperand);
 
   @override
-  Object evaluateIn(TemplateContext context) {
+  Object? evaluateIn(TemplateContext context) {
     switch (operator) {
       case Operator.and:
         var left = leftOperand.evaluateIn(context);
@@ -41,7 +39,6 @@ class BinaryExpression extends Expression {
         var right = rightOperand.evaluateIn(context);
         return left != right;
     }
-    return null;
   }
 
   @override
@@ -50,8 +47,9 @@ class BinaryExpression extends Expression {
 
 /// An expression.
 abstract class Expression {
-  /// Return the result of evaluating this expression.
-  Object evaluateIn(TemplateContext context);
+  /// Return the result of evaluating this expression, or `null` if the
+  /// expression can't be evaluated in the given [context].
+  Object? evaluateIn(TemplateContext context);
 }
 
 /// A literal string.
@@ -106,6 +104,5 @@ extension on Operator {
       case Operator.notEqual:
         return '!=';
     }
-    return 'impossible';
   }
 }

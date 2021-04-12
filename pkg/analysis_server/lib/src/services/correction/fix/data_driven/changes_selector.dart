@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/expression.dart';
@@ -12,7 +10,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/expressi
 /// possible lists.
 abstract class ChangesSelector {
   /// Return the list of changes that should be applied based on the [context].
-  List<Change> getChanges(TemplateContext context);
+  List<Change>? getChanges(TemplateContext context);
 }
 
 /// A changes selector that uses boolean-valued conditions to select the list.
@@ -26,7 +24,7 @@ class ConditionalChangesSelector implements ChangesSelector {
   ConditionalChangesSelector(this.changeMap);
 
   @override
-  List<Change> getChanges(TemplateContext context) {
+  List<Change>? getChanges(TemplateContext context) {
     for (var entry in changeMap.entries) {
       var value = entry.key.evaluateIn(context);
       if (value is bool && value) {

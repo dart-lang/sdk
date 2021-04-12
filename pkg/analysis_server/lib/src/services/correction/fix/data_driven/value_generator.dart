@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -22,7 +20,7 @@ class CodeFragment extends ValueGenerator {
 
   @override
   String evaluateIn(TemplateContext context) {
-    Object target = context.node;
+    Object? target = context.node;
     for (var i = 0; i < accessors.length; i++) {
       var result = accessors[i].getValue(target);
       if (!result.isValid) {
@@ -46,7 +44,7 @@ class CodeFragment extends ValueGenerator {
 
   @override
   bool validate(TemplateContext context) {
-    Object target = context.node;
+    Object? target = context.node;
     for (var accessor in accessors) {
       var result = accessor.getValue(target);
       if (!result.isValid) {
@@ -59,7 +57,7 @@ class CodeFragment extends ValueGenerator {
 
   @override
   void writeOn(DartEditBuilder builder, TemplateContext context) {
-    Object target = context.node;
+    Object? target = context.node;
     for (var accessor in accessors) {
       target = accessor.getValue(target).result;
     }
