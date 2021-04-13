@@ -2384,6 +2384,11 @@ class TypeInferrerImpl implements TypeInferrer {
           new InstrumentationValueForTypeArgs(inferredTypes));
       arguments.types.clear();
       arguments.types.addAll(inferredTypes);
+      if (dataForTesting != null) {
+        assert(arguments.fileOffset != TreeNode.noOffset);
+        dataForTesting.typeInferenceResult.inferredTypeArguments[arguments] =
+            inferredTypes;
+      }
     }
     List<DartType> positionalArgumentTypes = [];
     List<NamedType> namedArgumentTypes = [];
