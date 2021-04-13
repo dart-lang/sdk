@@ -1367,8 +1367,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
           "runtime");
     }
     if (!Api::IsFfiEnabled() &&
-        target_library.url() == Symbols::DartFfi().ptr() &&
-        library->url() != Symbols::DartCore().ptr()) {
+        target_library.url() == Symbols::DartFfi().ptr()) {
       H.ReportError(
           "import of dart:ffi is not supported in the current Dart runtime");
     }

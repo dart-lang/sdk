@@ -236,6 +236,7 @@ class ObjectPointerVisitor;
   RW(GrowableObjectArray, ffi_callback_functions)                              \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
+  RW(Class, ffi_struct_class)                                                  \
   RW(Object, ffi_as_function_internal)                                         \
   // Please remember the last entry must be referred in the 'to' function below.
 

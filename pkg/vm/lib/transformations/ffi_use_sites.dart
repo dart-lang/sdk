@@ -834,9 +834,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           : null;
     }
 
-    if (!nativeTypesClasses.contains(klass) &&
-        klass != arrayClass &&
-        klass != arraySizeClass) {
+    if (!nativeTypesClasses.contains(klass) && klass != arrayClass) {
       for (final parent in nativeTypesClasses) {
         if (hierarchy.isSubtypeOf(klass, parent)) {
           return parent;

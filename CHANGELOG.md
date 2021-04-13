@@ -8,15 +8,6 @@
     daylight saving changes that are not precisely one hour.
     (No change on the Web which uses the JavaScript `Date` object.)
 
-### Dart VM
-
-*   **Breaking Change** [#45071][]: `Dart_NewWeakPersistentHandle`'s and
-    `Dart_NewFinalizableHandle`'s `object` parameter no longer accepts
-    `Pointer`s and subtypes of `Struct`. Expandos no longer accept
-    `Pointer`s and subtypes of `Struct`s.
-
-[#45071]: https://github.com/dart-lang/sdk/issues/45071
-
 ## 2.13.0
 
 ### Language

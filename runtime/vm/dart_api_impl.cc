@@ -991,23 +991,6 @@ DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
   obj1_ref->set_ptr(obj2_ref);
 }
 
-// TODO(https://dartbug.com/38491): Reject Unions here as well.
-static bool IsFfiStruct(Thread* T, const Object& obj) {
-  if (obj.IsNull()) {
-    return false;
-  }
-
-  // CFE guarantees we can only have direct subclasses of `Struct`
-  // (no implementations or indirect subclasses are allowed).
-  const auto& klass = Class::Handle(Z, obj.clazz());
-  const auto& super_klass = Class::Handle(Z, klass.SuperClass());
-  if (super_klass.Name() != Symbols::Struct().ptr()) {
-    return false;
-  }
-  const auto& library = Library::Handle(Z, super_klass.library());
-  return library.url() == Symbols::DartFfi().ptr();
-}
-
 static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
     Thread* thread,
     const Object& ref,
@@ -1017,13 +1000,6 @@ static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
   if (!ref.ptr()->IsHeapObject()) {
     return NULL;
   }
-  if (ref.IsPointer()) {
-    return NULL;
-  }
-  if (IsFfiStruct(thread, ref)) {
-    return NULL;
-  }
-
   FinalizablePersistentHandle* finalizable_ref =
       FinalizablePersistentHandle::New(thread->isolate_group(), ref, peer,
                                        callback, external_allocation_size,
@@ -1032,14 +1008,16 @@ static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
 }
 
 static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
-    Thread* T,
+    Thread* thread,
     Dart_Handle object,
     void* peer,
     intptr_t external_allocation_size,
     Dart_HandleFinalizer callback) {
-  const auto& ref = Object::Handle(Z, Api::UnwrapHandle(object));
-  return AllocateWeakPersistentHandle(T, ref, peer, external_allocation_size,
-                                      callback);
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& ref = thread->ObjectHandle();
+  ref = Api::UnwrapHandle(object);
+  return AllocateWeakPersistentHandle(thread, ref, peer,
+                                      external_allocation_size, callback);
 }
 
 static Dart_FinalizableHandle AllocateFinalizableHandle(
@@ -1049,12 +1027,6 @@ static Dart_FinalizableHandle AllocateFinalizableHandle(
     intptr_t external_allocation_size,
     Dart_HandleFinalizer callback) {
   if (!ref.ptr()->IsHeapObject()) {
-    return NULL;
-  }
-  if (ref.IsPointer()) {
-    return NULL;
-  }
-  if (IsFfiStruct(thread, ref)) {
     return NULL;
   }
 
@@ -1066,13 +1038,15 @@ static Dart_FinalizableHandle AllocateFinalizableHandle(
 }
 
 static Dart_FinalizableHandle AllocateFinalizableHandle(
-    Thread* T,
+    Thread* thread,
     Dart_Handle object,
     void* peer,
     intptr_t external_allocation_size,
     Dart_HandleFinalizer callback) {
-  const auto& ref = Object::Handle(Z, Api::UnwrapHandle(object));
-  return AllocateFinalizableHandle(T, ref, peer, external_allocation_size,
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& ref = thread->ObjectHandle();
+  ref = Api::UnwrapHandle(object);
+  return AllocateFinalizableHandle(thread, ref, peer, external_allocation_size,
                                    callback);
 }
 
@@ -1081,13 +1055,15 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
                              void* peer,
                              intptr_t external_allocation_size,
                              Dart_HandleFinalizer callback) {
-  DARTSCOPE(Thread::Current());
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
   if (callback == NULL) {
     return NULL;
   }
+  TransitionNativeToVM transition(thread);
 
-  return AllocateWeakPersistentHandle(T, object, peer, external_allocation_size,
-                                      callback);
+  return AllocateWeakPersistentHandle(thread, object, peer,
+                                      external_allocation_size, callback);
 }
 
 DART_EXPORT Dart_FinalizableHandle
@@ -1095,13 +1071,14 @@ Dart_NewFinalizableHandle(Dart_Handle object,
                           void* peer,
                           intptr_t external_allocation_size,
                           Dart_HandleFinalizer callback) {
-  DARTSCOPE(Thread::Current());
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
   if (callback == nullptr) {
     return nullptr;
   }
-
-  return AllocateFinalizableHandle(T, object, peer, external_allocation_size,
-                                   callback);
+  TransitionNativeToVM transition(thread);
+  return AllocateFinalizableHandle(thread, object, peer,
+                                   external_allocation_size, callback);
 }
 
 DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
