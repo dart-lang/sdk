@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
@@ -298,8 +296,7 @@ class B extends A {
     await assertHasFix(expectedCode);
     {
       // end position should be on "m1", not on "m2", "m3", etc.
-      var endPosition = change.selection;
-      expect(endPosition, isNotNull);
+      var endPosition = change.selection!;
       expect(endPosition.file, testFile);
       var endOffset = endPosition.offset;
       var endString = expectedCode.substring(endOffset, endOffset + 25);
