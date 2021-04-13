@@ -1193,6 +1193,13 @@ class InstructionsSection : public AllStatic {
   static word NextFieldOffset();
 };
 
+class InstructionsTable : public AllStatic {
+ public:
+  static word InstanceSize(intptr_t length);
+  static word InstanceSize();
+  static word NextFieldOffset();
+};
+
 class Instructions : public AllStatic {
  public:
   static const word kMonomorphicEntryOffsetJIT;

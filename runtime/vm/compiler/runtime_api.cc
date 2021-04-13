@@ -1151,6 +1151,16 @@ word InstructionsSection::NextFieldOffset() {
   return -kWordSize;
 }
 
+word InstructionsTable::InstanceSize(intptr_t length) {
+  return RoundedAllocationSize(InstructionsTable::InstanceSize() +
+                               length *
+                                   dart::InstructionsTable::kBytesPerElement);
+}
+
+word InstructionsTable::NextFieldOffset() {
+  return -kWordSize;
+}
+
 word Instructions::NextFieldOffset() {
   return -kWordSize;
 }

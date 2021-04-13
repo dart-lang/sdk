@@ -186,6 +186,7 @@ class ObjectPointerVisitor;
   V(InitPrefix, "init:")                                                       \
   V(Instructions, "Instructions")                                              \
   V(InstructionsSection, "InstructionsSection")                                \
+  V(InstructionsTable, "InstructionsTable")                                    \
   V(Int, "int")                                                                \
   V(Int16List, "Int16List")                                                    \
   V(Int32List, "Int32List")                                                    \

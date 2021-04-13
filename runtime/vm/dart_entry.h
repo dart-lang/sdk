@@ -194,6 +194,7 @@ class DartEntry : public AllStatic {
   // Invokes the specified code as if it was a Dart function.
   // On success, returns an InstancePtr.  On failure, an ErrorPtr.
   static ObjectPtr InvokeCode(const Code& code,
+                              uword entry_point,
                               const Array& arguments_descriptor,
                               const Array& arguments,
                               Thread* thread);

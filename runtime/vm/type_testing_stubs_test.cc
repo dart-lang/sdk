@@ -224,8 +224,8 @@ static void RunTTSTest(
   auto& stc2 = SubtypeTestCache::Handle();
 
   // First invocation will a) specialize the TTS b) may create SubtypeTestCache
-  result = DartEntry::InvokeCode(invoke_tts, arguments_descriptor, arguments,
-                                 thread);
+  result = DartEntry::InvokeCode(invoke_tts, invoke_tts.EntryPoint(),
+                                 arguments_descriptor, arguments, thread);
   stc ^= pool.ObjectAt(kSubtypeTestCacheIndex);
   tts = instantiated_dst_type.type_test_stub();
   if (!result.IsError()) {
@@ -234,8 +234,8 @@ static void RunTTSTest(
   lazy(result, stc);
 
   // Second invocation will a) keep TTS b) keep optional SubtypeTestCache
-  result2 = DartEntry::InvokeCode(invoke_tts, arguments_descriptor, arguments,
-                                  thread);
+  result2 = DartEntry::InvokeCode(invoke_tts, invoke_tts.EntryPoint(),
+                                  arguments_descriptor, arguments, thread);
   stc2 ^= pool.ObjectAt(kSubtypeTestCacheIndex);
   tts2 = instantiated_dst_type.type_test_stub();
   abi_regs_modified ^= abi_regs_modified_box.At(0);
@@ -252,8 +252,8 @@ static void RunTTSTest(
   TypeTestingStubGenerator::SpecializeStubFor(thread, instantiated_dst_type);
   tts = instantiated_dst_type.type_test_stub();
 
-  result2 = DartEntry::InvokeCode(invoke_tts, arguments_descriptor, arguments,
-                                  thread);
+  result2 = DartEntry::InvokeCode(invoke_tts, invoke_tts.EntryPoint(),
+                                  arguments_descriptor, arguments, thread);
   stc2 ^= pool.ObjectAt(kSubtypeTestCacheIndex);
   tts2 = instantiated_dst_type.type_test_stub();
   abi_regs_modified ^= abi_regs_modified_box.At(0);

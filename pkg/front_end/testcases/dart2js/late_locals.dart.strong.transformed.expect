@@ -2,7 +2,6 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:_late_helper" as _la;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 static method main() → void {
   self::testNullableUninitializedNonFinalLocal();
@@ -35,48 +34,30 @@ static method testNonNullableUninitializedFinalLocal() → void {
   core::print(x.{_la::_Cell::readLocal}<core::int>(){() → core::int});
 }
 static method testNullableInitializedNonFinalLocal() → void {
-  lowered core::int? #x = _in::createSentinel<core::int?>();
-  function #x#get() → core::int?
-    return let final core::int? #t1 = #x in _in::isSentinel(#t1) ?{core::int?} #x = 1.{core::int::unary-}(){() → core::int} : #t1{core::int?};
-  function #x#set(core::int? #t2) → dynamic
-    return #x = #t2;
-  core::print(#x#get(){() → core::int?});
-  #x#set(42){(core::int?) → dynamic};
-  core::print(#x#get(){() → core::int?});
-  lowered core::int? #y = _in::createSentinel<core::int?>();
-  function #y#get() → core::int?
-    return let final core::int? #t3 = #y in _in::isSentinel(#t3) ?{core::int?} #y = null : #t3{core::int?};
-  function #y#set(core::int? #t4) → dynamic
-    return #y = #t4;
-  core::print(#y#get(){() → core::int?});
-  #y#set(42){(core::int?) → dynamic};
-  core::print(#y#get(){() → core::int?});
+  final _la::_InitializedCell x = new _la::_InitializedCell::•(() → core::int? => 1.{core::int::unary-}(){() → core::int});
+  core::print(x.{_la::_InitializedCell::read}<core::int>(){() → core::int});
+  x.{_la::_InitializedCell::value} = 42;
+  core::print(x.{_la::_InitializedCell::read}<core::int>(){() → core::int});
+  final _la::_InitializedCell y = new _la::_InitializedCell::•(() → core::int? => null);
+  core::print(y.{_la::_InitializedCell::read}<core::int?>(){() → core::int?});
+  y.{_la::_InitializedCell::value} = 42;
+  core::print(y.{_la::_InitializedCell::read}<core::int>(){() → core::int});
 }
 static method testNonNullableInitializedNonFinalLocal() → void {
-  lowered core::int? #x;
-  function #x#get() → core::int
-    return let final core::int? #t5 = #x in #t5 == null ?{core::int} #x = 1.{core::int::unary-}(){() → core::int} : #t5{core::int};
-  function #x#set(core::int #t6) → dynamic
-    return #x = #t6;
-  core::print(#x#get(){() → core::int});
-  #x#set(42){(core::int) → dynamic};
-  core::print(#x#get(){() → core::int});
+  final _la::_InitializedCell x = new _la::_InitializedCell::•(() → core::int => 1.{core::int::unary-}(){() → core::int});
+  core::print(x.{_la::_InitializedCell::read}<core::int>(){() → core::int});
+  x.{_la::_InitializedCell::value} = 42;
+  core::print(x.{_la::_InitializedCell::read}<core::int>(){() → core::int});
 }
 static method testNullableInitializedFinalLocal() → void {
-  lowered final core::int? #x = _in::createSentinel<core::int?>();
-  function #x#get() → core::int?
-    return let final core::int? #t7 = #x in _in::isSentinel(#t7) ?{core::int?} let final core::int? #t8 = 1.{core::int::unary-}(){() → core::int} in _in::isSentinel(#x) ?{core::int?} #x = #t8 : throw new _in::LateError::localADI("x") : #t7;
-  core::print(#x#get(){() → core::int?});
-  lowered final core::int? #y = _in::createSentinel<core::int?>();
-  function #y#get() → core::int?
-    return let final core::int? #t9 = #y in _in::isSentinel(#t9) ?{core::int?} let final core::int? #t10 = null in _in::isSentinel(#y) ?{core::int?} #y = #t10 : throw new _in::LateError::localADI("y") : #t9;
-  core::print(#y#get(){() → core::int?});
+  final _la::_InitializedCell x = new _la::_InitializedCell::•(() → core::int? => 1.{core::int::unary-}(){() → core::int});
+  core::print(x.{_la::_InitializedCell::readFinal}<core::int?>(){() → core::int?});
+  final _la::_InitializedCell y = new _la::_InitializedCell::•(() → core::int? => null);
+  core::print(y.{_la::_InitializedCell::readFinal}<core::int?>(){() → core::int?});
 }
 static method testNonNullableInitializedFinalLocal() → void {
-  lowered final core::int? #x;
-  function #x#get() → core::int
-    return let final core::int? #t11 = #x in #t11 == null ?{core::int} let final core::int #t12 = 1.{core::int::unary-}(){() → core::int} in #x == null ?{core::int} #x = #t12 : throw new _in::LateError::localADI("x") : #t11{core::int};
-  core::print(#x#get(){() → core::int});
+  final _la::_InitializedCell x = new _la::_InitializedCell::•(() → core::int => 1.{core::int::unary-}(){() → core::int});
+  core::print(x.{_la::_InitializedCell::readFinal}<core::int>(){() → core::int});
 }
 
 
@@ -84,8 +65,5 @@ Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_locals.dart:41:17 -> DoubleConstant(-1.0)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_locals.dart:53:16 -> DoubleConstant(-1.0)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_locals.dart:60:23 -> DoubleConstant(-1.0)
-Evaluated: VariableGet @ org-dartlang-testcase:///late_locals.dart:60:19 -> DoubleConstant(-1.0)
-Evaluated: VariableGet @ org-dartlang-testcase:///late_locals.dart:63:19 -> NullConstant(null)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_locals.dart:68:22 -> DoubleConstant(-1.0)
-Evaluated: VariableGet @ org-dartlang-testcase:///late_locals.dart:68:18 -> DoubleConstant(-1.0)
-Extra constant evaluation: evaluated: 130, effectively constant: 7
+Extra constant evaluation: evaluated: 81, effectively constant: 4

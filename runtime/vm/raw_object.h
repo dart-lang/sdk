@@ -1835,6 +1835,22 @@ class UntaggedInstructionsSection : public UntaggedObject {
   friend class Image;
 };
 
+class UntaggedInstructionsTable : public UntaggedObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(InstructionsTable);
+
+  VISIT_FROM(ObjectPtr, descriptors)
+  POINTER_FIELD(ArrayPtr, descriptors)
+  VISIT_TO_LENGTH(ObjectPtr, &descriptors_)
+
+  intptr_t length_;
+  uword start_pc_;
+  uword end_pc_;
+
+  // Variable length data follows here.
+  uint32_t* data() { OPEN_ARRAY_START(uint32_t, uint32_t); }
+  const uint32_t* data() const { OPEN_ARRAY_START(uint32_t, uint32_t); }
+};
+
 class UntaggedPcDescriptors : public UntaggedObject {
  public:
 // The macro argument V is passed two arguments, the raw name of the enum value

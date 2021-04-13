@@ -976,19 +976,27 @@ class FunctionDeserializationCluster : public DeserializationCluster {
                                      Function::InstanceSize());
       ReadFromTo(func);
 
+#if defined(DEBUG)
+      func->untag()->entry_point_ = 0;
+      func->untag()->unchecked_entry_point_ = 0;
+#endif
+
       if (kind == Snapshot::kFullAOT) {
-        func->untag()->code_ = static_cast<CodePtr>(d->ReadRef());
+        const intptr_t code_index = d->ReadUnsigned();
+        CodePtr code = static_cast<CodePtr>(d->Ref(code_index));
+        func->untag()->code_ = code;
+        if (Code::IsUnknownDartCode(code)) {
+          const uword entry_point = d->instructions_table().EntryPointAt(
+              code_index - d->code_start_index());
+          func->untag()->entry_point_ = entry_point;
+          func->untag()->unchecked_entry_point_ = entry_point;
+        }
       } else if (kind == Snapshot::kFullJIT) {
         NOT_IN_PRECOMPILED(func->untag()->unoptimized_code_ =
                                static_cast<CodePtr>(d->ReadRef()));
         func->untag()->code_ = static_cast<CodePtr>(d->ReadRef());
         func->untag()->ic_data_array_ = static_cast<ArrayPtr>(d->ReadRef());
       }
-
-#if defined(DEBUG)
-      func->untag()->entry_point_ = 0;
-      func->untag()->unchecked_entry_point_ = 0;
-#endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (kind != Snapshot::kFullAOT) {
@@ -1021,13 +1029,16 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         func ^= refs.At(i);
         ASSERT(func.ptr()->untag()->code()->IsCode());
-        uword entry_point = func.ptr()->untag()->code()->untag()->entry_point_;
-        ASSERT(entry_point != 0);
-        func.ptr()->untag()->entry_point_ = entry_point;
-        uword unchecked_entry_point =
-            func.ptr()->untag()->code()->untag()->unchecked_entry_point_;
-        ASSERT(unchecked_entry_point != 0);
-        func.ptr()->untag()->unchecked_entry_point_ = unchecked_entry_point;
+        if (!Code::IsUnknownDartCode(func.ptr()->untag()->code())) {
+          uword entry_point =
+              func.ptr()->untag()->code()->untag()->entry_point_;
+          ASSERT(entry_point != 0);
+          func.ptr()->untag()->entry_point_ = entry_point;
+          uword unchecked_entry_point =
+              func.ptr()->untag()->code()->untag()->unchecked_entry_point_;
+          ASSERT(unchecked_entry_point != 0);
+          func.ptr()->untag()->unchecked_entry_point_ = unchecked_entry_point;
+        }
       }
     } else if (d->kind() == Snapshot::kFullJIT) {
       Function& func = Function::Handle(d->zone());
@@ -1743,8 +1754,7 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
 class CodeSerializationCluster : public SerializationCluster {
  public:
   explicit CodeSerializationCluster(Heap* heap)
-      : SerializationCluster("Code", compiler::target::Code::InstanceSize()),
-        array_(Array::Handle()) {}
+      : SerializationCluster("Code"), array_(Array::Handle()) {}
   ~CodeSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -1898,14 +1908,22 @@ class CodeSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
-      CodePtr code = objects_[i];
-      s->AssignRef(code);
+      WriteAlloc(s, objects_[i]);
     }
     const intptr_t deferred_count = deferred_objects_.length();
     s->WriteUnsigned(deferred_count);
     for (intptr_t i = 0; i < deferred_count; i++) {
-      CodePtr code = deferred_objects_[i];
-      s->AssignRef(code);
+      WriteAlloc(s, deferred_objects_[i]);
+    }
+  }
+
+  void WriteAlloc(Serializer* s, CodePtr code) {
+    s->AssignRef(code);
+    AutoTraceObjectName(code, MakeDisambiguatedCodeName(s, code));
+    const int32_t state_bits = code->untag()->state_bits_;
+    s->Write<int32_t>(state_bits);
+    if (!Code::DiscardedBit::decode(state_bits)) {
+      target_memory_size_ += compiler::target::Code::InstanceSize();
     }
   }
 
@@ -1950,14 +1968,6 @@ class CodeSerializationCluster : public SerializationCluster {
       s->WriteInstructions(code->untag()->active_instructions_,
                            active_unchecked_offset, code, deferred);
     }
-
-    if (s->InCurrentLoadingUnit(code->untag()->compressed_stackmaps_)) {
-      WriteField(code, compressed_stackmaps_);
-    } else {
-      WriteFieldValue(compressed_stackmaps_, CompressedStackMaps::null());
-    }
-
-    s->Write<int32_t>(code->untag()->state_bits_);
 
 #if defined(DART_PRECOMPILER)
     if (FLAG_write_v8_snapshot_profile_to != nullptr) {
@@ -2023,6 +2033,11 @@ class CodeSerializationCluster : public SerializationCluster {
     WriteField(code, exception_handlers_);
     WriteField(code, pc_descriptors_);
     WriteField(code, catch_entry_);
+    if (s->InCurrentLoadingUnit(code->untag()->compressed_stackmaps_)) {
+      WriteField(code, compressed_stackmaps_);
+    } else {
+      WriteFieldValue(compressed_stackmaps_, CompressedStackMaps::null());
+    }
     if (FLAG_precompiled_mode && FLAG_dwarf_stack_traces_mode) {
       WriteFieldValue(inlined_id_to_function_, Array::null());
       WriteFieldValue(code_source_map_, CodeSourceMap::null());
@@ -2097,19 +2112,31 @@ class CodeDeserializationCluster : public DeserializationCluster {
   void ReadAlloc(Deserializer* d, bool stamp_canonical) {
     PageSpace* old_space = d->heap()->old_space();
     start_index_ = d->next_index();
+    d->set_code_start_index(start_index_);
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
-      auto code = AllocateUninitialized(old_space, Code::InstanceSize(0));
-      d->AssignRef(code);
+      ReadAllocOneCode(d, old_space);
     }
     stop_index_ = d->next_index();
     deferred_start_index_ = d->next_index();
     const intptr_t deferred_count = d->ReadUnsigned();
     for (intptr_t i = 0; i < deferred_count; i++) {
-      auto code = AllocateUninitialized(old_space, Code::InstanceSize(0));
-      d->AssignRef(code);
+      ReadAllocOneCode(d, old_space);
     }
     deferred_stop_index_ = d->next_index();
+  }
+
+  void ReadAllocOneCode(Deserializer* d, PageSpace* old_space) {
+    const int32_t state_bits = d->Read<int32_t>();
+    if (Code::DiscardedBit::decode(state_bits)) {
+      ASSERT(StubCode::HasBeenInitialized());
+      d->AssignRef(StubCode::UnknownDartCode().ptr());
+    } else {
+      auto code = static_cast<CodePtr>(
+          AllocateUninitialized(old_space, Code::InstanceSize(0)));
+      d->AssignRef(code);
+      code->untag()->state_bits_ = state_bits;
+    }
   }
 
   void ReadFill(Deserializer* d, bool stamp_canonical) {
@@ -2124,22 +2151,18 @@ class CodeDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d, intptr_t id, bool deferred) {
     auto const code = static_cast<CodePtr>(d->Ref(id));
-    Deserializer::InitializeHeader(code, kCodeCid, Code::InstanceSize(0));
-
-    d->ReadInstructions(code, deferred);
-
-    code->untag()->compressed_stackmaps_ =
-        static_cast<CompressedStackMapsPtr>(d->ReadRef());
-    code->untag()->state_bits_ = d->Read<int32_t>();
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (Code::IsDiscarded(code)) {
-      code->untag()->owner_ = Smi::New(kFunctionCid);
+    if (Code::IsUnknownDartCode(code)) {
+      d->ReadInstructions(code, deferred, /*discarded=*/true);
       return;
     }
-#else
-    ASSERT(!Code::IsDiscarded(code));
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+
+    Deserializer::InitializeHeader(code, kCodeCid, Code::InstanceSize(0));
+    ASSERT(!Code::IsDiscarded(code));
+
+    d->ReadInstructions(code, deferred, /*discarded=*/false);
 
     // There would be a single global pool if this is a full AOT snapshot
     // with bare instructions.
@@ -2154,6 +2177,8 @@ class CodeDeserializationCluster : public DeserializationCluster {
     code->untag()->pc_descriptors_ =
         static_cast<PcDescriptorsPtr>(d->ReadRef());
     code->untag()->catch_entry_ = d->ReadRef();
+    code->untag()->compressed_stackmaps_ =
+        static_cast<CompressedStackMapsPtr>(d->ReadRef());
     code->untag()->inlined_id_to_function_ =
         static_cast<ArrayPtr>(d->ReadRef());
     code->untag()->code_source_map_ =
@@ -2178,7 +2203,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(Deserializer* d, const Array& refs, bool canonicalize) {
-    d->EndInstructions(refs, start_index_, stop_index_);
+    d->EndInstructions();
 
 #if !defined(PRODUCT)
     if (!CodeObservers::AreActive() && !FLAG_support_disassembler) return;
@@ -5975,6 +6000,7 @@ class UnitSerializationRoots : public SerializationRoots {
       ASSERT(deferred_object->IsCode());
       CodePtr code = static_cast<CodePtr>(deferred_object->ptr());
       ASSERT(s->RefId(code) == (start_index + i));
+      ASSERT(!Code::IsDiscarded(code));
       s->WriteInstructions(code->untag()->instructions_,
                            code->untag()->unchecked_offset_, code, false);
       if (!FLAG_use_bare_instructions) {
@@ -6030,7 +6056,8 @@ class UnitDeserializationRoots : public DeserializationRoots {
     deferred_stop_index_ = deferred_start_index_ + d->ReadUnsigned();
     for (intptr_t id = deferred_start_index_; id < deferred_stop_index_; id++) {
       CodePtr code = static_cast<CodePtr>(d->Ref(id));
-      d->ReadInstructions(code, false);
+      ASSERT(!Code::IsUnknownDartCode(code));
+      d->ReadInstructions(code, /*deferred=*/false, /*discarded=*/false);
       if (code->untag()->owner_->IsHeapObject() &&
           code->untag()->owner_->IsFunction()) {
         FunctionPtr func = static_cast<FunctionPtr>(code->untag()->owner_);
@@ -6070,12 +6097,13 @@ class UnitDeserializationRoots : public DeserializationRoots {
     if (isolate_group->dispatch_table_snapshot() != nullptr) {
       ReadStream stream(isolate_group->dispatch_table_snapshot(),
                         isolate_group->dispatch_table_snapshot_size());
-      d->ReadDispatchTable(&stream);
+      d->ReadDispatchTable(&stream, /*deferred=*/true, deferred_start_index_,
+                           deferred_stop_index_);
     }
   }
 
   void PostLoad(Deserializer* d, const Array& refs) {
-    d->EndInstructions(refs, deferred_start_index_, deferred_stop_index_);
+    d->EndInstructions();
     unit_.set_base_objects(refs);
   }
 
@@ -6523,8 +6551,8 @@ bool Serializer::InCurrentLoadingUnit(ObjectPtr obj, bool record) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void Serializer::PrepareInstructions() {
-  if (!Snapshot::IncludesCode(kind())) return;
+intptr_t Serializer::PrepareInstructions() {
+  if (!Snapshot::IncludesCode(kind())) return 0;
 
   CodeSerializationCluster* cluster =
       static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid]);
@@ -6576,8 +6604,10 @@ void Serializer::PrepareInstructions() {
     GrowableArray<ImageWriterCommand> writer_commands;
     RelocateCodeObjects(vm_, &code_objects, &writer_commands);
     image_writer_->PrepareForSerialization(&writer_commands);
+    return code_objects.length();
   }
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
+  return 0;
 }
 
 void Serializer::WriteInstructions(InstructionsPtr instr,
@@ -6614,6 +6644,16 @@ void Serializer::WriteInstructions(InstructionsPtr instr,
         (unchecked_offset << 1) | (Code::HasMonomorphicEntry(code) ? 0x1 : 0x0);
     WriteUnsigned(payload_info);
     previous_text_offset_ = offset;
+
+    if (Code::IsDiscarded(code)) {
+      // Discarded Code objects are not supported in the vm isolate snapshot.
+      ASSERT(!vm_);
+      // Stack maps of discarded Code objects are written along with
+      // instructions so they can be added to instructions table during
+      // deserialization.
+      WritePropertyRef(code->untag()->compressed_stackmaps_,
+                       "compressed_stackmaps_");
+    }
     return;
   }
 #endif
@@ -6828,8 +6868,14 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
     }
   }
   GrowableArray<SerializationCluster*> clusters;
+  // Code cluster should be deserialized before Function as
+  // FunctionDeserializationCluster::ReadFill uses instructions table
+  // which is filled in CodeDeserializationCluster::ReadFill.
+  if (clusters_by_cid_[kCodeCid] != nullptr) {
+    clusters.Add(clusters_by_cid_[kCodeCid]);
+  }
   for (intptr_t cid = 0; cid < num_cids_; cid++) {
-    if (clusters_by_cid_[cid] != nullptr) {
+    if (clusters_by_cid_[cid] != nullptr && cid != kCodeCid) {
       clusters.Add(clusters_by_cid_[cid]);
     }
   }
@@ -6842,7 +6888,7 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   }
 #endif
 
-  PrepareInstructions();
+  instructions_table_len_ = PrepareInstructions();
 
   intptr_t num_objects = num_base_objects_ + num_written_objects_;
 #if defined(ARCH_IS_64_BIT)
@@ -6861,6 +6907,9 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   } else {
     WriteUnsigned(0);
   }
+  ASSERT((instructions_table_len_ == 0) ||
+         (FLAG_precompiled_mode && FLAG_use_bare_instructions));
+  WriteUnsigned(instructions_table_len_);
 
   for (SerializationCluster* cluster : canonical_clusters) {
     cluster->WriteAndMeasureAlloc(this);
@@ -7121,6 +7170,14 @@ void Serializer::PrintSnapshotSizes() {
       clusters_by_size.Add(new (zone_) FakeSerializationCluster(
           "DispatchTable", entry_count, dispatch_table_size_));
     }
+    if (instructions_table_len_ > 0) {
+      const intptr_t memory_size =
+          compiler::target::InstructionsTable::InstanceSize(
+              instructions_table_len_) +
+          compiler::target::Array::InstanceSize(instructions_table_len_);
+      clusters_by_size.Add(new (zone_) FakeSerializationCluster(
+          "InstructionsTable", instructions_table_len_, 0, memory_size));
+    }
     clusters_by_size.Sort(CompareClusters);
     double total_size =
         static_cast<double>(bytes_written() + GetDataSize() + text_size);
@@ -7158,7 +7215,8 @@ Deserializer::Deserializer(Thread* thread,
       canonical_clusters_(nullptr),
       clusters_(nullptr),
       initial_field_table_(thread->isolate_group()->initial_field_table()),
-      is_non_root_unit_(is_non_root_unit) {
+      is_non_root_unit_(is_non_root_unit),
+      instructions_table_(InstructionsTable::Handle(thread->zone())) {
   if (Snapshot::IncludesCode(kind)) {
     ASSERT(instructions_buffer != nullptr);
     ASSERT(data_buffer != nullptr);
@@ -7308,7 +7366,10 @@ DeserializationCluster* Deserializer::ReadCluster() {
   return NULL;
 }
 
-void Deserializer::ReadDispatchTable(ReadStream* stream) {
+void Deserializer::ReadDispatchTable(ReadStream* stream,
+                                     bool deferred,
+                                     intptr_t deferred_code_start_index,
+                                     intptr_t deferred_code_end_index) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   const uint8_t* table_snapshot_start = stream->AddressOfCurrentPosition();
   const intptr_t length = stream->ReadUnsigned();
@@ -7323,8 +7384,16 @@ void Deserializer::ReadDispatchTable(ReadStream* stream) {
   auto code = IG->object_store()->dispatch_table_null_error_stub();
   ASSERT(code != Code::null());
   uword null_entry = Code::EntryPointOf(code);
+  uword not_loaded_entry = StubCode::NotLoaded().EntryPoint();
 
-  auto const table = new DispatchTable(length);
+  DispatchTable* table;
+  if (deferred) {
+    table = IG->dispatch_table();
+    ASSERT(table != nullptr && table->length() == length);
+  } else {
+    ASSERT(IG->dispatch_table() == nullptr);
+    table = new DispatchTable(length);
+  }
   auto const array = table->array();
   uword value = 0;
   uword recent[kDispatchTableRecentCount] = {0};
@@ -7347,8 +7416,24 @@ void Deserializer::ReadDispatchTable(ReadStream* stream) {
       repeat_count = encoded - 1;
     } else {
       intptr_t cluster_index = encoded - kDispatchTableIndexBase;
-      code = Code::RawCast(Ref(first_code_id + cluster_index));
-      value = Code::EntryPointOf(code);
+      if (deferred) {
+        intptr_t id = first_code_id + cluster_index;
+        if ((deferred_code_start_index <= id) &&
+            (id < deferred_code_end_index)) {
+          // Deferred instructions are at the end of the instructions table.
+          value = instructions_table().EntryPointAt(
+              instructions_table().length() - deferred_code_end_index + id);
+        } else {
+          // Reuse old value from the dispatch table.
+          value = array[i];
+        }
+      } else {
+        if (cluster_index < instructions_table().length()) {
+          value = instructions_table().EntryPointAt(cluster_index);
+        } else {
+          value = not_loaded_entry;
+        }
+      }
       recent[recent_index] = value;
       recent_index = (recent_index + 1) & kDispatchTableRecentMask;
     }
@@ -7356,11 +7441,13 @@ void Deserializer::ReadDispatchTable(ReadStream* stream) {
   }
   ASSERT(repeat_count == 0);
 
-  IG->set_dispatch_table(table);
-  intptr_t table_snapshot_size =
-      stream->AddressOfCurrentPosition() - table_snapshot_start;
-  IG->set_dispatch_table_snapshot(table_snapshot_start);
-  IG->set_dispatch_table_snapshot_size(table_snapshot_size);
+  if (!deferred) {
+    IG->set_dispatch_table(table);
+    intptr_t table_snapshot_size =
+        stream->AddressOfCurrentPosition() - table_snapshot_start;
+    IG->set_dispatch_table_snapshot(table_snapshot_start);
+    IG->set_dispatch_table_snapshot_size(table_snapshot_size);
+  }
 #endif
 }
 
@@ -7481,8 +7568,11 @@ ApiErrorPtr FullSnapshotReader::ConvertToApiError(char* message) {
   return ApiError::New(msg, Heap::kOld);
 }
 
-void Deserializer::ReadInstructions(CodePtr code, bool deferred) {
+void Deserializer::ReadInstructions(CodePtr code,
+                                    bool deferred,
+                                    bool discarded) {
   if (deferred) {
+    ASSERT(!discarded);
 #if defined(DART_PRECOMPILED_RUNTIME)
     if (FLAG_use_bare_instructions) {
       uword entry_point = StubCode::NotLoaded().EntryPoint();
@@ -7508,8 +7598,6 @@ void Deserializer::ReadInstructions(CodePtr code, bool deferred) {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_use_bare_instructions) {
-    // There are no serialized RawInstructions objects in this mode.
-    code->untag()->instructions_ = Instructions::null();
     previous_text_offset_ += ReadUnsigned();
     const uword payload_start =
         image_reader_->GetBareInstructionsAt(previous_text_offset_);
@@ -7528,11 +7616,23 @@ void Deserializer::ReadInstructions(CodePtr code, bool deferred) {
     const uword monomorphic_entry_point =
         payload_start + monomorphic_entry_offset;
 
-    code->untag()->entry_point_ = entry_point;
-    code->untag()->unchecked_entry_point_ = entry_point + unchecked_offset;
-    code->untag()->monomorphic_entry_point_ = monomorphic_entry_point;
-    code->untag()->monomorphic_unchecked_entry_point_ =
-        monomorphic_entry_point + unchecked_offset;
+    ObjectPtr code_descriptor = code;
+    if (discarded) {
+      code_descriptor = static_cast<CompressedStackMapsPtr>(ReadRef());
+    }
+
+    instructions_table_.SetEntryAt(instructions_index_++, payload_start,
+                                   has_monomorphic_entrypoint, code_descriptor);
+
+    if (!discarded) {
+      // There are no serialized RawInstructions objects in this mode.
+      code->untag()->instructions_ = Instructions::null();
+      code->untag()->entry_point_ = entry_point;
+      code->untag()->unchecked_entry_point_ = entry_point + unchecked_offset;
+      code->untag()->monomorphic_entry_point_ = monomorphic_entry_point;
+      code->untag()->monomorphic_unchecked_entry_point_ =
+          monomorphic_entry_point + unchecked_offset;
+    }
     return;
   }
 #endif
@@ -7554,38 +7654,32 @@ void Deserializer::ReadInstructions(CodePtr code, bool deferred) {
   Code::InitializeCachedEntryPointsFrom(code, instr, unchecked_offset);
 }
 
-void Deserializer::EndInstructions(const Array& refs,
-                                   intptr_t start_index,
-                                   intptr_t stop_index) {
+void Deserializer::EndInstructions() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_use_bare_instructions) {
     uword previous_end = image_reader_->GetBareInstructionsEnd();
-    for (intptr_t id = stop_index - 1; id >= start_index; id--) {
-      CodePtr code = static_cast<CodePtr>(refs.At(id));
-      uword start = Code::PayloadStartOf(code);
+    for (intptr_t i = instructions_index_ - 1; i >= 0; --i) {
+      ObjectPtr descriptor = instructions_table_.DescriptorAt(i);
+      uword start = instructions_table_.PayloadStartAt(i);
       ASSERT(start <= previous_end);
-      code->untag()->instructions_length_ = previous_end - start;
+      if (descriptor->IsCode()) {
+        CodePtr code = static_cast<CodePtr>(descriptor);
+        code->untag()->instructions_length_ = previous_end - start;
+      }
       previous_end = start;
     }
 
-    // Build an array of code objects representing the order in which the
-    // [Code]'s instructions will be located in memory.
-    const intptr_t count = stop_index - start_index;
-    const Array& order_table =
-        Array::Handle(zone_, Array::New(count, Heap::kOld));
-    Object& code = Object::Handle(zone_);
-    for (intptr_t i = 0; i < count; i++) {
-      code = refs.At(start_index + i);
-      order_table.SetAt(i, code);
-    }
     ObjectStore* object_store = IsolateGroup::Current()->object_store();
-    GrowableObjectArray& order_tables =
-        GrowableObjectArray::Handle(zone_, object_store->code_order_tables());
-    if (order_tables.IsNull()) {
-      order_tables = GrowableObjectArray::New(Heap::kOld);
-      object_store->set_code_order_tables(order_tables);
+    GrowableObjectArray& tables =
+        GrowableObjectArray::Handle(zone_, object_store->instructions_tables());
+    if (tables.IsNull()) {
+      tables = GrowableObjectArray::New(Heap::kOld);
+      object_store->set_instructions_tables(tables);
     }
-    order_tables.Add(order_table, Heap::kOld);
+    if ((tables.Length() == 0) ||
+        (tables.At(tables.Length() - 1) != instructions_table_.ptr())) {
+      tables.Add(instructions_table_, Heap::kOld);
+    }
   }
 #endif
 }
@@ -7616,6 +7710,7 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
   num_canonical_clusters_ = ReadUnsigned();
   num_clusters_ = ReadUnsigned();
   const intptr_t initial_field_table_len = ReadUnsigned();
+  const intptr_t instructions_table_len = ReadUnsigned();
 
   canonical_clusters_ = new DeserializationCluster*[num_canonical_clusters_];
   clusters_ = new DeserializationCluster*[num_clusters_];
@@ -7624,6 +7719,18 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
     initial_field_table_->AllocateIndex(initial_field_table_len - 1);
     ASSERT_EQUAL(initial_field_table_->NumFieldIds(), initial_field_table_len);
   }
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (instructions_table_len > 0) {
+    ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+    const uword start_pc = image_reader_->GetBareInstructionsAt(0);
+    const uword end_pc = image_reader_->GetBareInstructionsEnd();
+    instructions_table_ =
+        InstructionsTable::New(instructions_table_len, start_pc, end_pc);
+  }
+#else
+  ASSERT(instructions_table_len == 0);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   bool primary;
   {

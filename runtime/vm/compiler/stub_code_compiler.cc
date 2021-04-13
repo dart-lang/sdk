@@ -888,7 +888,15 @@ void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
 }
 
 void StubCodeCompiler::GenerateUnknownDartCodeStub(Assembler* assembler) {
+  // Enter frame to include caller into the backtrace.
+  __ EnterStubFrame();
   __ Breakpoint();  // Marker stub.
+}
+
+void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ CallRuntime(kNotLoadedRuntimeEntry, 0);
+  __ Breakpoint();
 }
 
 }  // namespace compiler

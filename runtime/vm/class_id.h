@@ -32,6 +32,7 @@ typedef uint16_t ClassIdTagType;
   V(Code)                                                                      \
   V(Instructions)                                                              \
   V(InstructionsSection)                                                       \
+  V(InstructionsTable)                                                         \
   V(ObjectPool)                                                                \
   V(PcDescriptors)                                                             \
   V(CodeSourceMap)                                                             \
@@ -420,7 +421,8 @@ inline bool IsVariableSizeClassId(intptr_t index) {
          IsOneByteStringClassId(index) || IsTwoByteStringClassId(index) ||
          IsTypedDataClassId(index) || (index == kContextCid) ||
          (index == kTypeArgumentsCid) || (index == kInstructionsCid) ||
-         (index == kInstructionsSectionCid) || (index == kObjectPoolCid) ||
+         (index == kInstructionsSectionCid) ||
+         (index == kInstructionsTableCid) || (index == kObjectPoolCid) ||
          (index == kPcDescriptorsCid) || (index == kCodeSourceMapCid) ||
          (index == kCompressedStackMapsCid) ||
          (index == kLocalVarDescriptorsCid) ||

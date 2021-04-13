@@ -2784,12 +2784,6 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ int3();  // AOT only.
 }
 
-void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ CallRuntime(kNotLoadedRuntimeEntry, 0);
-  __ int3();
-}
-
 // Instantiate type arguments from instantiator and function type args.
 // EBX: uninstantiated type arguments.
 // EDX: instantiator type arguments.
