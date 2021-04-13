@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
@@ -47,17 +45,10 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
   }
 
   YamlMap _parseYaml(String content) {
-    if (content == null) {
-      return YamlMap();
+    var doc = loadYamlNode(content);
+    if (doc is YamlMap) {
+      return doc;
     }
-    try {
-      var doc = loadYamlNode(content);
-      if (doc is YamlMap) {
-        return doc;
-      }
-      return YamlMap();
-    } catch (exception) {
-      return null;
-    }
+    return YamlMap();
   }
 }

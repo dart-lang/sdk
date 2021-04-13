@@ -281,7 +281,7 @@ class BulkFixProcessor {
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result) async {
     var analysisOptions = result.session.analysisContext.analysisOptions;
-    for (var unitResult in result.units!) {
+    for (var unitResult in result.units) {
       var overrideSet = _readOverrideSet(unitResult);
       for (var error in unitResult.errors) {
         var processor = ErrorProcessor.getProcessor(analysisOptions, error);
@@ -348,7 +348,7 @@ class BulkFixProcessor {
       await compute(producer);
       var newHash = computeChangeHash();
       if (newHash != oldHash) {
-        changeMap.add(result.path!, code);
+        changeMap.add(result.path, code);
       }
     }
 
@@ -398,7 +398,7 @@ class BulkFixProcessor {
     if (useConfigFiles) {
       var provider = result.session.resourceProvider;
       var context = provider.pathContext;
-      var dartFileName = result.path!;
+      var dartFileName = result.path;
       var configFileName = '${context.withoutExtension(dartFileName)}.config';
       var configFile = provider.getFile(configFileName);
       try {

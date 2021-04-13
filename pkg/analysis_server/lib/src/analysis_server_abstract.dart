@@ -362,6 +362,7 @@ abstract class AbstractAnalysisServer {
 
     return driver
         .getResult(path, sendCachedToStream: sendCachedToStream)
+        .then((value) => value.state == ResultState.VALID ? value : null)
         .catchError((e, st) {
       instrumentationService.logException(e, st);
       return null;

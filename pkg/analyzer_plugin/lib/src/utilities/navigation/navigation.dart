@@ -28,7 +28,7 @@ class DartNavigationRequestImpl implements DartNavigationRequest {
       this.resourceProvider, this.offset, this.length, this.result);
 
   @override
-  String get path => result.path!;
+  String get path => result.path;
 }
 
 /// A concrete implementation of [NavigationCollector].

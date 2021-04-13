@@ -700,7 +700,7 @@ class SuggestionBuilder {
       ExecutableElement element, bool invokeSuper) async {
     var displayTextBuffer = StringBuffer();
     var builder = ChangeBuilder(session: request.result.session);
-    await builder.addDartFileEdit(request.result.path!, (builder) {
+    await builder.addDartFileEdit(request.result.path, (builder) {
       builder.addReplacement(range.node(targetId), (builder) {
         builder.writeOverride(
           element,

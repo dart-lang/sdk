@@ -1036,15 +1036,22 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     return result;
   }
 
-  /// Execute the statement using the [StatementConstantEvaluator].
-  Constant execute(Statement statement) {
+  /// Execute a function body using the [StatementConstantEvaluator].
+  Constant executeBody(Statement statement) {
     StatementConstantEvaluator statementEvaluator =
         new StatementConstantEvaluator(this);
     ExecutionStatus status = statement.accept(statementEvaluator);
     if (status is ReturnStatus) {
+      if (status.value == null) {
+        // Void return type from executing the function body.
+        return new NullConstant();
+      }
       return status.value;
     } else if (status is AbortStatus) {
       return status.error;
+    } else if (status is ProceedStatus) {
+      // No return statement in function body with void return type.
+      return new NullConstant();
     }
     return createInvalidExpressionConstant(statement,
         'No valid constant returned from the execution of $statement.');
@@ -2870,7 +2877,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         if (value is AbortConstant) return value;
         env.addVariableValue(parameter, value);
       }
-      return execute(function.body);
+      return executeBody(function.body);
     }
 
     if (functionEnvironment != null) {

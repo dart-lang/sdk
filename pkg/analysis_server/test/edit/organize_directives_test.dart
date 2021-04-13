@@ -30,7 +30,6 @@ class OrganizeDirectivesTest extends AbstractAnalysisTest {
     handler = EditDomainHandler(server);
   }
 
-  @failingTest
   Future test_BAD_doesNotExist() async {
     // The analysis driver fails to return an error
     var request =

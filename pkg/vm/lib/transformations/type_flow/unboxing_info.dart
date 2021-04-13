@@ -203,7 +203,8 @@ class UnboxingInfoManager {
         _nativeCodeOracle.isRecognized(member, const [
           PragmaRecognizedType.AsmIntrinsic,
           PragmaRecognizedType.Other
-        ]);
+        ]) ||
+        _nativeCodeOracle.hasDisableUnboxedParameters(member);
   }
 
   bool _isNative(Member member) => getExternalName(member) != null;
