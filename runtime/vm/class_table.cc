@@ -540,10 +540,6 @@ void ClassTable::PrintToJSONObject(JSONObject* object) {
   }
 }
 
-bool SharedClassTable::ShouldUpdateSizeForClassId(intptr_t cid) {
-  return !IsVariableSizeClassId(cid);
-}
-
 intptr_t SharedClassTable::ClassOffsetFor(intptr_t cid) {
   return cid * sizeof(uint8_t);  // NOLINT
 }

@@ -216,8 +216,6 @@ class SharedClassTable {
   friend class Scavenger;
   friend class ScavengerWeakVisitor;
 
-  static bool ShouldUpdateSizeForClassId(intptr_t cid);
-
 #ifndef PRODUCT
   // Copy-on-write is used for trace_allocation_table_, with old copies stored
   // in old_tables_.
