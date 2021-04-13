@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:test/test.dart';
 
 import '../../../../../abstract_single_unit.dart';
@@ -19,24 +16,24 @@ import '../../../../../utils/test_instrumentation_service.dart';
 abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// The source change associated with the fix that was found, or `null` if
   /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
-  SourceChange change;
+  late SourceChange change;
 
   /// The result of applying the [change] to the file content, or `null` if
   /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
-  String resultCode;
+  late String resultCode;
 
   /// Return a list of the experiments that are to be enabled for tests in this
   /// class, or `null` if there are no experiments that should be enabled.
-  List<String> get experiments => null;
+  List<String>? get experiments => null;
 
   /// Return the lint code being tested.
-  String get lintCode => null;
+  String? get lintCode => null;
 
   /// Return `true` if this test uses config files.
   bool get useConfigFiles => false;
 
   /// The workspace in which fixes contributor operates.
-  ChangeWorkspace get workspace {
+  DartChangeWorkspace get workspace {
     return DartChangeWorkspace([session]);
   }
 

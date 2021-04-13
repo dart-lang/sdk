@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
@@ -518,9 +516,9 @@ class NoProducerOverlapsTest {
           .map((e) => e.key.uniqueName),
     };
 
-    for (final code in BulkFixProcessor.nonLintMultiProducerMap.keys) {
-      for (final producerFunc
-          in BulkFixProcessor.nonLintMultiProducerMap[code]) {
+    for (final entry in BulkFixProcessor.nonLintMultiProducerMap.entries) {
+      var code = entry.key;
+      for (final producerFunc in entry.value) {
         final producer = producerFunc();
         if (producer is DataDriven) {
           dataDrivenCodes.add(code.uniqueName);
