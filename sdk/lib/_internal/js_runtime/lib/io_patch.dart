@@ -228,14 +228,6 @@ class _IOCrypto {
 }
 
 @patch
-class OSError {
-  @patch
-  static int inProgressErrorCode() {
-    throw new UnsupportedError("OSError.inProgressErrorCode");
-  }
-}
-
-@patch
 class _Platform {
   @patch
   static int _numberOfProcessors() {

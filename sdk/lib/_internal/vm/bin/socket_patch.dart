@@ -374,6 +374,9 @@ class _NetworkInterface implements NetworkInterface {
 // implicit constructor.
 class _NativeSocketNativeWrapper extends NativeFieldWrapperClass1 {}
 
+/// Returns error code that corresponds to EINPROGRESS OS error.
+int get _inProgressErrorCode native "OSError_inProgressErrorCode";
+
 // The _NativeSocket class encapsulates an OS socket.
 class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   // Bit flags used when communicating between the eventhandler and
@@ -802,7 +805,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       try {
         socket.port;
       } catch (e) {
-        if (e is OSError && e.errorCode == OSError.inProgressErrorCode()) {
+        if (e is OSError && e.errorCode == _inProgressErrorCode) {
           // Ignore the error, proceed with waiting for a socket to become open.
           // In non-blocking mode connect might not be established away, socket
           // have to be waited for.
