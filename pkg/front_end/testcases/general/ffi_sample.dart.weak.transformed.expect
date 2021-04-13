@@ -19,7 +19,7 @@ class Coordinate extends ffi::Struct {
       #t1.{self::Coordinate::next} = next;
     } =>#t1;
   }
-  abstract member-signature get _typedDataBase() → core::Object*; -> ffi::Struct::_typedDataBase
+  abstract member-signature get _typedDataBase() → core::Object*; -> ffi::_Compound::_typedDataBase
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -31,17 +31,17 @@ class Coordinate extends ffi::Struct {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   get x() → core::double*
-    return ffi::_loadDouble(this.{ffi::Struct::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()));
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()));
   set x(core::double* #v) → void
-    return ffi::_storeDouble(this.{ffi::Struct::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()), #v);
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()), #v);
   get y() → core::double*
-    return ffi::_loadDouble(this.{ffi::Struct::_typedDataBase}, (#C14).{core::List::[]}(ffi::_abi()));
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}, (#C14).{core::List::[]}(ffi::_abi()));
   set y(core::double* #v) → void
-    return ffi::_storeDouble(this.{ffi::Struct::_typedDataBase}, (#C14).{core::List::[]}(ffi::_abi()), #v);
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}, (#C14).{core::List::[]}(ffi::_abi()), #v);
   get next() → ffi::Pointer<self::Coordinate*>*
-    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::Struct::_typedDataBase}, (#C16).{core::List::[]}(ffi::_abi())));
+    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::_Compound::_typedDataBase}, (#C16).{core::List::[]}(ffi::_abi())));
   set next(ffi::Pointer<self::Coordinate*>* #v) → void
-    return ffi::_storeIntPtr(this.{ffi::Struct::_typedDataBase}, (#C16).{core::List::[]}(ffi::_abi()), #v.{ffi::Pointer::address});
+    return ffi::_storeIntPtr(this.{ffi::_Compound::_typedDataBase}, (#C16).{core::List::[]}(ffi::_abi()), #v.{ffi::Pointer::address});
 }
 static method main() → dynamic {}
 

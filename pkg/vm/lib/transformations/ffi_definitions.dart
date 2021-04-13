@@ -853,8 +853,8 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
           Arguments([
             PropertyGet(
                 ThisExpression(),
-                transformer.structTypedDataBaseField.name,
-                transformer.structTypedDataBaseField)
+                transformer.compoundTypedDataBaseField.name,
+                transformer.compoundTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets)
           ]))
@@ -880,8 +880,8 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
           Arguments([
             PropertyGet(
                 ThisExpression(),
-                transformer.structTypedDataBaseField.name,
-                transformer.structTypedDataBaseField)
+                transformer.compoundTypedDataBaseField.name,
+                transformer.compoundTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets),
             VariableGet(argument)
@@ -923,8 +923,8 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
                 Arguments([
                   PropertyGet(
                       ThisExpression(),
-                      transformer.structTypedDataBaseField.name,
-                      transformer.structTypedDataBaseField)
+                      transformer.compoundTypedDataBaseField.name,
+                      transformer.compoundTypedDataBaseField)
                     ..fileOffset = fileOffset,
                   transformer.runtimeBranchOnLayout(offsets)
                 ]))
@@ -952,8 +952,8 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
           Arguments([
             PropertyGet(
                 ThisExpression(),
-                transformer.structTypedDataBaseField.name,
-                transformer.structTypedDataBaseField)
+                transformer.compoundTypedDataBaseField.name,
+                transformer.compoundTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets),
             PropertyGet(VariableGet(argument), transformer.addressGetter.name,
@@ -1035,8 +1035,8 @@ class StructNativeTypeCfe implements NativeTypeCfe {
           transformer.typedDataBaseOffset(
               PropertyGet(
                   ThisExpression(),
-                  transformer.structTypedDataBaseField.name,
-                  transformer.structTypedDataBaseField)
+                  transformer.compoundTypedDataBaseField.name,
+                  transformer.compoundTypedDataBaseField)
                 ..fileOffset = fileOffset,
               transformer.runtimeBranchOnLayout(offsets),
               transformer.runtimeBranchOnLayout(size),
@@ -1064,14 +1064,14 @@ class StructNativeTypeCfe implements NativeTypeCfe {
           Arguments([
             PropertyGet(
                 ThisExpression(),
-                transformer.structTypedDataBaseField.name,
-                transformer.structTypedDataBaseField)
+                transformer.compoundTypedDataBaseField.name,
+                transformer.compoundTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets),
             PropertyGet(
                 VariableGet(argument),
-                transformer.structTypedDataBaseField.name,
-                transformer.structTypedDataBaseField)
+                transformer.compoundTypedDataBaseField.name,
+                transformer.compoundTypedDataBaseField)
               ..fileOffset = fileOffset,
             ConstantExpression(IntConstant(0)),
             transformer.runtimeBranchOnLayout(size),
@@ -1151,8 +1151,8 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
           transformer.typedDataBaseOffset(
               PropertyGet(
                   ThisExpression(),
-                  transformer.structTypedDataBaseField.name,
-                  transformer.structTypedDataBaseField)
+                  transformer.compoundTypedDataBaseField.name,
+                  transformer.compoundTypedDataBaseField)
                 ..fileOffset = fileOffset,
               transformer.runtimeBranchOnLayout(offsets),
               transformer.runtimeBranchOnLayout(size),
@@ -1184,8 +1184,8 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
           Arguments([
             PropertyGet(
                 ThisExpression(),
-                transformer.structTypedDataBaseField.name,
-                transformer.structTypedDataBaseField)
+                transformer.compoundTypedDataBaseField.name,
+                transformer.compoundTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets),
             PropertyGet(

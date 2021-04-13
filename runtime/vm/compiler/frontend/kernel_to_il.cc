@@ -3781,35 +3781,35 @@ Fragment FlowGraphBuilder::WrapTypedDataBaseInStruct(
   const auto& struct_sub_class = Class::ZoneHandle(Z, struct_type.type_class());
   struct_sub_class.EnsureIsFinalized(thread_);
   const auto& lib_ffi = Library::Handle(Z, Library::FfiLibrary());
-  const auto& struct_class =
-      Class::Handle(Z, lib_ffi.LookupClass(Symbols::Struct()));
-  const auto& struct_addressof = Field::ZoneHandle(
-      Z,
-      struct_class.LookupInstanceFieldAllowPrivate(Symbols::_typedDataBase()));
-  ASSERT(!struct_addressof.IsNull());
+  const auto& compound_class =
+      Class::Handle(Z, lib_ffi.LookupClassAllowPrivate(Symbols::Compound()));
+  const auto& compound_typed_data_base =
+      Field::ZoneHandle(Z, compound_class.LookupInstanceFieldAllowPrivate(
+                               Symbols::_typedDataBase()));
+  ASSERT(!compound_typed_data_base.IsNull());
 
   Fragment body;
   LocalVariable* typed_data = MakeTemporary("typed_data_base");
   body += AllocateObject(TokenPosition::kNoSource, struct_sub_class, 0);
   body += LoadLocal(MakeTemporary("struct"));  // Duplicate Struct.
   body += LoadLocal(typed_data);
-  body += StoreInstanceField(struct_addressof,
+  body += StoreInstanceField(compound_typed_data_base,
                              StoreInstanceFieldInstr::Kind::kInitializing);
   body += DropTempsPreserveTop(1);  // Drop TypedData.
   return body;
 }
 
 Fragment FlowGraphBuilder::LoadTypedDataBaseFromStruct() {
-  const Library& lib_ffi = Library::Handle(zone_, Library::FfiLibrary());
-  const Class& struct_class =
-      Class::Handle(zone_, lib_ffi.LookupClass(Symbols::Struct()));
-  const Field& struct_addressof = Field::ZoneHandle(
-      zone_,
-      struct_class.LookupInstanceFieldAllowPrivate(Symbols::_typedDataBase()));
-  ASSERT(!struct_addressof.IsNull());
+  const auto& lib_ffi = Library::Handle(Z, Library::FfiLibrary());
+  const auto& compound_class =
+      Class::Handle(Z, lib_ffi.LookupClassAllowPrivate(Symbols::Compound()));
+  const auto& compound_typed_data_base =
+      Field::ZoneHandle(Z, compound_class.LookupInstanceFieldAllowPrivate(
+                               Symbols::_typedDataBase()));
+  ASSERT(!compound_typed_data_base.IsNull());
 
   Fragment body;
-  body += LoadField(struct_addressof, /*calls_initializer=*/false);
+  body += LoadField(compound_typed_data_base, /*calls_initializer=*/false);
   return body;
 }
 

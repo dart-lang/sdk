@@ -4,6 +4,19 @@
 
 part of dart.ffi;
 
+/// The supertype of all FFI compound types.
+///
+/// FFI struct types should extend [Struct]. For more information see the
+/// documentation on this class.
+abstract class _Compound extends NativeType {
+  @pragma("vm:entry-point")
+  final Object _typedDataBase;
+
+  _Compound._() : _typedDataBase = nullptr;
+
+  _Compound._fromTypedDataBase(this._typedDataBase);
+}
+
 /// The supertype of all FFI struct types.
 ///
 /// FFI struct types should extend this class and declare fields corresponding
@@ -47,17 +60,15 @@ part of dart.ffi;
 /// by native memory or typed data. They may allocated via allocation or loaded
 /// from a [Pointer] or created by ffi calls or callbacks. They cannot be
 /// created by a generative constructor.
-abstract class Struct extends NativeType {
-  @pragma("vm:entry-point")
-  final Object _typedDataBase;
-
+abstract class Struct extends _Compound {
   /// Construct a reference to the [nullptr].
   ///
   /// Use [StructPointer]'s `.ref` to gain references to native memory backed
   /// structs.
-  Struct() : _typedDataBase = nullptr;
+  Struct() : super._();
 
-  Struct._fromTypedDataBase(this._typedDataBase);
+  Struct._fromTypedDataBase(Object typedDataBase)
+      : super._fromTypedDataBase(typedDataBase);
 }
 
 /// Annotation to specify on `Struct` subtypes to indicate that its members

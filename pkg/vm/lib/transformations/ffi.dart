@@ -254,7 +254,7 @@ class FfiTransformer extends Transformer {
   final Procedure sizeOfMethod;
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
-  final Field structTypedDataBaseField;
+  final Field compoundTypedDataBaseField;
   final Field arrayTypedDataBaseField;
   final Field arraySizeField;
   final Field arrayNestedDimensionsField;
@@ -351,8 +351,8 @@ class FfiTransformer extends Transformer {
         offsetByMethod = index.getMember('dart:ffi', 'Pointer', '_offsetBy'),
         elementAtMethod = index.getMember('dart:ffi', 'Pointer', 'elementAt'),
         addressGetter = index.getMember('dart:ffi', 'Pointer', 'get:address'),
-        structTypedDataBaseField =
-            index.getMember('dart:ffi', 'Struct', '_typedDataBase'),
+        compoundTypedDataBaseField =
+            index.getMember('dart:ffi', '_Compound', '_typedDataBase'),
         arrayTypedDataBaseField =
             index.getMember('dart:ffi', 'Array', '_typedDataBase'),
         arraySizeField = index.getMember('dart:ffi', 'Array', '_size'),

@@ -14,20 +14,20 @@ class Coordinate extends ffi::Struct {
     ;
   @#C11
   get x() → core::double
-    return ffi::_loadDouble(this.{ffi::Struct::_typedDataBase}, (#C13).{core::List::[]}(ffi::_abi()));
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}, (#C13).{core::List::[]}(ffi::_abi()));
   @#C11
   set x(core::double #externalFieldValue) → void
-    return ffi::_storeDouble(this.{ffi::Struct::_typedDataBase}, (#C13).{core::List::[]}(ffi::_abi()), #externalFieldValue);
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}, (#C13).{core::List::[]}(ffi::_abi()), #externalFieldValue);
   @#C11
   get y() → core::double
-    return ffi::_loadDouble(this.{ffi::Struct::_typedDataBase}, (#C15).{core::List::[]}(ffi::_abi()));
+    return ffi::_loadDouble(this.{ffi::_Compound::_typedDataBase}, (#C15).{core::List::[]}(ffi::_abi()));
   @#C11
   set y(core::double #externalFieldValue) → void
-    return ffi::_storeDouble(this.{ffi::Struct::_typedDataBase}, (#C15).{core::List::[]}(ffi::_abi()), #externalFieldValue);
+    return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}, (#C15).{core::List::[]}(ffi::_abi()), #externalFieldValue);
   get next() → ffi::Pointer<self::Coordinate>
-    return ffi::_fromAddress<self::Coordinate>(ffi::_loadIntPtr(this.{ffi::Struct::_typedDataBase}, (#C17).{core::List::[]}(ffi::_abi())));
+    return ffi::_fromAddress<self::Coordinate>(ffi::_loadIntPtr(this.{ffi::_Compound::_typedDataBase}, (#C17).{core::List::[]}(ffi::_abi())));
   set next(ffi::Pointer<self::Coordinate> #externalFieldValue) → void
-    return ffi::_storeIntPtr(this.{ffi::Struct::_typedDataBase}, (#C17).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Pointer::address});
+    return ffi::_storeIntPtr(this.{ffi::_Compound::_typedDataBase}, (#C17).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Pointer::address});
   static factory allocate(ffi::Allocator allocator, core::double x, core::double y, ffi::Pointer<self::Coordinate> next) → self::Coordinate {
     return let final self::Coordinate #t1 = new self::Coordinate::#fromTypedDataBase(allocator.{ffi::Allocator::allocate}<self::Coordinate>(self::Coordinate::#sizeOf)!) in block {
       #t1.{self::Coordinate::x} = x;

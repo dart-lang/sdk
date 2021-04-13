@@ -13,7 +13,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
       dart.core::print("hello");
       return null;
     }
-    abstract member-signature get _typedDataBase() → dart.core::Object*; -> dart.ffi::Struct::_typedDataBase
+    abstract member-signature get _typedDataBase() → dart.core::Object*; -> dart.ffi::_Compound::_typedDataBase
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
     abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
@@ -25,17 +25,17 @@ library from "org-dartlang-test:///lib.dart" as lib {
     abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
     abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
     get x() → dart.core::double*
-      return dart.ffi::_loadDouble(this.{dart.ffi::Struct::_typedDataBase}, (#C12).{dart.core::List::[]}(dart.ffi::_abi()));
+      return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}, (#C12).{dart.core::List::[]}(dart.ffi::_abi()));
     set x(dart.core::double* #v) → void
-      return dart.ffi::_storeDouble(this.{dart.ffi::Struct::_typedDataBase}, (#C12).{dart.core::List::[]}(dart.ffi::_abi()), #v);
+      return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}, (#C12).{dart.core::List::[]}(dart.ffi::_abi()), #v);
     get y() → dart.core::double*
-      return dart.ffi::_loadDouble(this.{dart.ffi::Struct::_typedDataBase}, (#C14).{dart.core::List::[]}(dart.ffi::_abi()));
+      return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}, (#C14).{dart.core::List::[]}(dart.ffi::_abi()));
     set y(dart.core::double* #v) → void
-      return dart.ffi::_storeDouble(this.{dart.ffi::Struct::_typedDataBase}, (#C14).{dart.core::List::[]}(dart.ffi::_abi()), #v);
+      return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}, (#C14).{dart.core::List::[]}(dart.ffi::_abi()), #v);
     get next() → dart.ffi::Pointer<lib::Coordinate*>*
-      return dart.ffi::_fromAddress<lib::Coordinate*>(dart.ffi::_loadIntPtr(this.{dart.ffi::Struct::_typedDataBase}, (#C16).{dart.core::List::[]}(dart.ffi::_abi())));
+      return dart.ffi::_fromAddress<lib::Coordinate*>(dart.ffi::_loadIntPtr(this.{dart.ffi::_Compound::_typedDataBase}, (#C16).{dart.core::List::[]}(dart.ffi::_abi())));
     set next(dart.ffi::Pointer<lib::Coordinate*>* #v) → void
-      return dart.ffi::_storeIntPtr(this.{dart.ffi::Struct::_typedDataBase}, (#C16).{dart.core::List::[]}(dart.ffi::_abi()), #v.{dart.ffi::Pointer::address});
+      return dart.ffi::_storeIntPtr(this.{dart.ffi::_Compound::_typedDataBase}, (#C16).{dart.core::List::[]}(dart.ffi::_abi()), #v.{dart.ffi::Pointer::address});
   }
 }
 library from "org-dartlang-test:///main.dart" as main {
