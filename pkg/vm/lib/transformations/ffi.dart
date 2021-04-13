@@ -229,6 +229,7 @@ class FfiTransformer extends Transformer {
   final Field arraySizeDimension5Field;
   final Field arraySizeDimensionsField;
   final Class pointerClass;
+  final Class compoundClass;
   final Class structClass;
   final Class ffiStructLayoutClass;
   final Field ffiStructLayoutTypesField;
@@ -330,6 +331,7 @@ class FfiTransformer extends Transformer {
         arraySizeDimensionsField =
             index.getMember('dart:ffi', '_ArraySize', 'dimensions'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
+        compoundClass = index.getClass('dart:ffi', '_Compound'),
         structClass = index.getClass('dart:ffi', 'Struct'),
         ffiStructLayoutClass = index.getClass('dart:ffi', '_FfiStructLayout'),
         ffiStructLayoutTypesField =
@@ -459,8 +461,7 @@ class FfiTransformer extends Transformer {
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
   DartType convertNativeTypeToDartType(DartType nativeType,
-      {bool allowStructs = false,
-      bool allowStructItself = false,
+      {bool allowCompounds = false,
       bool allowHandle = false,
       bool allowInlineArray = false}) {
     if (nativeType is! InterfaceType) {
@@ -476,11 +477,11 @@ class FfiTransformer extends Transformer {
       }
       return nativeType;
     }
-    if (hierarchy.isSubclassOf(nativeClass, structClass)) {
-      if (structClass == nativeClass) {
-        return allowStructItself ? nativeType : null;
+    if (hierarchy.isSubclassOf(nativeClass, compoundClass)) {
+      if (nativeClass == structClass) {
+        return null;
       }
-      return allowStructs ? nativeType : null;
+      return allowCompounds ? nativeType : null;
     }
     if (nativeType_ == null) {
       return null;
@@ -514,11 +515,11 @@ class FfiTransformer extends Transformer {
     if (fun.typeParameters.length != 0) return null;
 
     final DartType returnType = convertNativeTypeToDartType(fun.returnType,
-        allowStructs: allowStructs, allowHandle: true);
+        allowCompounds: true, allowHandle: true);
     if (returnType == null) return null;
     final List<DartType> argumentTypes = fun.positionalParameters
         .map((t) => convertNativeTypeToDartType(t,
-            allowStructs: allowStructs, allowHandle: true))
+            allowCompounds: true, allowHandle: true))
         .toList();
     if (argumentTypes.contains(null)) return null;
     return FunctionType(argumentTypes, returnType, Nullability.legacy);
@@ -740,7 +741,7 @@ class FfiTransformer extends Transformer {
     return dimensions;
   }
 
-  bool isStructSubtype(DartType type) {
+  bool isCompoundSubtype(DartType type) {
     if (type is InvalidType) {
       return false;
     }
@@ -762,9 +763,9 @@ class FfiTransformer extends Transformer {
 class FfiTransformerData {
   final Map<Field, Procedure> replacedGetters;
   final Map<Field, Procedure> replacedSetters;
-  final Set<Class> emptyStructs;
+  final Set<Class> emptyCompounds;
   FfiTransformerData(
-      this.replacedGetters, this.replacedSetters, this.emptyStructs);
+      this.replacedGetters, this.replacedSetters, this.emptyCompounds);
 }
 
 /// Checks if any library depends on dart:ffi.

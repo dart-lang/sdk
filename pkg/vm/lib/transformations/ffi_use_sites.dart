@@ -35,7 +35,7 @@ import 'ffi.dart'
         UNKNOWN,
         wordSize;
 
-/// Checks and replaces calls to dart:ffi struct fields and methods.
+/// Checks and replaces calls to dart:ffi compound fields and methods.
 void transformLibraries(
     Component component,
     CoreTypes coreTypes,
@@ -64,15 +64,15 @@ void transformLibraries(
       referenceFromIndex,
       ffiTransformerData.replacedGetters,
       ffiTransformerData.replacedSetters,
-      ffiTransformerData.emptyStructs);
+      ffiTransformerData.emptyCompounds);
   libraries.forEach(transformer.visitLibrary);
 }
 
-/// Checks and replaces calls to dart:ffi struct fields and methods.
+/// Checks and replaces calls to dart:ffi compound fields and methods.
 class _FfiUseSiteTransformer extends FfiTransformer {
   final Map<Field, Procedure> replacedGetters;
   final Map<Field, Procedure> replacedSetters;
-  final Set<Class> emptyStructs;
+  final Set<Class> emptyCompounds;
   StaticTypeContext _staticTypeContext;
 
   bool get isFfiLibrary => currentLibrary == ffiLibrary;
@@ -89,7 +89,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       ReferenceFromIndex referenceFromIndex,
       this.replacedGetters,
       this.replacedSetters,
-      this.emptyStructs)
+      this.emptyCompounds)
       : super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex) {}
 
@@ -179,33 +179,33 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       if (target == structPointerRef || target == structPointerElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
-        _ensureNativeTypeValid(nativeType, node, allowStructItself: false);
+        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         return _replaceRef(node);
       } else if (target == structArrayElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
-        _ensureNativeTypeValid(nativeType, node, allowStructItself: false);
+        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         return _replaceRefArray(node);
       } else if (target == arrayArrayElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
         _ensureNativeTypeValid(nativeType, node,
-            allowStructItself: false, allowInlineArray: true);
+            allowInlineArray: true, allowCompounds: true);
 
         return _replaceArrayArrayElemAt(node);
       } else if (target == arrayArrayAssignAt) {
         final DartType nativeType = node.arguments.types[0];
 
         _ensureNativeTypeValid(nativeType, node,
-            allowStructItself: false, allowInlineArray: true);
+            allowInlineArray: true, allowCompounds: true);
 
         return _replaceArrayArrayElemAt(node, setter: true);
       } else if (target == sizeOfMethod) {
         final DartType nativeType = node.arguments.types[0];
 
-        _ensureNativeTypeValid(nativeType, node);
+        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         if (nativeType is InterfaceType) {
           Expression inlineSizeOf = _inlineSizeOf(nativeType);
@@ -220,7 +220,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
-        _ensureNoEmptyStructs(dartType, node);
+        _ensureNoEmptyCompounds(dartType, node);
 
         final replacement = _replaceLookupFunction(node);
 
@@ -229,7 +229,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           if (returnType is InterfaceType) {
             final clazz = returnType.classNode;
             if (clazz.superclass == structClass) {
-              return _invokeStructConstructor(replacement, clazz);
+              return _invokeCompoundConstructor(replacement, clazz);
             }
           }
         }
@@ -241,7 +241,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
-        _ensureNoEmptyStructs(dartType, node);
+        _ensureNoEmptyCompounds(dartType, node);
 
         final DartType nativeSignature =
             (nativeType as InterfaceType).typeArguments[0];
@@ -257,7 +257,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           if (returnType is InterfaceType) {
             final clazz = returnType.classNode;
             if (clazz.superclass == structClass) {
-              return _invokeStructConstructor(replacement, clazz);
+              return _invokeCompoundConstructor(replacement, clazz);
             }
           }
         }
@@ -272,7 +272,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
-        _ensureNoEmptyStructs(dartType, node);
+        _ensureNoEmptyCompounds(dartType, node);
 
         final funcType = dartType as FunctionType;
 
@@ -348,16 +348,16 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         final replacement = _replaceFromFunction(node);
 
-        final structClasses = funcType.positionalParameters
+        final compoundClasses = funcType.positionalParameters
             .whereType<InterfaceType>()
             .map((t) => t.classNode)
             .where((c) => c.superclass == structClass)
             .toList();
-        return _invokeStructConstructors(replacement, structClasses);
+        return _invokeCompoundConstructors(replacement, compoundClasses);
       } else if (target == allocateMethod) {
         final DartType nativeType = node.arguments.types[0];
 
-        _ensureNativeTypeValid(nativeType, node);
+        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         // Inline the body to get rid of a generic invocation of sizeOf.
         // TODO(http://dartbug.com/39964): Add `allignmentOf<T>()` call.
@@ -388,9 +388,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   /// Prevents the struct from being tree-shaken in TFA by invoking its
   /// constructor in a `_nativeEffect` expression.
-  Expression _invokeStructConstructor(
-      Expression nestedExpression, Class compositeClass) {
-    final constructor = compositeClass.constructors
+  Expression _invokeCompoundConstructor(
+      Expression nestedExpression, Class compoundClass) {
+    final constructor = compoundClass.constructors
         .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
     return BlockExpression(
         Block([
@@ -414,15 +414,17 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       ..fileOffset = nestedExpression.fileOffset;
   }
 
-  Expression _invokeStructConstructors(
-          Expression nestedExpression, List<Class> structClasses) =>
-      structClasses.distinct().fold(nestedExpression, _invokeStructConstructor);
+  Expression _invokeCompoundConstructors(
+          Expression nestedExpression, List<Class> compoundClasses) =>
+      compoundClasses
+          .distinct()
+          .fold(nestedExpression, _invokeCompoundConstructor);
 
   Expression _inlineSizeOf(InterfaceType nativeType) {
     final Class nativeClass = nativeType.classNode;
     final NativeType nt = getType(nativeClass);
     if (nt == null) {
-      // User-defined structs.
+      // User-defined compounds.
       Field sizeOfField = nativeClass.fields.single;
       return StaticGet(sizeOfField);
     }
@@ -699,7 +701,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             node.receiver.getStaticType(_staticTypeContext);
         final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
 
-        _ensureNativeTypeValid(nativeType, node);
+        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         Expression inlineSizeOf = _inlineSizeOf(nativeType);
         if (inlineSizeOf != null) {
@@ -735,7 +737,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       {bool allowHandle: false}) {
     final DartType correspondingDartType = convertNativeTypeToDartType(
         nativeType,
-        allowStructs: true,
+        allowCompounds: true,
         allowHandle: allowHandle);
     if (dartType == correspondingDartType) return;
     if (env.isSubtypeOf(correspondingDartType, dartType,
@@ -753,11 +755,10 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   void _ensureNativeTypeValid(DartType nativeType, Expression node,
       {bool allowHandle: false,
-      bool allowStructItself = true,
+      bool allowCompounds: false,
       bool allowInlineArray = false}) {
     if (!_nativeTypeValid(nativeType,
-        allowStructs: true,
-        allowStructItself: allowStructItself,
+        allowCompounds: allowCompounds,
         allowHandle: allowHandle,
         allowInlineArray: allowInlineArray)) {
       diagnosticReporter.report(
@@ -770,12 +771,12 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     }
   }
 
-  void _ensureNoEmptyStructs(DartType nativeType, Expression node) {
+  void _ensureNoEmptyCompounds(DartType nativeType, Expression node) {
     // Error on structs with no fields.
     if (nativeType is InterfaceType) {
       final Class nativeClass = nativeType.classNode;
-      if (hierarchy.isSubclassOf(nativeClass, structClass)) {
-        if (emptyStructs.contains(nativeClass)) {
+      if (hierarchy.isSubclassOf(nativeClass, compoundClass)) {
+        if (emptyCompounds.contains(nativeClass)) {
           diagnosticReporter.report(
               templateFfiEmptyStruct.withArguments(nativeClass.name),
               node.fileOffset,
@@ -788,21 +789,19 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     // Recurse when seeing a function type.
     if (nativeType is FunctionType) {
       nativeType.positionalParameters
-          .forEach((e) => _ensureNoEmptyStructs(e, node));
-      _ensureNoEmptyStructs(nativeType.returnType, node);
+          .forEach((e) => _ensureNoEmptyCompounds(e, node));
+      _ensureNoEmptyCompounds(nativeType.returnType, node);
     }
   }
 
   /// The Dart type system does not enforce that NativeFunction return and
   /// parameter types are only NativeTypes, so we need to check this.
   bool _nativeTypeValid(DartType nativeType,
-      {bool allowStructs: false,
-      bool allowStructItself = false,
+      {bool allowCompounds: false,
       bool allowHandle = false,
       bool allowInlineArray = false}) {
     return convertNativeTypeToDartType(nativeType,
-            allowStructs: allowStructs,
-            allowStructItself: allowStructItself,
+            allowCompounds: allowCompounds,
             allowHandle: allowHandle,
             allowInlineArray: allowInlineArray) !=
         null;
@@ -822,14 +821,14 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   Class _extendsOrImplementsSealedClass(Class klass) {
-    final Class superClass = klass.supertype?.classNode;
+    final Class superClass = klass.superclass;
 
     // The Opaque and Struct classes can be extended, but subclasses
     // cannot be (nor implemented).
     if (klass != opaqueClass &&
         klass != structClass &&
         (hierarchy.isSubtypeOf(klass, opaqueClass) ||
-            hierarchy.isSubtypeOf(klass, structClass))) {
+            hierarchy.isSubtypeOf(klass, compoundClass))) {
       return superClass != opaqueClass && superClass != structClass
           ? superClass
           : null;
