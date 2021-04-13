@@ -3585,8 +3585,30 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Statement _visitStatement(Statement s) {
     if (s == null) return null;
     var result = s.accept(this);
+
+    // In most cases, a Dart expression statement with a child expression
+    // compile to a JS expression statement with a child expression.
+    //
+    //   ExpressionStatement                         js_ast.ExpressionStatement
+    //            |           --> compiles to -->                 |
+    //        Expression                                  js_ast.Expression
+    //
+    // Both the expression statement and child expression nodes contain their
+    // own source location information.
+    //
+    // In the case of a debugger() call, the code compiles to a single node.
+    //
+    //   ExpressionStatement                         js_ast.DebuggerStatement
+    //            |           --> compiles to -->
+    //        Expression
+    //
+    // The js_ast.DebuggerStatement already has the correct source information
+    // attached so we avoid overwriting with the incorrect source location from
+    // [s].
     // TODO(jmesserly): is the `is! Block` still necessary?
-    if (s is! Block) result.sourceInformation = _nodeStart(s);
+    if (!(s is Block || result is js_ast.DebuggerStatement)) {
+      result.sourceInformation = _nodeStart(s);
+    }
 
     // The statement might be the target of a break or continue with a label.
     var name = _labelNames[s];
@@ -5290,13 +5312,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Node _emitDebuggerCall(StaticInvocation node) {
     var args = node.arguments.named;
     var isStatement = node.parent is ExpressionStatement;
+    var debuggerStatement =
+        js_ast.DebuggerStatement().withSourceInformation(_nodeStart(node));
     if (args.isEmpty) {
       // Inline `debugger()` with no arguments, as a statement if possible,
       // otherwise as an immediately invoked function.
       return isStatement
-          ? js_ast.DebuggerStatement()
-          : js.call(
-              '(() => { #; return true})()', [js_ast.DebuggerStatement()]);
+          ? debuggerStatement
+          : js.call('(() => { #; return true})()', [debuggerStatement]);
     }
 
     // The signature of `debugger()` is:
@@ -5321,8 +5344,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // order, then extract the `when` argument.
         : js.call('#.when', js_ast.ObjectInitializer(jsArgs));
     return isStatement
-        ? js.statement('if (#) debugger;', when)
-        : js.call('# && (() => { debugger; return true })()', when);
+        ? js.statement('if (#) #;', [when, debuggerStatement])
+        : js.call(
+            '# && (() => { #; return true })()', [when, debuggerStatement]);
   }
 
   /// Emits the target of a [StaticInvocation], [StaticGet], or [StaticSet].
