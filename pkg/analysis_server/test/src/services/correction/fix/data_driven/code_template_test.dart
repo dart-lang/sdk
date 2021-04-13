@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
@@ -74,7 +72,7 @@ void f() {
 }
 void g(int x, int y) {}
 ''');
-    var unit = testAnalysisResult.unit;
+    var unit = testAnalysisResult.unit!;
     var function = unit.declarations[0] as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
