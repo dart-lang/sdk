@@ -1661,7 +1661,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     // optimized. We immediately set the guarded_cid_ to kDynamicCid, which
     // is effectively the same as calling this method first with Pointer and
     // subsequently with TypedData with field guards.
-    if (klass.Name() == Symbols::Struct().ptr() &&
+    if (klass.Name() == Symbols::Compound().ptr() &&
         Library::Handle(Z, klass.library()).url() == Symbols::DartFfi().ptr()) {
       ASSERT(fields_.length() == 1);
       ASSERT(String::Handle(Z, fields_[0]->name())

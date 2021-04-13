@@ -110,7 +110,7 @@ class BaseMarshaller : public ZoneAllocated {
            kFfiHandleCid;
   }
 
-  bool IsStruct(intptr_t arg_index) const {
+  bool IsCompound(intptr_t arg_index) const {
     const auto& type = AbstractType::Handle(zone_, CType(arg_index));
     const bool predefined = IsFfiTypeClassId(type.type_class_id());
     return !predefined;

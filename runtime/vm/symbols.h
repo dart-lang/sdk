@@ -55,6 +55,7 @@ class ObjectPointerVisitor;
   V(CompleterFuture, "future")                                                 \
   V(CompleterGetFuture, "get:future")                                          \
   V(CompleterSyncConstructor, "Completer.sync")                                \
+  V(Compound, "_Compound")                                                     \
   V(CompressedStackMaps, "CompressedStackMaps")                                \
   V(ConstructorStacktracePrefix, "new ")                                       \
   V(Context, "Context")                                                        \

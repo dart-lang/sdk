@@ -34,7 +34,7 @@ import 'package:kernel/util/graph.dart';
 
 import 'ffi.dart';
 
-/// Checks and elaborates the dart:ffi structs and fields.
+/// Checks and elaborates the dart:ffi compounds and their fields.
 ///
 /// Input:
 /// class Coord extends Struct {
@@ -87,30 +87,30 @@ FfiTransformerData transformLibraries(
   libraries.forEach(transformer.visitLibrary);
   transformer.manualVisitInTopologicalOrder();
   return FfiTransformerData(transformer.replacedGetters,
-      transformer.replacedSetters, transformer.emptyStructs);
+      transformer.replacedSetters, transformer.emptyCompounds);
 }
 
-class StructDependencyGraph<T> implements Graph<T> {
+class CompoundDependencyGraph<T> implements Graph<T> {
   final Map<T, Iterable<T>> map;
-  StructDependencyGraph(this.map);
+  CompoundDependencyGraph(this.map);
 
   Iterable<T> get vertices => map.keys;
   Iterable<T> neighborsOf(T vertex) => map[vertex];
 }
 
-/// Checks and elaborates the dart:ffi structs and fields.
+/// Checks and elaborates the dart:ffi compounds and their fields.
 class _FfiDefinitionTransformer extends FfiTransformer {
   final LibraryIndex index;
 
   // Data structures for topological navigation.
-  Map<Class, IndexedClass> indexedStructClasses = {};
-  Map<Class, Set<Class>> structClassDependencies = {};
+  Map<Class, IndexedClass> indexedCompoundClasses = {};
+  Map<Class, Set<Class>> compoundClassDependencies = {};
   Map<Class, bool> fieldsValid = {};
-  Map<Class, StructNativeTypeCfe> structCache = {};
+  Map<Class, CompoundNativeTypeCfe> compoundCache = {};
 
   Map<Field, Procedure> replacedGetters = {};
   Map<Field, Procedure> replacedSetters = {};
-  Set<Class> emptyStructs = {};
+  Set<Class> emptyCompounds = {};
 
   ChangedStructureNotifier changedStructureNotifier;
 
@@ -127,8 +127,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             referenceFromIndex) {}
 
   void manualVisitInTopologicalOrder() {
-    final connectedComponents =
-        computeStrongComponents(StructDependencyGraph(structClassDependencies));
+    final connectedComponents = computeStrongComponents(
+        CompoundDependencyGraph(compoundClassDependencies));
 
     connectedComponents.forEach((List<Class> component) {
       bool report = false;
@@ -137,7 +137,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         report = true;
       }
       if (component.length == 1) {
-        if (structClassDependencies[component.single]
+        if (compoundClassDependencies[component.single]
             .contains(component.single)) {
           // Direct cycle.
           report = true;
@@ -173,15 +173,17 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
   @override
   visitClass(Class node) {
-    if (!hierarchy.isSubclassOf(node, structClass) || node == structClass) {
+    if (!hierarchy.isSubclassOf(node, compoundClass) ||
+        node == compoundClass ||
+        node == structClass) {
       return node;
     }
 
-    final packing = _checkStructClass(node);
+    final packing = _checkCompoundClass(node);
 
     final indexedClass = currentLibraryIndex?.lookupIndexedClass(node.name);
     _checkConstructors(node, indexedClass);
-    indexedStructClasses[node] = indexedClass;
+    indexedCompoundClasses[node] = indexedClass;
 
     fieldsValid[node] = _checkFieldAnnotations(node, packing);
 
@@ -189,16 +191,16 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   void visitClassInTopologicalOrder(Class node) {
-    final indexedClass = indexedStructClasses[node];
+    final indexedClass = indexedCompoundClasses[node];
     if (fieldsValid[node]) {
-      final structSize = _replaceFields(node, indexedClass);
-      _replaceSizeOfMethod(node, structSize, indexedClass);
+      final compoundSize = _replaceFields(node, indexedClass);
+      _replaceSizeOfMethod(node, compoundSize, indexedClass);
       changedStructureNotifier?.registerClassMemberChange(node);
     }
   }
 
   /// Returns packing if any.
-  int _checkStructClass(Class node) {
+  int _checkCompoundClass(Class node) {
     if (node.typeParameters.length > 0) {
       diagnosticReporter.report(
           templateFfiStructGeneric.withArguments(node.name),
@@ -207,7 +209,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           node.location.file);
     }
 
-    if (node.supertype?.classNode != structClass) {
+    if (node.superclass != structClass) {
       // Not a struct, but extends a struct. The error will be emitted by
       // _FfiUseSiteTransformer.
       return null;
@@ -233,17 +235,18 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       }
       return packing;
     }
+
     return null;
   }
 
-  /// Returns members of [node] that correspond to struct fields.
+  /// Returns members of [node] that correspond to compound fields.
   ///
   /// Note that getters and setters that originate from an external field have
   /// the same `fileOffset`, we always returns getters first.
-  List<Member> _structFieldMembers(Class node) {
+  List<Member> _compoundFieldMembers(Class node) {
     final externalGetterSetters = [...node.procedures]
       ..retainWhere((p) => p.isExternal && (p.isGetter || p.isSetter));
-    final structMembers = [...node.fields, ...externalGetterSetters]
+    final compoundMembers = [...node.fields, ...externalGetterSetters]
       ..sort((m1, m2) {
         if (m1.fileOffset == m2.fileOffset) {
           // Getter and setter have same offset, getter comes first.
@@ -251,10 +254,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         }
         return m1.fileOffset - m2.fileOffset;
       });
-    return structMembers;
+    return compoundMembers;
   }
 
-  DartType _structFieldMemberType(Member member) {
+  DartType _compoundFieldMemberType(Member member) {
     if (member is Field) {
       return member.type;
     }
@@ -267,8 +270,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
   bool _checkFieldAnnotations(Class node, int packing) {
     bool success = true;
-    structClassDependencies[node] = {};
-    final membersWithAnnotations = _structFieldMembers(node)
+    compoundClassDependencies[node] = {};
+    final membersWithAnnotations = _compoundFieldMembers(node)
       ..retainWhere((m) => (m is Field) || (m is Procedure && m.isGetter));
     for (final Member f in membersWithAnnotations) {
       if (f is Field) {
@@ -283,7 +286,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         }
       }
       final nativeTypeAnnos = _getNativeTypeAnnotations(f).toList();
-      final type = _structFieldMemberType(f);
+      final type = _compoundFieldMemberType(f);
       if (type is NullType) {
         diagnosticReporter.report(
             templateFfiFieldNull.withArguments(f.name.text),
@@ -293,7 +296,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         // This class is invalid, but continue reporting other errors on it.
         success = false;
       } else if (isPointerType(type) ||
-          isStructSubtype(type) ||
+          isCompoundSubtype(type) ||
           isArrayType(type)) {
         if (nativeTypeAnnos.length != 0) {
           diagnosticReporter.report(
@@ -304,17 +307,17 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           // This class is invalid, but continue reporting other errors on it.
           success = false;
         }
-        if (isStructSubtype(type)) {
+        if (isCompoundSubtype(type)) {
           final clazz = (type as InterfaceType).classNode;
-          structClassDependencies[node].add(clazz);
+          compoundClassDependencies[node].add(clazz);
           _checkPacking(node, packing, clazz, f);
         } else if (isArrayType(type)) {
           final sizeAnnotations = _getArraySizeAnnotations(f);
           if (sizeAnnotations.length == 1) {
             final singleElementType = arraySingleElementType(type);
-            if (isStructSubtype(singleElementType)) {
+            if (isCompoundSubtype(singleElementType)) {
               final clazz = (singleElementType as InterfaceType).classNode;
-              structClassDependencies[node].add(clazz);
+              compoundClassDependencies[node].add(clazz);
               _checkPacking(node, packing, clazz, f);
             }
             if (arrayDimensions(type) != sizeAnnotations.single.length) {
@@ -348,7 +351,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             Nullability.legacy);
         final DartType shouldBeDartType = convertNativeTypeToDartType(
             nativeType,
-            allowStructs: true,
+            allowCompounds: true,
             allowHandle: false);
         if (shouldBeDartType == null ||
             !env.isSubtypeOf(type, shouldBeDartType,
@@ -450,10 +453,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     node.addConstructor(ctor);
   }
 
-  /// Computes the field offsets (for all ABIs) in the struct and replaces the
-  /// fields with getters and setters using these offsets.
+  /// Computes the field offsets (for all ABIs) in the compound and replaces
+  /// the fields with getters and setters using these offsets.
   ///
-  /// Returns the total size of the struct (for all ABIs).
+  /// Returns the total size of the compound (for all ABIs).
   Map<Abi, int> _replaceFields(Class node, IndexedClass indexedClass) {
     final types = <NativeTypeCfe>[];
     final fields = <int, Field>{};
@@ -461,8 +464,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     final setters = <int, Procedure>{};
 
     int i = 0;
-    for (final Member m in _structFieldMembers(node)) {
-      final dartType = _structFieldMemberType(m);
+    for (final Member m in _compoundFieldMembers(node)) {
+      final dartType = _compoundFieldMemberType(m);
 
       NativeTypeCfe type;
       if (isArrayType(dartType)) {
@@ -470,10 +473,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         if (sizeAnnotations.length == 1) {
           final arrayDimensions = sizeAnnotations.single;
           type = NativeTypeCfe(this, dartType,
-              structCache: structCache, arrayDimensions: arrayDimensions);
+              compoundCache: compoundCache, arrayDimensions: arrayDimensions);
         }
-      } else if (isPointerType(dartType) || isStructSubtype(dartType)) {
-        type = NativeTypeCfe(this, dartType, structCache: structCache);
+      } else if (isPointerType(dartType) || isCompoundSubtype(dartType)) {
+        type = NativeTypeCfe(this, dartType, compoundCache: compoundCache);
       } else {
         // The C type is in the annotation, not the field type itself.
         final nativeTypeAnnos = _getNativeTypeAnnotations(m).toList();
@@ -506,21 +509,21 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     final packing =
         (!packingAnnotations.isEmpty) ? packingAnnotations.first : null;
 
-    _annoteStructWithFields(node, types, packing);
+    _annoteCompoundWithFields(node, types, packing);
     if (types.isEmpty) {
       diagnosticReporter.report(templateFfiEmptyStruct.withArguments(node.name),
           node.fileOffset, node.name.length, node.location.file);
-      emptyStructs.add(node);
+      emptyCompounds.add(node);
     }
 
-    final structType = StructNativeTypeCfe(node, types, packing: packing);
-    structCache[node] = structType;
-    final structLayout = structType.layout;
+    final compoundType = StructNativeTypeCfe(node, types, packing: packing);
+    compoundCache[node] = compoundType;
+    final compoundLayout = compoundType.layout;
 
     final unalignedAccess = packing != null;
     for (final i in fields.keys) {
-      final fieldOffsets = structLayout
-          .map((Abi abi, StructLayout v) => MapEntry(abi, v.offsets[i]));
+      final fieldOffsets = compoundLayout
+          .map((Abi abi, CompoundLayout v) => MapEntry(abi, v.offsets[i]));
       final methods = _generateMethodsForField(
           fields[i], types[i], fieldOffsets, unalignedAccess, indexedClass);
       methods.forEach((p) => node.addProcedure(p));
@@ -531,8 +534,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
 
     for (final i in getters.keys) {
-      final fieldOffsets = structLayout
-          .map((Abi abi, StructLayout v) => MapEntry(abi, v.offsets[i]));
+      final fieldOffsets = compoundLayout
+          .map((Abi abi, CompoundLayout v) => MapEntry(abi, v.offsets[i]));
       Procedure getter = getters[i];
       getter.function.body = types[i].generateGetterStatement(
           getter.function.returnType,
@@ -544,8 +547,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
 
     for (final i in setters.keys) {
-      final fieldOffsets = structLayout
-          .map((Abi abi, StructLayout v) => MapEntry(abi, v.offsets[i]));
+      final fieldOffsets = compoundLayout
+          .map((Abi abi, CompoundLayout v) => MapEntry(abi, v.offsets[i]));
       Procedure setter = setters[i];
       setter.function.body = types[i].generateSetterStatement(
           setter.function.positionalParameters.single.type,
@@ -557,11 +560,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       setter.isExternal = false;
     }
 
-    return structLayout.map((k, v) => MapEntry(k, v.size));
+    return compoundLayout.map((k, v) => MapEntry(k, v.size));
   }
 
   // packing is `int?`.
-  void _annoteStructWithFields(
+  void _annoteCompoundWithFields(
       Class node, List<NativeTypeCfe> types, int packing) {
     List<Constant> constants =
         types.map((t) => t.generateConstant(this)).toList();
@@ -630,7 +633,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   /// Sample output:
   /// int #sizeOf => [24,24,16][_abi()];
   void _replaceSizeOfMethod(
-      Class struct, Map<Abi, int> sizes, IndexedClass indexedClass) {
+      Class compound, Map<Abi, int> sizes, IndexedClass indexedClass) {
     var name = Name("#sizeOf");
     var getterReference = indexedClass?.lookupGetterReference(name);
     final Field sizeOf = Field.immutable(name,
@@ -638,10 +641,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         isFinal: true,
         initializer: runtimeBranchOnLayout(sizes),
         type: InterfaceType(intClass, Nullability.legacy),
-        fileUri: struct.fileUri,
+        fileUri: compound.fileUri,
         getterReference: getterReference)
-      ..fileOffset = struct.fileOffset;
-    struct.addField(sizeOf);
+      ..fileOffset = compound.fileOffset;
+    compound.addField(sizeOf);
   }
 
   NativeType _getFieldType(Class c) {
@@ -712,18 +715,20 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 }
 
-/// The layout of a `Struct` in one [Abi].
-class StructLayout {
-  /// Size of the entire struct.
+/// The layout of a `Struct` or `Union` in one [Abi].
+class CompoundLayout {
+  /// Size of the entire struct or union.
   final int size;
 
-  /// Alignment of struct when nested in other struct.
+  /// Alignment of struct or union when nested in a struct.
   final int alignment;
 
   /// Offset in bytes for each field, indexed by field number.
+  ///
+  /// Always 0 for unions.
   final List<int> offsets;
 
-  StructLayout(this.size, this.alignment, this.offsets);
+  CompoundLayout(this.size, this.alignment, this.offsets);
 }
 
 /// AST node wrapper for native types.
@@ -733,7 +738,7 @@ class StructLayout {
 abstract class NativeTypeCfe {
   factory NativeTypeCfe(FfiTransformer transformer, DartType dartType,
       {List<int> arrayDimensions,
-      Map<Class, StructNativeTypeCfe> structCache = const {}}) {
+      Map<Class, CompoundNativeTypeCfe> compoundCache = const {}}) {
     if (transformer.isPrimitiveType(dartType)) {
       final clazz = (dartType as InterfaceType).classNode;
       final nativeType = transformer.getType(clazz);
@@ -742,12 +747,12 @@ abstract class NativeTypeCfe {
     if (transformer.isPointerType(dartType)) {
       return PointerNativeTypeCfe();
     }
-    if (transformer.isStructSubtype(dartType)) {
+    if (transformer.isCompoundSubtype(dartType)) {
       final clazz = (dartType as InterfaceType).classNode;
-      if (structCache.containsKey(clazz)) {
-        return structCache[clazz];
+      if (compoundCache.containsKey(clazz)) {
+        return compoundCache[clazz];
       } else {
-        throw "$clazz not found in structCache";
+        throw "$clazz not found in compoundCache";
       }
     }
     if (transformer.isArrayType(dartType)) {
@@ -756,7 +761,7 @@ abstract class NativeTypeCfe {
       }
       final elementType = transformer.arraySingleElementType(dartType);
       final elementCfeType =
-          NativeTypeCfe(transformer, elementType, structCache: structCache);
+          NativeTypeCfe(transformer, elementType, compoundCache: compoundCache);
       return ArrayNativeTypeCfe.multi(elementCfeType, arrayDimensions);
     }
     throw "Invalid type $dartType";
@@ -777,13 +782,13 @@ abstract class NativeTypeCfe {
   /// See runtime/vm/compiler/ffi/native_type.cc:NativeType::FromAbstractType.
   Constant generateConstant(FfiTransformer transformer);
 
-  /// Generates the return statement for a struct field getter with this type.
+  /// Generates the return statement for a compound field getter with this type.
   ///
   /// Takes [transformer] to be able to lookup classes and methods.
   ReturnStatement generateGetterStatement(DartType dartType, int fileOffset,
       Map<Abi, int> offsets, bool unalignedAccess, FfiTransformer transformer);
 
-  /// Generates the return statement for a struct field setter with this type.
+  /// Generates the return statement for a compound field setter with this type.
   ///
   /// Takes [transformer] to be able to lookup classes and methods.
   ReturnStatement generateSetterStatement(
@@ -853,8 +858,8 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
           Arguments([
             PropertyGet(
                 ThisExpression(),
-                transformer.structTypedDataBaseField.name,
-                transformer.structTypedDataBaseField)
+                transformer.compoundTypedDataBaseField.name,
+                transformer.compoundTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets)
           ]))
@@ -880,8 +885,8 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
           Arguments([
             PropertyGet(
                 ThisExpression(),
-                transformer.structTypedDataBaseField.name,
-                transformer.structTypedDataBaseField)
+                transformer.compoundTypedDataBaseField.name,
+                transformer.compoundTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets),
             VariableGet(argument)
@@ -923,8 +928,8 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
                 Arguments([
                   PropertyGet(
                       ThisExpression(),
-                      transformer.structTypedDataBaseField.name,
-                      transformer.structTypedDataBaseField)
+                      transformer.compoundTypedDataBaseField.name,
+                      transformer.compoundTypedDataBaseField)
                     ..fileOffset = fileOffset,
                   transformer.runtimeBranchOnLayout(offsets)
                 ]))
@@ -952,8 +957,8 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
           Arguments([
             PropertyGet(
                 ThisExpression(),
-                transformer.structTypedDataBaseField.name,
-                transformer.structTypedDataBaseField)
+                transformer.compoundTypedDataBaseField.name,
+                transformer.compoundTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets),
             PropertyGet(VariableGet(argument), transformer.addressGetter.name,
@@ -963,46 +968,14 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
         ..fileOffset = fileOffset);
 }
 
-class StructNativeTypeCfe implements NativeTypeCfe {
+abstract class CompoundNativeTypeCfe implements NativeTypeCfe {
   final Class clazz;
 
   final List<NativeTypeCfe> members;
 
-  // Nullable int.
-  final int packing;
+  final Map<Abi, CompoundLayout> layout;
 
-  final Map<Abi, StructLayout> layout;
-
-  factory StructNativeTypeCfe(Class clazz, List<NativeTypeCfe> members,
-      {int packing}) {
-    final layout = Map.fromEntries(Abi.values
-        .map((abi) => MapEntry(abi, _calculateLayout(members, packing, abi))));
-    return StructNativeTypeCfe._(clazz, members, packing, layout);
-  }
-
-  // Keep consistent with runtime/vm/compiler/ffi/native_type.cc
-  // NativeCompoundType::FromNativeTypes.
-  static StructLayout _calculateLayout(
-      List<NativeTypeCfe> types, int packing, Abi abi) {
-    int offset = 0;
-    final offsets = <int>[];
-    int structAlignment = 1;
-    for (int i = 0; i < types.length; i++) {
-      final int size = types[i].size[abi];
-      int alignment = types[i].alignment[abi];
-      if (packing != null && packing < alignment) {
-        alignment = packing;
-      }
-      offset = _alignOffset(offset, alignment);
-      offsets.add(offset);
-      offset += size;
-      structAlignment = math.max(structAlignment, alignment);
-    }
-    final int size = _alignOffset(offset, structAlignment);
-    return StructLayout(size, structAlignment, offsets);
-  }
-
-  StructNativeTypeCfe._(this.clazz, this.members, this.packing, this.layout);
+  CompoundNativeTypeCfe._(this.clazz, this.members, this.layout);
 
   @override
   Map<Abi, int> get size =>
@@ -1035,8 +1008,8 @@ class StructNativeTypeCfe implements NativeTypeCfe {
           transformer.typedDataBaseOffset(
               PropertyGet(
                   ThisExpression(),
-                  transformer.structTypedDataBaseField.name,
-                  transformer.structTypedDataBaseField)
+                  transformer.compoundTypedDataBaseField.name,
+                  transformer.compoundTypedDataBaseField)
                 ..fileOffset = fileOffset,
               transformer.runtimeBranchOnLayout(offsets),
               transformer.runtimeBranchOnLayout(size),
@@ -1064,19 +1037,57 @@ class StructNativeTypeCfe implements NativeTypeCfe {
           Arguments([
             PropertyGet(
                 ThisExpression(),
-                transformer.structTypedDataBaseField.name,
-                transformer.structTypedDataBaseField)
+                transformer.compoundTypedDataBaseField.name,
+                transformer.compoundTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets),
             PropertyGet(
                 VariableGet(argument),
-                transformer.structTypedDataBaseField.name,
-                transformer.structTypedDataBaseField)
+                transformer.compoundTypedDataBaseField.name,
+                transformer.compoundTypedDataBaseField)
               ..fileOffset = fileOffset,
             ConstantExpression(IntConstant(0)),
             transformer.runtimeBranchOnLayout(size),
           ]))
         ..fileOffset = fileOffset);
+}
+
+class StructNativeTypeCfe extends CompoundNativeTypeCfe {
+  // Nullable int.
+  final int packing;
+
+  factory StructNativeTypeCfe(Class clazz, List<NativeTypeCfe> members,
+      {int packing}) {
+    final layout = Map.fromEntries(Abi.values
+        .map((abi) => MapEntry(abi, _calculateLayout(members, packing, abi))));
+    return StructNativeTypeCfe._(clazz, members, packing, layout);
+  }
+
+  StructNativeTypeCfe._(Class clazz, List<NativeTypeCfe> members, this.packing,
+      Map<Abi, CompoundLayout> layout)
+      : super._(clazz, members, layout);
+
+  // Keep consistent with runtime/vm/compiler/ffi/native_type.cc
+  // NativeStructType::FromNativeTypes.
+  static CompoundLayout _calculateLayout(
+      List<NativeTypeCfe> types, int packing, Abi abi) {
+    int offset = 0;
+    final offsets = <int>[];
+    int structAlignment = 1;
+    for (int i = 0; i < types.length; i++) {
+      final int size = types[i].size[abi];
+      int alignment = types[i].alignment[abi];
+      if (packing != null && packing < alignment) {
+        alignment = packing;
+      }
+      offset = _alignOffset(offset, alignment);
+      offsets.add(offset);
+      offset += size;
+      structAlignment = math.max(structAlignment, alignment);
+    }
+    final int size = _alignOffset(offset, structAlignment);
+    return CompoundLayout(size, structAlignment, offsets);
+  }
 }
 
 class ArrayNativeTypeCfe implements NativeTypeCfe {
@@ -1151,8 +1162,8 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
           transformer.typedDataBaseOffset(
               PropertyGet(
                   ThisExpression(),
-                  transformer.structTypedDataBaseField.name,
-                  transformer.structTypedDataBaseField)
+                  transformer.compoundTypedDataBaseField.name,
+                  transformer.compoundTypedDataBaseField)
                 ..fileOffset = fileOffset,
               transformer.runtimeBranchOnLayout(offsets),
               transformer.runtimeBranchOnLayout(size),
@@ -1184,8 +1195,8 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
           Arguments([
             PropertyGet(
                 ThisExpression(),
-                transformer.structTypedDataBaseField.name,
-                transformer.structTypedDataBaseField)
+                transformer.compoundTypedDataBaseField.name,
+                transformer.compoundTypedDataBaseField)
               ..fileOffset = fileOffset,
             transformer.runtimeBranchOnLayout(offsets),
             PropertyGet(

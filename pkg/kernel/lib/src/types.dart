@@ -2,25 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../ast.dart'
-    show
-        Class,
-        DartType,
-        DynamicType,
-        FunctionType,
-        FutureOrType,
-        InterfaceType,
-        InvalidType,
-        Library,
-        NamedType,
-        NeverType,
-        NullType,
-        Nullability,
-        TypeParameter,
-        TypeParameterType,
-        TypedefType,
-        Variance,
-        VoidType;
+import '../ast.dart';
 
 import '../class_hierarchy.dart' show ClassHierarchyBase;
 
@@ -350,6 +332,8 @@ abstract class TypeRelation<T extends DartType> {
   IsSubtypeOf isTypeParameterRelated(TypeParameterType s, T t, Types types);
 
   IsSubtypeOf isTypedefRelated(TypedefType s, T t, Types types);
+
+  IsSubtypeOf isExtensionRelated(ExtensionType s, T t, Types types);
 }
 
 class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
@@ -419,6 +403,13 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
 
   @override
   IsSubtypeOf isVoidRelated(VoidType s, InterfaceType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isExtensionRelated(
+      ExtensionType s, InterfaceType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
     return const IsSubtypeOf.never();
   }
 }
@@ -596,6 +587,12 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
   IsSubtypeOf isVoidRelated(VoidType s, FunctionType t, Types types) {
     return const IsSubtypeOf.never();
   }
+
+  @override
+  IsSubtypeOf isExtensionRelated(ExtensionType s, FunctionType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
+  }
 }
 
 class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
@@ -676,6 +673,13 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
   IsSubtypeOf isVoidRelated(VoidType s, TypeParameterType t, Types types) {
     return const IsSubtypeOf.never();
   }
+
+  @override
+  IsSubtypeOf isExtensionRelated(
+      ExtensionType s, TypeParameterType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
+  }
 }
 
 class IsTypedefSubtypeOf extends TypeRelation<TypedefType> {
@@ -721,6 +725,12 @@ class IsTypedefSubtypeOf extends TypeRelation<TypedefType> {
   @override
   IsSubtypeOf isVoidRelated(VoidType s, TypedefType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(s, t.unalias);
+  }
+
+  @override
+  IsSubtypeOf isExtensionRelated(ExtensionType s, TypedefType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
   }
 }
 
@@ -849,6 +859,12 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
   IsSubtypeOf isTypedefRelated(TypedefType s, FutureOrType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(s.unalias, t);
   }
+
+  @override
+  IsSubtypeOf isExtensionRelated(ExtensionType s, FutureOrType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
+  }
 }
 
 class IsIntersectionSubtypeOf extends TypeRelation<TypeParameterType> {
@@ -908,37 +924,51 @@ class IsIntersectionSubtypeOf extends TypeRelation<TypeParameterType> {
       VoidType s, TypeParameterType intersection, Types types) {
     return const IsSubtypeOf.never();
   }
+
+  @override
+  IsSubtypeOf isExtensionRelated(
+      ExtensionType s, TypeParameterType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
+  }
 }
 
 class IsNullTypeSubtypeOf implements TypeRelation<NullType> {
   const IsNullTypeSubtypeOf();
 
+  @override
   IsSubtypeOf isDynamicRelated(DynamicType s, NullType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
+  @override
   IsSubtypeOf isVoidRelated(VoidType s, NullType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
+  @override
   IsSubtypeOf isInterfaceRelated(InterfaceType s, NullType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
+  @override
   IsSubtypeOf isIntersectionRelated(
       TypeParameterType intersection, NullType t, Types types) {
     return types.performNullabilityAwareMutualSubtypesCheck(
         intersection.promotedBound!, t);
   }
 
+  @override
   IsSubtypeOf isFunctionRelated(FunctionType s, NullType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
+  @override
   IsSubtypeOf isFutureOrRelated(FutureOrType s, NullType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
+  @override
   IsSubtypeOf isTypeParameterRelated(
       TypeParameterType s, NullType t, Types types) {
     // We don't need to combine the check of the bound against [t] with the
@@ -947,40 +977,54 @@ class IsNullTypeSubtypeOf implements TypeRelation<NullType> {
     return types.performNullabilityAwareSubtypeCheck(s.bound, t);
   }
 
+  @override
   IsSubtypeOf isTypedefRelated(TypedefType s, NullType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(s.unalias, t);
+  }
+
+  @override
+  IsSubtypeOf isExtensionRelated(ExtensionType s, NullType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
   }
 }
 
 class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
   const IsNeverTypeSubtypeOf();
 
+  @override
   IsSubtypeOf isDynamicRelated(DynamicType s, NeverType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
+  @override
   IsSubtypeOf isVoidRelated(VoidType s, NeverType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
+  @override
   IsSubtypeOf isInterfaceRelated(InterfaceType s, NeverType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
+  @override
   IsSubtypeOf isIntersectionRelated(
       TypeParameterType intersection, NeverType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(
         intersection.promotedBound!, t);
   }
 
+  @override
   IsSubtypeOf isFunctionRelated(FunctionType s, NeverType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
+  @override
   IsSubtypeOf isFutureOrRelated(FutureOrType s, NeverType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
+  @override
   IsSubtypeOf isTypeParameterRelated(
       TypeParameterType s, NeverType t, Types types) {
     return types
@@ -988,7 +1032,82 @@ class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
   }
 
+  @override
   IsSubtypeOf isTypedefRelated(TypedefType s, NeverType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(s.unalias, t);
+  }
+
+  @override
+  IsSubtypeOf isExtensionRelated(ExtensionType s, NeverType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
+  }
+}
+
+class IsExtensionTypeSubtypeOf implements TypeRelation<ExtensionType> {
+  const IsExtensionTypeSubtypeOf();
+
+  @override
+  IsSubtypeOf isDynamicRelated(DynamicType s, ExtensionType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isVoidRelated(VoidType s, ExtensionType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isInterfaceRelated(
+      InterfaceType s, ExtensionType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isIntersectionRelated(
+      TypeParameterType intersection, ExtensionType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isFunctionRelated(FunctionType s, ExtensionType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isFutureOrRelated(FutureOrType s, ExtensionType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isTypeParameterRelated(
+      TypeParameterType s, ExtensionType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isTypedefRelated(TypedefType s, ExtensionType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isExtensionRelated(
+      ExtensionType s, ExtensionType t, Types types) {
+    // TODO(dmitryas): Use with the actual subtyping rules for extension types.
+    if (s.extension != t.extension) {
+      return const IsSubtypeOf.never();
+    }
+    return types
+        .areTypeArgumentsOfSubtypeKernel(
+            s.typeArguments, t.typeArguments, t.extension.typeParameters)
+        .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
   }
 }

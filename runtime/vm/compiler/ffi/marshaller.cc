@@ -390,7 +390,7 @@ Location CallMarshaller::LocInFfiCall(intptr_t def_index_global) const {
 }
 
 bool CallMarshaller::PassTypedData() const {
-  return IsStruct(compiler::ffi::kResultIndex);
+  return IsCompound(compiler::ffi::kResultIndex);
 }
 
 intptr_t CallMarshaller::TypedDataSizeInBytes() const {

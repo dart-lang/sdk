@@ -3776,44 +3776,45 @@ Fragment FlowGraphBuilder::BitCast(Representation from, Representation to) {
   return Fragment(instr);
 }
 
-Fragment FlowGraphBuilder::WrapTypedDataBaseInStruct(
-    const AbstractType& struct_type) {
-  const auto& struct_sub_class = Class::ZoneHandle(Z, struct_type.type_class());
-  struct_sub_class.EnsureIsFinalized(thread_);
+Fragment FlowGraphBuilder::WrapTypedDataBaseInCompound(
+    const AbstractType& compound_type) {
+  const auto& compound_sub_class =
+      Class::ZoneHandle(Z, compound_type.type_class());
+  compound_sub_class.EnsureIsFinalized(thread_);
   const auto& lib_ffi = Library::Handle(Z, Library::FfiLibrary());
-  const auto& struct_class =
-      Class::Handle(Z, lib_ffi.LookupClass(Symbols::Struct()));
-  const auto& struct_addressof = Field::ZoneHandle(
-      Z,
-      struct_class.LookupInstanceFieldAllowPrivate(Symbols::_typedDataBase()));
-  ASSERT(!struct_addressof.IsNull());
+  const auto& compound_class =
+      Class::Handle(Z, lib_ffi.LookupClassAllowPrivate(Symbols::Compound()));
+  const auto& compound_typed_data_base =
+      Field::ZoneHandle(Z, compound_class.LookupInstanceFieldAllowPrivate(
+                               Symbols::_typedDataBase()));
+  ASSERT(!compound_typed_data_base.IsNull());
 
   Fragment body;
   LocalVariable* typed_data = MakeTemporary("typed_data_base");
-  body += AllocateObject(TokenPosition::kNoSource, struct_sub_class, 0);
-  body += LoadLocal(MakeTemporary("struct"));  // Duplicate Struct.
+  body += AllocateObject(TokenPosition::kNoSource, compound_sub_class, 0);
+  body += LoadLocal(MakeTemporary("compound"));  // Duplicate Struct or Union.
   body += LoadLocal(typed_data);
-  body += StoreInstanceField(struct_addressof,
+  body += StoreInstanceField(compound_typed_data_base,
                              StoreInstanceFieldInstr::Kind::kInitializing);
   body += DropTempsPreserveTop(1);  // Drop TypedData.
   return body;
 }
 
-Fragment FlowGraphBuilder::LoadTypedDataBaseFromStruct() {
-  const Library& lib_ffi = Library::Handle(zone_, Library::FfiLibrary());
-  const Class& struct_class =
-      Class::Handle(zone_, lib_ffi.LookupClass(Symbols::Struct()));
-  const Field& struct_addressof = Field::ZoneHandle(
-      zone_,
-      struct_class.LookupInstanceFieldAllowPrivate(Symbols::_typedDataBase()));
-  ASSERT(!struct_addressof.IsNull());
+Fragment FlowGraphBuilder::LoadTypedDataBaseFromCompound() {
+  const auto& lib_ffi = Library::Handle(Z, Library::FfiLibrary());
+  const auto& compound_class =
+      Class::Handle(Z, lib_ffi.LookupClassAllowPrivate(Symbols::Compound()));
+  const auto& compound_typed_data_base =
+      Field::ZoneHandle(Z, compound_class.LookupInstanceFieldAllowPrivate(
+                               Symbols::_typedDataBase()));
+  ASSERT(!compound_typed_data_base.IsNull());
 
   Fragment body;
-  body += LoadField(struct_addressof, /*calls_initializer=*/false);
+  body += LoadField(compound_typed_data_base, /*calls_initializer=*/false);
   return body;
 }
 
-Fragment FlowGraphBuilder::CopyFromStructToStack(
+Fragment FlowGraphBuilder::CopyFromCompoundToStack(
     LocalVariable* variable,
     const GrowableArray<Representation>& representations) {
   Fragment body;
@@ -3821,7 +3822,7 @@ Fragment FlowGraphBuilder::CopyFromStructToStack(
   int offset_in_bytes = 0;
   for (intptr_t i = 0; i < num_defs; i++) {
     body += LoadLocal(variable);
-    body += LoadTypedDataBaseFromStruct();
+    body += LoadTypedDataBaseFromCompound();
     body += LoadUntagged(compiler::target::Pointer::data_field_offset());
     body += IntConstant(offset_in_bytes);
     const Representation representation = representations[i];
@@ -3959,7 +3960,7 @@ Fragment FlowGraphBuilder::CopyFromUnboxedAddressToTypedDataBase(
   return body;
 }
 
-Fragment FlowGraphBuilder::FfiCallConvertStructArgumentToNative(
+Fragment FlowGraphBuilder::FfiCallConvertCompoundArgumentToNative(
     LocalVariable* variable,
     const compiler::ffi::BaseMarshaller& marshaller,
     intptr_t arg_index) {
@@ -3970,29 +3971,29 @@ Fragment FlowGraphBuilder::FfiCallConvertStructArgumentToNative(
     // separate definitions into the FFI call.
     GrowableArray<Representation> representations;
     marshaller.RepsInFfiCall(arg_index, &representations);
-    body += CopyFromStructToStack(variable, representations);
+    body += CopyFromCompoundToStack(variable, representations);
   } else {
     ASSERT(native_loc.IsPointerToMemory());
     // Only load the typed data, do copying in the FFI call machine code.
     body += LoadLocal(variable);  // User-defined struct.
-    body += LoadTypedDataBaseFromStruct();
+    body += LoadTypedDataBaseFromCompound();
   }
   return body;
 }
 
-Fragment FlowGraphBuilder::FfiCallConvertStructReturnToDart(
+Fragment FlowGraphBuilder::FfiCallConvertCompoundReturnToDart(
     const compiler::ffi::BaseMarshaller& marshaller,
     intptr_t arg_index) {
   Fragment body;
   // The typed data is allocated before the FFI call, and is populated in
   // machine code. So, here, it only has to be wrapped in the struct class.
-  const auto& struct_type =
+  const auto& compound_type =
       AbstractType::Handle(Z, marshaller.CType(arg_index));
-  body += WrapTypedDataBaseInStruct(struct_type);
+  body += WrapTypedDataBaseInCompound(compound_type);
   return body;
 }
 
-Fragment FlowGraphBuilder::FfiCallbackConvertStructArgumentToDart(
+Fragment FlowGraphBuilder::FfiCallbackConvertCompoundArgumentToDart(
     const compiler::ffi::BaseMarshaller& marshaller,
     intptr_t arg_index,
     ZoneGrowableArray<LocalVariable*>* definitions) {
@@ -4012,24 +4013,24 @@ Fragment FlowGraphBuilder::FfiCallbackConvertStructArgumentToDart(
   } else {
     ASSERT(marshaller.Location(arg_index).IsPointerToMemory());
     // Allocate a TypedData and copy contents pointed to by an address into it.
-    LocalVariable* address_of_struct = MakeTemporary("address_of_struct");
+    LocalVariable* address_of_compound = MakeTemporary("address_of_compound");
     body += IntConstant(length_in_bytes);
     body +=
         AllocateTypedData(TokenPosition::kNoSource, kTypedDataUint8ArrayCid);
     LocalVariable* typed_data_base = MakeTemporary("typed_data_base");
-    body += LoadLocal(address_of_struct);
+    body += LoadLocal(address_of_compound);
     body += LoadLocal(typed_data_base);
     body += CopyFromUnboxedAddressToTypedDataBase(length_in_bytes);
-    body += DropTempsPreserveTop(1);  // address_of_struct.
+    body += DropTempsPreserveTop(1);  // address_of_compound.
   }
-  // Wrap typed data in struct class.
-  const auto& struct_type =
+  // Wrap typed data in compound class.
+  const auto& compound_type =
       AbstractType::Handle(Z, marshaller.CType(arg_index));
-  body += WrapTypedDataBaseInStruct(struct_type);
+  body += WrapTypedDataBaseInCompound(compound_type);
   return body;
 }
 
-Fragment FlowGraphBuilder::FfiCallbackConvertStructReturnToNative(
+Fragment FlowGraphBuilder::FfiCallbackConvertCompoundReturnToNative(
     const compiler::ffi::CallbackMarshaller& marshaller,
     intptr_t arg_index) {
   Fragment body;
@@ -4037,14 +4038,14 @@ Fragment FlowGraphBuilder::FfiCallbackConvertStructReturnToNative(
   if (native_loc.IsMultiple()) {
     // We pass in typed data to native return instruction, and do the copying
     // in machine code.
-    body += LoadTypedDataBaseFromStruct();
+    body += LoadTypedDataBaseFromCompound();
   } else {
     ASSERT(native_loc.IsPointerToMemory());
     // We copy the data into the right location in IL.
     const intptr_t length_in_bytes =
         marshaller.Location(arg_index).payload_type().SizeInBytes();
 
-    body += LoadTypedDataBaseFromStruct();
+    body += LoadTypedDataBaseFromCompound();
     LocalVariable* typed_data_base = MakeTemporary("typed_data_base");
 
     auto* pointer_to_return =
@@ -4065,7 +4066,7 @@ Fragment FlowGraphBuilder::FfiCallbackConvertStructReturnToNative(
 Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
     const compiler::ffi::BaseMarshaller& marshaller,
     intptr_t arg_index) {
-  ASSERT(!marshaller.IsStruct(arg_index));
+  ASSERT(!marshaller.IsCompound(arg_index));
 
   Fragment body;
   if (marshaller.IsPointer(arg_index)) {
@@ -4093,7 +4094,7 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
     const compiler::ffi::BaseMarshaller& marshaller,
     intptr_t arg_index,
     LocalVariable* api_local_scope) {
-  ASSERT(!marshaller.IsStruct(arg_index));
+  ASSERT(!marshaller.IsCompound(arg_index));
 
   Fragment body;
   if (marshaller.IsPointer(arg_index)) {
@@ -4195,8 +4196,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
 
   // Unbox and push the arguments.
   for (intptr_t i = 0; i < marshaller.num_args(); i++) {
-    if (marshaller.IsStruct(i)) {
-      body += FfiCallConvertStructArgumentToNative(
+    if (marshaller.IsCompound(i)) {
+      body += FfiCallConvertCompoundArgumentToNative(
           parsed_function_->ParameterVariable(kFirstArgumentParameterOffset +
                                               i),
           marshaller, i);
@@ -4246,9 +4247,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
     body += Drop();
   }
 
-  if (marshaller.IsStruct(compiler::ffi::kResultIndex)) {
-    body += FfiCallConvertStructReturnToDart(marshaller,
-                                             compiler::ffi::kResultIndex);
+  if (marshaller.IsCompound(compiler::ffi::kResultIndex)) {
+    body += FfiCallConvertCompoundReturnToDart(marshaller,
+                                               compiler::ffi::kResultIndex);
   } else {
     body += FfiConvertPrimitiveToDart(marshaller, compiler::ffi::kResultIndex);
   }
@@ -4322,8 +4323,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
       defs->Add(def);
     }
 
-    if (marshaller.IsStruct(i)) {
-      body += FfiCallbackConvertStructArgumentToDart(marshaller, i, defs);
+    if (marshaller.IsCompound(i)) {
+      body += FfiCallbackConvertCompoundArgumentToDart(marshaller, i, defs);
     } else {
       body += FfiConvertPrimitiveToDart(marshaller, i);
     }
@@ -4346,9 +4347,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
                            String::ZoneHandle(Z, marshaller.function_name()));
   }
 
-  if (marshaller.IsStruct(compiler::ffi::kResultIndex)) {
-    body += FfiCallbackConvertStructReturnToNative(marshaller,
-                                                   compiler::ffi::kResultIndex);
+  if (marshaller.IsCompound(compiler::ffi::kResultIndex)) {
+    body += FfiCallbackConvertCompoundReturnToNative(
+        marshaller, compiler::ffi::kResultIndex);
   } else {
     body += FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex,
                                         /*api_local_scope=*/nullptr);
@@ -4379,7 +4380,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
         FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex,
                                     /*api_local_scope=*/nullptr);
 
-  } else if (marshaller.IsStruct(compiler::ffi::kResultIndex)) {
+  } else if (marshaller.IsCompound(compiler::ffi::kResultIndex)) {
     ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
     // Manufacture empty result.
     const intptr_t size =
@@ -4390,9 +4391,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
     catch_body += IntConstant(size);
     catch_body +=
         AllocateTypedData(TokenPosition::kNoSource, kTypedDataUint8ArrayCid);
-    catch_body += WrapTypedDataBaseInStruct(
+    catch_body += WrapTypedDataBaseInCompound(
         AbstractType::Handle(Z, marshaller.CType(compiler::ffi::kResultIndex)));
-    catch_body += FfiCallbackConvertStructReturnToNative(
+    catch_body += FfiCallbackConvertCompoundReturnToNative(
         marshaller, compiler::ffi::kResultIndex);
 
   } else {

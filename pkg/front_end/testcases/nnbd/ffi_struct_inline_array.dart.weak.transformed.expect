@@ -20,12 +20,12 @@ class StructInlineArray extends ffi::Struct {
   @#C10
   get a0() → ffi::Array<ffi::Uint8>
     return new ffi::Array::_<ffi::Uint8>( block {
-      core::Object #typedDataBase = this.{ffi::Struct::_typedDataBase};
+      core::Object #typedDataBase = this.{ffi::_Compound::_typedDataBase};
       core::int #offset = (#C12).{core::List::[]}(ffi::_abi());
     } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Uint8>(#typedDataBase.{ffi::Pointer::address}.{core::num::+}(#offset)) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}.{core::num::+}(#offset), (#C9).{core::List::[]}(ffi::_abi())), #C3, #C13);
   @#C10
   set a0(ffi::Array<ffi::Uint8> #externalFieldValue) → void
-    return ffi::_memCopy(this.{ffi::Struct::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Array::_typedDataBase}, #C11, (#C9).{core::List::[]}(ffi::_abi()));
+    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}, (#C12).{core::List::[]}(ffi::_abi()), #externalFieldValue.{ffi::Array::_typedDataBase}, #C11, (#C9).{core::List::[]}(ffi::_abi()));
 }
 static method main() → dynamic {}
 
