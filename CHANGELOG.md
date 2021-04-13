@@ -1,3 +1,12 @@
+# 1.3.0
+
+- `non_constant_identifier_names` updated to check local variables, for-loop
+  initializers and catch clauses
+- error range of `lines_longer_than_80_chars` updated to start at 80 to make
+  splitting easier
+- new lint: `require_trailing_commas`
+- new lint: `prefer_null_aware_method_calls`
+
 # 1.2.1
 
 - fix: adjusted SDK lower bound to 2.12.0-0 (from 2.13.0-0)
