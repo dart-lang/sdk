@@ -143,3 +143,18 @@ extension ListOfFormalParameterExtension on List<FormalParameter> {
     return cast<FormalParameterImpl>();
   }
 }
+
+extension TypeAnnotationExtension on TypeAnnotation {
+  /// Return the static type of this type annotation.
+  ///
+  /// This accessor should be used on expressions that are expected to
+  /// be already resolved. Every such expression must have the type set,
+  /// at least `dynamic`.
+  DartType get typeOrThrow {
+    var type = this.type;
+    if (type == null) {
+      throw StateError('No type: $this');
+    }
+    return type;
+  }
+}

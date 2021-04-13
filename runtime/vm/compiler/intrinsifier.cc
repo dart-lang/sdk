@@ -57,8 +57,7 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
     case MethodRecognizer::kUint64ArrayGetIndexed:
     case MethodRecognizer::kUint64ArraySetIndexed:
       // TODO(ajcbik): consider 32-bit as well.
-      if (target::kBitsPerWord == 64 &&
-          FlowGraphCompiler::SupportsUnboxedInt64()) {
+      if (target::kBitsPerWord == 64) {
         break;
       }
       if (FLAG_trace_intrinsifier) {

@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+class MessageType extends core::Object /*hasConstConstructor*/  {
+  static const field self::MessageType print = const self::MessageType::_("print");
+  static const field self::MessageType skip = const self::MessageType::_("skip");
+  final field core::String name;
+  const constructor _(core::String name) → self::MessageType
+    : self::MessageType::name = name, super core::Object::•()
+    ;
+  static const factory parse(core::String name) → self::MessageType
+    ;
+}
+static const field self::MessageType printConst = const self::MessageType::parse("print");
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_functions_const_factory.dart:12:36 -> InstanceConstant(const MessageType{MessageType.name: "print"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_functions_const_factory.dart:14:35 -> InstanceConstant(const MessageType{MessageType.name: "skip"})
+Extra constant evaluation: evaluated: 4, effectively constant: 2

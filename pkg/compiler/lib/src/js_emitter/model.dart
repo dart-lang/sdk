@@ -21,9 +21,6 @@ class Program {
   final bool needsNativeSupport;
   final bool hasSoftDeferredClasses;
 
-  /// A map from load id to the list of fragments that need to be loaded.
-  final Map<String, List<Fragment>> loadMap;
-
   // If this field is not `null` then its value must be emitted in the embedded
   // global `TYPE_TO_INTERCEPTOR_MAP`. The map references constants and classes.
   final js.Expression typeToInterceptorMap;
@@ -33,7 +30,7 @@ class Program {
   final MetadataCollector _metadataCollector;
   final Iterable<js.TokenFinalizer> finalizers;
 
-  Program(this.fragments, this.holders, this.loadMap, this.typeToInterceptorMap,
+  Program(this.fragments, this.holders, this.typeToInterceptorMap,
       this._metadataCollector, this.finalizers,
       {this.needsNativeSupport,
       this.outputContainsConstantList,
@@ -264,6 +261,9 @@ class Class implements FieldContainer {
   /// Uses indicate missing information in the model.
   final ClassEntity element;
 
+  // TODO(joshualitt): Now that we collect all rti needed classes and handle
+  // them separately, we should investigate whether or not we still need to
+  // store the type data on the class.
   final ClassTypeData typeData;
 
   final js.Name name;

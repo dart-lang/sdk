@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:core';
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
@@ -9,7 +11,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
-import 'package:analysis_server/src/services/correction/dart/remove_non_null_assertion.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set_parser.dart';
@@ -29,6 +30,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:collection/collection.dart';
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
 /// one or more files.
@@ -125,14 +127,6 @@ class BulkFixProcessor {
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
       DataDriven.newInstance,
     ],
-  };
-
-  /// A map from an error code to a generator used to create the correction
-  /// producer used to build a fix for that diagnostic. The generators used for
-  /// lint rules are in the [lintProducerMap].
-  static const Map<ErrorCode, ProducerGenerator> nonLintProducerMap = {
-    StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION:
-        RemoveNonNullAssertion.newInstance,
   };
 
   /// The service used to report errors when building fixes.
@@ -237,22 +231,26 @@ class BulkFixProcessor {
   ) sync* {
     final errorCode = diagnostic.errorCode;
     if (errorCode is LintCode) {
-      var fixes = FixProcessor.lintProducerMap2[errorCode.name] ?? [];
+      var fixes = FixProcessor.lintProducerMap[errorCode.name] ?? [];
       for (var fix in fixes) {
         if (fix.canBeBulkApplied) {
           final generators = fix.generators;
           if (generators != null) {
-            yield* generators.map((g) => g().fixKind).where((k) => k != null);
+            yield* generators.map((g) => g().fixKind).whereNotNull();
           }
         }
       }
       return;
     }
 
-    final generator = nonLintProducerMap[errorCode];
-    if (generator != null) {
-      final kind = generator().fixKind;
-      if (kind != null) yield kind;
+    var fixes = FixProcessor.nonLintProducerMap2[errorCode] ?? [];
+    for (var fix in fixes) {
+      if (fix.canBeBulkApplied) {
+        final generators = fix.generators;
+        if (generators != null) {
+          yield* generators.map((g) => g().fixKind).whereNotNull();
+        }
+      }
     }
 
     final multiGenerators = nonLintMultiProducerMap[errorCode];
@@ -362,26 +360,28 @@ class BulkFixProcessor {
       }
     }
 
+    Future<void> bulkApply(List<FixInfo> fixes, String codeName) async {
+      for (var fix in fixes) {
+        if (fix.canBeBulkApplied) {
+          final generators = fix.generators;
+          if (generators != null) {
+            for (var generator in generators) {
+              await generate(generator(), codeName);
+            }
+          }
+        }
+      }
+    }
+
     var errorCode = diagnostic.errorCode;
     try {
       var codeName = errorCode.name;
       if (errorCode is LintCode) {
-        var fixes = FixProcessor.lintProducerMap2[errorCode.name] ?? [];
-        for (var fix in fixes) {
-          if (fix.canBeBulkApplied) {
-            final generators = fix.generators;
-            if (generators != null) {
-              for (var generator in generators) {
-                await generate(generator(), codeName);
-              }
-            }
-          }
-        }
+        var fixes = FixProcessor.lintProducerMap[errorCode.name] ?? [];
+        await bulkApply(fixes, codeName);
       } else {
-        var generator = nonLintProducerMap[errorCode];
-        if (generator != null) {
-          await generate(generator(), codeName);
-        }
+        var fixes = FixProcessor.nonLintProducerMap2[errorCode] ?? [];
+        await bulkApply(fixes, codeName);
         var multiGenerators = nonLintMultiProducerMap[errorCode];
         if (multiGenerators != null) {
           for (var multiGenerator in multiGenerators) {

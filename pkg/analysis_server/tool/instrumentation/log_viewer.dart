@@ -44,7 +44,7 @@ class Driver {
 
   /// Print usage information.
   void printUsage(ArgParser parser,
-      {String error, Object exception, StackTrace stackTrace}) {
+      {String? error, Object? exception, StackTrace? stackTrace}) {
     if (error != null) {
       print(error);
       print('');
@@ -84,7 +84,7 @@ class Driver {
     }
 
     var arguments = options.rest;
-    if (arguments == null || arguments.length != 1) {
+    if (arguments.length != 1) {
       printUsage(parser, error: 'Missing log file');
       return;
     }

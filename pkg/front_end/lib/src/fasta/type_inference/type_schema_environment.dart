@@ -17,8 +17,6 @@ import 'package:kernel/type_environment.dart';
 import 'package:kernel/src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
 
-import '../kernel/internal_ast.dart' show ExtensionType;
-
 import 'standard_bounds.dart' show TypeSchemaStandardBounds;
 
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
@@ -373,7 +371,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       if (coreTypes.isTop(supertype)) {
         return const IsSubtypeOf.always();
       } else if (supertype is ExtensionType &&
-          subtype.extensionNode == supertype.extensionNode) {
+          subtype.extension == supertype.extension) {
         assert(subtype.typeArguments.length == supertype.typeArguments.length);
         IsSubtypeOf result = const IsSubtypeOf.always();
         for (int i = 0; i < subtype.typeArguments.length; ++i) {
@@ -399,7 +397,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       if (coreTypes.isBottom(subtype)) {
         return const IsSubtypeOf.always();
       } else if (subtype is ExtensionType &&
-          subtype.extensionNode == unwrappedSupertype.extensionNode) {
+          subtype.extension == unwrappedSupertype.extension) {
         assert(subtype.typeArguments.length ==
             unwrappedSupertype.typeArguments.length);
         IsSubtypeOf result = const IsSubtypeOf.always();

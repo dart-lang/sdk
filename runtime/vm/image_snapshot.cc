@@ -535,9 +535,9 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
       RELEASE_ASSERT(String::GetCachedHash(str.ptr()) != 0);
       RELEASE_ASSERT(str.IsOneByteString() || str.IsTwoByteString());
 
-      stream->WriteTargetWord(static_cast<uword>(str.ptr()->untag()->length_));
+      stream->WriteTargetWord(static_cast<uword>(str.ptr()->untag()->length()));
 #if !defined(HASH_IN_OBJECT_HEADER)
-      stream->WriteTargetWord(static_cast<uword>(str.ptr()->untag()->hash_));
+      stream->WriteTargetWord(static_cast<uword>(str.ptr()->untag()->hash()));
 #endif
       ASSERT_EQUAL(stream->Position() - object_start,
                    compiler::target::String::InstanceSize());
@@ -557,7 +557,7 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
   }
 }
 
-static UNLESS_DEBUG(constexpr) const uword kReadOnlyGCBits =
+static constexpr uword kReadOnlyGCBits =
     UntaggedObject::OldBit::encode(true) |
     UntaggedObject::OldAndNotMarkedBit::encode(false) |
     UntaggedObject::OldAndNotRememberedBit::encode(true) |

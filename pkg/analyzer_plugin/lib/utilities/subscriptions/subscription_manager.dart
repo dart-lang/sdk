@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 /// Clients may not extend, implement or mix-in this class.
 class SubscriptionManager {
   /// The current set of subscriptions.
-  Map<AnalysisService, List<String>> _subscriptions;
+  Map<AnalysisService, List<String>>? _subscriptions;
 
   /// Initialize a newly created subscription manager to have no subscriptions.
   SubscriptionManager();
@@ -17,10 +17,11 @@ class SubscriptionManager {
   /// Return `true` if the file with the given [filePath] has a subscription for
   /// the given [service].
   bool hasSubscriptionForFile(String filePath, AnalysisService service) {
-    if (_subscriptions == null) {
+    var subscriptions = _subscriptions;
+    if (subscriptions == null) {
       return false;
     }
-    var files = _subscriptions[service];
+    var files = subscriptions[service];
     return files != null && files.contains(filePath);
   }
 
@@ -28,8 +29,9 @@ class SubscriptionManager {
   /// has been subscribed.
   List<AnalysisService> servicesForFile(String filePath) {
     var services = <AnalysisService>[];
-    if (_subscriptions != null) {
-      _subscriptions.forEach((AnalysisService service, List<String> files) {
+    var subscriptions = _subscriptions;
+    if (subscriptions != null) {
+      subscriptions.forEach((AnalysisService service, List<String> files) {
         if (files.contains(filePath)) {
           services.add(service);
         }
@@ -47,7 +49,8 @@ class SubscriptionManager {
   Map<String, List<AnalysisService>> setSubscriptions(
       Map<AnalysisService, List<String>> subscriptions) {
     var newSubscriptions = <String, List<AnalysisService>>{};
-    if (_subscriptions == null) {
+    var currentSubscriptions = _subscriptions;
+    if (currentSubscriptions == null) {
       // This is the first time subscriptions have been set, so all of the
       // subscriptions are new.
       subscriptions.forEach((AnalysisService service, List<String> paths) {
@@ -61,9 +64,9 @@ class SubscriptionManager {
       // The subscriptions have been changed, to we need to compute the
       // difference.
       subscriptions.forEach((AnalysisService service, List<String> paths) {
-        var oldPaths = _subscriptions[service];
+        var oldPaths = currentSubscriptions[service];
         for (var path in paths) {
-          if (!oldPaths.contains(path)) {
+          if (oldPaths == null || !oldPaths.contains(path)) {
             newSubscriptions
                 .putIfAbsent(path, () => <AnalysisService>[])
                 .add(service);

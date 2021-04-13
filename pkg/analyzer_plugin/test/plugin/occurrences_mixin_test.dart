@@ -23,12 +23,12 @@ void main() {
 
 @reflectiveTest
 class OccurrencesMixinTest with ResourceProviderMixin {
-  String packagePath1;
-  String filePath1;
-  ContextRoot contextRoot1;
+  late String packagePath1;
+  late String filePath1;
+  late ContextRoot contextRoot1;
 
-  MockChannel channel;
-  _TestServerPlugin plugin;
+  late MockChannel channel;
+  late _TestServerPlugin plugin;
 
   void setUp() {
     packagePath1 = convertPath('/package1');

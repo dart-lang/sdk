@@ -301,6 +301,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       typed_data_(TypedData::Handle(zone_)),
       typed_data_view_(TypedDataView::Handle(zone_)),
       function_(Function::Handle(zone_)),
+      smi_(Smi::Handle(zone_)),
       error_(UnhandledException::Handle(zone_)),
       set_class_(Class::ZoneHandle(
           zone_,
@@ -625,7 +626,8 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
     instance_size = cls_.host_instance_size();
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
-    *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew);
+    *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew,
+                                /*compressed*/ false);
   } else {
     cls_ ^= ReadObjectImpl(kAsInlinedObject);
     ASSERT(!cls_.IsNull());
@@ -1128,7 +1130,14 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(ObjectPtr rawobj) {
 
   // First check if it is a Smi (i.e not a heap object).
   if (!rawobj->IsHeapObject()) {
+#if !defined(DART_COMPRESSED_POINTERS)
     Write<int64_t>(static_cast<intptr_t>(rawobj));
+#else
+    // One might expect this to be unnecessary because the reader will just
+    // ignore the upper bits, but the upper bits affect the variable-length
+    // encoding and can change lower bits in the variable-length reader.
+    Write<int64_t>(static_cast<intptr_t>(rawobj) << 32 >> 32);
+#endif
     return true;
   }
 
@@ -1332,7 +1341,7 @@ void SnapshotWriter::WriteClassId(UntaggedClass* cls) {
   // Write out the library url and class name.
   LibraryPtr library = cls->library();
   ASSERT(library != Library::null());
-  WriteObjectImpl(library->untag()->url_, kAsInlinedObject);
+  WriteObjectImpl(library->untag()->url(), kAsInlinedObject);
   WriteObjectImpl(cls->name(), kAsInlinedObject);
 }
 
@@ -1436,7 +1445,7 @@ ClassPtr SnapshotWriter::GetFunctionOwner(FunctionPtr func) {
     return static_cast<ClassPtr>(owner);
   }
   ASSERT(class_id == kPatchClassCid);
-  return static_cast<PatchClassPtr>(owner)->untag()->patched_class_;
+  return static_cast<PatchClassPtr>(owner)->untag()->patched_class();
 }
 
 void SnapshotWriter::CheckForNativeFields(ClassPtr cls) {

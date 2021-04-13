@@ -119,9 +119,6 @@ features:
   variance:
     help: "Sound variance"
 
-  nonfunction-type-aliases:
-    help: "Type aliases define a <type>, not just a <functionType>"
-
   alternative-invalidation-strategy:
     help: "Alternative invalidation strategy for incremental compilation"
     category: "CFE"
@@ -142,6 +139,16 @@ features:
 # Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.
 #
+
+  nonfunction-type-aliases:
+    help: "Type aliases define a <type>, not just a <functionType>"
+    enabledIn: '2.13.0'
+    validation: |
+      typedef S = String;
+      void main() {
+        S s = 'feature enabled';
+        print(s);
+      }
 
   non-nullable:
     help: "Non Nullable by default"

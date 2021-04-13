@@ -29,8 +29,8 @@ String applySequenceOfEdits(String code, Iterable<SourceEdit> edits) {
 
 /// Compare the lists [listA] and [listB], using [itemEqual] to compare
 /// list elements.
-bool listEqual<T1, T2>(
-    List<T1> listA, List<T2> listB, bool Function(T1 a, T2 b) itemEqual) {
+bool listEqual<T>(
+    List<T>? listA, List<T>? listB, bool Function(T a, T b) itemEqual) {
   if (listA == null) {
     return listB == null;
   }
@@ -51,7 +51,7 @@ bool listEqual<T1, T2>(
 /// Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
 /// values.
 bool mapEqual<K, V>(
-    Map<K, V> mapA, Map<K, V> mapB, bool Function(V a, V b) valueEqual) {
+    Map<K, V>? mapA, Map<K, V>? mapB, bool Function(V a, V b) valueEqual) {
   if (mapA == null) {
     return mapB == null;
   }
@@ -61,11 +61,11 @@ bool mapEqual<K, V>(
   if (mapA.length != mapB.length) {
     return false;
   }
-  for (var key in mapA.keys) {
-    if (!mapB.containsKey(key)) {
-      return false;
-    }
-    if (!valueEqual(mapA[key], mapB[key])) {
+  for (var entryA in mapA.entries) {
+    var key = entryA.key;
+    var valueA = entryA.value;
+    var valueB = mapB[key];
+    if (valueB == null || !valueEqual(valueA, valueB)) {
       return false;
     }
   }
@@ -75,7 +75,7 @@ bool mapEqual<K, V>(
 /// Translate the input [map], applying [keyCallback] to all its keys, and
 /// [valueCallback] to all its values.
 Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
-    {KR Function(KP key) keyCallback, VR Function(VP value) valueCallback}) {
+    {KR Function(KP key)? keyCallback, VR Function(VP value)? valueCallback}) {
   Map<KR, VR> result = HashMap<KR, VR>();
   map.forEach((key, value) {
     KR resultKey;
@@ -96,8 +96,8 @@ Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
 }
 
 /// Create a [RefactoringFeedback] corresponding the given [kind].
-RefactoringFeedback refactoringFeedbackFromJson(
-    JsonDecoder jsonDecoder, String jsonPath, Object json, Map feedbackJson) {
+RefactoringFeedback? refactoringFeedbackFromJson(
+    JsonDecoder jsonDecoder, String jsonPath, Object? json, Map feedbackJson) {
   var kind = jsonDecoder.refactoringKind;
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
     return ExtractLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
@@ -121,8 +121,8 @@ RefactoringFeedback refactoringFeedbackFromJson(
 }
 
 /// Create a [RefactoringOptions] corresponding the given [kind].
-RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
-    String jsonPath, Object json, RefactoringKind kind) {
+RefactoringOptions? refactoringOptionsFromJson(JsonDecoder jsonDecoder,
+    String jsonPath, Object? json, RefactoringKind kind) {
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
     return ExtractLocalVariableOptions.fromJson(jsonDecoder, jsonPath, json);
   }
@@ -160,13 +160,13 @@ class RequestDecoder extends JsonDecoder {
   RequestDecoder(this._request);
 
   @override
-  RefactoringKind get refactoringKind {
+  RefactoringKind? get refactoringKind {
     // Refactoring feedback objects should never appear in requests.
     return null;
   }
 
   @override
-  dynamic mismatch(String jsonPath, String expected, [Object actual]) {
+  Object mismatch(String jsonPath, String expected, [Object? actual]) {
     var buffer = StringBuffer();
     buffer.write('Expected to be ');
     buffer.write(expected);
@@ -180,7 +180,7 @@ class RequestDecoder extends JsonDecoder {
   }
 
   @override
-  dynamic missingKey(String jsonPath, String key) {
+  Object missingKey(String jsonPath, String key) {
     return RequestFailure(Response.invalidParameter(
         _request, jsonPath, 'Expected to contain key ${json.encode(key)}'));
   }
@@ -196,12 +196,12 @@ abstract class RequestParams implements HasToJson {
 /// used only for testing.  Errors are reported using bare [Exception] objects.
 class ResponseDecoder extends JsonDecoder {
   @override
-  final RefactoringKind refactoringKind;
+  final RefactoringKind? refactoringKind;
 
   ResponseDecoder(this.refactoringKind);
 
   @override
-  dynamic mismatch(String jsonPath, String expected, [Object actual]) {
+  Object mismatch(String jsonPath, String expected, [Object? actual]) {
     var buffer = StringBuffer();
     buffer.write('Expected ');
     buffer.write(expected);
@@ -216,7 +216,7 @@ class ResponseDecoder extends JsonDecoder {
   }
 
   @override
-  dynamic missingKey(String jsonPath, String key) {
+  Object missingKey(String jsonPath, String key) {
     return Exception('Missing key $key at $jsonPath');
   }
 }

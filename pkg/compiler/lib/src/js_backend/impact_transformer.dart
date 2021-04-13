@@ -11,7 +11,6 @@ import '../common_elements.dart';
 import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact;
 import '../common/resolution.dart' show ResolutionImpact;
-import '../common_elements.dart' show ElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -415,10 +414,16 @@ class CodegenImpactTransformer {
         case ConstantValueKind.SET:
         case ConstantValueKind.MAP:
         case ConstantValueKind.CONSTRUCTED:
-        case ConstantValueKind.INSTANTIATION:
         case ConstantValueKind.LIST:
           transformed.registerStaticUse(StaticUse.staticInvoke(
               _closedWorld.commonElements.findType, CallStructure.ONE_ARG));
+          break;
+        case ConstantValueKind.INSTANTIATION:
+          transformed.registerStaticUse(StaticUse.staticInvoke(
+              _closedWorld.commonElements.findType, CallStructure.ONE_ARG));
+          InstantiationConstantValue instantiation = constantUse.value;
+          _rtiChecksBuilder.registerGenericInstantiation(GenericInstantiation(
+              instantiation.function.type, instantiation.typeArguments));
           break;
         case ConstantValueKind.DEFERRED_GLOBAL:
           _closedWorld.outputUnitData

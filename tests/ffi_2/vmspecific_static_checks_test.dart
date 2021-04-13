@@ -58,6 +58,7 @@ void main() {
   testRefStruct();
   testSizeOfGeneric();
   testSizeOfNativeType();
+  testSizeOfHandle();
   testElementAtGeneric();
   testElementAtNativeType();
 }
@@ -634,11 +635,11 @@ void testSizeOfGeneric() {
 }
 
 void testSizeOfNativeType() {
-  try {
-    sizeOf(); //# 1301: compile-time error
-  } catch (e) {
-    print(e);
-  }
+  sizeOf(); //# 1301: compile-time error
+}
+
+void testSizeOfHandle() {
+  sizeOf<Handle>(); //# 1302: compile-time error
 }
 
 void testElementAtGeneric() {
@@ -675,8 +676,84 @@ class TestStruct1401 extends Struct {
 }
 
 class TestStruct1402 extends Struct {
-  @Array(8) //# 1402: compile-time error
+  @Array(8, 8, 8) //# 1402: compile-time error
   Array<Array<Uint8>> a0; //# 1402: compile-time error
 
   Pointer<Uint8> notEmpty;
+}
+
+class TestStruct1403 extends Struct {
+  @Array(8, 8) //# 1403: compile-time error
+  Array<Array<Array<Uint8>>> a0; //# 1403: compile-time error
+
+  Pointer<Uint8> notEmpty;
+}
+
+class TestStruct1404 extends Struct {
+  @Array.multi([8, 8, 8]) //# 1404: compile-time error
+  Array<Array<Uint8>> a0; //# 1404: compile-time error
+
+  Pointer<Uint8> notEmpty;
+}
+
+class TestStruct1405 extends Struct {
+  @Array.multi([8, 8]) //# 1405: compile-time error
+  Array<Array<Array<Uint8>>> a0; //# 1405: compile-time error
+
+  Pointer<Uint8> notEmpty;
+}
+
+@Packed(1)
+class TestStruct1600 extends Struct {
+  Pointer<Uint8> notEmpty;
+}
+
+@Packed(1)
+@Packed(1) //# 1601: compile-time error
+class TestStruct1601 extends Struct {
+  Pointer<Uint8> notEmpty;
+}
+
+@Packed(3) //# 1602: compile-time error
+class TestStruct1602 extends Struct {
+  Pointer<Uint8> notEmpty;
+}
+
+class TestStruct1603 extends Struct {
+  Pointer<Uint8> notEmpty;
+}
+
+@Packed(1)
+class TestStruct1603Packed extends Struct {
+  Pointer<Uint8> notEmpty;
+
+  TestStruct1603 nestedNotPacked; //# 1603: compile-time error
+}
+
+@Packed(8)
+class TestStruct1604 extends Struct {
+  Pointer<Uint8> notEmpty;
+}
+
+@Packed(1)
+class TestStruct1604Packed extends Struct {
+  Pointer<Uint8> notEmpty;
+
+  TestStruct1604 nestedLooselyPacked; //# 1604: compile-time error
+}
+
+@Packed(1)
+class TestStruct1605Packed extends Struct {
+  Pointer<Uint8> notEmpty;
+
+  @Array(2) //# 1605: compile-time error
+  Array<TestStruct1603> nestedNotPacked; //# 1605: compile-time error
+}
+
+@Packed(1)
+class TestStruct1606Packed extends Struct {
+  Pointer<Uint8> notEmpty;
+
+  @Array(2) //# 1606: compile-time error
+  Array<TestStruct1604> nestedLooselyPacked; //# 1606: compile-time error
 }

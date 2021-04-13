@@ -273,6 +273,54 @@ final testCases = [
           passStructStruct16BytesMixed3x10, 0.0),
       passStructStruct16BytesMixed3x10AfterCallback),
   CallbackTest.withCheck(
+      "PassUint8Struct32BytesInlineArrayMultiDimensionalI",
+      Pointer.fromFunction<
+              PassUint8Struct32BytesInlineArrayMultiDimensionalIType>(
+          passUint8Struct32BytesInlineArrayMultiDimensionalI, 0),
+      passUint8Struct32BytesInlineArrayMultiDimensionalIAfterCallback),
+  CallbackTest.withCheck(
+      "PassUint8Struct4BytesInlineArrayMultiDimensionalIn",
+      Pointer.fromFunction<
+              PassUint8Struct4BytesInlineArrayMultiDimensionalInType>(
+          passUint8Struct4BytesInlineArrayMultiDimensionalIn, 0),
+      passUint8Struct4BytesInlineArrayMultiDimensionalInAfterCallback),
+  CallbackTest.withCheck(
+      "PassStruct3BytesPackedIntx10",
+      Pointer.fromFunction<PassStruct3BytesPackedIntx10Type>(
+          passStruct3BytesPackedIntx10, 0),
+      passStruct3BytesPackedIntx10AfterCallback),
+  CallbackTest.withCheck(
+      "PassStruct8BytesPackedIntx10",
+      Pointer.fromFunction<PassStruct8BytesPackedIntx10Type>(
+          passStruct8BytesPackedIntx10, 0),
+      passStruct8BytesPackedIntx10AfterCallback),
+  CallbackTest.withCheck(
+      "PassStruct9BytesPackedMixedx10DoubleInt32",
+      Pointer.fromFunction<PassStruct9BytesPackedMixedx10DoubleInt32Type>(
+          passStruct9BytesPackedMixedx10DoubleInt32, 0.0),
+      passStruct9BytesPackedMixedx10DoubleInt32AfterCallback),
+  CallbackTest.withCheck(
+      "PassStruct5BytesPackedMixed",
+      Pointer.fromFunction<PassStruct5BytesPackedMixedType>(
+          passStruct5BytesPackedMixed, 0.0),
+      passStruct5BytesPackedMixedAfterCallback),
+  CallbackTest.withCheck(
+      "PassStructNestedAlignmentStruct5BytesPackedMixed",
+      Pointer.fromFunction<
+              PassStructNestedAlignmentStruct5BytesPackedMixedType>(
+          passStructNestedAlignmentStruct5BytesPackedMixed, 0.0),
+      passStructNestedAlignmentStruct5BytesPackedMixedAfterCallback),
+  CallbackTest.withCheck(
+      "PassStruct6BytesInlineArrayInt",
+      Pointer.fromFunction<PassStruct6BytesInlineArrayIntType>(
+          passStruct6BytesInlineArrayInt, 0.0),
+      passStruct6BytesInlineArrayIntAfterCallback),
+  CallbackTest.withCheck(
+      "PassStruct15BytesInlineArrayMixed",
+      Pointer.fromFunction<PassStruct15BytesInlineArrayMixedType>(
+          passStruct15BytesInlineArrayMixed, 0.0),
+      passStruct15BytesInlineArrayMixedAfterCallback),
+  CallbackTest.withCheck(
       "ReturnStruct1ByteInt",
       Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
       returnStruct1ByteIntAfterCallback),
@@ -379,6 +427,21 @@ final testCases = [
       Pointer.fromFunction<ReturnStruct1024BytesHomogeneousUint64Type>(
           returnStruct1024BytesHomogeneousUint64),
       returnStruct1024BytesHomogeneousUint64AfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStruct3BytesPackedInt",
+      Pointer.fromFunction<ReturnStruct3BytesPackedIntType>(
+          returnStruct3BytesPackedInt),
+      returnStruct3BytesPackedIntAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStruct8BytesPackedInt",
+      Pointer.fromFunction<ReturnStruct8BytesPackedIntType>(
+          returnStruct8BytesPackedInt),
+      returnStruct8BytesPackedIntAfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStruct9BytesPackedMixed",
+      Pointer.fromFunction<ReturnStruct9BytesPackedMixedType>(
+          returnStruct9BytesPackedMixed),
+      returnStruct9BytesPackedMixedAfterCallback),
   CallbackTest.withCheck(
       "ReturnStructArgumentStruct1ByteInt",
       Pointer.fromFunction<ReturnStructArgumentStruct1ByteIntType>(
@@ -6159,6 +6222,852 @@ void passStructStruct16BytesMixed3x10AfterCallback() {
   Expect.approxEquals(30.0, result);
 }
 
+typedef PassUint8Struct32BytesInlineArrayMultiDimensionalIType
+    = Uint32 Function(
+        Uint8,
+        Struct32BytesInlineArrayMultiDimensionalInt,
+        Uint8,
+        Struct8BytesInlineArrayMultiDimensionalInt,
+        Uint8,
+        Struct8BytesInlineArrayMultiDimensionalInt,
+        Uint8);
+
+// Global variables to be able to test inputs after callback returned.
+int passUint8Struct32BytesInlineArrayMultiDimensionalI_a0 = 0;
+Struct32BytesInlineArrayMultiDimensionalInt
+    passUint8Struct32BytesInlineArrayMultiDimensionalI_a1 =
+    Struct32BytesInlineArrayMultiDimensionalInt();
+int passUint8Struct32BytesInlineArrayMultiDimensionalI_a2 = 0;
+Struct8BytesInlineArrayMultiDimensionalInt
+    passUint8Struct32BytesInlineArrayMultiDimensionalI_a3 =
+    Struct8BytesInlineArrayMultiDimensionalInt();
+int passUint8Struct32BytesInlineArrayMultiDimensionalI_a4 = 0;
+Struct8BytesInlineArrayMultiDimensionalInt
+    passUint8Struct32BytesInlineArrayMultiDimensionalI_a5 =
+    Struct8BytesInlineArrayMultiDimensionalInt();
+int passUint8Struct32BytesInlineArrayMultiDimensionalI_a6 = 0;
+
+// Result variable also global, so we can delete it after the callback.
+int passUint8Struct32BytesInlineArrayMultiDimensionalIResult = 0;
+
+int passUint8Struct32BytesInlineArrayMultiDimensionalICalculateResult() {
+  int result = 0;
+
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a0;
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][0][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][0][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][0][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][0][1][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][1][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][1][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][1][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][0][1][1][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][0][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][0][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][0][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][0][1][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][1][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][1][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][1][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[0][1][1][1][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][0][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][0][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][0][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][0][1][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][1][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][1][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][1][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][0][1][1][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][0][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][0][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][0][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][0][1][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][1][0][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][1][0][1];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][1][1][0];
+  result +=
+      passUint8Struct32BytesInlineArrayMultiDimensionalI_a1.a0[1][1][1][1][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a2;
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[0][0][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[0][0][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[0][1][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[0][1][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[1][0][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[1][0][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[1][1][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a3.a0[1][1][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a4;
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[0][0][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[0][0][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[0][1][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[0][1][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[1][0][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[1][0][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[1][1][0];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a5.a0[1][1][1];
+  result += passUint8Struct32BytesInlineArrayMultiDimensionalI_a6;
+
+  passUint8Struct32BytesInlineArrayMultiDimensionalIResult = result;
+
+  return result;
+}
+
+/// Test multi dimensional inline array struct as argument.
+int passUint8Struct32BytesInlineArrayMultiDimensionalI(
+    int a0,
+    Struct32BytesInlineArrayMultiDimensionalInt a1,
+    int a2,
+    Struct8BytesInlineArrayMultiDimensionalInt a3,
+    int a4,
+    Struct8BytesInlineArrayMultiDimensionalInt a5,
+    int a6) {
+  print(
+      "passUint8Struct32BytesInlineArrayMultiDimensionalI(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6})");
+
+  // In legacy mode, possibly return null.
+  if (a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassUint8Struct32BytesInlineArrayMultiDimensionalI throwing on purpose!");
+  }
+
+  passUint8Struct32BytesInlineArrayMultiDimensionalI_a0 = a0;
+  passUint8Struct32BytesInlineArrayMultiDimensionalI_a1 = a1;
+  passUint8Struct32BytesInlineArrayMultiDimensionalI_a2 = a2;
+  passUint8Struct32BytesInlineArrayMultiDimensionalI_a3 = a3;
+  passUint8Struct32BytesInlineArrayMultiDimensionalI_a4 = a4;
+  passUint8Struct32BytesInlineArrayMultiDimensionalI_a5 = a5;
+  passUint8Struct32BytesInlineArrayMultiDimensionalI_a6 = a6;
+
+  final result =
+      passUint8Struct32BytesInlineArrayMultiDimensionalICalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passUint8Struct32BytesInlineArrayMultiDimensionalIAfterCallback() {
+  final result =
+      passUint8Struct32BytesInlineArrayMultiDimensionalICalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(1378, result);
+}
+
+typedef PassUint8Struct4BytesInlineArrayMultiDimensionalInType = Uint32
+    Function(Uint8, Struct4BytesInlineArrayMultiDimensionalInt, Uint8);
+
+// Global variables to be able to test inputs after callback returned.
+int passUint8Struct4BytesInlineArrayMultiDimensionalIn_a0 = 0;
+Struct4BytesInlineArrayMultiDimensionalInt
+    passUint8Struct4BytesInlineArrayMultiDimensionalIn_a1 =
+    Struct4BytesInlineArrayMultiDimensionalInt();
+int passUint8Struct4BytesInlineArrayMultiDimensionalIn_a2 = 0;
+
+// Result variable also global, so we can delete it after the callback.
+int passUint8Struct4BytesInlineArrayMultiDimensionalInResult = 0;
+
+int passUint8Struct4BytesInlineArrayMultiDimensionalInCalculateResult() {
+  int result = 0;
+
+  result += passUint8Struct4BytesInlineArrayMultiDimensionalIn_a0;
+  result += passUint8Struct4BytesInlineArrayMultiDimensionalIn_a1.a0[0][0].a0;
+  result += passUint8Struct4BytesInlineArrayMultiDimensionalIn_a1.a0[0][1].a0;
+  result += passUint8Struct4BytesInlineArrayMultiDimensionalIn_a1.a0[1][0].a0;
+  result += passUint8Struct4BytesInlineArrayMultiDimensionalIn_a1.a0[1][1].a0;
+  result += passUint8Struct4BytesInlineArrayMultiDimensionalIn_a2;
+
+  passUint8Struct4BytesInlineArrayMultiDimensionalInResult = result;
+
+  return result;
+}
+
+/// Test struct in multi dimensional inline array.
+int passUint8Struct4BytesInlineArrayMultiDimensionalIn(
+    int a0, Struct4BytesInlineArrayMultiDimensionalInt a1, int a2) {
+  print(
+      "passUint8Struct4BytesInlineArrayMultiDimensionalIn(${a0}, ${a1}, ${a2})");
+
+  // In legacy mode, possibly return null.
+  if (a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassUint8Struct4BytesInlineArrayMultiDimensionalIn throwing on purpose!");
+  }
+
+  passUint8Struct4BytesInlineArrayMultiDimensionalIn_a0 = a0;
+  passUint8Struct4BytesInlineArrayMultiDimensionalIn_a1 = a1;
+  passUint8Struct4BytesInlineArrayMultiDimensionalIn_a2 = a2;
+
+  final result =
+      passUint8Struct4BytesInlineArrayMultiDimensionalInCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passUint8Struct4BytesInlineArrayMultiDimensionalInAfterCallback() {
+  final result =
+      passUint8Struct4BytesInlineArrayMultiDimensionalInCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(5, result);
+}
+
+typedef PassStruct3BytesPackedIntx10Type = Int64 Function(
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt,
+    Struct3BytesPackedInt);
+
+// Global variables to be able to test inputs after callback returned.
+Struct3BytesPackedInt passStruct3BytesPackedIntx10_a0 = Struct3BytesPackedInt();
+Struct3BytesPackedInt passStruct3BytesPackedIntx10_a1 = Struct3BytesPackedInt();
+Struct3BytesPackedInt passStruct3BytesPackedIntx10_a2 = Struct3BytesPackedInt();
+Struct3BytesPackedInt passStruct3BytesPackedIntx10_a3 = Struct3BytesPackedInt();
+Struct3BytesPackedInt passStruct3BytesPackedIntx10_a4 = Struct3BytesPackedInt();
+Struct3BytesPackedInt passStruct3BytesPackedIntx10_a5 = Struct3BytesPackedInt();
+Struct3BytesPackedInt passStruct3BytesPackedIntx10_a6 = Struct3BytesPackedInt();
+Struct3BytesPackedInt passStruct3BytesPackedIntx10_a7 = Struct3BytesPackedInt();
+Struct3BytesPackedInt passStruct3BytesPackedIntx10_a8 = Struct3BytesPackedInt();
+Struct3BytesPackedInt passStruct3BytesPackedIntx10_a9 = Struct3BytesPackedInt();
+
+// Result variable also global, so we can delete it after the callback.
+int passStruct3BytesPackedIntx10Result = 0;
+
+int passStruct3BytesPackedIntx10CalculateResult() {
+  int result = 0;
+
+  result += passStruct3BytesPackedIntx10_a0.a0;
+  result += passStruct3BytesPackedIntx10_a0.a1;
+  result += passStruct3BytesPackedIntx10_a1.a0;
+  result += passStruct3BytesPackedIntx10_a1.a1;
+  result += passStruct3BytesPackedIntx10_a2.a0;
+  result += passStruct3BytesPackedIntx10_a2.a1;
+  result += passStruct3BytesPackedIntx10_a3.a0;
+  result += passStruct3BytesPackedIntx10_a3.a1;
+  result += passStruct3BytesPackedIntx10_a4.a0;
+  result += passStruct3BytesPackedIntx10_a4.a1;
+  result += passStruct3BytesPackedIntx10_a5.a0;
+  result += passStruct3BytesPackedIntx10_a5.a1;
+  result += passStruct3BytesPackedIntx10_a6.a0;
+  result += passStruct3BytesPackedIntx10_a6.a1;
+  result += passStruct3BytesPackedIntx10_a7.a0;
+  result += passStruct3BytesPackedIntx10_a7.a1;
+  result += passStruct3BytesPackedIntx10_a8.a0;
+  result += passStruct3BytesPackedIntx10_a8.a1;
+  result += passStruct3BytesPackedIntx10_a9.a0;
+  result += passStruct3BytesPackedIntx10_a9.a1;
+
+  passStruct3BytesPackedIntx10Result = result;
+
+  return result;
+}
+
+/// Small struct with mis-aligned member.
+int passStruct3BytesPackedIntx10(
+    Struct3BytesPackedInt a0,
+    Struct3BytesPackedInt a1,
+    Struct3BytesPackedInt a2,
+    Struct3BytesPackedInt a3,
+    Struct3BytesPackedInt a4,
+    Struct3BytesPackedInt a5,
+    Struct3BytesPackedInt a6,
+    Struct3BytesPackedInt a7,
+    Struct3BytesPackedInt a8,
+    Struct3BytesPackedInt a9) {
+  print(
+      "passStruct3BytesPackedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStruct3BytesPackedIntx10 throwing on purpose!");
+  }
+
+  passStruct3BytesPackedIntx10_a0 = a0;
+  passStruct3BytesPackedIntx10_a1 = a1;
+  passStruct3BytesPackedIntx10_a2 = a2;
+  passStruct3BytesPackedIntx10_a3 = a3;
+  passStruct3BytesPackedIntx10_a4 = a4;
+  passStruct3BytesPackedIntx10_a5 = a5;
+  passStruct3BytesPackedIntx10_a6 = a6;
+  passStruct3BytesPackedIntx10_a7 = a7;
+  passStruct3BytesPackedIntx10_a8 = a8;
+  passStruct3BytesPackedIntx10_a9 = a9;
+
+  final result = passStruct3BytesPackedIntx10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct3BytesPackedIntx10AfterCallback() {
+  final result = passStruct3BytesPackedIntx10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(10, result);
+}
+
+typedef PassStruct8BytesPackedIntx10Type = Int64 Function(
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt,
+    Struct8BytesPackedInt);
+
+// Global variables to be able to test inputs after callback returned.
+Struct8BytesPackedInt passStruct8BytesPackedIntx10_a0 = Struct8BytesPackedInt();
+Struct8BytesPackedInt passStruct8BytesPackedIntx10_a1 = Struct8BytesPackedInt();
+Struct8BytesPackedInt passStruct8BytesPackedIntx10_a2 = Struct8BytesPackedInt();
+Struct8BytesPackedInt passStruct8BytesPackedIntx10_a3 = Struct8BytesPackedInt();
+Struct8BytesPackedInt passStruct8BytesPackedIntx10_a4 = Struct8BytesPackedInt();
+Struct8BytesPackedInt passStruct8BytesPackedIntx10_a5 = Struct8BytesPackedInt();
+Struct8BytesPackedInt passStruct8BytesPackedIntx10_a6 = Struct8BytesPackedInt();
+Struct8BytesPackedInt passStruct8BytesPackedIntx10_a7 = Struct8BytesPackedInt();
+Struct8BytesPackedInt passStruct8BytesPackedIntx10_a8 = Struct8BytesPackedInt();
+Struct8BytesPackedInt passStruct8BytesPackedIntx10_a9 = Struct8BytesPackedInt();
+
+// Result variable also global, so we can delete it after the callback.
+int passStruct8BytesPackedIntx10Result = 0;
+
+int passStruct8BytesPackedIntx10CalculateResult() {
+  int result = 0;
+
+  result += passStruct8BytesPackedIntx10_a0.a0;
+  result += passStruct8BytesPackedIntx10_a0.a1;
+  result += passStruct8BytesPackedIntx10_a0.a2;
+  result += passStruct8BytesPackedIntx10_a0.a3;
+  result += passStruct8BytesPackedIntx10_a0.a4;
+  result += passStruct8BytesPackedIntx10_a1.a0;
+  result += passStruct8BytesPackedIntx10_a1.a1;
+  result += passStruct8BytesPackedIntx10_a1.a2;
+  result += passStruct8BytesPackedIntx10_a1.a3;
+  result += passStruct8BytesPackedIntx10_a1.a4;
+  result += passStruct8BytesPackedIntx10_a2.a0;
+  result += passStruct8BytesPackedIntx10_a2.a1;
+  result += passStruct8BytesPackedIntx10_a2.a2;
+  result += passStruct8BytesPackedIntx10_a2.a3;
+  result += passStruct8BytesPackedIntx10_a2.a4;
+  result += passStruct8BytesPackedIntx10_a3.a0;
+  result += passStruct8BytesPackedIntx10_a3.a1;
+  result += passStruct8BytesPackedIntx10_a3.a2;
+  result += passStruct8BytesPackedIntx10_a3.a3;
+  result += passStruct8BytesPackedIntx10_a3.a4;
+  result += passStruct8BytesPackedIntx10_a4.a0;
+  result += passStruct8BytesPackedIntx10_a4.a1;
+  result += passStruct8BytesPackedIntx10_a4.a2;
+  result += passStruct8BytesPackedIntx10_a4.a3;
+  result += passStruct8BytesPackedIntx10_a4.a4;
+  result += passStruct8BytesPackedIntx10_a5.a0;
+  result += passStruct8BytesPackedIntx10_a5.a1;
+  result += passStruct8BytesPackedIntx10_a5.a2;
+  result += passStruct8BytesPackedIntx10_a5.a3;
+  result += passStruct8BytesPackedIntx10_a5.a4;
+  result += passStruct8BytesPackedIntx10_a6.a0;
+  result += passStruct8BytesPackedIntx10_a6.a1;
+  result += passStruct8BytesPackedIntx10_a6.a2;
+  result += passStruct8BytesPackedIntx10_a6.a3;
+  result += passStruct8BytesPackedIntx10_a6.a4;
+  result += passStruct8BytesPackedIntx10_a7.a0;
+  result += passStruct8BytesPackedIntx10_a7.a1;
+  result += passStruct8BytesPackedIntx10_a7.a2;
+  result += passStruct8BytesPackedIntx10_a7.a3;
+  result += passStruct8BytesPackedIntx10_a7.a4;
+  result += passStruct8BytesPackedIntx10_a8.a0;
+  result += passStruct8BytesPackedIntx10_a8.a1;
+  result += passStruct8BytesPackedIntx10_a8.a2;
+  result += passStruct8BytesPackedIntx10_a8.a3;
+  result += passStruct8BytesPackedIntx10_a8.a4;
+  result += passStruct8BytesPackedIntx10_a9.a0;
+  result += passStruct8BytesPackedIntx10_a9.a1;
+  result += passStruct8BytesPackedIntx10_a9.a2;
+  result += passStruct8BytesPackedIntx10_a9.a3;
+  result += passStruct8BytesPackedIntx10_a9.a4;
+
+  passStruct8BytesPackedIntx10Result = result;
+
+  return result;
+}
+
+/// Struct with mis-aligned member.
+int passStruct8BytesPackedIntx10(
+    Struct8BytesPackedInt a0,
+    Struct8BytesPackedInt a1,
+    Struct8BytesPackedInt a2,
+    Struct8BytesPackedInt a3,
+    Struct8BytesPackedInt a4,
+    Struct8BytesPackedInt a5,
+    Struct8BytesPackedInt a6,
+    Struct8BytesPackedInt a7,
+    Struct8BytesPackedInt a8,
+    Struct8BytesPackedInt a9) {
+  print(
+      "passStruct8BytesPackedIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStruct8BytesPackedIntx10 throwing on purpose!");
+  }
+
+  passStruct8BytesPackedIntx10_a0 = a0;
+  passStruct8BytesPackedIntx10_a1 = a1;
+  passStruct8BytesPackedIntx10_a2 = a2;
+  passStruct8BytesPackedIntx10_a3 = a3;
+  passStruct8BytesPackedIntx10_a4 = a4;
+  passStruct8BytesPackedIntx10_a5 = a5;
+  passStruct8BytesPackedIntx10_a6 = a6;
+  passStruct8BytesPackedIntx10_a7 = a7;
+  passStruct8BytesPackedIntx10_a8 = a8;
+  passStruct8BytesPackedIntx10_a9 = a9;
+
+  final result = passStruct8BytesPackedIntx10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct8BytesPackedIntx10AfterCallback() {
+  final result = passStruct8BytesPackedIntx10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(1275, result);
+}
+
+typedef PassStruct9BytesPackedMixedx10DoubleInt32Type = Double Function(
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Struct9BytesPackedMixed,
+    Double,
+    Int32);
+
+// Global variables to be able to test inputs after callback returned.
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a0 =
+    Struct9BytesPackedMixed();
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a1 =
+    Struct9BytesPackedMixed();
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a2 =
+    Struct9BytesPackedMixed();
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a3 =
+    Struct9BytesPackedMixed();
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a4 =
+    Struct9BytesPackedMixed();
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a5 =
+    Struct9BytesPackedMixed();
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a6 =
+    Struct9BytesPackedMixed();
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a7 =
+    Struct9BytesPackedMixed();
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a8 =
+    Struct9BytesPackedMixed();
+Struct9BytesPackedMixed passStruct9BytesPackedMixedx10DoubleInt32_a9 =
+    Struct9BytesPackedMixed();
+double passStruct9BytesPackedMixedx10DoubleInt32_a10 = 0.0;
+int passStruct9BytesPackedMixedx10DoubleInt32_a11 = 0;
+
+// Result variable also global, so we can delete it after the callback.
+double passStruct9BytesPackedMixedx10DoubleInt32Result = 0.0;
+
+double passStruct9BytesPackedMixedx10DoubleInt32CalculateResult() {
+  double result = 0;
+
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a0.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a0.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a1.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a1.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a2.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a2.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a3.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a3.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a4.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a4.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a5.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a5.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a6.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a6.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a7.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a7.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a8.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a8.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a9.a0;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a9.a1;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a10;
+  result += passStruct9BytesPackedMixedx10DoubleInt32_a11;
+
+  passStruct9BytesPackedMixedx10DoubleInt32Result = result;
+
+  return result;
+}
+
+/// Struct with mis-aligned member.
+/// Tests backfilling of CPU and FPU registers.
+double passStruct9BytesPackedMixedx10DoubleInt32(
+    Struct9BytesPackedMixed a0,
+    Struct9BytesPackedMixed a1,
+    Struct9BytesPackedMixed a2,
+    Struct9BytesPackedMixed a3,
+    Struct9BytesPackedMixed a4,
+    Struct9BytesPackedMixed a5,
+    Struct9BytesPackedMixed a6,
+    Struct9BytesPackedMixed a7,
+    Struct9BytesPackedMixed a8,
+    Struct9BytesPackedMixed a9,
+    double a10,
+    int a11) {
+  print(
+      "passStruct9BytesPackedMixedx10DoubleInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassStruct9BytesPackedMixedx10DoubleInt32 throwing on purpose!");
+  }
+
+  passStruct9BytesPackedMixedx10DoubleInt32_a0 = a0;
+  passStruct9BytesPackedMixedx10DoubleInt32_a1 = a1;
+  passStruct9BytesPackedMixedx10DoubleInt32_a2 = a2;
+  passStruct9BytesPackedMixedx10DoubleInt32_a3 = a3;
+  passStruct9BytesPackedMixedx10DoubleInt32_a4 = a4;
+  passStruct9BytesPackedMixedx10DoubleInt32_a5 = a5;
+  passStruct9BytesPackedMixedx10DoubleInt32_a6 = a6;
+  passStruct9BytesPackedMixedx10DoubleInt32_a7 = a7;
+  passStruct9BytesPackedMixedx10DoubleInt32_a8 = a8;
+  passStruct9BytesPackedMixedx10DoubleInt32_a9 = a9;
+  passStruct9BytesPackedMixedx10DoubleInt32_a10 = a10;
+  passStruct9BytesPackedMixedx10DoubleInt32_a11 = a11;
+
+  final result = passStruct9BytesPackedMixedx10DoubleInt32CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct9BytesPackedMixedx10DoubleInt32AfterCallback() {
+  final result = passStruct9BytesPackedMixedx10DoubleInt32CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(211.0, result);
+}
+
+typedef PassStruct5BytesPackedMixedType = Double Function(
+    Struct5BytesPackedMixed);
+
+// Global variables to be able to test inputs after callback returned.
+Struct5BytesPackedMixed passStruct5BytesPackedMixed_a0 =
+    Struct5BytesPackedMixed();
+
+// Result variable also global, so we can delete it after the callback.
+double passStruct5BytesPackedMixedResult = 0.0;
+
+double passStruct5BytesPackedMixedCalculateResult() {
+  double result = 0;
+
+  result += passStruct5BytesPackedMixed_a0.a0;
+  result += passStruct5BytesPackedMixed_a0.a1;
+
+  passStruct5BytesPackedMixedResult = result;
+
+  return result;
+}
+
+/// This packed struct happens to have only aligned members.
+double passStruct5BytesPackedMixed(Struct5BytesPackedMixed a0) {
+  print("passStruct5BytesPackedMixed(${a0})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStruct5BytesPackedMixed throwing on purpose!");
+  }
+
+  passStruct5BytesPackedMixed_a0 = a0;
+
+  final result = passStruct5BytesPackedMixedCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct5BytesPackedMixedAfterCallback() {
+  final result = passStruct5BytesPackedMixedCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(1.0, result);
+}
+
+typedef PassStructNestedAlignmentStruct5BytesPackedMixedType = Double Function(
+    StructNestedAlignmentStruct5BytesPackedMixed);
+
+// Global variables to be able to test inputs after callback returned.
+StructNestedAlignmentStruct5BytesPackedMixed
+    passStructNestedAlignmentStruct5BytesPackedMixed_a0 =
+    StructNestedAlignmentStruct5BytesPackedMixed();
+
+// Result variable also global, so we can delete it after the callback.
+double passStructNestedAlignmentStruct5BytesPackedMixedResult = 0.0;
+
+double passStructNestedAlignmentStruct5BytesPackedMixedCalculateResult() {
+  double result = 0;
+
+  result += passStructNestedAlignmentStruct5BytesPackedMixed_a0.a0;
+  result += passStructNestedAlignmentStruct5BytesPackedMixed_a0.a1.a0;
+  result += passStructNestedAlignmentStruct5BytesPackedMixed_a0.a1.a1;
+
+  passStructNestedAlignmentStruct5BytesPackedMixedResult = result;
+
+  return result;
+}
+
+/// Check alignment of packed struct in non-packed struct.
+double passStructNestedAlignmentStruct5BytesPackedMixed(
+    StructNestedAlignmentStruct5BytesPackedMixed a0) {
+  print("passStructNestedAlignmentStruct5BytesPackedMixed(${a0})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassStructNestedAlignmentStruct5BytesPackedMixed throwing on purpose!");
+  }
+
+  passStructNestedAlignmentStruct5BytesPackedMixed_a0 = a0;
+
+  final result =
+      passStructNestedAlignmentStruct5BytesPackedMixedCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStructNestedAlignmentStruct5BytesPackedMixedAfterCallback() {
+  final result =
+      passStructNestedAlignmentStruct5BytesPackedMixedCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(6.0, result);
+}
+
+typedef PassStruct6BytesInlineArrayIntType = Double Function(
+    Struct6BytesInlineArrayInt);
+
+// Global variables to be able to test inputs after callback returned.
+Struct6BytesInlineArrayInt passStruct6BytesInlineArrayInt_a0 =
+    Struct6BytesInlineArrayInt();
+
+// Result variable also global, so we can delete it after the callback.
+double passStruct6BytesInlineArrayIntResult = 0.0;
+
+double passStruct6BytesInlineArrayIntCalculateResult() {
+  double result = 0;
+
+  result += passStruct6BytesInlineArrayInt_a0.a0[0].a0;
+  result += passStruct6BytesInlineArrayInt_a0.a0[0].a1;
+  result += passStruct6BytesInlineArrayInt_a0.a0[1].a0;
+  result += passStruct6BytesInlineArrayInt_a0.a0[1].a1;
+
+  passStruct6BytesInlineArrayIntResult = result;
+
+  return result;
+}
+
+/// Check alignment of packed struct array in non-packed struct.
+double passStruct6BytesInlineArrayInt(Struct6BytesInlineArrayInt a0) {
+  print("passStruct6BytesInlineArrayInt(${a0})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0[0].a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0[0].a0 == 42 || a0.a0[0].a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStruct6BytesInlineArrayInt throwing on purpose!");
+  }
+
+  passStruct6BytesInlineArrayInt_a0 = a0;
+
+  final result = passStruct6BytesInlineArrayIntCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct6BytesInlineArrayIntAfterCallback() {
+  final result = passStruct6BytesInlineArrayIntCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(2.0, result);
+}
+
+typedef PassStruct15BytesInlineArrayMixedType = Double Function(
+    Struct15BytesInlineArrayMixed);
+
+// Global variables to be able to test inputs after callback returned.
+Struct15BytesInlineArrayMixed passStruct15BytesInlineArrayMixed_a0 =
+    Struct15BytesInlineArrayMixed();
+
+// Result variable also global, so we can delete it after the callback.
+double passStruct15BytesInlineArrayMixedResult = 0.0;
+
+double passStruct15BytesInlineArrayMixedCalculateResult() {
+  double result = 0;
+
+  result += passStruct15BytesInlineArrayMixed_a0.a0[0].a0;
+  result += passStruct15BytesInlineArrayMixed_a0.a0[0].a1;
+  result += passStruct15BytesInlineArrayMixed_a0.a0[1].a0;
+  result += passStruct15BytesInlineArrayMixed_a0.a0[1].a1;
+  result += passStruct15BytesInlineArrayMixed_a0.a0[2].a0;
+  result += passStruct15BytesInlineArrayMixed_a0.a0[2].a1;
+
+  passStruct15BytesInlineArrayMixedResult = result;
+
+  return result;
+}
+
+/// Check alignment of packed struct array in non-packed struct.
+double passStruct15BytesInlineArrayMixed(Struct15BytesInlineArrayMixed a0) {
+  print("passStruct15BytesInlineArrayMixed(${a0})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0[0].a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0[0].a0 == 42 || a0.a0[0].a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStruct15BytesInlineArrayMixed throwing on purpose!");
+  }
+
+  passStruct15BytesInlineArrayMixed_a0 = a0;
+
+  final result = passStruct15BytesInlineArrayMixedCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct15BytesInlineArrayMixedAfterCallback() {
+  final result = passStruct15BytesInlineArrayMixedCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(3.0, result);
+}
+
 typedef ReturnStruct1ByteIntType = Struct1ByteInt Function(Int8);
 
 // Global variables to be able to test inputs after callback returned.
@@ -8318,6 +9227,194 @@ void returnStruct1024BytesHomogeneousUint64AfterCallback() {
   print("after callback result = $result");
 
   calloc.free(returnStruct1024BytesHomogeneousUint64ResultPointer);
+}
+
+typedef ReturnStruct3BytesPackedIntType = Struct3BytesPackedInt Function(
+    Int8, Int16);
+
+// Global variables to be able to test inputs after callback returned.
+int returnStruct3BytesPackedInt_a0 = 0;
+int returnStruct3BytesPackedInt_a1 = 0;
+
+// Result variable also global, so we can delete it after the callback.
+Pointer<Struct3BytesPackedInt> returnStruct3BytesPackedIntResultPointer =
+    nullptr;
+
+Struct3BytesPackedInt returnStruct3BytesPackedIntCalculateResult() {
+  final resultPointer = calloc<Struct3BytesPackedInt>();
+  final result = resultPointer.ref;
+
+  result.a0 = returnStruct3BytesPackedInt_a0;
+  result.a1 = returnStruct3BytesPackedInt_a1;
+
+  returnStruct3BytesPackedIntResultPointer = resultPointer;
+
+  return result;
+}
+
+/// Small struct with mis-aligned member.
+Struct3BytesPackedInt returnStruct3BytesPackedInt(int a0, int a1) {
+  print("returnStruct3BytesPackedInt(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+  if (a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnStruct3BytesPackedInt throwing on purpose!");
+  }
+
+  returnStruct3BytesPackedInt_a0 = a0;
+  returnStruct3BytesPackedInt_a1 = a1;
+
+  final result = returnStruct3BytesPackedIntCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStruct3BytesPackedIntAfterCallback() {
+  calloc.free(returnStruct3BytesPackedIntResultPointer);
+
+  final result = returnStruct3BytesPackedIntCalculateResult();
+
+  print("after callback result = $result");
+
+  calloc.free(returnStruct3BytesPackedIntResultPointer);
+}
+
+typedef ReturnStruct8BytesPackedIntType = Struct8BytesPackedInt Function(
+    Uint8, Uint32, Uint8, Uint8, Uint8);
+
+// Global variables to be able to test inputs after callback returned.
+int returnStruct8BytesPackedInt_a0 = 0;
+int returnStruct8BytesPackedInt_a1 = 0;
+int returnStruct8BytesPackedInt_a2 = 0;
+int returnStruct8BytesPackedInt_a3 = 0;
+int returnStruct8BytesPackedInt_a4 = 0;
+
+// Result variable also global, so we can delete it after the callback.
+Pointer<Struct8BytesPackedInt> returnStruct8BytesPackedIntResultPointer =
+    nullptr;
+
+Struct8BytesPackedInt returnStruct8BytesPackedIntCalculateResult() {
+  final resultPointer = calloc<Struct8BytesPackedInt>();
+  final result = resultPointer.ref;
+
+  result.a0 = returnStruct8BytesPackedInt_a0;
+  result.a1 = returnStruct8BytesPackedInt_a1;
+  result.a2 = returnStruct8BytesPackedInt_a2;
+  result.a3 = returnStruct8BytesPackedInt_a3;
+  result.a4 = returnStruct8BytesPackedInt_a4;
+
+  returnStruct8BytesPackedIntResultPointer = resultPointer;
+
+  return result;
+}
+
+/// Struct with mis-aligned member.
+Struct8BytesPackedInt returnStruct8BytesPackedInt(
+    int a0, int a1, int a2, int a3, int a4) {
+  print("returnStruct8BytesPackedInt(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
+
+  // In legacy mode, possibly return null.
+  if (a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnStruct8BytesPackedInt throwing on purpose!");
+  }
+
+  returnStruct8BytesPackedInt_a0 = a0;
+  returnStruct8BytesPackedInt_a1 = a1;
+  returnStruct8BytesPackedInt_a2 = a2;
+  returnStruct8BytesPackedInt_a3 = a3;
+  returnStruct8BytesPackedInt_a4 = a4;
+
+  final result = returnStruct8BytesPackedIntCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStruct8BytesPackedIntAfterCallback() {
+  calloc.free(returnStruct8BytesPackedIntResultPointer);
+
+  final result = returnStruct8BytesPackedIntCalculateResult();
+
+  print("after callback result = $result");
+
+  calloc.free(returnStruct8BytesPackedIntResultPointer);
+}
+
+typedef ReturnStruct9BytesPackedMixedType = Struct9BytesPackedMixed Function(
+    Uint8, Double);
+
+// Global variables to be able to test inputs after callback returned.
+int returnStruct9BytesPackedMixed_a0 = 0;
+double returnStruct9BytesPackedMixed_a1 = 0.0;
+
+// Result variable also global, so we can delete it after the callback.
+Pointer<Struct9BytesPackedMixed> returnStruct9BytesPackedMixedResultPointer =
+    nullptr;
+
+Struct9BytesPackedMixed returnStruct9BytesPackedMixedCalculateResult() {
+  final resultPointer = calloc<Struct9BytesPackedMixed>();
+  final result = resultPointer.ref;
+
+  result.a0 = returnStruct9BytesPackedMixed_a0;
+  result.a1 = returnStruct9BytesPackedMixed_a1;
+
+  returnStruct9BytesPackedMixedResultPointer = resultPointer;
+
+  return result;
+}
+
+/// Struct with mis-aligned member.
+/// Tests backfilling of CPU and FPU registers.
+Struct9BytesPackedMixed returnStruct9BytesPackedMixed(int a0, double a1) {
+  print("returnStruct9BytesPackedMixed(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+  if (a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnStruct9BytesPackedMixed throwing on purpose!");
+  }
+
+  returnStruct9BytesPackedMixed_a0 = a0;
+  returnStruct9BytesPackedMixed_a1 = a1;
+
+  final result = returnStruct9BytesPackedMixedCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStruct9BytesPackedMixedAfterCallback() {
+  calloc.free(returnStruct9BytesPackedMixedResultPointer);
+
+  final result = returnStruct9BytesPackedMixedCalculateResult();
+
+  print("after callback result = $result");
+
+  calloc.free(returnStruct9BytesPackedMixedResultPointer);
 }
 
 typedef ReturnStructArgumentStruct1ByteIntType = Struct1ByteInt Function(

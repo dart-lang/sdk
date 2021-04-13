@@ -370,7 +370,8 @@ Fragment BaseFlowGraphBuilder::TestAnyTypeArgs(Fragment present,
 
 Fragment BaseFlowGraphBuilder::LoadIndexed(classid_t class_id,
                                            intptr_t index_scale,
-                                           bool index_unboxed) {
+                                           bool index_unboxed,
+                                           AlignmentType alignment) {
   Value* index = Pop();
   // A C pointer if index_unboxed, otherwise a boxed Dart value.
   Value* array = Pop();
@@ -379,7 +380,7 @@ Fragment BaseFlowGraphBuilder::LoadIndexed(classid_t class_id,
   // all cases.
   LoadIndexedInstr* instr = new (Z)
       LoadIndexedInstr(array, index, index_unboxed, index_scale, class_id,
-                       kAlignedAccess, DeoptId::kNone, InstructionSource());
+                       alignment, DeoptId::kNone, InstructionSource());
   Push(instr);
   return Fragment(instr);
 }
@@ -636,10 +637,8 @@ Fragment BaseFlowGraphBuilder::StoreIndexed(classid_t class_id) {
 
 Fragment BaseFlowGraphBuilder::StoreIndexedTypedData(classid_t class_id,
                                                      intptr_t index_scale,
-                                                     bool index_unboxed) {
-  // We use C behavior when dereferencing pointers, we assume alignment.
-  const AlignmentType alignment = kAlignedAccess;
-
+                                                     bool index_unboxed,
+                                                     AlignmentType alignment) {
   Value* value = Pop();
   Value* index = Pop();
   Value* c_pointer = Pop();
@@ -897,8 +896,8 @@ Fragment BaseFlowGraphBuilder::BooleanNegate() {
 
 Fragment BaseFlowGraphBuilder::AllocateContext(
     const ZoneGrowableArray<const Slot*>& context_slots) {
-  AllocateContextInstr* allocate =
-      new (Z) AllocateContextInstr(InstructionSource(), context_slots);
+  AllocateContextInstr* allocate = new (Z) AllocateContextInstr(
+      InstructionSource(), context_slots, GetNextDeoptId());
   Push(allocate);
   return Fragment(allocate);
 }
@@ -907,8 +906,8 @@ Fragment BaseFlowGraphBuilder::AllocateClosure(
     TokenPosition position,
     const Function& closure_function) {
   const Class& cls = Class::ZoneHandle(Z, IG->object_store()->closure_class());
-  AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(InstructionSource(position), cls);
+  AllocateObjectInstr* allocate = new (Z)
+      AllocateObjectInstr(InstructionSource(position), cls, GetNextDeoptId());
   allocate->set_closure_function(closure_function);
   Push(allocate);
   return Fragment(allocate);
@@ -984,8 +983,8 @@ Fragment BaseFlowGraphBuilder::AllocateObject(TokenPosition position,
                                               intptr_t argument_count) {
   ASSERT((argument_count == 0) || (argument_count == 1));
   Value* type_arguments = (argument_count > 0) ? Pop() : nullptr;
-  AllocateObjectInstr* allocate = new (Z)
-      AllocateObjectInstr(InstructionSource(position), klass, type_arguments);
+  AllocateObjectInstr* allocate = new (Z) AllocateObjectInstr(
+      InstructionSource(position), klass, GetNextDeoptId(), type_arguments);
   Push(allocate);
   return Fragment(allocate);
 }

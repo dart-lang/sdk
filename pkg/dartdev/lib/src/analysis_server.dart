@@ -16,10 +16,10 @@ import 'utils.dart';
 
 /// A class to provide an API wrapper around an analysis server process.
 class AnalysisServer {
-  AnalysisServer(this.sdkPath, this.directory);
+  AnalysisServer(this.sdkPath, this.analysisRoot);
 
   final Directory sdkPath;
-  final Directory directory;
+  final FileSystemEntity analysisRoot;
 
   Process _process;
 
@@ -98,8 +98,8 @@ class AnalysisServer {
     //
     // The call to absolute.resolveSymbolicLinksSync() canonicalizes the path to
     // be passed to the analysis server.
-    var dirPath = trimEnd(
-      directory.absolute.resolveSymbolicLinksSync(),
+    var analysisRootPath = trimEnd(
+      analysisRoot.absolute.resolveSymbolicLinksSync(),
       path.context.separator,
     );
 
@@ -115,7 +115,7 @@ class AnalysisServer {
 
     // ignore: unawaited_futures
     _sendCommand('analysis.setAnalysisRoots', params: <String, dynamic>{
-      'included': [dirPath],
+      'included': [analysisRootPath],
       'excluded': <String>[]
     });
   }
@@ -251,6 +251,10 @@ class AnalysisError implements Comparable<AnalysisError> {
 
   String get correction => json['correction'] as String;
 
+  int get endColumn => json['location']['endColumn'] as int;
+
+  int get endLine => json['location']['endLine'] as int;
+
   String get file => json['location']['file'] as String;
 
   int get startLine => json['location']['startLine'] as int;
@@ -307,11 +311,19 @@ class DiagnosticMessage {
 
   int get column => json['location']['startColumn'] as int;
 
+  int get endColumn => json['location']['endColumn'] as int;
+
+  int get endLine => json['location']['endLine'] as int;
+
   String get filePath => json['location']['file'] as String;
+
+  int get length => json['location']['length'] as int;
 
   int get line => json['location']['startLine'] as int;
 
   String get message => json['message'] as String;
+
+  int get offset => json['location']['offset'] as int;
 }
 
 class FileAnalysisErrors {

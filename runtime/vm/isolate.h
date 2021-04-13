@@ -51,6 +51,7 @@ class CodeIndexTable;
 class Debugger;
 class DeoptContext;
 class ExternalTypedData;
+class GroupDebugger;
 class HandleScope;
 class HandleVisitor;
 class Heap;
@@ -343,6 +344,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return background_compiler_.get();
 #endif
   }
+
+#if !defined(PRODUCT)
+  GroupDebugger* debugger() const { return debugger_; }
+#endif
 
   IdleTimeHandler* idle_time_handler() { return &idle_time_handler_; }
 
@@ -938,6 +943,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   intptr_t active_mutators_ = 0;
   intptr_t waiting_mutators_ = 0;
   intptr_t max_active_mutators_ = 0;
+
+  NOT_IN_PRODUCT(GroupDebugger* debugger_ = nullptr);
 };
 
 // When an isolate sends-and-exits this class represent things that it passed
@@ -1017,11 +1024,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
   Dart_MessageNotifyCallback message_notify_callback() const {
-    return message_notify_callback_;
+    return message_notify_callback_.load(std::memory_order_relaxed);
   }
 
   void set_message_notify_callback(Dart_MessageNotifyCallback value) {
-    message_notify_callback_ = value;
+    message_notify_callback_.store(value, std::memory_order_release);
   }
 
   void set_on_shutdown_callback(Dart_IsolateShutdownCallback value) {
@@ -1587,7 +1594,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   // All other fields go here.
   int64_t start_time_micros_;
-  Dart_MessageNotifyCallback message_notify_callback_ = nullptr;
+  std::atomic<Dart_MessageNotifyCallback> message_notify_callback_;
   Dart_IsolateShutdownCallback on_shutdown_callback_ = nullptr;
   Dart_IsolateCleanupCallback on_cleanup_callback_ = nullptr;
   char* name_ = nullptr;

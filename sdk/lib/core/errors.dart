@@ -29,7 +29,7 @@ part of dart.core;
 /// is very likely to cause an error to be thrown.
 ///
 /// Example (from [String.contains]):
-/// ```
+/// ```plaintext
 /// `startIndex` must not be negative or greater than `length`.
 /// ```
 /// In this case, an error will be thrown if `startIndex` is negative
@@ -156,8 +156,8 @@ class ArgumentError extends Error {
   ///
   /// A message is built by suffixing the [message] argument with
   /// the [name] argument (if provided) and the value. Example:
-  /// ```
-  /// "Invalid argument (foo): null"
+  /// ```plaintext
+  /// Invalid argument (foo): null
   /// ```
   /// The `name` should match the argument name of the function, but if
   /// the function is a method implementing an interface, and its argument
@@ -520,7 +520,7 @@ class UnimplementedError extends Error implements UnsupportedError {
 
 /// The operation was not allowed by the current state of the object.
 ///
-/// Should be used when this particular object is currenty in a state
+/// Should be used when this particular object is currently in a state
 /// which doesn't support the requested operation, but other similar
 /// objects might, or the object might change its state to one which
 /// supports the operation.

@@ -93,6 +93,90 @@ dynamic<int> v;
     ]);
   }
 
+  test_metadata_1of0() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+
+@A<int>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 28, 5),
+    ]);
+  }
+
+  test_metadata_1of0_viaTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+
+typedef B = A;
+
+@B<int>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 44, 5),
+    ]);
+  }
+
+  test_metadata_1of2() async {
+    await assertErrorsInCode(r'''
+class A<T, U> {
+  const A();
+}
+
+@A<int>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 34, 5),
+    ]);
+  }
+
+  test_metadata_1of2_viaTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+
+typedef B<T, U> = A;
+
+@B<int>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 50, 5),
+    ]);
+  }
+
+  test_metadata_2of1() async {
+    await assertErrorsInCode(r'''
+class A<T> {
+  const A();
+}
+
+@A<int, String>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 31, 13),
+    ]);
+  }
+
+  test_metadata_2of1_viaTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+
+typedef B<T> = A;
+
+@B<int, String>()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 47, 13),
+    ]);
+  }
+
   test_new_nonGeneric() async {
     await assertErrorsInCode('''
 class C {}

@@ -46,10 +46,10 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   function local() → Null {}
   local(){() → Null};
   c =={core::Object::==}{(core::Object) → core::bool} d;
-  c !={core::Object::==}{(core::Object) → core::bool} d;
+  !(c =={core::Object::==}{(core::Object) → core::bool} d);
   c == null;
-  c != null;
+  !(c == null);
   d == null;
-  d != null;
+  !(d == null);
 }
 static method main() → dynamic {}

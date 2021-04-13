@@ -217,7 +217,7 @@ abstract class StreamController<T> implements StreamSink<T> {
   /// even if listeners are paused, so some broadcast events may not have been
   /// received yet when the returned future completes.
   ///
-  /// If noone listens to a non-broadcast stream,
+  /// If no one listens to a non-broadcast stream,
   /// or the listener pauses and never resumes,
   /// the done event will not be sent and this future will never complete.
   Future close();

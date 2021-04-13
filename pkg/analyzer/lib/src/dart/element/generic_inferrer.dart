@@ -118,12 +118,15 @@ class GenericInferrer {
   /// `_` to precisely represent an unknown type. If [downwardsInferPhase] is
   /// false, we are on our final inference pass, have all available information
   /// including argument types, and must not conclude `_` for any type formal.
-  List<DartType>? infer(List<TypeParameterElement> typeFormals,
-      {bool considerExtendsClause = true,
-      ErrorReporter? errorReporter,
-      AstNode? errorNode,
-      bool failAtError = false,
-      bool downwardsInferPhase = false}) {
+  List<DartType>? infer(
+    List<TypeParameterElement> typeFormals, {
+    bool considerExtendsClause = true,
+    ErrorReporter? errorReporter,
+    AstNode? errorNode,
+    bool failAtError = false,
+    bool downwardsInferPhase = false,
+    required bool genericMetadataIsEnabled,
+  }) {
     // Initialize the inferred type array.
     //
     // In the downwards phase, they all start as `_` to offer reasonable
@@ -204,7 +207,9 @@ class GenericInferrer {
         // more errors (e.g. because `dynamic` is the most common bound).
       }
 
-      if (inferred is FunctionType && inferred.typeFormals.isNotEmpty) {
+      if (inferred is FunctionType &&
+          inferred.typeFormals.isNotEmpty &&
+          !genericMetadataIsEnabled) {
         if (failAtError) return null;
         var typeFormals = inferred.typeFormals;
         var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
@@ -215,12 +220,6 @@ class GenericInferrer {
               ' [$typeFormalsStr], but a function with'
               ' type parameters cannot be used as a type argument.'
         ]);
-
-        // Heuristic: Using a generic function type as a bound makes subtyping
-        // undecidable. Therefore, we cannot keep [inferred] unless we wish to
-        // generate bogus subtyping errors. Instead generate plain [Function],
-        // which is the most general function type.
-        inferred = typeProvider.functionType;
       }
 
       if (UnknownInferredType.isKnown(inferred)) {

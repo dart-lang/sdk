@@ -1,6 +1,11 @@
 # Changelog
+
+## 6.2.0
+- Added support for `getHttpProfile` and `clearHttpProfile` `dart:io` service extensions.
+
 ## 6.1.1
 - Callsite `StackTrace`s are now attached to `RPCError`s and `SentinelException`s.
+- Added `identityHashCode` property to `InstanceRef` and `Instance`.
 
 ## 6.1.0+1
 - Documentation update.

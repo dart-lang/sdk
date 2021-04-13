@@ -11,6 +11,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -40,6 +41,11 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
     sourceFactory = SourceFactory(
       [
         DartUriResolver(sdk),
+        PackageMapUriResolver(resourceProvider, {
+          'test': [
+            getFolder('/home/test/lib'),
+          ],
+        }),
         ResourceUriResolver(resourceProvider),
       ],
     );
@@ -60,8 +66,9 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
 
   Source addSource(String path, String contents) {
     var file = newFile(path, content: contents);
-    var source = file.createSource();
-    return source;
+    var fileSource = file.createSource();
+    var uri = sourceFactory.restoreUri(fileSource)!;
+    return sourceFactory.forUri2(uri)!;
   }
 
   Source addTestSource(String code, [Uri? uri]) {
@@ -87,6 +94,11 @@ class FeatureSets {
   static final FeatureSet nonFunctionTypeAliases = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: Version.parse('2.12.0'),
     flags: [EnableString.nonfunction_type_aliases],
+  );
+
+  static final FeatureSet genericMetadata = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.13.0'),
+    flags: [EnableString.generic_metadata],
   );
 }
 
@@ -1751,6 +1763,33 @@ notSimplyBounded class C<T extends List<U> = List<dynamic>, U> {
 notSimplyBounded class C<T extends U, U> {
 }
 ''');
+  }
+
+  test_class_typeParameters_defaultType_cycle_genericFunctionType() async {
+    var library = await checkLibrary(r'''
+class A<T extends void Function(A)> {}
+''');
+    checkElementText(
+        library,
+        r'''
+notSimplyBounded class A<covariant T extends void Function(A<dynamic>)> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_defaultType_cycle_genericFunctionType2() async {
+    featureSet = FeatureSets.genericMetadata;
+    var library = await checkLibrary(r'''
+class C<T extends void Function<U extends C>()> {}
+''');
+    checkElementText(
+        library,
+        r'''
+notSimplyBounded class C<covariant T extends void Function<U extends C<dynamic>>()> {
+}
+''',
+        withTypeParameterVariance: true);
   }
 
   test_class_typeParameters_defaultType_functionTypeAlias_contravariant_legacy() async {
@@ -9068,46 +9107,81 @@ C<num> c;
   }
 
   test_invalid_annotation_prefixed_constructor() async {
-    addLibrarySource('/a.dart', r'''
-class C {
-  const C.named();
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/a.dart', r'''
+class A {
+  const A.named();
 }
 ''');
     var library = await checkLibrary('''
 import "a.dart" as a;
-@a.C.named
-class D {}
+@a.A.named
+class C {}
 ''');
-    checkElementText(library, r'''
-import 'a.dart' as a;
-@
-        a/*location: test.dart;a*/.
-        C/*location: a.dart;C*/.
-        named/*location: a.dart;C;named*/
-class D {
+    checkElementText(
+        library,
+        r'''
+import 'package:test/a.dart' as a;
+class C {
 }
-''');
+  metadata
+    Annotation
+      constructorName: SimpleIdentifier
+        staticElement: package:test/a.dart::@class::A::@constructor::named
+        staticType: null
+        token: named
+      element: package:test/a.dart::@class::A::@constructor::named
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: package:test/a.dart::@class::A
+          staticType: null
+          token: A
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: self::@prefix::a
+          staticType: null
+          token: a
+        staticElement: package:test/a.dart::@class::A
+        staticType: null
+''',
+        withFullyResolvedAst: true);
   }
 
   test_invalid_annotation_unprefixed_constructor() async {
-    addLibrarySource('/a.dart', r'''
-class C {
-  const C.named();
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/a.dart', r'''
+class A {
+  const A.named();
 }
 ''');
     var library = await checkLibrary('''
 import "a.dart";
-@C.named
-class D {}
+@A.named
+class C {}
 ''');
-    checkElementText(library, r'''
-import 'a.dart';
-@
-        C/*location: a.dart;C*/.
-        named/*location: a.dart;C;named*/
-class D {
+    checkElementText(
+        library,
+        r'''
+import 'package:test/a.dart';
+class C {
 }
-''');
+  metadata
+    Annotation
+      element: package:test/a.dart::@class::A::@constructor::named
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: package:test/a.dart::@class::A::@constructor::named
+          staticType: null
+          token: named
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: package:test/a.dart::@class::A
+          staticType: null
+          token: A
+        staticElement: package:test/a.dart::@class::A::@constructor::named
+        staticType: null
+''',
+        withFullyResolvedAst: true);
   }
 
   test_invalid_importPrefix_asTypeArgument() async {
@@ -9615,41 +9689,347 @@ const dynamic a = null;
   }
 
   test_metadata_constructor_call_named() async {
+    testFile = convertPath('/home/test/lib/test.dart');
     var library = await checkLibrary('''
 class A {
-  const A.named();
+  const A.named(int _);
 }
-@A.named()
+@A.named(0)
 class C {}
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A.named(int _);
+}
+class C {
+}
+  metadata
+    Annotation
+      arguments: ArgumentList
+        arguments
+          IntegerLiteral
+            literal: 0
+            staticType: int
+      element: self::@class::A::@constructor::named
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: self::@class::A::@constructor::named
+          staticType: null
+          token: named
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: self::@class::A
+          staticType: null
+          token: A
+        staticElement: self::@class::A::@constructor::named
+        staticType: null
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_constructor_call_named_generic_inference() async {
+    featureSet = FeatureSets.genericMetadata;
+    var library = await checkLibrary('''
+class A<T> {
+  const A.named(T _);
+}
+
+@A.named(0)
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A.named(T _);
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+class C {
+}
+  metadata
+    Annotation
+      arguments: ArgumentList
+        arguments
+          IntegerLiteral
+            literal: 0
+            staticType: int
+      element: ConstructorMember
+        base: self::@class::A::@constructor::named
+        substitution: {T: int}
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: ConstructorMember
+            base: self::@class::A::@constructor::named
+            substitution: {T: int}
+          staticType: null
+          token: named
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: self::@class::A
+          staticType: null
+          token: A
+        staticElement: ConstructorMember
+          base: self::@class::A::@constructor::named
+          substitution: {T: int}
+        staticType: null
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_constructor_call_named_generic_typeArguments() async {
+    featureSet = FeatureSets.genericMetadata;
+    var library = await checkLibrary('''
+class A<T> {
+  const A.named();
+}
+
+@A<int>.named()
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
 class A {
   const A.named();
 }
-@
-        A/*location: test.dart;A*/.
-        named/*location: test.dart;A;named*/()
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
 class C {
 }
+  metadata
+    Annotation
+      arguments: ArgumentList
+      constructorName: SimpleIdentifier
+        staticElement: ConstructorMember
+          base: self::@class::A::@constructor::named
+          substitution: {T: int}
+        staticType: null
+        token: named
+      element: ConstructorMember
+        base: self::@class::A::@constructor::named
+        substitution: {T: int}
+      name: SimpleIdentifier
+        staticElement: self::@class::A
+        staticType: null
+        token: A
+      typeArguments: TypeArgumentList
+        arguments
+          TypeName
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::int
+              staticType: null
+              token: int
+            type: int
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_constructor_call_named_generic_typeArguments_disabledGenericMetadata() async {
+    var library = await checkLibrary('''
+class A<T> {
+  const A.named();
+}
+
+@A<int>.named()
+class C {}
 ''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A.named();
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+class C {
+}
+  metadata
+    Annotation
+      arguments: ArgumentList
+      constructorName: SimpleIdentifier
+        staticElement: ConstructorMember
+          base: self::@class::A::@constructor::named
+          substitution: {T: dynamic}
+        staticType: null
+        token: named
+      element: ConstructorMember
+        base: self::@class::A::@constructor::named
+        substitution: {T: dynamic}
+      name: SimpleIdentifier
+        staticElement: self::@class::A
+        staticType: null
+        token: A
+      typeArguments: TypeArgumentList
+        arguments
+          TypeName
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::int
+              staticType: null
+              token: int
+            type: int
+''',
+        withFullyResolvedAst: true);
   }
 
   test_metadata_constructor_call_named_prefixed() async {
-    addLibrarySource('/foo.dart', 'class A { const A.named(); }');
-    var library = await checkLibrary('''
-import 'foo.dart' as foo;
-@foo.A.named()
-class C {}
-''');
-    checkElementText(library, r'''
-import 'foo.dart' as foo;
-@
-        foo/*location: test.dart;foo*/.
-        A/*location: foo.dart;A*/.
-        named/*location: foo.dart;A;named*/()
-class C {
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/foo.dart', '''
+class A {
+  const A.named(int _);
 }
 ''');
+    var library = await checkLibrary('''
+import 'foo.dart' as foo;
+@foo.A.named(0)
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'package:test/foo.dart' as foo;
+class C {
+}
+  metadata
+    Annotation
+      arguments: ArgumentList
+        arguments
+          IntegerLiteral
+            literal: 0
+            staticType: int
+      constructorName: SimpleIdentifier
+        staticElement: package:test/foo.dart::@class::A::@constructor::named
+        staticType: null
+        token: named
+      element: package:test/foo.dart::@class::A::@constructor::named
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: package:test/foo.dart::@class::A
+          staticType: null
+          token: A
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: self::@prefix::foo
+          staticType: null
+          token: foo
+        staticElement: package:test/foo.dart::@class::A
+        staticType: null
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_constructor_call_named_prefixed_generic_inference() async {
+    featureSet = FeatureSets.genericMetadata;
+    addLibrarySource('/home/test/lib/foo.dart', '''
+class A<T> {
+  const A.named(T _);
+}
+''');
+    testFile = convertPath('/home/test/lib/test.dart');
+    var library = await checkLibrary('''
+import "foo.dart" as foo;
+@foo.A.named(0)
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'package:test/foo.dart' as foo;
+class C {
+}
+  metadata
+    Annotation
+      arguments: ArgumentList
+        arguments
+          IntegerLiteral
+            literal: 0
+            staticType: int
+      constructorName: SimpleIdentifier
+        staticElement: ConstructorMember
+          base: package:test/foo.dart::@class::A::@constructor::named
+          substitution: {T: int}
+        staticType: null
+        token: named
+      element: ConstructorMember
+        base: package:test/foo.dart::@class::A::@constructor::named
+        substitution: {T: int}
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: package:test/foo.dart::@class::A
+          staticType: null
+          token: A
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: self::@prefix::foo
+          staticType: null
+          token: foo
+        staticElement: package:test/foo.dart::@class::A
+        staticType: null
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_constructor_call_named_prefixed_generic_typeArguments() async {
+    featureSet = FeatureSets.genericMetadata;
+    addLibrarySource('/home/test/lib/foo.dart', '''
+class A<T> {
+  const A.named();
+}
+''');
+    testFile = convertPath('/home/test/lib/test.dart');
+    var library = await checkLibrary('''
+import "foo.dart" as foo;
+@foo.A<int>.named()
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'package:test/foo.dart' as foo;
+class C {
+}
+  metadata
+    Annotation
+      arguments: ArgumentList
+      constructorName: SimpleIdentifier
+        staticElement: ConstructorMember
+          base: package:test/foo.dart::@class::A::@constructor::named
+          substitution: {T: int}
+        staticType: null
+        token: named
+      element: ConstructorMember
+        base: package:test/foo.dart::@class::A::@constructor::named
+        substitution: {T: int}
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: package:test/foo.dart::@class::A
+          staticType: null
+          token: A
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: self::@prefix::foo
+          staticType: null
+          token: foo
+        staticElement: package:test/foo.dart::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        arguments
+          TypeName
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::int
+              staticType: null
+              token: int
+            type: int
+''',
+        withFullyResolvedAst: true);
   }
 
   test_metadata_constructor_call_named_synthetic_ofClassAlias_generic() async {
@@ -9660,7 +10040,7 @@ class A {
 
 mixin B {}
 
-class C<T> = A with B; 
+class C<T> = A with B;
 
 @C.named()
 class D {}
@@ -9709,30 +10089,249 @@ mixin B on Object {
   }
 
   test_metadata_constructor_call_unnamed() async {
-    var library = await checkLibrary('class A { const A(); } @A() class C {}');
-    checkElementText(library, r'''
+    testFile = convertPath('/home/test/lib/test.dart');
+    var library = await checkLibrary('''
+class A {
+  const A(int _);
+}
+@A(0)
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A(int _);
+}
+class C {
+}
+  metadata
+    Annotation
+      arguments: ArgumentList
+        arguments
+          IntegerLiteral
+            literal: 0
+            staticType: int
+      element: self::@class::A::@constructor::•
+      name: SimpleIdentifier
+        staticElement: self::@class::A
+        staticType: null
+        token: A
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_constructor_call_unnamed_generic_inference() async {
+    featureSet = FeatureSets.genericMetadata;
+    var library = await checkLibrary('''
+class A<T> {
+  const A(T _);
+}
+
+@A(0)
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A(T _);
+}
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+class C {
+}
+  metadata
+    Annotation
+      arguments: ArgumentList
+        arguments
+          IntegerLiteral
+            literal: 0
+            staticType: int
+      element: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: int}
+      name: SimpleIdentifier
+        staticElement: self::@class::A
+        staticType: null
+        token: A
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_constructor_call_unnamed_generic_typeArguments() async {
+    featureSet = FeatureSets.genericMetadata;
+    var library = await checkLibrary('''
+class A<T> {
+  const A();
+}
+
+@A<int>()
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
 class A {
   const A();
 }
-@
-        A/*location: test.dart;A*/()
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
 class C {
 }
-''');
+  metadata
+    Annotation
+      arguments: ArgumentList
+      element: ConstructorMember
+        base: self::@class::A::@constructor::•
+        substitution: {T: int}
+      name: SimpleIdentifier
+        staticElement: self::@class::A
+        staticType: null
+        token: A
+      typeArguments: TypeArgumentList
+        arguments
+          TypeName
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::int
+              staticType: null
+              token: int
+            type: int
+''',
+        withFullyResolvedAst: true);
   }
 
   test_metadata_constructor_call_unnamed_prefixed() async {
-    addLibrarySource('/foo.dart', 'class A { const A(); }');
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/foo.dart', 'class A { const A(_); }');
     var library =
-        await checkLibrary('import "foo.dart" as foo; @foo.A() class C {}');
-    checkElementText(library, r'''
-import 'foo.dart' as foo;
-@
-        foo/*location: test.dart;foo*/.
-        A/*location: foo.dart;A*/()
+        await checkLibrary('import "foo.dart" as foo; @foo.A(0) class C {}');
+    checkElementText(
+        library,
+        r'''
+import 'package:test/foo.dart' as foo;
 class C {
 }
+  metadata
+    Annotation
+      arguments: ArgumentList
+        arguments
+          IntegerLiteral
+            literal: 0
+            staticType: int
+      element: package:test/foo.dart::@class::A::@constructor::•
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: package:test/foo.dart::@class::A
+          staticType: null
+          token: A
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: self::@prefix::foo
+          staticType: null
+          token: foo
+        staticElement: package:test/foo.dart::@class::A
+        staticType: null
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_constructor_call_unnamed_prefixed_generic_inference() async {
+    featureSet = FeatureSets.genericMetadata;
+    addLibrarySource('/home/test/lib/foo.dart', '''
+class A<T> {
+  const A(T _);
+}
 ''');
+    testFile = convertPath('/home/test/lib/test.dart');
+    var library = await checkLibrary('''
+import "foo.dart" as foo;
+@foo.A(0)
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'package:test/foo.dart' as foo;
+class C {
+}
+  metadata
+    Annotation
+      arguments: ArgumentList
+        arguments
+          IntegerLiteral
+            literal: 0
+            staticType: int
+      element: ConstructorMember
+        base: package:test/foo.dart::@class::A::@constructor::•
+        substitution: {T: int}
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: package:test/foo.dart::@class::A
+          staticType: null
+          token: A
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: self::@prefix::foo
+          staticType: null
+          token: foo
+        staticElement: package:test/foo.dart::@class::A
+        staticType: null
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_constructor_call_unnamed_prefixed_generic_typeArguments() async {
+    featureSet = FeatureSets.genericMetadata;
+    addLibrarySource('/home/test/lib/foo.dart', '''
+class A<T> {
+  const A();
+}
+''');
+    testFile = convertPath('/home/test/lib/test.dart');
+    var library = await checkLibrary('''
+import "foo.dart" as foo;
+@foo.A<int>()
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'package:test/foo.dart' as foo;
+class C {
+}
+  metadata
+    Annotation
+      arguments: ArgumentList
+      element: ConstructorMember
+        base: package:test/foo.dart::@class::A::@constructor::•
+        substitution: {T: int}
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: package:test/foo.dart::@class::A
+          staticType: null
+          token: A
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: self::@prefix::foo
+          staticType: null
+          token: foo
+        staticElement: package:test/foo.dart::@class::A
+        staticType: null
+      typeArguments: TypeArgumentList
+        arguments
+          TypeName
+            name: SimpleIdentifier
+              staticElement: dart:core::@class::int
+              staticType: null
+              token: int
+            type: int
+''',
+        withFullyResolvedAst: true);
   }
 
   test_metadata_constructor_call_unnamed_synthetic_ofClassAlias_generic() async {
@@ -9743,7 +10342,7 @@ class A {
 
 mixin B {}
 
-class C<T> = A with B; 
+class C<T> = A with B;
 
 @C()
 class D {}
@@ -9819,33 +10418,113 @@ const dynamic a = null;
   }
 
   test_metadata_enumConstantDeclaration() async {
-    var library = await checkLibrary('const a = null; enum E { @a v }');
-    checkElementText(library, r'''
+    var library = await checkLibrary('const a = 42; enum E { @a v }');
+    checkElementText(
+        library,
+        r'''
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
-  @
-        a/*location: test.dart;a?*/
   static const E v;
+    metadata
+      Annotation
+        element: self::@getter::a
+        name: SimpleIdentifier
+          staticElement: self::@getter::a
+          staticType: null
+          token: a
   String toString() {}
 }
-const dynamic a = null;
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_enumConstantDeclaration_instanceCreation() async {
+    var library = await checkLibrary('''
+class A {
+  final dynamic value;
+  const A(this.value);
+}
+
+enum E {
+  @A(100) a,
+  b,
+  @A(300) c,
+}
 ''');
+    checkElementText(
+        library,
+        r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E a;
+    metadata
+      Annotation
+        arguments: ArgumentList
+          arguments
+            IntegerLiteral
+              literal: 100
+              staticType: int
+        element: self::@class::A::@constructor::•
+        name: SimpleIdentifier
+          staticElement: self::@class::A
+          staticType: null
+          token: A
+  static const E b;
+  static const E c;
+    metadata
+      Annotation
+        arguments: ArgumentList
+          arguments
+            IntegerLiteral
+              literal: 300
+              staticType: int
+        element: self::@class::A::@constructor::•
+        name: SimpleIdentifier
+          staticElement: self::@class::A
+          staticType: null
+          token: A
+  String toString() {}
+}
+class A {
+  final dynamic value;
+  const A(dynamic this.value);
+}
+''',
+        withFullyResolvedAst: true);
   }
 
   test_metadata_enumDeclaration() async {
-    var library = await checkLibrary('const a = null; @a enum E { v }');
-    checkElementText(library, r'''
-@
-        a/*location: test.dart;a?*/
+    var library = await checkLibrary('const a = 42; @a enum E { v }');
+    checkElementText(
+        library,
+        r'''
 enum E {
   synthetic final int index;
   synthetic static const List<E> values;
   static const E v;
   String toString() {}
 }
-const dynamic a = null;
-''');
+  metadata
+    Annotation
+      element: self::@getter::a
+      name: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: null
+        token: a
+const int a;
+  constantInitializer
+    IntegerLiteral
+      literal: 42
+      staticType: int
+''',
+        withFullyResolvedAst: true);
   }
 
   test_metadata_exportDirective() async {
@@ -10427,6 +11106,166 @@ const dynamic a = null;
 ''');
   }
 
+  test_metadata_value_class_staticField() async {
+    testFile = convertPath('/home/test/lib/test.dart');
+    var library = await checkLibrary('''
+class A {
+  static const x = 0;
+}
+@A.x
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  static const int x;
+    constantInitializer
+      IntegerLiteral
+        literal: 0
+        staticType: int
+}
+class C {
+}
+  metadata
+    Annotation
+      element: self::@class::A::@getter::x
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: self::@class::A::@getter::x
+          staticType: null
+          token: x
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: self::@class::A
+          staticType: null
+          token: A
+        staticElement: self::@class::A::@getter::x
+        staticType: null
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_value_enum_constant() async {
+    testFile = convertPath('/home/test/lib/test.dart');
+    var library = await checkLibrary('''
+enum E {a, b, c}
+@E.b
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E a;
+  static const E b;
+  static const E c;
+  String toString() {}
+}
+class C {
+}
+  metadata
+    Annotation
+      element: self::@enum::E::@getter::b
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: self::@enum::E::@getter::b
+          staticType: null
+          token: b
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: self::@enum::E
+          staticType: null
+          token: E
+        staticElement: self::@enum::E::@getter::b
+        staticType: null
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_value_extension_staticField() async {
+    testFile = convertPath('/home/test/lib/test.dart');
+    var library = await checkLibrary('''
+extension E on int {
+  static const x = 0;
+}
+@E.x
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
+class C {
+}
+  metadata
+    Annotation
+      element: self::@extension::E::@getter::x
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: self::@extension::E::@getter::x
+          staticType: null
+          token: x
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: self::@extension::E
+          staticType: null
+          token: E
+        staticElement: self::@extension::E::@getter::x
+        staticType: null
+extension E on int {
+  static const int x;
+    constantInitializer
+      IntegerLiteral
+        literal: 0
+        staticType: int
+}
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_metadata_value_prefix_extension_staticField() async {
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/foo.dart', '''
+extension E on int {
+  static const x = 0;
+}
+''');
+    var library = await checkLibrary('''
+import 'foo.dart' as foo;
+@foo.E.x
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'package:test/foo.dart' as foo;
+class C {
+}
+  metadata
+    Annotation
+      constructorName: SimpleIdentifier
+        staticElement: package:test/foo.dart::@extension::E::@getter::x
+        staticType: null
+        token: x
+      element: package:test/foo.dart::@extension::E::@getter::x
+      name: PrefixedIdentifier
+        identifier: SimpleIdentifier
+          staticElement: package:test/foo.dart::@extension::E
+          staticType: null
+          token: E
+        period: .
+        prefix: SimpleIdentifier
+          staticElement: self::@prefix::foo
+          staticType: null
+          token: foo
+        staticElement: package:test/foo.dart::@extension::E
+        staticType: null
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_method_documented() async {
     var library = await checkLibrary('''
 class C {
@@ -10593,6 +11432,18 @@ mixin M on Object {
   final int x;
 }
 ''');
+  }
+
+  test_mixin_first() async {
+    var library = await checkLibrary(r'''
+mixin M {}
+''');
+
+    // We intentionally ask `mixins` directly, to check that we can ask them
+    // separately, without asking classes.
+    var mixins = library.definingCompilationUnit.mixins;
+    expect(mixins, hasLength(1));
+    expect(mixins[0].name, 'M');
   }
 
   test_mixin_implicitObjectSuperclassConstraint() async {
@@ -12423,6 +13274,126 @@ F f;
 typedef F = dynamic Function();
 dynamic Function() f;
 ''');
+  }
+
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/45291',
+    reason: 'Type dynamic is special, no support for its aliases yet',
+  )
+  test_typedef_nonFunction_aliasElement_dynamic() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A = dynamic;
+void f(A a) {}
+''');
+
+    checkElementText(
+        library,
+        r'''
+typedef A = dynamic;
+void f(dynamic<aliasElement: self::@typeAlias::A> a) {}
+''',
+        withAliasElementArguments: true);
+  }
+
+  test_typedef_nonFunction_aliasElement_functionType() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A1 = void Function();
+typedef A2<R> = R Function();
+void f1(A1 a) {}
+void f2(A2<int> a) {}
+''');
+
+    checkElementText(
+        library,
+        r'''
+typedef A1 = void Function();
+typedef A2<R> = R Function();
+void f1(void Function()<aliasElement: self::@typeAlias::A1> a) {}
+void f2(int Function()<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
+''',
+        withAliasElementArguments: true);
+  }
+
+  test_typedef_nonFunction_aliasElement_interfaceType() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A1 = List<int>;
+typedef A2<T, U> = Map<T, U>;
+void f1(A1 a) {}
+void f2(A2<int, String> a) {}
+''');
+
+    checkElementText(
+        library,
+        r'''
+typedef A1 = List<int>;
+typedef A2<T, U> = Map<T, U>;
+void f1(List<int><aliasElement: self::@typeAlias::A1> a) {}
+void f2(Map<int, String><aliasElement: self::@typeAlias::A2, aliasArguments: [int, String]> a) {}
+''',
+        withAliasElementArguments: true);
+  }
+
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/45291',
+    reason: 'Type Never is special, no support for its aliases yet',
+  )
+  test_typedef_nonFunction_aliasElement_never() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A1 = Never;
+typedef A2<T> = Never?;
+void f1(A1 a) {}
+void f2(A2<int> a) {}
+''');
+
+    checkElementText(
+        library,
+        r'''
+typedef A1 = Never;
+typedef A2<T> = Never?;
+void f1(Never<aliasElement: self::@typeAlias::A1> a) {}
+void f2(Never?<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
+''',
+        withAliasElementArguments: true);
+  }
+
+  test_typedef_nonFunction_aliasElement_typeParameterType() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A<T> = T;
+void f<U>(A<U> a) {}
+''');
+
+    checkElementText(
+        library,
+        r'''
+typedef A<T> = T;
+void f<U>(U<aliasElement: self::@typeAlias::A, aliasArguments: [U]> a) {}
+''',
+        withAliasElementArguments: true);
+  }
+
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/45291',
+    reason: 'Type void is special, no support for its aliases yet',
+  )
+  test_typedef_nonFunction_aliasElement_void() async {
+    featureSet = FeatureSets.nonFunctionTypeAliases;
+    var library = await checkLibrary(r'''
+typedef A = void;
+void f(A a) {}
+''');
+
+    checkElementText(
+        library,
+        r'''
+typedef A = void;
+void f(void<aliasElement: self::@typeAlias::A> a) {}
+''',
+        withAliasElementArguments: true);
   }
 
   test_typedef_nonFunction_asInterfaceType_interfaceType_none() async {

@@ -43,6 +43,8 @@ extension AstNodeExtensions on AstNode {
       var parent = body.parent;
       if (parent is ConstructorDeclaration || parent is MethodDeclaration) {
         return true;
+      } else if (parent == null) {
+        return false;
       }
       node = parent;
     }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// Utility methods to compute the value of the features used for code
 /// completion.
 import 'dart:math' as math;
@@ -78,32 +80,26 @@ double weightedAverage(
     {double contextType = 0.0,
     double elementKind = 0.0,
     double hasDeprecated = 0.0,
-    double inheritanceDistance = 0.0,
     double isConstant = 0.0,
     double isNoSuchMethod = 0.0,
     double keyword = 0.0,
-    double localVariableDistance = 0.0,
     double startsWithDollar = 0.0,
     double superMatches = 0.0}) {
   assert(contextType.between(0.0, 1.0));
   assert(elementKind.between(0.0, 1.0));
   assert(hasDeprecated.between(-1.0, 0.0));
-  assert(inheritanceDistance.between(0.0, 1.0));
   assert(isConstant.between(0.0, 1.0));
   assert(isNoSuchMethod.between(-1.0, 0.0));
   assert(keyword.between(0.0, 1.0));
-  assert(localVariableDistance.between(0.0, 1.0));
   assert(startsWithDollar.between(-1.0, 0.0));
   assert(superMatches.between(0.0, 1.0));
   var average = _weightedAverage([
     contextType,
     elementKind,
     hasDeprecated,
-    inheritanceDistance,
     isConstant,
     isNoSuchMethod,
     keyword,
-    localVariableDistance,
     startsWithDollar,
     superMatches,
   ], FeatureComputer.featureWeights);
@@ -150,11 +146,9 @@ class FeatureComputer {
     1.00, // contextType
     1.00, // elementKind
     0.50, // hasDeprecated
-    1.00, // inheritanceDistance
     1.00, // isConstant
     1.00, // isNoSuchMethod
     1.00, // keyword
-    1.00, // localVariableDistance
     0.50, // startsWithDollar
     1.00, // superMatches
   ];
@@ -172,7 +166,9 @@ class FeatureComputer {
   /// offset is within the given [node], or `null` if the context does not
   /// impose any type.
   DartType computeContextType(AstNode node, int offset) {
-    var type = node.accept(_ContextTypeVisitor(typeProvider, offset));
+    var type = node
+        .accept(_ContextTypeVisitor(typeProvider, offset))
+        ?.resolveToBound(typeProvider.objectType);
     if (type == null || type.isDynamic) {
       return null;
     }
@@ -257,7 +253,7 @@ class FeatureComputer {
   /// completing at the given [completionLocation]. If a [distance] is given it
   /// will be used to provide finer-grained relevance scores.
   double elementKindFeature(Element element, String completionLocation,
-      {int distance}) {
+      {double distance}) {
     if (completionLocation == null) {
       return 0.0;
     }
@@ -270,9 +266,9 @@ class FeatureComputer {
       return 0.0;
     }
     if (distance == null) {
-      return range.upper;
+      return range.middle;
     }
-    return range.conditionalProbability(_distanceToPercent(distance));
+    return range.conditionalProbability(distance);
   }
 
   /// Return the value of the _has deprecated_ feature for the given [element].
@@ -455,7 +451,7 @@ class FeatureComputer {
     if (distance < 0) {
       return 0.0;
     }
-    return math.pow(0.98, distance);
+    return math.pow(0.9, distance);
   }
 
   /// Return the inheritance distance between the [subclass] and the
@@ -675,7 +671,16 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
     if (range.endEnd(node.functionDefinition, node).contains(offset)) {
       var parent = node.parent;
       if (parent is MethodDeclaration) {
-        return BodyInferenceContext.of(parent.body).contextType;
+        var bodyContext = BodyInferenceContext.of(parent.body);
+        // TODO(scheglov) https://github.com/dart-lang/sdk/issues/45429
+        if (bodyContext == null) {
+          throw StateError('''
+Expected body context.
+Method: $parent
+Class: ${parent.parent}
+''');
+        }
+        return bodyContext.contextType;
       } else if (parent is FunctionExpression) {
         var grandparent = parent.parent;
         if (grandparent is FunctionDeclaration) {
@@ -1004,18 +1009,24 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
 }
 
 /// Some useful extensions on [AstNode] for this computer.
-extension AstNodeFeatureComputerExtension on AstNode {
+extension on AstNode {
   bool contains(int o) => offset <= o && o <= end;
+}
 
-  /// Return the [FunctionType], if there is one, for this [AstNode].
+/// Some useful extensions on [ArgumentList] for this computer.
+extension on ArgumentList {
+  /// Return the [FunctionType], if there is one, for this [ArgumentList].
   FunctionType get functionType {
-    if (parent is MethodInvocation) {
-      var type = (parent as MethodInvocation).staticInvokeType;
+    var parent = this.parent;
+    if (parent is InstanceCreationExpression) {
+      return parent.constructorName.staticElement?.type;
+    } else if (parent is MethodInvocation) {
+      var type = parent.staticInvokeType;
       if (type is FunctionType) {
         return type;
       }
     } else if (parent is FunctionExpressionInvocation) {
-      var type = (parent as FunctionExpressionInvocation).staticInvokeType;
+      var type = parent.staticInvokeType;
       if (type is FunctionType) {
         return type;
       }

@@ -2,17 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
 // ignore_for_file: annotate_overrides
-// ignore_for_file: deprecated_member_use
-// ignore_for_file: deprecated_member_use_from_same_package
-// ignore_for_file: unnecessary_brace_in_string_interps
 // ignore_for_file: unnecessary_parenthesis
-// ignore_for_file: unused_import
-// ignore_for_file: unused_shown_name
 
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
@@ -20,8 +17,7 @@ import 'dart:convert' show JsonEncoder;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart'
-    show listEqual, mapEqual;
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
 
@@ -1567,6 +1563,138 @@ class PublishOutlineParams implements ToJsonable {
     var hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, outline.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class SnippetTextEdit implements TextEdit, ToJsonable {
+  static const jsonHandler =
+      LspJsonHandler(SnippetTextEdit.canParse, SnippetTextEdit.fromJson);
+
+  SnippetTextEdit(
+      {@required this.insertTextFormat,
+      @required this.range,
+      @required this.newText}) {
+    if (insertTextFormat == null) {
+      throw 'insertTextFormat is required but was not provided';
+    }
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+    if (newText == null) {
+      throw 'newText is required but was not provided';
+    }
+  }
+  static SnippetTextEdit fromJson(Map<String, dynamic> json) {
+    final insertTextFormat = json['insertTextFormat'] != null
+        ? InsertTextFormat.fromJson(json['insertTextFormat'])
+        : null;
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final newText = json['newText'];
+    return SnippetTextEdit(
+        insertTextFormat: insertTextFormat, range: range, newText: newText);
+  }
+
+  final InsertTextFormat insertTextFormat;
+
+  /// The string to be inserted. For delete operations use an empty string.
+  final String newText;
+
+  /// The range of the text document to be manipulated. To insert text into a
+  /// document create a range where start === end.
+  final Range range;
+
+  Map<String, dynamic> toJson() {
+    var __result = <String, dynamic>{};
+    __result['insertTextFormat'] = insertTextFormat?.toJson() ??
+        (throw 'insertTextFormat is required but was not set');
+    __result['range'] =
+        range?.toJson() ?? (throw 'range is required but was not set');
+    __result['newText'] =
+        newText ?? (throw 'newText is required but was not set');
+    return __result;
+  }
+
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
+      reporter.push('insertTextFormat');
+      try {
+        if (!obj.containsKey('insertTextFormat')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        if (obj['insertTextFormat'] == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(InsertTextFormat.canParse(obj['insertTextFormat'], reporter))) {
+          reporter.reportError('must be of type InsertTextFormat');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('range');
+      try {
+        if (!obj.containsKey('range')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(Range.canParse(obj['range'], reporter))) {
+          reporter.reportError('must be of type Range');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('newText');
+      try {
+        if (!obj.containsKey('newText')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        if (obj['newText'] == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(obj['newText'] is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError('must be of type SnippetTextEdit');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is SnippetTextEdit && other.runtimeType == SnippetTextEdit) {
+      return insertTextFormat == other.insertTextFormat &&
+          range == other.range &&
+          newText == other.newText &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    var hash = 0;
+    hash = JenkinsSmiHash.combine(hash, insertTextFormat.hashCode);
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, newText.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 

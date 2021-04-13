@@ -491,7 +491,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   // a HttpServer, a WebSocket connection, a process pipe, etc.
   Object? owner;
 
-  static Future<List<_InternetAddress>> lookup(String host,
+  static Future<List<InternetAddress>> lookup(String host,
       {InternetAddressType type: InternetAddressType.any}) {
     return _IOService._dispatch(_IOService.socketLookup, [host, type._value])
         .then((response) {
@@ -506,9 +506,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     });
   }
 
-  static Stream<List<_InternetAddress>> lookupAsStream(String host,
+  static Stream<List<InternetAddress>> lookupAsStream(String host,
       {InternetAddressType type: InternetAddressType.any}) {
-    final controller = StreamController<List<_InternetAddress>>();
+    final controller = StreamController<List<InternetAddress>>();
     controller.onListen = () {
       lookup(host, type: type).then((list) {
         controller.add(list);
@@ -588,8 +588,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   /// This avoids making single OS lookup request that internally does both IPv4
   /// and IPv6 together, which on iOS sometimes seems to be taking unreasonably
   /// long because of slow IPv6 lookup even though IPv4 lookup is fast.
-  static Stream<List<_InternetAddress>> staggeredLookup(String host) {
-    final controller = StreamController<List<_InternetAddress>>(sync: true);
+  static Stream<List<InternetAddress>> staggeredLookup(String host) {
+    final controller = StreamController<List<InternetAddress>>(sync: true);
 
     controller.onListen = () {
       // Completed when there are no further addresses, or when the returned
@@ -684,7 +684,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       // so we run IPv4 and IPv6 name resolution in parallel(IPv6 slightly
       // delayed so if IPv4 is successfully looked up, we don't do IPv6 look up
       // at all) and grab first successfully resolved name we are able to connect to.
-      final Stream<List<_InternetAddress>> stream =
+      final Stream<List<InternetAddress>> stream =
           Platform.isIOS || staggeredLookupOverride
               ? staggeredLookup(hostname)
               : lookupAsStream(hostname);
@@ -697,7 +697,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       dynamic host,
       int port,
       _InternetAddress? source,
-      Stream<List<_InternetAddress>> addresses) {
+      Stream<List<InternetAddress>> addresses) {
     // Completer for result.
     final result = new Completer<_NativeSocket>();
     // Error, set if an error occurs.
@@ -713,14 +713,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     Timer? timer;
     // Addresses arrived from lookup stream, but haven't been tried to connect
     // to yet due to Timer-based throttling.
-    final pendingLookedUp = Queue<_InternetAddress>();
+    final pendingLookedUp = Queue<InternetAddress>();
 
     // When deciding how to handle errors we need to know whether more
     // addresses potentially are coming from the lookup stream.
     bool isLookedUpStreamClosed = false;
-    late StreamSubscription<List<_InternetAddress>> addressesSubscription;
+    late StreamSubscription<List<InternetAddress>> addressesSubscription;
 
-    Object? createConnection(_InternetAddress address, _InternetAddress? source,
+    Object? createConnection(InternetAddress address, _InternetAddress? source,
         _NativeSocket socket) {
       Object? connectionResult;
       if (address.type == InternetAddressType.unix) {
@@ -736,19 +736,20 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
             connectionResult is Error ||
             connectionResult is OSError);
       } else {
+        final address_ = address as _InternetAddress;
         if (source == null) {
           connectionResult = socket.nativeCreateConnect(
-              address._in_addr, port, address._scope_id);
+              address_._in_addr, port, address_._scope_id);
         } else {
           connectionResult = socket.nativeCreateBindConnect(
-              address._in_addr, port, source._in_addr, address._scope_id);
+              address_._in_addr, port, source._in_addr, address_._scope_id);
         }
         assert(connectionResult == true || connectionResult is OSError);
       }
       return connectionResult;
     }
 
-    createConnectionError(Object? connectionResult, _InternetAddress address,
+    createConnectionError(Object? connectionResult, InternetAddress address,
         int port, _NativeSocket socket) {
       if (connectionResult is OSError) {
         final errorCode = connectionResult.errorCode;
@@ -801,9 +802,17 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       try {
         socket.port;
       } catch (e) {
-        error ??= createError(e, "Connection failed", address, port);
-        connectNext(); // Try again after failure to connect.
-        return;
+        if (e is OSError && e.errorCode == OSError.inProgressErrorCode()) {
+          // Ignore the error, proceed with waiting for a socket to become open.
+          // In non-blocking mode connect might not be established away, socket
+          // have to be waited for.
+          // EINPROGRESS error is ignored during |connect| call in native code,
+          // it has be ignored here during |port| query here.
+        } else {
+          error ??= createError(e, "Connection failed", address, port);
+          connectNext(); // Try again after failure to connect.
+          return;
+        }
       }
 
       // Try again if no response (failure or success) within a duration.
@@ -1145,7 +1154,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (localAddress.type == InternetAddressType.unix) return 0;
     if (localPort != 0) return localPort;
     if (isClosing || isClosed) throw const SocketException.closed();
-    return localPort = nativeGetPort();
+    var result = nativeGetPort();
+    if (result is OSError) {
+      throw result;
+    }
+    return localPort = result;
   }
 
   int get remotePort {
@@ -1529,7 +1542,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   nativeCreateBindDatagram(Uint8List addr, int port, bool reuseAddress,
       bool reusePort, int ttl) native "Socket_CreateBindDatagram";
   bool nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
-  int nativeGetPort() native "Socket_GetPort";
+  dynamic nativeGetPort() native "Socket_GetPort";
   List nativeGetRemotePeer() native "Socket_GetRemotePeer";
   int nativeGetSocketId() native "Socket_GetSocketId";
   OSError nativeGetError() native "Socket_GetError";

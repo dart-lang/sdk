@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -15,24 +19,64 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
+/// Information about a constructor element to instantiate.
+///
+/// If the target is a [ClassElement], the [element] is a raw
+/// [ConstructorElement] from the class, and [typeParameters] are the
+/// type parameters of the class.
+///
+/// If the target is a [TypeAliasElement] with an [InterfaceType] as the
+/// aliased type, the [element] is a [ConstructorMember] created from the
+/// [ConstructorElement] of the corresponding class, and substituting
+/// the class type parameters with the type arguments specified in the alias,
+/// explicit types or the type parameters of the alias. The [typeParameters]
+/// are the type parameters of the alias.
+class ConstructorElementToInfer {
+  /// The type parameters used in [element].
+  final List<TypeParameterElement> typeParameters;
+
+  /// The element, might be [ConstructorMember].
+  final ConstructorElement element;
+
+  ConstructorElementToInfer(this.typeParameters, this.element);
+
+  /// Return the equivalent generic function type that we could use to
+  /// forward to the constructor, or for a non-generic type simply returns
+  /// the constructor type.
+  ///
+  /// For example given the type `class C<T> { C(T arg); }`, the generic
+  /// function type is `<T>(T) -> C<T>`.
+  FunctionType get asType {
+    return FunctionTypeImpl(
+      typeFormals: typeParameters,
+      parameters: element.parameters,
+      returnType: element.returnType,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+}
+
 class InvocationInferenceHelper {
   final ResolverVisitor _resolver;
   final ErrorReporter _errorReporter;
   final TypeSystemImpl _typeSystem;
   final MigrationResolutionHooks? _migrationResolutionHooks;
+  final bool _genericMetadataIsEnabled;
 
   List<DartType>? _typeArgumentTypes;
   FunctionType? _invokeType;
 
-  InvocationInferenceHelper(
-      {required ResolverVisitor resolver,
-      required ErrorReporter errorReporter,
-      required TypeSystemImpl typeSystem,
-      required MigrationResolutionHooks? migrationResolutionHooks})
-      : _resolver = resolver,
+  InvocationInferenceHelper({
+    required ResolverVisitor resolver,
+    required ErrorReporter errorReporter,
+    required TypeSystemImpl typeSystem,
+    required MigrationResolutionHooks? migrationResolutionHooks,
+  })   : _resolver = resolver,
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
-        _migrationResolutionHooks = migrationResolutionHooks;
+        _migrationResolutionHooks = migrationResolutionHooks,
+        _genericMetadataIsEnabled = resolver.definingLibrary.featureSet
+            .isEnabled(Feature.generic_metadata);
 
   /// Compute the return type of the method or function represented by the given
   /// type that is being invoked.
@@ -41,6 +85,50 @@ class InvocationInferenceHelper {
       return type.returnType;
     } else {
       return DynamicTypeImpl.instance;
+    }
+  }
+
+  /// If the constructor referenced by the [constructorName] is generic,
+  /// and the [constructorName] does not have explicit type arguments,
+  /// return the element and type parameters to infer. Otherwise return `null`.
+  ConstructorElementToInfer? constructorElementToInfer({
+    required ConstructorName constructorName,
+    required LibraryElement definingLibrary,
+  }) {
+    List<TypeParameterElement>? typeParameters;
+    ConstructorElement? rawElement;
+
+    var typeName = constructorName.type;
+    var typeArguments = typeName.typeArguments;
+    var typeElement = typeName.name.staticElement;
+    if (typeElement is ClassElement) {
+      typeParameters = typeElement.typeParameters;
+      if (typeParameters.isNotEmpty && typeArguments == null) {
+        var constructorIdentifier = constructorName.name;
+        if (constructorIdentifier == null) {
+          rawElement = typeElement.unnamedConstructor;
+        } else {
+          var name = constructorIdentifier.name;
+          rawElement = typeElement.getNamedConstructor(name);
+        }
+      }
+    } else if (typeElement is TypeAliasElement) {
+      typeParameters = typeElement.typeParameters;
+      var aliasedType = typeElement.aliasedType;
+      if (aliasedType is InterfaceType) {
+        if (typeParameters.isNotEmpty && typeArguments == null) {
+          var constructorIdentifier = constructorName.name;
+          rawElement = aliasedType.lookUpConstructor(
+            constructorIdentifier?.name,
+            definingLibrary,
+          );
+        }
+      }
+    }
+
+    if (typeParameters != null && rawElement != null) {
+      rawElement = _resolver.toLegacyElement(rawElement);
+      return ConstructorElementToInfer(typeParameters, rawElement);
     }
   }
 
@@ -62,6 +150,7 @@ class InvocationInferenceHelper {
         isConst: isConst,
         errorReporter: _errorReporter,
         errorNode: errorNode,
+        genericMetadataIsEnabled: _genericMetadataIsEnabled,
       );
       if (typeArguments != null) {
         return uninstantiatedType.instantiate(typeArguments);
@@ -109,7 +198,7 @@ class InvocationInferenceHelper {
   /// This takes into account both the context type, as well as information from
   /// the argument types.
   FunctionType? inferGenericInvoke(
-      Expression node,
+      AstNode node,
       DartType? fnType,
       TypeArgumentList? typeArguments,
       ArgumentList argumentList,
@@ -139,7 +228,8 @@ class InvocationInferenceHelper {
     // for FunctionExpressionInvocation(s), so set it here, if not inferred.
     if (node is FunctionExpressionInvocationImpl) {
       if (typeArguments != null) {
-        var typeArgs = typeArguments.arguments.map((n) => n.type!).toList();
+        var typeArgs =
+            typeArguments.arguments.map((n) => n.typeOrThrow).toList();
         node.typeArgumentTypes = typeArgs;
       } else {
         node.typeArgumentTypes = const <DartType>[];
@@ -164,6 +254,7 @@ class InvocationInferenceHelper {
         tearOffType,
         errorReporter: _resolver.errorReporter,
         errorNode: expression,
+        genericMetadataIsEnabled: _genericMetadataIsEnabled,
       )!;
       (identifier as SimpleIdentifierImpl).tearOffTypeArgumentTypes =
           typeArguments;
@@ -200,6 +291,8 @@ class InvocationInferenceHelper {
   void resolveFunctionExpressionInvocation({
     required FunctionExpressionInvocationImpl node,
     required FunctionType rawType,
+    required List<Map<DartType, NonPromotionReason> Function()>
+        whyNotPromotedList,
   }) {
     _resolveInvocation(
       rawType: rawType,
@@ -208,6 +301,7 @@ class InvocationInferenceHelper {
       contextType: InferenceContext.getContext(node),
       isConst: false,
       errorNode: node.function,
+      whyNotPromotedList: whyNotPromotedList,
     );
 
     node.typeArgumentTypes = _typeArgumentTypes;
@@ -222,6 +316,8 @@ class InvocationInferenceHelper {
   void resolveMethodInvocation({
     required MethodInvocationImpl node,
     required FunctionType rawType,
+    required List<Map<DartType, NonPromotionReason> Function()>
+        whyNotPromotedList,
   }) {
     _resolveInvocation(
       rawType: rawType,
@@ -230,6 +326,7 @@ class InvocationInferenceHelper {
       contextType: InferenceContext.getContext(node),
       isConst: false,
       errorNode: node.function,
+      whyNotPromotedList: whyNotPromotedList,
     );
 
     node.typeArgumentTypes = _typeArgumentTypes;
@@ -266,6 +363,7 @@ class InvocationInferenceHelper {
       isConst: isConst,
       errorReporter: _errorReporter,
       errorNode: errorNode,
+      genericMetadataIsEnabled: _genericMetadataIsEnabled,
     );
   }
 
@@ -302,6 +400,7 @@ class InvocationInferenceHelper {
       isConst: isConst,
       errorReporter: _errorReporter,
       errorNode: errorNode,
+      genericMetadataIsEnabled: _genericMetadataIsEnabled,
     );
     return typeArgs;
   }
@@ -316,9 +415,11 @@ class InvocationInferenceHelper {
     return false;
   }
 
-  void _resolveArguments(ArgumentList argumentList) {
+  void _resolveArguments(ArgumentList argumentList,
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
     _resolver.visitArgumentList(argumentList,
-        isIdentical: _isCallToIdentical(argumentList.parent));
+        isIdentical: _isCallToIdentical(argumentList.parent),
+        whyNotPromotedList: whyNotPromotedList);
   }
 
   void _resolveInvocation({
@@ -328,12 +429,15 @@ class InvocationInferenceHelper {
     required ArgumentListImpl argumentList,
     required bool isConst,
     required AstNode errorNode,
+    required List<Map<DartType, NonPromotionReason> Function()>
+        whyNotPromotedList,
   }) {
     if (typeArgumentList != null) {
       _resolveInvocationWithTypeArguments(
         rawType: rawType,
         typeArgumentList: typeArgumentList,
         argumentList: argumentList,
+        whyNotPromotedList: whyNotPromotedList,
       );
     } else {
       _resolveInvocationWithoutTypeArguments(
@@ -342,6 +446,7 @@ class InvocationInferenceHelper {
         argumentList: argumentList,
         isConst: isConst,
         errorNode: errorNode,
+        whyNotPromotedList: whyNotPromotedList,
       );
     }
     _setCorrespondingParameters(argumentList, _invokeType!);
@@ -353,12 +458,14 @@ class InvocationInferenceHelper {
     required ArgumentList argumentList,
     required bool isConst,
     required AstNode errorNode,
+    required List<Map<DartType, NonPromotionReason> Function()>
+        whyNotPromotedList,
   }) {
     var typeParameters = rawType.typeFormals;
 
     if (typeParameters.isEmpty) {
       InferenceContext.setType(argumentList, rawType);
-      _resolveArguments(argumentList);
+      _resolveArguments(argumentList, whyNotPromotedList);
 
       _typeArgumentTypes = const <DartType>[];
       _invokeType = rawType;
@@ -375,7 +482,7 @@ class InvocationInferenceHelper {
       var downwardsInvokeType = rawType.instantiate(downwardsTypeArguments);
       InferenceContext.setType(argumentList, downwardsInvokeType);
 
-      _resolveArguments(argumentList);
+      _resolveArguments(argumentList, whyNotPromotedList);
 
       _typeArgumentTypes = _inferUpwards(
         rawType: rawType,
@@ -392,6 +499,8 @@ class InvocationInferenceHelper {
     required FunctionType rawType,
     required TypeArgumentList typeArgumentList,
     required ArgumentList argumentList,
+    required List<Map<DartType, NonPromotionReason> Function()>
+        whyNotPromotedList,
   }) {
     var typeParameters = rawType.typeFormals;
 
@@ -412,14 +521,14 @@ class InvocationInferenceHelper {
       );
     } else {
       typeArguments = typeArgumentList.arguments
-          .map((typeArgument) => typeArgument.type!)
+          .map((typeArgument) => typeArgument.typeOrThrow)
           .toList(growable: true);
     }
 
     var invokeType = rawType.instantiate(typeArguments);
     InferenceContext.setType(argumentList, invokeType);
 
-    _resolveArguments(argumentList);
+    _resolveArguments(argumentList, whyNotPromotedList);
 
     _typeArgumentTypes = typeArguments;
     _invokeType = invokeType;

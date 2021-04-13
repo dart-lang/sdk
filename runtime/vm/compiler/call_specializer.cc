@@ -111,16 +111,7 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   const Token::Kind op_kind = call->token_kind();
-  if (FLAG_guess_icdata_cid) {
-    if (CompilerState::Current().is_aot()) {
-      // In precompiler speculate that both sides of bitwise operation
-      // are Smi-s.
-      if (Token::IsBinaryBitwiseOperator(op_kind) &&
-          call->CanReceiverBeSmiBasedOnInterfaceTarget(zone())) {
-        class_ids[0] = kSmiCid;
-        class_ids[1] = kSmiCid;
-      }
-    }
+  if (FLAG_guess_icdata_cid && !CompilerState::Current().is_aot()) {
     if (Token::IsRelationalOperator(op_kind) ||
         Token::IsEqualityOperator(op_kind) ||
         Token::IsBinaryOperator(op_kind)) {
@@ -401,8 +392,7 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
                                        call->source()),
                  call->env(), FlowGraph::kEffect);
     cid = kSmiCid;
-  } else if (binary_feedback.OperandsAreSmiOrMint() &&
-             FlowGraphCompiler::SupportsUnboxedInt64()) {
+  } else if (binary_feedback.OperandsAreSmiOrMint()) {
     cid = kMintCid;
   } else if (binary_feedback.OperandsAreSmiOrDouble() && CanUnboxDouble()) {
     // Use double comparison.
@@ -477,8 +467,7 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
                                        call->source()),
                  call->env(), FlowGraph::kEffect);
     cid = kSmiCid;
-  } else if (binary_feedback.OperandsAreSmiOrMint() &&
-             FlowGraphCompiler::SupportsUnboxedInt64()) {
+  } else if (binary_feedback.OperandsAreSmiOrMint()) {
     cid = kMintCid;
   } else if (binary_feedback.OperandsAreSmiOrDouble() && CanUnboxDouble()) {
     // Use double comparison.
@@ -525,8 +514,7 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
             call->ic_data()->HasDeoptReason(ICData::kDeoptBinarySmiOp)
                 ? kMintCid
                 : kSmiCid;
-      } else if (binary_feedback.OperandsAreSmiOrMint() &&
-                 FlowGraphCompiler::SupportsUnboxedInt64()) {
+      } else if (binary_feedback.OperandsAreSmiOrMint()) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
         if (call->ic_data()->HasDeoptReason(ICData::kDeoptBinaryInt64Op))
@@ -638,7 +626,6 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                             call->deopt_id(), call->source());
     ReplaceCall(call, double_bin_op);
   } else if (operands_type == kMintCid) {
-    if (!FlowGraphCompiler::SupportsUnboxedInt64()) return false;
     if ((op_kind == Token::kSHL) || (op_kind == Token::kSHR) ||
         (op_kind == Token::kUSHR)) {
       SpeculativeShiftInt64OpInstr* shift_op = new (Z)
@@ -715,8 +702,7 @@ bool CallSpecializer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
     unary_op = new (Z)
         UnarySmiOpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if ((op_kind == Token::kBIT_NOT) &&
-             call->Targets().ReceiverIsSmiOrMint() &&
-             FlowGraphCompiler::SupportsUnboxedInt64()) {
+             call->Targets().ReceiverIsSmiOrMint()) {
     unary_op = new (Z)
         UnaryInt64OpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if (call->Targets().ReceiverIs(kDoubleCid) &&

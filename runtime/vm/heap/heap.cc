@@ -990,64 +990,70 @@ void Heap::RecordAfterGC(GCType type) {
 #ifndef PRODUCT
   // For now we'll emit the same GC events on all isolates.
   if (Service::gc_stream.enabled()) {
-    isolate_group_->ForEachIsolate([&](Isolate* isolate) {
-      if (!Isolate::IsSystemIsolate(isolate)) {
-        ServiceEvent event(isolate, ServiceEvent::kGC);
-        event.set_gc_stats(&stats_);
-        Service::HandleEvent(&event);
-      }
-    });
+    isolate_group_->ForEachIsolate(
+        [&](Isolate* isolate) {
+          if (!Isolate::IsSystemIsolate(isolate)) {
+            ServiceEvent event(isolate, ServiceEvent::kGC);
+            event.set_gc_stats(&stats_);
+            Service::HandleEvent(&event);
+          }
+        },
+        /*at_safepoint=*/true);
   }
 #endif  // !PRODUCT
   if (Dart::gc_event_callback() != nullptr) {
-    isolate_group_->ForEachIsolate([&](Isolate* isolate) {
-      if (!Isolate::IsSystemIsolate(isolate)) {
-        Dart_GCEvent event;
-        auto isolate_id = Utils::CStringUniquePtr(
-            OS::SCreate(nullptr, ISOLATE_SERVICE_ID_FORMAT_STRING,
-                        isolate->main_port()),
-            std::free);
-        int64_t isolate_uptime_micros = isolate->UptimeMicros();
+    isolate_group_->ForEachIsolate(
+        [&](Isolate* isolate) {
+          if (!Isolate::IsSystemIsolate(isolate)) {
+            Dart_GCEvent event;
+            auto isolate_id = Utils::CStringUniquePtr(
+                OS::SCreate(nullptr, ISOLATE_SERVICE_ID_FORMAT_STRING,
+                            isolate->main_port()),
+                std::free);
+            int64_t isolate_uptime_micros = isolate->UptimeMicros();
 
-        event.isolate_id = isolate_id.get();
-        event.type = GCTypeToString(stats_.type_);
-        event.reason = GCReasonToString(stats_.reason_);
+            event.isolate_id = isolate_id.get();
+            event.type = GCTypeToString(stats_.type_);
+            event.reason = GCReasonToString(stats_.reason_);
 
-        // New space - Scavenger.
-        {
-          intptr_t new_space_collections = new_space_.collections();
+            // New space - Scavenger.
+            {
+              intptr_t new_space_collections = new_space_.collections();
 
-          event.new_space.collections = new_space_collections;
-          event.new_space.used = stats_.after_.new_.used_in_words * kWordSize;
-          event.new_space.capacity =
-              stats_.after_.new_.capacity_in_words * kWordSize;
-          event.new_space.external =
-              stats_.after_.new_.external_in_words * kWordSize;
-          event.new_space.time =
-              MicrosecondsToSeconds(new_space_.gc_time_micros());
-          event.new_space.avg_collection_period =
-              AvgCollectionPeriod(isolate_uptime_micros, new_space_collections);
-        }
+              event.new_space.collections = new_space_collections;
+              event.new_space.used =
+                  stats_.after_.new_.used_in_words * kWordSize;
+              event.new_space.capacity =
+                  stats_.after_.new_.capacity_in_words * kWordSize;
+              event.new_space.external =
+                  stats_.after_.new_.external_in_words * kWordSize;
+              event.new_space.time =
+                  MicrosecondsToSeconds(new_space_.gc_time_micros());
+              event.new_space.avg_collection_period = AvgCollectionPeriod(
+                  isolate_uptime_micros, new_space_collections);
+            }
 
-        // Old space - Page.
-        {
-          intptr_t old_space_collections = old_space_.collections();
+            // Old space - Page.
+            {
+              intptr_t old_space_collections = old_space_.collections();
 
-          event.old_space.collections = old_space_collections;
-          event.old_space.used = stats_.after_.old_.used_in_words * kWordSize;
-          event.old_space.capacity =
-              stats_.after_.old_.capacity_in_words * kWordSize;
-          event.old_space.external =
-              stats_.after_.old_.external_in_words * kWordSize;
-          event.old_space.time =
-              MicrosecondsToSeconds(old_space_.gc_time_micros());
-          event.old_space.avg_collection_period =
-              AvgCollectionPeriod(isolate_uptime_micros, old_space_collections);
-        }
+              event.old_space.collections = old_space_collections;
+              event.old_space.used =
+                  stats_.after_.old_.used_in_words * kWordSize;
+              event.old_space.capacity =
+                  stats_.after_.old_.capacity_in_words * kWordSize;
+              event.old_space.external =
+                  stats_.after_.old_.external_in_words * kWordSize;
+              event.old_space.time =
+                  MicrosecondsToSeconds(old_space_.gc_time_micros());
+              event.old_space.avg_collection_period = AvgCollectionPeriod(
+                  isolate_uptime_micros, old_space_collections);
+            }
 
-        (*Dart::gc_event_callback())(&event);
-      }
-    });
+            (*Dart::gc_event_callback())(&event);
+          }
+        },
+        /*at_safepoint=*/true);
   }
 }
 

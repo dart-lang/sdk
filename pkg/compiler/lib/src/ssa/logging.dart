@@ -179,6 +179,12 @@ class OptimizationTestLog {
         'ShiftRight.${original.selector.name}');
   }
 
+  void registerShiftRightUnsigned(
+      HInvokeDynamic original, HShiftRight converted) {
+    _registerSpecializer(original, converted, 'ShiftRightUnsigned',
+        'ShiftRightUnsigned.${original.selector.name}');
+  }
+
   void registerBitOr(HInvokeDynamic original, HBitOr converted) {
     _registerSpecializer(original, converted, 'BitOr');
   }

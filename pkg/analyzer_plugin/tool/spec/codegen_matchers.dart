@@ -22,7 +22,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   /// Short human-readable string describing the context of the matcher being
   /// created.
-  String context;
+  String? context;
 
   CodegenMatchersVisitor(Api api)
       : toHtmlVisitor = ToHtmlVisitor(api),
@@ -41,17 +41,19 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     context = impliedType.humanReadableName;
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.p(() {
-        toHtmlVisitor.write(context);
+        toHtmlVisitor.write(context!);
       });
-      if (impliedType.type != null) {
-        toHtmlVisitor.showType(null, impliedType.type);
+      var type = impliedType.type;
+      if (type != null) {
+        toHtmlVisitor.showType(null, type);
       }
     }));
     write('final Matcher ${camelJoin(['is', impliedType.camelName])} = ');
-    if (impliedType.type == null) {
+    var type = impliedType.type;
+    if (type == null) {
       write('isNull');
     } else {
-      visitTypeDecl(impliedType.type);
+      visitTypeDecl(type);
     }
     writeln(';');
     writeln();

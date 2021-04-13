@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -96,7 +95,7 @@ class PropertyElementResolver {
       receiver: target,
       receiverType: targetType,
       name: '[]',
-      receiverErrorNode: target,
+      propertyErrorEntity: node.leftBracket,
       nameErrorEntity: target,
     );
 
@@ -370,7 +369,7 @@ class PropertyElementResolver {
       receiver: target,
       receiverType: targetType,
       name: propertyName.name,
-      receiverErrorNode: target,
+      propertyErrorEntity: propertyName,
       nameErrorEntity: propertyName,
     );
 
@@ -677,15 +676,11 @@ class PropertyElementResolver {
             inherited: true,
           );
           if (writeElement != null) {
-            var receiverSuperClass =
-                targetType.element.supertype!.element as ClassElementImpl;
-            if (!receiverSuperClass.hasNoSuchMethod) {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-                propertyName,
-                [writeElement.kind.displayName, propertyName.name],
-              );
-            }
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
+              propertyName,
+              [writeElement.kind.displayName, propertyName.name],
+            );
           } else {
             _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.UNDEFINED_SUPER_SETTER,

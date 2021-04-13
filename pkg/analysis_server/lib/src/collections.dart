@@ -3,11 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Returns the given [list] if it is not empty, or `null` otherwise.
-List<E> nullIfEmpty<E>(List<E> list) {
-  if (list == null) {
-    return null;
-  }
-  if (list.isEmpty) {
+List<E>? nullIfEmpty<E>(List<E>? list) {
+  if (list == null || list.isEmpty) {
     return null;
   }
   return list;

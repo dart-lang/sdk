@@ -10,7 +10,7 @@ library from "org-dartlang-test:///main.dart" as main {
 // class C extends Object with M {}
 //       ^
 //
-// org-dartlang-test:///main.dart:3:7: Error: Type parameters could not be inferred for the mixin 'M' because 'Object' does not implement the mixin's supertype constraint 'A<T>'.
+// org-dartlang-test:///main.dart:3:7: Error: Type parameters couldn't be inferred for the mixin 'M' because 'Object' does not implement the mixin's supertype constraint 'A<T>'.
 //  - 'A' is from 'org-dartlang-test:///main.dart'.
 // class C extends Object with M {}
 //       ^

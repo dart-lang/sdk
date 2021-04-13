@@ -20,10 +20,12 @@ void main() {
 @reflectiveTest
 class LinterRuleOptionsValidatorTest {
   final LinterRuleOptionsValidator validator = LinterRuleOptionsValidator();
+
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
-  RecordingErrorListener recorder;
-  ErrorReporter reporter;
+  late RecordingErrorListener recorder;
+
+  late ErrorReporter reporter;
 
   List<AnalysisError> get errors => recorder.errors;
 

@@ -905,7 +905,7 @@ class Pass2Visitor : public ObjectVisitor,
                           sizeof(double));
     } else if (cid == kOneByteStringCid) {
       OneByteStringPtr str = static_cast<OneByteStringPtr>(obj);
-      intptr_t len = Smi::Value(str->untag()->length_);
+      intptr_t len = Smi::Value(str->untag()->length());
       intptr_t trunc_len = Utils::Minimum(len, kMaxStringElements);
       writer_->WriteUnsigned(kLatin1Data);
       writer_->WriteUnsigned(len);
@@ -913,7 +913,7 @@ class Pass2Visitor : public ObjectVisitor,
       writer_->WriteBytes(&str->untag()->data()[0], trunc_len);
     } else if (cid == kExternalOneByteStringCid) {
       ExternalOneByteStringPtr str = static_cast<ExternalOneByteStringPtr>(obj);
-      intptr_t len = Smi::Value(str->untag()->length_);
+      intptr_t len = Smi::Value(str->untag()->length());
       intptr_t trunc_len = Utils::Minimum(len, kMaxStringElements);
       writer_->WriteUnsigned(kLatin1Data);
       writer_->WriteUnsigned(len);
@@ -921,7 +921,7 @@ class Pass2Visitor : public ObjectVisitor,
       writer_->WriteBytes(&str->untag()->external_data_[0], trunc_len);
     } else if (cid == kTwoByteStringCid) {
       TwoByteStringPtr str = static_cast<TwoByteStringPtr>(obj);
-      intptr_t len = Smi::Value(str->untag()->length_);
+      intptr_t len = Smi::Value(str->untag()->length());
       intptr_t trunc_len = Utils::Minimum(len, kMaxStringElements);
       writer_->WriteUnsigned(kUTF16Data);
       writer_->WriteUnsigned(len);
@@ -929,7 +929,7 @@ class Pass2Visitor : public ObjectVisitor,
       writer_->WriteBytes(&str->untag()->data()[0], trunc_len * 2);
     } else if (cid == kExternalTwoByteStringCid) {
       ExternalTwoByteStringPtr str = static_cast<ExternalTwoByteStringPtr>(obj);
-      intptr_t len = Smi::Value(str->untag()->length_);
+      intptr_t len = Smi::Value(str->untag()->length());
       intptr_t trunc_len = Utils::Minimum(len, kMaxStringElements);
       writer_->WriteUnsigned(kUTF16Data);
       writer_->WriteUnsigned(len);
@@ -953,14 +953,14 @@ class Pass2Visitor : public ObjectVisitor,
     } else if (IsTypedDataClassId(cid)) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
-          Smi::Value(static_cast<TypedDataPtr>(obj)->untag()->length_));
+          Smi::Value(static_cast<TypedDataPtr>(obj)->untag()->length()));
     } else if (IsExternalTypedDataClassId(cid)) {
       writer_->WriteUnsigned(kLengthData);
-      writer_->WriteUnsigned(
-          Smi::Value(static_cast<ExternalTypedDataPtr>(obj)->untag()->length_));
+      writer_->WriteUnsigned(Smi::Value(
+          static_cast<ExternalTypedDataPtr>(obj)->untag()->length()));
     } else if (cid == kFunctionCid) {
       writer_->WriteUnsigned(kNameData);
-      ScrubAndWriteUtf8(static_cast<FunctionPtr>(obj)->untag()->name_);
+      ScrubAndWriteUtf8(static_cast<FunctionPtr>(obj)->untag()->name());
     } else if (cid == kCodeCid) {
       ObjectPtr owner = static_cast<CodePtr>(obj)->untag()->owner_;
       if (!owner->IsHeapObject()) {
@@ -969,25 +969,25 @@ class Pass2Visitor : public ObjectVisitor,
         writer_->WriteUnsigned(kNoData);
       } else if (owner->IsFunction()) {
         writer_->WriteUnsigned(kNameData);
-        ScrubAndWriteUtf8(static_cast<FunctionPtr>(owner)->untag()->name_);
+        ScrubAndWriteUtf8(static_cast<FunctionPtr>(owner)->untag()->name());
       } else if (owner->IsClass()) {
         writer_->WriteUnsigned(kNameData);
-        ScrubAndWriteUtf8(static_cast<ClassPtr>(owner)->untag()->name_);
+        ScrubAndWriteUtf8(static_cast<ClassPtr>(owner)->untag()->name());
       } else {
         writer_->WriteUnsigned(kNoData);
       }
     } else if (cid == kFieldCid) {
       writer_->WriteUnsigned(kNameData);
-      ScrubAndWriteUtf8(static_cast<FieldPtr>(obj)->untag()->name_);
+      ScrubAndWriteUtf8(static_cast<FieldPtr>(obj)->untag()->name());
     } else if (cid == kClassCid) {
       writer_->WriteUnsigned(kNameData);
-      ScrubAndWriteUtf8(static_cast<ClassPtr>(obj)->untag()->name_);
+      ScrubAndWriteUtf8(static_cast<ClassPtr>(obj)->untag()->name());
     } else if (cid == kLibraryCid) {
       writer_->WriteUnsigned(kNameData);
-      ScrubAndWriteUtf8(static_cast<LibraryPtr>(obj)->untag()->url_);
+      ScrubAndWriteUtf8(static_cast<LibraryPtr>(obj)->untag()->url());
     } else if (cid == kScriptCid) {
       writer_->WriteUnsigned(kNameData);
-      ScrubAndWriteUtf8(static_cast<ScriptPtr>(obj)->untag()->url_);
+      ScrubAndWriteUtf8(static_cast<ScriptPtr>(obj)->untag()->url());
     } else {
       writer_->WriteUnsigned(kNoData);
     }

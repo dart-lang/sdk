@@ -101,7 +101,6 @@ class TranslationHelper {
   bool IsLibrary(NameIndex name);
   bool IsClass(NameIndex name);
   bool IsMember(NameIndex name);
-  bool IsField(NameIndex name);
   bool IsConstructor(NameIndex name);
   bool IsProcedure(NameIndex name);
   bool IsMethod(NameIndex name);
@@ -164,8 +163,10 @@ class TranslationHelper {
   virtual LibraryPtr LookupLibraryByKernelLibrary(NameIndex library);
   virtual ClassPtr LookupClassByKernelClass(NameIndex klass);
 
-  FieldPtr LookupFieldByKernelField(NameIndex field);
-  FunctionPtr LookupStaticMethodByKernelProcedure(NameIndex procedure);
+  FieldPtr LookupFieldByKernelGetterOrSetter(NameIndex field,
+                                             bool required = true);
+  FunctionPtr LookupStaticMethodByKernelProcedure(NameIndex procedure,
+                                                  bool required = true);
   FunctionPtr LookupConstructorByKernelConstructor(NameIndex constructor);
   FunctionPtr LookupConstructorByKernelConstructor(const Class& owner,
                                                    NameIndex constructor);
@@ -1459,7 +1460,8 @@ class TypeTranslator {
                  ConstantReader* constant_reader,
                  ActiveClass* active_class,
                  bool finalize = false,
-                 bool apply_canonical_type_erasure = false);
+                 bool apply_canonical_type_erasure = false,
+                 bool in_constant_context = false);
 
   AbstractType& BuildType();
   AbstractType& BuildTypeWithoutFinalization();
@@ -1476,6 +1478,12 @@ class TypeTranslator {
                                   const FunctionType& parameterized_signature,
                                   intptr_t type_parameter_count,
                                   const NNBDMode nnbd_mode);
+
+  void LoadAndSetupBounds(ActiveClass* active_class,
+                          const Function& function,
+                          const Class& parameterized_class,
+                          const FunctionType& parameterized_signature,
+                          intptr_t type_parameter_count);
 
   const Type& ReceiverType(const Class& klass);
 
@@ -1534,6 +1542,7 @@ class TypeTranslator {
   AbstractType& result_;
   bool finalize_;
   const bool apply_canonical_type_erasure_;
+  const bool in_constant_context_;
 
   friend class ScopeBuilder;
   friend class KernelLoader;

@@ -159,6 +159,10 @@ import 'package:testing/testing.dart'
         StdioProcess;
 
 import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/transformations/type_flow/transformer.dart' as type_flow;
+import 'package:vm/transformations/pragma.dart' as type_flow;
+
+import '../../testing_utils.dart' show checkEnvironment;
 
 import '../../utils/kernel_chain.dart'
     show
@@ -232,6 +236,11 @@ final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
 const String experimentalFlagOptions = '--enable-experiment=';
 const String overwriteCurrentSdkVersion = '--overwrite-current-sdk-version=';
 const String noVerifyCmd = '--no-verify';
+
+final ExpectationSet staticExpectationSet =
+    new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
+final Expectation semiFuzzFailure = staticExpectationSet["SemiFuzzFailure"];
+final Expectation semiFuzzCrash = staticExpectationSet["SemiFuzzCrash"];
 
 /// Options used for all tests within a given folder.
 ///
@@ -312,10 +321,6 @@ class FastaContext extends ChainContext with MatchContext {
   final bool semiFuzz;
   final bool verify;
   final bool soundNullSafety;
-  final Map<Component, KernelTarget> componentToTarget =
-      <Component, KernelTarget>{};
-  final Map<Component, List<Iterable<String>>> componentToDiagnostics =
-      <Component, List<Iterable<String>>>{};
   final Uri platformBinaries;
   final Map<UriConfiguration, UriTranslator> _uriTranslators = {};
   final Map<Uri, FolderOptions> _folderOptions = {};
@@ -332,8 +337,7 @@ class FastaContext extends ChainContext with MatchContext {
   bool get canBeFixWithUpdateExpectations => true;
 
   @override
-  final ExpectationSet expectationSet =
-      new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
+  final ExpectationSet expectationSet = staticExpectationSet;
 
   Map<Uri, Component> _platforms = {};
 
@@ -378,13 +382,11 @@ class FastaContext extends ChainContext with MatchContext {
       steps.add(new MatchExpectation(
           fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
           serializeFirst: false,
-          isLastMatchStep: updateExpectations));
-      if (!updateExpectations) {
-        steps.add(new MatchExpectation(
-            fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
-            serializeFirst: true,
-            isLastMatchStep: true));
-      }
+          isLastMatchStep: false));
+      steps.add(new MatchExpectation(
+          fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
+          serializeFirst: true,
+          isLastMatchStep: true));
     }
     steps.add(const TypeCheck());
     steps.add(const EnsureNoErrors());
@@ -393,6 +395,7 @@ class FastaContext extends ChainContext with MatchContext {
     }
     if (fullCompile) {
       steps.add(const Transform());
+      steps.add(const Verify(true));
       steps.add(const StressConstantEvaluatorStep());
       if (!ignoreExpectations) {
         steps.add(new MatchExpectation("$fullPrefix.transformed.expect",
@@ -405,10 +408,16 @@ class FastaContext extends ChainContext with MatchContext {
       steps.add(const EnsureNoErrors());
       if (!skipVm) {
         steps.add(const WriteDill());
-        steps.add(const Run());
       }
       if (semiFuzz) {
         steps.add(const FuzzCompiles());
+      }
+
+      // Notice: The below steps will run async, i.e. the next test will run
+      // intertwined with this/these step(s). That for instance means that they
+      // should not touch any ASTs!
+      if (!skipVm) {
+        steps.add(const Run());
       }
     }
   }
@@ -678,16 +687,25 @@ class FastaContext extends ChainContext with MatchContext {
 
   Expectation get verificationError => expectationSet["VerificationError"];
 
-  Future<Component> loadPlatform(Target target, NnbdMode nnbdMode) async {
+  Uri _getPlatformUri(Target target, NnbdMode nnbdMode) {
     String fileName = computePlatformDillName(
         target,
         nnbdMode,
         () => throw new UnsupportedError(
             "No platform dill for target '${target.name}' with $nnbdMode."));
-    Uri uri = platformBinaries.resolve(fileName);
+    return platformBinaries.resolve(fileName);
+  }
+
+  Future<Component> loadPlatform(Target target, NnbdMode nnbdMode) async {
+    Uri uri = _getPlatformUri(target, nnbdMode);
     return _platforms.putIfAbsent(uri, () {
       return loadComponentFromBytes(new File.fromUri(uri).readAsBytesSync());
     });
+  }
+
+  void clearPlatformCache(Target target, NnbdMode nnbdMode) async {
+    Uri uri = _getPlatformUri(target, nnbdMode);
+    _platforms.remove(uri);
   }
 
   @override
@@ -706,16 +724,59 @@ class FastaContext extends ChainContext with MatchContext {
   @override
   Set<Expectation> processExpectedOutcomes(
       Set<Expectation> outcomes, TestDescription description) {
-    if (skipVm && outcomes.length == 1 && outcomes.single == runtimeError) {
-      return new Set<Expectation>.from([Expectation.Pass]);
-    } else {
-      return outcomes;
+    // Remove outcomes related to phases not currently in effect.
+
+    Set<Expectation> result;
+
+    // If skipping VM we can't get a runtime error.
+    if (skipVm && outcomes.contains(runtimeError)) {
+      result ??= new Set.from(outcomes);
+      result.remove(runtimeError);
     }
+
+    // If not semi-fuzzing we can't get semi-fuzz errors.
+    if (!semiFuzz &&
+        (outcomes.contains(semiFuzzFailure) ||
+            outcomes.contains(semiFuzzCrash))) {
+      result ??= new Set.from(outcomes);
+      result.remove(semiFuzzFailure);
+      result.remove(semiFuzzCrash);
+    }
+
+    // Fast-path: no changes made.
+    if (result == null) return outcomes;
+
+    // Changes made: No expectations left. This happens when all expected
+    // outcomes are removed above.
+    // We have to put in the implicit assumption that it will pass then.
+    if (result.isEmpty) return {Expectation.Pass};
+
+    // Changes made with at least one expectation left. That's out result!
+    return result;
   }
 
   static Future<FastaContext> create(
       Chain suite, Map<String, String> environment) async {
-    Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
+    const Set<String> knownEnvironmentKeys = {
+      "enableExtensionMethods",
+      "enableNonNullable",
+      "soundNullSafety",
+      "onlyCrashes",
+      "ignoreExpectations",
+      UPDATE_EXPECTATIONS,
+      UPDATE_COMMENTS,
+      "skipVm",
+      "semiFuzz",
+      "verify",
+      KERNEL_TEXT_SERIALIZATION,
+      "platformBinaries",
+      ENABLE_FULL_COMPILE,
+    };
+    checkEnvironment(environment, knownEnvironmentKeys);
+
+    String resolvedExecutable = Platform.environment['resolvedExecutable'] ??
+        Platform.resolvedExecutable;
+    Uri vm = Uri.base.resolveUri(new Uri.file(resolvedExecutable));
     Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
 
     void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {
@@ -768,9 +829,8 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
 
   String get name => "run";
 
+  /// WARNING: Every subsequent step in this test will run async as well!
   bool get isAsync => true;
-
-  bool get isRuntime => true;
 
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
@@ -812,11 +872,11 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
         }
         return new Result<ComponentResult>(
             result, runResult.outcome, runResult.error);
+      case "aot":
       case "none":
-      case "noneWithJs":
       case "dart2js":
       case "dartdevc":
-        // TODO(johnniwinther): Support running dart2js and/or dartdevc.
+        // TODO(johnniwinther): Support running vm aot, dart2js and/or dartdevc.
         return pass(result);
       default:
         throw new ArgumentError(
@@ -1160,7 +1220,7 @@ class FuzzCompiles
         userLibraries.length != result.userLibraries.length) {
       return new Result<ComponentResult>(
           result,
-          context.expectationSet["SemiFuzzFailure"],
+          semiFuzzFailure,
           "Got a different amount of user libraries on first compile "
           "compared to 'original' compilation:\n\n"
           "This compile:\n"
@@ -1185,7 +1245,7 @@ class FuzzCompiles
               originalErrors.map((error) => error.join('\n')).join('\n\n');
           return new Result<ComponentResult>(
               result,
-              context.expectationSet["SemiFuzzFailure"],
+              semiFuzzFailure,
               "Expected these errors:\n${errorsString}\n\n"
               "but didn't get any after invalidating $importUri");
         } else {
@@ -1194,7 +1254,7 @@ class FuzzCompiles
               .join('\n\n');
           return new Result<ComponentResult>(
               result,
-              context.expectationSet["SemiFuzzFailure"],
+              semiFuzzFailure,
               "Unexpected errors:\n${errorsString}\n\n"
               "after invalidating $importUri");
         }
@@ -1206,7 +1266,7 @@ class FuzzCompiles
           newUserLibraries.length != userLibraries.length) {
         return new Result<ComponentResult>(
             result,
-            context.expectationSet["SemiFuzzFailure"],
+            semiFuzzFailure,
             "Got a different amount of user libraries on recompile "
             "compared to 'original' compilation after having invalidated "
             "$importUri.\n\n"
@@ -1275,8 +1335,18 @@ class FuzzCompiles
         continue;
       }
       Uint8List orgData = fs.data[uri];
-      FuzzAstVisitorSorter fuzzAstVisitorSorter =
-          new FuzzAstVisitorSorter(orgData, builder.isNonNullableByDefault);
+      FuzzAstVisitorSorter fuzzAstVisitorSorter;
+      try {
+        fuzzAstVisitorSorter =
+            new FuzzAstVisitorSorter(orgData, builder.isNonNullableByDefault);
+      } on FormatException catch (e, st) {
+        // UTF-16-LE formatted test crashes `utf8.decode(bytes)` --- catch that
+        return new Result<ComponentResult>(
+            result,
+            semiFuzzCrash,
+            "$e\n\n"
+            "$st");
+      }
 
       // Sort ascending and then compile. Then sort descending and try again.
       for (void Function() sorter in [
@@ -1297,7 +1367,7 @@ class FuzzCompiles
         } catch (e, st) {
           return new Result<ComponentResult>(
               result,
-              context.expectationSet["SemiFuzzCrash"],
+              semiFuzzCrash,
               "Crashed with '$e' after reordering '$uri' to\n\n"
               "$sb\n\n"
               "$st");
@@ -1317,7 +1387,7 @@ class FuzzCompiles
                 originalErrors.map((error) => error.join('\n')).join('\n\n');
             return new Result<ComponentResult>(
                 result,
-                context.expectationSet["SemiFuzzFailure"],
+                semiFuzzFailure,
                 "Expected these errors:\n${errorsString}\n\n"
                 "but didn't get any after reordering $uri "
                 "to have this content:\n\n"
@@ -1325,7 +1395,7 @@ class FuzzCompiles
           } else {
             return new Result<ComponentResult>(
                 result,
-                context.expectationSet["SemiFuzzFailure"],
+                semiFuzzFailure,
                 "Unexpected errors:\n${errorsString}\n\n"
                 "after reordering $uri to have this content:\n\n"
                 "$sb");
@@ -1648,11 +1718,11 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
     case "vm":
       target = new TestVmTarget(targetFlags);
       break;
+    case "aot":
+      target = new TestVmAotTarget(targetFlags);
+      break;
     case "none":
       target = new NoneTarget(targetFlags);
-      break;
-    case "noneWithJs":
-      target = new NoneWithJsTarget(targetFlags);
       break;
     case "dart2js":
       target = new TestDart2jsTarget('dart2js', targetFlags);
@@ -1781,10 +1851,6 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       await instrumentation.loadExpectations(description.uri);
       sourceTarget.loader.instrumentation = instrumentation;
       Component p = await sourceTarget.buildOutlines();
-      context.componentToTarget.clear();
-      context.componentToTarget[p] = sourceTarget;
-      context.componentToDiagnostics.clear();
-      context.componentToDiagnostics[p] = compilationSetup.errors;
       Set<Uri> userLibraries =
           createUserLibrariesImportUriSet(p, sourceTarget.uriTranslator);
       if (fullCompile) {
@@ -1799,7 +1865,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           } else {
             return new Result<ComponentResult>(
                 new ComponentResult(description, p, userLibraries,
-                    compilationSetup.options, sourceTarget),
+                    compilationSetup, sourceTarget),
                 context.expectationSet["InstrumentationMismatch"],
                 instrumentation.problemsAsString,
                 autoFixCommand: '${UPDATE_COMMENTS}=true',
@@ -1807,8 +1873,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           }
         }
       }
-      return pass(new ComponentResult(description, p, userLibraries,
-          compilationSetup.options, sourceTarget));
+      return pass(new ComponentResult(
+          description, p, userLibraries, compilationSetup, sourceTarget));
     });
   }
 
@@ -1850,8 +1916,7 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
       ComponentResult result, FastaContext context) async {
     return await CompilerContext.runWithOptions(result.options, (_) async {
       Component component = result.component;
-      KernelTarget sourceTarget = context.componentToTarget[component];
-      context.componentToTarget.remove(component);
+      KernelTarget sourceTarget = result.sourceTarget;
       Target backendTarget = sourceTarget.backendTarget;
       if (backendTarget is TestTarget) {
         backendTarget.performModularTransformations = true;
@@ -1872,7 +1937,18 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
             context.expectationSet["TransformVerificationError"],
             errors.join('\n'));
       }
-      return pass(result);
+      if (backendTarget is TestTarget &&
+          backendTarget.hasGlobalTransformation) {
+        component =
+            backendTarget.performGlobalTransformations(sourceTarget, component);
+        // Clear the currently cached platform since the global transformation
+        // might have modified it.
+        context.clearPlatformCache(
+            backendTarget, result.compilationSetup.options.nnbdMode);
+      }
+
+      return pass(new ComponentResult(result.description, component,
+          result.userLibraries, result.compilationSetup, sourceTarget));
     });
   }
 }
@@ -1973,10 +2049,32 @@ mixin TestTarget on Target {
           logger: logger);
     }
   }
+
+  bool get hasGlobalTransformation => false;
+
+  Component performGlobalTransformations(
+          KernelTarget kernelTarget, Component component) =>
+      component;
 }
 
 class TestVmTarget extends VmTarget with TestTarget {
   TestVmTarget(TargetFlags flags) : super(flags);
+}
+
+class TestVmAotTarget extends TestVmTarget {
+  TestVmAotTarget(TargetFlags flags) : super(flags);
+
+  @override
+  bool get hasGlobalTransformation => true;
+
+  @override
+  Component performGlobalTransformations(
+      KernelTarget kernelTarget, Component component) {
+    return type_flow.transformComponent(
+        this, kernelTarget.loader.coreTypes, component,
+        matcher: new type_flow.ConstantPragmaAnnotationParser(
+            kernelTarget.loader.coreTypes));
+  }
 }
 
 class EnsureNoErrors
@@ -1987,8 +2085,7 @@ class EnsureNoErrors
 
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
-    List<Iterable<String>> errors =
-        context.componentToDiagnostics[result.component];
+    List<Iterable<String>> errors = result.compilationSetup.errors;
     return errors.isEmpty
         ? pass(result)
         : fail(
@@ -2009,7 +2106,7 @@ class MatchHierarchy
     Component component = result.component;
     Uri uri =
         component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
-    KernelTarget target = context.componentToTarget[component];
+    KernelTarget target = result.sourceTarget;
     ClassHierarchyBuilder hierarchy = target.loader.builderHierarchy;
     StringBuffer sb = new StringBuffer();
     for (ClassHierarchyNode node in hierarchy.nodes.values) {
@@ -2037,14 +2134,6 @@ class UriConfiguration {
         librariesSpecificationUri == other.librariesSpecificationUri &&
         packageConfigUri == other.packageConfigUri;
   }
-}
-
-class NoneWithJsTarget extends NoneTarget {
-  NoneWithJsTarget(TargetFlags flags) : super(flags);
-
-  @override
-  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      const NoneConstantsBackendWithJs(supportsUnevaluatedConstants: true);
 }
 
 class NoneConstantsBackendWithJs extends NoneConstantsBackend {

@@ -28,6 +28,7 @@ var tests = <IsolateTest>[
     var stdoutSub;
     stdoutSub = await isolate.vm.listenEventStream(VM.kStdoutStream,
         (ServiceEvent event) {
+      expect(event.isolate != null, isTrue);
       expect(event.kind, equals('WriteEvent'));
       expect(event.bytesAsString, equals('stdout'));
       stdoutSub.cancel().then((_) {
@@ -44,6 +45,7 @@ var tests = <IsolateTest>[
     int eventNumber = 1;
     stdoutSub = await isolate.vm.listenEventStream(VM.kStdoutStream,
         (ServiceEvent event) {
+      expect(event.isolate != null, isTrue);
       expect(event.kind, equals('WriteEvent'));
       if (eventNumber == 1) {
         expect(event.bytesAsString, equals('print'));
@@ -66,6 +68,7 @@ var tests = <IsolateTest>[
     var stderrSub;
     stderrSub = await isolate.vm.listenEventStream(VM.kStderrStream,
         (ServiceEvent event) {
+      expect(event.isolate != null, isTrue);
       expect(event.kind, equals('WriteEvent'));
       expect(event.bytesAsString, equals('stderr'));
       stderrSub.cancel().then((_) {

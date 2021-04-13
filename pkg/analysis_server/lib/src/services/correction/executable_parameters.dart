@@ -17,26 +17,6 @@ class ExecutableParameters {
   final List<ParameterElement> optionalPositional = [];
   final List<ParameterElement> named = [];
 
-  factory ExecutableParameters(
-      AnalysisSessionHelper sessionHelper, AstNode invocation) {
-    Element element;
-    // This doesn't handle FunctionExpressionInvocation.
-    if (invocation is Annotation) {
-      element = invocation.element;
-    } else if (invocation is InstanceCreationExpression) {
-      element = invocation.constructorName.staticElement;
-    } else if (invocation is MethodInvocation) {
-      element = invocation.methodName.staticElement;
-    } else if (invocation is ConstructorReferenceNode) {
-      element = invocation.staticElement;
-    }
-    if (element is ExecutableElement && !element.isSynthetic) {
-      return ExecutableParameters._(sessionHelper, element);
-    } else {
-      return null;
-    }
-  }
-
   ExecutableParameters._(this.sessionHelper, this.executable) {
     for (var parameter in executable.parameters) {
       if (parameter.isRequiredPositional) {
@@ -59,7 +39,7 @@ class ExecutableParameters {
 
   /// Return the [FormalParameterList] of the [executable], or `null` if it
   /// can't be found.
-  Future<FormalParameterList> getParameterList() async {
+  Future<FormalParameterList?> getParameterList() async {
     var result = await sessionHelper.getElementDeclaration(executable);
     var targetDeclaration = result?.node;
     if (targetDeclaration is ConstructorDeclaration) {
@@ -75,7 +55,7 @@ class ExecutableParameters {
 
   /// Return the [FormalParameter] of the [element] in [FormalParameterList],
   /// or `null` if it can't be found.
-  Future<FormalParameter> getParameterNode(ParameterElement element) async {
+  Future<FormalParameter?> getParameterNode(ParameterElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
     var declaration = result?.node;
     for (var node = declaration; node != null; node = node.parent) {
@@ -84,5 +64,25 @@ class ExecutableParameters {
       }
     }
     return null;
+  }
+
+  static ExecutableParameters? forInvocation(
+      AnalysisSessionHelper sessionHelper, AstNode invocation) {
+    Element? element;
+    // This doesn't handle FunctionExpressionInvocation.
+    if (invocation is Annotation) {
+      element = invocation.element;
+    } else if (invocation is InstanceCreationExpression) {
+      element = invocation.constructorName.staticElement;
+    } else if (invocation is MethodInvocation) {
+      element = invocation.methodName.staticElement;
+    } else if (invocation is ConstructorReferenceNode) {
+      element = invocation.staticElement;
+    }
+    if (element is ExecutableElement && !element.isSynthetic) {
+      return ExecutableParameters._(sessionHelper, element);
+    } else {
+      return null;
+    }
   }
 }

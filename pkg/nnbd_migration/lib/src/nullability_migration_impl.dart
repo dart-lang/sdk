@@ -276,13 +276,16 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   static Location _computeLocation(
       LineInfo lineInfo, SourceEdit edit, Source source) {
-    final locationInfo = lineInfo.getLocation(edit.offset);
+    final startLocation = lineInfo.getLocation(edit.offset);
+    final endLocation = lineInfo.getLocation(edit.end);
     var location = Location(
       source.fullName,
       edit.offset,
       edit.length,
-      locationInfo.lineNumber,
-      locationInfo.columnNumber,
+      startLocation.lineNumber,
+      startLocation.columnNumber,
+      endLocation.lineNumber,
+      endLocation.columnNumber,
     );
     return location;
   }

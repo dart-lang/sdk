@@ -4,23 +4,21 @@
 
 /*spec.library: 
  output_units=[
-  f1: {units: [3{libA, libB, libC}], usedBy: [2, 4], needs: []},
-  f2: {units: [4{libA, libC}], usedBy: [3, 6], needs: [1, 4]},
-  f3: {units: [6{libA}], usedBy: [], needs: [2]},
-  f4: {units: [5{libB, libC}], usedBy: [5, 2], needs: [1]},
-  f5: {units: [1{libB}], usedBy: [], needs: [4]},
-  f6: {units: [2{libC}], usedBy: [], needs: [2]}],
+  f1: {units: [3{libA, libB, libC}], usedBy: [], needs: []},
+  f2: {units: [6{libA}], usedBy: [], needs: []},
+  f3: {units: [1{libB}], usedBy: [], needs: []},
+  f4: {units: [2{libC}], usedBy: [], needs: []}],
  steps=[
-  libA=(f1, f2, f3),
-  libB=(f1, f4, f5),
-  libC=(f1, f4, f2, f6)]
+  libA=(f1, f2),
+  libB=(f1, f3),
+  libC=(f1, f4)]
 */
 
 /*two-frag.library: 
  output_units=[
-  f1: {units: [3{libA, libB, libC}], usedBy: [2], needs: []},
-  f2: {units: [5{libB, libC, libA}, 4{libA, libC}, 2{libC}], usedBy: [3], needs: [1]},
-  f3: {units: [1{libB, libA}, 6{libA}], usedBy: [], needs: [2]}],
+  f1: {units: [3{libA, libB, libC}], usedBy: [], needs: [2]},
+  f2: {units: [5{libB, libC}, 4{libA, libC}, 2{libC}], usedBy: [1], needs: [3]},
+  f3: {units: [1{libB}, 6{libA}], usedBy: [2], needs: []}],
  steps=[
   libA=(f1, f2, f3),
   libB=(f1, f2, f3),
@@ -29,10 +27,10 @@
 
 /*three-frag.library: 
  output_units=[
-  f1: {units: [3{libA, libB, libC}, 5{libB, libC}, 4{libA, libC}], usedBy: [3, 2, 4], needs: []},
-  f2: {units: [6{libA}], usedBy: [], needs: [1]},
-  f3: {units: [1{libB}], usedBy: [], needs: [1]},
-  f4: {units: [2{libC}], usedBy: [], needs: [1]}],
+  f1: {units: [3{libA, libB, libC}, 5{libB, libC}, 4{libA, libC}], usedBy: [], needs: [4, 3, 2]},
+  f2: {units: [6{libA}], usedBy: [1], needs: []},
+  f3: {units: [1{libB}], usedBy: [1], needs: []},
+  f4: {units: [2{libC}], usedBy: [1], needs: []}],
  steps=[
   libA=(f1, f2),
   libB=(f1, f3),
@@ -45,7 +43,7 @@ import 'liba.dart' deferred as libA;
 import 'libb.dart' deferred as libB;
 import 'libc.dart' deferred as libC;
 
-/*spec|three-frag.member: foo:
+/*member: foo:
  constants=[
   FunctionConstant(callFooMethod)=1{libB},
   FunctionConstant(createB2)=2{libC},
@@ -57,23 +55,6 @@ import 'libc.dart' deferred as libC;
   FunctionConstant(isFoo)=2{libC},
   FunctionConstant(isFoo)=6{libA},
   FunctionConstant(isFunFunFoo)=1{libB},
-  FunctionConstant(isFunFunFoo)=2{libC},
-  FunctionConstant(isFunFunFoo)=6{libA},
-  FunctionConstant(isMega)=6{libA}],
- member_unit=main{}
-*/
-/*two-frag.member: foo:
- constants=[
-  FunctionConstant(callFooMethod)=1{libB, libA},
-  FunctionConstant(createB2)=2{libC},
-  FunctionConstant(createC3)=2{libC},
-  FunctionConstant(createD3)=2{libC},
-  FunctionConstant(createDooFunFunFoo)=2{libC},
-  FunctionConstant(isDooFunFunFoo)=1{libB, libA},
-  FunctionConstant(isFoo)=1{libB, libA},
-  FunctionConstant(isFoo)=2{libC},
-  FunctionConstant(isFoo)=6{libA},
-  FunctionConstant(isFunFunFoo)=1{libB, libA},
   FunctionConstant(isFunFunFoo)=2{libC},
   FunctionConstant(isFunFunFoo)=6{libA},
   FunctionConstant(isMega)=6{libA}],

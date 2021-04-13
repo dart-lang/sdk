@@ -533,22 +533,36 @@ void Assembler::ffree(intptr_t value) {
   EmitSimple(0xDD, 0xC0 + value);
 }
 
-void Assembler::CompareImmediate(Register reg, const Immediate& imm) {
-  if (imm.is_int32()) {
-    cmpq(reg, imm);
+void Assembler::CompareImmediate(Register reg,
+                                 const Immediate& imm,
+                                 OperandSize width) {
+  if (width == kEightBytes) {
+    if (imm.is_int32()) {
+      cmpq(reg, imm);
+    } else {
+      ASSERT(reg != TMP);
+      LoadImmediate(TMP, imm);
+      cmpq(reg, TMP);
+    }
   } else {
-    ASSERT(reg != TMP);
-    LoadImmediate(TMP, imm);
-    cmpq(reg, TMP);
+    ASSERT(width == kFourBytes);
+    cmpl(reg, imm);
   }
 }
 
-void Assembler::CompareImmediate(const Address& address, const Immediate& imm) {
-  if (imm.is_int32()) {
-    cmpq(address, imm);
+void Assembler::CompareImmediate(const Address& address,
+                                 const Immediate& imm,
+                                 OperandSize width) {
+  if (width == kEightBytes) {
+    if (imm.is_int32()) {
+      cmpq(address, imm);
+    } else {
+      LoadImmediate(TMP, imm);
+      cmpq(address, TMP);
+    }
   } else {
-    LoadImmediate(TMP, imm);
-    cmpq(address, TMP);
+    ASSERT(width == kFourBytes);
+    cmpl(address, imm);
   }
 }
 
@@ -607,13 +621,20 @@ void Assembler::testq(Register reg, const Immediate& imm) {
   }
 }
 
-void Assembler::TestImmediate(Register dst, const Immediate& imm) {
-  if (imm.is_int32() || imm.is_uint32()) {
-    testq(dst, imm);
+void Assembler::TestImmediate(Register dst,
+                              const Immediate& imm,
+                              OperandSize width) {
+  if (width == kEightBytes) {
+    if (imm.is_int32() || imm.is_uint32()) {
+      testq(dst, imm);
+    } else {
+      ASSERT(dst != TMP);
+      LoadImmediate(TMP, imm);
+      testq(dst, TMP);
+    }
   } else {
-    ASSERT(dst != TMP);
-    LoadImmediate(TMP, imm);
-    testq(dst, TMP);
+    ASSERT(width == kFourBytes);
+    testl(dst, imm);
   }
 }
 
@@ -1303,15 +1324,15 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 
   intptr_t offset_from_thread;
   if (target::CanLoadFromThread(object, &offset_from_thread)) {
-    cmpq(reg, Address(THR, offset_from_thread));
+    OBJ(cmp)(reg, Address(THR, offset_from_thread));
   } else if (CanLoadFromObjectPool(object)) {
     const intptr_t idx = object_pool_builder().FindObject(
         object, ObjectPoolBuilderEntry::kNotPatchable);
     const int32_t offset = target::ObjectPool::element_offset(idx);
-    cmpq(reg, Address(PP, offset - kHeapObjectTag));
+    OBJ(cmp)(reg, Address(PP, offset - kHeapObjectTag));
   } else {
     ASSERT(target::IsSmi(object));
-    CompareImmediate(reg, Immediate(target::ToRawSmi(object)));
+    CompareImmediate(reg, Immediate(target::ToRawSmi(object)), kObjectBytes);
   }
 }
 
@@ -1339,23 +1360,26 @@ void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
   }
 }
 
-void Assembler::LoadCompressed(Register dest,
-                               const Address& slot,
-                               CanBeSmi can_value_be_smi) {
+void Assembler::LoadCompressed(Register dest, const Address& slot) {
 #if !defined(DART_COMPRESSED_POINTERS)
   movq(dest, slot);
 #else
-  Label done;
-  movsxd(dest, slot);  // (movslq) Sign-extension.
-  if (can_value_be_smi == kValueCanBeSmi) {
-    BranchIfSmi(dest, &done, kNearJump);
-  }
+  movl(dest, slot);  // Zero-extension.
   addq(dest, Address(THR, target::Thread::heap_base_offset()));
-  Bind(&done);
+#endif
+}
 
-  // After further Smi changes:
-  // movl(dest, slot);  // Zero-extension.
-  // addq(dest, Address(THR, target::Thread::heap_base_offset());
+void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
+#if !defined(DART_COMPRESSED_POINTERS)
+  movq(dest, slot);
+#else
+  movl(dest, slot);  // Zero-extension.
+#endif
+#if defined(DEBUG)
+  Label done;
+  BranchIfSmi(dest, &done);
+  Stop("Expected Smi");
+  Bind(&done);
 #endif
 }
 
@@ -1401,12 +1425,25 @@ void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
                                 CanBeSmi can_be_smi) {
+  movq(dest, value);
+  StoreBarrier(object, value, can_be_smi);
+}
+
+void Assembler::StoreCompressedIntoObject(Register object,
+                                          const Address& dest,
+                                          Register value,
+                                          CanBeSmi can_be_smi) {
+  OBJ(mov)(dest, value);
+  StoreBarrier(object, value, can_be_smi);
+}
+
+void Assembler::StoreBarrier(Register object,
+                             Register value,
+                             CanBeSmi can_be_smi) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
   ASSERT(object != TMP);
   ASSERT(value != TMP);
-
-  movq(dest, value);
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1511,10 +1548,37 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // No store buffer update.
 }
 
+void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
+                                                   const Address& dest,
+                                                   Register value) {
+  OBJ(mov)(dest, value);
+#if defined(DEBUG)
+  Label done;
+  pushq(value);
+  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
+
+  testb(FieldAddress(object, target::Object::tags_offset()),
+        Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+  j(ZERO, &done, Assembler::kNearJump);
+
+  Stop("Store buffer update is required");
+  Bind(&done);
+  popq(value);
+#endif  // defined(DEBUG)
+  // No store buffer update.
+}
+
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
   StoreObject(dest, value);
+}
+
+void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
+                                                   const Address& dest,
+                                                   const Object& value) {
+  LoadObject(TMP, value);
+  StoreCompressedIntoObjectNoBarrier(object, dest, TMP);
 }
 
 void Assembler::StoreInternalPointer(Register object,
@@ -1537,6 +1601,11 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
 void Assembler::ZeroInitSmiField(const Address& dest) {
   Immediate zero(target::ToRawSmi(0));
   movq(dest, zero);
+}
+
+void Assembler::ZeroInitCompressedSmiField(const Address& dest) {
+  Immediate zero(target::ToRawSmi(0));
+  OBJ(mov)(dest, zero);
 }
 
 void Assembler::IncrementSmiField(const Address& dest, int64_t increment) {
@@ -1888,7 +1957,11 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   j(NOT_EQUAL, &miss, Assembler::kNearJump);
   addl(FieldAddress(RBX, count_offset), Immediate(target::ToRawSmi(1)));
   xorq(R10, R10);  // GC-safe for OptimizeInvokedFunction.
+#if !defined(DART_COMPRESSED_POINTERS)
   nop(1);
+#else
+  nop(2);
+#endif
 
   // Fall through to unchecked entry.
   ASSERT_EQUAL(CodeSize() - start,
@@ -1921,7 +1994,11 @@ void Assembler::MonomorphicCheckedEntryAOT() {
 
   // Ensure the unchecked entry is 2-byte aligned (so GC can see them if we
   // store them in ICData / MegamorphicCache arrays).
+#if !defined(DART_COMPRESSED_POINTERS)
   nop(1);
+#else
+  nop(2);
+#endif
 
   // Fall through to unchecked entry.
   ASSERT_EQUAL(CodeSize() - start,
@@ -2230,6 +2307,7 @@ void Assembler::CompareClassId(Register object,
 void Assembler::SmiUntagOrCheckClass(Register object,
                                      intptr_t class_id,
                                      Label* is_smi) {
+#if !defined(DART_COMPRESSED_POINTERS)
   ASSERT(kSmiTagShift == 1);
   ASSERT(target::UntaggedObject::kClassIdTagPos == 16);
   ASSERT(target::UntaggedObject::kClassIdTagSize == 16);
@@ -2244,6 +2322,11 @@ void Assembler::SmiUntagOrCheckClass(Register object,
   // factor in the addressing mode to compensate for this.
   movzxw(TMP, Address(object, TIMES_2, class_id_offset));
   cmpl(TMP, Immediate(class_id));
+#else
+  // Cannot speculatively untag compressed Smis because it erases upper address
+  // bits.
+  UNREACHABLE();
+#endif
 }
 
 void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {

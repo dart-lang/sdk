@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -73,11 +75,12 @@ main() {
     await assertNoAssist();
   }
 
-  Future<void> test_sort() async {
+  Future<void> test_sort_middleArgument() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(
+    mainAxisAlignment: MainAxisAlignment.start,
     /*caret*/children: <Widget>[
       Text('aaa'),
       Text('bbbbbb'),
@@ -91,6 +94,7 @@ main() {
 import 'package:flutter/material.dart';
 main() {
   Column(
+    mainAxisAlignment: MainAxisAlignment.start,
     crossAxisAlignment: CrossAxisAlignment.center,
     children: <Widget>[
       Text('aaa'),
@@ -120,5 +124,65 @@ main() {
 }
 ''');
     await assertNoAssist();
+  }
+
+  Future<void> test_sort_noTrailingComma() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+main() {
+  Column(
+    /*caret*/children: <Widget>[
+      Text('aaa'),
+      Text('bbbbbb'),
+      Text('ccccccccc'),
+    ],
+    crossAxisAlignment: CrossAxisAlignment.center
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+main() {
+  Column(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: <Widget>[
+      Text('aaa'),
+      Text('bbbbbb'),
+      Text('ccccccccc'),
+    ]
+  );
+}
+''');
+    assertExitPosition(after: ']');
+  }
+
+  Future<void> test_sort_trailingComma() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+main() {
+  Column(
+    /*caret*/children: <Widget>[
+      Text('aaa'),
+      Text('bbbbbb'),
+      Text('ccccccccc'),
+    ],
+    crossAxisAlignment: CrossAxisAlignment.center,
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+main() {
+  Column(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: <Widget>[
+      Text('aaa'),
+      Text('bbbbbb'),
+      Text('ccccccccc'),
+    ],
+  );
+}
+''');
+    assertExitPosition(after: '],');
   }
 }

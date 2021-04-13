@@ -419,8 +419,12 @@ class TypeSystemImpl implements TypeSystem {
   /// uninstantiated, or a [fnType] that is already instantiated, it will have
   /// no effect and return `null`.
   List<DartType>? inferFunctionTypeInstantiation(
-      FunctionType contextType, FunctionType fnType,
-      {ErrorReporter? errorReporter, AstNode? errorNode}) {
+    FunctionType contextType,
+    FunctionType fnType, {
+    ErrorReporter? errorReporter,
+    AstNode? errorNode,
+    required bool genericMetadataIsEnabled,
+  }) {
     if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
       return const <DartType>[];
     }
@@ -437,6 +441,7 @@ class TypeSystemImpl implements TypeSystem {
       fnType.typeFormals,
       errorReporter: errorReporter,
       errorNode: errorNode,
+      genericMetadataIsEnabled: genericMetadataIsEnabled,
     );
   }
 
@@ -472,6 +477,7 @@ class TypeSystemImpl implements TypeSystem {
     AstNode? errorNode,
     bool downwards = false,
     bool isConst = false,
+    required bool genericMetadataIsEnabled,
   }) {
     if (typeParameters.isEmpty) {
       return null;
@@ -506,6 +512,7 @@ class TypeSystemImpl implements TypeSystem {
       errorReporter: errorReporter,
       errorNode: errorNode,
       downwardsInferPhase: downwards,
+      genericMetadataIsEnabled: genericMetadataIsEnabled,
     );
   }
 
@@ -1250,8 +1257,9 @@ class TypeSystemImpl implements TypeSystem {
   List<DartType>? matchSupertypeConstraints(
     ClassElement mixinElement,
     List<DartType> srcTypes,
-    List<DartType> destTypes,
-  ) {
+    List<DartType> destTypes, {
+    required bool genericMetadataIsEnabled,
+  }) {
     var typeParameters = mixinElement.typeParameters;
     var inferrer = GenericInferrer(this, typeParameters);
     for (int i = 0; i < srcTypes.length; i++) {
@@ -1262,6 +1270,7 @@ class TypeSystemImpl implements TypeSystem {
     var inferredTypes = inferrer.infer(
       typeParameters,
       considerExtendsClause: false,
+      genericMetadataIsEnabled: genericMetadataIsEnabled,
     )!;
     inferredTypes =
         inferredTypes.map(_removeBoundsOfGenericFunctionTypes).toList();

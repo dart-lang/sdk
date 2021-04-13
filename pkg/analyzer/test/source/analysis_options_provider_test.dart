@@ -131,9 +131,9 @@ analyzer:
     YamlMap options = _getOptions('/foo/bar');
     expect(options, hasLength(1));
     {
-      var analyzer = getValue(options, 'analyzer') as YamlMap;
+      var analyzer = options.valueAt('analyzer') as YamlMap;
       expect(analyzer, isNotNull);
-      expect(getValue(analyzer, 'ignore'), unorderedEquals(['bar']));
+      expect(analyzer.valueAt('ignore'), unorderedEquals(['bar']));
     }
   }
 
@@ -152,9 +152,9 @@ analyzer:
     YamlMap options = _getOptions('/foo/bar/baz');
     expect(options, hasLength(1));
     {
-      var analyzer = getValue(options, 'analyzer') as YamlMap;
+      var analyzer = options.valueAt('analyzer') as YamlMap;
       expect(analyzer, isNotNull);
-      expect(getValue(analyzer, 'ignore'), unorderedEquals(['bar']));
+      expect(analyzer.valueAt('ignore'), unorderedEquals(['bar']));
     }
   }
 
@@ -184,10 +184,10 @@ include: foo.include
     YamlMap options = _getOptions('/');
     expect(options, hasLength(2));
     {
-      var analyzer = getValue(options, 'analyzer') as YamlMap;
+      var analyzer = options.valueAt('analyzer') as YamlMap;
       expect(analyzer, hasLength(1));
       {
-        var ignore = getValue(analyzer, 'ignore') as YamlList;
+        var ignore = analyzer.valueAt('ignore') as YamlList;
         expect(ignore, hasLength(2));
         expect(ignore[0], 'ignoreme.dart');
         expect(ignore[1], 'sdk_ext/**');
@@ -219,10 +219,10 @@ analyzer:
     YamlMap options = _getOptions('/');
     expect(options, hasLength(1));
     {
-      var analyzer = getValue(options, 'analyzer') as YamlMap;
+      var analyzer = options.valueAt('analyzer') as YamlMap;
       expect(analyzer, hasLength(1));
       {
-        var ignore = getValue(analyzer, 'ignore') as YamlList;
+        var ignore = analyzer.valueAt('ignore') as YamlList;
         expect(ignore, hasLength(2));
         expect(ignore[0], 'ignoreme.dart');
         expect(ignore[1], 'sdk_ext/**');

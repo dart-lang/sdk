@@ -8,15 +8,18 @@ import 'dart:math' as math;
 
 import 'package:front_end/src/api_unstable/vm.dart'
     show
+        messageFfiPackedAnnotationAlignment,
         templateFfiEmptyStruct,
         templateFfiFieldAnnotation,
         templateFfiFieldNull,
         templateFfiFieldCyclic,
         templateFfiFieldNoAnnotation,
-        templateFfiTypeInvalid,
         templateFfiTypeMismatch,
         templateFfiFieldInitializer,
+        templateFfiPackedAnnotation,
+        templateFfiPackedNestingNonPacked,
         templateFfiSizeAnnotation,
+        templateFfiSizeAnnotationDimensions,
         templateFfiStructGeneric;
 
 import 'package:kernel/ast.dart' hide MapEntry;
@@ -177,13 +180,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       return node;
     }
 
-    _checkStructClass(node);
+    final packing = _checkStructClass(node);
 
     final indexedClass = currentLibraryIndex?.lookupIndexedClass(node.name);
     _checkConstructors(node, indexedClass);
     indexedStructClasses[node] = indexedClass;
 
-    fieldsValid[node] = _checkFieldAnnotations(node);
+    fieldsValid[node] = _checkFieldAnnotations(node, packing);
 
     return node;
   }
@@ -197,7 +200,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
   }
 
-  void _checkStructClass(Class node) {
+  /// Returns packing if any.
+  int _checkStructClass(Class node) {
     if (node.typeParameters.length > 0) {
       diagnosticReporter.report(
           templateFfiStructGeneric.withArguments(node.name),
@@ -209,50 +213,30 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     if (node.supertype?.classNode != structClass) {
       // Not a struct, but extends a struct. The error will be emitted by
       // _FfiUseSiteTransformer.
-      return;
+      return null;
     }
-  }
 
-  bool _isPointerType(DartType type) {
-    if (type is InvalidType) {
-      return false;
+    final packingAnnotations = _getPackedAnnotations(node);
+    if (packingAnnotations.length > 1) {
+      diagnosticReporter.report(
+          templateFfiPackedAnnotation.withArguments(node.name),
+          node.fileOffset,
+          node.name.length,
+          node.location.file);
     }
-    return env.isSubtypeOf(
-        type,
-        InterfaceType(pointerClass, Nullability.legacy, [
-          InterfaceType(nativeTypesClasses[NativeType.kNativeType.index],
-              Nullability.legacy)
-        ]),
-        SubtypeCheckMode.ignoringNullabilities);
-  }
-
-  bool _isArrayType(DartType type) {
-    if (type is InvalidType) {
-      return false;
-    }
-    return env.isSubtypeOf(
-        type,
-        InterfaceType(cArrayClass, Nullability.legacy, [
-          InterfaceType(nativeTypesClasses[NativeType.kNativeType.index],
-              Nullability.legacy)
-        ]),
-        SubtypeCheckMode.ignoringNullabilities);
-  }
-
-  bool _isStructSubtype(DartType type) {
-    if (type is InvalidType) {
-      return false;
-    }
-    if (type is NullType) {
-      return false;
-    }
-    if (type is InterfaceType) {
-      if (type.classNode == structClass) {
-        return false;
+    if (packingAnnotations.isNotEmpty) {
+      final packing = packingAnnotations.first;
+      if (!(packing == 1 ||
+          packing == 2 ||
+          packing == 4 ||
+          packing == 8 ||
+          packing == 16)) {
+        diagnosticReporter.report(messageFfiPackedAnnotationAlignment,
+            node.fileOffset, node.name.length, node.location.file);
       }
+      return packing;
     }
-    return env.isSubtypeOf(type, InterfaceType(structClass, Nullability.legacy),
-        SubtypeCheckMode.ignoringNullabilities);
+    return null;
   }
 
   /// Returns members of [node] that correspond to struct fields.
@@ -284,7 +268,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return p.function.positionalParameters.single.type;
   }
 
-  bool _checkFieldAnnotations(Class node) {
+  bool _checkFieldAnnotations(Class node, int packing) {
     bool success = true;
     structClassDependencies[node] = {};
     final membersWithAnnotations = _structFieldMembers(node)
@@ -311,9 +295,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             f.fileUri);
         // This class is invalid, but continue reporting other errors on it.
         success = false;
-      } else if (_isPointerType(type) ||
-          _isStructSubtype(type) ||
-          _isArrayType(type)) {
+      } else if (isPointerType(type) ||
+          isStructSubtype(type) ||
+          isArrayType(type)) {
         if (nativeTypeAnnos.length != 0) {
           diagnosticReporter.report(
               templateFfiFieldNoAnnotation.withArguments(f.name.text),
@@ -323,24 +307,26 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           // This class is invalid, but continue reporting other errors on it.
           success = false;
         }
-        if (_isStructSubtype(type)) {
+        if (isStructSubtype(type)) {
           final clazz = (type as InterfaceType).classNode;
           structClassDependencies[node].add(clazz);
-        } else if (_isArrayType(type)) {
+          _checkPacking(node, packing, clazz, f);
+        } else if (isArrayType(type)) {
           final sizeAnnotations = _getArraySizeAnnotations(f);
           if (sizeAnnotations.length == 1) {
-            final typeArgument = (type as InterfaceType).typeArguments.single;
-            if (_isStructSubtype(typeArgument)) {
-              final clazz = (typeArgument as InterfaceType).classNode;
+            final singleElementType = arraySingleElementType(type);
+            if (isStructSubtype(singleElementType)) {
+              final clazz = (singleElementType as InterfaceType).classNode;
               structClassDependencies[node].add(clazz);
-            } else if (_isArrayType(typeArgument)) {
+              _checkPacking(node, packing, clazz, f);
+            }
+            if (arrayDimensions(type) != sizeAnnotations.single.length) {
               diagnosticReporter.report(
-                  templateFfiTypeInvalid.withArguments(
-                      typeArgument, currentLibrary.isNonNullableByDefault),
+                  templateFfiSizeAnnotationDimensions
+                      .withArguments(f.name.text),
                   f.fileOffset,
                   f.name.text.length,
                   f.fileUri);
-              success = false;
             }
           } else {
             diagnosticReporter.report(
@@ -382,6 +368,35 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       }
     }
     return success;
+  }
+
+  void _checkPacking(Class outerClass, int outerClassPacking, Class fieldClass,
+      Member errorNode) {
+    if (outerClassPacking == null) {
+      // Outer struct has no packing, nesting anything is fine.
+      return;
+    }
+
+    final fieldPackingAnnotations = _getPackedAnnotations(fieldClass);
+    bool error = false;
+    if (fieldPackingAnnotations.isEmpty) {
+      // Outer struct has packing but inner one doesn't.
+      error = true;
+    } else {
+      final fieldPacking = fieldPackingAnnotations.first;
+      if (fieldPacking > outerClassPacking) {
+        // Outer struct has stricter packing than the inner.
+        error = true;
+      }
+    }
+    if (error) {
+      diagnosticReporter.report(
+          templateFfiPackedNestingNonPacked.withArguments(
+              fieldClass.name, outerClass.name),
+          errorNode.fileOffset,
+          errorNode.name.text.length,
+          errorNode.fileUri);
+    }
   }
 
   void _checkConstructors(Class node, IndexedClass indexedClass) {
@@ -446,38 +461,17 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final dartType = _structFieldMemberType(m);
 
       NativeTypeCfe type;
-      if (_isPointerType(dartType)) {
-        type = PointerNativeTypeCfe();
-      } else if (_isStructSubtype(dartType)) {
-        final clazz = (dartType as InterfaceType).classNode;
-        type = structCache[clazz];
-        if (emptyStructs.contains(clazz)) {
-          diagnosticReporter.report(
-              templateFfiEmptyStruct.withArguments(clazz.name),
-              m.fileOffset,
-              1,
-              m.location.file);
-        }
-      } else if (_isArrayType(dartType)) {
+      if (isArrayType(dartType)) {
         final sizeAnnotations = _getArraySizeAnnotations(m).toList();
         if (sizeAnnotations.length == 1) {
-          final elementClass =
-              ((dartType as InterfaceType).typeArguments[0] as InterfaceType)
-                  .classNode;
-          final elementNativeType =
-              _getFieldType(elementClass) ?? NativeType.kStruct;
-          final arraySize = sizeAnnotations.single;
-          if (elementNativeType == NativeType.kStruct) {
-            type = ArrayNativeTypeCfe(structCache[elementClass], arraySize);
-          } else if (elementNativeType == NativeType.kPointer) {
-            type = ArrayNativeTypeCfe(PointerNativeTypeCfe(), arraySize);
-          } else {
-            type = ArrayNativeTypeCfe(
-                PrimitiveNativeTypeCfe(elementNativeType, elementClass),
-                arraySize);
-          }
+          final arrayDimensions = sizeAnnotations.single;
+          type = NativeTypeCfe(this, dartType,
+              structCache: structCache, arrayDimensions: arrayDimensions);
         }
+      } else if (isPointerType(dartType) || isStructSubtype(dartType)) {
+        type = NativeTypeCfe(this, dartType, structCache: structCache);
       } else {
+        // The C type is in the annotation, not the field type itself.
         final nativeTypeAnnos = _getNativeTypeAnnotations(m).toList();
         if (nativeTypeAnnos.length == 1) {
           final clazz = nativeTypeAnnos.first;
@@ -504,22 +498,27 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       }
     }
 
-    _annoteStructWithFields(node, types);
+    final packingAnnotations = _getPackedAnnotations(node);
+    final packing =
+        (!packingAnnotations.isEmpty) ? packingAnnotations.first : null;
+
+    _annoteStructWithFields(node, types, packing);
     if (types.isEmpty) {
       diagnosticReporter.report(templateFfiEmptyStruct.withArguments(node.name),
           node.fileOffset, node.name.length, node.location.file);
       emptyStructs.add(node);
     }
 
-    final structType = StructNativeTypeCfe(node, types);
+    final structType = StructNativeTypeCfe(node, types, packing: packing);
     structCache[node] = structType;
     final structLayout = structType.layout;
 
+    final unalignedAccess = packing != null;
     for (final i in fields.keys) {
       final fieldOffsets = structLayout
           .map((Abi abi, StructLayout v) => MapEntry(abi, v.offsets[i]));
       final methods = _generateMethodsForField(
-          fields[i], types[i], fieldOffsets, indexedClass);
+          fields[i], types[i], fieldOffsets, unalignedAccess, indexedClass);
       methods.forEach((p) => node.addProcedure(p));
     }
 
@@ -532,7 +531,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           .map((Abi abi, StructLayout v) => MapEntry(abi, v.offsets[i]));
       Procedure getter = getters[i];
       getter.function.body = types[i].generateGetterStatement(
-          getter.function.returnType, getter.fileOffset, fieldOffsets, this);
+          getter.function.returnType,
+          getter.fileOffset,
+          fieldOffsets,
+          unalignedAccess,
+          this);
       getter.isExternal = false;
     }
 
@@ -544,6 +547,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           setter.function.positionalParameters.single.type,
           setter.fileOffset,
           fieldOffsets,
+          unalignedAccess,
           setter.function.positionalParameters.single,
           this);
       setter.isExternal = false;
@@ -552,7 +556,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return structLayout.map((k, v) => MapEntry(k, v.size));
   }
 
-  void _annoteStructWithFields(Class node, List<NativeTypeCfe> types) {
+  // packing is `int?`.
+  void _annoteStructWithFields(
+      Class node, List<NativeTypeCfe> types, int packing) {
     List<Constant> constants =
         types.map((t) => t.generateConstant(this)).toList();
 
@@ -562,37 +568,51 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           pragmaOptions.getterReference:
               InstanceConstant(ffiStructLayoutClass.reference, [], {
             ffiStructLayoutTypesField.getterReference: ListConstant(
-                InterfaceType(typeClass, Nullability.nonNullable), constants)
+                InterfaceType(typeClass, Nullability.nonNullable), constants),
+            ffiStructLayoutPackingField.getterReference:
+                packing == null ? NullConstant() : IntConstant(packing)
           })
         }),
         InterfaceType(pragmaClass, Nullability.nonNullable, [])));
   }
 
   List<Procedure> _generateMethodsForField(Field field, NativeTypeCfe type,
-      Map<Abi, int> offsets, IndexedClass indexedClass) {
+      Map<Abi, int> offsets, bool unalignedAccess, IndexedClass indexedClass) {
+    // TODO(johnniwinther): Avoid passing [indexedClass]. When compiling
+    // incrementally, [field] should already carry the references from
+    // [indexedClass].
     final getterStatement = type.generateGetterStatement(
-        field.type, field.fileOffset, offsets, this);
+        field.type, field.fileOffset, offsets, unalignedAccess, this);
+    Reference getterReference =
+        indexedClass?.lookupGetterReference(field.name) ??
+            field.getterReference;
+    assert(getterReference == field.getterReference,
+        "Unexpected getter reference for ${field}, found $getterReference.");
     final Procedure getter = Procedure(field.name, ProcedureKind.Getter,
         FunctionNode(getterStatement, returnType: field.type),
-        fileUri: field.fileUri,
-        reference: indexedClass?.lookupGetterReference(field.name))
+        fileUri: field.fileUri, reference: getterReference)
       ..fileOffset = field.fileOffset
       ..isNonNullableByDefault = field.isNonNullableByDefault;
 
     Procedure setter = null;
     if (!field.isFinal) {
+      Reference setterReference =
+          indexedClass?.lookupSetterReference(field.name) ??
+              field.setterReference;
+      assert(setterReference == field.setterReference,
+          "Unexpected setter reference for ${field}, found $setterReference.");
       final VariableDeclaration argument =
           VariableDeclaration('#v', type: field.type)
             ..fileOffset = field.fileOffset;
-      final setterStatement = type.generateSetterStatement(
-          field.type, field.fileOffset, offsets, argument, this);
+      final setterStatement = type.generateSetterStatement(field.type,
+          field.fileOffset, offsets, unalignedAccess, argument, this);
       setter = Procedure(
           field.name,
           ProcedureKind.Setter,
           FunctionNode(setterStatement,
               returnType: VoidType(), positionalParameters: [argument]),
           fileUri: field.fileUri,
-          reference: indexedClass?.lookupSetterReference(field.name))
+          reference: setterReference)
         ..fileOffset = field.fileOffset
         ..isNonNullableByDefault = field.isNonNullableByDefault;
     }
@@ -648,13 +668,52 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         .where((klass) => _getFieldType(klass) != null);
   }
 
-  Iterable<int> _getArraySizeAnnotations(Member node) {
+  Iterable<List<int>> _getArraySizeAnnotations(Member node) {
     return node.annotations
         .whereType<ConstantExpression>()
         .map((e) => e.constant)
         .whereType<InstanceConstant>()
-        .where((e) => e.classNode == cArraySizeClass)
-        .map((e) => (e.fieldValues.values.single as IntConstant).value);
+        .where((e) => e.classNode == arraySizeClass)
+        .map(_arraySize);
+  }
+
+  List<int> _arraySize(InstanceConstant constant) {
+    final dimensions =
+        constant.fieldValues[arraySizeDimensionsField.getterReference];
+    if (dimensions != null) {
+      if (dimensions is ListConstant) {
+        final result = dimensions.entries
+            .whereType<IntConstant>()
+            .map((e) => e.value)
+            .toList();
+        assert(result.length > 0);
+        return result;
+      }
+    }
+    final dimensionFields = [
+      arraySizeDimension1Field,
+      arraySizeDimension2Field,
+      arraySizeDimension3Field,
+      arraySizeDimension4Field,
+      arraySizeDimension5Field
+    ];
+    final result = dimensionFields
+        .map((f) => constant.fieldValues[f.getterReference])
+        .whereType<IntConstant>()
+        .map((c) => c.value)
+        .toList();
+    return result;
+  }
+
+  Iterable<int> _getPackedAnnotations(Class node) {
+    return node.annotations
+        .whereType<ConstantExpression>()
+        .map((expr) => expr.constant)
+        .whereType<InstanceConstant>()
+        .where((e) => e.classNode == packedClass)
+        .map((e) => e.fieldValues.values.single)
+        .whereType<IntConstant>()
+        .map((e) => e.value);
   }
 }
 
@@ -677,6 +736,37 @@ class StructLayout {
 /// This algebraic data structure does not stand on its own but refers
 /// intimately to AST nodes such as [Class].
 abstract class NativeTypeCfe {
+  factory NativeTypeCfe(FfiTransformer transformer, DartType dartType,
+      {List<int> arrayDimensions,
+      Map<Class, StructNativeTypeCfe> structCache = const {}}) {
+    if (transformer.isPrimitiveType(dartType)) {
+      final clazz = (dartType as InterfaceType).classNode;
+      final nativeType = transformer.getType(clazz);
+      return PrimitiveNativeTypeCfe(nativeType, clazz);
+    }
+    if (transformer.isPointerType(dartType)) {
+      return PointerNativeTypeCfe();
+    }
+    if (transformer.isStructSubtype(dartType)) {
+      final clazz = (dartType as InterfaceType).classNode;
+      if (structCache.containsKey(clazz)) {
+        return structCache[clazz];
+      } else {
+        throw "$clazz not found in structCache";
+      }
+    }
+    if (transformer.isArrayType(dartType)) {
+      if (arrayDimensions == null) {
+        throw "Must have array dimensions for ArrayType";
+      }
+      final elementType = transformer.arraySingleElementType(dartType);
+      final elementCfeType =
+          NativeTypeCfe(transformer, elementType, structCache: structCache);
+      return ArrayNativeTypeCfe.multi(elementCfeType, arrayDimensions);
+    }
+    throw "Invalid type $dartType";
+  }
+
   /// The size in bytes per [Abi].
   Map<Abi, int> get size;
 
@@ -696,7 +786,7 @@ abstract class NativeTypeCfe {
   ///
   /// Takes [transformer] to be able to lookup classes and methods.
   ReturnStatement generateGetterStatement(DartType dartType, int fileOffset,
-      Map<Abi, int> offsets, FfiTransformer transformer);
+      Map<Abi, int> offsets, bool unalignedAccess, FfiTransformer transformer);
 
   /// Generates the return statement for a struct field setter with this type.
   ///
@@ -705,6 +795,7 @@ abstract class NativeTypeCfe {
       DartType dartType,
       int fileOffset,
       Map<Abi, int> offsets,
+      bool unalignedAccess,
       VariableDeclaration argument,
       FfiTransformer transformer);
 }
@@ -733,16 +824,37 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
   Constant generateConstant(FfiTransformer transformer) =>
       TypeLiteralConstant(InterfaceType(clazz, Nullability.nonNullable));
 
+  bool get isFloat =>
+      nativeType == NativeType.kFloat || nativeType == NativeType.kDouble;
+
+  bool isUnaligned(Map<Abi, int> offsets) {
+    final alignments = alignment;
+    for (final abi in offsets.keys) {
+      final offset = offsets[abi];
+      final alignment = alignments[abi];
+      if (offset % alignment != 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// Sample output for `int get x =>`:
   ///
   /// ```
   /// _loadInt8(_addressOf, offset);
   /// ```
   @override
-  ReturnStatement generateGetterStatement(DartType dartType, int fileOffset,
-          Map<Abi, int> offsets, FfiTransformer transformer) =>
+  ReturnStatement generateGetterStatement(
+          DartType dartType,
+          int fileOffset,
+          Map<Abi, int> offsets,
+          bool unalignedAccess,
+          FfiTransformer transformer) =>
       ReturnStatement(StaticInvocation(
-          transformer.loadMethods[nativeType],
+          (unalignedAccess && isFloat
+              ? transformer.loadUnalignedMethods
+              : transformer.loadMethods)[nativeType],
           Arguments([
             PropertyGet(ThisExpression(), transformer.addressOfField.name,
                 transformer.addressOfField)
@@ -761,10 +873,13 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
           DartType dartType,
           int fileOffset,
           Map<Abi, int> offsets,
+          bool unalignedAccess,
           VariableDeclaration argument,
           FfiTransformer transformer) =>
       ReturnStatement(StaticInvocation(
-          transformer.storeMethods[nativeType],
+          (unalignedAccess && isFloat
+              ? transformer.storeUnalignedMethods
+              : transformer.storeMethods)[nativeType],
           Arguments([
             PropertyGet(ThisExpression(), transformer.addressOfField.name,
                 transformer.addressOfField)
@@ -795,8 +910,12 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
   /// _fromAddress<Int8>(_loadIntPtr(_addressOf, offset));
   /// ```
   @override
-  ReturnStatement generateGetterStatement(DartType dartType, int fileOffset,
-          Map<Abi, int> offsets, FfiTransformer transformer) =>
+  ReturnStatement generateGetterStatement(
+          DartType dartType,
+          int fileOffset,
+          Map<Abi, int> offsets,
+          bool unalignedAccess,
+          FfiTransformer transformer) =>
       ReturnStatement(StaticInvocation(
           transformer.fromAddressInternal,
           Arguments([
@@ -824,6 +943,7 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
           DartType dartType,
           int fileOffset,
           Map<Abi, int> offsets,
+          bool unalignedAccess,
           VariableDeclaration argument,
           FfiTransformer transformer) =>
       ReturnStatement(StaticInvocation(
@@ -845,23 +965,31 @@ class StructNativeTypeCfe implements NativeTypeCfe {
 
   final List<NativeTypeCfe> members;
 
+  // Nullable int.
+  final int packing;
+
   final Map<Abi, StructLayout> layout;
 
-  factory StructNativeTypeCfe(Class clazz, List<NativeTypeCfe> members) {
-    final layout = Map.fromEntries(
-        Abi.values.map((abi) => MapEntry(abi, _calculateLayout(members, abi))));
-    return StructNativeTypeCfe._(clazz, members, layout);
+  factory StructNativeTypeCfe(Class clazz, List<NativeTypeCfe> members,
+      {int packing}) {
+    final layout = Map.fromEntries(Abi.values
+        .map((abi) => MapEntry(abi, _calculateLayout(members, packing, abi))));
+    return StructNativeTypeCfe._(clazz, members, packing, layout);
   }
 
   // Keep consistent with runtime/vm/compiler/ffi/native_type.cc
   // NativeCompoundType::FromNativeTypes.
-  static StructLayout _calculateLayout(List<NativeTypeCfe> types, Abi abi) {
+  static StructLayout _calculateLayout(
+      List<NativeTypeCfe> types, int packing, Abi abi) {
     int offset = 0;
     final offsets = <int>[];
     int structAlignment = 1;
     for (int i = 0; i < types.length; i++) {
       final int size = types[i].size[abi];
-      final int alignment = types[i].alignment[abi];
+      int alignment = types[i].alignment[abi];
+      if (packing != null && packing < alignment) {
+        alignment = packing;
+      }
       offset = _alignOffset(offset, alignment);
       offsets.add(offset);
       offset += size;
@@ -871,7 +999,7 @@ class StructNativeTypeCfe implements NativeTypeCfe {
     return StructLayout(size, structAlignment, offsets);
   }
 
-  StructNativeTypeCfe._(this.clazz, this.members, this.layout);
+  StructNativeTypeCfe._(this.clazz, this.members, this.packing, this.layout);
 
   @override
   Map<Abi, int> get size =>
@@ -894,7 +1022,7 @@ class StructNativeTypeCfe implements NativeTypeCfe {
   /// ```
   @override
   ReturnStatement generateGetterStatement(DartType dartType, int fileOffset,
-      Map<Abi, int> offsets, FfiTransformer transformer) {
+      Map<Abi, int> offsets, bool unalignedAccess, FfiTransformer transformer) {
     final constructor = clazz.constructors
         .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
 
@@ -923,6 +1051,7 @@ class StructNativeTypeCfe implements NativeTypeCfe {
           DartType dartType,
           int fileOffset,
           Map<Abi, int> offsets,
+          bool unalignedAccess,
           VariableDeclaration argument,
           FfiTransformer transformer) =>
       ReturnStatement(StaticInvocation(
@@ -947,6 +1076,37 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
 
   ArrayNativeTypeCfe(this.elementType, this.length);
 
+  factory ArrayNativeTypeCfe.multi(
+      NativeTypeCfe elementType, List<int> dimensions) {
+    if (dimensions.length == 1) {
+      return ArrayNativeTypeCfe(elementType, dimensions.single);
+    }
+    return ArrayNativeTypeCfe(
+        ArrayNativeTypeCfe.multi(elementType, dimensions.sublist(1)),
+        dimensions.first);
+  }
+
+  List<int> get dimensions {
+    final elementType = this.elementType;
+    if (elementType is ArrayNativeTypeCfe) {
+      return [length, ...elementType.dimensions];
+    }
+    return [length];
+  }
+
+  List<int> get nestedDimensions => dimensions.sublist(1);
+
+  int get dimensionsFlattened =>
+      dimensions.fold(1, (accumulator, element) => accumulator * element);
+
+  NativeTypeCfe get singleElementType {
+    final elementType = this.elementType;
+    if (elementType is ArrayNativeTypeCfe) {
+      return elementType.singleElementType;
+    }
+    return elementType;
+  }
+
   @override
   Map<Abi, int> get size =>
       elementType.size.map((abi, size) => MapEntry(abi, size * length));
@@ -954,13 +1114,14 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
   @override
   Map<Abi, int> get alignment => elementType.alignment;
 
+  // Note that we flatten multi dimensional arrays.
   @override
   Constant generateConstant(FfiTransformer transformer) =>
       InstanceConstant(transformer.ffiInlineArrayClass.reference, [], {
         transformer.ffiInlineArrayElementTypeField.getterReference:
-            elementType.generateConstant(transformer),
+            singleElementType.generateConstant(transformer),
         transformer.ffiInlineArrayLengthField.getterReference:
-            IntConstant(length)
+            IntConstant(dimensionsFlattened)
       });
 
   /// Sample output for `Array<Int8> get x =>`:
@@ -972,11 +1133,11 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
   /// ```
   @override
   ReturnStatement generateGetterStatement(DartType dartType, int fileOffset,
-      Map<Abi, int> offsets, FfiTransformer transformer) {
+      Map<Abi, int> offsets, bool unalignedAccess, FfiTransformer transformer) {
     InterfaceType typeArgument =
         (dartType as InterfaceType).typeArguments.single as InterfaceType;
     return ReturnStatement(ConstructorInvocation(
-        transformer.cArrayConstructor,
+        transformer.arrayConstructor,
         Arguments([
           transformer.typedDataBaseOffset(
               PropertyGet(ThisExpression(), transformer.addressOfField.name,
@@ -986,9 +1147,10 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
               transformer.runtimeBranchOnLayout(size),
               typeArgument,
               fileOffset),
-          ConstantExpression(IntConstant(length))
+          ConstantExpression(IntConstant(length)),
+          transformer.intListConstantExpression(nestedDimensions)
         ], types: [
-          dartType
+          typeArgument
         ]))
       ..fileOffset = fileOffset);
   }
@@ -1003,6 +1165,7 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
           DartType dartType,
           int fileOffset,
           Map<Abi, int> offsets,
+          bool unalignedAccess,
           VariableDeclaration argument,
           FfiTransformer transformer) =>
       ReturnStatement(StaticInvocation(
@@ -1014,8 +1177,8 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
             transformer.runtimeBranchOnLayout(offsets),
             PropertyGet(
                 VariableGet(argument),
-                transformer.cArrayTypedDataBaseField.name,
-                transformer.cArrayTypedDataBaseField)
+                transformer.arrayTypedDataBaseField.name,
+                transformer.arrayTypedDataBaseField)
               ..fileOffset = fileOffset,
             ConstantExpression(IntConstant(0)),
             transformer.runtimeBranchOnLayout(size),

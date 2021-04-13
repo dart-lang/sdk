@@ -139,6 +139,14 @@ class Snapshot {
     return (kind == kFullJIT) || (kind == kFullAOT);
   }
 
+  static bool IncludesStringsInROData(Kind kind) {
+#if !defined(DART_COMPRESSED_POINTERS)
+    return IncludesCode(kind);
+#else
+    return false;
+#endif
+  }
+
   const uint8_t* Addr() const { return reinterpret_cast<const uint8_t*>(this); }
 
   const uint8_t* DataImage() const {
@@ -277,6 +285,7 @@ class SnapshotReader : public BaseReader {
   TypedData* TypedDataHandle() { return &typed_data_; }
   TypedDataView* TypedDataViewHandle() { return &typed_data_view_; }
   Function* FunctionHandle() { return &function_; }
+  Smi* SmiHandle() { return &smi_; }
   Snapshot::Kind kind() const { return kind_; }
 
   // Reads an object.
@@ -371,6 +380,7 @@ class SnapshotReader : public BaseReader {
   TypedData& typed_data_;          // Temporary typed data handle.
   TypedDataView& typed_data_view_;  // Temporary typed data view handle.
   Function& function_;             // Temporary function handle.
+  Smi& smi_;                       // Temporary Smi handle.
   UnhandledException& error_;      // Error handle.
   const Class& set_class_;         // The LinkedHashSet class.
   intptr_t max_vm_isolate_object_id_;

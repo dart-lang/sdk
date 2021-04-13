@@ -4,13 +4,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/migration.dart';
@@ -46,28 +43,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _typeProvider = _resolver.typeProvider;
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
-  }
-
-  /// Given a constructor for a generic type, returns the equivalent generic
-  /// function type that we could use to forward to the constructor, or for a
-  /// non-generic type simply returns the constructor type.
-  ///
-  /// For example given the type `class C<T> { C(T arg); }`, the generic function
-  /// type is `<T>(T) -> C<T>`.
-  FunctionType constructorToGenericFunctionType(
-      ConstructorElement constructor) {
-    var classElement = constructor.enclosingElement;
-    var typeParameters = classElement.typeParameters;
-    if (typeParameters.isEmpty) {
-      return constructor.type;
-    }
-
-    return FunctionTypeImpl(
-      typeFormals: typeParameters,
-      parameters: constructor.parameters,
-      returnType: constructor.returnType,
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
   }
 
   /// Record that the static type of the given node is the given type.
@@ -198,7 +173,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitInstanceCreationExpression(
       covariant InstanceCreationExpressionImpl node) {
     _inferInstanceCreationExpression(node);
-    recordStaticType(node, node.constructorName.type.type!);
+    recordStaticType(node, node.constructorName.type.typeOrThrow);
   }
 
   /// <blockquote>
@@ -362,18 +337,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// Given an instance creation of a possibly generic type, infer the type
   /// arguments using the current context type as well as the argument types.
   void _inferInstanceCreationExpression(InstanceCreationExpressionImpl node) {
-    var constructor = node.constructorName;
-    var originalElement = constructor.staticElement;
-    // If the constructor is generic, we'll have a ConstructorMember that
-    // substitutes in type arguments (possibly `dynamic`) from earlier in
-    // resolution.
-    //
-    // Otherwise we'll have a ConstructorElement, and we can skip inference
-    // because there's nothing to infer in a non-generic type.
-    if (originalElement is! ConstructorMember) {
-      return;
-    }
-
     // TODO(leafp): Currently, we may re-infer types here, since we
     // sometimes resolve multiple times.  We should really check that we
     // have not already inferred something.  However, the obvious ways to
@@ -384,35 +347,39 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     // Get back to the uninstantiated generic constructor.
     // TODO(jmesserly): should we store this earlier in resolution?
     // Or look it up, instead of jumping backwards through the Member?
-    var rawElement = originalElement.declaration;
-    rawElement = _resolver.toLegacyElement(rawElement);
+    var constructorName = node.constructorName;
+    var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
+      constructorName: constructorName,
+      definingLibrary: _resolver.definingLibrary,
+    );
 
-    FunctionType constructorType = constructorToGenericFunctionType(rawElement);
+    // If the constructor is not generic, we are done.
+    if (elementToInfer == null) {
+      return;
+    }
 
+    var typeName = constructorName.type;
+    var typeArguments = typeName.typeArguments;
+
+    var constructorType = elementToInfer.asType;
     var arguments = node.argumentList;
     var inferred = _resolver.inferenceHelper.inferGenericInvoke(
-        node,
-        constructorType,
-        constructor.type.typeArguments,
-        arguments,
-        node.constructorName,
+        node, constructorType, typeArguments, arguments, constructorName,
         isConst: node.isConst);
 
-    if (inferred != null && inferred != originalElement.type) {
-      inferred = _resolver.toLegacyTypeIfOptOut(inferred) as FunctionType;
+    if (inferred != null) {
       // Fix up the parameter elements based on inferred method.
       arguments.correspondingStaticParameters =
           ResolverVisitor.resolveArgumentsToParameters(
               arguments, inferred.parameters, null);
-      constructor.type.type = inferred.returnType;
+      typeName.type = inferred.returnType;
       // Update the static element as well. This is used in some cases, such as
       // computing constant values. It is stored in two places.
       var constructorElement = ConstructorMember.from(
-        rawElement,
+        elementToInfer.element,
         inferred.returnType as InterfaceType,
       );
-      constructorElement = _resolver.toLegacyElement(constructorElement);
-      constructor.staticElement = constructorElement;
+      constructorName.staticElement = constructorElement;
     }
   }
 }

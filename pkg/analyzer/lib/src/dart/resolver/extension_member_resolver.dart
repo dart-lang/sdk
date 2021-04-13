@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -30,6 +31,9 @@ class ExtensionMemberResolver {
   DartType get _dynamicType => _typeProvider.dynamicType;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
+
+  bool get _genericMetadataIsEnabled =>
+      _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
 
   Scope get _nameScope => _resolver.nameScope;
 
@@ -195,7 +199,7 @@ class ExtensionMemberResolver {
     if (typeArguments != null) {
       var arguments = typeArguments.arguments;
       if (arguments.length == typeParameters.length) {
-        typeArgumentTypes = arguments.map((a) => a.type!).toList();
+        typeArgumentTypes = arguments.map((a) => a.typeOrThrow).toList();
       } else {
         typeArgumentTypes = _listOfDynamic(typeParameters);
       }
@@ -289,6 +293,7 @@ class ExtensionMemberResolver {
       var typeArguments = inferrer.infer(
         freshTypeParameters,
         failAtError: true,
+        genericMetadataIsEnabled: _genericMetadataIsEnabled,
       );
       if (typeArguments == null) {
         continue;
@@ -387,7 +392,7 @@ class ExtensionMemberResolver {
         if (typeParameters.isEmpty) {
           return const <DartType>[];
         }
-        return arguments.map((a) => a.type!).toList();
+        return arguments.map((a) => a.typeOrThrow).toList();
       } else {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
@@ -407,6 +412,7 @@ class ExtensionMemberResolver {
         typeParameters,
         errorReporter: _errorReporter,
         errorNode: node.extensionName,
+        genericMetadataIsEnabled: _genericMetadataIsEnabled,
       );
     }
   }

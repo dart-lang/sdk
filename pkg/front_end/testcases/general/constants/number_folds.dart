@@ -1,7 +1,7 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 const int shiftNegative1 = 2 << -1;
 const int shiftNegative2 = 2 >>> -1;
 const int shiftNegative3 = 2 >> -1;
@@ -23,7 +23,6 @@ const int binaryAnd = 63 & 106;
 const int binaryXor = 63 ^ 21;
 const int binaryShift1 = 21 << 1;
 
-// These aren't currently defined on int :(.
 const int binaryShift2 = 84 >>> 1;
 const int binaryShift3 = 21 >>> 64;
 
@@ -35,7 +34,8 @@ const bool binaryGreater = 42 > 42;
 
 const int doubleTruncateDiv = 84.2 ~/ 2;
 const int doubleTruncateDivZero = 84.2 ~/ 0;
-const int doubleTruncateDivNull = 84.2 ~/ null;
+const dynamic nil = null;
+const int doubleTruncateDivNull = 84.2 ~/ nil;
 const double doubleNan = 0/0;
 const int doubleTruncateDivNaN = 84.2 ~/ doubleNan;
 

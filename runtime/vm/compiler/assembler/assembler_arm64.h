@@ -547,6 +547,9 @@ class Assembler : public AssemblerBase {
   }
 
   void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+  void LoadCompressedField(Register dst, FieldAddress address) {
+    LoadCompressed(dst, address);
+  }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(dst, base, offset, kEightBytes);
   }
@@ -897,29 +900,47 @@ class Assembler : public AssemblerBase {
   }
 
   // Misc. arithmetic.
-  void udiv(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(UDIV, rd, rn, rm, kEightBytes);
+  void udiv(Register rd,
+            Register rn,
+            Register rm,
+            OperandSize sz = kEightBytes) {
+    EmitMiscDP2Source(UDIV, rd, rn, rm, sz);
   }
-  void sdiv(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(SDIV, rd, rn, rm, kEightBytes);
+  void sdiv(Register rd,
+            Register rn,
+            Register rm,
+            OperandSize sz = kEightBytes) {
+    EmitMiscDP2Source(SDIV, rd, rn, rm, sz);
   }
-  void lslv(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(LSLV, rd, rn, rm, kEightBytes);
+  void lslv(Register rd,
+            Register rn,
+            Register rm,
+            OperandSize sz = kEightBytes) {
+    EmitMiscDP2Source(LSLV, rd, rn, rm, sz);
   }
-  void lsrv(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(LSRV, rd, rn, rm, kEightBytes);
+  void lsrv(Register rd,
+            Register rn,
+            Register rm,
+            OperandSize sz = kEightBytes) {
+    EmitMiscDP2Source(LSRV, rd, rn, rm, sz);
   }
-  void asrv(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(ASRV, rd, rn, rm, kEightBytes);
+  void asrv(Register rd,
+            Register rn,
+            Register rm,
+            OperandSize sz = kEightBytes) {
+    EmitMiscDP2Source(ASRV, rd, rn, rm, sz);
+  }
+  void sdivw(Register rd, Register rn, Register rm) {
+    sdiv(rd, rn, rm, kFourBytes);
   }
   void lslvw(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(LSLV, rd, rn, rm, kFourBytes);
+    lslv(rd, rn, rm, kFourBytes);
   }
   void lsrvw(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(LSRV, rd, rn, rm, kFourBytes);
+    lsrv(rd, rn, rm, kFourBytes);
   }
   void asrvw(Register rd, Register rn, Register rm) {
-    EmitMiscDP2Source(ASRV, rd, rn, rm, kFourBytes);
+    asrv(rd, rn, rm, kFourBytes);
   }
   void madd(Register rd,
             Register rn,
@@ -1115,6 +1136,11 @@ class Assembler : public AssemblerBase {
     }
   }
 
+  void CompareObjectRegisters(Register rn, Register rm) {
+    ASSERT(rn != CSP);
+    cmp(rn, Operand(rm), kObjectBytes);
+  }
+
   // Conditional branch.
   void b(Label* label, Condition cond = AL) {
     EmitConditionalBranch(BCOND, cond, label);
@@ -1149,10 +1175,13 @@ class Assembler : public AssemblerBase {
     EmitCompareAndBranch(CBNZ, rt, label, sz);
   }
 
-  // Generate 64-bit compare with zero and branch when condition allows to use
-  // a single instruction: cbz/cbnz/tbz/tbnz.
-  bool CanGenerateXCbzTbz(Register rn, Condition cond);
-  void GenerateXCbzTbz(Register rn, Condition cond, Label* label);
+  // Generate 64/32-bit compare with zero and branch when condition allows to
+  // use a single instruction: cbz/cbnz/tbz/tbnz.
+  bool CanGenerateCbzTbz(Register rn, Condition cond);
+  void GenerateCbzTbz(Register rn,
+                      Condition cond,
+                      Label* label,
+                      OperandSize sz = kEightBytes);
 
   // Test bit and branch if zero.
   void tbz(Label* label, Register rt, intptr_t bit_number) {
@@ -1442,8 +1471,10 @@ class Assembler : public AssemblerBase {
   void mvn(Register rd, Register rm) { orn(rd, ZR, Operand(rm)); }
   void mvnw(Register rd, Register rm) { ornw(rd, ZR, Operand(rm)); }
   void neg(Register rd, Register rm) { sub(rd, ZR, Operand(rm)); }
-  void negs(Register rd, Register rm) { subs(rd, ZR, Operand(rm)); }
-  void negsw(Register rd, Register rm) { subsw(rd, ZR, Operand(rm)); }
+  void negs(Register rd, Register rm, OperandSize sz = kEightBytes) {
+    subs(rd, ZR, Operand(rm), sz);
+  }
+  void negsw(Register rd, Register rm) { negs(rd, rm, kFourBytes); }
   void mul(Register rd, Register rn, Register rm) {
     madd(rd, rn, rm, ZR, kEightBytes);
   }
@@ -1538,9 +1569,11 @@ class Assembler : public AssemblerBase {
   void VRecps(VRegister vd, VRegister vn);
   void VRSqrts(VRegister vd, VRegister vn);
 
-  void SmiUntag(Register reg) { AsrImmediate(reg, reg, kSmiTagSize); }
+  void SmiUntag(Register reg) {
+    sbfm(reg, reg, kSmiTagSize, target::kSmiBits + 1);
+  }
   void SmiUntag(Register dst, Register src) {
-    AsrImmediate(dst, src, kSmiTagSize);
+    sbfm(dst, src, kSmiTagSize, target::kSmiBits + 1);
   }
   void SmiTag(Register reg) { LslImmediate(reg, reg, kSmiTagSize); }
   void SmiTag(Register dst, Register src) {
@@ -1617,7 +1650,10 @@ class Assembler : public AssemblerBase {
   // the object pool when possible. Unless you are sure that the untagged object
   // pool pointer is in another register, or that it is not available at all,
   // PP should be passed for pp. `dest` can be TMP2, `rn` cannot.
-  void AddImmediate(Register dest, Register rn, int64_t imm);
+  void AddImmediate(Register dest,
+                    Register rn,
+                    int64_t imm,
+                    OperandSize sz = kEightBytes);
   void AddImmediateSetFlags(Register dest,
                             Register rn,
                             int64_t imm,
@@ -1653,6 +1689,11 @@ class Assembler : public AssemblerBase {
                            int32_t offset,
                            OperandSize sz = kEightBytes) {
     LoadFromOffset(dest, base, offset - kHeapObjectTag, sz);
+  }
+  void LoadCompressedFieldFromOffset(Register dest,
+                                     Register base,
+                                     int32_t offset) {
+    LoadCompressed(dest, FieldAddress(base, offset));
   }
   // For loading indexed payloads out of tagged objects like Arrays. If the
   // payload objects are word-sized, use TIMES_HALF_WORD_SIZE if the contents of
@@ -1706,9 +1747,8 @@ class Assembler : public AssemblerBase {
     kValueCanBeSmi,
   };
 
-  void LoadCompressed(Register dest,
-                      const Address& slot,
-                      CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void LoadCompressed(Register dest, const Address& slot);
+  void LoadCompressedSmi(Register dest, const Address& slot);
 
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,
@@ -1719,6 +1759,11 @@ class Assembler : public AssemblerBase {
                        const Address& dest,
                        Register value,
                        CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void StoreCompressedIntoObject(Register object,
+                                 const Address& dest,
+                                 Register value,
+                                 CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void StoreBarrier(Register object, Register value, CanBeSmi can_value_be_smi);
   void StoreIntoArray(Register object,
                       Register slot,
                       Register value,
@@ -1728,18 +1773,35 @@ class Assembler : public AssemblerBase {
                              int32_t offset,
                              Register value,
                              CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void StoreCompressedIntoObjectOffset(
+      Register object,
+      int32_t offset,
+      Register value,
+      CanBeSmi can_value_be_smi = kValueCanBeSmi);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
+  void StoreCompressedIntoObjectNoBarrier(Register object,
+                                          const Address& dest,
+                                          Register value);
   void StoreIntoObjectOffsetNoBarrier(Register object,
                                       int32_t offset,
                                       Register value);
+  void StoreCompressedIntoObjectOffsetNoBarrier(Register object,
+                                                int32_t offset,
+                                                Register value);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
+  void StoreCompressedIntoObjectNoBarrier(Register object,
+                                          const Address& dest,
+                                          const Object& value);
   void StoreIntoObjectOffsetNoBarrier(Register object,
                                       int32_t offset,
                                       const Object& value);
+  void StoreCompressedIntoObjectOffsetNoBarrier(Register object,
+                                                int32_t offset,
+                                                const Object& value);
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,

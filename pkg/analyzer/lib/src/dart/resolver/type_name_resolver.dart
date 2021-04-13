@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -50,9 +53,15 @@ class TypeNameResolver {
   /// [ConstructorName]. Otherwise this field will be set `null`.
   ConstructorName? rewriteResult;
 
+  /// If [resolveTypeName] reported an error, this flag is set to `true`.
+  bool hasErrorReported = false;
+
   TypeNameResolver(this.typeSystem, TypeProvider typeProvider,
       this.isNonNullableByDefault, this.errorReporter)
       : dynamicType = typeProvider.dynamicType;
+
+  bool get _genericMetadataIsEnabled =>
+      enclosingClass!.library.featureSet.isEnabled(Feature.generic_metadata);
 
   NullabilitySuffix get _noneOrStarSuffix {
     return isNonNullableByDefault
@@ -66,6 +75,7 @@ class TypeNameResolver {
   /// The client must set [nameScope] before calling [resolveTypeName].
   void resolveTypeName(TypeNameImpl node) {
     rewriteResult = null;
+    hasErrorReported = false;
 
     var typeIdentifier = node.name;
     if (typeIdentifier is PrefixedIdentifierImpl) {
@@ -136,7 +146,7 @@ class TypeNameResolver {
 
     return List.generate(
       parameterCount,
-      (i) => arguments[i].type!,
+      (i) => arguments[i].typeOrThrow,
     );
   }
 
@@ -167,6 +177,7 @@ class TypeNameResolver {
           declaredReturnType: element.thisType,
           argumentTypes: const [],
           contextReturnType: enclosingClass!.thisType,
+          genericMetadataIsEnabled: _genericMetadataIsEnabled,
         )!;
         return element.instantiate(
           typeArguments: typeArguments,
@@ -380,11 +391,50 @@ class TypeNameResolver {
     TypeAliasElement element,
     DartType type,
   ) {
+    // If a type alias that expands to a type parameter.
     if (element.aliasedType is TypeParameterType) {
-      var constructorName = node.parent;
-      if (constructorName is ConstructorName) {
-        _ErrorHelper(errorReporter)
-            .reportTypeAliasExpandsToTypeParameter(constructorName, element);
+      var parent = node.parent;
+      if (parent is ConstructorName) {
+        var errorNode = _ErrorHelper._getErrorNode(node);
+        var constructorUsage = parent.parent;
+        if (constructorUsage is InstanceCreationExpression) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+            errorNode,
+          );
+        } else if (constructorUsage is ConstructorDeclaration &&
+            constructorUsage.redirectedConstructor == parent) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+            errorNode,
+          );
+        } else {
+          throw UnimplementedError('${constructorUsage.runtimeType}');
+        }
+        return dynamicType;
+      }
+
+      // Report if this type is used as a class in hierarchy.
+      ErrorCode? errorCode;
+      if (parent is ExtendsClause) {
+        errorCode =
+            CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
+      } else if (parent is ImplementsClause) {
+        errorCode = CompileTimeErrorCode
+            .IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
+      } else if (parent is OnClause) {
+        errorCode =
+            CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
+      } else if (parent is WithClause) {
+        errorCode =
+            CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
+      }
+      if (errorCode != null) {
+        var errorNode = _ErrorHelper._getErrorNode(node);
+        errorReporter.reportErrorForNode(errorCode, errorNode);
+        hasErrorReported = true;
         return dynamicType;
       }
     }
@@ -542,28 +592,6 @@ class _ErrorHelper {
       identifier,
       [identifier.name],
     );
-  }
-
-  void reportTypeAliasExpandsToTypeParameter(
-    ConstructorName constructorName,
-    TypeAliasElement element,
-  ) {
-    var errorNode = _getErrorNode(constructorName.type);
-    var constructorUsage = constructorName.parent;
-    if (constructorUsage is InstanceCreationExpression) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
-        errorNode,
-      );
-    } else if (constructorUsage is ConstructorDeclaration &&
-        constructorUsage.redirectedConstructor == constructorName) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
-        errorNode,
-      );
-    } else {
-      throw UnimplementedError('${constructorUsage.runtimeType}');
-    }
   }
 
   /// Returns the simple identifier of the given (maybe prefixed) identifier.

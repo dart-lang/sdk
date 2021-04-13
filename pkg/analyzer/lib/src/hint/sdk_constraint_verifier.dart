@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -113,8 +112,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitAsExpression(AsExpression node) {
-    if (checkConstantUpdate2018 &&
-        (node as AsExpressionImpl).inConstantContext) {
+    if (checkConstantUpdate2018 && node.inConstantContext) {
       _errorReporter.reportErrorForNode(
           HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT, node);
     }
@@ -131,15 +129,14 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       } else if ((operatorType == TokenType.AMPERSAND ||
               operatorType == TokenType.BAR ||
               operatorType == TokenType.CARET) &&
-          (node as BinaryExpressionImpl).inConstantContext) {
+          node.inConstantContext) {
         if (node.leftOperand.typeOrThrow.isDartCoreBool) {
           _errorReporter.reportErrorForToken(
               HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
               node.operator,
               [node.operator.lexeme]);
         }
-      } else if (operatorType == TokenType.EQ_EQ &&
-          (node as BinaryExpressionImpl).inConstantContext) {
+      } else if (operatorType == TokenType.EQ_EQ && node.inConstantContext) {
         bool primitive(Expression node) {
           DartType type = node.typeOrThrow;
           return type.isDartCoreBool ||
@@ -204,8 +201,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitIsExpression(IsExpression node) {
-    if (checkConstantUpdate2018 &&
-        (node as IsExpressionImpl).inConstantContext) {
+    if (checkConstantUpdate2018 && node.inConstantContext) {
       _errorReporter.reportErrorForNode(
           HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT, node);
     }

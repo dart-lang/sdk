@@ -35,20 +35,21 @@ class JsUtilOptimizer extends Transformer {
   /// for any argument type. Lowers `getProperty(o, name)` to
   /// `JS('Object|Null', '#.#', o, name)`.
   StaticInvocation _lowerGetProperty(StaticInvocation node) {
-    Arguments args = node.arguments;
-    assert(args.positional.length == 2);
+    Arguments arguments = node.arguments;
+    assert(arguments.types.isEmpty);
+    assert(arguments.positional.length == 2);
+    assert(arguments.named.isEmpty);
     return StaticInvocation(
         _jsTarget,
         Arguments(
           [
             StringLiteral("Object|Null"),
             StringLiteral("#.#"),
-            args.positional.first,
-            args.positional.last
+            ...arguments.positional
           ],
           // TODO(rileyporter): Copy type from getProperty when it's generic.
           types: [DynamicType()],
-        ))
+        )..fileOffset = node.arguments.fileOffset)
       ..fileOffset = node.fileOffset;
   }
 }

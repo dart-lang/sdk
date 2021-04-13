@@ -531,7 +531,7 @@ class CompletionTargetTest extends _Base {
       zoo(z) { } String name;''');
     assertTarget('/// some dartdoc ', '');
     expect(target.containingNode is Comment, isTrue);
-    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+    expect(target.containingNode.parent!.toSource(), 'zoo(z) {}');
   }
 
   Future<void> test_FunctionDeclaration_inLineDocComment2() async {
@@ -541,7 +541,7 @@ class CompletionTargetTest extends _Base {
       zoo(z) { } String name;''');
     assertTarget('/// some dartdoc', '');
     expect(target.containingNode is Comment, isTrue);
-    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+    expect(target.containingNode.parent!.toSource(), 'zoo(z) {}');
   }
 
   Future<void> test_FunctionDeclaration_inStarComment() async {
@@ -561,7 +561,7 @@ class CompletionTargetTest extends _Base {
     await createTarget('/** ^ */ zoo(z) { } String name;');
     assertTarget('/**  */', '');
     expect(target.containingNode is Comment, isTrue);
-    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+    expect(target.containingNode.parent!.toSource(), 'zoo(z) {}');
   }
 
   Future<void> test_FunctionDeclaration_inStarDocComment2() async {
@@ -569,7 +569,7 @@ class CompletionTargetTest extends _Base {
     await createTarget('/**  *^/ zoo(z) { } String name;');
     assertTarget('/**  */', '');
     expect(target.containingNode is Comment, isTrue);
-    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+    expect(target.containingNode.parent!.toSource(), 'zoo(z) {}');
   }
 
   Future<void> test_FunctionDeclaration_returnType() async {
@@ -726,7 +726,7 @@ class CompletionTargetTest extends _Base {
         zoo(z) { } String name; }''');
     assertTarget('/// some dartdoc ', '');
     expect(target.containingNode is Comment, isTrue);
-    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+    expect(target.containingNode.parent!.toSource(), 'zoo(z) {}');
   }
 
   Future<void> test_MethodDeclaration_inLineDocComment2() async {
@@ -737,7 +737,7 @@ class CompletionTargetTest extends _Base {
         zoo(z) { } String name; }''');
     assertTarget('/// some dartdoc', '');
     expect(target.containingNode is Comment, isTrue);
-    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+    expect(target.containingNode.parent!.toSource(), 'zoo(z) {}');
   }
 
   Future<void> test_MethodDeclaration_inStarComment() async {
@@ -757,7 +757,7 @@ class CompletionTargetTest extends _Base {
     await createTarget('class C2 {/** ^ */ zoo(z) { } String name; }');
     assertTarget('/**  */', '');
     expect(target.containingNode is Comment, isTrue);
-    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+    expect(target.containingNode.parent!.toSource(), 'zoo(z) {}');
   }
 
   Future<void> test_MethodDeclaration_inStarDocComment2() async {
@@ -765,7 +765,7 @@ class CompletionTargetTest extends _Base {
     await createTarget('class C2 {/**  *^/ zoo(z) { } String name; }');
     assertTarget('/**  */', '');
     expect(target.containingNode is Comment, isTrue);
-    expect(target.containingNode.parent.toSource(), 'zoo(z) {}');
+    expect(target.containingNode.parent!.toSource(), 'zoo(z) {}');
   }
 
   Future<void> test_MethodDeclaration_returnType() async {
@@ -885,18 +885,18 @@ class C2 {
 }
 
 class _Base extends AbstractContextTest {
-  int offset;
-  CompletionTarget target;
-  FindElement findElement;
+  int? offset;
+  late CompletionTarget target;
+  late FindElement findElement;
 
   void assertTarget(
     String entityText,
     String nodeText, {
-    int argIndex,
-    String droppedToken,
+    int? argIndex,
+    String? droppedToken,
     bool isFunctionalArgument = false,
-    String expectedExecutable,
-    String expectedParameter,
+    String? expectedExecutable,
+    String? expectedParameter,
   }) {
     expect(
       target.entity.toString(),
@@ -926,14 +926,14 @@ class _Base extends AbstractContextTest {
     if (expectedExecutable == null) {
       expect(actualExecutable, isNull);
     } else {
-      expect(_executableStr(actualExecutable), expectedExecutable);
+      expect(_executableStr(actualExecutable!), expectedExecutable);
     }
 
     var actualParameter = target.parameterElement;
     if (expectedParameter == null) {
       expect(actualParameter, isNull);
     } else {
-      expect(_parameterStr(actualParameter), expectedParameter);
+      expect(_parameterStr(actualParameter!), expectedParameter);
     }
 
     expect(target.isFunctionalArgument(), isFunctionalArgument);
@@ -945,18 +945,18 @@ class _Base extends AbstractContextTest {
     offset = content.indexOf('^');
     expect(offset, isNot(equals(-1)), reason: 'missing ^');
 
-    var nextOffset = content.indexOf('^', offset + 1);
+    var nextOffset = content.indexOf('^', offset! + 1);
     expect(nextOffset, equals(-1), reason: 'too many ^');
 
-    content = content.substring(0, offset) + content.substring(offset + 1);
+    content = content.substring(0, offset) + content.substring(offset! + 1);
 
     var path = convertPath('/home/test/lib/test.dart');
     newFile(path, content: content);
 
     var result = await resolveFile(path);
-    findElement = FindElement(result.unit);
+    findElement = FindElement(result.unit!);
 
-    target = CompletionTarget.forOffset(result.unit, offset);
+    target = CompletionTarget.forOffset(result.unit!, offset!);
   }
 
   static String _executableNameStr(ExecutableElement executable) {

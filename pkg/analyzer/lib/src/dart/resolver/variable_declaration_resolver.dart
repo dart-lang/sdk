@@ -52,10 +52,12 @@ class VariableDeclarationResolver {
     }
 
     initializer.accept(_resolver);
-    initializer = node.initializer;
+    initializer = node.initializer!;
+    var whyNotPromoted =
+        _resolver.flowAnalysis?.flow?.whyNotPromoted(initializer);
 
     if (parent.type == null) {
-      _setInferredType(element, initializer!.typeOrThrow);
+      _setInferredType(element, initializer.typeOrThrow);
     }
 
     if (isTopLevel) {
@@ -72,6 +74,8 @@ class VariableDeclarationResolver {
       (element as ConstVariableElement).constantInitializer =
           ConstantAstCloner().cloneNullableNode(initializer);
     }
+    _resolver.checkForInvalidAssignment(node.name, initializer,
+        whyNotPromoted: whyNotPromoted);
   }
 
   void _setInferredType(VariableElement element, DartType initializerType) {

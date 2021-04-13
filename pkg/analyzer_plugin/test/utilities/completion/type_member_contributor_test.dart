@@ -39,13 +39,13 @@ void f(Derived d) {
 ''');
     await computeSuggestions();
     var suggestionsForX = suggestions
-        .where((CompletionSuggestion s) => s.completion == 'x')
+        ?.where((CompletionSuggestion s) => s.completion == 'x')
         .toList();
     expect(suggestionsForX, hasLength(1));
     if (shouldBeShadowed) {
-      expect(suggestionsForX[0].declaringType, 'Derived');
+      expect(suggestionsForX![0].declaringType, 'Derived');
     } else {
-      expect(suggestionsForX[0].declaringType, 'Base');
+      expect(suggestionsForX![0].declaringType, 'Base');
     }
   }
 
@@ -428,7 +428,7 @@ void main() {new A().f^}''');
           int a;
           int^ b = 1;}''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 3);
+    expect(replacementOffset, completionOffset! - 3);
     expect(replacementLength, 3);
     assertNotSuggested('A');
     assertNotSuggested('int');
@@ -451,7 +451,7 @@ void main() {new A().f^}''');
           i^
           b = 1;}''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('A');
     assertNotSuggested('int');
@@ -934,7 +934,7 @@ void main() {new A().f^}''');
         class Z { }''');
     await computeSuggestions();
 
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
 
     assertNotSuggested('X');
@@ -1075,7 +1075,7 @@ void main() {new A().f^}''');
           void b() { }}
         class Z { }''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('partT8');
     assertNotSuggested('partBoo');
@@ -1090,7 +1090,7 @@ void main() {new A().f^}''');
         '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
     addTestSource('class C {foo(){F^}}');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('Foo');
     // TODO(danrubel) implement
@@ -1197,7 +1197,7 @@ void main() {new A().f^}''');
         class X{}
         main() {A a; a^..b}''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('b');
     assertNotSuggested('_c');
@@ -1324,7 +1324,7 @@ void main() {new A().f^}''');
         class _B {}
         A Sew;''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('A');
     assertNotSuggested('_B');
@@ -1580,7 +1580,7 @@ void main() {new A().f^}''');
     addTestSource('''
         main() {new String.fr^omCharCodes([]);}''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 2);
+    expect(replacementOffset, completionOffset! - 2);
     expect(replacementLength, 13);
     // Suggested by NamedConstructorContributor
     assertNotSuggested('fromCharCodes');
@@ -1837,7 +1837,7 @@ void main() {new A().f^}''');
     // DeclaredIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (S^ foo in args) {}}');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('args');
     assertNotSuggested('foo');
@@ -1875,7 +1875,7 @@ void main() {new A().f^}''');
     // SimpleIdentifier  ForStatement
     addTestSource('main() {for (int index = 0; i^)}');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('index');
   }
@@ -1895,7 +1895,7 @@ void main() {new A().f^}''');
     // SimpleIdentifier  ForStatement
     addTestSource('main() {for (int index = 0; index < 10; i^)}');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('index');
   }
@@ -1906,7 +1906,7 @@ void main() {new A().f^}''');
         void bar() { }
         main() {for (int index = 0; index < 10; ++i^)}''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('index');
     assertNotSuggested('main');
@@ -2054,9 +2054,9 @@ void f(C<int> c) {
 ''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'int');
-    expect(suggestion.parameterTypes[0], 'int');
-    expect(suggestion.element.returnType, 'int');
-    expect(suggestion.element.parameters, '(int t)');
+    expect(suggestion.parameterTypes![0], 'int');
+    expect(suggestion.element!.returnType, 'int');
+    expect(suggestion.element!.parameters, '(int t)');
   }
 
   Future<void> test_generic_setter() async {
@@ -2073,7 +2073,7 @@ void f(C<int> c) {
     // as a parmeter to it, and it will check the appropriate field in
     // the suggestion object.
     var suggestion = assertSuggestSetter('t');
-    expect(suggestion.element.parameters, '(int value)');
+    expect(suggestion.element!.parameters, '(int value)');
   }
 
   Future<void> test_genericTypeAlias_noFunctionType() async {
@@ -2227,7 +2227,7 @@ g(F.^
     addSource('/testAB.dart', 'class Foo { }');
     addTestSource('class C {foo(){new F^}}');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('Future');
     assertNotSuggested('Foo');
@@ -2386,7 +2386,7 @@ g(F.^
         class A {int x; int y() => 0;}
         main(){var a; if (a is Obj^)}''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 3);
+    expect(replacementOffset, completionOffset! - 3);
     expect(replacementLength, 3);
     assertNotSuggested('a');
     assertNotSuggested('main');
@@ -2414,7 +2414,7 @@ g(F.^
         var m;
         main() {new^ X.c();}''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 3);
+    expect(replacementOffset, completionOffset! - 3);
     expect(replacementLength, 3);
     assertNotSuggested('c');
     assertNotSuggested('_d');
@@ -2561,7 +2561,7 @@ g(F.^
         class C2 { }
         foo = {T^''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('T2');
   }
@@ -2581,7 +2581,7 @@ g(F.^
         class C2 { }
         foo = {7:T^};''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('T2');
   }
@@ -2595,10 +2595,10 @@ void main() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.parameterNames![0], 'x');
+    expect(suggestion.parameterTypes![0], 'dynamic');
+    expect(suggestion.parameterNames![1], 'y');
+    expect(suggestion.parameterTypes![1], 'int');
     expect(suggestion.requiredParameterCount, 1);
     expect(suggestion.hasNamedParameters, true);
   }
@@ -2612,10 +2612,10 @@ void main() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.parameterNames![0], 'x');
+    expect(suggestion.parameterTypes![0], 'dynamic');
+    expect(suggestion.parameterNames![1], 'y');
+    expect(suggestion.parameterTypes![1], 'int');
     expect(suggestion.requiredParameterCount, 1);
     expect(suggestion.hasNamedParameters, false);
   }
@@ -2629,10 +2629,10 @@ void main() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.parameterNames![0], 'x');
+    expect(suggestion.parameterTypes![0], 'dynamic');
+    expect(suggestion.parameterNames![1], 'y');
+    expect(suggestion.parameterTypes![1], 'int');
     expect(suggestion.requiredParameterCount, 0);
     expect(suggestion.hasNamedParameters, true);
   }
@@ -2660,10 +2660,10 @@ void main() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.parameterNames![0], 'x');
+    expect(suggestion.parameterTypes![0], 'dynamic');
+    expect(suggestion.parameterNames![1], 'y');
+    expect(suggestion.parameterTypes![1], 'int');
     expect(suggestion.requiredParameterCount, 0);
     expect(suggestion.hasNamedParameters, false);
   }
@@ -2677,10 +2677,10 @@ void main() {new C().^}''');
     await computeSuggestions();
     var suggestion = assertSuggestMethod('m', 'C', 'void');
     expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.parameterNames![0], 'x');
+    expect(suggestion.parameterTypes![0], 'dynamic');
+    expect(suggestion.parameterNames![1], 'y');
+    expect(suggestion.parameterTypes![1], 'int');
     expect(suggestion.requiredParameterCount, 2);
     expect(suggestion.hasNamedParameters, false);
   }
@@ -3347,7 +3347,7 @@ void main() {C.^ print("something");}''');
         import "a.dart";
         class X {foo(){A^.bar}}''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('A');
     assertNotSuggested('X');
@@ -3465,7 +3465,7 @@ void main() {C.^ print("something");}''');
     // SimpleIdentifier  MethodInvocation  PropertyAccess  ExpressionStatement
     addTestSource('class A {a() {"hello".to^String().length}}');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 2);
+    expect(replacementOffset, completionOffset! - 2);
     expect(replacementLength, 8);
     assertSuggestGetter('length', 'int');
     assertNotSuggested('A');
@@ -3798,7 +3798,7 @@ class C1 extends C2 implements C3 {
           m(X x) {} I _n(X x) {}}
         class X{}''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     // Contributed by FieldFormalConstructorContributor
     assertNotSuggested('b');
@@ -3946,7 +3946,7 @@ class C1 extends C2 implements C3 {
         class C<E> {}
         main() { C<C^> c; }''');
     await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
+    expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('C1');
     assertNotSuggested('C2');

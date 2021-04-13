@@ -35,6 +35,8 @@ abstract class ExpressionVisitor<R> {
   R visitDynamicInvocation(DynamicInvocation node) => defaultExpression(node);
   R visitFunctionInvocation(FunctionInvocation node) => defaultExpression(node);
   R visitInstanceInvocation(InstanceInvocation node) => defaultExpression(node);
+  R visitInstanceGetterInvocation(InstanceGetterInvocation node) =>
+      defaultExpression(node);
   R visitEqualsNull(EqualsNull node) => defaultExpression(node);
   R visitEqualsCall(EqualsCall node) => defaultExpression(node);
   R visitMethodInvocation(MethodInvocation node) => defaultExpression(node);
@@ -207,6 +209,8 @@ abstract class TreeVisitor<R>
   R visitDynamicInvocation(DynamicInvocation node) => defaultExpression(node);
   R visitFunctionInvocation(FunctionInvocation node) => defaultExpression(node);
   R visitInstanceInvocation(InstanceInvocation node) => defaultExpression(node);
+  R visitInstanceGetterInvocation(InstanceGetterInvocation node) =>
+      defaultExpression(node);
   R visitEqualsNull(EqualsNull node) => defaultExpression(node);
   R visitEqualsCall(EqualsCall node) => defaultExpression(node);
   R visitMethodInvocation(MethodInvocation node) => defaultExpression(node);
@@ -362,6 +366,8 @@ abstract class TreeVisitor1<R, A>
   R visitFunctionInvocation(FunctionInvocation node, A arg) =>
       defaultExpression(node, arg);
   R visitInstanceInvocation(InstanceInvocation node, A arg) =>
+      defaultExpression(node, arg);
+  R visitInstanceGetterInvocation(InstanceGetterInvocation node, A arg) =>
       defaultExpression(node, arg);
   R visitEqualsNull(EqualsNull node, A arg) => defaultExpression(node, arg);
   R visitEqualsCall(EqualsCall node, A arg) => defaultExpression(node, arg);
@@ -523,6 +529,7 @@ abstract class DartTypeVisitor<R> {
   R visitTypedefType(TypedefType node) => defaultDartType(node);
   R visitNeverType(NeverType node) => defaultDartType(node);
   R visitNullType(NullType node) => defaultDartType(node);
+  R visitExtensionType(ExtensionType node) => defaultDartType(node);
 }
 
 abstract class DartTypeVisitor1<R, T> {
@@ -539,6 +546,7 @@ abstract class DartTypeVisitor1<R, T> {
   R visitTypedefType(TypedefType node, T arg) => defaultDartType(node, arg);
   R visitNeverType(NeverType node, T arg) => defaultDartType(node, arg);
   R visitNullType(NullType node, T arg) => defaultDartType(node, arg);
+  R visitExtensionType(ExtensionType node, T arg) => defaultDartType(node, arg);
 }
 
 /// Visitor for [Constant] nodes.
@@ -777,6 +785,7 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitTypedefType(TypedefType node) => defaultDartType(node);
   R visitNeverType(NeverType node) => defaultDartType(node);
   R visitNullType(NullType node) => defaultDartType(node);
+  R visitExtensionType(ExtensionType node) => defaultDartType(node);
 
   // Constants
   R defaultConstant(Constant node) => defaultNode(node);
@@ -800,6 +809,8 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitClassReference(Class node);
 
   R visitTypedefReference(Typedef node);
+
+  R visitExtensionReference(Extension node);
 
   // Constant references
   R defaultConstantReference(Constant node);
@@ -873,6 +884,13 @@ mixin VisitorThrowingMixin<R> implements Visitor<R> {
   }
 
   @override
+  R visitExtensionReference(Extension node) {
+    throw new UnimplementedError(
+        'Unimplemented ${runtimeType}.visitExtensionReference for '
+        '${node} (${node.runtimeType})');
+  }
+
+  @override
   R defaultConstantReference(Constant node) {
     throw new UnimplementedError(
         'Unimplemented ${runtimeType}.defaultConstantReference for '
@@ -900,6 +918,9 @@ mixin VisitorNullMixin<R> implements Visitor<R?> {
   R? visitTypedefReference(Typedef node) => null;
 
   @override
+  R? visitExtensionReference(Extension node) => null;
+
+  @override
   R? defaultConstantReference(Constant node) => null;
 
   @override
@@ -916,6 +937,9 @@ mixin VisitorVoidMixin implements Visitor<void> {
 
   @override
   void visitTypedefReference(Typedef node) {}
+
+  @override
+  void visitExtensionReference(Extension node) {}
 
   @override
   void defaultConstantReference(Constant node) {}
@@ -936,6 +960,9 @@ mixin VisitorDefaultValueMixin<R> implements Visitor<R> {
 
   @override
   R visitTypedefReference(Typedef node) => defaultValue;
+
+  @override
+  R visitExtensionReference(Extension node) => defaultValue;
 
   @override
   R defaultConstantReference(Constant node) => defaultValue;
@@ -1449,6 +1476,8 @@ abstract class ExpressionVisitor1<R, T> {
   R visitFunctionInvocation(FunctionInvocation node, T arg) =>
       defaultExpression(node, arg);
   R visitInstanceInvocation(InstanceInvocation node, T arg) =>
+      defaultExpression(node, arg);
+  R visitInstanceGetterInvocation(InstanceGetterInvocation node, T arg) =>
       defaultExpression(node, arg);
   R visitEqualsNull(EqualsNull node, T arg) => defaultExpression(node, arg);
   R visitEqualsCall(EqualsCall node, T arg) => defaultExpression(node, arg);

@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -45,15 +48,38 @@ class SortChildPropertyLast extends CorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (fileEditBuilder) {
-      var start = childProp.beginToken.previous.end;
-      var end = childProp.endToken.next.end;
-      var childRange = range.startOffsetEndOffset(start, end);
+      var hasTrailingComma = last.endToken.next.type == TokenType.COMMA;
 
+      var childStart = childProp.beginToken.previous.end;
+      var childEnd = childProp.endToken.next.end;
+      var childRange = range.startOffsetEndOffset(childStart, childEnd);
+
+      var deletionRange = childRange;
+      if (childProp == args.arguments.first) {
+        var deletionStart = childProp.offset;
+        var deletionEnd = args.arguments[1].offset;
+        deletionRange = range.startOffsetEndOffset(deletionStart, deletionEnd);
+      }
+
+      if (!hasTrailingComma) {
+        childEnd = childProp.end;
+        childRange = range.startOffsetEndOffset(childStart, childEnd);
+      }
       var childText = utils.getRangeText(childRange);
-      fileEditBuilder.addSimpleReplacement(childRange, '');
-      fileEditBuilder.addSimpleInsertion(last.end + 1, childText);
 
-      builder.setSelection(Position(file, last.end + 1));
+      var insertionPoint = last.end;
+      if (hasTrailingComma) {
+        insertionPoint = last.endToken.next.end;
+      } else if (childStart == childProp.offset) {
+        childText = ', $childText';
+      } else {
+        childText = ',$childText';
+      }
+
+      fileEditBuilder.addDeletion(deletionRange);
+      fileEditBuilder.addSimpleInsertion(insertionPoint, childText);
+
+      builder.setSelection(Position(file, insertionPoint));
     });
   }
 

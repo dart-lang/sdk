@@ -213,7 +213,6 @@ void defineCompileTests() {
 
     // Ensure the -D and --define arguments were processed correctly.
     final contents = file.readAsStringSync();
-    print(contents);
     expect(contents.contains('1: bar'), true);
     expect(contents.contains('2: foo'), true);
   });
@@ -665,6 +664,34 @@ void main() {
     expect(result.exitCode, 0);
   });
 
+  test('Compile kernel with invalid trailing argument', () {
+    final p = project(mainSrc: '''void main() {}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'kernel',
+        '--verbosity=warning',
+        '-o',
+        outFile,
+        inFile,
+        'invalid-arg',
+      ],
+    );
+
+    expect(result.stdout, isEmpty);
+    expect(
+      result.stderr,
+      predicate(
+        (o) => '$o'.contains('Unexpected arguments after Dart entry point.'),
+      ),
+    );
+    expect(result.exitCode, 64);
+    expect(File(outFile).existsSync(), false, reason: 'File found: $outFile');
+  });
+
   test('Compile kernel with sound null safety', () {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -829,6 +856,30 @@ void main() {}
     );
 
     expect(result.stdout, contains(unsoundNullSafetyMessage));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  });
+
+  test('Compile JIT snapshot with training args', () {
+    final p =
+        project(mainSrc: '''void main(List<String> args) => print(args);''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
+
+    var result = p.runSync(
+      [
+        'compile',
+        'jit-snapshot',
+        '-o',
+        outFile,
+        inFile,
+        'foo',
+      ],
+    );
+
+    expect(result.stdout, predicate((o) => '$o'.contains('[foo]')));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,

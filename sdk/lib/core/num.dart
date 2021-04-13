@@ -75,7 +75,7 @@ abstract class num implements Comparable<num> {
   /// - All other values are compared using their numeric value.
   ///
   /// Examples:
-  /// ```
+  /// ```dart
   /// print(1.compareTo(2)); // => -1
   /// print(2.compareTo(1)); // => 1
   /// print(1.compareTo(1)); // => 0

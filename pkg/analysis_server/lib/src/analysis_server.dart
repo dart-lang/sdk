@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
@@ -132,6 +134,8 @@ class AnalysisServer extends AbstractAnalysisServer {
     RequestStatisticsHelper requestStatistics,
     DiagnosticServer diagnosticServer,
     this.detachableFileSystemManager,
+    // Disable to avoid using this in unit tests.
+    bool enableBazelWatcher = false,
   }) : super(
           options,
           sdkManager,
@@ -142,6 +146,7 @@ class AnalysisServer extends AbstractAnalysisServer {
           httpClient,
           NotificationManager(channel, baseResourceProvider.pathContext),
           requestStatistics: requestStatistics,
+          enableBazelWatcher: enableBazelWatcher,
         ) {
     var contextManagerCallbacks =
         ServerContextManagerCallbacks(this, resourceProvider);

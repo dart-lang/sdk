@@ -71,3 +71,17 @@ class List<E> {
     return makeFixedListUnmodifiable(result);
   }
 }
+
+// Used by Dart_ListLength.
+@pragma("vm:entry-point", "call")
+int _listLength(List list) => list.length;
+
+// Used by Dart_ListGetRange, Dart_ListGetAsBytes.
+@pragma("vm:entry-point", "call")
+Object? _listGetAt(List list, int index) => list[index];
+
+// Used by Dart_ListSetAt, Dart_ListSetAsBytes.
+@pragma("vm:entry-point", "call")
+void _listSetAt(List list, int index, Object? value) {
+  list[index] = value;
+}

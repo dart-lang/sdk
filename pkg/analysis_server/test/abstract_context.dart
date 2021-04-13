@@ -24,8 +24,8 @@ import 'package:meta/meta.dart';
 import 'src/utilities/mock_packages.dart';
 
 /// Finds an [Element] with the given [name].
-Element findChildElement(Element root, String name, [ElementKind kind]) {
-  Element result;
+Element? findChildElement(Element root, String name, [ElementKind? kind]) {
+  Element? result;
   root.accept(_ElementVisitorFunctionWrapper((Element element) {
     if (element.name != name) {
       return;
@@ -47,11 +47,11 @@ class AbstractContextTest with ResourceProviderMixin {
   final ByteStore _byteStore = MemoryByteStore();
 
   final Map<String, String> _declaredVariables = {};
-  AnalysisContextCollectionImpl _analysisContextCollection;
+  AnalysisContextCollectionImpl? _analysisContextCollection;
 
   List<AnalysisDriver> get allDrivers {
     _createAnalysisContexts();
-    return _analysisContextCollection.contexts.map((e) => e.driver).toList();
+    return _analysisContextCollection!.contexts.map((e) => e.driver).toList();
   }
 
   /// The file system specific `/home/test/analysis_options.yaml` path.
@@ -71,7 +71,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
   AnalysisSession get session => contextFor('/home/test').currentSession;
 
-  String get testPackageLanguageVersion => '2.9';
+  String? get testPackageLanguageVersion => '2.9';
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
@@ -105,9 +105,9 @@ class AbstractContextTest with ResourceProviderMixin {
 
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({
-    List<String> experiments,
-    bool implicitCasts,
-    List<String> lints,
+    List<String>? experiments,
+    bool? implicitCasts,
+    List<String>? lints,
   }) {
     var buffer = StringBuffer();
 
@@ -145,16 +145,16 @@ class AbstractContextTest with ResourceProviderMixin {
   /// Return the existing analysis context that should be used to analyze the
   /// given [path], or throw [StateError] if the [path] is not analyzed in any
   /// of the created analysis contexts.
-  AnalysisContext getContext(String path) {
+  DriverBasedAnalysisContext getContext(String path) {
     path = convertPath(path);
-    return _analysisContextCollection.contextFor(path);
+    return _analysisContextCollection!.contextFor(path);
   }
 
   /// Return the existing analysis driver that should be used to analyze the
   /// given [path], or throw [StateError] if the [path] is not analyzed in any
   /// of the created analysis contexts.
   AnalysisDriver getDriver(String path) {
-    DriverBasedAnalysisContext context = getContext(path);
+    var context = getContext(path);
     return context.driver;
   }
 
@@ -208,8 +208,8 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   void writeTestPackageConfig({
-    PackageConfigFileBuilder config,
-    String languageVersion,
+    PackageConfigFileBuilder? config,
+    String? languageVersion,
     bool flutter = false,
     bool meta = false,
     bool vector_math = false,
@@ -252,7 +252,7 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   void _addAnalyzedFilesToDrivers() {
-    for (var analysisContext in _analysisContextCollection.contexts) {
+    for (var analysisContext in _analysisContextCollection!.contexts) {
       for (var path in analysisContext.contextRoot.analyzedFiles()) {
         if (file_paths.isDart(resourceProvider.pathContext, path)) {
           analysisContext.driver.addFile(path);
@@ -262,8 +262,9 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   void _addAnalyzedFileToDrivers(String path) {
-    if (_analysisContextCollection != null) {
-      for (var analysisContext in _analysisContextCollection.contexts) {
+    var collection = _analysisContextCollection;
+    if (collection != null) {
+      for (var analysisContext in collection.contexts) {
         if (analysisContext.contextRoot.isAnalyzed(path)) {
           analysisContext.driver.addFile(path);
         }
@@ -275,7 +276,7 @@ class AbstractContextTest with ResourceProviderMixin {
     _createAnalysisContexts();
 
     path = convertPath(path);
-    return _analysisContextCollection.contextFor(path);
+    return _analysisContextCollection!.contextFor(path);
   }
 
   /// Create all analysis contexts in [collectionIncludedPaths].
@@ -300,7 +301,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
 mixin WithNonFunctionTypeAliasesMixin on AbstractContextTest {
   @override
-  String get testPackageLanguageVersion => null;
+  String? get testPackageLanguageVersion => null;
 
   @override
   void setUp() {

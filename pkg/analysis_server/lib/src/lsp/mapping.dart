@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:math';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
@@ -108,10 +110,12 @@ String buildSnippetStringWithTabStops(
   return output.join('');
 }
 
+/// Creates a [lsp.WorkspaceEdit] from simple [server.SourceFileEdit]s.
+///
 /// Note: This code will fetch the version of each document being modified so
 /// it's important to call this immediately after computing edits to ensure
 /// the document is not modified before the version number is read.
-lsp.WorkspaceEdit createWorkspaceEdit(
+lsp.WorkspaceEdit createPlainWorkspaceEdit(
     lsp.LspAnalysisServer server, List<server.SourceFileEdit> edits) {
   return toWorkspaceEdit(
       server.clientCapabilities,
@@ -121,6 +125,52 @@ lsp.WorkspaceEdit createWorkspaceEdit(
                 server.getLineInfo(e.file),
                 e.edits,
                 // fileStamp == 1 is used by the server to indicate the file needs creating.
+                newFile: e.fileStamp == -1,
+              ))
+          .toList());
+}
+
+/// Creates a [lsp.WorkspaceEdit] from a [server.SourceChange] that can include
+/// experimental [server.SnippetTextEdit]s if the client has indicated support
+/// for these in the experimental section of their client capabilities.
+///
+/// Note: This code will fetch the version of each document being modified so
+/// it's important to call this immediately after computing edits to ensure
+/// the document is not modified before the version number is read.
+lsp.WorkspaceEdit createWorkspaceEdit(
+    lsp.LspAnalysisServer server, server.SourceChange change) {
+  // In order to return snippets, we must ensure we are only modifying a single
+  // existing file with a single edit and that there is a linked edit group with
+  // only one position and no suggestions.
+  if (!server.clientCapabilities.experimentalSnippetTextEdit ||
+      change.edits.length != 1 ||
+      change.edits.first.fileStamp == -1 || // new file
+      change.edits.first.edits.length != 1 ||
+      change.linkedEditGroups.isEmpty ||
+      change.linkedEditGroups.first.positions.length != 1 ||
+      change.linkedEditGroups.first.suggestions.isNotEmpty) {
+    return createPlainWorkspaceEdit(server, change.edits);
+  }
+
+  // Additionally, the selection must fall within the edit offset.
+  final edit = change.edits.first.edits.first;
+  final selectionOffset = change.linkedEditGroups.first.positions.first.offset;
+  final selectionLength = change.linkedEditGroups.first.length;
+
+  if (selectionOffset < edit.offset ||
+      selectionOffset + selectionLength > edit.offset + edit.length) {
+    return createPlainWorkspaceEdit(server, change.edits);
+  }
+
+  return toWorkspaceEdit(
+      server.clientCapabilities,
+      change.edits
+          .map((e) => FileEditInformation(
+                server.getVersionedDocumentIdentifier(e.file),
+                server.getLineInfo(e.file),
+                e.edits,
+                selectionOffsetRelative: selectionOffset - edit.offset,
+                selectionLength: selectionLength,
                 newFile: e.fileStamp == -1,
               ))
           .toList());
@@ -1224,6 +1274,21 @@ lsp.SignatureHelp toSignatureHelp(Set<lsp.MarkupKind> preferredFormats,
   );
 }
 
+lsp.SnippetTextEdit toSnippetTextEdit(
+    LspClientCapabilities capabilities,
+    server.LineInfo lineInfo,
+    server.SourceEdit edit,
+    int selectionOffsetRelative,
+    int selectionLength) {
+  assert(selectionOffsetRelative != null);
+  return lsp.SnippetTextEdit(
+    insertTextFormat: lsp.InsertTextFormat.Snippet,
+    range: toRange(lineInfo, edit.offset, edit.length),
+    newText: buildSnippetStringWithTabStops(
+        edit.replacement, [selectionOffsetRelative, selectionLength ?? 0]),
+  );
+}
+
 ErrorOr<server.SourceRange> toSourceRange(
     server.LineInfo lineInfo, Range range) {
   if (range == null) {
@@ -1247,14 +1312,33 @@ ErrorOr<server.SourceRange> toSourceRange(
   return success(server.SourceRange(startOffset, endOffset - startOffset));
 }
 
-lsp.TextDocumentEdit toTextDocumentEdit(FileEditInformation edit) {
+lsp.TextDocumentEdit toTextDocumentEdit(
+    LspClientCapabilities capabilities, FileEditInformation edit) {
   return lsp.TextDocumentEdit(
-    textDocument: edit.doc,
-    edits: edit.edits
-        .map((e) => Either2<lsp.TextEdit, lsp.AnnotatedTextEdit>.t1(
-            toTextEdit(edit.lineInfo, e)))
-        .toList(),
-  );
+      textDocument: edit.doc,
+      edits: edit.edits
+          .map((e) => toTextDocumentEditEdit(capabilities, edit.lineInfo, e,
+              selectionOffsetRelative: edit.selectionOffsetRelative,
+              selectionLength: edit.selectionLength))
+          .toList());
+}
+
+Either3<lsp.SnippetTextEdit, lsp.AnnotatedTextEdit, lsp.TextEdit>
+    toTextDocumentEditEdit(
+  LspClientCapabilities capabilities,
+  server.LineInfo lineInfo,
+  server.SourceEdit edit, {
+  int selectionOffsetRelative,
+  int selectionLength,
+}) {
+  if (!capabilities.experimentalSnippetTextEdit ||
+      selectionOffsetRelative == null) {
+    return Either3<lsp.SnippetTextEdit, lsp.AnnotatedTextEdit, lsp.TextEdit>.t3(
+        toTextEdit(lineInfo, edit));
+  }
+  return Either3<lsp.SnippetTextEdit, lsp.AnnotatedTextEdit, lsp.TextEdit>.t1(
+      toSnippetTextEdit(capabilities, lineInfo, edit, selectionOffsetRelative,
+          selectionLength));
 }
 
 lsp.TextEdit toTextEdit(server.LineInfo lineInfo, server.SourceEdit edit) {
@@ -1286,7 +1370,7 @@ lsp.WorkspaceEdit toWorkspaceEdit(
         changes.add(createUnion);
       }
 
-      final textDocEdit = toTextDocumentEdit(edit);
+      final textDocEdit = toTextDocumentEdit(capabilities, edit);
       final textDocEditUnion = Either4<lsp.TextDocumentEdit, lsp.CreateFile,
           lsp.RenameFile, lsp.DeleteFile>.t1(textDocEdit);
       changes.add(textDocEditUnion);

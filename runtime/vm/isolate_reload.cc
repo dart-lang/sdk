@@ -2694,7 +2694,6 @@ void ReloadHandler::PauseIsolatesForReloadLocked() {
 
     // Now it's our turn to request reload.
     ASSERT(reloading_thread_ == nullptr);
-    ASSERT(isolates_checked_in_ == 0);
     reloading_thread_ = Thread::Current();
 
     // At this point no isolate register/unregister, so we save the current

@@ -28,6 +28,7 @@ dependencies:
     path: ../vm
 
 dev_dependencies:
+  browser_launcher: ^0.1.9
   expect:
     path: ../expect
   js:
@@ -35,10 +36,12 @@ dev_dependencies:
   modular_test:
     path: ../modular_test
   package_config: any
-  pedantic: ^1.8.0
+  pedantic: ^1.11.0
   sourcemap_testing:
     path: ../sourcemap_testing
   stack_trace: any
   test: any
   testing:
     path: ../testing
+  webkit_inspection_protocol: ^0.7.4
+

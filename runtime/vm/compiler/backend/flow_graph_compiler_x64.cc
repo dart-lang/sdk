@@ -25,7 +25,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
-DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
 
 void FlowGraphCompiler::ArchSpecificInitialization() {
@@ -65,10 +64,6 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 bool FlowGraphCompiler::SupportsUnboxedDoubles() {
   return true;
-}
-
-bool FlowGraphCompiler::SupportsUnboxedInt64() {
-  return FLAG_unbox_mints;
 }
 
 bool FlowGraphCompiler::SupportsUnboxedSimd128() {
@@ -143,7 +138,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
     builder->AddReturnAddress(current->function(),
-                              DeoptId::ToDeoptAfter(current->deopt_id()),
+                              DeoptId::ToDeoptAfter(current->GetDeoptId()),
                               slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
@@ -682,9 +677,9 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
 }
 
 void FlowGraphCompiler::EmitDispatchTableCall(
-    Register cid_reg,
     int32_t selector_offset,
     const Array& arguments_descriptor) {
+  const auto cid_reg = DispatchTableNullErrorABI::kClassIdReg;
   ASSERT(CanCallDart());
   const Register table_reg = RAX;
   ASSERT(cid_reg != table_reg);
@@ -708,7 +703,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
 
   if (obj.IsSmi() && (Smi::Cast(obj).Value() == 0)) {
     ASSERT(!needs_number_check);
-    __ testq(reg, reg);
+    __ OBJ(test)(reg, reg);
     return EQUAL;
   }
 
@@ -749,7 +744,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(
     __ popq(right);
     __ popq(left);
   } else {
-    __ CompareRegisters(left, right);
+    __ CompareObjectRegisters(left, right);
   }
   return EQUAL;
 }

@@ -27,6 +27,7 @@ import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/namer.dart' show Namer, StringBackedName;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart' show RuntimeTypesChecks;
+import '../../js_backend/runtime_types_codegen.dart' show TypeCheck;
 import '../../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding;
 import '../../js_backend/runtime_types_new.dart' as newRti;
@@ -167,7 +168,10 @@ class ProgramBuilder {
 
   Set<Class> _unneededNativeClasses;
 
+  ClassEntity get _jsInteropInterceptor =>
+      _commonElements.jsJavaScriptObjectClass;
   List<StubMethod> _jsInteropIsChecks = [];
+  final Set<TypeCheck> _jsInteropTypeChecks = {};
 
   /// Classes that have been allocated during a profile run.
   ///
@@ -199,14 +203,13 @@ class ProgramBuilder {
     // We need to run the native-preparation before we build the output. The
     // preparation code, in turn needs the classes to be set up.
     // We thus build the classes before building their containers.
-    collector.outputClassLists
-        .forEach((OutputUnit _, List<ClassEntity> classes) {
-      classes.forEach(_buildClass);
-    });
-
     collector.outputClassTypeLists
         .forEach((OutputUnit _, List<ClassEntity> types) {
       types.forEach(_buildClassTypeData);
+    });
+    collector.outputClassLists
+        .forEach((OutputUnit _, List<ClassEntity> classes) {
+      classes.forEach(_buildClass);
     });
 
     // Resolve the superclass references after we've processed all the classes.
@@ -273,8 +276,8 @@ class ProgramBuilder {
       finalizers.add(namingFinalizer as js.TokenFinalizer);
     }
 
-    return new Program(fragments, holders, _buildLoadMap(),
-        _buildTypeToInterceptorMap(), _task.metadataCollector, finalizers,
+    return new Program(fragments, holders, _buildTypeToInterceptorMap(),
+        _task.metadataCollector, finalizers,
         needsNativeSupport: needsNativeSupport,
         outputContainsConstantList: collector.outputContainsConstantList,
         hasSoftDeferredClasses: _notSoftDeferred != null);
@@ -346,18 +349,6 @@ class ProgramBuilder {
       });
       _notSoftDeferred = allocatedClasses;
     }
-  }
-
-  /// Builds a map from loadId to outputs-to-load.
-  Map<String, List<Fragment>> _buildLoadMap() {
-    Map<String, List<Fragment>> loadMap = <String, List<Fragment>>{};
-    _closedWorld.outputUnitData.hunksToLoad
-        .forEach((String loadId, List<OutputUnit> outputUnits) {
-      loadMap[loadId] = outputUnits
-          .map((OutputUnit unit) => _outputs[unit])
-          .toList(growable: false);
-    });
-    return loadMap;
   }
 
   js.Expression _buildTypeToInterceptorMap() {
@@ -509,9 +500,12 @@ class ProgramBuilder {
     // a regular getter that returns a JavaScript function and tearing off
     // a method in the case where there exist multiple JavaScript classes
     // that conflict on whether the member is a getter or a method.
-    Class interceptorClass = _classes[_commonElements.jsJavaScriptObjectClass];
+    Class interceptorClass = _classes[_jsInteropInterceptor];
+    ClassTypeData interceptorTypeData = _classTypeData[_jsInteropInterceptor];
 
     interceptorClass?.isChecks?.addAll(_jsInteropIsChecks);
+    interceptorTypeData?.classChecks?.addAll(_jsInteropTypeChecks);
+
     Set<String> stubNames = {};
     librariesMap.forEach((LibraryEntity library,
         List<ClassEntity> classElements, _memberElement, _typeElement) {
@@ -652,6 +646,8 @@ class ProgramBuilder {
   }
 
   Class _buildClass(ClassEntity cls) {
+    ClassTypeData typeData = _buildClassTypeData(cls);
+
     bool onlyForConstructor =
         collector.classesOnlyNeededForConstructor.contains(cls);
     // TODO(joshualitt): Can we just emit JSInteropClasses as types?
@@ -778,6 +774,8 @@ class ProgramBuilder {
       typeTests.forEachProperty(_sorter, (js.Name name, js.Node code) {
         _jsInteropIsChecks.add(_buildStubMethod(name, code));
       });
+
+      _jsInteropTypeChecks.addAll(typeData.classChecks?.checks ?? const []);
     } else {
       for (Field field in instanceFields) {
         if (field.needsCheckedSetter) {
@@ -809,7 +807,6 @@ class ProgramBuilder {
     bool isInstantiated = !_nativeData.isJsInteropClass(cls) &&
         _codegenWorld.directlyInstantiatedClasses.contains(cls);
 
-    ClassTypeData typeData = ClassTypeData(cls, _rtiChecks.requiredChecks[cls]);
     Class result;
     if (_elementEnvironment.isMixinApplication(cls) &&
         !onlyForConstructorOrRti &&
@@ -860,9 +857,9 @@ class ProgramBuilder {
     return result;
   }
 
-  void _buildClassTypeData(ClassEntity cls) {
-    _classTypeData[cls] = ClassTypeData(cls, _rtiChecks.requiredChecks[cls]);
-  }
+  ClassTypeData _buildClassTypeData(ClassEntity cls) =>
+      _classTypeData.putIfAbsent(
+          cls, () => ClassTypeData(cls, _rtiChecks.requiredChecks[cls]));
 
   void associateNamedTypeVariablesNewRti() {
     for (TypeVariableType typeVariable in _codegenWorld.namedTypeVariablesNewRti
@@ -873,14 +870,10 @@ class ProgramBuilder {
               ? _classHierarchy.subtypesOf(declaration)
               : _classHierarchy.subclassesOf(declaration);
       for (ClassEntity entity in subtypes) {
-        Class cls = _classes[entity];
-        if (cls != null) {
-          cls.typeData.namedTypeVariables.add(typeVariable);
-        }
-        ClassTypeData classTypeData = _classTypeData[entity];
-        if (classTypeData != null) {
-          classTypeData.namedTypeVariables.add(typeVariable);
-        }
+        ClassTypeData classTypeData = _nativeData.isJsInteropClass(entity)
+            ? _buildClassTypeData(_jsInteropInterceptor)
+            : _buildClassTypeData(entity);
+        classTypeData.namedTypeVariables.add(typeVariable);
       }
     }
   }

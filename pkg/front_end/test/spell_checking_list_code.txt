@@ -251,6 +251,7 @@ corelib
 corrected
 corrections
 cosmetic
+costly
 counters
 covariances
 coverage
@@ -311,6 +312,7 @@ deserializers
 deserializes
 deserializing
 design
+designation
 despite
 destination
 destinations
@@ -351,6 +353,7 @@ dsdk
 dst
 dummy
 dupdate
+dyn
 e
 easy
 ecma
@@ -410,6 +413,7 @@ f
 faced
 factor
 factored
+fairly
 fangorn
 fasta
 favored
@@ -692,6 +696,7 @@ meeting
 merely
 meta
 metadata's
+metadatum
 method10a
 method10b
 method1a
@@ -804,6 +809,7 @@ ordered
 orders
 ordinal
 org
+orphancy
 orphans
 ors
 os
@@ -876,6 +882,7 @@ prebuilt
 preexisted
 preexisting
 preorder
+presented
 presubmit
 prev
 prime
@@ -886,6 +893,7 @@ proc
 producers
 product
 progresses
+promo
 proof
 prop
 propose
@@ -994,6 +1002,7 @@ replaces
 replicated
 repo
 repositories
+repurposed
 requirement
 res
 residue
@@ -1374,6 +1383,7 @@ with1
 wn
 worthwhile
 worthy
+woven
 writeln
 wrongfully
 wrt

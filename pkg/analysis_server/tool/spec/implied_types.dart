@@ -16,7 +16,7 @@ Map<String, ImpliedType> computeImpliedTypes(Api api) {
 class ImpliedType {
   final String camelName;
   final String humanReadableName;
-  final TypeDecl type;
+  final TypeDecl? type;
 
   /// Kind of implied type this is.  One of:
   /// - 'requestParams'
@@ -39,7 +39,7 @@ class _ImpliedTypesVisitor extends HierarchicalApiVisitor {
 
   _ImpliedTypesVisitor(Api api) : super(api);
 
-  void storeType(String name, String nameSuffix, TypeDecl type, String kind,
+  void storeType(String name, String? nameSuffix, TypeDecl? type, String kind,
       ApiNode apiNode) {
     var humanReadableName = name;
     var camelNameParts = name.split('.');

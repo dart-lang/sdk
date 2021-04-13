@@ -27,7 +27,8 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         VariableDeclaration,
         VariableGet,
-        VoidType;
+        VoidType,
+        defaultLanguageVersion;
 
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
 
@@ -53,7 +54,7 @@ import 'package:front_end/src/fasta/kernel/expression_generator.dart';
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 
 import 'package:front_end/src/fasta/source/source_library_builder.dart'
-    show SourceLibraryBuilder;
+    show ImplicitLanguageVersion, SourceLibraryBuilder;
 
 void check(String expected, Generator generator) {
   Expect.stringEquals(expected, "$generator");
@@ -74,6 +75,7 @@ main() async {
         uri,
         uri,
         /*packageUri*/ null,
+        new ImplicitLanguageVersion(defaultLanguageVersion),
         new KernelTarget(
                 null,
                 false,

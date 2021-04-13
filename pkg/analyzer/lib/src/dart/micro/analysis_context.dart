@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -39,6 +42,7 @@ MicroContextObjects createMicroContextObjects({
   );
 
   var analysisSession = _MicroAnalysisSessionImpl(
+    fileResolver,
     declaredVariables,
     sourceFactory,
   );
@@ -89,6 +93,19 @@ class MicroContextObjects {
 }
 
 class _FakeAnalysisDriver implements AnalysisDriver {
+  final FileResolver fileResolver;
+
+  late _MicroAnalysisSessionImpl _currentSession;
+
+  _FakeAnalysisDriver(this.fileResolver);
+
+  @override
+  AnalysisSessionImpl get currentSession {
+    _currentSession = fileResolver.contextObjects?.analysisSession
+        as _MicroAnalysisSessionImpl;
+    return _currentSession;
+  }
+
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -137,6 +154,8 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
 }
 
 class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
+  final FileResolver fileResolver;
+
   @override
   final DeclaredVariables declaredVariables;
 
@@ -146,9 +165,10 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
   late _MicroAnalysisContextImpl analysisContext;
 
   _MicroAnalysisSessionImpl(
+    this.fileResolver,
     this.declaredVariables,
     this.sourceFactory,
-  ) : super(_FakeAnalysisDriver());
+  ) : super(_FakeAnalysisDriver(fileResolver));
 
   @override
   ResourceProvider get resourceProvider =>
@@ -178,15 +198,13 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
   }
 
   @override
+  Future<LibraryElement> getLibraryByUri(String uriStr) async {
+    return analysisContext.fileResolver.getLibraryByUri(uriStr: uriStr);
+  }
+
+  @override
   Future<ResolvedLibraryResult> getResolvedLibrary(String path) async {
-    var resolvedUnit = await getResolvedUnit(path);
-    return ResolvedLibraryResultImpl(
-      this,
-      path,
-      resolvedUnit.uri,
-      resolvedUnit.libraryElement,
-      [resolvedUnit],
-    );
+    return analysisContext.fileResolver.resolveLibrary(path: path);
   }
 
   @override

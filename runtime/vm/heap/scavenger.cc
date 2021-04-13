@@ -122,14 +122,30 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         delayed_weak_properties_(WeakProperty::null()) {}
 
   virtual void VisitTypedDataViewPointers(TypedDataViewPtr view,
-                                          ObjectPtr* first,
-                                          ObjectPtr* last) {
-    // First we forward all fields of the typed data view.
-    VisitPointers(first, last);
+                                          CompressedObjectPtr* first,
+                                          CompressedObjectPtr* last) {
+    // TypedDataViews require extra processing to update their
+    // PointerBase::data_ pointer. If the underlying typed data is external, no
+    // update is needed. If the underlying typed data is internal, the pointer
+    // must be updated if the typed data was copied or promoted. We cannot
+    // safely dereference the underlying typed data to make this distinction.
+    // It may have been forwarded by a different scavanger worker, so the access
+    // could have a data race. Rather than checking the CID of the underlying
+    // typed data, which requires dereferencing the copied/promoted header, we
+    // compare the view's internal pointer to what it should be if the
+    // underlying typed data was internal, and assume that external typed data
+    // never points into the Dart heap. We must do this before VisitPointers
+    // because we want to compare the old pointer and old typed data.
+    const bool is_external =
+        view->untag()->data_ != view->untag()->DataFieldForInternalTypedData();
+
+    // Forward all fields of the typed data view.
+    VisitCompressedPointers(view->heap_base(), first, last);
 
     if (view->untag()->data_ == nullptr) {
-      ASSERT(RawSmiValue(view->untag()->offset_in_bytes_) == 0 &&
-             RawSmiValue(view->untag()->length_) == 0);
+      ASSERT(RawSmiValue(view->untag()->offset_in_bytes()) == 0 &&
+             RawSmiValue(view->untag()->length()) == 0);
+      ASSERT(is_external);
       return;
     }
 
@@ -140,23 +156,27 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     ASSERT(IsTypedDataViewClassId(view->GetClassIdMayBeSmi()));
 
     // Validate that the backing store is not a forwarding word.
-    TypedDataBasePtr td = view->untag()->typed_data_;
+    TypedDataBasePtr td = view->untag()->typed_data();
     ASSERT(td->IsHeapObject());
     const uword td_header =
         *reinterpret_cast<uword*>(UntaggedObject::ToAddr(td));
     ASSERT(!IsForwarding(td_header) || td->IsOldObject());
 
-    // We can always obtain the class id from the forwarded backing store.
-    const classid_t cid = td->GetClassId();
+    if (!parallel) {
+      // When there is only one worker, there is no data race.
+      ASSERT_EQUAL(IsExternalTypedDataClassId(td->GetClassId()), is_external);
+    }
 
     // If we have external typed data we can simply return since the backing
     // store lives in C-heap and will not move.
-    if (IsExternalTypedDataClassId(cid)) {
+    if (is_external) {
       return;
     }
 
     // Now we update the inner pointer.
-    ASSERT(IsTypedDataClassId(cid));
+    if (!parallel) {
+      ASSERT(IsTypedDataClassId(td->GetClassId()));
+    }
     view->untag()->RecomputeDataFieldForInternalTypedData();
   }
 
@@ -319,8 +339,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       // of this object. Note this could be a publishing store even if the
       // object was promoted by an early invocation of ScavengePointer. Compare
       // Object::Allocate.
-      reinterpret_cast<std::atomic<ObjectPtr>*>(p)->store(
-          new_obj, std::memory_order_release);
+      reinterpret_cast<std::atomic<CompressedObjectPtr>*>(p)->store(
+          static_cast<CompressedObjectPtr>(new_obj), std::memory_order_release);
     } else {
       *p = new_obj;
     }
@@ -650,6 +670,7 @@ void SemiSpace::Cleanup() {
 }
 
 intptr_t SemiSpace::CachedSize() {
+  MutexLocker ml(page_cache_mutex);
   return page_cache_size * kNewPageSize;
 }
 
@@ -887,7 +908,20 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* from,
                                CompressedObjectPtr* to) {
-    UNREACHABLE();  // Store buffer blocks are not compressed.
+    for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
+      ObjectPtr raw_obj = ptr->Decompress(heap_base);
+      if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
+        if (!is_remembered_) {
+          FATAL3(
+              "Old object %#" Px " references new object %#" Px
+              ", but it is not"
+              " in any store buffer. Consider using rr to watch the slot %p and"
+              " reverse-continue to find the store with a missing barrier.\n",
+              static_cast<uword>(visiting_), static_cast<uword>(raw_obj), ptr);
+        }
+        RELEASE_ASSERT(to_->Contains(UntaggedObject::ToAddr(raw_obj)));
+      }
+    }
   }
 
  private:

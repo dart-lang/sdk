@@ -1763,20 +1763,19 @@ void Assembler::CompareRegisters(Register a, Register b) {
 }
 
 void Assembler::LoadFromOffset(Register reg,
-                               Register base,
-                               int32_t offset,
+                               const Address& address,
                                OperandSize type) {
   switch (type) {
     case kByte:
-      return movsxb(reg, Address(base, offset));
+      return movsxb(reg, address);
     case kUnsignedByte:
-      return movzxb(reg, Address(base, offset));
+      return movzxb(reg, address);
     case kTwoBytes:
-      return movsxw(reg, Address(base, offset));
+      return movsxw(reg, address);
     case kUnsignedTwoBytes:
-      return movzxw(reg, Address(base, offset));
+      return movzxw(reg, address);
     case kFourBytes:
-      return movl(reg, Address(base, offset));
+      return movl(reg, address);
     default:
       UNREACHABLE();
       break;
@@ -2407,6 +2406,15 @@ void Assembler::Call(const Code& target,
                      CodeEntryKind entry_kind) {
   LoadObject(CODE_REG, ToObject(target), movable_target);
   call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+}
+
+void Assembler::CallVmStub(const Code& target) {
+  const Object& target_as_object = CastHandle<Object, Code>(target);
+  ASSERT(target::CanEmbedAsRawPointerInGeneratedCode(target_as_object));
+  call(Address::Absolute(
+      target::ToRawPointer(target_as_object) +
+      target::Code::entry_point_offset(CodeEntryKind::kNormal) -
+      kHeapObjectTag));
 }
 
 void Assembler::CallToRuntime() {

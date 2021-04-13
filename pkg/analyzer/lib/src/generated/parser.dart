@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-export 'package:analyzer/src/dart/ast/utilities.dart' show ResolutionCopier;
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 
 /// A simple data-holder for a method that needs to return multiple values.
@@ -94,7 +93,7 @@ class Modifiers {
     return buffer.toString();
   }
 
-  /// If the given [keyword] is not `null`, append it to the given [builder],
+  /// If the given [keyword] is not `null`, append it to the given [buffer],
   /// prefixing it with a space if [needsSpace] is `true`. Return `true` if
   /// subsequent keywords need to be prefixed with a space.
   bool _appendKeyword(StringBuffer buffer, bool needsSpace, Token? keyword) {

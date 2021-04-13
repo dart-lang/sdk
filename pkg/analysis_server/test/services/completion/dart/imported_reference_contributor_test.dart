@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
@@ -32,6 +34,34 @@ mixin ImportedReferenceContributorMixin on DartCompletionContributorTest {
 @reflectiveTest
 class ImportedReferenceContributorTest extends DartCompletionContributorTest
     with ImportedReferenceContributorMixin {
+  Future<void> test_Annotation_typeArguments() async {
+    addSource('/home/test/lib/a.dart', '''
+class C {}
+typedef T1 = void Function();
+typedef T2 = List<int>;
+''');
+
+    addTestSource('''
+import 'a.dart';
+
+class A<T> {
+  const A();
+}
+
+@A<^>()
+void f() {}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('C');
+    assertSuggestTypeAlias('T1',
+        aliasedType: 'void Function()', returnType: 'void');
+    assertSuggestTypeAlias('T2', aliasedType: 'List<int>');
+    assertNotSuggested('identical');
+  }
+
   /// Sanity check.  Permutations tested in local_ref_contributor.
   Future<void> test_ArgDefaults_function_with_required_named() async {
     writeTestPackageConfig(meta: true);

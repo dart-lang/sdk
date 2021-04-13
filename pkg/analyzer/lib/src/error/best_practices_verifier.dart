@@ -689,6 +689,23 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  @override
+  void visitTypeName(TypeName node) {
+    if (node.question != null) {
+      var name = node.name.name;
+      var type = node.typeOrThrow;
+      // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
+      // not report synthetic `dynamic` in place of an unresolved type.
+      if ((type.element == _nullType.element ||
+              (type.isDynamic && name == 'dynamic')) &&
+          type.aliasElement == null) {
+        _errorReporter.reportErrorForNode(
+            HintCode.UNNECESSARY_QUESTION_MARK, node, [name]);
+      }
+    }
+    super.visitTypeName(node);
+  }
+
   /// Check for the passed is expression for the unnecessary type check hint
   /// codes as well as null checks expressed using an is expression.
   ///
@@ -1207,7 +1224,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (_typeSystem.isPotentiallyNullable(type.type!)) {
+    if (_typeSystem.isPotentiallyNullable(type.typeOrThrow)) {
       _errorReporter.reportErrorForNode(
         HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
         type,
@@ -1596,7 +1613,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// on [node].  See [HintCode.UNNECESSARY_CAST].
   static bool isUnnecessaryCast(AsExpression node, TypeSystemImpl typeSystem) {
     var leftType = node.expression.typeOrThrow;
-    var rightType = node.type.type!;
+    var rightType = node.type.typeOrThrow;
 
     // `dynamicValue as SomeType` is a valid use case.
     if (leftType.isDynamic) {

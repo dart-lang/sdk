@@ -147,9 +147,10 @@ Future<bool> uriUsesLegacyLanguageVersion(
   if (SourceLibraryBuilder.isOptOutTest(uri)) return true;
   VersionAndPackageUri versionAndLibraryUri =
       await languageVersionForUri(uri, options);
-  return (versionAndLibraryUri.version <
-      options.getExperimentEnabledVersionInLibrary(
-          ExperimentalFlag.nonNullable, versionAndLibraryUri.packageUri));
+  return !options.isExperimentEnabledInLibraryByVersion(
+      ExperimentalFlag.nonNullable,
+      versionAndLibraryUri.packageUri,
+      versionAndLibraryUri.version);
 }
 
 class VersionAndPackageUri {

@@ -19,12 +19,12 @@ abstract class Function {
   /// if it expects different parameters.
   ///
   /// Example:
-  /// ```
+  /// ```dart
   /// Function.apply(foo, [1, 2, 3], {#f: 4, #g: 5});
   /// ```
   ///
   /// gives exactly the same result as
-  /// ```
+  /// ```dart
   /// foo(1, 2, 3, f: 4, g: 5).
   /// ```
   ///

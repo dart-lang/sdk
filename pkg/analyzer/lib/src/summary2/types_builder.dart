@@ -264,7 +264,7 @@ class _MixinInference {
   }
 
   InterfaceType _inferSingle(TypeNameImpl mixinNode) {
-    var mixinType = _interfaceType(mixinNode.type!);
+    var mixinType = _interfaceType(mixinNode.typeOrThrow);
 
     if (mixinNode.typeArguments != null) {
       return mixinType;
@@ -303,6 +303,8 @@ class _MixinInference {
       mixinElement,
       mixinSupertypeConstraints,
       matchingInterfaceTypes,
+      genericMetadataIsEnabled:
+          mixinElement.library.featureSet.isEnabled(Feature.generic_metadata),
     );
     if (inferredTypeArguments != null) {
       var inferredMixin = mixinElement.instantiate(

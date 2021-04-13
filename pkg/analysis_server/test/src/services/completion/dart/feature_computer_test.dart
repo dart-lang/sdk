@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:test/test.dart';
@@ -29,6 +31,17 @@ class ContextTypeTest extends FeatureComputerTest {
     } else {
       expect(type?.getDisplayString(withNullability: false), expectedType);
     }
+  }
+
+  Future<void> test_argumentList_instanceCreation() async {
+    await assertContextType('''
+class C {
+  C({String s}) {}
+}
+void f() {
+  C(s:^);
+}
+''', 'String');
   }
 
   Future<void> test_argumentList_named_afterColon() async {
@@ -83,6 +96,17 @@ void g() {
 void f(int i, {String s = ''}) {}
 void g() {
   f(^ s:);
+}
+''', 'int');
+  }
+
+  Future<void> test_argumentList_named_method() async {
+    await assertContextType('''
+class C {
+  void m(int i) {}
+}
+void f(C c) {
+  c.m(^);
 }
 ''', 'int');
   }
@@ -333,6 +357,31 @@ void g() {
   f(1, ^ );
 }
 ''', 'String');
+  }
+
+  Future<void> test_argumentList_typeParameter_resolved() async {
+    await assertContextType('''
+class A {}
+class B {}
+class C<T extends A> {
+  void m(T t) {}
+}
+void f(C<B> c) {
+  c.m(^);
+}
+''', 'B');
+  }
+
+  Future<void> test_argumentList_typeParameter_unresolved() async {
+    await assertContextType('''
+class A {}
+class C<T extends A> {
+  void m1(T t) {}
+  void m2() {
+    m1(^);
+  }
+}
+''', 'A');
   }
 
   Future<void> test_assertInitializer_with_identifier() async {

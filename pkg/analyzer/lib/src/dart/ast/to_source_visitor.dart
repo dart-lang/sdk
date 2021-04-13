@@ -367,9 +367,6 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    if (node.isRequiredNamed) {
-      sink.write('required ');
-    }
     safelyVisitNode(node.parameter);
     if (node.separator != null) {
       if (node.separator!.lexeme != ":") {
@@ -974,6 +971,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    safelyVisitTokenWithSuffix(node.requiredKeyword, ' ');
     safelyVisitTokenWithSuffix(node.covariantKeyword, ' ');
     safelyVisitTokenWithSuffix(node.keyword, " ");
     safelyVisitNode(node.type);

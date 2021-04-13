@@ -72,8 +72,8 @@ import 'dart:convert' show utf8;
 import 'visitor.dart';
 export 'visitor.dart';
 
-import 'canonical_name.dart' show CanonicalName;
-export 'canonical_name.dart' show CanonicalName;
+import 'canonical_name.dart' show CanonicalName, Reference;
+export 'canonical_name.dart' show CanonicalName, Reference;
 
 import 'default_language_version.dart' show defaultLanguageVersion;
 export 'default_language_version.dart' show defaultLanguageVersion;
@@ -84,6 +84,7 @@ import 'core_types.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
 import 'src/assumptions.dart';
+import 'src/non_null.dart';
 import 'src/printer.dart';
 import 'src/text_util.dart';
 
@@ -217,8 +218,6 @@ abstract class NamedNode extends TreeNode {
     }
   }
 
-  CanonicalName? get canonicalName => reference.canonicalName;
-
   /// This is an advanced feature.
   ///
   /// See [Component.relink] for a comprehensive description.
@@ -238,116 +237,6 @@ abstract class FileUriNode extends TreeNode {
 abstract class Annotatable extends TreeNode {
   List<Expression> get annotations;
   void addAnnotation(Expression node);
-}
-
-/// Indirection between a reference and its definition.
-///
-/// There is only one reference object per [NamedNode].
-class Reference {
-  CanonicalName? canonicalName;
-
-  NamedNode? _node;
-
-  NamedNode? get node {
-    if (_node == null) {
-      // Either this is an unbound reference or it belongs to a lazy-loaded
-      // (and not yet loaded) class. If it belongs to a lazy-loaded class,
-      // load the class.
-
-      CanonicalName? canonicalNameParent = canonicalName?.parent;
-      while (canonicalNameParent != null) {
-        if (canonicalNameParent.name.startsWith("@")) {
-          break;
-        }
-        canonicalNameParent = canonicalNameParent.parent;
-      }
-      if (canonicalNameParent != null) {
-        NamedNode? parentNamedNode =
-            canonicalNameParent.parent?.reference?._node;
-        if (parentNamedNode is Class) {
-          Class parentClass = parentNamedNode;
-          if (parentClass.lazyBuilder != null) {
-            parentClass.ensureLoaded();
-          }
-        }
-      }
-    }
-    return _node;
-  }
-
-  void set node(NamedNode? node) {
-    _node = node;
-  }
-
-  String toString() {
-    return "Reference to ${toStringInternal()}";
-  }
-
-  String toStringInternal() {
-    if (canonicalName != null) {
-      return '${canonicalName!.toStringInternal()}';
-    }
-    if (node != null) {
-      return node!.toStringInternal();
-    }
-    return 'Unbound reference';
-  }
-
-  Library get asLibrary {
-    if (node == null) {
-      throw '$this is not bound to an AST node. A library was expected';
-    }
-    return node as Library;
-  }
-
-  Class get asClass {
-    if (node == null) {
-      throw '$this is not bound to an AST node. A class was expected';
-    }
-    return node as Class;
-  }
-
-  Member get asMember {
-    if (node == null) {
-      throw '$this is not bound to an AST node. A member was expected';
-    }
-    return node as Member;
-  }
-
-  Field get asField {
-    if (node == null) {
-      throw '$this is not bound to an AST node. A field was expected';
-    }
-    return node as Field;
-  }
-
-  Constructor get asConstructor {
-    if (node == null) {
-      throw '$this is not bound to an AST node. A constructor was expected';
-    }
-    return node as Constructor;
-  }
-
-  Procedure get asProcedure {
-    if (node == null) {
-      throw '$this is not bound to an AST node. A procedure was expected';
-    }
-    return node as Procedure;
-  }
-
-  Typedef get asTypedef {
-    if (node == null) {
-      throw '$this is not bound to an AST node. A typedef was expected';
-    }
-    return node as Typedef;
-  }
-
-  Extension get asExtension {
-    if (node == null) {
-      throw '$this is not bound to an AST node. An extension was expected';
-    }
-    return node as Extension;
-  }
 }
 
 // ------------------------------------------------------------------------
@@ -546,7 +435,7 @@ class Library extends NamedNode
   }
 
   void computeCanonicalNames() {
-    CanonicalName canonicalName = this.canonicalName!;
+    CanonicalName canonicalName = this.reference.canonicalName!;
     for (int i = 0; i < typedefs.length; ++i) {
       Typedef typedef_ = typedefs[i];
       canonicalName.getChildFromTypedef(typedef_).bindTo(typedef_.reference);
@@ -689,9 +578,10 @@ class Library extends NamedNode
 ///     export <url>;
 ///
 /// optionally with metadata and [Combinators].
-class LibraryDependency extends TreeNode {
+class LibraryDependency extends TreeNode implements Annotatable {
   int flags;
 
+  @override
   final List<Expression> annotations;
 
   Reference importedLibraryReference;
@@ -742,6 +632,7 @@ class LibraryDependency extends TreeNode {
   bool get isImport => !isExport;
   bool get isDeferred => flags & DeferredFlag != 0;
 
+  @override
   void addAnnotation(Expression annotation) {
     annotations.add(annotation..parent = this);
   }
@@ -787,14 +678,17 @@ class LibraryDependency extends TreeNode {
 ///     part <url>;
 ///
 /// optionally with metadata.
-class LibraryPart extends TreeNode {
+class LibraryPart extends TreeNode implements Annotatable {
+  @override
   final List<Expression> annotations;
+
   final String partUri;
 
   LibraryPart(this.annotations, this.partUri) {
     setParents(annotations, this);
   }
 
+  @override
   void addAnnotation(Expression annotation) {
     annotations.add(annotation..parent = this);
   }
@@ -872,12 +766,14 @@ class Combinator extends TreeNode {
 }
 
 /// Declaration of a type alias.
-class Typedef extends NamedNode implements FileUriNode {
+class Typedef extends NamedNode implements FileUriNode, Annotatable {
   /// The URI of the source file that contains the declaration of this typedef.
   @override
   Uri? fileUri;
 
+  @override
   List<Expression> annotations = const <Expression>[];
+
   String name;
   final List<TypeParameter> typeParameters;
   // TODO(johnniwinther): Make this non-nullable.
@@ -946,6 +842,7 @@ class Typedef extends NamedNode implements FileUriNode {
     }
   }
 
+  @override
   void addAnnotation(Expression node) {
     if (annotations.isEmpty) {
       annotations = <Expression>[];
@@ -1271,7 +1168,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   }
 
   void computeCanonicalNames() {
-    CanonicalName canonicalName = this.canonicalName!;
+    CanonicalName canonicalName = this.reference.canonicalName!;
     if (!dirty) return;
     for (int i = 0; i < fields.length; ++i) {
       Field member = fields[i];
@@ -1524,7 +1421,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 ///
 /// The members are converted into top-level procedures and only accessible
 /// by reference in the [Extension] node.
-class Extension extends NamedNode implements FileUriNode {
+class Extension extends NamedNode implements Annotatable, FileUriNode {
   /// Name of the extension.
   ///
   /// If unnamed, the extension will be given a synthesized name by the
@@ -1552,6 +1449,18 @@ class Extension extends NamedNode implements FileUriNode {
   /// by reference through [ExtensionMemberDescriptor].
   final List<ExtensionMemberDescriptor> members;
 
+  @override
+  List<Expression> annotations = const <Expression>[];
+
+  @override
+  void addAnnotation(Expression node) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(node);
+    node.parent = this;
+  }
+
   Extension(
       {required this.name,
       List<TypeParameter>? typeParameters,
@@ -1577,6 +1486,8 @@ class Extension extends NamedNode implements FileUriNode {
 
   @override
   R accept1<R, A>(TreeVisitor1<R, A> v, A arg) => v.visitExtension(this, arg);
+
+  R acceptReference<R>(Visitor<R> v) => v.visitExtensionReference(this);
 
   @override
   void visitChildren(Visitor v) {
@@ -1839,14 +1750,6 @@ class Field extends Member {
   Reference get reference => super.reference;
 
   Reference get getterReference => super.reference;
-
-  @override
-  @Deprecated(
-      "Use the specific getterCanonicalName/setterCanonicalName instead")
-  CanonicalName? get canonicalName => reference.canonicalName;
-
-  CanonicalName? get getterCanonicalName => getterReference.canonicalName;
-  CanonicalName? get setterCanonicalName => setterReference?.canonicalName;
 
   Field.mutable(Name? name,
       {this.type: const DynamicType(),
@@ -4631,7 +4534,7 @@ class SuperPropertySet extends Expression {
 
   Reference? interfaceTargetReference;
 
-  SuperPropertySet(Name name, Expression value, Member interfaceTarget)
+  SuperPropertySet(Name name, Expression value, Member? interfaceTarget)
       : this.byReference(
             name, value, getMemberReferenceSetter(interfaceTarget));
 
@@ -5329,6 +5232,169 @@ class InstanceInvocation extends InvocationExpression {
   }
 }
 
+/// An invocation of an instance getter or field with a statically known
+/// interface target.
+///
+/// This is used only for web backend in order to support invocation of
+/// native properties as functions. This node will be removed when this
+/// invocation style is no longer supported.
+class InstanceGetterInvocation extends InvocationExpression {
+  // Must match serialized bit positions.
+  static const int FlagInvariant = 1 << 0;
+  static const int FlagBoundsSafe = 1 << 1;
+
+  final InstanceAccessKind kind;
+  Expression receiver;
+
+  @override
+  Name name;
+
+  @override
+  Arguments arguments;
+
+  int flags = 0;
+
+  /// The static type of the invocation, or `dynamic` is of the type is unknown.
+  ///
+  /// This includes substituted type parameters from the static receiver type
+  /// and generic type arguments.
+  ///
+  /// For instance
+  ///
+  ///    class A<T> {
+  ///      Map<T, S> Function<S>(S) get map => ...
+  ///      dynamic get dyn => ...
+  ///    }
+  ///    m(A<String> a) {
+  ///      a.map(0); // The function type is `Map<String, int> Function(int)`.
+  ///      a.dyn(0); // The function type is `null`.
+  ///    }
+  ///
+  FunctionType? functionType;
+
+  Reference interfaceTargetReference;
+
+  InstanceGetterInvocation(InstanceAccessKind kind, Expression receiver,
+      Name name, Arguments arguments,
+      {required Member interfaceTarget, required FunctionType? functionType})
+      : this.byReference(kind, receiver, name, arguments,
+            interfaceTargetReference:
+                getNonNullableMemberReferenceGetter(interfaceTarget),
+            functionType: functionType);
+
+  InstanceGetterInvocation.byReference(
+      this.kind, this.receiver, this.name, this.arguments,
+      {required this.interfaceTargetReference, required this.functionType})
+      // ignore: unnecessary_null_comparison
+      : assert(interfaceTargetReference != null),
+        assert(functionType == null || functionType.typeParameters.isEmpty) {
+    receiver.parent = this;
+    arguments.parent = this;
+  }
+
+  Member get interfaceTarget => interfaceTargetReference.asMember;
+
+  void set interfaceTarget(Member target) {
+    interfaceTargetReference = getNonNullableMemberReferenceGetter(target);
+  }
+
+  /// If `true`, this call is known to be safe wrt. parameter covariance checks.
+  ///
+  /// This is for instance the case in code patterns like this
+  ///
+  ///     List<int> list = <int>[];
+  ///     list.add(0);
+  ///
+  /// where the `list` variable is known to hold a value of the same type as
+  /// the static type. In contrast the would not be the case in code patterns
+  /// like this
+  ///
+  ///     List<num> list = <double>[];
+  ///     list.add(0); // Runtime error `int` is not a subtype of `double`.
+  ///
+  bool get isInvariant => flags & FlagInvariant != 0;
+
+  void set isInvariant(bool value) {
+    flags = value ? (flags | FlagInvariant) : (flags & ~FlagInvariant);
+  }
+
+  /// If `true`, this call is known to be safe wrt. parameter covariance checks.
+  ///
+  /// This is for instance the case in code patterns like this
+  ///
+  ///     List list = new List.filled(2, 0);
+  ///     list[1] = 42;
+  ///
+  /// where the `list` is known to have a sufficient length for the update
+  /// in `list[1] = 42`.
+  bool get isBoundsSafe => flags & FlagBoundsSafe != 0;
+
+  void set isBoundsSafe(bool value) {
+    flags = value ? (flags | FlagBoundsSafe) : (flags & ~FlagBoundsSafe);
+  }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      functionType?.returnType ?? const DynamicType();
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceGetterInvocation(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitInstanceGetterInvocation(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    receiver.accept(v);
+    interfaceTarget.acceptReference(v);
+    name.accept(v);
+    arguments.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
+    if (receiver != null) {
+      receiver = v.transform(receiver);
+      receiver.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (arguments != null) {
+      arguments = v.transform(arguments);
+      arguments.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
+    if (receiver != null) {
+      receiver = v.transform(receiver);
+      receiver.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (arguments != null) {
+      arguments = v.transform(arguments);
+      arguments.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "InstanceGetterInvocation($kind, ${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver,
+        minimumPrecedence: astToText.Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeInterfaceMemberName(interfaceTargetReference, name);
+    printer.writeArguments(arguments);
+  }
+}
+
 /// Access kind used by [FunctionInvocation] and [FunctionTearOff].
 enum FunctionAccessKind {
   /// An access to the 'call' method on an expression of static type `Function`.
@@ -5472,7 +5538,6 @@ class FunctionInvocation extends InvocationExpression {
 /// An invocation of a local function declaration.
 class LocalFunctionInvocation extends InvocationExpression {
   /// The variable declaration for the function declaration.
-  // TODO(johnniwinther): Should this be the `FunctionDeclaration` instead?
   VariableDeclaration variable;
 
   @override
@@ -5498,6 +5563,10 @@ class LocalFunctionInvocation extends InvocationExpression {
       : assert(functionType != null) {
     arguments.parent = this;
   }
+
+  /// The declaration for the invoked local function.
+  FunctionDeclaration get localFunction =>
+      variable.parent as FunctionDeclaration;
 
   @override
   Name get name => Name.callName;
@@ -5548,21 +5617,14 @@ class LocalFunctionInvocation extends InvocationExpression {
   }
 }
 
-/// Nullness test of an expression, that is `e == null` or `e != null`.
+/// Nullness test of an expression, that is `e == null`.
 ///
-/// This is generated for code like `e1 == e2` and `e1 != e2` where `e1` or `e2`
-/// is `null`.
+/// This is generated for code like `e1 == e2` where `e1` or `e2` is `null`.
 class EqualsNull extends Expression {
   /// The expression tested for nullness.
   Expression expression;
 
-  /// If `true` this is an `e != null` test. Otherwise it is an `e == null`
-  /// test.
-  final bool isNot;
-
-  EqualsNull(this.expression, {required this.isNot})
-      // ignore: unnecessary_null_comparison
-      : assert(isNot != null) {
+  EqualsNull(this.expression) {
     expression.parent = this;
   }
 
@@ -5608,18 +5670,14 @@ class EqualsNull extends Expression {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(expression, minimumPrecedence: precedence);
-    if (isNot) {
-      printer.write(' != null');
-    } else {
-      printer.write(' == null');
-    }
+    printer.write(' == null');
   }
 }
 
-/// A test of equality, that is `e1 == e2` or `e1 != e2`.
+/// A test of equality, that is `e1 == e2`.
 ///
-/// This is generated for code like `e1 == e2` and `e1 != e2` where neither `e1`
-/// nor `e2` is `null`.
+/// This is generated for code like `e1 == e2` where neither `e1` nor `e2` is
+/// `null`.
 class EqualsCall extends Expression {
   Expression left;
   Expression right;
@@ -5639,27 +5697,17 @@ class EqualsCall extends Expression {
   ///
   FunctionType functionType;
 
-  /// If `true` this is an `e1 != e2` test. Otherwise it is an `e1 == e2` test.
-  final bool isNot;
-
   Reference interfaceTargetReference;
 
   EqualsCall(Expression left, Expression right,
-      {required bool isNot,
-      required FunctionType functionType,
-      required Procedure interfaceTarget})
+      {required FunctionType functionType, required Procedure interfaceTarget})
       : this.byReference(left, right,
-            isNot: isNot,
             functionType: functionType,
             interfaceTargetReference:
                 getNonNullableMemberReferenceGetter(interfaceTarget));
 
   EqualsCall.byReference(this.left, this.right,
-      {required this.isNot,
-      required this.functionType,
-      required this.interfaceTargetReference})
-      // ignore: unnecessary_null_comparison
-      : assert(isNot != null) {
+      {required this.functionType, required this.interfaceTargetReference}) {
     left.parent = this;
     right.parent = this;
   }
@@ -5726,11 +5774,7 @@ class EqualsCall extends Expression {
   void toTextInternal(AstPrinter printer) {
     int minimumPrecedence = precedence;
     printer.writeExpression(left, minimumPrecedence: minimumPrecedence);
-    if (isNot) {
-      printer.write(' != ');
-    } else {
-      printer.write(' == ');
-    }
+    printer.write(' == ');
     printer.writeExpression(right, minimumPrecedence: minimumPrecedence + 1);
   }
 }
@@ -9820,7 +9864,7 @@ class YieldStatement extends Statement {
 /// When this occurs as a statement, it must be a direct child of a [Block].
 //
 // DESIGN TODO: Should we remove the 'final' modifier from variables?
-class VariableDeclaration extends Statement {
+class VariableDeclaration extends Statement implements Annotatable {
   /// Offset of the equals sign in the source file it comes from.
   ///
   /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset])
@@ -9832,6 +9876,7 @@ class VariableDeclaration extends Statement {
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
   /// annotations if needed.
+  @override
   List<Expression> annotations = const <Expression>[];
 
   /// For named parameters, this is the name of the parameter. No two named
@@ -10001,6 +10046,7 @@ class VariableDeclaration extends Statement {
     annotations = const <Expression>[];
   }
 
+  @override
   void addAnnotation(Expression annotation) {
     if (annotations.isEmpty) {
       annotations = <Expression>[];
@@ -10348,6 +10394,14 @@ abstract class DartType extends Node {
   /// Some types have fixed nullabilities, such as `dynamic`, `invalid-type`,
   /// `void`, or `bottom`.
   DartType withDeclaredNullability(Nullability declaredNullability);
+
+  /// Creates the type corresponding to this type without null, if possible.
+  ///
+  /// Note that not all types, for instance `dynamic`, have a corresponding
+  /// non-nullable type. For these, the type itself is returned.
+  ///
+  /// This corresponds to the `NonNull` function of the nnbd specification.
+  DartType toNonNull() => computeNonNull(this);
 
   /// Checks if the type is potentially nullable.
   ///
@@ -11129,6 +11183,123 @@ class FutureOrType extends DartType {
   }
 }
 
+class ExtensionType extends DartType {
+  final Reference extensionReference;
+
+  @override
+  final Nullability declaredNullability;
+
+  final List<DartType> typeArguments;
+
+  final DartType onType;
+
+  ExtensionType(Extension extensionNode, Nullability declaredNullability,
+      [List<DartType>? typeArguments])
+      : this.byReference(extensionNode.reference, declaredNullability,
+            typeArguments ?? _defaultTypeArguments(extensionNode));
+
+  ExtensionType.byReference(
+      this.extensionReference, this.declaredNullability, this.typeArguments)
+      // ignore: unnecessary_null_comparison
+      : assert(declaredNullability != null),
+        onType = _computeOnType(extensionReference, typeArguments);
+
+  Extension get extension => extensionReference.asExtension;
+
+  @override
+  Nullability get nullability {
+    return uniteNullabilities(
+        declaredNullability, extension.onType.nullability);
+  }
+
+  static List<DartType> _defaultTypeArguments(Extension extensionNode) {
+    if (extensionNode.typeParameters.length == 0) {
+      // Avoid allocating a list in this very common case.
+      return const <DartType>[];
+    } else {
+      return new List<DartType>.filled(
+          extensionNode.typeParameters.length, const DynamicType());
+    }
+  }
+
+  static DartType _computeOnType(
+      Reference extensionName, List<DartType> typeArguments) {
+    Extension extensionNode = extensionName.asExtension;
+    if (extensionNode.typeParameters.isEmpty) {
+      return extensionNode.onType;
+    } else {
+      assert(extensionNode.typeParameters.length == typeArguments.length);
+      return Substitution.fromPairs(extensionNode.typeParameters, typeArguments)
+          .substituteType(extensionNode.onType);
+    }
+  }
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) {
+    return v.visitExtensionType(this);
+  }
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    return v.visitExtensionType(this, arg);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    extension.acceptReference(v);
+    visitList(typeArguments, v);
+  }
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    if (identical(this, other)) return true;
+    if (other is ExtensionType) {
+      if (nullability != other.nullability) return false;
+      if (extensionReference != other.extensionReference) return false;
+      if (typeArguments.length != other.typeArguments.length) return false;
+      for (int i = 0; i < typeArguments.length; ++i) {
+        if (!typeArguments[i].equals(other.typeArguments[i], assumptions)) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0x3fffffff & extensionReference.hashCode;
+    for (int i = 0; i < typeArguments.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
+    }
+    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
+    return hash;
+  }
+
+  @override
+  ExtensionType withDeclaredNullability(Nullability declaredNullability) {
+    return declaredNullability == this.declaredNullability
+        ? this
+        : new ExtensionType.byReference(
+            extensionReference, declaredNullability, typeArguments);
+  }
+
+  @override
+  String toString() {
+    return "ExtensionType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExtensionName(extensionReference);
+    printer.writeTypeArguments(typeArguments);
+    printer.write(nullabilityToString(declaredNullability));
+  }
+}
+
 /// A named parameter in [FunctionType].
 class NamedType extends Node implements Comparable<NamedType> {
   // Flag used for serialization if [isRequired].
@@ -11415,9 +11586,6 @@ class TypeParameterType extends DartType {
     if (declaredNullability == this.declaredNullability) {
       return this;
     }
-    // TODO(dmitryas): Consider removing the assert.
-    assert(promotedBound == null,
-        "Can't change the nullability attribute of an intersection type.");
     return new TypeParameterType(parameter, declaredNullability, promotedBound);
   }
 
@@ -11769,13 +11937,14 @@ class Variance {
 /// Type parameters declared by a [FunctionType] are orphans and have a `null`
 /// parent pointer.  [TypeParameter] objects should not be shared between
 /// different [FunctionType] objects.
-class TypeParameter extends TreeNode {
+class TypeParameter extends TreeNode implements Annotatable {
   int flags = 0;
 
   /// List of metadata annotations on the type parameter.
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
   /// annotations if needed.
+  @override
   List<Expression> annotations = const <Expression>[];
 
   String? name; // Cosmetic name.
@@ -11830,6 +11999,7 @@ class TypeParameter extends TreeNode {
         : (flags & ~FlagGenericCovariantImpl);
   }
 
+  @override
   void addAnnotation(Expression annotation) {
     if (annotations.isEmpty) {
       annotations = <Expression>[];
@@ -12999,15 +13169,12 @@ Reference getNonNullableClassReference(Class class_) {
 
 /// Returns the canonical name of [member], or throws an exception if the
 /// member has not been assigned a canonical name yet.
-///
-/// Returns `null` if the member is `null`.
-CanonicalName? getCanonicalNameOfMemberGetter(Member? member) {
-  if (member == null) return null;
+CanonicalName getCanonicalNameOfMemberGetter(Member member) {
   CanonicalName? canonicalName;
   if (member is Field) {
-    canonicalName = member.getterCanonicalName;
+    canonicalName = member.getterReference.canonicalName;
   } else {
-    canonicalName = member.canonicalName;
+    canonicalName = member.reference.canonicalName;
   }
   if (canonicalName == null) {
     throw '$member has no canonical name';
@@ -13017,15 +13184,12 @@ CanonicalName? getCanonicalNameOfMemberGetter(Member? member) {
 
 /// Returns the canonical name of [member], or throws an exception if the
 /// member has not been assigned a canonical name yet.
-///
-/// Returns `null` if the member is `null`.
-CanonicalName? getCanonicalNameOfMemberSetter(Member? member) {
-  if (member == null) return null;
+CanonicalName getCanonicalNameOfMemberSetter(Member member) {
   CanonicalName? canonicalName;
   if (member is Field) {
-    canonicalName = member.setterCanonicalName;
+    canonicalName = member.setterReference!.canonicalName;
   } else {
-    canonicalName = member.canonicalName;
+    canonicalName = member.reference.canonicalName;
   }
   if (canonicalName == null) {
     throw '$member has no canonical name';
@@ -13035,38 +13199,29 @@ CanonicalName? getCanonicalNameOfMemberSetter(Member? member) {
 
 /// Returns the canonical name of [class_], or throws an exception if the
 /// class has not been assigned a canonical name yet.
-///
-/// Returns `null` if the class is `null`.
-CanonicalName? getCanonicalNameOfClass(Class? class_) {
-  if (class_ == null) return null;
-  if (class_.canonicalName == null) {
+CanonicalName getCanonicalNameOfClass(Class class_) {
+  if (class_.reference.canonicalName == null) {
     throw '$class_ has no canonical name';
   }
-  return class_.canonicalName;
+  return class_.reference.canonicalName!;
 }
 
 /// Returns the canonical name of [extension], or throws an exception if the
 /// class has not been assigned a canonical name yet.
-///
-/// Returns `null` if the extension is `null`.
-CanonicalName? getCanonicalNameOfExtension(Extension? extension) {
-  if (extension == null) return null;
-  if (extension.canonicalName == null) {
+CanonicalName getCanonicalNameOfExtension(Extension extension) {
+  if (extension.reference.canonicalName == null) {
     throw '$extension has no canonical name';
   }
-  return extension.canonicalName;
+  return extension.reference.canonicalName!;
 }
 
 /// Returns the canonical name of [library], or throws an exception if the
 /// library has not been assigned a canonical name yet.
-///
-/// Returns `null` if the library is `null`.
-CanonicalName? getCanonicalNameOfLibrary(Library? library) {
-  if (library == null) return null;
-  if (library.canonicalName == null) {
+CanonicalName getCanonicalNameOfLibrary(Library library) {
+  if (library.reference.canonicalName == null) {
     throw '$library has no canonical name';
   }
-  return library.canonicalName;
+  return library.reference.canonicalName!;
 }
 
 /// Murmur-inspired hashing, with a fall-back to Jenkins-inspired hashing when
@@ -13202,14 +13357,11 @@ bool mapEquals(Map a, Map b) {
 
 /// Returns the canonical name of [typedef_], or throws an exception if the
 /// typedef has not been assigned a canonical name yet.
-///
-/// Returns `null` if the typedef is `null`.
-CanonicalName? getCanonicalNameOfTypedef(Typedef? typedef_) {
-  if (typedef_ == null) return null;
-  if (typedef_.canonicalName == null) {
+CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
+  if (typedef_.reference.canonicalName == null) {
     throw '$typedef_ has no canonical name';
   }
-  return typedef_.canonicalName;
+  return typedef_.reference.canonicalName!;
 }
 
 /// Annotation describing information which is not part of Dart semantics; in

@@ -21,7 +21,7 @@ import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-// import 'package:linter/src/rules.dart';
+import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
@@ -37,6 +37,7 @@ class AnalysisOptionsFileConfig {
   final List<String> lints;
   final bool strictInference;
   final bool strictRawTypes;
+  final List<String> unignorableNames;
 
   AnalysisOptionsFileConfig({
     this.experiments = const [],
@@ -45,6 +46,7 @@ class AnalysisOptionsFileConfig {
     this.lints = const [],
     this.strictInference = false,
     this.strictRawTypes = false,
+    this.unignorableNames = const [],
   });
 
   String toContent() {
@@ -61,6 +63,10 @@ class AnalysisOptionsFileConfig {
     buffer.writeln('  strong-mode:');
     buffer.writeln('    implicit-casts: $implicitCasts');
     buffer.writeln('    implicit-dynamic: $implicitDynamic');
+    buffer.writeln('  cannot-ignore:');
+    for (var name in unignorableNames) {
+      buffer.writeln('    - $name');
+    }
 
     buffer.writeln('linter:');
     buffer.writeln('  rules:');
@@ -183,13 +189,13 @@ abstract class ContextResolutionTest
   Future<ResolvedUnitResult> resolveFile(String path) async {
     var analysisContext = contextFor(pathForContextSelection ?? path);
     var session = analysisContext.currentSession;
-    return (await session.getResolvedUnit(path))!;
+    return await session.getResolvedUnit(path);
   }
 
   @mustCallSuper
   void setUp() {
     if (!_lintRulesAreRegistered) {
-      // registerLintRules();
+      registerLintRules();
       _lintRulesAreRegistered = true;
     }
 
@@ -243,6 +249,12 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
+  List<String> get experiments => [
+        EnableString.generic_metadata,
+        EnableString.nonfunction_type_aliases,
+        EnableString.triple_shift,
+      ];
+
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';
 
@@ -266,10 +278,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
-        experiments: [
-          EnableString.nonfunction_type_aliases,
-          EnableString.triple_shift,
-        ],
+        experiments: experiments,
       ),
     );
     writeTestPackageConfig(

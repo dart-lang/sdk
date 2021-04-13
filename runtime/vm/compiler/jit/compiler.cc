@@ -233,7 +233,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 
 bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 #if !defined(PRODUCT)
-  if (Debugger::IsDebugging(thread, function)) {
+  if (thread->isolate_group()->debugger()->IsDebugging(thread, function)) {
     // We cannot set breakpoints and single step in optimized code,
     // so do not optimize the function. Bump usage counter down to avoid
     // repeatedly entering the runtime for an optimization attempt.
@@ -603,6 +603,20 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         auto install_code_fun = [&]() {
           *result =
               FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
+#if !defined(PRODUCT)
+          // Isolate debuggers need to be notified of compiled function right
+          // away as code is installed because there might be latent breakpoints
+          // in compiled function, which have to be activated before functions
+          // code is executed. Otherwise concurrently running isolates might
+          // execute code before its patched and miss a need to pause at a
+          // breakpoint.
+          if (!result->IsNull()) {
+            if (!function.HasOptimizedCode()) {
+              thread()->isolate_group()->debugger()->NotifyCompilation(
+                  function);
+            }
+          }
+#endif
         };
 
         // Grab write program_lock outside of potential safepoint, that lock
@@ -632,15 +646,6 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // Must be called outside of safepoint.
         Code::NotifyCodeObservers(function, *result, optimized());
 
-#if !defined(PRODUCT)
-        if (!function.HasOptimizedCode()) {
-          // TODO(dartbug.com/36097): We might need to adjust this once we start
-          // adding debugging support to --enable-isolate-groups.
-          thread()->isolate_group()->ForEachIsolate([&](Isolate* isolate) {
-            isolate->debugger()->NotifyCompilation(function);
-          });
-        }
-#endif
         if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
           Disassembler::DisassembleCode(function, *result, optimized());
         } else if (FLAG_disassemble_optimized && optimized() &&

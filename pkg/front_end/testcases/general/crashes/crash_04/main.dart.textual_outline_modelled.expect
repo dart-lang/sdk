@@ -1,0 +1,4 @@
+class B extends D with A {}
+
+main() {}
+mixin A<T extends C> on D {}

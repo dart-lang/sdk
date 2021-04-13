@@ -147,6 +147,7 @@ import 'expected_one_set_type_arguments_test.dart'
     as expected_one_set_type_arguments;
 import 'expected_two_map_type_arguments_test.dart'
     as expected_two_map_type_arguments;
+import 'experiment_not_enabled_test.dart' as experiment_not_enabled;
 import 'export_internal_library_test.dart' as export_internal_library;
 import 'export_legacy_symbol_test.dart' as export_legacy_symbol;
 import 'export_of_non_library_test.dart' as export_of_non_library;
@@ -154,6 +155,8 @@ import 'expression_in_map_test.dart' as expression_in_map;
 import 'extends_deferred_class_test.dart' as extends_deferred_class;
 import 'extends_disallowed_class_test.dart' as extends_disallowed_class;
 import 'extends_non_class_test.dart' as extends_non_class;
+import 'extends_type_alias_expands_to_type_parameter_test.dart'
+    as extends_type_alias_expands_to_type_parameter;
 import 'extension_as_expression_test.dart' as extension_as_expression;
 import 'extension_conflicting_static_and_instance_test.dart'
     as extension_conflicting_static_and_instance;
@@ -228,7 +231,10 @@ import 'illegal_sync_generator_return_type_test.dart'
 import 'implements_deferred_class_test.dart' as implements_deferred_class;
 import 'implements_disallowed_class_test.dart' as implements_disallowed_class;
 import 'implements_non_class_test.dart' as implements_non_class;
+import 'implements_repeated_test.dart' as implements_repeated;
 import 'implements_super_class_test.dart' as implements_super_class;
+import 'implements_type_alias_expands_to_type_parameter_test.dart'
+    as implements_type_alias_expands_to_type_parameter;
 import 'implicit_this_reference_in_initializer_test.dart'
     as implicit_this_reference_in_initializer;
 import 'import_deferred_library_with_load_function_test.dart'
@@ -391,7 +397,11 @@ import 'mixin_inherits_from_not_object_test.dart'
     as mixin_inherits_from_not_object;
 import 'mixin_of_disallowed_class_test.dart' as mixin_of_disallowed_class;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
+import 'mixin_of_type_alias_expands_to_type_parameter_test.dart'
+    as mixin_of_type_alias_expands_to_type_parameter;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
+import 'mixin_on_type_alias_expands_to_type_parameter_test.dart'
+    as mixin_on_type_alias_expands_to_type_parameter;
 import 'mixin_super_class_constraint_non_interface_test.dart'
     as mixin_super_class_constraint_non_interface;
 import 'mixin_with_non_class_superclass_test.dart'
@@ -488,6 +498,7 @@ import 'nullable_type_in_on_clause_test.dart' as nullable_type_in_on_clause;
 import 'nullable_type_in_with_clause_test.dart' as nullable_type_in_with_clause;
 import 'object_cannot_extend_another_class_test.dart'
     as object_cannot_extend_another_class;
+import 'on_repeated_test.dart' as on_repeated;
 import 'optional_parameter_in_operator_test.dart'
     as optional_parameter_in_operator;
 import 'override_on_non_overriding_field_test.dart'
@@ -498,6 +509,9 @@ import 'override_on_non_overriding_method_test.dart'
     as override_on_non_overriding_method;
 import 'override_on_non_overriding_setter_test.dart'
     as override_on_non_overriding_setter;
+import 'packed_annotation_alignment_test.dart' as packed_annotation_alignment;
+import 'packed_annotation_test.dart' as packed_annotation;
+import 'packed_nesting_non_packed_test.dart' as packed_nesting_non_packed;
 import 'part_of_different_library_test.dart' as part_of_different_library;
 import 'part_of_non_part_test.dart' as part_of_non_part;
 import 'prefix_collides_with_top_level_member_test.dart'
@@ -571,6 +585,7 @@ import 'set_element_from_deferred_library_test.dart'
 import 'set_element_type_not_assignable_test.dart'
     as set_element_type_not_assignable;
 import 'shared_deferred_prefix_test.dart' as shared_deferred_prefix;
+import 'size_annotation_dimensions_test.dart' as size_annotation_dimensions;
 import 'spread_expression_from_deferred_library_test.dart'
     as spread_expression_from_deferred_library;
 import 'static_access_to_instance_member_test.dart'
@@ -637,6 +652,7 @@ import 'unnecessary_no_such_method_test.dart' as unnecessary_no_such_method;
 import 'unnecessary_non_null_assertion_test.dart'
     as unnecessary_non_null_assertion;
 import 'unnecessary_null_comparison_test.dart' as unnecessary_null_comparison;
+import 'unnecessary_question_mark_test.dart' as unnecessary_question_mark;
 import 'unnecessary_type_check_test.dart' as unnecessary_type_check;
 import 'unqualified_reference_to_non_local_static_member_test.dart'
     as unqualified_reference_to_non_local_static_member;
@@ -771,6 +787,7 @@ main() {
     expected_one_list_type_arguments.main();
     expected_one_set_type_arguments.main();
     expected_two_map_type_arguments.main();
+    experiment_not_enabled.main();
     export_internal_library.main();
     export_legacy_symbol.main();
     export_of_non_library.main();
@@ -778,6 +795,7 @@ main() {
     extends_deferred_class.main();
     extends_disallowed_class.main();
     extends_non_class.main();
+    extends_type_alias_expands_to_type_parameter.main();
     extension_as_expression.main();
     extension_conflicting_static_and_instance.main();
     extension_declares_abstract_method.main();
@@ -822,7 +840,9 @@ main() {
     implements_deferred_class.main();
     implements_disallowed_class.main();
     implements_non_class.main();
+    implements_repeated.main();
     implements_super_class.main();
+    implements_type_alias_expands_to_type_parameter.main();
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
     import_internal_library.main();
@@ -926,7 +946,9 @@ main() {
     mixin_inherits_from_not_object.main();
     mixin_of_disallowed_class.main();
     mixin_of_non_class.main();
+    mixin_of_type_alias_expands_to_type_parameter.main();
     mixin_on_sealed_class.main();
+    mixin_on_type_alias_expands_to_type_parameter.main();
     mixin_super_class_constraint_non_interface.main();
     mixin_with_non_class_superclass.main();
     mixins_super_class.main();
@@ -994,11 +1016,15 @@ main() {
     nullable_type_in_on_clause.main();
     nullable_type_in_with_clause.main();
     object_cannot_extend_another_class.main();
+    on_repeated.main();
     optional_parameter_in_operator.main();
     override_on_non_overriding_field.main();
     override_on_non_overriding_getter.main();
     override_on_non_overriding_method.main();
     override_on_non_overriding_setter.main();
+    packed_annotation.main();
+    packed_annotation_alignment.main();
+    packed_nesting_non_packed.main();
     part_of_different_library.main();
     part_of_non_part.main();
     prefix_collides_with_top_level_member.main();
@@ -1044,6 +1070,7 @@ main() {
     sdk_version_ui_as_code_in_const_context.main();
     set_element_type_not_assignable.main();
     shared_deferred_prefix.main();
+    size_annotation_dimensions.main();
     spread_expression_from_deferred_library.main();
     static_access_to_instance_member.main();
     strict_raw_type.main();
@@ -1096,6 +1123,7 @@ main() {
     unnecessary_no_such_method.main();
     unnecessary_non_null_assertion.main();
     unnecessary_null_comparison.main();
+    unnecessary_question_mark.main();
     unnecessary_type_check.main();
     unqualified_reference_to_non_local_static_member.main();
     unqualified_reference_to_static_member_of_extended_type.main();

@@ -33,6 +33,14 @@ DEFINE_FLAG(
     object.StorePointer(((from) + i), reader->PassiveObjectHandle()->ptr());   \
   }
 
+#define READ_COMPRESSED_OBJECT_FIELDS(object, from, to, as_reference)          \
+  intptr_t num_flds = (to) - (from);                                           \
+  for (intptr_t i = 0; i <= num_flds; i++) {                                   \
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl(as_reference);   \
+    object.StoreCompressedPointer(((from) + i),                                \
+                                  reader->PassiveObjectHandle()->ptr());       \
+  }
+
 ClassPtr Class::ReadFrom(SnapshotReader* reader,
                          intptr_t object_id,
                          intptr_t tags,
@@ -93,8 +101,8 @@ TypePtr Type::ReadFrom(SnapshotReader* reader,
   reader->EnqueueTypePostprocessing(type);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(type, type.ptr()->untag()->from(),
-                     type.ptr()->untag()->to(), as_reference);
+  READ_COMPRESSED_OBJECT_FIELDS(type, type.ptr()->untag()->from(),
+                                type.ptr()->untag()->to(), as_reference);
 
   // Read in the type class.
   (*reader->ClassHandle()) =
@@ -158,7 +166,7 @@ void UntaggedType::WriteTo(SnapshotWriter* writer,
   // Write out all the object pointer fields.
   ASSERT(type_class_id() != Object::null());
   SnapshotWriterVisitor visitor(writer, as_reference);
-  visitor.VisitPointers(from(), to());
+  visitor.VisitCompressedPointers(heap_base(), from(), to());
 
   // Write out the type class.
   writer->WriteObjectImpl(type_class, as_reference);
@@ -179,8 +187,8 @@ TypeRefPtr TypeRef::ReadFrom(SnapshotReader* reader,
   reader->EnqueueTypePostprocessing(type_ref);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(type_ref, type_ref.ptr()->untag()->from(),
-                     type_ref.ptr()->untag()->to(), kAsReference);
+  READ_COMPRESSED_OBJECT_FIELDS(type_ref, type_ref.ptr()->untag()->from(),
+                                type_ref.ptr()->untag()->to(), kAsReference);
 
   // Fill in the type testing stub.
   Code& code = *reader->CodeHandle();
@@ -205,7 +213,7 @@ void UntaggedTypeRef::WriteTo(SnapshotWriter* writer,
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
+  visitor.VisitCompressedPointers(heap_base(), from(), to());
 }
 
 TypeParameterPtr TypeParameter::ReadFrom(SnapshotReader* reader,
@@ -230,8 +238,9 @@ TypeParameterPtr TypeParameter::ReadFrom(SnapshotReader* reader,
   reader->EnqueueTypePostprocessing(type_parameter);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(type_parameter, type_parameter.ptr()->untag()->from(),
-                     type_parameter.ptr()->untag()->to(), kAsReference);
+  READ_COMPRESSED_OBJECT_FIELDS(
+      type_parameter, type_parameter.ptr()->untag()->from(),
+      type_parameter.ptr()->untag()->to(), kAsReference);
 
   // Read in the parameterized class.
   (*reader->ClassHandle()) =
@@ -279,7 +288,7 @@ void UntaggedTypeParameter::WriteTo(SnapshotWriter* writer,
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
+  visitor.VisitCompressedPointers(heap_base(), from(), to());
 
   // Write out the parameterized class (or Function if cid == kFunctionCid).
   ClassPtr param_class =
@@ -491,7 +500,8 @@ void UntaggedContextScope::WriteTo(SnapshotWriter* writer,
     writer->Write<bool>(true);
 
     // Write out the type of 'this' the variable.
-    writer->WriteObjectImpl(var->type, kAsInlinedObject);
+    writer->WriteObjectImpl(var->type.Decompress(heap_base()),
+                            kAsInlinedObject);
 
     return;
   }
@@ -580,8 +590,8 @@ ApiErrorPtr ApiError::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &api_error, kIsDeserialized);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(api_error, api_error.ptr()->untag()->from(),
-                     api_error.ptr()->untag()->to(), kAsReference);
+  READ_COMPRESSED_OBJECT_FIELDS(api_error, api_error.ptr()->untag()->from(),
+                                api_error.ptr()->untag()->to(), kAsReference);
 
   return api_error.ptr();
 }
@@ -601,7 +611,7 @@ void UntaggedApiError::WriteTo(SnapshotWriter* writer,
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
+  visitor.VisitCompressedPointers(heap_base(), from(), to());
 }
 
 LanguageErrorPtr LanguageError::ReadFrom(SnapshotReader* reader,
@@ -623,8 +633,9 @@ LanguageErrorPtr LanguageError::ReadFrom(SnapshotReader* reader,
   language_error.set_kind(reader->Read<uint8_t>());
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(language_error, language_error.ptr()->untag()->from(),
-                     language_error.ptr()->untag()->to(), kAsReference);
+  READ_COMPRESSED_OBJECT_FIELDS(
+      language_error, language_error.ptr()->untag()->from(),
+      language_error.ptr()->untag()->to(), kAsReference);
 
   return language_error.ptr();
 }
@@ -649,7 +660,7 @@ void UntaggedLanguageError::WriteTo(SnapshotWriter* writer,
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
+  visitor.VisitCompressedPointers(heap_base(), from(), to());
 }
 
 UnhandledExceptionPtr UnhandledException::ReadFrom(SnapshotReader* reader,
@@ -662,8 +673,8 @@ UnhandledExceptionPtr UnhandledException::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &result, kIsDeserialized);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(result, result.ptr()->untag()->from(),
-                     result.ptr()->untag()->to(), kAsReference);
+  READ_COMPRESSED_OBJECT_FIELDS(result, result.ptr()->untag()->from(),
+                                result.ptr()->untag()->to(), kAsReference);
 
   return result.ptr();
 }
@@ -680,7 +691,7 @@ void UntaggedUnhandledException::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
+  visitor.VisitCompressedPointers(heap_base(), from(), to());
 }
 
 InstancePtr Instance::ReadFrom(SnapshotReader* reader,
@@ -693,7 +704,8 @@ InstancePtr Instance::ReadFrom(SnapshotReader* reader,
   // Create an Instance object or get canonical one if it is a canonical
   // constant.
   Instance& obj = Instance::ZoneHandle(reader->zone(), Instance::null());
-  obj ^= Object::Allocate(kInstanceCid, Instance::InstanceSize(), Heap::kNew);
+  obj ^= Object::Allocate(kInstanceCid, Instance::InstanceSize(), Heap::kNew,
+                          /*compressed*/ false);
   if (UntaggedObject::IsCanonical(tags)) {
     obj = obj.Canonicalize(reader->thread());
   }
@@ -1364,7 +1376,7 @@ void UntaggedTypedData::WriteTo(SnapshotWriter* writer,
                                 bool as_reference) {
   ASSERT(writer != NULL);
   intptr_t cid = this->GetClassId();
-  intptr_t length = Smi::Value(length_);  // In elements.
+  intptr_t length = Smi::Value(this->length());  // In elements.
   intptr_t external_cid;
   intptr_t bytes;
   switch (cid) {
@@ -1438,7 +1450,7 @@ void UntaggedTypedData::WriteTo(SnapshotWriter* writer,
     // Write as external.
     writer->WriteIndexedObject(external_cid);
     writer->WriteTags(writer->GetObjectTags(this));
-    writer->Write<ObjectPtr>(length_);
+    writer->Write<ObjectPtr>(this->length());
     uint8_t* data = reinterpret_cast<uint8_t*>(this->data());
     void* passed_data = malloc(bytes);
     memmove(passed_data, data, bytes);
@@ -1451,7 +1463,7 @@ void UntaggedTypedData::WriteTo(SnapshotWriter* writer,
     // Write as internal.
     writer->WriteIndexedObject(cid);
     writer->WriteTags(writer->GetObjectTags(this));
-    writer->Write<ObjectPtr>(length_);
+    writer->Write<ObjectPtr>(this->length());
     uint8_t* data = reinterpret_cast<uint8_t*>(this->data());
     writer->Align(Zone::kAlignment);
     writer->WriteBytes(data, bytes);
@@ -1464,7 +1476,7 @@ void UntaggedExternalTypedData::WriteTo(SnapshotWriter* writer,
                                         bool as_reference) {
   ASSERT(writer != NULL);
   intptr_t cid = this->GetClassId();
-  intptr_t length = Smi::Value(length_);  // In elements.
+  intptr_t length = Smi::Value(this->length());  // In elements.
   intptr_t bytes;
   switch (cid) {
     case kExternalTypedDataInt8ArrayCid:
@@ -1520,7 +1532,7 @@ void UntaggedExternalTypedData::WriteTo(SnapshotWriter* writer,
   // Write as external.
   writer->WriteIndexedObject(cid);
   writer->WriteTags(writer->GetObjectTags(this));
-  writer->Write<ObjectPtr>(length_);
+  writer->Write<ObjectPtr>(this->length());
   uint8_t* data = reinterpret_cast<uint8_t*>(data_);
   void* passed_data = malloc(bytes);
   memmove(passed_data, data, bytes);
@@ -1536,7 +1548,7 @@ void UntaggedTypedDataView::WriteTo(SnapshotWriter* writer,
                                     Snapshot::Kind kind,
                                     bool as_reference) {
   // Views have always a backing store.
-  ASSERT(typed_data_ != Object::null());
+  ASSERT(typed_data() != Object::null());
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -1546,9 +1558,9 @@ void UntaggedTypedDataView::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write members.
-  writer->Write<ObjectPtr>(offset_in_bytes_);
-  writer->Write<ObjectPtr>(length_);
-  writer->WriteObjectImpl(typed_data_, as_reference);
+  writer->Write<ObjectPtr>(offset_in_bytes());
+  writer->Write<ObjectPtr>(length());
+  writer->WriteObjectImpl(typed_data(), as_reference);
 }
 
 TypedDataViewPtr TypedDataView::ReadFrom(SnapshotReader* reader,
@@ -1702,13 +1714,13 @@ RegExpPtr RegExp::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &regex, kIsDeserialized);
 
   // Read and Set all the other fields.
-  regex.StoreSmi(&regex.untag()->num_bracket_expressions_, reader->ReadAsSmi());
-
   *reader->ArrayHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
   regex.set_capture_name_map(*reader->ArrayHandle());
   *reader->StringHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
   regex.set_pattern(*reader->StringHandle());
 
+  regex.StoreNonPointer(&regex.untag()->num_bracket_expressions_,
+                        reader->Read<int32_t>());
   regex.StoreNonPointer(&regex.untag()->num_one_byte_registers_,
                         reader->Read<int32_t>());
   regex.StoreNonPointer(&regex.untag()->num_two_byte_registers_,
@@ -1739,8 +1751,9 @@ void UntaggedRegExp::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the other fields.
-  writer->Write<ObjectPtr>(num_bracket_expressions_);
-  writer->WriteObjectImpl(pattern_, kAsInlinedObject);
+  writer->WriteObjectImpl(capture_name_map(), kAsInlinedObject);
+  writer->WriteObjectImpl(pattern(), kAsInlinedObject);
+  writer->Write<int32_t>(num_bracket_expressions_);
   writer->Write<int32_t>(num_one_byte_registers_);
   writer->Write<int32_t>(num_two_byte_registers_);
   writer->Write<int8_t>(type_flags_);

@@ -1,0 +1,9 @@
+class Class<E extends Element?> {
+  Class(this.element);
+  E? element;
+  void setElement(E? element) {}
+}
+
+class Element {}
+
+main() {}

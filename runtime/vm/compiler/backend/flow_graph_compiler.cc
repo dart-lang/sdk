@@ -508,7 +508,7 @@ void FlowGraphCompiler::EmitCallsiteMetadata(const InstructionSource& source,
     // deoptimization point in optimized code, after call.
     const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
     if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after);
+      AddDeoptIndexAtCall(deopt_id_after, env);
     } else {
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.
@@ -902,14 +902,21 @@ void FlowGraphCompiler::AddDispatchTableCallTarget(
   dispatch_table_call_targets_.Add(selector);
 }
 
-CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
+CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
+                                                          Environment* env) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
   ASSERT(!FLAG_precompiled_mode);
+  if (env == nullptr) {
+    env = pending_deoptimization_env_;
+  }
+  if (env != nullptr) {
+    env = env->GetLazyDeoptEnv(zone());
+  }
   CompilerDeoptInfo* info =
       new (zone()) CompilerDeoptInfo(deopt_id, ICData::kDeoptAtCall,
                                      0,  // No flags.
-                                     pending_deoptimization_env_);
+                                     env);
   info->set_pc_offset(assembler()->CodeSize());
   deopt_infos_.Add(info);
   return info;
@@ -1104,7 +1111,8 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
     return nullptr;
   }
 
-  Environment* slow_path_env = env->DeepCopy(zone());
+  Environment* slow_path_env =
+      env->DeepCopy(zone(), env->Length() - env->LazyDeoptPruneCount());
   // 1. Iterate the registers in the order they will be spilled to compute
   //    the slots they will be spilled to.
   intptr_t next_slot = StackSize() + slow_path_env->CountArgsPushed();
@@ -2532,10 +2540,12 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     // kScratch2 is no longer used, so restore it.
     __ PopRegister(kScratch2Reg);
 #endif
-    __ LoadFieldFromOffset(kScratch1Reg, kScratch1Reg,
-                           compiler::target::Class::super_type_offset());
-    __ LoadFieldFromOffset(kScratch1Reg, kScratch1Reg,
-                           compiler::target::Type::type_class_id_offset());
+    __ LoadCompressedFieldFromOffset(
+        kScratch1Reg, kScratch1Reg,
+        compiler::target::Class::super_type_offset());
+    __ LoadCompressedFieldFromOffset(
+        kScratch1Reg, kScratch1Reg,
+        compiler::target::Type::type_class_id_offset());
     __ CompareImmediate(kScratch1Reg, Smi::RawValue(type_class.id()));
     __ BranchIf(EQUAL, is_instance_lbl);
   }
@@ -2744,7 +2754,6 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   return SubtypeTestCache::null();
 }
 
-#if !defined(TARGET_ARCH_IA32)
 // If instanceof type test cannot be performed successfully at compile time and
 // therefore eliminated, optimize it by adding inlined tests for:
 // - Null -> see comment below.
@@ -2806,6 +2815,7 @@ void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
   __ Bind(&done);
 }
 
+#if !defined(TARGET_ARCH_IA32)
 // Expected inputs (from TypeTestABI):
 // - kInstanceReg: instance (preserved).
 // - kDstTypeReg: destination type (for test_kind != kTestTypeOneArg).
@@ -2929,6 +2939,7 @@ void FlowGraphCompiler::GenerateTTSCall(const InstructionSource& source,
   } else {
     GenerateIndirectTTSCall(assembler(), reg_with_type, sub_type_cache_index);
   }
+
   EmitCallsiteMetadata(source, deopt_id, UntaggedPcDescriptors::kOther, locs);
 }
 

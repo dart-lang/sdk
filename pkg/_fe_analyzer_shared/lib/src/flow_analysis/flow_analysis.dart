@@ -232,11 +232,6 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
             '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}'));
   }
 
-  /// Indicates whether information is stored for the given [node].
-  bool _hasInfoForNode(Node node) {
-    return _info[node] != null;
-  }
-
   void _printOn(StringBuffer sb) {
     sb.write('_info=$_info,');
     sb.write('_stack=$_stack,');
@@ -305,58 +300,32 @@ class AssignedVariablesNodeInfo<Variable extends Object> {
 /// Non-promotion reason describing the situation where a variable was not
 /// promoted due to an explicit write to the variable appearing somewhere in the
 /// source code.
-class DemoteViaExplicitWrite<Variable extends Object, Expression extends Object>
+class DemoteViaExplicitWrite<Variable extends Object>
     extends NonPromotionReason {
   /// The local variable that was not promoted.
   final Variable variable;
 
-  /// The expression that wrote to the variable; this corresponds to an
-  /// expression that was passed to [FlowAnalysis.write].
-  final Expression writeExpression;
+  /// The node that wrote to the variable; this corresponds to a node that was
+  /// passed to [FlowAnalysis.write].
+  final Object node;
 
-  DemoteViaExplicitWrite(this.variable, this.writeExpression);
+  DemoteViaExplicitWrite(this.variable, this.node);
+
+  @override
+  String get documentationLink => 'http://dart.dev/go/non-promo-write';
 
   @override
   String get shortName => 'explicitWrite';
 
   @override
-  R accept<R, Node extends Object, Expression extends Object,
-              Variable extends Object, Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
-              visitor) =>
+  R accept<R, Node extends Object, Variable extends Object,
+              Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
       visitor.visitDemoteViaExplicitWrite(
-          this as DemoteViaExplicitWrite<Variable, Expression>);
+          this as DemoteViaExplicitWrite<Variable>);
 
   @override
-  String toString() => 'DemoteViaExplicitWrite($writeExpression)';
-}
-
-/// Non-promotion reason describing the situation where a variable was not
-/// promoted due to the variable appearing before the word `in` in a "for each"
-/// statement or a "for each" collection element.
-class DemoteViaForEachVariableWrite<Variable extends Object,
-    Node extends Object> extends NonPromotionReason {
-  /// The local variable that was not promoted.
-  final Variable variable;
-
-  /// The "for each" statement or collection element that wrote to the variable.
-  final Node node;
-
-  DemoteViaForEachVariableWrite(this.variable, this.node);
-
-  @override
-  String get shortName => 'explicitWrite';
-
-  @override
-  R accept<R, Node extends Object, Expression extends Object,
-              Variable extends Object, Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
-              visitor) =>
-      visitor.visitDemoteViaForEachVariableWrite(
-          this as DemoteViaForEachVariableWrite<Variable, Node>);
-
-  @override
-  String toString() => 'DemoteViaForEachVariableWrite($node)';
+  String toString() => 'DemoteViaExplicitWrite($node)';
 }
 
 /// A collection of flow models representing the possible outcomes of evaluating
@@ -564,11 +533,8 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// - Call [forEach_end].
   ///
   /// [node] should be the same node that was passed to
-  /// [AssignedVariables.endNode] for the for statement.  [loopVariable] should
-  /// be the variable assigned to by the loop (if it is promotable, otherwise
-  /// null).  [writtenType] should be the type written to that variable (i.e.
-  /// if the loop iterates over `List<Foo>`, it should be `Foo`).
-  void forEach_bodyBegin(Node node, Variable? loopVariable, Type writtenType);
+  /// [AssignedVariables.endNode] for the for statement.
+  void forEach_bodyBegin(Node node);
 
   /// Call this method just before visiting the body of a "for-in" statement or
   /// collection element.  See [forEach_bodyBegin] for details.
@@ -894,11 +860,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Call this method just after visiting a "try/finally" statement.
   /// See [tryFinallyStatement_bodyBegin] for details.
-  ///
-  /// [finallyBlock] should be the same node that was passed to
-  /// [AssignedVariables.endNode] for the "finally" part of the try/finally
-  /// statement.
-  void tryFinallyStatement_end(Node finallyBlock);
+  void tryFinallyStatement_end();
 
   /// Call this method just before visiting the finally block of a "try/finally"
   /// statement.  See [tryFinallyStatement_bodyBegin] for details.
@@ -934,33 +896,58 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// promotion, to retrieve information about why [target] was not promoted.
   /// This call must be made right after visiting [target].
   ///
-  /// The returned value is a map whose keys are types that the user might have
-  /// been expecting the target to be promoted to, and whose values are reasons
-  /// why the corresponding promotion did not occur.  The caller is expected to
-  /// select which non-promotion reason to report to the user by seeing which
-  /// promotion would have prevented the error.  (For example, if an error
-  /// occurs due to the target having a nullable type, the caller should report
-  /// a non-promotion reason associated with non-promotion to a non-nullable
-  /// type).
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target);
+  /// The returned value is a function yielding a map whose keys are types that
+  /// the user might have been expecting the target to be promoted to, and whose
+  /// values are reasons why the corresponding promotion did not occur.  The
+  /// caller is expected to select which non-promotion reason to report to the
+  /// user by seeing which promotion would have prevented the error.  (For
+  /// example, if an error occurs due to the target having a nullable type, the
+  /// caller should report a non-promotion reason associated with non-promotion
+  /// to a non-nullable type).
+  ///
+  /// This method is expected to execute fairly efficiently; the bulk of the
+  /// expensive computation is deferred to the function it returns.  The reason
+  /// for this is that in certain cases, it's not possible to know whether "why
+  /// not promoted" information will be needed until long after visiting a node.
+  /// (For example, in resolving a call like
+  /// `(x as Future<T>).then(y, onError: z)`, we don't know whether an error
+  /// should be reported at `y` until we've inferred the type argument to
+  /// `then`, which doesn't occur until after visiting `z`).  So the caller may
+  /// freely call this method after any expression for which an error *might*
+  /// need to be generated, and then defer invoking the returned function until
+  /// it is determined that an error actually occurred.
+  Map<Type, NonPromotionReason> Function() whyNotPromoted(Expression target);
 
   /// Call this method when an error occurs that may be due to a lack of type
   /// promotion, to retrieve information about why an implicit reference to
   /// `this` was not promoted.  [staticType] is the (unpromoted) type of `this`.
   ///
-  /// The returned value is a map whose keys are types that the user might have
-  /// been expecting the target to be promoted to, and whose values are reasons
-  /// why the corresponding promotion did not occur.  The caller is expected to
-  /// select which non-promotion reason to report to the user by seeing which
-  /// promotion would have prevented the error.  (For example, if an error
-  /// occurs due to the target having a nullable type, the caller should report
-  /// a non-promotion reason associated with non-promotion to a non-nullable
-  /// type).
-  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType);
+  /// The returned value is a function yielding a map whose keys are types that
+  /// the user might have been expecting `this` to be promoted to, and whose
+  /// values are reasons why the corresponding promotion did not occur.  The
+  /// caller is expected to select which non-promotion reason to report to the
+  /// user by seeing which promotion would have prevented the error.  (For
+  /// example, if an error occurs due to the target having a nullable type, the
+  /// caller should report a non-promotion reason associated with non-promotion
+  /// to a non-nullable type).
+  ///
+  /// This method is expected to execute fairly efficiently; the bulk of the
+  /// expensive computation is deferred to the function it returns.  The reason
+  /// for this is that in certain cases, it's not possible to know whether "why
+  /// not promoted" information will be needed until long after visiting a node.
+  /// (For example, in resolving a call like
+  /// `(x as Future<T>).then(y, onError: z)`, we don't know whether an error
+  /// should be reported at `y` until we've inferred the type argument to
+  /// `then`, which doesn't occur until after visiting `z`).  So the caller may
+  /// freely call this method after any expression for which an error *might*
+  /// need to be generated, and then defer invoking the returned function until
+  /// it is determined that an error actually occurred.
+  Map<Type, NonPromotionReason> Function() whyNotPromotedImplicitThis(
+      Type staticType);
 
   /// Register write of the given [variable] in the current state.
   /// [writtenType] should be the type of the value that was written.
-  /// [expression] should be the whole expression performing the write.
+  /// [node] should be the syntactic construct performing the write.
   /// [writtenExpression] should be the expression that was written, or `null`
   /// if the expression that was written is not directly represented in the
   /// source code (this happens, for example, with compound assignments and with
@@ -969,7 +956,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// This should also be used for the implicit write to a non-final variable in
   /// its initializer, to ensure that the type is promoted to non-nullable if
   /// necessary; in this case, [viaInitializer] should be `true`.
-  void write(Expression expression, Variable variable, Type writtenType,
+  void write(Node node, Variable variable, Type writtenType,
       Expression? writtenExpression);
 
   /// Prints out a summary of the current state of flow analysis, intended for
@@ -1140,9 +1127,9 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void forEach_bodyBegin(Node node, Variable? loopVariable, Type writtenType) {
-    return _wrap('forEach_bodyBegin($node, $loopVariable, $writtenType)',
-        () => _wrapped.forEach_bodyBegin(node, loopVariable, writtenType));
+  void forEach_bodyBegin(Node node) {
+    return _wrap(
+        'forEach_bodyBegin($node)', () => _wrapped.forEach_bodyBegin(node));
   }
 
   @override
@@ -1439,9 +1426,9 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void tryFinallyStatement_end(Node finallyBlock) {
-    return _wrap('tryFinallyStatement_end($finallyBlock)',
-        () => _wrapped.tryFinallyStatement_end(finallyBlock));
+  void tryFinallyStatement_end() {
+    return _wrap(
+        'tryFinallyStatement_end()', () => _wrapped.tryFinallyStatement_end());
   }
 
   @override
@@ -1476,26 +1463,25 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
+  Map<Type, NonPromotionReason> Function() whyNotPromoted(Expression target) {
     return _wrap(
         'whyNotPromoted($target)', () => _wrapped.whyNotPromoted(target),
         isQuery: true);
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType) {
+  Map<Type, NonPromotionReason> Function() whyNotPromotedImplicitThis(
+      Type staticType) {
     return _wrap('whyNotPromotedImplicitThis($staticType)',
         () => _wrapped.whyNotPromotedImplicitThis(staticType),
         isQuery: true);
   }
 
   @override
-  void write(Expression expression, Variable variable, Type writtenType,
+  void write(Node node, Variable variable, Type writtenType,
       Expression? writtenExpression) {
-    _wrap(
-        'write($expression, $variable, $writtenType, $writtenExpression)',
-        () => _wrapped.write(
-            expression, variable, writtenType, writtenExpression));
+    _wrap('write($node, $variable, $writtenType, $writtenExpression)',
+        () => _wrapped.write(node, variable, writtenType, writtenExpression));
   }
 
   @override
@@ -2315,26 +2301,27 @@ class NonPromotionHistory<Type> {
 
 /// Abstract class representing a reason why something was not promoted.
 abstract class NonPromotionReason {
+  /// Link to documentation describing this non-promotion reason; this should be
+  /// presented to the user as a source of additional information about the
+  /// error.
+  String get documentationLink;
+
   /// Short text description of this non-promotion reason; intended for ID
   /// testing.
   String get shortName;
 
   /// Implementation of the visitor pattern for non-promotion reasons.
-  R accept<R, Node extends Object, Expression extends Object,
-          Variable extends Object, Type extends Object>(
-      NonPromotionReasonVisitor<R, Node, Expression, Variable, Type> visitor);
+  R accept<R, Node extends Object, Variable extends Object,
+          Type extends Object>(
+      NonPromotionReasonVisitor<R, Node, Variable, Type> visitor);
 }
 
 /// Implementation of the visitor pattern for non-promotion reasons.
 abstract class NonPromotionReasonVisitor<R, Node extends Object,
-    Expression extends Object, Variable extends Object, Type extends Object> {
+    Variable extends Object, Type extends Object> {
   NonPromotionReasonVisitor._() : assert(false, 'Do not extend this class');
 
-  R visitDemoteViaExplicitWrite(
-      DemoteViaExplicitWrite<Variable, Expression> reason);
-
-  R visitDemoteViaForEachVariableWrite(
-      DemoteViaForEachVariableWrite<Variable, Node> reason);
+  R visitDemoteViaExplicitWrite(DemoteViaExplicitWrite<Variable> reason);
 
   R visitPropertyNotPromoted(PropertyNotPromoted<Type> reason);
 
@@ -2355,13 +2342,15 @@ class PropertyNotPromoted<Type extends Object> extends NonPromotionReason {
   PropertyNotPromoted(this.propertyName, this.staticType);
 
   @override
+  String get documentationLink => 'http://dart.dev/go/non-promo-property';
+
+  @override
   String get shortName => 'propertyNotPromoted';
 
   @override
-  R accept<R, Node extends Object, Expression extends Object,
-              Variable extends Object, Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
-              visitor) =>
+  R accept<R, Node extends Object, Variable extends Object,
+              Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
       visitor.visitPropertyNotPromoted(this as PropertyNotPromoted<Type>);
 }
 
@@ -2521,7 +2510,7 @@ abstract class Reference<Variable extends Object, Type extends Object> {
 
   /// Gets a map of non-promotion reasons associated with this reference.  This
   /// is the map that will be returned from [FlowAnalysis.whyNotPromoted].
-  Map<Type, NonPromotionReason> getNonPromotionReasons(
+  Map<Type, NonPromotionReason> Function() getNonPromotionReasons(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo,
       Type staticType,
       TypeOperations<Variable, Type> typeOperations);
@@ -2590,13 +2579,15 @@ class SsaNode<Variable extends Object, Type extends Object> {
 /// promoted due to the fact that it's a reference to `this`.
 class ThisNotPromoted extends NonPromotionReason {
   @override
+  String get documentationLink => 'http://dart.dev/go/non-promo-this';
+
+  @override
   String get shortName => 'thisNotPromoted';
 
   @override
-  R accept<R, Node extends Object, Expression extends Object,
-              Variable extends Object, Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Expression, Variable, Type>
-              visitor) =>
+  R accept<R, Node extends Object, Variable extends Object,
+              Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
       visitor.visitThisNotPromoted(this);
 }
 
@@ -3254,13 +3245,16 @@ class VariableReference<Variable extends Object, Type extends Object>
   VariableReference(this.variable);
 
   @override
-  Map<Type, NonPromotionReason> getNonPromotionReasons(
+  Map<Type, NonPromotionReason> Function() getNonPromotionReasons(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo,
       Type staticType,
       TypeOperations<Variable, Type> typeOperations) {
-    Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
     VariableModel<Variable, Type>? currentVariableInfo = variableInfo[variable];
-    if (currentVariableInfo != null) {
+    if (currentVariableInfo == null) {
+      return () => {};
+    }
+    return () {
+      Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
       Type currentType = currentVariableInfo.promotedTypes?.last ??
           typeOperations.variableType(variable);
       NonPromotionHistory? nonPromotionHistory =
@@ -3272,8 +3266,8 @@ class VariableReference<Variable extends Object, Type extends Object>
         }
         nonPromotionHistory = nonPromotionHistory.previous;
       }
-    }
-    return result;
+      return result;
+    };
   }
 
   @override
@@ -3287,6 +3281,8 @@ class VariableReference<Variable extends Object, Type extends Object>
           Map<Variable?, VariableModel<Variable, Type>> variableInfo) =>
       variableInfo[variable];
 }
+
+class WhyNotPromotedInfo {}
 
 /// [_FlowContext] representing an assert statement or assert initializer.
 class _AssertContext<Variable extends Object, Type extends Object>
@@ -3641,7 +3637,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void forEach_bodyBegin(Node node, Variable? loopVariable, Type writtenType) {
+  void forEach_bodyBegin(Node node) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
     _current = _current.conservativeJoin(info._written, info._captured).split();
@@ -3649,14 +3645,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         new _SimpleStatementContext<Variable, Type>(
             _current.reachable.parent!, _current);
     _stack.add(context);
-    if (loopVariable != null) {
-      _current = _current.write(
-          new DemoteViaForEachVariableWrite<Variable, Node>(loopVariable, node),
-          loopVariable,
-          writtenType,
-          new SsaNode<Variable, Type>(null),
-          typeOperations);
-    }
   }
 
   @override
@@ -4065,7 +4053,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       Variable? exceptionVariable, Variable? stackTraceVariable) {
     _TryContext<Variable, Type> context =
         _stack.last as _TryContext<Variable, Type>;
-    _current = context._beforeCatch;
+    _current = context._beforeCatch!;
     if (exceptionVariable != null) {
       _current = _current.declare(exceptionVariable, true);
     }
@@ -4086,7 +4074,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void tryCatchStatement_end() {
     _TryContext<Variable, Type> context =
         _stack.removeLast() as _TryContext<Variable, Type>;
-    _current = context._afterBodyAndCatches.unsplit();
+    _current = context._afterBodyAndCatches!.unsplit();
   }
 
   @override
@@ -4095,13 +4083,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void tryFinallyStatement_end(Node finallyBlock) {
-    // We used to need info for `finally` blocks but we don't anymore.
-    assert(!_assignedVariables._hasInfoForNode(finallyBlock),
-        'No assigned variables info should have been stored for $finallyBlock');
+  void tryFinallyStatement_end() {
     _TryFinallyContext<Variable, Type> context =
         _stack.removeLast() as _TryFinallyContext<Variable, Type>;
-    _current = context._afterBodyAndCatches
+    _current = context._afterBodyAndCatches!
         .attachFinally(typeOperations, context._beforeFinally, _current);
   }
 
@@ -4164,23 +4149,27 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
-    ReferenceWithType<Variable, Type>? referenceWithType = _expressionReference;
-    if (referenceWithType != null) {
-      return referenceWithType.reference.getNonPromotionReasons(
-          _current.variableInfo, referenceWithType.type, typeOperations);
+  Map<Type, NonPromotionReason> Function() whyNotPromoted(Expression target) {
+    if (identical(target, _expressionWithReference)) {
+      ReferenceWithType<Variable, Type>? referenceWithType =
+          _expressionReference;
+      if (referenceWithType != null) {
+        return referenceWithType.reference.getNonPromotionReasons(
+            _current.variableInfo, referenceWithType.type, typeOperations);
+      }
     }
-    return {};
+    return () => {};
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType) {
+  Map<Type, NonPromotionReason> Function() whyNotPromotedImplicitThis(
+      Type staticType) {
     return new _ThisReference<Variable, Type>().getNonPromotionReasons(
         _current.variableInfo, staticType, typeOperations);
   }
 
   @override
-  void write(Expression expression, Variable variable, Type writtenType,
+  void write(Node node, Variable variable, Type writtenType,
       Expression? writtenExpression) {
     ExpressionInfo<Variable, Type>? expressionInfo = writtenExpression == null
         ? null
@@ -4188,7 +4177,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     SsaNode<Variable, Type> newSsaNode = new SsaNode<Variable, Type>(
         expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
     _current = _current.write(
-        new DemoteViaExplicitWrite<Variable, Expression>(variable, expression),
+        new DemoteViaExplicitWrite<Variable>(variable, node),
         variable,
         writtenType,
         newSsaNode,
@@ -4469,8 +4458,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void for_updaterBegin() {}
 
   @override
-  void forEach_bodyBegin(
-      Node node, Variable? loopVariable, Type? writtenType) {}
+  void forEach_bodyBegin(Node node) {}
 
   @override
   void forEach_end() {}
@@ -4741,7 +4729,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void tryFinallyStatement_bodyBegin() {}
 
   @override
-  void tryFinallyStatement_end(Node finallyBlock) {}
+  void tryFinallyStatement_end() {}
 
   @override
   void tryFinallyStatement_finallyBegin(Node body) {}
@@ -4764,17 +4752,18 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void whileStatement_end() {}
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromoted(Expression target) {
-    return {};
+  Map<Type, NonPromotionReason> Function() whyNotPromoted(Expression target) {
+    return () => {};
   }
 
   @override
-  Map<Type, NonPromotionReason> whyNotPromotedImplicitThis(Type staticType) {
-    return {};
+  Map<Type, NonPromotionReason> Function() whyNotPromotedImplicitThis(
+      Type staticType) {
+    return () => {};
   }
 
   @override
-  void write(Expression expression, Variable variable, Type writtenType,
+  void write(Node node, Variable variable, Type writtenType,
       Expression? writtenExpression) {
     assert(
         _assignedVariables._anywhere._written.contains(variable),
@@ -4922,18 +4911,21 @@ class _PropertyGetReference<Variable extends Object, Type extends Object>
   _PropertyGetReference(this.target, this.propertyName);
 
   @override
-  Map<Type, NonPromotionReason> getNonPromotionReasons(
+  Map<Type, NonPromotionReason> Function() getNonPromotionReasons(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo,
       Type staticType,
       TypeOperations<Variable, Type> typeOperations) {
-    Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
     List<Type>? promotedTypes = _getInfo(variableInfo)?.promotedTypes;
     if (promotedTypes != null) {
-      for (Type type in promotedTypes) {
-        result[type] = new PropertyNotPromoted(propertyName, staticType);
-      }
+      return () {
+        Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
+        for (Type type in promotedTypes) {
+          result[type] = new PropertyNotPromoted(propertyName, staticType);
+        }
+        return result;
+      };
     }
-    return result;
+    return () => {};
   }
 
   @override
@@ -4994,18 +4986,21 @@ class _SimpleStatementContext<Variable extends Object, Type extends Object>
 class _ThisReference<Variable extends Object, Type extends Object>
     extends Reference<Variable, Type> {
   @override
-  Map<Type, NonPromotionReason> getNonPromotionReasons(
+  Map<Type, NonPromotionReason> Function() getNonPromotionReasons(
       Map<Variable?, VariableModel<Variable, Type>> variableInfo,
       Type staticType,
       TypeOperations<Variable, Type> typeOperations) {
-    Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
     List<Type>? promotedTypes = _getInfo(variableInfo)?.promotedTypes;
     if (promotedTypes != null) {
-      for (Type type in promotedTypes) {
-        result[type] = new ThisNotPromoted();
-      }
+      return () {
+        Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
+        for (Type type in promotedTypes) {
+          result[type] = new ThisNotPromoted();
+        }
+        return result;
+      };
     }
-    return result;
+    return () => {};
   }
 
   @override
@@ -5051,14 +5046,14 @@ class _TryContext<Variable extends Object, Type extends Object>
     extends _SimpleContext<Variable, Type> {
   /// If the statement is a "try/catch" statement, the flow model representing
   /// program state at the top of any `catch` block.
-  late final FlowModel<Variable, Type> _beforeCatch;
+  FlowModel<Variable, Type>? _beforeCatch;
 
   /// If the statement is a "try/catch" statement, the accumulated flow model
   /// representing program state after the `try` block or one of the `catch`
   /// blocks has finished executing.  If the statement is a "try/finally"
   /// statement, the flow model representing program state after the `try` block
   /// has finished executing.
-  late FlowModel<Variable, Type> _afterBodyAndCatches;
+  FlowModel<Variable, Type>? _afterBodyAndCatches;
 
   _TryContext(FlowModel<Variable, Type> previous) : super(previous);
 

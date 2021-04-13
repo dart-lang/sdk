@@ -386,7 +386,12 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       boxed_field_list_(GrowableObjectArray::null()),
       program_lock_(new SafepointRwLock()),
       active_mutators_monitor_(new Monitor()),
-      max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
+      max_active_mutators_(Scavenger::MaxMutatorThreadCount())
+#if !defined(PRODUCT)
+      ,
+      debugger_(new GroupDebugger(this))
+#endif
+{
   FlagsCopyFrom(api_flags);
   const bool is_vm_isolate = Dart::VmIsolateNameEquals(source_->name);
   if (!is_vm_isolate) {
@@ -425,6 +430,11 @@ IsolateGroup::~IsolateGroup() {
     }
     delete[] obfuscation_map_;
   }
+
+#if !defined(PRODUCT)
+  delete debugger_;
+  debugger_ = nullptr;
+#endif
 }
 
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {
@@ -1728,6 +1738,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
 #undef ISOLATE_METRIC_CONSTRUCTORS
 #endif  // !defined(PRODUCT)
           start_time_micros_(OS::GetCurrentMonotonicMicros()),
+      message_notify_callback_(nullptr),
       on_shutdown_callback_(Isolate::ShutdownCallback()),
       on_cleanup_callback_(Isolate::CleanupCallback()),
       random_(),
@@ -2528,7 +2539,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   }
 
   // Cache these two fields, since they are no longer available after the
-  // `delete this` further down.
+  // `delete isolate` further down.
   IsolateGroup* isolate_group = isolate->isolate_group_;
   Dart_IsolateCleanupCallback cleanup = isolate->on_cleanup_callback();
   auto callback_data = isolate->init_callback_data_;
@@ -2721,20 +2732,27 @@ void IsolateGroup::DisableIncrementalBarrier() {
 void IsolateGroup::ForEachIsolate(
     std::function<void(Isolate* isolate)> function,
     bool at_safepoint) {
+  auto thread = Thread::Current();
   if (at_safepoint) {
-    ASSERT(Thread::Current()->IsAtSafepoint() ||
-           (Thread::Current()->task_kind() == Thread::kMutatorTask) ||
-           (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
-           (Thread::Current()->task_kind() == Thread::kCompactorTask) ||
-           (Thread::Current()->task_kind() == Thread::kScavengerTask));
+    ASSERT(thread->IsAtSafepoint() ||
+           (thread->task_kind() == Thread::kMutatorTask) ||
+           (thread->task_kind() == Thread::kMarkerTask) ||
+           (thread->task_kind() == Thread::kCompactorTask) ||
+           (thread->task_kind() == Thread::kScavengerTask));
     for (Isolate* isolate : isolates_) {
       function(isolate);
     }
-  } else {
-    SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
+    return;
+  }
+  if (thread != nullptr && thread->IsAtSafepoint()) {
     for (Isolate* isolate : isolates_) {
       function(isolate);
     }
+    return;
+  }
+  SafepointReadRwLocker ml(thread, isolates_lock_.get());
+  for (Isolate* isolate : isolates_) {
+    function(isolate);
   }
 }
 
@@ -2752,6 +2770,7 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
     Callable* otherwise,
     bool use_force_growth_in_otherwise) {
   auto thread = Thread::Current();
+  StoppedMutatorsScope stopped_mutators_scope(thread);
 
   if (thread->IsMutatorThread() && !IsolateGroup::AreIsolateGroupsEnabled()) {
     single_current_mutator->Call();
@@ -2810,6 +2829,12 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&boxed_field_list_));
 
   NOT_IN_PRECOMPILED(background_compiler()->VisitPointers(visitor));
+
+#if !defined(PRODUCT)
+  if (debugger() != nullptr) {
+    debugger()->VisitObjectPointers(visitor);
+  }
+#endif
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // Visit objects that are being used for isolate reload.

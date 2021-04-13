@@ -14,6 +14,7 @@ closure/minify_closure_variable_collision_test: SkipByDesign # Regression test f
 
 [ $builder_tag == dart2js_production && $compiler == dart2js ]
 control_flow_collections/for_non_bool_condition_test: Crash # Issue 36442
+regress/regress45428_test: SkipByDesign # No argument type checks in production mode, issue 45528
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Slow, Pass # TODO(kasperl): Please triage.

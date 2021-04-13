@@ -50,11 +50,11 @@ class TypedefTest extends PartialCodeTest {
               [
                 ParserErrorCode.EXPECTED_TYPE_NAME,
                 ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE
+                ParserErrorCode.EXPERIMENT_NOT_ENABLED
               ],
               "typedef T = _s_;",
               expectedErrorsInValidCode: [
-                ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE
+                ParserErrorCode.EXPERIMENT_NOT_ENABLED
               ],
               failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
         ],

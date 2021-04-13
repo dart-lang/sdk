@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -159,6 +161,30 @@ class MyWidget extends StatelessWidget {
     expect(rowOutline.attributes, isEmpty);
   }
 
+  Future<void> test_child_conditionalExpression() async {
+    var unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: true ? Text() : Container(),
+    );
+  }
+}
+
+''');
+    expect(_toText(unitOutline), r'''
+(D) MyWidget
+  (D) build
+    Container
+      Text
+      Container
+''');
+  }
+
   Future<void> test_children() async {
     var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
@@ -276,6 +302,34 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
+  Future<void> test_children_conditionalExpression() async {
+    var unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: const [
+          true ? Text() : Container(),
+          Flex(),
+      ],
+    );
+  }
+}
+
+''');
+    expect(_toText(unitOutline), r'''
+(D) MyWidget
+  (D) build
+    Column
+      Text
+      Container
+      Flex
+''');
+  }
+
   Future<void> test_children_withCollectionElements() async {
     var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
@@ -287,7 +341,7 @@ class MyWidget extends StatelessWidget {
     return new Column(children: [
       const Text('aaa'),
       if (includeB) const Text('bbb'),
-      for (int s in ['ccc', 'ddd'] const Text(s),
+      for (int s in ['ccc', 'ddd']) const Text(s),
     ]);
   }
 }

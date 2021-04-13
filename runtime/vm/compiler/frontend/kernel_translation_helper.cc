@@ -235,22 +235,7 @@ bool TranslationHelper::IsClass(NameIndex name) {
 }
 
 bool TranslationHelper::IsMember(NameIndex name) {
-  return IsConstructor(name) || IsField(name) || IsProcedure(name);
-}
-
-bool TranslationHelper::IsField(NameIndex name) {
-  // Fields with private names have the import URI of the library where they are
-  // visible as the parent and the string "@fields" as the parent's parent.
-  // Fields with non-private names have the string "@fields' as the parent.
-  if (IsRoot(name)) {
-    return false;
-  }
-  NameIndex kind = CanonicalNameParent(name);
-  if (IsPrivate(name)) {
-    kind = CanonicalNameParent(kind);
-  }
-  return StringEquals(CanonicalNameString(kind), "@fields") ||
-         StringEquals(CanonicalNameString(kind), "@=fields");
+  return IsConstructor(name) || IsProcedure(name);
 }
 
 bool TranslationHelper::IsConstructor(NameIndex name) {
@@ -330,7 +315,7 @@ bool TranslationHelper::IsFactory(NameIndex name) {
 }
 
 NameIndex TranslationHelper::EnclosingName(NameIndex name) {
-  ASSERT(IsField(name) || IsConstructor(name) || IsProcedure(name));
+  ASSERT(IsConstructor(name) || IsProcedure(name));
   NameIndex enclosing = CanonicalNameParent(CanonicalNameParent(name));
   if (IsPrivate(name)) {
     enclosing = CanonicalNameParent(enclosing);
@@ -587,8 +572,10 @@ ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
   return info_.InsertClass(thread_, name_index_handle_, klass);
 }
 
-FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
-  ASSERT(IsField(kernel_field));
+FieldPtr TranslationHelper::LookupFieldByKernelGetterOrSetter(
+    NameIndex kernel_field,
+    bool required) {
+  ASSERT(IsGetter(kernel_field) || IsSetter(kernel_field));
   NameIndex enclosing = EnclosingName(kernel_field);
 
   Class& klass = Class::Handle(Z);
@@ -604,12 +591,15 @@ FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
   Field& field = Field::Handle(
       Z, klass.LookupFieldAllowPrivate(
              DartSymbolObfuscate(CanonicalNameString(kernel_field))));
-  CheckStaticLookup(field);
+  if (required) {
+    CheckStaticLookup(field);
+  }
   return field.ptr();
 }
 
 FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
-    NameIndex procedure) {
+    NameIndex procedure,
+    bool required) {
   const String& procedure_name = DartProcedureName(procedure);
 
   // The parent is either a library or a class (in which case the procedure is a
@@ -620,7 +610,9 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
         Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
     Function& function =
         Function::Handle(Z, library.LookupFunctionAllowPrivate(procedure_name));
-    CheckStaticLookup(function);
+    if (required) {
+      CheckStaticLookup(function);
+    }
     return function.ptr();
   } else {
     ASSERT(IsClass(enclosing));
@@ -629,7 +621,9 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
     ASSERT(error == Error::null());
     Function& function = Function::ZoneHandle(
         Z, klass.LookupFunctionAllowPrivate(procedure_name));
-    CheckStaticLookup(function);
+    if (required) {
+      CheckStaticLookup(function);
+    }
     return function.ptr();
   }
 }
@@ -2135,7 +2129,6 @@ void KernelReaderHelper::SkipDartType() {
     case kInvalidType:
     case kDynamicType:
     case kVoidType:
-    case kBottomType:
       // those contain nothing.
       return;
     case kNeverType:
@@ -2933,7 +2926,8 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
                                ConstantReader* constant_reader,
                                ActiveClass* active_class,
                                bool finalize,
-                               bool apply_canonical_type_erasure)
+                               bool apply_canonical_type_erasure,
+                               bool in_constant_context)
     : helper_(helper),
       constant_reader_(constant_reader),
       translation_helper_(helper->translation_helper_),
@@ -2944,7 +2938,8 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
       finalize_(finalize),
-      apply_canonical_type_erasure_(apply_canonical_type_erasure) {}
+      apply_canonical_type_erasure_(apply_canonical_type_erasure),
+      in_constant_context_(in_constant_context) {}
 
 AbstractType& TypeTranslator::BuildType() {
   BuildTypeInternal();
@@ -2985,11 +2980,6 @@ void TypeTranslator::BuildTypeInternal() {
                     .ToNullability(nullability, Heap::kOld);
       break;
     }
-    case kBottomType:
-      // Map Bottom type to Null type until not emitted by CFE anymore.
-      result_ = IG->object_store()->null_type();
-      ASSERT(result_.IsNullable());
-      break;
     case kInterfaceType:
       BuildInterfaceType(false);
       break;
@@ -3066,21 +3056,25 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 
   // Suspend finalization of types inside this one. They will be finalized after
   // the whole function type is constructed.
-  //
-  // TODO(31213): Test further when nested generic function types
-  // are supported by fasta.
   bool finalize = finalize_;
   finalize_ = false;
+  intptr_t type_parameter_count = 0;
 
   if (!simple) {
+    type_parameter_count = helper_->ReadListLength();
     LoadAndSetupTypeParameters(
         active_class_, Object::null_function(), Object::null_class(), signature,
-        helper_->ReadListLength(), active_class_->klass->nnbd_mode());
+        type_parameter_count, active_class_->klass->nnbd_mode());
   }
 
   ActiveTypeParametersScope scope(
       active_class_, &signature,
       TypeArguments::Handle(Z, signature.type_parameters()), Z);
+
+  if (!simple) {
+    LoadAndSetupBounds(active_class_, Object::null_function(),
+                       Object::null_class(), signature, type_parameter_count);
+  }
 
   intptr_t required_count;
   intptr_t all_count;
@@ -3160,73 +3154,76 @@ void TypeTranslator::BuildTypeParameterType() {
   intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
   helper_->SkipOptionalDartType();                 // read bound.
 
-  const TypeArguments& class_types =
-      TypeArguments::Handle(Z, active_class_->klass->type_parameters());
-  if (parameter_index < class_types.Length()) {
-    // The index of the type parameter in [parameters] is
-    // the same index into the `klass->type_parameters()` array.
-    const auto& type_param =
-        TypeParameter::CheckedHandle(Z, class_types.TypeAt(parameter_index));
-    result_ = type_param.ToNullability(nullability, Heap::kOld);
-    active_class_->RecordDerivedTypeParameter(Z, type_param,
-                                              TypeParameter::Cast(result_));
-    return;
-  }
-  parameter_index -= class_types.Length();
-
-  if (active_class_->HasMember()) {
-    if (active_class_->MemberIsFactoryProcedure()) {
-      //
-      // WARNING: This is a little hackish:
-      //
-      // We have a static factory constructor. The kernel IR gives the factory
-      // constructor function its own type parameters (which are equal in name
-      // and number to the ones of the enclosing class). I.e.,
-      //
-      //   class A<T> {
-      //     factory A.x() { return new B<T>(); }
-      //   }
-      //
-      //  is basically translated to this:
-      //
-      //   class A<T> {
-      //     static A.x<T'>() { return new B<T'>(); }
-      //   }
-      //
-      if (class_types.Length() > parameter_index) {
-        const auto& type_param = TypeParameter::CheckedHandle(
-            Z, class_types.TypeAt(parameter_index));
-        result_ = type_param.ToNullability(nullability, Heap::kOld);
-        active_class_->RecordDerivedTypeParameter(Z, type_param,
-                                                  TypeParameter::Cast(result_));
-        return;
-      }
-      parameter_index -= class_types.Length();
+  // If the type is from a constant, the parameter index isn't offset by the
+  // enclosing context.
+  if (!in_constant_context_) {
+    const TypeArguments& class_types =
+        TypeArguments::Handle(Z, active_class_->klass->type_parameters());
+    if (parameter_index < class_types.Length()) {
+      // The index of the type parameter in [parameters] is
+      // the same index into the `klass->type_parameters()` array.
+      const auto& type_param =
+          TypeParameter::CheckedHandle(Z, class_types.TypeAt(parameter_index));
+      result_ = type_param.ToNullability(nullability, Heap::kOld);
+      active_class_->RecordDerivedTypeParameter(Z, type_param,
+                                                TypeParameter::Cast(result_));
+      return;
     }
-    // Factory function should not be considered as procedure.
-    intptr_t procedure_type_parameter_count =
-        (active_class_->MemberIsProcedure() &&
-         !active_class_->MemberIsFactoryProcedure())
-            ? active_class_->MemberTypeParameterCount(Z)
-            : 0;
-    if (procedure_type_parameter_count > 0) {
-      if (procedure_type_parameter_count > parameter_index) {
-        const auto& type_param = TypeParameter::CheckedHandle(
-            Z,
-            TypeArguments::Handle(Z, active_class_->member->type_parameters())
-                .TypeAt(parameter_index));
-        result_ = type_param.ToNullability(nullability, Heap::kOld);
-        active_class_->RecordDerivedTypeParameter(Z, type_param,
-                                                  TypeParameter::Cast(result_));
-        if (finalize_) {
-          result_ = ClassFinalizer::FinalizeType(result_);
+    parameter_index -= class_types.Length();
+
+    if (active_class_->HasMember()) {
+      if (active_class_->MemberIsFactoryProcedure()) {
+        //
+        // WARNING: This is a little hackish:
+        //
+        // We have a static factory constructor. The kernel IR gives the factory
+        // constructor function its own type parameters (which are equal in name
+        // and number to the ones of the enclosing class). I.e.,
+        //
+        //   class A<T> {
+        //     factory A.x() { return new B<T>(); }
+        //   }
+        //
+        //  is basically translated to this:
+        //
+        //   class A<T> {
+        //     static A.x<T'>() { return new B<T'>(); }
+        //   }
+        //
+        if (class_types.Length() > parameter_index) {
+          const auto& type_param = TypeParameter::CheckedHandle(
+              Z, class_types.TypeAt(parameter_index));
+          result_ = type_param.ToNullability(nullability, Heap::kOld);
+          active_class_->RecordDerivedTypeParameter(
+              Z, type_param, TypeParameter::Cast(result_));
+          return;
         }
-        return;
+        parameter_index -= class_types.Length();
       }
-      parameter_index -= procedure_type_parameter_count;
+      // Factory function should not be considered as procedure.
+      intptr_t procedure_type_parameter_count =
+          (active_class_->MemberIsProcedure() &&
+           !active_class_->MemberIsFactoryProcedure())
+              ? active_class_->MemberTypeParameterCount(Z)
+              : 0;
+      if (procedure_type_parameter_count > 0) {
+        if (procedure_type_parameter_count > parameter_index) {
+          const auto& type_param = TypeParameter::CheckedHandle(
+              Z,
+              TypeArguments::Handle(Z, active_class_->member->type_parameters())
+                  .TypeAt(parameter_index));
+          result_ = type_param.ToNullability(nullability, Heap::kOld);
+          active_class_->RecordDerivedTypeParameter(
+              Z, type_param, TypeParameter::Cast(result_));
+          if (finalize_) {
+            result_ = ClassFinalizer::FinalizeType(result_);
+          }
+          return;
+        }
+        parameter_index -= procedure_type_parameter_count;
+      }
     }
   }
-
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
       const auto& type_param = TypeParameter::CheckedHandle(
@@ -3336,7 +3333,6 @@ void TypeTranslator::LoadAndSetupTypeParameters(
                                       ? Nullability::kNonNullable
                                       : Nullability::kLegacy;
 
-  // Step a)
   // - Create array of [TypeParameter] objects (without bound).
   // - Create array of [String] objects.
   type_parameters = TypeArguments::New(type_parameter_count);
@@ -3366,20 +3362,35 @@ void TypeTranslator::LoadAndSetupTypeParameters(
       } else {
         name = H.DartIdentifier(lib, helper.name_index_).ptr();
       }
+      // Bounds are filled later in LoadAndSetupBounds as bound types may
+      // reference type parameters which are not created yet.
       parameter = TypeParameter::New(
           parameterized_class, offset, offset + i, name, null_bound,
           helper.IsGenericCovariantImpl(), nullability);
       type_parameters.SetTypeAt(i, parameter);
     }
   }
+}
 
-  const FunctionType* enclosing = NULL;
-  if (!parameterized_signature.IsNull()) {
-    enclosing = &parameterized_signature;
+void TypeTranslator::LoadAndSetupBounds(
+    ActiveClass* active_class,
+    const Function& function,
+    const Class& parameterized_class,
+    const FunctionType& parameterized_signature,
+    intptr_t type_parameter_count) {
+  ASSERT(parameterized_class.IsNull() != parameterized_signature.IsNull());
+  ASSERT(type_parameter_count >= 0);
+  if (type_parameter_count == 0) {
+    return;
   }
-  ActiveTypeParametersScope scope(active_class, enclosing, type_parameters, Z);
 
-  // Step b) Fill in the bounds and default arguments of all [TypeParameter]s.
+  const TypeArguments& type_parameters =
+      TypeArguments::Handle(Z, !parameterized_class.IsNull()
+                                   ? parameterized_class.type_parameters()
+                                   : parameterized_signature.type_parameters());
+  TypeParameter& parameter = TypeParameter::Handle(Z);
+
+  // Fill in the bounds and default arguments of all [TypeParameter]s.
   for (intptr_t i = 0; i < type_parameter_count; i++) {
     TypeParameterHelper helper(helper_);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
@@ -3401,6 +3412,9 @@ void TypeTranslator::LoadAndSetupTypeParameters(
 
   // Fix bounds and default arguments in all derived type parameters (with
   // different nullabilities).
+  const intptr_t offset = !parameterized_signature.IsNull()
+                              ? parameterized_signature.NumParentTypeArguments()
+                              : 0;
   if (active_class->derived_type_parameters != nullptr) {
     auto& derived = TypeParameter::Handle(Z);
     auto& type = AbstractType::Handle(Z);
@@ -3447,9 +3461,7 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
   if (param_pos < function.maximum_unboxed_parameter_count()) {
     switch (metadata->unboxed_args_info[param_index]) {
       case UnboxingInfoMetadata::kUnboxedIntCandidate:
-        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-          function.set_unboxed_integer_parameter_at(param_pos);
-        }
+        function.set_unboxed_integer_parameter_at(param_pos);
         break;
       case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
         if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
@@ -3473,9 +3485,7 @@ static void SetupUnboxingInfoOfReturnValue(
     const UnboxingInfoMetadata* metadata) {
   switch (metadata->return_info) {
     case UnboxingInfoMetadata::kUnboxedIntCandidate:
-      if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-        function.set_unboxed_integer_return();
-      }
+      function.set_unboxed_integer_return();
       break;
     case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
       if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
@@ -3547,14 +3557,21 @@ void TypeTranslator::SetupFunctionParameters(
 
   const FunctionType& signature = FunctionType::Handle(Z, function.signature());
   ASSERT(!signature.IsNull());
+  intptr_t type_parameter_count = 0;
   if (!is_factory) {
+    type_parameter_count = helper_->ReadListLength();
     LoadAndSetupTypeParameters(active_class_, function, Class::Handle(Z),
-                               signature, helper_->ReadListLength(),
+                               signature, type_parameter_count,
                                function.nnbd_mode());
-    function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
   }
 
   ActiveTypeParametersScope scope(active_class_, function, &signature, Z);
+
+  if (!is_factory) {
+    LoadAndSetupBounds(active_class_, function, Class::Handle(Z), signature,
+                       type_parameter_count);
+    function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
+  }
 
   function_node_helper->ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);

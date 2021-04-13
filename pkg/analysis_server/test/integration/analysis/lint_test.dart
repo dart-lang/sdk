@@ -48,7 +48,7 @@ class a { // lint: not CamelCase
     await analysisFinished;
 
     expect(currentAnalysisErrors[source], isList);
-    var errors = currentAnalysisErrors[source];
+    var errors = existingErrorsForFile(source);
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, source);

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -13,10 +14,92 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../resolution/context_collection_resolution.dart';
+
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisSessionImplTest);
+    defineReflectiveTests(AnalysisSessionImpl_BazelWorkspaceTest);
   });
+}
+
+@reflectiveTest
+class AnalysisSessionImpl_BazelWorkspaceTest
+    extends BazelWorkspaceResolutionTest {
+  void test_getErrors_notFileOfUri() async {
+    var relPath = 'dart/my/lib/a.dart';
+    newFile('$workspaceRootPath/bazel-bin/$relPath');
+
+    var path = convertPath('$workspaceRootPath/$relPath');
+    var session = contextFor(path).currentSession;
+    var result = await session.getErrors(path);
+    expect(result.state, ResultState.NOT_FILE_OF_URI);
+    expect(() => result.errors, throwsStateError);
+  }
+
+  void test_getErrors_valid() async {
+    var file = newFile(
+      '$workspaceRootPath/dart/my/lib/a.dart',
+      content: 'var x = 0',
+    );
+
+    var session = contextFor(file.path).currentSession;
+    var result = await session.getErrors(file.path);
+    expect(result.state, ResultState.VALID);
+    expect(result.path, file.path);
+    expect(result.errors, hasLength(1));
+    expect(result.uri.toString(), 'package:dart.my/a.dart');
+  }
+
+  void test_getResolvedUnit_notFileOfUri() async {
+    var relPath = 'dart/my/lib/a.dart';
+    newFile('$workspaceRootPath/bazel-bin/$relPath');
+
+    var path = convertPath('$workspaceRootPath/$relPath');
+    var session = contextFor(path).currentSession;
+    var result = await session.getResolvedUnit(path);
+    expect(result.state, ResultState.NOT_FILE_OF_URI);
+    expect(() => result.errors, throwsStateError);
+  }
+
+  void test_getResolvedUnit_valid() async {
+    var file = newFile(
+      '$workspaceRootPath/dart/my/lib/a.dart',
+      content: 'class A {}',
+    );
+
+    var session = contextFor(file.path).currentSession;
+    var result = await session.getResolvedUnit(file.path);
+    expect(result.state, ResultState.VALID);
+    expect(result.path, file.path);
+    expect(result.errors, isEmpty);
+    expect(result.uri.toString(), 'package:dart.my/a.dart');
+  }
+
+  void test_getUnitElement_notFileOfUri() async {
+    var relPath = 'dart/my/lib/a.dart';
+    newFile('$workspaceRootPath/bazel-bin/$relPath');
+
+    var path = convertPath('$workspaceRootPath/$relPath');
+    var session = contextFor(path).currentSession;
+    var result = await session.getUnitElement(path);
+    expect(result.state, ResultState.NOT_FILE_OF_URI);
+    expect(() => result.element, throwsStateError);
+  }
+
+  void test_getUnitElement_valid() async {
+    var file = newFile(
+      '$workspaceRootPath/dart/my/lib/a.dart',
+      content: 'class A {}',
+    );
+
+    var session = contextFor(file.path).currentSession;
+    var result = await session.getUnitElement(file.path);
+    expect(result.state, ResultState.VALID);
+    expect(result.path, file.path);
+    expect(result.element.types, hasLength(1));
+    expect(result.uri.toString(), 'package:dart.my/a.dart');
+  }
 }
 
 @reflectiveTest
@@ -55,7 +138,7 @@ test:lib/
 
   test_getErrors() async {
     newFile(testPath, content: 'class C {');
-    var errorsResult = (await session.getErrors(testPath))!;
+    var errorsResult = await session.getErrors(testPath);
     expect(errorsResult.session, session);
     expect(errorsResult.path, testPath);
     expect(errorsResult.errors, isNotEmpty);
@@ -120,7 +203,7 @@ class B {}
   test_getParsedLibrary_getElementDeclaration_notThisLibrary() async {
     newFile(testPath, content: '');
 
-    var resolvedUnit = (await session.getResolvedUnit(testPath))!;
+    var resolvedUnit = await session.getResolvedUnit(testPath);
     var typeProvider = resolvedUnit.typeProvider;
     var intClass = typeProvider.intType.element;
 
@@ -138,7 +221,7 @@ int foo = 0;
 
     var parsedLibrary = session.getParsedLibrary(testPath);
 
-    var unitElement = (await session.getUnitElement(testPath))!.element;
+    var unitElement = (await session.getUnitElement(testPath)).element;
     var fooElement = unitElement.topLevelVariables[0];
     expect(fooElement.name, 'foo');
 
@@ -448,7 +531,7 @@ class A {}
 class B {}
 ''');
 
-    var unitResult = (await session.getResolvedUnit(testPath))!;
+    var unitResult = await session.getResolvedUnit(testPath);
     expect(unitResult.session, session);
     expect(unitResult.path, testPath);
     expect(unitResult.uri, Uri.parse('package:test/test.dart'));
@@ -477,7 +560,7 @@ class A {}
 class B {}
 ''');
 
-    var unitResult = (await session.getUnitElement(testPath))!;
+    var unitResult = await session.getUnitElement(testPath);
     expect(unitResult.session, session);
     expect(unitResult.path, testPath);
     expect(unitResult.uri, Uri.parse('package:test/test.dart'));

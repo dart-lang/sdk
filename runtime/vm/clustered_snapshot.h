@@ -226,7 +226,7 @@ class Serializer : public ThreadStackResource {
   ObjectPtr ParentOf(const Object& object);
 #endif
 
-  SerializationCluster* NewClusterForClass(intptr_t cid);
+  SerializationCluster* NewClusterForClass(intptr_t cid, bool is_canonical);
 
   void ReserveHeader() {
     // Make room for recording snapshot buffer size.
@@ -348,20 +348,21 @@ class Serializer : public ThreadStackResource {
 
   template <typename T, typename... P>
   void WriteFromTo(T obj, P&&... args) {
-    ObjectPtr* from = obj->untag()->from();
-    ObjectPtr* to = obj->untag()->to_snapshot(kind(), args...);
-    for (ObjectPtr* p = from; p <= to; p++) {
-      WriteOffsetRef(*p, (p - reinterpret_cast<ObjectPtr*>(obj->untag())) *
-                             sizeof(ObjectPtr));
+    auto* from = obj->untag()->from();
+    auto* to = obj->untag()->to_snapshot(kind(), args...);
+    for (auto* p = from; p <= to; p++) {
+      WriteOffsetRef(
+          p->Decompress(obj->heap_base()),
+          reinterpret_cast<uword>(p) - reinterpret_cast<uword>(obj->untag()));
     }
   }
 
   template <typename T, typename... P>
   void PushFromTo(T obj, P&&... args) {
-    ObjectPtr* from = obj->untag()->from();
-    ObjectPtr* to = obj->untag()->to_snapshot(kind(), args...);
-    for (ObjectPtr* p = from; p <= to; p++) {
-      Push(*p);
+    auto* from = obj->untag()->from();
+    auto* to = obj->untag()->to_snapshot(kind(), args...);
+    for (auto* p = from; p <= to; p++) {
+      Push(p->Decompress(obj->heap_base()));
     }
   }
 
@@ -399,13 +400,13 @@ class Serializer : public ThreadStackResource {
   bool CreateArtificalNodeIfNeeded(ObjectPtr obj);
 
   bool InCurrentLoadingUnit(ObjectPtr obj, bool record = false);
-  GrowableArray<LoadingUnitSerializationData*>* loading_units() {
+  GrowableArray<LoadingUnitSerializationData*>* loading_units() const {
     return loading_units_;
   }
   void set_loading_units(GrowableArray<LoadingUnitSerializationData*>* units) {
     loading_units_ = units;
   }
-  intptr_t current_loading_unit_id() { return current_loading_unit_id_; }
+  intptr_t current_loading_unit_id() const { return current_loading_unit_id_; }
   void set_current_loading_unit_id(intptr_t id) {
     current_loading_unit_id_ = id;
   }
@@ -501,6 +502,8 @@ class Serializer : public ThreadStackResource {
 #define PushFromTo(obj, ...) s->PushFromTo(obj, ##__VA_ARGS__);
 
 #define WriteField(obj, field) s->WritePropertyRef(obj->untag()->field, #field)
+#define WriteCompressedField(obj, name)                                        \
+  s->WritePropertyRef(obj->untag()->name(), #name "_")
 
 class SerializerWritingObjectScope {
  public:
@@ -625,17 +628,17 @@ class Deserializer : public ThreadStackResource {
 
   template <typename T, typename... P>
   void ReadFromTo(T obj, P&&... params) {
-    ObjectPtr* from = obj->untag()->from();
-    ObjectPtr* to_snapshot = obj->untag()->to_snapshot(kind(), params...);
-    ObjectPtr* to = obj->untag()->to(params...);
-    for (ObjectPtr* p = from; p <= to_snapshot; p++) {
+    auto* from = obj->untag()->from();
+    auto* to_snapshot = obj->untag()->to_snapshot(kind(), params...);
+    auto* to = obj->untag()->to(params...);
+    for (auto* p = from; p <= to_snapshot; p++) {
       *p = ReadRef();
     }
     // This is necessary because, unlike Object::Allocate, the clustered
     // deserializer allocates object without null-initializing them. Instead,
     // each deserialization cluster is responsible for initializing every field,
     // ensuring that every field is written to exactly once.
-    for (ObjectPtr* p = to_snapshot + 1; p <= to; p++) {
+    for (auto* p = to_snapshot + 1; p <= to; p++) {
       *p = Object::null();
     }
   }

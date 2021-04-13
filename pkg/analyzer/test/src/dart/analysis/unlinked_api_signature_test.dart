@@ -242,6 +242,22 @@ class B extends A {}
 ''');
   }
 
+  /// The code `=;` is parsed as `= <emptyString>;`, and there was a bug that
+  /// the absence of the redirecting constructor was encoded as the same
+  /// byte sequence as the empty string. But these are different ASTs,
+  /// so they should have different signatures.
+  test_class_factoryConstructor_addEqNothing() {
+    assertNotSameSignature(r'''
+class A {
+  factory A();
+}
+''', r'''
+class A {
+  factory A() =;
+}
+''');
+  }
+
   /// The token `static` is moving from the field declaration to the factory
   /// constructor (its redirected constructor), so semantically its meaning
   /// changes. But we had a bug that we put `static` into the signature
@@ -257,6 +273,32 @@ class A {
 class A {
   factory A() =
   static void foo<U>() {}
+}
+''');
+  }
+
+  test_class_field_const_add_outOfOrder() {
+    assertNotSameSignature(r'''
+class A {
+  static f = Object();
+}
+''', r'''
+class A {
+  const
+  static f = Object();
+}
+''');
+  }
+
+  test_class_field_const_add_outOfOrder_hasFinal() {
+    assertNotSameSignature(r'''
+class A {
+  static final f = Object();
+}
+''', r'''
+class A {
+  const
+  static final f = Object();
 }
 ''');
   }

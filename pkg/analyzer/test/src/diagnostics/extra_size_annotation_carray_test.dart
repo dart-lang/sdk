@@ -15,6 +15,19 @@ main() {
 
 @reflectiveTest
 class ExtraSizeAnnotationArray extends PubPackageResolutionTest {
+  test_const() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+const EIGHT = 8;
+
+class Struct8BytesInlineArrayInt extends Struct {
+  @Array(EIGHT)
+  Array<Uint8> a0;
+}
+''');
+  }
+
   test_one() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';

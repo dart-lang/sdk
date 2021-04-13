@@ -675,6 +675,10 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
     return node.typeArguments.any(visit);
   }
 
+  bool visitExtensionType(ExtensionType node) {
+    return node.typeArguments.any(visit);
+  }
+
   bool visitFutureOrType(FutureOrType node) {
     return visit(node.typeArgument);
   }
@@ -724,6 +728,10 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
   bool visitVoidType(VoidType node) => false;
 
   bool visitInterfaceType(InterfaceType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  bool visitExtensionType(ExtensionType node) {
     return node.typeArguments.any(visit);
   }
 
@@ -779,6 +787,10 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
   bool visitVoidType(VoidType node) => false;
 
   bool visitInterfaceType(InterfaceType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  bool visitExtensionType(ExtensionType node) {
     return node.typeArguments.any(visit);
   }
 
@@ -881,6 +893,11 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitExtensionType(ExtensionType node) {
+    return node.typeArguments.isEmpty;
+  }
+
+  @override
   bool visitInvalidType(InvalidType node) {
     throw new UnsupportedError(
         "Unsupported operation: _PrimitiveTypeVerifier(InvalidType).");
@@ -946,6 +963,11 @@ class _NullabilityConstructorUnwrapper
 
   @override
   DartType visitInterfaceType(InterfaceType node, CoreTypes coreTypes) {
+    return node.withDeclaredNullability(Nullability.nonNullable);
+  }
+
+  @override
+  DartType visitExtensionType(ExtensionType node, CoreTypes coreTypes) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
@@ -1157,6 +1179,13 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
 
   @override
   bool visitInterfaceType(InterfaceType node) {
+    assert(node.declaredNullability != Nullability.undetermined);
+    return node.declaredNullability == Nullability.nullable ||
+        node.declaredNullability == Nullability.legacy;
+  }
+
+  @override
+  bool visitExtensionType(ExtensionType node) {
     assert(node.declaredNullability != Nullability.undetermined);
     return node.declaredNullability == Nullability.nullable ||
         node.declaredNullability == Nullability.legacy;

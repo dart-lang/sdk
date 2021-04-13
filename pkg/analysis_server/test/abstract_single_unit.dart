@@ -21,14 +21,14 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   /// Whether to rewrite line endings in test code based on platform.
   bool useLineEndingsForPlatform = false;
 
-  String testCode;
-  String testFile;
-  ResolvedUnitResult testAnalysisResult;
-  CompilationUnit testUnit;
-  CompilationUnitElement testUnitElement;
-  LibraryElement testLibraryElement;
-  FindNode findNode;
-  FindElement findElement;
+  late String testCode;
+  late String testFile;
+  ResolvedUnitResult? testAnalysisResult;
+  late CompilationUnit testUnit;
+  late CompilationUnitElement testUnitElement;
+  late LibraryElement testLibraryElement;
+  late FindNode findNode;
+  late FindElement findElement;
 
   @override
   void addSource(String path, String content) {
@@ -70,11 +70,12 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   Future<void> resolveTestFile() async {
-    testAnalysisResult = await session.getResolvedUnit(testFile);
-    testCode = testAnalysisResult.content;
-    testUnit = testAnalysisResult.unit;
+    var result = await session.getResolvedUnit(testFile);
+    testAnalysisResult = result;
+    testCode = result.content!;
+    testUnit = result.unit!;
     if (verifyNoTestUnitErrors) {
-      expect(testAnalysisResult.errors.where((AnalysisError error) {
+      expect(result.errors.where((AnalysisError error) {
         return error.errorCode != HintCode.DEAD_CODE &&
             error.errorCode != HintCode.UNUSED_CATCH_CLAUSE &&
             error.errorCode != HintCode.UNUSED_CATCH_STACK &&
@@ -84,7 +85,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
             error.errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
       }), isEmpty);
     }
-    testUnitElement = testUnit.declaredElement;
+    testUnitElement = testUnit.declaredElement!;
     testLibraryElement = testUnitElement.library;
     findNode = FindNode(testCode, testUnit);
     findElement = FindElement(testUnit);

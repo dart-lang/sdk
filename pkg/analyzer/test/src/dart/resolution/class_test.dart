@@ -432,30 +432,6 @@ class A extends v<int> {}
     assertType(a.supertype, 'Object');
   }
 
-  test_error_implementsRepeated() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B implements A, A {} // ref
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 33, 1),
-    ]);
-
-    var a = findElement.class_('A');
-    assertTypeName(findNode.typeName('A, A {} // ref'), a, 'A');
-    assertTypeName(findNode.typeName('A {} // ref'), a, 'A');
-  }
-
-  test_error_implementsRepeated_3times() async {
-    await assertErrorsInCode(r'''
-class A {} class C{}
-class B implements A, A, A, A {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 43, 1),
-      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 46, 1),
-      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 49, 1),
-    ]);
-  }
-
   test_error_memberWithClassName_field() async {
     await assertErrorsInCode(r'''
 class C {

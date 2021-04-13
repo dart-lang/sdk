@@ -54,15 +54,15 @@ class TypePropertyResolver {
   ///
   /// The [receiver] might be `null`, used to identify `super`.
   ///
-  /// The [receiverErrorNode] is the node to report nullable dereference,
+  /// The [propertyErrorNode] is the node to report nullable dereference,
   /// if the [receiverType] is potentially nullable.
   ///
-  /// The [nameErrorEntity] is used to report the ambiguous extension issue.
+  /// The [nameErrorEntity] is used to report an ambiguous extension issue.
   ResolutionResult resolve({
     required Expression? receiver,
     required DartType receiverType,
     required String name,
-    required AstNode receiverErrorNode,
+    required SyntacticEntity propertyErrorEntity,
     required SyntacticEntity nameErrorEntity,
   }) {
     _receiver = receiver;
@@ -91,7 +91,17 @@ class TypePropertyResolver {
         return _toResult();
       }
 
-      var parentExpression = (receiver ?? receiverErrorNode).parent;
+      AstNode? parentExpression;
+      if (receiver != null) {
+        parentExpression = receiver.parent;
+      } else if (propertyErrorEntity is AstNode) {
+        parentExpression = propertyErrorEntity.parent;
+      } else {
+        throw StateError('Either `receiver` must be non-null or'
+            '`propertyErrorEntity` must be an AstNode to report an unchecked '
+            'invocation of a nullable value.');
+      }
+
       CompileTimeErrorCode errorCode;
       if (parentExpression == null) {
         errorCode = CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE;
@@ -120,17 +130,17 @@ class TypePropertyResolver {
       if (flow != null) {
         if (receiver != null) {
           messages = _resolver.computeWhyNotPromotedMessages(
-              receiver, nameErrorEntity, flow.whyNotPromoted(receiver));
+              receiver, nameErrorEntity, flow.whyNotPromoted(receiver)());
         } else {
           var thisType = _resolver.thisType;
           if (thisType != null) {
             messages = _resolver.computeWhyNotPromotedMessages(receiver,
-                nameErrorEntity, flow.whyNotPromotedImplicitThis(thisType));
+                nameErrorEntity, flow.whyNotPromotedImplicitThis(thisType)());
           }
         }
       }
       _resolver.nullableDereferenceVerifier.report(
-          receiverErrorNode, receiverType,
+          propertyErrorEntity, receiverType,
           errorCode: errorCode, arguments: [name], messages: messages);
       _reportedGetterError = true;
       _reportedSetterError = true;

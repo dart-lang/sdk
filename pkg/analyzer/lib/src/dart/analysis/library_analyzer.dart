@@ -45,7 +45,6 @@ import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -70,9 +69,8 @@ class LibraryAnalyzer {
   final InheritanceManager3 _inheritance;
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContext _context;
-  final LinkedElementFactory _elementFactory;
 
-  late final LibraryElementImpl _libraryElement;
+  final LibraryElementImpl _libraryElement;
 
   final Map<FileState, LineInfo> _fileToLineInfo = {};
 
@@ -91,7 +89,7 @@ class LibraryAnalyzer {
       this._sourceFactory,
       this._isLibraryUri,
       this._context,
-      this._elementFactory,
+      this._libraryElement,
       this._inheritance,
       this._library,
       {TestingData? testingData})
@@ -117,8 +115,6 @@ class LibraryAnalyzer {
       units[file] = _parse(file);
     }
     timerLibraryAnalyzerFreshUnit.stop();
-
-    _libraryElement = _elementFactory.libraryOfUri2(_library.uriStr);
 
     // Resolve URIs in directives to corresponding sources.
     FeatureSet featureSet = units[_library]!.featureSet;
@@ -180,9 +176,13 @@ class LibraryAnalyzer {
     // before the list of diagnostics has been filtered.
     for (var file in _library.libraryFiles) {
       if (file.source != null) {
-        IgnoreValidator(_getErrorReporter(file), _getErrorListener(file).errors,
-                _fileToIgnoreInfo[file]!, _fileToLineInfo[file]!)
-            .reportErrors();
+        IgnoreValidator(
+          _getErrorReporter(file),
+          _getErrorListener(file).errors,
+          _fileToIgnoreInfo[file]!,
+          _fileToLineInfo[file]!,
+          _analysisOptions.unignorableNames,
+        ).reportErrors();
       }
     }
 
@@ -429,10 +429,15 @@ class LibraryAnalyzer {
 
     LineInfo lineInfo = _fileToLineInfo[file]!;
 
+    var unignorableCodes = _analysisOptions.unignorableNames;
+
     bool isIgnored(AnalysisError error) {
       var code = error.errorCode;
-      // Don't allow error severity issues to be ignored.
-      if (!IgnoreValidator.isIgnorable(file.path!, code)) {
+      // Don't allow un-ignorable codes to be ignored.
+      if (unignorableCodes.contains(code.name) ||
+          unignorableCodes.contains(code.uniqueName) ||
+          // Lint rules have lower case names.
+          unignorableCodes.contains(code.name.toUpperCase())) {
         return false;
       }
 

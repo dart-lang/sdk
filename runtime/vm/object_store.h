@@ -158,6 +158,9 @@ class ObjectPointerVisitor;
   RW(GrowableObjectArray, pending_classes)                                     \
   RW(Instance, stack_overflow)                                                 \
   RW(Instance, out_of_memory)                                                  \
+  RW(Function, _object_equals_function)                                        \
+  RW(Function, _object_hash_code_function)                                     \
+  RW(Function, _object_to_string_function)                                     \
   RW(Function, lookup_port_handler)                                            \
   RW(Function, lookup_open_ports)                                              \
   RW(Function, handle_message_function)                                        \
@@ -169,9 +172,6 @@ class ObjectPointerVisitor;
   RW(Function, complete_on_async_return)                                       \
   RW(Function, complete_on_async_error)                                        \
   RW(Class, async_star_stream_controller)                                      \
-  RW(GrowableObjectArray, llvm_constant_pool)                                  \
-  RW(GrowableObjectArray, llvm_function_pool)                                  \
-  RW(Array, llvm_constant_hash_table)                                          \
   RW(CompressedStackMaps, canonicalized_stack_map_entries)                     \
   RW(ObjectPool, global_object_pool)                                           \
   RW(Array, unique_dynamic_targets)                                            \

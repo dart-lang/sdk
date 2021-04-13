@@ -14,6 +14,7 @@
 namespace dart {
 
 enum class ExperimentalFeature {
+  nonfunction_type_aliases,
   non_nullable,
   extension_methods,
   constant_update_2018,

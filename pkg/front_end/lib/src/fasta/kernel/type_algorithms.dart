@@ -4,23 +4,7 @@
 
 // @dart = 2.9
 
-import 'package:kernel/ast.dart'
-    show
-        DartType,
-        DartTypeVisitor,
-        DynamicType,
-        FunctionType,
-        FutureOrType,
-        InterfaceType,
-        InvalidType,
-        NamedType,
-        NeverType,
-        NullType,
-        TypeParameter,
-        TypeParameterType,
-        TypedefType,
-        Variance,
-        VoidType;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable;
 
@@ -315,8 +299,8 @@ TypeBuilder substituteRange(
             variance: Variance.invariant);
         if (bound != variable.bound) {
           TypeVariableBuilder newTypeVariableBuilder = variables[i] =
-              new TypeVariableBuilder(
-                  variable.name, variable.parent, variable.charOffset,
+              new TypeVariableBuilder(variable.name, variable.parent,
+                  variable.charOffset, variable.fileUri,
                   bound: bound);
           unboundTypeVariables.add(newTypeVariableBuilder);
           if (functionTypeUpperSubstitution == null) {
@@ -394,7 +378,12 @@ TypeBuilder substitute(
 /// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
 /// of the algorithm for details.
 List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
-    TypeBuilder dynamicType, TypeBuilder bottomType, ClassBuilder objectClass) {
+    TypeBuilder dynamicType, TypeBuilder bottomType, ClassBuilder objectClass,
+    {List<TypeBuilder> unboundTypes,
+    List<TypeVariableBuilder> unboundTypeVariables}) {
+  assert(unboundTypes != null);
+  assert(unboundTypeVariables != null);
+
   List<TypeBuilder> bounds =
       new List<TypeBuilder>.filled(variables.length, null);
 
@@ -415,8 +404,12 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     }
     for (int variableIndex in component) {
       TypeVariableBuilder variable = variables[variableIndex];
-      bounds[variableIndex] = substituteRange(bounds[variableIndex],
-          dynamicSubstitution, nullSubstitution, null, null,
+      bounds[variableIndex] = substituteRange(
+          bounds[variableIndex],
+          dynamicSubstitution,
+          nullSubstitution,
+          unboundTypes,
+          unboundTypeVariables,
           variance: variable.variance);
     }
   }
@@ -430,8 +423,8 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     nullSubstitution[variables[i]] = bottomType;
     for (int j = 0; j < variables.length; j++) {
       TypeVariableBuilder variable = variables[j];
-      bounds[j] = substituteRange(
-          bounds[j], substitution, nullSubstitution, null, null,
+      bounds[j] = substituteRange(bounds[j], substitution, nullSubstitution,
+          unboundTypes, unboundTypeVariables,
           variance: variable.variance);
     }
   }
@@ -709,6 +702,27 @@ List<Object> getInboundReferenceIssues(List<TypeVariableBuilder> variables) {
   return issues;
 }
 
+/// Finds raw non-simple types in bounds of type variables in [typeBuilder].
+///
+/// Returns flattened list of triplets.  The first element of the triplet is the
+/// [TypeDeclarationBuilder] for the type variable from [variables] that has raw
+/// generic types with inbound references in its bound.  The second element of
+/// the triplet is the error message.  The third element is the context.
+List<Object> getInboundReferenceIssuesInType(TypeBuilder typeBuilder) {
+  List<FunctionTypeBuilder> genericFunctionTypeBuilders =
+      <FunctionTypeBuilder>[];
+  findUnaliasedGenericFunctionTypes(typeBuilder,
+      result: genericFunctionTypeBuilders);
+  List<Object> issues = <Object>[];
+  for (FunctionTypeBuilder genericFunctionTypeBuilder
+      in genericFunctionTypeBuilders) {
+    List<TypeVariableBuilder> typeVariables =
+        genericFunctionTypeBuilder.typeVariables;
+    issues.addAll(getInboundReferenceIssues(typeVariables));
+  }
+  return issues;
+}
+
 /// Finds raw type paths starting from those in [start] and ending with [end].
 ///
 /// Returns list of found paths.  Each path is represented as a list of
@@ -971,8 +985,38 @@ void breakCycles(List<List<Object>> cycles) {
   }
 }
 
+/// Finds generic function type sub-terms in [type].
+void findUnaliasedGenericFunctionTypes(TypeBuilder type,
+    {List<FunctionTypeBuilder> result}) {
+  assert(result != null);
+  if (type is FunctionTypeBuilder) {
+    if (type.typeVariables != null && type.typeVariables.length > 0) {
+      result.add(type);
+
+      for (TypeVariableBuilder typeVariable in type.typeVariables) {
+        findUnaliasedGenericFunctionTypes(typeVariable.bound, result: result);
+        findUnaliasedGenericFunctionTypes(typeVariable.defaultType,
+            result: result);
+      }
+    }
+    findUnaliasedGenericFunctionTypes(type.returnType, result: result);
+    if (type.formals != null) {
+      for (FormalParameterBuilder formal in type.formals) {
+        findUnaliasedGenericFunctionTypes(formal.type, result: result);
+      }
+    }
+  } else if (type is NamedTypeBuilder) {
+    if (type.arguments != null) {
+      for (TypeBuilder argument in type.arguments) {
+        findUnaliasedGenericFunctionTypes(argument, result: result);
+      }
+    }
+  }
+}
+
+/// Finds generic function type sub-terms in [type] including the aliased ones.
 void findGenericFunctionTypes(TypeBuilder type, {List<TypeBuilder> result}) {
-  result ??= <TypeBuilder>[];
+  assert(result != null);
   if (type is FunctionTypeBuilder) {
     if (type.typeVariables != null && type.typeVariables.length > 0) {
       result.add(type);
@@ -1029,24 +1073,37 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
     return false;
   }
 
+  @override
   bool visitInvalidType(InvalidType node) => false;
 
+  @override
   bool visitDynamicType(DynamicType node) => false;
 
+  @override
   bool visitVoidType(VoidType node) => false;
 
+  @override
   bool visitNeverType(NeverType node) => false;
 
+  @override
   bool visitNullType(NullType node) => false;
 
+  @override
   bool visitInterfaceType(InterfaceType node) {
     return anyTypeVariables(node.typeArguments);
   }
 
+  @override
+  bool visitExtensionType(ExtensionType node) {
+    return anyTypeVariables(node.typeArguments);
+  }
+
+  @override
   bool visitFutureOrType(FutureOrType node) {
     return node.typeArgument.accept(this);
   }
 
+  @override
   bool visitFunctionType(FunctionType node) {
     if (anyTypeVariables(node.positionalParameters)) return true;
     for (TypeParameter variable in node.typeParameters) {
@@ -1058,8 +1115,10 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
     return false;
   }
 
+  @override
   bool visitTypeParameterType(TypeParameterType node) => true;
 
+  @override
   bool visitTypedefType(TypedefType node) {
     return anyTypeVariables(node.typeArguments);
   }

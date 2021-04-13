@@ -1698,7 +1698,7 @@ class Wrong<T> {
         errors: [
           expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 7),
           expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 7),
-          expectedError(ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, 10, 1),
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 10, 1),
         ]);
   }
 
@@ -1886,8 +1886,8 @@ class Wrong<T> {
         expectedEndOffset: 14 /* parsing ends at synthetic ')' */);
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.errors
-        .contains(expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 1));
+    listener
+        .assertErrors([expectedError(ScannerErrorCode.EXPECTED_TOKEN, 14, 1)]);
   }
 
   void test_missingConstFinalVarOrType_static() {

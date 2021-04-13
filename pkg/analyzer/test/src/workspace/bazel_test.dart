@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -11,7 +9,6 @@ import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:async/async.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:watcher/watcher.dart';
 
 import '../../generated/test_support.dart';
 
@@ -811,120 +808,6 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
 class BazelWorkspaceTest with ResourceProviderMixin {
   late final BazelWorkspace workspace;
 
-  void test_bazelFileWatcher() async {
-    _addResources([
-      '/workspace/WORKSPACE',
-    ]);
-    late _MockTimer timer;
-    var timerFactory = (Duration _, void Function(Timer) callback) {
-      timer = _MockTimer(callback);
-      return timer;
-    };
-    var candidates = [
-      convertPath('/workspace/bazel-bin/my/module/test1.dart'),
-      convertPath('/workspace/bazel-genfiles/my/module/test1.dart'),
-    ];
-    var watcher = BazelFileWatcher(candidates, resourceProvider, Duration.zero,
-        Duration.zero, timerFactory);
-    var events = StreamQueue(watcher.events);
-    watcher.start();
-
-    // First do some tests with the first candidate path.
-    _addResources([candidates[0]]);
-    timer.triggerCallback();
-
-    var event = await events.next;
-    expect(event.type, ChangeType.ADD);
-    expect(event.path, candidates[0]);
-
-    modifyFile(candidates[0], 'const foo = 42;');
-    timer.triggerCallback();
-
-    event = await events.next;
-    expect(event.type, ChangeType.MODIFY);
-    expect(event.path, candidates[0]);
-
-    _deleteResources([candidates[0]]);
-    timer.triggerCallback();
-
-    event = await events.next;
-    expect(event.type, ChangeType.REMOVE);
-    expect(event.path, candidates[0]);
-
-    // Now check that if we add the *second* candidate, we'll get the
-    // notification for it.
-    _addResources([candidates[1]]);
-    timer.triggerCallback();
-
-    event = await events.next;
-    expect(event.type, ChangeType.ADD);
-    expect(event.path, candidates[1]);
-
-    watcher.stop();
-    expect(await events.rest.isEmpty, true);
-  }
-
-  void test_bazelFileWatcher_existingFile() async {
-    _addResources([
-      '/workspace/WORKSPACE',
-      '/workspace/bazel-bin/my/module/test1.dart',
-    ]);
-    var workspace = BazelWorkspace.find(
-        resourceProvider, convertPath('/workspace/my/module'))!;
-    late _MockTimer timer;
-    var timerFactory = (Duration _, void Function(Timer) callback) {
-      timer = _MockTimer(callback);
-      return timer;
-    };
-    var watcherCompleter = Completer<BazelFileWatcher>();
-    workspace.bazelCandidateFiles.listen((notification) =>
-        watcherCompleter.complete(notification.watcher(
-            pollingDelayLong: Duration.zero,
-            pollingDelayShort: Duration.zero,
-            timerFactory: timerFactory)));
-
-    var file1 =
-        workspace.findFile(convertPath('/workspace/my/module/test1.dart'))!;
-    expect(file1.exists, true);
-    var watcher = await watcherCompleter.future;
-    var events = StreamQueue(watcher.events);
-    watcher.start();
-
-    // Make sure that triggering the callback, will not generate extra events.
-    timer.triggerCallback();
-
-    var convertedPath =
-        convertPath('/workspace/bazel-bin/my/module/test1.dart');
-
-    // Change the file -- we should get a single MODIFY event and not an ADD
-    // event, since the file already existed.
-    modifyFile(convertedPath, 'const foo = 42;');
-    timer.triggerCallback();
-    var event = await events.next;
-
-    expect(event.type, ChangeType.MODIFY);
-    expect(event.path, convertedPath);
-
-    // But if we delete the file and then re-create it, we should get an ADD
-    // event (after the REMOVE one).
-    deleteFile(convertedPath);
-    timer.triggerCallback();
-    event = await events.next;
-
-    expect(event.type, ChangeType.REMOVE);
-    expect(event.path, convertedPath);
-
-    newFile(convertedPath);
-    timer.triggerCallback();
-    event = await events.next;
-
-    expect(event.type, ChangeType.ADD);
-    expect(event.path, convertedPath);
-
-    watcher.stop();
-    expect(await events.rest.isEmpty, true);
-  }
-
   void test_bazelNotifications() async {
     _addResources([
       '/workspace/WORKSPACE',
@@ -937,20 +820,22 @@ class BazelWorkspaceTest with ResourceProviderMixin {
     var file1 =
         workspace.findFile(convertPath('/workspace/my/module/test1.dart'))!;
     expect(file1.exists, true);
-    var notification = await notifications.next;
-    expect(notification.requested, convertPath('my/module/test1.dart'));
+    var info = await notifications.next;
+    expect(info.requestedPath, convertPath('my/module/test1.dart'));
     expect(
-        notification.candidates,
-        containsAll(
-            [convertPath('/workspace/bazel-bin/my/module/test1.dart')]));
+        info.candidatePaths,
+        containsAll([
+          convertPath('/workspace/bazel-bin/my/module/test1.dart'),
+          convertPath('/workspace/bazel-genfiles/my/module/test1.dart'),
+        ]));
 
     var file2 =
         workspace.findFile(convertPath('/workspace/my/module/test2.dart'))!;
     expect(file2.exists, false);
-    notification = await notifications.next;
-    expect(notification.requested, convertPath('my/module/test2.dart'));
+    info = await notifications.next;
+    expect(info.requestedPath, convertPath('my/module/test2.dart'));
     expect(
-        notification.candidates,
+        info.candidatePaths,
         containsAll([
           convertPath('/workspace/bazel-bin/my/module/test2.dart'),
           convertPath('/workspace/bazel-genfiles/my/module/test2.dart'),
@@ -1205,17 +1090,6 @@ class BazelWorkspaceTest with ResourceProviderMixin {
     }
   }
 
-  /// Create new files and directories from [paths].
-  void _deleteResources(List<String> paths) {
-    for (String path in paths) {
-      if (path.endsWith('/')) {
-        deleteFolder(path.substring(0, path.length - 1));
-      } else {
-        deleteFile(path);
-      }
-    }
-  }
-
   /// Expect that [BazelWorkspace.findFile], given [path], returns [equals].
   void _expectFindFile(String path, {required String equals}) =>
       expect(workspace.findFile(convertPath(path))!.path, convertPath(equals));
@@ -1231,21 +1105,4 @@ class _MockSource implements Source {
   noSuchMethod(Invocation invocation) {
     throw StateError('Unexpected invocation of ${invocation.memberName}');
   }
-}
-
-class _MockTimer implements Timer {
-  final void Function(Timer) callback;
-
-  @override
-  bool isActive = true;
-
-  _MockTimer(this.callback);
-
-  @override
-  int get tick => throw UnimplementedError();
-
-  @override
-  void cancel() => isActive = false;
-
-  void triggerCallback() => callback(this);
 }

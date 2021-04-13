@@ -665,8 +665,10 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         const <DartType>[]));
   }
 
+  // TODO(johnniwinther): Change [node] `InstanceGet` when the old method
+  // invocation encoding is no longer used.
   @override
-  void registerRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
+  void registerRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType) {
     DartType receiverDartType = elementMap.getDartType(receiverType);
     DartType argumentDartType =
@@ -700,7 +702,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       ir.FunctionType expressionType, List<ir.DartType> typeArguments) {
     // TODO(johnniwinther): Track which arities are used in instantiation.
     impactBuilder.registerInstantiation(new GenericInstantiation(
-        elementMap.getDartType(expressionType),
+        elementMap.getDartType(expressionType).withoutNullability,
         typeArguments.map(elementMap.getDartType).toList()));
   }
 

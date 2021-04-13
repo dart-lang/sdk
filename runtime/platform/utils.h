@@ -57,7 +57,7 @@ class Utils {
   }
 
   template <typename T>
-  static inline bool IsPowerOfTwo(T x) {
+  static constexpr bool IsPowerOfTwo(T x) {
     return ((x & (x - 1)) == 0) && (x != 0);
   }
 
@@ -73,13 +73,13 @@ class Utils {
   }
 
   template <typename T>
-  static inline bool IsAligned(T x, intptr_t n) {
-    ASSERT(IsPowerOfTwo(n));
+  static constexpr bool IsAligned(T x, intptr_t n) {
+    assert(IsPowerOfTwo(n));
     return (x & (n - 1)) == 0;
   }
 
   template <typename T>
-  static inline bool IsAligned(T* x, intptr_t n) {
+  static constexpr bool IsAligned(T* x, intptr_t n) {
     return IsAligned(reinterpret_cast<uword>(x), n);
   }
 
@@ -290,6 +290,13 @@ class Utils {
     // Avoid undefined behavior by doing arithmetic in the unsigned type.
     using Unsigned = typename std::make_unsigned<T>::type;
     return static_cast<T>(static_cast<Unsigned>(a) * static_cast<Unsigned>(b));
+  }
+
+  template <typename T = int64_t>
+  static inline T NegWithWrapAround(T a) {
+    // Avoid undefined behavior by doing arithmetic in the unsigned type.
+    using Unsigned = typename std::make_unsigned<T>::type;
+    return static_cast<T>(-static_cast<Unsigned>(a));
   }
 
   // Shifts int64_t value left. Supports any non-negative number of bits and

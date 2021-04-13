@@ -713,8 +713,25 @@ class FragmentEmitter {
     var lazyInitializers = emitLazilyInitializedStatics(fragment);
     // TODO(floitsch): only call emitNativeSupport if we need native.
     var nativeSupport = emitNativeSupport(fragment);
-    return PreFragment(
-        fragment,
+    int size = 0;
+    if (estimateSize) {
+      var estimator = SizeEstimator();
+      estimator.visit(classPrototypes);
+      estimator.visit(closurePrototypes);
+      estimator.visit(inheritance);
+      estimator.visit(methodAliases);
+      estimator.visit(tearOffs);
+      estimator.visit(constants);
+      estimator.visit(typeRules);
+      estimator.visit(variances);
+      estimator.visit(staticNonFinalFields);
+      estimator.visit(lazyInitializers);
+      estimator.visit(nativeSupport);
+      size = estimator.charCount;
+    }
+    var emittedOutputUnit = EmittedOutputUnit(
+        fragment.outputUnit,
+        fragment.libraries,
         classPrototypes,
         closurePrototypes,
         inheritance,
@@ -725,12 +742,14 @@ class FragmentEmitter {
         variances,
         staticNonFinalFields,
         lazyInitializers,
-        nativeSupport,
-        estimateSize);
+        nativeSupport);
+    return PreFragment(fragment.outputFileName, emittedOutputUnit, size);
   }
 
   js.Statement emitMainFragment(
-      Program program, DeferredLoadingState deferredLoadingState) {
+      Program program,
+      Map<String, List<FinalizedFragment>> fragmentsToLoad,
+      DeferredLoadingState deferredLoadingState) {
     MainFragment fragment = program.fragments.first;
 
     Iterable<Holder> nonStaticStateHolders =
@@ -778,8 +797,8 @@ class FragmentEmitter {
       'constants': emitConstants(fragment),
       'staticNonFinalFields': emitStaticNonFinalFields(fragment),
       'lazyStatics': emitLazilyInitializedStatics(fragment),
-      'embeddedGlobalsPart1':
-          emitEmbeddedGlobalsPart1(program, deferredLoadingState),
+      'embeddedGlobalsPart1': emitEmbeddedGlobalsPart1(
+          program, fragmentsToLoad, deferredLoadingState),
       'embeddedGlobalsPart2':
           emitEmbeddedGlobalsPart2(program, deferredLoadingState),
       'typeRules': emitTypeRules(fragment),
@@ -830,8 +849,7 @@ class FragmentEmitter {
     return new js.Block(holderInits);
   }
 
-  js.Expression emitDeferredFragment(
-      FinalizedFragment fragment, List<Holder> holders) {
+  js.Expression emitCodeFragment(CodeFragment fragment, List<Holder> holders) {
     HolderCode holderCode =
         emitHolders(holders, fragment.libraries, initializeEmptyHolders: false);
 
@@ -1874,10 +1892,11 @@ class FragmentEmitter {
   // array of hashes indexed by part.
   // [deferredLoadHashes] may have missing entries to indicate empty parts.
   void finalizeDeferredLoadingData(
-      Map<String, List<FinalizedFragment>> loadMap,
+      Map<String, List<CodeFragment>> codeFragmentsToLoad,
+      Map<CodeFragment, FinalizedFragment> codeFragmentMap,
       Map<FinalizedFragment, String> deferredLoadHashes,
       DeferredLoadingState deferredLoadingState) {
-    if (loadMap.isEmpty) return;
+    if (codeFragmentsToLoad.isEmpty) return;
 
     Map<FinalizedFragment, int> fragmentIndexes = {};
     List<String> fragmentUris = [];
@@ -1885,9 +1904,11 @@ class FragmentEmitter {
 
     List<js.Property> libraryPartsMapEntries = [];
 
-    loadMap.forEach((String loadId, List<FinalizedFragment> fragmentList) {
+    codeFragmentsToLoad
+        .forEach((String loadId, List<CodeFragment> codeFragments) {
       List<js.Expression> indexes = [];
-      for (FinalizedFragment fragment in fragmentList) {
+      for (var codeFragment in codeFragments) {
+        var fragment = codeFragmentMap[codeFragment];
         String fragmentHash = deferredLoadHashes[fragment];
         if (fragmentHash == null) continue;
         int index = fragmentIndexes[fragment];
@@ -1971,10 +1992,12 @@ class FragmentEmitter {
 
   /// Emits all embedded globals.
   js.Statement emitEmbeddedGlobalsPart1(
-      Program program, DeferredLoadingState deferredLoadingState) {
+      Program program,
+      Map<String, List<FinalizedFragment>> fragmentsToLoad,
+      DeferredLoadingState deferredLoadingState) {
     List<js.Property> globals = [];
 
-    if (program.loadMap.isNotEmpty) {
+    if (fragmentsToLoad.isNotEmpty) {
       globals
           .addAll(emitEmbeddedGlobalsForDeferredLoading(deferredLoadingState));
     }
@@ -2037,9 +2060,7 @@ class FragmentEmitter {
   js.Block emitTypeRules(Fragment fragment) {
     List<js.Statement> statements = [];
 
-    bool addJsObjectRedirections = false;
     ClassEntity jsObjectClass = _commonElements.jsJavaScriptObjectClass;
-    InterfaceType jsObjectType = _elementEnvironment.getThisType(jsObjectClass);
 
     Map<ClassTypeData, List<ClassTypeData>> nativeRedirections =
         _nativeEmitter.typeRedirections;
@@ -2059,49 +2080,43 @@ class FragmentEmitter {
 
       bool isInterop = _classHierarchy.isSubclassOf(element, jsObjectClass);
 
-      Iterable<TypeCheck> checks = typeData.classChecks?.checks ?? [];
-      Iterable<InterfaceType> supertypes = isInterop
-          ? checks
-              .map((check) => _elementEnvironment.getJsInteropType(check.cls))
-          : checks
-              .map((check) => _dartTypes.asInstanceOf(targetType, check.cls));
-
-      Map<TypeVariableType, DartType> typeVariables = {};
-      Set<TypeVariableType> namedTypeVariables = typeData.namedTypeVariables;
-      nativeRedirections[typeData]?.forEach((ClassTypeData redirectee) {
-        namedTypeVariables.addAll(redirectee.namedTypeVariables);
-      });
-      for (TypeVariableType typeVariable in typeData.namedTypeVariables) {
-        TypeVariableEntity element = typeVariable.element;
-        InterfaceType supertype = isInterop
-            ? _elementEnvironment.getJsInteropType(element.typeDeclaration)
-            : _dartTypes.asInstanceOf(targetType, element.typeDeclaration);
-        List<DartType> supertypeArguments = supertype.typeArguments;
-        typeVariables[typeVariable] = supertypeArguments[element.index];
-      }
-
-      if (isInterop) {
-        ruleset.addEntry(jsObjectType, supertypes, typeVariables);
-        addJsObjectRedirections = true;
+      if (isInterop && element != jsObjectClass) {
+        ruleset.addRedirection(element, jsObjectClass);
       } else {
+        Iterable<TypeCheck> checks = typeData.classChecks?.checks ?? const [];
+        Iterable<InterfaceType> supertypes = isInterop
+            ? checks
+                .map((check) => _elementEnvironment.getJsInteropType(check.cls))
+            : checks
+                .map((check) => _dartTypes.asInstanceOf(targetType, check.cls));
+
+        Map<TypeVariableType, DartType> typeVariables = {};
+        Set<TypeVariableType> namedTypeVariables = typeData.namedTypeVariables;
+        nativeRedirections[typeData]?.forEach((ClassTypeData redirectee) {
+          namedTypeVariables.addAll(redirectee.namedTypeVariables);
+        });
+        for (TypeVariableType typeVariable in typeData.namedTypeVariables) {
+          TypeVariableEntity element = typeVariable.element;
+          InterfaceType supertype = isInterop
+              ? _elementEnvironment.getJsInteropType(element.typeDeclaration)
+              : _dartTypes.asInstanceOf(targetType, element.typeDeclaration);
+          List<DartType> supertypeArguments = supertype.typeArguments;
+          typeVariables[typeVariable] = supertypeArguments[element.index];
+        }
         ruleset.addEntry(targetType, supertypes, typeVariables);
       }
     });
 
-    if (addJsObjectRedirections) {
-      _classHierarchy
-          .strictSubclassesOf(jsObjectClass)
-          .forEach((ClassEntity subclass) {
-        ruleset.addRedirection(subclass, jsObjectClass);
+    // We add native redirections only to the main fragment in order to avoid
+    // duplicating them in multiple deferred units.
+    if (fragment.outputUnit.isMainOutput) {
+      nativeRedirections
+          .forEach((ClassTypeData target, List<ClassTypeData> redirectees) {
+        for (ClassTypeData redirectee in redirectees) {
+          ruleset.addRedirection(redirectee.element, target.element);
+        }
       });
     }
-
-    nativeRedirections
-        .forEach((ClassTypeData target, List<ClassTypeData> redirectees) {
-      for (ClassTypeData redirectee in redirectees) {
-        ruleset.addRedirection(redirectee.element, target.element);
-      }
-    });
 
     if (ruleset.isNotEmpty) {
       FunctionEntity addRules = _closedWorld.commonElements.rtiAddRulesMethod;

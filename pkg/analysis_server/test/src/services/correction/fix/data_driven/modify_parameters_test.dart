@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix/data_driven/changes_selector.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
@@ -384,12 +386,44 @@ void f(C c) {
 ''');
   }
 
+  Future<void> test_mixed_overlap_addBetweenRemoved_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  void m1({int a, int b,        int d, int e}) {}
+  void m2({int a,        int c,        int e}) {}
+}
+''');
+    setPackageData(_modify([
+      'm1',
+      'C'
+    ], [
+      AddParameter(1, 'c', true, false, codeTemplate('3')),
+      RemoveParameter(NamedParameterReference('b')),
+      RemoveParameter(NamedParameterReference('d')),
+    ], newName: 'm2'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(C c) {
+  c.m1(a: 1, b: 2, d: 4, e: 5);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m2(a: 1, c: 3, e: 5);
+}
+''');
+  }
+
   Future<void> test_mixed_overlap_first_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
-  void m1(int a, int b, int d) {}
-  void m2(       int c, int d) {}
+  void m1(int a, int b,        int d) {}
+  void m2(              int c, int d) {}
 }
 ''');
     setPackageData(_modify([
@@ -420,8 +454,8 @@ void f(C c) {
     setPackageContent('''
 class C {
   @deprecated
-  void m1(int a, int b, int c) {}
-  void m2(int a,        int d) {}
+  void m1(int a, int b, int c       ) {}
+  void m2(int a,               int d) {}
 }
 ''');
     setPackageData(_modify([
@@ -452,8 +486,8 @@ void f(C c) {
     setPackageContent('''
 class C {
   @deprecated
-  void m1(       int b, int c, int e, int f, int g) {}
-  void m2(int a, int b, int d, int e,        int g) {}
+  void m1(       int b, int c,        int e, int f, int g) {}
+  void m2(int a, int b,        int d, int e,        int g) {}
 }
 ''');
     setPackageData(_modify([
@@ -481,7 +515,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_mixed_replaced_deprecated() async {
+  Future<void> test_mixed_replaceAll_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -508,6 +542,41 @@ import '$importUri';
 
 void f(C c) {
   c.m2(b: 0);
+}
+''');
+  }
+
+  Future<void> test_mixed_replaceAll_trailingComma_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  void m1({int a       }) {}
+  void m2({       int b}) {}
+}
+''');
+    setPackageData(_modify([
+      'm1',
+      'C'
+    ], [
+      AddParameter(0, 'b', true, false, codeTemplate('0')),
+      RemoveParameter(NamedParameterReference('a')),
+    ], newName: 'm2'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(C c) {
+  c.m1(
+    a: 1,
+  );
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m2(
+    b: 0,
+  );
 }
 ''');
   }

@@ -15,21 +15,21 @@ class LogPage extends PageWriter {
   InstrumentationLog log;
 
   /// The id of the entry groups to be displayed.
-  EntryGroup selectedGroup;
+  late EntryGroup selectedGroup;
 
   /// The entries in the selected group.
-  List<LogEntry> entries;
+  late List<LogEntry> entries;
 
   /// The index of the first entry to be written.
   int pageStart = 0;
 
   /// The number of entries to be written, or `null` if all of the entries
   /// should be written.
-  int pageLength;
+  int? pageLength;
 
   /// The number of digits in the event stamps that are the same for every
   /// entry.
-  int prefixLength;
+  late int prefixLength;
 
   /// A table mapping the ids of plugins to an index for the plugin.
   Map<String, int> pluginIdMap = <String, int>{};
@@ -46,7 +46,7 @@ class LogPage extends PageWriter {
 
   @override
   void writeBody(StringSink sink) {
-    entries = log.entriesInGroup(selectedGroup);
+    entries = log.entriesInGroup(selectedGroup)!;
     prefixLength = computePrefixLength(entries);
 
     writeMenu(sink);
@@ -100,7 +100,7 @@ function selectEntryGroup(pageStart) {
 
   /// Return the number of milliseconds elapsed between the [startEntry] and the
   /// [endEntry], or a question .
-  String _getDuration(LogEntry startEntry, LogEntry endEntry) {
+  String _getDuration(LogEntry? startEntry, LogEntry? endEntry) {
     if (startEntry != null && endEntry != null) {
       return (endEntry.timeStamp - startEntry.timeStamp).toString();
     }
@@ -109,7 +109,7 @@ function selectEntryGroup(pageStart) {
 
   /// Write the given log [entry] to the given [sink].
   void _writeEntry(StringSink sink, LogEntry entry) {
-    String id;
+    String? id;
     var clickHandler = 'clearHighlight()';
     var icon = '';
     var description = entry.kindName;
@@ -224,6 +224,7 @@ function selectEntryGroup(pageStart) {
   /// Write the entries in the instrumentation log to the given [sink].
   void _writeLeftColumn(StringSink sink) {
     var length = entries.length;
+    var pageLength = this.pageLength;
     var pageEnd =
         pageLength == null ? length : math.min(pageStart + pageLength, length);
     //
@@ -257,7 +258,7 @@ function selectEntryGroup(pageStart) {
     } else {
       sink.write('<button type="button">');
       sink.write(
-          '<a href="${WebServer.logPath}?group=${selectedGroup.id}&start=${pageStart - pageLength}">');
+          '<a href="${WebServer.logPath}?group=${selectedGroup.id}&start=${pageStart - pageLength!}">');
       sink.write('<b>&lt;</b>');
       sink.writeln('</a></button>');
     }
@@ -267,7 +268,7 @@ function selectEntryGroup(pageStart) {
     } else {
       sink.write('<button type="button">');
       sink.write(
-          '<a href="${WebServer.logPath}?group=${selectedGroup.id}&start=${pageStart + pageLength}">');
+          '<a href="${WebServer.logPath}?group=${selectedGroup.id}&start=${pageStart + pageLength!}">');
       sink.write('<b>&gt;</b>');
       sink.writeln('</a></button>');
     }

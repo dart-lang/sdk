@@ -48,6 +48,9 @@ class OSError implements Exception {
   /// Constant used to indicate that no OS error code is available.
   static const int noErrorCode = -1;
 
+  /// Returns error code that corresponds to EINPROGRESS OS error.
+  external static int inProgressErrorCode();
+
   /// Error message supplied by the operating system. This will be empty if no
   /// message is associated with the error.
   final String message;

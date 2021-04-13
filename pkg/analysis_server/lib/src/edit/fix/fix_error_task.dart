@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
@@ -60,7 +62,7 @@ class FixErrorTask {
     } else {
       // TODO(danrubel): Determine why the fix could not be applied
       // and report that in the description.
-      listener.addRecommendation('Could not fix "${error.message}"', location);
+      listener.addRecommendation("Couldn't fix \"${error.message}\"", location);
     }
   }
 

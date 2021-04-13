@@ -122,6 +122,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
   KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
   reader.ReadUInt();  // skip variable-sized int for adjusted constant offset
   reader.SetOffset(reader.ReaderOffset() + constant_offset);
+  // No function types returned as part of any types built should reference
+  // free parent type args, ensured by clearing the enclosing function type.
+  ActiveEnclosingFunctionScope scope(active_class_, nullptr);
   // Construct constant from raw bytes.
   Instance& instance = Instance::Handle(Z);
   const intptr_t constant_tag = reader.ReadByte();
@@ -198,8 +201,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
           Class::Handle(Z, corelib.LookupClassAllowPrivate(Symbols::_List()));
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
-          &reader, this, active_class_, true,
-          active_class_->RequireConstCanonicalTypeErasure(null_safety));
+          &reader, this, active_class_, /* finalize = */ true,
+          active_class_->RequireConstCanonicalTypeErasure(null_safety),
+          /* in_constant_context = */ true);
       auto& type_arguments =
           TypeArguments::Handle(Z, TypeArguments::New(1, Heap::kOld));
       AbstractType& type = type_translator.BuildType();
@@ -241,8 +245,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       instance = Instance::New(klass, Heap::kOld);
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
-          &reader, this, active_class_, true,
-          active_class_->RequireConstCanonicalTypeErasure(null_safety));
+          &reader, this, active_class_, /* finalize = */ true,
+          active_class_->RequireConstCanonicalTypeErasure(null_safety),
+          /* in_constant_context = */ true);
       const intptr_t number_of_type_arguments = reader.ReadUInt();
       if (klass.NumTypeArguments() > 0) {
         auto& type_arguments = TypeArguments::Handle(
@@ -264,7 +269,8 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       Field& field = Field::Handle(Z);
       Instance& constant = Instance::Handle(Z);
       for (intptr_t j = 0; j < number_of_fields; ++j) {
-        field = H.LookupFieldByKernelField(reader.ReadCanonicalNameReference());
+        field = H.LookupFieldByKernelGetterOrSetter(
+            reader.ReadCanonicalNameReference());
         // Recurse into lazily evaluating all "sub" constants
         // needed to evaluate the current constant.
         const intptr_t entry_offset = reader.ReadUInt();
@@ -284,8 +290,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
 
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
-          &reader, this, active_class_, true,
-          active_class_->RequireConstCanonicalTypeErasure(null_safety));
+          &reader, this, active_class_, /* finalize = */ true,
+          active_class_->RequireConstCanonicalTypeErasure(null_safety),
+          /* in_constant_context = */ true);
       const intptr_t number_of_type_arguments = reader.ReadUInt();
       ASSERT(number_of_type_arguments > 0);
       auto& type_arguments = TypeArguments::Handle(
@@ -323,7 +330,10 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       // canonicalized to an identical representant independently of the null
       // safety mode currently in use (sound or unsound) or migration state of
       // the declaring library (legacy or opted-in).
-      TypeTranslator type_translator(&reader, this, active_class_, true);
+      TypeTranslator type_translator(&reader, this, active_class_,
+                                     /* finalize = */ true,
+                                     /* apply_canonical_type_erasure = */ false,
+                                     /* in_constant_context = */ true);
       instance = type_translator.BuildType().ptr();
       break;
     }

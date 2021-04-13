@@ -61,6 +61,12 @@ abstract class ImplicitFieldType extends DartType {
   }
 
   @override
+  ImplicitFieldType toNonNull() {
+    return unsupported(
+        "toNonNullable", fieldBuilder.charOffset, fieldBuilder.fileUri);
+  }
+
+  @override
   void toTextInternal(AstPrinter printer) {
     printer.write('<implicit-field-type:$fieldBuilder>');
   }

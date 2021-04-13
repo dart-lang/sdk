@@ -9,12 +9,12 @@ import 'dart:io';
 abstract class ProcessProfiler {
   ProcessProfiler._();
 
-  Future<UsageInfo> getProcessUsage(int processId);
+  Future<UsageInfo?> getProcessUsage(int processId);
 
   /// Return a [ProcessProfiler] instance suitable for the current host
   /// platform. This can return `null` if we're not able to gather memory and
   /// cpu information for the current platform.
-  static ProcessProfiler getProfilerForPlatform() {
+  static ProcessProfiler? getProfilerForPlatform() {
     if (Platform.isLinux || Platform.isMacOS) {
       return _PosixProcessProfiler();
     }
@@ -46,7 +46,7 @@ class _PosixProcessProfiler extends ProcessProfiler {
   _PosixProcessProfiler() : super._();
 
   @override
-  Future<UsageInfo> getProcessUsage(int processId) {
+  Future<UsageInfo?> getProcessUsage(int processId) {
     try {
       // Execution time is typically 2-4ms.
       var future =
@@ -63,7 +63,7 @@ class _PosixProcessProfiler extends ProcessProfiler {
     }
   }
 
-  UsageInfo _parse(String psResults) {
+  UsageInfo? _parse(String psResults) {
     try {
       // "  0.0 378940"
       var line = psResults.split('\n').first.trim();

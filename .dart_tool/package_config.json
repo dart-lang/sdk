@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-03-04T14:15:31.446260",
+  "generated": "2021-04-06T14:39:06.316531",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -70,13 +70,13 @@
       "name": "analysis_server",
       "rootUri": "../pkg/analysis_server",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.12"
     },
     {
       "name": "analysis_server_client",
       "rootUri": "../pkg/analysis_server_client",
       "packageUri": "lib/",
-      "languageVersion": "2.8"
+      "languageVersion": "2.12"
     },
     {
       "name": "analyzer",
@@ -94,7 +94,7 @@
       "name": "analyzer_plugin",
       "rootUri": "../pkg/analyzer_plugin",
       "packageUri": "lib/",
-      "languageVersion": "2.9"
+      "languageVersion": "2.12"
     },
     {
       "name": "analyzer_utilities",
@@ -137,6 +137,12 @@
       "rootUri": "../third_party/pkg/boolean_selector",
       "packageUri": "lib/",
       "languageVersion": "2.10"
+    },
+    {
+      "name": "browser_launcher",
+      "rootUri": "../third_party/pkg/browser_launcher",
+      "packageUri": "lib/",
+      "languageVersion": "2.2"
     },
     {
       "name": "build_integration",
@@ -220,7 +226,7 @@
       "name": "dart_style",
       "rootUri": "../third_party/pkg_tested/dart_style",
       "packageUri": "lib/",
-      "languageVersion": "2.9"
+      "languageVersion": "2.12"
     },
     {
       "name": "dartdev",
@@ -238,7 +244,7 @@
       "name": "dds",
       "rootUri": "../pkg/dds",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.12"
     },
     {
       "name": "dev_compiler",
@@ -339,7 +345,7 @@
       "name": "http_retry",
       "rootUri": "../third_party/pkg/http_retry",
       "packageUri": "lib/",
-      "languageVersion": "1.24"
+      "languageVersion": "2.12"
     },
     {
       "name": "http_throttle",
@@ -435,12 +441,6 @@
       "rootUri": "../pkg/modular_test",
       "packageUri": "lib/",
       "languageVersion": "2.2"
-    },
-    {
-      "name": "mustache",
-      "rootUri": "../third_party/pkg/mustache",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
     },
     {
       "name": "native_stack_traces",
@@ -575,7 +575,7 @@
       "name": "shelf_proxy",
       "rootUri": "../third_party/pkg/shelf_proxy",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "shelf_static",
@@ -630,12 +630,6 @@
       "rootUri": "../third_party/pkg/stack_trace",
       "packageUri": "lib/",
       "languageVersion": "2.12"
-    },
-    {
-      "name": "stagehand",
-      "rootUri": "../third_party/pkg/stagehand",
-      "packageUri": "lib/",
-      "languageVersion": "2.10"
     },
     {
       "name": "status_file",
@@ -695,13 +689,13 @@
       "name": "test_descriptor",
       "rootUri": "../third_party/pkg/test_descriptor",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "test_process",
       "rootUri": "../third_party/pkg/test_process",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "test_reflective_loader",
@@ -784,6 +778,12 @@
     {
       "name": "webdriver",
       "rootUri": "../third_party/pkg/webdriver",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "webkit_inspection_protocol",
+      "rootUri": "../third_party/pkg/webkit_inspection_protocol",
       "packageUri": "lib/",
       "languageVersion": "2.0"
     },

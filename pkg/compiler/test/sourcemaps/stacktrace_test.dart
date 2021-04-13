@@ -9,7 +9,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 

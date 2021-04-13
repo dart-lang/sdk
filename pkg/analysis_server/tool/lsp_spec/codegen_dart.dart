@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:dart_style/dart_style.dart';
+import 'package:meta/meta.dart';
 
 import 'typescript.dart';
 import 'typescript_parser.dart';
@@ -384,7 +387,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..outdent()
     ..writeIndentedln('}');
   namespace.members.whereType<Const>().forEach((cons) {
-    // We don't use any deprecated enum values, so ommit them entirely.
+    // We don't use any deprecated enum values, so omit them entirely.
     if (cons.isDeprecated) {
       return;
     }
@@ -463,7 +466,7 @@ void _writeField(IndentableStringBuffer buffer, Field field) {
 
 void _writeFromJsonCode(
     IndentableStringBuffer buffer, TypeBase type, String valueCode,
-    {bool allowsNull}) {
+    {bool allowsNull, bool requiresBracesInInterpolation = false}) {
   type = resolveTypeAlias(type);
 
   if (_isSimpleType(type)) {
@@ -493,7 +496,9 @@ void _writeFromJsonCode(
     _writeFromJsonCodeForLiteralUnion(buffer, type, valueCode,
         allowsNull: allowsNull);
   } else if (type is UnionType) {
-    _writeFromJsonCodeForUnion(buffer, type, valueCode, allowsNull: allowsNull);
+    _writeFromJsonCodeForUnion(buffer, type, valueCode,
+        allowsNull: allowsNull,
+        requiresBracesInInterpolation: requiresBracesInInterpolation);
   } else {
     buffer.write('$valueCode');
   }
@@ -513,7 +518,7 @@ void _writeFromJsonCodeForLiteralUnion(
 
 void _writeFromJsonCodeForUnion(
     IndentableStringBuffer buffer, UnionType union, String valueCode,
-    {bool allowsNull}) {
+    {bool allowsNull, @required bool requiresBracesInInterpolation}) {
   // Write a check against each type, eg.:
   // x is y ? new Either.tx(x) : (...)
   var hasIncompleteCondition = false;
@@ -532,7 +537,9 @@ void _writeFromJsonCodeForUnion(
     // The code to construct a value with this "side" of the union.
     buffer.write('${union.dartTypeWithTypeArgs}.t${i + 1}(');
     _writeFromJsonCode(buffer, type, valueCode,
-        allowsNull: allowsNull); // Call recursively!
+        allowsNull: allowsNull,
+        requiresBracesInInterpolation:
+            requiresBracesInInterpolation); // Call recursively!
     buffer.write(')');
 
     // If we output the type condition at the top, prepare for the next condition.
@@ -551,8 +558,10 @@ void _writeFromJsonCodeForUnion(
       buffer.write('$valueCode == null ? null : (');
       unclosedParens++;
     }
+    var interpolation =
+        requiresBracesInInterpolation ? '\${$valueCode}' : '\$$valueCode';
     buffer.write(
-        "throw '''\${$valueCode} was not one of (${union.types.map((t) => t.dartTypeWithTypeArgs).join(', ')})'''");
+        "throw '''$interpolation was not one of (${union.types.map((t) => t.dartTypeWithTypeArgs).join(', ')})'''");
   }
   buffer.write(')' * unclosedParens);
 }
@@ -578,7 +587,8 @@ void _writeFromJsonConstructor(
   for (final field in allFields) {
     buffer.writeIndented('final ${field.name} = ');
     _writeFromJsonCode(buffer, field.type, "json['${field.name}']",
-        allowsNull: field.allowsNull || field.allowsUndefined);
+        allowsNull: field.allowsNull || field.allowsUndefined,
+        requiresBracesInInterpolation: true);
     buffer.writeln(';');
   }
   buffer

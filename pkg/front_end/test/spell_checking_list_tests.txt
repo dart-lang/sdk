@@ -19,8 +19,10 @@ aa
 aaa
 abc
 abcompile
+adapter
 adaptor
 adopted
+advantages
 albeit
 allocations
 allowlist
@@ -33,6 +35,7 @@ animated
 annoying
 anon
 aoo
+aot
 approval
 approximation
 arbitrarily
@@ -54,6 +57,12 @@ background
 bail
 bailing
 bailout
+bar1a
+bar1b
+bar2a
+bar2b
+bar3a
+bar3b
 barbar
 bash
 bat
@@ -98,6 +107,7 @@ c's
 c59cdee365b94ce066344840f9e3412d642019b
 ca
 cafebabe
+calloc
 camel
 capitalized
 causal
@@ -142,6 +152,7 @@ compiler's
 complement
 completers
 complicated
+concurrently
 confidence
 confident
 confirm
@@ -169,6 +180,8 @@ cumulative
 cursor
 cuts
 cx
+d1a
+d1b
 dacoharkes
 dadd
 daemon
@@ -226,6 +239,7 @@ donly
 doo
 downstream
 draw
+dsemi
 dumping
 dumps
 dupe
@@ -335,6 +349,7 @@ gamma
 gave
 gc
 gcd
+gesture
 getter1c
 getter1d
 getter1e
@@ -365,6 +380,7 @@ hurray
 i'm
 ia
 ideal
+identification
 idle
 ikg
 illustrate
@@ -504,10 +520,13 @@ mod
 modelled
 month
 moo
+mouse
 mul
 mx
 mxn
 mysdk
+n1a
+n1b
 naively
 naturally
 negatable
@@ -522,6 +541,7 @@ numerator
 ob
 obool
 observable
+offers
 oh
 okay
 ol
@@ -567,6 +587,8 @@ preliminary
 prematurely
 press
 pretends
+processes
+processors
 producer
 profile
 profiler
@@ -670,6 +692,7 @@ sigint
 signalled
 sigwinch
 slight
+sliver
 smoke
 snull
 somehow
@@ -736,9 +759,11 @@ timer
 timings
 tinv
 told
+touch
 tpt
 transitively
 translators
+transparent
 triangle
 triggers
 trimming

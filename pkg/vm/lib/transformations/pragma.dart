@@ -13,6 +13,7 @@ const kNonNullableResultType = "vm:non-nullable-result-type";
 const kResultTypeUsesPassedTypeArguments =
     "result-type-uses-passed-type-arguments";
 const kRecognizedPragmaName = "vm:recognized";
+const kDisableUnboxedParametetersPragmaName = "vm:disable-unboxed-parameters";
 
 abstract class ParsedPragma {}
 
@@ -44,6 +45,10 @@ class ParsedNonNullableResultType extends ParsedPragma {
 class ParsedRecognized extends ParsedPragma {
   final PragmaRecognizedType type;
   ParsedRecognized(this.type);
+}
+
+class ParsedDisableUnboxedParameters extends ParsedPragma {
+  ParsedDisableUnboxedParameters();
 }
 
 abstract class PragmaAnnotationParser {
@@ -142,6 +147,8 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
               "pragma: $options";
         }
         return new ParsedRecognized(type);
+      case kDisableUnboxedParametetersPragmaName:
+        return new ParsedDisableUnboxedParameters();
       default:
         return null;
     }

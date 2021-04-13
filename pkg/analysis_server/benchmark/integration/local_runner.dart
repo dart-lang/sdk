@@ -75,7 +75,7 @@ void main(List<String> args) {
 }
 
 /// Print help and exit
-void printHelp([String errMsg]) {
+void printHelp([String? errMsg]) {
   if (errMsg != null) {
     print('');
     print('Error: $errMsg');

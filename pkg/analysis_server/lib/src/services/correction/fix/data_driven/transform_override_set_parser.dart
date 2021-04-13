@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
-import 'package:analysis_server/src/utilities/extensions/yaml.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
 /// A parser used to parse the content of a configuration file.

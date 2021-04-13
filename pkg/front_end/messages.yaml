@@ -214,7 +214,7 @@ ConstEvalExtension:
   analyzerCode: NOT_CONSTANT_EXPRESSION
 
 ConstEvalUnevaluated:
-  template: "Could not evaluate constant expression."
+  template: "Couldn't evaluate constant expression."
 
 NotConstantExpression:
   template: "#string is not a constant expression."
@@ -1247,6 +1247,54 @@ UnexpectedToken:
   analyzerCode: UNEXPECTED_TOKEN
   script:
     - "import 'b.dart' d as b;"
+
+LiteralWithClassAndNew:
+  template: "A #string literal can't be prefixed by 'new #lexeme'."
+  tip: "Try removing 'new' and '#lexeme'"
+  analyzerCode: ParserErrorCode.LITERAL_WITH_CLASS_AND_NEW
+  index: 115
+  script:
+    - "var x = new Map{};"
+    - "var x = new Set{};"
+    - "var x = new List[];"
+    - "var x = new Map{1: 2};"
+    - "var x = new Set{1};"
+    - "var x = new List[1];"
+
+LiteralWithClass:
+  template: "A #string literal can't be prefixed by '#lexeme'."
+  tip: "Try removing '#lexeme'"
+  analyzerCode: ParserErrorCode.LITERAL_WITH_CLASS
+  index: 116
+  script:
+    - "var x = Map{};"
+    - "var x = Set{};"
+    - "var x = List<String>[];"
+    - "var x = Map{1: 2};"
+    - "var x = Set{1};"
+    - "var x = List<int>[1];"
+    - "var x = const Map{};"
+    - "var x = const Set{};"
+    - "var x = const List[];"
+    - "var x = const Map{1: 2};"
+    - "var x = const Set{1};"
+    - "var x = const List[1];"
+
+LiteralWithNew:
+  template: "A literal can't be prefixed by 'new'."
+  tip: "Try removing 'new'"
+  analyzerCode: ParserErrorCode.LITERAL_WITH_NEW
+  index: 117
+  script:
+    - "var x = new <String, String>{};"
+    - "var x = new <String>{};"
+    - "var x = new {};"
+    - "var x = new [];"
+    - "var x = new <String, String>{'a': 'b'};"
+    - "var x = new <String>{'a'};"
+    - "var x = new {'a': 'b'};"
+    - "var x = new {'a'};"
+    - "var x = new ['a'];"
 
 UnmatchedToken:
   template: "Can't find '#string' to match '#lexeme'."
@@ -2904,6 +2952,14 @@ SupertypeIsIllegal:
   template: "The type '#name' can't be used as supertype."
   analyzerCode: EXTENDS_NON_CLASS
 
+SupertypeIsIllegalAliased:
+  template: "The type '#name' which is an alias of '#type' can't be used as supertype."
+  analyzerCode: EXTENDS_NON_CLASS
+
+SupertypeIsNullableAliased:
+  template: "The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable."
+  analyzerCode: EXTENDS_NON_CLASS
+
 SupertypeIsTypeVariable:
   template: "The type variable '#name' can't be used as supertype."
   analyzerCode: EXTENDS_NON_CLASS
@@ -3232,7 +3288,7 @@ CantInferPackagesFromPackageUri:
   tip: "Try specifying the file explicitly with the --packages option."
 
 PackageNotFound:
-  template: "Could not resolve the package '#name' in '#uri'."
+  template: "Couldn't resolve the package '#name' in '#uri'."
 
 InvalidPackageUri:
   template: "Invalid package URI '#uri':\n  #string."
@@ -3491,9 +3547,21 @@ UndefinedOperator:
       c + 0;
     }
 
+UndefinedExtensionGetter:
+  template: "The getter '#name' isn't defined for the extension '#type'."
+  tip: "Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'."
+
+UndefinedExtensionSetter:
+  template: "The setter '#name' isn't defined for the extension '#type'."
+  tip: "Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'."
+
 UndefinedExtensionMethod:
   template: "The method '#name' isn't defined for the extension '#type'."
   tip: "Try correcting the name to the name of an existing method, or defining a method name '#name'."
+
+UndefinedExtensionOperator:
+  template: "The operator '#name' isn't defined for the extension '#type'."
+  tip: "Try correcting the operator to an existing operator, or defining a '#name' operator."
 
 AmbiguousExtensionMethod:
   template: "The method '#name' is defined in multiple extensions for '#type' and neither is more specific."
@@ -3610,7 +3678,7 @@ AmbiguousSupertypes:
   analyzerCode: AMBIGUOUS_SUPERTYPES
 
 MixinInferenceNoMatchingClass:
-  template: "Type parameters could not be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'."
+  template: "Type parameters couldn't be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'."
   analyzerCode: MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION
 
 ImplicitCallOfNonMethod:
@@ -4253,7 +4321,7 @@ FfiFieldCyclic:
 
 FfiNotStatic:
   # Used by dart:ffi
-  template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code."
+  template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context."
   external: test/ffi_test.dart
 
 FfiFieldInitializer:
@@ -4267,9 +4335,29 @@ FfiExtendsOrImplementsSealedClass:
   template: "Class '#name' cannot be extended or implemented."
   external: test/ffi_test.dart
 
+FfiPackedAnnotation:
+  # Used by dart:ffi
+  template: "Struct '#name' must have at most one 'Packed' annotation."
+  external: test/ffi_test.dart
+
+FfiPackedAnnotationAlignment:
+  # Used by dart:ffi
+  template: "Only packing to 1, 2, 4, 8, and 16 bytes is supported."
+  external: test/ffi_test.dart
+
+FfiPackedNestingNonPacked:
+  # Used by dart:ffi
+  template: "Nesting the non-packed or less tightly packed struct '#name' in a packed struct '#name2' is not supported."
+  external: test/ffi_test.dart
+
 FfiSizeAnnotation:
   # Used by dart:ffi
   template: "Field '#name' must have exactly one 'Array' annotation."
+  external: test/ffi_test.dart
+
+FfiSizeAnnotationDimensions:
+  # Used by dart:ffi
+  template: "Field '#name' must have an 'Array' annotation that matches the dimensions."
   external: test/ffi_test.dart
 
 FfiStructGeneric:
@@ -4567,14 +4655,16 @@ MultipleVarianceModifiers:
   analyzerCode: ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS
 
 VariableCouldBeNullDueToWrite:
-  template: "Variable '#name' could be null due to an intervening write."
-  tip: "Try null checking the variable after the write."
+  template: "Variable '#name' could not be promoted due to an assignment."
+  tip: "Try null checking the variable after the assignment.  See #string"
 
 FieldNotPromoted:
-  template: "'#name' refers to a property so it could not be promoted."
+  template: "'#name' refers to a property so it couldn't be promoted."
+  tip: "See #string"
 
 ThisNotPromoted:
   template: "'this' can't be promoted."
+  tip: "See #string"
 
 NullablePropertyAccessError:
   template: "Property '#name' cannot be accessed on '#type' because it is potentially null."
@@ -4941,8 +5031,9 @@ UnexpectedModifierInNonNnbd:
   template: "The modifier '#lexeme' is only available in null safe libraries."
   exampleAllowMoreCodes: true
   analyzerCode: UNEXPECTED_TOKEN
-  script:
-    - "late int x;"
+  script: |
+    // @dart=2.9
+    late int x;
 
 CompilingWithSoundNullSafety:
   template: "Compiling with sound null safety"

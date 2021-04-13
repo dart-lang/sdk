@@ -1034,12 +1034,13 @@ class C<K extends L<T {
 
   void test_invalidMapLiteral() {
     parseCompilationUnit("class C { var f = Map<A, B> {}; }", codes: [
-// TODO(danrubel): Improve error message to indicate
-// that "Map" should be removed.
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.MISSING_KEYWORD_OPERATOR,
-      ParserErrorCode.MISSING_METHOD_PARAMETERS,
-      ParserErrorCode.EXPECTED_CLASS_MEMBER,
+      ParserErrorCode.LITERAL_WITH_CLASS,
+    ]);
+    parseCompilationUnit("class C { var f = new Map<A, B> {}; }", codes: [
+      ParserErrorCode.LITERAL_WITH_CLASS_AND_NEW,
+    ]);
+    parseCompilationUnit("class C { var f = new <A, B> {}; }", codes: [
+      ParserErrorCode.LITERAL_WITH_NEW,
     ]);
   }
 

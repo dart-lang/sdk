@@ -404,9 +404,6 @@ class JSNumber extends Interceptor implements double {
     return _shrOtherPositive(other);
   }
 
-  num operator >>>(num other) =>
-    throw UnimplementedError('int.>>> is not implemented yet');
-
   num _shrOtherPositive(num other) {
     return JS('num', '#', this) > 0
         ? _shrBothPositive(other)
@@ -432,6 +429,17 @@ class JSNumber extends Interceptor implements double {
         // number that has the 31st bit set would be treated as negative and
         // shift in ones.
         : JS('JSUInt32', r'# >>> #', this, other);
+  }
+
+  num operator >>>(num other) {
+    if (other is! num) throw argumentErrorValue(other);
+    if (other < 0) throw argumentErrorValue(other);
+    return _shruOtherPositive(other);
+  }
+
+  num _shruOtherPositive(num other) {
+    if (other > 31) return 0;
+    return JS('JSUInt32', r'# >>> #', this, other);
   }
 
   num operator &(num other) {

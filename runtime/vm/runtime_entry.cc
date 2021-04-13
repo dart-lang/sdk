@@ -80,6 +80,10 @@ DEFINE_FLAG(charp,
             deoptimize_filter,
             NULL,
             "Deoptimize in named function on stack overflow checks");
+DEFINE_FLAG(charp,
+            deoptimize_on_runtime_call_name_filter,
+            NULL,
+            "Runtime call name filter for --deoptimize-on-runtime-call-every.");
 
 DEFINE_FLAG(bool,
             unopt_monomorphic_calls,
@@ -172,7 +176,7 @@ static void NullErrorHelper(Zone* zone, const String& selector) {
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
 }
 
-DEFINE_RUNTIME_ENTRY(NullError, 0) {
+static void DoThrowNullError(Isolate* isolate, Thread* thread, Zone* zone) {
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   const StackFrame* caller_frame = iterator.NextFrame();
@@ -200,6 +204,59 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
   }
 
   NullErrorHelper(zone, member_name);
+}
+
+DEFINE_RUNTIME_ENTRY(NullError, 0) {
+  DoThrowNullError(isolate, thread, zone);
+}
+
+// Collects information about pointers within the top |kMaxSlotsCollected|
+// slots on the stack.
+// TODO(b/179632636) This code is added in attempt to better understand
+// b/179632636 and should be removed in the future.
+void ReportImpossibleNullError(intptr_t cid,
+                               StackFrame* caller_frame,
+                               Thread* thread) {
+  TextBuffer buffer(512);
+  buffer.Printf("hit null error with cid %" Pd ", caller context: ", cid);
+
+  const intptr_t kMaxSlotsCollected = 5;
+  const auto slots = reinterpret_cast<ObjectPtr*>(caller_frame->sp());
+  const intptr_t num_slots_in_frame =
+      reinterpret_cast<ObjectPtr*>(caller_frame->fp()) - slots;
+  const auto num_slots_to_collect =
+      Utils::Maximum(kMaxSlotsCollected, num_slots_in_frame);
+  bool comma = false;
+  for (intptr_t i = 0; i < num_slots_to_collect; i++) {
+    const ObjectPtr ptr = slots[i];
+    buffer.Printf("%s[sp+%" Pd "] %" Pp "", comma ? ", " : "", i,
+                  static_cast<uword>(ptr));
+    if (ptr->IsHeapObject() &&
+        (Dart::vm_isolate_group()->heap()->Contains(
+             UntaggedObject::ToAddr(ptr)) ||
+         thread->heap()->Contains(UntaggedObject::ToAddr(ptr)))) {
+      buffer.Printf("(%" Pp ")", static_cast<uword>(ptr->untag()->tags_));
+    }
+    comma = true;
+  }
+
+  const char* message = buffer.buffer();
+  FATAL("%s", message);
+}
+
+DEFINE_RUNTIME_ENTRY(DispatchTableNullError, 1) {
+  const Smi& cid = Smi::CheckedHandle(zone, arguments.ArgAt(0));
+  if (cid.Value() != kNullCid) {
+    // We hit null error, but receiver is not null itself. This most likely
+    // is a memory corruption. Crash the VM but provide some additonal
+    // information about the arguments on the stack.
+    DartFrameIterator iterator(thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
+    StackFrame* caller_frame = iterator.NextFrame();
+    RELEASE_ASSERT(caller_frame->IsDartFrame());
+    ReportImpossibleNullError(cid.Value(), caller_frame, thread);
+  }
+  DoThrowNullError(isolate, thread, zone);
 }
 
 DEFINE_RUNTIME_ENTRY(NullErrorWithSelector, 1) {
@@ -559,8 +616,7 @@ static void PrintTypeCheck(const char* message,
   }
   const Function& function =
       Function::Handle(caller_frame->LookupDartFunction());
-  if (function.IsInvokeFieldDispatcher() ||
-      function.IsNoSuchMethodDispatcher()) {
+  if (function.HasSavedArgumentsDescriptor()) {
     const auto& args_desc_array = Array::Handle(function.saved_args_desc());
     const ArgumentsDescriptor args_desc(args_desc_array);
     OS::PrintErr(" -> Function %s [%s]\n", function.ToFullyQualifiedCString(),
@@ -1089,7 +1145,8 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   Code& orig_stub = Code::Handle(zone);
-  orig_stub = isolate->debugger()->GetPatchedStubAddress(caller_frame->pc());
+  orig_stub =
+      isolate->group()->debugger()->GetPatchedStubAddress(caller_frame->pc());
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseBreakpoint());
   ThrowIfError(error);
@@ -1217,7 +1274,10 @@ static void TrySwitchInstanceCall(Thread* thread,
 #if !defined(PRODUCT)
   // Skip functions that contain breakpoints or when debugger is in single
   // stepping mode.
-  if (Debugger::IsDebugging(thread, caller_function)) return;
+  if (thread->isolate_group()->debugger()->IsDebugging(thread,
+                                                       caller_function)) {
+    return;
+  }
 #endif
 
   const intptr_t num_checks = ic_data.NumberOfChecks();
@@ -2953,10 +3013,7 @@ void DeoptimizeAt(Thread* mutator_thread,
   ASSERT(!unoptimized_code.IsNull());
   // The switch to unoptimized code may have already occurred.
   if (function.HasOptimizedCode()) {
-    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-    if (function.HasOptimizedCode()) {
-      function.SwitchToUnoptimizedCode();
-    }
+    function.SwitchToUnoptimizedCode();
   }
 
   if (frame->IsMarkedForLazyDeopt()) {
@@ -2990,23 +3047,48 @@ void DeoptimizeAt(Thread* mutator_thread,
 // Currently checks only that all optimized frames have kDeoptIndex
 // and unoptimized code has the kDeoptAfter.
 void DeoptimizeFunctionsOnStack() {
-  auto isolate_group = IsolateGroup::Current();
+  auto thread = Thread::Current();
+  // Have to grab program_lock before stopping everybody else.
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
+  auto isolate_group = thread->isolate_group();
   isolate_group->RunWithStoppedMutators([&]() {
     Code& optimized_code = Code::Handle();
-    isolate_group->ForEachIsolate([&](Isolate* isolate) {
-      auto mutator_thread = isolate->mutator_thread();
-      DartFrameIterator iterator(
-          mutator_thread, StackFrameIterator::kAllowCrossThreadIteration);
-      StackFrame* frame = iterator.NextFrame();
-      while (frame != nullptr) {
-        optimized_code = frame->LookupDartCode();
-        if (optimized_code.is_optimized() &&
-            !optimized_code.is_force_optimized()) {
-          DeoptimizeAt(mutator_thread, optimized_code, frame);
-        }
-        frame = iterator.NextFrame();
-      }
-    });
+    isolate_group->ForEachIsolate(
+        [&](Isolate* isolate) {
+          auto mutator_thread = isolate->mutator_thread();
+          DartFrameIterator iterator(
+              mutator_thread, StackFrameIterator::kAllowCrossThreadIteration);
+          StackFrame* frame = iterator.NextFrame();
+          while (frame != nullptr) {
+            optimized_code = frame->LookupDartCode();
+            if (optimized_code.is_optimized() &&
+                !optimized_code.is_force_optimized()) {
+              DeoptimizeAt(mutator_thread, optimized_code, frame);
+            }
+            frame = iterator.NextFrame();
+          }
+        },
+        /*at_safepoint=*/true);
+  });
+}
+
+static void DeoptimizeLastDartFrameIfOptimized() {
+  auto thread = Thread::Current();
+  // Have to grab program_lock before stopping everybody else.
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
+  auto isolate = thread->isolate();
+  auto isolate_group = thread->isolate_group();
+  isolate_group->RunWithStoppedMutators([&]() {
+    auto mutator_thread = isolate->mutator_thread();
+    DartFrameIterator iterator(mutator_thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
+    StackFrame* frame = iterator.NextFrame();
+    const auto& optimized_code = Code::Handle(frame->LookupDartCode());
+    if (optimized_code.is_optimized() && !optimized_code.is_force_optimized()) {
+      DeoptimizeAt(mutator_thread, optimized_code, frame);
+    }
   });
 }
 
@@ -3205,6 +3287,31 @@ DEFINE_RUNTIME_ENTRY(RewindPostDeopt, 0) {
   UNREACHABLE();
 }
 
+void OnEveryRuntimeEntryCall(Thread* thread, const char* runtime_call_name) {
+  ASSERT(FLAG_deoptimize_on_runtime_call_every > 0);
+  if (FLAG_precompiled_mode) {
+    return;
+  }
+  if (IsolateGroup::IsSystemIsolateGroup(thread->isolate_group())) {
+    return;
+  }
+  const bool is_deopt_related = strstr(runtime_call_name, "Deoptimize") != 0;
+  if (is_deopt_related) {
+    return;
+  }
+  if (FLAG_deoptimize_on_runtime_call_name_filter != nullptr &&
+      (strlen(runtime_call_name) !=
+           strlen(FLAG_deoptimize_on_runtime_call_name_filter) ||
+       strstr(runtime_call_name, FLAG_deoptimize_on_runtime_call_name_filter) ==
+           0)) {
+    return;
+  }
+  const uint32_t count = thread->IncrementAndGetRuntimeCallCount();
+  if ((count % FLAG_deoptimize_on_runtime_call_every) == 0) {
+    DeoptimizeLastDartFrameIfOptimized();
+  }
+}
+
 double DartModulo(double left, double right) {
   double remainder = fmod_ieee(left, right);
   if (remainder == 0.0) {
@@ -3355,6 +3462,18 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     1,
     true /* is_float */,
     reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&atan)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    LibcExp,
+    1,
+    true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&exp)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    LibcLog,
+    1,
+    true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&log)));
 
 extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
   CHECK_STACK_ALIGNMENT;

@@ -15,10 +15,10 @@ void main() {
 
 @reflectiveTest
 class PluginLocatorTest with ResourceProviderMixin {
-  String packageRoot;
-  String pubspecPath;
-  String defaultDirPath;
-  PluginLocator locator;
+  late String packageRoot;
+  late String pubspecPath;
+  late String defaultDirPath;
+  late PluginLocator locator;
 
   void setUp() {
     packageRoot = newFolder('/package').path;

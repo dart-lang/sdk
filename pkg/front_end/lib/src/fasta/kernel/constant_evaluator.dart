@@ -383,6 +383,7 @@ class ConstantsTransformer extends RemovingTransformer {
     transformLibraryPartList(library.parts, library);
     transformTypedefList(library.typedefs, library);
     transformClassList(library.classes, library);
+    transformExtensionList(library.extensions, library);
     transformProcedureList(library.procedures, library);
     transformFieldList(library.fields, library);
 
@@ -426,6 +427,19 @@ class ConstantsTransformer extends RemovingTransformer {
       transformProcedureList(node.procedures, node);
       transformRedirectingFactoryConstructorList(
           node.redirectingFactoryConstructors, node);
+    });
+    _staticTypeContext = oldStaticTypeContext;
+    return node;
+  }
+
+  @override
+  Extension visitExtension(Extension node, TreeNode removalSentinel) {
+    StaticTypeContext oldStaticTypeContext = _staticTypeContext;
+    _staticTypeContext = new StaticTypeContext.forAnnotations(
+        node.enclosingLibrary, typeEnvironment);
+    constantEvaluator.withNewEnvironment(() {
+      transformAnnotations(node.annotations, node);
+      transformTypeParameterList(node.typeParameters, node);
     });
     _staticTypeContext = oldStaticTypeContext;
     return node;
@@ -537,6 +551,21 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
+  Statement visitFunctionDeclaration(
+      FunctionDeclaration node, TreeNode removalSentinel) {
+    if (enableConstFunctions) {
+      if (node.function != null) {
+        node.function = transform(node.function)..parent = node;
+      }
+      constantEvaluator.env.addVariableValue(
+          node.variable, new IntermediateValue(node.function));
+    } else {
+      return super.visitFunctionDeclaration(node, removalSentinel);
+    }
+    return node;
+  }
+
+  @override
   Statement visitVariableDeclaration(
       VariableDeclaration node, TreeNode removalSentinel) {
     transformAnnotations(node.annotations, node);
@@ -544,7 +573,7 @@ class ConstantsTransformer extends RemovingTransformer {
     if (node.initializer != null) {
       if (node.isConst) {
         final Constant constant = evaluateWithContext(node, node.initializer);
-        constantEvaluator.env.updateVariableValue(node, constant);
+        constantEvaluator.env.addVariableValue(node, constant);
         node.initializer = makeConstantExpression(constant, node.initializer)
           ..parent = node;
 
@@ -609,11 +638,9 @@ class ConstantsTransformer extends RemovingTransformer {
     Expression left = transform(node.left);
     Expression right = transform(node.right);
     if (_isNull(left)) {
-      return new EqualsNull(right, isNot: node.isNot)
-        ..fileOffset = node.fileOffset;
+      return new EqualsNull(right)..fileOffset = node.fileOffset;
     } else if (_isNull(right)) {
-      return new EqualsNull(left, isNot: node.isNot)
-        ..fileOffset = node.fileOffset;
+      return new EqualsNull(left)..fileOffset = node.fileOffset;
     }
     node.left = left..parent = node;
     node.right = right..parent = node;
@@ -811,7 +838,7 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 }
 
-class ConstantEvaluator extends ExpressionVisitor<Constant> {
+class ConstantEvaluator implements ExpressionVisitor<Constant> {
   final ConstantsBackend backend;
   final NumberSemantics numberSemantics;
   ConstantIntFolder intFolder;
@@ -993,7 +1020,14 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
   Constant execute(Statement statement) {
     StatementConstantEvaluator statementEvaluator =
         new StatementConstantEvaluator(this);
-    return statement.accept(statementEvaluator);
+    ExecutionStatus status = statement.accept(statementEvaluator);
+    if (status is ReturnStatus) {
+      return status.value;
+    } else if (status is AbortStatus) {
+      return status.error;
+    }
+    return createInvalidExpressionConstant(statement,
+        'No valid constant returned from the execution of $statement.');
   }
 
   /// Create an error-constant indicating that an error has been detected during
@@ -1135,7 +1169,10 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
     } else {
       bool sentinelInserted = false;
       if (nodeCache.containsKey(node)) {
-        if (nodeCache[node] == null) {
+        bool isRecursiveFunctionCall =
+            node is MethodInvocation || node is StaticInvocation;
+        if (nodeCache[node] == null &&
+            !(enableConstFunctions && isRecursiveFunctionCall)) {
           // recursive call
           return createErrorConstant(node, messageConstEvalCircularity);
         }
@@ -1651,14 +1688,14 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             : _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
-        env.updateVariableValue(parameter, value);
+        env.addVariableValue(parameter, value);
       }
       for (final VariableDeclaration parameter in function.namedParameters) {
         final Constant value = namedArguments[parameter.name] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
-        env.updateVariableValue(parameter, value);
+        env.addVariableValue(parameter, value);
       }
 
       // Step 2) Run all initializers (including super calls) with environment
@@ -1679,7 +1716,7 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
           final VariableDeclaration variable = init.variable;
           Constant constant = _evaluateSubexpression(variable.initializer);
           if (constant is AbortConstant) return constant;
-          env.updateVariableValue(variable, constant);
+          env.addVariableValue(variable, constant);
         } else if (init is SuperInitializer) {
           AbortConstant error = checkConstructorConst(init, constructor);
           if (error != null) return error;
@@ -1931,13 +1968,12 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
       return unevaluated(
           node,
           new EqualsCall(extract(left), extract(right),
-              isNot: node.isNot,
               functionType: node.functionType,
               interfaceTarget: node.interfaceTarget)
             ..fileOffset = node.fileOffset);
     }
 
-    return _handleEquals(node, left, right, isNot: node.isNot);
+    return _handleEquals(node, left, right);
   }
 
   @override
@@ -1946,18 +1982,14 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
     if (expression is AbortConstant) return expression;
 
     if (shouldBeUnevaluated) {
-      return unevaluated(
-          node,
-          new EqualsNull(extract(expression), isNot: node.isNot)
-            ..fileOffset = node.fileOffset);
+      return unevaluated(node,
+          new EqualsNull(extract(expression))..fileOffset = node.fileOffset);
     }
 
-    return _handleEquals(node, expression, nullConstant, isNot: node.isNot);
+    return _handleEquals(node, expression, nullConstant);
   }
 
-  Constant _handleEquals(Expression node, Constant left, Constant right,
-      {bool isNot}) {
-    assert(isNot != null);
+  Constant _handleEquals(Expression node, Constant left, Constant right) {
     if (left is NullConstant ||
         left is BoolConstant ||
         left is IntConstant ||
@@ -1966,17 +1998,7 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
         right is NullConstant) {
       // [DoubleConstant] uses [identical] to determine equality, so we need
       // to take the special cases into account.
-      Constant result =
-          doubleSpecialCases(left, right) ?? makeBoolConstant(left == right);
-      if (isNot) {
-        if (result == trueConstant) {
-          result = falseConstant;
-        } else {
-          assert(result == falseConstant);
-          result = trueConstant;
-        }
-      }
-      return result;
+      return doubleSpecialCases(left, right) ?? makeBoolConstant(left == right);
     } else {
       return createErrorConstant(
           node,
@@ -1993,7 +2015,7 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
     // parsed as `!(a == b)` it is handled implicitly through ==.
     if (arguments.length == 1 && op == '==') {
       final Constant right = arguments[0];
-      return _handleEquals(node, receiver, right, isNot: false);
+      return _handleEquals(node, receiver, right);
     }
 
     // This is a white-listed set of methods we need to support on constants.
@@ -2113,19 +2135,17 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
   @override
   Constant visitMethodInvocation(MethodInvocation node) {
     // We have no support for generic method invocation at the moment.
-    if (node.arguments.types.isNotEmpty) {
+    if (node.arguments.types.isNotEmpty && !enableConstFunctions) {
       return createInvalidExpressionConstant(node, "generic method invocation");
     }
 
     // We have no support for method invocation with named arguments at the
     // moment.
-    if (node.arguments.named.isNotEmpty) {
+    if (node.arguments.named.isNotEmpty && !enableConstFunctions) {
       return createInvalidExpressionConstant(
           node, "method invocation with named arguments");
     }
 
-    final Constant receiver = _evaluateSubexpression(node.receiver);
-    if (receiver is AbortConstant) return receiver;
     final List<Constant> arguments =
         _evaluatePositionalArguments(node.arguments);
 
@@ -2136,6 +2156,36 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
     }
     assert(_gotError == null);
     assert(arguments != null);
+
+    final Constant receiver = _evaluateSubexpression(node.receiver);
+    if (receiver is AbortConstant) {
+      return receiver;
+    } else if (enableConstFunctions &&
+        receiver is IntermediateValue &&
+        receiver.value is FunctionNode) {
+      // Evaluate type arguments of the method invoked.
+      List<DartType> types = _evaluateTypeArguments(node, node.arguments);
+      if (types == null && _gotError != null) {
+        AbortConstant error = _gotError;
+        _gotError = null;
+        return error;
+      }
+      assert(_gotError == null);
+      assert(types != null);
+
+      // Evaluate named arguments of the method invoked.
+      final Map<String, Constant> named =
+          _evaluateNamedArguments(node.arguments);
+      if (named == null && _gotError != null) {
+        AbortConstant error = _gotError;
+        _gotError = null;
+        return error;
+      }
+      assert(_gotError == null);
+      assert(named != null);
+
+      return _handleFunctionInvocation(receiver.value, types, arguments, named);
+    }
 
     if (shouldBeUnevaluated) {
       return unevaluated(
@@ -2381,7 +2431,7 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
   Constant visitLet(Let node) {
     Constant value = _evaluateSubexpression(node.variable.initializer);
     if (value is AbortConstant) return value;
-    env.updateVariableValue(node.variable, value);
+    env.addVariableValue(node.variable, value);
     return _evaluateSubexpression(node.body);
   }
 
@@ -2394,18 +2444,37 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
     // TODO(kustermann): The heuristic of allowing all [VariableGet]s on [Let]
     // variables might allow more than it should.
     final VariableDeclaration variable = node.variable;
-    if (variable.parent is Let || _isFormalParameter(variable)) {
-      return env.lookupVariable(node.variable) ??
-          createErrorConstant(
-              node,
-              templateConstEvalNonConstantVariableGet
-                  .withArguments(variable.name));
-    }
-    if (variable.isConst) {
-      return _evaluateSubexpression(variable.initializer);
+    if (enableConstFunctions) {
+      return env.lookupVariable(variable) ??
+          createInvalidExpressionConstant(
+              node, 'Variable get of an unknown value.');
+    } else {
+      if (variable.parent is Let || _isFormalParameter(variable)) {
+        return env.lookupVariable(node.variable) ??
+            createErrorConstant(
+                node,
+                templateConstEvalNonConstantVariableGet
+                    .withArguments(variable.name));
+      }
+      if (variable.isConst) {
+        return _evaluateSubexpression(variable.initializer);
+      }
     }
     return createInvalidExpressionConstant(
         node, 'Variable get of a non-const variable.');
+  }
+
+  @override
+  Constant visitVariableSet(VariableSet node) {
+    if (enableConstFunctions) {
+      final VariableDeclaration variable = node.variable;
+      Constant value = _evaluateSubexpression(node.value);
+      if (value is AbortConstant) return value;
+      return env.updateVariableValue(variable, value) ??
+          createInvalidExpressionConstant(
+              node, 'Variable set of an unknown value.');
+    }
+    return defaultExpression(node);
   }
 
   /// Computes the constant for [expression] defined in the context of [member].
@@ -2466,7 +2535,7 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
         return createErrorConstant(
             node,
             templateConstEvalInvalidStaticInvocation
-                .withArguments(target.name.name));
+                .withArguments(target.name.text));
       } else {
         return createInvalidExpressionConstant(
             node, 'No support for ${target.runtimeType} in a static tear-off.');
@@ -2703,7 +2772,8 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
     } else if (target.isExtensionMember) {
       return createErrorConstant(node, messageConstEvalExtension);
     } else if (enableConstFunctions && target.kind == ProcedureKind.Method) {
-      return _handleStaticInvocation(node, typeArguments, positionals, named);
+      return _handleFunctionInvocation(
+          node.target.function, typeArguments, positionals, named);
     }
 
     String name = target.name.text;
@@ -2713,18 +2783,21 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
       } else {
         name = '${target.enclosingClass.name}.${name}';
       }
+
+      if (enableConstFunctions) {
+        return _handleFunctionInvocation(
+            node.target.function, typeArguments, positionals, named);
+      }
     }
     return createInvalidExpressionConstant(node, "Invocation of $name");
   }
 
-  Constant _handleStaticInvocation(
-      StaticInvocation node,
+  Constant _handleFunctionInvocation(
+      FunctionNode function,
       List<DartType> typeArguments,
       List<Constant> positionalArguments,
       Map<String, Constant> namedArguments) {
     return withNewEnvironment(() {
-      final FunctionNode function = node.target.function;
-
       // Map arguments from caller to callee.
       for (int i = 0; i < function.typeParameters.length; i++) {
         env.addTypeParameterValue(function.typeParameters[i], typeArguments[i]);
@@ -2736,14 +2809,14 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             : _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
-        env.updateVariableValue(parameter, value);
+        env.addVariableValue(parameter, value);
       }
       for (final VariableDeclaration parameter in function.namedParameters) {
         final Constant value = namedArguments[parameter.name] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             _evaluateNullableSubexpression(parameter.initializer);
         if (value is AbortConstant) return value;
-        env.updateVariableValue(parameter, value);
+        env.addVariableValue(parameter, value);
       }
       return execute(function.body);
     });
@@ -3152,7 +3225,11 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
 
   T withNewEnvironment<T>(T fn()) {
     final EvaluationEnvironment oldEnv = env;
-    env = new EvaluationEnvironment();
+    if (enableConstFunctions) {
+      env = new EvaluationEnvironment.withParent(env);
+    } else {
+      env = new EvaluationEnvironment();
+    }
     T result = fn();
     env = oldEnv;
     return result;
@@ -3204,9 +3281,60 @@ class ConstantEvaluator extends ExpressionVisitor<Constant> {
       node = node.parent;
     }
   }
+
+  @override
+  Constant defaultBasicLiteral(BasicLiteral node) => defaultExpression(node);
+
+  @override
+  Constant visitAwaitExpression(AwaitExpression node) =>
+      defaultExpression(node);
+
+  @override
+  Constant visitBlockExpression(BlockExpression node) =>
+      defaultExpression(node);
+
+  @override
+  Constant visitDynamicSet(DynamicSet node) => defaultExpression(node);
+
+  @override
+  Constant visitInstanceGetterInvocation(InstanceGetterInvocation node) =>
+      defaultExpression(node);
+
+  @override
+  Constant visitInstanceSet(InstanceSet node) => defaultExpression(node);
+
+  @override
+  Constant visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
+
+  @override
+  Constant visitPropertySet(PropertySet node) => defaultExpression(node);
+
+  @override
+  Constant visitRethrow(Rethrow node) => defaultExpression(node);
+
+  @override
+  Constant visitStaticSet(StaticSet node) => defaultExpression(node);
+
+  @override
+  Constant visitSuperMethodInvocation(SuperMethodInvocation node) =>
+      defaultExpression(node);
+
+  @override
+  Constant visitSuperPropertyGet(SuperPropertyGet node) =>
+      defaultExpression(node);
+
+  @override
+  Constant visitSuperPropertySet(SuperPropertySet node) =>
+      defaultExpression(node);
+
+  @override
+  Constant visitThisExpression(ThisExpression node) => defaultExpression(node);
+
+  @override
+  Constant visitThrow(Throw node) => defaultExpression(node);
 }
 
-class StatementConstantEvaluator extends StatementVisitor<Constant> {
+class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   ConstantEvaluator exprEvaluator;
 
   StatementConstantEvaluator(this.exprEvaluator) {
@@ -3219,12 +3347,156 @@ class StatementConstantEvaluator extends StatementVisitor<Constant> {
   Constant evaluate(Expression expr) => expr.accept(exprEvaluator);
 
   @override
-  Constant defaultStatement(Statement node) => throw new UnsupportedError(
-      'Statement constant evaluation does not support ${node.runtimeType}.');
+  ExecutionStatus defaultStatement(Statement node) {
+    throw new UnsupportedError(
+        'Statement constant evaluation does not support ${node.runtimeType}.');
+  }
 
   @override
-  Constant visitReturnStatement(ReturnStatement node) =>
-      evaluate(node.expression);
+  ExecutionStatus visitAssertBlock(AssertBlock node) => defaultStatement(node);
+
+  @override
+  ExecutionStatus visitAssertStatement(AssertStatement node) {
+    AbortConstant error = exprEvaluator.checkAssert(node);
+    if (error != null) return new AbortStatus(error);
+    return const ProceedStatus();
+  }
+
+  @override
+  ExecutionStatus visitBlock(Block node) {
+    return exprEvaluator.withNewEnvironment(() {
+      for (Statement statement in node.statements) {
+        final ExecutionStatus status = statement.accept(this);
+        if (status is! ProceedStatus) return status;
+      }
+      return const ProceedStatus();
+    });
+  }
+
+  @override
+  ExecutionStatus visitBreakStatement(BreakStatement node) =>
+      new BreakStatus(node.target);
+
+  @override
+  ExecutionStatus visitContinueSwitchStatement(ContinueSwitchStatement node) =>
+      node.target.body.accept(this);
+
+  @override
+  ExecutionStatus visitDoStatement(DoStatement node) {
+    Constant condition;
+    do {
+      ExecutionStatus status = node.body.accept(this);
+      if (status is! ProceedStatus) return status;
+      condition = evaluate(node.condition);
+    } while (condition is BoolConstant && condition.value);
+
+    if (condition is AbortConstant) {
+      return new AbortStatus(condition);
+    }
+    assert(condition is BoolConstant);
+    return const ProceedStatus();
+  }
+
+  @override
+  ExecutionStatus visitIfStatement(IfStatement node) {
+    Constant condition = evaluate(node.condition);
+    if (condition is AbortConstant) return new AbortStatus(condition);
+    assert(condition is BoolConstant);
+    if ((condition as BoolConstant).value) {
+      return node.then.accept(this);
+    } else if (node.otherwise != null) {
+      return node.otherwise.accept(this);
+    }
+    return const ProceedStatus();
+  }
+
+  @override
+  ExecutionStatus visitForStatement(ForStatement node) {
+    for (VariableDeclaration variable in node.variables) {
+      final ExecutionStatus status = variable.accept(this);
+      if (status is! ProceedStatus) return status;
+    }
+
+    Constant condition =
+        node.condition != null ? evaluate(node.condition) : null;
+    while (node.condition == null || condition is BoolConstant) {
+      if (condition is BoolConstant && !condition.value) break;
+
+      final ExecutionStatus status = node.body.accept(this);
+      if (status is! ProceedStatus) return status;
+
+      for (Expression update in node.updates) {
+        Constant updateConstant = evaluate(update);
+        if (updateConstant is AbortConstant) {
+          return new AbortStatus(updateConstant);
+        }
+      }
+
+      if (node.condition != null) {
+        condition = evaluate(node.condition);
+      }
+    }
+
+    if (condition is AbortConstant) return new AbortStatus(condition);
+    assert(condition is BoolConstant);
+    return const ProceedStatus();
+  }
+
+  @override
+  ExecutionStatus visitExpressionStatement(ExpressionStatement node) {
+    Constant value = evaluate(node.expression);
+    if (value is AbortConstant) return new AbortStatus(value);
+    return const ProceedStatus();
+  }
+
+  @override
+  ExecutionStatus visitLabeledStatement(LabeledStatement node) {
+    final ExecutionStatus status = node.body.accept(this);
+    if (status is BreakStatus && status.target == node) {
+      return const ProceedStatus();
+    }
+    return status;
+  }
+
+  @override
+  ExecutionStatus visitReturnStatement(ReturnStatement node) =>
+      new ReturnStatus(evaluate(node.expression));
+
+  @override
+  ExecutionStatus visitSwitchStatement(SwitchStatement node) {
+    final Constant value = evaluate(node.expression);
+    if (value is AbortConstant) return new AbortStatus(value);
+
+    for (SwitchCase switchCase in node.cases) {
+      if (switchCase.isDefault) return switchCase.body.accept(this);
+      for (Expression expr in switchCase.expressions) {
+        final Constant caseValue = evaluate(expr);
+        if (value == caseValue) return switchCase.body.accept(this);
+      }
+    }
+    return const ProceedStatus();
+  }
+
+  @override
+  ExecutionStatus visitVariableDeclaration(VariableDeclaration node) {
+    Constant value = evaluate(node.initializer);
+    if (value is AbortConstant) return new AbortStatus(value);
+    exprEvaluator.env.addVariableValue(node, value);
+    return const ProceedStatus();
+  }
+
+  @override
+  ExecutionStatus visitWhileStatement(WhileStatement node) {
+    Constant condition = evaluate(node.condition);
+    while (condition is BoolConstant && condition.value) {
+      final ExecutionStatus status = node.body.accept(this);
+      if (status is! ProceedStatus) return status;
+      condition = evaluate(node.condition);
+    }
+    if (condition is AbortConstant) return new AbortStatus(condition);
+    assert(condition is BoolConstant);
+    return const ProceedStatus();
+  }
 }
 
 class ConstantCoverage {
@@ -3298,29 +3570,45 @@ class EvaluationEnvironment {
   final Set<VariableDeclaration> _unreadUnevaluatedVariables =
       new Set<VariableDeclaration>();
 
+  EvaluationEnvironment _parent;
+
+  EvaluationEnvironment();
+  EvaluationEnvironment.withParent(this._parent);
+
   /// Whether the current environment is empty.
-  bool get isEmpty => _typeVariables.isEmpty && _variables.isEmpty;
+  bool get isEmpty {
+    // Since we look up variables in enclosing environment, the environment
+    // is not empty if its parent is not empty.
+    if (_parent != null && !_parent.isEmpty) return false;
+    return _typeVariables.isEmpty && _variables.isEmpty;
+  }
 
   void addTypeParameterValue(TypeParameter parameter, DartType value) {
     assert(!_typeVariables.containsKey(parameter));
     _typeVariables[parameter] = value;
   }
 
-  void updateVariableValue(VariableDeclaration variable, Constant value) {
-    if (!_variables.containsKey(variable)) {
-      _variables[variable] = new EvaluationReference(value);
-    } else {
-      _variables[variable].value = value;
-    }
+  void addVariableValue(VariableDeclaration variable, Constant value) {
+    _variables[variable] = new EvaluationReference(value);
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.add(variable);
     }
+  }
+
+  Constant updateVariableValue(VariableDeclaration variable, Constant value) {
+    if (_variables.containsKey(variable)) {
+      _variables[variable].value = value;
+      return value;
+    }
+    return _parent?.updateVariableValue(variable, value);
   }
 
   Constant lookupVariable(VariableDeclaration variable) {
     Constant value = _variables[variable]?.value;
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.remove(variable);
+    } else if (value == null) {
+      return _parent?.lookupVariable(variable);
     }
     return value;
   }
@@ -3360,6 +3648,34 @@ class EvaluationReference {
   Constant value;
 
   EvaluationReference(this.value);
+}
+
+/// Represents a status for statement execution.
+abstract class ExecutionStatus {
+  const ExecutionStatus();
+}
+
+/// Status that the statement completed execution successfully.
+class ProceedStatus extends ExecutionStatus {
+  const ProceedStatus();
+}
+
+/// Status that the statement returned a valid [Constant] value.
+class ReturnStatus extends ExecutionStatus {
+  final Constant value;
+  ReturnStatus(this.value);
+}
+
+/// Status with an exception or error that the statement has thrown.
+class AbortStatus extends ExecutionStatus {
+  final AbortConstant error;
+  AbortStatus(this.error);
+}
+
+/// Status that the statement breaks out of an enclosing [LabeledStatement].
+class BreakStatus extends ExecutionStatus {
+  final LabeledStatement target;
+  BreakStatus(this.target);
 }
 
 /// An intermediate result that is used within the [ConstantEvaluator].

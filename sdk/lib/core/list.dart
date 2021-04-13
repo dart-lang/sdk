@@ -105,14 +105,14 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// using `[]` or other [List] constructors.
   ///
   /// All elements of the created list share the same [fill] value.
-  /// ```
+  /// ```dart
   /// var shared = List.filled(3, []);
   /// shared[0].add(499);
   /// print(shared);  // => [[499], [499], [499]]
   /// ```
   /// You can use [List.generate] to create a list with a fixed length
   /// and a new object at each position.
-  /// ```
+  /// ```dart
   /// var unique = List.generate(3, (_) => []);
   /// unique[0].add(499);
   /// print(unique); // => [[499], [], []]
@@ -377,14 +377,14 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The first time an object `o` is encountered so that `test(o)` is true,
   /// the index of `o` is returned.
   ///
-  /// ```
+  /// ```dart
   /// var notes = ['do', 're', 'mi', 're'];
   /// notes.indexWhere((note) => note.startsWith('r'));       // 1
   /// notes.indexWhere((note) => note.startsWith('r'), 2);    // 3
   /// ```
   ///
   /// Returns -1 if [element] is not found.
-  /// ```
+  /// ```dart
   /// notes.indexWhere((note) => note.startsWith('k'));    // -1
   /// ```
   int indexWhere(bool test(E element), [int start = 0]);
@@ -396,14 +396,14 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// the index of `o` is returned.
   /// If [start] is omitted, it defaults to the [length] of the list.
   ///
-  /// ```
+  /// ```dart
   /// var notes = ['do', 're', 'mi', 're'];
   /// notes.lastIndexWhere((note) => note.startsWith('r'));       // 3
   /// notes.lastIndexWhere((note) => note.startsWith('r'), 2);    // 1
   /// ```
   ///
   /// Returns -1 if [element] is not found.
-  /// ```
+  /// ```dart
   /// notes.lastIndexWhere((note) => note.startsWith('k'));    // -1
   /// ```
   int lastIndexWhere(bool test(E element), [int? start]);

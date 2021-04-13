@@ -31,7 +31,7 @@ void main(List<String> args) async {
         continue;
       }
 
-      final errorsResult = (await context.currentSession.getErrors(filePath))!;
+      final errorsResult = await context.currentSession.getErrors(filePath);
       for (final error in errorsResult.errors) {
         if (error.errorCode.type != ErrorType.TODO) {
           print(

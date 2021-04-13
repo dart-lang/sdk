@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
@@ -146,7 +148,8 @@ class CompletionResolveHandler
         // a command that the client will call to apply those edits later.
         Command command;
         if (otherFilesChanges.isNotEmpty) {
-          final workspaceEdit = createWorkspaceEdit(server, otherFilesChanges);
+          final workspaceEdit =
+              createPlainWorkspaceEdit(server, otherFilesChanges);
           command = Command(
               title: 'Add import',
               command: Commands.sendWorkspaceEdit,

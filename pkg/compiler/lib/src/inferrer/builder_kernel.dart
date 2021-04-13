@@ -919,20 +919,23 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
         node, node.variable.parent, node.arguments, selector);
   }
 
-  TypeInformation _handleEqualsNull(ir.Expression node, ir.Expression operand,
-      {bool isNot}) {
-    assert(isNot != null);
-    _potentiallyAddNullCheck(node, operand, isNot: isNot);
-    return _types.boolType;
-  }
-
   @override
   TypeInformation visitEqualsNull(ir.EqualsNull node) {
-    // TODO(johnniwinther). This triggers the computation of the mask for the
-    // receiver of the call to `==`, which doesn't happen in this case. Remove
-    // this when the ssa builder recognized `== null` directly.
-    _typeOfReceiver(node, node.expression);
-    return _handleEqualsNull(node, node.expression, isNot: node.isNot);
+    visit(node.expression);
+    if (node.fileOffset < node.expression.fileOffset) {
+      // Hack to detect `null == o`.
+      // TODO(johnniwinther): Remove this after the new method invocation has
+      //  landed stably. This is only included to make the transition a no-op.
+      KernelGlobalTypeInferenceElementData data = _memberData;
+      data.setReceiverTypeMask(node, _closedWorld.abstractValueDomain.nullType);
+    } else {
+      // TODO(johnniwinther). This triggers the computation of the mask for the
+      // receiver of the call to `==`, which doesn't happen in this case. Remove
+      // this when the ssa builder recognized `== null` directly.
+      _typeOfReceiver(node, node.expression);
+    }
+    _potentiallyAddNullCheck(node, node.expression);
+    return _types.boolType;
   }
 
   TypeInformation _handleMethodInvocation(
@@ -947,8 +950,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       _checkIfExposesThis(
           selector, _types.newTypedSelector(receiverType, mask));
     }
-    TypeInformation type = handleDynamicInvoke(
-        CallType.access, node, selector, mask, receiverType, arguments);
+    TypeInformation type = handleDynamicInvoke(CallType.access, node, selector,
+        mask, receiverType, arguments, _getVariableDeclaration(receiver));
     if (interfaceTarget != null) {
       if (interfaceTarget is ir.Procedure &&
           (interfaceTarget.kind == ir.ProcedureKind.Method ||
@@ -975,20 +978,30 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     return type;
   }
 
-  TypeInformation _handleEqualsCall(ir.Expression node, ir.Expression left,
-      TypeInformation leftType, ir.Expression right, TypeInformation rightType,
-      {bool isNot}) {
-    assert(isNot != null);
+  TypeInformation _handleEqualsCall(
+      ir.Expression node,
+      ir.Expression left,
+      TypeInformation leftType,
+      ir.Expression right,
+      TypeInformation rightType) {
     // TODO(johnniwinther). This triggers the computation of the mask for the
     // receiver of the call to `==`, which might not happen in this case. Remove
     // this when the ssa builder recognized `== null` directly.
     _typeOfReceiver(node, left);
-    if (_types.isNull(leftType)) {
-      // null == o
-      return _handleEqualsNull(node, right, isNot: isNot);
-    } else if (_types.isNull(rightType)) {
-      // o == null
-      return _handleEqualsNull(node, left, isNot: isNot);
+    bool leftIsNull = _types.isNull(leftType);
+    bool rightIsNull = _types.isNull(rightType);
+    if (leftIsNull) {
+      // [right] is `null` if [node] evaluates to `true`.
+      _potentiallyAddNullCheck(node, right);
+    }
+    if (rightIsNull) {
+      // [left] is `null` if [node] evaluates to `true`.
+      _potentiallyAddNullCheck(node, left);
+    }
+    if (leftIsNull || rightIsNull) {
+      // `left == right` where `left` and/or `right` is known to have type
+      // `Null` so we have no invocation to register.
+      return _types.boolType;
     }
     Selector selector = Selector.binaryOperator('==');
     ArgumentsTypes arguments = ArgumentsTypes([rightType], null);
@@ -1000,12 +1013,22 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
   TypeInformation visitEqualsCall(ir.EqualsCall node) {
     TypeInformation leftType = visit(node.left);
     TypeInformation rightType = visit(node.right);
-    return _handleEqualsCall(node, node.left, leftType, node.right, rightType,
-        isNot: node.isNot);
+    return _handleEqualsCall(node, node.left, leftType, node.right, rightType);
   }
 
   @override
   TypeInformation visitInstanceInvocation(ir.InstanceInvocation node) {
+    Selector selector = _elementMap.getSelector(node);
+    ir.Expression receiver = node.receiver;
+    TypeInformation receiverType = visit(receiver);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    return _handleMethodInvocation(node, node.receiver, receiverType, selector,
+        arguments, node.interfaceTarget);
+  }
+
+  @override
+  TypeInformation visitInstanceGetterInvocation(
+      ir.InstanceGetterInvocation node) {
     Selector selector = _elementMap.getSelector(node);
     ir.Expression receiver = node.receiver;
     TypeInformation receiverType = visit(receiver);
@@ -1053,12 +1076,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     if (selector.name == '==') {
       return _handleEqualsCall(node, node.receiver, receiverType,
-          node.arguments.positional.first, arguments.positional[0],
-          isNot: false);
+          node.arguments.positional.first, arguments.positional[0]);
     }
 
     return _handleMethodInvocation(node, node.receiver, receiverType, selector,
         arguments, node.interfaceTarget);
+  }
+
+  ir.VariableDeclaration _getVariableDeclaration(ir.Expression node) {
+    return node is ir.VariableGet ? node.variable : null;
   }
 
   TypeInformation _handleDynamic(
@@ -1067,7 +1093,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       Selector selector,
       AbstractValue mask,
       TypeInformation receiverType,
-      ArgumentsTypes arguments) {
+      ArgumentsTypes arguments,
+      ir.VariableDeclaration variable) {
     assert(receiverType != null);
     if (_types.selectorNeedsUpdate(receiverType, mask)) {
       mask = receiverType == _types.dynamicType
@@ -1075,18 +1102,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
           : _types.newTypedSelector(receiverType, mask);
       _inferrer.updateSelectorInMember(
           _analyzedMember, callType, node, selector, mask);
-    }
-
-    ir.VariableDeclaration variable;
-    if (node is ir.MethodInvocation && node.receiver is ir.VariableGet) {
-      ir.VariableGet get = node.receiver;
-      variable = get.variable;
-    } else if (node is ir.PropertyGet && node.receiver is ir.VariableGet) {
-      ir.VariableGet get = node.receiver;
-      variable = get.variable;
-    } else if (node is ir.PropertySet && node.receiver is ir.VariableGet) {
-      ir.VariableGet get = node.receiver;
-      variable = get.variable;
     }
 
     if (variable != null) {
@@ -1105,10 +1120,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
         inLoop: inLoop, isConditional: false);
   }
 
-  TypeInformation handleDynamicGet(ir.Node node, Selector selector,
-      AbstractValue mask, TypeInformation receiverType) {
+  TypeInformation handleDynamicGet(
+      ir.Node node,
+      Selector selector,
+      AbstractValue mask,
+      TypeInformation receiverType,
+      ir.VariableDeclaration variable) {
     return _handleDynamic(
-        CallType.access, node, selector, mask, receiverType, null);
+        CallType.access, node, selector, mask, receiverType, null, variable);
   }
 
   TypeInformation handleDynamicSet(
@@ -1116,10 +1135,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       Selector selector,
       AbstractValue mask,
       TypeInformation receiverType,
-      TypeInformation rhsType) {
+      TypeInformation rhsType,
+      ir.VariableDeclaration variable) {
     ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
-    return _handleDynamic(
-        CallType.access, node, selector, mask, receiverType, arguments);
+    return _handleDynamic(CallType.access, node, selector, mask, receiverType,
+        arguments, variable);
   }
 
   TypeInformation handleDynamicInvoke(
@@ -1128,9 +1148,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       Selector selector,
       AbstractValue mask,
       TypeInformation receiverType,
-      ArgumentsTypes arguments) {
+      ArgumentsTypes arguments,
+      ir.VariableDeclaration variable) {
     return _handleDynamic(
-        callType, node, selector, mask, receiverType, arguments);
+        callType, node, selector, mask, receiverType, arguments, variable);
   }
 
   @override
@@ -1176,18 +1197,19 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       moveNextMask = _memberData.typeOfIteratorMoveNext(node);
 
       iteratorType = handleDynamicInvoke(CallType.forIn, node, iteratorSelector,
-          iteratorMask, expressionType, new ArgumentsTypes.empty());
+          iteratorMask, expressionType, new ArgumentsTypes.empty(), null);
     }
 
     handleDynamicInvoke(CallType.forIn, node, Selectors.moveNext, moveNextMask,
-        iteratorType, new ArgumentsTypes.empty());
+        iteratorType, new ArgumentsTypes.empty(), null);
     TypeInformation currentType = handleDynamicInvoke(
         CallType.forIn,
         node,
         Selectors.current,
         currentMask,
         iteratorType,
-        new ArgumentsTypes.empty());
+        new ArgumentsTypes.empty(),
+        null);
 
     Local variable = _localsMap.getLocalVariable(node.variable);
     DartType variableType = _localsMap.getLocalType(_elementMap, variable);
@@ -1596,7 +1618,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       _checkIfExposesThis(
           selector, _types.newTypedSelector(receiverType, mask));
     }
-    TypeInformation type = handleDynamicGet(node, selector, mask, receiverType);
+    TypeInformation type = handleDynamicGet(
+        node, selector, mask, receiverType, _getVariableDeclaration(receiver));
     if (interfaceTarget != null) {
       // Pull the type from kernel (instead of from the J-model) because the
       // interface target might be abstract and therefore not part of the
@@ -1672,7 +1695,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       _checkIfExposesThis(
           selector, _types.newTypedSelector(receiverType, mask));
     }
-    handleDynamicSet(node, selector, mask, receiverType, rhsType);
+    handleDynamicSet(node, selector, mask, receiverType, rhsType,
+        _getVariableDeclaration(receiver));
     return rhsType;
   }
 
@@ -1725,9 +1749,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     }
   }
 
-  void _potentiallyAddNullCheck(ir.Expression node, ir.Expression receiver,
-      {bool isNot}) {
-    assert(isNot != null);
+  void _potentiallyAddNullCheck(ir.Expression node, ir.Expression receiver) {
     if (!_accumulateIsChecks) return;
     if (receiver is ir.VariableGet) {
       Local local = _localsMap.getLocalVariable(receiver.variable);
@@ -1750,14 +1772,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
           node,
           _closedWorld.commonElements.objectType,
           excludeNull: true);
-
-      if (isNot) {
-        _setStateAfter(
-            _state, stateAfterCheckWhenNotNull, stateAfterCheckWhenNull);
-      } else {
-        _setStateAfter(
-            _state, stateAfterCheckWhenNull, stateAfterCheckWhenNotNull);
-      }
+      _setStateAfter(
+          _state, stateAfterCheckWhenNull, stateAfterCheckWhenNotNull);
     }
   }
 

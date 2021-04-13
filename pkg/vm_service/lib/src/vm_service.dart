@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.43.0';
+const String vmServiceVersion = '3.44.0';
 
 /// @optional
 const String optional = 'optional';
@@ -2703,7 +2703,7 @@ class BoundField {
   FieldRef? decl;
 
   /// [value] can be one of [InstanceRef] or [Sentinel].
-  dynamic? value;
+  dynamic value;
 
   BoundField({
     required this.decl,
@@ -2747,7 +2747,7 @@ class BoundVariable extends Response {
   String? name;
 
   /// [value] can be one of [InstanceRef], [TypeArgumentsRef] or [Sentinel].
-  dynamic? value;
+  dynamic value;
 
   /// The token position where this variable was declared.
   int? declarationTokenPos;
@@ -2822,7 +2822,7 @@ class Breakpoint extends Obj {
   /// a breakpoint is not resolved.
   ///
   /// [location] can be one of [SourceLocation] or [UnresolvedSourceLocation].
-  dynamic? location;
+  dynamic location;
 
   Breakpoint({
     required this.breakpointNumber,
@@ -3331,7 +3331,7 @@ class ContextElement {
       json == null ? null : ContextElement._fromJson(json);
 
   /// [value] can be one of [InstanceRef] or [Sentinel].
-  dynamic? value;
+  dynamic value;
 
   ContextElement({
     required this.value,
@@ -3368,7 +3368,11 @@ class CpuSamples extends Response {
   /// The number of samples returned.
   int? sampleCount;
 
-  /// The timespan the set of returned samples covers, in microseconds.
+  /// The timespan the set of returned samples covers, in microseconds
+  /// (deprecated).
+  ///
+  /// Note: this property is deprecated and will always return -1. Use
+  /// `timeExtentMicros` instead.
   int? timeSpan;
 
   /// The start of the period of time in which the returned samples were
@@ -4052,7 +4056,7 @@ class Field extends Obj implements FieldRef {
   ///
   /// [staticValue] can be one of [InstanceRef] or [Sentinel].
   @optional
-  dynamic? staticValue;
+  dynamic staticValue;
 
   /// The location of this field in the source code.
   @optional
@@ -4082,7 +4086,7 @@ class Field extends Obj implements FieldRef {
     isFinal = json['final'] ?? false;
     isStatic = json['static'] ?? false;
     staticValue = createServiceObject(
-        json['staticValue'], const ['InstanceRef', 'Sentinel']) as dynamic?;
+        json['staticValue'], const ['InstanceRef', 'Sentinel']) as dynamic;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
   }
@@ -4276,7 +4280,7 @@ class FuncRef extends ObjRef {
   /// The owner of this function, which can be a Library, Class, or a Function.
   ///
   /// [owner] can be one of [LibraryRef], [ClassRef] or [FuncRef].
-  dynamic? owner;
+  dynamic owner;
 
   /// Is this function static?
   bool? isStatic;
@@ -4338,7 +4342,7 @@ class Func extends Obj implements FuncRef {
   /// The owner of this function, which can be a Library, Class, or a Function.
   ///
   /// [owner] can be one of [LibraryRef], [ClassRef] or [FuncRef].
-  dynamic? owner;
+  dynamic owner;
 
   /// Is this function static?
   bool? isStatic;
@@ -4411,6 +4415,11 @@ class InstanceRef extends ObjRef {
 
   /// What kind of instance is this?
   /*InstanceKind*/ String? kind;
+
+  /// The identityHashCode assigned to the allocated object. This hash code is
+  /// the same as the hash code provided in HeapSnapshot and CpuSample's
+  /// returned by getAllocationTraces().
+  int? identityHashCode;
 
   /// Instance references always include their class.
   ClassRef? classRef;
@@ -4528,6 +4537,7 @@ class InstanceRef extends ObjRef {
 
   InstanceRef({
     required this.kind,
+    required this.identityHashCode,
     required this.classRef,
     required String id,
     this.valueAsString,
@@ -4548,6 +4558,7 @@ class InstanceRef extends ObjRef {
 
   InstanceRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'] ?? '';
+    identityHashCode = json['identityHashCode'] ?? -1;
     classRef =
         createServiceObject(json['class']!, const ['ClassRef']) as ClassRef;
     valueAsString = json['valueAsString'];
@@ -4583,6 +4594,7 @@ class InstanceRef extends ObjRef {
     json['type'] = type;
     json.addAll({
       'kind': kind,
+      'identityHashCode': identityHashCode,
       'class': classRef?.toJson(),
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
@@ -4604,8 +4616,9 @@ class InstanceRef extends ObjRef {
 
   operator ==(other) => other is InstanceRef && id == other.id;
 
-  String toString() =>
-      '[InstanceRef id: ${id}, kind: ${kind}, classRef: ${classRef}]';
+  String toString() => '[InstanceRef ' //
+      'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
+      'classRef: ${classRef}]';
 }
 
 /// An `Instance` represents an instance of the Dart language class `Obj`.
@@ -4615,6 +4628,11 @@ class Instance extends Obj implements InstanceRef {
 
   /// What kind of instance is this?
   /*InstanceKind*/ String? kind;
+
+  /// The identityHashCode assigned to the allocated object. This hash code is
+  /// the same as the hash code provided in HeapSnapshot and CpuSample's
+  /// returned by getAllocationTraces().
+  int? identityHashCode;
 
   /// Instance references always include their class.
   @override
@@ -4887,6 +4905,7 @@ class Instance extends Obj implements InstanceRef {
 
   Instance({
     required this.kind,
+    required this.identityHashCode,
     required this.classRef,
     required String id,
     this.valueAsString,
@@ -4923,6 +4942,7 @@ class Instance extends Obj implements InstanceRef {
 
   Instance._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'] ?? '';
+    identityHashCode = json['identityHashCode'] ?? -1;
     classRef =
         createServiceObject(json['class']!, const ['ClassRef']) as ClassRef;
     valueAsString = json['valueAsString'];
@@ -4992,6 +5012,7 @@ class Instance extends Obj implements InstanceRef {
     json['type'] = type;
     json.addAll({
       'kind': kind,
+      'identityHashCode': identityHashCode,
       'class': classRef?.toJson(),
     });
     _setIfNotNull(json, 'valueAsString', valueAsString);
@@ -5029,8 +5050,9 @@ class Instance extends Obj implements InstanceRef {
 
   operator ==(other) => other is Instance && id == other.id;
 
-  String toString() =>
-      '[Instance id: ${id}, kind: ${kind}, classRef: ${classRef}]';
+  String toString() => '[Instance ' //
+      'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
+      'classRef: ${classRef}]';
 }
 
 /// `IsolateRef` is a reference to an `Isolate` object.
@@ -5788,10 +5810,10 @@ class MapAssociation {
       json == null ? null : MapAssociation._fromJson(json);
 
   /// [key] can be one of [InstanceRef] or [Sentinel].
-  dynamic? key;
+  dynamic key;
 
   /// [value] can be one of [InstanceRef] or [Sentinel].
-  dynamic? value;
+  dynamic value;
 
   MapAssociation({
     required this.key,
@@ -5985,6 +6007,7 @@ class NullValRef extends InstanceRef {
     required this.valueAsString,
   }) : super(
           id: 'instance/null',
+          identityHashCode: 0,
           kind: InstanceKind.kNull,
           classRef: ClassRef(
             id: 'class/null',
@@ -6014,7 +6037,8 @@ class NullValRef extends InstanceRef {
   operator ==(other) => other is NullValRef && id == other.id;
 
   String toString() => '[NullValRef ' //
-      'id: ${id}, kind: ${kind}, classRef: ${classRef}, valueAsString: ${valueAsString}]';
+      'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
+      'classRef: ${classRef}, valueAsString: ${valueAsString}]';
 }
 
 /// A `NullVal` object represents the Dart language value null.
@@ -6030,6 +6054,7 @@ class NullVal extends Instance implements NullValRef {
     required this.valueAsString,
   }) : super(
           id: 'instance/null',
+          identityHashCode: 0,
           kind: InstanceKind.kNull,
           classRef: ClassRef(
             id: 'class/null',
@@ -6059,7 +6084,8 @@ class NullVal extends Instance implements NullValRef {
   operator ==(other) => other is NullVal && id == other.id;
 
   String toString() => '[NullVal ' //
-      'id: ${id}, kind: ${kind}, classRef: ${classRef}, valueAsString: ${valueAsString}]';
+      'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
+      'classRef: ${classRef}, valueAsString: ${valueAsString}]';
 }
 
 /// `ObjRef` is a reference to a `Obj`.
@@ -6241,7 +6267,7 @@ class ProfileFunction {
   String? resolvedUrl;
 
   /// The function captured during profiling.
-  dynamic? function;
+  dynamic function;
 
   ProfileFunction({
     required this.kind,

@@ -1801,7 +1801,13 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     required TypeParameterElement element,
     required this.nullabilitySuffix,
     this.promotedBound,
-  }) : super(element);
+    TypeAliasElement? aliasElement,
+    List<DartType>? aliasArguments,
+  }) : super(
+          element,
+          aliasElement: aliasElement,
+          aliasArguments: aliasArguments,
+        );
 
   @override
   DartType get bound =>
@@ -1885,8 +1891,9 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   @override
   DartType resolveToBound(DartType objectType) {
+    var promotedBound = this.promotedBound;
     if (promotedBound != null) {
-      return promotedBound!;
+      return promotedBound.resolveToBound(objectType);
     }
 
     var bound = element.bound;

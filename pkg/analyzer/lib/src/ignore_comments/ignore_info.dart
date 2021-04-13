@@ -209,15 +209,23 @@ extension on CompilationUnit {
 }
 
 extension on CommentToken {
+  /// The error codes currently do not contain dollar signs, so we can be a bit
+  /// more restrictive in this test.
+  static final _errorCodeNameRegExp = RegExp(r'^[a-zA-Z][_a-z0-9A-Z]*$');
+
   /// Return the diagnostic names contained in this comment, assuming that it is
   /// a correctly formatted ignore comment.
   Iterable<DiagnosticName> get diagnosticNames sync* {
+    bool isValidErrorCodeName(String text) {
+      return text.contains(_errorCodeNameRegExp);
+    }
+
     int offset = lexeme.indexOf(':') + 1;
     var names = lexeme.substring(offset).split(',');
     offset += this.offset;
     for (var name in names) {
       var trimmedName = name.trim();
-      if (trimmedName.isNotEmpty) {
+      if (trimmedName.isNotEmpty && isValidErrorCodeName(trimmedName)) {
         var innerOffset = name.indexOf(trimmedName);
         yield DiagnosticName(trimmedName.toLowerCase(), offset + innerOffset);
       }

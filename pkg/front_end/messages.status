@@ -329,7 +329,11 @@ FfiFieldInitializer/analyzerCode: Fail
 FfiFieldNoAnnotation/analyzerCode: Fail
 FfiFieldNull/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
+FfiPackedAnnotation/analyzerCode: Fail
+FfiPackedAnnotationAlignment/analyzerCode: Fail
+FfiPackedNestingNonPacked/analyzerCode: Fail
 FfiSizeAnnotation/analyzerCode: Fail
+FfiSizeAnnotationDimensions/analyzerCode: Fail
 FfiStructAnnotation/analyzerCode: Fail
 FfiStructGeneric/analyzerCode: Fail
 FfiTypeInvalid/analyzerCode: Fail
@@ -741,6 +745,8 @@ SuperclassMethodArgumentMismatch/example: Fail
 SupertypeIsFunction/analyzerCode: Fail
 SupertypeIsFunction/example: Fail
 SupertypeIsIllegal/example: Fail
+SupertypeIsIllegalAliased/example: Fail
+SupertypeIsNullableAliased/example: Fail
 SupertypeIsTypeVariable/example: Fail
 SwitchCaseFallThrough/example: Fail
 SwitchExpressionNotSubtype/analyzerCode: Fail
@@ -772,8 +778,15 @@ TypedefNotType/example: Fail # Feature not yet enabled by default.
 TypedefNullableType/analyzerCode: Fail
 TypedefTypeVariableNotConstructor/analyzerCode: Fail # Feature not yet enabled by default.
 TypedefTypeVariableNotConstructor/example: Fail # Feature not yet enabled by default.
+UndefinedExtensionGetter/analyzerCode: Fail
+UndefinedExtensionGetter/example: Fail
 UndefinedExtensionMethod/analyzerCode: Fail
 UndefinedExtensionMethod/example: Fail
+UndefinedExtensionOperator/analyzerCode: Fail
+UndefinedExtensionOperator/example: Fail
+UndefinedExtensionSetter/analyzerCode: Fail
+UndefinedExtensionSetter/example: Fail
+UnexpectedModifierInNonNnbd/part_wrapped_script: Fail # Test requires @dart= annotation
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
 UnmatchedToken/part_wrapped_script1: Fail

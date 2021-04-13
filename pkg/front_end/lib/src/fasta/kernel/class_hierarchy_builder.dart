@@ -1374,7 +1374,10 @@ class ClassHierarchyNodeBuilder {
       if (mixin is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = mixin;
         NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
-        mixin = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+        mixin = aliasBuilder.unaliasDeclaration(namedBuilder.arguments,
+            isUsedAsClass: true,
+            usedAsClassCharOffset: namedBuilder.charOffset,
+            usedAsClassFileUri: namedBuilder.fileUri);
       }
       if (mixin is ClassBuilder) {
         scope = mixin.scope.computeMixinScope();

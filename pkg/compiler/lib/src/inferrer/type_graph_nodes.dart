@@ -1307,6 +1307,13 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
         }
         return null;
 
+      case '>>>':
+        if (isEmpty(argument)) return tryLater();
+        if (isUInt31(receiver)) {
+          return inferrer.types.uint31Type;
+        }
+        return null;
+
       case '&':
         if (isEmpty(argument)) return tryLater();
         if (isUInt31(receiver) || isUInt31(argument)) {

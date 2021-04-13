@@ -553,6 +553,13 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
     vm_service_server_port = 0;
   }
 
+  // We do not want to wait for DDS to advertise availability of VM service in the
+  // following scenarios:
+  // - When the VM service is disabled (can be started at a later time via SIGQUIT).
+  // - The DartDev CLI is disabled (CLI isolate starts DDS) and VM service is enabled.
+  bool wait_for_dds_to_advertise_service =
+    !Options::disable_dart_dev() && Options::enable_vm_service();
+
   // Load embedder specific bits and return.
   if (!VmService::Setup(
           Options::disable_dart_dev() ? Options::vm_service_server_ip()
@@ -561,7 +568,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
           Options::vm_service_auth_disabled(),
           Options::vm_write_service_info_filename(), Options::trace_loading(),
           Options::deterministic(), Options::enable_service_port_fallback(),
-          !Options::disable_dart_dev())) {
+          wait_for_dds_to_advertise_service)) {
     *error = Utils::StrDup(VmService::GetErrorMessage());
     return NULL;
   }

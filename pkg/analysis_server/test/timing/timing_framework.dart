@@ -115,10 +115,10 @@ abstract class TimingTest extends IntegrationTestMixin {
 
   /// The connection to the analysis server.
   @override
-  Server server;
+  late Server server;
 
   /// The temporary directory in which source files can be stored.
-  Directory sourceDirectory;
+  late Directory sourceDirectory;
 
   /// A flag indicating whether the teardown process should skip sending a
   /// "server.shutdown" request because the server is known to have already
@@ -212,7 +212,7 @@ abstract class TimingTest extends IntegrationTestMixin {
 
   /// Repeatedly execute this test [count] times, adding timing information to
   /// the given list of [times] if it is non-`null`.
-  Future _repeat(int count, List<int> times) {
+  Future _repeat(int count, List<int>? times) {
     var stopwatch = Stopwatch();
     return setUp().then((_) {
       stopwatch.start();

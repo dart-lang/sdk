@@ -572,6 +572,9 @@ class Assembler : public AssemblerBase {
 
   void Ret() { ret(); }
   void CompareRegisters(Register a, Register b);
+  void CompareObjectRegisters(Register a, Register b) {
+    CompareRegisters(a, b);
+  }
   void BranchIf(Condition condition,
                 Label* label,
                 JumpDistance distance = kFarJump) {
@@ -584,23 +587,42 @@ class Assembler : public AssemblerBase {
     j(ZERO, label, distance);
   }
 
-  void LoadFromOffset(Register reg,
+  // Arch-specific LoadFromOffset to choose the right operation for [sz].
+  void LoadFromOffset(Register dst,
+                      const Address& address,
+                      OperandSize sz = kFourBytes);
+  void LoadFromOffset(Register dst,
                       Register base,
                       int32_t offset,
-                      OperandSize type = kFourBytes);
-  void LoadField(Register dst, FieldAddress address) { movl(dst, address); }
+                      OperandSize sz = kFourBytes) {
+    LoadFromOffset(dst, Address(base, offset), sz);
+  }
+  void LoadField(Register dst,
+                 const FieldAddress& address,
+                 OperandSize sz = kFourBytes) {
+    LoadFromOffset(dst, address, sz);
+  }
+  void LoadCompressedField(Register dst, const FieldAddress& address) {
+    LoadField(dst, address);
+  }
   void LoadFieldFromOffset(Register reg,
                            Register base,
                            int32_t offset,
-                           OperandSize type = kFourBytes) {
-    LoadFromOffset(reg, base, offset - kHeapObjectTag, type);
+                           OperandSize sz = kFourBytes) {
+    LoadFromOffset(reg, FieldAddress(base, offset), sz);
   }
-  void LoadIndexedFieldFromOffset(Register reg,
-                                  Register base,
-                                  int32_t offset,
-                                  Register index,
-                                  ScaleFactor scale) {
-    LoadField(reg, FieldAddress(base, index, scale, offset));
+  void LoadCompressedFieldFromOffset(Register reg,
+                                     Register base,
+                                     int32_t offset) {
+    LoadFieldFromOffset(reg, base, offset);
+  }
+  void LoadIndexedPayload(Register dst,
+                          Register base,
+                          int32_t payload_offset,
+                          Register index,
+                          ScaleFactor scale,
+                          OperandSize sz = kFourBytes) {
+    LoadFromOffset(dst, FieldAddress(base, index, scale, payload_offset), sz);
   }
   void LoadFromStack(Register dst, intptr_t depth);
   void StoreToStack(Register src, intptr_t depth);
@@ -770,6 +792,9 @@ class Assembler : public AssemblerBase {
             bool movable_target = false,
             CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void CallToRuntime();
+  // Will not clobber any registers and can therefore be called with 5 live
+  // registers.
+  void CallVmStub(const Code& code);
 
   void Call(Address target) { call(target); }
 

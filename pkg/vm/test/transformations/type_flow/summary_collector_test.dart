@@ -44,7 +44,7 @@ class FakeEntryPointsListener implements EntryPointsListener {
   void addRawCall(Selector selector) {}
 
   @override
-  void addDirectFieldAccess(Field field, Type value) {}
+  void addFieldUsedInConstant(Field field, Type instance, Type value) {}
 
   @override
   ConcreteType addAllocatedClass(Class c) {

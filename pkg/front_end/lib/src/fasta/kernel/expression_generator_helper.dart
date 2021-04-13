@@ -126,7 +126,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       List<UnresolvedType> typeArguments,
       int charOffset,
       Constness constness,
-      {bool isTypeArgumentsInForest = false});
+      {bool isTypeArgumentsInForest = false,
+      TypeDeclarationBuilder typeAliasBuilder});
 
   UnresolvedType validateTypeUse(UnresolvedType unresolved,
       {bool nonInstanceAccessIsError, bool allowPotentiallyConstantType});

@@ -19,8 +19,6 @@ import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
-        CanonicalNameError,
-        CanonicalNameSdkError,
         CompilationModeError,
         InvalidKernelSdkVersionError,
         InvalidKernelVersionError,
@@ -51,6 +49,9 @@ import 'package:kernel/kernel.dart'
         Supertype,
         TreeNode,
         TypeParameter;
+
+import 'package:kernel/canonical_name.dart'
+    show CanonicalNameError, CanonicalNameSdkError;
 
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 
@@ -108,14 +109,6 @@ import 'util/experiment_environment_getter.dart' show getExperimentEnvironment;
 
 import 'util/textual_outline.dart' show textualOutline;
 
-import 'fasta_codes.dart'
-    show
-        DiagnosticMessageFromJson,
-        templateInitializeFromDillNotSelfContained,
-        templateInitializeFromDillNotSelfContainedNoDump,
-        templateInitializeFromDillUnknownProblem,
-        templateInitializeFromDillUnknownProblemNoDump;
-
 import 'hybrid_file_system.dart' show HybridFileSystem;
 
 import 'kernel/kernel_builder.dart' show ClassHierarchyBuilder;
@@ -126,9 +119,8 @@ import 'kernel/kernel_target.dart' show KernelTarget;
 
 import 'library_graph.dart' show LibraryGraph;
 
-import 'messages.dart' show Message;
-
-import 'source/source_library_builder.dart' show SourceLibraryBuilder;
+import 'source/source_library_builder.dart'
+    show ImplicitLanguageVersion, SourceLibraryBuilder;
 
 import 'ticker.dart' show Ticker;
 
@@ -1892,12 +1884,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         libraryUri,
         debugExprUri,
         /*packageUri*/ null,
+        new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
         userCode.loader,
         null,
         scope: libraryBuilder.scope.createNestedScope("expression"),
         nameOrigin: libraryBuilder.library,
       );
-      debugLibrary.setLanguageVersion(libraryBuilder.library.languageVersion);
       ticker.logMs("Created debug library");
 
       if (libraryBuilder is DillLibraryBuilder) {

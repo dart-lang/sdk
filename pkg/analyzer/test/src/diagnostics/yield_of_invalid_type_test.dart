@@ -86,6 +86,19 @@ Stream<String> f() async* {
     ]);
   }
 
+  test_none_asyncStar_int_to_streamString_functionExpression() async {
+    await assertErrorsInCode('''
+void f() {
+  // ignore:unused_local_variable
+  Stream<String> Function() v = () async* {
+    yield 1;
+  };
+}
+''', [
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 99, 1),
+    ]);
+  }
+
   test_none_asyncStar_int_to_untyped() async {
     await assertNoErrorsInCode('''
 f() async* {
@@ -149,6 +162,19 @@ Iterable<String> f() sync* {
 }
 ''', [
       error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 37, 1),
+    ]);
+  }
+
+  test_none_syncStar_int_to_iterableString_functionExpression() async {
+    await assertErrorsInCode('''
+void f() {
+  // ignore:unused_local_variable
+  Iterable<String> Function() v = () sync* {
+    yield 1;
+  };
+}
+''', [
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 100, 1),
     ]);
   }
 

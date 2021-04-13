@@ -1,0 +1,34 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef C<X extends self::A<X> = self::A<dynamic>> = self::A<X>;
+class A<X extends self::A<self::A::X> = self::A<dynamic>> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X>
+    ;
+}
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  method instance1<X extends self::A<self::Class::instance1::X> = self::A<dynamic>>(() → self::A<self::Class::instance1::X> g) → void
+    ;
+  method instance2<X extends self::A<self::Class::instance2::X> = self::A<dynamic>>(() → self::A<self::Class::instance2::X> g) → void
+    ;
+  method test() → void
+    ;
+}
+class Subclass extends self::Class {
+  synthetic constructor •() → self::Subclass
+    ;
+  method test() → void
+    ;
+}
+static field core::Type? _capturedTypeArgument;
+static method captureTypeArgument<X extends core::Object? = dynamic>() → self::captureTypeArgument::X%
+  ;
+static method topLevel1<X extends self::A<self::topLevel1::X> = self::A<dynamic>>(() → self::A<self::topLevel1::X> g) → void
+  ;
+static method topLevel2<X extends self::A<self::topLevel2::X> = self::A<dynamic>>(() → self::A<self::topLevel2::X> g) → void
+  ;
+static method main() → dynamic
+  ;

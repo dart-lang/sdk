@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 
@@ -41,6 +43,9 @@ class BinaryExpression extends Expression {
     }
     return null;
   }
+
+  @override
+  String toString() => '$leftOperand ${operator.displayName} $rightOperand';
 }
 
 /// An expression.
@@ -61,6 +66,9 @@ class LiteralString extends Expression {
   String evaluateIn(TemplateContext context) {
     return value;
   }
+
+  @override
+  String toString() => '"$value"';
 }
 
 /// An operator used in a binary expression.
@@ -82,5 +90,22 @@ class VariableReference extends Expression {
   @override
   String evaluateIn(TemplateContext context) {
     return generator.evaluateIn(context);
+  }
+
+  @override
+  String toString() => '{$generator}';
+}
+
+extension on Operator {
+  String get displayName {
+    switch (this) {
+      case Operator.and:
+        return '&&';
+      case Operator.equal:
+        return '==';
+      case Operator.notEqual:
+        return '!=';
+    }
+    return 'impossible';
   }
 }

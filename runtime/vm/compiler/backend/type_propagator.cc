@@ -900,7 +900,7 @@ void CompileType::PrintTo(BaseTextBuffer* f) const {
   } else if (type_ != NULL) {
     type_name = type_->IsDynamicType()
                     ? "*"
-                    : String::Handle(type_->UserVisibleName()).ToCString();
+                    : String::Handle(type_->ScrubbedName()).ToCString();
   } else if (!is_nullable()) {
     type_name = "!null";
   }
@@ -1505,21 +1505,9 @@ CompileType LoadClassIdInstr::ComputeType() const {
 }
 
 CompileType LoadFieldInstr::ComputeType() const {
-  const AbstractType& field_type = slot().static_type();
-  CompileType compile_type_cid = slot().ComputeCompileType();
-  if (field_type.ptr() == AbstractType::null()) {
-    return compile_type_cid;
-  }
-
-  const AbstractType* abstract_type = &field_type;
-  TraceStrongModeType(this, *abstract_type);
-
-  if (compile_type_cid.ToNullableCid() != kDynamicCid) {
-    abstract_type = nullptr;
-  }
-
-  return CompileType(compile_type_cid.is_nullable(),
-                     compile_type_cid.ToNullableCid(), abstract_type);
+  CompileType type = slot().ComputeCompileType();
+  TraceStrongModeType(this, &type);
+  return type;
 }
 
 CompileType LoadCodeUnitsInstr::ComputeType() const {
@@ -1593,30 +1581,6 @@ CompileType SpeculativeShiftInt64OpInstr::ComputeType() const {
 
 CompileType UnaryInt64OpInstr::ComputeType() const {
   return CompileType::Int();
-}
-
-CompileType CheckedSmiOpInstr::ComputeType() const {
-  if (left()->Type()->IsNullableInt() && right()->Type()->IsNullableInt()) {
-    const AbstractType& abstract_type =
-        AbstractType::ZoneHandle(Type::IntType());
-    TraceStrongModeType(this, abstract_type);
-    return CompileType::FromAbstractType(abstract_type,
-                                         CompileType::kNonNullable);
-  } else {
-    CompileType* type = call()->Type();
-    TraceStrongModeType(this, type);
-    return *type;
-  }
-}
-
-bool CheckedSmiOpInstr::RecomputeType() {
-  return UpdateType(ComputeType());
-}
-
-CompileType CheckedSmiComparisonInstr::ComputeType() const {
-  CompileType* type = call()->Type();
-  TraceStrongModeType(this, type);
-  return *type;
 }
 
 CompileType BoxIntegerInstr::ComputeType() const {

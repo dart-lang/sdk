@@ -12,8 +12,6 @@ import 'package:kernel/type_algebra.dart';
 
 import 'package:kernel/type_environment.dart';
 
-import 'type_schema.dart' show UnknownType;
-
 import '../names.dart' show callName;
 
 import 'type_schema.dart';

@@ -13,7 +13,7 @@ const _asyncRunZoned = runZoned;
 /// that construct a mock implementation. The implementation in this base class
 /// defaults to the actual [HttpClient] implementation. For example:
 ///
-/// ```
+/// ```dart
 /// class MyHttpClient implements HttpClient {
 ///   ...
 ///   // An implementation of the HttpClient interface

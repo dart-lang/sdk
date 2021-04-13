@@ -980,7 +980,7 @@ class StandardTestSuite extends TestSuite {
     }
     args.addAll(additionalOptions(testFile.path));
     if (configuration.compiler == Compiler.dart2analyzer) {
-      args.add('--format=machine');
+      args.add('--format=json');
       args.add('--no-hints');
     }
 

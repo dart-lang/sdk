@@ -119,7 +119,7 @@ $snippet
         fail('The snippets directory contains multiple analysis contexts.');
       }
       ErrorsResult results =
-          (await contexts[0].currentSession.getErrors(snippetPath))!;
+          await contexts[0].currentSession.getErrors(snippetPath);
       Iterable<AnalysisError> errors = results.errors.where((error) {
         ErrorCode errorCode = error.errorCode;
         return errorCode != HintCode.UNUSED_IMPORT &&

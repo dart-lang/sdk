@@ -14,9 +14,6 @@
 
 namespace dart {
 
-class SExpression;
-class FlowGraphSerializer;
-
 class RangeBoundary : public ValueObject {
  public:
 #define FOR_EACH_RANGE_BOUNDARY_KIND(V)                                        \
@@ -35,6 +32,7 @@ class RangeBoundary : public ValueObject {
 
   enum RangeSize {
     kRangeBoundarySmi,
+    kRangeBoundaryInt16,
     kRangeBoundaryInt32,
     kRangeBoundaryInt64,
   };
@@ -100,6 +98,8 @@ class RangeBoundary : public ValueObject {
     switch (size) {
       case kRangeBoundarySmi:
         return FromConstant(compiler::target::kSmiMin);
+      case kRangeBoundaryInt16:
+        return FromConstant(kMinInt16);
       case kRangeBoundaryInt32:
         return FromConstant(kMinInt32);
       case kRangeBoundaryInt64:
@@ -113,6 +113,8 @@ class RangeBoundary : public ValueObject {
     switch (size) {
       case kRangeBoundarySmi:
         return FromConstant(compiler::target::kSmiMax);
+      case kRangeBoundaryInt16:
+        return FromConstant(kMaxInt16);
       case kRangeBoundaryInt32:
         return FromConstant(kMaxInt32);
       case kRangeBoundaryInt64:
@@ -246,7 +248,6 @@ class RangeBoundary : public ValueObject {
 
   void PrintTo(BaseTextBuffer* f) const;
   const char* ToCString() const;
-  SExpression* ToSExpression(FlowGraphSerializer* s);
 
   static RangeBoundary Add(const RangeBoundary& a,
                            const RangeBoundary& b,
@@ -347,7 +348,6 @@ class Range : public ZoneAllocated {
 
   void PrintTo(BaseTextBuffer* f) const;
   static const char* ToCString(const Range* range);
-  SExpression* ToSExpression(FlowGraphSerializer* s);
 
   bool Equals(const Range* other) {
     ASSERT(min_.IsUnknown() == max_.IsUnknown());

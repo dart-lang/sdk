@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 
@@ -48,6 +50,9 @@ class ArgumentAccessor extends Accessor {
     }
     return const InvalidResult();
   }
+
+  @override
+  String toString() => 'arguments[$parameter]';
 
   /// Return the argument list associated with the [node].
   ArgumentList _getArgumentList(AstNode node) {
@@ -105,6 +110,9 @@ class TypeArgumentAccessor extends Accessor {
     }
     return const InvalidResult();
   }
+
+  @override
+  String toString() => 'typeArguments[$index]';
 
   /// Return the type argument list associated with the [node].
   TypeArgumentList _getTypeArgumentList(AstNode node) {

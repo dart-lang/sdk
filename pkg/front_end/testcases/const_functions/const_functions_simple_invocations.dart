@@ -35,6 +35,10 @@ bool boolFn(bool a, bool b) => a || b;
 const doubleResult = doubleFn(2.2, 2);
 double doubleFn(double a, double b) => a * b;
 
+const multi = multiFn(1);
+const multi2 = multiFn(2);
+int multiFn(int a) => a + 1;
+
 void main() {
   Expect.equals(binary, 1);
   Expect.equals(optional, 2);
@@ -47,4 +51,6 @@ void main() {
   Expect.equals(negative, -2);
   Expect.equals(boolean, true);
   Expect.equals(doubleResult, 4.4);
+  Expect.equals(multi, 2);
+  Expect.equals(multi2, 3);
 }

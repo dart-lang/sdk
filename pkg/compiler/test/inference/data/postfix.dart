@@ -26,7 +26,7 @@ localPostfixInc() {
   if (local == null) {
     local = 0;
   }
-  return local /*invoke: [null|exact=JSUInt31]*/ ++;
+  return local /*invoke: [exact=JSUInt31]*/ ++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ localPostfixDec() {
   if (local == null) {
     local = 0;
   }
-  return local /*invoke: [null|exact=JSUInt31]*/ --;
+  return local /*invoke: [exact=JSUInt31]*/ --;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

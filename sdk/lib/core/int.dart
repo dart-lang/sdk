@@ -24,12 +24,12 @@ abstract class int extends num {
   /// Returns the integer value of the given environment declaration [name].
   ///
   /// The result is the same as would be returned by:
-  /// ```
+  /// ```dart
   /// int.tryParse(const String.fromEnvironment(name, defaultValue: ""))
   ///     ?? defaultValue
   /// ```
   /// Example:
-  /// ```
+  /// ```dart
   /// const int.fromEnvironment("defaultPort", defaultValue: 80)
   /// ```
   ///
@@ -111,7 +111,7 @@ abstract class int extends num {
   ///
   /// The least significant [shiftAmount] bits are dropped,
   /// the remaining bits (if any) are shifted down,
-  /// and zero-bits are shifted in as the new most signficant bits.
+  /// and zero-bits are shifted in as the new most significant bits.
   ///
   /// The [shiftAmount] must be non-negative.
   int operator >>>(int shiftAmount);
@@ -157,7 +157,7 @@ abstract class int extends num {
   ///
   /// To find the number of bits needed to store the value as a signed value,
   /// add one, i.e. use `x.bitLength + 1`.
-  /// ```
+  /// ```dart
   /// x.bitLength == (-x-1).bitLength
   ///
   /// 3.bitLength == 2;     // 00000011
@@ -174,12 +174,12 @@ abstract class int extends num {
   /// Returns the least significant [width] bits of this integer as a
   /// non-negative number (i.e. unsigned representation).  The returned value has
   /// zeros in all bit positions higher than [width].
-  /// ```
+  /// ```dart
   /// (-1).toUnsigned(5) == 31   // 11111111  ->  00011111
   /// ```
   /// This operation can be used to simulate arithmetic from low level languages.
   /// For example, to increment an 8 bit quantity:
-  /// ```
+  /// ```dart
   /// q = (q + 1).toUnsigned(8);
   /// ```
   /// `q` will count from `0` up to `255` and then wrap around to `0`.
@@ -187,7 +187,7 @@ abstract class int extends num {
   /// If the input fits in [width] bits without truncation, the result is the
   /// same as the input.  The minimum width needed to avoid truncation of `x` is
   /// given by `x.bitLength`, i.e.
-  /// ```
+  /// ```dart
   /// x == x.toUnsigned(x.bitLength);
   /// ```
   int toUnsigned(int width);
@@ -197,7 +197,7 @@ abstract class int extends num {
   /// to fit in [width] bits using an signed 2-s complement representation.  The
   /// returned value has the same bit value in all positions higher than [width].
   ///
-  /// ```
+  /// ```dart
   ///                                V--sign bit-V
   /// 16.toSigned(5) == -16   //  00010000 -> 11110000
   /// 239.toSigned(5) == 15   //  11101111 -> 00001111
@@ -205,7 +205,7 @@ abstract class int extends num {
   /// ```
   /// This operation can be used to simulate arithmetic from low level languages.
   /// For example, to increment an 8 bit signed quantity:
-  /// ```
+  /// ```dart
   /// q = (q + 1).toSigned(8);
   /// ```
   /// `q` will count from `0` up to `127`, wrap to `-128` and count back up to
@@ -214,7 +214,7 @@ abstract class int extends num {
   /// If the input value fits in [width] bits without truncation, the result is
   /// the same as the input.  The minimum width needed to avoid truncation of `x`
   /// is `x.bitLength + 1`, i.e.
-  /// ```
+  /// ```dart
   /// x == x.toSigned(x.bitLength + 1);
   /// ```
   int toSigned(int width);

@@ -124,7 +124,12 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
     Slot* new_value = new Slot[kNativeSlotsCount]{
 #define NULLABLE_FIELD_FINAL                                                   \
   (IsNullableBit::encode(true) | IsImmutableBit::encode(true))
+#define NULLABLE_FIELD_FINAL_COMPRESSED                                        \
+  (IsNullableBit::encode(true) | IsImmutableBit::encode(true) |                \
+   IsCompressedBit::encode(true))
 #define NULLABLE_FIELD_VAR (IsNullableBit::encode(true))
+#define NULLABLE_FIELD_VAR_COMPRESSED                                          \
+  (IsNullableBit::encode(true) | IsCompressedBit::encode(true))
 #define DEFINE_NULLABLE_BOXED_NATIVE_FIELD(ClassName, UnderlyingType,          \
                                            FieldName, cid, mutability)         \
   Slot(Kind::k##ClassName##_##FieldName, NULLABLE_FIELD_##mutability,          \
@@ -138,7 +143,10 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
 #undef NULLABLE_FIELD_VAR
 
 #define NONNULLABLE_FIELD_FINAL (Slot::IsImmutableBit::encode(true))
+#define NONNULLABLE_FIELD_FINAL_COMPRESSED                                     \
+  (Slot::IsImmutableBit::encode(true) | Slot::IsCompressedBit::encode(true))
 #define NONNULLABLE_FIELD_VAR (0)
+#define NONNULLABLE_FIELD_VAR_COMPRESSED (Slot::IsCompressedBit::encode(true))
 #define DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD(ClassName, UnderlyingType,       \
                                               FieldName, cid, mutability)      \
   Slot(Kind::k##ClassName##_##FieldName, NONNULLABLE_FIELD_##mutability,       \
@@ -203,9 +211,10 @@ const Slot& Slot::GetLengthFieldForArrayCid(intptr_t array_cid) {
 
 const Slot& Slot::GetTypeArgumentsSlotAt(Thread* thread, intptr_t offset) {
   ASSERT(offset != Class::kNoTypeArguments);
-  return SlotCache::Instance(thread).Canonicalize(Slot(
-      Kind::kTypeArguments, IsImmutableBit::encode(true), kTypeArgumentsCid,
-      offset, ":type_arguments", /*static_type=*/nullptr, kTagged));
+  return SlotCache::Instance(thread).Canonicalize(
+      Slot(Kind::kTypeArguments, IsImmutableBit::encode(true),
+           kTypeArgumentsCid, offset, ":type_arguments",
+           /*static_type=*/nullptr, kTagged));
 }
 
 const Slot& Slot::GetTypeArgumentsSlotFor(Thread* thread, const Class& cls) {
@@ -333,7 +342,28 @@ const Slot& Slot::Get(const Field& field,
 }
 
 CompileType Slot::ComputeCompileType() const {
-  return CompileType::CreateNullable(is_nullable(), nullable_cid());
+  // If we unboxed the slot, we may know a more precise type.
+  switch (representation()) {
+    case kUnboxedInt64:
+      if (nullable_cid() == kDynamicCid) {
+        return CompileType::Int();
+      }
+      // Might be an CID like nullable_cid == kSmiCid.
+      break;
+    case kUnboxedDouble:
+      return CompileType::FromCid(kDoubleCid);
+    case kUnboxedInt32x4:
+      return CompileType::FromCid(kInt32x4Cid);
+    case kUnboxedFloat32x4:
+      return CompileType::FromCid(kFloat32x4Cid);
+    case kUnboxedFloat64x2:
+      return CompileType::FromCid(kFloat64x2Cid);
+    default:
+      break;
+  }
+
+  return CompileType(is_nullable(), nullable_cid(),
+                     nullable_cid() == kDynamicCid ? static_type_ : nullptr);
 }
 
 const AbstractType& Slot::static_type() const {

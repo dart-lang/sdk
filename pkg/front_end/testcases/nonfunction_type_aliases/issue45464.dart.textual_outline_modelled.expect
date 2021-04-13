@@ -1,0 +1,19 @@
+Type? _capturedTypeArgument;
+X captureTypeArgument<X>() {}
+
+class A<X extends A<X>> {}
+
+class Class {
+  void instance1<X extends A<X>>(A<X> Function() g) => g();
+  void instance2<X extends C<X>>(C<X> Function() g) => g();
+  void test() {}
+}
+
+class Subclass extends Class {
+  void test() {}
+}
+
+main() {}
+typedef C<X extends A<X>> = A<X>;
+void topLevel1<X extends A<X>>(A<X> Function() g) => g();
+void topLevel2<X extends C<X>>(C<X> Function() g) => g();

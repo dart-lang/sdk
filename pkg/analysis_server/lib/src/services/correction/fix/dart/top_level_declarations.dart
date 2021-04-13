@@ -85,7 +85,7 @@ class TopLevelDeclarationsProvider {
     return declarations;
   }
 
-  TopLevelDeclarationKind _getTopKind(DeclarationKind kind) {
+  TopLevelDeclarationKind? _getTopKind(DeclarationKind kind) {
     switch (kind) {
       case DeclarationKind.CLASS:
       case DeclarationKind.CLASS_TYPE_ALIAS:
@@ -93,18 +93,14 @@ class TopLevelDeclarationsProvider {
       case DeclarationKind.FUNCTION_TYPE_ALIAS:
       case DeclarationKind.MIXIN:
         return TopLevelDeclarationKind.type;
-        break;
       case DeclarationKind.EXTENSION:
         return TopLevelDeclarationKind.extension;
-        break;
       case DeclarationKind.FUNCTION:
         return TopLevelDeclarationKind.function;
-        break;
       case DeclarationKind.GETTER:
       case DeclarationKind.SETTER:
       case DeclarationKind.VARIABLE:
         return TopLevelDeclarationKind.variable;
-        break;
       default:
         return null;
     }

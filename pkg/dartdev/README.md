@@ -9,8 +9,8 @@ Global options:
 -h, --help                 Print this usage information.
 -v, --verbose              Show additional command output.
     --version              Print the Dart SDK version.
-    --enable-analytics     Enable anonymous analytics.
-    --disable-analytics    Disable anonymous analytics.
+    --enable-analytics     Enable analytics.
+    --disable-analytics    Disable analytics.
 
 Available commands:
   analyze   Analyze the project's Dart code.

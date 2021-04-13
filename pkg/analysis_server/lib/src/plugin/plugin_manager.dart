@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
@@ -565,7 +567,7 @@ class PluginManager {
     }
     var files = params.files;
     for (var file in files.keys) {
-      Object overlay = files[file];
+      var overlay = files[file];
       if (overlay is RemoveContentOverlay) {
         _overlayState.remove(file);
       } else if (overlay is AddContentOverlay) {

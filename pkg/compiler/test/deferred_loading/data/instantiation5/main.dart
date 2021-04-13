@@ -2,11 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: 
+/*spec.library: 
  output_units=[
-  f1: {units: [1{b, c}], usedBy: [2, 3], needs: []},
-  f2: {units: [2{b}], usedBy: [], needs: [1]},
-  f3: {units: [3{c}], usedBy: [], needs: [1]}],
+  f1: {units: [1{b, c}], usedBy: [], needs: []},
+  f2: {units: [2{b}], usedBy: [], needs: []},
+  f3: {units: [3{c}], usedBy: [], needs: []}],
+ steps=[
+  b=(f1, f2),
+  c=(f1, f3)]
+*/
+
+/*two-frag|three-frag.library: 
+ output_units=[
+  f1: {units: [1{b, c}], usedBy: [], needs: [2, 3]},
+  f2: {units: [2{b}], usedBy: [1], needs: []},
+  f3: {units: [3{c}], usedBy: [1], needs: []}],
  steps=[
   b=(f1, f2),
   c=(f1, f3)]

@@ -8,6 +8,29 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 
+const Map<String, Set<String>> _nonSubtypableClassMap = {
+  'dart:async': _nonSubtypableDartAsyncClassNames,
+  'dart:core': _nonSubtypableDartCoreClassNames,
+};
+
+const Set<String> _nonSubtypableClassNames = {
+  ..._nonSubtypableDartCoreClassNames,
+  ..._nonSubtypableDartAsyncClassNames,
+};
+
+const Set<String> _nonSubtypableDartAsyncClassNames = {
+  'FutureOr',
+};
+
+const Set<String> _nonSubtypableDartCoreClassNames = {
+  'bool',
+  'double',
+  'int',
+  'Null',
+  'num',
+  'String',
+};
+
 /// Provide common functionality shared by the various TypeProvider
 /// implementations.
 abstract class TypeProviderBase implements TypeProvider {
@@ -257,6 +280,7 @@ class TypeProviderImpl extends TypeProviderBase {
       ? NeverTypeImpl.instance
       : NeverTypeImpl.instanceLegacy;
 
+  @Deprecated('Use isNonSubtypableClass instead')
   @override
   Set<ClassElement> get nonSubtypableClasses => _nonSubtypableClasses ??= {
         boolElement,
@@ -394,6 +418,17 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType futureType2(DartType valueType) {
     return futureType(valueType);
+  }
+
+  @override
+  bool isNonSubtypableClass(ClassElement element) {
+    var name = element.name;
+    if (_nonSubtypableClassNames.contains(name)) {
+      var libraryUriStr = element.library.source.uri.toString();
+      var ofLibrary = _nonSubtypableClassMap[libraryUriStr];
+      return ofLibrary != null && ofLibrary.contains(name);
+    }
+    return false;
   }
 
   @override

@@ -277,7 +277,8 @@ class NonNullableFix {
         var edit = SourceEdit(offset, configText.length, newText);
         listener.addSourceFileEdit(
             'enable Null Safety language feature',
-            Location(packageConfigFile.path, offset, newText.length, line, 0),
+            Location(
+                packageConfigFile.path, offset, newText.length, line, 0, 0, 0),
             SourceFileEdit(packageConfigFile.path, 0, edits: [edit]));
       }
     } on FormatException catch (e) {
@@ -598,7 +599,7 @@ class _YamlFile {
     var edit = SourceEdit(offset, 0, content);
     listener.addSourceFileEdit(
         'enable Null Safety language feature',
-        Location(path, offset, content.length, line, 0),
+        Location(path, offset, content.length, line, 0, 0, 0),
         SourceFileEdit(path, 0, edits: [edit]));
   }
 
@@ -608,7 +609,7 @@ class _YamlFile {
     var edit = SourceEdit(offset, span.length, content);
     listener.addSourceFileEdit(
         'enable Null Safety language feature',
-        Location(path, offset, content.length, line, 0),
+        Location(path, offset, content.length, line, 0, 0, 0),
         SourceFileEdit(path, 0, edits: [edit]));
   }
 

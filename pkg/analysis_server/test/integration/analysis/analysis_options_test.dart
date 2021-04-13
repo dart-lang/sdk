@@ -36,7 +36,7 @@ linter:
     await analysisFinished;
 
     expect(currentAnalysisErrors[options], isList);
-    var errors = currentAnalysisErrors[options];
+    var errors = existingErrorsForFile(options);
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, options);

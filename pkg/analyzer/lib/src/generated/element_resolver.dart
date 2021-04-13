@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
@@ -245,7 +247,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorName(covariant ConstructorNameImpl node) {
-    DartType type = node.type.type!;
+    DartType type = node.type.typeOrThrow;
     if (type.isDynamic) {
       // Nothing to do.
     } else if (type is InterfaceType) {
@@ -393,8 +395,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    _methodInvocationResolver.resolve(node as MethodInvocationImpl);
+  void visitMethodInvocation(MethodInvocation node,
+      {List<Map<DartType, NonPromotionReason> Function()>?
+          whyNotPromotedList}) {
+    whyNotPromotedList ??= [];
+    _methodInvocationResolver.resolve(
+        node as MethodInvocationImpl, whyNotPromotedList);
   }
 
   @override
@@ -659,7 +665,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
             receiver: null,
             receiverType: enclosingClass.thisType,
             name: identifier.name,
-            receiverErrorNode: identifier,
+            propertyErrorEntity: identifier,
             nameErrorEntity: identifier,
           );
           setter = result.setter;
@@ -700,7 +706,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           receiver: null,
           receiverType: enclosingType,
           name: identifier.name,
-          receiverErrorNode: identifier,
+          propertyErrorEntity: identifier,
           nameErrorEntity: identifier,
         );
         if (identifier.inSetterContext() ||

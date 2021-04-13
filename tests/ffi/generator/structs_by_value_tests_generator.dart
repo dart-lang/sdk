@@ -332,7 +332,7 @@ extension on CType {
       case FixedLengthArrayType:
         final this_ = this as FixedLengthArrayType;
         return """
-for(int i = 0; i < ${this_.length}; i++){
+for (int i = 0; i < ${this_.length}; i++){
   ${this_.elementType.dartExpectsStatements("$expected[i]", "$actual[i]")}
 }
 """;
@@ -370,7 +370,7 @@ extension on CType {
       case FixedLengthArrayType:
         final this_ = this as FixedLengthArrayType;
         return """
-for(intptr_t i = 0; i < ${this_.length}; i++){
+for (intptr_t i = 0; i < ${this_.length}; i++){
   ${this_.elementType.cExpectsStatements("$expected[i]", "$actual[i]")}
 }
 """;
@@ -397,7 +397,7 @@ for(intptr_t i = 0; i < ${this_.length}; i++){
       case FixedLengthArrayType:
         final this_ = this as FixedLengthArrayType;
         return """
-for(intptr_t i = 0; i < ${this_.length}; i++){
+for (intptr_t i = 0; i < ${this_.length}; i++){
   ${this_.elementType.cExpectsZeroStatements("$actual[i]")}
 }
 """;
@@ -455,18 +455,30 @@ extension on List<Member> {
 
 extension on StructType {
   String dartClass(bool nnbd) {
+    final packingAnnotation = hasPacking ? "@Packed(${packing})" : "";
     String dartFields = "";
     for (final member in members) {
       dartFields += "${member.dartStructField(nnbd)}\n\n";
     }
     String toStringBody = members.map((m) {
       if (m.type is FixedLengthArrayType) {
-        final length = (m.type as FixedLengthArrayType).length;
-        return "\$\{[for (var i = 0; i < $length; i += 1) ${m.name}[i]]\}";
+        int dimensionNumber = 0;
+        String inlineFor = "";
+        String read = m.name;
+        String closing = "";
+        for (final dimension in (m.type as FixedLengthArrayType).dimensions) {
+          final i = "i$dimensionNumber";
+          inlineFor += "[for (var $i = 0; $i < $dimension; $i += 1)";
+          read += "[$i]";
+          closing += "]";
+          dimensionNumber++;
+        }
+        return "\$\{$inlineFor $read $closing\}";
       }
       return "\$\{${m.name}\}";
     }).join(", ");
     return """
+    $packingAnnotation
     class $name extends Struct {
       $dartFields
 
@@ -476,14 +488,19 @@ extension on StructType {
   }
 
   String get cDefinition {
+    final packingPragmaPush =
+        hasPacking ? "#pragma pack(push, ${packing})" : "";
+    final packingPragmaPop = hasPacking ? "#pragma pack(pop)" : "";
     String cFields = "";
     for (final member in members) {
       cFields += "  ${member.cStructField}\n";
     }
     return """
+    $packingPragmaPush
     struct $name {
       $cFields
     };
+    $packingPragmaPop
 
     """;
   }

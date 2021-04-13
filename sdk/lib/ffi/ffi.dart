@@ -89,15 +89,58 @@ class Pointer<T extends NativeType> extends NativeType {
 class Array<T extends NativeType> extends NativeType {
   /// Const constructor to specify [Array] dimensions in [Struct]s.
   ///
-  /// ```
+  /// ```dart
   /// class MyStruct extends Struct {
   ///   @Array(8)
   ///   external Array<Uint8> inlineArray;
+  ///
+  ///   @Array(2, 2, 2)
+  ///   external Array<Array<Array<Uint8>>> threeDimensionalInlineArray;
   /// }
   /// ```
   ///
   /// Do not invoke in normal code.
-  external const factory Array(int dimension1);
+  const factory Array(int dimension1,
+      [int dimension2,
+      int dimension3,
+      int dimension4,
+      int dimension5]) = _ArraySize<T>;
+
+  /// Const constructor to specify [Array] dimensions in [Struct]s.
+  ///
+  /// ```dart
+  /// class MyStruct extends Struct {
+  ///   @Array.multi([2, 2, 2])
+  ///   external Array<Array<Array<Uint8>>> threeDimensionalInlineArray;
+  ///
+  ///   @Array.multi([2, 2, 2, 2, 2, 2, 2, 2])
+  ///   external Array<Array<Array<Array<Array<Array<Array<Array<Uint8>>>>>>>> eightDimensionalInlineArray;
+  /// }
+  /// ```
+  ///
+  /// Do not invoke in normal code.
+  const factory Array.multi(List<int> dimensions) = _ArraySize<T>.multi;
+}
+
+class _ArraySize<T extends NativeType> implements Array<T> {
+  final int? dimension1;
+  final int? dimension2;
+  final int? dimension3;
+  final int? dimension4;
+  final int? dimension5;
+
+  final List<int>? dimensions;
+
+  const _ArraySize(this.dimension1,
+      [this.dimension2, this.dimension3, this.dimension4, this.dimension5])
+      : dimensions = null;
+
+  const _ArraySize.multi(this.dimensions)
+      : dimension1 = null,
+        dimension2 = null,
+        dimension3 = null,
+        dimension4 = null,
+        dimension5 = null;
 }
 
 /// Extension on [Pointer] specialized for the type argument [NativeFunction].
@@ -662,6 +705,13 @@ extension StructArray<T extends Struct> on Array<T> {
   external T operator [](int index);
 }
 
+/// Bounds checking indexing methods on [Array]s of [Array].
+extension ArrayArray<T extends NativeType> on Array<Array<T>> {
+  external Array<T> operator [](int index);
+
+  external void operator []=(int index, Array<T> value);
+}
+
 /// Extension to retrieve the native `Dart_Port` from a [SendPort].
 extension NativePort on SendPort {
   /// The native port of this [SendPort].
@@ -698,7 +748,7 @@ abstract class NativeApi {
       get postCObject;
 
   /// A function pointer to
-  /// ```
+  /// ```c
   /// Dart_Port Dart_NewNativePort(const char* name,
   ///                              Dart_NativeMessageHandler handler,
   ///                              bool handle_concurrently)

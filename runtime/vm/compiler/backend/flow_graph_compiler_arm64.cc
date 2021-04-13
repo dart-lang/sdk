@@ -26,7 +26,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(bool, enable_simd_inline);
-DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 
 void FlowGraphCompiler::ArchSpecificInitialization() {
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
@@ -64,10 +63,6 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 bool FlowGraphCompiler::SupportsUnboxedDoubles() {
   return true;
-}
-
-bool FlowGraphCompiler::SupportsUnboxedInt64() {
-  return FLAG_unbox_mints;
 }
 
 bool FlowGraphCompiler::SupportsUnboxedSimd128() {
@@ -142,7 +137,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
     builder->AddReturnAddress(current->function(),
-                              DeoptId::ToDeoptAfter(current->deopt_id()),
+                              DeoptId::ToDeoptAfter(current->GetDeoptId()),
                               slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
@@ -694,18 +689,23 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
 }
 
 void FlowGraphCompiler::EmitDispatchTableCall(
-    Register cid_reg,
     int32_t selector_offset,
     const Array& arguments_descriptor) {
+  const auto cid_reg = DispatchTableNullErrorABI::kClassIdReg;
   ASSERT(CanCallDart());
   ASSERT(cid_reg != ARGS_DESC_REG);
   if (!arguments_descriptor.IsNull()) {
     __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
   }
   const intptr_t offset = selector_offset - DispatchTable::OriginElement();
-  __ AddImmediate(cid_reg, cid_reg, offset);
-  __ Call(compiler::Address(DISPATCH_TABLE_REG, cid_reg, UXTX,
-                            compiler::Address::Scaled));
+  CLOBBERS_LR({
+    // Would like cid_reg to be available on entry to the target function
+    // for checking purposes.
+    ASSERT(cid_reg != LR);
+    __ AddImmediate(LR, cid_reg, offset);
+    __ Call(compiler::Address(DISPATCH_TABLE_REG, LR, UXTX,
+                              compiler::Address::Scaled));
+  });
 }
 
 Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
@@ -751,7 +751,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(
     // Stub returns result in flags (result of a cmp, we need Z computed).
     __ PopPair(right, left);
   } else {
-    __ CompareRegisters(left, right);
+    __ CompareObjectRegisters(left, right);
   }
   return EQ;
 }

@@ -21,7 +21,7 @@ class Stopwatch {
   ///
   /// The following example shows how to start a [Stopwatch]
   /// immediately after allocation.
-  /// ```
+  /// ```dart
   /// var stopwatch = Stopwatch()..start();
   /// ```
   Stopwatch() {

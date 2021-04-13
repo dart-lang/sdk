@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -135,13 +134,11 @@ class FileState {
   /// Return the [uri] string.
   String get uriStr => uri.toString();
 
-  /// Recursively traverse imports, exports, and parts to collect all
-  /// files that are accessed.
+  /// Collect all files that are transitively referenced by this file via
+  /// imports, exports, and parts.
   void collectAllReferencedFiles(Set<String> referencedFiles) {
-    var deps = {...importedFiles, ...exportedFiles, ...partedFiles};
-    for (var file in deps) {
-      if (!referencedFiles.contains(file.path)) {
-        referencedFiles.add(file.path);
+    for (var file in {...importedFiles, ...exportedFiles, ...partedFiles}) {
+      if (referencedFiles.add(file.path)) {
         file.collectAllReferencedFiles(referencedFiles);
       }
     }
@@ -626,29 +623,30 @@ class FileSystemState {
   /// [files]. Removes the [FileState]'s of the files not used for analysis from
   /// the cache. Returns the set of unused [FileState]'s.
   List<FileState> removeUnusedFiles(List<String> files) {
-    var removedFiles = <FileState>[];
-    var unusedFiles = _pathToFile.keys.toSet();
-    var deps = HashSet<String>();
+    var allReferenced = <String>{};
     for (var path in files) {
-      unusedFiles.remove(path);
-      _pathToFile[path]!.collectAllReferencedFiles(deps);
+      allReferenced.add(path);
+      _pathToFile[path]?.collectAllReferencedFiles(allReferenced);
     }
-    for (var path in deps) {
-      unusedFiles.remove(path);
-    }
-    for (var path in unusedFiles) {
+
+    var unusedPaths = _pathToFile.keys.toSet();
+    unusedPaths.removeAll(allReferenced);
+    testView.removedPaths = unusedPaths;
+
+    var removedFiles = <FileState>[];
+    for (var path in unusedPaths) {
       var file = _pathToFile.remove(path)!;
       _uriToFile.remove(file.uri);
       removedFiles.add(file);
     }
-    testView.unusedFiles = unusedFiles;
+
     return removedFiles;
   }
 }
 
 class FileSystemStateTestView {
   final List<String> refreshedFiles = [];
-  Set<String> unusedFiles = {};
+  Set<String> removedPaths = {};
 }
 
 class FileSystemStateTimer {

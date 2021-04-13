@@ -18,9 +18,6 @@ namespace dart {
 class AbstractType;
 class BaseTextBuffer;
 class Definition;
-class FlowGraphSerializer;
-class SExpression;
-class SExpList;
 
 template <typename T>
 class GrowableArray;
@@ -200,8 +197,7 @@ class CompileType : public ZoneAllocated {
       return true;
     }
     if (cid_ == kIllegalCid || cid_ == kDynamicCid) {
-      return type_ != nullptr &&
-             (compiler::IsIntType(*type_) || compiler::IsSmiType(*type_));
+      return type_ != nullptr && compiler::IsSubtypeOfInt(*type_);
     }
     return false;
   }
@@ -248,8 +244,6 @@ class CompileType : public ZoneAllocated {
   bool Specialize(GrowableArray<intptr_t>* class_ids);
 
   void PrintTo(BaseTextBuffer* f) const;
-  SExpression* ToSExpression(FlowGraphSerializer* s) const;
-  void AddExtraInfoToSExpression(SExpList* sexp, FlowGraphSerializer* s) const;
 
   const char* ToCString() const;
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
@@ -411,6 +413,7 @@ class DartFixKind {
       DartFixKindPriority.DEFAULT, "Create local variable '{0}'");
   static const CREATE_METHOD = FixKind('dart.fix.create.method',
       DartFixKindPriority.DEFAULT, "Create method '{0}'");
+
   // todo (pq): used by LintNames.hash_and_equals; consider removing.
   static const CREATE_METHOD_MULTI = FixKind('dart.fix.create.method.multi',
       DartFixKindPriority.IN_FILE, 'Create methods in file');
@@ -468,6 +471,7 @@ class DartFixKind {
       DartFixKindPriority.DEFAULT, "Make field '{0}' not final");
   static const MAKE_FINAL =
       FixKind('dart.fix.makeFinal', DartFixKindPriority.DEFAULT, 'Make final');
+
   // todo (pq): consider parameterizing: 'Make {fields} final...'
   static const MAKE_FINAL_MULTI = FixKind('dart.fix.makeFinal.multi',
       DartFixKindPriority.IN_FILE, 'Make final where possible in file');
@@ -493,6 +497,7 @@ class DartFixKind {
       DartFixKindPriority.DEFAULT, "Remove the '{0}' annotation");
   static const REMOVE_ARGUMENT = FixKind('dart.fix.remove.argument',
       DartFixKindPriority.DEFAULT, 'Remove argument');
+
   // todo (pq): used by LintNames.avoid_redundant_argument_values; consider a parameterized message
   static const REMOVE_ARGUMENT_MULTI = FixKind('dart.fix.remove.argument.multi',
       DartFixKindPriority.IN_FILE, 'Remove arguments in file');
@@ -508,6 +513,7 @@ class DartFixKind {
       DartFixKindPriority.DEFAULT, 'Remove dead code');
   static const REMOVE_DUPLICATE_CASE = FixKind('dart.fix.remove.duplicateCase',
       DartFixKindPriority.DEFAULT, 'Remove duplicate case statement');
+
   // todo (pq): is this dangerous to bulk apply?  Consider removing.
   static const REMOVE_DUPLICATE_CASE_MULTI = FixKind(
       'dart.fix.remove.duplicateCase.multi',
@@ -567,6 +573,7 @@ class DartFixKind {
       'dart.fix.remove.methodDeclaration',
       DartFixKindPriority.DEFAULT,
       'Remove method declaration');
+
   // todo (pq): parameterize to make scope explicit
   static const REMOVE_METHOD_DECLARATION_MULTI = FixKind(
       'dart.fix.remove.methodDeclaration.multi',
@@ -746,6 +753,12 @@ class DartFixKind {
       'dart.fix.replace.nullWithClosure.multi',
       DartFixKindPriority.IN_FILE,
       "Replace 'null's with closures where possible in file");
+  static const REPLACE_FINAL_WITH_VAR = FixKind('dart.fix.replace.finalWithVar',
+      DartFixKindPriority.DEFAULT, "Replace 'final' with 'var'");
+  static const REPLACE_FINAL_WITH_VAR_MULTI = FixKind(
+      'dart.fix.replace.finalWithVar.multi',
+      DartFixKindPriority.IN_FILE,
+      "Replace 'final' with 'var' where possible in file");
   static const REPLACE_RETURN_TYPE_FUTURE = FixKind(
       'dart.fix.replace.returnTypeFuture',
       DartFixKindPriority.DEFAULT,
@@ -784,6 +797,7 @@ class DartFixKind {
       'dart.fix.replace.withIdentifier',
       DartFixKindPriority.DEFAULT,
       'Replace with identifier');
+
   // todo (pq): parameterize message (used by LintNames.avoid_types_on_closure_parameters)
   static const REPLACE_WITH_IDENTIFIER_MULTI = FixKind(
       'dart.fix.replace.withIdentifier.multi',
@@ -830,7 +844,7 @@ class DartFixKind {
   static const REPLACE_WITH_VAR_MULTI = FixKind(
       'dart.fix.replace.withVar.multi',
       DartFixKindPriority.IN_FILE,
-      "Replace unnecessary type annotations with 'var' in file");
+      "Replace type annotations with 'var' in file");
   static const SORT_CHILD_PROPERTY_LAST = FixKind(
       'dart.fix.sort.childPropertyLast',
       DartFixKindPriority.DEFAULT,
@@ -881,10 +895,3 @@ class DartFixKindPriority {
   static const int DEFAULT = 50;
   static const int IN_FILE = 40;
 }
-
-/// An enumeration of quick fix kinds for the errors found in an Android
-/// manifest file.
-class ManifestFixKind {}
-
-/// An enumeration of quick fix kinds for the errors found in a pubspec file.
-class PubspecFixKind {}

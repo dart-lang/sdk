@@ -303,6 +303,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool chromeOsManifestChecks = false;
 
+  /// The set of "un-ignorable" error names, as parsed in [AnalyzerOptions] from
+  /// an analysis options file.
+  Set<String> unignorableNames = {};
+
   /// Initialize a newly created set of analysis options to have their default
   /// values.
   AnalysisOptionsImpl();
@@ -383,7 +387,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       }
 
       // Append boolean flags.
-      // ignore: deprecated_member_use_from_same_package
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
       buffer.addBool(strictInference);

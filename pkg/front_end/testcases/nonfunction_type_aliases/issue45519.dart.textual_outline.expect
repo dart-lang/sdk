@@ -1,0 +1,6 @@
+class C<X> {}
+
+typedef G<X> = X Function(X);
+typedef A<X extends G<C<X>>> = C<X>;
+test() {}
+main() {}

@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "package:expect/expect.dart";
+
+static method blockTest() → void
+  ;
+static method blockTest1() → void
+  ;
+static method main() → void
+  ;

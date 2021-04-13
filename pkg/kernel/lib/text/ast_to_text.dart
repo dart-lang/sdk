@@ -1016,8 +1016,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (name.name.startsWith('@')) throw 'unexpected @';
 
     String libraryString(CanonicalName lib) {
-      if (lib.reference?.node != null) {
-        return getLibraryReference(lib.reference!.asLibrary);
+      if (lib.reference.node != null) {
+        return getLibraryReference(lib.reference.asLibrary);
       }
       return syntheticNames.nameCanonicalNameAsLibraryPrefix(
           lib.reference, lib);
@@ -1334,6 +1334,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   visitExtension(Extension node) {
+    writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord('extension');
     writeWord(getExtensionName(node));
@@ -1497,15 +1498,24 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('}');
   }
 
+  visitInstanceGetterInvocation(InstanceGetterInvocation node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.');
+    writeInterfaceTarget(node.name, node.interfaceTargetReference);
+    _writeInstanceAccessKind(node.kind);
+    writeNode(node.arguments);
+    if (node.functionType != null) {
+      writeSymbol('{');
+      writeType(node.functionType!);
+      writeSymbol('}');
+    }
+  }
+
   visitEqualsCall(EqualsCall node) {
     int precedence = Precedence.EQUALITY;
     writeExpression(node.left, precedence);
     writeSpace();
-    if (node.isNot) {
-      writeSymbol('!=');
-    } else {
-      writeSymbol('==');
-    }
+    writeSymbol('==');
     writeInterfaceTarget(Name.equalsName, node.interfaceTargetReference);
     writeSymbol('{');
     writeType(node.functionType);
@@ -1517,11 +1527,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   visitEqualsNull(EqualsNull node) {
     writeExpression(node.expression, Precedence.EQUALITY);
     writeSpace();
-    if (node.isNot) {
-      writeSymbol('!=');
-    } else {
-      writeSymbol('==');
-    }
+    writeSymbol('==');
     writeSpace();
     writeSymbol('null');
   }
@@ -2444,6 +2450,17 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeNullability(node.nullability);
   }
 
+  visitExtensionType(ExtensionType node) {
+    writeExtensionReferenceFromReference(node.extensionReference);
+    if (node.typeArguments.isNotEmpty) {
+      writeSymbol('<');
+      writeList(node.typeArguments, writeType);
+      writeSymbol('>');
+      state = Printer.WORD;
+    }
+    writeNullability(node.declaredNullability);
+  }
+
   visitFutureOrType(FutureOrType node) {
     writeWord('FutureOr');
     writeSymbol('<');
@@ -2737,6 +2754,9 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitInstanceInvocation(InstanceInvocation node) => CALLEE;
+
+  @override
+  int visitInstanceGetterInvocation(InstanceGetterInvocation node) => CALLEE;
 
   @override
   int visitDynamicInvocation(DynamicInvocation node) => CALLEE;

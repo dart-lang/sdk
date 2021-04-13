@@ -31,6 +31,7 @@ get_object_rpc_test: SkipByDesign # App-JIT snapshots don't contain script sourc
 pause_on_exceptions_test: SkipByDesign # No incremental compiler available.
 rewind_optimized_out_test: SkipByDesign # No incremental compiler available.
 rewind_test: SkipByDesign # No incremental compiler available.
+sigquit_starts_service_test: SkipByDesign # Spawns a secondary process using Platform.executable.
 
 [ $compiler == dartk ]
 bad_reload_test: RuntimeError # Issue 34025
@@ -38,6 +39,7 @@ coverage_optimized_function_test: Pass, Slow
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
 evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
 get_source_report_test: RuntimeError # Should pass again when constant evaluation is relanded, see http://dartbug.com/36600
+pause_on_exception_from_slow_path_test: Pass, Slow
 pause_on_unhandled_async_exceptions2_test: Pass, Slow
 
 [ $compiler == dartkp ]
@@ -58,6 +60,8 @@ bad_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
 break_on_activation_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_async_function_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_default_constructor_test: SkipByDesign # Debugger is disabled in AOT mode.
+break_on_function_child_isolate_test: SkipByDesign # Debugger is disabled in AOT mode.
+break_on_function_many_child_isolates_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_function_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_async_break_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_in_package_parts_class_file_uri_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -172,6 +176,7 @@ reload_sources_test: SkipByDesign #  Hot reload is disabled in AOT mode.
 rewind_optimized_out_test: SkipByDesign # Debugger is disabled in AOT mode.
 rewind_test: SkipByDesign # Debugger is disabled in AOT mode.
 set_library_debuggable_test: SkipByDesign # Debugger is disabled in AOT mode.
+sigquit_starts_service_test: SkipByDesign # Spawns a secondary process using Platform.executable.
 simple_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
 steal_breakpoint_test: SkipByDesign # Debugger is disabled in AOT mode.
 step_into_async_no_await_test: SkipByDesign # Debugger is disabled in AOT mode.
@@ -298,6 +303,7 @@ reload_sources_test: Skip # Times out.
 rewind_optimized_out_test: RuntimeError # Issue #34736
 rewind_test: Pass, RuntimeError
 set_name_rpc_test: RuntimeError # Please triage.
+sigquit_starts_service_test: SkipByDesign # Spawns a secondary process using Platform.executable.
 simple_reload_test: RuntimeError, Timeout
 valid_source_locations_test: Skip # Issue 34736, too slow.
 

@@ -1675,7 +1675,11 @@ class _Utf8Decoder {
       "QQQQQQQQQQQQQQQQRRRRRbbbbbbbbbbb" // E0-FF
       ;
 
-  /// Max chunk to scan at a time. Avoids staying away from safepoints too long.
+  /// Max chunk to scan at a time.
+  ///
+  /// Avoids staying away from safepoints too long.
+  /// The Utf8ScanInstr relies on this being small enough to ensure the
+  /// decoded length stays within Smi range.
   static const int scanChunkSize = 65536;
 
   /// Reset the decoder to a state where it is ready to decode a new string but

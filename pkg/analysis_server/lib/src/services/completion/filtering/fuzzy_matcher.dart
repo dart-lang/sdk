@@ -83,10 +83,12 @@ class FuzzyMatcher {
   MatchStyle matchStyle;
 
   /// The lowercase version of the pattern.
-  String patternLower;
+  // Initialized in the constructor.
+  String patternLower = '';
 
   /// The first three characters of the lowercase version of the pattern.
-  String patternShort;
+  // Initialized in the constructor.
+  String patternShort = '';
 
   /// The length of the last matched candidate.
   int lastCandidateLen = 0;
@@ -107,24 +109,27 @@ class FuzzyMatcher {
   ///
   /// The zero bit of the score value keeps track of where we came from (1 if
   /// the previous character matched, and 0 otherwise).
-  List<List<int>> table;
+  List<List<int>> table = [];
 
   /// The offset of the "previous symbol matched" table on the pattern axis.
-  int matchesLayerOffset;
+  // Initialized in the constructor.
+  int matchesLayerOffset = 0;
 
   /// Pre-allocated memory for storing the role of each character in the
   /// candidate string.
   List<CharRole> candidateRoles = List.filled(maxInputSize, CharRole.NONE);
 
   /// The role of each character in the pattern.
-  List<CharRole> patternRoles;
+  List<CharRole> patternRoles = [];
 
   /// A flag indicating whether scoring should be case-sensitive. Mix-case
   /// patterns turn on case-sensitive scoring.
-  bool caseSensitive;
+  // Initialized in the constructor.
+  bool caseSensitive = false;
 
   /// Normalizes scores for the pattern length.
-  double scoreScale;
+  // Initialized in the constructor.
+  double scoreScale = 0.0;
 
   /// Initialize a newly created matcher to match the [pattern] using the given
   /// [matchStyle].
@@ -141,7 +146,6 @@ class FuzzyMatcher {
     }
     matchesLayerOffset = pattern.length + 1;
 
-    table = [];
     for (var i = 0; i <= maxInputSize; i++) {
       table.add(List.filled(2 * matchesLayerOffset, 0));
     }

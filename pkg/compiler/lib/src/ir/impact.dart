@@ -178,7 +178,9 @@ abstract class ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments);
 
-  void registerRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
+  // TODO(johnniwinther): Change [node] to `InstanceGet` when the old method
+  // invocation encoding is no longer used.
+  void registerRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType);
 
   // TODO(johnniwinther): Remove these when CFE provides constants.
@@ -595,6 +597,20 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   }
 
   @override
+  void handleEqualsNull(ir.EqualsNull node, ir.DartType expressionType) {
+    // TODO(johnniwinther): Remove this after the new method invocation has landed
+    // stably. This is only included to make the transition a no-op.
+    if (node.fileOffset < node.expression.fileOffset) {
+      // Hack to detect `null == o`.
+      expressionType = const ir.NullType();
+    }
+    ClassRelation relation = computeClassRelationFromType(expressionType);
+    registerDynamicInvocation(
+        expressionType, relation, ir.Name.equalsName, 1, const [], const []);
+    registerNullLiteral();
+  }
+
+  @override
   void handleDynamicGet(ir.Expression node, ir.DartType receiverType,
       ir.Name name, ir.DartType resultType) {
     ClassRelation relation = computeClassRelationFromType(receiverType);
@@ -660,8 +676,10 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
     return super.visitSwitchStatement(node);
   }
 
+  // TODO(johnniwinther): Change [node] `InstanceGet` when the old method
+  // invocation encoding is no longer used.
   @override
-  void handleRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
+  void handleRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType) {
     registerRuntimeTypeUse(node, kind, receiverType, argumentType);
   }

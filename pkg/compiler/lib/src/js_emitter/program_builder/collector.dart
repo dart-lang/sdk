@@ -24,7 +24,6 @@ class Collector {
 
   final Set<ClassEntity> neededClasses = {};
   final Set<ClassEntity> neededClassTypes = {};
-  final Set<ClassEntity> classesOnlyNeededForRti = {};
   final Set<ClassEntity> classesOnlyNeededForConstructor = {};
   final Map<OutputUnit, List<ClassEntity>> outputClassLists = {};
   final Map<OutputUnit, List<ClassEntity>> outputClassTypeLists = {};
@@ -140,17 +139,6 @@ class Collector {
     Set<ClassEntity> backendTypeHelpers =
         getBackendTypeHelpers(_commonElements).toSet();
 
-    /// A class type is 'shadowed' if the class is needed for direct
-    /// instantiation in one OutputUnit while its type is needed in another
-    /// OutputUnit.
-    bool isClassTypeShadowed(ClassEntity cls) {
-      return !backendTypeHelpers.contains(cls) &&
-          _rtiNeededClasses.contains(cls) &&
-          !classesOnlyNeededForRti.contains(cls) &&
-          _outputUnitData.outputUnitForClass(cls) !=
-              _outputUnitData.outputUnitForClassType(cls);
-    }
-
     // Compute needed classes.
     Set<ClassEntity> instantiatedClasses =
         // TODO(johnniwinther): This should be accessed from a codegen closed
@@ -184,20 +172,10 @@ class Collector {
       }
     }
 
-    // 4. Find all classes needed for rti.
-    // It is important that this is the penultimate step, at this point,
-    // neededClasses must only contain classes that have been resolved and
-    // codegen'd. The rtiNeededClasses may contain additional classes, but
-    // these are thought to not have been instantiated, so we need to be able
-    // to identify them later and make sure we only emit "empty shells" without
-    // fields, etc.
+    // 4. Find all class types needed for rti.
     for (ClassEntity cls in _rtiNeededClasses) {
       if (backendTypeHelpers.contains(cls)) continue;
-      while (cls != null && !neededClasses.contains(cls)) {
-        if (!classesOnlyNeededForRti.add(cls)) break;
-        // TODO(joshualitt) delete classesOnlyNeededForRti when the
-        // no-defer-class_types flag is removed.
-        neededClassTypes.add(cls);
+      while (cls != null && neededClassTypes.add(cls)) {
         cls = _elementEnvironment.getSuperClass(cls);
       }
     }
@@ -219,14 +197,7 @@ class Collector {
       }
     }
 
-    // 6. Collect any class types 'shadowed' by direct instantiation.
-    for (ClassEntity cls in _rtiNeededClasses) {
-      if (isClassTypeShadowed(cls)) {
-        neededClassTypes.add(cls);
-      }
-    }
-
-    // 7. Sort classes needed for type checking and then add them to their
+    // 6. Sort classes needed for type checking and then add them to their
     // respective OutputUnits.
     for (ClassEntity cls in _sorter.sortClasses(neededClassTypes)) {
       outputClassTypeLists

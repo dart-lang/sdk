@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -15,6 +17,9 @@ class AddStatic extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var declaration = node.thisOrAncestorOfType<FieldDeclaration>();
+    if (declaration == null) {
+      return;
+    }
     await builder.addDartFileEdit(file, (builder) {
       var offset = declaration.firstTokenAfterCommentAndMetadata.offset;
       builder.addSimpleInsertion(offset, 'static ');

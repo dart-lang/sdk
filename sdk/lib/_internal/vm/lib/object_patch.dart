@@ -78,3 +78,20 @@ class Object {
   @pragma("vm:entry-point", "call")
   bool _simpleInstanceOfFalse(type) => false;
 }
+
+// Used by DartLibraryCalls::Equals.
+@pragma("vm:entry-point", "call")
+bool _objectEquals(Object? o1, Object? o2) => o1 == o2;
+
+// Used by DartLibraryCalls::HashCode.
+@pragma("vm:entry-point", "call")
+int _objectHashCode(Object? obj) => obj.hashCode;
+
+// Used by DartLibraryCalls::ToString.
+@pragma("vm:entry-point", "call")
+String _objectToString(Object? obj) => obj.toString();
+
+// Used by DartEntry::InvokeNoSuchMethod.
+@pragma("vm:entry-point", "call")
+dynamic _objectNoSuchMethod(Object? obj, Invocation invocation) =>
+    obj.noSuchMethod(invocation);

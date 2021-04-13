@@ -15,12 +15,12 @@ import 'package:analysis_server_client/protocol.dart';
 /// TODO(danrubel): Consider moving all cmdline argument consts
 /// out of analysis_server and into analysis_server_client.
 List<String> getServerArguments({
-  String clientId,
-  String clientVersion,
-  int diagnosticPort,
-  String instrumentationLogFile,
-  String sdkPath,
-  bool suppressAnalytics,
+  String? clientId,
+  String? clientVersion,
+  int? diagnosticPort,
+  String? instrumentationLogFile,
+  String? sdkPath,
+  bool suppressAnalytics = true,
   bool useAnalysisHighlight2 = false,
 }) {
   var arguments = <String>[];
@@ -72,24 +72,24 @@ abstract class ServerBase {
 
   /// If not `null`, [_listener] will be sent information
   /// about interactions with the server.
-  final ServerListener _listener;
+  final ServerListener? _listener;
 
   /// Commands that have been sent to the server but not yet acknowledged,
   /// and the [Completer] objects which should be completed
   /// when acknowledgement is received.
-  final _pendingCommands = <String, Completer<Map<String, dynamic>>>{};
+  final _pendingCommands = <String, Completer<Map<String, Object?>?>>{};
 
-  ServerBase({ServerListener listener, bool stdioPassthrough = false})
+  ServerBase({ServerListener? listener, bool stdioPassthrough = false})
       : _listener = listener,
         _stdioPassthrough = stdioPassthrough;
 
-  ServerListener get listener => _listener;
+  ServerListener? get listener => _listener;
 
   /// If the implementation of [ServerBase] captures an error stream,
   /// it can use this to forward the errors to [listener] and [stderr] if
   /// appropriate.
   void errorProcessor(
-      String line, NotificationProcessor notificationProcessor) {
+      String line, NotificationProcessor? notificationProcessor) {
     if (_stdioPassthrough) stderr.writeln(line);
     var trimmedLine = line.trim();
     listener?.errorMessage(trimmedLine);
@@ -108,7 +108,7 @@ abstract class ServerBase {
   /// decoding or message synchronization using [listener], and replicates
   /// raw data to [stdout] as appropriate.
   void outputProcessor(
-      String line, NotificationProcessor notificationProcessor) {
+      String line, NotificationProcessor? notificationProcessor) {
     if (_stdioPassthrough) stdout.writeln(line);
     var trimmedLine = line.trim();
 
@@ -125,7 +125,7 @@ abstract class ServerBase {
     }
 
     listener?.messageReceived(trimmedLine);
-    Map<String, dynamic> message;
+    Map<String, Object?> message;
     try {
       message = json.decoder.convert(trimmedLine);
     } catch (exception) {
@@ -133,31 +133,47 @@ abstract class ServerBase {
       return;
     }
 
+    // Handle response.
     final id = message[Response.ID];
     if (id != null) {
-      // Handle response
       final completer = _pendingCommands.remove(id);
       if (completer == null) {
         listener?.unexpectedResponse(message, id);
+        return;
       }
-      if (message.containsKey(Response.ERROR)) {
-        completer.completeError(RequestError.fromJson(
-            ResponseDecoder(null), '.error', message[Response.ERROR]));
-      } else {
-        completer.complete(message[Response.RESULT]);
+
+      final errorJson = message[Response.ERROR];
+      if (errorJson != null) {
+        completer.completeError(
+            RequestError.fromJson(ResponseDecoder(null), '.error', errorJson));
+        return;
       }
-    } else {
-      // Handle notification
-      final String event = message[Notification.EVENT];
-      if (event != null) {
+
+      final resultJson = message[Response.RESULT];
+      if (resultJson is Map<String, Object?>?) {
+        completer.complete(resultJson);
+        return;
+      }
+
+      listener?.unexpectedResponseFormat(message);
+      return;
+    }
+
+    // Handle notification.
+    final event = message[Notification.EVENT];
+    if (event is String) {
+      final paramsJson = message[Notification.PARAMS];
+      if (paramsJson is Map<String, Object?>) {
         if (notificationProcessor != null) {
-          notificationProcessor(
-              Notification(event, message[Notification.PARAMS]));
+          notificationProcessor(Notification(event, paramsJson));
         }
       } else {
-        listener?.unexpectedMessage(message);
+        listener?.unexpectedNotificationFormat(message);
       }
+      return;
     }
+
+    listener?.unexpectedMessage(message);
   }
 
   /// Send a command to the server. An 'id' will be automatically assigned.
@@ -167,18 +183,19 @@ abstract class ServerBase {
   /// the future will be completed with the 'result' field from the response.
   /// If the server acknowledges the command with an error response,
   /// the future will be completed with an error.
-  Future<Map<String, dynamic>> send(String method, Map<String, dynamic> params);
+  Future<Map<String, Object?>?> send(
+      String method, Map<String, Object?>? params);
 
   /// Encodes a request for transmission and sends it as a utf8 encoded byte
   /// string with [sendWith].
-  Future<Map<String, dynamic>> sendCommandWith(
-      String method, Map<String, dynamic> params, CommandSender sendWith) {
+  Future<Map<String, Object?>?> sendCommandWith(
+      String method, Map<String, Object?>? params, CommandSender sendWith) {
     var id = '${_nextId++}';
     var command = <String, dynamic>{Request.ID: id, Request.METHOD: method};
     if (params != null) {
       command[Request.PARAMS] = params;
     }
-    final completer = Completer<Map<String, dynamic>>();
+    final completer = Completer<Map<String, Object?>?>();
     _pendingCommands[id] = completer;
     var line = json.encode(command);
     listener?.requestSent(line);

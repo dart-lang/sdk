@@ -43,7 +43,9 @@ void checkEnvironment(
   Set<String> environmentKeys = environment.keys.toSet();
   environmentKeys.removeAll(knownEnvironmentKeys);
   if (environmentKeys.isNotEmpty) {
-    throw "Unknown environment(s) given: ${environmentKeys.toList()}.\n"
-        "Knows about ${knownEnvironmentKeys.toList()}";
+    throw "Unknown environment(s) given:"
+        "\n - ${environmentKeys.join("\n- ")}\n"
+        "Knows about these environment(s):"
+        "\n - ${knownEnvironmentKeys.join("\n - ")}";
   }
 }

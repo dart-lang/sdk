@@ -20,7 +20,7 @@ regress/issue_39035.crash: EmptyOutput
 regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
-
+const_functions/const_functions_const_factory: FormatterCrash
 extensions/extension_constructor: FormatterCrash
 extensions/extension_field_with_type_parameter_usage: FormatterCrash
 extensions/issue38600: FormatterCrash
@@ -31,7 +31,9 @@ general/bad_setter_abstract: FormatterCrash
 general/bug31124: FormatterCrash
 general/clone_function_type: FormatterCrash
 general/constants/js_semantics/number_folds: FormatterCrash
+general/constants/js_semantics/number_folds_opt_out: FormatterCrash
 general/constants/number_folds: FormatterCrash
+general/constants/number_folds_opt_out: FormatterCrash
 general/constants/various: FormatterCrash
 general/constructor_initializer_invalid: FormatterCrash
 general/duplicated_declarations: FormatterCrash
@@ -57,12 +59,12 @@ general/invalid_operator2: FormatterCrash
 general/invalid_operator: FormatterCrash
 general/issue42997: FormatterCrash
 general/issue43363: FormatterCrash
+general/issue45490: FormatterCrash
 general/many_errors: FormatterCrash
 general/null_safety_invalid_experiment: FormatterCrash
 general/null_safety_invalid_experiment_and_language_version: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/var_as_type_name: FormatterCrash
-generic_metadata/generic_metadata: FormatterCrash
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: FormatterCrash
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: FormatterCrash
 late_lowering/covariant_late_field: FormatterCrash
@@ -125,9 +127,7 @@ nnbd/uninitialized_non_nullable_late_fields: FormatterCrash
 nnbd_mixed/inheritance_from_opt_in: FormatterCrash
 nnbd_mixed/issue41597: FormatterCrash
 nnbd_mixed/null_safety_invalid_language_version: FormatterCrash
-nonfunction_type_aliases/issue41501: FormatterCrash
-nonfunction_type_aliases/issue42446: FormatterCrash
-nonfunction_type_aliases/issue45051: FormatterCrash
+nonfunction_type_aliases/old_version: FormatterCrash
 rasta/bad_redirection: FormatterCrash
 rasta/issue_000032: FormatterCrash
 rasta/issue_000034: FormatterCrash

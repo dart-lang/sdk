@@ -1156,6 +1156,19 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitInstanceGetterInvocation(InstanceGetterInvocation node) {
+    // TODO(johnniwinther): Use embedded static type.
+    Member target = node.interfaceTarget;
+    assert(
+        !(target is Procedure &&
+            environment.isSpecialCasedBinaryOperator(target)),
+        "Unexpected instance getter invocation target: $target");
+    visitExpression(node.receiver);
+    return handleCall(node.arguments, target.getterType,
+        receiver: getReceiverType(node, node.receiver, node.interfaceTarget));
+  }
+
+  @override
   DartType visitInstanceSet(InstanceSet node) {
     DartType value = visitExpression(node.value);
     Substitution receiver =

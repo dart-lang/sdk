@@ -57,7 +57,7 @@ class NamedTypeBuilder extends TypeBuilder {
     List<DartType> arguments;
     var argumentList = node.typeArguments;
     if (argumentList != null) {
-      arguments = argumentList.arguments.map((n) => n.type!).toList();
+      arguments = argumentList.arguments.map((n) => n.typeOrThrow).toList();
     } else {
       arguments = <DartType>[];
     }
@@ -154,13 +154,13 @@ class NamedTypeBuilder extends TypeBuilder {
   DartType _buildAliasedType(TypeAnnotation? node) {
     if (_isNonFunctionTypeAliasesEnabled) {
       if (node != null) {
-        return _buildType(node.type!);
+        return _buildType(node.typeOrThrow);
       } else {
         return _dynamicType;
       }
     } else {
       if (node is GenericFunctionType) {
-        return _buildType(node.type!);
+        return _buildType(node.typeOrThrow);
       } else {
         return FunctionTypeImpl(
           typeFormals: const <TypeParameterElement>[],
@@ -233,7 +233,7 @@ class NamedTypeBuilder extends TypeBuilder {
     if (node == null) {
       return _dynamicType;
     } else {
-      return _buildType(node.type!);
+      return _buildType(node.typeOrThrow);
     }
   }
 

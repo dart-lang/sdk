@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:test/test.dart';
@@ -125,11 +127,11 @@ class VerificationTests {
 
   static void verify_fixInFileFixesHaveBulkFixTests() {
     group('VerificationTests | fixInFileFixesHaveBulkFixTests |', () {
-      for (var fixEntry in FixProcessor.lintProducerMap2.entries) {
+      for (var fixEntry in FixProcessor.lintProducerMap.entries) {
         var errorCode = fixEntry.key;
         for (var fixInfo in fixEntry.value) {
           if (fixInfo.canBeAppliedToFile) {
-            test(errorCode, () {
+            test('$errorCode |', () {
               expect(fixInfo.canBeBulkApplied, isTrue);
             });
           }
@@ -140,7 +142,7 @@ class VerificationTests {
 
   static void verify_fixInFileFixesHaveUniqueBulkFixes() {
     group('VerificationTests | fixInFileFixesHaveUniqueBulkFixes | lint |', () {
-      for (var fixEntry in FixProcessor.lintProducerMap2.entries) {
+      for (var fixEntry in FixProcessor.lintProducerMap.entries) {
         var errorCode = fixEntry.key;
         for (var fixInfo in fixEntry.value) {
           if (fixInfo.canBeAppliedToFile) {
@@ -166,7 +168,7 @@ class VerificationTests {
     var dynamicProducerTypes = ['ReplaceWithIsEmpty'];
 
     group('VerificationTests | fixInFileFixKindsHaveMultiFixes | lint |', () {
-      for (var fixEntry in FixProcessor.lintProducerMap2.entries) {
+      for (var fixEntry in FixProcessor.lintProducerMap.entries) {
         var errorCode = fixEntry.key;
         for (var fixInfo in fixEntry.value) {
           // At least one generator should have a multiFix.

@@ -7,7 +7,6 @@
 library kernel.debug;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/visitor.dart';
 
 import '../util/util.dart' show Indentation, Tagging;
 
@@ -47,6 +46,37 @@ class DebugPrinter extends Visitor<void>
   @override
   void visitStaticGet(StaticGet node) {
     openAndCloseNode(node, '${node.runtimeType}', {'target': '${node.target}'});
+  }
+
+  @override
+  visitStaticInvocation(StaticInvocation node) {
+    openNode(node, '${node.runtimeType}', {'target': '${node.target}'});
+    node.visitChildren(this);
+    closeNode();
+  }
+
+  @override
+  visitArguments(Arguments node) {
+    openNode(node, '${node.runtimeType}', {
+      'typeArgs': '${node.types}',
+      'positionalArgs': '${node.positional}',
+      'namedArgs': '${node.named}'
+    });
+    node.visitChildren(this);
+    closeNode();
+  }
+
+  @override
+  visitAsExpression(AsExpression node) {
+    openNode(node, '${node.runtimeType}',
+        {'operand': '${node.operand}', 'DartType': '${node.type}'});
+    node.visitChildren(this);
+    closeNode();
+  }
+
+  @override
+  visitStringLiteral(StringLiteral node) {
+    openAndCloseNode(node, '${node.runtimeType}', {'value': '${node.value}'});
   }
 
   @override

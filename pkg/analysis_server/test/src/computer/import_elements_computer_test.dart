@@ -19,14 +19,14 @@ void main() {
 
 @reflectiveTest
 class ImportElementsComputerTest extends AbstractContextTest {
-  String path;
-  String originalContent;
-  ImportElementsComputer computer;
-  SourceFileEdit sourceFileEdit;
+  late String path;
+  late String originalContent;
+  late ImportElementsComputer computer;
+  late SourceFileEdit? sourceFileEdit;
 
   void assertChanges(String expectedContent) {
     var resultCode =
-        SourceEdit.applySequence(originalContent, sourceFileEdit.edits);
+        SourceEdit.applySequence(originalContent, sourceFileEdit!.edits);
     expect(resultCode, expectedContent);
   }
 

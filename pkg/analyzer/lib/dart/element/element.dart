@@ -531,8 +531,8 @@ abstract class Element implements AnalysisTarget {
   /// element, e.g. a synthetic property accessor), return itself.
   Element? get declaration;
 
-  /// Return the display name of this element, or `null` if this element does
-  /// not have a name.
+  /// Return the display name of this element, possibly the empty string if
+  /// this element does not have a name.
   ///
   /// In most cases the name and the display name are the same. Differences
   /// though are cases such as setters where the name of some setter `set f(x)`
@@ -1041,9 +1041,7 @@ abstract class ExecutableElement implements FunctionTypedElement {
   Element get enclosingElement;
 
   /// Return `true` if this executable element did not have an explicit return
-  /// type specified for it in the original source. Note that if there was no
-  /// explicit return type, and if the element model is fully populated, then
-  /// the [returnType] will not be `null`.
+  /// type specified for it in the original source.
   bool get hasImplicitReturnType;
 
   /// Return `true` if this executable element is abstract. Executable elements
@@ -1231,9 +1229,7 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
   /// element.
   List<ParameterElement> get parameters;
 
-  /// Return the return type defined by this element. If the element model is
-  /// fully populated, then the [returnType] will not be `null`, even if no
-  /// return type was explicitly specified.
+  /// Return the return type defined by this element.
   DartType get returnType;
 
   /// Return the type defined by this element.
@@ -1874,9 +1870,7 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   /// > implicitly static.
   bool get isStatic;
 
-  /// Return the declared type of this variable, or `null` if the variable did
-  /// not have a declared type (such as if it was declared using the keyword
-  /// 'var').
+  /// Return the declared type of this variable.
   DartType get type;
 
   /// Return a representation of the value of this variable, forcing the value

@@ -176,7 +176,9 @@ namespace dart {
   V(::, _loadUint64, FfiLoadUint64, 0x0505fdcc)                                \
   V(::, _loadIntPtr, FfiLoadIntPtr, 0xebd9b43e)                                \
   V(::, _loadFloat, FfiLoadFloat, 0xf8d9845d)                                  \
+  V(::, _loadFloatUnaligned, FfiLoadFloatUnaligned, 0xc8c8dfff)                \
   V(::, _loadDouble, FfiLoadDouble, 0xf70cc619)                                \
+  V(::, _loadDoubleUnaligned, FfiLoadDoubleUnaligned, 0xc99ebd39)              \
   V(::, _loadPointer, FfiLoadPointer, 0x4e79d0fc)                              \
   V(::, _storeInt8, FfiStoreInt8, 0xdf50af0c)                                  \
   V(::, _storeInt16, FfiStoreInt16, 0xd84df332)                                \
@@ -188,21 +190,22 @@ namespace dart {
   V(::, _storeUint64, FfiStoreUint64, 0xe2d93239)                              \
   V(::, _storeIntPtr, FfiStoreIntPtr, 0x080266a8)                              \
   V(::, _storeFloat, FfiStoreFloat, 0x6484f07e)                                \
+  V(::, _storeFloatUnaligned, FfiStoreFloatUnaligned, 0x600a9203)              \
   V(::, _storeDouble, FfiStoreDouble, 0x42998c64)                              \
+  V(::, _storeDoubleUnaligned, FfiStoreDoubleUnaligned, 0x3dced75b)            \
   V(::, _storePointer, FfiStorePointer, 0xea6b7751)                            \
   V(::, _fromAddress, FfiFromAddress, 0xfd8cb1cc)                              \
   V(Pointer, get:address, FfiGetAddress, 0x7cde87be)                           \
   V(::, reachabilityFence, ReachabilityFence, 0x619235c1)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x4983e111)                          \
   V(_Future, timeout, FutureTimeout, 0xc83eaf79)                               \
-  V(Future, wait, FutureWait, 0x99cfb096)                                      \
+  V(Future, wait, FutureWait, 0xc71e731d)                                      \
   V(_RootZone, runUnary, RootZoneRunUnary, 0x966a802c)                         \
   V(_FutureListener, handleValue, FutureListenerHandleValue, 0x165b47c4)       \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
-  V(_Smi, ~, Smi_bitNegate, 0x8254f51b)                                        \
   V(_Smi, get:bitLength, Smi_bitLength, 0x7ab50ceb)                            \
   V(_BigIntImpl, _lsh, Bigint_lsh, 0x3f8b105e)                                 \
   V(_BigIntImpl, _rsh, Bigint_rsh, 0x117ed3f3)                                 \
@@ -253,15 +256,6 @@ namespace dart {
   V(::, _setHash, Object_setHash, 0x8f2a5b0b)                                  \
 
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \
-  V(_IntegerImplementation, +, Integer_add, 0xd561008f)                        \
-  V(_IntegerImplementation, -, Integer_sub, 0xc96a0f80)                        \
-  V(_IntegerImplementation, *, Integer_mul, 0xacd9641d)                        \
-  V(_IntegerImplementation, %, Integer_mod, 0xfcf7cc13)                        \
-  V(_IntegerImplementation, ~/, Integer_truncDivide, 0xdda49e7f)               \
-  V(_IntegerImplementation, unary-, Integer_negate, 0xf7a9a696)                \
-  V(_IntegerImplementation, &, Integer_bitAnd, 0x8b9d7c33)                     \
-  V(_IntegerImplementation, |, Integer_bitOr, 0x8f47f5eb)                      \
-  V(_IntegerImplementation, ^, Integer_bitXor, 0xd838bef2)                     \
   V(_IntegerImplementation, >, Integer_greaterThan, 0x402b12df)                \
   V(_IntegerImplementation, ==, Integer_equal, 0x509c9146)                     \
   V(_IntegerImplementation, _equalToInteger, Integer_equalToInteger,           \
@@ -269,8 +263,7 @@ namespace dart {
   V(_IntegerImplementation, <, Integer_lessThan, 0x39643178)                   \
   V(_IntegerImplementation, <=, Integer_lessEqualThan, 0x73d2a9f5)             \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, 0xbc280c13)          \
-  V(_IntegerImplementation, <<, Integer_shl, 0x766f00e5)                       \
-  V(_IntegerImplementation, >>, Integer_sar, 0x931fbb8a)                       \
+  V(_IntegerImplementation, <<, Integer_shl, 0x766f04a6)                       \
   V(_Double, toInt, DoubleToInteger, 0x676f1ce8)                               \
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
@@ -285,6 +278,8 @@ namespace dart {
   V(::, acos, MathAcos, 0xffb03167)                                            \
   V(::, atan, MathAtan, 0xf1ecb41a)                                            \
   V(::, atan2, MathAtan2, 0xff585505)                                          \
+  V(::, exp, MathExp, 0xbb87ac43)                                              \
+  V(::, log, MathLog, 0x27ec861f)                                              \
 
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                    \
   V(_Int8List, [], Int8ArrayGetIndexed, 0x281e2e42)                            \
@@ -356,6 +351,18 @@ namespace dart {
     0x17f90910)                                                                \
   V(_ExternalTwoByteString, codeUnitAt, ExternalTwoByteStringCodeUnitAt,       \
     0x17f90910)                                                                \
+  V(_Smi, ~, Smi_bitNegate, 0x8254f8dc)                                        \
+  V(_IntegerImplementation, +, Integer_add, 0xd5610450)                        \
+  V(_IntegerImplementation, -, Integer_sub, 0xc96a1341)                        \
+  V(_IntegerImplementation, *, Integer_mul, 0xacd967de)                        \
+  V(_IntegerImplementation, %, Integer_mod, 0xfcf7cfd4)                        \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, 0xdda4a240)               \
+  V(_IntegerImplementation, unary-, Integer_negate, 0xf7a9aa57)                \
+  V(_IntegerImplementation, &, Integer_bitAnd, 0x8b9d7ff4)                     \
+  V(_IntegerImplementation, |, Integer_bitOr, 0x8f47f9ac)                      \
+  V(_IntegerImplementation, ^, Integer_bitXor, 0xd838c2b3)                     \
+  V(_IntegerImplementation, >>, Integer_sar, 0x931fbf4b)                       \
+  V(_IntegerImplementation, >>>, Integer_shr, 0x7495fbad)                      \
   V(_Double, unary-, DoubleFlipSignBit, 0x3d39082b)                            \
   V(_Double, truncateToDouble, DoubleTruncate, 0x62d48298)                     \
   V(_Double, roundToDouble, DoubleRound, 0x5649c63f)                           \

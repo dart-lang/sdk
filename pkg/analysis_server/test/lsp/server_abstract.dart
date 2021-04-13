@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
@@ -650,10 +652,10 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     });
   }
 
-  String applyTextEdit(
-      String content, Either2<TextEdit, AnnotatedTextEdit> change) {
+  String applyTextEdit(String content,
+      Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit> change) {
     // Both sites of the union can cast to TextEdit.
-    final edit = change.map((e) => e, (e) => e);
+    final edit = change.map((e) => e, (e) => e, (e) => e);
     final startPos = edit.range.start;
     final endPos = edit.range.end;
     final lineInfo = LineInfo.fromContent(content);
@@ -714,8 +716,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       );
 
     for (final change in sortedChanges) {
-      newContent = applyTextEdit(
-          newContent, Either2<TextEdit, AnnotatedTextEdit>.t1(change));
+      newContent = applyTextEdit(newContent,
+          Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t3(change));
     }
 
     return newContent;
@@ -1217,6 +1219,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     TextDocumentClientCapabilities textDocumentCapabilities,
     ClientCapabilitiesWorkspace workspaceCapabilities,
     ClientCapabilitiesWindow windowCapabilities,
+    Map<String, Object> experimentalCapabilities,
     Map<String, Object> initializationOptions,
     bool throwOnFailure = true,
     bool allowEmptyRootUri = false,
@@ -1225,6 +1228,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       workspace: workspaceCapabilities,
       textDocument: textDocumentCapabilities,
       window: windowCapabilities,
+      experimental: experimentalCapabilities,
     );
 
     // Handle any standard incoming requests that aren't test-specific, for example

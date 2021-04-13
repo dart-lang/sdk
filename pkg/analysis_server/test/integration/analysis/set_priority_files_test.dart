@@ -24,6 +24,7 @@ class SetPriorityFilesTest extends AbstractAnalysisServerIntegrationTest {
     await sendAnalysisSetPriorityFiles([pathname]);
 
     var status = await analysisFinished;
-    expect(status.analysis.isAnalyzing, false);
+    var analysisStatus = status.analysis;
+    expect(analysisStatus != null && analysisStatus.isAnalyzing, false);
   }
 }

@@ -8,40 +8,42 @@ import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class Foo {}
 
+@pragma("vm:entry-point") // Prevent obfuscation
 class Bar {}
 
 class Container1 {
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   Foo foo = Foo();
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   Bar bar = Bar();
 }
 
 class Container2 {
   Container2(this.foo);
 
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   Foo foo;
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   Bar bar = Bar();
 }
 
 class Container3 {
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   int number = 42;
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   double doub = 3.14;
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   String foo = 'foobar';
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   bool bar = false;
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   Map baz;
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   List list;
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point") // Prevent obfuscation
   List unmodifiableList;
 
   Container3() {
@@ -53,11 +55,11 @@ class Container3 {
   }
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point") // Prevent obfuscation
 Container1 c1;
-@pragma("vm:entry-point")
+@pragma("vm:entry-point") // Prevent obfuscation
 Container2 c2;
-@pragma("vm:entry-point")
+@pragma("vm:entry-point") // Prevent obfuscation
 Container3 c3;
 
 void script() {

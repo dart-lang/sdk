@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -21,8 +23,7 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisNotificationHighlightsTest extends HighlightsTestSupport
-    with WithNonFunctionTypeAliasesMixin {
+class AnalysisNotificationHighlightsTest extends HighlightsTestSupport {
   Future<void> test_ANNOTATION_hasArguments() async {
     addTestFile('''
 class AAA {
@@ -33,6 +34,21 @@ class AAA {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.ANNOTATION, '@AAA(', '@AAA('.length);
     assertHasRegion(HighlightRegionType.ANNOTATION, ') main', ')'.length);
+  }
+
+  Future<void> test_ANNOTATION_hasTypeArguments_hasArguments() async {
+    addTestFile('''
+class AAA<T> {
+  const AAA(a, b, c);
+}
+
+@AAA<int>(1, 2, 3) void f() {}
+''');
+    await prepareHighlights();
+    assertHasRegion(
+        HighlightRegionType.ANNOTATION, '@AAA', '@AAA<int>('.length);
+    assertHasRegion(HighlightRegionType.ANNOTATION, ') void', ')'.length);
+    assertHasRegion(HighlightRegionType.CLASS, 'int>');
   }
 
   Future<void> test_ANNOTATION_noArguments() async {

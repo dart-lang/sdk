@@ -1000,7 +1000,7 @@ main() {
 }
 ''', [
       if (typeToStringWithNullability)
-        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 11, 4)
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 16, 3)
       else
         error(CompileTimeErrorCode.UNDEFINED_METHOD, 16, 3),
     ]);
@@ -1155,9 +1155,6 @@ void f(C<void> c) {
   c.foo();
 }
 ''', [
-      if (typeToStringWithNullability)
-        error(
-            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 61, 5),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 61, 5),
     ]);
 
@@ -1179,9 +1176,6 @@ main() {
   foo();
 }
 ''', [
-      if (typeToStringWithNullability)
-        error(
-            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 23, 3),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
 
@@ -1203,9 +1197,6 @@ main() {
   foo()();
 }
 ''', [
-      if (typeToStringWithNullability)
-        error(
-            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 26, 5),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 3),
     ]);
     assertMethodInvocation(
@@ -1223,9 +1214,6 @@ main() {
   foo();
 }
 ''', [
-      if (typeToStringWithNullability)
-        error(
-            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE, 22, 3),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 22, 3),
     ]);
 
@@ -2498,7 +2486,7 @@ void f(Function? foo) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          26, 3),
+          30, 4),
     ]);
 
     assertMethodInvocation2(
@@ -2550,7 +2538,7 @@ void f(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          46, 1),
+          48, 3),
     ]);
 
     assertMethodInvocation2(
@@ -2577,7 +2565,7 @@ void f(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          84, 1),
+          86, 3),
     ]);
 
     assertMethodInvocation2(
@@ -2645,7 +2633,7 @@ void f(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          29, 1),
+          31, 3),
     ]);
 
     assertMethodInvocation2(
@@ -2670,7 +2658,7 @@ void f(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          67, 1),
+          69, 3),
     ]);
 
     assertMethodInvocation2(
@@ -2769,6 +2757,30 @@ void f<T>(T? t) {
       typeArgumentTypes: [],
       invokeType: 'int Function()',
       type: 'int',
+    );
+  }
+
+  test_hasReceiver_typeParameter_promotedToOtherTypeParameter() async {
+    await assertNoErrorsInCode('''
+abstract class A {}
+
+abstract class B extends A {
+  void foo();
+}
+
+void f<T extends A, U extends B>(T a) {
+  if (a is U) {
+    a.foo();
+  }
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: findElement.method('foo'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
     );
   }
 

@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static method main() → void
+  ;
+static method testNullableUninitializedNonFinalLocal() → void
+  ;
+static method testNonNullableUninitializedNonFinalLocal() → void
+  ;
+static method testNullableUninitializedFinalLocal() → void
+  ;
+static method testNonNullableUninitializedFinalLocal() → void
+  ;
+static method testNullableInitializedNonFinalLocal() → void
+  ;
+static method testNonNullableInitializedNonFinalLocal() → void
+  ;
+static method testNullableInitializedFinalLocal() → void
+  ;
+static method testNonNullableInitializedFinalLocal() → void
+  ;

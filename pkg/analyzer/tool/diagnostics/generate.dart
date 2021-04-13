@@ -410,11 +410,13 @@ This page uses the following terms:
 
 * [constant context][]
 * [definite assignment][]
+* [mixin application][]
 * [override inference][]
 * [potentially non-nullable][]
 
 [constant context]: #constant-context
 [definite assignment]: #definite-assignment
+[mixin application]: #mixin-application
 [override inference]: #override-inference
 [potentially non-nullable]: #potentially-non-nullable
 
@@ -544,6 +546,40 @@ For additional details, see the
 [specification of definite assignment][definiteAssignmentSpec].
 
 [definiteAssignmentSpec](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md)
+
+### Mixin Application
+
+A _mixin application_ is the class created when a mixin is applied to a class.
+For example, consider the following declarations:
+
+```dart
+class A {}
+
+mixin M {}
+
+class B extends A with M {}
+```
+
+The class `B` is a subclass of the mixin application of `M` to `A`, sometimes
+nomenclated as `A+M`. The class `A+M` is a subclass of `A` and has members that
+are copied from `M`.
+
+You can give an actual name to a mixin application by defining it as:
+
+```dart
+class A {}
+
+mixin M {}
+
+class A_M = A with M;
+```
+
+Given this declaration of `A_M`, the following declaration of `B` is equivalent
+to the declaration of `B` in the original example:
+
+```dart
+class B extends A_M {}
+```
 
 ### Override inference
 

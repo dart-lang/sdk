@@ -25,8 +25,8 @@ void defineMigrateTests() {
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout,
-        contains('Perform a null safety migration on a project or package.'));
+    expect(
+        result.stdout, contains('Perform null safety migration on a project.'));
     expect(result.stdout,
         contains('Usage: dart migrate [arguments] [project or directory]'));
   });

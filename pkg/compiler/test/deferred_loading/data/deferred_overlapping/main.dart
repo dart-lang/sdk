@@ -2,11 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: 
+/*spec.library: 
  output_units=[
-  f1: {units: [1{lib1, lib2}], usedBy: [2, 3], needs: []},
-  f2: {units: [2{lib1}], usedBy: [], needs: [1]},
-  f3: {units: [3{lib2}], usedBy: [], needs: [1]}],
+  f1: {units: [1{lib1, lib2}], usedBy: [], needs: []},
+  f2: {units: [2{lib1}], usedBy: [], needs: []},
+  f3: {units: [3{lib2}], usedBy: [], needs: []}],
+ steps=[
+  lib1=(f1, f2),
+  lib2=(f1, f3)]
+*/
+
+/*two-frag|three-frag.library: 
+ output_units=[
+  f1: {units: [1{lib1, lib2}], usedBy: [], needs: [2, 3]},
+  f2: {units: [2{lib1}], usedBy: [1], needs: []},
+  f3: {units: [3{lib2}], usedBy: [1], needs: []}],
  steps=[
   lib1=(f1, f2),
   lib2=(f1, f3)]
@@ -21,9 +31,9 @@ import 'lib2.dart' deferred as lib2;
 /*member: main:member_unit=main{}*/
 void main() {
   lib1.loadLibrary().then(/*closure_unit=main{}*/ (_) {
-    new lib1.C1();
+    print(new lib1.C1());
     lib2.loadLibrary().then(/*closure_unit=main{}*/ (_) {
-      new lib2.C2();
+      print(new lib2.C2());
     });
   });
 }

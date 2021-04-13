@@ -80,23 +80,21 @@ enum class TZDataStatus {
 // Under normal operation, all metric values below should be zero.
 class InspectMetrics {
  public:
-  // Does not take ownership of inspector.
-  explicit InspectMetrics(inspect::Inspector* inspector)
-      : inspector_(inspector),
-        root_(inspector_->GetRoot()),
-        metrics_(root_.CreateChild("os")),
-        dst_status_(metrics_.CreateInt("dst_status", kUninitialized)),
-        tz_data_status_(metrics_.CreateInt("tz_data_status", kUninitialized)),
+  // Takes ownership of the vm_node.
+  explicit InspectMetrics(std::unique_ptr<inspect::Node> vm_node)
+      : vm_node_(std::move(vm_node)),
+        dst_status_(vm_node_->CreateInt("dst_status", kUninitialized)),
+        tz_data_status_(vm_node_->CreateInt("tz_data_status", kUninitialized)),
         tz_data_close_status_(
-            metrics_.CreateInt("tz_data_close_status", kUninitialized)),
+            vm_node_->CreateInt("tz_data_close_status", kUninitialized)),
         get_profile_status_(
-            metrics_.CreateInt("get_profile_status", kUninitialized)),
+            vm_node_->CreateInt("get_profile_status", kUninitialized)),
         profiles_timezone_content_status_(
-            metrics_.CreateInt("timezone_content_status", kOk)),
-        num_get_profile_calls_(metrics_.CreateInt("num_get_profile_calls", 0)),
-        num_on_change_calls_(metrics_.CreateInt("num_on_change_calls", 0)),
+            vm_node_->CreateInt("timezone_content_status", kOk)),
+        num_get_profile_calls_(vm_node_->CreateInt("num_get_profile_calls", 0)),
+        num_on_change_calls_(vm_node_->CreateInt("num_on_change_calls", 0)),
         num_intl_provider_errors_(
-            metrics_.CreateInt("num_intl_provider_errors", 0)) {}
+            vm_node_->CreateInt("num_intl_provider_errors", 0)) {}
 
   // Registers a single call to GetProfile callback.
   void RegisterGetProfileCall() { num_get_profile_calls_.Add(1); }
@@ -131,14 +129,8 @@ class InspectMetrics {
   }
 
  private:
-  // The inspector that all metrics are being reported into.
-  inspect::Inspector* inspector_;
-
-  // References inspector_ state.
-  inspect::Node& root_;
-
   // The OS metrics node.
-  inspect::Node metrics_;
+  std::unique_ptr<inspect::Node> vm_node_;
 
   // The status of the last GetTimeZoneOffset call.
   inspect::IntProperty dst_status_;
@@ -305,7 +297,6 @@ class TimezoneName final {
 std::set<const std::string> timezone_names;
 
 // Initialized on OS:Init(), deinitialized on OS::Cleanup.
-std::unique_ptr<sys::ComponentInspector> component_inspector;
 std::shared_ptr<InspectMetrics> metrics;
 std::shared_ptr<TimezoneName> timezone_name;
 async_loop_t* message_loop = nullptr;
@@ -603,9 +594,11 @@ void OS::Init() {
     async_loop_start_thread(message_loop, "Fuchsia async loop", nullptr);
   }
 
-  sys::ComponentContext* context = dart::ComponentContext();
-  component_inspector = std::make_unique<sys::ComponentInspector>(context);
-  metrics = std::make_shared<InspectMetrics>(component_inspector->inspector());
+  auto vm_node = dart::TakeDartVmNode();
+
+  // TODO(fxbug.dev/69558) allow vm_node to be null and not crash
+  ASSERT(vm_node != nullptr);
+  metrics = std::make_shared<InspectMetrics>(std::move(vm_node));
 
   InitializeTZData();
   auto services = sys::ServiceDirectory::CreateFromNamespace();
@@ -620,7 +613,6 @@ void OS::Cleanup() {
   }
   timezone_name.reset();
   metrics.reset();
-  component_inspector.reset();
 
   if (message_loop != nullptr) {
     // Check message_loop is still the default dispatcher before clearing it.

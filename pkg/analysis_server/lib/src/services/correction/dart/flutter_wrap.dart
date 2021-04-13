@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -143,8 +144,7 @@ class _FlutterWrapPadding extends _WrapSingleWidget {
 
   @override
   List<String> get _leadingLines {
-    var keyword =
-        (widgetExpr as ExpressionImpl).inConstantContext ? '' : ' const';
+    var keyword = widgetExpr.inConstantContext ? '' : ' const';
     return ['padding:$keyword EdgeInsets.all(8.0),'];
   }
 

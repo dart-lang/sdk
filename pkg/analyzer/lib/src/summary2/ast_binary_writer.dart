@@ -61,6 +61,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _writeMarker(MarkerTag.Annotation_name);
     _writeNode(node.name);
+    _writeMarker(MarkerTag.Annotation_typeArguments);
+    _writeOptionalNode(node.typeArguments);
     _writeMarker(MarkerTag.Annotation_constructorName);
     _writeOptionalNode(node.constructorName);
 
@@ -532,6 +534,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    var resolutionIndex = _getNextResolutionIndex();
     _writeByte(Tag.EnumConstantDeclaration);
 
     _writeInformativeUint30(node.offset);
@@ -543,6 +546,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeMarker(MarkerTag.EnumConstantDeclaration_declaration);
     _storeDeclaration(node);
     _writeMarker(MarkerTag.EnumConstantDeclaration_end);
+    _writeUInt30(resolutionIndex);
   }
 
   @override

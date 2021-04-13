@@ -24,7 +24,7 @@ CodePtr CodeBreakpoint::OrigStubAddress() const {
 }
 
 void CodeBreakpoint::PatchCode() {
-  ASSERT(!is_enabled_);
+  ASSERT(!IsEnabled());
   auto thread = Thread::Current();
   auto zone = thread->zone();
   const Code& code = Code::Handle(zone, code_);
@@ -52,11 +52,10 @@ void CodeBreakpoint::PatchCode() {
     saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
     CodePatcher::PatchStaticCallAt(pc_, code, stub_target);
   });
-  is_enabled_ = true;
 }
 
 void CodeBreakpoint::RestoreCode() {
-  ASSERT(is_enabled_);
+  ASSERT(IsEnabled());
   auto thread = Thread::Current();
   auto zone = thread->zone();
   const Code& code = Code::Handle(zone, code_);
@@ -74,7 +73,6 @@ void CodeBreakpoint::RestoreCode() {
         UNREACHABLE();
     }
   });
-  is_enabled_ = false;
 }
 
 #endif  // !PRODUCT

@@ -7,7 +7,6 @@
 library compiler_helper;
 
 import 'dart:async';
-import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
@@ -18,7 +17,6 @@ import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart' show Link;
 import 'memory_compiler.dart';
-import 'output_collector.dart';
 
 export 'package:compiler/src/diagnostics/messages.dart';
 export 'package:compiler/src/diagnostics/source_span.dart';
@@ -46,6 +44,7 @@ Future<String> compile(String code,
     bool disableInlining: true,
     bool disableTypeInference: true,
     bool omitImplicitChecks: true,
+    bool enableTripleShift: false, // TODO(30890): remove.
     bool enableVariance: false,
     void check(String generatedEntry),
     bool returnAll: false,
@@ -66,6 +65,9 @@ Future<String> compile(String code,
   }
   if (disableInlining) {
     options.add(Flags.disableInlining);
+  }
+  if (enableTripleShift) {
+    options.add('${Flags.enableLanguageExperiments}=triple-shift');
   }
   if (enableVariance) {
     options.add('${Flags.enableLanguageExperiments}=variance');

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 
 /// Wraps the client (editor) capabilities to improve performance.
@@ -78,6 +80,7 @@ class LspClientCapabilities {
   final Set<SymbolKind> workspaceSymbolKinds;
   final Set<CompletionItemKind> completionItemKinds;
   final Set<InsertTextMode> completionInsertTextModes;
+  final bool experimentalSnippetTextEdit;
 
   LspClientCapabilities(this.raw)
       : applyEdit = raw?.workspace?.applyEdit ?? false,
@@ -125,7 +128,10 @@ class LspClientCapabilities {
         workDoneProgress = raw.window?.workDoneProgress ?? false,
         workspaceSymbolKinds = _listToSet(
             raw?.workspace?.symbol?.symbolKind?.valueSet,
-            defaults: defaultSupportedSymbolKinds);
+            defaults: defaultSupportedSymbolKinds),
+        experimentalSnippetTextEdit =
+            raw.experimental is Map<String, dynamic> &&
+                raw.experimental['snippetTextEdit'] == true;
 
   static Set<MarkupKind> _completionDocumentationFormats(
       ClientCapabilities raw) {

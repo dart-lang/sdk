@@ -19,11 +19,13 @@ This page uses the following terms:
 
 * [constant context][]
 * [definite assignment][]
+* [mixin application][]
 * [override inference][]
 * [potentially non-nullable][]
 
 [constant context]: #constant-context
 [definite assignment]: #definite-assignment
+[mixin application]: #mixin-application
 [override inference]: #override-inference
 [potentially non-nullable]: #potentially-non-nullable
 
@@ -153,6 +155,40 @@ For additional details, see the
 [specification of definite assignment][definiteAssignmentSpec].
 
 [definiteAssignmentSpec](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md)
+
+### Mixin Application
+
+A _mixin application_ is the class created when a mixin is applied to a class.
+For example, consider the following declarations:
+
+```dart
+class A {}
+
+mixin M {}
+
+class B extends A with M {}
+```
+
+The class `B` is a subclass of the mixin application of `M` to `A`, sometimes
+nomenclated as `A+M`. The class `A+M` is a subclass of `A` and has members that
+are copied from `M`.
+
+You can give an actual name to a mixin application by defining it as:
+
+```dart
+class A {}
+
+mixin M {}
+
+class A_M = A with M;
+```
+
+Given this declaration of `A_M`, the following declaration of `B` is equivalent
+to the declaration of `B` in the original example:
+
+```dart
+class B extends A_M {}
+```
 
 ### Override inference
 
@@ -665,6 +701,64 @@ an exception thrown at runtime if you're wrong, then add an explicit cast:
 {% prettify dart tag=pre+code %}
 String f(String x) => x;
 String g(num y) => f(y as String);
+{% endprettify %}
+
+### argument_type_not_assignable_to_error_handler
+
+_The argument type '{0}' can't be assigned to the parameter type '{1}
+Function(Object)' or '{1} Function(Object, StackTrace)'._
+
+#### Description
+
+The analyzer produces this diagnostic when an invocation of
+`Future.catchError` has an argument that is a function whose parameters
+aren't compatible with the arguments that will be passed to the function
+when it's invoked. The static type of the first argument to `catchError`
+is just `Function`, even though the function that is passed in is expected
+to have either a single parameter of type `Object` or two parameters of
+type `Object` and `StackTrace`.
+
+#### Example
+
+The following code produces this diagnostic because the closure being
+passed to `catchError` doesn't take any parameters, but the function is
+required to take at least one parameter:
+
+{% prettify dart tag=pre+code %}
+void f(Future<int> f) {
+  f.catchError([!() => 0!]);
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the closure being
+passed to `catchError` takes three parameters, but it can't have more than
+two required parameters:
+
+{% prettify dart tag=pre+code %}
+void f(Future<int> f) {
+  f.catchError([!(one, two, three) => 0!]);
+}
+{% endprettify %}
+
+The following code produces this diagnostic because even though the closure
+being passed to `catchError` takes one parameter, the closure doesn't have
+a type that is compatible with `Object`:
+
+{% prettify dart tag=pre+code %}
+void f(Future<int> f) {
+  f.catchError([!(String error) => 0!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the function being passed to `catchError` so that it has either one
+or two required parameters, and the parameters have the required types:
+
+{% prettify dart tag=pre+code %}
+void f(Future<int> f) {
+  f.catchError((Object error) => 0);
+}
 {% endprettify %}
 
 ### assert_in_redirecting_constructor
@@ -1503,6 +1597,76 @@ num x = 0;
 int y = x as int;
 {% endprettify %}
 
+### collection_element_from_deferred_library
+
+_Constant values from a deferred library can't be used as keys in a 'const' map
+literal._
+
+_Constant values from a deferred library can't be used as values in a 'const'
+list literal._
+
+_Constant values from a deferred library can't be used as values in a 'const'
+map literal._
+
+_Constant values from a deferred library can't be used as values in a 'const'
+set literal._
+
+#### Description
+
+The analyzer produces this diagnostic when a collection literal that is
+either explicitly (because it's prefixed by the `const` keyword) or
+implicitly (because it appears in a [constant context][]) a constant
+contains a value that is declared in a library that is imported using a
+deferred import. Constants are evaluated at compile time, and values from
+deferred libraries aren't available at compile time.
+
+For more information, see the language tour's coverage of
+[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+
+#### Example
+
+Given a file (`a.dart`) that defines the constant `zero`:
+
+{% prettify dart tag=pre+code %}
+const zero = 0;
+{% endprettify %}
+
+The following code produces this diagnostic because the constant list
+literal contains `a.zero`, which is imported using a `deferred` import:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' deferred as a;
+
+var l = const [[!a.zero!]];
+{% endprettify %}
+
+#### Common fixes
+
+If the collection literal isn't required to be constant, then remove the
+`const` keyword:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' deferred as a;
+
+var l = [a.zero];
+{% endprettify %}
+
+If the collection is required to be constant and the imported constant must
+be referenced, then remove the keyword `deferred` from the import:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' as a;
+
+var l = const [a.zero];
+{% endprettify %}
+
+If you don't need to reference the constant, then replace it with a
+suitable value:
+
+{% prettify dart tag=pre+code %}
+var l = const [0];
+{% endprettify %}
+
 ### concrete_class_with_abstract_member
 
 _'{0}' must have a method body because '{1}' isn't abstract._
@@ -1542,6 +1706,43 @@ abstract:
 abstract class C {
   void m();
 }
+{% endprettify %}
+
+### conflicting_generic_interfaces
+
+_The class '{0}' can't implement both '{1}' and '{2}' because the type arguments
+are different._
+
+#### Description
+
+The analyzer produces this diagnostic when a class attempts to implement a
+generic interface multiple times, and the values of the type arguments
+aren't the same.
+
+#### Example
+
+The following code produces this diagnostic because `C` is defined to
+implement both `I<int>` (because it extends `A`) and `I<String>` (because
+it implements`B`), but `int` and `String` aren't the same type:
+
+{% prettify dart tag=pre+code %}
+class I<T> {}
+class A implements I<int> {}
+class B implements I<String> {}
+[!class C extends A implements B {}!]
+{% endprettify %}
+
+#### Common fixes
+
+Rework the type hierarchy to avoid this situation. For example, you might
+make one or both of the inherited types generic so that `C` can specify the
+same type for both type arguments:
+
+{% prettify dart tag=pre+code %}
+class I<T> {}
+class A<S> implements I<S> {}
+class B implements I<String> {}
+class C extends A<String> implements B {}
 {% endprettify %}
 
 ### const_constructor_param_type_mismatch
@@ -1636,6 +1837,78 @@ class C {
 }
 {% endprettify %}
 
+### const_constructor_with_non_const_super
+
+_A constant constructor can't call a non-constant super constructor of '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor that is marked as
+`const` invokes a constructor from its superclass that isn't marked as
+`const`.
+
+#### Example
+
+The following code produces this diagnostic because the `const` constructor
+in `B` invokes the constructor `nonConst` from the class `A`, and the
+superclass constructor isn't a `const` constructor:
+
+{% prettify dart tag=pre+code %}
+class A {
+  const A();
+  A.nonConst();
+}
+
+class B extends A {
+  const B() : [!super.nonConst()!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If it isn't essential to invoke the superclass constructor that is
+currently being invoked, then invoke a constant constructor from the
+superclass:
+
+{% prettify dart tag=pre+code %}
+class A {
+  const A();
+  A.nonConst();
+}
+
+class B extends A {
+  const B() : super();
+}
+{% endprettify %}
+
+If it's essential that the current constructor be invoked and if you can
+modify it, then add `const` to the constructor in the superclass:
+
+{% prettify dart tag=pre+code %}
+class A {
+  const A();
+  const A.nonConst();
+}
+
+class B extends A {
+  const B() : super.nonConst();
+}
+{% endprettify %}
+
+If it's essential that the current constructor be invoked and you can't
+modify it, then remove `const` from the constructor in the subclass:
+
+{% prettify dart tag=pre+code %}
+class A {
+  const A();
+  A.nonConst();
+}
+
+class B extends A {
+  B() : super.nonConst();
+}
+{% endprettify %}
+
 ### const_constructor_with_non_final_field
 
 _Can't define a const constructor for a class with non-final fields._
@@ -1682,6 +1955,51 @@ class C {
 }
 {% endprettify %}
 
+### const_deferred_class
+
+_Deferred classes can't be created with 'const'._
+
+#### Description
+
+The analyzer produces this diagnostic when a class from a library that is
+imported using a deferred import is used to create a `const` object.
+Constants are evaluated at compile time, and classes from deferred
+libraries aren't available at compile time.
+
+For more information, see the language tour's coverage of
+[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+
+#### Example
+
+The following code produces this diagnostic because it attempts to create a
+`const` instance of a class from a deferred library:
+
+{% prettify dart tag=pre+code %}
+import 'dart:convert' deferred as convert;
+
+const json2 = [!convert.JsonCodec()!];
+{% endprettify %}
+
+#### Common fixes
+
+If the object isn't required to be a constant, then change the code so that
+a non-constant instance is created:
+
+{% prettify dart tag=pre+code %}
+import 'dart:convert' deferred as convert;
+
+final json2 = convert.JsonCodec();
+{% endprettify %}
+
+If the object must be a constant, then remove `deferred` from the import
+directive:
+
+{% prettify dart tag=pre+code %}
+import 'dart:convert' as convert;
+
+const json2 = convert.JsonCodec();
+{% endprettify %}
+
 ### const_initialized_with_non_constant_value
 
 _Const variables must be initialized with a constant value._
@@ -1718,6 +2036,51 @@ modifier from the variable, possibly using `final` in its place:
 {% prettify dart tag=pre+code %}
 var x = 0;
 final y = x;
+{% endprettify %}
+
+### const_initialized_with_non_constant_value_from_deferred_library
+
+_Constant values from a deferred library can't be used to initialize a 'const'
+variable._
+
+#### Description
+
+The analyzer produces this diagnostic when a `const` variable is
+initialized using a `const` variable from a library that is imported using
+a deferred import. Constants are evaluated at compile time, and values from
+deferred libraries aren't available at compile time.
+
+For more information, see the language tour's coverage of
+[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+
+#### Example
+
+The following code produces this diagnostic because the variable `pi` is
+being initialized using the constant `math.pi` from the library
+`dart:math`, and `dart:math` is imported as a deferred library:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' deferred as math;
+
+const pi = [!math.pi!];
+{% endprettify %}
+
+#### Common fixes
+
+If you need to reference the value of the constant from the imported
+library, then remove the keyword `deferred`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' as math;
+
+const pi = math.pi;
+{% endprettify %}
+
+If you don't need to reference the imported constant, then remove the
+reference:
+
+{% prettify dart tag=pre+code %}
+const pi = 3.14;
 {% endprettify %}
 
 ### const_instance_field
@@ -1759,6 +2122,60 @@ class C {
 }
 {% endprettify %}
 
+### const_map_key_expression_type_implements_equals
+
+_The type of a key in a constant map can't override the '==' operator, but the
+class '{0}' does._
+
+#### Description
+
+The analyzer produces this diagnostic when the class of object used as a
+key in a constant map literal implements the `==` operator. The
+implementation of constant maps uses the `==` operator, so any
+implementation other than the one inherited from `Object` requires
+executing arbitrary code at compile time, which isn't supported.
+
+#### Example
+
+The following code produces this diagnostic because the constant map
+contains a key whose type is `C`, and the class `C` overrides the
+implementation of `==`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  bool operator ==(Object other) => true;
+}
+
+const map = {[!C()!] : 0};
+{% endprettify %}
+
+#### Common fixes
+
+If you can remove the implementation of `==` from the class, then do so:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+}
+
+const map = {C() : 0};
+{% endprettify %}
+
+If you can't remove the implementation of `==` from the class, then make
+the map be non-constant:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  bool operator ==(Object other) => true;
+}
+
+final map = {C() : 0};
+{% endprettify %}
+
 ### const_not_initialized
 
 _The constant '{0}' must be initialized._
@@ -1782,6 +2199,60 @@ Add an initializer:
 
 {% prettify dart tag=pre+code %}
 const c = 'c';
+{% endprettify %}
+
+### const_set_element_type_implements_equals
+
+_The type of an element in a constant set can't override the '==' operator, but
+the type '{0}' does._
+
+#### Description
+
+The analyzer produces this diagnostic when the class of object used as an
+element in a constant set literal implements the `==` operator. The
+implementation of constant sets uses the `==` operator, so any
+implementation other than the one inherited from `Object` requires
+executing arbitrary code at compile time, which isn't supported.
+
+#### Example
+
+The following code produces this diagnostic because the constant set
+contains an element whose type is `C`, and the class `C` overrides the
+implementation of `==`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  bool operator ==(Object other) => true;
+}
+
+const set = {[!C()!]};
+{% endprettify %}
+
+#### Common fixes
+
+If you can remove the implementation of `==` from the class, then do so:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+}
+
+const set = {C()};
+{% endprettify %}
+
+If you can't remove the implementation of `==` from the class, then make
+the set be non-constant:
+
+{% prettify dart tag=pre+code %}
+class C {
+  const C();
+
+  bool operator ==(Object other) => true;
+}
+
+final set = {C()};
 {% endprettify %}
 
 ### const_spread_expected_list_or_set
@@ -2369,6 +2840,83 @@ class A {
 
 class B implements A {
   B([int x = 1]) {}
+}
+{% endprettify %}
+
+### deferred_import_of_extension
+
+_Imports of deferred libraries must hide all extensions._
+
+#### Description
+
+The analyzer produces this diagnostic when a library that is imported using
+a deferred import declares an extension that is visible in the importing
+library. Extension methods are resolved at compile time, and extensions
+from deferred libraries aren't available at compile time.
+
+For more information, see the language tour's coverage of
+[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+
+#### Example
+
+Given a file (`a.dart`) that defines a named extension:
+
+{% prettify dart tag=pre+code %}
+class C {}
+
+extension E on String {
+  int get size => length;
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the named extension is
+visible to the library:
+
+{% prettify dart tag=pre+code %}
+import [!'a.dart'!] deferred as a;
+
+void f() {
+  a.C();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the library must be imported as `deferred`, then either add a `show`
+clause listing the names being referenced or add a `hide` clause listing
+all of the named extensions. Adding a `show` clause would look like this:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' deferred as a show C;
+
+void f() {
+  a.C();
+}
+{% endprettify %}
+
+Adding a `hide` clause would look like this:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' deferred as a hide E;
+
+void f() {
+  a.C();
+}
+{% endprettify %}
+
+With the first fix, the benefit is that if new extensions are added to the
+imported library, then the extensions won't cause a diagnostic to be
+generated.
+
+If the library doesn't need to be imported as `deferred`, or if you need to
+make use of the extension method declared in it, then remove the keyword
+`deferred`:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' as a;
+
+void f() {
+  a.C();
 }
 {% endprettify %}
 
@@ -4176,6 +4724,55 @@ class C {
 }
 {% endprettify %}
 
+### for_in_of_invalid_element_type
+
+_The type '{0}' used in the 'for' loop must implement '{1}' with a type argument
+that can be assigned to '{2}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the `Iterable` or `Stream` in a
+for-in loop has an element type that can't be assigned to the loop
+variable.
+
+#### Example
+
+The following code produces this diagnostic because `<String>[]` has an
+element type of `String`, and `String` can't be assigned to the type of `e`
+(`int`):
+
+{% prettify dart tag=pre+code %}
+void f() {
+  for (int e in [!<String>[]!]) {
+    print(e);
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the type of the loop variable is correct, then update the type of the
+iterable:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  for (int e in <int>[]) {
+    print(e);
+  }
+}
+{% endprettify %}
+
+If the type of the iterable is correct, then update the type of the loop
+variable:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  for (String e in <String>[]) {
+    print(e);
+  }
+}
+{% endprettify %}
+
 ### for_in_of_invalid_type
 
 _The type '{0}' used in the 'for' loop must implement {1}._
@@ -4206,6 +4803,45 @@ Replace the expression with one that produces an iterable value:
 void f(Map<String, String> m) {
   for (String s in m.values) {
     print(s);
+  }
+}
+{% endprettify %}
+
+### for_in_with_const_variable
+
+_A for-in loop variable can't be a 'const'._
+
+#### Description
+
+The analyzer produces this diagnostic when the loop variable declared in a
+for-in loop is declared to be a `const`. The variable can't be a `const`
+because the value can't be computed at compile time.
+
+#### Example
+
+The following code produces this diagnostic because the loop variable `x`
+is declared to be a `const`:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  for ([!const!] x in [0, 1, 2]) {
+    print(x);
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If there's a type annotation, then remove the `const` modifier from the
+declaration.
+
+If there's no type, then replace the `const` modifier with `final`, `var`,
+or a type annotation:
+
+{% prettify dart tag=pre+code %}
+void f() {
+  for (final x in [0, 1, 2]) {
+    print(x);
   }
 }
 {% endprettify %}
@@ -4873,6 +5509,40 @@ var c = new [!C!]();
 If there's a concrete subclass of the abstract class that can be used, then
 create an instance of the concrete subclass.
 
+### instantiate_enum
+
+_Enums can't be instantiated._
+
+#### Description
+
+The analyzer produces this diagnostic when an enum is instantiated. It's
+invalid to create an instance of an enum by invoking a constructor; only
+the instances named in the declaration of the enum can exist.
+
+#### Example
+
+The following code produces this diagnostic because the enum `E` is being
+instantiated:
+
+{% prettify dart tag=pre+code %}
+enum E {a}
+
+var e = [!E!]();
+{% endprettify %}
+
+#### Common fixes
+
+If you intend to use an instance of the enum, then reference one of the
+constants defined in the enum:
+
+{% prettify dart tag=pre+code %}
+enum E {a}
+
+var e = E.a;
+{% endprettify %}
+
+If you intend to use an instance of a class, then use the name of that class in place of the name of the enum.
+
 ### integer_literal_out_of_range
 
 _The integer literal {0} can't be represented in 64 bits._
@@ -4971,6 +5641,53 @@ int v = 0;
 
 void f() {
 }
+{% endprettify %}
+
+### invalid_annotation_from_deferred_library
+
+_Constant values from a deferred library can't be used as annotations._
+
+#### Description
+
+The analyzer produces this diagnostic when a constant from a library that
+is imported using a deferred import is used as an annotation. Annotations
+are evaluated at compile time, and constants from deferred libraries aren't
+available at compile time.
+
+For more information, see the language tour's coverage of
+[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+
+#### Example
+
+The following code produces this diagnostic because the constant `pi` is
+being used as an annotation when the library `dart:math` is imported as
+`deferred`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' deferred as math;
+
+@[!math.pi!]
+void f() {}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to reference the constant as an annotation, then remove the
+keyword `deferred` from the import:
+
+{% prettify dart tag=pre+code %}
+import 'dart:math' as math;
+
+@math.pi
+void f() {}
+{% endprettify %}
+
+If you can use a different constant as an annotation, then replace the
+annotation with a different constant:
+
+{% prettify dart tag=pre+code %}
+@deprecated
+void f() {}
 {% endprettify %}
 
 ### invalid_assignment
@@ -5127,6 +5844,91 @@ class C {
 }
 {% endprettify %}
 
+### invalid_implementation_override
+
+_'{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' ('{4}')._
+
+#### Description
+
+The analyzer produces this diagnostic when all of the following are true:
+
+- A class defines an abstract member.
+- There is a concrete implementation of that member in a superclass.
+- The concrete implementation isn't a valid implementation of the abstract
+  method.
+
+The concrete implementation can be invalid because of incompatibilities in
+either the return type, the types of parameters, or the type variables.
+
+#### Example
+
+The following code produces this diagnostic because the method `A.add` has
+a parameter of type `int`, and the overriding method `B.add` has a
+corresponding parameter of type `num`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  int add(int a) => a;
+}
+class [!B!] extends A {
+  int add(num a);
+}
+{% endprettify %}
+
+This is a problem because in an invocation of `B.add` like the following:
+
+{% prettify dart tag=pre+code %}
+void f(B b) {
+  b.add(3.4);
+}
+{% endprettify %}
+
+`B.add` is expecting to be able to take, for example, a `double`, but when
+the method `A.add` is executed (because it's the only concrete
+implementation of `add`), a runtime exception will be thrown because a
+`double` can't be assigned to a parameter of type `int`.
+
+#### Common fixes
+
+If the method in the subclass can conform to the implementation in the
+superclass, then change the declaration in the subclass (or remove it if
+it's the same):
+
+{% prettify dart tag=pre+code %}
+class A {
+  int add(int a) => a;
+}
+class B	extends A {
+  int add(int a);
+}
+{% endprettify %}
+
+If the method in the superclass can be generalized to be a valid
+implementation of the method in the subclass, then change the superclass
+method:
+
+{% prettify dart tag=pre+code %}
+class A {
+  int add(num a) => a.floor();
+}
+class B	extends A {
+  int add(num a);
+}
+{% endprettify %}
+
+If neither the method in the superclass nor the method in the subclass can
+be changed, then provide a concrete implementation of the method in the
+subclass:
+
+{% prettify dart tag=pre+code %}
+class A {
+  int add(int a) => a;
+}
+class B	extends A {
+  int add(num a) => a.floor();
+}
+{% endprettify %}
+
 ### invalid_inline_function_type
 
 _Inline function types can't be used for parameters in a generic function type._
@@ -5260,6 +6062,20 @@ on a `null` value, so the null-aware operator is not necessary. See
 [Understanding null safety](/null-safety/understanding-null-safety#smarter-null-aware-methods)
 for more details.
 
+The following code produces this diagnostic because `s` can't be `null`.
+
+{% prettify dart tag=pre+code %}
+void f(Object? o) {
+  var s = o as String;
+  s[!?.!]length;
+}
+{% endprettify %}
+
+The reason `s` can't be null, despite the fact that `o` can be `null`, is
+because of the cast to `String`, which is a non-nullable type. If `o` ever
+has the value `null`, the cast will fail and the invocation of `length`
+will not happen.
+
 #### Common fixes
 
 Replace the null-aware operator with a non-null-aware equivalent; for
@@ -5366,6 +6182,64 @@ necessary:
 C f(C c) => c;
 
 class C {}
+{% endprettify %}
+
+### invalid_return_type_for_catch_error
+
+_A value of type '{0}' can't be returned by the 'onError' handler because it
+must be assignable to '{1}'._
+
+_The return type '{0}' isn't assignable to '{1}', as required by
+'Future.catchError'._
+
+#### Description
+
+The analyzer produces this diagnostic when an invocation of
+`Future.catchError` has an argument whose return type isn't compatible with
+the type returned by the instance of `Future`. At runtime, the method
+`catchError` attempts to return the value from the callback as the result
+of the future, which results in another exception being thrown.
+
+#### Example
+
+The following code produces this diagnostic because `future` is declared to
+return an `int` while `callback` is declared to return a `String`, and
+`String` isn't a subtype of `int`:
+
+{% prettify dart tag=pre+code %}
+void f(Future<int> future, String Function(dynamic, StackTrace) callback) {
+  future.catchError([!callback!]);
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the closure being
+passed to `catchError` returns an `int` while `future` is declared to
+return a `String`:
+
+{% prettify dart tag=pre+code %}
+void f(Future<String> future) {
+  future.catchError((error, stackTrace) => [!3!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the instance of `Future` is declared correctly, then change the callback
+to match:
+
+{% prettify dart tag=pre+code %}
+void f(Future<int> future, int Function(dynamic, StackTrace) callback) {
+  future.catchError(callback);
+}
+{% endprettify %}
+
+If the declaration of the instance of `Future` is wrong, then change it to
+match the callback:
+
+{% prettify dart tag=pre+code %}
+void f(Future<String> future, String Function(dynamic, StackTrace) callback) {
+  future.catchError(callback);
+}
 {% endprettify %}
 
 ### invalid_super_invocation
@@ -5526,7 +6400,7 @@ _An expression whose value is always 'null' can't be dereferenced._
 #### Description
 
 The analyzer produces this diagnostic when an expression whose value will
-always be `null` is dererenced.
+always be `null` is dereferenced.
 
 #### Example
 
@@ -6204,6 +7078,20 @@ If the type of the value is correct, then change the value type of the map:
 var m = <String, int>{'a' : 2};
 {% endprettify %}
 
+### missing_dart_library
+
+_Required library '{0}' is missing._
+
+#### Description
+
+The analyzer produces this diagnostic when either the Dart or Flutter SDK
+isn’t installed correctly, and, as a result, one of the `dart:` libraries
+can't be found.
+
+#### Common fixes
+
+Reinstall the Dart or Flutter SDK.
+
 ### missing_default_value_for_parameter
 
 _The parameter '{0}' can't have a value of 'null' because of its type, but the
@@ -6420,6 +7308,103 @@ int [!f!](int x) {
 
 Add a `return` statement that makes the return value explicit, even if
 `null` is the appropriate value.
+
+### mixin_application_no_concrete_super_invoked_member
+
+_The class doesn't have a concrete implementation of the super-invoked member
+'{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a [mixin application][] contains
+an invocation of a member from its superclass, and there's no concrete
+member of that name in the mixin application's superclass.
+
+#### Example
+
+The following code produces this diagnostic because the mixin `M` contains
+the invocation `super.m()`, and the class `A`, which is the superclass of
+the [mixin application][] `A+M`, doesn't define a concrete implementation
+of `m`:
+
+{% prettify dart tag=pre+code %}
+abstract class A {
+  void m();
+}
+
+mixin M on A {
+  void bar() {
+    super.m();
+  }
+}
+
+abstract class B extends A with [!M!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If you intended to apply the mixin `M` to a different class, one that has a
+concrete implementation of `m`, then change the superclass of `B` to that
+class:
+
+{% prettify dart tag=pre+code %}
+abstract class A {
+  void m();
+}
+
+mixin M on A {
+  void bar() {
+    super.m();
+  }
+}
+
+class C implements A {
+  void m() {}
+}
+
+abstract class B extends C with M {}
+{% endprettify %}
+
+If you need to make `B` a subclass of `A`, then add a concrete
+implementation of `m` in `A`:
+
+{% prettify dart tag=pre+code %}
+abstract class A {
+  void m() {}
+}
+
+mixin M on A {
+  void bar() {
+    super.m();
+  }
+}
+
+abstract class B extends A with M {}
+{% endprettify %}
+
+### mixin_instantiate
+
+_Mixins can't be instantiated._
+
+#### Description
+
+The analyzer produces this diagnostic when a mixin is instantiated.
+
+#### Example
+
+The following code produces this diagnostic because the mixin `M` is being
+instantiated:
+
+{% prettify dart tag=pre+code %}
+mixin M {}
+
+var m = [!M!]();
+{% endprettify %}
+
+#### Common fixes
+
+If you intend to use an instance of a class, then use the name of that
+class in place of the name of the mixin.
 
 ### mixin_of_non_class
 
@@ -6941,6 +7926,89 @@ void f(int i, int j) {
 }
 {% endprettify %}
 
+### non_constant_case_expression_from_deferred_library
+
+_Constant values from a deferred library can't be used as a case expression._
+
+#### Description
+
+The analyzer produces this diagnostic when the expression in a case clause
+references a constant from a library that is imported using a deferred
+import. In order for switch statements to be compiled efficiently, the
+constants referenced in case clauses need to be available at compile time,
+and constants from deferred libraries aren't available at compile time.
+
+For more information, see the language tour's coverage of
+[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+
+#### Example
+
+Given a file (`a.dart`) that defines the constant `zero`:
+
+{% prettify dart tag=pre+code %}
+const zero = 0;
+{% endprettify %}
+
+The following code produces this diagnostic because the library `a.dart` is
+imported using a `deferred` import, and the constant `a.zero`, declared in
+the imported library, is used in a case clause:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' deferred as a;
+
+void f(int x) {
+  switch (x) {
+    case [!a.zero!]:
+      // ...
+      break;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to reference the constant from the imported library, then
+remove the `deferred` keyword:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' as a;
+
+void f(int x) {
+  switch (x) {
+    case a.zero:
+      // ...
+      break;
+  }
+}
+{% endprettify %}
+
+If you need to reference the constant from the imported library and also
+need the imported library to be deferred, then rewrite the switch statement
+as a sequence of `if` statements:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' deferred as a;
+
+void f(int x) {
+  if (x == a.zero) {
+    // ...
+  }
+}
+{% endprettify %}
+
+If you don't need to reference the constant, then replace the case
+expression:
+
+{% prettify dart tag=pre+code %}
+void f(int x) {
+  switch (x) {
+    case 0:
+      // ...
+      break;
+  }
+}
+{% endprettify %}
+
 ### non_constant_default_value
 
 _The default value of an optional parameter must be constant._
@@ -6980,6 +8048,56 @@ var defaultValue = 3;
 void f([int value]) {
   value ??= defaultValue;
 }
+{% endprettify %}
+
+### non_constant_default_value_from_deferred_library
+
+_Constant values from a deferred library can't be used as a default parameter
+value._
+
+#### Description
+
+The analyzer produces this diagnostic when the default value of an optional
+parameter uses a constant from a library imported using a deferred import.
+Default values need to be available at compile time, and constants from
+deferred libraries aren't available at compile time.
+
+For more information, see the language tour's coverage of
+[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+
+#### Example
+
+Given a file (`a.dart`) that defines the constant `zero`:
+
+{% prettify dart tag=pre+code %}
+const zero = 0;
+{% endprettify %}
+
+The following code produces this diagnostic because `zero` is declared in a
+library imported using a deferred import:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' deferred as a;
+
+void f({int x = [!a.zero!]}) {}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to reference the constant from the imported library, then
+remove the `deferred` keyword:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' as a;
+
+void f({int x = a.zero}) {}
+{% endprettify %}
+
+If you don't need to reference the constant, then replace the default
+value:
+
+{% prettify dart tag=pre+code %}
+void f({int x = 0}) {}
 {% endprettify %}
 
 ### non_constant_list_element
@@ -9518,6 +10636,53 @@ class C {
 int f(C c) => c.b;
 {% endprettify %}
 
+### subtype_of_deferred_class
+
+_Classes and mixins can't implement deferred classes._
+
+_Classes can't extend deferred classes._
+
+_Classes can't mixin deferred classes._
+
+#### Description
+
+The analyzer produces this diagnostic when a type (class or mixin) is a
+subtype of a class from a library being imported using a deferred import.
+The supertypes of a type must be compiled at the same time as the type, and
+classes from deferred libraries aren't compiled until the library is
+loaded.
+
+For more information, see the language tour's coverage of
+[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+
+#### Example
+
+Given a file (`a.dart`) that defines the class `A`:
+
+{% prettify dart tag=pre+code %}
+class A {}
+{% endprettify %}
+
+The following code produces this diagnostic because the superclass of `B`
+is declared in a deferred library:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' deferred as a;
+
+class B extends [!a.A!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to create a subtype of a type from the deferred library, then
+remove the `deferred` keyword:
+
+{% prettify dart tag=pre+code %}
+import 'a.dart' as a;
+
+class B extends a.A {}
+{% endprettify %}
+
 ### subtype_of_disallowed_type
 
 _''{0}' can't be used as a superclass constraint._
@@ -9753,6 +10918,46 @@ void f(String? s) {
 }
 {% endprettify %}
 
+### type_annotation_deferred_class
+
+_The deferred type '{0}' can't be used in a declaration, cast, or type test._
+
+#### Description
+
+The analyzer produces this diagnostic when the type annotation is in a
+variable declaration, or the type used in a cast (`as`) or type test (`is`)
+is a type declared in a library that is imported using a deferred import.
+These types are required to be available at compile time, but aren't.
+
+For more information, see the language tour's coverage of
+[deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+
+#### Example
+
+The following code produces this diagnostic because the type of the
+parameter `f` is imported from a deferred library:
+
+{% prettify dart tag=pre+code %}
+import 'dart:io' deferred as io;
+
+void f([!io.File!] f) {}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to reference the imported type, then remove the `deferred`
+keyword:
+
+{% prettify dart tag=pre+code %}
+import 'dart:io' as io;
+
+void f(io.File f) {}
+{% endprettify %}
+
+If the import is required to be deferred and there's another type that is
+appropriate, then use that type in place of the type from the deferred
+library.
+
 ### type_argument_not_matching_bounds
 
 _'{0}' doesn't conform to the bound '{2}' of the type parameter '{1}'._
@@ -9896,7 +11101,7 @@ the point where it's referenced:
 
 {% prettify dart tag=pre+code %}
 void f(String? s) {
-  if ([!s!].length > 3) {
+  if (s.[!length!] > 3) {
     // ...
   }
 }

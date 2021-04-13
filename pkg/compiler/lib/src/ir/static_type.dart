@@ -73,7 +73,9 @@ class StaticTypeCacheImpl implements ir.StaticTypeCache {
 abstract class StaticTypeVisitor extends StaticTypeBase {
   final StaticTypeCacheImpl _staticTypeCache;
   Map<ir.Expression, TypeMap> typeMapsForTesting;
-  Map<ir.PropertyGet, RuntimeTypeUseData> _pendingRuntimeTypeUseData = {};
+  // TODO(johnniwinther): Change the key to `InstanceGet` when the old method
+  //  invocation encoding is no longer used.
+  Map<ir.Expression, RuntimeTypeUseData> _pendingRuntimeTypeUseData = {};
 
   final ir.ClassHierarchy hierarchy;
 
@@ -130,13 +132,19 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   TypeMap _typeMapWhenTrue;
   TypeMap _typeMapWhenFalse;
 
-  /// Returns the local variable type promotions for when the boolean value of
-  /// the most recent node is not taken into account.
-  TypeMap get typeMap {
+  /// Joins [_typeMapWhenTrue] and [_typeMapWhenFalse] and stores the result
+  /// in [_typeMapBase].
+  void _flattenTypeMap() {
     if (_typeMapBase == null) {
       _typeMapBase = _typeMapWhenTrue.join(_typeMapWhenFalse);
       _typeMapWhenTrue = _typeMapWhenFalse = null;
     }
+  }
+
+  /// Returns the local variable type promotions for when the boolean value of
+  /// the most recent node is not taken into account.
+  TypeMap get typeMap {
+    _flattenTypeMap();
     return _typeMapBase;
   }
 
@@ -282,13 +290,22 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return const ir.DynamicType();
   }
 
+  /// Replaces [original] with [replacement] in the AST and removes cached
+  /// expression type information for [original].
+  void _replaceExpression(ir.Expression original, ir.Expression replacement) {
+    original.replaceWith(replacement);
+    _staticTypeCache._expressionTypes.remove(original);
+  }
+
   void handleDynamicGet(ir.Expression node, ir.DartType receiverType,
       ir.Name name, ir.DartType resultType) {}
 
   void handleInstanceGet(ir.Expression node, ir.DartType receiverType,
       ir.Member interfaceTarget, ir.DartType resultType) {}
 
-  void handleRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
+  // TODO(johnniwinther): Change [node] to `InstanceGet` when the old method
+  // invocation encoding is no longer used.
+  void handleRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType) {}
 
   @override
@@ -343,13 +360,25 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       resultType = _computeInstanceGetType(receiverType, interfaceTarget);
       ir.InstanceGet instanceGet = ir.InstanceGet(
           ir.InstanceAccessKind.Instance, node.receiver, node.name,
-          interfaceTarget: interfaceTarget, resultType: resultType);
-      node.replaceWith(instanceGet);
+          interfaceTarget: interfaceTarget, resultType: resultType)
+        ..fileOffset = node.fileOffset;
+      _replaceExpression(node, instanceGet);
       handleInstanceGet(instanceGet, receiverType, interfaceTarget, resultType);
+    } else if (node.name == ir.Name.callName &&
+        (receiverType is ir.FunctionType ||
+            (receiverType is ir.InterfaceType &&
+                receiverType.classNode == typeEnvironment.functionClass))) {
+      ir.FunctionTearOff functionTearOff = ir.FunctionTearOff(node.receiver)
+        ..fileOffset = node.fileOffset;
+      _replaceExpression(node, functionTearOff);
+      handleDynamicGet(
+          functionTearOff, receiverType, ir.Name.callName, resultType);
+      resultType = receiverType;
     } else {
       handleDynamicGet(node, receiverType, node.name, resultType);
     }
     if (node.name.text == Identifiers.runtimeType_) {
+      // This handles `runtimeType` access on `Never`.
       handleRuntimeTypeGet(receiverType, node);
     }
     return resultType;
@@ -358,9 +387,17 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   ir.DartType visitInstanceGet(ir.InstanceGet node) {
     ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType resultType = super.visitInstanceGet(node);
+    // We compute the function type instead of reading it of [node] since the
+    // receiver and argument types might have improved through inference of
+    // effectively final variable types and type promotion.
+    ir.DartType resultType =
+        _computeInstanceGetType(receiverType, node.interfaceTarget);
+    node.resultType = resultType;
+    receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
     handleInstanceGet(node, receiverType, node.interfaceTarget, resultType);
     if (node.name.text == Identifiers.runtimeType_) {
+      // This handles `runtimeType` access on non-Never types, like in
+      // `(throw 'foo').runtimeType`.
       handleRuntimeTypeGet(receiverType, node);
     }
     return resultType;
@@ -369,8 +406,14 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   ir.DartType visitInstanceTearOff(ir.InstanceTearOff node) {
     ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType resultType = super.visitInstanceTearOff(node);
-    assert(node.name.text == Identifiers.runtimeType_,
+    // We compute the function type instead of reading it of [node] since the
+    // receiver and argument types might have improved through inference of
+    // effectively final variable types and type promotion.
+    ir.DartType resultType =
+        _computeInstanceGetType(receiverType, node.interfaceTarget);
+    node.resultType = resultType;
+    receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
+    assert(node.name.text != Identifiers.runtimeType_,
         "Unexpected .runtimeType instance tear-off.");
     handleInstanceGet(node, receiverType, node.interfaceTarget, resultType);
     return resultType;
@@ -379,9 +422,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   ir.DartType visitFunctionTearOff(ir.FunctionTearOff node) {
     ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType resultType = super.visitFunctionTearOff(node);
-    handleDynamicGet(node, receiverType, ir.Name.callName, resultType);
-    return resultType;
+    handleDynamicGet(node, receiverType, ir.Name.callName, receiverType);
+    return receiverType;
   }
 
   void handleDynamicSet(ir.Expression node, ir.DartType receiverType,
@@ -452,7 +494,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   ir.DartType visitDynamicSet(ir.DynamicSet node) {
     ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType valueType = super.visitDynamicSet(node);
+    ir.DartType valueType = visitNode(node.value);
     ir.Member interfaceTarget = _resolveDynamicSet(receiverType, node.name);
     if (interfaceTarget != null) {
       ir.DartType setterType =
@@ -470,7 +512,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       ir.InstanceSet instanceSet = ir.InstanceSet(
           ir.InstanceAccessKind.Instance, node.receiver, node.name, value,
           interfaceTarget: interfaceTarget);
-      node.replaceWith(instanceSet);
+      _replaceExpression(node, instanceSet);
       receiverType = _narrowInstanceReceiver(interfaceTarget, receiverType);
       handleInstanceSet(node, receiverType, interfaceTarget, valueType);
     } else {
@@ -482,7 +524,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   ir.DartType visitInstanceSet(ir.InstanceSet node) {
     ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType valueType = super.visitInstanceSet(node);
+    ir.DartType valueType = visitNode(node.value);
     handleInstanceSet(node, receiverType, node.interfaceTarget, valueType);
     return valueType;
   }
@@ -522,74 +564,77 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return receiverType;
   }
 
-  /// Returns `true` if [member] can be called with the structure of
-  /// [arguments].
-  bool _isApplicable(ir.Arguments arguments, ir.Member member) {
-    /// Returns `true` if [arguments] are applicable to the function type
-    /// structure.
-    bool isFunctionTypeApplicable(
-        int typeParameterCount,
-        int requiredParameterCount,
-        int positionalParameterCount,
-        Iterable<String> Function() getNamedParameters) {
-      if (arguments.types.isNotEmpty &&
-          arguments.types.length != typeParameterCount) {
-        return false;
-      }
-      if (arguments.positional.length < requiredParameterCount) {
-        return false;
-      }
-      if (arguments.positional.length > positionalParameterCount) {
-        return false;
-      }
-      Iterable<String> namedParameters = getNamedParameters();
-      if (arguments.named.length > namedParameters.length) {
-        return false;
-      }
-      if (arguments.named.isNotEmpty) {
-        for (ir.NamedExpression namedArguments in arguments.named) {
-          if (!namedParameters.contains(namedArguments.name)) {
-            return false;
-          }
-        }
-      }
-      return true;
-    }
-
-    /// Returns `true` if [arguments] are applicable to a value of the static
-    /// [type].
-    bool isTypeApplicable(ir.DartType type) {
-      if (type is ir.DynamicType) return true;
-      if (type == typeEnvironment.coreTypes.functionLegacyRawType ||
-          type == typeEnvironment.coreTypes.functionNullableRawType ||
-          type == typeEnvironment.coreTypes.functionNonNullableRawType)
-        return true;
-      if (type is ir.FunctionType) {
-        return isFunctionTypeApplicable(
-            type.typeParameters.length,
-            type.requiredParameterCount,
-            type.positionalParameters.length,
-            () => type.namedParameters.map((p) => p.name).toSet());
-      }
+  /// Returns `true` if [arguments] are applicable to the function type
+  /// structure.
+  bool _isApplicableToFunctionType(
+      ir.Arguments arguments,
+      int typeParameterCount,
+      int requiredParameterCount,
+      int positionalParameterCount,
+      Iterable<String> Function() getNamedParameters) {
+    if (arguments.types.isNotEmpty &&
+        arguments.types.length != typeParameterCount) {
       return false;
     }
+    if (arguments.positional.length < requiredParameterCount) {
+      return false;
+    }
+    if (arguments.positional.length > positionalParameterCount) {
+      return false;
+    }
+    Iterable<String> namedParameters = getNamedParameters();
+    if (arguments.named.length > namedParameters.length) {
+      return false;
+    }
+    if (arguments.named.isNotEmpty) {
+      for (ir.NamedExpression namedArguments in arguments.named) {
+        if (!namedParameters.contains(namedArguments.name)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 
+  /// Returns `true` if [arguments] are applicable to a value of the static
+  /// [type].
+  bool _isApplicableToType(ir.Arguments arguments, ir.DartType type) {
+    if (type is ir.DynamicType) return true;
+    if (type == typeEnvironment.coreTypes.functionLegacyRawType ||
+        type == typeEnvironment.coreTypes.functionNullableRawType ||
+        type == typeEnvironment.coreTypes.functionNonNullableRawType)
+      return true;
+    if (type is ir.FunctionType) {
+      return _isApplicableToFunctionType(
+          arguments,
+          type.typeParameters.length,
+          type.requiredParameterCount,
+          type.positionalParameters.length,
+          () => type.namedParameters.map((p) => p.name).toSet());
+    }
+    return false;
+  }
+
+  /// Returns `true` if [member] can be called with the structure of
+  /// [arguments].
+  bool _isApplicableToMember(ir.Arguments arguments, ir.Member member) {
     if (member is ir.Procedure) {
       if (member.kind == ir.ProcedureKind.Setter ||
           member.kind == ir.ProcedureKind.Factory) {
         return false;
       } else if (member.kind == ir.ProcedureKind.Getter) {
-        return isTypeApplicable(member.getterType);
+        return _isApplicableToType(arguments, member.getterType);
       } else if (member.kind == ir.ProcedureKind.Method ||
           member.kind == ir.ProcedureKind.Operator) {
-        return isFunctionTypeApplicable(
+        return _isApplicableToFunctionType(
+            arguments,
             member.function.typeParameters.length,
             member.function.requiredParameterCount,
             member.function.positionalParameters.length,
             () => member.function.namedParameters.map((p) => p.name).toSet());
       }
     } else if (member is ir.Field) {
-      return isTypeApplicable(member.type);
+      return _isApplicableToType(arguments, member.type);
     }
     return false;
   }
@@ -703,18 +748,41 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     if (receiverType is ir.InterfaceType) {
       ir.Member member =
           hierarchy.getInterfaceMember(receiverType.classNode, name);
-      if (_isApplicable(arguments, member)) {
+      if (_isApplicableToMember(arguments, member)) {
         return member;
       }
     }
     return null;
   }
 
+  /// Computes the function type of the function invocation of type
+  /// [functionType] with the given [argument].
+  ir.DartType _computeFunctionInvocationType(
+      ir.DartType functionType, ir.Arguments arguments) {
+    if (functionType is ir.FunctionType) {
+      List<ir.DartType> typeArguments = arguments.types;
+      if (functionType.typeParameters.isNotEmpty && typeArguments.isEmpty) {
+        // If this was a dynamic call the invocation does not have the
+        // inferred default type arguments so we need to create them here
+        // to perform a valid substitution.
+        typeArguments =
+            functionType.typeParameters.map((t) => t.defaultType).toList();
+      }
+      return ir.Substitution.fromPairs(
+              functionType.typeParameters, typeArguments)
+          .substituteType(functionType.withoutTypeParameters);
+    }
+    return functionType;
+  }
+
   /// Computes the function type of the instance invocation [node] on a receiver
   /// of type [receiverType] on the [interfaceTarget] with the given
   /// [argumentTypes].
-  ir.DartType _computeInvocationFunctionType(ir.DartType receiverType,
-      ir.Member interfaceTarget, ir.Arguments arguments) {
+  ir.DartType _computeInstanceInvocationType(
+      ir.DartType receiverType,
+      ir.Member interfaceTarget,
+      ir.Arguments arguments,
+      ArgumentTypes argumentTypes) {
     ir.Class superclass = interfaceTarget.enclosingClass;
     ir.Substitution receiverSubstitution = ir.Substitution.fromInterfaceType(
         getTypeAsInstanceOf(receiverType, superclass));
@@ -737,27 +805,20 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
           ir.Substitution.fromPairs(functionType.typeParameters, typeArguments)
               .substituteType(functionType.withoutTypeParameters);
     }
+    if (isSpecialCasedBinaryOperator(interfaceTarget)) {
+      ir.DartType argumentType = argumentTypes.positional[0];
+      ir.DartType resultType = typeEnvironment
+          .getTypeOfSpecialCasedBinaryOperator(receiverType, argumentType);
+      return new ir.FunctionType(
+          <ir.DartType>[argumentType], resultType, currentLibrary.nonNullable);
+    }
     return getterType;
   }
 
-  /// Computes the result type of the instance invocation [node] on a receiver
-  /// of type [receiverType] on the [interfaceTarget] with the [functionType]
-  /// computed from the [receiverType], [argumentTypes] and the
-  /// [interfaceTarget].
-  ir.DartType _computeInstanceInvocationReturnTypeFromFunctionType(
-      ir.DartType receiverType,
-      ir.Member interfaceTarget,
-      ArgumentTypes argumentTypes,
-      ir.DartType functionType) {
-    if (isSpecialCasedBinaryOperator(interfaceTarget)) {
-      ir.DartType argumentType = argumentTypes.positional[0];
-      return typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
-          receiverType, argumentType);
-    } else if (functionType is ir.FunctionType) {
-      return functionType.returnType;
-    } else {
-      return const ir.DynamicType();
-    }
+  ir.DartType _getFunctionReturnType(ir.DartType functionType) {
+    return functionType is ir.FunctionType
+        ? functionType.returnType
+        : const ir.DynamicType();
   }
 
   /// Computes the result type of the dynamic invocation [node] on a receiver of
@@ -833,8 +894,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   void handleEqualsCall(ir.Expression left, ir.DartType leftType,
       ir.Expression right, ir.DartType rightType, ir.Member interfaceTarget) {}
 
-  void _registerEqualsNull(TypeMap afterInvocation, ir.Expression expression,
-      {bool isNot: false}) {
+  void _registerEqualsNull(TypeMap afterInvocation, ir.Expression expression) {
     if (expression is ir.VariableGet &&
         !_invalidatedVariables.contains(expression.variable)) {
       // If `expression == null` is true, we promote the type of the
@@ -845,13 +905,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
           isTrue: false);
       TypeMap ofItsDeclaredType = afterInvocation
           .promote(expression.variable, expression.variable.type, isTrue: true);
-      if (isNot) {
-        typeMapWhenTrue = ofItsDeclaredType;
-        typeMapWhenFalse = notOfItsDeclaredType;
-      } else {
-        typeMapWhenTrue = notOfItsDeclaredType;
-        typeMapWhenFalse = ofItsDeclaredType;
-      }
+      typeMapWhenTrue = notOfItsDeclaredType;
+      typeMapWhenFalse = ofItsDeclaredType;
     }
   }
 
@@ -864,8 +919,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
             receiverType, node.name, node.arguments);
     ir.DartType returnType;
     if (interfaceTarget != null) {
-      ir.DartType functionType = _computeInvocationFunctionType(
-          receiverType, interfaceTarget, node.arguments);
+      ir.DartType functionType = _computeInstanceInvocationType(
+          receiverType, interfaceTarget, node.arguments, argumentTypes);
       if (node.interfaceTarget == null) {
         // We change [node] from being a dynamic invocation to an instance
         // invocation, so we need to add static type checks to the arguments to
@@ -874,8 +929,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         _updateMethodInvocationTarget(node, argumentTypes, functionType);
         node.interfaceTarget = interfaceTarget;
       }
-      returnType = _computeInstanceInvocationReturnTypeFromFunctionType(
-          receiverType, interfaceTarget, argumentTypes, functionType);
+      returnType = _getFunctionReturnType(functionType);
     } else {
       returnType = _computeDynamicInvocationReturnType(node, receiverType);
     }
@@ -920,6 +974,57 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   }
 
   @override
+  ir.DartType visitInstanceInvocation(ir.InstanceInvocation node) {
+    ArgumentTypes argumentTypes = _visitArguments(node.arguments);
+    ir.DartType receiverType = visitNode(node.receiver);
+    ir.Member interfaceTarget = node.interfaceTarget;
+    // We compute the function type instead of reading it of [node] since the
+    // receiver and argument types might have improved through inference of
+    // effectively final variable types and type promotion.
+    ir.DartType functionType = _computeInstanceInvocationType(
+        receiverType, interfaceTarget, node.arguments, argumentTypes);
+    if (functionType != node.functionType) {
+      node.functionType = functionType;
+      // TODO(johnniwinther): To provide the static guarantee that arguments
+      // of a statically typed call have been checked against the parameter
+      // types we need to call [_updateMethodInvocationTarget]. This can create
+      // uses of type variables are not registered with the closure model so
+      // we skip it for now. Note that this invariant is not currently used
+      // in later phases since it wasn't provided for function invocations in
+      // the old method invocation encoding.
+      //_updateMethodInvocationTarget(node, argumentTypes, functionType);
+    }
+    ir.DartType returnType = _getFunctionReturnType(functionType);
+    receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
+    handleInstanceInvocation(
+        node, receiverType, interfaceTarget, argumentTypes);
+    _staticTypeCache._expressionTypes[node] = returnType;
+    return returnType;
+  }
+
+  @override
+  ir.DartType visitInstanceGetterInvocation(ir.InstanceGetterInvocation node) {
+    ArgumentTypes argumentTypes = _visitArguments(node.arguments);
+    ir.DartType receiverType = visitNode(node.receiver);
+    ir.Member interfaceTarget = node.interfaceTarget;
+    // We compute the function type instead of reading it of [node] since the
+    // receiver and argument types might have improved through inference of
+    // effectively final variable types and type promotion.
+    ir.DartType functionType = _computeInstanceInvocationType(
+        receiverType, interfaceTarget, node.arguments, argumentTypes);
+    if (functionType is ir.FunctionType && functionType != node.functionType) {
+      node.functionType = functionType;
+      _updateMethodInvocationTarget(node, argumentTypes, functionType);
+    }
+    ir.DartType returnType = _getFunctionReturnType(functionType);
+    receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
+    handleInstanceInvocation(
+        node, receiverType, interfaceTarget, argumentTypes);
+    _staticTypeCache._expressionTypes[node] = returnType;
+    return returnType;
+  }
+
+  @override
   ir.DartType visitDynamicInvocation(ir.DynamicInvocation node) {
     ArgumentTypes argumentTypes = _visitArguments(node.arguments);
     ir.DartType receiverType = visitNode(node.receiver);
@@ -927,31 +1032,71 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         receiverType, node.name, node.arguments);
     if (interfaceTarget != null) {
       // We can turn the dynamic invocation into an instance invocation.
-      ir.DartType functionType = _computeInvocationFunctionType(
-          receiverType, interfaceTarget, node.arguments);
-      ir.InstanceInvocation instanceInvocation = ir.InstanceInvocation(
-          ir.InstanceAccessKind.Instance,
-          node.receiver,
-          node.name,
-          node.arguments,
-          interfaceTarget: interfaceTarget,
-          functionType: functionType);
-      node.replaceWith(instanceInvocation);
-      _updateMethodInvocationTarget(
-          instanceInvocation, argumentTypes, functionType);
-      ir.DartType returnType =
-          _computeInstanceInvocationReturnTypeFromFunctionType(
-              receiverType, interfaceTarget, argumentTypes, functionType);
+      ir.DartType functionType = _computeInstanceInvocationType(
+          receiverType, interfaceTarget, node.arguments, argumentTypes);
+      ir.Expression replacement;
+      if (interfaceTarget is ir.Field ||
+          (interfaceTarget is ir.Procedure && interfaceTarget.isGetter)) {
+        // This should actually be a function invocation of an instance get but
+        // this doesn't work for invocation of js-interop properties. We
+        // therefore use [ir.InstanceGetterInvocation] instead.
+        replacement = ir.InstanceGetterInvocation(
+            ir.InstanceAccessKind.Instance,
+            node.receiver,
+            node.name,
+            node.arguments,
+            interfaceTarget: interfaceTarget,
+            functionType: functionType is ir.FunctionType ? functionType : null)
+          ..fileOffset = node.fileOffset;
+      } else {
+        replacement = ir.InstanceInvocation(ir.InstanceAccessKind.Instance,
+            node.receiver, node.name, node.arguments,
+            interfaceTarget: interfaceTarget, functionType: functionType)
+          ..fileOffset = node.fileOffset;
+      }
+      _replaceExpression(node, replacement);
+      _updateMethodInvocationTarget(replacement, argumentTypes, functionType);
+      ir.DartType resultType = _getFunctionReturnType(functionType);
       receiverType = _narrowInstanceReceiver(interfaceTarget, receiverType);
       handleInstanceInvocation(
-          instanceInvocation, receiverType, interfaceTarget, argumentTypes);
-      _staticTypeCache._expressionTypes[node] = returnType;
-      return returnType;
+          replacement, receiverType, interfaceTarget, argumentTypes);
+      if (replacement is ir.MethodInvocation) {
+        _staticTypeCache._expressionTypes[replacement] = resultType;
+      }
+      return resultType;
+    } else if (node.name == ir.Name.callName &&
+        (receiverType is ir.FunctionType ||
+            (receiverType is ir.InterfaceType &&
+                receiverType.classNode == typeEnvironment.functionClass)) &&
+        _isApplicableToType(node.arguments, receiverType)) {
+      ir.DartType functionType =
+          _computeFunctionInvocationType(receiverType, node.arguments);
+      bool hasFunctionType = functionType is ir.FunctionType;
+      ir.FunctionInvocation replacement = ir.FunctionInvocation(
+          hasFunctionType
+              ? ir.FunctionAccessKind.FunctionType
+              : ir.FunctionAccessKind.Function,
+          node.receiver,
+          node.arguments,
+          functionType: hasFunctionType ? functionType : null)
+        ..fileOffset = node.fileOffset;
+      ir.DartType resultType = _getFunctionReturnType(functionType);
+      _replaceExpression(node, replacement);
+      _updateMethodInvocationTarget(replacement, argumentTypes, functionType);
+      handleFunctionInvocation(
+          replacement, receiverType, argumentTypes, resultType);
+      return resultType;
     } else {
       ir.DartType returnType =
           _computeDynamicInvocationReturnType(node, receiverType);
       _staticTypeCache._expressionTypes[node] = returnType;
       handleDynamicInvocation(node, receiverType, argumentTypes, returnType);
+      if (operatorFromString(node.name.text) == null &&
+          receiverType is ir.DynamicType) {
+        // We might implicitly call a getter that returns a function.
+        handleFunctionInvocation(
+            node, const ir.DynamicType(), argumentTypes, returnType);
+      }
       return returnType;
     }
   }
@@ -960,15 +1105,30 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType visitEqualsCall(ir.EqualsCall node) {
     ir.DartType leftType = visitNode(node.left);
     ir.DartType rightType = visitNode(node.right);
+    // This is accessed to ensure that [typeMapWhenTrue] and [typeMapWhenFalse]
+    // are joined as the result of this node.
+    // This is related to dartbug.com/45053
+    _flattenTypeMap();
+    leftType = _narrowInstanceReceiver(node.interfaceTarget, leftType);
     handleEqualsCall(
         node.left, leftType, node.right, rightType, node.interfaceTarget);
     return super.visitEqualsCall(node);
   }
 
+  // TODO(johnniwinther): Remove this after the new method invocation has landed
+  // stably. This is only included to make the transition a no-op.
+  void handleEqualsNull(ir.EqualsNull node, ir.DartType expressionType) {}
+
   @override
   ir.DartType visitEqualsNull(ir.EqualsNull node) {
-    visitNode(node.expression);
-    _registerEqualsNull(typeMap, node.expression, isNot: node.isNot);
+    ir.DartType expressionType = visitNode(node.expression);
+    if (expressionType is ir.DynamicType) {
+      expressionType = currentLibrary.isNonNullableByDefault
+          ? typeEnvironment.objectNullableRawType
+          : typeEnvironment.objectLegacyRawType;
+    }
+    _registerEqualsNull(typeMap, node.expression);
+    handleEqualsNull(node, expressionType);
     return super.visitEqualsNull(node);
   }
 
@@ -976,15 +1136,25 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType visitFunctionInvocation(ir.FunctionInvocation node) {
     ArgumentTypes argumentTypes = _visitArguments(node.arguments);
     ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType returnType = super.visitFunctionInvocation(node);
-    handleFunctionInvocation(node, receiverType, argumentTypes, returnType);
+    ir.DartType functionType =
+        _computeFunctionInvocationType(receiverType, node.arguments);
+    if (functionType is ir.FunctionType) {
+      // We might have improved the known function type through inference of
+      // effectively final variable types and type promotion.
+      node.functionType = functionType;
+    }
+    // We compute the return type instead of reading it of [node] since the
+    // receiver and argument types might have improved through inference of
+    // effectively final variable types and type promotion.
+    ir.DartType returnType = _getFunctionReturnType(functionType);
+    handleFunctionInvocation(node, functionType, argumentTypes, returnType);
     return returnType;
   }
 
   @override
   ir.DartType visitLocalFunctionInvocation(ir.LocalFunctionInvocation node) {
     ArgumentTypes argumentTypes = _visitArguments(node.arguments);
-    ir.FunctionDeclaration localFunction = node.variable.parent;
+    ir.FunctionDeclaration localFunction = node.localFunction;
     ir.DartType returnType = super.visitLocalFunctionInvocation(node);
     handleLocalFunctionInvocation(
         node, localFunction, argumentTypes, returnType);
@@ -1275,7 +1445,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitBlock(ir.Block node) {
-    assert(_pendingRuntimeTypeUseData.isEmpty);
+    assert(_pendingRuntimeTypeUseData.isEmpty,
+        "Incomplete RuntimeTypeUseData: $_pendingRuntimeTypeUseData");
     ir.DartType type;
     for (ir.Statement statement in node.statements) {
       if (!completes(visitNode(statement))) {
@@ -1776,6 +1947,12 @@ class ArgumentTypes {
   final List<ir.DartType> named;
 
   ArgumentTypes(this.positional, this.named);
+
+  @override
+  String toString() {
+    return 'ArgumentTypes(position=[${positional.join(',')}],'
+        ' named=[${named.join(',')}])';
+  }
 }
 
 /// Type information collected for a single path for a local variable.

@@ -20,7 +20,7 @@ CodePtr CodeBreakpoint::OrigStubAddress() const {
 }
 
 void CodeBreakpoint::PatchCode() {
-  ASSERT(!is_enabled_);
+  ASSERT(!IsEnabled());
   Code& stub_target = Code::Handle();
   switch (breakpoint_kind_) {
     case UntaggedPcDescriptors::kIcCall:
@@ -38,11 +38,10 @@ void CodeBreakpoint::PatchCode() {
   const Code& code = Code::Handle(code_);
   saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
   CodePatcher::PatchStaticCallAt(pc_, code, stub_target);
-  is_enabled_ = true;
 }
 
 void CodeBreakpoint::RestoreCode() {
-  ASSERT(is_enabled_);
+  ASSERT(IsEnabled());
   const Code& code = Code::Handle(code_);
   switch (breakpoint_kind_) {
     case UntaggedPcDescriptors::kIcCall:
@@ -54,7 +53,6 @@ void CodeBreakpoint::RestoreCode() {
     default:
       UNREACHABLE();
   }
-  is_enabled_ = false;
 }
 
 #endif  // !PRODUCT

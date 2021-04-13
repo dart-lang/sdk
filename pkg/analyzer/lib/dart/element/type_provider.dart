@@ -78,6 +78,7 @@ abstract class TypeProvider {
 
   /// Return a list containing all of the types that cannot be either extended
   /// or implemented.
+  @Deprecated('Use isNonSubtypableClass instead')
   Set<ClassElement> get nonSubtypableClasses;
 
   /// Return the element representing the built-in class `Null`.
@@ -142,6 +143,9 @@ abstract class TypeProvider {
   /// given [valueType]. The type has the nullability suffix of this provider.
   @Deprecated('Use futureType instead')
   InterfaceType futureType2(DartType valueType);
+
+  /// Return `true` if [element] cannot be extended, implemented, or mixed in.
+  bool isNonSubtypableClass(ClassElement element);
 
   /// Return 'true' if [id] is the name of a getter on the `Object` type.
   bool isObjectGetter(String id);

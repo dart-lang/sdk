@@ -16,9 +16,6 @@ import 'package:kernel/kernel.dart' show Component, Library;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalFlags;
-
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
 import '../api_prototype/file_system.dart' show FileSystem;

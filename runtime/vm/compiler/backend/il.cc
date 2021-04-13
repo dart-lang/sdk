@@ -995,8 +995,9 @@ Representation LoadFieldInstr::representation() const {
 
 AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
     const InstructionSource& source,
-    intptr_t num_context_variables)
-    : TemplateAllocation(source),
+    intptr_t num_context_variables,
+    intptr_t deopt_id)
+    : TemplateAllocation(source, deopt_id),
       num_context_variables_(num_context_variables) {
   // This instruction is not used in AOT for code size reasons.
   ASSERT(!CompilerState::Current().is_aot());
@@ -1019,7 +1020,7 @@ void AllocateTypedDataInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForTypedData(class_id()));
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
-                             locs());
+                             locs(), deopt_id());
 }
 
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
@@ -1131,7 +1132,8 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
 }
 
 bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
-  ASSERT(IsFieldInitialized());
+  ASSERT(AllowsCSE());
+  ASSERT(!field().is_late() || calls_initializer());
   return field().ptr() == other->AsLoadStaticField()->field().ptr();
 }
 
@@ -1580,11 +1582,15 @@ void Instruction::UnuseAllInputs() {
 }
 
 void Instruction::RepairPushArgsInEnvironment() const {
+  // Some calls (e.g. closure calls) have more inputs than actual arguments.
+  // Those extra inputs will be consumed from the stack before the call.
+  const intptr_t after_args_input_count = env()->LazyDeoptPruneCount();
   PushArgumentsArray* push_arguments = GetPushArguments();
   ASSERT(push_arguments != nullptr);
   const intptr_t arg_count = ArgumentCount();
-  ASSERT(arg_count <= env()->Length());
-  const intptr_t env_base = env()->Length() - arg_count;
+  ASSERT((arg_count + after_args_input_count) <= env()->Length());
+  const intptr_t env_base =
+      env()->Length() - arg_count - after_args_input_count;
   for (intptr_t i = 0; i < arg_count; ++i) {
     env()->ValueAt(env_base + i)->BindToEnvironment(push_arguments->At(i));
   }
@@ -2226,14 +2232,18 @@ static Definition* CanonicalizeCommutativeDoubleArithmetic(Token::Kind op,
 
 Definition* DoubleToFloatInstr::Canonicalize(FlowGraph* flow_graph) {
 #ifdef DEBUG
-  // Must only be used in Float32 StoreIndexedInstr or FloatToDoubleInstr or
-  // Phis introduce by load forwarding.
+  // Must only be used in Float32 StoreIndexedInstr, FloatToDoubleInstr,
+  // Phis introduce by load forwarding, or MaterializeObject for
+  // eliminated Float32 array.
   ASSERT(env_use_list() == NULL);
   for (Value* use = input_use_list(); use != NULL; use = use->next_use()) {
     ASSERT(use->instruction()->IsPhi() ||
            use->instruction()->IsFloatToDouble() ||
            (use->instruction()->IsStoreIndexed() &&
             (use->instruction()->AsStoreIndexed()->class_id() ==
+             kTypedDataFloat32ArrayCid)) ||
+           (use->instruction()->IsMaterializeObject() &&
+            (use->instruction()->AsMaterializeObject()->cls().id() ==
              kTypedDataFloat32ArrayCid)));
   }
 #endif
@@ -2429,80 +2439,6 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
   }
 
   return op;
-}
-
-Definition* CheckedSmiOpInstr::Canonicalize(FlowGraph* flow_graph) {
-  if ((left()->Type()->ToCid() == kSmiCid) &&
-      (right()->Type()->ToCid() == kSmiCid)) {
-    Definition* replacement = NULL;
-    // Operations that can't deoptimize are specialized here: These include
-    // bit-wise operators and comparisons. Other arithmetic operations can
-    // overflow or divide by 0 and can't be specialized unless we have extra
-    // range information.
-    switch (op_kind()) {
-      case Token::kBIT_AND:
-        FALL_THROUGH;
-      case Token::kBIT_OR:
-        FALL_THROUGH;
-      case Token::kBIT_XOR:
-        replacement = new BinarySmiOpInstr(
-            op_kind(), new Value(left()->definition()),
-            new Value(right()->definition()), DeoptId::kNone);
-        FALL_THROUGH;
-      default:
-        break;
-    }
-    if (replacement != NULL) {
-      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
-      return replacement;
-    }
-  }
-  return this;
-}
-
-ComparisonInstr* CheckedSmiComparisonInstr::CopyWithNewOperands(Value* left,
-                                                                Value* right) {
-  UNREACHABLE();
-  return NULL;
-}
-
-Definition* CheckedSmiComparisonInstr::Canonicalize(FlowGraph* flow_graph) {
-  CompileType* left_type = left()->Type();
-  CompileType* right_type = right()->Type();
-  intptr_t op_cid = kIllegalCid;
-  SpeculativeMode speculative_mode = kGuardInputs;
-
-  if ((left_type->ToCid() == kSmiCid) && (right_type->ToCid() == kSmiCid)) {
-    op_cid = kSmiCid;
-  } else if (FlowGraphCompiler::SupportsUnboxedInt64() &&
-             // TODO(dartbug.com/30480): handle nullable types here
-             left_type->IsNullableInt() && !left_type->is_nullable() &&
-             right_type->IsNullableInt() && !right_type->is_nullable()) {
-    op_cid = kMintCid;
-    speculative_mode = kNotSpeculative;
-  }
-
-  if (op_cid != kIllegalCid) {
-    Definition* replacement = NULL;
-    if (Token::IsRelationalOperator(kind())) {
-      replacement = new RelationalOpInstr(
-          source(), kind(), left()->CopyWithType(), right()->CopyWithType(),
-          op_cid, DeoptId::kNone, speculative_mode);
-    } else if (Token::IsEqualityOperator(kind())) {
-      replacement = new EqualityCompareInstr(
-          source(), kind(), left()->CopyWithType(), right()->CopyWithType(),
-          op_cid, DeoptId::kNone, speculative_mode);
-    }
-    if (replacement != NULL) {
-      if (FLAG_trace_strong_mode_types && (op_cid == kMintCid)) {
-        THR_Print("[Strong mode] Optimization: replacing %s with %s\n",
-                  ToCString(), replacement->ToCString());
-      }
-      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
-      return replacement;
-    }
-  }
-  return this;
 }
 
 Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -2768,7 +2704,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kClosure_instantiator_type_arguments:
     case Slot::Kind::kClosure_hash:
     case Slot::Kind::kClosureData_default_type_arguments:
-    case Slot::Kind::kClosureData_default_type_arguments_info:
+    case Slot::Kind::kClosureData_default_type_arguments_kind:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
     case Slot::Kind::kFunction_data:
@@ -3664,6 +3600,30 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
   return replacement;
 }
 
+Definition* EqualityCompareInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (is_null_aware()) {
+    ASSERT(operation_cid() == kMintCid);
+    // Select more efficient instructions based on operand types.
+    CompileType* left_type = left()->Type();
+    CompileType* right_type = right()->Type();
+    if (left_type->IsNull() || left_type->IsNullableSmi() ||
+        right_type->IsNull() || right_type->IsNullableSmi()) {
+      auto replacement = new StrictCompareInstr(
+          source(),
+          (kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
+          left()->CopyWithType(), right()->CopyWithType(),
+          /*needs_number_check=*/false, DeoptId::kNone);
+      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
+      return replacement;
+    } else {
+      if (!left_type->is_nullable() && !right_type->is_nullable()) {
+        set_null_aware(false);
+      }
+    }
+  }
+  return this;
+}
+
 Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
   const intptr_t value_cid = value()->Type()->ToCid();
   if (value_cid == kDynamicCid) {
@@ -4430,9 +4390,6 @@ void LoadFieldInstr::EmitNativeCodeForInitializerCall(
     UNREACHABLE();
   }
 
-  // Instruction inputs are popped from the stack at this point,
-  // so deoptimization environment has to be adjusted.
-  // This adjustment is done in FlowGraph::AttachEnvironment.
   compiler->GenerateStubCall(source(), stub,
                              /*kind=*/UntaggedPcDescriptors::kOther, locs(),
                              deopt_id());
@@ -4502,23 +4459,6 @@ LocationSummary* AssertBooleanInstr::MakeLocationSummary(Zone* zone,
   locs->set_in(0, Location::RegisterLocation(AssertBooleanABI::kObjectReg));
   locs->set_out(0, Location::RegisterLocation(AssertBooleanABI::kObjectReg));
   return locs;
-}
-
-void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Check that the type of the value is allowed in conditional context.
-  ASSERT(locs()->always_calls());
-
-  auto object_store = compiler->isolate_group()->object_store();
-  const auto& assert_boolean_stub =
-      Code::ZoneHandle(compiler->zone(), object_store->assert_boolean_stub());
-
-  compiler::Label done;
-  __ CompareObject(AssertBooleanABI::kObjectReg, Object::null_instance());
-  __ BranchIf(NOT_EQUAL, &done);
-  compiler->GenerateStubCall(source(), assert_boolean_stub,
-                             /*kind=*/UntaggedPcDescriptors::kOther, locs(),
-                             deopt_id());
-  __ Bind(&done);
 }
 
 LocationSummary* PhiInstr::MakeLocationSummary(Zone* zone,
@@ -5059,16 +4999,26 @@ DispatchTableCallInstr* DispatchTableCallInstr::FromCall(
   return dispatch_table_call;
 }
 
+LocationSummary* DispatchTableCallInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(
+      0, Location::RegisterLocation(DispatchTableNullErrorABI::kClassIdReg));
+  return MakeCallSummary(zone, this, summary);
+}
+
 void DispatchTableCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(locs()->in(0).reg() == DispatchTableNullErrorABI::kClassIdReg);
   Array& arguments_descriptor = Array::ZoneHandle();
   if (selector()->requires_args_descriptor) {
     ArgumentsInfo args_info(type_args_len(), ArgumentCount(), ArgumentsSize(),
                             argument_names());
     arguments_descriptor = args_info.ToArgumentsDescriptor();
   }
-  const Register cid_reg = locs()->in(0).reg();
-  compiler->EmitDispatchTableCall(cid_reg, selector()->offset,
-                                  arguments_descriptor);
+  compiler->EmitDispatchTableCall(selector()->offset, arguments_descriptor);
   compiler->EmitCallsiteMetadata(source(), DeoptId::kNone,
                                  UntaggedPcDescriptors::kOther, locs());
   if (selector()->called_on_null && !selector()->on_null_interface) {
@@ -5413,20 +5363,93 @@ LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
 }
 
 void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-#if defined(TARGET_ARCH_IA32)
-  __ PushRegister(AssertSubtypeABI::kInstantiatorTypeArgumentsReg);
-  __ PushRegister(AssertSubtypeABI::kFunctionTypeArgumentsReg);
-  __ PushRegister(AssertSubtypeABI::kSubTypeReg);
-  __ PushRegister(AssertSubtypeABI::kSuperTypeReg);
-  __ PushRegister(AssertSubtypeABI::kDstNameReg);
-  compiler->GenerateRuntimeCall(source(), deopt_id(), kSubtypeCheckRuntimeEntry,
-                                5, locs());
-
-  __ Drop(5);
-#else
   compiler->GenerateStubCall(source(), StubCode::AssertSubtype(),
-                             UntaggedPcDescriptors::kOther, locs());
-#endif
+                             UntaggedPcDescriptors::kOther, locs(), deopt_id());
+}
+
+LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
+                                                           bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(
+                      InstantiateTypeABI::kInstantiatorTypeArgumentsReg));
+  locs->set_in(1, Location::RegisterLocation(
+                      InstantiateTypeABI::kFunctionTypeArgumentsReg));
+  locs->set_out(0,
+                Location::RegisterLocation(InstantiateTypeABI::kResultTypeReg));
+  return locs;
+}
+
+void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ LoadObject(InstantiateTypeABI::kTypeReg, type());
+  compiler->GenerateStubCall(source(), StubCode::InstantiateType(),
+                             UntaggedPcDescriptors::kOther, locs(), deopt_id(),
+                             env());
+}
+
+LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
+    Zone* zone,
+    bool opt) const {
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(
+                      InstantiationABI::kInstantiatorTypeArgumentsReg));
+  locs->set_in(1, Location::RegisterLocation(
+                      InstantiationABI::kFunctionTypeArgumentsReg));
+  locs->set_in(2, Location::RegisterLocation(
+                      InstantiationABI::kUninstantiatedTypeArgumentsReg));
+  locs->set_out(
+      0, Location::RegisterLocation(InstantiationABI::kResultTypeArgumentsReg));
+  return locs;
+}
+
+void InstantiateTypeArgumentsInstr::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+  // We should never try and instantiate a TAV known at compile time to be null,
+  // so we can use a null value below for the dynamic case.
+  ASSERT(!type_arguments()->BindsToConstant() ||
+         !type_arguments()->BoundConstant().IsNull());
+  const auto& type_args =
+      type_arguments()->BindsToConstant()
+          ? TypeArguments::Cast(type_arguments()->BoundConstant())
+          : Object::null_type_arguments();
+  const intptr_t len = type_args.Length();
+  const bool can_function_type_args_be_null =
+      function_type_arguments()->CanBe(Object::null_object());
+
+  compiler::Label type_arguments_instantiated;
+  if (type_args.IsNull()) {
+    // Currently we only create dynamic InstantiateTypeArguments instructions
+    // in cases where we know the type argument is uninstantiated at runtime,
+    // so there are no extra checks needed to call the stub successfully.
+  } else if (type_args.IsRawWhenInstantiatedFromRaw(len) &&
+             can_function_type_args_be_null) {
+    // If both the instantiator and function type arguments are null and if the
+    // type argument vector instantiated from null becomes a vector of dynamic,
+    // then use null as the type arguments.
+    compiler::Label non_null_type_args;
+    __ LoadObject(InstantiationABI::kResultTypeArgumentsReg,
+                  Object::null_object());
+    __ CompareRegisters(InstantiationABI::kInstantiatorTypeArgumentsReg,
+                        InstantiationABI::kResultTypeArgumentsReg);
+    if (!function_type_arguments()->BindsToConstant()) {
+      __ BranchIf(NOT_EQUAL, &non_null_type_args,
+                  compiler::AssemblerBase::kNearJump);
+      __ CompareRegisters(InstantiationABI::kFunctionTypeArgumentsReg,
+                          InstantiationABI::kResultTypeArgumentsReg);
+    }
+    __ BranchIf(EQUAL, &type_arguments_instantiated,
+                compiler::AssemblerBase::kNearJump);
+    __ Bind(&non_null_type_args);
+  }
+
+  compiler->GenerateStubCall(source(), GetStub(), UntaggedPcDescriptors::kOther,
+                             locs(), deopt_id());
+  __ Bind(&type_arguments_instantiated);
 }
 
 LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,
@@ -5516,10 +5539,11 @@ void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (index_cid != kSmiCid) {
       __ BranchIfNotSmi(index, slow_path->entry_label());
     }
+    __ CompareObjectRegisters(index, length);
   } else {
     ASSERT(representation() == kUnboxedInt64);
+    __ CompareRegisters(index, length);
   }
-  __ CompareRegisters(index, length);
   __ BranchIf(UNSIGNED_GREATER_EQUAL, slow_path->entry_label());
 }
 
@@ -5644,9 +5668,11 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 Environment* Environment::From(Zone* zone,
                                const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
+                               intptr_t lazy_deopt_pruning_count,
                                const ParsedFunction& parsed_function) {
-  Environment* env = new (zone) Environment(
-      definitions.length(), fixed_parameter_count, parsed_function, NULL);
+  Environment* env =
+      new (zone) Environment(definitions.length(), fixed_parameter_count,
+                             lazy_deopt_pruning_count, parsed_function, NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
     env->values_.Add(new (zone) Value(definitions[i]));
   }
@@ -5659,10 +5685,10 @@ void Environment::PushValue(Value* value) {
 
 Environment* Environment::DeepCopy(Zone* zone, intptr_t length) const {
   ASSERT(length <= values_.length());
-  Environment* copy =
-      new (zone) Environment(length, fixed_parameter_count_, parsed_function_,
-                             (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
-  copy->deopt_id_ = this->deopt_id_;
+  Environment* copy = new (zone) Environment(
+      length, fixed_parameter_count_, LazyDeoptPruneCount(), parsed_function_,
+      (outer_ == NULL) ? NULL : outer_->DeepCopy(zone));
+  copy->SetDeoptId(DeoptIdBits::decode(bitfield_));
   if (locations_ != NULL) {
     Location* new_locations = zone->Alloc<Location>(length);
     copy->set_locations(new_locations);
@@ -5699,7 +5725,9 @@ void Environment::DeepCopyAfterTo(Zone* zone,
     it.CurrentValue()->RemoveFromUseList();
   }
 
-  Environment* copy = DeepCopy(zone, values_.length() - argc);
+  Environment* copy =
+      DeepCopy(zone, values_.length() - argc - LazyDeoptPruneCount());
+  copy->SetLazyDeoptPruneCount(0);
   for (intptr_t i = 0; i < argc; i++) {
     copy->values_.Add(new (zone) Value(dead));
   }
@@ -5721,11 +5749,13 @@ void Environment::DeepCopyToOuter(Zone* zone,
   ASSERT(this != NULL);
   ASSERT(instr->env()->outer() == NULL);
   intptr_t argument_count = instr->env()->fixed_parameter_count();
-  Environment* copy = DeepCopy(zone, values_.length() - argument_count);
-  copy->deopt_id_ = outer_deopt_id;
-  instr->env()->outer_ = copy;
+  Environment* outer =
+      DeepCopy(zone, values_.length() - argument_count - LazyDeoptPruneCount());
+  outer->SetDeoptId(outer_deopt_id);
+  outer->SetLazyDeoptPruneCount(0);
+  instr->env()->outer_ = outer;
   intptr_t use_index = instr->env()->Length();  // Start index after inner.
-  for (Environment::DeepIterator it(copy); !it.Done(); it.Advance()) {
+  for (Environment::DeepIterator it(outer); !it.Done(); it.Advance()) {
     Value* value = it.CurrentValue();
     value->set_instruction(instr);
     value->set_use_index(use_index++);
@@ -5742,7 +5772,8 @@ ComparisonInstr* DoubleTestOpInstr::CopyWithNewOperands(Value* new_left,
 ComparisonInstr* EqualityCompareInstr::CopyWithNewOperands(Value* new_left,
                                                            Value* new_right) {
   return new EqualityCompareInstr(source(), kind(), new_left, new_right,
-                                  operation_cid(), deopt_id());
+                                  operation_cid(), deopt_id(), is_null_aware(),
+                                  speculative_mode_);
 }
 
 ComparisonInstr* RelationalOpInstr::CopyWithNewOperands(Value* new_left,
@@ -6139,6 +6170,8 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     case MethodRecognizer::kMathAsin:
     case MethodRecognizer::kMathSin:
     case MethodRecognizer::kMathCos:
+    case MethodRecognizer::kMathExp:
+    case MethodRecognizer::kMathLog:
       return 1;
     case MethodRecognizer::kDoubleMod:
     case MethodRecognizer::kMathDoublePow:
@@ -6178,6 +6211,10 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
       return kLibcAtanRuntimeEntry;
     case MethodRecognizer::kMathAtan2:
       return kLibcAtan2RuntimeEntry;
+    case MethodRecognizer::kMathExp:
+      return kLibcExpRuntimeEntry;
+    case MethodRecognizer::kMathLog:
+      return kLibcLogRuntimeEntry;
     default:
       UNREACHABLE();
   }
@@ -6522,6 +6559,8 @@ LocationSummary* EnterHandleScopeInstr::MakeLocationSummary(
 }
 
 void EnterHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(kEnterHandleScopeRuntimeEntry.is_leaf());
+
   if (kind_ == Kind::kGetTopHandleScope) {
     __ LoadMemoryValue(CallingConventions::kReturnReg, THR,
                        compiler::target::Thread::api_top_scope_offset());
@@ -6548,6 +6587,8 @@ LocationSummary* ExitHandleScopeInstr::MakeLocationSummary(
 }
 
 void ExitHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(kEnterHandleScopeRuntimeEntry.is_leaf());
+
   Location arg_loc = FirstArgumentLocation();
   __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
   NoTemporaryAllocator no_temp;
@@ -6585,6 +6626,8 @@ Representation AllocateHandleInstr::RequiredInputRepresentation(
 }
 
 void AllocateHandleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(kEnterHandleScopeRuntimeEntry.is_leaf());
+
   Location arg_loc = FirstArgumentLocation();
   __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
   if (arg_loc.IsStackSlot()) {

@@ -18,8 +18,8 @@ void main() {
 
 /// Common test methods to Dart1/Dart2 versions of OpType tests.
 abstract class AbstractOpTypeTest extends AbstractContextTest {
-  String testPath;
-  int completionOffset;
+  late String testPath;
+  late int completionOffset;
 
   void addTestSource(String content) {
     completionOffset = content.indexOf('^');
@@ -33,7 +33,7 @@ abstract class AbstractOpTypeTest extends AbstractContextTest {
 
   Future<void> assertOpType(
       {bool caseLabel = false,
-      String completionLocation,
+      String? completionLocation,
       bool constructors = false,
       bool namedArgs = false,
       bool prefixed = false,
@@ -50,7 +50,7 @@ abstract class AbstractOpTypeTest extends AbstractContextTest {
     //
     var resolvedUnit = await resolveFile(testPath);
     var completionTarget =
-        CompletionTarget.forOffset(resolvedUnit.unit, completionOffset);
+        CompletionTarget.forOffset(resolvedUnit.unit!, completionOffset);
     var opType = OpType.forCompletion(completionTarget, completionOffset);
     //
     // Validate the OpType.

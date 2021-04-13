@@ -47,7 +47,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
 
   /// Generate a function argument for the given parameter field.
   String formatArgument(TypeObjectField field) =>
-      '${dartType(field.type)} ${field.name}';
+      '${fieldDartType(field)} ${field.name}';
 
   /// Figure out the appropriate Dart type for data having the given API
   /// protocol [type].
@@ -130,7 +130,6 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
           writeln('default:');
           indent(() {
             writeln("fail('Unexpected notification: \$event');");
-            writeln('break;');
           });
         });
         writeln('}');
@@ -152,12 +151,12 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       toHtmlVisitor.translateHtml(notification.html);
       toHtmlVisitor.describePayload(notification.params, 'Parameters');
     }));
-    writeln('Stream<$className> $streamName;');
+    writeln('late Stream<$className> $streamName;');
     writeln();
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.write('Stream controller for [$streamName].');
     }));
-    writeln('StreamController<$className> _$streamName;');
+    writeln('late StreamController<$className> _$streamName;');
     fieldInitializationCode.add(collectCode(() {
       writeln('_$streamName = StreamController<$className>(sync: true);');
       writeln('$streamName = _$streamName.stream.asBroadcastStream();');
@@ -185,8 +184,9 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     var methodName = camelJoin(['send', request.domainName, request.method]);
     var args = <String>[];
     var optionalArgs = <String>[];
-    if (request.params != null) {
-      for (var field in request.params.fields) {
+    var params = request.params;
+    if (params != null) {
+      for (var field in params.fields) {
         if (field.optional) {
           optionalArgs.add(formatArgument(field));
         } else {
@@ -200,32 +200,35 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     writeln();
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.translateHtml(request.html);
-      toHtmlVisitor.describePayload(request.params, 'Parameters');
+      toHtmlVisitor.describePayload(params, 'Parameters');
       toHtmlVisitor.describePayload(request.result, 'Returns');
     }));
     if (request.deprecated) {
       writeln('@deprecated');
     }
-    String resultClass;
+
+    String? resultClass;
     String futureClass;
-    if (request.result == null) {
-      futureClass = 'Future';
-    } else {
+    var hasResult = request.result != null;
+    if (hasResult) {
       resultClass = camelJoin([request.domainName, request.method, 'result'],
           doCapitalize: true);
       futureClass = 'Future<$resultClass>';
+    } else {
+      futureClass = 'Future';
     }
+
     writeln('$futureClass $methodName(${args.join(', ')}) async {');
     indent(() {
       var requestClass = camelJoin(
           [request.domainName, request.method, 'params'],
           doCapitalize: true);
       var paramsVar = 'null';
-      if (request.params != null) {
+      if (params != null) {
         paramsVar = 'params';
         var args = <String>[];
         var optionalArgs = <String>[];
-        for (var field in request.params.fields) {
+        for (var field in params.fields) {
           if (field.optional) {
             optionalArgs.add('${field.name}: ${field.name}');
           } else {
@@ -237,7 +240,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       }
       var methodJson = "'${request.longMethod}'";
       writeln('var result = await server.send($methodJson, $paramsVar);');
-      if (request.result != null) {
+      if (resultClass != null) {
         var kind = 'null';
         if (requestClass == 'EditGetRefactoringParams') {
           kind = 'kind';

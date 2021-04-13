@@ -763,7 +763,7 @@ abstract class HttpHeaders {
 
 /**
  * Representation of a header value in the form:
- * ```dart
+ * ```plaintext
  * value; parameter1=value1; parameter2=value2
  * ```
  *
@@ -834,7 +834,7 @@ abstract class HeaderValue {
 
   /**
    * Returns the formatted string representation in the form:
-   * ```
+   * ```plaintext
    * value; parameter1=value1; parameter2=value2
    * ```
    */

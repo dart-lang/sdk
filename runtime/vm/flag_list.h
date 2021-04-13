@@ -110,6 +110,8 @@ constexpr bool FLAG_support_il_printer = false;
     "Deoptimizes we are about to return to Dart code from native entries.")    \
   C(deoptimize_every, 0, 0, int, 0,                                            \
     "Deoptimize on every N stack overflow checks")                             \
+  P(deoptimize_on_runtime_call_every, int, 0,                                  \
+    "Deoptimize functions on every runtime call.")                             \
   R(disable_alloc_stubs_after_gc, false, bool, false, "Stress testing flag.")  \
   R(dump_megamorphic_stats, false, bool, false,                                \
     "Dump megamorphic cache statistics")                                       \

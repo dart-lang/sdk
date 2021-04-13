@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:core';
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
@@ -10,6 +12,7 @@ import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/computer/computer_signature.dart';
 import 'package:analysis_server/src/computer/imported_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
+import 'package:analysis_server/src/domain_analysis_flags.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
@@ -19,9 +22,6 @@ import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
-
-// TODO(devoncarew): See #31456 for the tracking issue to remove this flag.
-final bool disableManageImportsOnPaste = true;
 
 /// Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
 /// that handles requests in the `analysis` domain.

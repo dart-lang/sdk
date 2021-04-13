@@ -22,6 +22,21 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
     return driver.test.libraryContext.linkedCycles;
   }
 
+  test_change_factoryConstructor_addEqNothing() async {
+    await resolveTestCode(r'''
+class A {
+  factory A();
+}
+''');
+
+    driverFor(testFilePath).changeFile(testFilePath);
+    await resolveTestCode(r'''
+class A {
+  factory A() =;
+}
+''');
+  }
+
   test_change_factoryConstructor_moveStaticToken() async {
     await resolveTestCode(r'''
 class A {
@@ -35,6 +50,22 @@ class A {
 class A {
   factory A() =
   static void foo<U>() {}
+}
+''');
+  }
+
+  test_change_field_outOfOrderStaticConst() async {
+    await resolveTestCode(r'''
+class A {
+  static f = Object();
+}
+''');
+
+    driverFor(testFilePath).changeFile(testFilePath);
+    await resolveTestCode(r'''
+class A {
+  const
+  static f = Object();
 }
 ''');
   }
@@ -113,9 +144,13 @@ void f() {
     _assertNoLinkedCycles();
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/2399')
   test_lints() async {
     useEmptyByteStore();
+
+    // Configure without any lint, but without experiments as well.
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(lints: []),
+    );
 
     newFile(testFilePath, content: r'''
 void f() {

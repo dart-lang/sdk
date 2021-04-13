@@ -17,10 +17,10 @@ class CiderServiceTest with ResourceProviderMixin {
   final ByteStore byteStore = MemoryByteStore();
 
   final StringBuffer logBuffer = StringBuffer();
-  PerformanceLog logger;
-  MockSdk sdk;
+  late PerformanceLog logger;
+  late MockSdk sdk;
 
-  FileResolver fileResolver;
+  late FileResolver fileResolver;
 
   String testPath = '/workspace/dart/test/lib/test.dart';
 
@@ -31,7 +31,7 @@ class CiderServiceTest with ResourceProviderMixin {
     var workspace = BazelWorkspace.find(
       resourceProvider,
       convertPath(testPath),
-    );
+    )!;
 
     fileResolver = FileResolver(
       logger,

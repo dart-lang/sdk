@@ -79,12 +79,12 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
       InitInstanceFieldABI::kResultReg == CallingConventions::kReturnReg,
       "Result is a return value from initializer");
 
-  __ LoadField(kFunctionReg,
-               FieldAddress(InitInstanceFieldABI::kFieldReg,
-                            target::Field::initializer_function_offset()));
+  __ LoadCompressedFieldFromOffset(
+      kFunctionReg, InitInstanceFieldABI::kFieldReg,
+      target::Field::initializer_function_offset());
   if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
-    __ LoadField(CODE_REG,
-                 FieldAddress(kFunctionReg, target::Function::code_offset()));
+    __ LoadCompressedFieldFromOffset(CODE_REG, kFunctionReg,
+                                     target::Function::code_offset());
     // Load a GC-safe value for the arguments descriptor (unused but tagged).
     __ LoadImmediate(ARGS_DESC_REG, 0);
   }
@@ -92,9 +92,14 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
   __ Drop(1);  // Drop argument.
 
   __ PopRegisterPair(kInstanceReg, kFieldReg);
-  __ LoadField(
-      kScratchReg,
-      FieldAddress(kFieldReg, target::Field::host_offset_or_field_id_offset()));
+  __ LoadCompressedFieldFromOffset(
+      kScratchReg, kFieldReg, target::Field::host_offset_or_field_id_offset());
+#if defined(DART_COMPRESSED_POINTERS)
+  // TODO(compressed-pointers): Variant of LoadFieldAddressForRegOffset that
+  // ignores upper bits?
+  __ SmiUntag(kScratchReg);
+  __ SmiTag(kScratchReg);
+#endif
   __ LoadFieldAddressForRegOffset(kAddressReg, kInstanceReg, kScratchReg);
 
   Label throw_exception;
@@ -175,6 +180,44 @@ void StubCodeCompiler::GenerateAssertSubtypeStub(Assembler* assembler) {
   __ PushRegister(AssertSubtypeABI::kDstNameReg);
   __ CallRuntime(kSubtypeCheckRuntimeEntry, /*argument_count=*/5);
   __ Drop(5);  // Drop unused result as well as arguments.
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateAssertAssignableStub(Assembler* assembler) {
+#if !defined(TARGET_ARCH_IA32)
+  __ Breakpoint();
+#else
+  __ EnterStubFrame();
+  __ PushObject(Object::null_object());  // Make room for the result.
+  __ pushl(Address(
+      EBP, target::kWordSize * AssertAssignableStubABI::kInstanceSlotFromFp));
+  __ pushl(Address(
+      EBP, target::kWordSize * AssertAssignableStubABI::kDstTypeSlotFromFp));
+  __ pushl(Address(
+      EBP,
+      target::kWordSize * AssertAssignableStubABI::kInstantiatorTAVSlotFromFp));
+  __ pushl(Address(EBP, target::kWordSize *
+                            AssertAssignableStubABI::kFunctionTAVSlotFromFp));
+  __ PushRegister(AssertAssignableStubABI::kDstNameReg);
+  __ PushRegister(AssertAssignableStubABI::kSubtypeTestReg);
+  __ PushObject(Smi::ZoneHandle(Smi::New(kTypeCheckFromInline)));
+  __ CallRuntime(kTypeCheckRuntimeEntry, /*argument_count=*/7);
+  __ Drop(8);
+  __ LeaveStubFrame();
+  __ Ret();
+#endif
+}
+
+void StubCodeCompiler::GenerateInstantiateTypeStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ PushObject(Object::null_object());
+  __ PushRegister(InstantiateTypeABI::kTypeReg);
+  __ PushRegister(InstantiateTypeABI::kInstantiatorTypeArgumentsReg);
+  __ PushRegister(InstantiateTypeABI::kFunctionTypeArgumentsReg);
+  __ CallRuntime(kInstantiateTypeRuntimeEntry, /*argument_count=*/3);
+  __ Drop(3);
+  __ PopRegister(InstantiateTypeABI::kResultTypeReg);
   __ LeaveStubFrame();
   __ Ret();
 }
@@ -278,7 +321,7 @@ static void GenerateTypeIsTopTypeForSubtyping(Assembler* assembler,
   // instantiation may result in a top type.
   // Function types cannot be top types.
   __ BranchIf(NOT_EQUAL, &done);
-  __ LoadField(
+  __ LoadCompressedField(
       scratch2_reg,
       compiler::FieldAddress(scratch1_reg,
                              compiler::target::Type::type_class_id_offset()));
@@ -308,9 +351,10 @@ static void GenerateTypeIsTopTypeForSubtyping(Assembler* assembler,
   __ Ret();
   // An uncommon case, so off the main trunk of the function.
   __ Bind(&unwrap_future_or);
-  __ LoadField(scratch2_reg,
-               compiler::FieldAddress(
-                   scratch1_reg, compiler::target::Type::arguments_offset()));
+  __ LoadCompressedField(
+      scratch2_reg,
+      compiler::FieldAddress(scratch1_reg,
+                             compiler::target::Type::arguments_offset()));
   __ CompareObject(scratch2_reg, Object::null_object());
   // If the arguments are null, then unwrapping gives dynamic, a top type.
   __ BranchIf(EQUAL, &is_top_type, compiler::Assembler::kNearJump);
@@ -333,12 +377,14 @@ void StubCodeCompiler::GenerateTypeIsTopTypeForSubtypingNullSafeStub(
                                     /*null_safety=*/true);
 }
 
-// Version of Instance::NullIsAssignableTo() used when the destination type is
-// not known at compile time. Must be kept in sync.
+// Version of Instance::NullIsAssignableTo(other, inst_tav, fun_tav) used when
+// the destination type was not known at compile time. Must be kept in sync.
 //
 // Inputs:
 // - TypeTestABI::kInstanceReg: Object to check for assignability.
 // - TypeTestABI::kDstTypeReg: Destination type.
+// - TypeTestABI::kInstantiatorTypeArgumentsReg: Instantiator TAV.
+// - TypeTestABI::kFunctionTypeArgumentsReg: Function TAV.
 //
 // Non-preserved non-output scratch registers:
 // - TypeTestABI::kScratchReg (only on non-IA32 architectures)
@@ -353,85 +399,121 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
   // The only case where the original value of kSubtypeTestCacheReg is needed
   // after the stub call is on IA32, where it's currently preserved on the stack
   // before calling the stub (as it's also CODE_REG on that architecture), so we
-  // both use it as a scratch and clobber it for the return value.
-  const Register scratch1_reg = TypeTestABI::kSubtypeTestCacheReg;
+  // both use it as a scratch to hold the current type to inspect and also
+  // clobber it for the return value.
+  const Register kCurrentTypeReg = TypeTestABI::kSubtypeTestCacheReg;
   // We reuse the first scratch register as the output register because we're
-  // always guaranteed to have a type in it (starting with kDstType), and all
-  // non-Smi ObjectPtrs are non-zero values.
-  const Register output_reg = scratch1_reg;
+  // always guaranteed to have a type in it (starting with the contents of
+  // kDstTypeReg), and all non-Smi ObjectPtrs are non-zero values.
+  const Register kOutputReg = kCurrentTypeReg;
 #if defined(TARGET_ARCH_IA32)
   // The remaining scratch registers are preserved and restored before exit on
   // IA32. Because  we have few registers to choose from (which are all used in
   // TypeTestABI), use specific TestTypeABI registers.
-  const Register scratch2_reg = TypeTestABI::kFunctionTypeArgumentsReg;
+  const Register kScratchReg = TypeTestABI::kFunctionTypeArgumentsReg;
   // Preserve non-output scratch registers.
-  __ PushRegister(scratch2_reg);
+  __ PushRegister(kScratchReg);
 #else
-  const Register scratch2_reg = TypeTestABI::kScratchReg;
+  const Register kScratchReg = TypeTestABI::kScratchReg;
 #endif
-  static_assert(scratch1_reg != scratch2_reg,
+  static_assert(kCurrentTypeReg != kScratchReg,
                 "code assumes distinct scratch registers");
 
   compiler::Label is_assignable, done;
   // Initialize the first scratch register (and thus the output register) with
   // the destination type. We do this before the check to ensure the output
   // register has a non-zero value if !null_safety and kInstanceReg is not null.
-  __ MoveRegister(scratch1_reg, TypeTestABI::kDstTypeReg);
+  __ MoveRegister(kCurrentTypeReg, TypeTestABI::kDstTypeReg);
   __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
   if (null_safety) {
     compiler::Label check_null_assignable;
     // Skip checking the type if not null.
-    __ BranchIf(NOT_EQUAL, &done, compiler::Assembler::kNearJump);
+    __ BranchIf(NOT_EQUAL, &done);
     __ Bind(&check_null_assignable);
     // scratch1_reg: Current type to check.
-    EnsureIsTypeOrFunctionTypeOrTypeParameter(assembler, scratch1_reg,
-                                              scratch2_reg);
+    EnsureIsTypeOrFunctionTypeOrTypeParameter(assembler, kCurrentTypeReg,
+                                              kScratchReg);
     compiler::Label is_not_type;
-    __ CompareClassId(scratch1_reg, kTypeCid, scratch2_reg);
+    __ CompareClassId(kCurrentTypeReg, kTypeCid, kScratchReg);
     __ BranchIf(NOT_EQUAL, &is_not_type, compiler::Assembler::kNearJump);
     __ CompareTypeNullabilityWith(
-        scratch1_reg, static_cast<int8_t>(Nullability::kNonNullable));
-    __ BranchIf(NOT_EQUAL, &is_assignable, compiler::Assembler::kNearJump);
+        kCurrentTypeReg, static_cast<int8_t>(Nullability::kNonNullable));
+    __ BranchIf(NOT_EQUAL, &is_assignable);
     // FutureOr is a special case because it may have the non-nullable bit set,
     // but FutureOr<T> functions as the union of T and Future<T>, so it must be
     // unwrapped to see if T is nullable.
-    __ LoadField(
-        scratch2_reg,
-        compiler::FieldAddress(scratch1_reg,
+    __ LoadCompressedField(
+        kScratchReg,
+        compiler::FieldAddress(kCurrentTypeReg,
                                compiler::target::Type::type_class_id_offset()));
-    __ SmiUntag(scratch2_reg);
-    __ CompareImmediate(scratch2_reg, kFutureOrCid);
-    __ BranchIf(NOT_EQUAL, &done, compiler::Assembler::kNearJump);
-    __ LoadField(scratch2_reg,
-                 compiler::FieldAddress(
-                     scratch1_reg, compiler::target::Type::arguments_offset()));
-    __ CompareObject(scratch2_reg, Object::null_object());
+    __ SmiUntag(kScratchReg);
+    __ CompareImmediate(kScratchReg, kFutureOrCid);
+    __ BranchIf(NOT_EQUAL, &done);
+    __ LoadCompressedField(
+        kScratchReg,
+        compiler::FieldAddress(kCurrentTypeReg,
+                               compiler::target::Type::arguments_offset()));
+    __ CompareObject(kScratchReg, Object::null_object());
     // If the arguments are null, then unwrapping gives the dynamic type,
     // which can take null.
-    __ BranchIf(EQUAL, &is_assignable, compiler::Assembler::kNearJump);
+    __ BranchIf(EQUAL, &is_assignable);
     __ LoadField(
-        scratch1_reg,
+        kCurrentTypeReg,
         compiler::FieldAddress(
-            scratch2_reg, compiler::target::TypeArguments::type_at_offset(0)));
+            kScratchReg, compiler::target::TypeArguments::type_at_offset(0)));
     __ Jump(&check_null_assignable, compiler::Assembler::kNearJump);
     __ Bind(&is_not_type);
-    // Null is assignable to a type parameter only if it is nullable.
+    // Null is assignable to a type parameter only if it is nullable or if the
+    // instantiation is nullable.
     __ LoadFieldFromOffset(
-        scratch2_reg, scratch1_reg,
+        kScratchReg, kCurrentTypeReg,
         compiler::target::TypeParameter::nullability_offset(), kByte);
-    __ CompareImmediate(scratch2_reg,
+    __ CompareImmediate(kScratchReg,
                         static_cast<int8_t>(Nullability::kNonNullable));
-    __ BranchIf(EQUAL, &done, compiler::Assembler::kNearJump);
+    __ BranchIf(NOT_EQUAL, &is_assignable);
+
+    // Don't set kScratchReg in here as on IA32, that's the function TAV reg.
+    auto handle_case = [&](Register tav) {
+      // We can reuse kCurrentTypeReg to hold the index because we no longer
+      // need the type parameter afterwards.
+      auto const kIndexReg = kCurrentTypeReg;
+      // If the TAV is null, resolving gives the (nullable) dynamic type.
+      __ CompareObject(tav, NullObject());
+      __ BranchIf(EQUAL, &is_assignable, Assembler::kNearJump);
+      // Resolve the type parameter to its instantiated type and loop.
+      __ LoadFieldFromOffset(kIndexReg, kCurrentTypeReg,
+                             target::TypeParameter::index_offset(), kTwoBytes);
+      __ LoadIndexedPayload(kCurrentTypeReg, tav,
+                            target::TypeArguments::types_offset(), kIndexReg,
+                            TIMES_WORD_SIZE);
+      __ Jump(&check_null_assignable);
+    };
+
+    Label function_type_param;
+    __ LoadFieldFromOffset(
+        kScratchReg, kCurrentTypeReg,
+        target::TypeParameter::parameterized_class_id_offset(),
+        kUnsignedTwoBytes);
+    __ CompareImmediate(kScratchReg, kFunctionCid);
+    __ BranchIf(EQUAL, &function_type_param, Assembler::kNearJump);
+    handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
+    __ Bind(&function_type_param);
+#if defined(TARGET_ARCH_IA32)
+    // Function TAV is on top of stack because we're using that register as
+    // kScratchReg.
+    __ LoadFromStack(TypeTestABI::kFunctionTypeArgumentsReg, 0);
+#endif
+    handle_case(TypeTestABI::kFunctionTypeArgumentsReg);
   } else {
     // Null in non-null-safe mode is always assignable.
     __ BranchIf(NOT_EQUAL, &done, compiler::Assembler::kNearJump);
   }
   __ Bind(&is_assignable);
-  __ LoadImmediate(output_reg, 0);
+  __ LoadImmediate(kOutputReg, 0);
   __ Bind(&done);
 #if defined(TARGET_ARCH_IA32)
   // Restore preserved scratch registers.
-  __ PopRegister(scratch2_reg);
+  __ PopRegister(kScratchReg);
 #endif
   __ Ret();
 }

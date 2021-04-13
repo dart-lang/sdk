@@ -451,6 +451,73 @@ struct StructStruct16BytesMixed3 {
   int16_t a2[2];
 };
 
+struct Struct8BytesInlineArrayMultiDimensionalInt {
+  uint8_t a0[2][2][2];
+};
+
+struct Struct32BytesInlineArrayMultiDimensionalInt {
+  uint8_t a0[2][2][2][2][2];
+};
+
+struct Struct64BytesInlineArrayMultiDimensionalInt {
+  uint8_t a0[2][2][2][2][2][2];
+};
+
+struct Struct4BytesInlineArrayMultiDimensionalInt {
+  Struct1ByteInt a0[2][2];
+};
+
+#pragma pack(push, 1)
+struct Struct3BytesPackedInt {
+  int8_t a0;
+  int16_t a1;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct Struct3BytesPackedIntMembersAligned {
+  int8_t a0;
+  int16_t a1;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct Struct5BytesPackedMixed {
+  float a0;
+  uint8_t a1;
+};
+#pragma pack(pop)
+
+struct StructNestedAlignmentStruct5BytesPackedMixed {
+  uint8_t a0;
+  Struct5BytesPackedMixed a1;
+};
+
+struct Struct6BytesInlineArrayInt {
+  Struct3BytesPackedIntMembersAligned a0[2];
+};
+
+#pragma pack(push, 1)
+struct Struct8BytesPackedInt {
+  uint8_t a0;
+  uint32_t a1;
+  uint8_t a2;
+  uint8_t a3;
+  uint8_t a4;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct Struct9BytesPackedMixed {
+  uint8_t a0;
+  double a1;
+};
+#pragma pack(pop)
+
+struct Struct15BytesInlineArrayMixed {
+  Struct5BytesPackedMixed a0[3];
+};
+
 // Used for testing structs by value.
 // Smallest struct with data.
 // 10 struct arguments will exhaust available registers.
@@ -3826,6 +3893,460 @@ DART_EXPORT float PassStructStruct16BytesMixed3x10(
 }
 
 // Used for testing structs by value.
+// Test multi dimensional inline array struct as argument.
+DART_EXPORT uint32_t PassUint8Struct32BytesInlineArrayMultiDimensionalI(
+    uint8_t a0,
+    Struct32BytesInlineArrayMultiDimensionalInt a1,
+    uint8_t a2,
+    Struct8BytesInlineArrayMultiDimensionalInt a3,
+    uint8_t a4,
+    Struct8BytesInlineArrayMultiDimensionalInt a5,
+    uint8_t a6) {
+  std::cout << "PassUint8Struct32BytesInlineArrayMultiDimensionalI"
+            << "(" << static_cast<int>(a0) << ", ([[[[["
+            << static_cast<int>(a1.a0[0][0][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][0][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[0][0][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][0][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][1][1][1]) << "]]], [[["
+            << static_cast<int>(a1.a0[0][1][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][1][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[0][1][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][1][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][1][1][1]) << "]]]], [[[["
+            << static_cast<int>(a1.a0[1][0][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][0][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[1][0][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][0][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][1][1][1]) << "]]], [[["
+            << static_cast<int>(a1.a0[1][1][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][1][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[1][1][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][1][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][1][1][1]) << "]]]]]), "
+            << static_cast<int>(a2) << ", ([[["
+            << static_cast<int>(a3.a0[0][0][0]) << ", "
+            << static_cast<int>(a3.a0[0][0][1]) << "], ["
+            << static_cast<int>(a3.a0[0][1][0]) << ", "
+            << static_cast<int>(a3.a0[0][1][1]) << "]], [["
+            << static_cast<int>(a3.a0[1][0][0]) << ", "
+            << static_cast<int>(a3.a0[1][0][1]) << "], ["
+            << static_cast<int>(a3.a0[1][1][0]) << ", "
+            << static_cast<int>(a3.a0[1][1][1]) << "]]]), "
+            << static_cast<int>(a4) << ", ([[["
+            << static_cast<int>(a5.a0[0][0][0]) << ", "
+            << static_cast<int>(a5.a0[0][0][1]) << "], ["
+            << static_cast<int>(a5.a0[0][1][0]) << ", "
+            << static_cast<int>(a5.a0[0][1][1]) << "]], [["
+            << static_cast<int>(a5.a0[1][0][0]) << ", "
+            << static_cast<int>(a5.a0[1][0][1]) << "], ["
+            << static_cast<int>(a5.a0[1][1][0]) << ", "
+            << static_cast<int>(a5.a0[1][1][1]) << "]]]), "
+            << static_cast<int>(a6) << ")"
+            << "\n";
+
+  uint32_t result = 0;
+
+  result += a0;
+  result += a1.a0[0][0][0][0][0];
+  result += a1.a0[0][0][0][0][1];
+  result += a1.a0[0][0][0][1][0];
+  result += a1.a0[0][0][0][1][1];
+  result += a1.a0[0][0][1][0][0];
+  result += a1.a0[0][0][1][0][1];
+  result += a1.a0[0][0][1][1][0];
+  result += a1.a0[0][0][1][1][1];
+  result += a1.a0[0][1][0][0][0];
+  result += a1.a0[0][1][0][0][1];
+  result += a1.a0[0][1][0][1][0];
+  result += a1.a0[0][1][0][1][1];
+  result += a1.a0[0][1][1][0][0];
+  result += a1.a0[0][1][1][0][1];
+  result += a1.a0[0][1][1][1][0];
+  result += a1.a0[0][1][1][1][1];
+  result += a1.a0[1][0][0][0][0];
+  result += a1.a0[1][0][0][0][1];
+  result += a1.a0[1][0][0][1][0];
+  result += a1.a0[1][0][0][1][1];
+  result += a1.a0[1][0][1][0][0];
+  result += a1.a0[1][0][1][0][1];
+  result += a1.a0[1][0][1][1][0];
+  result += a1.a0[1][0][1][1][1];
+  result += a1.a0[1][1][0][0][0];
+  result += a1.a0[1][1][0][0][1];
+  result += a1.a0[1][1][0][1][0];
+  result += a1.a0[1][1][0][1][1];
+  result += a1.a0[1][1][1][0][0];
+  result += a1.a0[1][1][1][0][1];
+  result += a1.a0[1][1][1][1][0];
+  result += a1.a0[1][1][1][1][1];
+  result += a2;
+  result += a3.a0[0][0][0];
+  result += a3.a0[0][0][1];
+  result += a3.a0[0][1][0];
+  result += a3.a0[0][1][1];
+  result += a3.a0[1][0][0];
+  result += a3.a0[1][0][1];
+  result += a3.a0[1][1][0];
+  result += a3.a0[1][1][1];
+  result += a4;
+  result += a5.a0[0][0][0];
+  result += a5.a0[0][0][1];
+  result += a5.a0[0][1][0];
+  result += a5.a0[0][1][1];
+  result += a5.a0[1][0][0];
+  result += a5.a0[1][0][1];
+  result += a5.a0[1][1][0];
+  result += a5.a0[1][1][1];
+  result += a6;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Test struct in multi dimensional inline array.
+DART_EXPORT uint32_t PassUint8Struct4BytesInlineArrayMultiDimensionalIn(
+    uint8_t a0,
+    Struct4BytesInlineArrayMultiDimensionalInt a1,
+    uint8_t a2) {
+  std::cout << "PassUint8Struct4BytesInlineArrayMultiDimensionalIn"
+            << "(" << static_cast<int>(a0) << ", ([[("
+            << static_cast<int>(a1.a0[0][0].a0) << "), ("
+            << static_cast<int>(a1.a0[0][1].a0) << ")], [("
+            << static_cast<int>(a1.a0[1][0].a0) << "), ("
+            << static_cast<int>(a1.a0[1][1].a0) << ")]]), "
+            << static_cast<int>(a2) << ")"
+            << "\n";
+
+  uint32_t result = 0;
+
+  result += a0;
+  result += a1.a0[0][0].a0;
+  result += a1.a0[0][1].a0;
+  result += a1.a0[1][0].a0;
+  result += a1.a0[1][1].a0;
+  result += a2;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Small struct with mis-aligned member.
+DART_EXPORT int64_t PassStruct3BytesPackedIntx10(Struct3BytesPackedInt a0,
+                                                 Struct3BytesPackedInt a1,
+                                                 Struct3BytesPackedInt a2,
+                                                 Struct3BytesPackedInt a3,
+                                                 Struct3BytesPackedInt a4,
+                                                 Struct3BytesPackedInt a5,
+                                                 Struct3BytesPackedInt a6,
+                                                 Struct3BytesPackedInt a7,
+                                                 Struct3BytesPackedInt a8,
+                                                 Struct3BytesPackedInt a9) {
+  std::cout << "PassStruct3BytesPackedIntx10"
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << "), ("
+            << static_cast<int>(a1.a0) << ", " << a1.a1 << "), ("
+            << static_cast<int>(a2.a0) << ", " << a2.a1 << "), ("
+            << static_cast<int>(a3.a0) << ", " << a3.a1 << "), ("
+            << static_cast<int>(a4.a0) << ", " << a4.a1 << "), ("
+            << static_cast<int>(a5.a0) << ", " << a5.a1 << "), ("
+            << static_cast<int>(a6.a0) << ", " << a6.a1 << "), ("
+            << static_cast<int>(a7.a0) << ", " << a7.a1 << "), ("
+            << static_cast<int>(a8.a0) << ", " << a8.a1 << "), ("
+            << static_cast<int>(a9.a0) << ", " << a9.a1 << "))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0.a0;
+  result += a0.a1;
+  result += a1.a0;
+  result += a1.a1;
+  result += a2.a0;
+  result += a2.a1;
+  result += a3.a0;
+  result += a3.a1;
+  result += a4.a0;
+  result += a4.a1;
+  result += a5.a0;
+  result += a5.a1;
+  result += a6.a0;
+  result += a6.a1;
+  result += a7.a0;
+  result += a7.a1;
+  result += a8.a0;
+  result += a8.a1;
+  result += a9.a0;
+  result += a9.a1;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Struct with mis-aligned member.
+DART_EXPORT int64_t PassStruct8BytesPackedIntx10(Struct8BytesPackedInt a0,
+                                                 Struct8BytesPackedInt a1,
+                                                 Struct8BytesPackedInt a2,
+                                                 Struct8BytesPackedInt a3,
+                                                 Struct8BytesPackedInt a4,
+                                                 Struct8BytesPackedInt a5,
+                                                 Struct8BytesPackedInt a6,
+                                                 Struct8BytesPackedInt a7,
+                                                 Struct8BytesPackedInt a8,
+                                                 Struct8BytesPackedInt a9) {
+  std::cout << "PassStruct8BytesPackedIntx10"
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << ", " << static_cast<int>(a0.a3)
+            << ", " << static_cast<int>(a0.a4) << "), ("
+            << static_cast<int>(a1.a0) << ", " << a1.a1 << ", "
+            << static_cast<int>(a1.a2) << ", " << static_cast<int>(a1.a3)
+            << ", " << static_cast<int>(a1.a4) << "), ("
+            << static_cast<int>(a2.a0) << ", " << a2.a1 << ", "
+            << static_cast<int>(a2.a2) << ", " << static_cast<int>(a2.a3)
+            << ", " << static_cast<int>(a2.a4) << "), ("
+            << static_cast<int>(a3.a0) << ", " << a3.a1 << ", "
+            << static_cast<int>(a3.a2) << ", " << static_cast<int>(a3.a3)
+            << ", " << static_cast<int>(a3.a4) << "), ("
+            << static_cast<int>(a4.a0) << ", " << a4.a1 << ", "
+            << static_cast<int>(a4.a2) << ", " << static_cast<int>(a4.a3)
+            << ", " << static_cast<int>(a4.a4) << "), ("
+            << static_cast<int>(a5.a0) << ", " << a5.a1 << ", "
+            << static_cast<int>(a5.a2) << ", " << static_cast<int>(a5.a3)
+            << ", " << static_cast<int>(a5.a4) << "), ("
+            << static_cast<int>(a6.a0) << ", " << a6.a1 << ", "
+            << static_cast<int>(a6.a2) << ", " << static_cast<int>(a6.a3)
+            << ", " << static_cast<int>(a6.a4) << "), ("
+            << static_cast<int>(a7.a0) << ", " << a7.a1 << ", "
+            << static_cast<int>(a7.a2) << ", " << static_cast<int>(a7.a3)
+            << ", " << static_cast<int>(a7.a4) << "), ("
+            << static_cast<int>(a8.a0) << ", " << a8.a1 << ", "
+            << static_cast<int>(a8.a2) << ", " << static_cast<int>(a8.a3)
+            << ", " << static_cast<int>(a8.a4) << "), ("
+            << static_cast<int>(a9.a0) << ", " << a9.a1 << ", "
+            << static_cast<int>(a9.a2) << ", " << static_cast<int>(a9.a3)
+            << ", " << static_cast<int>(a9.a4) << "))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0.a0;
+  result += a0.a1;
+  result += a0.a2;
+  result += a0.a3;
+  result += a0.a4;
+  result += a1.a0;
+  result += a1.a1;
+  result += a1.a2;
+  result += a1.a3;
+  result += a1.a4;
+  result += a2.a0;
+  result += a2.a1;
+  result += a2.a2;
+  result += a2.a3;
+  result += a2.a4;
+  result += a3.a0;
+  result += a3.a1;
+  result += a3.a2;
+  result += a3.a3;
+  result += a3.a4;
+  result += a4.a0;
+  result += a4.a1;
+  result += a4.a2;
+  result += a4.a3;
+  result += a4.a4;
+  result += a5.a0;
+  result += a5.a1;
+  result += a5.a2;
+  result += a5.a3;
+  result += a5.a4;
+  result += a6.a0;
+  result += a6.a1;
+  result += a6.a2;
+  result += a6.a3;
+  result += a6.a4;
+  result += a7.a0;
+  result += a7.a1;
+  result += a7.a2;
+  result += a7.a3;
+  result += a7.a4;
+  result += a8.a0;
+  result += a8.a1;
+  result += a8.a2;
+  result += a8.a3;
+  result += a8.a4;
+  result += a9.a0;
+  result += a9.a1;
+  result += a9.a2;
+  result += a9.a3;
+  result += a9.a4;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Struct with mis-aligned member.
+// Tests backfilling of CPU and FPU registers.
+DART_EXPORT double PassStruct9BytesPackedMixedx10DoubleInt32(
+    Struct9BytesPackedMixed a0,
+    Struct9BytesPackedMixed a1,
+    Struct9BytesPackedMixed a2,
+    Struct9BytesPackedMixed a3,
+    Struct9BytesPackedMixed a4,
+    Struct9BytesPackedMixed a5,
+    Struct9BytesPackedMixed a6,
+    Struct9BytesPackedMixed a7,
+    Struct9BytesPackedMixed a8,
+    Struct9BytesPackedMixed a9,
+    double a10,
+    int32_t a11) {
+  std::cout << "PassStruct9BytesPackedMixedx10DoubleInt32"
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << "), ("
+            << static_cast<int>(a1.a0) << ", " << a1.a1 << "), ("
+            << static_cast<int>(a2.a0) << ", " << a2.a1 << "), ("
+            << static_cast<int>(a3.a0) << ", " << a3.a1 << "), ("
+            << static_cast<int>(a4.a0) << ", " << a4.a1 << "), ("
+            << static_cast<int>(a5.a0) << ", " << a5.a1 << "), ("
+            << static_cast<int>(a6.a0) << ", " << a6.a1 << "), ("
+            << static_cast<int>(a7.a0) << ", " << a7.a1 << "), ("
+            << static_cast<int>(a8.a0) << ", " << a8.a1 << "), ("
+            << static_cast<int>(a9.a0) << ", " << a9.a1 << "), " << a10 << ", "
+            << a11 << ")"
+            << "\n";
+
+  double result = 0;
+
+  result += a0.a0;
+  result += a0.a1;
+  result += a1.a0;
+  result += a1.a1;
+  result += a2.a0;
+  result += a2.a1;
+  result += a3.a0;
+  result += a3.a1;
+  result += a4.a0;
+  result += a4.a1;
+  result += a5.a0;
+  result += a5.a1;
+  result += a6.a0;
+  result += a6.a1;
+  result += a7.a0;
+  result += a7.a1;
+  result += a8.a0;
+  result += a8.a1;
+  result += a9.a0;
+  result += a9.a1;
+  result += a10;
+  result += a11;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// This packed struct happens to have only aligned members.
+DART_EXPORT double PassStruct5BytesPackedMixed(Struct5BytesPackedMixed a0) {
+  std::cout << "PassStruct5BytesPackedMixed"
+            << "((" << a0.a0 << ", " << static_cast<int>(a0.a1) << "))"
+            << "\n";
+
+  double result = 0;
+
+  result += a0.a0;
+  result += a0.a1;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Check alignment of packed struct in non-packed struct.
+DART_EXPORT double PassStructNestedAlignmentStruct5BytesPackedMixed(
+    StructNestedAlignmentStruct5BytesPackedMixed a0) {
+  std::cout << "PassStructNestedAlignmentStruct5BytesPackedMixed"
+            << "((" << static_cast<int>(a0.a0) << ", (" << a0.a1.a0 << ", "
+            << static_cast<int>(a0.a1.a1) << ")))"
+            << "\n";
+
+  double result = 0;
+
+  result += a0.a0;
+  result += a0.a1.a0;
+  result += a0.a1.a1;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Check alignment of packed struct array in non-packed struct.
+DART_EXPORT double PassStruct6BytesInlineArrayInt(
+    Struct6BytesInlineArrayInt a0) {
+  std::cout << "PassStruct6BytesInlineArrayInt"
+            << "(([(" << static_cast<int>(a0.a0[0].a0) << ", " << a0.a0[0].a1
+            << "), (" << static_cast<int>(a0.a0[1].a0) << ", " << a0.a0[1].a1
+            << ")]))"
+            << "\n";
+
+  double result = 0;
+
+  result += a0.a0[0].a0;
+  result += a0.a0[0].a1;
+  result += a0.a0[1].a0;
+  result += a0.a0[1].a1;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Check alignment of packed struct array in non-packed struct.
+DART_EXPORT double PassStruct15BytesInlineArrayMixed(
+    Struct15BytesInlineArrayMixed a0) {
+  std::cout << "PassStruct15BytesInlineArrayMixed"
+            << "(([(" << a0.a0[0].a0 << ", " << static_cast<int>(a0.a0[0].a1)
+            << "), (" << a0.a0[1].a0 << ", " << static_cast<int>(a0.a0[1].a1)
+            << "), (" << a0.a0[2].a0 << ", " << static_cast<int>(a0.a0[2].a1)
+            << ")]))"
+            << "\n";
+
+  double result = 0;
+
+  result += a0.a0[0].a0;
+  result += a0.a0[0].a1;
+  result += a0.a0[1].a0;
+  result += a0.a0[1].a1;
+  result += a0.a0[2].a0;
+  result += a0.a0[2].a1;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
 // Smallest struct with data.
 DART_EXPORT Struct1ByteInt ReturnStruct1ByteInt(int8_t a0) {
   std::cout << "ReturnStruct1ByteInt"
@@ -4756,6 +5277,78 @@ ReturnStruct1024BytesHomogeneousUint64(uint64_t a0,
             << ", " << result.a120 << ", " << result.a121 << ", " << result.a122
             << ", " << result.a123 << ", " << result.a124 << ", " << result.a125
             << ", " << result.a126 << ", " << result.a127 << ")"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Small struct with mis-aligned member.
+DART_EXPORT Struct3BytesPackedInt ReturnStruct3BytesPackedInt(int8_t a0,
+                                                              int16_t a1) {
+  std::cout << "ReturnStruct3BytesPackedInt"
+            << "(" << static_cast<int>(a0) << ", " << a1 << ")"
+            << "\n";
+
+  Struct3BytesPackedInt result;
+
+  result.a0 = a0;
+  result.a1 = a1;
+
+  std::cout << "result = "
+            << "(" << static_cast<int>(result.a0) << ", " << result.a1 << ")"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Struct with mis-aligned member.
+DART_EXPORT Struct8BytesPackedInt ReturnStruct8BytesPackedInt(uint8_t a0,
+                                                              uint32_t a1,
+                                                              uint8_t a2,
+                                                              uint8_t a3,
+                                                              uint8_t a4) {
+  std::cout << "ReturnStruct8BytesPackedInt"
+            << "(" << static_cast<int>(a0) << ", " << a1 << ", "
+            << static_cast<int>(a2) << ", " << static_cast<int>(a3) << ", "
+            << static_cast<int>(a4) << ")"
+            << "\n";
+
+  Struct8BytesPackedInt result;
+
+  result.a0 = a0;
+  result.a1 = a1;
+  result.a2 = a2;
+  result.a3 = a3;
+  result.a4 = a4;
+
+  std::cout << "result = "
+            << "(" << static_cast<int>(result.a0) << ", " << result.a1 << ", "
+            << static_cast<int>(result.a2) << ", "
+            << static_cast<int>(result.a3) << ", "
+            << static_cast<int>(result.a4) << ")"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Struct with mis-aligned member.
+// Tests backfilling of CPU and FPU registers.
+DART_EXPORT Struct9BytesPackedMixed ReturnStruct9BytesPackedMixed(uint8_t a0,
+                                                                  double a1) {
+  std::cout << "ReturnStruct9BytesPackedMixed"
+            << "(" << static_cast<int>(a0) << ", " << a1 << ")"
+            << "\n";
+
+  Struct9BytesPackedMixed result;
+
+  result.a0 = a0;
+  result.a1 = a1;
+
+  std::cout << "result = "
+            << "(" << static_cast<int>(result.a0) << ", " << result.a1 << ")"
             << "\n";
 
   return result;
@@ -9997,6 +10590,671 @@ DART_EXPORT intptr_t TestPassStructStruct16BytesMixed3x10(
 }
 
 // Used for testing structs by value.
+// Test multi dimensional inline array struct as argument.
+DART_EXPORT intptr_t TestPassUint8Struct32BytesInlineArrayMultiDimensionalI(
+    // NOLINTNEXTLINE(whitespace/parens)
+    uint32_t (*f)(uint8_t a0,
+                  Struct32BytesInlineArrayMultiDimensionalInt a1,
+                  uint8_t a2,
+                  Struct8BytesInlineArrayMultiDimensionalInt a3,
+                  uint8_t a4,
+                  Struct8BytesInlineArrayMultiDimensionalInt a5,
+                  uint8_t a6)) {
+  uint8_t a0;
+  Struct32BytesInlineArrayMultiDimensionalInt a1;
+  uint8_t a2;
+  Struct8BytesInlineArrayMultiDimensionalInt a3;
+  uint8_t a4;
+  Struct8BytesInlineArrayMultiDimensionalInt a5;
+  uint8_t a6;
+
+  a0 = 1;
+  a1.a0[0][0][0][0][0] = 2;
+  a1.a0[0][0][0][0][1] = 3;
+  a1.a0[0][0][0][1][0] = 4;
+  a1.a0[0][0][0][1][1] = 5;
+  a1.a0[0][0][1][0][0] = 6;
+  a1.a0[0][0][1][0][1] = 7;
+  a1.a0[0][0][1][1][0] = 8;
+  a1.a0[0][0][1][1][1] = 9;
+  a1.a0[0][1][0][0][0] = 10;
+  a1.a0[0][1][0][0][1] = 11;
+  a1.a0[0][1][0][1][0] = 12;
+  a1.a0[0][1][0][1][1] = 13;
+  a1.a0[0][1][1][0][0] = 14;
+  a1.a0[0][1][1][0][1] = 15;
+  a1.a0[0][1][1][1][0] = 16;
+  a1.a0[0][1][1][1][1] = 17;
+  a1.a0[1][0][0][0][0] = 18;
+  a1.a0[1][0][0][0][1] = 19;
+  a1.a0[1][0][0][1][0] = 20;
+  a1.a0[1][0][0][1][1] = 21;
+  a1.a0[1][0][1][0][0] = 22;
+  a1.a0[1][0][1][0][1] = 23;
+  a1.a0[1][0][1][1][0] = 24;
+  a1.a0[1][0][1][1][1] = 25;
+  a1.a0[1][1][0][0][0] = 26;
+  a1.a0[1][1][0][0][1] = 27;
+  a1.a0[1][1][0][1][0] = 28;
+  a1.a0[1][1][0][1][1] = 29;
+  a1.a0[1][1][1][0][0] = 30;
+  a1.a0[1][1][1][0][1] = 31;
+  a1.a0[1][1][1][1][0] = 32;
+  a1.a0[1][1][1][1][1] = 33;
+  a2 = 34;
+  a3.a0[0][0][0] = 35;
+  a3.a0[0][0][1] = 36;
+  a3.a0[0][1][0] = 37;
+  a3.a0[0][1][1] = 38;
+  a3.a0[1][0][0] = 39;
+  a3.a0[1][0][1] = 40;
+  a3.a0[1][1][0] = 41;
+  a3.a0[1][1][1] = 42;
+  a4 = 43;
+  a5.a0[0][0][0] = 44;
+  a5.a0[0][0][1] = 45;
+  a5.a0[0][1][0] = 46;
+  a5.a0[0][1][1] = 47;
+  a5.a0[1][0][0] = 48;
+  a5.a0[1][0][1] = 49;
+  a5.a0[1][1][0] = 50;
+  a5.a0[1][1][1] = 51;
+  a6 = 52;
+
+  std::cout << "Calling TestPassUint8Struct32BytesInlineArrayMultiDimensionalI("
+            << "(" << static_cast<int>(a0) << ", ([[[[["
+            << static_cast<int>(a1.a0[0][0][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][0][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[0][0][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][0][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][0][1][1][1]) << "]]], [[["
+            << static_cast<int>(a1.a0[0][1][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][1][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[0][1][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[0][1][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[0][1][1][1][1]) << "]]]], [[[["
+            << static_cast<int>(a1.a0[1][0][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][0][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[1][0][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][0][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][0][1][1][1]) << "]]], [[["
+            << static_cast<int>(a1.a0[1][1][0][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][0][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][1][0][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][0][1][1]) << "]], [["
+            << static_cast<int>(a1.a0[1][1][1][0][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][1][0][1]) << "], ["
+            << static_cast<int>(a1.a0[1][1][1][1][0]) << ", "
+            << static_cast<int>(a1.a0[1][1][1][1][1]) << "]]]]]), "
+            << static_cast<int>(a2) << ", ([[["
+            << static_cast<int>(a3.a0[0][0][0]) << ", "
+            << static_cast<int>(a3.a0[0][0][1]) << "], ["
+            << static_cast<int>(a3.a0[0][1][0]) << ", "
+            << static_cast<int>(a3.a0[0][1][1]) << "]], [["
+            << static_cast<int>(a3.a0[1][0][0]) << ", "
+            << static_cast<int>(a3.a0[1][0][1]) << "], ["
+            << static_cast<int>(a3.a0[1][1][0]) << ", "
+            << static_cast<int>(a3.a0[1][1][1]) << "]]]), "
+            << static_cast<int>(a4) << ", ([[["
+            << static_cast<int>(a5.a0[0][0][0]) << ", "
+            << static_cast<int>(a5.a0[0][0][1]) << "], ["
+            << static_cast<int>(a5.a0[0][1][0]) << ", "
+            << static_cast<int>(a5.a0[0][1][1]) << "]], [["
+            << static_cast<int>(a5.a0[1][0][0]) << ", "
+            << static_cast<int>(a5.a0[1][0][1]) << "], ["
+            << static_cast<int>(a5.a0[1][1][0]) << ", "
+            << static_cast<int>(a5.a0[1][1][1]) << "]]]), "
+            << static_cast<int>(a6) << ")"
+            << ")\n";
+
+  uint32_t result = f(a0, a1, a2, a3, a4, a5, a6);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(1378, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Test struct in multi dimensional inline array.
+DART_EXPORT intptr_t TestPassUint8Struct4BytesInlineArrayMultiDimensionalIn(
+    // NOLINTNEXTLINE(whitespace/parens)
+    uint32_t (*f)(uint8_t a0,
+                  Struct4BytesInlineArrayMultiDimensionalInt a1,
+                  uint8_t a2)) {
+  uint8_t a0;
+  Struct4BytesInlineArrayMultiDimensionalInt a1;
+  uint8_t a2;
+
+  a0 = 1;
+  a1.a0[0][0].a0 = 2;
+  a1.a0[0][1].a0 = -3;
+  a1.a0[1][0].a0 = 4;
+  a1.a0[1][1].a0 = -5;
+  a2 = 6;
+
+  std::cout << "Calling TestPassUint8Struct4BytesInlineArrayMultiDimensionalIn("
+            << "(" << static_cast<int>(a0) << ", ([[("
+            << static_cast<int>(a1.a0[0][0].a0) << "), ("
+            << static_cast<int>(a1.a0[0][1].a0) << ")], [("
+            << static_cast<int>(a1.a0[1][0].a0) << "), ("
+            << static_cast<int>(a1.a0[1][1].a0) << ")]]), "
+            << static_cast<int>(a2) << ")"
+            << ")\n";
+
+  uint32_t result = f(a0, a1, a2);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(5, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Small struct with mis-aligned member.
+DART_EXPORT intptr_t TestPassStruct3BytesPackedIntx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(Struct3BytesPackedInt a0,
+                 Struct3BytesPackedInt a1,
+                 Struct3BytesPackedInt a2,
+                 Struct3BytesPackedInt a3,
+                 Struct3BytesPackedInt a4,
+                 Struct3BytesPackedInt a5,
+                 Struct3BytesPackedInt a6,
+                 Struct3BytesPackedInt a7,
+                 Struct3BytesPackedInt a8,
+                 Struct3BytesPackedInt a9)) {
+  Struct3BytesPackedInt a0;
+  Struct3BytesPackedInt a1;
+  Struct3BytesPackedInt a2;
+  Struct3BytesPackedInt a3;
+  Struct3BytesPackedInt a4;
+  Struct3BytesPackedInt a5;
+  Struct3BytesPackedInt a6;
+  Struct3BytesPackedInt a7;
+  Struct3BytesPackedInt a8;
+  Struct3BytesPackedInt a9;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a1.a0 = -3;
+  a1.a1 = 4;
+  a2.a0 = -5;
+  a2.a1 = 6;
+  a3.a0 = -7;
+  a3.a1 = 8;
+  a4.a0 = -9;
+  a4.a1 = 10;
+  a5.a0 = -11;
+  a5.a1 = 12;
+  a6.a0 = -13;
+  a6.a1 = 14;
+  a7.a0 = -15;
+  a7.a1 = 16;
+  a8.a0 = -17;
+  a8.a1 = 18;
+  a9.a0 = -19;
+  a9.a1 = 20;
+
+  std::cout << "Calling TestPassStruct3BytesPackedIntx10("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << "), ("
+            << static_cast<int>(a1.a0) << ", " << a1.a1 << "), ("
+            << static_cast<int>(a2.a0) << ", " << a2.a1 << "), ("
+            << static_cast<int>(a3.a0) << ", " << a3.a1 << "), ("
+            << static_cast<int>(a4.a0) << ", " << a4.a1 << "), ("
+            << static_cast<int>(a5.a0) << ", " << a5.a1 << "), ("
+            << static_cast<int>(a6.a0) << ", " << a6.a1 << "), ("
+            << static_cast<int>(a7.a0) << ", " << a7.a1 << "), ("
+            << static_cast<int>(a8.a0) << ", " << a8.a1 << "), ("
+            << static_cast<int>(a9.a0) << ", " << a9.a1 << "))"
+            << ")\n";
+
+  int64_t result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(10, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Struct with mis-aligned member.
+DART_EXPORT intptr_t TestPassStruct8BytesPackedIntx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(Struct8BytesPackedInt a0,
+                 Struct8BytesPackedInt a1,
+                 Struct8BytesPackedInt a2,
+                 Struct8BytesPackedInt a3,
+                 Struct8BytesPackedInt a4,
+                 Struct8BytesPackedInt a5,
+                 Struct8BytesPackedInt a6,
+                 Struct8BytesPackedInt a7,
+                 Struct8BytesPackedInt a8,
+                 Struct8BytesPackedInt a9)) {
+  Struct8BytesPackedInt a0;
+  Struct8BytesPackedInt a1;
+  Struct8BytesPackedInt a2;
+  Struct8BytesPackedInt a3;
+  Struct8BytesPackedInt a4;
+  Struct8BytesPackedInt a5;
+  Struct8BytesPackedInt a6;
+  Struct8BytesPackedInt a7;
+  Struct8BytesPackedInt a8;
+  Struct8BytesPackedInt a9;
+
+  a0.a0 = 1;
+  a0.a1 = 2;
+  a0.a2 = 3;
+  a0.a3 = 4;
+  a0.a4 = 5;
+  a1.a0 = 6;
+  a1.a1 = 7;
+  a1.a2 = 8;
+  a1.a3 = 9;
+  a1.a4 = 10;
+  a2.a0 = 11;
+  a2.a1 = 12;
+  a2.a2 = 13;
+  a2.a3 = 14;
+  a2.a4 = 15;
+  a3.a0 = 16;
+  a3.a1 = 17;
+  a3.a2 = 18;
+  a3.a3 = 19;
+  a3.a4 = 20;
+  a4.a0 = 21;
+  a4.a1 = 22;
+  a4.a2 = 23;
+  a4.a3 = 24;
+  a4.a4 = 25;
+  a5.a0 = 26;
+  a5.a1 = 27;
+  a5.a2 = 28;
+  a5.a3 = 29;
+  a5.a4 = 30;
+  a6.a0 = 31;
+  a6.a1 = 32;
+  a6.a2 = 33;
+  a6.a3 = 34;
+  a6.a4 = 35;
+  a7.a0 = 36;
+  a7.a1 = 37;
+  a7.a2 = 38;
+  a7.a3 = 39;
+  a7.a4 = 40;
+  a8.a0 = 41;
+  a8.a1 = 42;
+  a8.a2 = 43;
+  a8.a3 = 44;
+  a8.a4 = 45;
+  a9.a0 = 46;
+  a9.a1 = 47;
+  a9.a2 = 48;
+  a9.a3 = 49;
+  a9.a4 = 50;
+
+  std::cout << "Calling TestPassStruct8BytesPackedIntx10("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << ", " << static_cast<int>(a0.a3)
+            << ", " << static_cast<int>(a0.a4) << "), ("
+            << static_cast<int>(a1.a0) << ", " << a1.a1 << ", "
+            << static_cast<int>(a1.a2) << ", " << static_cast<int>(a1.a3)
+            << ", " << static_cast<int>(a1.a4) << "), ("
+            << static_cast<int>(a2.a0) << ", " << a2.a1 << ", "
+            << static_cast<int>(a2.a2) << ", " << static_cast<int>(a2.a3)
+            << ", " << static_cast<int>(a2.a4) << "), ("
+            << static_cast<int>(a3.a0) << ", " << a3.a1 << ", "
+            << static_cast<int>(a3.a2) << ", " << static_cast<int>(a3.a3)
+            << ", " << static_cast<int>(a3.a4) << "), ("
+            << static_cast<int>(a4.a0) << ", " << a4.a1 << ", "
+            << static_cast<int>(a4.a2) << ", " << static_cast<int>(a4.a3)
+            << ", " << static_cast<int>(a4.a4) << "), ("
+            << static_cast<int>(a5.a0) << ", " << a5.a1 << ", "
+            << static_cast<int>(a5.a2) << ", " << static_cast<int>(a5.a3)
+            << ", " << static_cast<int>(a5.a4) << "), ("
+            << static_cast<int>(a6.a0) << ", " << a6.a1 << ", "
+            << static_cast<int>(a6.a2) << ", " << static_cast<int>(a6.a3)
+            << ", " << static_cast<int>(a6.a4) << "), ("
+            << static_cast<int>(a7.a0) << ", " << a7.a1 << ", "
+            << static_cast<int>(a7.a2) << ", " << static_cast<int>(a7.a3)
+            << ", " << static_cast<int>(a7.a4) << "), ("
+            << static_cast<int>(a8.a0) << ", " << a8.a1 << ", "
+            << static_cast<int>(a8.a2) << ", " << static_cast<int>(a8.a3)
+            << ", " << static_cast<int>(a8.a4) << "), ("
+            << static_cast<int>(a9.a0) << ", " << a9.a1 << ", "
+            << static_cast<int>(a9.a2) << ", " << static_cast<int>(a9.a3)
+            << ", " << static_cast<int>(a9.a4) << "))"
+            << ")\n";
+
+  int64_t result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(1275, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Struct with mis-aligned member.
+// Tests backfilling of CPU and FPU registers.
+DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(Struct9BytesPackedMixed a0,
+                Struct9BytesPackedMixed a1,
+                Struct9BytesPackedMixed a2,
+                Struct9BytesPackedMixed a3,
+                Struct9BytesPackedMixed a4,
+                Struct9BytesPackedMixed a5,
+                Struct9BytesPackedMixed a6,
+                Struct9BytesPackedMixed a7,
+                Struct9BytesPackedMixed a8,
+                Struct9BytesPackedMixed a9,
+                double a10,
+                int32_t a11)) {
+  Struct9BytesPackedMixed a0;
+  Struct9BytesPackedMixed a1;
+  Struct9BytesPackedMixed a2;
+  Struct9BytesPackedMixed a3;
+  Struct9BytesPackedMixed a4;
+  Struct9BytesPackedMixed a5;
+  Struct9BytesPackedMixed a6;
+  Struct9BytesPackedMixed a7;
+  Struct9BytesPackedMixed a8;
+  Struct9BytesPackedMixed a9;
+  double a10;
+  int32_t a11;
+
+  a0.a0 = 1;
+  a0.a1 = 2.0;
+  a1.a0 = 3;
+  a1.a1 = 4.0;
+  a2.a0 = 5;
+  a2.a1 = 6.0;
+  a3.a0 = 7;
+  a3.a1 = 8.0;
+  a4.a0 = 9;
+  a4.a1 = 10.0;
+  a5.a0 = 11;
+  a5.a1 = 12.0;
+  a6.a0 = 13;
+  a6.a1 = 14.0;
+  a7.a0 = 15;
+  a7.a1 = 16.0;
+  a8.a0 = 17;
+  a8.a1 = 18.0;
+  a9.a0 = 19;
+  a9.a1 = 20.0;
+  a10 = -21.0;
+  a11 = 22;
+
+  std::cout << "Calling TestPassStruct9BytesPackedMixedx10DoubleInt32("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << "), ("
+            << static_cast<int>(a1.a0) << ", " << a1.a1 << "), ("
+            << static_cast<int>(a2.a0) << ", " << a2.a1 << "), ("
+            << static_cast<int>(a3.a0) << ", " << a3.a1 << "), ("
+            << static_cast<int>(a4.a0) << ", " << a4.a1 << "), ("
+            << static_cast<int>(a5.a0) << ", " << a5.a1 << "), ("
+            << static_cast<int>(a6.a0) << ", " << a6.a1 << "), ("
+            << static_cast<int>(a7.a0) << ", " << a7.a1 << "), ("
+            << static_cast<int>(a8.a0) << ", " << a8.a1 << "), ("
+            << static_cast<int>(a9.a0) << ", " << a9.a1 << "), " << a10 << ", "
+            << a11 << ")"
+            << ")\n";
+
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(211.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// This packed struct happens to have only aligned members.
+DART_EXPORT intptr_t TestPassStruct5BytesPackedMixed(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(Struct5BytesPackedMixed a0)) {
+  Struct5BytesPackedMixed a0;
+
+  a0.a0 = -1.0;
+  a0.a1 = 2;
+
+  std::cout << "Calling TestPassStruct5BytesPackedMixed("
+            << "((" << a0.a0 << ", " << static_cast<int>(a0.a1) << "))"
+            << ")\n";
+
+  double result = f(a0);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(1.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Check alignment of packed struct in non-packed struct.
+DART_EXPORT intptr_t TestPassStructNestedAlignmentStruct5BytesPackedMixed(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(StructNestedAlignmentStruct5BytesPackedMixed a0)) {
+  StructNestedAlignmentStruct5BytesPackedMixed a0;
+
+  a0.a0 = 1;
+  a0.a1.a0 = 2.0;
+  a0.a1.a1 = 3;
+
+  std::cout << "Calling TestPassStructNestedAlignmentStruct5BytesPackedMixed("
+            << "((" << static_cast<int>(a0.a0) << ", (" << a0.a1.a0 << ", "
+            << static_cast<int>(a0.a1.a1) << ")))"
+            << ")\n";
+
+  double result = f(a0);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(6.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Check alignment of packed struct array in non-packed struct.
+DART_EXPORT intptr_t TestPassStruct6BytesInlineArrayInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(Struct6BytesInlineArrayInt a0)) {
+  Struct6BytesInlineArrayInt a0;
+
+  a0.a0[0].a0 = -1;
+  a0.a0[0].a1 = 2;
+  a0.a0[1].a0 = -3;
+  a0.a0[1].a1 = 4;
+
+  std::cout << "Calling TestPassStruct6BytesInlineArrayInt("
+            << "(([(" << static_cast<int>(a0.a0[0].a0) << ", " << a0.a0[0].a1
+            << "), (" << static_cast<int>(a0.a0[1].a0) << ", " << a0.a0[1].a1
+            << ")]))"
+            << ")\n";
+
+  double result = f(a0);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(2.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0[0].a0 = 42;
+
+  result = f(a0);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0[0].a0 = 84;
+
+  result = f(a0);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Check alignment of packed struct array in non-packed struct.
+DART_EXPORT intptr_t TestPassStruct15BytesInlineArrayMixed(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(Struct15BytesInlineArrayMixed a0)) {
+  Struct15BytesInlineArrayMixed a0;
+
+  a0.a0[0].a0 = -1.0;
+  a0.a0[0].a1 = 2;
+  a0.a0[1].a0 = -3.0;
+  a0.a0[1].a1 = 4;
+  a0.a0[2].a0 = -5.0;
+  a0.a0[2].a1 = 6;
+
+  std::cout << "Calling TestPassStruct15BytesInlineArrayMixed("
+            << "(([(" << a0.a0[0].a0 << ", " << static_cast<int>(a0.a0[0].a1)
+            << "), (" << a0.a0[1].a0 << ", " << static_cast<int>(a0.a0[1].a1)
+            << "), (" << a0.a0[2].a0 << ", " << static_cast<int>(a0.a0[2].a1)
+            << ")]))"
+            << ")\n";
+
+  double result = f(a0);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(3.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0[0].a0 = 42;
+
+  result = f(a0);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0[0].a0 = 84;
+
+  result = f(a0);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
 // Smallest struct with data.
 DART_EXPORT intptr_t TestReturnStruct1ByteInt(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -12152,6 +13410,157 @@ DART_EXPORT intptr_t TestReturnStruct1024BytesHomogeneousUint64(
   CHECK_EQ(0, result.a125);
   CHECK_EQ(0, result.a126);
   CHECK_EQ(0, result.a127);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Small struct with mis-aligned member.
+DART_EXPORT intptr_t TestReturnStruct3BytesPackedInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Struct3BytesPackedInt (*f)(int8_t a0, int16_t a1)) {
+  int8_t a0;
+  int16_t a1;
+
+  a0 = -1;
+  a1 = 2;
+
+  std::cout << "Calling TestReturnStruct3BytesPackedInt("
+            << "(" << static_cast<int>(a0) << ", " << a1 << ")"
+            << ")\n";
+
+  Struct3BytesPackedInt result = f(a0, a1);
+
+  std::cout << "result = "
+            << "(" << static_cast<int>(result.a0) << ", " << result.a1 << ")"
+            << "\n";
+
+  CHECK_EQ(a0, result.a0);
+  CHECK_EQ(a1, result.a1);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0);
+  CHECK_EQ(0, result.a1);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0);
+  CHECK_EQ(0, result.a1);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Struct with mis-aligned member.
+DART_EXPORT intptr_t TestReturnStruct8BytesPackedInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Struct8BytesPackedInt (
+        *f)(uint8_t a0, uint32_t a1, uint8_t a2, uint8_t a3, uint8_t a4)) {
+  uint8_t a0;
+  uint32_t a1;
+  uint8_t a2;
+  uint8_t a3;
+  uint8_t a4;
+
+  a0 = 1;
+  a1 = 2;
+  a2 = 3;
+  a3 = 4;
+  a4 = 5;
+
+  std::cout << "Calling TestReturnStruct8BytesPackedInt("
+            << "(" << static_cast<int>(a0) << ", " << a1 << ", "
+            << static_cast<int>(a2) << ", " << static_cast<int>(a3) << ", "
+            << static_cast<int>(a4) << ")"
+            << ")\n";
+
+  Struct8BytesPackedInt result = f(a0, a1, a2, a3, a4);
+
+  std::cout << "result = "
+            << "(" << static_cast<int>(result.a0) << ", " << result.a1 << ", "
+            << static_cast<int>(result.a2) << ", "
+            << static_cast<int>(result.a3) << ", "
+            << static_cast<int>(result.a4) << ")"
+            << "\n";
+
+  CHECK_EQ(a0, result.a0);
+  CHECK_EQ(a1, result.a1);
+  CHECK_EQ(a2, result.a2);
+  CHECK_EQ(a3, result.a3);
+  CHECK_EQ(a4, result.a4);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4);
+
+  CHECK_EQ(0, result.a0);
+  CHECK_EQ(0, result.a1);
+  CHECK_EQ(0, result.a2);
+  CHECK_EQ(0, result.a3);
+  CHECK_EQ(0, result.a4);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4);
+
+  CHECK_EQ(0, result.a0);
+  CHECK_EQ(0, result.a1);
+  CHECK_EQ(0, result.a2);
+  CHECK_EQ(0, result.a3);
+  CHECK_EQ(0, result.a4);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Struct with mis-aligned member.
+// Tests backfilling of CPU and FPU registers.
+DART_EXPORT intptr_t TestReturnStruct9BytesPackedMixed(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Struct9BytesPackedMixed (*f)(uint8_t a0, double a1)) {
+  uint8_t a0;
+  double a1;
+
+  a0 = 1;
+  a1 = 2.0;
+
+  std::cout << "Calling TestReturnStruct9BytesPackedMixed("
+            << "(" << static_cast<int>(a0) << ", " << a1 << ")"
+            << ")\n";
+
+  Struct9BytesPackedMixed result = f(a0, a1);
+
+  std::cout << "result = "
+            << "(" << static_cast<int>(result.a0) << ", " << result.a1 << ")"
+            << "\n";
+
+  CHECK_EQ(a0, result.a0);
+  CHECK_APPROX(a1, result.a1);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0);
+  CHECK_APPROX(0.0, result.a1);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0);
+  CHECK_APPROX(0.0, result.a1);
 
   return 0;
 }

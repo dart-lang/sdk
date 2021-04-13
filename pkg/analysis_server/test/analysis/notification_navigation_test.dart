@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -19,8 +21,7 @@ void main() {
   });
 }
 
-class AbstractNavigationTest extends AbstractAnalysisTest
-    with WithNonFunctionTypeAliasesMixin {
+class AbstractNavigationTest extends AbstractAnalysisTest {
   List<NavigationRegion> regions;
   List<NavigationTarget> targets;
   List<String> targetFiles;
@@ -195,6 +196,53 @@ AAA aaa;
     await waitForTasksFinished();
     await prepareNavigation();
     assertHasRegionTarget('AAA aaa;', 'AAA {}');
+  }
+
+  Future<void> test_annotation_generic_typeArguments_class() async {
+    addTestFile('''
+class A<T> {
+  const A();
+}
+
+@A<int>()
+void f() {}
+''');
+    await prepareNavigation();
+    assertHasRegion('int>()');
+  }
+
+  Future<void> test_annotationConstructor_generic_named() async {
+    addTestFile('''
+class A<T> {
+  const A.named(_);
+}
+
+@A<int>.named(0)
+void f() {}
+''');
+    await prepareNavigation();
+    {
+      assertHasRegion('A<int>.named(0)');
+      assertHasTarget('named(_);');
+    }
+    {
+      assertHasRegion('named(0)');
+      assertHasTarget('named(_);');
+    }
+  }
+
+  Future<void> test_annotationConstructor_generic_unnamed() async {
+    addTestFile('''
+class A<T> {
+  const A(_);
+}
+
+@A<int>(0)
+void f() {}
+''');
+    await prepareNavigation();
+    assertHasRegionString('A<int>(0)', 'A'.length);
+    assertHasTarget('A(_);', 0);
   }
 
   Future<void> test_annotationConstructor_implicit() async {

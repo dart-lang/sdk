@@ -17,6 +17,8 @@ import 'package:kernel/ast.dart'
         VariableDeclaration,
         getAsTypeArguments;
 
+import 'package:kernel/core_types.dart';
+
 import 'package:kernel/type_algebra.dart'
     show FreshTypeParameters, getFreshTypeParameters;
 
@@ -38,6 +40,8 @@ import '../builder/type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
+
+import '../util/helpers.dart';
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -191,7 +195,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         // otherwise it's a compiled library loaded from a dill file, and the
         // bounds should have been assigned.
         SourceLibraryBuilder parentLibrary = parent;
-        parentLibrary.pendingNullabilities.add(asTypeArguments[i]);
+        parentLibrary.registerPendingNullability(_typeVariables[i].fileUri,
+            _typeVariables[i].charOffset, asTypeArguments[i]);
       }
     }
     return result;
@@ -241,6 +246,20 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     library.checkBoundsInTypeParameters(
         typeEnvironment, typedef.typeParameters, fileUri);
     library.checkBoundsInType(
-        typedef.type, typeEnvironment, fileUri, type?.charOffset ?? charOffset);
+        typedef.type, typeEnvironment, fileUri, type?.charOffset ?? charOffset,
+        allowSuperBounded: false);
+  }
+
+  @override
+  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    MetadataBuilder.buildAnnotations(
+        typedef, metadata, library, null, null, fileUri);
+    if (typeVariables != null) {
+      for (int i = 0; i < typeVariables.length; i++) {
+        typeVariables[i].buildOutlineExpressions(
+            library, null, null, coreTypes, delayedActionPerformers);
+      }
+    }
   }
 }

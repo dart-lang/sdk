@@ -8,7 +8,7 @@ static method main() → dynamic {
     final _in::JSArray<core::int> _list = _in::JSArray::allocateGrowable<core::int>(10);
     for (core::int* i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
       core::int i = i;
-      _list.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i, i.{core::num::*}(2));
+      _list.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i, i.{core::num::*}(2){(core::num) → core::int});
     }
   } =>_list;
 }

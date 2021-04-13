@@ -17,6 +17,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -1234,9 +1235,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
     if (linkedNode != null) {
       var containerRef = reference!.getChild('@enum');
-      var linkedNode = this.linkedNode as CompilationUnit;
       _enums =
-          linkedNode.declarations.whereType<EnumDeclarationImpl>().map((node) {
+          _linkedUnitDeclarations.whereType<EnumDeclarationImpl>().map((node) {
         var name = node.name.name;
         var reference = containerRef.getChild(name);
         var element = node.declaredElement;
@@ -1263,11 +1263,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     }
 
     if (linkedNode != null) {
-      var linkedNode = this.linkedNode as CompilationUnit;
       var containerRef = reference!.getChild('@extension');
       _extensions = <ExtensionElement>[];
       var nextUnnamedExtensionId = 0;
-      for (var node in linkedNode.declarations) {
+      for (var node in _linkedUnitDeclarations) {
         if (node is ExtensionDeclarationImpl) {
           var nameIdentifier = node.name;
           var refName = nameIdentifier != null
@@ -1302,7 +1301,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
     if (linkedNode != null) {
       var containerRef = reference!.getChild('@function');
-      return _functions = linkedContext!.unit_withDeclarations.declarations
+      return _functions = _linkedUnitDeclarations
           .whereType<FunctionDeclarationImpl>()
           .where((node) => !node.isGetter && !node.isSetter)
           .map((node) {
@@ -1372,9 +1371,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     }
 
     if (linkedNode != null) {
-      var linkedNode = this.linkedNode as CompilationUnit;
       var containerRef = reference!.getChild('@mixin');
-      var declarations = linkedNode.declarations;
+      var declarations = _linkedUnitDeclarations;
       return _mixins =
           declarations.whereType<MixinDeclarationImpl>().map((node) {
         var name = node.name.name;
@@ -1431,7 +1429,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     if (linkedNode != null) {
       var containerRef = reference!.getChild('@typeAlias');
       _typeAliases = <TypeAliasElement>[];
-      for (var node in linkedContext!.unit_withDeclarations.declarations) {
+      for (var node in _linkedUnitDeclarations) {
         String name;
         if (node is FunctionTypeAlias) {
           name = node.name.name;
@@ -1472,7 +1470,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     if (linkedNode != null) {
       var containerRef = reference!.getChild('@class');
       _types = <ClassElement>[];
-      for (var node in linkedContext!.unit_withDeclarations.declarations) {
+      var declarations = _linkedUnitDeclarations;
+      for (var node in declarations) {
         if (node is ClassDeclaration) {
           var name = node.name.name;
           var reference = containerRef.getChild(name);
@@ -1505,6 +1504,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       }
     }
     _types = types;
+  }
+
+  List<CompilationUnitMember> get _linkedUnitDeclarations {
+    return linkedContext!.unit_withDeclarations.declarations;
   }
 
   @override
@@ -3873,7 +3876,7 @@ class ExtensionElementImpl extends _ExistingElementImpl
     if (linkedNode != null) {
       var linkedNode = this.linkedNode as ExtensionDeclaration;
       linkedContext!.applyResolution(linkedNode);
-      return _extendedType = linkedNode.extendedType.type!;
+      return _extendedType = linkedNode.extendedType.typeOrThrow;
     }
 
     return _extendedType!;
@@ -4336,7 +4339,6 @@ class FunctionTypeAliasElementImpl extends TypeAliasElementImpl
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
-    // ignore: deprecated_member_use_from_same_package
     visitor.visitFunctionTypeAliasElement(this);
     return visitor.visitTypeAliasElement(this);
   }
@@ -7147,6 +7149,13 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       return InterfaceTypeImpl(
         element: type.element,
         typeArguments: type.typeArguments,
+        nullabilitySuffix: resultNullability,
+        aliasElement: this,
+        aliasArguments: typeArguments,
+      );
+    } else if (type is TypeParameterType) {
+      return TypeParameterTypeImpl(
+        element: type.element,
         nullabilitySuffix: resultNullability,
         aliasElement: this,
         aliasArguments: typeArguments,

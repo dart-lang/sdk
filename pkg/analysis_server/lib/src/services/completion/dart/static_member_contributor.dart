@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -41,7 +43,9 @@ class StaticMemberContributor extends DartCompletionContributor {
         }
         for (var constructor in element.constructors) {
           if (isVisible(constructor)) {
-            builder.suggestConstructor(constructor, hasClassName: true);
+            if (!element.isAbstract || constructor.isFactory) {
+              builder.suggestConstructor(constructor, hasClassName: true);
+            }
           }
         }
         for (var field in element.fields) {

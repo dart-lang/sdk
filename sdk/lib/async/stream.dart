@@ -704,7 +704,7 @@ abstract class Stream<T> {
   /// that is, the result of `streamTransformer.bind(this)`.
   /// This method simply allows writing the call to `streamTransformer.bind`
   /// in a chained fashion, like
-  /// ```
+  /// ```dart
   /// stream.map(mapping).transform(transformation).toList()
   /// ```
   /// which can be more convenient than calling `bind` directly.
@@ -1892,7 +1892,7 @@ abstract class StreamTransformer<S, T> {
   ///
   /// Example:
   ///
-  /// ```
+  /// ```dart
   /// /// Starts listening to [input] and duplicates all non-error events.
   /// StreamSubscription<int> _onListen(Stream<int> input, bool cancelOnError) {
   ///   late StreamSubscription<String> subscription;
@@ -1937,7 +1937,7 @@ abstract class StreamTransformer<S, T> {
   ///
   /// Example use of a duplicating transformer:
   ///
-  /// ```
+  /// ```dart
   /// stringStream.transform(StreamTransformer<String, String>.fromHandlers(
   ///     handleData: (String value, EventSink<String> sink) {
   ///       sink.add(value);
@@ -1947,7 +1947,8 @@ abstract class StreamTransformer<S, T> {
   ///
   /// Transformers that are constructed this way cannot use captured state if
   /// they are used in streams that can be listened to multiple times.
-  /// ```
+  ///
+  /// ```dart
   /// StreamController<String> controller = StreamController.broadcast()
   /// controller.onListen = () {
   ///   scheduleMicrotask(() {
@@ -2180,7 +2181,7 @@ abstract class MultiStreamController<T> implements StreamController<T> {
   /// Delivery can be delayed if other previously added events are
   /// still pending delivery, if the subscription is paused,
   /// or if the subscription isn't listening yet.
-  /// If it's necessary to know whether the "done" event has been delievered,
+  /// If it's necessary to know whether the "done" event has been delivered,
   /// [done] future will complete when that has happened.
   void closeSync();
 }

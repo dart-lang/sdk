@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// This executable provides the ability to run the migration tool in process
 /// on a single package.  It should be invoked with two command-line arguments:
 /// a path to a configuration file and the name of a package to migrate.

@@ -857,6 +857,9 @@ dig
 digit
 digits
 dill
+dimension
+dimensional
+dimensions
 dir
 direct
 direction
@@ -2025,6 +2028,7 @@ odd
 odds
 of
 off
+offs
 offset
 offsets
 often
@@ -2110,6 +2114,8 @@ owner
 package
 packaged
 packages
+packed
+packing
 pad
 padded
 padding
@@ -3039,6 +3045,7 @@ throws
 thumb
 thunk
 thus
+tightly
 time
 timeline
 times
@@ -3148,6 +3155,7 @@ unbalanced
 unbind
 uncertain
 unchanged
+unchecked
 unclaimed
 unclear
 undeclared

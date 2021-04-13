@@ -145,6 +145,7 @@ class SimplyBoundedDependencyWalker
       var collector = _TypeCollector();
       if (type is GenericFunctionType) {
         collector.addType(type.returnType);
+        collector.visitTypeParameters(type.typeParameters);
         collector.visitParameters(type.parameters);
       } else {
         collector.addType(type);
@@ -283,6 +284,7 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
     if (type is GenericFunctionType) {
       var collector = _TypeCollector();
       collector.addType(type.returnType);
+      collector.visitTypeParameters(type.typeParameters);
       collector.visitParameters(type.parameters);
       for (var type in collector.types) {
         if (!_visitType(dependencies, type, allowTypeParameters)) {
@@ -324,6 +326,14 @@ class _TypeCollector {
   void visitParameters(FormalParameterList parameterList) {
     for (var parameter in parameterList.parameters) {
       visitParameter(parameter);
+    }
+  }
+
+  void visitTypeParameters(TypeParameterList? node) {
+    if (node != null) {
+      for (var typeParameter in node.typeParameters) {
+        addType(typeParameter.bound);
+      }
     }
   }
 }

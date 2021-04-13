@@ -59,7 +59,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   driver.AnalysisDriver getDriver() => _driver;
 
   @override
-  Future<ErrorsResult?> getErrors(String path) {
+  Future<ErrorsResult> getErrors(String path) {
     _checkConsistency();
     return _driver.getErrors(path);
   }
@@ -115,7 +115,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  Future<ResolvedUnitResult?> getResolvedUnit(String path) {
+  Future<ResolvedUnitResult> getResolvedUnit(String path) {
     _checkConsistency();
     return _driver.getResult(path);
   }
@@ -127,7 +127,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  Future<UnitElementResult?> getUnitElement(String path) {
+  Future<UnitElementResult> getUnitElement(String path) {
     _checkConsistency();
     return _driver.getUnitElement(path);
   }

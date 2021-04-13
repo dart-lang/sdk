@@ -86,7 +86,7 @@ class Dart2jsTarget extends Target {
   bool get supportsExplicitGetterCalls => false;
 
   @override
-  bool get supportsNewMethodInvocationEncoding => false;
+  bool get supportsNewMethodInvocationEncoding => true;
 
   @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name];

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -17,8 +19,7 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisHoverTest extends AbstractAnalysisTest
-    with WithNonFunctionTypeAliasesMixin {
+class AnalysisHoverTest extends AbstractAnalysisTest {
   Future<HoverInformation> prepareHover(String search) {
     var offset = findOffset(search);
     return prepareHoverAt(offset);

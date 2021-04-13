@@ -55,8 +55,7 @@ void FlowGraphPrinter::PrintBlocks() {
               Function::KindToCString(function_.kind()));
     // Output saved arguments descriptor information for dispatchers that
     // have it, so it's easy to see which dispatcher this graph represents.
-    if (function_.IsInvokeFieldDispatcher() ||
-        function_.IsNoSuchMethodDispatcher()) {
+    if (function_.HasSavedArgumentsDescriptor()) {
       const auto& args_desc_array = Array::Handle(function_.saved_args_desc());
       const ArgumentsDescriptor args_desc(args_desc_array);
       THR_Print(", %s", args_desc.ToCString());
@@ -729,22 +728,6 @@ void ExtractNthOutputInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 void UnaryIntegerOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%s, ", Token::Str(op_kind()));
   value()->PrintTo(f);
-}
-
-void CheckedSmiOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s", Token::Str(op_kind()));
-  f->AddString(", ");
-  left()->PrintTo(f);
-  f->AddString(", ");
-  right()->PrintTo(f);
-}
-
-void CheckedSmiComparisonInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("%s", Token::Str(kind()));
-  f->AddString(", ");
-  left()->PrintTo(f);
-  f->AddString(", ");
-  right()->PrintTo(f);
 }
 
 void BinaryIntegerOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {

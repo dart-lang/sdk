@@ -50,7 +50,7 @@ class E<T> {
 class F<S, T extends S> {
   void nonNull(T t) {
     if (t != null) {
-      /*analyzer.T & S & Object*/ /*cfe.T & S*/ t;
+      /*T & S & Object*/ t;
     }
   }
 }

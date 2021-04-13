@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -21,8 +21,6 @@ class YieldStatementResolver {
     required ResolverVisitor resolver,
   }) : _resolver = resolver;
 
-  ExecutableElement get _enclosingFunction => _resolver.enclosingFunction!;
-
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
   TypeProvider get _typeProvider => _resolver.typeProvider;
@@ -30,8 +28,9 @@ class YieldStatementResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(YieldStatement node) {
-    if (_enclosingFunction.isGenerator) {
-      _resolve_generator(node);
+    var bodyContext = _resolver.inferenceContext.bodyContext;
+    if (bodyContext != null && bodyContext.isGenerator) {
+      _resolve_generator(bodyContext, node);
     } else {
       _resolve_notGenerator(node);
     }
@@ -69,26 +68,30 @@ class YieldStatementResolver {
   /// return type of a generator function.
   ///
   /// This method should only be called in generator functions.
-  void _checkForYieldOfInvalidType(YieldStatement node, bool isYieldEach) {
-    var declaredReturnType = _enclosingFunction.returnType;
-
+  void _checkForYieldOfInvalidType(
+    BodyInferenceContext bodyContext,
+    YieldStatement node,
+    bool isYieldEach,
+  ) {
     var expression = node.expression;
     var expressionType = expression.typeOrThrow;
 
     DartType impliedReturnType;
     if (isYieldEach) {
       impliedReturnType = expressionType;
-    } else if (_enclosingFunction.isSynchronous) {
+    } else if (bodyContext.isSynchronous) {
       impliedReturnType = _typeProvider.iterableType(expressionType);
     } else {
       impliedReturnType = _typeProvider.streamType(expressionType);
     }
 
-    if (!_typeSystem.isAssignableTo(impliedReturnType, declaredReturnType)) {
+    var imposedReturnType = bodyContext.imposedType;
+    if (imposedReturnType != null &&
+        !_typeSystem.isAssignableTo(impliedReturnType, imposedReturnType)) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
         expression,
-        [impliedReturnType, declaredReturnType],
+        [impliedReturnType, imposedReturnType],
       );
       return;
     }
@@ -98,7 +101,7 @@ class YieldStatementResolver {
       // also check that the implied return type is assignable to generic
       // Iterable/Stream.
       DartType requiredReturnType;
-      if (_enclosingFunction.isSynchronous) {
+      if (bodyContext.isSynchronous) {
         requiredReturnType = _typeProvider.iterableDynamicType;
       } else {
         requiredReturnType = _typeProvider.streamDynamicType;
@@ -114,21 +117,11 @@ class YieldStatementResolver {
     }
   }
 
-  void _computeElementType(YieldStatement node) {
-    var elementType = _resolver.inferenceContext.bodyContext?.contextType;
-    if (elementType != null) {
-      var contextType = elementType;
-      if (node.star != null) {
-        contextType = _enclosingFunction.isSynchronous
-            ? _typeProvider.iterableType(elementType)
-            : _typeProvider.streamType(elementType);
-      }
-      InferenceContext.setType(node.expression, contextType);
-    }
-  }
-
-  void _resolve_generator(YieldStatement node) {
-    _computeElementType(node);
+  void _resolve_generator(
+    BodyInferenceContext bodyContext,
+    YieldStatement node,
+  ) {
+    _setContextType(bodyContext, node);
 
     node.expression.accept(_resolver);
 
@@ -138,9 +131,9 @@ class YieldStatementResolver {
               .UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH);
     }
 
-    _resolver.inferenceContext.bodyContext?.addYield(node);
+    bodyContext.addYield(node);
 
-    _checkForYieldOfInvalidType(node, node.star != null);
+    _checkForYieldOfInvalidType(bodyContext, node, node.star != null);
     _checkForUseOfVoidResult(node.expression);
   }
 
@@ -155,5 +148,21 @@ class YieldStatementResolver {
     );
 
     _checkForUseOfVoidResult(node.expression);
+  }
+
+  void _setContextType(
+    BodyInferenceContext bodyContext,
+    YieldStatement node,
+  ) {
+    var elementType = bodyContext.contextType;
+    if (elementType != null) {
+      var contextType = elementType;
+      if (node.star != null) {
+        contextType = bodyContext.isSynchronous
+            ? _typeProvider.iterableType(elementType)
+            : _typeProvider.streamType(elementType);
+      }
+      InferenceContext.setType(node.expression, contextType);
+    }
   }
 }

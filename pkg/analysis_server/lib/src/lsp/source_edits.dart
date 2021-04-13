@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -307,6 +309,12 @@ class FileEditInformation {
   final List<server.SourceEdit> edits;
   final bool newFile;
 
+  /// The selection offset, relative to the edit.
+  final int selectionOffsetRelative;
+  final int selectionLength;
+
   FileEditInformation(this.doc, this.lineInfo, this.edits,
-      {this.newFile = false});
+      {this.newFile = false,
+      this.selectionOffsetRelative,
+      this.selectionLength});
 }

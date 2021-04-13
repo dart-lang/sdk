@@ -99,7 +99,7 @@ class _ConstantVisitor extends HierarchicalApiVisitor {
   /// Generate a constant for each of the fields in the given [type], where the
   /// name of each constant will be composed from the [parentName] and the name
   /// of the field.
-  void _addFieldConstants(String parentName, TypeObject type) {
+  void _addFieldConstants(String parentName, TypeObject? type) {
     if (type == null) {
       return;
     }

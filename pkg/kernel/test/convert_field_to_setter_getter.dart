@@ -37,13 +37,15 @@ main() {
   List<int> writtenBytesFieldOriginal = serialize(lib1, lib2);
   // Canonical names are now set: Verify that the field is marked as such,
   // canonical-name-wise.
-  if (field.getterCanonicalName.parent.name != "@fields") {
-    throw "Expected @fields parent, but had "
-        "${field.getterCanonicalName.parent.name}";
+  String getterCanonicalName = '${field.getterReference.canonicalName}';
+  if (field.getterReference.canonicalName.parent.name != "@getters") {
+    throw "Expected @getters parent, but had "
+        "${field.getterReference.canonicalName.parent.name}";
   }
-  if (field.setterCanonicalName.parent.name != "@=fields") {
-    throw "Expected @=fields parent, but had "
-        "${field.setterCanonicalName.parent.name}";
+  String setterCanonicalName = '${field.setterReference.canonicalName}';
+  if (field.setterReference.canonicalName.parent.name != "@setters") {
+    throw "Expected @setters parent, but had "
+        "${field.setterReference.canonicalName.parent.name}";
   }
 
   // Replace the field with a setter/getter pair.
@@ -76,13 +78,23 @@ main() {
   List<int> writtenBytesGetterSetter = serialize(lib1, lib2);
   // Canonical names are now set: Verify that the getter/setter is marked as
   // such, canonical-name-wise.
-  if (getter.canonicalName.parent.name != "@getters") {
+  if (getter.reference.canonicalName.parent.name != "@getters") {
     throw "Expected @getters parent, but had "
-        "${getter.canonicalName.parent.name}";
+        "${getter.reference.canonicalName.parent.name}";
   }
-  if (setter.canonicalName.parent.name != "@setters") {
+  if ('${getter.reference.canonicalName}' != getterCanonicalName) {
+    throw "Unexpected getter canonical name. "
+        "Expected $getterCanonicalName, "
+        "actual ${getter.reference.canonicalName}.";
+  }
+  if (setter.reference.canonicalName.parent.name != "@setters") {
     throw "Expected @setters parent, but had "
-        "${setter.canonicalName.parent.name}";
+        "${setter.reference.canonicalName.parent.name}";
+  }
+  if ('${setter.reference.canonicalName}' != setterCanonicalName) {
+    throw "Unexpected setter canonical name. "
+        "Expected $setterCanonicalName, "
+        "actual ${setter.reference.canonicalName}.";
   }
 
   // Replace getter/setter with field.
@@ -101,13 +113,15 @@ main() {
   List<int> writtenBytesFieldNew = serialize(lib1, lib2);
   // Canonical names are now set: Verify that the field is marked as such,
   // canonical-name-wise.
-  if (fieldReplacement.getterCanonicalName.parent.name != "@fields") {
-    throw "Expected @fields parent, but had "
-        "${fieldReplacement.getterCanonicalName.parent.name}";
+  if (fieldReplacement.getterReference.canonicalName.parent.name !=
+      "@getters") {
+    throw "Expected @getters parent, but had "
+        "${fieldReplacement.getterReference.canonicalName.parent.name}";
   }
-  if (fieldReplacement.setterCanonicalName.parent.name != "@=fields") {
-    throw "Expected @=fields parent, but had "
-        "${fieldReplacement.setterCanonicalName.parent.name}";
+  if (fieldReplacement.setterReference.canonicalName.parent.name !=
+      "@setters") {
+    throw "Expected @setters parent, but had "
+        "${fieldReplacement.setterReference.canonicalName.parent.name}";
   }
 
   // Load the written stuff and ensure it is as expected.

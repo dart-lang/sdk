@@ -654,6 +654,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
       contextReturnType: returnType,
       errorReporter: reporter,
       errorNode: astFactory.nullLiteral(KeywordToken(Keyword.NULL, 0)),
+      genericMetadataIsEnabled: true,
     );
 
     if (expectError) {

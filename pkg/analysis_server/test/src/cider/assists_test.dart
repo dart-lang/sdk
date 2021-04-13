@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/cider/assists.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
@@ -11,6 +13,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utilities/mock_packages.dart';
 import 'cider_service.dart';
 
 void main() {
@@ -37,6 +40,12 @@ class CiderAssistsComputerTest extends CiderServiceTest {
     expect(resultContent, expected);
   }
 
+  @override
+  void setUp() {
+    super.setUp();
+    BazelMockPackages.instance.addFlutter(resourceProvider);
+  }
+
   Future<void> test_addReturnType() async {
     await _compute(r'''
 void m() {
@@ -51,6 +60,29 @@ void m() {
   String f() {
     return '';
   }
+}
+''');
+  }
+
+  Future<void> test_aroundText() async {
+    await _compute('''
+import 'package:flutter/widgets.dart';
+
+main() {
+  ^Text('a');
+}
+''');
+
+    assertHasAssist(DartAssistKind.FLUTTER_WRAP_STREAM_BUILDER, r'''
+import 'package:flutter/widgets.dart';
+
+main() {
+  StreamBuilder<Object>(
+    stream: null,
+    builder: (context, snapshot) {
+      return Text('a');
+    }
+  );
 }
 ''');
   }

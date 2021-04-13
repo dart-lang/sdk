@@ -4,13 +4,18 @@
 
 // @dart = 2.9
 
+import 'dart:io' show exitCode;
+
 import "package:testing/src/run_tests.dart" as testing show main;
 
-main() {
+main() async {
   // This method is async, but keeps a port open to prevent the VM from exiting
   // prematurely.
   // Note: if you change this file, also change
   // pkg/compiler/test/analyses/analyze_test.dart
-  return testing.main(
+  await testing.main(
       <String>["--config=pkg/front_end/testing.json", "--verbose", "analyze"]);
+  if (exitCode != 0) {
+    throw "Exit-code was $exitCode!";
+  }
 }

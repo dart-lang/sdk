@@ -3,16 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' as io;
-import 'dart:isolate';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/command_line/arguments.dart'
-    show applyAnalysisOptionFlags;
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -34,18 +30,14 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
-import 'package:analyzer_cli/src/build_mode.dart';
-import 'package:analyzer_cli/src/context_cache.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/error_severity.dart';
-import 'package:analyzer_cli/src/has_context_mixin.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
 import 'package:linter/src/rules.dart' as linter;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
-import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 /// Shared IO sink for standard error reporting.
@@ -56,15 +48,12 @@ StringSink outSink = io.stdout;
 
 /// Test this option map to see if it specifies lint rules.
 bool containsLintRuleEntry(YamlMap options) {
-  var linterNode = getValue(options, 'linter');
-  return linterNode is YamlMap && getValue(linterNode, 'rules') != null;
+  var linterNode = options.valueAt('linter');
+  return linterNode is YamlMap && linterNode.valueAt('rules') != null;
 }
 
-class Driver with HasContextMixin implements CommandLineStarter {
+class Driver implements CommandLineStarter {
   static final ByteStore analysisDriverMemoryByteStore = MemoryByteStore();
-
-  @override
-  ContextCache contextCache;
 
   _AnalysisContextProvider _analysisContextProvider;
   DriverBasedAnalysisContext analysisContext;
@@ -78,7 +67,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
   int _analyzedFileCount = 0;
 
   /// The resource provider used to access the file system.
-  @override
   final ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
 
   /// Collected analysis statistics.
@@ -99,7 +87,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
   }
 
   @override
-  Future<void> start(List<String> args, {SendPort sendPort}) async {
+  Future<void> start(List<String> args) async {
     if (analysisDriver != null) {
       throw StateError('start() can only be called once');
     }
@@ -115,13 +103,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     _analysisContextProvider = _AnalysisContextProvider(resourceProvider);
 
     // Do analysis.
-    if (options.buildMode) {
-      var severity = await _buildModeAnalyze(options, sendPort);
-      // Propagate issues to the exit code.
-      if (_shouldBeFatal(severity, options)) {
-        io.exitCode = severity.ordinal;
-      }
-    } else if (options.batchMode) {
+    if (options.batchMode) {
       var batchRunner = BatchRunner(outSink, errorSink);
       batchRunner.runAsBatch(args, (List<String> args) async {
         var options = CommandLineOptions.parse(resourceProvider, args);
@@ -167,7 +149,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
   /// Perform analysis according to the given [options].
   Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
-    if (!options.machineFormat) {
+    if (!options.jsonFormat && !options.machineFormat) {
       var fileNames = options.sourceFiles.map((String file) {
         file = path.normalize(file);
         if (file == '.') {
@@ -202,7 +184,10 @@ class Driver with HasContextMixin implements CommandLineStarter {
     // batch mode which removes the batch flag to prevent the "cannot have the
     // batch flag and source file" error message.
     ErrorFormatter formatter;
-    if (options.machineFormat) {
+    if (options.jsonFormat) {
+      formatter = JsonErrorFormatter(errorSink, options, stats,
+          severityProcessor: defaultSeverityProcessor);
+    } else if (options.machineFormat) {
       formatter = MachineErrorFormatter(errorSink, options, stats,
           severityProcessor: defaultSeverityProcessor);
     } else {
@@ -385,27 +370,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
     return allResult;
   }
 
-  /// Perform analysis in build mode according to the given [options].
-  ///
-  /// If [sendPort] is provided it is used for bazel worker communication
-  /// instead of stdin/stdout.
-  Future<ErrorSeverity> _buildModeAnalyze(
-      CommandLineOptions options, SendPort sendPort) async {
-    if (options.buildModePersistentWorker) {
-      var workerLoop = sendPort == null
-          ? AnalyzerWorkerLoop.std(resourceProvider,
-              dartSdkPath: options.dartSdkPath)
-          : AnalyzerWorkerLoop.sendPort(resourceProvider, sendPort,
-              dartSdkPath: options.dartSdkPath);
-      await workerLoop.run();
-      return ErrorSeverity.NONE;
-    } else {
-      return await BuildMode(resourceProvider, options, stats,
-              ContextCache(resourceProvider, options, verbosePrint))
-          .analyze();
-    }
-  }
-
   /// Collect all analyzable files at [filePath], recursively if it's a
   /// directory, ignoring links.
   Iterable<io.File> _collectFiles(String filePath, AnalysisOptions options) {
@@ -487,8 +451,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
             previous.showPackageWarningsPrefix &&
         newOptions.showSdkWarnings == previous.showSdkWarnings &&
         newOptions.lints == previous.lints &&
-        _equalLists(
-            newOptions.buildSummaryInputs, previous.buildSummaryInputs) &&
         newOptions.defaultLanguageVersion == previous.defaultLanguageVersion &&
         newOptions.disableCacheFlushing == previous.disableCacheFlushing &&
         _equalLists(newOptions.enabledExperiments, previous.enabledExperiments);
@@ -600,16 +562,6 @@ class _AnalysisContextProvider {
   }
 
   void _updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
-    var args = _commandLineOptions.contextBuilderOptions.argResults;
-    applyAnalysisOptionFlags(analysisOptions, args);
-
-    var defaultLanguageVersion = _commandLineOptions.defaultLanguageVersion;
-    if (defaultLanguageVersion != null) {
-      var nonPackageLanguageVersion =
-          Version.parse('$defaultLanguageVersion.0');
-      analysisOptions.nonPackageLanguageVersion = nonPackageLanguageVersion;
-      analysisOptions.nonPackageFeatureSet = FeatureSet.latestLanguageVersion()
-          .restrictToVersion(nonPackageLanguageVersion);
-    }
+    _commandLineOptions.updateAnalysisOptions(analysisOptions);
   }
 }

@@ -49,7 +49,6 @@ class Definition;
 class Environment;
 class FlowGraph;
 class FlowGraphCompiler;
-class FlowGraphSerializer;
 class FlowGraphVisitor;
 class ForwardInstructionIterator;
 class Instruction;
@@ -59,8 +58,6 @@ class ParsedFunction;
 class Range;
 class RangeAnalysis;
 class RangeBoundary;
-class SExpList;
-class SExpression;
 class SuccessorsIterable;
 class TypeUsageInfo;
 class UnboxIntegerInstr;
@@ -149,8 +146,6 @@ class Value : public ZoneAllocated {
 #if defined(INCLUDE_IL_PRINTER)
   void PrintTo(BaseTextBuffer* f) const;
 #endif  // defined(INCLUDE_IL_PRINTER)
-
-  SExpression* ToSExpression(FlowGraphSerializer* s) const;
 
   const char* ToCString() const;
 
@@ -369,7 +364,7 @@ struct InstrAttrs {
     // The instruction is guaranteed to not trigger GC on a non-exceptional
     // path. If the conditions depend on parameters of the instruction, do not
     // use this attribute but overload CanTriggerGC() instead.
-    kNoGC = 1
+    kNoGC = 1,
   };
 };
 
@@ -397,7 +392,7 @@ struct InstrAttrs {
   M(NativeReturn, kNoGC)                                                       \
   M(Throw, kNoGC)                                                              \
   M(ReThrow, kNoGC)                                                            \
-  M(Stop, _)                                                                   \
+  M(Stop, kNoGC)                                                               \
   M(Goto, kNoGC)                                                               \
   M(IndirectGoto, kNoGC)                                                       \
   M(Branch, kNoGC)                                                             \
@@ -407,10 +402,10 @@ struct InstrAttrs {
   M(SpecialParameter, kNoGC)                                                   \
   M(ClosureCall, _)                                                            \
   M(FfiCall, _)                                                                \
-  M(EnterHandleScope, _)                                                       \
-  M(ExitHandleScope, _)                                                        \
-  M(AllocateHandle, _)                                                         \
-  M(RawStoreField, _)                                                          \
+  M(EnterHandleScope, kNoGC)                                                   \
+  M(ExitHandleScope, kNoGC)                                                    \
+  M(AllocateHandle, kNoGC)                                                     \
+  M(RawStoreField, kNoGC)                                                      \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
   M(DispatchTableCall, _)                                                      \
@@ -445,8 +440,6 @@ struct InstrAttrs {
   M(AllocateUninitializedContext, _)                                           \
   M(CloneContext, _)                                                           \
   M(BinarySmiOp, kNoGC)                                                        \
-  M(CheckedSmiComparison, _)                                                   \
-  M(CheckedSmiOp, _)                                                           \
   M(BinaryInt32Op, kNoGC)                                                      \
   M(UnarySmiOp, kNoGC)                                                         \
   M(UnaryDoubleOp, kNoGC)                                                      \
@@ -475,19 +468,19 @@ struct InstrAttrs {
   M(Unbox, kNoGC)                                                              \
   M(BoxInt64, _)                                                               \
   M(UnboxInt64, kNoGC)                                                         \
-  M(CaseInsensitiveCompare, _)                                                 \
+  M(CaseInsensitiveCompare, kNoGC)                                             \
   M(BinaryInt64Op, kNoGC)                                                      \
   M(ShiftInt64Op, kNoGC)                                                       \
   M(SpeculativeShiftInt64Op, kNoGC)                                            \
   M(UnaryInt64Op, kNoGC)                                                       \
   M(CheckArrayBound, kNoGC)                                                    \
   M(GenericCheckBound, kNoGC)                                                  \
-  M(Constraint, _)                                                             \
+  M(Constraint, kNoGC)                                                         \
   M(StringToCharCode, kNoGC)                                                   \
   M(OneByteStringFromCharCode, kNoGC)                                          \
   M(StringInterpolate, _)                                                      \
   M(Utf8Scan, kNoGC)                                                           \
-  M(InvokeMathCFunction, _)                                                    \
+  M(InvokeMathCFunction, kNoGC)                                                \
   M(TruncDivMod, kNoGC)                                                        \
   /*We could be more precise about when these 2 instructions can trigger GC.*/ \
   M(GuardFieldClass, _)                                                        \
@@ -506,9 +499,9 @@ struct InstrAttrs {
   M(UnboxUint32, kNoGC)                                                        \
   M(BoxInt32, _)                                                               \
   M(UnboxInt32, kNoGC)                                                         \
-  M(BoxUint8, _)                                                               \
-  M(IntConverter, _)                                                           \
-  M(BitCast, _)                                                                \
+  M(BoxUint8, kNoGC)                                                           \
+  M(IntConverter, kNoGC)                                                       \
+  M(BitCast, kNoGC)                                                            \
   M(Deoptimize, kNoGC)                                                         \
   M(SimdOp, kNoGC)
 
@@ -568,17 +561,6 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #define PRINT_TO_SUPPORT
 #define PRINT_OPERANDS_TO_SUPPORT
 #endif  // defined(INCLUDE_IL_PRINTER)
-
-#define TO_S_EXPRESSION_SUPPORT                                                \
-  virtual SExpression* ToSExpression(FlowGraphSerializer* s) const;
-
-#define ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT                                   \
-  virtual void AddOperandsToSExpression(SExpList* sexp,                        \
-                                        FlowGraphSerializer* s) const;
-
-#define ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT                                 \
-  virtual void AddExtraInfoToSExpression(SExpList* sexp,                       \
-                                         FlowGraphSerializer* s) const;
 
 // Together with CidRange, this represents a mapping from a range of class-ids
 // to a method for a given selector (method name).  Also can contain an
@@ -791,10 +773,6 @@ class Instruction : public ZoneAllocated {
   explicit Instruction(const InstructionSource& source,
                        intptr_t deopt_id = DeoptId::kNone)
       : deopt_id_(deopt_id),
-        previous_(NULL),
-        next_(NULL),
-        env_(NULL),
-        locs_(NULL),
         inlining_id_(source.inlining_id) {}
 
   explicit Instruction(intptr_t deopt_id = DeoptId::kNone)
@@ -807,7 +785,8 @@ class Instruction : public ZoneAllocated {
   virtual intptr_t statistics_tag() const { return tag(); }
 
   intptr_t deopt_id() const {
-    ASSERT(ComputeCanDeoptimize() || CanBecomeDeoptimizationTarget() ||
+    ASSERT(ComputeCanDeoptimize() || ComputeCanDeoptimizeAfterCall() ||
+           CanBecomeDeoptimizationTarget() || MayThrow() ||
            CompilerState::Current().is_aot());
     return GetDeoptId();
   }
@@ -867,9 +846,19 @@ class Instruction : public ZoneAllocated {
   // the type or the range of input operands during compilation.
   virtual bool ComputeCanDeoptimize() const = 0;
 
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    // TODO(dartbug.com/45213): Incrementally migrate IR instructions from using
+    // [ComputeCanDeoptimze] to either [ComputeCanDeoptimizeAfterCall] if they
+    // can only lazy deoptimize.
+    return false;
+  }
+
   // Once we removed the deopt environment, we assume that this
   // instruction can't deoptimize.
-  bool CanDeoptimize() const { return env() != NULL && ComputeCanDeoptimize(); }
+  bool CanDeoptimize() const {
+    return env() != nullptr &&
+           (ComputeCanDeoptimize() || ComputeCanDeoptimizeAfterCall());
+  }
 
   // Visiting support.
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
@@ -932,11 +921,6 @@ class Instruction : public ZoneAllocated {
   const char* ToCString() const;
   PRINT_TO_SUPPORT
   PRINT_OPERANDS_TO_SUPPORT
-  virtual SExpression* ToSExpression(FlowGraphSerializer* s) const;
-  virtual void AddOperandsToSExpression(SExpList* sexp,
-                                        FlowGraphSerializer* s) const;
-  virtual void AddExtraInfoToSExpression(SExpList* sexp,
-                                         FlowGraphSerializer* s) const;
 
 #define DECLARE_INSTRUCTION_TYPE_CHECK(Name, Type)                             \
   bool Is##Name() const { return (As##Name() != nullptr); }                    \
@@ -992,6 +976,8 @@ class Instruction : public ZoneAllocated {
   void SetEnvironment(Environment* deopt_env);
   void RemoveEnvironment();
   void ReplaceInEnvironment(Definition* current, Definition* replacement);
+
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const { return 0; }
 
   // Different compiler passes can assign pass specific ids to the instruction.
   // Only one id can be stored at a time.
@@ -1110,8 +1096,8 @@ class Instruction : public ZoneAllocated {
   virtual void InheritDeoptTarget(Zone* zone, Instruction* other);
 
   bool NeedsEnvironment() const {
-    return ComputeCanDeoptimize() || CanBecomeDeoptimizationTarget() ||
-           MayThrow();
+    return ComputeCanDeoptimize() || ComputeCanDeoptimizeAfterCall() ||
+           CanBecomeDeoptimizationTarget() || MayThrow();
   }
 
   virtual bool CanBecomeDeoptimizationTarget() const { return false; }
@@ -1200,12 +1186,12 @@ class Instruction : public ZoneAllocated {
                   "Pass Id does not fit into the bit field");
   };
 
-  intptr_t deopt_id_;
+  intptr_t deopt_id_ = DeoptId::kNone;
   intptr_t pass_specific_id_ = PassSpecificId::kNoId;
-  Instruction* previous_;
-  Instruction* next_;
-  Environment* env_;
-  LocationSummary* locs_;
+  Instruction* previous_ = nullptr;
+  Instruction* next_ = nullptr;
+  Environment* env_ = nullptr;
+  LocationSummary* locs_ = nullptr;
   intptr_t inlining_id_;
 
   DISALLOW_COPY_AND_ASSIGN(Instruction);
@@ -1519,9 +1505,6 @@ class BlockEntryInstr : public Instruction {
 
   DEFINE_INSTRUCTION_TYPE_CHECK(BlockEntry)
 
-  TO_S_EXPRESSION_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  protected:
   BlockEntryInstr(intptr_t block_id,
@@ -1822,7 +1805,6 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   PRINT_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   // Classes that have access to predecessors_ when inlining.
@@ -2269,7 +2251,6 @@ class Definition : public Instruction {
 
   PRINT_OPERANDS_TO_SUPPORT
   PRINT_TO_SUPPORT
-  TO_S_EXPRESSION_SUPPORT
 
   bool UpdateType(CompileType new_type) {
     if (type_ == nullptr) {
@@ -2382,7 +2363,6 @@ class Definition : public Instruction {
  protected:
   friend class RangeAnalysis;
   friend class Value;
-  friend class FlowGraphSerializer;  // To access type_ directly.
 
   Range* range_ = nullptr;
 
@@ -2617,7 +2597,6 @@ class ParameterInstr : public Definition {
   virtual bool MayThrow() const { return false; }
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
@@ -2723,7 +2702,6 @@ class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
   intptr_t offset() const { return offset_; }
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const intptr_t offset_;
@@ -2774,7 +2752,6 @@ class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
   intptr_t offset() const { return offset_; }
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const intptr_t offset_;
@@ -2906,7 +2883,6 @@ class TailCallInstr : public Instruction {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   const Code& code_;
@@ -3188,7 +3164,6 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
   }
 
   PRINT_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   BlockEntryInstr* block_;
@@ -3299,7 +3274,6 @@ class ComparisonInstr : public Definition {
            (operation_cid() == other_comparison->operation_cid());
   }
 
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
   DEFINE_INSTRUCTION_TYPE_CHECK(Comparison)
 
@@ -3438,7 +3412,6 @@ class BranchInstr : public Instruction {
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
   PRINT_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
@@ -3592,7 +3565,6 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
                           Register tmp = kNoRegister);
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   const Object& value_;
@@ -3663,8 +3635,12 @@ class AssertSubtypeInstr : public TemplateInstruction<5, Throws, Pure> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
@@ -3701,6 +3677,7 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
     kDstTypePos = 1,
     kInstantiatorTAVPos = 2,
     kFunctionTAVPos = 3,
+    kNumInputs = 4,
   };
 
   AssertAssignableInstr(const InstructionSource& source,
@@ -3738,8 +3715,20 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   const String& dst_name() const { return dst_name_; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+#if !defined(TARGET_ARCH_IA32)
+    return InputCount();
+#else
+    // The ia32 implementation calls the stub by pushing the input registers
+    // in the same order onto the stack thereby making the deopt-env correct.
+    // (Due to lack of registers we cannot use all-argument calling convention
+    // as in other architectures.)
+    return 0;
+#endif
   }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
@@ -3755,7 +3744,6 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
   virtual Value* RedefinedValue() const;
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const TokenPosition token_pos_;
@@ -3780,8 +3768,12 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
@@ -3845,7 +3837,6 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
   const char* ToCString() const;
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   const SpecialParameterKind kind_;
@@ -3907,6 +3898,13 @@ class TemplateDartCall : public Definition {
 
   virtual intptr_t InputCount() const { return inputs_->length(); }
   virtual Value* InputAt(intptr_t i) const { return inputs_->At(i); }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return kExtraInputs;
+  }
 
   intptr_t FirstArgIndex() const { return type_args_len_ > 0 ? 1 : 0; }
   Value* Receiver() const { return this->ArgumentValueAt(FirstArgIndex()); }
@@ -3955,7 +3953,6 @@ class TemplateDartCall : public Definition {
         ArgumentsSizeWithoutTypeArgs(), argument_names());
   }
 
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
@@ -3991,16 +3988,11 @@ class ClosureCallInstr : public TemplateDartCall<1> {
   // TODO(kmillikin): implement exact call counts for closure calls.
   virtual intptr_t CallCount() const { return 1; }
 
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
-
   virtual bool HasUnknownSideEffects() const { return true; }
 
   Code::EntryKind entry_kind() const { return entry_kind_; }
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const Code::EntryKind entry_kind_;
@@ -4068,10 +4060,6 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
-
   virtual bool CanBecomeDeoptimizationTarget() const {
     // Instance calls that are specialized by the optimizer need a
     // deoptimization descriptor before the call.
@@ -4098,8 +4086,6 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   Code::EntryKind entry_kind() const { return entry_kind_; }
   void set_entry_kind(Code::EntryKind value) { entry_kind_ = value; }
 
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
   DEFINE_INSTRUCTION_TYPE_CHECK(InstanceCallBase);
 
   bool receiver_is_not_smi() const { return receiver_is_not_smi_; }
@@ -4215,7 +4201,6 @@ class InstanceCallInstr : public InstanceCallBaseInstr {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
   bool MatchesCoreName(const String& name);
 
@@ -4290,7 +4275,6 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
   static TypePtr ComputeRuntimeType(const CallTargets& targets);
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   PolymorphicInstanceCallInstr(const InstructionSource& source,
@@ -4369,8 +4353,6 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool CanBecomeDeoptimizationTarget() const { return false; }
@@ -4429,8 +4411,7 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   bool AttributesEqual(Instruction* other) const;
 
-  PRINT_OPERANDS_TO_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT;
+  PRINT_OPERANDS_TO_SUPPORT;
 
  private:
   Condition EmitComparisonCodeRegConstant(FlowGraphCompiler* compiler,
@@ -4535,8 +4516,10 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
                        Value* right,
                        intptr_t cid,
                        intptr_t deopt_id,
+                       bool null_aware = false,
                        SpeculativeMode speculative_mode = kGuardInputs)
       : TemplateComparison(source, kind, deopt_id),
+        null_aware_(null_aware),
         speculative_mode_(speculative_mode) {
     ASSERT(Token::IsEqualityOperator(kind));
     SetInputAt(0, left);
@@ -4552,8 +4535,12 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
+  bool is_null_aware() const { return null_aware_; }
+  void set_null_aware(bool value) { null_aware_ = value; }
+
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
+    if (is_null_aware()) return kTagged;
     if (operation_cid() == kDoubleCid) return kUnboxedDouble;
     if (operation_cid() == kMintCid) return kUnboxedInt64;
     return kTagged;
@@ -4565,12 +4552,16 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
 
   virtual bool AttributesEqual(Instruction* other) const {
     return ComparisonInstr::AttributesEqual(other) &&
+           (null_aware_ == other->AsEqualityCompare()->null_aware_) &&
            (speculative_mode_ == other->AsEqualityCompare()->speculative_mode_);
   }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
+  bool null_aware_;
   const SpeculativeMode speculative_mode_;
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareInstr);
 };
@@ -4863,8 +4854,6 @@ class StaticCallInstr : public TemplateDartCall<0> {
   const class BinaryFeedback& BinaryFeedback();
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const ICData* ic_data_;
@@ -4911,7 +4900,6 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   const LocalVariable& local_;
@@ -5043,7 +5031,6 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   const LocalVariable& local_;
@@ -5093,8 +5080,6 @@ class NativeCallInstr : public TemplateDartCall<0> {
   void SetupNative();
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   void set_native_c_function(NativeFunction value) {
@@ -5287,7 +5272,6 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const TokenPosition token_pos_;
@@ -5418,8 +5402,6 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   friend class JitCallSpecializer;  // For ASSERT(initialization_).
@@ -5549,7 +5531,14 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
   void set_calls_initializer(bool value) { calls_initializer_ = value; }
 
   virtual bool AllowsCSE() const {
-    return field().is_final() && !FLAG_fields_may_be_reset;
+    // If two loads of a static-final-late field call the initializer and one
+    // dominates another, we can remove the dominated load with the result of
+    // the dominating load.
+    //
+    // Though if the field is final-late there can be stores into it via
+    // load/compare-with-sentinel/store. Those loads have `!calls_initializer()`
+    // and we won't allow CSE for them.
+    return field().is_final() && (!field().is_late() || calls_initializer());
   }
 
   virtual bool ComputeCanDeoptimize() const {
@@ -5679,7 +5668,6 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const bool index_unboxed_;
@@ -5863,7 +5851,10 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
 // }
 //
 // under these assumptions:
-// - The start and end inputs are within the bounds of bytes and in smi range.
+// - The difference between start and end must be less than 2^30, since the
+//   resulting length can be twice the input length (and the result has to be in
+//   Smi range). This is guaranteed by `_Utf8Decoder.chunkSize` which is set to
+//   `65536`.
 // - The decoder._scanFlags field is unboxed or contains a smi.
 // - The first 128 entries of the table have the value 1.
 class Utf8ScanInstr : public TemplateDefinition<5, NoThrow> {
@@ -5897,6 +5888,7 @@ class Utf8ScanInstr : public TemplateDefinition<5, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
     return kNotSpeculative;
@@ -5983,7 +5975,6 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   compiler::Assembler::CanBeSmi CanValueBeSmi() const {
@@ -6085,6 +6076,21 @@ class AllocationInstr : public Definition {
   // is added.
   virtual bool WillAllocateNewOrRemembered() const = 0;
 
+  virtual bool MayThrow() const {
+    // Any allocation instruction may throw an OutOfMemory error.
+    return true;
+  }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    // We test that allocation instructions have correct deopt environment
+    // (which is needed in case OOM is thrown) by actually deoptimizing
+    // optimized code in allocation slow paths.
+    return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
+  }
+
   DEFINE_INSTRUCTION_TYPE_CHECK(Allocation);
 
  private:
@@ -6094,17 +6100,15 @@ class AllocationInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(AllocationInstr);
 };
 
-template <intptr_t N, typename ThrowsTrait>
+template <intptr_t N>
 class TemplateAllocation : public AllocationInstr {
  public:
   explicit TemplateAllocation(const InstructionSource& source,
-                              intptr_t deopt_id = DeoptId::kNone)
+                              intptr_t deopt_id)
       : AllocationInstr(source, deopt_id), inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-
-  virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -6120,8 +6124,9 @@ class AllocateObjectInstr : public AllocationInstr {
  public:
   AllocateObjectInstr(const InstructionSource& source,
                       const Class& cls,
+                      intptr_t deopt_id,
                       Value* type_arguments = nullptr)
-      : AllocationInstr(source),
+      : AllocationInstr(source, deopt_id),
         cls_(cls),
         type_arguments_(type_arguments),
         closure_function_(Function::ZoneHandle()) {
@@ -6150,10 +6155,6 @@ class AllocateObjectInstr : public AllocationInstr {
     return type_arguments_;
   }
 
-  virtual bool MayThrow() const { return false; }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
@@ -6165,8 +6166,6 @@ class AllocateObjectInstr : public AllocationInstr {
   }
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
@@ -6182,18 +6181,16 @@ class AllocateObjectInstr : public AllocationInstr {
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
 
-class AllocateUninitializedContextInstr
-    : public TemplateAllocation<0, NoThrow> {
+class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
  public:
   AllocateUninitializedContextInstr(const InstructionSource& source,
-                                    intptr_t num_context_variables);
+                                    intptr_t num_context_variables,
+                                    intptr_t deopt_id);
 
   DECLARE_INSTRUCTION(AllocateUninitializedContext)
   virtual CompileType ComputeType() const;
 
   intptr_t num_context_variables() const { return num_context_variables_; }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -6316,7 +6313,7 @@ class ArrayAllocationInstr : public AllocationInstr {
   DISALLOW_COPY_AND_ASSIGN(ArrayAllocationInstr);
 };
 
-template <intptr_t N, typename ThrowsTrait>
+template <intptr_t N>
 class TemplateArrayAllocation : public ArrayAllocationInstr {
  public:
   explicit TemplateArrayAllocation(const InstructionSource& source,
@@ -6326,8 +6323,6 @@ class TemplateArrayAllocation : public ArrayAllocationInstr {
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
 
-  virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
-
  protected:
   EmbeddedArray<Value*, N> inputs_;
 
@@ -6335,7 +6330,7 @@ class TemplateArrayAllocation : public ArrayAllocationInstr {
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
 
-class CreateArrayInstr : public TemplateArrayAllocation<2, Throws> {
+class CreateArrayInstr : public TemplateArrayAllocation<2> {
  public:
   CreateArrayInstr(const InstructionSource& source,
                    Value* element_type,
@@ -6354,12 +6349,6 @@ class CreateArrayInstr : public TemplateArrayAllocation<2, Throws> {
   Value* element_type() const { return inputs_[kElementTypePos]; }
   virtual Value* num_elements() const { return inputs_[kLengthPos]; }
 
-  // Throw needs environment, which is created only if instruction can
-  // deoptimize.
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
-
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
@@ -6373,7 +6362,7 @@ class CreateArrayInstr : public TemplateArrayAllocation<2, Throws> {
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
 };
 
-class AllocateTypedDataInstr : public TemplateArrayAllocation<1, Throws> {
+class AllocateTypedDataInstr : public TemplateArrayAllocation<1> {
  public:
   AllocateTypedDataInstr(const InstructionSource& source,
                          classid_t class_id,
@@ -6390,12 +6379,6 @@ class AllocateTypedDataInstr : public TemplateArrayAllocation<1, Throws> {
 
   classid_t class_id() const { return class_id_; }
   virtual Value* num_elements() const { return inputs_[kLengthPos]; }
-
-  // Throw needs environment, which is created only if instruction can
-  // deoptimize.
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -6594,8 +6577,12 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(LoadField)
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return calls_initializer() && !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual bool HasUnknownSideEffects() const {
@@ -6634,8 +6621,6 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   virtual bool AttributesEqual(Instruction* other) const;
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   intptr_t OffsetInBytes() const { return slot().offset_in_bytes(); }
@@ -6674,8 +6659,12 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -6719,8 +6708,12 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
   const Function& function() const { return function_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -6774,11 +6767,12 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
 
 // [AllocateContext] instruction allocates a new Context object with the space
 // for the given [context_variables].
-class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
+class AllocateContextInstr : public TemplateAllocation<0> {
  public:
   AllocateContextInstr(const InstructionSource& source,
-                       const ZoneGrowableArray<const Slot*>& context_slots)
-      : TemplateAllocation(source), context_slots_(context_slots) {}
+                       const ZoneGrowableArray<const Slot*>& context_slots,
+                       intptr_t deopt_id)
+      : TemplateAllocation(source, deopt_id), context_slots_(context_slots) {}
 
   DECLARE_INSTRUCTION(AllocateContext)
   virtual CompileType ComputeType() const;
@@ -6808,7 +6802,7 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
 
 // [CloneContext] instruction clones the given Context object assuming that
 // it contains exactly the provided [context_variables].
-class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
+class CloneContextInstr : public TemplateDefinition<1, Throws> {
  public:
   CloneContextInstr(const InstructionSource& source,
                     Value* context_value,
@@ -6830,8 +6824,15 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
   DECLARE_INSTRUCTION(CloneContext)
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    // We test that allocation instructions have correct deopt environment
+    // (which is needed in case OOM is thrown) by actually deoptimizing
+    // optimized code in allocation slow paths.
     return !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return InputCount();
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -6946,6 +6947,8 @@ class BoxIntegerInstr : public BoxInstr {
   virtual bool RecomputeType();
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool CanTriggerGC() const { return !ValueFitsSmi(); }
 
   DEFINE_INSTRUCTION_TYPE_CHECK(BoxInteger)
 
@@ -7206,6 +7209,14 @@ class UnboxInt64Instr : public UnboxIntegerInstr {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
+  virtual bool ComputeCanDeoptimize() const {
+    if (SpeculativeModeOfInputs() == kNotSpeculative) {
+      return false;
+    }
+
+    return !value()->Type()->IsInt();
+  }
+
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxInt64)
 
  private:
@@ -7464,7 +7475,6 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
   }
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
   DECLARE_COMPARISON_INSTRUCTION(DoubleTestOp)
 
@@ -7605,101 +7615,6 @@ class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
   DISALLOW_COPY_AND_ASSIGN(UnaryInt64OpInstr);
 };
 
-class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
- public:
-  CheckedSmiOpInstr(Token::Kind op_kind,
-                    Value* left,
-                    Value* right,
-                    TemplateDartCall<0>* call)
-      : TemplateDefinition(call->deopt_id()), call_(call), op_kind_(op_kind) {
-    ASSERT(call->type_args_len() == 0);
-    ASSERT(!call->IsInstanceCallBase() ||
-           call->AsInstanceCallBase()->CanReceiverBeSmiBasedOnInterfaceTarget(
-               Thread::Current()->zone()));
-
-    SetInputAt(0, left);
-    SetInputAt(1, right);
-  }
-
-  TemplateDartCall<0>* call() const { return call_; }
-  Token::Kind op_kind() const { return op_kind_; }
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual CompileType ComputeType() const;
-  virtual bool RecomputeType();
-
-  virtual bool HasUnknownSideEffects() const { return true; }
-  virtual bool CanCallDart() const { return true; }
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
-
-  DECLARE_INSTRUCTION(CheckedSmiOp)
-
- private:
-  TemplateDartCall<0>* call_;
-  const Token::Kind op_kind_;
-  DISALLOW_COPY_AND_ASSIGN(CheckedSmiOpInstr);
-};
-
-class CheckedSmiComparisonInstr : public TemplateComparison<2, Throws> {
- public:
-  CheckedSmiComparisonInstr(Token::Kind op_kind,
-                            Value* left,
-                            Value* right,
-                            TemplateDartCall<0>* call)
-      : TemplateComparison(call->source(), op_kind, call->deopt_id()),
-        call_(call),
-        is_negated_(false) {
-    ASSERT(call->type_args_len() == 0);
-    ASSERT(!call->IsInstanceCallBase() ||
-           call->AsInstanceCallBase()->CanReceiverBeSmiBasedOnInterfaceTarget(
-               Thread::Current()->zone()));
-
-    SetInputAt(0, left);
-    SetInputAt(1, right);
-  }
-
-  TemplateDartCall<0>* call() const { return call_; }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual CompileType ComputeType() const;
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  virtual void NegateComparison() {
-    ComparisonInstr::NegateComparison();
-    is_negated_ = !is_negated_;
-  }
-
-  bool is_negated() const { return is_negated_; }
-
-  virtual bool HasUnknownSideEffects() const { return true; }
-  virtual bool CanCallDart() const { return true; }
-
-  PRINT_OPERANDS_TO_SUPPORT
-
-  DECLARE_INSTRUCTION(CheckedSmiComparison)
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler, BranchInstr* branch);
-
-  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
-                                       BranchLabels labels);
-
-  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
-
- private:
-  TemplateDartCall<0>* call_;
-  bool is_negated_;
-  DISALLOW_COPY_AND_ASSIGN(CheckedSmiComparisonInstr);
-};
-
 class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   BinaryIntegerOpInstr(Token::Kind op_kind,
@@ -7762,7 +7677,6 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
   DEFINE_INSTRUCTION_TYPE_CHECK(BinaryIntegerOp)
 
@@ -8215,7 +8129,6 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
   }
 
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const TokenPosition token_pos_;
@@ -8787,7 +8700,6 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
 
   virtual Value* RedefinedValue() const;
 
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -9318,8 +9230,6 @@ class SimdOpInstr : public Definition {
 
   DECLARE_INSTRUCTION(SimdOp)
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   SimdOpInstr(Kind kind, intptr_t deopt_id)
@@ -9460,6 +9370,7 @@ class Environment : public ZoneAllocated {
   static Environment* From(Zone* zone,
                            const GrowableArray<Definition*>& definitions,
                            intptr_t fixed_parameter_count,
+                           intptr_t lazy_deopt_pruning_count,
                            const ParsedFunction& parsed_function);
 
   void set_locations(Location* locations) {
@@ -9470,9 +9381,19 @@ class Environment : public ZoneAllocated {
   // Get deopt_id associated with this environment.
   // Note that only outer environments have deopt id associated with
   // them (set by DeepCopyToOuter).
-  intptr_t deopt_id() const {
-    ASSERT(deopt_id_ != DeoptId::kNone);
-    return deopt_id_;
+  intptr_t GetDeoptId() const {
+    ASSERT(DeoptIdBits::decode(bitfield_) != DeoptId::kNone);
+    return DeoptIdBits::decode(bitfield_);
+  }
+
+  intptr_t LazyDeoptPruneCount() const {
+    return LazyDeoptPruningBits::decode(bitfield_);
+  }
+
+  Environment* GetLazyDeoptEnv(Zone* zone) {
+    const intptr_t num_args_to_prune = LazyDeoptPruneCount();
+    if (num_args_to_prune == 0) return this;
+    return DeepCopy(zone, Length() - num_args_to_prune);
   }
 
   Environment* outer() const { return outer_; }
@@ -9534,7 +9455,6 @@ class Environment : public ZoneAllocated {
                        Definition* result) const;
 
   void PrintTo(BaseTextBuffer* f) const;
-  SExpression* ToSExpression(FlowGraphSerializer* s) const;
   const char* ToCString() const;
 
   // Deep copy an environment.  The 'length' parameter may be less than the
@@ -9547,21 +9467,39 @@ class Environment : public ZoneAllocated {
   friend class compiler::BlockBuilder;  // For Environment constructor.
   friend class FlowGraphDeserializer;   // For constructor and deopt_id_.
 
+  class LazyDeoptPruningBits : public BitField<uintptr_t, uintptr_t, 0, 8> {};
+  class DeoptIdBits
+      : public BitField<uintptr_t,
+                        intptr_t,
+                        LazyDeoptPruningBits::kNextBit,
+                        kBitsPerWord - LazyDeoptPruningBits::kNextBit,
+                        /*sign_extend=*/true> {};
+
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,
+              intptr_t lazy_deopt_pruning_count,
               const ParsedFunction& parsed_function,
               Environment* outer)
       : values_(length),
         fixed_parameter_count_(fixed_parameter_count),
+        bitfield_(DeoptIdBits::encode(DeoptId::kNone) |
+                  LazyDeoptPruningBits::encode(lazy_deopt_pruning_count)),
         parsed_function_(parsed_function),
         outer_(outer) {}
+
+  void SetDeoptId(intptr_t deopt_id) {
+    bitfield_ = DeoptIdBits::update(deopt_id, bitfield_);
+  }
+  void SetLazyDeoptPruneCount(intptr_t value) {
+    bitfield_ = LazyDeoptPruningBits::update(value, bitfield_);
+  }
 
   GrowableArray<Value*> values_;
   Location* locations_ = nullptr;
   const intptr_t fixed_parameter_count_;
   // Deoptimization id associated with this environment. Only set for
   // outer environments.
-  intptr_t deopt_id_ = DeoptId::kNone;
+  uintptr_t bitfield_;
   const ParsedFunction& parsed_function_;
   Environment* outer_;
 

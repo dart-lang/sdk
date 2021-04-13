@@ -1070,6 +1070,24 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   @override
+  EvaluationComplexity visitInstanceGetterInvocation(
+      ir.InstanceGetterInvocation node) {
+    node.receiver = _handleExpression(node.receiver);
+    if (node.arguments.types.isNotEmpty) {
+      ir.TreeNode receiver = node.receiver;
+      assert(
+          !(receiver is ir.VariableGet &&
+              receiver.variable.parent is ir.LocalFunction),
+          "Unexpected local function invocation ${node} "
+          "(${node.runtimeType}).");
+      VariableUse usage = new VariableUse.instanceTypeArgument(node);
+      visitNodesInContext(node.arguments.types, usage);
+    }
+    visitArguments(node.arguments);
+    return const EvaluationComplexity.lazy();
+  }
+
+  @override
   EvaluationComplexity visitDynamicInvocation(ir.DynamicInvocation node) {
     node.receiver = _handleExpression(node.receiver);
     if (node.arguments.types.isNotEmpty) {
@@ -1106,13 +1124,10 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitLocalFunctionInvocation(
       ir.LocalFunctionInvocation node) {
+    _markVariableAsUsed(node.variable, VariableUse.explicit);
     if (node.arguments.types.isNotEmpty) {
-      assert(
-          node.variable.parent is ir.LocalFunction,
-          "Unexpected variable in local function invocation ${node} "
-          "(${node.runtimeType}).");
       VariableUse usage =
-          new VariableUse.localTypeArgument(node.variable.parent, node);
+          new VariableUse.localTypeArgument(node.localFunction, node);
       visitNodesInContext(node.arguments.types, usage);
     }
     visitArguments(node.arguments);
@@ -1145,7 +1160,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   EvaluationComplexity visitPropertyGet(ir.PropertyGet node) {
     node.receiver = _handleExpression(node.receiver);
     EvaluationComplexity complexity = _lastExpressionComplexity;
-    if (complexity.isConstant && node.name.name == 'length') {
+    if (complexity.isConstant && node.name.text == 'length') {
       return _evaluateImplicitConstant(node);
     }
     return const EvaluationComplexity.lazy();
@@ -1155,7 +1170,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   EvaluationComplexity visitInstanceGet(ir.InstanceGet node) {
     node.receiver = _handleExpression(node.receiver);
     EvaluationComplexity complexity = _lastExpressionComplexity;
-    if (complexity.isConstant && node.name.name == 'length') {
+    if (complexity.isConstant && node.name.text == 'length') {
       return _evaluateImplicitConstant(node);
     }
     return const EvaluationComplexity.lazy();
@@ -1171,7 +1186,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   EvaluationComplexity visitDynamicGet(ir.DynamicGet node) {
     node.receiver = _handleExpression(node.receiver);
     EvaluationComplexity complexity = _lastExpressionComplexity;
-    if (complexity.isConstant && node.name.name == 'length') {
+    if (complexity.isConstant && node.name.text == 'length') {
       return _evaluateImplicitConstant(node);
     }
     return const EvaluationComplexity.lazy();

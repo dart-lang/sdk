@@ -10,7 +10,7 @@ int f<T>(T a) => null;
 
 typedef int F<R>(R a);
 
-/*spec.member: method:indirect,needsArgs*/
+/*spec.member: method:implicit=[method.S],indirect,needsArgs*/
 method<S>() {
   F<S> c;
 

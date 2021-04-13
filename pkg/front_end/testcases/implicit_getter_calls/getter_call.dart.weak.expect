@@ -153,25 +153,25 @@ static method callField(self::Class* c) → dynamic {
 }
 static method callGetter(self::Class* c) → dynamic {
   self::expect(0, c.{self::Class::getter1a}());
-  self::expect(0, c.{self::Class::getter1b}());
-  self::expect(42.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t31 = c in let final core::int* #t32 = self::read(42) in #t31.{self::Class::getter2}(#t32));
-  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t33 = c in let final core::int* #t34 = self::read(12) in let final core::int* #t35 = self::read(23) in #t33.{self::Class::getter3}(#t34, #t35));
-  self::expect(12, let final self::Class* #t36 = c in let final core::int* #t37 = self::read(12) in #t36.{self::Class::getter4}(#t37));
-  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t38 = c in let final core::int* #t39 = self::read(12) in let final core::int* #t40 = self::read(23) in #t38.{self::Class::getter4}(#t39, #t40));
-  self::expect(0, c.{self::Class::getter5}());
-  self::expect(12, let final self::Class* #t41 = c in let final core::int* #t42 = self::read(12) in #t41.{self::Class::getter5}(#t42));
-  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t43 = c in let final core::int* #t44 = self::read(12) in let final core::int* #t45 = self::read(23) in #t43.{self::Class::getter5}(#t44, #t45));
-  self::expect(12, let final self::Class* #t46 = c in let final core::int* #t47 = self::read(12) in #t46.{self::Class::getter6}(#t47));
-  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t48 = c in let final core::int* #t49 = self::read(12) in let final core::int* #t50 = self::read(23) in #t48.{self::Class::getter6}(#t49, b: #t50));
-  self::expect(0, c.{self::Class::getter7}());
-  self::expect(12, let final self::Class* #t51 = c in let final core::int* #t52 = self::read(12) in #t51.{self::Class::getter7}(a: #t52));
-  self::expect(23.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t53 = c in let final core::int* #t54 = self::read(23) in #t53.{self::Class::getter7}(b: #t54));
-  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t55 = c in let final core::int* #t56 = self::read(12) in let final core::int* #t57 = self::read(23) in #t55.{self::Class::getter7}(a: #t56, b: #t57));
-  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t58 = c in let final core::int* #t59 = self::read(23) in let final core::int* #t60 = self::read(12) in #t58.{self::Class::getter7}(b: #t59, a: #t60));
+  self::expect(0, c.{self::Class::getter1b}(){() →* core::int*});
+  self::expect(42.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t31 = c in let final core::int* #t32 = self::read(42) in #t31.{self::Class::getter2}(#t32){(core::int*) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t33 = c in let final core::int* #t34 = self::read(12) in let final core::int* #t35 = self::read(23) in #t33.{self::Class::getter3}(#t34, #t35){(core::int*, core::int*) →* core::int*});
+  self::expect(12, let final self::Class* #t36 = c in let final core::int* #t37 = self::read(12) in #t36.{self::Class::getter4}(#t37){(core::int*, [core::int*]) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t38 = c in let final core::int* #t39 = self::read(12) in let final core::int* #t40 = self::read(23) in #t38.{self::Class::getter4}(#t39, #t40){(core::int*, [core::int*]) →* core::int*});
+  self::expect(0, c.{self::Class::getter5}(){([core::int*, core::int*]) →* core::int*});
+  self::expect(12, let final self::Class* #t41 = c in let final core::int* #t42 = self::read(12) in #t41.{self::Class::getter5}(#t42){([core::int*, core::int*]) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t43 = c in let final core::int* #t44 = self::read(12) in let final core::int* #t45 = self::read(23) in #t43.{self::Class::getter5}(#t44, #t45){([core::int*, core::int*]) →* core::int*});
+  self::expect(12, let final self::Class* #t46 = c in let final core::int* #t47 = self::read(12) in #t46.{self::Class::getter6}(#t47){(core::int*, {b: core::int*}) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t48 = c in let final core::int* #t49 = self::read(12) in let final core::int* #t50 = self::read(23) in #t48.{self::Class::getter6}(#t49, b: #t50){(core::int*, {b: core::int*}) →* core::int*});
+  self::expect(0, c.{self::Class::getter7}(){({a: core::int*, b: core::int*}) →* core::int*});
+  self::expect(12, let final self::Class* #t51 = c in let final core::int* #t52 = self::read(12) in #t51.{self::Class::getter7}(a: #t52){({a: core::int*, b: core::int*}) →* core::int*});
+  self::expect(23.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t53 = c in let final core::int* #t54 = self::read(23) in #t53.{self::Class::getter7}(b: #t54){({a: core::int*, b: core::int*}) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t55 = c in let final core::int* #t56 = self::read(12) in let final core::int* #t57 = self::read(23) in #t55.{self::Class::getter7}(a: #t56, b: #t57){({a: core::int*, b: core::int*}) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t58 = c in let final core::int* #t59 = self::read(23) in let final core::int* #t60 = self::read(12) in #t58.{self::Class::getter7}(b: #t59, a: #t60){({a: core::int*, b: core::int*}) →* core::int*});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   self::enableRead = true;
-  if(expected !={core::Object::==}{(core::Object*) →* core::bool*} actual)
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual))
     throw "Expected ${expected}, ${actual}";
 }
 

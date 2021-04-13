@@ -1776,7 +1776,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _flowAnalysis.tryFinallyStatement_finallyBegin(
           catchClauses.isNotEmpty ? node : body);
       _dispatch(finallyBlock);
-      _flowAnalysis.tryFinallyStatement_end(finallyBlock);
+      _flowAnalysis.tryFinallyStatement_end();
     }
     return null;
   }
@@ -2762,10 +2762,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               source: elementType, destination: lhsType, hard: false);
         }
       }
-      _flowAnalysis.forEach_bodyBegin(
-          node,
-          lhsElement is PromotableElement ? lhsElement : null,
-          elementType ?? _makeNullableDynamicType(node));
+      _flowAnalysis.forEach_bodyBegin(node);
+      if (lhsElement is PromotableElement) {
+        _flowAnalysis.write(node, lhsElement,
+            elementType ?? _makeNullableDynamicType(node), null);
+      }
     }
 
     // The condition may fail/iterable may be empty, so the body gets a new

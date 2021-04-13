@@ -134,7 +134,7 @@ class _ApiModel {
     for (Source source in sources!) {
       String path = source.uri.path;
       if (path.startsWith(libDir) && !path.startsWith(libSrcDir)) {
-        ResolvedUnitResult result = (await driver.getResult(source.fullName))!;
+        ResolvedUnitResult result = await driver.getResult(source.fullName);
         LibraryElement library = result.libraryElement;
 
         NamespaceBuilder namespaceBuilder = NamespaceBuilder();

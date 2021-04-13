@@ -46,23 +46,21 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
 
   _DartUnitClosingLabelsComputerVisitor(this.computer);
 
-  ClosingLabel get _currentLabel => labelStack.isEmpty ? null : labelStack.last;
+  ClosingLabel? get _currentLabel =>
+      labelStack.isEmpty ? null : labelStack.last;
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    ClosingLabel label;
-
-    if (node.argumentList != null) {
-      var labelText = node.constructorName.type.name.name;
-      if (node.constructorName.name != null) {
-        labelText += '.${node.constructorName.name.name}';
-      }
-      // We override the node used for doing line calculations because otherwise
-      // constructors that split over multiple lines (but have parens on same
-      // line) would incorrectly get labels, because node.start on an instance
-      // creation expression starts at the start of the expression.
-      label = _addLabel(node, labelText, checkLinesUsing: node.argumentList);
+    var labelText = node.constructorName.type.name.name;
+    var name = node.constructorName.name;
+    if (name != null) {
+      labelText += '.${name.name}';
     }
+    // We override the node used for doing line calculations because otherwise
+    // constructors that split over multiple lines (but have parens on same
+    // line) would incorrectly get labels, because node.start on an instance
+    // creation expression starts at the start of the expression.
+    var label = _addLabel(node, labelText, checkLinesUsing: node.argumentList);
 
     if (label != null) _pushLabel(label);
 
@@ -76,9 +74,9 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitListLiteral(ListLiteral node) {
     var args = node.typeArguments?.arguments;
-    var typeName = args != null ? args[0]?.toString() : null;
+    var typeName = args != null ? args[0].toString() : null;
 
-    ClosingLabel label;
+    ClosingLabel? label;
 
     if (typeName != null) {
       label = _addLabel(node, '<$typeName>[]');
@@ -103,8 +101,8 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  ClosingLabel _addLabel(AstNode node, String label,
-      {AstNode checkLinesUsing}) {
+  ClosingLabel? _addLabel(AstNode node, String label,
+      {AstNode? checkLinesUsing}) {
     // Never add labels if we're inside strings.
     if (interpolatedStringsEntered > 0) {
       return null;
@@ -112,10 +110,8 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
 
     checkLinesUsing = checkLinesUsing ?? node;
 
-    final CharacterLocation start =
-        computer._lineInfo.getLocation(checkLinesUsing.offset);
-    final CharacterLocation end =
-        computer._lineInfo.getLocation(checkLinesUsing.end - 1);
+    var start = computer._lineInfo.getLocation(checkLinesUsing.offset);
+    var end = computer._lineInfo.getLocation(checkLinesUsing.end - 1);
 
     var closingLabel = ClosingLabel(node.offset, node.length, label);
 

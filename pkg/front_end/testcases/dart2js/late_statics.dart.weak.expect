@@ -1,0 +1,55 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Statics extends core::Object {
+  static field core::int? _#a = _in::createSentinel<core::int>();
+  static field core::int? _#b = _in::createSentinel<core::int>();
+  static field core::int? _#c = _in::createSentinel<core::int>();
+  static field core::int? _#d = _in::createSentinel<core::int>();
+  synthetic constructor •() → self::Statics
+    : super core::Object::•()
+    ;
+  static get a() → core::int
+    return let final core::int? #t1 = self::Statics::_#a in _in::isSentinel(#t1) ?{core::int} throw new _in::LateError::fieldNI("a") : #t1{core::int};
+  static set a(core::int #t2) → void
+    self::Statics::_#a = #t2;
+  static get b() → core::int
+    return let final core::int? #t3 = self::Statics::_#b in _in::isSentinel(#t3) ?{core::int} throw new _in::LateError::fieldNI("b") : #t3{core::int};
+  static set b(core::int #t4) → void
+    if(_in::isSentinel(self::Statics::_#b))
+      self::Statics::_#b = #t4;
+    else
+      throw new _in::LateError::fieldAI("b");
+  static get c() → core::int
+    return let final core::int? #t5 = self::Statics::_#c in _in::isSentinel(#t5) ?{core::int} self::Statics::_#c = 1.{core::int::unary-}(){() → core::int} : #t5{core::int};
+  static set c(core::int #t6) → void
+    self::Statics::_#c = #t6;
+  static get d() → core::int
+    return let final core::int #t7 = self::Statics::_#d in _in::isSentinel(#t7) ?{core::int} let final core::int #t8 = 1.{core::int::unary-}(){() → core::int} in _in::isSentinel(self::Statics::_#d) ?{core::int} self::Statics::_#d = #t8 : throw new _in::LateError::fieldADI("d") : #t7;
+}
+static method main() → void {
+  self::testUninitializedNonFinalStaticField();
+  self::testUninitializedFinalStaticField();
+  self::testInitializedNonFinalStaticField();
+  self::testInitializedFinalStaticField();
+}
+static method testUninitializedNonFinalStaticField() → void {
+  core::print(self::Statics::a);
+  self::Statics::a = 42;
+  core::print(self::Statics::a);
+}
+static method testUninitializedFinalStaticField() → void {
+  core::print(self::Statics::b);
+  self::Statics::b = 42;
+  core::print(self::Statics::b);
+}
+static method testInitializedNonFinalStaticField() → void {
+  core::print(self::Statics::c);
+  self::Statics::c = 42;
+  core::print(self::Statics::c);
+}
+static method testInitializedFinalStaticField() → void {
+  core::print(self::Statics::d);
+}

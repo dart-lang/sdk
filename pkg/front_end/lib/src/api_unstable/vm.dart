@@ -52,6 +52,7 @@ export '../fasta/fasta_codes.dart'
         LocatedMessage,
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
+        messageFfiPackedAnnotationAlignment,
         noLength,
         templateFfiDartTypeMismatch,
         templateFfiEmptyStruct,
@@ -64,7 +65,10 @@ export '../fasta/fasta_codes.dart'
         templateFfiFieldNoAnnotation,
         templateFfiFieldNull,
         templateFfiNotStatic,
+        templateFfiPackedAnnotation,
+        templateFfiPackedNestingNonPacked,
         templateFfiSizeAnnotation,
+        templateFfiSizeAnnotationDimensions,
         templateFfiStructGeneric,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch;

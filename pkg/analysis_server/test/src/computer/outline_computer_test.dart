@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,8 +18,8 @@ void main() {
 
 class AbstractOutlineComputerTest extends AbstractContextTest
     with WithNonFunctionTypeAliasesMixin {
-  String testPath;
-  String testCode;
+  late String testPath;
+  late String testCode;
 
   @override
   void setUp() {
@@ -68,10 +67,10 @@ MyWidget
       Text('aaa')
       Text('bbb')
 ''');
-    var myWidget = unitOutline.children[0];
-    var build = myWidget.children[0];
+    var myWidget = unitOutline.children![0];
+    var build = myWidget.children![0];
 
-    var columnOutline = build.children[0];
+    var columnOutline = build.children![0];
     {
       var offset = testCode.indexOf('new Column');
       var length = testCode.indexOf('; // Column') - offset;
@@ -83,7 +82,7 @@ MyWidget
     }
 
     {
-      var textOutline = columnOutline.children[0];
+      var textOutline = columnOutline.children![0];
       var text = "const Text('aaa')";
       var offset = testCode.indexOf(text);
       _expect(textOutline,
@@ -94,7 +93,7 @@ MyWidget
     }
 
     {
-      var textOutline = columnOutline.children[1];
+      var textOutline = columnOutline.children![1];
       var text = "const Text('bbb')";
       var offset = testCode.indexOf(text);
       _expect(textOutline,
@@ -106,13 +105,13 @@ MyWidget
   }
 
   void _expect(Outline outline,
-      {@required String name,
-      @required int elementOffset,
-      @required int offset,
-      @required int length}) {
+      {required String name,
+      required int elementOffset,
+      required int offset,
+      required int length}) {
     var element = outline.element;
     expect(element.name, name);
-    expect(element.location.offset, elementOffset);
+    expect(element.location!.offset, elementOffset);
     expect(outline.offset, offset);
     expect(outline.length, length);
   }
@@ -128,7 +127,7 @@ MyWidget
       }
     }
 
-    for (var child in outline.children) {
+    for (var child in outline.children!) {
       writeOutline(child, '');
     }
     return buffer.toString();
@@ -157,7 +156,7 @@ class B {
 String fa(int pa) => null;
 R fb<R, P>(P p) {}
 ''');
-    var topOutlines = unitOutline.children;
+    var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(4));
     // A
     {
@@ -167,14 +166,14 @@ R fb<R, P>(P p) {}
       expect(element_A.name, 'A');
       expect(element_A.typeParameters, '<K, V>');
       {
-        var location = element_A.location;
+        var location = element_A.location!;
         expect(location.offset, testCode.indexOf('A<K, V> {'));
         expect(location.length, 1);
       }
       expect(element_A.parameters, null);
       expect(element_A.returnType, null);
       // A children
-      var outlines_A = outline_A.children;
+      var outlines_A = outline_A.children!;
       expect(outlines_A, hasLength(11));
       {
         var outline = outlines_A[0];
@@ -206,7 +205,7 @@ R fb<R, P>(P p) {}
         expect(element.kind, ElementKind.CONSTRUCTOR);
         expect(element.name, 'A');
         {
-          var location = element.location;
+          var location = element.location!;
           expect(location.offset, testCode.indexOf('A(int i, String s);'));
           expect(location.length, 'A'.length);
         }
@@ -221,7 +220,7 @@ R fb<R, P>(P p) {}
         expect(element.kind, ElementKind.CONSTRUCTOR);
         expect(element.name, 'A.name');
         {
-          var location = element.location;
+          var location = element.location!;
           expect(location.offset, testCode.indexOf('name(num p);'));
           expect(location.length, 'name'.length);
         }
@@ -236,7 +235,7 @@ R fb<R, P>(P p) {}
         expect(element.kind, ElementKind.CONSTRUCTOR);
         expect(element.name, 'A._privateName');
         {
-          var location = element.location;
+          var location = element.location!;
           expect(location.offset, testCode.indexOf('_privateName(num p);'));
           expect(location.length, '_privateName'.length);
         }
@@ -251,7 +250,7 @@ R fb<R, P>(P p) {}
         expect(element.kind, ElementKind.METHOD);
         expect(element.name, 'ma');
         {
-          var location = element.location;
+          var location = element.location!;
           expect(location.offset, testCode.indexOf('ma(int pa) => null;'));
           expect(location.length, 'ma'.length);
         }
@@ -266,7 +265,7 @@ R fb<R, P>(P p) {}
         expect(element.kind, ElementKind.METHOD);
         expect(element.name, '_mb');
         {
-          var location = element.location;
+          var location = element.location!;
           expect(location.offset, testCode.indexOf('_mb(int pb);'));
           expect(location.length, '_mb'.length);
         }
@@ -281,7 +280,7 @@ R fb<R, P>(P p) {}
         expect(element.kind, ElementKind.METHOD);
         expect(element.name, 'mc');
         {
-          var location = element.location;
+          var location = element.location!;
           expect(location.offset, testCode.indexOf('mc<R, P>'));
           expect(location.length, 'mc'.length);
         }
@@ -297,7 +296,7 @@ R fb<R, P>(P p) {}
         expect(element.kind, ElementKind.GETTER);
         expect(element.name, 'propA');
         {
-          var location = element.location;
+          var location = element.location!;
           expect(location.offset, testCode.indexOf('propA => null;'));
           expect(location.length, 'propA'.length);
         }
@@ -310,7 +309,7 @@ R fb<R, P>(P p) {}
         expect(element.kind, ElementKind.SETTER);
         expect(element.name, 'propB');
         {
-          var location = element.location;
+          var location = element.location!;
           expect(location.offset, testCode.indexOf('propB(int v) {}'));
           expect(location.length, 'propB'.length);
         }
@@ -326,14 +325,14 @@ R fb<R, P>(P p) {}
       expect(element_B.name, 'B');
       expect(element_B.typeParameters, isNull);
       {
-        var location = element_B.location;
+        var location = element_B.location!;
         expect(location.offset, testCode.indexOf('B {'));
         expect(location.length, 1);
       }
       expect(element_B.parameters, null);
       expect(element_B.returnType, null);
       // B children
-      var outlines_B = outline_B.children;
+      var outlines_B = outline_B.children!;
       expect(outlines_B, hasLength(1));
       {
         var outline = outlines_B[0];
@@ -341,7 +340,7 @@ R fb<R, P>(P p) {}
         expect(element.kind, ElementKind.CONSTRUCTOR);
         expect(element.name, 'B');
         {
-          var location = element.location;
+          var location = element.location!;
           expect(location.offset, testCode.indexOf('B(int p);'));
           expect(location.length, 'B'.length);
         }
@@ -355,7 +354,7 @@ R fb<R, P>(P p) {}
       expect(element.kind, ElementKind.FUNCTION);
       expect(element.name, 'fa');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.offset, testCode.indexOf('fa(int pa)'));
         expect(location.length, 'ma'.length);
       }
@@ -370,7 +369,7 @@ R fb<R, P>(P p) {}
       expect(element.kind, ElementKind.FUNCTION);
       expect(element.name, 'fb');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.offset, testCode.indexOf('fb<R, P>'));
         expect(location.length, 'fb'.length);
       }
@@ -388,7 +387,7 @@ enum MyEnum {
   A, B, C
 }
 ''');
-    var topOutlines = unitOutline.children;
+    var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(1));
     // MyEnum
     {
@@ -397,14 +396,14 @@ enum MyEnum {
       expect(element_MyEnum.kind, ElementKind.ENUM);
       expect(element_MyEnum.name, 'MyEnum');
       {
-        var location = element_MyEnum.location;
+        var location = element_MyEnum.location!;
         expect(location.offset, testCode.indexOf('MyEnum {'));
         expect(location.length, 'MyEnum'.length);
       }
       expect(element_MyEnum.parameters, null);
       expect(element_MyEnum.returnType, null);
       // MyEnum children
-      var outlines_MyEnum = outline_MyEnum.children;
+      var outlines_MyEnum = outline_MyEnum.children!;
       expect(outlines_MyEnum, hasLength(3));
       _isEnumConstant(outlines_MyEnum[0], 'A');
       _isEnumConstant(outlines_MyEnum[1], 'B');
@@ -421,7 +420,7 @@ extension MyExt on String {
   }
 }
 ''');
-    var topOutlines = unitOutline.children;
+    var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(1));
     // MyExt
     {
@@ -430,7 +429,7 @@ extension MyExt on String {
       expect(element_MyExt.kind, ElementKind.EXTENSION);
       expect(element_MyExt.name, 'MyExt');
       {
-        var location = element_MyExt.location;
+        var location = element_MyExt.location!;
         expect(location.offset, testCode.indexOf('MyExt on'));
         expect(location.length, 'MyExt'.length);
       }
@@ -451,7 +450,7 @@ extension on String {
   }
 }
 ''');
-    var topOutlines = unitOutline.children;
+    var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(1));
     // MyExt
     {
@@ -460,7 +459,7 @@ extension on String {
       expect(element_MyExt.kind, ElementKind.EXTENSION);
       expect(element_MyExt.name, '');
       {
-        var location = element_MyExt.location;
+        var location = element_MyExt.location!;
         expect(location.offset, testCode.indexOf('String'));
         expect(location.length, 'String'.length);
       }
@@ -476,7 +475,7 @@ extension on String {
     var unitOutline = await _computeOutline('''
 typedef F = void Function();
 ''');
-    var topOutlines = unitOutline.children;
+    var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(1));
     // F
     var outline_F = topOutlines[0];
@@ -484,7 +483,7 @@ typedef F = void Function();
     expect(element_F.kind, ElementKind.FUNCTION_TYPE_ALIAS);
     expect(element_F.name, 'F');
     {
-      var location = element_F.location;
+      var location = element_F.location!;
       expect(location.offset, testCode.indexOf('F ='));
       expect(location.length, 'F'.length);
     }
@@ -498,7 +497,7 @@ typedef F = void Function();
     var unitOutline = await _computeOutline('''
 typedef F = Function();
 ''');
-    var topOutlines = unitOutline.children;
+    var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(1));
     // F
     var outline_F = topOutlines[0];
@@ -506,7 +505,7 @@ typedef F = Function();
     expect(element_F.kind, ElementKind.FUNCTION_TYPE_ALIAS);
     expect(element_F.name, 'F');
     {
-      var location = element_F.location;
+      var location = element_F.location!;
       expect(location.offset, testCode.indexOf('F ='));
       expect(location.length, 'F'.length);
     }
@@ -520,7 +519,7 @@ typedef F = Function();
     var unitOutline = await _computeOutline('''
 typedef F<T> = Map<int, T>;
 ''');
-    var topOutlines = unitOutline.children;
+    var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(1));
     // F
     var outline_F = topOutlines[0];
@@ -528,7 +527,7 @@ typedef F<T> = Map<int, T>;
     expect(element_F.kind, ElementKind.TYPE_ALIAS);
     expect(element_F.name, 'F');
     {
-      var location = element_F.location;
+      var location = element_F.location!;
       expect(location.offset, testCode.indexOf('F<T> ='));
       expect(location.length, 'F'.length);
     }
@@ -559,7 +558,7 @@ void main() {
 }
 ''');
     // unit
-    var unit_children = outline.children;
+    var unit_children = outline.children!;
     expect(unit_children, hasLength(3));
     // main
     var main_outline = unit_children[2];
@@ -569,7 +568,7 @@ void main() {
         offset: testCode.indexOf('main() {'),
         parameters: '()',
         returnType: 'void');
-    var main_children = main_outline.children;
+    var main_children = main_outline.children!;
     expect(main_children, hasLength(2));
     // group1
     var group1_outline = main_children[0];
@@ -578,7 +577,7 @@ void main() {
         length: 5,
         name: 'group("group1")',
         offset: testCode.indexOf("group('group1'"));
-    var group1_children = group1_outline.children;
+    var group1_children = group1_outline.children!;
     expect(group1_children, hasLength(2));
     // group1_1
     var group1_1_outline = group1_children[0];
@@ -587,7 +586,7 @@ void main() {
         length: 5,
         name: 'group("group1_1")',
         offset: testCode.indexOf("group('group1_1'"));
-    var group1_1_children = group1_1_outline.children;
+    var group1_1_children = group1_1_outline.children!;
     expect(group1_1_children, hasLength(2));
     // test1_1_1
     var test1_1_1_outline = group1_1_children[0];
@@ -612,7 +611,7 @@ void main() {
         length: 5,
         name: 'group("group1_2")',
         offset: testCode.indexOf("group('group1_2'"));
-    var group1_2_children = group1_2_outline.children;
+    var group1_2_children = group1_2_outline.children!;
     expect(group1_2_children, hasLength(1));
     // test2_1
     var test1_2_1_outline = group1_2_children[0];
@@ -629,7 +628,7 @@ void main() {
         length: 5,
         name: 'group("group2")',
         offset: testCode.indexOf("group('group2'"));
-    var group2_children = group2_outline.children;
+    var group2_children = group2_outline.children!;
     expect(group2_children, hasLength(2));
     // test2_1
     var test2_1_outline = group2_children[0];
@@ -705,7 +704,7 @@ void main() {
 }
 ''');
     // unit
-    var unit_children = outline.children;
+    var unit_children = outline.children!;
     expect(unit_children, hasLength(3));
     // main
     var main_outline = unit_children[2];
@@ -715,7 +714,7 @@ void main() {
         offset: testCode.indexOf('main() {'),
         parameters: '()',
         returnType: 'void');
-    var main_children = main_outline.children;
+    var main_children = main_outline.children!;
     expect(main_children, hasLength(2));
     // group1
     var group1_outline = main_children[0];
@@ -724,7 +723,7 @@ void main() {
         length: 7,
         name: 'myGroup("group1")',
         offset: testCode.indexOf("myGroup('group1'"));
-    var group1_children = group1_outline.children;
+    var group1_children = group1_outline.children!;
     expect(group1_children, hasLength(2));
     // group1_1
     var group1_1_outline = group1_children[0];
@@ -733,7 +732,7 @@ void main() {
         length: 7,
         name: 'myGroup("group1_1")',
         offset: testCode.indexOf("myGroup('group1_1'"));
-    var group1_1_children = group1_1_outline.children;
+    var group1_1_children = group1_1_outline.children!;
     expect(group1_1_children, hasLength(2));
     // test1_1_1
     var test1_1_1_outline = group1_1_children[0];
@@ -758,7 +757,7 @@ void main() {
         length: 7,
         name: 'myGroup("group1_2")',
         offset: testCode.indexOf("myGroup('group1_2'"));
-    var group1_2_children = group1_2_outline.children;
+    var group1_2_children = group1_2_outline.children!;
     expect(group1_2_children, hasLength(1));
     // test2_1
     var test1_2_1_outline = group1_2_children[0];
@@ -775,7 +774,7 @@ void main() {
         length: 7,
         name: 'myGroup("group2")',
         offset: testCode.indexOf("myGroup('group2'"));
-    var group2_children = group2_outline.children;
+    var group2_children = group2_outline.children!;
     expect(group2_children, hasLength(2));
     // test2_1
     var test2_1_outline = group2_children[0];
@@ -812,7 +811,7 @@ f() {
   }
 }
 ''');
-    var topOutlines = unitOutline.children;
+    var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(2));
     // A
     {
@@ -821,14 +820,14 @@ f() {
       expect(element_A.kind, ElementKind.CLASS);
       expect(element_A.name, 'A');
       {
-        var location = element_A.location;
+        var location = element_A.location!;
         expect(location.offset, testCode.indexOf('A {'));
         expect(location.length, 'A'.length);
       }
       expect(element_A.parameters, null);
       expect(element_A.returnType, null);
       // A children
-      var outlines_A = outline_A.children;
+      var outlines_A = outline_A.children!;
       expect(outlines_A, hasLength(2));
       {
         var constructorOutline = outlines_A[0];
@@ -836,14 +835,14 @@ f() {
         expect(constructorElement.kind, ElementKind.CONSTRUCTOR);
         expect(constructorElement.name, 'A');
         {
-          var location = constructorElement.location;
+          var location = constructorElement.location!;
           expect(location.offset, testCode.indexOf('A() {'));
           expect(location.length, 'A'.length);
         }
         expect(constructorElement.parameters, '()');
         expect(constructorElement.returnType, isNull);
         // local function
-        var outlines_constructor = constructorOutline.children;
+        var outlines_constructor = constructorOutline.children!;
         expect(outlines_constructor, hasLength(1));
         {
           var outline = outlines_constructor[0];
@@ -851,7 +850,7 @@ f() {
           expect(element.kind, ElementKind.FUNCTION);
           expect(element.name, 'local_A');
           {
-            var location = element.location;
+            var location = element.location!;
             expect(location.offset, testCode.indexOf('local_A() {}'));
             expect(location.length, 'local_A'.length);
           }
@@ -865,14 +864,14 @@ f() {
         expect(element_m.kind, ElementKind.METHOD);
         expect(element_m.name, 'm');
         {
-          var location = element_m.location;
+          var location = element_m.location!;
           expect(location.offset, testCode.indexOf('m() {'));
           expect(location.length, 'm'.length);
         }
         expect(element_m.parameters, '()');
         expect(element_m.returnType, '');
         // local function
-        var methodChildren = outline_m.children;
+        var methodChildren = outline_m.children!;
         expect(methodChildren, hasLength(1));
         {
           var outline = methodChildren[0];
@@ -880,7 +879,7 @@ f() {
           expect(element.kind, ElementKind.FUNCTION);
           expect(element.name, 'local_m');
           {
-            var location = element.location;
+            var location = element.location!;
             expect(location.offset, testCode.indexOf('local_m() {}'));
             expect(location.length, 'local_m'.length);
           }
@@ -896,14 +895,14 @@ f() {
       expect(element_f.kind, ElementKind.FUNCTION);
       expect(element_f.name, 'f');
       {
-        var location = element_f.location;
+        var location = element_f.location!;
         expect(location.offset, testCode.indexOf('f() {'));
         expect(location.length, 'f'.length);
       }
       expect(element_f.parameters, '()');
       expect(element_f.returnType, '');
       // f() children
-      var outlines_f = outline_f.children;
+      var outlines_f = outline_f.children!;
       expect(outlines_f, hasLength(2));
       {
         var outline_f1 = outlines_f[0];
@@ -911,7 +910,7 @@ f() {
         expect(element_f1.kind, ElementKind.FUNCTION);
         expect(element_f1.name, 'local_f1');
         {
-          var location = element_f1.location;
+          var location = element_f1.location!;
           expect(location.offset, testCode.indexOf('local_f1(int i) {}'));
           expect(location.length, 'local_f1'.length);
         }
@@ -924,14 +923,14 @@ f() {
         expect(element_f2.kind, ElementKind.FUNCTION);
         expect(element_f2.name, 'local_f2');
         {
-          var location = element_f2.location;
+          var location = element_f2.location!;
           expect(location.offset, testCode.indexOf('local_f2(String s) {'));
           expect(location.length, 'local_f2'.length);
         }
         expect(element_f2.parameters, '(String s)');
         expect(element_f2.returnType, '');
         // local_f2() local function
-        var outlines_f2 = outline_f2.children;
+        var outlines_f2 = outline_f2.children!;
         expect(outlines_f2, hasLength(1));
         {
           var outline_f21 = outlines_f2[0];
@@ -939,7 +938,7 @@ f() {
           expect(element_f21.kind, ElementKind.FUNCTION);
           expect(element_f21.name, 'local_f21');
           {
-            var location = element_f21.location;
+            var location = element_f21.location!;
             expect(location.offset, testCode.indexOf('local_f21(int p) {'));
             expect(location.length, 'local_f21'.length);
           }
@@ -958,7 +957,7 @@ mixin M<N> {
   set f(int g) {}
 }
 ''');
-    var topOutlines = unitOutline.children;
+    var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(1));
     // M
     {
@@ -968,14 +967,14 @@ mixin M<N> {
       expect(element_M.name, 'M');
       expect(element_M.typeParameters, '<N>');
       {
-        var location = element_M.location;
+        var location = element_M.location!;
         expect(location.offset, testCode.indexOf('M<N>'));
         expect(location.length, 1);
       }
       expect(element_M.parameters, isNull);
       expect(element_M.returnType, isNull);
       // M children
-      var outlines_M = outline_M.children;
+      var outlines_M = outline_M.children!;
       expect(outlines_M, hasLength(3));
       {
         var outline = outlines_M[0];
@@ -983,7 +982,7 @@ mixin M<N> {
         expect(element.kind, ElementKind.METHOD);
         expect(element.name, 'c');
         {
-          var location = element.location;
+          var location = element.location!;
           expect(location.offset, testCode.indexOf('c(int d)'));
           expect(location.length, 1);
         }
@@ -998,7 +997,7 @@ mixin M<N> {
         expect(element.kind, ElementKind.GETTER);
         expect(element.name, 'e');
         {
-          var location = element.location;
+          var location = element.location!;
           expect(location.offset, testCode.indexOf('e => null'));
           expect(location.length, 1);
         }
@@ -1011,7 +1010,7 @@ mixin M<N> {
         expect(element.kind, ElementKind.SETTER);
         expect(element.name, 'f');
         {
-          var location = element.location;
+          var location = element.location!;
           expect(location.offset, testCode.indexOf('f(int g)'));
           expect(location.length, 1);
         }
@@ -1032,7 +1031,7 @@ class A {
   int fieldD;
 }
 ''');
-    var outlines = unitOutline.children[0].children;
+    var outlines = unitOutline.children![0].children!;
     expect(outlines, hasLength(4));
 
     // fieldA
@@ -1099,7 +1098,7 @@ class A {}
 
 class B {}
 ''');
-    var topOutlines = unitOutline.children;
+    var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(2));
 
     // A
@@ -1141,7 +1140,7 @@ class A {
   int methodB() {}
 }
 ''');
-    var outlines = unitOutline.children[0].children;
+    var outlines = unitOutline.children![0].children!;
     expect(outlines, hasLength(2));
 
     // methodA
@@ -1187,7 +1186,7 @@ fB(int p) => null;
 String get propA => null;
 set propB(int v) {}
 ''');
-    var topOutlines = unitOutline.children;
+    var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(11));
     // FTA
     {
@@ -1197,7 +1196,7 @@ set propB(int v) {}
       expect(element.name, 'FTA');
       expect(element.typeParameters, '<K, V>');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.offset, testCode.indexOf('FTA<K, V>('));
         expect(location.length, 'FTA'.length);
       }
@@ -1212,7 +1211,7 @@ set propB(int v) {}
       expect(element.name, 'FTB');
       expect(element.typeParameters, isNull);
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.offset, testCode.indexOf('FTB('));
         expect(location.length, 'FTB'.length);
       }
@@ -1227,7 +1226,7 @@ set propB(int v) {}
       expect(element.name, 'GTAF');
       expect(element.typeParameters, '<T>');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.offset, testCode.indexOf('GTAF<T> ='));
         expect(location.length, 'GTAF'.length);
       }
@@ -1242,7 +1241,7 @@ set propB(int v) {}
       expect(element.name, 'CTA');
       expect(element.typeParameters, '<T>');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.offset, testCode.indexOf('CTA<T> ='));
         expect(location.length, 'CTA'.length);
       }
@@ -1265,7 +1264,7 @@ set propB(int v) {}
       expect(element.kind, ElementKind.FUNCTION);
       expect(element.name, 'fA');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.offset, testCode.indexOf('fA('));
         expect(location.length, 'fA'.length);
       }
@@ -1279,7 +1278,7 @@ set propB(int v) {}
       expect(element.kind, ElementKind.FUNCTION);
       expect(element.name, 'fB');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.offset, testCode.indexOf('fB('));
         expect(location.length, 'fB'.length);
       }
@@ -1293,7 +1292,7 @@ set propB(int v) {}
       expect(element.kind, ElementKind.GETTER);
       expect(element.name, 'propA');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.offset, testCode.indexOf('propA => null;'));
         expect(location.length, 'propA'.length);
       }
@@ -1307,7 +1306,7 @@ set propB(int v) {}
       expect(element.kind, ElementKind.SETTER);
       expect(element.name, 'propB');
       {
-        var location = element.location;
+        var location = element.location!;
         expect(location.offset, testCode.indexOf('propB(int v) {}'));
         expect(location.length, 'propB'.length);
       }
@@ -1317,15 +1316,15 @@ set propB(int v) {}
   }
 
   void _expect(Outline outline,
-      {ElementKind kind,
+      {ElementKind? kind,
       bool leaf = false,
-      int length,
-      String name,
-      int offset,
-      String parameters,
-      String returnType}) {
+      int? length,
+      String? name,
+      int? offset,
+      String? parameters,
+      String? returnType}) {
     var element = outline.element;
-    var location = element.location;
+    var location = element.location!;
 
     if (kind != null) {
       expect(element.kind, kind);

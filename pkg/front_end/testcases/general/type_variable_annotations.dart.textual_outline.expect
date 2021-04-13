@@ -1,0 +1,16 @@
+class A {
+  const A();
+}
+
+void method<@A() T>() {}
+typedef F<@A() T> = void Function(T);
+
+class Class<@A() T> {
+  void method<@A() T>() {}
+}
+
+extension Extension<@A() T> on T {
+  void method<@A() T>() {}
+}
+
+main() {}

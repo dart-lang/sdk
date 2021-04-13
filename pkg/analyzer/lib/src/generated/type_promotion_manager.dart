@@ -259,7 +259,7 @@ class TypePromotionManager {
       }
     } else if (condition is IsExpression) {
       if (condition.notOperator == null) {
-        _promote(condition.expression, condition.type.type!);
+        _promote(condition.expression, condition.type.typeOrThrow);
       }
     } else if (condition is ParenthesizedExpression) {
       _promoteTypes(condition.expression);

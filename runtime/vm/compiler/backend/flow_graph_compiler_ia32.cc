@@ -26,7 +26,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
-DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 
 DECLARE_FLAG(bool, enable_simd_inline);
 
@@ -43,10 +42,6 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 bool FlowGraphCompiler::SupportsUnboxedDoubles() {
   return true;
-}
-
-bool FlowGraphCompiler::SupportsUnboxedInt64() {
-  return FLAG_unbox_mints;
 }
 
 bool FlowGraphCompiler::SupportsUnboxedSimd128() {
@@ -118,7 +113,7 @@ TypedDataPtr CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
     builder->AddReturnAddress(current->function(),
-                              DeoptId::ToDeoptAfter(current->deopt_id()),
+                              DeoptId::ToDeoptAfter(current->GetDeoptId()),
                               slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
@@ -252,75 +247,6 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateCallSubtypeTestStub(
   return type_test_cache.ptr();
 }
 
-// If instanceof type test cannot be performed successfully at compile time and
-// therefore eliminated, optimize it by adding inlined tests for:
-// - Null -> see comment below.
-// - Smi -> compile time subtype check (only if dst class is not parameterized).
-// - Class equality (only if class is not parameterized).
-// Inputs:
-// - EAX: object.
-// - EDX: instantiator type arguments or raw_null.
-// - ECX: function type arguments or raw_null.
-// Returns:
-// - true or false in EAX.
-void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
-                                           intptr_t deopt_id,
-                                           const AbstractType& type,
-                                           LocationSummary* locs) {
-  ASSERT(type.IsFinalized());
-  ASSERT(!type.IsTopTypeForInstanceOf());  // Already checked.
-
-  const compiler::Immediate& raw_null =
-      compiler::Immediate(static_cast<intptr_t>(Object::null()));
-  compiler::Label is_instance, is_not_instance;
-  // 'null' is an instance of Null, Object*, Never*, void, and dynamic.
-  // In addition, 'null' is an instance of any nullable type.
-  // It is also an instance of FutureOr<T> if it is an instance of T.
-  const AbstractType& unwrapped_type =
-      AbstractType::Handle(type.UnwrapFutureOr());
-  if (!unwrapped_type.IsTypeParameter() || unwrapped_type.IsNullable()) {
-    // Only nullable type parameter remains nullable after instantiation.
-    // See NullIsInstanceOf().
-    __ cmpl(EAX, raw_null);
-    __ j(EQUAL, (unwrapped_type.IsNullable() ||
-                 (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType()))
-                    ? &is_instance
-                    : &is_not_instance);
-  }
-
-  // Generate inline instanceof test.
-  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
-  test_cache =
-      GenerateInlineInstanceof(source, type, &is_instance, &is_not_instance);
-
-  // test_cache is null if there is no fall-through.
-  compiler::Label done;
-  if (!test_cache.IsNull()) {
-    // Generate runtime call.
-    __ PushObject(Object::null_object());  // Make room for the result.
-    __ pushl(TypeTestABI::kInstanceReg);   // Push the instance.
-    __ PushObject(type);                   // Push the type.
-    __ pushl(TypeTestABI::kInstantiatorTypeArgumentsReg);
-    __ pushl(TypeTestABI::kFunctionTypeArgumentsReg);
-    // Can reuse kInstanceReg as scratch here since it was pushed above.
-    __ LoadObject(TypeTestABI::kInstanceReg, test_cache);
-    __ pushl(TypeTestABI::kInstanceReg);
-    GenerateRuntimeCall(source, deopt_id, kInstanceofRuntimeEntry, 5, locs);
-    // Pop the parameters supplied to the runtime entry. The result of the
-    // instanceof runtime call will be left as the result of the operation.
-    __ Drop(5);
-    __ popl(TypeTestABI::kInstanceOfResultReg);
-    __ jmp(&done, compiler::Assembler::kNearJump);
-  }
-  __ Bind(&is_not_instance);
-  __ LoadObject(TypeTestABI::kInstanceOfResultReg, Bool::Get(false));
-  __ jmp(&done, compiler::Assembler::kNearJump);
-
-  __ Bind(&is_instance);
-  __ LoadObject(TypeTestABI::kInstanceOfResultReg, Bool::Get(true));
-  __ Bind(&done);
-}
-
 // Optimize assignable type check by adding inlined tests for:
 // - NULL -> return NULL.
 // - Smi -> compile time subtype check (only if dst class is not parameterized).
@@ -395,26 +321,33 @@ void FlowGraphCompiler::GenerateAssertAssignable(
   }
 
   __ Bind(&runtime_call);
-  __ PushObject(Object::null_object());            // Make room for the result.
-  __ pushl(TypeTestABI::kInstanceReg);             // Push the source object.
-  // Push the type of the destination.
+
+  // We push the inputs of [AssertAssignable] in the same order as they lie on
+  // the stack in unoptimized code.
+  // That will make the deopt environment we emit as metadata correct and
+  // doesn't need pruning (as in other architectures).
+
+  static_assert(AssertAssignableInstr::kNumInputs == 4,
+                "Expected AssertAssignable to have 4 inputs");
+
+  __ PushRegister(TypeTestABI::kInstanceReg);
   if (!dst_type.IsNull()) {
     __ PushObject(dst_type);
   } else {
-    __ pushl(TypeTestABI::kDstTypeReg);
+    __ PushRegister(TypeTestABI::kDstTypeReg);
   }
-  __ pushl(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ pushl(TypeTestABI::kFunctionTypeArgumentsReg);
-  __ PushObject(dst_name);  // Push the name of the destination.
-  // Can reuse kInstanceReg as scratch here since it was pushed above.
-  __ LoadObject(TypeTestABI::kInstanceReg, test_cache);
-  __ pushl(TypeTestABI::kInstanceReg);
-  __ PushObject(Smi::ZoneHandle(zone(), Smi::New(kTypeCheckFromInline)));
-  GenerateRuntimeCall(source, deopt_id, kTypeCheckRuntimeEntry, 7, locs);
-  // Pop the parameters supplied to the runtime entry. The result of the
-  // type check runtime call is the checked value.
-  __ Drop(7);
-  __ popl(TypeTestABI::kInstanceReg);
+  __ PushRegister(TypeTestABI::kInstantiatorTypeArgumentsReg);
+  __ PushRegister(TypeTestABI::kFunctionTypeArgumentsReg);
+
+  // Pass destination name and subtype test reg as register arguments.
+  __ LoadObject(AssertAssignableStubABI::kDstNameReg, dst_name);
+  __ LoadObject(AssertAssignableStubABI::kSubtypeTestReg, test_cache);
+
+  GenerateStubCall(source, StubCode::AssertAssignable(),
+                   UntaggedPcDescriptors::kOther, locs, deopt_id);
+
+  __ Drop(AssertAssignableInstr::kNumInputs - 1);
+  __ PopRegister(TypeTestABI::kInstanceReg);
 
   __ Bind(&is_assignable);
 }
@@ -532,7 +465,11 @@ void FlowGraphCompiler::CompileGraph() {
 }
 
 void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
-  __ Call(stub);
+  if (stub.InVMIsolateHeap()) {
+    __ CallVmStub(stub);
+  } else {
+    __ Call(stub);
+  }
   AddStubCallTarget(stub);
 }
 
@@ -718,7 +655,6 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
 }
 
 void FlowGraphCompiler::EmitDispatchTableCall(
-    Register cid_reg,
     int32_t selector_offset,
     const Array& arguments_descriptor) {
   // Only generated with precompilation.

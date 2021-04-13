@@ -463,8 +463,7 @@ void Disassembler::DisassembleCode(const Function& function,
   TextBuffer buffer(128);
   const char* function_fullname = function.ToFullyQualifiedCString();
   buffer.Printf("%s", Function::KindToCString(function.kind()));
-  if (function.IsInvokeFieldDispatcher() ||
-      function.IsNoSuchMethodDispatcher()) {
+  if (function.HasSavedArgumentsDescriptor()) {
     const auto& args_desc_array = Array::Handle(function.saved_args_desc());
     const ArgumentsDescriptor args_desc(args_desc_array);
     buffer.AddString(", ");

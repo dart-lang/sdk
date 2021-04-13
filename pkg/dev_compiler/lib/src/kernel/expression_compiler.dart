@@ -13,8 +13,9 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Code, Message, PlainAndColorizedString;
 
 import 'package:dev_compiler/dev_compiler.dart';
+import 'package:dev_compiler/src/compiler/js_names.dart' as js_ast;
+import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:dev_compiler/src/js_ast/js_ast.dart' as js_ast;
-import 'package:dev_compiler/src/kernel/compiler.dart';
 
 import 'package:front_end/src/api_unstable/ddc.dart';
 
@@ -31,8 +32,6 @@ import 'package:kernel/ast.dart'
         Member,
         Node,
         Procedure,
-        PropertyGet,
-        PropertySet,
         RedirectingFactoryConstructor,
         TreeNode,
         TypeParameter,
@@ -114,7 +113,7 @@ class DartScopeBuilder extends Visitor<void> with VisitorVoidMixin {
   }
 
   DartScope build() {
-    if (_offset == null || _library == null || _member == null) return null;
+    if (_offset == null || _library == null) return null;
 
     return DartScope(_library, _cls, _member, _definitions, _typeParameters);
   }
@@ -127,7 +126,10 @@ class DartScopeBuilder extends Visitor<void> with VisitorVoidMixin {
   @override
   void visitLibrary(Library library) {
     _library = library;
-    _offset = _component.getOffset(_library.fileUri, _line, _column);
+    _offset = 0;
+    if (_line > 0) {
+      _offset = _component.getOffset(_library.fileUri, _line, _column);
+    }
 
     // Exit early if the evaluation offset is not found.
     // Note: the complete scope is not found in this case,
@@ -261,53 +263,6 @@ class FileEndOffsetCalculator extends Visitor<int> with VisitorNullMixin<int> {
   }
 }
 
-/// Collect private fields and libraries used in expression.
-///
-/// Used during expression evaluation to find symbols
-/// for private fields. The symbols are used in the ddc
-/// compilation of the expression, are not always avalable
-/// in the JavaScript scope, so we need to redefine them.
-///
-/// See [_addSymbolDefinitions]
-class PrivateFieldsVisitor extends Visitor<void> with VisitorVoidMixin {
-  final Map<String, Library> privateFields = {};
-
-  @override
-  void defaultNode(Node node) {
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitFieldReference(Field node) {
-    if (node.name.isPrivate && !node.isStatic) {
-      privateFields[node.name.text] = node.enclosingLibrary;
-    }
-  }
-
-  @override
-  void visitField(Field node) {
-    if (node.name.isPrivate && !node.isStatic) {
-      privateFields[node.name.text] = node.enclosingLibrary;
-    }
-  }
-
-  @override
-  void visitPropertyGet(PropertyGet node) {
-    var member = node.interfaceTarget;
-    if (node.name.isPrivate && member != null && member.isInstanceMember) {
-      privateFields[node.name.text] = node.interfaceTarget?.enclosingLibrary;
-    }
-  }
-
-  @override
-  void visitPropertySet(PropertySet node) {
-    var member = node.interfaceTarget;
-    if (node.name.isPrivate && member != null && member.isInstanceMember) {
-      privateFields[node.name.text] = node.interfaceTarget?.enclosingLibrary;
-    }
-  }
-}
-
 class ExpressionCompiler {
   static final String debugProcedureName = '\$dartEval';
 
@@ -317,6 +272,7 @@ class ExpressionCompiler {
   final IncrementalCompiler _compiler;
   final ProgramCompiler _kernel2jsCompiler;
   final Component _component;
+  final ModuleFormat _moduleFormat;
 
   DiagnosticMessageHandler onDiagnostic;
 
@@ -328,6 +284,7 @@ class ExpressionCompiler {
 
   ExpressionCompiler(
     this._options,
+    this._moduleFormat,
     this.errors,
     this._compiler,
     this._kernel2jsCompiler,
@@ -494,81 +451,27 @@ class ExpressionCompiler {
 
     // TODO: make this code clear and assumptions enforceable
     // https://github.com/dart-lang/sdk/issues/43273
-    //
-    // We assume here that ExpressionCompiler is always created using
-    // onDisgnostic method that adds to the error list that is passed
-    // to the same invocation of the ExpressionCompiler constructor.
-    // We only use the error list once - below, to detect if the frontend
-    // compilation of the expression has failed.
     if (errors.isNotEmpty) {
       return null;
     }
 
-    var jsFun = _kernel2jsCompiler.emitFunctionIncremental(
+    var imports = <js_ast.ModuleItem>[];
+    var jsFun = _kernel2jsCompiler.emitFunctionIncremental(imports,
         scope.library, scope.cls, procedure.function, '$debugProcedureName');
 
     _log('Generated JavaScript for expression');
 
-    var jsFunModified = _addSymbolDefinitions(procedure, jsFun, scope);
-
-    _log('Added symbol definitions to JavaScript');
-
     // print JS ast to string for evaluation
-
     var context = js_ast.SimpleJavaScriptPrintingContext();
     var opts =
         js_ast.JavaScriptPrintingOptions(allowKeywordsInProperties: true);
 
-    jsFunModified.accept(js_ast.Printer(opts, context));
-    _log('Performed JavaScript adjustments for expression');
+    var tree = transformFunctionModuleFormat(imports, jsFun, _moduleFormat);
+    tree.accept(
+        js_ast.Printer(opts, context, localNamer: js_ast.TemporaryNamer(tree)));
+
+    _log('Added imports and renamed variables for expression');
 
     return context.getText();
-  }
-
-  /// Add symbol definitions for all symbols in compiled expression
-  ///
-  /// Example:
-  ///
-  ///   compilation of this._field from library 'main'
-  ///
-  /// Symbol definition:
-  ///
-  ///   let _f = dart.privateName(main, "_f");
-  ///
-  /// Expression generated by ddc:
-  ///
-  ///   this[_f]
-  ///
-  /// TODO: this is a temporary workaround to make JavaScript produced
-  /// by the ProgramCompiler self-contained.
-  /// Issue: https://github.com/dart-lang/sdk/issues/41480
-  js_ast.Fun _addSymbolDefinitions(
-      Procedure procedure, js_ast.Fun jsFun, DartScope scope) {
-    // get private fields accessed by the evaluated expression
-    var fieldsCollector = PrivateFieldsVisitor();
-    procedure.accept(fieldsCollector);
-    var privateFields = fieldsCollector.privateFields;
-
-    // collect library names where private symbols are defined
-    var libraryForField = privateFields.map((field, library) =>
-        MapEntry(field, _kernel2jsCompiler.emitLibraryName(library).name));
-
-    var body = js_ast.Block([
-      // re-create private field accessors
-      ...libraryForField.keys.map(
-          (String field) => _createPrivateField(field, libraryForField[field])),
-      // statements generated by the FE
-      ...jsFun.body.statements
-    ]);
-    return js_ast.Fun(jsFun.params, body);
-  }
-
-  /// Creates a private symbol definition
-  ///
-  /// example:
-  /// let _f = dart.privateName(main, "_f");
-  js_ast.Statement _createPrivateField(String field, String library) {
-    return js_ast.js.statement('let # = dart.privateName(#, #)',
-        [field, library, js_ast.js.string(field)]);
   }
 }

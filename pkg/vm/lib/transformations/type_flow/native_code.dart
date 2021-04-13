@@ -21,7 +21,7 @@ abstract class EntryPointsListener {
   void addRawCall(Selector selector);
 
   /// Sets the type of the given field.
-  void addDirectFieldAccess(Field field, Type value);
+  void addFieldUsedInConstant(Field field, Type instance, Type value);
 
   /// Add instantiation of the given class.
   ConcreteType addAllocatedClass(Class c);
@@ -231,6 +231,19 @@ class NativeCodeOracle {
     PragmaRecognizedType type = recognizedType(member);
     return type != null &&
         (expectedTypes == null || expectedTypes.contains(type));
+  }
+
+  bool hasDisableUnboxedParameters(Member member) {
+    for (var annotation in member.annotations) {
+      ParsedPragma pragma = _matcher.parsePragma(annotation);
+      if (pragma is ParsedDisableUnboxedParameters) {
+        if (member.enclosingLibrary.importUri.scheme != "dart") {
+          throw "ERROR: Cannot use @pragma(vm:disable-unboxed-parameters) outside core libraries.";
+        }
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Simulate the execution of a native method by adding its entry points

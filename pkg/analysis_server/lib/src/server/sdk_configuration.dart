@@ -40,18 +40,19 @@ class SdkConfiguration {
   }
 
   /// Whether analytics is forced on.
-  bool get analyticsForceEnabled => _values['server.analytics.forceEnabled'];
+  bool? get analyticsForceEnabled => _values['server.analytics.forceEnabled'];
 
-  /// Return a override value for the analysis server's google analytics ID.
-  String get analyticsId => _values['server.analytics.id'];
+  /// Return an override value for the analysis server's google analytics ID, or
+  /// `null` if the default value should be used.
+  String? get analyticsId => _values['server.analytics.id'];
 
   /// Whether crash reporting is forced on.
-  bool get crashReportingForceEnabled =>
+  bool? get crashReportingForceEnabled =>
       _values['server.crash.reporting.forceEnabled'];
 
-  /// Return a override value for the analysis server's crash reporting product
-  /// ID.
-  String get crashReportingId => _values['server.crash.reporting.id'];
+  /// Return an override value for the analysis server's crash reporting product
+  /// ID, or `null` if the default value should be used.
+  String? get crashReportingId => _values['server.crash.reporting.id'];
 
   /// Return a string describing the contents of this SDK configuration.
   String get displayString {

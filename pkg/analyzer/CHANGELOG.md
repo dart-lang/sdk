@@ -1,5 +1,19 @@
+## 1.4.0-dev
+* Deprecated `TypeProvider.nonSubtypableClasses`.
+  Use `TypeProvider.isNonSubtypableClass` instead.
+
+## 1.3.0
+* Added `Expression.inConstantContext` to API.
+* Updated documentation comments for some getters that don't return `null`.
+* Fixed an issue with accessing `CompilationUnitElement.mixins` before `types`.
+* Implemented metadata resolution with type arguments and inference.
+* Fixed issue with metadata on enum constants.
+
 ## 1.2.0
 * Deprecated all setters in API of AST. Use `parseString()` instead.
+* `AnalysisSession.getErrors()` does not return `null`, check its `state`.
+* Support for `aliasElement` and `aliasArguments` for aliases of
+  `InterfaceType`s and `TypeParameterType`s.
 
 ## 1.1.0
 * Deprecated `TypeProvider.futureType2()`, `iterableType2()`, etc.

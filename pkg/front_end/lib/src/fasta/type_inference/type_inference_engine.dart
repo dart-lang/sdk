@@ -18,9 +18,7 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         Member,
         NamedType,
-        NeverType,
         NullType,
-        Nullability,
         Statement,
         TreeNode,
         TypeParameter,
@@ -310,19 +308,7 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
 
   @override
   DartType promoteToNonNull(DartType type) {
-    if (type is TypeParameterType &&
-        type.declaredNullability != Nullability.nullable) {
-      DartType bound =
-          type.bound.withDeclaredNullability(Nullability.nonNullable);
-      if (bound != type.bound) {
-        return new TypeParameterType(
-            type.parameter, type.declaredNullability, bound);
-      }
-      return type;
-    } else if (type is NullType) {
-      return const NeverType.nonNullable();
-    }
-    return type.withDeclaredNullability(Nullability.nonNullable);
+    return type.toNonNull();
   }
 
   @override

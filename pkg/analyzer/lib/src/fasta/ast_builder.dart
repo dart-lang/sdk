@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageAbstractLateField,
         messageAbstractStaticField,
         messageConstConstructorWithBody,
+        messageConstFactory,
         messageConstructorWithTypeParameters,
         messageDirectiveAfterDeclaration,
         messageExpectedStatement,
@@ -26,7 +27,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageOperatorWithTypeParameters,
-        messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
         templateExpectedButGot,
         templateExpectedIdentifier,
@@ -1549,7 +1549,15 @@ class AstBuilder extends StackListener {
       var metadata = pop() as List<Annotation>?;
       var comment = _findComment(metadata, typedefKeyword);
       if (type is! GenericFunctionType && !enableNonFunctionTypeAliases) {
-        handleRecoverableError(messageTypedefNotFunction, equals, equals);
+        var feature = Feature.nonfunction_type_aliases;
+        handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          equals,
+          equals,
+        );
       }
       declarations.add(ast.genericTypeAlias(comment, metadata, typedefKeyword,
           name, templateParameters, equals, type, semicolon));
@@ -2565,6 +2573,13 @@ class AstBuilder extends StackListener {
   void handleCommentReferenceText(String referenceSource, int referenceOffset) {
     push(referenceSource);
     push(referenceOffset);
+  }
+
+  @override
+  void handleConstFactory(Token constKeyword) {
+    debugEvent("ConstFactory");
+    // TODO(kallentu): Removal of const factory error for const function feature
+    handleRecoverableError(messageConstFactory, constKeyword, constKeyword);
   }
 
   @override

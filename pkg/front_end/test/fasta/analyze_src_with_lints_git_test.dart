@@ -4,12 +4,17 @@
 
 // @dart = 2.9
 
+import 'dart:io' show exitCode;
+
 import "package:testing/src/run_tests.dart" as testing show main;
 
 main() async {
-  return await testing.main(<String>[
+  await testing.main(<String>[
     "--config=pkg/front_end/testing_with_lints.json",
     "--verbose",
     "analyze"
   ]);
+  if (exitCode != 0) {
+    throw "Exit-code was $exitCode!";
+  }
 }

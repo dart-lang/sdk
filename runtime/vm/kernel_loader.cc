@@ -1171,6 +1171,7 @@ void KernelLoader::FinishTopLevelClassLoading(
       helper_.ReadTag();                     // read tag.
       helper_.SkipCanonicalNameReference();  // skip canonical name.
       helper_.SkipStringReference();         // skip name.
+      helper_.SkipListOfExpressions();       // skip annotations.
       helper_.ReadUInt();                    // read source uri index.
       helper_.ReadPosition();                // read file offset.
       helper_.SkipTypeParametersList();      // skip type parameter list.
@@ -1423,6 +1424,9 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   T.LoadAndSetupTypeParameters(&active_class_, Object::null_function(), *klass,
                                Object::null_function_type(),
                                type_parameter_count, klass->nnbd_mode());
+
+  T.LoadAndSetupBounds(&active_class_, Object::null_function(), *klass,
+                       Object::null_function_type(), type_parameter_count);
 
   // Set super type.  Some classes (e.g., Object) do not have one.
   Tag type_tag = helper_.ReadTag();  // read super class type (part 1).

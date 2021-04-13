@@ -1336,20 +1336,21 @@ LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
 void LICM::Hoist(ForwardInstructionIterator* it,
                  BlockEntryInstr* pre_header,
                  Instruction* current) {
-  if (current->IsCheckClass()) {
-    current->AsCheckClass()->set_licm_hoisted(true);
-  } else if (current->IsCheckSmi()) {
-    current->AsCheckSmi()->set_licm_hoisted(true);
-  } else if (current->IsCheckEitherNonSmi()) {
-    current->AsCheckEitherNonSmi()->set_licm_hoisted(true);
-  } else if (current->IsCheckArrayBound()) {
+  if (auto check = current->AsCheckClass()) {
+    check->set_licm_hoisted(true);
+  } else if (auto check = current->AsCheckSmi()) {
+    check->set_licm_hoisted(true);
+  } else if (auto check = current->AsCheckEitherNonSmi()) {
+    check->set_licm_hoisted(true);
+  } else if (auto check = current->AsCheckArrayBound()) {
     ASSERT(!CompilerState::Current().is_aot());  // speculative in JIT only
-    current->AsCheckArrayBound()->set_licm_hoisted(true);
-  } else if (current->IsGenericCheckBound()) {
+    check->set_licm_hoisted(true);
+  } else if (auto check = current->AsGenericCheckBound()) {
     ASSERT(CompilerState::Current().is_aot());  // non-speculative in AOT only
     // Does not deopt, so no need for licm_hoisted flag.
-  } else if (current->IsTestCids()) {
-    current->AsTestCids()->set_licm_hoisted(true);
+    USE(check);
+  } else if (auto check = current->AsTestCids()) {
+    check->set_licm_hoisted(true);
   }
   if (FLAG_trace_optimization) {
     THR_Print("Hoisting instruction %s:%" Pd " from B%" Pd " to B%" Pd "\n",

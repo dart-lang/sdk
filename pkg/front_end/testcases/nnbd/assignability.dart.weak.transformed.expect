@@ -1324,11 +1324,11 @@ static method error<XnonNull extends core::Object = core::Object, YnonNull exten
   functionVar = let final Never #t85 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:200:17: Error: A value of type 'Function?' can't be assigned to a variable of type 'Function' because 'Function?' is nullable and 'Function' isn't.
  - 'Function' is from 'dart:core'.
   functionVar = functionNullableArg;
-                ^" in functionNullableArg;
+                ^" in functionNullableArg as{TypeError,ForNonNullableByDefault} core::Function;
   functionVar = let final Never #t86 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:201:17: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'Function' because 'void Function()?' is nullable and 'Function' isn't.
  - 'Function' is from 'dart:core'.
   functionVar = toVoidNullableArg;
-                ^" in toVoidNullableArg;
+                ^" in toVoidNullableArg as{TypeError,ForNonNullableByDefault} core::Function;
   functionVar = let final Never #t87 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:202:17: Error: Can't tear off method 'call' from a potentially null value.
   functionVar = tearoffableNullableArg;
                 ^" in tearoffableNullableArg as{TypeError} core::Function;

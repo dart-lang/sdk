@@ -675,7 +675,7 @@ void f(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          51, 6),
+          50, 1),
     ]);
 
     assertPrefixExpression(
@@ -750,7 +750,7 @@ void f(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          51, 6),
+          50, 1),
     ]);
 
     assertPrefixExpression(

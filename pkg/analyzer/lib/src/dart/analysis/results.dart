@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -64,6 +65,108 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
 
   @override
   ResultState get state => ResultState.VALID;
+}
+
+/// The implementation of [AnalysisResult] when not [ResultState.VALID].
+class NotValidAnalysisResultImpl implements AnalysisResult {
+  @override
+  final ResultState state;
+
+  NotValidAnalysisResultImpl(this.state);
+
+  @override
+  String? get path {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  AnalysisSession get session {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  Uri get uri {
+    throw StateError('This result is not valid');
+  }
+}
+
+/// The implementation of [ErrorsResult] when not [ResultState.VALID].
+class NotValidErrorsResultImpl extends NotValidFileResultImpl
+    implements ErrorsResult {
+  NotValidErrorsResultImpl(ResultState state) : super(state);
+
+  @override
+  List<AnalysisError> get errors {
+    throw StateError('This result is not valid');
+  }
+}
+
+/// The implementation of [FileResult] when not [ResultState.VALID].
+class NotValidFileResultImpl extends NotValidAnalysisResultImpl
+    implements FileResult {
+  NotValidFileResultImpl(ResultState state) : super(state);
+
+  @override
+  bool get isPart {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  LineInfo get lineInfo {
+    throw StateError('This result is not valid');
+  }
+}
+
+/// The implementation of [ResolvedUnitResult] when not [ResultState.VALID].
+class NotValidResolvedUnitResultImpl extends NotValidFileResultImpl
+    implements ResolvedUnitResult {
+  NotValidResolvedUnitResultImpl(ResultState state) : super(state);
+
+  @override
+  String? get content {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  List<AnalysisError> get errors {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  LibraryElement get libraryElement {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  TypeProvider get typeProvider {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  TypeSystem get typeSystem {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  CompilationUnit? get unit {
+    throw StateError('This result is not valid');
+  }
+}
+
+/// The implementation of [UnitElementResult] when not [ResultState.VALID].
+class NotValidUnitElementResultImpl extends NotValidAnalysisResultImpl
+    implements UnitElementResult {
+  NotValidUnitElementResultImpl(ResultState state) : super(state);
+
+  @override
+  CompilationUnitElement get element {
+    throw StateError('This result is not valid');
+  }
+
+  @override
+  String get signature {
+    throw StateError('This result is not valid');
+  }
 }
 
 class ParsedLibraryResultImpl extends AnalysisResultImpl
@@ -199,8 +302,13 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       (r) => r.path == elementPath,
       orElse: () {
         var elementStr = element.getDisplayString(withNullability: true);
-        throw ArgumentError('Element (${element.runtimeType}) $elementStr is '
-            'not defined in this library.');
+        var buffer = StringBuffer();
+        buffer.write('Element (${element.runtimeType}) $elementStr');
+        buffer.writeln(' is not defined in this library.');
+        // TODO(scheglov) https://github.com/dart-lang/sdk/issues/45430
+        buffer.writeln('elementPath: $elementPath');
+        buffer.writeln('unitPaths: ${units!.map((e) => e.path).toList()}');
+        throw ArgumentError('$buffer');
       },
     );
 

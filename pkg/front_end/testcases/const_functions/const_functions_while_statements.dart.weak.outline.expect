@@ -1,0 +1,29 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static const field core::int var1 = self::fn(2);
+static const field core::int var2 = self::fn(3);
+static const field core::int var3 = self::fn1(2);
+static const field core::int var4 = self::fn1(3);
+static const field core::int var5 = self::fnContinue();
+static const field core::int var6 = self::fnBreak(2);
+static const field core::int var7 = self::fnBreak(3);
+static const field core::int var8 = self::fnNestedWhile();
+static const field core::int var9 = self::fnBreakLabel();
+static method fn(core::int a) → core::int
+  ;
+static method fn1(core::int a) → core::int
+  ;
+static method fnContinue() → core::int
+  ;
+static method fnBreak(core::int a) → core::int
+  ;
+static method fnNestedWhile() → core::int
+  ;
+static method fnBreakLabel() → core::int
+  ;
+static method main() → void
+  ;

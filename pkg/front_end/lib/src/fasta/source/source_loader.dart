@@ -25,7 +25,6 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         ScannerResult,
         Token,
         scan;
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import 'package:kernel/ast.dart'
     show
@@ -59,6 +58,7 @@ import 'package:kernel/type_environment.dart';
 
 import 'package:package_config/package_config.dart';
 
+import '../../api_prototype/experimental_flags.dart';
 import '../../api_prototype/file_system.dart';
 
 import '../../base/common.dart';
@@ -71,6 +71,7 @@ import '../denylisted_classes.dart' show denylistedCoreClasses;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
+import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
@@ -78,6 +79,8 @@ import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/never_type_declaration_builder.dart';
+import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
@@ -202,24 +205,24 @@ class SourceLoader extends Loader {
 
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
-    Uri uri = library.fileUri;
+    Uri fileUri = library.fileUri;
 
     // Lookup the file URI in the cache.
-    List<int> bytes = sourceBytes[uri];
+    List<int> bytes = sourceBytes[fileUri];
 
     if (bytes == null) {
       // Error recovery.
-      if (uri.scheme == untranslatableUriScheme) {
+      if (fileUri.scheme == untranslatableUriScheme) {
         Message message =
             templateUntranslatableUri.withArguments(library.importUri);
         library.addProblemAtAccessors(message);
         bytes = synthesizeSourceForMissingFile(library.importUri, null);
-      } else if (!uri.hasScheme) {
+      } else if (!fileUri.hasScheme) {
         return internalProblem(
-            templateInternalProblemUriMissingScheme.withArguments(uri),
+            templateInternalProblemUriMissingScheme.withArguments(fileUri),
             -1,
             library.importUri);
-      } else if (uri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
+      } else if (fileUri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
         library.addProblemAtAccessors(messageExpectedUri);
         bytes = synthesizeSourceForMissingFile(library.importUri, null);
       }
@@ -227,7 +230,7 @@ class SourceLoader extends Loader {
         Uint8List zeroTerminatedBytes = new Uint8List(bytes.length + 1);
         zeroTerminatedBytes.setRange(0, bytes.length, bytes);
         bytes = zeroTerminatedBytes;
-        sourceBytes[uri] = bytes;
+        sourceBytes[fileUri] = bytes;
       }
     }
 
@@ -236,30 +239,44 @@ class SourceLoader extends Loader {
       // system.
       List<int> rawBytes;
       try {
-        rawBytes = await fileSystem.entityForUri(uri).readAsBytes();
+        rawBytes = await fileSystem.entityForUri(fileUri).readAsBytes();
       } on FileSystemException catch (e) {
-        Message message = templateCantReadFile.withArguments(uri, e.message);
+        Message message =
+            templateCantReadFile.withArguments(fileUri, e.message);
         library.addProblemAtAccessors(message);
         rawBytes = synthesizeSourceForMissingFile(library.importUri, message);
       }
       Uint8List zeroTerminatedBytes = new Uint8List(rawBytes.length + 1);
       zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
       bytes = zeroTerminatedBytes;
-      sourceBytes[uri] = bytes;
+      sourceBytes[fileUri] = bytes;
       byteCount += rawBytes.length;
     }
 
     ScannerResult result = scan(bytes,
         includeComments: includeComments,
         configuration: new ScannerConfiguration(
-            enableTripleShift: library.enableTripleShiftInLibrary,
-            enableExtensionMethods: library.enableExtensionMethodsInLibrary,
-            enableNonNullable: library.enableNonNullableInLibrary),
+            enableTripleShift: target.isExperimentEnabledInLibraryByVersion(
+                ExperimentalFlag.tripleShift,
+                library.importUri,
+                library.packageLanguageVersion.version),
+            enableExtensionMethods:
+                target.isExperimentEnabledInLibraryByVersion(
+                    ExperimentalFlag.extensionMethods,
+                    library.importUri,
+                    library.packageLanguageVersion.version),
+            enableNonNullable: target.isExperimentEnabledInLibraryByVersion(
+                    ExperimentalFlag.nonNullable,
+                    library.importUri,
+                    library.packageLanguageVersion.version) &&
+                !SourceLibraryBuilder.isOptOutTest(library.importUri)),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
       if (!suppressLexicalErrors) {
-        library.setLanguageVersion(new Version(version.major, version.minor),
-            offset: version.offset, length: version.length, explicit: true);
+        library.registerExplicitLanguageVersion(
+            new Version(version.major, version.minor),
+            offset: version.offset,
+            length: version.length);
       }
       scanner.configuration = new ScannerConfiguration(
           enableTripleShift: library.enableTripleShiftInLibrary,
@@ -292,7 +309,7 @@ class SourceLoader extends Loader {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
         library.addProblem(error.assertionMessage, offsetForToken(token),
-            lengthForToken(token), uri);
+            lengthForToken(token), fileUri);
       }
       token = token.next;
     }
@@ -904,7 +921,10 @@ class SourceLoader extends Loader {
         if (builder is TypeAliasBuilder) {
           TypeAliasBuilder aliasBuilder = builder;
           NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
-          builder = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+          builder = aliasBuilder.unaliasDeclaration(namedBuilder.arguments,
+              isUsedAsClass: true,
+              usedAsClassCharOffset: namedBuilder.charOffset,
+              usedAsClassFileUri: namedBuilder.fileUri);
           if (builder is! ClassBuilder) {
             cls.addProblem(
                 templateIllegalMixin.withArguments(builder.fullNameForErrors),
@@ -1153,6 +1173,16 @@ class SourceLoader extends Loader {
           } else if (declaration is MemberBuilder) {
             declaration.buildOutlineExpressions(
                 library, coreTypes, delayedActionPerformers);
+          } else if (declaration is TypeAliasBuilder) {
+            declaration.buildOutlineExpressions(
+                library, coreTypes, delayedActionPerformers);
+          } else {
+            assert(
+                declaration is PrefixBuilder ||
+                    declaration is DynamicTypeDeclarationBuilder ||
+                    declaration is NeverTypeDeclarationBuilder,
+                "Unexpected builder in library: ${declaration} "
+                "(${declaration.runtimeType}");
           }
         }
       }

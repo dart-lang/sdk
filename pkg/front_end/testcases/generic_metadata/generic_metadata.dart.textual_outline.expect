@@ -1,15 +1,19 @@
 class A<T> {
   const A();
 }
+
 class B<S, T> {
   const B();
 }
+
 class C<T extends num> {
   const C();
 }
+
 class D<S extends num, T extends S> {
   const D();
 }
+
 @A<int, num>()
 @B<int>()
 @C<String>()

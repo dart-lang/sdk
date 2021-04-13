@@ -11,7 +11,7 @@ void printTable(List<List<String>> table) {
   print(buffer.toString());
 }
 
-/// Return an interable that will produce all of the integer values between
+/// Return an iterable that will produce all of the integer values between
 /// [first] and [last] inclusive.
 Iterable<int> range(int first, int last) sync* {
   for (var i = first; i < last; i++) {

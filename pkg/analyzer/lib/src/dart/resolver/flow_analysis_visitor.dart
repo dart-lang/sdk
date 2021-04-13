@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/migration.dart';
@@ -86,7 +87,7 @@ class FlowAnalysisHelper {
     var expression = node.expression;
     var typeAnnotation = node.type;
 
-    flow!.asExpression_end(expression, typeAnnotation.type!);
+    flow!.asExpression_end(expression, typeAnnotation.typeOrThrow);
   }
 
   void assignmentExpression(AssignmentExpression node) {
@@ -200,7 +201,7 @@ class FlowAnalysisHelper {
       node,
       expression,
       node.notOperator != null,
-      typeAnnotation.type!,
+      typeAnnotation.typeOrThrow,
     );
   }
 

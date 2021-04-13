@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// A collection of utility methods used by completion contributors.
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, Location;
@@ -154,10 +156,10 @@ protocol.Element createLocalElement(
   if (id != null) {
     name = id.name;
     // TODO(danrubel) use lineInfo to determine startLine and startColumn
-    location = Location(source.fullName, id.offset, id.length, 0, 0);
+    location = Location(source.fullName, id.offset, id.length, 0, 0, 0, 0);
   } else {
     name = '';
-    location = Location(source.fullName, -1, 0, 1, 0);
+    location = Location(source.fullName, -1, 0, 1, 0, 1, 0);
   }
   var flags = protocol.Element.makeFlags(
       isAbstract: isAbstract,

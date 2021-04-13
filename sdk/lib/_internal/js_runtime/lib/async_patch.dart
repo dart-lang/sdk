@@ -206,8 +206,8 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
     } else {
       // TODO(40014): Remove cast when type promotion works.
       // This would normally be `as T` but we use `as dynamic` to make the
-      // unneeded check be implict to match dart2js unsound optimizations in the
-      // user code.
+      // unneeded check be implicit to match dart2js unsound optimizations in
+      // the user code.
       _future._completeWithValue(value as dynamic);
     }
   }

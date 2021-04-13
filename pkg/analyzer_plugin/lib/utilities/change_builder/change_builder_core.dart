@@ -23,7 +23,7 @@ abstract class ChangeBuilder {
 
   /// Return the range of the selection for the change being built, or `null` if
   /// there is no selection.
-  SourceRange get selectionRange;
+  SourceRange? get selectionRange;
 
   /// Return the source change that was built. The source change will not be
   /// complete until all of the futures returned by the add*FileEdit methods
@@ -39,13 +39,6 @@ abstract class ChangeBuilder {
   Future<void> addDartFileEdit(
       String path, void Function(DartFileEditBuilder builder) buildFileEdit,
       {ImportPrefixGenerator importPrefixGenerator});
-
-  /// Use the [buildFileEdit] function to create a collection of edits to the
-  /// file with the given [path]. The edits will be added to the source change
-  /// that is being built.
-  @Deprecated('Use either addDartFileEdit or addGenericFileEdit')
-  Future<void> addFileEdit(
-      String path, void Function(FileEditBuilder builder) buildFileEdit);
 
   /// Use the [buildFileEdit] function to create a collection of edits to the
   /// file with the given [path]. The edits will be added to the source change

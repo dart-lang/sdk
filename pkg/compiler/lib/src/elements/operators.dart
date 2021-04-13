@@ -152,7 +152,7 @@ class BinaryOperator {
 
   /// The binary >>> operator.
   static const BinaryOperator SHRU =
-      const BinaryOperator._(BinaryOperatorKind.SHRU, '>>');
+      const BinaryOperator._(BinaryOperatorKind.SHRU, '>>>');
 
   /// The binary >= operator.
   static const BinaryOperator GTEQ =

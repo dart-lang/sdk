@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -84,8 +85,10 @@ class AssignmentExpressionResolver {
     }
 
     right.accept(_resolver);
+    right = node.rightHandSide;
+    var whyNotPromoted = flow?.whyNotPromoted(right);
 
-    _resolveTypes(node);
+    _resolveTypes(node, whyNotPromoted: whyNotPromoted);
 
     if (flow != null) {
       if (writeElement is PromotableElement) {
@@ -103,8 +106,9 @@ class AssignmentExpressionResolver {
   void _checkForInvalidAssignment(
     DartType writeType,
     Expression right,
-    DartType rightType,
-  ) {
+    DartType rightType, {
+    required Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
+  }) {
     if (!writeType.isVoid && _checkForUseOfVoidResult(right)) {
       return;
     }
@@ -117,6 +121,8 @@ class AssignmentExpressionResolver {
       CompileTimeErrorCode.INVALID_ASSIGNMENT,
       right,
       [rightType, writeType],
+      _resolver.computeWhyNotPromotedMessages(
+          right, right, whyNotPromoted?.call()),
     );
   }
 
@@ -179,7 +185,7 @@ class AssignmentExpressionResolver {
       receiver: left,
       receiverType: leftType,
       name: methodName,
-      receiverErrorNode: left,
+      propertyErrorEntity: operator,
       nameErrorEntity: operator,
     );
     node.staticElement = result.getter as MethodElement?;
@@ -192,7 +198,8 @@ class AssignmentExpressionResolver {
     }
   }
 
-  void _resolveTypes(AssignmentExpressionImpl node) {
+  void _resolveTypes(AssignmentExpressionImpl node,
+      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     DartType assignedType;
     DartType nodeType;
 
@@ -239,7 +246,13 @@ class AssignmentExpressionResolver {
       node.writeType!,
       node.rightHandSide,
       assignedType,
+      whyNotPromoted: operator == TokenType.EQ ? whyNotPromoted : null,
     );
+    if (operator != TokenType.EQ &&
+        operator != TokenType.QUESTION_QUESTION_EQ) {
+      _resolver.checkForArgumentTypeNotAssignableForArgument(node.rightHandSide,
+          whyNotPromoted: whyNotPromoted);
+    }
   }
 
   void _setRhsContext(AssignmentExpressionImpl node, DartType leftType,

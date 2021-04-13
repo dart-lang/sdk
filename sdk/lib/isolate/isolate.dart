@@ -659,7 +659,7 @@ abstract class ReceivePort implements Stream<dynamic> {
 /// The [handler] will always be invoked  in the [Zone.root] zone.
 ///
 /// The port cannot be paused. The data-handler must be set before the first
-/// messsage is received, otherwise the message is lost.
+/// message is received, otherwise the message is lost.
 ///
 /// Messages can be sent to this port using [sendPort].
 abstract class RawReceivePort {
@@ -667,7 +667,7 @@ abstract class RawReceivePort {
   ///
   /// A [RawReceivePort] is low level and does not work with [Zone]s. It
   /// cannot be paused. The data-handler must be set before the first
-  /// messsage is received, otherwise the message is lost.
+  /// message is received, otherwise the message is lost.
   ///
   /// If [handler] is provided, it's set as the [RawReceivePort.handler].
   ///

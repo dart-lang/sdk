@@ -19,10 +19,9 @@ void main() {
     });
 
     test('getProcessUsage', () async {
-      var profiler = ProcessProfiler.getProfilerForPlatform();
-      var info = await profiler.getProcessUsage(pid);
+      var profiler = ProcessProfiler.getProfilerForPlatform()!;
+      var info = (await profiler.getProcessUsage(pid))!;
 
-      expect(info, isNotNull);
       expect(info.cpuPercentage, greaterThanOrEqualTo(0.0));
       expect(info.memoryKB, greaterThanOrEqualTo(0));
     });

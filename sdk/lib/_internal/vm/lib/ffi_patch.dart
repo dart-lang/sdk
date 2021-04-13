@@ -115,22 +115,23 @@ class Array<T extends NativeType> {
   final int _size;
 
   @pragma("vm:entry-point")
-  Array._(this._typedDataBase, this._size);
+  final List<int> _nestedDimensions;
+
+  @pragma("vm:entry-point")
+  Array._(this._typedDataBase, this._size, this._nestedDimensions);
+
+  late final int _nestedDimensionsFlattened = _nestedDimensions.fold(
+      1, (accumulator, element) => accumulator * element);
+
+  late final int _nestedDimensionsFirst = _nestedDimensions.first;
+
+  late final List<int> _nestedDimensionsRest = _nestedDimensions.sublist(1);
 
   _checkIndex(int index) {
     if (index < 0 || index >= _size) {
-      throw RangeError.range(index, 0, _size);
+      throw RangeError.range(index, 0, _size - 1);
     }
   }
-
-  @patch
-  const factory Array(int dimension1) = _ArraySize<T>;
-}
-
-class _ArraySize<T extends NativeType> implements Array<T> {
-  final int dimension1;
-
-  const _ArraySize(this.dimension1);
 }
 
 /// Returns an integer encoding the ABI used for size and alignment
@@ -228,6 +229,14 @@ double _loadDouble(Object typedDataBase, int offsetInBytes)
     native "Ffi_loadDouble";
 
 @pragma("vm:recognized", "other")
+double _loadFloatUnaligned(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadFloatUnaligned";
+
+@pragma("vm:recognized", "other")
+double _loadDoubleUnaligned(Object typedDataBase, int offsetInBytes)
+    native "Ffi_loadDoubleUnaligned";
+
+@pragma("vm:recognized", "other")
 Pointer<S> _loadPointer<S extends NativeType>(
     Object typedDataBase, int offsetInBytes) native "Ffi_loadPointer";
 
@@ -274,6 +283,14 @@ void _storeFloat(Object typedDataBase, int offsetInBytes, double value)
 @pragma("vm:recognized", "other")
 void _storeDouble(Object typedDataBase, int offsetInBytes, double value)
     native "Ffi_storeDouble";
+
+@pragma("vm:recognized", "other")
+void _storeFloatUnaligned(Object typedDataBase, int offsetInBytes, double value)
+    native "Ffi_storeFloatUnaligned";
+
+@pragma("vm:recognized", "other")
+void _storeDoubleUnaligned(Object typedDataBase, int offsetInBytes,
+    double value) native "Ffi_storeDoubleUnaligned";
 
 @pragma("vm:recognized", "other")
 void _storePointer<S extends NativeType>(Object typedDataBase,
@@ -699,11 +716,22 @@ extension StructPointer<T extends Struct> on Pointer<T> {
 
 extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
   @patch
-  Pointer<T> operator [](int index) => _loadPointer(this, _intPtrSize * index);
+  Pointer<T> operator [](int index) =>
+      _loadPointer(_typedDataBase, _intPtrSize * index);
 
   @patch
   void operator []=(int index, Pointer<T> value) =>
-      _storePointer(this, _intPtrSize * index, value);
+      _storePointer(_typedDataBase, _intPtrSize * index, value);
+}
+
+extension ArrayArray<T extends NativeType> on Array<Array<T>> {
+  @patch
+  Array<T> operator [](int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  void operator []=(int index, Array<T> value) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
 extension StructArray<T extends Struct> on Array<T> {

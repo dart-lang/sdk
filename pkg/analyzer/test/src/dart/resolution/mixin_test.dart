@@ -359,15 +359,6 @@ mixin M implements void {}
     assertTypeName(typeRef, null, 'void');
   }
 
-  test_error_implementsRepeated() async {
-    await assertErrorsInCode(r'''
-class A {}
-mixin M implements A, A {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 33, 1),
-    ]);
-  }
-
   test_error_memberWithClassName_getter() async {
     await assertErrorsInCode(r'''
 mixin M {
@@ -936,15 +927,6 @@ mixin B on A {} // ref
     var b = findElement.mixin('B');
     assertElementTypes(b.superclassConstraints, [
       interfaceTypeNone(a),
-    ]);
-  }
-
-  test_error_onRepeated() async {
-    await assertErrorsInCode(r'''
-class A {}
-mixin M on A, A {}
-''', [
-      error(CompileTimeErrorCode.ON_REPEATED, 25, 1),
     ]);
   }
 

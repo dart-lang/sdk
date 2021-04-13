@@ -18,17 +18,7 @@ import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-import 'package:kernel/ast.dart'
-    show
-        AsyncMarker,
-        Expression,
-        InterfaceType,
-        Library,
-        LibraryDependency,
-        LibraryPart,
-        TreeNode,
-        TypeParameter,
-        VariableDeclaration;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -277,12 +267,12 @@ class DietListener extends StackListenerImpl {
 
     if (equals == null) pop(); // endToken
     Object name = pop();
-    Token metadata = pop();
+    // Metadata is handled in [SourceTypeAliasBuilder.buildOutlineExpressions].
+    pop(); // metadata
     checkEmpty(typedefKeyword.charOffset);
     if (name is ParserRecovery) return;
 
     TypeAliasBuilder typedefBuilder = lookupBuilder(typedefKeyword, null, name);
-    parseMetadata(typedefBuilder, metadata, typedefBuilder.typedef);
     if (typedefBuilder is TypeAliasBuilder) {
       TypeBuilder type = typedefBuilder.type;
       if (type is FunctionTypeBuilder) {
@@ -640,6 +630,11 @@ class DietListener extends StackListenerImpl {
     debugEvent("RedirectingFactoryBody");
     discard(1); // ConstructorReference.
     _inRedirectingFactory = true;
+  }
+
+  @override
+  void handleConstFactory(Token constKeyword) {
+    debugEvent("ConstFactory");
   }
 
   @override
@@ -1111,7 +1106,7 @@ class DietListener extends StackListenerImpl {
   /// If the [metadata] is not `null`, return the parsed metadata [Expression]s.
   /// Otherwise, return `null`.
   List<Expression> parseMetadata(
-      ModifierBuilder builder, Token metadata, TreeNode parent) {
+      ModifierBuilder builder, Token metadata, Annotatable parent) {
     if (metadata != null) {
       StackListenerImpl listener = createListener(builder, memberScope,
           isDeclarationInstanceMember: false);

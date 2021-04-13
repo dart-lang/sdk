@@ -76,7 +76,7 @@ final LIBRARIES = const <String, LibraryInfo> {
   }
 
   @override
-  Future startServer({int diagnosticPort, int servicesPort}) {
+  Future startServer({int? diagnosticPort, int? servicesPort}) {
     var sdkPath = createNonStandardSdk();
     return server.start(
         diagnosticPort: diagnosticPort,
@@ -93,7 +93,7 @@ import 'dart:fake';
     writeFile(pathname, text);
     standardAnalysisSetup();
     await analysisFinished;
-    var errors = currentAnalysisErrors[pathname];
+    var errors = existingErrorsForFile(pathname);
     expect(errors, hasLength(1));
     expect(errors[0].code, 'unused_import');
   }

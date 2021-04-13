@@ -306,7 +306,7 @@ class _Future<T> implements Future<T> {
   /// Registers a system created result and error continuation.
   ///
   /// Used by the implementation of `await` to listen to a future.
-  /// The system created liseners are not registered in the zone,
+  /// The system created listeners are not registered in the zone,
   /// and the listener is marked as being from an `await`.
   /// This marker is used in [_continuationFunctions].
   Future<E> _thenAwait<E>(FutureOr<E> f(T value), Function onError) {
@@ -527,8 +527,8 @@ class _Future<T> implements Future<T> {
       _FutureListener? listeners = _removeListeners();
       // TODO(40014): Remove cast when type promotion works.
       // This would normally be `as T` but we use `as dynamic` to make the
-      // unneeded check be implict to match dart2js unsound optimizations in the
-      // user code.
+      // unneeded check be implicit to match dart2js unsound optimizations in
+      // the user code.
       _setValue(value as dynamic); // Value promoted to T.
       _propagateToListeners(this, listeners);
     }
@@ -569,7 +569,7 @@ class _Future<T> implements Future<T> {
     }
     // TODO(40014): Remove cast when type promotion works.
     // This would normally be `as T` but we use `as dynamic` to make the
-    // unneeded check be implict to match dart2js unsound optimizations in the
+    // unneeded check be implicit to match dart2js unsound optimizations in the
     // user code.
     _asyncCompleteWithValue(value as dynamic); // Value promoted to T.
   }

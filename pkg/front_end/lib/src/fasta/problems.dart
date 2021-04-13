@@ -45,9 +45,10 @@ class DebugAbort {
 ///
 /// Before printing the message, the string `"Internal error: "` is prepended.
 dynamic internalProblem(Message message, int charOffset, Uri uri) {
-  throw CompilerContext.current.format(
-      message.withLocation(uri, charOffset, noLength),
-      Severity.internalProblem);
+  throw CompilerContext.current
+      .format(message.withLocation(uri, charOffset, noLength),
+          Severity.internalProblem)
+      .plain;
 }
 
 dynamic unimplemented(String what, int charOffset, Uri uri) {

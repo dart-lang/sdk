@@ -11,4 +11,9 @@
 
 import 'aliased_cyclic_superclass_error_lib.dart';
 
+class C extends T {}
+//    ^
+// [analyzer] unspecified
+// [cfe] unspecified
+
 main() => C();

@@ -36,9 +36,7 @@ abstract class AnalysisSession {
   ///
   /// If the file cannot be analyzed by this session, then the result will have
   /// a result state indicating the nature of the problem.
-  ///
-  /// TODO(migration): should not be nullable
-  Future<ErrorsResult?> getErrors(String path);
+  Future<ErrorsResult> getErrors(String path);
 
   /// Return information about the file at the given absolute, normalized
   /// [path].
@@ -82,9 +80,7 @@ abstract class AnalysisSession {
 
   /// Return a future that will complete with information about the results of
   /// resolving the file with the given absolute, normalized [path].
-  ///
-  /// TODO(migration): should not be nullable
-  Future<ResolvedUnitResult?> getResolvedUnit(String path);
+  Future<ResolvedUnitResult> getResolvedUnit(String path);
 
   /// Return a future that will complete with the source kind of the file with
   /// the given absolute, normalized [path]. If the path does not represent a
@@ -96,10 +92,8 @@ abstract class AnalysisSession {
 
   /// Return a future that will complete with information about the results of
   /// building the element model for the file with the given absolute,
-  /// normalized[path].
-  ///
-  /// TODO(migration): should not be nullable
-  Future<UnitElementResult?> getUnitElement(String path);
+  /// normalized [path].
+  Future<UnitElementResult> getUnitElement(String path);
 
   /// Return a future that will complete with the signature for the file with
   /// the given absolute, normalized [path], or `null` if the file cannot be

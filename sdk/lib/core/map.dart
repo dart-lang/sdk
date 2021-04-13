@@ -352,5 +352,5 @@ class MapEntry<K, V> {
 
   const MapEntry._(this.key, this.value);
 
-  String toString() => "MapEntry(${key.toString()}: ${value.toString()})";
+  String toString() => "MapEntry($key: $value)";
 }

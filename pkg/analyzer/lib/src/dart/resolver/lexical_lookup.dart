@@ -56,7 +56,7 @@ class LexicalLookup {
       receiver: null,
       receiverType: thisType,
       name: id,
-      receiverErrorNode: node,
+      propertyErrorEntity: node,
       nameErrorEntity: node,
     );
 

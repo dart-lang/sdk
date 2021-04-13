@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Compute a string representing a code completion operation at the

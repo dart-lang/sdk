@@ -897,9 +897,6 @@ executable("run_vm_tests") {
     "..:libdart_precompiler",
     "//third_party/zlib",
   ]
-  if (defined(checkout_llvm) && checkout_llvm) {
-    deps += [ "//runtime/llvm_codegen/bit:test" ]
-  }
   include_dirs = [
     "..",
     "$target_gen_dir",

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -244,8 +246,9 @@ void main() {
 ''');
     var property = await getWidgetProperty('Text(', 'overflow');
 
+    var json = property.toJson().cast<String, dynamic>();
     expect(
-      property.toJson()['editor']['enumItems'][0]['documentation'],
+      json['editor']['enumItems'][0]['documentation'],
       startsWith('Clip the overflowing'),
     );
 

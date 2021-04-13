@@ -5,11 +5,8 @@
 // @dart = 2.9
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/visitor.dart';
 
 import '../type_inference/type_schema.dart';
-
-import 'internal_ast.dart';
 
 /// Check if [type] contains [InvalidType] as its part.
 ///
@@ -53,6 +50,15 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   @override
   bool visitInterfaceType(
       InterfaceType node, Set<TypedefType> visitedTypedefs) {
+    for (DartType typeArgument in node.typeArguments) {
+      if (typeArgument.accept1(this, visitedTypedefs)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitExtensionType(
+      ExtensionType node, Set<TypedefType> visitedTypedefs) {
     for (DartType typeArgument in node.typeArguments) {
       if (typeArgument.accept1(this, visitedTypedefs)) return true;
     }

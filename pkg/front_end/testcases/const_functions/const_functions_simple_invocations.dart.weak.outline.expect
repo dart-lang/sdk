@@ -15,6 +15,8 @@ static const field core::bool eq = self::equalFn(2, 2);
 static const field core::int negative = self::unary(2);
 static const field core::bool boolean = self::boolFn(true, false);
 static const field core::double doubleResult = self::doubleFn(2.2, 2.0);
+static const field core::int multi = self::multiFn(1);
+static const field core::int multi2 = self::multiFn(2);
 static method binaryFn(core::int a, core::int b) → core::int
   ;
 static method optionalFn(core::int c, [core::int d]) → core::int
@@ -32,6 +34,8 @@ static method unary(core::int a) → core::int
 static method boolFn(core::bool a, core::bool b) → core::bool
   ;
 static method doubleFn(core::double a, core::double b) → core::double
+  ;
+static method multiFn(core::int a) → core::int
   ;
 static method main() → void
   ;

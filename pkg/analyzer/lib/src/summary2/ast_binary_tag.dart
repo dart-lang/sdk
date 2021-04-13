@@ -11,6 +11,7 @@ enum MarkerTag {
   AnnotatedNode_metadata,
   AnnotatedNode_end,
   Annotation_name,
+  Annotation_typeArguments,
   Annotation_constructorName,
   Annotation_arguments,
   Annotation_element,

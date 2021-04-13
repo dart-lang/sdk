@@ -361,7 +361,14 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
 
     MetadataBuilder.buildAnnotations(
-        isPatch ? origin.cls : cls, metadata, library, this, null);
+        isPatch ? origin.cls : cls, metadata, library, this, null, fileUri);
+    if (typeVariables != null) {
+      for (int i = 0; i < typeVariables.length; i++) {
+        typeVariables[i].buildOutlineExpressions(
+            library, this, null, coreTypes, delayedActionPerformers);
+      }
+    }
+
     constructors.forEach(build);
     scope.forEach(build);
   }
@@ -675,7 +682,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       TypeAliasBuilder aliasBuilder; // Non-null if a type alias is use.
       if (decl is TypeAliasBuilder) {
         aliasBuilder = decl;
-        decl = aliasBuilder.unaliasDeclaration(superClassType.arguments);
+        decl = aliasBuilder.unaliasDeclaration(superClassType.arguments,
+            isUsedAsClass: true,
+            usedAsClassCharOffset: supertypeBuilder.charOffset,
+            usedAsClassFileUri: superClassType.fileUri);
       }
       // TODO(eernst): Should gather 'restricted supertype' checks in one place,
       // e.g., dynamic/int/String/Null and more are checked elsewhere.
@@ -701,7 +711,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         TypeAliasBuilder aliasBuilder; // Non-null if a type alias is used.
         if (typeDeclaration is TypeAliasBuilder) {
           aliasBuilder = typeDeclaration;
-          decl = aliasBuilder.unaliasDeclaration(type.arguments);
+          decl = aliasBuilder.unaliasDeclaration(type.arguments,
+              isUsedAsClass: true,
+              usedAsClassCharOffset: type.charOffset,
+              usedAsClassFileUri: type.fileUri);
         } else {
           decl = typeDeclaration;
         }
@@ -1142,7 +1155,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           if (builder is ClassBuilder) return builder;
           if (builder is TypeAliasBuilder) {
             TypeDeclarationBuilder declarationBuilder =
-                builder.unaliasDeclaration(supertype.arguments);
+                builder.unaliasDeclaration(supertype.arguments,
+                    isUsedAsClass: true,
+                    usedAsClassCharOffset: supertype.charOffset,
+                    usedAsClassFileUri: supertype.fileUri);
             if (declarationBuilder is ClassBuilder) return declarationBuilder;
           }
         }

@@ -5,7 +5,6 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -157,7 +156,7 @@ class PubspecValidator {
     }
 
     for (var dependency in declaredDevDependencies.entries) {
-      var packageName = dependency.key;
+      var packageName = dependency.key as YamlNode;
       if (declaredDependencies.containsKey(packageName)) {
         _reportErrorForNode(reporter, packageName,
             PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY, [packageName.value]);
@@ -248,8 +247,8 @@ class PubspecValidator {
     if (dependency is YamlMap) {
       var pathEntry = _asString(dependency[PATH_FIELD]);
       if (pathEntry != null) {
-        YamlNode pathKey() => getKey(dependency, PATH_FIELD)!;
-        YamlNode pathValue() => getValue(dependency, PATH_FIELD)!;
+        YamlNode pathKey() => dependency.getKey(PATH_FIELD)!;
+        YamlNode pathValue() => dependency.valueAt(PATH_FIELD)!;
 
         if (pathEntry.contains(r'\')) {
           _reportErrorForNode(reporter, pathValue(),
@@ -280,7 +279,7 @@ class PubspecValidator {
 
       var gitEntry = dependency[GIT_FIELD];
       if (gitEntry != null && checkForPathAndGitDeps) {
-        _reportErrorForNode(reporter, getKey(dependency, GIT_FIELD)!,
+        _reportErrorForNode(reporter, dependency.getKey(GIT_FIELD)!,
             PubspecWarningCode.INVALID_DEPENDENCY, [GIT_FIELD]);
       }
     }

@@ -1,10 +1,6 @@
 // Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// This file has been automatically generated. Please do not edit it manually.
-// To regenerate the file, use the script
-// "pkg/analysis_server/tool/spec/generate_files".
 
 import 'dart:async';
 
@@ -58,7 +54,7 @@ mixin ConnectionHandler implements NotificationHandler {
 
   /// Return a future that completes with a `bool` indicating whether
   /// a connection was successfully established with the server.
-  Future<bool> serverConnected({Duration timeLimit}) {
+  Future<bool> serverConnected({Duration? timeLimit}) {
     var future = _connected.future;
     if (timeLimit != null) {
       future = future.timeout(timeLimit, onTimeout: () {

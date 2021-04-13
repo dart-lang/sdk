@@ -27,9 +27,9 @@ class JavaScriptBundler {
       this._fileSystemScheme, this._packageConfig,
       {this.useDebuggerModuleNames = false,
       this.emitDebugMetadata = false,
+      this.soundNullSafety = false,
       String moduleFormat})
-      : compilers = <String, ProgramCompiler>{},
-        _moduleFormat = parseModuleFormat(moduleFormat ?? 'amd') {
+      : _moduleFormat = parseModuleFormat(moduleFormat ?? 'amd') {
     _summaries = <Component>[];
     _summaryUris = <Uri>[];
     _moduleImportForSummary = <Uri, String>{};
@@ -63,8 +63,8 @@ class JavaScriptBundler {
   final PackageConfig _packageConfig;
   final bool useDebuggerModuleNames;
   final bool emitDebugMetadata;
-  final Map<String, ProgramCompiler> compilers;
   final ModuleFormat _moduleFormat;
+  final bool soundNullSafety;
 
   List<Component> _summaries;
   List<Uri> _summaryUris;
@@ -73,7 +73,7 @@ class JavaScriptBundler {
   Map<Uri, Component> _uriToComponent;
 
   /// Compile each component into a single JavaScript module.
-  Future<void> compile(
+  Future<Map<String, ProgramCompiler>> compile(
       ClassHierarchy classHierarchy,
       CoreTypes coreTypes,
       Set<Library> loadedLibraries,
@@ -86,6 +86,7 @@ class JavaScriptBundler {
     var metadataOffset = 0;
     final manifest = <String, Map<String, List<int>>>{};
     final Set<Uri> visited = <Uri>{};
+    final Map<String, ProgramCompiler> kernel2JsCompilers = {};
 
     final importToSummary = Map<Library, Component>.identity();
     final summaryToModule = Map<Component, String>.identity();
@@ -135,6 +136,7 @@ class JavaScriptBundler {
           summarizeApi: false,
           emitDebugMetadata: emitDebugMetadata,
           moduleName: moduleName,
+          soundNullSafety: soundNullSafety,
         ),
         importToSummary,
         summaryToModule,
@@ -147,9 +149,8 @@ class JavaScriptBundler {
       // so it can map dart symbols to js symbols
       // [issue 40273](https://github.com/dart-lang/sdk/issues/40273)
 
-      // program compiler is used by ExpressionCompiler to evaluate expressions
-      // on demand
-      compilers[moduleName] = compiler;
+      // Save program compiler to reuse for expression evaluation.
+      kernel2JsCompilers[moduleName] = compiler;
 
       final moduleUrl = urlForComponentUri(moduleUri);
       String sourceMapBase;
@@ -198,6 +199,8 @@ class JavaScriptBundler {
       };
     }
     manifestSink.add(utf8.encode(json.encode(manifest)));
+
+    return kernel2JsCompilers;
   }
 }
 

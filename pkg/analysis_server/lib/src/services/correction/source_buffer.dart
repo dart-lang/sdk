@@ -8,16 +8,17 @@ class SourceBuilder {
   final int offset;
   final StringBuffer _buffer = StringBuffer();
 
-  int _exitOffset;
+  int? _exitOffset;
 
   SourceBuilder(this.file, this.offset);
 
   /// Returns the exit offset, maybe `null` if not set.
-  int get exitOffset {
-    if (_exitOffset == null) {
+  int? get exitOffset {
+    var exitOffset = _exitOffset;
+    if (exitOffset == null) {
       return null;
     }
-    return offset + _exitOffset;
+    return offset + exitOffset;
   }
 
   int get length => _buffer.length;

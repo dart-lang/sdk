@@ -70,8 +70,9 @@ bool IsBoolType(const AbstractType& type) {
   return type.IsBoolType();
 }
 
-bool IsIntType(const AbstractType& type) {
-  return type.IsIntType();
+bool IsSubtypeOfInt(const AbstractType& type) {
+  return type.IsIntType() || type.IsIntegerImplementationType() ||
+         type.IsSmiType() || type.IsMintType();
 }
 
 bool IsSmiType(const AbstractType& type) {
@@ -815,7 +816,13 @@ word ToRawPointer(const dart::Object& a) {
 #endif  // defined(TARGET_ARCH_IA32)
 
 word RegExp::function_offset(classid_t cid, bool sticky) {
+#if !defined(DART_COMPRESSED_POINTERS)
   return TranslateOffsetInWords(dart::RegExp::function_offset(cid, sticky));
+#else
+  // TODO(rmacnak): TranslateOffsetInWords doesn't account for, say, header
+  // being 1 word and slots being half words.
+  return dart::RegExp::function_offset(cid, sticky);
+#endif
 }
 
 const word Symbols::kNumberOfOneCharCodeSymbols =

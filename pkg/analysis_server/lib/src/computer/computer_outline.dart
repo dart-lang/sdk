@@ -8,7 +8,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// A computer for [CompilationUnit] outline.
@@ -18,10 +17,19 @@ class DartUnitOutlineComputer {
 
   DartUnitOutlineComputer(this.resolvedUnit, {this.withBasicFlutter = false});
 
+  CompilationUnit get _unit {
+    var unit = resolvedUnit.unit;
+    if (unit == null) {
+      throw StateError('DartUnitOutlineComputer created with invalid result');
+    }
+    return unit;
+  }
+
   /// Returns the computed outline, not `null`.
   Outline compute() {
+    var unit = _unit;
     var unitContents = <Outline>[];
-    for (var unitMember in resolvedUnit.unit.declarations) {
+    for (var unitMember in unit.declarations) {
       if (unitMember is ClassDeclaration) {
         unitContents.add(_newClassOutline(
             unitMember, _outlinesForMembers(unitMember.members)));
@@ -41,13 +49,11 @@ class DartUnitOutlineComputer {
       } else if (unitMember is TopLevelVariableDeclaration) {
         var fieldDeclaration = unitMember;
         var fields = fieldDeclaration.variables;
-        if (fields != null) {
-          var fieldType = fields.type;
-          var fieldTypeName = _safeToSource(fieldType);
-          for (var field in fields.variables) {
-            unitContents.add(_newVariableOutline(
-                fieldTypeName, ElementKind.TOP_LEVEL_VARIABLE, field, false));
-          }
+        var fieldType = fields.type;
+        var fieldTypeName = _safeToSource(fieldType);
+        for (var field in fields.variables) {
+          unitContents.add(_newVariableOutline(
+              fieldTypeName, ElementKind.TOP_LEVEL_VARIABLE, field, false));
         }
       } else if (unitMember is FunctionDeclaration) {
         var functionDeclaration = unitMember;
@@ -80,10 +86,18 @@ class DartUnitOutlineComputer {
   }
 
   Location _getLocationOffsetLength(int offset, int length) {
-    CharacterLocation lineLocation = resolvedUnit.lineInfo.getLocation(offset);
-    var startLine = lineLocation.lineNumber;
-    var startColumn = lineLocation.columnNumber;
-    return Location(resolvedUnit.path, offset, length, startLine, startColumn);
+    var path = resolvedUnit.path;
+    if (path == null) {
+      throw StateError('DartUnitOutlineComputer called with invalid result');
+    }
+    var startLocation = resolvedUnit.lineInfo.getLocation(offset);
+    var startLine = startLocation.lineNumber;
+    var startColumn = startLocation.columnNumber;
+    var endLocation = resolvedUnit.lineInfo.getLocation(offset + length);
+    var endLine = endLocation.lineNumber;
+    var endColumn = endLocation.columnNumber;
+    return Location(
+        path, offset, length, startLine, startColumn, endLine, endColumn);
   }
 
   Outline _newClassOutline(ClassDeclaration node, List<Outline> classContents) {
@@ -314,10 +328,11 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newUnitOutline(List<Outline> unitContents) {
+    var unit = _unit;
     var element = Element(
         ElementKind.COMPILATION_UNIT, '<unit>', Element.makeFlags(),
-        location: _getLocationNode(resolvedUnit.unit));
-    return _nodeOutline(resolvedUnit.unit, element, unitContents);
+        location: _getLocationNode(unit));
+    return _nodeOutline(unit, element, unitContents);
   }
 
   Outline _newVariableOutline(String typeName, ElementKind kind,
@@ -339,17 +354,20 @@ class DartUnitOutlineComputer {
   }
 
   Outline _nodeOutline(AstNode node, Element element,
-      [List<Outline> children]) {
+      [List<Outline>? children]) {
     var offset = node.offset;
     var end = node.end;
     if (node is VariableDeclaration) {
       var parent = node.parent;
-      if (parent is VariableDeclarationList && parent.variables.isNotEmpty) {
+      var grandParent = parent?.parent;
+      if (grandParent != null &&
+          parent is VariableDeclarationList &&
+          parent.variables.isNotEmpty) {
         if (parent.variables[0] == node) {
-          offset = parent.parent.offset;
+          offset = grandParent.offset;
         }
         if (parent.variables.last == node) {
-          end = parent.parent.end;
+          end = grandParent.end;
         }
       }
     }
@@ -375,13 +393,11 @@ class DartUnitOutlineComputer {
       if (classMember is FieldDeclaration) {
         var fieldDeclaration = classMember;
         var fields = fieldDeclaration.fields;
-        if (fields != null) {
-          var fieldType = fields.type;
-          var fieldTypeName = _safeToSource(fieldType);
-          for (var field in fields.variables) {
-            memberOutlines.add(_newVariableOutline(fieldTypeName,
-                ElementKind.FIELD, field, fieldDeclaration.isStatic));
-          }
+        var fieldType = fields.type;
+        var fieldTypeName = _safeToSource(fieldType);
+        for (var field in fields.variables) {
+          memberOutlines.add(_newVariableOutline(fieldTypeName,
+              ElementKind.FIELD, field, fieldDeclaration.isStatic));
         }
       }
       if (classMember is MethodDeclaration) {
@@ -392,7 +408,7 @@ class DartUnitOutlineComputer {
     return memberOutlines;
   }
 
-  static String _getTypeParametersStr(TypeParameterList parameters) {
+  static String? _getTypeParametersStr(TypeParameterList? parameters) {
     if (parameters == null) {
       return null;
     }
@@ -405,7 +421,7 @@ class DartUnitOutlineComputer {
     return element != null && element.hasDeprecated;
   }
 
-  static String _safeToSource(AstNode node) =>
+  static String _safeToSource(AstNode? node) =>
       node == null ? '' : node.toSource();
 }
 
@@ -420,7 +436,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
 
   /// Return `true` if the given [element] is the method 'group' defined in the
   /// test package.
-  bool isGroup(engine.ExecutableElement element) {
+  bool isGroup(engine.ExecutableElement? element) {
     if (element != null && element.hasIsTestGroup) {
       return true;
     }
@@ -431,7 +447,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
 
   /// Return `true` if the given [element] is the method 'test' defined in the
   /// test package.
-  bool isTest(engine.ExecutableElement element) {
+  bool isTest(engine.ExecutableElement? element) {
     if (element != null && element.hasIsTest) {
       return true;
     }
@@ -452,7 +468,9 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
       node.argumentList
           .accept(_FunctionBodyOutlinesVisitor(outlineComputer, children));
 
-      var text = _flutter.getWidgetPresentationText(node);
+      // The method `getWidgetPresentationText` should not return `null` when
+      // `isWidgetCreation` returns `true`.
+      var text = _flutter.getWidgetPresentationText(node) ?? '<unknown>';
       var element = Element(ElementKind.CONSTRUCTOR_INVOCATION, text, 0,
           location: outlineComputer._getLocationOffsetLength(node.offset, 0));
 
@@ -472,9 +490,8 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
     if (nameElement is! engine.ExecutableElement) {
       return;
     }
-    engine.ExecutableElement executableElement = nameElement;
 
-    String extractString(NodeList<Expression> arguments) {
+    String extractString(NodeList<Expression>? arguments) {
       if (arguments != null && arguments.isNotEmpty) {
         var argument = arguments[0];
         if (argument is StringLiteral) {
@@ -488,9 +505,9 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
       return 'unnamed';
     }
 
-    void addOutlineNode(ElementKind kind, [List<Outline> children]) {
+    void addOutlineNode(ElementKind kind, [List<Outline>? children]) {
       var executableName = nameNode.name;
-      var description = extractString(node.argumentList?.arguments);
+      var description = extractString(node.argumentList.arguments);
       var name = '$executableName("$description")';
       var element = Element(kind, name, 0,
           location: outlineComputer._getLocationNode(nameNode));
@@ -499,12 +516,12 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
           children: nullIfEmpty(children)));
     }
 
-    if (isGroup(executableElement)) {
+    if (isGroup(nameElement)) {
       var groupContents = <Outline>[];
       node.argumentList
           .accept(_FunctionBodyOutlinesVisitor(outlineComputer, groupContents));
       addOutlineNode(ElementKind.UNIT_TEST_GROUP, groupContents);
-    } else if (isTest(executableElement)) {
+    } else if (isTest(nameElement)) {
       addOutlineNode(ElementKind.UNIT_TEST_TEST);
     } else {
       super.visitMethodInvocation(node);

@@ -46,15 +46,6 @@ class LevenshteinTest {
     }, throwsArgumentError);
   }
 
-  void test_null() {
-    expect(() {
-      levenshtein('', null, 5);
-    }, throwsArgumentError);
-    expect(() {
-      levenshtein(null, '', 5);
-    }, throwsArgumentError);
-  }
-
   void test_same() {
     expect(levenshtein('', '', 5), 0);
     expect(levenshtein('test', 'test', 5), 0);

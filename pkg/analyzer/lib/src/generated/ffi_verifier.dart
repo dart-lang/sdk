@@ -18,7 +18,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _allocatorClassName = 'Allocator';
   static const _allocateExtensionMethodName = 'call';
   static const _allocatorExtensionName = 'AllocatorAlloc';
-  static const _cArrayClassName = 'Array';
+  static const _arrayClassName = 'Array';
   static const _dartFfiLibraryName = 'dart.ffi';
   static const _opaqueClassName = 'Opaque';
 
@@ -51,12 +51,16 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// `Struct`.
   bool inStruct = false;
 
+  /// Subclass of `Struct` we are currently visiting, or `null`.
+  ClassDeclaration? struct;
+
   /// Initialize a newly created verifier.
   FfiVerifier(this.typeSystem, this._errorReporter);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     inStruct = false;
+    struct = null;
     // Only the Allocator, Opaque and Struct class may be extended.
     var extendsClause = node.extendsClause;
     if (extendsClause != null) {
@@ -66,10 +70,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final className = ffiClass.name;
         if (className == _structClassName) {
           inStruct = true;
+          struct = node;
           if (node.declaredElement!.isEmptyStruct) {
             _errorReporter
                 .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [node.name]);
           }
+          _validatePackedAnnotation(node.metadata);
         } else if (className != _allocatorClassName &&
             className != _opaqueClassName) {
           _errorReporter.reportErrorForNode(
@@ -248,6 +254,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (nativeType.isPointer) {
       return true;
     }
+    if (nativeType.isArray) {
+      return true;
+    }
     return false;
   }
 
@@ -260,13 +269,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return false;
       }
       if (!_isValidFfiNativeType(nativeType.returnType,
-          allowVoid: true, allowEmptyStruct: false)) {
+          allowVoid: true, allowEmptyStruct: false, allowHandle: true)) {
         return false;
       }
 
       for (final DartType typeArg in nativeType.normalParameterTypes) {
         if (!_isValidFfiNativeType(typeArg,
-            allowVoid: false, allowEmptyStruct: false)) {
+            allowVoid: false, allowEmptyStruct: false, allowHandle: true)) {
           return false;
         }
       }
@@ -279,13 +288,21 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   bool _isValidFfiNativeType(DartType? nativeType,
       {bool allowVoid = false,
       bool allowEmptyStruct = false,
-      bool allowArray = false}) {
+      bool allowArray = false,
+      bool allowHandle = false}) {
     if (nativeType is InterfaceType) {
-      // Is it a primitive integer/double type (or ffi.Void if we allow it).
       final primitiveType = _primitiveNativeType(nativeType);
-      if (primitiveType != _PrimitiveDartType.none &&
-          (primitiveType != _PrimitiveDartType.void_ || allowVoid)) {
-        return true;
+      switch (primitiveType) {
+        case _PrimitiveDartType.void_:
+          return allowVoid;
+        case _PrimitiveDartType.handle:
+          return allowHandle;
+        case _PrimitiveDartType.double:
+        case _PrimitiveDartType.int:
+          return true;
+        case _PrimitiveDartType.none:
+          // These are the cases below.
+          break;
       }
       if (nativeType.isNativeFunction) {
         return _isValidFfiNativeFunctionType(nativeType.typeArguments.single);
@@ -293,7 +310,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (nativeType.isPointer) {
         final nativeArgumentType = nativeType.typeArguments.single;
         return _isValidFfiNativeType(nativeArgumentType,
-                allowVoid: true, allowEmptyStruct: true) ||
+                allowVoid: true, allowEmptyStruct: true, allowHandle: true) ||
             nativeArgumentType.isStructSubtype ||
             nativeArgumentType.isNativeType;
       }
@@ -543,7 +560,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, fields.variables[0].name);
     } else {
-      DartType declaredType = fieldType.type!;
+      DartType declaredType = fieldType.typeOrThrow;
       if (declaredType.isDartCoreInt) {
         _validateAnnotations(fieldType, annotations, _PrimitiveDartType.int);
       } else if (declaredType.isDartCoreDouble) {
@@ -554,15 +571,24 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         final typeArg = (declaredType as InterfaceType).typeArguments.single;
         if (!_isSized(typeArg)) {
           _errorReporter.reportErrorForNode(FfiCode.NON_SIZED_TYPE_ARGUMENT,
-              fieldType, [_cArrayClassName, typeArg.toString()]);
+              fieldType, [_arrayClassName, typeArg.toString()]);
         }
-        _validateSizeOfAnnotation(fieldType, annotations);
+        final arrayDimensions = declaredType.arrayDimensions;
+        _validateSizeOfAnnotation(fieldType, annotations, arrayDimensions);
+        final arrayElement = declaredType.arrayElementType;
+        if (arrayElement.isStructSubtype) {
+          final elementClass = (arrayElement as InterfaceType).element;
+          _validatePackingNesting(struct!.declaredElement!, elementClass,
+              errorNode: fieldType);
+        }
       } else if (declaredType.isStructSubtype) {
         final clazz = (declaredType as InterfaceType).element;
         if (clazz.isEmptyStruct) {
           _errorReporter
               .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [clazz.name]);
         }
+        _validatePackingNesting(struct!.declaredElement!, clazz,
+            errorNode: fieldType);
       } else {
         _errorReporter.reportErrorForNode(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
             fieldType, [fieldType.toSource()]);
@@ -660,6 +686,54 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  /// Validate that the [annotations] include at most one packed annotation.
+  void _validatePackedAnnotation(NodeList<Annotation> annotations) {
+    final ffiPackedAnnotations =
+        annotations.where((annotation) => annotation.isPacked).toList();
+
+    if (ffiPackedAnnotations.isEmpty) {
+      return;
+    }
+
+    if (ffiPackedAnnotations.length > 1) {
+      final extraAnnotations = ffiPackedAnnotations.skip(1);
+      for (final annotation in extraAnnotations) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.PACKED_ANNOTATION, annotation);
+      }
+    }
+
+    // Check number of dimensions.
+    final annotation = ffiPackedAnnotations.first;
+    final value = annotation.elementAnnotation?.packedMemberAlignment;
+    if (![1, 2, 4, 8, 16].contains(value)) {
+      _errorReporter.reportErrorForNode(
+          FfiCode.PACKED_ANNOTATION_ALIGNMENT, annotation);
+    }
+  }
+
+  void _validatePackingNesting(ClassElement outer, ClassElement nested,
+      {required TypeAnnotation errorNode}) {
+    final outerPacking = outer.structPacking;
+    if (outerPacking == null) {
+      // No packing for outer class, so we're done.
+      return;
+    }
+    bool error = false;
+    final nestedPacking = nested.structPacking;
+    if (nestedPacking == null) {
+      // The outer struct packs, but the nested struct does not.
+      error = true;
+    } else if (outerPacking < nestedPacking) {
+      // The outer struct packs tighter than the nested struct.
+      error = true;
+    }
+    if (error) {
+      _errorReporter.reportErrorForNode(FfiCode.PACKED_NESTING_NON_PACKED,
+          errorNode, [nested.name, outer.name]);
+    }
+  }
+
   void _validateRefIndexed(IndexExpression node) {
     var targetType = node.realTarget.staticType;
     if (!_isValidFfiNativeType(targetType,
@@ -708,25 +782,32 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Validate that the [annotations] include exactly one size annotation. If
   /// an error is produced that cannot be associated with an annotation,
   /// associate it with the [errorNode].
-  void _validateSizeOfAnnotation(
-      AstNode errorNode, NodeList<Annotation> annotations) {
-    final ffiSizeAnnotations = annotations.where((annotation) {
-      final element = annotation.element;
-      return element is ConstructorElement &&
-          element.ffiClass != null &&
-          element.enclosingElement.name == 'Array';
-    }).toList();
+  void _validateSizeOfAnnotation(AstNode errorNode,
+      NodeList<Annotation> annotations, int arrayDimensions) {
+    final ffiSizeAnnotations =
+        annotations.where((annotation) => annotation.isArray).toList();
 
     if (ffiSizeAnnotations.isEmpty) {
       _errorReporter.reportErrorForNode(
           FfiCode.MISSING_SIZE_ANNOTATION_CARRAY, errorNode);
+      return;
     }
+
     if (ffiSizeAnnotations.length > 1) {
       final extraAnnotations = ffiSizeAnnotations.skip(1);
       for (final annotation in extraAnnotations) {
         _errorReporter.reportErrorForNode(
             FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY, annotation);
       }
+    }
+
+    // Check number of dimensions.
+    final annotation = ffiSizeAnnotations.first;
+    final dimensions = annotation.elementAnnotation?.arraySizeDimensions ?? [];
+    final annotationDimensions = dimensions.length;
+    if (annotationDimensions != arrayDimensions) {
+      _errorReporter.reportErrorForNode(
+          FfiCode.SIZE_ANNOTATION_DIMENSIONS, annotation);
     }
   }
 
@@ -748,6 +829,81 @@ enum _PrimitiveDartType {
   void_,
   handle,
   none,
+}
+
+extension on Annotation {
+  bool get isArray {
+    final element = this.element;
+    return element is ConstructorElement &&
+        element.ffiClass != null &&
+        element.enclosingElement.name == 'Array';
+  }
+
+  bool get isPacked {
+    final element = this.element;
+    return element is ConstructorElement &&
+        element.ffiClass != null &&
+        element.enclosingElement.name == 'Packed';
+  }
+}
+
+extension on ElementAnnotation {
+  bool get isArray {
+    final element = this.element;
+    return element is ConstructorElement &&
+        element.ffiClass != null &&
+        element.enclosingElement.name == 'Array';
+    // Note: this is 'Array' instead of '_ArraySize' because it finds the
+    // forwarding factory instead of the forwarded constructor.
+  }
+
+  bool get isPacked {
+    final element = this.element;
+    return element is ConstructorElement &&
+        element.ffiClass != null &&
+        element.enclosingElement.name == 'Packed';
+  }
+
+  List<int> get arraySizeDimensions {
+    assert(isArray);
+    final value = computeConstantValue();
+
+    // Element of `@Array.multi([1, 2, 3])`.
+    final listField = value?.getField('dimensions');
+    if (listField != null) {
+      final listValues = listField
+          .toListValue()
+          ?.map((dartValue) => dartValue.toIntValue())
+          .whereType<int>()
+          .toList();
+      if (listValues != null) {
+        return listValues;
+      }
+    }
+
+    // Element of `@Array(1, 2, 3)`.
+    const dimensionFieldNames = [
+      'dimension1',
+      'dimension2',
+      'dimension3',
+      'dimension4',
+      'dimension5',
+    ];
+    var result = <int>[];
+    for (final dimensionFieldName in dimensionFieldNames) {
+      final dimensionValue = value?.getField(dimensionFieldName)?.toIntValue();
+      if (dimensionValue != null) {
+        result.add(dimensionValue);
+      }
+    }
+    return result;
+  }
+
+  int? get packedMemberAlignment {
+    assert(isPacked);
+    final value = computeConstantValue();
+    return value?.getField('memberAlignment')?.toIntValue();
+  }
 }
 
 extension on Element? {
@@ -831,6 +987,17 @@ extension on ClassElement {
   bool get isFfiClass {
     return library.name == FfiVerifier._dartFfiLibraryName;
   }
+
+  int? get structPacking {
+    final packedAnnotations =
+        metadata.where((annotation) => annotation.isPacked);
+
+    if (packedAnnotations.isEmpty) {
+      return null;
+    }
+
+    return packedAnnotations.first.packedMemberAlignment;
+  }
 }
 
 extension on ExtensionElement {
@@ -845,9 +1012,31 @@ extension on DartType {
     final self = this;
     if (self is InterfaceType) {
       final element = self.element;
-      return element.name == FfiVerifier._cArrayClassName && element.isFfiClass;
+      return element.name == FfiVerifier._arrayClassName && element.isFfiClass;
     }
     return false;
+  }
+
+  int get arrayDimensions {
+    DartType iterator = this;
+    int dimensions = 0;
+    while (iterator is InterfaceType &&
+        iterator.element.name == FfiVerifier._arrayClassName &&
+        iterator.element.isFfiClass) {
+      dimensions++;
+      iterator = iterator.typeArguments.single;
+    }
+    return dimensions;
+  }
+
+  DartType get arrayElementType {
+    DartType iterator = this;
+    while (iterator is InterfaceType &&
+        iterator.element.name == FfiVerifier._arrayClassName &&
+        iterator.element.isFfiClass) {
+      iterator = iterator.typeArguments.single;
+    }
+    return iterator;
   }
 
   bool get isPointer {

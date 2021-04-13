@@ -24,7 +24,7 @@ class StringBuffer implements StringSink {
   /// operation.
   bool get isNotEmpty => !isEmpty;
 
-  /// Adds the string representatoon of [object] to the buffer.
+  /// Adds the string representation of [object] to the buffer.
   external void write(Object? object);
 
   /// Adds the string representation of [charCode] to the buffer.

@@ -10,7 +10,6 @@ import '../common.dart';
 import '../common/names.dart';
 import '../common_elements.dart' show JCommonElements, JElementEnvironment;
 import '../deferred_load.dart';
-import '../diagnostics/diagnostic_listener.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';

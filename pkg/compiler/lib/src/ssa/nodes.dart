@@ -3325,20 +3325,19 @@ class HInterceptor extends HInstruction {
   }
 }
 
-/// A "one-shot" interceptor is a call to a synthetized method that
-/// will fetch the interceptor of its first parameter, and make a call
-/// on a given selector with the remaining parameters.
+/// A "one-shot" interceptor is a call to a synthetized method that will fetch
+/// the interceptor of its first parameter, and make a call on a given selector
+/// with the remaining parameters.
 ///
-/// In order to share the same optimizations with regular interceptor
-/// calls, this class extends [HInvokeDynamic] and also has the null
-/// constant as the first input.
+/// In order to share the same optimizations with regular interceptor calls,
+/// this class extends [HInvokeDynamic] and also has the null constant as the
+/// first input.
 class HOneShotInterceptor extends HInvokeDynamic {
   @override
   List<DartType> typeArguments;
   Set<ClassEntity> interceptedClasses;
 
   HOneShotInterceptor(
-      AbstractValueDomain domain,
       Selector selector,
       AbstractValue receiverType,
       List<HInstruction> inputs,
@@ -3346,8 +3345,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
       this.typeArguments,
       this.interceptedClasses)
       : super(selector, receiverType, null, inputs, true, resultType) {
-    assert(inputs[0] is HConstant);
-    assert(inputs[0].instructionType == domain.nullType);
+    assert(inputs[0].isConstantNull());
     assert(selector.callStructure.typeArgumentCount == typeArguments.length);
   }
   @override

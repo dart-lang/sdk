@@ -613,7 +613,10 @@ class Object {
   cpp_vtable vtable() const { return bit_copy<cpp_vtable>(*this); }
   void set_vtable(cpp_vtable value) { *vtable_address() = value; }
 
-  static ObjectPtr Allocate(intptr_t cls_id, intptr_t size, Heap::Space space);
+  static ObjectPtr Allocate(intptr_t cls_id,
+                            intptr_t size,
+                            Heap::Space space,
+                            bool compressed);
 
   static intptr_t RoundedAllocationSize(intptr_t size) {
     return Utils::RoundUp(size, kObjectAlignment);
@@ -635,6 +638,13 @@ class Object {
   template <typename type, std::memory_order order = std::memory_order_relaxed>
   void StorePointer(type const* addr, type value) const {
     ptr()->untag()->StorePointer<type, order>(addr, value);
+  }
+  template <typename type,
+            typename compressed_type,
+            std::memory_order order = std::memory_order_relaxed>
+  void StoreCompressedPointer(compressed_type const* addr, type value) const {
+    ptr()->untag()->StoreCompressedPointer<type, compressed_type, order>(addr,
+                                                                         value);
   }
 
   // Use for storing into an explicitly Smi-typed field of an object
@@ -725,7 +735,10 @@ class Object {
     return -kWordSize;
   }
 
-  static void InitializeObject(uword address, intptr_t id, intptr_t size);
+  static void InitializeObject(uword address,
+                               intptr_t id,
+                               intptr_t size,
+                               bool compressed);
 
   static void RegisterClass(const Class& cls,
                             const String& name,
@@ -1740,6 +1753,7 @@ class Class : public Object {
   friend class Intrinsifier;
   friend class ProgramWalker;
   friend class Precompiler;
+  friend class ClassFinalizer;
 };
 
 // Classification of type genericity according to type parameter owners.
@@ -2255,8 +2269,6 @@ class ICData : public CallSiteData {
   }
 
  private:
-  friend class FlowGraphSerializer;  // For is_megamorphic()
-
   static ICDataPtr New();
 
   // Grows the array and also sets the argument to the index that should be used
@@ -2600,7 +2612,7 @@ class Function : public Object {
   // Generic dispatchers only set the number without actual type parameters.
   bool IsGeneric() const { return NumTypeParameters() > 0; }
   // Return true if any parent function of this function is generic.
-  bool HasGenericParent() const;
+  bool HasGenericParent() const { return NumParentTypeArguments() > 0; }
 
   // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
@@ -2678,41 +2690,8 @@ class Function : public Object {
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
 
-  enum class DefaultTypeArgumentsKind : uint8_t {
-    // Only here to make sure it's explicitly set appropriately.
-    kInvalid = 0,
-    // Must instantiate the default type arguments before use.
-    kNeedsInstantiation,
-    // The default type arguments are already instantiated.
-    kIsInstantiated,
-    // Use the instantiator type arguments that would be used to instantiate
-    // the default type arguments, as instantiating produces the same result.
-    kSharesInstantiatorTypeArguments,
-    // Use the function type arguments that would be used to instantiate
-    // the default type arguments, as instantiating produces the same result.
-    kSharesFunctionTypeArguments,
-  };
-  static constexpr intptr_t kDefaultTypeArgumentsKindFieldSize = 3;
-  static_assert(static_cast<uint8_t>(
-                    DefaultTypeArgumentsKind::kSharesFunctionTypeArguments) <
-                    (1 << kDefaultTypeArgumentsKindFieldSize),
-                "Wrong bit size chosen for default TAV kind field");
-
-  // Fields encoded in an integer stored alongside a default TAV. The size of
-  // the integer should be <= the size of a target Smi.
-  using DefaultTypeArgumentsKindField =
-      BitField<intptr_t,
-               DefaultTypeArgumentsKind,
-               0,
-               kDefaultTypeArgumentsKindFieldSize>;
-  // TODO(regis): Rename to NumParentTypeArgumentsField.
-  // Just use the rest of the space for the number of parent type parameters.
-  using NumParentTypeParametersField =
-      BitField<intptr_t,
-               intptr_t,
-               DefaultTypeArgumentsKindField::kNextBit,
-               compiler::target::kSmiBits -
-                   DefaultTypeArgumentsKindField::kNextBit>;
+  using DefaultTypeArgumentsKind =
+      UntaggedClosureData::DefaultTypeArgumentsKind;
 
   // Returns a canonicalized vector of the type parameters instantiated
   // to bounds. If non-generic, the empty type arguments vector is returned.
@@ -2744,6 +2723,10 @@ class Function : public Object {
 
   void set_saved_args_desc(const Array& array) const;
   ArrayPtr saved_args_desc() const;
+
+  bool HasSavedArgumentsDescriptor() const {
+    return IsInvokeFieldDispatcher() || IsNoSuchMethodDispatcher();
+  }
 
   void set_accessor_field(const Field& value) const;
   FieldPtr accessor_field() const;
@@ -2816,14 +2799,11 @@ class Function : public Object {
   void SetForwardingChecks(const Array& checks) const;
 
   UntaggedFunction::Kind kind() const {
-    return KindBits::decode(untag()->kind_tag_);
-  }
-  static UntaggedFunction::Kind kind(FunctionPtr function) {
-    return KindBits::decode(function->untag()->kind_tag_);
+    return untag()->kind_tag_.Read<KindBits>();
   }
 
   UntaggedFunction::AsyncModifier modifier() const {
-    return ModifierBits::decode(untag()->kind_tag_);
+    return untag()->kind_tag_.Read<ModifierBits>();
   }
 
   static const char* KindToCString(UntaggedFunction::Kind kind);
@@ -2895,7 +2875,6 @@ class Function : public Object {
         return false;
     }
   }
-  bool IsInFactoryScope() const;
 
   bool NeedsTypeArgumentTypeChecks() const {
     return !(is_static() || (kind() == UntaggedFunction::kConstructor));
@@ -3066,7 +3045,7 @@ class Function : public Object {
   bool CanBeInlined() const;
 
   MethodRecognizer::Kind recognized_kind() const {
-    return RecognizedBits::decode(untag()->kind_tag_);
+    return untag()->kind_tag_.Read<RecognizedBits>();
   }
   void set_recognized_kind(MethodRecognizer::Kind value) const;
 
@@ -3352,8 +3331,13 @@ class Function : public Object {
     return IsImplicitClosureFunction() && !is_static();
   }
 
-  // Returns true if this function represents a local function.
-  bool IsLocalFunction() const { return parent_function() != Function::null(); }
+  // Returns true if this function has a parent function.
+  bool HasParent() const { return parent_function() != Function::null(); }
+
+  // Returns true if this function is a local function.
+  bool IsLocalFunction() const {
+    return !IsImplicitClosureFunction() && HasParent();
+  }
 
   // Returns true if this function represents an ffi trampoline.
   bool IsFfiTrampoline() const {
@@ -3361,7 +3345,7 @@ class Function : public Object {
   }
   static bool IsFfiTrampoline(FunctionPtr function) {
     NoSafepointScope no_safepoint;
-    return KindBits::decode(function->untag()->kind_tag_) ==
+    return function->untag()->kind_tag_.Read<KindBits>() ==
            UntaggedFunction::kFfiTrampoline;
   }
 
@@ -3462,7 +3446,7 @@ class Function : public Object {
   //      }
   //   }
   bool IsSyncGenClosure() const {
-    return (parent_function() != Function::null()) &&
+    return is_generated_body() &&
            Function::Handle(parent_function()).IsSyncGenClosureMaker();
   }
 
@@ -3631,6 +3615,8 @@ class Function : public Object {
   // has_pragma: Has a @pragma decoration.
   // no_such_method_forwarder: A stub method that just calls noSuchMethod.
 
+// Bits that are set when function is created, don't have to worry about
+// concurrent updates.
 #define FOR_EACH_FUNCTION_KIND_BIT(V)                                          \
   V(Static, is_static)                                                         \
   V(Const, is_const)                                                           \
@@ -3638,7 +3624,6 @@ class Function : public Object {
   V(Reflectable, is_reflectable)                                               \
   V(Visible, is_visible)                                                       \
   V(Debuggable, is_debuggable)                                                 \
-  V(Inlinable, is_inlinable)                                                   \
   V(Intrinsic, is_intrinsic)                                                   \
   V(Native, is_native)                                                         \
   V(External, is_external)                                                     \
@@ -3647,13 +3632,25 @@ class Function : public Object {
   V(HasPragma, has_pragma)                                                     \
   V(IsSynthetic, is_synthetic)                                                 \
   V(IsExtensionMember, is_extension_member)
+// Bit that is updated after function is constructed, has to be updated in
+// concurrent-safe manner.
+#define FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(V)                                 \
+  V(Inlinable, is_inlinable)
 
 #define DEFINE_ACCESSORS(name, accessor_name)                                  \
   void set_##accessor_name(bool value) const {                                 \
-    set_kind_tag(name##Bit::update(value, untag()->kind_tag_));                \
+    untag()->kind_tag_.UpdateUnsynchronized<name##Bit>(value);                 \
   }                                                                            \
-  bool accessor_name() const { return name##Bit::decode(untag()->kind_tag_); }
+  bool accessor_name() const { return untag()->kind_tag_.Read<name##Bit>(); }
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
+#undef DEFINE_ACCESSORS
+
+#define DEFINE_ACCESSORS(name, accessor_name)                                  \
+  void set_##accessor_name(bool value) const {                                 \
+    untag()->kind_tag_.UpdateBool<name##Bit>(value);                           \
+  }                                                                            \
+  bool accessor_name() const { return untag()->kind_tag_.Read<name##Bit>(); }
+  FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DEFINE_ACCESSORS)
 #undef DEFINE_ACCESSORS
 
   // optimizable: Candidate for going through the optimizing compiler. False for
@@ -3678,6 +3675,7 @@ class Function : public Object {
 // Single bit sized fields start here.
 #define DECLARE_BIT(name, _) k##name##Bit,
     FOR_EACH_FUNCTION_KIND_BIT(DECLARE_BIT)
+    FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DECLARE_BIT)
 #undef DECLARE_BIT
         kNumTagBits
   };
@@ -3705,6 +3703,7 @@ class Function : public Object {
 #define DEFINE_BIT(name, _)                                                    \
   class name##Bit : public BitField<uint32_t, bool, k##name##Bit, 1> {};
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
+  FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DEFINE_BIT)
 #undef DEFINE_BIT
 
  private:
@@ -3727,6 +3726,8 @@ class Function : public Object {
   void set_eval_script(const Script& value) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(uint32_t value) const;
+
+  ObjectPtr data() const { return untag()->data(); }
   void set_data(const Object& value) const;
 
   static FunctionPtr New(Heap::Space space = Heap::kOld);
@@ -3740,6 +3741,7 @@ class Function : public Object {
   friend class UntaggedFunction;
   friend class ClassFinalizer;  // To reset parent_function.
   friend class Type;            // To adjust parent_function.
+  friend class Precompiler;     // To access closure data.
   friend class ProgramVisitor;  // For set_parameter_types/names.
 };
 
@@ -3752,17 +3754,26 @@ class ClosureData : public Object {
   static intptr_t default_type_arguments_offset() {
     return OFFSET_OF(UntaggedClosureData, default_type_arguments_);
   }
-  static intptr_t default_type_arguments_info_offset() {
-    return OFFSET_OF(UntaggedClosureData, default_type_arguments_info_);
+  static intptr_t default_type_arguments_kind_offset() {
+    return OFFSET_OF(UntaggedClosureData, default_type_arguments_kind_);
   }
 
+  using DefaultTypeArgumentsKind =
+      UntaggedClosureData::DefaultTypeArgumentsKind;
+
  private:
-  ContextScopePtr context_scope() const { return untag()->context_scope_; }
+  ContextScopePtr context_scope() const { return untag()->context_scope(); }
   void set_context_scope(const ContextScope& value) const;
 
   // Enclosing function of this local function.
-  FunctionPtr parent_function() const { return untag()->parent_function_; }
+#if defined(DART_PRECOMPILER)
+  // Can be WSR wrapped in the precompiler.
+  ObjectPtr parent_function() const { return untag()->parent_function(); }
+  void set_parent_function(const Object& value) const;
+#else
+  FunctionPtr parent_function() const { return untag()->parent_function(); }
   void set_parent_function(const Function& value) const;
+#endif
 
   InstancePtr implicit_static_closure() const {
     return untag()->closure<std::memory_order_acquire>();
@@ -3770,12 +3781,12 @@ class ClosureData : public Object {
   void set_implicit_static_closure(const Instance& closure) const;
 
   TypeArgumentsPtr default_type_arguments() const {
-    return untag()->default_type_arguments_;
+    return untag()->default_type_arguments();
   }
   void set_default_type_arguments(const TypeArguments& value) const;
 
-  intptr_t default_type_arguments_info() const;
-  void set_default_type_arguments_info(intptr_t value) const;
+  DefaultTypeArgumentsKind default_type_arguments_kind() const;
+  void set_default_type_arguments_kind(DefaultTypeArgumentsKind value) const;
 
   static ClosureDataPtr New();
 
@@ -3783,6 +3794,7 @@ class ClosureData : public Object {
   friend class Class;
   friend class Function;
   friend class HeapProfiler;
+  friend class Precompiler;  // To wrap parent functions in WSRs.
 };
 
 enum class EntryPointPragma {
@@ -4090,7 +4102,8 @@ class Field : public Object {
     set_guarded_cid_unsafe(cid);
   }
   void set_guarded_cid_unsafe(intptr_t cid) const {
-    StoreNonPointer(&untag()->guarded_cid_, cid);
+    StoreNonPointer<ClassIdTagType, ClassIdTagType, std::memory_order_relaxed>(
+        &untag()->guarded_cid_, cid);
   }
   static intptr_t guarded_cid_offset() {
     return OFFSET_OF(UntaggedField, guarded_cid_);
@@ -7079,7 +7092,7 @@ class Instance : public Object {
   }
 
   InstancePtr Canonicalize(Thread* thread) const;
-  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
   virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
   virtual void CanonicalizeFieldsLocked(Thread* thread) const;
 
@@ -7116,8 +7129,17 @@ class Instance : public Object {
 
   // Return true if the null instance can be assigned to a variable of [other]
   // type. Return false if null cannot be assigned or we cannot tell (if
-  // [other] is a type parameter in NNBD strong mode).
+  // [other] is a type parameter in NNBD strong mode). Only used for checks at
+  // compile time.
   static bool NullIsAssignableTo(const AbstractType& other);
+
+  // Return true if the null instance can be assigned to a variable of [other]
+  // type. Return false if null cannot be assigned. Used for checks at runtime,
+  // when the instantiator and function type argument vectors are available.
+  static bool NullIsAssignableTo(
+      const AbstractType& other,
+      const TypeArguments& other_instantiator_type_arguments,
+      const TypeArguments& other_function_type_arguments);
 
   bool IsValidNativeIndex(int index) const {
     return ((index >= 0) && (index < clazz()->untag()->num_native_fields_));
@@ -7346,10 +7368,12 @@ class TypeArguments : public Instance {
   // 2 bits per type:
   //  - the high bit is set if the type is nullable or legacy.
   //  - the low bit is set if the type is nullable.
-  // The nullabilty is 0 if the vector is longer than kNullabilityMaxTypes.
+  // The nullability is 0 if the vector is longer than kNullabilityMaxTypes.
   // The condition evaluated at runtime to decide whether UTA can share ITA is
   //   (UTA.nullability & ITA.nullability) == UTA.nullability
-  // Note that this allows for ITA to be longer than UTA.
+  // Note that this allows for ITA to be longer than UTA (the bit vector must be
+  // stored in the same order as the corresponding type vector, i.e. with the
+  // least significant 2 bits representing the nullability of the first type).
   static const intptr_t kNullabilityBitsPerType = 2;
   static const intptr_t kNullabilityMaxTypes =
       kSmiBits / kNullabilityBitsPerType;
@@ -7458,7 +7482,7 @@ class TypeArguments : public Instance {
   // Return true if all types of this vector are finalized.
   bool IsFinalized() const;
 
-  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
   virtual InstancePtr CanonicalizeLocked(Thread* thread) const {
     return Canonicalize(thread, nullptr);
   }
@@ -7648,7 +7672,7 @@ class AbstractType : public Instance {
       Heap::Space space,
       TrailPtr trail = nullptr) const;
 
-  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
   virtual InstancePtr CanonicalizeLocked(Thread* thread) const {
     return Canonicalize(thread, nullptr);
   }
@@ -7699,6 +7723,10 @@ class AbstractType : public Instance {
   // The name of this type, including the names of its type arguments, if any.
   // Names of internal classes are mapped to their public interfaces.
   virtual StringPtr UserVisibleName() const;
+
+  // The name of this type, including the names of its type arguments, if any.
+  // Privacy suffixes are dropped.
+  virtual StringPtr ScrubbedName() const;
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.
@@ -7751,6 +7779,9 @@ class AbstractType : public Instance {
   // Check if this type represents the 'int' type.
   bool IsIntType() const;
 
+  // Check if this type represents the '_IntegerImplementation' type.
+  bool IsIntegerImplementationType() const;
+
   // Check if this type represents the 'double' type.
   bool IsDoubleType() const;
 
@@ -7768,6 +7799,9 @@ class AbstractType : public Instance {
 
   // Check if this type represents the '_Smi' type.
   bool IsSmiType() const { return type_class_id() == kSmiCid; }
+
+  // Check if this type represents the '_Mint' type.
+  bool IsMintType() const { return type_class_id() == kMintCid; }
 
   // Check if this type represents the 'String' type.
   bool IsStringType() const;
@@ -8192,7 +8226,8 @@ class FunctionType : public AbstractType {
   // with equal bounds as the other function type. Type parameter names and
   // parameter names (unless optional named) are ignored.
   bool HasSameTypeParametersAndBounds(const FunctionType& other,
-                                      TypeEquality kind) const;
+                                      TypeEquality kind,
+                                      TrailPtr trail = nullptr) const;
 
   // Return true if this function type declares type parameters.
   bool IsGeneric() const { return NumTypeParameters(Thread::Current()) > 0; }
@@ -8464,7 +8499,7 @@ class Number : public Instance {
   StringPtr ToString(Heap::Space space) const;
 
   // Numbers are canonicalized differently from other instances/strings.
-  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
   virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
 
 #if defined(DEBUG)
@@ -8540,9 +8575,8 @@ class Integer : public Number {
                      Heap::Space space = Heap::kNew) const;
 
   static int64_t GetInt64Value(const IntegerPtr obj) {
-    intptr_t raw_value = static_cast<intptr_t>(obj);
-    if ((raw_value & kSmiTagMask) == kSmiTag) {
-      return (raw_value >> kSmiTagShift);
+    if (obj->IsSmi()) {
+      return RawSmiValue(static_cast<const SmiPtr>(obj));
     } else {
       ASSERT(obj->IsMint());
       return static_cast<const MintPtr>(obj)->untag()->value_;
@@ -8866,7 +8900,7 @@ class String : public Instance {
   bool EndsWith(const String& other) const;
 
   // Strings are canonicalized using the symbol table.
-  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
   virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
 
 #if defined(DEBUG)
@@ -9569,11 +9603,6 @@ class Bool : public Instance {
   }
 
  private:
-  void set_value(bool value) const { StoreNonPointer(&untag()->value_, value); }
-
-  // New should only be called to initialize the two legal bool values.
-  static BoolPtr New(bool value);
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Bool, Instance);
   friend class Class;
   friend class Object;  // To initialize the true and false values.
@@ -10953,18 +10982,18 @@ class RegExp : public Instance {
   }
 
   StringPtr pattern() const { return untag()->pattern(); }
-  SmiPtr num_bracket_expressions() const {
-    return untag()->num_bracket_expressions();
+  intptr_t num_bracket_expressions() const {
+    return untag()->num_bracket_expressions_;
   }
   ArrayPtr capture_name_map() const { return untag()->capture_name_map(); }
 
   TypedDataPtr bytecode(bool is_one_byte, bool sticky) const {
     if (sticky) {
-      return TypedData::RawCast(is_one_byte ? untag()->one_byte_sticky_
-                                            : untag()->two_byte_sticky_);
+      return TypedData::RawCast(is_one_byte ? untag()->one_byte_sticky()
+                                            : untag()->two_byte_sticky());
     } else {
-      return TypedData::RawCast(is_one_byte ? untag()->one_byte_
-                                            : untag()->two_byte_);
+      return TypedData::RawCast(is_one_byte ? untag()->one_byte()
+                                            : untag()->two_byte());
     }
   }
 
@@ -10997,13 +11026,33 @@ class RegExp : public Instance {
     return -1;
   }
 
-  FunctionPtr* FunctionAddr(intptr_t cid, bool sticky) const {
-    return reinterpret_cast<FunctionPtr*>(
-        FieldAddrAtOffset(function_offset(cid, sticky)));
-  }
-
   FunctionPtr function(intptr_t cid, bool sticky) const {
-    return *FunctionAddr(cid, sticky);
+    if (sticky) {
+      switch (cid) {
+        case kOneByteStringCid:
+          return static_cast<FunctionPtr>(untag()->one_byte_sticky());
+        case kTwoByteStringCid:
+          return static_cast<FunctionPtr>(untag()->two_byte_sticky());
+        case kExternalOneByteStringCid:
+          return static_cast<FunctionPtr>(untag()->external_one_byte_sticky());
+        case kExternalTwoByteStringCid:
+          return static_cast<FunctionPtr>(untag()->external_two_byte_sticky());
+      }
+    } else {
+      switch (cid) {
+        case kOneByteStringCid:
+          return static_cast<FunctionPtr>(untag()->one_byte());
+        case kTwoByteStringCid:
+          return static_cast<FunctionPtr>(untag()->two_byte());
+        case kExternalOneByteStringCid:
+          return static_cast<FunctionPtr>(untag()->external_one_byte());
+        case kExternalTwoByteStringCid:
+          return static_cast<FunctionPtr>(untag()->external_two_byte());
+      }
+    }
+
+    UNREACHABLE();
+    return Function::null();
   }
 
   void set_pattern(const String& pattern) const;
@@ -11012,6 +11061,8 @@ class RegExp : public Instance {
                     bool sticky,
                     const TypedData& bytecode) const;
 
+  void set_num_bracket_expressions(SmiPtr value) const;
+  void set_num_bracket_expressions(const Smi& value) const;
   void set_num_bracket_expressions(intptr_t value) const;
   void set_capture_name_map(const Array& array) const;
   void set_is_global() const {
@@ -11256,7 +11307,7 @@ inline intptr_t Field::TargetOffsetOf(const FieldPtr field) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   return field->untag()->target_offset_;
 #else
-  return Smi::Value(field->untag()->host_offset_or_field_id_);
+  return Smi::Value(field->untag()->host_offset_or_field_id());
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -11395,7 +11446,7 @@ inline void Type::SetHash(intptr_t value) const {
 
 inline intptr_t FunctionType::Hash() const {
   ASSERT(IsFinalized());
-  intptr_t result = Smi::Value(untag()->hash_);
+  intptr_t result = Smi::Value(untag()->hash());
   if (result != 0) {
     return result;
   }
@@ -11405,7 +11456,7 @@ inline intptr_t FunctionType::Hash() const {
 inline void FunctionType::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
-  StoreSmi(&untag()->hash_, Smi::New(value));
+  untag()->set_hash(Smi::New(value));
 }
 
 inline intptr_t TypeParameter::Hash() const {

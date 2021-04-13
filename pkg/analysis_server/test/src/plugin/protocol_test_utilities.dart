@@ -64,7 +64,7 @@ class ProtocolTestUtilities {
 
   /// On return, increment [stringIndex] by 3 (or 4 if no [file] name is
   /// provided) and [intIndex] by 4.
-  AnalysisError analysisError(int stringIndex, int intIndex, {String file}) {
+  AnalysisError analysisError(int stringIndex, int intIndex, {String? file}) {
     return AnalysisError(
         AnalysisErrorSeverity.ERROR,
         AnalysisErrorType.COMPILE_TIME_ERROR,
@@ -76,10 +76,10 @@ class ProtocolTestUtilities {
   }
 
   /// On return, increment [stringIndex] by 5 and [intIndex] by 5.
-  Element element(int stringIndex, int intIndex, {ElementKind kind}) =>
+  Element element(int stringIndex, int intIndex, {ElementKind? kind}) =>
       Element(kind ?? ElementKind.CLASS, strings[stringIndex++], intIndex++,
           location: Location(fileName(stringIndex++), intIndex++, intIndex++,
-              intIndex++, intIndex++),
+              intIndex++, intIndex++, intIndex++, intIndex++),
           parameters: strings[stringIndex++],
           returnType: strings[stringIndex++],
           typeParameters: strings[stringIndex++]);
@@ -93,8 +93,10 @@ class ProtocolTestUtilities {
       HighlightRegion(HighlightRegionType.FIELD, offset, length);
 
   /// On return, increment [stringIndex] by 1 and [intIndex] by 4.
-  Location location(int stringIndex, int intIndex, {String file}) => Location(
+  Location location(int stringIndex, int intIndex, {String? file}) => Location(
       file ?? fileName(stringIndex),
+      intIndex++,
+      intIndex++,
       intIndex++,
       intIndex++,
       intIndex++,
@@ -127,7 +129,7 @@ class ProtocolTestUtilities {
   /// On return, increment [stringIndex] by 2 (or 3 if no [file] name is
   /// provided) and [intIndex] by 4.
   plugin.AnalysisNavigationParams pluginNavigationParams(
-          int stringIndex, int intIndex, {String file}) =>
+          int stringIndex, int intIndex, {String? file}) =>
       plugin.AnalysisNavigationParams(
           file ?? fileName(stringIndex++), <NavigationRegion>[
         NavigationRegion(intIndex++, 2, <int>[0])
@@ -149,7 +151,7 @@ class ProtocolTestUtilities {
   /// On return, increment [stringIndex] by 2 (or 3 if no [file] name is
   /// provided) and [intIndex] by 4.
   server.AnalysisNavigationParams serverNavigationParams(
-          int stringIndex, int intIndex, {String file}) =>
+          int stringIndex, int intIndex, {String? file}) =>
       server.AnalysisNavigationParams(
           file ?? fileName(stringIndex++), <NavigationRegion>[
         NavigationRegion(intIndex++, 2, <int>[0])

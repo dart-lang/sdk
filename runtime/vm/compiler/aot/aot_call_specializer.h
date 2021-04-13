@@ -59,12 +59,12 @@ class AotCallSpecializer : public CallSpecializer {
   const Function& InterfaceTargetForTableDispatch(InstanceCallBaseInstr* call);
 
   // Try to replace a call with a more specialized instruction working on
-  // integers (e.g. BinaryInt64OpInstr, CheckedSmiComparisonInstr,
+  // integers (e.g. BinaryInt64OpInstr, EqualityCompareInstr,
   // RelationalOpInstr)
   bool TryOptimizeIntegerOperation(TemplateDartCall<0>* call, Token::Kind kind);
 
   // Try to replace a call with a more specialized instruction working on
-  // doubles (e.g. BinaryDoubleOpInstr, CheckedSmiComparisonInstr,
+  // doubles (e.g. BinaryDoubleOpInstr, EqualityCompareInstr,
   // RelationalOpInstr)
   bool TryOptimizeDoubleOperation(TemplateDartCall<0>* call, Token::Kind kind);
 

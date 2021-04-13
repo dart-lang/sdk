@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -18,12 +20,6 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../../abstract_context.dart';
-
-int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
-  var c1 = s1.completion.toLowerCase();
-  var c2 = s2.completion.toLowerCase();
-  return c1.compareTo(c2);
-}
 
 SuggestionMatcher suggestionHas(
         {@required String completion,
@@ -95,8 +91,6 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest
   /// Return `true` if contributors should suggest constructors in contexts
   /// where there is no `new` or `const` keyword.
   bool get suggestConstructorsWithoutNew => true;
-
-  bool get usingFastaParser => true;
 
   void addTestSource(String content) {
     expect(completionOffset, isNull, reason: 'Call addTestUnit exactly once');

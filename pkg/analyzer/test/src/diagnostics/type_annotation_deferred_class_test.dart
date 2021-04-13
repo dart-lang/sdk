@@ -15,6 +15,20 @@ main() {
 
 @reflectiveTest
 class TypeAnnotationDeferredClassTest extends PubPackageResolutionTest {
+  test_annotation_typeArgument() async {
+    newFile('$testPackageLibPath/lib1.dart', content: '''
+class D {}
+''');
+    await assertErrorsInCode('''
+library root;
+import 'lib1.dart' deferred as a;
+class C<T> { const C(); }
+@C<a.D>() main () {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 77, 3),
+    ]);
+  }
+
   test_asExpression() async {
     newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;

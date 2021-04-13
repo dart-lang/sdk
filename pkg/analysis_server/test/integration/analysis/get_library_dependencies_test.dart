@@ -39,7 +39,7 @@ class Bar {
     expect(libraries.any((String lib) => lib.endsWith('core/core.dart')), true);
 
     expect(packageMaps.keys, hasLength(1));
-    var map = packageMaps[packageMaps.keys.first];
+    var map = packageMaps[packageMaps.keys.first]!;
     expect(map.keys, isEmpty);
   }
 }

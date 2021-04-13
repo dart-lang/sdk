@@ -1,2 +1,2 @@
 --enable-experiment=triple-shift
---target=noneWithJs
+--target=dart2js

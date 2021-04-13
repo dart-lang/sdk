@@ -1174,6 +1174,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleConstFactory(Token constKeyword) {
+    listener?.handleConstFactory(constKeyword);
+  }
+
+  @override
   void handleContinueStatement(
       bool hasTarget, Token continueKeyword, Token endToken) {
     listener?.handleContinueStatement(hasTarget, continueKeyword, endToken);

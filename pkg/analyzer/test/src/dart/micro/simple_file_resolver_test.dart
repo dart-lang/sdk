@@ -296,7 +296,6 @@ int b = a;
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/2399')
   test_analysisOptions_lints() async {
     newFile('/workspace/dart/analysis_options/lib/default.yaml', content: r'''
 linter:
@@ -438,12 +437,57 @@ var a = 4.2;
     expect(fileResolver.testView!.resolvedFiles, <Object>[]);
   }
 
+  test_getLibraryByUri() {
+    newFile('/workspace/dart/my/lib/a.dart', content: r'''
+class A {}
+''');
+
+    var element = fileResolver.getLibraryByUri(
+      uriStr: 'package:dart.my/a.dart',
+    );
+    expect(element.definingCompilationUnit.types, hasLength(1));
+  }
+
+  test_getLibraryByUri_notExistingFile() {
+    var element = fileResolver.getLibraryByUri(
+      uriStr: 'package:dart.my/a.dart',
+    );
+    expect(element.definingCompilationUnit.types, isEmpty);
+  }
+
+  test_getLibraryByUri_partOf() {
+    newFile('/workspace/dart/my/lib/a.dart', content: r'''
+part of 'b.dart';
+''');
+
+    expect(() {
+      fileResolver.getLibraryByUri(
+        uriStr: 'package:dart.my/a.dart',
+      );
+    }, throwsArgumentError);
+  }
+
+  test_getLibraryByUri_unresolvedUri() {
+    expect(() {
+      fileResolver.getLibraryByUri(uriStr: 'my:unresolved');
+    }, throwsArgumentError);
+  }
+
   test_hint() async {
     await assertErrorsInCode(r'''
 import 'dart:math';
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
     ]);
+  }
+
+  test_hint_in_third_party() async {
+    var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
+    newFile(aPath, content: r'''
+import 'dart:math';
+''');
+    await resolveFile(aPath);
+    assertNoErrorsInResult();
   }
 
   test_linkLibraries_getErrors() {
@@ -509,6 +553,81 @@ part of 'a.dart';
 ''');
   }
 
+  test_removeFilesNotNecessaryForAnalysisOf() async {
+    var aPath = convertPath('/workspace/dart/aaa/lib/a.dart');
+    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
+    var cPath = convertPath('/workspace/dart/aaa/lib/c.dart');
+
+    newFile(aPath, content: r'''
+class A {}
+''');
+
+    newFile(bPath, content: r'''
+import 'a.dart';
+''');
+
+    newFile(cPath, content: r'''
+import 'a.dart';
+''');
+
+    await resolveFile(bPath);
+    await resolveFile(cPath);
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([cPath]);
+    _assertRemovedPaths(unorderedEquals([bPath]));
+  }
+
+  test_removeFilesNotNecessaryForAnalysisOf_multiple() async {
+    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
+    var dPath = convertPath('/workspace/dart/aaa/lib/d.dart');
+    var ePath = convertPath('/workspace/dart/aaa/lib/e.dart');
+    var fPath = convertPath('/workspace/dart/aaa/lib/f.dart');
+
+    newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
+class A {}
+''');
+
+    newFile(bPath, content: r'''
+class B {}
+''');
+
+    newFile('/workspace/dart/aaa/lib/c.dart', content: r'''
+class C {}
+''');
+
+    newFile(dPath, content: r'''
+import 'a.dart';
+''');
+
+    newFile(ePath, content: r'''
+import 'a.dart';
+import 'b.dart';
+''');
+
+    newFile(fPath, content: r'''
+import 'c.dart';
+ ''');
+
+    await resolveFile(dPath);
+    await resolveFile(ePath);
+    await resolveFile(fPath);
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([dPath, fPath]);
+    _assertRemovedPaths(unorderedEquals([bPath, ePath]));
+  }
+
+  test_removeFilesNotNecessaryForAnalysisOf_unknown() async {
+    var aPath = convertPath('/workspace/dart/aaa/lib/a.dart');
+    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
+
+    newFile(aPath, content: r'''
+class A {}
+''');
+
+    await resolveFile(aPath);
+
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([aPath, bPath]);
+    _assertRemovedPaths(isEmpty);
+  }
+
   test_resolve_part_of() async {
     newFile('/workspace/dart/test/lib/a.dart', content: r'''
 part 'test.dart';
@@ -558,6 +677,30 @@ void func() {
 
     // Get should get a new result.
     expect(result, isNot(same(result1)));
+  }
+
+  test_resolveLibrary() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(aPath, content: r'''
+part 'test.dart';
+
+class A {
+  int m;
+}
+''');
+
+    newFile('/workspace/dart/test/lib/test.dart', content: r'''
+part of 'a.dart';
+
+void func() {
+  var a = A();
+  print(a.m);
+}
+''');
+
+    var result = fileResolver.resolveLibrary(path: aPath);
+    expect(result.path, aPath);
+    expect(result.units?.length, 2);
   }
 
   test_reuse_compatibleOptions() async {
@@ -647,64 +790,7 @@ import 'foo:bar';
     ]);
   }
 
-  test_unusedFiles() async {
-    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
-    var cPath = convertPath('/workspace/dart/aaa/lib/c.dart');
-
-    newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
-class A {}
-''');
-
-    newFile(bPath, content: r'''
-import 'a.dart';
-''');
-
-    newFile(cPath, content: r'''
-import 'a.dart';
-''');
-
-    await resolveFile(bPath);
-    await resolveFile(cPath);
-    fileResolver.removeFilesNotNecessaryForAnalysisOf([cPath]);
-    expect(fileResolver.fsState!.testView.unusedFiles.contains(bPath), true);
-    expect(fileResolver.fsState!.testView.unusedFiles.length, 1);
-  }
-
-  test_unusedFiles_mutilple() async {
-    var dPath = convertPath('/workspace/dart/aaa/lib/d.dart');
-    var ePath = convertPath('/workspace/dart/aaa/lib/e.dart');
-    var fPath = convertPath('/workspace/dart/aaa/lib/f.dart');
-
-    newFile('/workspace/dart/aaa/lib/a.dart', content: r'''
-class A {}
-''');
-
-    newFile('/workspace/dart/aaa/lib/b.dart', content: r'''
-class B {}
-''');
-
-    newFile('/workspace/dart/aaa/lib/c.dart', content: r'''
-class C {}
-''');
-
-    newFile(dPath, content: r'''
-import 'a.dart';
-''');
-
-    newFile(ePath, content: r'''
-import 'a.dart';
-import 'b.dart';
-''');
-
-    newFile(fPath, content: r'''
-import 'c.dart';
- ''');
-
-    await resolveFile(dPath);
-    await resolveFile(ePath);
-    await resolveFile(fPath);
-    fileResolver.removeFilesNotNecessaryForAnalysisOf([dPath, fPath]);
-    expect(fileResolver.fsState!.testView.unusedFiles.contains(ePath), true);
-    expect(fileResolver.fsState!.testView.unusedFiles.length, 2);
+  void _assertRemovedPaths(Matcher matcher) {
+    expect(fileResolver.fsState!.testView.removedPaths, matcher);
   }
 }

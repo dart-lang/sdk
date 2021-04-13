@@ -19,7 +19,7 @@ import "dart:core" as core;
 import "dart:async";
 import "org-dartlang-testcase:///issue41501.dart";
 
-typedef AAlias = opt::A*;
+typedef AAlias = () →* opt::A*;
 class A extends core::Object {
   synthetic constructor •() → opt::A*
     ;

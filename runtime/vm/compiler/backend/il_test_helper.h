@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_IL_TEST_HELPER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_IL_TEST_HELPER_H_
 
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -277,20 +278,48 @@ class FlowGraphBuilderHelper {
     return flow_graph_.GetConstant(Double::Handle(Double::NewCanonical(value)));
   }
 
-  static Definition* const kPhiSelfReference;
+  enum class IncomingDefKind {
+    kImmediate,
+    kDelayed,
+  };
+
+  class IncomingDef {
+   public:
+    IncomingDef(BlockEntryInstr* from, Definition* defn)
+        : kind_(IncomingDefKind::kImmediate), from_(from), defn_(defn) {}
+
+    template <typename T,
+              typename = typename std::enable_if<
+                  std::is_base_of<Definition, T>::value>::type>
+    IncomingDef(BlockEntryInstr* from, T** defn_source)
+        : kind_(IncomingDefKind::kDelayed),
+          from_(from),
+          defn_source_(reinterpret_cast<Definition**>(defn_source)) {}
+
+    BlockEntryInstr* from() const { return from_; }
+    Definition* defn() const {
+      return kind_ == IncomingDefKind::kImmediate ? defn_ : *defn_source_;
+    }
+
+   private:
+    IncomingDefKind kind_;
+    BlockEntryInstr* from_;
+    union {
+      Definition* defn_;
+      Definition** defn_source_;
+    };
+  };
 
   PhiInstr* Phi(JoinEntryInstr* join,
-                std::initializer_list<std::pair<BlockEntryInstr*, Definition*>>
-                    incoming) {
+                std::initializer_list<IncomingDef> incoming) {
     auto phi = new PhiInstr(join, incoming.size());
     for (size_t i = 0; i < incoming.size(); i++) {
       auto input = new Value(flow_graph_.constant_dead());
       phi->SetInputAt(i, input);
       input->definition()->AddInputUse(input);
     }
-    for (auto pair : incoming) {
-      pending_phis_.Add({phi, pair.first,
-                         pair.second == kPhiSelfReference ? phi : pair.second});
+    for (auto def : incoming) {
+      pending_phis_.Add({phi, def});
     }
     return phi;
   }
@@ -303,9 +332,9 @@ class FlowGraphBuilderHelper {
     for (auto& pending : pending_phis_) {
       auto join = pending.phi->block();
       EXPECT(pending.phi->InputCount() == join->PredecessorCount());
-      auto pred_index = join->IndexOfPredecessor(pending.pred);
+      auto pred_index = join->IndexOfPredecessor(pending.incoming.from());
       EXPECT(pred_index != -1);
-      pending.phi->InputAt(pred_index)->BindTo(pending.defn);
+      pending.phi->InputAt(pred_index)->BindTo(pending.incoming.defn());
     }
   }
 
@@ -347,8 +376,7 @@ class FlowGraphBuilderHelper {
 
   struct PendingPhiInput {
     PhiInstr* phi;
-    BlockEntryInstr* pred;
-    Definition* defn;
+    IncomingDef incoming;
   };
   GrowableArray<PendingPhiInput> pending_phis_;
 };

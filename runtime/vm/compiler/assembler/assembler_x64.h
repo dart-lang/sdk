@@ -286,6 +286,12 @@ class FieldAddress : public Address {
   }
 };
 
+#if !defined(DART_COMPRESSED_POINTERS)
+#define OBJ(op) op##q
+#else
+#define OBJ(op) op##l
+#endif
+
 class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolBuilder* object_pool_builder,
@@ -544,10 +550,16 @@ class Assembler : public AssemblerBase {
   };
   void roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode);
 
-  void CompareImmediate(Register reg, const Immediate& imm);
-  void CompareImmediate(const Address& address, const Immediate& imm);
-  void CompareImmediate(Register reg, int32_t immediate) {
-    return CompareImmediate(reg, Immediate(immediate));
+  void CompareImmediate(Register reg,
+                        const Immediate& imm,
+                        OperandSize width = kEightBytes);
+  void CompareImmediate(const Address& address,
+                        const Immediate& imm,
+                        OperandSize width = kEightBytes);
+  void CompareImmediate(Register reg,
+                        int32_t immediate,
+                        OperandSize width = kEightBytes) {
+    return CompareImmediate(reg, Immediate(immediate), width);
   }
 
   void testl(Register reg, const Immediate& imm) { testq(reg, imm); }
@@ -555,7 +567,9 @@ class Assembler : public AssemblerBase {
   void testb(const Address& address, Register reg);
 
   void testq(Register reg, const Immediate& imm);
-  void TestImmediate(Register dst, const Immediate& imm);
+  void TestImmediate(Register dst,
+                     const Immediate& imm,
+                     OperandSize width = kEightBytes);
 
   void AndImmediate(Register dst, const Immediate& imm);
   void OrImmediate(Register dst, const Immediate& imm);
@@ -678,6 +692,7 @@ class Assembler : public AssemblerBase {
   // Methods for High-level operations and implemented on all architectures.
   void Ret() { ret(); }
   void CompareRegisters(Register a, Register b);
+  void CompareObjectRegisters(Register a, Register b) { OBJ(cmp)(a, b); }
   void BranchIf(Condition condition,
                 Label* label,
                 JumpDistance distance = kFarJump) {
@@ -767,9 +782,8 @@ class Assembler : public AssemblerBase {
     kValueCanBeSmi,
   };
 
-  void LoadCompressed(Register dest,
-                      const Address& slot,
-                      CanBeSmi can_value_be_smi = kValueCanBeSmi);
+  void LoadCompressed(Register dest, const Address& slot);
+  void LoadCompressedSmi(Register dest, const Address& slot);
 
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,
@@ -780,6 +794,14 @@ class Assembler : public AssemblerBase {
                        const Address& dest,  // Where we are storing into.
                        Register value,       // Value we are storing.
                        CanBeSmi can_be_smi = kValueCanBeSmi);
+  void StoreCompressedIntoObject(
+      Register object,      // Object we are storing into.
+      const Address& dest,  // Where we are storing into.
+      Register value,       // Value we are storing.
+      CanBeSmi can_be_smi = kValueCanBeSmi);
+  void StoreBarrier(Register object,  // Object we are storing into.
+                    Register value,   // Value we are storing.
+                    CanBeSmi can_be_smi);
   void StoreIntoArray(Register object,  // Object we are storing into.
                       Register slot,    // Where we are storing into.
                       Register value,   // Value we are storing.
@@ -788,9 +810,15 @@ class Assembler : public AssemblerBase {
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
+  void StoreCompressedIntoObjectNoBarrier(Register object,
+                                          const Address& dest,
+                                          Register value);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
+  void StoreCompressedIntoObjectNoBarrier(Register object,
+                                          const Address& dest,
+                                          const Object& value);
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,
@@ -800,6 +828,7 @@ class Assembler : public AssemblerBase {
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
   void ZeroInitSmiField(const Address& dest);
+  void ZeroInitCompressedSmiField(const Address& dest);
   // Increments a Smi field. Leaves flags in same state as an 'addq'.
   void IncrementSmiField(const Address& dest, int64_t increment);
 
@@ -864,9 +893,21 @@ class Assembler : public AssemblerBase {
   void SmiUntagOrCheckClass(Register object, intptr_t class_id, Label* smi);
 
   // Misc. functionality.
-  void SmiTag(Register reg) { addq(reg, reg); }
+  void SmiTag(Register reg) { OBJ(add)(reg, reg); }
 
-  void SmiUntag(Register reg) { sarq(reg, Immediate(kSmiTagSize)); }
+  void SmiUntag(Register reg) { OBJ(sar)(reg, Immediate(kSmiTagSize)); }
+
+  void SmiUntagAndSignExtend(Register reg) {
+#if !defined(DART_COMPRESSED_POINTERS)
+    sarq(reg, Immediate(kSmiTagSize));
+#else
+    // This is shorter than
+    // shlq reg, 32
+    // sraq reg, 33
+    sarl(reg, Immediate(1));
+    movsxd(reg, reg);
+#endif
+  }
 
   void BranchIfNotSmi(Register reg,
                       Label* label,
@@ -906,11 +947,19 @@ class Assembler : public AssemblerBase {
                  OperandSize sz = kEightBytes) {
     LoadFromOffset(dst, address, sz);
   }
+  void LoadCompressedField(Register dst, FieldAddress address) {
+    LoadCompressed(dst, address);
+  }
   void LoadFieldFromOffset(Register dst,
                            Register base,
                            int32_t offset,
                            OperandSize sz = kEightBytes) {
     LoadFromOffset(dst, FieldAddress(base, offset), sz);
+  }
+  void LoadCompressedFieldFromOffset(Register dst,
+                                     Register base,
+                                     int32_t offset) {
+    LoadCompressed(dst, FieldAddress(base, offset));
   }
   void LoadIndexedPayload(Register dst,
                           Register base,
@@ -950,7 +999,7 @@ class Assembler : public AssemblerBase {
   }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
-    cmpq(value, address);
+    OBJ(cmp)(value, address);
   }
 
   void CompareTypeNullabilityWith(Register type, int8_t value) {

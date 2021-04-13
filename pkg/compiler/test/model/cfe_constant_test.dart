@@ -5,7 +5,6 @@
 // @dart = 2.7
 
 import 'dart:io';
-import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';

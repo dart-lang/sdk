@@ -127,7 +127,7 @@ abstract class Uri {
   ///
   /// Examples:
   ///
-  /// ```
+  /// ```dart
   /// // http://example.org/path?q=dart.
   /// Uri.http("example.org", "/path", { "q" : "dart" });
   ///
@@ -198,7 +198,7 @@ abstract class Uri {
   ///
   /// Examples using non-Windows semantics:
   ///
-  /// ```
+  /// ```dart
   /// // xxx/yyy
   /// Uri.file("xxx/yyy", windows: false);
   ///
@@ -217,7 +217,7 @@ abstract class Uri {
   ///
   /// Examples using Windows semantics:
   ///
-  /// ```
+  /// ```dart
   /// // xxx/yyy
   /// Uri.file(r"xxx\yyy", windows: true);
   ///
@@ -331,7 +331,7 @@ abstract class Uri {
   /// The authority is formatted from the [userInfo], [host] and [port]
   /// parts.
   ///
-  /// The valie is the empty string if there is no authority component.
+  /// The value is the empty string if there is no authority component.
   String get authority;
 
   /// The user info part of the authority component.
@@ -414,7 +414,7 @@ abstract class Uri {
   /// specified for FORM post in the [HTML 4.01 specification section
   /// 17.13.4](http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
   ///
-  /// Each key and value in the reulting map has been decoded. If there is no
+  /// Each key and value in the resulting map has been decoded. If there is no
   /// query the map is empty.
   ///
   /// Keys are mapped to lists of their values. If a key occurs only once,
@@ -3142,7 +3142,7 @@ class UriData {
   /// If there is a single separator left, it ends the "base64" marker.
   ///
   /// So the following separators are found for a text:
-  /// ```
+  /// ```plaintext
   /// data:text/plain;foo=bar;base64,ARGLEBARGLE=
   ///     ^          ^   ^   ^      ^
   /// ```
@@ -3318,7 +3318,7 @@ class UriData {
   ///
   /// The string must have the format:
   ///
-  /// ```
+  /// ```plaintext
   /// 'data:' (type '/' subtype)? (';' attribute '=' value)* (';base64')? ',' data
   /// ````
   ///

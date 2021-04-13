@@ -68,6 +68,15 @@ void main() {
     testPassStructStruct16BytesHomogeneousFloat2x5();
     testPassStructStruct32BytesHomogeneousDouble2x5();
     testPassStructStruct16BytesMixed3x10();
+    testPassUint8Struct32BytesInlineArrayMultiDimensionalI();
+    testPassUint8Struct4BytesInlineArrayMultiDimensionalIn();
+    testPassStruct3BytesPackedIntx10();
+    testPassStruct8BytesPackedIntx10();
+    testPassStruct9BytesPackedMixedx10DoubleInt32();
+    testPassStruct5BytesPackedMixed();
+    testPassStructNestedAlignmentStruct5BytesPackedMixed();
+    testPassStruct6BytesInlineArrayInt();
+    testPassStruct15BytesInlineArrayMixed();
     testReturnStruct1ByteInt();
     testReturnStruct3BytesHomogeneousUint8();
     testReturnStruct3BytesInt2ByteAligned();
@@ -90,6 +99,9 @@ void main() {
     testReturnStruct32BytesHomogeneousDouble();
     testReturnStruct40BytesHomogeneousDouble();
     testReturnStruct1024BytesHomogeneousUint64();
+    testReturnStruct3BytesPackedInt();
+    testReturnStruct8BytesPackedInt();
+    testReturnStruct9BytesPackedMixed();
     testReturnStructArgumentStruct1ByteInt();
     testReturnStructArgumentInt32x8Struct1ByteInt();
     testReturnStructArgumentStruct8BytesHomogeneousFloat();
@@ -1043,7 +1055,7 @@ class Struct8BytesInlineArrayInt extends Struct {
   @Array(8)
   Array<Uint8> a0;
 
-  String toString() => "(${[for (var i = 0; i < 8; i += 1) a0[i]]})";
+  String toString() => "(${[for (var i0 = 0; i0 < 8; i0 += 1) a0[i0]]})";
 }
 
 class StructInlineArrayIrregular extends Struct {
@@ -1053,14 +1065,14 @@ class StructInlineArrayIrregular extends Struct {
   @Uint8()
   int a1;
 
-  String toString() => "(${[for (var i = 0; i < 2; i += 1) a0[i]]}, ${a1})";
+  String toString() => "(${[for (var i0 = 0; i0 < 2; i0 += 1) a0[i0]]}, ${a1})";
 }
 
 class StructInlineArray100Bytes extends Struct {
   @Array(100)
   Array<Uint8> a0;
 
-  String toString() => "(${[for (var i = 0; i < 100; i += 1) a0[i]]})";
+  String toString() => "(${[for (var i0 = 0; i0 < 100; i0 += 1) a0[i0]]})";
 }
 
 class StructInlineArrayBig extends Struct {
@@ -1074,7 +1086,7 @@ class StructInlineArrayBig extends Struct {
   Array<Uint8> a2;
 
   String toString() =>
-      "(${a0}, ${a1}, ${[for (var i = 0; i < 4000; i += 1) a2[i]]})";
+      "(${a0}, ${a1}, ${[for (var i0 = 0; i0 < 4000; i0 += 1) a2[i0]]})";
 }
 
 class StructStruct16BytesHomogeneousFloat2 extends Struct {
@@ -1087,7 +1099,7 @@ class StructStruct16BytesHomogeneousFloat2 extends Struct {
   double a2;
 
   String toString() =>
-      "(${a0}, ${[for (var i = 0; i < 2; i += 1) a1[i]]}, ${a2})";
+      "(${a0}, ${[for (var i0 = 0; i0 < 2; i0 += 1) a1[i0]]}, ${a2})";
 }
 
 class StructStruct32BytesHomogeneousDouble2 extends Struct {
@@ -1100,7 +1112,7 @@ class StructStruct32BytesHomogeneousDouble2 extends Struct {
   double a2;
 
   String toString() =>
-      "(${a0}, ${[for (var i = 0; i < 2; i += 1) a1[i]]}, ${a2})";
+      "(${a0}, ${[for (var i0 = 0; i0 < 2; i0 += 1) a1[i0]]}, ${a2})";
 }
 
 class StructStruct16BytesMixed3 extends Struct {
@@ -1112,9 +1124,163 @@ class StructStruct16BytesMixed3 extends Struct {
   @Array(2)
   Array<Int16> a2;
 
-  String toString() => "(${a0}, ${[for (var i = 0; i < 1; i += 1) a1[i]]}, ${[
-        for (var i = 0; i < 2; i += 1) a2[i]
+  String toString() => "(${a0}, ${[
+        for (var i0 = 0; i0 < 1; i0 += 1) a1[i0]
+      ]}, ${[for (var i0 = 0; i0 < 2; i0 += 1) a2[i0]]})";
+}
+
+class Struct8BytesInlineArrayMultiDimensionalInt extends Struct {
+  @Array(2, 2, 2)
+  Array<Array<Array<Uint8>>> a0;
+
+  String toString() => "(${[
+        for (var i0 = 0; i0 < 2; i0 += 1)
+          [
+            for (var i1 = 0; i1 < 2; i1 += 1)
+              [for (var i2 = 0; i2 < 2; i2 += 1) a0[i0][i1][i2]]
+          ]
       ]})";
+}
+
+class Struct32BytesInlineArrayMultiDimensionalInt extends Struct {
+  @Array(2, 2, 2, 2, 2)
+  Array<Array<Array<Array<Array<Uint8>>>>> a0;
+
+  String toString() => "(${[
+        for (var i0 = 0; i0 < 2; i0 += 1)
+          [
+            for (var i1 = 0; i1 < 2; i1 += 1)
+              [
+                for (var i2 = 0; i2 < 2; i2 += 1)
+                  [
+                    for (var i3 = 0; i3 < 2; i3 += 1)
+                      [for (var i4 = 0; i4 < 2; i4 += 1) a0[i0][i1][i2][i3][i4]]
+                  ]
+              ]
+          ]
+      ]})";
+}
+
+class Struct64BytesInlineArrayMultiDimensionalInt extends Struct {
+  @Array.multi([2, 2, 2, 2, 2, 2])
+  Array<Array<Array<Array<Array<Array<Uint8>>>>>> a0;
+
+  String toString() => "(${[
+        for (var i0 = 0; i0 < 2; i0 += 1)
+          [
+            for (var i1 = 0; i1 < 2; i1 += 1)
+              [
+                for (var i2 = 0; i2 < 2; i2 += 1)
+                  [
+                    for (var i3 = 0; i3 < 2; i3 += 1)
+                      [
+                        for (var i4 = 0; i4 < 2; i4 += 1)
+                          [
+                            for (var i5 = 0; i5 < 2; i5 += 1)
+                              a0[i0][i1][i2][i3][i4][i5]
+                          ]
+                      ]
+                  ]
+              ]
+          ]
+      ]})";
+}
+
+class Struct4BytesInlineArrayMultiDimensionalInt extends Struct {
+  @Array(2, 2)
+  Array<Array<Struct1ByteInt>> a0;
+
+  String toString() => "(${[
+        for (var i0 = 0; i0 < 2; i0 += 1)
+          [for (var i1 = 0; i1 < 2; i1 += 1) a0[i0][i1]]
+      ]})";
+}
+
+@Packed(1)
+class Struct3BytesPackedInt extends Struct {
+  @Int8()
+  int a0;
+
+  @Int16()
+  int a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+@Packed(1)
+class Struct3BytesPackedIntMembersAligned extends Struct {
+  @Int8()
+  int a0;
+
+  @Int16()
+  int a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+@Packed(1)
+class Struct5BytesPackedMixed extends Struct {
+  @Float()
+  double a0;
+
+  @Uint8()
+  int a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class StructNestedAlignmentStruct5BytesPackedMixed extends Struct {
+  @Uint8()
+  int a0;
+
+  Struct5BytesPackedMixed a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class Struct6BytesInlineArrayInt extends Struct {
+  @Array(2)
+  Array<Struct3BytesPackedIntMembersAligned> a0;
+
+  String toString() => "(${[for (var i0 = 0; i0 < 2; i0 += 1) a0[i0]]})";
+}
+
+@Packed(1)
+class Struct8BytesPackedInt extends Struct {
+  @Uint8()
+  int a0;
+
+  @Uint32()
+  int a1;
+
+  @Uint8()
+  int a2;
+
+  @Uint8()
+  int a3;
+
+  @Uint8()
+  int a4;
+
+  String toString() => "(${a0}, ${a1}, ${a2}, ${a3}, ${a4})";
+}
+
+@Packed(1)
+class Struct9BytesPackedMixed extends Struct {
+  @Uint8()
+  int a0;
+
+  @Double()
+  double a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
+class Struct15BytesInlineArrayMixed extends Struct {
+  @Array(3)
+  Array<Struct5BytesPackedMixed> a0;
+
+  String toString() => "(${[for (var i0 = 0; i0 < 3; i0 += 1) a0[i0]]})";
 }
 
 final passStruct1ByteIntx10 = ffiTestFunctions.lookupFunction<
@@ -5227,6 +5393,529 @@ void testPassStructStruct16BytesMixed3x10() {
   calloc.free(a9Pointer);
 }
 
+final passUint8Struct32BytesInlineArrayMultiDimensionalI =
+    ffiTestFunctions.lookupFunction<
+        Uint32 Function(
+            Uint8,
+            Struct32BytesInlineArrayMultiDimensionalInt,
+            Uint8,
+            Struct8BytesInlineArrayMultiDimensionalInt,
+            Uint8,
+            Struct8BytesInlineArrayMultiDimensionalInt,
+            Uint8),
+        int Function(
+            int,
+            Struct32BytesInlineArrayMultiDimensionalInt,
+            int,
+            Struct8BytesInlineArrayMultiDimensionalInt,
+            int,
+            Struct8BytesInlineArrayMultiDimensionalInt,
+            int)>("PassUint8Struct32BytesInlineArrayMultiDimensionalI");
+
+/// Test multi dimensional inline array struct as argument.
+void testPassUint8Struct32BytesInlineArrayMultiDimensionalI() {
+  int a0;
+  final a1Pointer = calloc<Struct32BytesInlineArrayMultiDimensionalInt>();
+  final Struct32BytesInlineArrayMultiDimensionalInt a1 = a1Pointer.ref;
+  int a2;
+  final a3Pointer = calloc<Struct8BytesInlineArrayMultiDimensionalInt>();
+  final Struct8BytesInlineArrayMultiDimensionalInt a3 = a3Pointer.ref;
+  int a4;
+  final a5Pointer = calloc<Struct8BytesInlineArrayMultiDimensionalInt>();
+  final Struct8BytesInlineArrayMultiDimensionalInt a5 = a5Pointer.ref;
+  int a6;
+
+  a0 = 1;
+  a1.a0[0][0][0][0][0] = 2;
+  a1.a0[0][0][0][0][1] = 3;
+  a1.a0[0][0][0][1][0] = 4;
+  a1.a0[0][0][0][1][1] = 5;
+  a1.a0[0][0][1][0][0] = 6;
+  a1.a0[0][0][1][0][1] = 7;
+  a1.a0[0][0][1][1][0] = 8;
+  a1.a0[0][0][1][1][1] = 9;
+  a1.a0[0][1][0][0][0] = 10;
+  a1.a0[0][1][0][0][1] = 11;
+  a1.a0[0][1][0][1][0] = 12;
+  a1.a0[0][1][0][1][1] = 13;
+  a1.a0[0][1][1][0][0] = 14;
+  a1.a0[0][1][1][0][1] = 15;
+  a1.a0[0][1][1][1][0] = 16;
+  a1.a0[0][1][1][1][1] = 17;
+  a1.a0[1][0][0][0][0] = 18;
+  a1.a0[1][0][0][0][1] = 19;
+  a1.a0[1][0][0][1][0] = 20;
+  a1.a0[1][0][0][1][1] = 21;
+  a1.a0[1][0][1][0][0] = 22;
+  a1.a0[1][0][1][0][1] = 23;
+  a1.a0[1][0][1][1][0] = 24;
+  a1.a0[1][0][1][1][1] = 25;
+  a1.a0[1][1][0][0][0] = 26;
+  a1.a0[1][1][0][0][1] = 27;
+  a1.a0[1][1][0][1][0] = 28;
+  a1.a0[1][1][0][1][1] = 29;
+  a1.a0[1][1][1][0][0] = 30;
+  a1.a0[1][1][1][0][1] = 31;
+  a1.a0[1][1][1][1][0] = 32;
+  a1.a0[1][1][1][1][1] = 33;
+  a2 = 34;
+  a3.a0[0][0][0] = 35;
+  a3.a0[0][0][1] = 36;
+  a3.a0[0][1][0] = 37;
+  a3.a0[0][1][1] = 38;
+  a3.a0[1][0][0] = 39;
+  a3.a0[1][0][1] = 40;
+  a3.a0[1][1][0] = 41;
+  a3.a0[1][1][1] = 42;
+  a4 = 43;
+  a5.a0[0][0][0] = 44;
+  a5.a0[0][0][1] = 45;
+  a5.a0[0][1][0] = 46;
+  a5.a0[0][1][1] = 47;
+  a5.a0[1][0][0] = 48;
+  a5.a0[1][0][1] = 49;
+  a5.a0[1][1][0] = 50;
+  a5.a0[1][1][1] = 51;
+  a6 = 52;
+
+  final result = passUint8Struct32BytesInlineArrayMultiDimensionalI(
+      a0, a1, a2, a3, a4, a5, a6);
+
+  print("result = $result");
+
+  Expect.equals(1378, result);
+
+  calloc.free(a1Pointer);
+  calloc.free(a3Pointer);
+  calloc.free(a5Pointer);
+}
+
+final passUint8Struct4BytesInlineArrayMultiDimensionalIn =
+    ffiTestFunctions.lookupFunction<
+        Uint32 Function(
+            Uint8, Struct4BytesInlineArrayMultiDimensionalInt, Uint8),
+        int Function(int, Struct4BytesInlineArrayMultiDimensionalInt,
+            int)>("PassUint8Struct4BytesInlineArrayMultiDimensionalIn");
+
+/// Test struct in multi dimensional inline array.
+void testPassUint8Struct4BytesInlineArrayMultiDimensionalIn() {
+  int a0;
+  final a1Pointer = calloc<Struct4BytesInlineArrayMultiDimensionalInt>();
+  final Struct4BytesInlineArrayMultiDimensionalInt a1 = a1Pointer.ref;
+  int a2;
+
+  a0 = 1;
+  a1.a0[0][0].a0 = 2;
+  a1.a0[0][1].a0 = -3;
+  a1.a0[1][0].a0 = 4;
+  a1.a0[1][1].a0 = -5;
+  a2 = 6;
+
+  final result = passUint8Struct4BytesInlineArrayMultiDimensionalIn(a0, a1, a2);
+
+  print("result = $result");
+
+  Expect.equals(5, result);
+
+  calloc.free(a1Pointer);
+}
+
+final passStruct3BytesPackedIntx10 = ffiTestFunctions.lookupFunction<
+    Int64 Function(
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt),
+    int Function(
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt,
+        Struct3BytesPackedInt)>("PassStruct3BytesPackedIntx10");
+
+/// Small struct with mis-aligned member.
+void testPassStruct3BytesPackedIntx10() {
+  final a0Pointer = calloc<Struct3BytesPackedInt>();
+  final Struct3BytesPackedInt a0 = a0Pointer.ref;
+  final a1Pointer = calloc<Struct3BytesPackedInt>();
+  final Struct3BytesPackedInt a1 = a1Pointer.ref;
+  final a2Pointer = calloc<Struct3BytesPackedInt>();
+  final Struct3BytesPackedInt a2 = a2Pointer.ref;
+  final a3Pointer = calloc<Struct3BytesPackedInt>();
+  final Struct3BytesPackedInt a3 = a3Pointer.ref;
+  final a4Pointer = calloc<Struct3BytesPackedInt>();
+  final Struct3BytesPackedInt a4 = a4Pointer.ref;
+  final a5Pointer = calloc<Struct3BytesPackedInt>();
+  final Struct3BytesPackedInt a5 = a5Pointer.ref;
+  final a6Pointer = calloc<Struct3BytesPackedInt>();
+  final Struct3BytesPackedInt a6 = a6Pointer.ref;
+  final a7Pointer = calloc<Struct3BytesPackedInt>();
+  final Struct3BytesPackedInt a7 = a7Pointer.ref;
+  final a8Pointer = calloc<Struct3BytesPackedInt>();
+  final Struct3BytesPackedInt a8 = a8Pointer.ref;
+  final a9Pointer = calloc<Struct3BytesPackedInt>();
+  final Struct3BytesPackedInt a9 = a9Pointer.ref;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a1.a0 = -3;
+  a1.a1 = 4;
+  a2.a0 = -5;
+  a2.a1 = 6;
+  a3.a0 = -7;
+  a3.a1 = 8;
+  a4.a0 = -9;
+  a4.a1 = 10;
+  a5.a0 = -11;
+  a5.a1 = 12;
+  a6.a0 = -13;
+  a6.a1 = 14;
+  a7.a0 = -15;
+  a7.a1 = 16;
+  a8.a0 = -17;
+  a8.a1 = 18;
+  a9.a0 = -19;
+  a9.a1 = 20;
+
+  final result =
+      passStruct3BytesPackedIntx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  print("result = $result");
+
+  Expect.equals(10, result);
+
+  calloc.free(a0Pointer);
+  calloc.free(a1Pointer);
+  calloc.free(a2Pointer);
+  calloc.free(a3Pointer);
+  calloc.free(a4Pointer);
+  calloc.free(a5Pointer);
+  calloc.free(a6Pointer);
+  calloc.free(a7Pointer);
+  calloc.free(a8Pointer);
+  calloc.free(a9Pointer);
+}
+
+final passStruct8BytesPackedIntx10 = ffiTestFunctions.lookupFunction<
+    Int64 Function(
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt),
+    int Function(
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt,
+        Struct8BytesPackedInt)>("PassStruct8BytesPackedIntx10");
+
+/// Struct with mis-aligned member.
+void testPassStruct8BytesPackedIntx10() {
+  final a0Pointer = calloc<Struct8BytesPackedInt>();
+  final Struct8BytesPackedInt a0 = a0Pointer.ref;
+  final a1Pointer = calloc<Struct8BytesPackedInt>();
+  final Struct8BytesPackedInt a1 = a1Pointer.ref;
+  final a2Pointer = calloc<Struct8BytesPackedInt>();
+  final Struct8BytesPackedInt a2 = a2Pointer.ref;
+  final a3Pointer = calloc<Struct8BytesPackedInt>();
+  final Struct8BytesPackedInt a3 = a3Pointer.ref;
+  final a4Pointer = calloc<Struct8BytesPackedInt>();
+  final Struct8BytesPackedInt a4 = a4Pointer.ref;
+  final a5Pointer = calloc<Struct8BytesPackedInt>();
+  final Struct8BytesPackedInt a5 = a5Pointer.ref;
+  final a6Pointer = calloc<Struct8BytesPackedInt>();
+  final Struct8BytesPackedInt a6 = a6Pointer.ref;
+  final a7Pointer = calloc<Struct8BytesPackedInt>();
+  final Struct8BytesPackedInt a7 = a7Pointer.ref;
+  final a8Pointer = calloc<Struct8BytesPackedInt>();
+  final Struct8BytesPackedInt a8 = a8Pointer.ref;
+  final a9Pointer = calloc<Struct8BytesPackedInt>();
+  final Struct8BytesPackedInt a9 = a9Pointer.ref;
+
+  a0.a0 = 1;
+  a0.a1 = 2;
+  a0.a2 = 3;
+  a0.a3 = 4;
+  a0.a4 = 5;
+  a1.a0 = 6;
+  a1.a1 = 7;
+  a1.a2 = 8;
+  a1.a3 = 9;
+  a1.a4 = 10;
+  a2.a0 = 11;
+  a2.a1 = 12;
+  a2.a2 = 13;
+  a2.a3 = 14;
+  a2.a4 = 15;
+  a3.a0 = 16;
+  a3.a1 = 17;
+  a3.a2 = 18;
+  a3.a3 = 19;
+  a3.a4 = 20;
+  a4.a0 = 21;
+  a4.a1 = 22;
+  a4.a2 = 23;
+  a4.a3 = 24;
+  a4.a4 = 25;
+  a5.a0 = 26;
+  a5.a1 = 27;
+  a5.a2 = 28;
+  a5.a3 = 29;
+  a5.a4 = 30;
+  a6.a0 = 31;
+  a6.a1 = 32;
+  a6.a2 = 33;
+  a6.a3 = 34;
+  a6.a4 = 35;
+  a7.a0 = 36;
+  a7.a1 = 37;
+  a7.a2 = 38;
+  a7.a3 = 39;
+  a7.a4 = 40;
+  a8.a0 = 41;
+  a8.a1 = 42;
+  a8.a2 = 43;
+  a8.a3 = 44;
+  a8.a4 = 45;
+  a9.a0 = 46;
+  a9.a1 = 47;
+  a9.a2 = 48;
+  a9.a3 = 49;
+  a9.a4 = 50;
+
+  final result =
+      passStruct8BytesPackedIntx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  print("result = $result");
+
+  Expect.equals(1275, result);
+
+  calloc.free(a0Pointer);
+  calloc.free(a1Pointer);
+  calloc.free(a2Pointer);
+  calloc.free(a3Pointer);
+  calloc.free(a4Pointer);
+  calloc.free(a5Pointer);
+  calloc.free(a6Pointer);
+  calloc.free(a7Pointer);
+  calloc.free(a8Pointer);
+  calloc.free(a9Pointer);
+}
+
+final passStruct9BytesPackedMixedx10DoubleInt32 =
+    ffiTestFunctions.lookupFunction<
+        Double Function(
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Double,
+            Int32),
+        double Function(
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            Struct9BytesPackedMixed,
+            double,
+            int)>("PassStruct9BytesPackedMixedx10DoubleInt32");
+
+/// Struct with mis-aligned member.
+/// Tests backfilling of CPU and FPU registers.
+void testPassStruct9BytesPackedMixedx10DoubleInt32() {
+  final a0Pointer = calloc<Struct9BytesPackedMixed>();
+  final Struct9BytesPackedMixed a0 = a0Pointer.ref;
+  final a1Pointer = calloc<Struct9BytesPackedMixed>();
+  final Struct9BytesPackedMixed a1 = a1Pointer.ref;
+  final a2Pointer = calloc<Struct9BytesPackedMixed>();
+  final Struct9BytesPackedMixed a2 = a2Pointer.ref;
+  final a3Pointer = calloc<Struct9BytesPackedMixed>();
+  final Struct9BytesPackedMixed a3 = a3Pointer.ref;
+  final a4Pointer = calloc<Struct9BytesPackedMixed>();
+  final Struct9BytesPackedMixed a4 = a4Pointer.ref;
+  final a5Pointer = calloc<Struct9BytesPackedMixed>();
+  final Struct9BytesPackedMixed a5 = a5Pointer.ref;
+  final a6Pointer = calloc<Struct9BytesPackedMixed>();
+  final Struct9BytesPackedMixed a6 = a6Pointer.ref;
+  final a7Pointer = calloc<Struct9BytesPackedMixed>();
+  final Struct9BytesPackedMixed a7 = a7Pointer.ref;
+  final a8Pointer = calloc<Struct9BytesPackedMixed>();
+  final Struct9BytesPackedMixed a8 = a8Pointer.ref;
+  final a9Pointer = calloc<Struct9BytesPackedMixed>();
+  final Struct9BytesPackedMixed a9 = a9Pointer.ref;
+  double a10;
+  int a11;
+
+  a0.a0 = 1;
+  a0.a1 = 2.0;
+  a1.a0 = 3;
+  a1.a1 = 4.0;
+  a2.a0 = 5;
+  a2.a1 = 6.0;
+  a3.a0 = 7;
+  a3.a1 = 8.0;
+  a4.a0 = 9;
+  a4.a1 = 10.0;
+  a5.a0 = 11;
+  a5.a1 = 12.0;
+  a6.a0 = 13;
+  a6.a1 = 14.0;
+  a7.a0 = 15;
+  a7.a1 = 16.0;
+  a8.a0 = 17;
+  a8.a1 = 18.0;
+  a9.a0 = 19;
+  a9.a1 = 20.0;
+  a10 = -21.0;
+  a11 = 22;
+
+  final result = passStruct9BytesPackedMixedx10DoubleInt32(
+      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+
+  print("result = $result");
+
+  Expect.approxEquals(211.0, result);
+
+  calloc.free(a0Pointer);
+  calloc.free(a1Pointer);
+  calloc.free(a2Pointer);
+  calloc.free(a3Pointer);
+  calloc.free(a4Pointer);
+  calloc.free(a5Pointer);
+  calloc.free(a6Pointer);
+  calloc.free(a7Pointer);
+  calloc.free(a8Pointer);
+  calloc.free(a9Pointer);
+}
+
+final passStruct5BytesPackedMixed = ffiTestFunctions.lookupFunction<
+    Double Function(Struct5BytesPackedMixed),
+    double Function(Struct5BytesPackedMixed)>("PassStruct5BytesPackedMixed");
+
+/// This packed struct happens to have only aligned members.
+void testPassStruct5BytesPackedMixed() {
+  final a0Pointer = calloc<Struct5BytesPackedMixed>();
+  final Struct5BytesPackedMixed a0 = a0Pointer.ref;
+
+  a0.a0 = -1.0;
+  a0.a1 = 2;
+
+  final result = passStruct5BytesPackedMixed(a0);
+
+  print("result = $result");
+
+  Expect.approxEquals(1.0, result);
+
+  calloc.free(a0Pointer);
+}
+
+final passStructNestedAlignmentStruct5BytesPackedMixed =
+    ffiTestFunctions.lookupFunction<
+            Double Function(StructNestedAlignmentStruct5BytesPackedMixed),
+            double Function(StructNestedAlignmentStruct5BytesPackedMixed)>(
+        "PassStructNestedAlignmentStruct5BytesPackedMixed");
+
+/// Check alignment of packed struct in non-packed struct.
+void testPassStructNestedAlignmentStruct5BytesPackedMixed() {
+  final a0Pointer = calloc<StructNestedAlignmentStruct5BytesPackedMixed>();
+  final StructNestedAlignmentStruct5BytesPackedMixed a0 = a0Pointer.ref;
+
+  a0.a0 = 1;
+  a0.a1.a0 = 2.0;
+  a0.a1.a1 = 3;
+
+  final result = passStructNestedAlignmentStruct5BytesPackedMixed(a0);
+
+  print("result = $result");
+
+  Expect.approxEquals(6.0, result);
+
+  calloc.free(a0Pointer);
+}
+
+final passStruct6BytesInlineArrayInt = ffiTestFunctions.lookupFunction<
+    Double Function(Struct6BytesInlineArrayInt),
+    double Function(
+        Struct6BytesInlineArrayInt)>("PassStruct6BytesInlineArrayInt");
+
+/// Check alignment of packed struct array in non-packed struct.
+void testPassStruct6BytesInlineArrayInt() {
+  final a0Pointer = calloc<Struct6BytesInlineArrayInt>();
+  final Struct6BytesInlineArrayInt a0 = a0Pointer.ref;
+
+  a0.a0[0].a0 = -1;
+  a0.a0[0].a1 = 2;
+  a0.a0[1].a0 = -3;
+  a0.a0[1].a1 = 4;
+
+  final result = passStruct6BytesInlineArrayInt(a0);
+
+  print("result = $result");
+
+  Expect.approxEquals(2.0, result);
+
+  calloc.free(a0Pointer);
+}
+
+final passStruct15BytesInlineArrayMixed = ffiTestFunctions.lookupFunction<
+    Double Function(Struct15BytesInlineArrayMixed),
+    double Function(
+        Struct15BytesInlineArrayMixed)>("PassStruct15BytesInlineArrayMixed");
+
+/// Check alignment of packed struct array in non-packed struct.
+void testPassStruct15BytesInlineArrayMixed() {
+  final a0Pointer = calloc<Struct15BytesInlineArrayMixed>();
+  final Struct15BytesInlineArrayMixed a0 = a0Pointer.ref;
+
+  a0.a0[0].a0 = -1.0;
+  a0.a0[0].a1 = 2;
+  a0.a0[1].a0 = -3.0;
+  a0.a0[1].a1 = 4;
+  a0.a0[2].a0 = -5.0;
+  a0.a0[2].a1 = 6;
+
+  final result = passStruct15BytesInlineArrayMixed(a0);
+
+  print("result = $result");
+
+  Expect.approxEquals(3.0, result);
+
+  calloc.free(a0Pointer);
+}
+
 final returnStruct1ByteInt = ffiTestFunctions.lookupFunction<
     Struct1ByteInt Function(Int8),
     Struct1ByteInt Function(int)>("ReturnStruct1ByteInt");
@@ -6643,6 +7332,78 @@ void testReturnStruct1024BytesHomogeneousUint64() {
   Expect.equals(a125, result.a125);
   Expect.equals(a126, result.a126);
   Expect.equals(a127, result.a127);
+}
+
+final returnStruct3BytesPackedInt = ffiTestFunctions.lookupFunction<
+    Struct3BytesPackedInt Function(Int8, Int16),
+    Struct3BytesPackedInt Function(int, int)>("ReturnStruct3BytesPackedInt");
+
+/// Small struct with mis-aligned member.
+void testReturnStruct3BytesPackedInt() {
+  int a0;
+  int a1;
+
+  a0 = -1;
+  a1 = 2;
+
+  final result = returnStruct3BytesPackedInt(a0, a1);
+
+  print("result = $result");
+
+  Expect.equals(a0, result.a0);
+  Expect.equals(a1, result.a1);
+}
+
+final returnStruct8BytesPackedInt = ffiTestFunctions.lookupFunction<
+    Struct8BytesPackedInt Function(Uint8, Uint32, Uint8, Uint8, Uint8),
+    Struct8BytesPackedInt Function(
+        int, int, int, int, int)>("ReturnStruct8BytesPackedInt");
+
+/// Struct with mis-aligned member.
+void testReturnStruct8BytesPackedInt() {
+  int a0;
+  int a1;
+  int a2;
+  int a3;
+  int a4;
+
+  a0 = 1;
+  a1 = 2;
+  a2 = 3;
+  a3 = 4;
+  a4 = 5;
+
+  final result = returnStruct8BytesPackedInt(a0, a1, a2, a3, a4);
+
+  print("result = $result");
+
+  Expect.equals(a0, result.a0);
+  Expect.equals(a1, result.a1);
+  Expect.equals(a2, result.a2);
+  Expect.equals(a3, result.a3);
+  Expect.equals(a4, result.a4);
+}
+
+final returnStruct9BytesPackedMixed = ffiTestFunctions.lookupFunction<
+    Struct9BytesPackedMixed Function(Uint8, Double),
+    Struct9BytesPackedMixed Function(
+        int, double)>("ReturnStruct9BytesPackedMixed");
+
+/// Struct with mis-aligned member.
+/// Tests backfilling of CPU and FPU registers.
+void testReturnStruct9BytesPackedMixed() {
+  int a0;
+  double a1;
+
+  a0 = 1;
+  a1 = 2.0;
+
+  final result = returnStruct9BytesPackedMixed(a0, a1);
+
+  print("result = $result");
+
+  Expect.equals(a0, result.a0);
+  Expect.approxEquals(a1, result.a1);
 }
 
 final returnStructArgumentStruct1ByteInt = ffiTestFunctions.lookupFunction<

@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -85,7 +86,7 @@ class FileResolver {
   /// It is used to allow assists and fixes without resolving the same file
   /// multiple times, as we compute more than one assist, or fixes when there
   /// are more than one error on a line.
-  final Map<String, ResolvedUnitResult> _cachedResults = {};
+  final Map<String, ResolvedLibraryResult> _cachedResults = {};
 
   FileResolver(
     PerformanceLog logger,
@@ -93,7 +94,7 @@ class FileResolver {
     @deprecated ByteStore byteStore,
     SourceFactory sourceFactory,
     String Function(String path) getFileDigest,
-    void Function(List<String> paths) prefetchFiles, {
+    void Function(List<String> paths)? prefetchFiles, {
     required Workspace workspace,
     @deprecated Duration? libraryContextResetTimeout,
   }) : this.from(
@@ -256,6 +257,39 @@ class FileResolver {
     });
   }
 
+  LibraryElement getLibraryByUri({
+    required String uriStr,
+    OperationPerformanceImpl? performance,
+  }) {
+    performance ??= OperationPerformanceImpl('<default>');
+
+    var uri = Uri.parse(uriStr);
+    var path = sourceFactory.forUri2(uri)?.fullName;
+
+    if (path == null) {
+      throw ArgumentError('$uri cannot be resolved to a file.');
+    }
+
+    var fileContext = getFileContext(
+      path: path,
+      performance: performance,
+    );
+    var file = fileContext.file;
+
+    if (file.partOfLibrary != null) {
+      throw ArgumentError('$uri is not a library.');
+    }
+
+    performance.run('libraryContext', (performance) {
+      libraryContext!.load2(
+        targetLibrary: file,
+        performance: performance,
+      );
+    });
+
+    return libraryContext!.elementFactory.libraryOfUri2(uriStr);
+  }
+
   String getLibraryLinkedSignature({
     required String path,
     required OperationPerformanceImpl performance,
@@ -339,6 +373,48 @@ class FileResolver {
 
     performance ??= OperationPerformanceImpl('<default>');
 
+    return logger.run('Resolve $path', () {
+      var fileContext = getFileContext(
+        path: path,
+        performance: performance!,
+      );
+      var file = fileContext.file;
+
+      // If we have a `part of` directive, we want to analyze this library.
+      // But the library must include the file, so have its element.
+      var libraryFile = file;
+      var partOfLibrary = file.partOfLibrary;
+      if (partOfLibrary != null) {
+        if (partOfLibrary.libraryFiles.contains(file)) {
+          libraryFile = partOfLibrary;
+        }
+      }
+
+      var libraryUnit = resolveLibrary(
+        completionLine: completionLine,
+        completionColumn: completionColumn,
+        path: libraryFile.path,
+        completionPath: path,
+        performance: performance,
+      );
+      var result =
+          libraryUnit.units!.firstWhere((element) => element.path == path);
+      return result;
+    });
+  }
+
+  /// The [completionLine] and [completionColumn] are zero based.
+  ResolvedLibraryResult resolveLibrary({
+    int? completionLine,
+    int? completionColumn,
+    String? completionPath,
+    required String path,
+    OperationPerformanceImpl? performance,
+  }) {
+    _throwIfNotAbsoluteNormalizedPath(path);
+
+    performance ??= OperationPerformanceImpl('<default>');
+
     var cachedResult = _cachedResults[path];
     if (cachedResult != null) {
       return cachedResult;
@@ -376,10 +452,6 @@ class FileResolver {
 
       testView?.addResolvedFile(path);
 
-      var content = _getFileContent(path);
-      var errorListener = RecordingErrorListener();
-      var unit = file.parse(errorListener, content);
-
       late Map<FileState, UnitAnalysisResult> results;
 
       logger.run('Compute analysis results', () {
@@ -398,7 +470,7 @@ class FileResolver {
         try {
           results = performance!.run('analyze', (performance) {
             return libraryAnalyzer.analyzeSync(
-              completionPath: completionOffset != null ? path : null,
+              completionPath: completionOffset != null ? completionPath : null,
               completionOffset: completionOffset,
               performance: performance,
             );
@@ -416,19 +488,28 @@ class FileResolver {
           );
         }
       });
-      UnitAnalysisResult fileResult = results[file]!;
 
-      var result = ResolvedUnitResultImpl(
-        contextObjects!.analysisSession,
-        path,
-        file.uri,
-        file.exists,
-        content,
-        unit.lineInfo!,
-        false, // isPart
-        fileResult.unit,
-        fileResult.errors,
-      );
+      results.forEach((key, value) {
+        print('$key: $value');
+      });
+      var resolvedUnits = results.values.map((fileResult) {
+        var file = fileResult.file;
+        return ResolvedUnitResultImpl(
+          contextObjects!.analysisSession,
+          file.path,
+          file.uri,
+          file.exists,
+          file.getContent(),
+          file.lineInfo,
+          file.unlinked2.hasPartOfDirective,
+          fileResult.unit,
+          fileResult.errors,
+        );
+      }).toList();
+
+      var libraryUnit = resolvedUnits.first;
+      var result = ResolvedLibraryResultImpl(contextObjects!.analysisSession,
+          path, libraryUnit.uri, libraryUnit.libraryElement, resolvedUnits);
       _cachedResults[path] = result;
       return result;
     });
@@ -581,6 +662,10 @@ class FileResolver {
       performance.run('applyToAnalysisOptions', (_) {
         applyToAnalysisOptions(options, optionMap!);
       });
+    }
+
+    if (isThirdParty) {
+      options.hint = false;
     }
 
     return options;

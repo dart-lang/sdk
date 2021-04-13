@@ -44,12 +44,6 @@ import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:meta/meta.dart';
 
-/// TODO(scheglov) We could use generalized Function in
-/// [AnalysisDriverTestView], but this breaks `AnalysisContext` and code
-/// generation. So, for now let's work around them, and rewrite generators to
-/// [AnalysisDriver].
-typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
-
 /// This class computes [AnalysisResult]s for Dart files.
 ///
 /// Let the set of "explicitly analyzed files" denote the set of paths that have
@@ -86,7 +80,7 @@ typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 128;
+  static const int DATA_VERSION = 135;
 
   /// The length of the list returned by [_computeDeclaredVariablesSignature].
   static const int _declaredVariablesSignatureLength = 4;
@@ -528,7 +522,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     _discoverAvailableFiles();
     _scheduler.notify(this);
-    return _discoverAvailableFilesTask!.completer!.future;
+    return _discoverAvailableFilesTask!.completer.future;
   }
 
   @override
@@ -549,17 +543,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /// Return a [Future] that completes with the [ErrorsResult] for the Dart
-  /// file with the given [path]. If the file is not a Dart file or cannot
-  /// be analyzed, the [Future] completes with `null`.
+  /// file with the given [path].
   ///
   /// The [path] must be absolute and normalized.
   ///
   /// This method does not use analysis priorities, and must not be used in
   /// interactive analysis, such as Analysis Server or its plugins.
-  Future<ErrorsResult?> getErrors(String path) async {
+  Future<ErrorsResult> getErrors(String path) async {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
-      return null;
+      return NotValidErrorsResultImpl(ResultState.NOT_FILE_OF_URI);
     }
 
     var completer = Completer<ErrorsResult>();
@@ -642,7 +635,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       throw ArgumentError('$uri is not a library.');
     }
 
-    UnitElementResult unitResult = (await getUnitElement(file.path!))!;
+    UnitElementResult unitResult = await getUnitElement(file.path!);
     return unitResult.element.library;
   }
 
@@ -784,8 +777,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /// Return a [Future] that completes with a [ResolvedUnitResult] for the Dart
-  /// file with the given [path]. If the file is not a Dart file or cannot
-  /// be analyzed, the [Future] completes with `null`.
+  /// file with the given [path].
   ///
   /// The [path] must be absolute and normalized.
   ///
@@ -800,11 +792,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// it, which is consistent with the current file state (including new states
   /// of the files previously reported using [changeFile]), prior to the next
   /// time the analysis state transitions to "idle".
-  Future<ResolvedUnitResult?> getResult(String path,
+  Future<ResolvedUnitResult> getResult(String path,
       {bool sendCachedToStream = false}) {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
-      return Future.value();
+      return Future.value(
+        NotValidResolvedUnitResultImpl(ResultState.NOT_FILE_OF_URI),
+      );
     }
 
     // Return the cached result.
@@ -842,11 +836,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /// Return a [Future] that completes with the [UnitElementResult] for the
-  /// file with the given [path], or with `null` if the file cannot be analyzed.
-  Future<UnitElementResult?> getUnitElement(String path) {
+  /// file with the given [path].
+  Future<UnitElementResult> getUnitElement(String path) {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {
-      return Future.value();
+      return Future.value(
+        NotValidUnitElementResultImpl(ResultState.NOT_FILE_OF_URI),
+      );
     }
     var completer = Completer<UnitElementResult>();
     _unitElementRequestedFiles
@@ -1312,7 +1308,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             sourceFactory,
             libraryContext.isLibraryUri,
             libraryContext.analysisContext,
-            libraryContext.elementFactory,
+            libraryContext.elementFactory.libraryOfUri2(library.uriStr),
             libraryContext.analysisSession.inheritanceManager,
             library,
             testingData: testingData);
@@ -1402,7 +1398,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           sourceFactory,
           libraryContext.isLibraryUri,
           libraryContext.analysisContext,
-          libraryContext.elementFactory,
+          libraryContext.elementFactory.libraryOfUri2(library.uriStr),
           libraryContext.analysisSession.inheritanceManager,
           library,
           testingData: testingData);
@@ -2212,28 +2208,31 @@ class _DiscoverAvailableFilesTask {
 
   final AnalysisDriver driver;
 
-  bool isCompleted = false;
-  Completer<void>? completer = Completer<void>();
+  final Completer<void> completer = Completer<void>();
 
   Iterator<Folder>? folderIterator;
-  List<String>? files = [];
+
+  final List<String> files = [];
+
   int fileIndex = 0;
 
   _DiscoverAvailableFilesTask(this.driver);
+
+  bool get isCompleted => completer.isCompleted;
 
   /// Perform the next piece of work, and set [isCompleted] to `true` to
   /// indicate that the task is done, or keeps it `false` to indicate that the
   /// task should continue to be run.
   void perform() {
     if (folderIterator == null) {
-      files!.addAll(driver.addedFiles);
+      files.addAll(driver.addedFiles);
 
       // Discover SDK libraries.
       var dartSdk = driver._sourceFactory.dartSdk;
       if (dartSdk != null) {
         for (var sdkLibrary in dartSdk.sdkLibraries) {
           var file = dartSdk.mapDartUri(sdkLibrary.shortName)!.fullName;
-          files!.add(file);
+          files.add(file);
         }
       }
 
@@ -2260,22 +2259,18 @@ class _DiscoverAvailableFilesTask {
     }
 
     // Get know files one by one.
-    while (fileIndex < files!.length) {
+    while (fileIndex < files.length) {
       if (timer.elapsedMilliseconds > _MS_WORK_INTERVAL) {
         return;
       }
-      var file = files![fileIndex++];
+      var file = files[fileIndex++];
       driver._fsState.getFileForPath(file);
     }
 
     // The task is done, clean up.
     folderIterator = null;
-    files = null;
-
-    // Complete and clean up.
-    isCompleted = true;
-    completer!.complete();
-    completer = null;
+    files.clear();
+    completer.complete();
   }
 
   void _appendFilesRecursively(Folder folder) {
@@ -2285,7 +2280,7 @@ class _DiscoverAvailableFilesTask {
         if (child is File) {
           var path = child.path;
           if (file_paths.isDart(pathContext, path)) {
-            files!.add(path);
+            files.add(path);
           }
         } else if (child is Folder) {
           _appendFilesRecursively(child);

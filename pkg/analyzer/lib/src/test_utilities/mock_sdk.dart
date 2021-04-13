@@ -459,7 +459,7 @@ abstract class Map<K, V> {
   int get length => 0;
   Iterable<V> get values;
 
-  V? operator [](K key);
+  V? operator [](Object? key);
   void operator []=(K key, V value);
 
   Map<RK, RV> cast<RK, RV>();
@@ -677,6 +677,12 @@ extension NativeFunctionPointer<NF extends Function>
 
 class Struct extends NativeType {}
 
+class Packed {
+  final int memberAlignment;
+
+  const Packed(this.memberAlignment);
+}
+
 abstract class DynamicLibrary {}
 
 extension DynamicLibraryExtension on DynamicLibrary {
@@ -691,7 +697,34 @@ class DartRepresentationOf {
 }
 
 class Array<T extends NativeType> extends NativeType {
-  external const factory Array(int dimension1);
+  const factory Array(int dimension1,
+      [int dimension2,
+      int dimension3,
+      int dimension4,
+      int dimension5]) = _ArraySize<T>;
+
+  const factory Array.multi(List<int> dimensions) = _ArraySize<T>.multi;
+}
+
+class _ArraySize<T extends NativeType> implements Array<T> {
+  final int? dimension1;
+  final int? dimension2;
+  final int? dimension3;
+  final int? dimension4;
+  final int? dimension5;
+
+  final List<int>? dimensions;
+
+  const _ArraySize(this.dimension1,
+      [this.dimension2, this.dimension3, this.dimension4, this.dimension5])
+      : dimensions = null;
+
+  const _ArraySize.multi(this.dimensions)
+      : dimension1 = null,
+        dimension2 = null,
+        dimension3 = null,
+        dimension4 = null,
+        dimension5 = null;
 }
 
 extension StructPointer<T extends Struct> on Pointer<T> {

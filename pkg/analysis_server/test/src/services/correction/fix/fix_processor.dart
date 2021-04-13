@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -279,6 +281,11 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     await _assertNoFix(error);
   }
 
+  Future<void> assertNoFixAllFix(ErrorCode errorCode) async {
+    var error = await _findErrorToFixOfType(errorCode);
+    await _assertNoFixAllFix(error);
+  }
+
   List<LinkedEditSuggestion> expectedSuggestions(
       LinkedEditSuggestionKind kind, List<String> values) {
     return values.map((value) {
@@ -378,6 +385,19 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     var fixes = await _computeFixes(error);
     for (var fix in fixes) {
       if (fix.kind == kind) {
+        fail('Unexpected fix $kind in\n${fixes.join('\n')}');
+      }
+    }
+  }
+
+  Future<void> _assertNoFixAllFix(AnalysisError error) async {
+    if (!kind.canBeAppliedTogether()) {
+      fail('Expected to find and return fix-all FixKind for $kind, '
+          'but kind.canBeAppliedTogether is ${kind.canBeAppliedTogether}');
+    }
+    var fixes = await _computeFixes(error);
+    for (var fix in fixes) {
+      if (fix.kind == kind && fix.isFixAllFix()) {
         fail('Unexpected fix $kind in\n${fixes.join('\n')}');
       }
     }

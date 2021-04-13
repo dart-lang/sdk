@@ -1,0 +1,5 @@
+class C<X> {}
+
+typedef A<X extends num, Y> = C<X>;
+foo() {}
+main() {}

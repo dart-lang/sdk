@@ -545,7 +545,9 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
 void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
     Assembler* assembler) {
   __ EnterStubFrame();
-  __ CallRuntime(kNullErrorRuntimeEntry, /*argument_count=*/0);
+  __ SmiTag(DispatchTableNullErrorABI::kClassIdReg);
+  __ PushRegister(DispatchTableNullErrorABI::kClassIdReg);
+  __ CallRuntime(kDispatchTableNullErrorRuntimeEntry, /*argument_count=*/1);
   // The NullError runtime entry does not return.
   __ Breakpoint();
 }
@@ -1122,7 +1124,7 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub(
 // NOTE: R2 cannot be clobbered here as the caller relies on it being saved.
 // The newly allocated object is returned in R0.
 void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     // Compute the size to be allocated, it is based on the array length
     // and is computed as:
@@ -1134,7 +1136,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // Check length >= 0 && length <= kMaxNewSpaceElements
     const intptr_t max_len =
         target::ToRawSmi(target::Array::kMaxNewSpaceElements);
-    __ CompareImmediate(R2, max_len);
+    __ CompareImmediate(R2, max_len, kObjectBytes);
     __ b(&slow_case, HI);
 
     const intptr_t cid = kArrayCid;
@@ -1149,7 +1151,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
         target::Array::header_size() +
         target::ObjectAlignment::kObjectAlignment - 1;
     __ LoadImmediate(R3, fixed_size_plus_alignment_padding);
-    __ add(R3, R3, Operand(R2, LSL, 2));  // R2 is Smi.
+    __ add(R3, R3, Operand(R2, LSL, 2), kObjectBytes);  // R2 is Smi.
     ASSERT(kSmiTagShift == 1);
     __ andi(R3, R3,
             Immediate(~(target::ObjectAlignment::kObjectAlignment - 1)));
@@ -1262,7 +1264,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
     Assembler* assembler) {
   // For test purpose call allocation stub without inline allocation attempt.
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
@@ -1282,7 +1284,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
 void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
     Assembler* assembler) {
   // For test purpose call allocation stub without inline allocation attempt.
-  if (!FLAG_use_slow_path) {
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
@@ -1585,7 +1587,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 // Clobbered:
 //   R1, (R2), R3, R4, (TMP)
 void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
-  {
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
 
     // Load num. variable (int32) in the existing context.
@@ -2177,25 +2179,19 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ BranchIfNotSmi(TMP, not_smi_or_overflow);
   switch (kind) {
     case Token::kADD: {
-#if !defined(DART_COMPRESSED_POINTERS)
-      __ adds(R0, R1, Operand(R0));   // Add.
+      __ adds(R0, R1, Operand(R0), kObjectBytes);  // Add.
       __ b(not_smi_or_overflow, VS);  // Branch if overflow.
-#else
-      __ addsw(R0, R1, Operand(R0));  // Add (32-bit).
-      __ b(not_smi_or_overflow, VS);  // Branch if overflow.
-      __ sxtw(R0, R0);                // Sign extend.
-#endif
       break;
     }
     case Token::kLT: {
-      __ CompareRegisters(R0, R1);
+      __ CompareObjectRegisters(R0, R1);
       __ LoadObject(R0, CastHandle<Object>(TrueObject()));
       __ LoadObject(R1, CastHandle<Object>(FalseObject()));
       __ csel(R0, R0, R1, LT);
       break;
     }
     case Token::kEQ: {
-      __ CompareRegisters(R0, R1);
+      __ CompareObjectRegisters(R0, R1);
       __ LoadObject(R0, CastHandle<Object>(TrueObject()));
       __ LoadObject(R1, CastHandle<Object>(FalseObject()));
       __ csel(R0, R0, R1, EQ);
@@ -2472,7 +2468,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ Comment("Call target");
   __ Bind(&call_target_function);
   // R0: target function.
-  __ LoadFieldFromOffset(CODE_REG, R0, target::Function::code_offset());
+  __ LoadCompressedFieldFromOffset(CODE_REG, R0,
+                                   target::Function::code_offset());
   if (save_entry_point) {
     __ add(R2, R0, Operand(R8));
     __ ldr(R2, Address(R2, 0));
@@ -2653,7 +2650,8 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
 
   // Get function and call it, if possible.
   __ LoadFromOffset(R0, R6, target_offset);
-  __ LoadFieldFromOffset(CODE_REG, R0, target::Function::code_offset());
+  __ LoadCompressedFieldFromOffset(CODE_REG, R0,
+                                   target::Function::code_offset());
   __ add(R2, R0, Operand(R8));
   __ ldr(R2, Address(R2, 0));
   __ br(R2);
@@ -2707,7 +2705,8 @@ void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
   __ Pop(R4);  // Restore arg desc.
   __ LeaveStubFrame();
 
-  __ LoadFieldFromOffset(CODE_REG, R0, target::Function::code_offset());
+  __ LoadCompressedFieldFromOffset(CODE_REG, R0,
+                                   target::Function::code_offset());
   __ LoadFieldFromOffset(R2, R0, target::Function::entry_point_offset());
   __ br(R2);
 }
@@ -3107,7 +3106,8 @@ void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ Pop(R0);  // Discard argument.
   __ Pop(R0);  // Get Function object
   __ Pop(R4);  // Restore argument descriptor.
-  __ LoadFieldFromOffset(CODE_REG, R0, target::Function::code_offset());
+  __ LoadCompressedFieldFromOffset(CODE_REG, R0,
+                                   target::Function::code_offset());
   __ LoadFieldFromOffset(R1, R0, target::Function::entry_point_offset());
   __ LeaveStubFrame();
   __ br(R1);
@@ -3136,7 +3136,8 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   // Double values bitwise compare.
   __ LoadFieldFromOffset(left, left, target::Double::value_offset());
   __ LoadFieldFromOffset(right, right, target::Double::value_offset());
-  __ b(&reference_compare);
+  __ CompareRegisters(left, right);
+  __ b(&done);
 
   __ Bind(&check_mint);
   __ CompareClassId(left, kMintCid);
@@ -3145,9 +3146,11 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ b(&done, NE);
   __ LoadFieldFromOffset(left, left, target::Mint::value_offset());
   __ LoadFieldFromOffset(right, right, target::Mint::value_offset());
+  __ CompareRegisters(left, right);
+  __ b(&done);
 
   __ Bind(&reference_compare);
-  __ CompareRegisters(left, right);
+  __ CompareObjectRegisters(left, right);
   __ Bind(&done);
 }
 
@@ -3264,7 +3267,8 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
     __ ldr(
         ARGS_DESC_REG,
         FieldAddress(R5, target::CallSiteData::arguments_descriptor_offset()));
-    __ ldr(CODE_REG, FieldAddress(R0, target::Function::code_offset()));
+    __ LoadCompressed(CODE_REG,
+                      FieldAddress(R0, target::Function::code_offset()));
   }
   __ br(R1);
 
@@ -3575,86 +3579,91 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == R4);
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kResultReg == R0);
 
-  Label call_runtime;
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R2, &call_runtime));
-  __ mov(R2, AllocateTypedDataArrayABI::kLengthReg);
-  /* Check that length is a positive Smi. */
-  /* R2: requested array length argument. */
-  __ BranchIfNotSmi(R2, &call_runtime);
-  __ SmiUntag(R2);
-  /* Check for length >= 0 && length <= max_len. */
-  /* R2: untagged array length. */
-  __ CompareImmediate(R2, max_len);
-  __ b(&call_runtime, HI);
-  __ LslImmediate(R2, R2, scale_shift);
-  const intptr_t fixed_size_plus_alignment_padding =
-      target::TypedData::InstanceSize() +
-      target::ObjectAlignment::kObjectAlignment - 1;
-  __ AddImmediate(R2, fixed_size_plus_alignment_padding);
-  __ andi(R2, R2, Immediate(~(target::ObjectAlignment::kObjectAlignment - 1)));
-  __ ldr(R0, Address(THR, target::Thread::top_offset()));
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    Label call_runtime;
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R2, &call_runtime));
+    __ mov(R2, AllocateTypedDataArrayABI::kLengthReg);
+    /* Check that length is a positive Smi. */
+    /* R2: requested array length argument. */
+    __ BranchIfNotSmi(R2, &call_runtime);
+    __ SmiUntag(R2);
+    /* Check for length >= 0 && length <= max_len. */
+    /* R2: untagged array length. */
+    __ CompareImmediate(R2, max_len, kObjectBytes);
+    __ b(&call_runtime, HI);
+    __ LslImmediate(R2, R2, scale_shift);
+    const intptr_t fixed_size_plus_alignment_padding =
+        target::TypedData::InstanceSize() +
+        target::ObjectAlignment::kObjectAlignment - 1;
+    __ AddImmediate(R2, fixed_size_plus_alignment_padding);
+    __ andi(R2, R2,
+            Immediate(~(target::ObjectAlignment::kObjectAlignment - 1)));
+    __ ldr(R0, Address(THR, target::Thread::top_offset()));
 
-  /* R2: allocation size. */
-  __ adds(R1, R0, Operand(R2));
-  __ b(&call_runtime, CS); /* Fail on unsigned overflow. */
+    /* R2: allocation size. */
+    __ adds(R1, R0, Operand(R2));
+    __ b(&call_runtime, CS); /* Fail on unsigned overflow. */
 
-  /* Check if the allocation fits into the remaining space. */
-  /* R0: potential new object start. */
-  /* R1: potential next object start. */
-  /* R2: allocation size. */
-  __ ldr(R6, Address(THR, target::Thread::end_offset()));
-  __ cmp(R1, Operand(R6));
-  __ b(&call_runtime, CS);
+    /* Check if the allocation fits into the remaining space. */
+    /* R0: potential new object start. */
+    /* R1: potential next object start. */
+    /* R2: allocation size. */
+    __ ldr(R6, Address(THR, target::Thread::end_offset()));
+    __ cmp(R1, Operand(R6));
+    __ b(&call_runtime, CS);
 
-  /* Successfully allocated the object(s), now update top to point to */
-  /* next object start and initialize the object. */
-  __ str(R1, Address(THR, target::Thread::top_offset()));
-  __ AddImmediate(R0, kHeapObjectTag);
-  /* Initialize the tags. */
-  /* R0: new object start as a tagged pointer. */
-  /* R1: new object end address. */
-  /* R2: allocation size. */
-  {
-    __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
-    __ LslImmediate(R2, R2,
-                    target::UntaggedObject::kTagBitsSizeTagPos -
-                        target::ObjectAlignment::kObjectAlignmentLog2);
-    __ csel(R2, ZR, R2, HI);
+    /* Successfully allocated the object(s), now update top to point to */
+    /* next object start and initialize the object. */
+    __ str(R1, Address(THR, target::Thread::top_offset()));
+    __ AddImmediate(R0, kHeapObjectTag);
+    /* Initialize the tags. */
+    /* R0: new object start as a tagged pointer. */
+    /* R1: new object end address. */
+    /* R2: allocation size. */
+    {
+      __ CompareImmediate(R2, target::UntaggedObject::kSizeTagMaxSizeTag);
+      __ LslImmediate(R2, R2,
+                      target::UntaggedObject::kTagBitsSizeTagPos -
+                          target::ObjectAlignment::kObjectAlignmentLog2);
+      __ csel(R2, ZR, R2, HI);
 
-    /* Get the class index and insert it into the tags. */
-    uword tags = target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
-    __ LoadImmediate(TMP, tags);
-    __ orr(R2, R2, Operand(TMP));
-    __ str(R2, FieldAddress(R0, target::Object::tags_offset())); /* Tags. */
+      /* Get the class index and insert it into the tags. */
+      uword tags =
+          target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+      __ LoadImmediate(TMP, tags);
+      __ orr(R2, R2, Operand(TMP));
+      __ str(R2, FieldAddress(R0, target::Object::tags_offset())); /* Tags. */
+    }
+    /* Set the length field. */
+    /* R0: new object start as a tagged pointer. */
+    /* R1: new object end address. */
+    __ mov(R2, AllocateTypedDataArrayABI::kLengthReg); /* Array length. */
+    __ StoreCompressedIntoObjectNoBarrier(
+        R0, FieldAddress(R0, target::TypedDataBase::length_offset()), R2);
+    /* Initialize all array elements to 0. */
+    /* R0: new object start as a tagged pointer. */
+    /* R1: new object end address. */
+    /* R2: iterator which initially points to the start of the variable */
+    /* R3: scratch register. */
+    /* data area to be initialized. */
+    __ mov(R3, ZR);
+    __ AddImmediate(R2, R0, target::TypedData::InstanceSize() - 1);
+    __ StoreInternalPointer(
+        R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R2);
+    Label init_loop, done;
+    __ Bind(&init_loop);
+    __ cmp(R2, Operand(R1));
+    __ b(&done, CS);
+    __ str(R3, Address(R2, 0));
+    __ add(R2, R2, Operand(target::kWordSize));
+    __ b(&init_loop);
+    __ Bind(&done);
+
+    __ Ret();
+
+    __ Bind(&call_runtime);
   }
-  /* Set the length field. */
-  /* R0: new object start as a tagged pointer. */
-  /* R1: new object end address. */
-  __ mov(R2, AllocateTypedDataArrayABI::kLengthReg); /* Array length. */
-  __ StoreIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::TypedDataBase::length_offset()), R2);
-  /* Initialize all array elements to 0. */
-  /* R0: new object start as a tagged pointer. */
-  /* R1: new object end address. */
-  /* R2: iterator which initially points to the start of the variable */
-  /* R3: scratch register. */
-  /* data area to be initialized. */
-  __ mov(R3, ZR);
-  __ AddImmediate(R2, R0, target::TypedData::InstanceSize() - 1);
-  __ StoreInternalPointer(
-      R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R2);
-  Label init_loop, done;
-  __ Bind(&init_loop);
-  __ cmp(R2, Operand(R1));
-  __ b(&done, CS);
-  __ str(R3, Address(R2, 0));
-  __ add(R2, R2, Operand(target::kWordSize));
-  __ b(&init_loop);
-  __ Bind(&done);
 
-  __ Ret();
-
-  __ Bind(&call_runtime);
   __ EnterStubFrame();
   __ Push(ZR);                                     // Result slot.
   __ PushImmediate(target::ToRawSmi(cid));         // Cid

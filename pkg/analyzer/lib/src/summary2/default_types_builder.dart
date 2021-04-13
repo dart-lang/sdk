@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -73,7 +74,7 @@ class DefaultTypesBuilder {
 
       var cycles = _findRawTypePathsToDeclaration(
         parameter,
-        boundNode.type!,
+        boundNode.typeOrThrow,
         declarationElement,
         Set<Element>.identity(),
       );
@@ -83,7 +84,9 @@ class DefaultTypesBuilder {
     for (var cycle in allCycles) {
       for (var element in cycle) {
         var boundNode = element.parameter.bound;
-        if (boundNode is TypeNameImpl) {
+        if (boundNode is GenericFunctionTypeImpl) {
+          boundNode.type = DynamicTypeImpl.instance;
+        } else if (boundNode is TypeNameImpl) {
           boundNode.type = DynamicTypeImpl.instance;
         } else {
           throw UnimplementedError('(${boundNode.runtimeType}) $boundNode');
@@ -244,7 +247,7 @@ class DefaultTypesBuilder {
               if (bound != null) {
                 var tails = _findRawTypePathsToDeclaration(
                   parameterNode,
-                  bound.type!,
+                  bound.typeOrThrow,
                   end,
                   visited,
                 );
@@ -286,6 +289,19 @@ class DefaultTypesBuilder {
           visited,
         ),
       );
+      for (var typeParameter in startType.typeFormals) {
+        var bound = typeParameter.bound;
+        if (bound != null) {
+          paths.addAll(
+            _findRawTypePathsToDeclaration(
+              startParameter,
+              bound,
+              end,
+              visited,
+            ),
+          );
+        }
+      }
       for (var formalParameter in startType.parameters) {
         paths.addAll(
           _findRawTypePathsToDeclaration(

@@ -81,7 +81,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     enclosing_scope->set_context_level(0);
     enclosing_scope->AddVariable(receiver_variable);
     enclosing_scope->AddContextVariable(receiver_variable);
-  } else if (function.IsLocalFunction()) {
+  } else if (function.HasParent()) {
     enclosing_scope = LocalScope::RestoreOuterScope(
         ContextScope::Handle(Z, function.context_scope()));
   }
@@ -361,6 +361,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       scope_->InsertParameterAt(pos++, parsed_function_->receiver_var());
 
       // Create all positional and named parameters.
+      current_function_async_marker_ = FunctionNodeHelper::kSync;
       AddPositionalAndNamedParameters(
           pos, kTypeCheckEverythingNotCheckedInNonDynamicallyInvokedMethod,
           attrs);
@@ -546,15 +547,6 @@ void ScopeBuilder::VisitFunctionNode() {
   }
   function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
 
-  // The :sync_op and :async_op continuations are called multiple times. So we
-  // don't want the parameters from the first invocation to get stored in the
-  // context and reused on later invocations with different parameters.
-  if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    for (intptr_t i = 0; i < function.NumParameters(); i++) {
-      parsed_function_->ParameterVariable(i)->set_is_forced_stack();
-    }
-  }
-
   // Read (but don't visit) the positional and named parameters, because they've
   // already been added to the scope.
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kBody);
@@ -715,15 +707,15 @@ void ScopeBuilder::VisitExpression() {
       return;
     case kSuperPropertyGet:
       HandleLoadReceiver();
-      helper_.ReadPosition();                // read position.
-      helper_.SkipName();                    // read name.
+      helper_.ReadPosition();                      // read position.
+      helper_.SkipName();                          // read name.
       helper_.SkipInterfaceMemberNameReference();  // read target_reference.
       return;
     case kSuperPropertySet:
       HandleLoadReceiver();
-      helper_.ReadPosition();                // read position.
-      helper_.SkipName();                    // read name.
-      VisitExpression();                     // read value.
+      helper_.ReadPosition();                      // read position.
+      helper_.SkipName();                          // read name.
+      VisitExpression();                           // read value.
       helper_.SkipInterfaceMemberNameReference();  // read target_reference.
       return;
     case kStaticGet:
@@ -1318,7 +1310,6 @@ void ScopeBuilder::VisitDartType() {
     case kInvalidType:
     case kDynamicType:
     case kVoidType:
-    case kBottomType:
       // those contain nothing.
       return;
     case kNeverType:
@@ -1538,7 +1529,11 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   if (helper.IsCovariant()) {
     variable->set_is_explicit_covariant_parameter();
   }
-  if (variable->name().ptr() == Symbols::IteratorParameter().ptr()) {
+
+  // The :sync_op and :async_op continuations are called multiple times. So we
+  // don't want the parameters from the first invocation to get stored in the
+  // context and reused on later invocations with different parameters.
+  if (current_function_async_marker_ == FunctionNodeHelper::kSyncYielding) {
     variable->set_is_forced_stack();
   }
 

@@ -389,6 +389,9 @@ class Assembler : public AssemblerBase {
   void Jump(const Address& address) { Branch(address); }
 
   void LoadField(Register dst, FieldAddress address) { ldr(dst, address); }
+  void LoadCompressedField(Register dst, FieldAddress address) {
+    LoadField(dst, address);
+  }
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(dst, base, offset);
   }
@@ -933,6 +936,13 @@ class Assembler : public AssemblerBase {
                            Condition cond = AL) {
     LoadFromOffset(reg, base, offset - kHeapObjectTag, type, cond);
   }
+  void LoadCompressedFieldFromOffset(Register reg,
+                                     Register base,
+                                     int32_t offset,
+                                     OperandSize type = kFourBytes,
+                                     Condition cond = AL) {
+    LoadFieldFromOffset(reg, base, offset, type, cond);
+  }
   // For loading indexed payloads out of tagged objects like Arrays. If the
   // payload objects are word-sized, use TIMES_HALF_WORD_SIZE if the contents of
   // [index] is a Smi, otherwise TIMES_WORD_SIZE if unboxed.
@@ -1019,6 +1029,9 @@ class Assembler : public AssemblerBase {
   void PopNativeCalleeSavedRegisters();
 
   void CompareRegisters(Register rn, Register rm) { cmp(rn, Operand(rm)); }
+  void CompareObjectRegisters(Register rn, Register rm) {
+    CompareRegisters(rn, rm);
+  }
   // Branches to the given label if the condition holds.
   // [distance] is ignored on ARM.
   void BranchIf(Condition condition,

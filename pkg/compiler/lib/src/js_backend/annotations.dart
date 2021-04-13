@@ -7,8 +7,6 @@ library js_backend.backend.annotations;
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
-import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/messages.dart';
 import '../elements/entities.dart';
 import '../ir/annotations.dart';
 import '../ir/util.dart';
