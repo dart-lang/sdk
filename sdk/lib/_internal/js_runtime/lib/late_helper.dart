@@ -8,10 +8,11 @@ import 'dart:_internal' show LateError;
 
 void throwLateFieldADI(String fieldName) => throw LateError.fieldADI(fieldName);
 
-/// A boxed variable used for lowering `late` variables when they are local or
-/// uninitialized statics.
+/// A boxed variable used for lowering uninitialized `late` variables when they
+/// are locals or statics.
 ///
 /// The [LateError]s produced have empty variable names.
+// TODO(fishythefish): Support variable names depending on flags/compiler.
 class _Cell {
   Object? _value;
 
@@ -43,16 +44,58 @@ class _Cell {
   }
 
   void set finalLocalValue(Object? v) {
-    // TODO(fishythefish): Throw [LateError.localADI] if this occurs during
-    // recursive initialization.
     if (!identical(_value, this)) throw LateError.localAI('');
     _value = v;
   }
 
   void set finalFieldValue(Object? v) {
-    // TODO(fishythefish): Throw [LateError.fieldADI] if this occurs during
-    // recursive initialization.
     if (!identical(_value, this)) throw LateError.fieldAI('');
+    _value = v;
+  }
+}
+
+/// A boxed variable used for lowering `late` variables when they are
+/// initialized locals.
+///
+/// The [LateError]s produced have empty variable names.
+// TODO(fishythefish): Support variable names depending on flags/compiler.
+class _InitializedCell {
+  Object? _value;
+  Object? Function() _initializer;
+
+  _InitializedCell(this._initializer) {
+    // `this` is a unique sentinel.
+    _value = this;
+  }
+
+  @pragma('dart2js:tryInline')
+  @pragma('dart2js:as:trust')
+  T read<T>() => _read() as T;
+
+  @pragma('dart2js:tryInline')
+  @pragma('dart2js:as:trust')
+  T readFinal<T>() => _readFinal() as T;
+
+  Object? _read() {
+    if (identical(_value, this)) _value = _initializer();
+    return _value;
+  }
+
+  Object? _readFinal() {
+    if (identical(_value, this)) {
+      final result = _initializer();
+      if (!identical(_value, this)) throw LateError.localADI('');
+      _value = result;
+    }
+    return _value;
+  }
+
+  void set value(Object? v) {
+    _value = v;
+  }
+
+  void set finalValue(Object? v) {
+    if (!identical(_value, this)) throw LateError.localAI('');
     _value = v;
   }
 }

@@ -62,10 +62,6 @@ int _foldLateLowerings(List<int> lowerings) =>
 
 /// Late lowerings which the frontend performs for dart2js.
 const List<int> _allEnabledLateLowerings = [
-  LateLowering.nullableInitializedNonFinalLocal,
-  LateLowering.nonNullableInitializedNonFinalLocal,
-  LateLowering.nullableInitializedFinalLocal,
-  LateLowering.nonNullableInitializedFinalLocal,
   LateLowering.initializedNonFinalStaticField,
   LateLowering.initializedFinalStaticField,
   LateLowering.uninitializedNonFinalInstanceField,
