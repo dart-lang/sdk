@@ -6,19 +6,28 @@
 
 import 'dart:developer';
 
+// Regression test: https://github.com/dart-lang/sdk/issues/45544
+
+var b = true;
 void main() {
+  // Ensure multiple debugger calls of different varieties map to different
+  // unique locations.
   print('1');
-  /*sl:1*/ debugger();
+  /*s:1*/ debugger();
   print('2');
-  /*sl:2*/ debugger();
+  /*s:2*/ debugger(when: b);
   print('3');
   foo(/*s:3*/ debugger());
   print('4');
-  /*sl:4*/ debugger();
+  /*s:4*/ debugger(when: b);
   print('5');
-  foo(/*s:5*/ debugger());
+  foo(/*s:5*/ debugger(when: b));
   print('6');
-  foo(/*s:6*/ debugger());
+  /*s:6*/ debugger();
+  print('7');
+  foo(/*s:7*/ debugger(when: b));
+  print('8');
+  foo(/*s:8*/ debugger());
 }
 
 void foo(bool _) => null;
