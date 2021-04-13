@@ -1,17 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/issue41210a.dart:23:7: Error: Applying the mixin 'B' to 'Object with A' introduces an erroneous override of 'method'.
-// class C with A, B {} // error
-//       ^
-// pkg/front_end/testcases/general/issue41210a.dart:20:10: Context: The method 'B.method' has fewer named arguments than those of overridden method 'Object with A.method'.
-//   String method(num i);
-//          ^
-// pkg/front_end/testcases/general/issue41210a.dart:23:7: Context: This is the overridden method ('method').
-// class C with A, B {} // error
-//       ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -76,34 +63,6 @@ abstract class B extends core::Object implements self::Interface {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-}
-abstract class _C&Object&A = core::Object with self::A /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_C&Object&A*
-    : super core::Object::•()
-    ;
-  mixin-super-stub method method(core::num* i, {core::String* s = #C1}) → core::String*
-    return super.{self::A::method}(i, s: s);
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-}
-abstract class _C&Object&A&B = self::_C&Object&A with self::B /*isAnonymousMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_C&Object&A&B*
-    : super self::_C&Object&A::•()
-    ;
-  abstract mixin-stub method method(core::num* i) → core::String*; -> self::B::method
-}
-class C extends self::_C&Object&A&B {
-  synthetic constructor •() → self::C*
-    : super self::_C&Object&A&B::•()
-    ;
 }
 abstract class D extends core::Object implements self::Interface, self::Interface2 {
   synthetic constructor •() → self::D*
@@ -192,9 +151,7 @@ class G extends self::_G&Object&A&F {
     : super self::_G&Object&A&F::•()
     ;
 }
-static method main() → dynamic {
-  core::print(new self::C::•().{self::_C&Object&A&B::method}(0));
-}
+static method main() → dynamic {}
 
 constants  {
   #C1 = "hello"
