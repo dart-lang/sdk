@@ -333,6 +333,7 @@ abstract class _AbstractRenameParameterInTest
   Transform _rename(List<String> components, String oldName, String newName) =>
       Transform(
           title: 'title',
+          date: DateTime.now(),
           element: ElementDescriptor(
               libraryUris: [Uri.parse(importUri)],
               kind: ElementKindUtilities.fromName(_kind),

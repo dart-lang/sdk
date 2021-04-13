@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:math' as math;
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
@@ -38,8 +36,6 @@ class AnalysisOptionsFixGenerator {
 
   final List<Fix> fixes = <Fix>[];
 
-  List<YamlNode> coveringNodePath;
-
   AnalysisOptionsFixGenerator(this.error, this.content, this.options)
       : errorOffset = error.offset,
         errorLength = error.length,
@@ -53,7 +49,7 @@ class AnalysisOptionsFixGenerator {
   Future<List<Fix>> computeFixes() async {
     var locator =
         YamlNodeLocator(start: errorOffset, end: errorOffset + errorLength - 1);
-    coveringNodePath = locator.searchWithin(options);
+    var coveringNodePath = locator.searchWithin(options);
     if (coveringNodePath.isEmpty) {
       return fixes;
     }
@@ -70,10 +66,10 @@ class AnalysisOptionsFixGenerator {
 //    } else
 
     if (errorCode == DEPRECATED_LINT_HINT) {
-      await _addFix_removeLint();
+      await _addFix_removeLint(coveringNodePath);
     } else if (errorCode ==
         AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED) {
-      await _addFix_removeSetting();
+      await _addFix_removeSetting(coveringNodePath);
 //    } else if (errorCode ==
 //        AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED) {
 //    } else if (errorCode == AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING) {
@@ -85,7 +81,7 @@ class AnalysisOptionsFixGenerator {
 //        AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE) {
     } else if (errorCode ==
         AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES) {
-      await _addFix_removeSetting();
+      await _addFix_removeSetting(coveringNodePath);
 //    } else if (errorCode ==
 //        AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE) {
 //    } else if (errorCode ==
@@ -95,16 +91,16 @@ class AnalysisOptionsFixGenerator {
     return fixes;
   }
 
-  Future<void> _addFix_removeLint() async {
-    var builder = await _createScalarDeletionBuilder();
+  Future<void> _addFix_removeLint(List<YamlNode> coveringNodePath) async {
+    var builder = await _createScalarDeletionBuilder(coveringNodePath);
     if (builder != null) {
       _addFixFromBuilder(builder, AnalysisOptionsFixKind.REMOVE_LINT,
           args: [coveringNodePath[0].toString()]);
     }
   }
 
-  Future<void> _addFix_removeSetting() async {
-    var builder = await _createScalarDeletionBuilder();
+  Future<void> _addFix_removeSetting(List<YamlNode> coveringNodePath) async {
+    var builder = await _createScalarDeletionBuilder(coveringNodePath);
     if (builder != null) {
       _addFixFromBuilder(builder, AnalysisOptionsFixKind.REMOVE_SETTING,
           args: [coveringNodePath[0].toString()]);
@@ -114,7 +110,7 @@ class AnalysisOptionsFixGenerator {
   /// Add a fix whose edits were built by the [builder] that has the given
   /// [kind]. If [args] are provided, they will be used to fill in the message
   /// for the fix.
-  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind, {List args}) {
+  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind, {List? args}) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
@@ -123,12 +119,14 @@ class AnalysisOptionsFixGenerator {
     fixes.add(Fix(kind, change));
   }
 
-  Future<ChangeBuilder> _createScalarDeletionBuilder() async {
+  Future<ChangeBuilder?> _createScalarDeletionBuilder(
+    List<YamlNode> coveringNodePath,
+  ) async {
     if (coveringNodePath[0] is! YamlScalar) {
       return null;
     }
 
-    SourceRange deletionRange;
+    SourceRange? deletionRange;
     var index = 1;
     while (index < coveringNodePath.length) {
       var parent = coveringNodePath[index];
@@ -142,8 +140,8 @@ class AnalysisOptionsFixGenerator {
       } else if (parent is YamlMap) {
         var nodes = parent.nodes;
         if (nodes.length > 1) {
-          YamlNode key;
-          YamlNode value;
+          YamlNode? key;
+          YamlNode? value;
           var child = coveringNodePath[index - 1];
           if (nodes.containsKey(child)) {
             key = child;
@@ -176,8 +174,10 @@ class AnalysisOptionsFixGenerator {
     var builder = ChangeBuilder(
       workspace: _NonDartChangeWorkspace(),
     );
+
+    final deletionRange_final = deletionRange;
     await builder.addGenericFileEdit(file, (builder) {
-      builder.addDeletion(deletionRange);
+      builder.addDeletion(deletionRange_final);
     });
     return builder;
   }
@@ -190,9 +190,9 @@ class AnalysisOptionsFixGenerator {
   }
 
   SourceRange _lines(int start, int end) {
-    CharacterLocation startLocation = lineInfo.getLocation(start);
+    var startLocation = lineInfo.getLocation(start);
     var startOffset = lineInfo.getOffsetOfLine(startLocation.lineNumber - 1);
-    CharacterLocation endLocation = lineInfo.getLocation(end);
+    var endLocation = lineInfo.getLocation(end);
     var endOffset = lineInfo.getOffsetOfLine(
         math.min(endLocation.lineNumber, lineInfo.lineCount - 1));
     return SourceRange(startOffset, endOffset - startOffset);

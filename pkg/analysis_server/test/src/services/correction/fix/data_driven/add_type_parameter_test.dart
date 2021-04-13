@@ -482,6 +482,7 @@ abstract class _AddTypeParameterChange extends DataDrivenFixProcessorTest {
   Transform _add(int index, {List<String> components, String extendedType}) =>
       Transform(
           title: 'title',
+          date: DateTime.now(),
           element: ElementDescriptor(
               libraryUris: [Uri.parse(importUri)],
               kind: ElementKindUtilities.fromName(_kind),

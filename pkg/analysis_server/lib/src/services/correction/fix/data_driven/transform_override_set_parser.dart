@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
@@ -26,8 +24,7 @@ class TransformOverrideSetParser {
 
   /// Return the result of parsing the file [content] into a transform override,
   /// or `null` if the content does not represent a valid transform override.
-  TransformOverrideSet parse(String content) {
-    assert(content != null);
+  TransformOverrideSet? parse(String content) {
     var map = _parseYaml(content);
     if (map == null) {
       // The error has already been reported.
@@ -51,13 +48,15 @@ class TransformOverrideSetParser {
   }
 
   /// Return the result of parsing the file [content] into a YAML node.
-  YamlNode _parseYaml(String content) {
+  YamlNode? _parseYaml(String content) {
     try {
       return loadYamlNode(content);
     } on YamlException catch (e) {
       var span = e.span;
-      errorReporter.reportErrorForOffset(TransformSetErrorCode.yamlSyntaxError,
-          span.start.offset, span.length, [e.message]);
+      var offset = span?.start.offset ?? 0;
+      var length = span?.length ?? 0;
+      errorReporter.reportErrorForOffset(
+          TransformSetErrorCode.yamlSyntaxError, offset, length, [e.message]);
     }
     return null;
   }
@@ -66,7 +65,7 @@ class TransformOverrideSetParser {
   /// [node]. A list of [arguments] should be provided if the diagnostic message
   /// has parameters.
   void _reportError(TransformSetErrorCode code, YamlNode node,
-      [List<String> arguments]) {
+      [List<String>? arguments]) {
     var span = node.span;
     errorReporter.reportErrorForOffset(
         code, span.start.offset, span.length, arguments);
@@ -103,7 +102,7 @@ class TransformOverrideSetParser {
   /// if the [node] doesn't represent a valid bool. If the [node] isn't valid,
   /// use the [context] to report the error. If the [node] doesn't exist and
   /// [required] is `true`, then report an error.
-  bool _translateBool(YamlNode node, ErrorContext context,
+  bool? _translateBool(YamlNode? node, ErrorContext context,
       {bool required = true}) {
     if (node is YamlScalar) {
       var value = node.value;
@@ -122,7 +121,7 @@ class TransformOverrideSetParser {
   }
 
   /// Translate the given [node] as a key.
-  String _translateKey(YamlNode node) {
+  String? _translateKey(YamlNode node) {
     String type;
     if (node is YamlScalar) {
       if (node.value is String) {
@@ -144,7 +143,7 @@ class TransformOverrideSetParser {
   /// if the [node] doesn't represent a valid string. If the [node] isn't valid,
   /// use the [context] to report the error. If the [node] doesn't exist and
   /// [required] is `true`, then report an error.
-  String _translateString(YamlNode node, ErrorContext context,
+  String? _translateString(YamlNode? node, ErrorContext context,
       {bool required = true}) {
     if (node is YamlScalar) {
       var value = node.value;
@@ -165,9 +164,8 @@ class TransformOverrideSetParser {
   /// Translate the [node] into a transform override. Return the resulting
   /// transform override, or `null` if the [node] does not represent a valid
   /// transform override.
-  TransformOverride _translateTransformOverride(
+  TransformOverride? _translateTransformOverride(
       YamlNode node, ErrorContext context, String title) {
-    assert(node != null);
     if (node is YamlMap) {
       _reportUnsupportedKeys(node, const {_bulkApplyKey});
       var bulkApplyNode = node.valueAt(_bulkApplyKey);
@@ -188,8 +186,7 @@ class TransformOverrideSetParser {
   /// Translate the [node] into a transform override. Return the resulting
   /// transform override, or `null` if the [node] does not represent a valid
   /// transform override.
-  TransformOverrideSet _translateTransformOverrideSet(YamlNode node) {
-    assert(node != null);
+  TransformOverrideSet? _translateTransformOverrideSet(YamlNode node) {
     if (node is YamlMap) {
       var overrides = <TransformOverride>[];
       for (var entry in node.nodes.entries) {

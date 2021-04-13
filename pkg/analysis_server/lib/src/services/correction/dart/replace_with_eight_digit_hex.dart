@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,7 +11,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithEightDigitHex extends CorrectionProducer {
   /// The replacement text, used as an argument to the fix message.
-  String _replacement;
+  String _replacement = '';
 
   @override
   List<Object> get fixArguments => [_replacement];
@@ -33,6 +31,9 @@ class ReplaceWithEightDigitHex extends CorrectionProducer {
       return;
     }
     var value = (node as IntegerLiteral).value;
+    if (value == null) {
+      return;
+    }
     _replacement = '0x' + value.toRadixString(16).padLeft(8, '0');
     //
     // Build the edit.

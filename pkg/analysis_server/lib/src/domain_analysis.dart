@@ -61,6 +61,10 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 
     // Prepare the resolved units.
     var result = await server.getResolvedUnit(file);
+    if (result.state != ResultState.VALID) {
+      server.sendResponse(Response.fileNotAnalyzed(request, file));
+      return;
+    }
     var unit = result?.unit;
 
     // Prepare the hovers.

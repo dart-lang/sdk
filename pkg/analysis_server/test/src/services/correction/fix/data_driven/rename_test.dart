@@ -1235,6 +1235,7 @@ abstract class _AbstractRenameTest extends DataDrivenFixProcessorTest {
 
   Transform _rename(List<String> components, String newName) => Transform(
       title: 'title',
+      date: DateTime.now(),
       element: ElementDescriptor(
           libraryUris: [Uri.parse(importUri)],
           kind: ElementKindUtilities.fromName(_kind),

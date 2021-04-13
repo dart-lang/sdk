@@ -14,8 +14,33 @@ import '../mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisHoverBazelTest);
     defineReflectiveTests(AnalysisHoverTest);
   });
+}
+
+@reflectiveTest
+class AnalysisHoverBazelTest extends AbstractAnalysisTest {
+  Future<void> test_bazel_notOwnedUri() async {
+    newFile('/workspace/WORKSPACE');
+    projectPath = newFolder('/workspace').path;
+    testFile = convertPath('/workspace/dart/my/lib/test.dart');
+
+    newFile(
+      '/workspace/bazel-genfiles/dart/my/lib/test.dart',
+      content: '// generated',
+    );
+
+    createProject();
+
+    addTestFile('''
+class A {}
+''');
+
+    var request = AnalysisGetHoverParams(testFile, 0).toRequest('0');
+    var response = await waitResponse(request);
+    expect(response.error, isNotNull);
+  }
 }
 
 @reflectiveTest

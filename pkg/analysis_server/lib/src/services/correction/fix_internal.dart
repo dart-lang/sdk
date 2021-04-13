@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:core';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
@@ -165,10 +163,8 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
-import 'package:meta/meta.dart';
 
 /// A function that can be executed to create a multi-correction producer.
 typedef MultiProducerGenerator = MultiCorrectionProducer Function();
@@ -226,7 +222,9 @@ class FixInFileProcessor {
 
     var fixes = <Fix>[];
     for (var generator in generators) {
-      var fixState = FixState(workspace);
+      _FixState fixState = _EmptyFixState(
+        ChangeBuilder(workspace: workspace),
+      );
       for (var error in errors) {
         var fixContext = DartFixContextImpl(
           instrumentationService,
@@ -235,12 +233,12 @@ class FixInFileProcessor {
           error,
           (name) => [],
         );
-        await _fixError(fixContext, fixState, generator(), error);
+        fixState = await _fixError(fixContext, fixState, generator(), error);
       }
-      var sourceChange = fixState.builder.sourceChange;
-      if (sourceChange.edits.isNotEmpty) {
-        var fixKind = fixState.fixKind;
-        if (fixState.fixCount > 1) {
+      if (fixState is _NotEmptyFixState) {
+        var sourceChange = fixState.builder.sourceChange;
+        if (sourceChange.edits.isNotEmpty && fixState.fixCount > 1) {
+          var fixKind = fixState.fixKind;
           sourceChange.message = fixKind.message;
           fixes.add(Fix(fixKind, sourceChange));
         }
@@ -249,7 +247,7 @@ class FixInFileProcessor {
     return fixes;
   }
 
-  Future<void> _fixError(DartFixContext fixContext, FixState fixState,
+  Future<_FixState> _fixError(DartFixContext fixContext, _FixState fixState,
       CorrectionProducer producer, AnalysisError diagnostic) async {
     var context = CorrectionProducerContext.create(
       applyingBulkFixes: true,
@@ -261,7 +259,7 @@ class FixInFileProcessor {
       workspace: fixContext.workspace,
     );
     if (context == null) {
-      return;
+      return fixState;
     }
 
     producer.configure(context);
@@ -269,14 +267,23 @@ class FixInFileProcessor {
     try {
       var localBuilder = fixState.builder.copy();
       await producer.compute(localBuilder);
-      fixState.builder = localBuilder;
+
+      var multiFixKind = producer.multiFixKind;
+      if (multiFixKind == null) {
+        return fixState;
+      }
+
       // todo (pq): consider discarding the change if the producer's fixKind
       // doesn't match a previously cached one.
-      fixState.fixKind = producer.multiFixKind;
-      fixState.fixCount++;
+      return _NotEmptyFixState(
+        builder: localBuilder,
+        fixKind: multiFixKind,
+        fixCount: fixState.fixCount + 1,
+      );
     } on ConflictingEditException {
       // If a conflicting edit was added in [compute], then the [localBuilder]
       // is discarded and we revert to the previous state of the builder.
+      return fixState;
     }
   }
 
@@ -308,9 +315,9 @@ class FixInfo {
   final bool canBeBulkApplied;
   final List<ProducerGenerator> generators;
   const FixInfo({
-    @required this.canBeAppliedToFile,
-    @required this.canBeBulkApplied,
-    @required this.generators,
+    required this.canBeAppliedToFile,
+    required this.canBeBulkApplied,
+    required this.generators,
   });
 }
 
@@ -1726,19 +1733,23 @@ class FixProcessor extends BaseProcessor {
     return fixes;
   }
 
-  Future<Fix> computeFix() async {
+  Future<Fix?> computeFix() async {
     await _addFromProducers();
     fixes.sort(Fix.SORT_BY_RELEVANCE);
     return fixes.isNotEmpty ? fixes.first : null;
   }
 
   void _addFixFromBuilder(ChangeBuilder builder, CorrectionProducer producer) {
-    if (builder == null) return;
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
     }
+
     var kind = producer.fixKind;
+    if (kind == null) {
+      return;
+    }
+
     change.id = kind.id;
     change.message = formatList(kind.message, producer.fixArguments);
     fixes.add(Fix(kind, change));
@@ -1801,11 +1812,37 @@ class FixProcessor extends BaseProcessor {
   }
 }
 
+/// [_FixState] that is still empty.
+class _EmptyFixState implements _FixState {
+  @override
+  final ChangeBuilder builder;
+
+  _EmptyFixState(this.builder);
+
+  @override
+  int get fixCount => 0;
+}
+
 /// State associated with producing fix-all-in-file fixes.
-class FixState {
-  ChangeBuilder builder;
-  FixKind fixKind;
-  int fixCount = 0;
-  FixState(ChangeWorkspace workspace)
-      : builder = ChangeBuilder(workspace: workspace);
+abstract class _FixState {
+  ChangeBuilder get builder;
+
+  int get fixCount;
+}
+
+/// [_FixState] that has a fix, so knows its kind.
+class _NotEmptyFixState implements _FixState {
+  @override
+  final ChangeBuilder builder;
+
+  final FixKind fixKind;
+
+  @override
+  final int fixCount;
+
+  _NotEmptyFixState({
+    required this.builder,
+    required this.fixKind,
+    required this.fixCount,
+  });
 }

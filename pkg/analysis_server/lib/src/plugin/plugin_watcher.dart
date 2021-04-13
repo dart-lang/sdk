@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
@@ -40,7 +38,7 @@ class PluginWatcher implements DriverWatcher {
   /// analysis.
   @override
   void addedDriver(AnalysisDriver driver) {
-    var contextRoot = driver.analysisContext.contextRoot;
+    var contextRoot = driver.analysisContext!.contextRoot;
     _driverInfo[driver] = _DriverInfo(
         contextRoot, <String>[contextRoot.root.path, _getSdkPath(driver)]);
     var enabledPlugins = driver.analysisOptions.enabledPluginNames;
@@ -68,7 +66,7 @@ class PluginWatcher implements DriverWatcher {
           // If we don't, then tests don't have any way to know when to expect
           // that the list of plugins has been updated.
           manager.addPluginToContextRoot(
-              driver.analysisContext.contextRoot, pluginPath);
+              driver.analysisContext!.contextRoot, pluginPath);
         }
       }
     }
@@ -81,7 +79,7 @@ class PluginWatcher implements DriverWatcher {
     if (info == null) {
       throw StateError('Cannot remove a driver that was not added');
     }
-    manager.removedContextRoot(driver.analysisContext.contextRoot);
+    manager.removedContextRoot(driver.analysisContext!.contextRoot);
     _driverInfo.remove(driver);
   }
 
@@ -99,7 +97,7 @@ class PluginWatcher implements DriverWatcher {
       }
     }
 
-    var sdkRoot = coreSource.fullName;
+    var sdkRoot = coreSource!.fullName;
     while (resourceProvider.pathContext.basename(sdkRoot) != 'lib') {
       var parent = resourceProvider.pathContext.dirname(sdkRoot);
       if (parent == sdkRoot) {

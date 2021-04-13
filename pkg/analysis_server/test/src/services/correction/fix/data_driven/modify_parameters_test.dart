@@ -1011,6 +1011,7 @@ abstract class _ModifyParameters extends DataDrivenFixProcessorTest {
           List<ParameterModification> modifications, {String newName}) =>
       Transform(
           title: 'title',
+          date: DateTime.now(),
           element: ElementDescriptor(
               libraryUris: [Uri.parse(importUri)],
               kind: ElementKindUtilities.fromName(_kind),

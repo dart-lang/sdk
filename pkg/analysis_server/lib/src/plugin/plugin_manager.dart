@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
@@ -81,7 +79,7 @@ class DiscoveredPluginInfo extends PluginInfo {
       : super(notificationManager, instrumentationService);
 
   @override
-  bool get canBeStarted => executionPath != null;
+  bool get canBeStarted => executionPath.isNotEmpty;
 
   @override
   String get pluginId => path;
@@ -122,9 +120,9 @@ abstract class PluginInfo {
 
   /// The current execution of the plugin, or `null` if the plugin is not
   /// currently being executed.
-  PluginSession currentSession;
+  PluginSession? currentSession;
 
-  CaughtException _exception;
+  CaughtException? _exception;
 
   /// Initialize the newly created information about a plugin.
   PluginInfo(this.notificationManager, this.instrumentationService);
@@ -142,7 +140,7 @@ abstract class PluginInfo {
   /// The exception that occurred that prevented the plugin from being started,
   /// or `null` if there was no exception (possibly because no attempt has yet
   /// been made to start the plugin).
-  CaughtException get exception => _exception;
+  CaughtException? get exception => _exception;
 
   /// Return the id of this plugin, used to identify the plugin to users.
   String get pluginId;
@@ -204,12 +202,12 @@ abstract class PluginInfo {
   /// Start a new isolate that is running the plugin. Return the state object
   /// used to interact with the plugin, or `null` if the plugin could not be
   /// run.
-  Future<PluginSession> start(String byteStorePath, String sdkPath) async {
+  Future<PluginSession?> start(String byteStorePath, String sdkPath) async {
     if (currentSession != null) {
       throw StateError('Cannot start a plugin that is already running.');
     }
     currentSession = PluginSession(this);
-    var isRunning = await currentSession.start(byteStorePath, sdkPath);
+    var isRunning = await currentSession!.start(byteStorePath, sdkPath);
     if (!isRunning) {
       currentSession = null;
     }
@@ -225,7 +223,7 @@ abstract class PluginInfo {
       }
       throw StateError('Cannot stop a plugin that is not running.');
     }
-    var doneFuture = currentSession.stop();
+    var doneFuture = currentSession!.stop();
     currentSession = null;
     return doneFuture;
   }
@@ -235,6 +233,7 @@ abstract class PluginInfo {
 
   /// Update the context roots that the plugin should be analyzing.
   void _updatePluginRoots() {
+    final currentSession = this.currentSession;
     if (currentSession != null) {
       var params = AnalysisSetContextRootsParams(contextRoots
           .map((analyzer.ContextRoot contextRoot) => ContextRoot(
@@ -280,18 +279,18 @@ class PluginManager {
   /// received from the client. Because plugins are lazily discovered, this
   /// needs to be retained so that it can be sent after a plugin has been
   /// started.
-  AnalysisSetPriorityFilesParams _analysisSetPriorityFilesParams;
+  AnalysisSetPriorityFilesParams? _analysisSetPriorityFilesParams;
 
   /// The parameters for the last 'analysis.setSubscriptions' request that was
   /// received from the client. Because plugins are lazily discovered, this
   /// needs to be retained so that it can be sent after a plugin has been
   /// started.
-  AnalysisSetSubscriptionsParams _analysisSetSubscriptionsParams;
+  AnalysisSetSubscriptionsParams? _analysisSetSubscriptionsParams;
 
   /// The current state of content overlays. Because plugins are lazily
   /// discovered, the state needs to be retained so that it can be sent after a
   /// plugin has been started.
-  final Map<String, dynamic> _overlayState = <String, dynamic>{};
+  final Map<String, AddContentOverlay> _overlayState = {};
 
   final StreamController<void> _pluginsChanged = StreamController.broadcast();
 
@@ -312,14 +311,15 @@ class PluginManager {
   Future<void> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
     var plugin = _pluginMap[path];
-    var isNew = plugin == null;
-    if (isNew) {
+    var isNew = false;
+    if (plugin == null) {
+      isNew = true;
       List<String> pluginPaths;
       try {
         pluginPaths = pathsFor(path);
       } catch (exception, stackTrace) {
         plugin = DiscoveredPluginInfo(
-            path, null, null, notificationManager, instrumentationService);
+            path, '', '', notificationManager, instrumentationService);
         plugin.reportException(CaughtException(exception, stackTrace));
         _pluginMap[path] = plugin;
         return;
@@ -327,33 +327,33 @@ class PluginManager {
       plugin = DiscoveredPluginInfo(path, pluginPaths[0], pluginPaths[1],
           notificationManager, instrumentationService);
       _pluginMap[path] = plugin;
-      if (pluginPaths[0] != null) {
-        try {
-          var session = await plugin.start(byteStorePath, sdkPath);
-          session?.onDone?.then((_) {
-            _pluginMap.remove(path);
-            _notifyPluginsChanged();
-          });
-        } catch (exception, stackTrace) {
-          // Record the exception (for debugging purposes) and record the fact
-          // that we should not try to communicate with the plugin.
-          plugin.reportException(CaughtException(exception, stackTrace));
-          isNew = false;
-        }
+      try {
+        var session = await plugin.start(byteStorePath, sdkPath);
+        session?.onDone.then((_) {
+          _pluginMap.remove(path);
+          _notifyPluginsChanged();
+        });
+      } catch (exception, stackTrace) {
+        // Record the exception (for debugging purposes) and record the fact
+        // that we should not try to communicate with the plugin.
+        plugin.reportException(CaughtException(exception, stackTrace));
+        isNew = false;
       }
 
       _notifyPluginsChanged();
     }
     plugin.addContextRoot(contextRoot);
     if (isNew) {
-      if (_analysisSetSubscriptionsParams != null) {
-        plugin.sendRequest(_analysisSetSubscriptionsParams);
+      var analysisSetSubscriptionsParams = _analysisSetSubscriptionsParams;
+      if (analysisSetSubscriptionsParams != null) {
+        plugin.sendRequest(analysisSetSubscriptionsParams);
       }
       if (_overlayState.isNotEmpty) {
         plugin.sendRequest(AnalysisUpdateContentParams(_overlayState));
       }
-      if (_analysisSetPriorityFilesParams != null) {
-        plugin.sendRequest(_analysisSetPriorityFilesParams);
+      var analysisSetPriorityFilesParams = _analysisSetPriorityFilesParams;
+      if (analysisSetPriorityFilesParams != null) {
+        plugin.sendRequest(analysisSetPriorityFilesParams);
       }
     }
   }
@@ -363,7 +363,7 @@ class PluginManager {
   /// containing futures that will complete when each of the plugins have sent a
   /// response.
   Map<PluginInfo, Future<Response>> broadcastRequest(RequestParams params,
-      {analyzer.ContextRoot contextRoot}) {
+      {analyzer.ContextRoot? contextRoot}) {
     var plugins = pluginsForContextRoot(contextRoot);
     var responseMap = <PluginInfo, Future<Response>>{};
     for (var plugin in plugins) {
@@ -389,14 +389,15 @@ class PluginManager {
     bool matches(String pattern) =>
         Glob(resourceProvider.pathContext.separator, pattern).matches(filePath);
 
-    WatchEvent event;
+    WatchEvent? event;
     var responses = <Future<Response>>[];
     for (var plugin in _pluginMap.values) {
       var session = plugin.currentSession;
+      var interestingFiles = session?.interestingFiles;
       if (session != null &&
           plugin.isAnalyzing(filePath) &&
-          session.interestingFiles != null &&
-          session.interestingFiles.any(matches)) {
+          interestingFiles != null &&
+          interestingFiles.any(matches)) {
         // The list of interesting file globs is `null` if the plugin has not
         // yet responded to the plugin.versionCheck request. If that happens
         // then the plugin hasn't had a chance to analyze anything yet, and
@@ -435,6 +436,9 @@ class PluginManager {
     // plugin will need to be copied and pub will need to be run.
     //
     var stateFolder = resourceProvider.getStateLocation('.plugin_manager');
+    if (stateFolder == null) {
+      throw PluginException('No state location, so plugin could not be copied');
+    }
     var stateName = _uniqueDirectoryName(pluginPath);
     var parentFolder = stateFolder.getChildAssumingFolder(stateName);
     if (parentFolder.exists) {
@@ -449,7 +453,7 @@ class PluginManager {
   /// Return a list of all of the plugins that are currently associated with the
   /// given [contextRoot].
   @visibleForTesting
-  List<PluginInfo> pluginsForContextRoot(analyzer.ContextRoot contextRoot) {
+  List<PluginInfo> pluginsForContextRoot(analyzer.ContextRoot? contextRoot) {
     if (contextRoot == null) {
       return _pluginMap.values.toList();
     }
@@ -472,7 +476,7 @@ class PluginManager {
     } catch (exception, stackTrace) {
       var pluginPath = path.join(hostPackageName, 'tools', 'analyzer_plugin');
       var plugin = DiscoveredPluginInfo(
-          pluginPath, null, null, notificationManager, instrumentationService);
+          pluginPath, '', '', notificationManager, instrumentationService);
       plugin.reportException(CaughtException(exception, stackTrace));
       _pluginMap[pluginPath] = plugin;
     }
@@ -514,21 +518,23 @@ class PluginManager {
         //
         _pluginMap[path] = plugin;
         var session = await plugin.start(byteStorePath, sdkPath);
-        session?.onDone?.then((_) {
+        session?.onDone.then((_) {
           _pluginMap.remove(path);
         });
         //
         // Re-initialize the plugin.
         //
         plugin.addContextRoots(contextRoots);
-        if (_analysisSetSubscriptionsParams != null) {
-          plugin.sendRequest(_analysisSetSubscriptionsParams);
+        var analysisSetSubscriptionsParams = _analysisSetSubscriptionsParams;
+        if (analysisSetSubscriptionsParams != null) {
+          plugin.sendRequest(analysisSetSubscriptionsParams);
         }
         if (_overlayState.isNotEmpty) {
           plugin.sendRequest(AnalysisUpdateContentParams(_overlayState));
         }
-        if (_analysisSetPriorityFilesParams != null) {
-          plugin.sendRequest(_analysisSetPriorityFilesParams);
+        var analysisSetPriorityFilesParams = _analysisSetPriorityFilesParams;
+        if (analysisSetPriorityFilesParams != null) {
+          plugin.sendRequest(analysisSetPriorityFilesParams);
         }
       }
     }
@@ -573,7 +579,7 @@ class PluginManager {
       } else if (overlay is AddContentOverlay) {
         _overlayState[file] = overlay;
       } else if (overlay is ChangeContentOverlay) {
-        AddContentOverlay previousOverlay = _overlayState[file];
+        var previousOverlay = _overlayState[file]!;
         var newContent =
             SourceEdit.applySequence(previousOverlay.content, overlay.edits);
         _overlayState[file] = AddContentOverlay(newContent);
@@ -599,15 +605,15 @@ class PluginManager {
   ///
   /// Runs pub if [pubCommand] is provided and not null.
   List<String> _computePaths(Folder pluginFolder,
-      {String pubCommand, Workspace workspace}) {
+      {String? pubCommand, Workspace? workspace}) {
     var pluginFile = pluginFolder
         .getChildAssumingFolder('bin')
         .getChildAssumingFile('plugin.dart');
     if (!pluginFile.exists) {
       throw PluginException('File "${pluginFile.path}" does not exist.');
     }
-    String reason;
-    var packagesFile = pluginFolder.getChildAssumingFile('.packages');
+    String? reason;
+    File? packagesFile = pluginFolder.getChildAssumingFile('.packages');
     if (pubCommand != null) {
       var vmPath = Platform.executable;
       var pubPath = path.join(path.dirname(vmPath), 'pub');
@@ -647,6 +653,7 @@ class PluginManager {
       }
     }
     if (packagesFile == null) {
+      reason ??= 'Could not create packages file for an unknown reason.';
       throw PluginException(reason);
     }
     return <String>[pluginFile.path, packagesFile.path];
@@ -673,10 +680,10 @@ class PluginManager {
   /// the given [pluginFolder]. The [packageUriResolver] is used to determine
   /// the location of the packages that need to be included in the packages
   /// file.
-  File _createPackagesFile(
+  File? _createPackagesFile(
       Folder pluginFolder, UriResolver packageUriResolver) {
     var pluginPath = pluginFolder.path;
-    var stateFolder = resourceProvider.getStateLocation('.plugin_manager');
+    var stateFolder = resourceProvider.getStateLocation('.plugin_manager')!;
     var stateName = _uniqueDirectoryName(pluginPath) + '.packages';
     var packagesFile = stateFolder.getChildAssumingFile(stateName);
     if (!packagesFile.exists) {
@@ -698,11 +705,13 @@ class PluginManager {
             if (!visitedPackages.containsKey(packageName)) {
               var uri = Uri.parse('package:$packageName/$packageName.dart');
               var packageSource = packageUriResolver.resolveAbsolute(uri);
-              var libDirPath = context.dirname(packageSource.fullName);
-              visitedPackages[packageName] = libDirPath;
-              var pubspecPath =
-                  context.join(context.dirname(libDirPath), 'pubspec.yaml');
-              pubspecFiles.add(resourceProvider.getFile(pubspecPath));
+              if (packageSource != null) {
+                var libDirPath = context.dirname(packageSource.fullName);
+                visitedPackages[packageName] = libDirPath;
+                var pubspecPath =
+                    context.join(context.dirname(libDirPath), 'pubspec.yaml');
+                pubspecFiles.add(resourceProvider.getFile(pubspecPath));
+              }
             }
           }
         }
@@ -794,7 +803,7 @@ class PluginSession {
   Completer<void> pluginStoppedCompleter = Completer<void>();
 
   /// The channel used to communicate with the plugin.
-  ServerCommunicationChannel channel;
+  ServerCommunicationChannel? channel;
 
   /// The index of the next request to be sent to the plugin.
   int requestId = 0;
@@ -809,17 +818,17 @@ class PluginSession {
 
   /// The contact information to include when reporting problems related to the
   /// plugin.
-  String contactInfo;
+  String? contactInfo;
 
   /// The glob patterns of files that the plugin is interested in knowing about.
-  List<String> interestingFiles;
+  List<String>? interestingFiles;
 
   /// The name to be used when reporting problems related to the plugin.
-  String name;
+  String? name;
 
   /// The version number to be used when reporting problems related to the
   /// plugin.
-  String version;
+  String? version;
 
   /// Initialize the newly created information about the execution of a plugin.
   PluginSession(this.info);
@@ -847,7 +856,7 @@ class PluginSession {
   /// Handle the fact that the plugin has stopped.
   void handleOnDone() {
     if (channel != null) {
-      channel.close();
+      channel!.close();
       channel = null;
     }
     pluginStoppedCompleter.complete(null);
@@ -865,11 +874,11 @@ class PluginSession {
   /// created when the request was sent.
   void handleResponse(Response response) {
     var requestData = pendingRequests.remove(response.id);
-    var responseTime = DateTime.now().millisecondsSinceEpoch;
-    var duration = responseTime - requestData.requestTime;
-    PluginManager.recordResponseTime(info, requestData.method, duration);
-    var completer = requestData.completer;
-    if (completer != null) {
+    if (requestData != null) {
+      var responseTime = DateTime.now().millisecondsSinceEpoch;
+      var duration = responseTime - requestData.requestTime;
+      PluginManager.recordResponseTime(info, requestData.method, duration);
+      var completer = requestData.completer;
       completer.complete(response);
     }
   }
@@ -892,6 +901,7 @@ class PluginSession {
   /// Send a request, based on the given [parameters]. Return a future that will
   /// complete when a response is received.
   Future<Response> sendRequest(RequestParams parameters) {
+    var channel = this.channel;
     if (channel == null) {
       throw StateError('Cannot send a request to a plugin that has stopped.');
     }
@@ -912,34 +922,34 @@ class PluginSession {
     if (channel != null) {
       throw StateError('Cannot start a plugin that is already running.');
     }
-    if (byteStorePath == null || byteStorePath.isEmpty) {
+    if (byteStorePath.isEmpty) {
       throw StateError('Missing byte store path');
     }
     if (!isCompatible) {
-      info.reportException(
-          CaughtException(PluginException('Plugin is not compatible.'), null));
+      info.reportException(CaughtException(
+          PluginException('Plugin is not compatible.'), StackTrace.current));
       return false;
     }
     if (!info.canBeStarted) {
-      info.reportException(
-          CaughtException(PluginException('Plugin cannot be started.'), null));
+      info.reportException(CaughtException(
+          PluginException('Plugin cannot be started.'), StackTrace.current));
       return false;
     }
     channel = info._createChannel();
     // TODO(brianwilkerson) Determine if await is necessary, if so, change the
     // return type of `channel.listen` to `Future<void>`.
-    await (channel.listen(handleResponse, handleNotification,
+    await (channel!.listen(handleResponse, handleNotification,
         onDone: handleOnDone, onError: handleOnError) as dynamic);
     if (channel == null) {
       // If there is an error when starting the isolate, the channel will invoke
       // handleOnDone, which will cause `channel` to be set to `null`.
       info.reportException(CaughtException(
           PluginException('Unrecorded error while starting the plugin.'),
-          null));
+          StackTrace.current));
       return false;
     }
-    var response = await sendRequest(PluginVersionCheckParams(
-        byteStorePath ?? '', sdkPath, '1.0.0-alpha.0'));
+    var response = await sendRequest(
+        PluginVersionCheckParams(byteStorePath, sdkPath, '1.0.0-alpha.0'));
     var result = PluginVersionCheckResult.fromResponse(response);
     isCompatible = result.isCompatible;
     contactInfo = result.contactInfo;
@@ -948,8 +958,8 @@ class PluginSession {
     version = result.version;
     if (!isCompatible) {
       sendRequest(PluginShutdownParams());
-      info.reportException(
-          CaughtException(PluginException('Plugin is not compatible.'), null));
+      info.reportException(CaughtException(
+          PluginException('Plugin is not compatible.'), StackTrace.current));
       return false;
     }
     return true;

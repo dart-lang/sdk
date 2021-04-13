@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:core';
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
@@ -150,9 +148,8 @@ class BulkFixProcessor {
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [workspace].
   BulkFixProcessor(this.instrumentationService, this.workspace,
-      {bool useConfigFiles})
-      : useConfigFiles = useConfigFiles ?? false,
-        builder = ChangeBuilder(workspace: workspace);
+      {this.useConfigFiles = false})
+      : builder = ChangeBuilder(workspace: workspace);
 
   List<BulkFix> get fixDetails {
     var details = <BulkFix>[];
@@ -199,19 +196,19 @@ class BulkFixProcessor {
     );
 
     final analysisOptions = unit.session.analysisContext.analysisOptions;
-    final fixContext = DartFixContextImpl(
-      instrumentationService,
-      workspace,
-      unit,
-      null,
-      (name) => [],
-    );
 
     var overrideSet = _readOverrideSet(unit);
     for (var error in errors) {
       final processor = ErrorProcessor.getProcessor(analysisOptions, error);
       // Only fix errors not filtered out in analysis options.
       if (processor == null || processor.severity != null) {
+        final fixContext = DartFixContextImpl(
+          instrumentationService,
+          workspace,
+          unit,
+          error,
+          (name) => [],
+        );
         await _fixSingleError(fixContext, unit, error, overrideSet);
       }
     }
@@ -235,9 +232,7 @@ class BulkFixProcessor {
       for (var fix in fixes) {
         if (fix.canBeBulkApplied) {
           final generators = fix.generators;
-          if (generators != null) {
-            yield* generators.map((g) => g().fixKind).whereNotNull();
-          }
+          yield* generators.map((g) => g().fixKind).whereNotNull();
         }
       }
       return;
@@ -247,9 +242,7 @@ class BulkFixProcessor {
     for (var fix in fixes) {
       if (fix.canBeBulkApplied) {
         final generators = fix.generators;
-        if (generators != null) {
-          yield* generators.map((g) => g().fixKind).whereNotNull();
-        }
+        yield* generators.map((g) => g().fixKind).whereNotNull();
       }
     }
 
@@ -259,7 +252,7 @@ class BulkFixProcessor {
         instrumentationService,
         workspace,
         result,
-        null,
+        diagnostic,
         (name) => [],
       );
 
@@ -279,9 +272,7 @@ class BulkFixProcessor {
       for (final multiGenerator in multiGenerators) {
         final multiProducer = multiGenerator();
         multiProducer.configure(context);
-        yield* multiProducer.producers
-            .map((p) => p.fixKind)
-            .where((k) => k != null);
+        yield* multiProducer.producers.map((p) => p.fixKind).whereNotNull();
       }
     }
   }
@@ -290,19 +281,19 @@ class BulkFixProcessor {
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result) async {
     var analysisOptions = result.session.analysisContext.analysisOptions;
-    for (var unitResult in result.units) {
-      final fixContext = DartFixContextImpl(
-        instrumentationService,
-        workspace,
-        unitResult,
-        null,
-        (name) => [],
-      );
+    for (var unitResult in result.units!) {
       var overrideSet = _readOverrideSet(unitResult);
       for (var error in unitResult.errors) {
         var processor = ErrorProcessor.getProcessor(analysisOptions, error);
         // Only fix errors not filtered out in analysis options.
         if (processor == null || processor.severity != null) {
+          final fixContext = DartFixContextImpl(
+            instrumentationService,
+            workspace,
+            unitResult,
+            error,
+            (name) => [],
+          );
           await _fixSingleError(fixContext, unitResult, error, overrideSet);
         }
       }
@@ -316,7 +307,7 @@ class BulkFixProcessor {
       DartFixContext fixContext,
       ResolvedUnitResult result,
       AnalysisError diagnostic,
-      TransformOverrideSet overrideSet) async {
+      TransformOverrideSet? overrideSet) async {
     var context = CorrectionProducerContext.create(
       applyingBulkFixes: true,
       dartFixContext: fixContext,
@@ -357,7 +348,7 @@ class BulkFixProcessor {
       await compute(producer);
       var newHash = computeChangeHash();
       if (newHash != oldHash) {
-        changeMap.add(result.path, code);
+        changeMap.add(result.path!, code);
       }
     }
 
@@ -365,10 +356,8 @@ class BulkFixProcessor {
       for (var fix in fixes) {
         if (fix.canBeBulkApplied) {
           final generators = fix.generators;
-          if (generators != null) {
-            for (var generator in generators) {
-              await generate(generator(), codeName);
-            }
+          for (var generator in generators) {
+            await generate(generator(), codeName);
           }
         }
       }
@@ -405,11 +394,11 @@ class BulkFixProcessor {
   /// Return the override set corresponding to the given [result], or `null` if
   /// there is no corresponding configuration file or the file content isn't a
   /// valid override set.
-  TransformOverrideSet _readOverrideSet(ResolvedUnitResult result) {
+  TransformOverrideSet? _readOverrideSet(ResolvedUnitResult result) {
     if (useConfigFiles) {
       var provider = result.session.resourceProvider;
       var context = provider.pathContext;
-      var dartFileName = result.path;
+      var dartFileName = result.path!;
       var configFileName = '${context.withoutExtension(dartFileName)}.config';
       var configFile = provider.getFile(configFileName);
       try {

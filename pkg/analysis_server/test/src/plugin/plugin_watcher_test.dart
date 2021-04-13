@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
@@ -26,8 +24,8 @@ void main() {
 
 @reflectiveTest
 class PluginWatcherTest extends AbstractContextTest {
-  TestPluginManager manager;
-  PluginWatcher watcher;
+  late TestPluginManager manager;
+  late PluginWatcher watcher;
 
   @override
   void setUp() {
@@ -88,7 +86,7 @@ class PluginWatcherTest extends AbstractContextTest {
 
   void test_removedDriver() {
     var driver = driverFor(testPackageRootPath);
-    var contextRoot = driver.analysisContext.contextRoot;
+    var contextRoot = driver.analysisContext!.contextRoot;
     watcher.addedDriver(driver);
     watcher.removedDriver(driver);
     expect(manager.removedContextRoots, equals([contextRoot]));

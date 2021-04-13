@@ -2,11 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'late_statics_lib.dart' as lib;
+export 'late_statics_lib.dart';
+
 void main() {
   testUninitializedNonFinalStaticField();
   testUninitializedFinalStaticField();
   testInitializedNonFinalStaticField();
   testInitializedFinalStaticField();
+  testUninitializedNonFinalTopLevelField();
+  testUninitializedFinalTopLevelField();
+  testInitializedNonFinalTopLevelField();
+  testInitializedFinalTopLevelField();
 }
 
 class Statics {
@@ -36,4 +43,26 @@ void testInitializedNonFinalStaticField() {
 
 void testInitializedFinalStaticField() {
   print(Statics.d);
+}
+
+void testUninitializedNonFinalTopLevelField() {
+  print(lib.a);
+  lib.a = 42;
+  print(lib.a);
+}
+
+void testUninitializedFinalTopLevelField() {
+  print(lib.b);
+  lib.b = 42;
+  print(lib.b);
+}
+
+void testInitializedNonFinalTopLevelField() {
+  print(lib.c);
+  lib.c = 42;
+  print(lib.c);
+}
+
+void testInitializedFinalTopLevelField() {
+  print(lib.d);
 }

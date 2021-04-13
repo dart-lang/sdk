@@ -429,7 +429,7 @@ Expression? getQualifiedPropertyTarget(AstNode node) {
 
 /// Returns the given [statement] if not a block, or the first child statement
 /// if a block, or `null` if more than one child.
-Statement? getSingleStatement(Statement statement) {
+Statement? getSingleStatement(Statement? statement) {
   if (statement is Block) {
     List<Statement> blockStatements = statement.statements;
     if (blockStatements.length != 1) {

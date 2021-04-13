@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
-import 'package:meta/meta.dart';
 
 /// A set of transforms used to aid in the construction of fixes for issues
 /// related to some body of code. Typically there is one set of transforms for
@@ -40,7 +37,7 @@ class TransformSet {
   /// [applyingBulkFixes] indicates whether the transforms are being applied in
   /// the context of a bulk fix.
   List<Transform> transformsFor(ElementMatcher matcher,
-      {@required bool applyingBulkFixes}) {
+      {required bool applyingBulkFixes}) {
     var result = <Transform>[];
     for (var transform in _transforms) {
       if (transform.appliesTo(matcher, applyingBulkFixes: applyingBulkFixes)) {
