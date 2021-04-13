@@ -360,7 +360,7 @@ class MockAnalysisSession implements AnalysisSession {
   Map<String, FileResult> fileResults = {};
 
   void addFileResult(FileResult result) {
-    fileResults[result.path!] = result;
+    fileResults[result.path] = result;
   }
 
   @override

@@ -285,7 +285,7 @@ class DocumentationValidator {
   /// Extract documentation from the file that was parsed to produce the given
   /// [result].
   Future<void> _validateFile(ParsedUnitResult result) async {
-    filePath = result.path!;
+    filePath = result.path;
     hasWrittenFilePath = false;
     CompilationUnit unit = result.unit;
     for (CompilationUnitMember declaration in unit.declarations) {
