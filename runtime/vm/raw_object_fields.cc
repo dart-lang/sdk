@@ -106,6 +106,7 @@ namespace dart {
   F(CallSiteData, args_descriptor_)                                            \
   F(ICData, entries_)                                                          \
   F(ICData, owner_)                                                            \
+  F(InstructionsTable, descriptors_)                                           \
   F(MegamorphicCache, buckets_)                                                \
   F(MegamorphicCache, mask_)                                                   \
   F(SubtypeTestCache, cache_)                                                  \

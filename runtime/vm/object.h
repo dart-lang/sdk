@@ -479,6 +479,9 @@ class Object {
   static ClassPtr instructions_section_class() {
     return instructions_section_class_;
   }
+  static ClassPtr instructions_table_class() {
+    return instructions_table_class_;
+  }
   static ClassPtr object_pool_class() { return object_pool_class_; }
   static ClassPtr pc_descriptors_class() { return pc_descriptors_class_; }
   static ClassPtr code_source_map_class() { return code_source_map_class_; }
@@ -790,6 +793,7 @@ class Object {
 
   static ClassPtr instructions_class_;  // Class of the Instructions vm object.
   static ClassPtr instructions_section_class_;  // Class of InstructionsSection.
+  static ClassPtr instructions_table_class_;    // Class of InstructionsTable.
   static ClassPtr object_pool_class_;      // Class of the ObjectPool vm object.
   static ClassPtr pc_descriptors_class_;   // Class of PcDescriptors vm object.
   static ClassPtr code_source_map_class_;  // Class of CodeSourceMap vm object.
@@ -2661,6 +2665,8 @@ class Function : public Object {
   static bool HasCode(FunctionPtr function);
 
   static intptr_t code_offset() { return OFFSET_OF(UntaggedFunction, code_); }
+
+  uword entry_point() const { return untag()->entry_point_; }
 
   static intptr_t entry_point_offset(
       CodeEntryKind entry_kind = CodeEntryKind::kNormal) {
@@ -5402,6 +5408,107 @@ class InstructionsSection : public Object {
   friend class Class;
 };
 
+// Table which maps ranges of machine code to [Code] or
+// [CompressedStackMaps] objects.
+// Used in AOT in bare instructions mode.
+class InstructionsTable : public Object {
+ public:
+  static const intptr_t kBytesPerElement = sizeof(uint32_t);
+  static const intptr_t kMaxElements = kIntptrMax / kBytesPerElement;
+
+  static const uint32_t kHasMonomorphicEntrypointFlag = 0x1;
+  static const uint32_t kPayloadAlignment = Instructions::kBarePayloadAlignment;
+  static const uint32_t kPayloadMask = ~(kPayloadAlignment - 1);
+  COMPILE_ASSERT((kPayloadMask & kHasMonomorphicEntrypointFlag) == 0);
+
+  static intptr_t InstanceSize() {
+    ASSERT_EQUAL(sizeof(UntaggedInstructionsTable),
+                 OFFSET_OF_RETURNED_VALUE(UntaggedInstructionsTable, data));
+    return 0;
+  }
+  static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(sizeof(UntaggedInstructionsTable) +
+                                 len * kBytesPerElement);
+  }
+
+  static InstructionsTablePtr New(intptr_t length,
+                                  uword start_pc,
+                                  uword end_pc);
+
+  void SetEntryAt(intptr_t index,
+                  uword payload_start,
+                  bool has_monomorphic_entrypoint,
+                  ObjectPtr descriptor) const;
+
+  bool ContainsPc(uword pc) const { return ContainsPc(ptr(), pc); }
+  static bool ContainsPc(InstructionsTablePtr table, uword pc);
+
+  // Looks for the entry in the [table] by the given [pc].
+  // Returns index of an entry which contains [pc], or -1 if not found.
+  static intptr_t FindEntry(InstructionsTablePtr table, uword pc);
+
+  intptr_t length() const { return InstructionsTable::length(this->ptr()); }
+  static intptr_t length(InstructionsTablePtr table) {
+    return table->untag()->length_;
+  }
+
+  // Returns descriptor object for the entry with given index.
+  ObjectPtr DescriptorAt(intptr_t index) const {
+    return InstructionsTable::DescriptorAt(this->ptr(), index);
+  }
+  static ObjectPtr DescriptorAt(InstructionsTablePtr table, intptr_t index);
+
+  // Returns start address of the instructions entry with given index.
+  uword PayloadStartAt(intptr_t index) const {
+    return InstructionsTable::PayloadStartAt(this->ptr(), index);
+  }
+  static uword PayloadStartAt(InstructionsTablePtr table, intptr_t index);
+
+  // Returns entry point of the instructions with given index.
+  uword EntryPointAt(intptr_t index) const;
+
+ private:
+  uword start_pc() const { return InstructionsTable::start_pc(this->ptr()); }
+  static uword start_pc(InstructionsTablePtr table) {
+    return table->untag()->start_pc_;
+  }
+
+  uword end_pc() const { return InstructionsTable::end_pc(this->ptr()); }
+  static uword end_pc(InstructionsTablePtr table) {
+    return table->untag()->end_pc_;
+  }
+
+  ArrayPtr descriptors() const { return untag()->descriptors_; }
+
+  static uint32_t DataAt(InstructionsTablePtr table, intptr_t index) {
+    ASSERT((0 <= index) && (index < InstructionsTable::length(table)));
+    return table->untag()->data()[index];
+  }
+  uint32_t PcOffsetAt(intptr_t index) const {
+    return InstructionsTable::PcOffsetAt(this->ptr(), index);
+  }
+  static uint32_t PcOffsetAt(InstructionsTablePtr table, intptr_t index) {
+    return DataAt(table, index) & kPayloadMask;
+  }
+  bool HasMonomorphicEntryPointAt(intptr_t index) const {
+    return (DataAt(this->ptr(), index) & kHasMonomorphicEntrypointFlag) != 0;
+  }
+
+  void set_length(intptr_t value) const;
+  void set_start_pc(uword value) const;
+  void set_end_pc(uword value) const;
+  void set_descriptors(const Array& value) const;
+
+  uint32_t ConvertPcToOffset(uword pc) const {
+    return InstructionsTable::ConvertPcToOffset(this->ptr(), pc);
+  }
+  static uint32_t ConvertPcToOffset(InstructionsTablePtr table, uword pc);
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(InstructionsTable, Object);
+  friend class Class;
+};
+
 class LocalVarDescriptors : public Object {
  public:
   intptr_t Length() const;
@@ -6412,8 +6519,8 @@ class Code : public Object {
 
   // Set by precompiler if this Code object doesn't contain
   // useful information besides instructions and compressed stack map.
-  // Such object is serialized in a shorter form. (In future such
-  // Code objects will not be re-created during snapshot deserialization.)
+  // Such objects are serialized in a shorter form and replaced with
+  // StubCode::UnknownDartCode() during snapshot deserialization.
   class DiscardedBit : public BitField<int32_t, bool, kDiscardedBit, 1> {};
 
   class PtrOffBits

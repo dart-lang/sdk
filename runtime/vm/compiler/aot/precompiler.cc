@@ -1581,6 +1581,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
                 Function::CreateDynamicInvocationForwarderName(selector);
             function2 = function.GetDynamicInvocationForwarder(selector2);
             AddFunction(function2, RetainReasons::kDynamicInvocationForwarder);
+            functions_called_dynamically_.Insert(function2);
           }
         } else if (function.kind() == UntaggedFunction::kRegularFunction) {
           selector2 = Field::LookupGetterSymbol(selector);
@@ -1630,12 +1631,14 @@ void Precompiler::CheckForNewDynamicFunctions() {
                 function2 = function.GetDynamicInvocationForwarder(selector2);
                 AddFunction(function2,
                             RetainReasons::kDynamicInvocationForwarder);
+                functions_called_dynamically_.Insert(function2);
               }
             } else {
               if (metadata.method_or_setter_called_dynamically) {
                 function2 = function.GetDynamicInvocationForwarder(selector2);
                 AddFunction(function2,
                             RetainReasons::kDynamicInvocationForwarder);
+                functions_called_dynamically_.Insert(function2);
               }
             }
           }
@@ -2671,6 +2674,9 @@ void Precompiler::DropLibraries() {
 
 // Traverse program structure and mark Code objects
 // which do not have useful information as discarded.
+// Should be called after Precompiler::ReplaceFunctionStaticCallEntries().
+// Should be called before ProgramVisitor::Dedup() as Dedup may clear
+// static calls target table.
 void Precompiler::DiscardCodeObjects() {
   class DiscardCodeVisitor : public CodeVisitor {
    public:
@@ -2680,15 +2686,45 @@ void Precompiler::DiscardCodeObjects() {
                        const FunctionSet& functions_called_dynamically)
         : zone_(zone),
           function_(Function::Handle(zone)),
+          class_(Class::Handle(zone)),
+          library_(Library::Handle(zone)),
+          loading_unit_(LoadingUnit::Handle(zone)),
+          static_calls_target_table_(Array::Handle(zone)),
+          kind_and_offset_(Smi::Handle(zone)),
+          call_target_(Code::Handle(zone)),
+          targets_of_calls_via_code_(
+              GrowableObjectArray::Handle(zone, GrowableObjectArray::New())),
           functions_to_retain_(functions_to_retain),
           entry_point_functions_(entry_point_functions),
           functions_called_dynamically_(functions_called_dynamically) {}
 
+    // Certain static calls (e.g. between different loading units) are
+    // performed through Code objects indirectly. Such Code objects
+    // cannot be fully discarded.
+    void RecordCodeObjectsUsedForCalls(const Code& code) {
+      static_calls_target_table_ = code.static_calls_target_table();
+      if (static_calls_target_table_.IsNull()) return;
+
+      StaticCallsTable static_calls(static_calls_target_table_);
+      for (const auto& view : static_calls) {
+        kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
+        auto const kind = Code::KindField::decode(kind_and_offset_.Value());
+        if (kind == Code::kCallViaCode) {
+          call_target_ =
+              Code::RawCast(view.Get<Code::kSCallTableCodeOrTypeTarget>());
+          ASSERT(!call_target_.IsNull());
+          targets_of_calls_via_code_.Add(call_target_);
+        }
+      }
+    }
+
     void VisitCode(const Code& code) override {
       ++total_code_objects_;
 
+      RecordCodeObjectsUsedForCalls(code);
+
       // Only discard Code objects corresponding to Dart functions.
-      if (!code.IsFunctionCode()) {
+      if (!code.IsFunctionCode() || code.IsUnknownDartCode()) {
         ++non_function_codes_;
         return;
       }
@@ -2740,8 +2776,37 @@ void Precompiler::DiscardCodeObjects() {
         ASSERT(!functions_called_dynamically_.ContainsKey(function_));
       }
 
+      // Retain Code objects in the non-root loading unit as
+      // they are allocated while loading root unit but filled
+      // while loading another unit.
+      class_ = function_.Owner();
+      library_ = class_.library();
+      loading_unit_ = library_.loading_unit();
+      if (loading_unit_.id() != LoadingUnit::kRootId) {
+        ++codes_with_deferred_function_;
+        return;
+      }
+
+      // Retain Code objects corresponding to FFI trampolines.
+      if (function_.IsFfiTrampoline()) {
+        ++codes_with_ffi_trampoline_function_;
+        return;
+      }
+
       code.set_is_discarded(true);
       ++discarded_codes_;
+    }
+
+    void RetainCodeObjectsUsedAsCallTargets() {
+      for (intptr_t i = 0, n = targets_of_calls_via_code_.Length(); i < n;
+           ++i) {
+        call_target_ = Code::RawCast(targets_of_calls_via_code_.At(i));
+        if (call_target_.is_discarded()) {
+          call_target_.set_is_discarded(false);
+          ++codes_used_as_call_targets_;
+          --discarded_codes_;
+        }
+      }
     }
 
     void PrintStatistics() const {
@@ -2757,10 +2822,16 @@ void Precompiler::DiscardCodeObjects() {
                 codes_with_native_function_);
       THR_Print("    %8" Pd " Codes with async closure functions\n",
                 codes_with_async_closure_function_);
-      THR_Print("    %8" Pd " Codes with dynamically called functions\n",
-                codes_with_dynamically_called_function_);
       THR_Print("    %8" Pd " Codes with entry point functions\n",
                 codes_with_entry_point_function_);
+      THR_Print("    %8" Pd " Codes with dynamically called functions\n",
+                codes_with_dynamically_called_function_);
+      THR_Print("    %8" Pd " Codes with deferred functions\n",
+                codes_with_deferred_function_);
+      THR_Print("    %8" Pd " Codes with ffi trampoline functions\n",
+                codes_with_ffi_trampoline_function_);
+      THR_Print("    %8" Pd " Codes used as call targets\n",
+                codes_used_as_call_targets_);
       THR_Print("    %8" Pd " Codes discarded\n", discarded_codes_);
       THR_Print("    %8" Pd " Codes total\n", total_code_objects_);
     }
@@ -2768,6 +2839,13 @@ void Precompiler::DiscardCodeObjects() {
    private:
     Zone* zone_;
     Function& function_;
+    Class& class_;
+    Library& library_;
+    LoadingUnit& loading_unit_;
+    Array& static_calls_target_table_;
+    Smi& kind_and_offset_;
+    Code& call_target_;
+    GrowableObjectArray& targets_of_calls_via_code_;
     const FunctionSet& functions_to_retain_;
     const FunctionSet& entry_point_functions_;
     const FunctionSet& functions_called_dynamically_;
@@ -2780,8 +2858,11 @@ void Precompiler::DiscardCodeObjects() {
     intptr_t codes_with_invisible_function_ = 0;
     intptr_t codes_with_native_function_ = 0;
     intptr_t codes_with_async_closure_function_ = 0;
-    intptr_t codes_with_dynamically_called_function_ = 0;
     intptr_t codes_with_entry_point_function_ = 0;
+    intptr_t codes_with_dynamically_called_function_ = 0;
+    intptr_t codes_with_deferred_function_ = 0;
+    intptr_t codes_with_ffi_trampoline_function_ = 0;
+    intptr_t codes_used_as_call_targets_ = 0;
     intptr_t discarded_codes_ = 0;
   };
 
@@ -2796,6 +2877,7 @@ void Precompiler::DiscardCodeObjects() {
   DiscardCodeVisitor visitor(Z, functions_to_retain_, entry_point_functions_,
                              functions_called_dynamically_);
   ProgramVisitor::WalkProgram(Z, IG, &visitor);
+  visitor.RetainCodeObjectsUsedAsCallTargets();
 
   if (FLAG_trace_precompiler) {
     visitor.PrintStatistics();

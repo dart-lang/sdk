@@ -1308,6 +1308,7 @@ uint32_t HeapSnapshotWriter::GetHeapSnapshotIdentityHash(Thread* thread,
     case kImmutableArrayCid:
     case kInstructionsCid:
     case kInstructionsSectionCid:
+    case kInstructionsTableCid:
     case kLinkedHashMapCid:
     case kMintCid:
     case kNeverCid:

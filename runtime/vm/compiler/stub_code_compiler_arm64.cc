@@ -1304,7 +1304,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
 // Called when invoking Dart code from C++ (VM code).
 // Input parameters:
 //   LR : points to return address.
-//   R0 : code object of the Dart function to call.
+//   R0 : target code or entry point (in bare instructions mode).
 //   R1 : arguments descriptor array.
 //   R2 : arguments array.
 //   R3 : current thread.
@@ -1404,16 +1404,17 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     __ SetupGlobalPoolAndDispatchTable();
+    __ mov(CODE_REG, ZR);  // GC-safe value into CODE_REG.
   } else {
     // We now load the pool pointer(PP) with a GC safe value as we are about to
     // invoke dart code. We don't need a real object pool here.
     // Smi zero does not work because ARM64 assumes PP to be untagged.
     __ LoadObject(PP, NullObject());
+    __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
+    __ ldr(R0, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
 
   // Call the Dart code entrypoint.
-  __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
-  __ ldr(R0, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   __ blr(R0);  // R4 is the arguments descriptor array.
   __ Comment("InvokeDartCodeStub return");
 
@@ -3448,12 +3449,6 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                         CodeEntryKind::kMonomorphic)));
   __ br(R1);
-}
-
-void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ CallRuntime(kNotLoadedRuntimeEntry, 0);
-  __ brk(0);
 }
 
 // Instantiate type arguments from instantiator and function type args.

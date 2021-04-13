@@ -1231,7 +1231,7 @@ static const RegisterSet kCalleeSavedRegisterSet(
 // Called when invoking Dart code from C++ (VM code).
 // Input parameters:
 //   RSP : points to return address.
-//   RDI : target code
+//   RDI : target code or entry point (in bare instructions mode).
 //   RSI : arguments descriptor array.
 //   RDX : arguments array.
 //   RCX : current thread.
@@ -1239,7 +1239,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ pushq(Address(RSP, 0));  // Marker for the profiler.
   __ EnterFrame(0);
 
-  const Register kTargetCodeReg = CallingConventions::kArg1Reg;
+  const Register kTargetReg = CallingConventions::kArg1Reg;
   const Register kArgDescReg = CallingConventions::kArg2Reg;
   const Register kArgsReg = CallingConventions::kArg3Reg;
   const Register kThreadReg = CallingConventions::kArg4Reg;
@@ -1304,8 +1304,8 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Load arguments descriptor array into R10, which is passed to Dart code.
   __ movq(R10, Address(kArgDescReg, VMHandles::kOffsetOfRawPtrInHandle));
 
-  // Push arguments. At this point we only need to preserve kTargetCodeReg.
-  ASSERT(kTargetCodeReg != RDX);
+  // Push arguments. At this point we only need to preserve kTargetReg.
+  ASSERT(kTargetReg != RDX);
 
   // Load number of arguments into RBX and adjust count for type arguments.
   __ movq(RBX, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
@@ -1339,14 +1339,14 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Call the Dart code entrypoint.
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
+    __ xorq(CODE_REG, CODE_REG);  // GC-safe value into CODE_REG.
   } else {
     __ xorq(PP, PP);  // GC-safe value into PP.
+    __ movq(CODE_REG, Address(kTargetReg, VMHandles::kOffsetOfRawPtrInHandle));
+    __ movq(kTargetReg,
+            FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
-  __ movq(CODE_REG,
-          Address(kTargetCodeReg, VMHandles::kOffsetOfRawPtrInHandle));
-  __ movq(kTargetCodeReg,
-          FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ call(kTargetCodeReg);  // R10 is the arguments descriptor array.
+  __ call(kTargetReg);  // R10 is the arguments descriptor array.
 
   // Read the saved number of passed arguments as Smi.
   __ movq(RDX, Address(RBP, kArgumentsDescOffset));
@@ -3378,12 +3378,6 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ movq(RCX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                           CodeEntryKind::kMonomorphic)));
   __ jmp(RCX);
-}
-
-void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ CallRuntime(kNotLoadedRuntimeEntry, 0);
-  __ int3();
 }
 
 // Instantiate type arguments from instantiator and function type args.

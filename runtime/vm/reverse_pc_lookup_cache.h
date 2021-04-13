@@ -32,9 +32,14 @@ class ReversePc : public AllStatic {
                                                         uword* code_start);
 
  private:
-  static CodePtr LookupInGroup(IsolateGroup* group,
-                               uword pc,
-                               bool is_return_address);
+  static ObjectPtr FindCodeDescriptorInGroup(IsolateGroup* group,
+                                             uword pc,
+                                             bool is_return_address,
+                                             uword* code_start);
+  static ObjectPtr FindCodeDescriptor(IsolateGroup* group,
+                                      uword pc,
+                                      bool is_return_address,
+                                      uword* code_start);
 };
 
 }  // namespace dart

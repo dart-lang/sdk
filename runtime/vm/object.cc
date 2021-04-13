@@ -156,6 +156,7 @@ ClassPtr Object::kernel_program_info_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::code_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::instructions_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::instructions_section_class_ = static_cast<ClassPtr>(RAW_NULL);
+ClassPtr Object::instructions_table_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::object_pool_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::pc_descriptors_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::code_source_map_class_ = static_cast<ClassPtr>(RAW_NULL);
@@ -824,6 +825,9 @@ void Object::Init(IsolateGroup* isolate_group) {
       Class::New<InstructionsSection, RTN::InstructionsSection>(isolate_group);
   instructions_section_class_ = cls.ptr();
 
+  cls = Class::New<InstructionsTable, RTN::InstructionsTable>(isolate_group);
+  instructions_table_class_ = cls.ptr();
+
   cls = Class::New<ObjectPool, RTN::ObjectPool>(isolate_group);
   object_pool_class_ = cls.ptr();
 
@@ -1245,6 +1249,7 @@ void Object::Cleanup() {
   code_class_ = static_cast<ClassPtr>(RAW_NULL);
   instructions_class_ = static_cast<ClassPtr>(RAW_NULL);
   instructions_section_class_ = static_cast<ClassPtr>(RAW_NULL);
+  instructions_table_class_ = static_cast<ClassPtr>(RAW_NULL);
   object_pool_class_ = static_cast<ClassPtr>(RAW_NULL);
   pc_descriptors_class_ = static_cast<ClassPtr>(RAW_NULL);
   code_source_map_class_ = static_cast<ClassPtr>(RAW_NULL);
@@ -1345,6 +1350,7 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   SET_CLASS_NAME(code, Code);
   SET_CLASS_NAME(instructions, Instructions);
   SET_CLASS_NAME(instructions_section, InstructionsSection);
+  SET_CLASS_NAME(instructions_table, InstructionsTable);
   SET_CLASS_NAME(object_pool, ObjectPool);
   SET_CLASS_NAME(code_source_map, CodeSourceMap);
   SET_CLASS_NAME(pc_descriptors, PcDescriptors);
@@ -4869,6 +4875,8 @@ const char* Class::GenerateUserVisibleName() const {
       return Symbols::Instructions().ToCString();
     case kInstructionsSectionCid:
       return Symbols::InstructionsSection().ToCString();
+    case kInstructionsTableCid:
+      return Symbols::InstructionsTable().ToCString();
     case kObjectPoolCid:
       return Symbols::ObjectPool().ToCString();
     case kCodeSourceMapCid:
@@ -9757,7 +9765,10 @@ bool Function::HasDynamicCallers(Zone* zone) const {
   kernel::ProcedureAttributesMetadata metadata;
   metadata = kernel::ProcedureAttributesOf(*this, zone);
   if (IsGetterFunction() || IsImplicitGetterFunction() || IsMethodExtractor()) {
-    return metadata.getter_called_dynamically;
+    // Dynamic method call through field/getter involves dynamic call of
+    // the field/getter.
+    return metadata.getter_called_dynamically ||
+           metadata.method_or_setter_called_dynamically;
   } else {
     return metadata.method_or_setter_called_dynamically;
   }
@@ -14149,6 +14160,125 @@ const char* InstructionsSection::ToCString() const {
   return "InstructionsSection";
 }
 
+void InstructionsTable::set_length(intptr_t value) const {
+  StoreNonPointer(&untag()->length_, value);
+}
+
+void InstructionsTable::set_start_pc(uword value) const {
+  StoreNonPointer(&untag()->start_pc_, value);
+}
+
+void InstructionsTable::set_end_pc(uword value) const {
+  StoreNonPointer(&untag()->end_pc_, value);
+}
+
+void InstructionsTable::set_descriptors(const Array& value) const {
+  untag()->set_descriptors(value.ptr());
+}
+
+InstructionsTablePtr InstructionsTable::New(intptr_t length,
+                                            uword start_pc,
+                                            uword end_pc) {
+  ASSERT(Object::instructions_table_class() != Class::null());
+  ASSERT(length >= 0);
+  ASSERT(start_pc <= end_pc);
+  ASSERT(Utils::IsAligned(start_pc, kPayloadAlignment));
+  Thread* thread = Thread::Current();
+  InstructionsTable& result = InstructionsTable::Handle(thread->zone());
+  {
+    uword size = InstructionsTable::InstanceSize(length);
+    ObjectPtr raw = Object::Allocate(InstructionsTable::kClassId, size,
+                                     Heap::kOld, /*compressed*/ false);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.set_length(length);
+  }
+  const Array& descriptors =
+      (length == 0) ? Object::empty_array()
+                    : Array::Handle(Array::New(length, Heap::kOld));
+  result.set_descriptors(descriptors);
+  result.set_start_pc(start_pc);
+  result.set_end_pc(end_pc);
+  return result.ptr();
+}
+
+void InstructionsTable::SetEntryAt(intptr_t index,
+                                   uword payload_start,
+                                   bool has_monomorphic_entrypoint,
+                                   ObjectPtr descriptor) const {
+  ASSERT((0 <= index) && (index < length()));
+  ASSERT(ContainsPc(payload_start));
+  ASSERT(Utils::IsAligned(payload_start, kPayloadAlignment));
+
+  const uint32_t pc_offset = ConvertPcToOffset(payload_start);
+  ASSERT((index == 0) || (PcOffsetAt(index - 1) <= pc_offset));
+  ASSERT((pc_offset & kHasMonomorphicEntrypointFlag) == 0);
+
+  untag()->data()[index] =
+      pc_offset |
+      (has_monomorphic_entrypoint ? kHasMonomorphicEntrypointFlag : 0);
+  descriptors()->untag()->set_element(index, descriptor);
+}
+
+bool InstructionsTable::ContainsPc(InstructionsTablePtr table, uword pc) {
+  return (InstructionsTable::start_pc(table) <= pc) &&
+         (pc < InstructionsTable::end_pc(table));
+}
+
+uint32_t InstructionsTable::ConvertPcToOffset(InstructionsTablePtr table,
+                                              uword pc) {
+  ASSERT(InstructionsTable::ContainsPc(table, pc));
+  const uint32_t pc_offset =
+      static_cast<uint32_t>(pc - InstructionsTable::start_pc(table));
+  ASSERT(InstructionsTable::start_pc(table) + pc_offset == pc);  // No overflow.
+  return pc_offset;
+}
+
+intptr_t InstructionsTable::FindEntry(InstructionsTablePtr table, uword pc) {
+  // This can run in the middle of GC and must not allocate handles.
+  NoSafepointScope no_safepoint;
+  if (!InstructionsTable::ContainsPc(table, pc)) return -1;
+  const uint32_t pc_offset = InstructionsTable::ConvertPcToOffset(table, pc);
+  intptr_t lo = 0;
+  intptr_t hi = InstructionsTable::length(table) - 1;
+  while (lo <= hi) {
+    intptr_t mid = (hi - lo + 1) / 2 + lo;
+    ASSERT(mid >= lo);
+    ASSERT(mid <= hi);
+    if (pc_offset < InstructionsTable::PcOffsetAt(table, mid)) {
+      hi = mid - 1;
+    } else if ((mid != hi) &&
+               (pc_offset >= InstructionsTable::PcOffsetAt(table, mid + 1))) {
+      lo = mid + 1;
+    } else {
+      return mid;
+    }
+  }
+  return -1;
+}
+
+ObjectPtr InstructionsTable::DescriptorAt(InstructionsTablePtr table,
+                                          intptr_t index) {
+  ASSERT((0 <= index) && (index < InstructionsTable::length(table)));
+  return table->untag()->descriptors()->untag()->element(index);
+}
+
+uword InstructionsTable::PayloadStartAt(InstructionsTablePtr table,
+                                        intptr_t index) {
+  return InstructionsTable::start_pc(table) +
+         InstructionsTable::PcOffsetAt(table, index);
+}
+
+uword InstructionsTable::EntryPointAt(intptr_t index) const {
+  return PayloadStartAt(index) + (HasMonomorphicEntryPointAt(index)
+                                      ? Instructions::kPolymorphicEntryOffsetAOT
+                                      : 0);
+}
+
+const char* InstructionsTable::ToCString() const {
+  return "InstructionsTable";
+}
+
 ObjectPoolPtr ObjectPool::New(intptr_t len) {
   ASSERT(Object::object_pool_class() != Class::null());
   if (len < 0 || len > kMaxElements) {
@@ -16979,7 +17109,8 @@ bool Code::IsFunctionCode() const {
 }
 
 bool Code::IsUnknownDartCode(CodePtr code) {
-  return code == StubCode::UnknownDartCode().ptr();
+  return StubCode::HasBeenInitialized() &&
+         (code == StubCode::UnknownDartCode().ptr());
 }
 
 void Code::DisableDartCode() const {
