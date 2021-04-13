@@ -621,25 +621,22 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Throw [ArgumentError] if the [uri] corresponds to a part.
   Future<LibraryElement> getLibraryByUri(String uri) async {
     var uriObj = Uri.parse(uri);
-    var fileOr = _fsState.getFileForUri(uriObj);
-    return fileOr.mapAsync(
-      (file) async {
-        if (file == null) {
-          throw ArgumentError('$uri cannot be resolved to a file.');
-        }
+    var file = _fsState.getFileForUri(uriObj);
 
-        if (file.isPart) {
-          throw ArgumentError('$uri is not a library.');
-        }
+    if (file == null) {
+      throw ArgumentError('$uri cannot be resolved to a file.');
+    }
 
-        var unitResult = await getUnitElement(file.path!);
-        return unitResult.element.library;
-      },
-      (externalLibrary) async {
-        var libraryContext = _createLibraryContext(null);
-        return libraryContext.getLibraryElement(externalLibrary.uri);
-      },
-    );
+    if (file.isExternalLibrary) {
+      return _createLibraryContext(file).getLibraryElement(file);
+    }
+
+    if (file.isPart) {
+      throw ArgumentError('$uri is not a library.');
+    }
+
+    UnitElementResult unitResult = await getUnitElement(file.path!);
+    return unitResult.element.library;
   }
 
   /// Return a [ParsedLibraryResult] for the library with the given [path].
@@ -676,21 +673,22 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Throw [ArgumentError] if the given [uri] is not the defining compilation
   /// unit for a library (that is, is a part of a library).
   ParsedLibraryResult getParsedLibraryByUri(Uri uri) {
-    var fileOr = _fsState.getFileForUri(uri);
-    return fileOr.map(
-      (file) {
-        if (file == null) {
-          throw ArgumentError('URI cannot be resolved: $uri');
-        }
-        if (file.isPart) {
-          throw ArgumentError('Is a part: $uri');
-        }
-        return getParsedLibrary(file.path!);
-      },
-      (externalLibrary) {
-        return NotValidParsedLibraryResultImpl(ResultState.EXTERNAL_LIBRARY);
-      },
-    );
+    var file = _fsState.getFileForUri(uri);
+
+    if (file == null) {
+      throw ArgumentError('URI cannot be resolved: $uri');
+    }
+
+    if (file.isExternalLibrary) {
+      return NotValidParsedLibraryResultImpl(ResultState.EXTERNAL_LIBRARY);
+    }
+
+    if (file.isPart) {
+      throw ArgumentError('Is a part: $uri');
+    }
+
+    // The file is a local file, we can get the result.
+    return getParsedLibrary(file.path!);
   }
 
   /// Return a [Future] that completes with a [ResolvedLibraryResult] for the
@@ -750,21 +748,24 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// [changeFile]), prior to the next time the analysis state transitions
   /// to "idle".
   Future<ResolvedLibraryResult> getResolvedLibraryByUri(Uri uri) {
-    var fileOr = _fsState.getFileForUri(uri);
-    return fileOr.mapAsync(
-      (file) {
-        if (file == null) {
-          throw ArgumentError('URI cannot be resolved: $uri');
-        }
-        if (file.isPart) {
-          throw ArgumentError('Is a part: $uri');
-        }
-        return getResolvedLibrary(file.path!);
-      },
-      (externalLibrary) async {
-        return NotValidResolvedLibraryResultImpl(ResultState.EXTERNAL_LIBRARY);
-      },
-    );
+    var file = _fsState.getFileForUri(uri);
+
+    if (file == null) {
+      throw ArgumentError('URI cannot be resolved: $uri');
+    }
+
+    if (file.isExternalLibrary) {
+      return Future.value(
+        NotValidResolvedLibraryResultImpl(ResultState.EXTERNAL_LIBRARY),
+      );
+    }
+
+    if (file.isPart) {
+      throw ArgumentError('Is a part: $uri');
+    }
+
+    // The file is a local file, we can get the result.
+    return getResolvedLibrary(file.path!);
   }
 
   ApiSignature getResolvedUnitKeyByPath(String path) {
@@ -890,11 +891,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// without a package name. In these cases we cannot prove that the file is
   /// not a part, so it must be a library.
   bool isLibraryByUri(Uri uri) {
-    var fileOr = _fsState.getFileForUri(uri);
-    return fileOr.map(
-      (file) => file == null || !file.isPart,
-      (uri) => false,
-    );
+    var file = _fsState.getFileForUri(uri);
+    return file == null || !file.isPart;
   }
 
   /// Return a [Future] that completes with a [ParsedUnitResult] for the file
@@ -1290,11 +1288,15 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       try {
         _testView.numOfAnalyzedLibraries++;
 
-        if (!_hasLibraryByUri('dart:core')) {
+        var dartCoreUri = Uri.parse('dart:core');
+        var dartCoreFile = _fsState.getFileForUri(dartCoreUri);
+        if (dartCoreFile == null || !dartCoreFile.exists) {
           return _newMissingDartLibraryResult(file, 'dart:core');
         }
 
-        if (!_hasLibraryByUri('dart:async')) {
+        var dartAsyncUri = Uri.parse('dart:async');
+        var dartAsyncFile = _fsState.getFileForUri(dartAsyncUri);
+        if (dartAsyncFile == null || !dartAsyncFile.exists) {
           return _newMissingDartLibraryResult(file, 'dart:async');
         }
 
@@ -1513,33 +1515,30 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /// Return the context in which the [library] should be analyzed.
-  LibraryContext _createLibraryContext(FileState? library) {
-    {
-      var libraryContext = _libraryContext;
-      if (libraryContext != null) {
-        if (libraryContext.pack()) {
-          clearLibraryContext();
-        }
+  LibraryContext _createLibraryContext(FileState library) {
+    if (_libraryContext != null) {
+      if (_libraryContext!.pack()) {
+        clearLibraryContext();
       }
     }
 
-    var libraryContext = _libraryContext;
-    libraryContext ??= _libraryContext = LibraryContext(
-      testView: _testView.libraryContext,
-      session: currentSession,
-      logger: _logger,
-      byteStore: _byteStore,
-      analysisOptions: _analysisOptions,
-      declaredVariables: declaredVariables,
-      sourceFactory: _sourceFactory,
-      externalSummaries: _externalSummaries,
-    );
-
-    if (library != null) {
-      libraryContext.load2(library);
+    if (_libraryContext == null) {
+      _libraryContext = LibraryContext(
+        testView: _testView.libraryContext,
+        session: currentSession,
+        logger: _logger,
+        byteStore: _byteStore,
+        analysisOptions: _analysisOptions,
+        declaredVariables: declaredVariables,
+        sourceFactory: _sourceFactory,
+        externalSummaries: _externalSummaries,
+        targetLibrary: library,
+      );
+    } else {
+      _libraryContext!.load2(library);
     }
 
-    return libraryContext;
+    return _libraryContext!;
   }
 
   /// Create a new analysis session, so invalidating the current one.
@@ -1648,15 +1647,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     signature.addString(library.transitiveSignature);
     signature.addString(file.contentHash);
     return signature.toHex();
-  }
-
-  bool _hasLibraryByUri(String uriStr) {
-    var uri = Uri.parse(uriStr);
-    var fileOr = _fsState.getFileForUri(uri);
-    return fileOr.map(
-      (file) => file != null && file.exists,
-      (_) => true,
-    );
   }
 
   /// We detected that one of the required `dart` libraries is missing.
@@ -2043,6 +2033,12 @@ class AnalysisDriverTestView {
 
   Map<String, ResolvedUnitResult> get priorityResults {
     return driver._priorityResults;
+  }
+
+  SummaryDataStore getSummaryStore(String libraryPath) {
+    FileState library = driver.fsState.getFileForPath(libraryPath);
+    LibraryContext libraryContext = driver._createLibraryContext(library);
+    return libraryContext.store;
   }
 }
 

@@ -63,6 +63,7 @@ class LibraryContext {
     required DeclaredVariables declaredVariables,
     required SourceFactory sourceFactory,
     required this.externalSummaries,
+    required FileState targetLibrary,
   })   : logger = logger,
         byteStore = byteStore,
         analysisSession = session {
@@ -71,6 +72,7 @@ class LibraryContext {
     analysisContext = AnalysisContextImpl(synchronousSession, sourceFactory);
 
     _createElementFactory();
+    load2(targetLibrary);
   }
 
   /// Computes a [CompilationUnitElement] for the given library/unit pair.
@@ -84,8 +86,8 @@ class LibraryContext {
   }
 
   /// Get the [LibraryElement] for the given library.
-  LibraryElement getLibraryElement(Uri uri) {
-    return elementFactory.libraryOfUri2('$uri');
+  LibraryElement getLibraryElement(FileState library) {
+    return elementFactory.libraryOfUri2(library.uriStr);
   }
 
   /// Return `true` if the given [uri] is known to be a library.

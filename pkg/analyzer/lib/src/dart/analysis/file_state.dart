@@ -35,7 +35,6 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
-import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
@@ -48,13 +47,6 @@ var counterUnlinkedBytes = 0;
 var counterUnlinkedLinkedBytes = 0;
 int fileObjectId = 0;
 var timerFileStateRefresh = Stopwatch();
-
-/// A library from [SummaryDataStore].
-class ExternalLibrary {
-  final Uri uri;
-
-  ExternalLibrary(this.uri);
-}
 
 /// [FileContentOverlay] is used to temporary override content of files.
 class FileContentOverlay {
@@ -104,6 +96,12 @@ class FileState {
   ///
   /// It might be `null` if the file is outside of the workspace.
   final WorkspacePackage? workspacePackage;
+
+  /// Return `true` if this file is a stub created for a file in the provided
+  /// external summary store. The values of most properties are not the same
+  /// as they would be if the file were actually read from the file system.
+  /// The value of the property [uri] is correct.
+  final bool isInExternalSummaries;
 
   /// The [FeatureSet] for all files in the analysis context.
   ///
@@ -160,7 +158,19 @@ class FileState {
     this.workspacePackage,
     this._contextFeatureSet,
     this.packageLanguageVersion,
-  );
+  ) : isInExternalSummaries = false;
+
+  FileState._external(this._fsState, this.uri)
+      : isInExternalSummaries = true,
+        path = null,
+        source = null,
+        workspacePackage = null,
+        _exists = true,
+        _contextFeatureSet = null,
+        packageLanguageVersion = null {
+    _apiSignature = Uint8List(16);
+    _libraryCycle = LibraryCycle.external();
+  }
 
   /// The unlinked API signature of the file.
   List<int> get apiSignature => _apiSignature!;
@@ -211,12 +221,8 @@ class FileState {
       _exportedFiles = <FileState?>[];
       for (var directive in _unlinked2!.exports) {
         var uri = _selectRelativeUri(directive);
-        _fileForRelativeUri(uri).map(
-          (file) {
-            _exportedFiles!.add(file);
-          },
-          (_) {},
-        );
+        var file = _fileForRelativeUri(uri);
+        _exportedFiles!.add(file);
       }
     }
     return _exportedFiles!;
@@ -231,12 +237,8 @@ class FileState {
       _importedFiles = <FileState?>[];
       for (var directive in _unlinked2!.imports) {
         var uri = _selectRelativeUri(directive);
-        _fileForRelativeUri(uri).map(
-          (file) {
-            _importedFiles!.add(file);
-          },
-          (_) {},
-        );
+        var file = _fileForRelativeUri(uri);
+        _importedFiles!.add(file);
       }
     }
     return _importedFiles!;
@@ -308,17 +310,13 @@ class FileState {
     if (_partedFiles == null) {
       _partedFiles = <FileState?>[];
       for (var uri in _unlinked2!.parts) {
-        _fileForRelativeUri(uri).map(
-          (file) {
-            _partedFiles!.add(file);
-            if (file != null) {
-              _fsState._partToLibraries
-                  .putIfAbsent(file, () => <FileState>[])
-                  .add(this);
-            }
-          },
-          (_) {},
-        );
+        var file = _fileForRelativeUri(uri);
+        _partedFiles!.add(file);
+        if (file != null) {
+          _fsState._partToLibraries
+              .putIfAbsent(file, () => <FileState>[])
+              .add(this);
+        }
       }
     }
     return _partedFiles!;
@@ -549,18 +547,16 @@ class FileState {
 
   /// Return the [FileState] for the given [relativeUri], or `null` if the
   /// URI cannot be parsed, cannot correspond any file, etc.
-  Either2<FileState?, ExternalLibrary> _fileForRelativeUri(
-    String relativeUri,
-  ) {
+  FileState? _fileForRelativeUri(String relativeUri) {
     if (relativeUri.isEmpty) {
-      return Either2.t1(null);
+      return null;
     }
 
     Uri absoluteUri;
     try {
       absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
     } on FormatException {
-      return Either2.t1(null);
+      return null;
     }
 
     return _fsState.getFileForUri(absoluteUri);
@@ -898,17 +894,11 @@ class FileSystemState {
     return file;
   }
 
-  /// The given [uri] must be absolute.
-  ///
-  /// If [uri] corresponds to a library from the summary store, return a
-  /// [ExternalLibrary].
-  ///
-  /// Otherwise the [uri] is resolved to a file, and the corresponding
-  /// [FileState] is returned. Might be `null` if the [uri] cannot be resolved
-  /// to a file, for example because it is invalid (e.g. a `package:` URI
-  /// without a package name), or we don't know this package. The returned
-  /// file has the last known state since if was last refreshed.
-  Either2<FileState?, ExternalLibrary> getFileForUri(Uri uri) {
+  /// Return the [FileState] for the given absolute [uri]. May return the
+  /// "unresolved" file if the [uri] is invalid, e.g. a `package:` URI without
+  /// a package name. The returned file has the last known state since if was
+  /// last refreshed.
+  FileState? getFileForUri(Uri uri) {
     FileState? file = _uriToFile[uri];
     if (file == null) {
       // If the external store has this URI, create a stub file for it.
@@ -916,7 +906,9 @@ class FileSystemState {
       if (externalSummaries != null) {
         String uriStr = uri.toString();
         if (externalSummaries!.hasLinkedLibrary(uriStr)) {
-          return Either2.t2(ExternalLibrary(uri));
+          file = FileState._external(this, uri);
+          _uriToFile[uri] = file;
+          return file;
         }
       }
 
@@ -925,7 +917,7 @@ class FileSystemState {
       // If the URI cannot be resolved, for example because the factory
       // does not understand the scheme, return the unresolved file instance.
       if (uriSource == null) {
-        return Either2.t1(null);
+        return null;
       }
 
       String path = uriSource.fullName;
@@ -941,7 +933,7 @@ class FileSystemState {
       _addFileWithPath(path, file);
       file.refresh(allowCached: true);
     }
-    return Either2.t1(file);
+    return file;
   }
 
   /// Return the list of all [FileState]s corresponding to the given [path]. The
