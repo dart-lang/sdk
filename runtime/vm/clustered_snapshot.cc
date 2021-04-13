@@ -130,24 +130,6 @@ static void RelocateCodeObjects(
   CodeRelocator::Relocate(thread, code_objects, image_writer_commands, is_vm);
 }
 
-class CodePtrKeyValueTrait {
- public:
-  // Typedefs needed for the DirectChainedHashMap template.
-  typedef const CodePtr Key;
-  typedef const CodePtr Value;
-  typedef CodePtr Pair;
-
-  static Key KeyOf(Pair kv) { return kv; }
-  static Value ValueOf(Pair kv) { return kv; }
-  static inline intptr_t Hashcode(Key key) {
-    return static_cast<intptr_t>(key);
-  }
-
-  static inline bool IsKeyEqual(Pair pair, Key key) { return pair == key; }
-};
-
-typedef DirectChainedHashMap<CodePtrKeyValueTrait> RawCodeSet;
-
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 
 static ObjectPtr AllocateUninitialized(PageSpace* old_space, intptr_t size) {
