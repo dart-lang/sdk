@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -13,7 +11,6 @@ import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
-import 'package:meta/meta.dart';
 
 class CiderErrorFixes {
   final AnalysisError error;
@@ -24,9 +21,9 @@ class CiderErrorFixes {
   final LineInfo lineInfo;
 
   CiderErrorFixes({
-    @required this.error,
-    @required this.fixes,
-    @required this.lineInfo,
+    required this.error,
+    required this.fixes,
+    required this.lineInfo,
   });
 }
 
