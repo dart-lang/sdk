@@ -1,0 +1,8 @@
+// @dart = 2.9
+import 'issue41210_lib.dart';
+
+class E with A, D {}
+
+class G with A, F {}
+
+main() {}

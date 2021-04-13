@@ -23,7 +23,7 @@ List<String> compilerFlagsForFile(String filepath) {
     '-DTARGET_OS_LINUX',
     '-DTESTING',
     '-x',
-    'c++',
+    'c++17',
   ];
   return flags;
 }

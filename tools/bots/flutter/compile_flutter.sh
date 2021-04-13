@@ -5,7 +5,7 @@
 
 # Compile flutter tests with a locally built SDK.
 
-set -e
+set -ex
 
 prepareOnly=false
 leakTest=false
