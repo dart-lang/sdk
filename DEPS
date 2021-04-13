@@ -112,7 +112,7 @@ vars = {
   "http_multi_server_rev" : "7aca9e87d4a68374b685334f20359320054b8d7b",
   "http_parser_rev": "5dd4d16693242049dfb43b5efa429fedbf932e98",
   "http_retry_rev": "845771af7bb5ab38ab740ce4a31f3b0c7680302b",
-  "http_rev": "615380db687d0649057ed8dba9d933d7d5f5051b",
+  "http_rev": "69d6064dd92470ed7ccd50a808fc789ee7716fe8",
   "http_throttle_tag" : "1.0.2",
   "icu_rev" : "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
