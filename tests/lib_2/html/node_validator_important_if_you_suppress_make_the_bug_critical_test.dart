@@ -478,6 +478,20 @@ main() {
         "<input id='bad' onmouseover='alert(1)'>",
         "");
 
+    // Walking templates triggers a recursive sanitization call, which shouldn't
+    // invalidate the information collected from the previous visit of the later
+    // nodes in the walk.
+    testHtml(
+        'DOM clobbering with recursive sanitize call using templates',
+        validator,
+        "<form><div>"
+          "<input id=childNodes />"
+          "<template></template>"
+          "<input id=childNodes name=lastChild />"
+          "<img id=exploitImg src=0 onerror='alert(1)' />"
+          "</div></form>",
+        "");
+
     test('tagName makes containing form invalid', () {
       var fragment = document.body.createFragment(
           "<form onmouseover='alert(2)'><input name='tagName'>",
