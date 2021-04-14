@@ -1,0 +1,26 @@
+import "package:expect/expect.dart";
+
+Type typeFn() {}
+bool isEmptyFn() {}
+bool isNotEmptyFn() {}
+const firstCatchVar = firstCatchFn();
+const firstVar = firstFn();
+const isEmptyVar = isEmptyFn();
+const isNotEmptyVar = isNotEmptyFn();
+const lastCatchVar = lastCatchFn();
+const lastVar = lastFn();
+const lengthVar = lengthFn();
+const singleCatchVar = singleCatchFn();
+const singleCatchVar2 = singleCatchFn2();
+const singleVar = singleFn();
+const typeExample = int;
+const typeVar = typeFn();
+int firstCatchFn() {}
+int firstFn() {}
+int lastCatchFn() {}
+int lastFn() {}
+int lengthFn() {}
+int singleCatchFn() {}
+int singleCatchFn2() {}
+int singleFn() {}
+void main() {}

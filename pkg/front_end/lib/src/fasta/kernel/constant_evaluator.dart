@@ -52,6 +52,7 @@ import '../fasta_codes.dart'
         messageNonAgnosticConstant,
         messageNotAConstantExpression,
         noLength,
+        templateConstEvalBadState,
         templateConstEvalCaseImplementsEqual,
         templateConstEvalDeferredLibrary,
         templateConstEvalDuplicateElement,
@@ -1006,8 +1007,16 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         errorReporter.reportInvalidExpression(invalid);
         return new UnevaluatedConstant(invalid);
       } else if (result is _AbortDueToThrowConstant) {
-        final Message message = templateConstEvalUnhandledException
-            .withArguments(result.throwValue, isNonNullableByDefault);
+        final Object value = result.throwValue;
+        Message message;
+        if (value is Constant) {
+          message = templateConstEvalUnhandledException.withArguments(
+              value, isNonNullableByDefault);
+        } else if (value is StateError) {
+          message = templateConstEvalBadState.withArguments(value.message);
+        }
+        assert(message != null);
+
         final Uri uri = getFileUri(result.node);
         final int fileOffset = getFileOffset(uri, result.node);
         final LocatedMessage locatedMessageActualError =
@@ -2478,6 +2487,42 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           new PropertyGet(extract(receiver), node.name, node.interfaceTarget));
     } else if (receiver is NullConstant) {
       return createErrorConstant(node, messageConstEvalNullValue);
+    } else if (receiver is ListConstant && enableConstFunctions) {
+      switch (node.name.text) {
+        case 'first':
+          if (receiver.entries.isEmpty) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('No element'));
+          }
+          return receiver.entries.first;
+        case 'hashCode':
+          return new IntConstant(receiver.entries.hashCode);
+        case 'isEmpty':
+          return new BoolConstant(receiver.entries.isEmpty);
+        case 'isNotEmpty':
+          return new BoolConstant(receiver.entries.isNotEmpty);
+        // TODO(kallentu): case 'iterator'
+        case 'last':
+          if (receiver.entries.isEmpty) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('No element'));
+          }
+          return receiver.entries.last;
+        case 'length':
+          return new IntConstant(receiver.entries.length);
+        // TODO(kallentu): case 'reversed'
+        case 'runtimeType':
+          return new TypeLiteralConstant(receiver.typeArgument);
+        case 'single':
+          if (receiver.entries.isEmpty) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('No element'));
+          } else if (receiver.entries.length > 1) {
+            return new _AbortDueToThrowConstant(
+                node, new StateError('Too many elements'));
+          }
+          return receiver.entries.single;
+      }
     }
     return createErrorConstant(
         node,
@@ -3582,17 +3627,33 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
     if (tryStatus is AbortStatus) {
       final Constant error = tryStatus.error;
       if (error is _AbortDueToThrowConstant) {
-        final Constant throwConstant = error.throwValue;
+        final Object throwValue = error.throwValue;
         final DartType defaultType =
             exprEvaluator.typeEnvironment.coreTypes.objectNonNullableRawType;
+
+        DartType throwType;
+        if (throwValue is Constant) {
+          throwType = throwValue.getType(exprEvaluator._staticTypeContext);
+        } else if (throwValue is StateError) {
+          final Class stateErrorClass = exprEvaluator
+              .coreTypes.coreLibrary.classes
+              .firstWhere((Class klass) => klass.name == 'StateError');
+          throwType =
+              new InterfaceType(stateErrorClass, Nullability.nonNullable);
+        }
+        assert(throwType != null);
+
         for (Catch catchClause in node.catches) {
-          if (exprEvaluator.isSubtype(throwConstant, catchClause.guard,
-                  SubtypeCheckMode.withNullabilities) ||
+          if (exprEvaluator.typeEnvironment.isSubtypeOf(throwType,
+                  catchClause.guard, SubtypeCheckMode.withNullabilities) ||
               catchClause.guard == defaultType) {
             return exprEvaluator.withNewEnvironment(() {
               if (catchClause.exception != null) {
-                exprEvaluator.env
-                    .addVariableValue(catchClause.exception, throwConstant);
+                // TODO(kallentu): Store non-constant exceptions.
+                if (throwValue is Constant) {
+                  exprEvaluator.env
+                      .addVariableValue(catchClause.exception, throwValue);
+                }
               }
               // TODO(kallentu): Store appropriate stack trace in environment.
               return catchClause.body.accept(this);
@@ -3993,8 +4054,8 @@ class _AbortDueToInvalidExpressionConstant extends AbortConstant {
 }
 
 class _AbortDueToThrowConstant extends AbortConstant {
-  final Throw node;
-  final Constant throwValue;
+  final TreeNode node;
+  final Object throwValue;
 
   _AbortDueToThrowConstant(this.node, this.throwValue);
 

@@ -1,0 +1,13 @@
+import "package:expect/expect.dart";
+
+const firstException = firstExceptionFn();
+const invalidProperty = invalidPropertyFn();
+const lastException = lastExceptionFn();
+const singleException = singleExceptionFn();
+const singleExceptionMulti = singleExceptionMultiFn();
+int firstExceptionFn() {}
+int invalidPropertyFn() {}
+int lastExceptionFn() {}
+int singleExceptionFn() {}
+int singleExceptionMultiFn() {}
+void main() {}

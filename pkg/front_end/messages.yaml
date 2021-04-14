@@ -106,6 +106,9 @@ AsciiControlCharacter:
 ConstEvalStartingPoint:
   template: "Constant evaluation error:"
 
+ConstEvalBadState:
+  template: "Bad state: '#stringOKEmpty'"
+
 ConstEvalContext:
   template: "While analyzing:"
 

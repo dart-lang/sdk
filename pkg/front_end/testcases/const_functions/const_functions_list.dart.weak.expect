@@ -1,0 +1,101 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static const field core::int firstVar = #C1;
+static const field core::int firstCatchVar = #C2;
+static const field core::bool isEmptyVar = #C3;
+static const field core::bool isNotEmptyVar = #C4;
+static const field core::int lastVar = #C5;
+static const field core::int lastCatchVar = #C2;
+static const field core::int lengthVar = #C5;
+static const field core::int singleVar = #C1;
+static const field core::int singleCatchVar = #C2;
+static const field core::int singleCatchVar2 = #C2;
+static const field core::Type typeExample = #C6;
+static const field core::Type typeVar = #C6;
+static method firstFn() → core::int {
+  return (#C7).{core::Iterable::first};
+}
+static method firstCatchFn() → core::int {
+  try {
+    core::int v = (#C8).{core::Iterable::first};
+  }
+  on core::StateError catch(no-exception-var) {
+    return 0;
+  }
+  return 1;
+}
+static method isEmptyFn() → core::bool {
+  return (#C7).{core::Iterable::isEmpty};
+}
+static method isNotEmptyFn() → core::bool {
+  return (#C7).{core::Iterable::isNotEmpty};
+}
+static method lastFn() → core::int {
+  return (#C7).{core::Iterable::last};
+}
+static method lastCatchFn() → core::int {
+  try {
+    core::int v = (#C8).{core::Iterable::last};
+  }
+  on core::StateError catch(no-exception-var) {
+    return 0;
+  }
+  return 1;
+}
+static method lengthFn() → core::int {
+  return (#C7).{core::List::length};
+}
+static method singleFn() → core::int {
+  return (#C9).{core::Iterable::single};
+}
+static method singleCatchFn() → core::int {
+  try {
+    core::int v = (#C8).{core::Iterable::single};
+  }
+  on core::StateError catch(no-exception-var) {
+    return 0;
+  }
+  return 1;
+}
+static method singleCatchFn2() → core::int {
+  try {
+    core::int v = (#C7).{core::Iterable::single};
+  }
+  on core::StateError catch(no-exception-var) {
+    return 0;
+  }
+  return 1;
+}
+static method typeFn() → core::Type {
+  return (#C7).{core::Object::runtimeType};
+}
+static method main() → void {
+  exp::Expect::equals(#C1, 1);
+  exp::Expect::equals(#C2, 0);
+  exp::Expect::equals(#C3, false);
+  exp::Expect::equals(#C4, true);
+  exp::Expect::equals(#C5, 2);
+  exp::Expect::equals(#C2, 0);
+  exp::Expect::equals(#C5, 2);
+  exp::Expect::equals(#C1, 1);
+  exp::Expect::equals(#C2, 0);
+  exp::Expect::equals(#C2, 0);
+  exp::Expect::equals(#C6, #C6);
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 0
+  #C3 = false
+  #C4 = true
+  #C5 = 2
+  #C6 = TypeLiteralConstant(core::int*)
+  #C7 = <core::int*>[#C1, #C5]
+  #C8 = <core::int*>[]
+  #C9 = <core::int*>[#C1]
+}

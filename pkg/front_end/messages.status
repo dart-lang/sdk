@@ -92,6 +92,8 @@ ConstConstructorLateFinalFieldWarning/analyzerCode: Fail
 ConstConstructorLateFinalFieldWarning/example: Fail
 ConstConstructorNonFinalField/example: Fail
 ConstConstructorRedirectionToNonConst/analyzerCode: Fail # The analyzer doesn't report this error.
+ConstEvalBadState/analyzerCode: Fail
+ConstEvalBadState/example: Fail
 ConstEvalCaseImplementsEqual/analyzerCode: Fail
 ConstEvalCaseImplementsEqual/example: Fail
 ConstEvalCircularity/example: Fail
