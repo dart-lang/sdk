@@ -851,7 +851,6 @@ const List<ErrorCode> errorCodeValues = [
   StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK,
   StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE,
   StrongModeCode.TOP_LEVEL_INSTANCE_GETTER,
-  StrongModeCode.TOP_LEVEL_INSTANCE_METHOD,
   TodoCode.TODO,
 ];
 

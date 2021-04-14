@@ -54,7 +54,7 @@ class AnalysisSessionHelper {
     var resolvedLibrary = await _getResolvedLibrary(libraryPath);
 
     var unitPath = element.source!.fullName;
-    return resolvedLibrary.units.singleWhere((resolvedUnit) {
+    return resolvedLibrary.units!.singleWhere((resolvedUnit) {
       return resolvedUnit.path == unitPath;
     });
   }

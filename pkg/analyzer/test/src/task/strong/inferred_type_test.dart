@@ -2560,7 +2560,7 @@ var f = <dynamic, dynamic>{};
   }
 
   test_infer_use_of_void() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 class B {
   void f() {}
 }
@@ -2568,9 +2568,8 @@ class C extends B {
   f() {}
 }
 var x = new C().f();
-''', [
-      error(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, 65, 11),
-    ]);
+''');
+    assertType(findElement.topVar('x').type, 'void');
   }
 
   test_inferConstsTransitively() async {

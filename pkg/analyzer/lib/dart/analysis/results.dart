@@ -17,7 +17,9 @@ import 'package:analyzer/src/generated/source.dart';
 abstract class AnalysisResult {
   /// The absolute and normalized path of the file that was analyzed.
   /// If [state] is not [ResultState.VALID], throws [StateError].
-  String get path;
+  ///
+  /// TODO(migration): should not be nullable
+  String? get path;
 
   /// Return the session used to compute this result.
   /// If [state] is not [ResultState.VALID], throws [StateError].
@@ -84,13 +86,13 @@ abstract class FileResult implements AnalysisResult {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ParsedLibraryResult implements AnalysisResult {
   /// The parsed units of the library.
-  /// If [state] is not [ResultState.VALID], throws [StateError].
-  List<ParsedUnitResult> get units;
+  ///
+  /// TODO(migration): should not be null, probably empty list
+  List<ParsedUnitResult>? get units;
 
   /// Return the declaration of the [element], or `null` if the [element]
   /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
   /// this library.
-  /// If [state] is not [ResultState.VALID], throws [StateError].
   ElementDeclarationResult? getElementDeclaration(Element element);
 }
 
@@ -132,21 +134,17 @@ abstract class ParseStringResult {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ResolvedLibraryResult implements AnalysisResult {
   /// The element representing this library.
-  /// If [state] is not [ResultState.VALID], throws [StateError].
-  LibraryElement get element;
+  LibraryElement? get element;
 
   /// The type provider used when resolving the library.
-  /// If [state] is not [ResultState.VALID], throws [StateError].
   TypeProvider get typeProvider;
 
   /// The resolved units of the library.
-  /// If [state] is not [ResultState.VALID], throws [StateError].
-  List<ResolvedUnitResult> get units;
+  List<ResolvedUnitResult>? get units;
 
   /// Return the declaration of the [element], or `null` if the [element]
   /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
   /// this library.
-  /// If [state] is not [ResultState.VALID], throws [StateError].
   ElementDeclarationResult? getElementDeclaration(Element element);
 }
 
@@ -173,10 +171,6 @@ abstract class ResolvedUnitResult implements AnalysisResultWithErrors {
 
 /// An indication of whether an analysis result is valid, and if not why.
 enum ResultState {
-  /// An indication that the analysis result cannot be provided because
-  /// the library is created from summary.
-  EXTERNAL_LIBRARY,
-
   /// An indication that analysis could not be performed because the path
   /// represents a file of a type that cannot be analyzed.
   INVALID_FILE_TYPE,

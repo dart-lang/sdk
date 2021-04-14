@@ -1281,7 +1281,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// the given [resolvedUnit] and [timeStamp].
   DartFileEditBuilderImpl(ChangeBuilderImpl changeBuilder, this.resolvedUnit,
       int timeStamp, this.libraryChangeBuilder)
-      : super(changeBuilder, resolvedUnit.path, timeStamp);
+      : super(changeBuilder, resolvedUnit.path!, timeStamp);
 
   @override
   bool get hasEdits =>

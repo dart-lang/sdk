@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-04-13T11:00:55.084091",
+  "generated": "2021-04-13T13:32:11.977579",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -339,7 +339,7 @@
       "name": "http_parser",
       "rootUri": "../third_party/pkg/http_parser",
       "packageUri": "lib/",
-      "languageVersion": "2.11"
+      "languageVersion": "2.12"
     },
     {
       "name": "http_retry",

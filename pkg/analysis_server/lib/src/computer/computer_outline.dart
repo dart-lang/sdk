@@ -87,6 +87,9 @@ class DartUnitOutlineComputer {
 
   Location _getLocationOffsetLength(int offset, int length) {
     var path = resolvedUnit.path;
+    if (path == null) {
+      throw StateError('DartUnitOutlineComputer called with invalid result');
+    }
     var startLocation = resolvedUnit.lineInfo.getLocation(offset);
     var startLine = startLocation.lineNumber;
     var startColumn = startLocation.columnNumber;

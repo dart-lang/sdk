@@ -3063,7 +3063,7 @@ class F extends X {}
     driver.changeFile(b);
     await waitForIdleWithoutExceptions();
 
-    List<String> analyzedPaths = allResults.map((r) => r.path).toList();
+    List<String> analyzedPaths = allResults.map((r) => r.path!).toList();
 
     // The changed file must be the first.
     expect(analyzedPaths[0], b);
@@ -3105,7 +3105,7 @@ class F extends X {}
     driver.changeFile(a);
     await waitForIdleWithoutExceptions();
 
-    List<String> analyzedPaths = allResults.map((r) => r.path).toList();
+    List<String> analyzedPaths = allResults.map((r) => r.path!).toList();
 
     // The changed files must be the first.
     expect(analyzedPaths[0], a);

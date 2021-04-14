@@ -14223,13 +14223,6 @@ class StrongModeCode extends ErrorCode {
           "getter, '{1}', which has an implicit type.",
       correction: "Add an explicit type for either '{0}' or '{1}'.");
 
-  static const StrongModeCode TOP_LEVEL_INSTANCE_METHOD = StrongModeCode(
-      ErrorType.STATIC_WARNING,
-      'TOP_LEVEL_INSTANCE_METHOD',
-      "The type of '{0}' can't be inferred because it refers to an instance "
-          "method, '{1}', which has an implicit type.",
-      correction: "Add an explicit type for either '{0}' or '{1}'.");
-
   @override
   final ErrorType type;
 

@@ -607,7 +607,6 @@ import 'throw_of_invalid_type_test.dart' as throw_of_invalid_type;
 import 'todo_test.dart' as todo_test;
 import 'top_level_cycle_test.dart' as top_level_cycle;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
-import 'top_level_instance_method_test.dart' as top_level_instance_method;
 import 'type_alias_cannot_reference_itself_test.dart'
     as type_alias_cannot_reference_itself;
 import 'type_annotation_deferred_class_test.dart'
@@ -1087,7 +1086,6 @@ main() {
     todo_test.main();
     top_level_cycle.main();
     top_level_instance_getter.main();
-    top_level_instance_method.main();
     type_alias_cannot_reference_itself.main();
     type_annotation_deferred_class.main();
     type_argument_not_matching_bounds.main();

@@ -24,7 +24,7 @@ void computeIncludedSetList(
   var context = tracker.getContext(analysisContext);
   if (context == null) return;
 
-  var librariesObject = context.getLibraries(resolvedUnit.path);
+  var librariesObject = context.getLibraries(resolvedUnit.path!);
 
   var importedUriSet = resolvedUnit.libraryElement.importedLibraries
       .map((importedLibrary) => importedLibrary.source.uri)
