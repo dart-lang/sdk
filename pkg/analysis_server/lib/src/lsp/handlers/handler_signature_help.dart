@@ -52,11 +52,11 @@ class SignatureHelpHandler
           unit.result.unit,
           offset);
       if (!computer.offsetIsValid) {
-        return success(); // No error, just no valid hover.
+        return success(null); // No error, just no valid hover.
       }
       final signature = computer.compute();
       if (signature == null) {
-        return success(); // No error, just no valid hover.
+        return success(null); // No error, just no valid hover.
       }
 
       // Skip results if this was an auto-trigger but not from the start of the
@@ -66,7 +66,7 @@ class SignatureHelpHandler
       if (autoTriggered &&
           computer.argumentList != null &&
           offset != computer.argumentList.offset + 1) {
-        return success();
+        return success(null);
       }
 
       final formats =

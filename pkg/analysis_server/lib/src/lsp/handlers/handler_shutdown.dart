@@ -27,6 +27,6 @@ class ShutdownMessageHandler extends MessageHandler<void, void> {
     // We can clean up and shut down here, but we cannot terminate the server
     // because that must be done after the exit notification.
 
-    return success();
+    return success(null);
   }
 }

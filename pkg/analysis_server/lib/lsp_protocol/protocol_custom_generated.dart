@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
@@ -19,7 +17,6 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:meta/meta.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
@@ -27,11 +24,7 @@ class AnalyzerStatusParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       AnalyzerStatusParams.canParse, AnalyzerStatusParams.fromJson);
 
-  AnalyzerStatusParams({@required this.isAnalyzing}) {
-    if (isAnalyzing == null) {
-      throw 'isAnalyzing is required but was not provided';
-    }
-  }
+  AnalyzerStatusParams({required this.isAnalyzing});
   static AnalyzerStatusParams fromJson(Map<String, dynamic> json) {
     final isAnalyzing = json['isAnalyzing'];
     return AnalyzerStatusParams(isAnalyzing: isAnalyzing);
@@ -41,8 +34,7 @@ class AnalyzerStatusParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['isAnalyzing'] =
-        isAnalyzing ?? (throw 'isAnalyzing is required but was not set');
+    __result['isAnalyzing'] = isAnalyzing;
     return __result;
   }
 
@@ -96,16 +88,9 @@ class ClosingLabel implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ClosingLabel.canParse, ClosingLabel.fromJson);
 
-  ClosingLabel({@required this.range, @required this.label}) {
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-    if (label == null) {
-      throw 'label is required but was not provided';
-    }
-  }
+  ClosingLabel({required this.range, required this.label});
   static ClosingLabel fromJson(Map<String, dynamic> json) {
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final range = Range.fromJson(json['range']);
     final label = json['label'];
     return ClosingLabel(range: range, label: label);
   }
@@ -115,9 +100,8 @@ class ClosingLabel implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
-    __result['label'] = label ?? (throw 'label is required but was not set');
+    __result['range'] = range.toJson();
+    __result['label'] = label;
     return __result;
   }
 
@@ -189,14 +173,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
       CompletionItemResolutionInfo.canParse,
       CompletionItemResolutionInfo.fromJson);
 
-  CompletionItemResolutionInfo({@required this.file, @required this.offset}) {
-    if (file == null) {
-      throw 'file is required but was not provided';
-    }
-    if (offset == null) {
-      throw 'offset is required but was not provided';
-    }
-  }
+  CompletionItemResolutionInfo({required this.file, required this.offset});
   static CompletionItemResolutionInfo fromJson(Map<String, dynamic> json) {
     if (DartCompletionItemResolutionInfo.canParse(json, nullLspJsonReporter)) {
       return DartCompletionItemResolutionInfo.fromJson(json);
@@ -211,8 +188,8 @@ class CompletionItemResolutionInfo implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['file'] = file ?? (throw 'file is required but was not set');
-    __result['offset'] = offset ?? (throw 'offset is required but was not set');
+    __result['file'] = file;
+    __result['offset'] = offset;
     return __result;
   }
 
@@ -287,35 +264,13 @@ class DartCompletionItemResolutionInfo
       DartCompletionItemResolutionInfo.fromJson);
 
   DartCompletionItemResolutionInfo(
-      {@required this.libId,
-      @required this.displayUri,
-      @required this.rOffset,
-      @required this.iLength,
-      @required this.rLength,
-      @required this.file,
-      @required this.offset}) {
-    if (libId == null) {
-      throw 'libId is required but was not provided';
-    }
-    if (displayUri == null) {
-      throw 'displayUri is required but was not provided';
-    }
-    if (rOffset == null) {
-      throw 'rOffset is required but was not provided';
-    }
-    if (iLength == null) {
-      throw 'iLength is required but was not provided';
-    }
-    if (rLength == null) {
-      throw 'rLength is required but was not provided';
-    }
-    if (file == null) {
-      throw 'file is required but was not provided';
-    }
-    if (offset == null) {
-      throw 'offset is required but was not provided';
-    }
-  }
+      {required this.libId,
+      required this.displayUri,
+      required this.rOffset,
+      required this.iLength,
+      required this.rLength,
+      required this.file,
+      required this.offset});
   static DartCompletionItemResolutionInfo fromJson(Map<String, dynamic> json) {
     final libId = json['libId'];
     final displayUri = json['displayUri'];
@@ -344,17 +299,13 @@ class DartCompletionItemResolutionInfo
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['libId'] = libId ?? (throw 'libId is required but was not set');
-    __result['displayUri'] =
-        displayUri ?? (throw 'displayUri is required but was not set');
-    __result['rOffset'] =
-        rOffset ?? (throw 'rOffset is required but was not set');
-    __result['iLength'] =
-        iLength ?? (throw 'iLength is required but was not set');
-    __result['rLength'] =
-        rLength ?? (throw 'rLength is required but was not set');
-    __result['file'] = file ?? (throw 'file is required but was not set');
-    __result['offset'] = offset ?? (throw 'offset is required but was not set');
+    __result['libId'] = libId;
+    __result['displayUri'] = displayUri;
+    __result['rOffset'] = rOffset;
+    __result['iLength'] = iLength;
+    __result['rLength'] = rLength;
+    __result['file'] = file;
+    __result['offset'] = offset;
     return __result;
   }
 
@@ -523,11 +474,7 @@ class DartDiagnosticServer implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       DartDiagnosticServer.canParse, DartDiagnosticServer.fromJson);
 
-  DartDiagnosticServer({@required this.port}) {
-    if (port == null) {
-      throw 'port is required but was not provided';
-    }
-  }
+  DartDiagnosticServer({required this.port});
   static DartDiagnosticServer fromJson(Map<String, dynamic> json) {
     final port = json['port'];
     return DartDiagnosticServer(port: port);
@@ -537,7 +484,7 @@ class DartDiagnosticServer implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['port'] = port ?? (throw 'port is required but was not set');
+    __result['port'] = port;
     return __result;
   }
 
@@ -592,18 +539,11 @@ class Element implements ToJsonable {
 
   Element(
       {this.range,
-      @required this.name,
-      @required this.kind,
+      required this.name,
+      required this.kind,
       this.parameters,
       this.typeParameters,
-      this.returnType}) {
-    if (name == null) {
-      throw 'name is required but was not provided';
-    }
-    if (kind == null) {
-      throw 'kind is required but was not provided';
-    }
-  }
+      this.returnType});
   static Element fromJson(Map<String, dynamic> json) {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final name = json['name'];
@@ -622,18 +562,18 @@ class Element implements ToJsonable {
 
   final String kind;
   final String name;
-  final String parameters;
-  final Range range;
-  final String returnType;
-  final String typeParameters;
+  final String? parameters;
+  final Range? range;
+  final String? returnType;
+  final String? typeParameters;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (range != null) {
-      __result['range'] = range.toJson();
+      __result['range'] = range?.toJson();
     }
-    __result['name'] = name ?? (throw 'name is required but was not set');
-    __result['kind'] = kind ?? (throw 'kind is required but was not set');
+    __result['name'] = name;
+    __result['kind'] = kind;
     if (parameters != null) {
       __result['parameters'] = parameters;
     }
@@ -761,25 +701,15 @@ class FlutterOutline implements ToJsonable {
       LspJsonHandler(FlutterOutline.canParse, FlutterOutline.fromJson);
 
   FlutterOutline(
-      {@required this.kind,
+      {required this.kind,
       this.label,
       this.className,
       this.variableName,
       this.attributes,
       this.dartElement,
-      @required this.range,
-      @required this.codeRange,
-      this.children}) {
-    if (kind == null) {
-      throw 'kind is required but was not provided';
-    }
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-    if (codeRange == null) {
-      throw 'codeRange is required but was not provided';
-    }
-  }
+      required this.range,
+      required this.codeRange,
+      this.children});
   static FlutterOutline fromJson(Map<String, dynamic> json) {
     final kind = json['kind'];
     final label = json['label'];
@@ -793,9 +723,8 @@ class FlutterOutline implements ToJsonable {
     final dartElement = json['dartElement'] != null
         ? Element.fromJson(json['dartElement'])
         : null;
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    final codeRange =
-        json['codeRange'] != null ? Range.fromJson(json['codeRange']) : null;
+    final range = Range.fromJson(json['range']);
+    final codeRange = Range.fromJson(json['codeRange']);
     final children = json['children']
         ?.map((item) => item != null ? FlutterOutline.fromJson(item) : null)
         ?.cast<FlutterOutline>()
@@ -812,19 +741,19 @@ class FlutterOutline implements ToJsonable {
         children: children);
   }
 
-  final List<FlutterOutlineAttribute> attributes;
-  final List<FlutterOutline> children;
-  final String className;
+  final List<FlutterOutlineAttribute>? attributes;
+  final List<FlutterOutline>? children;
+  final String? className;
   final Range codeRange;
-  final Element dartElement;
+  final Element? dartElement;
   final String kind;
-  final String label;
+  final String? label;
   final Range range;
-  final String variableName;
+  final String? variableName;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['kind'] = kind ?? (throw 'kind is required but was not set');
+    __result['kind'] = kind;
     if (label != null) {
       __result['label'] = label;
     }
@@ -835,17 +764,16 @@ class FlutterOutline implements ToJsonable {
       __result['variableName'] = variableName;
     }
     if (attributes != null) {
-      __result['attributes'] = attributes.map((item) => item.toJson()).toList();
+      __result['attributes'] =
+          attributes?.map((item) => item.toJson()).toList();
     }
     if (dartElement != null) {
-      __result['dartElement'] = dartElement.toJson();
+      __result['dartElement'] = dartElement?.toJson();
     }
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
-    __result['codeRange'] =
-        codeRange?.toJson() ?? (throw 'codeRange is required but was not set');
+    __result['range'] = range.toJson();
+    __result['codeRange'] = codeRange.toJson();
     if (children != null) {
-      __result['children'] = children.map((item) => item.toJson()).toList();
+      __result['children'] = children?.map((item) => item.toJson()).toList();
     }
     return __result;
   }
@@ -1017,14 +945,7 @@ class FlutterOutlineAttribute implements ToJsonable {
       FlutterOutlineAttribute.canParse, FlutterOutlineAttribute.fromJson);
 
   FlutterOutlineAttribute(
-      {@required this.name, @required this.label, this.valueRange}) {
-    if (name == null) {
-      throw 'name is required but was not provided';
-    }
-    if (label == null) {
-      throw 'label is required but was not provided';
-    }
-  }
+      {required this.name, required this.label, this.valueRange});
   static FlutterOutlineAttribute fromJson(Map<String, dynamic> json) {
     final name = json['name'];
     final label = json['label'];
@@ -1036,14 +957,14 @@ class FlutterOutlineAttribute implements ToJsonable {
 
   final String label;
   final String name;
-  final Range valueRange;
+  final Range? valueRange;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['name'] = name ?? (throw 'name is required but was not set');
-    __result['label'] = label ?? (throw 'label is required but was not set');
+    __result['name'] = name;
+    __result['label'] = label;
     if (valueRange != null) {
-      __result['valueRange'] = valueRange.toJson();
+      __result['valueRange'] = valueRange?.toJson();
     }
     return __result;
   }
@@ -1130,26 +1051,14 @@ class Outline implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Outline.canParse, Outline.fromJson);
 
   Outline(
-      {@required this.element,
-      @required this.range,
-      @required this.codeRange,
-      this.children}) {
-    if (element == null) {
-      throw 'element is required but was not provided';
-    }
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-    if (codeRange == null) {
-      throw 'codeRange is required but was not provided';
-    }
-  }
+      {required this.element,
+      required this.range,
+      required this.codeRange,
+      this.children});
   static Outline fromJson(Map<String, dynamic> json) {
-    final element =
-        json['element'] != null ? Element.fromJson(json['element']) : null;
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    final codeRange =
-        json['codeRange'] != null ? Range.fromJson(json['codeRange']) : null;
+    final element = Element.fromJson(json['element']);
+    final range = Range.fromJson(json['range']);
+    final codeRange = Range.fromJson(json['codeRange']);
     final children = json['children']
         ?.map((item) => item != null ? Outline.fromJson(item) : null)
         ?.cast<Outline>()
@@ -1161,21 +1070,18 @@ class Outline implements ToJsonable {
         children: children);
   }
 
-  final List<Outline> children;
+  final List<Outline>? children;
   final Range codeRange;
   final Element element;
   final Range range;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['element'] =
-        element?.toJson() ?? (throw 'element is required but was not set');
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
-    __result['codeRange'] =
-        codeRange?.toJson() ?? (throw 'codeRange is required but was not set');
+    __result['element'] = element.toJson();
+    __result['range'] = range.toJson();
+    __result['codeRange'] = codeRange.toJson();
     if (children != null) {
-      __result['children'] = children.map((item) => item.toJson()).toList();
+      __result['children'] = children?.map((item) => item.toJson()).toList();
     }
     return __result;
   }
@@ -1283,18 +1189,11 @@ class PublishClosingLabelsParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       PublishClosingLabelsParams.canParse, PublishClosingLabelsParams.fromJson);
 
-  PublishClosingLabelsParams({@required this.uri, @required this.labels}) {
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-    if (labels == null) {
-      throw 'labels is required but was not provided';
-    }
-  }
+  PublishClosingLabelsParams({required this.uri, required this.labels});
   static PublishClosingLabelsParams fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final labels = json['labels']
-        ?.map((item) => item != null ? ClosingLabel.fromJson(item) : null)
+        ?.map((item) => ClosingLabel.fromJson(item))
         ?.cast<ClosingLabel>()
         ?.toList();
     return PublishClosingLabelsParams(uri: uri, labels: labels);
@@ -1305,9 +1204,8 @@ class PublishClosingLabelsParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
-    __result['labels'] = labels?.map((item) => item.toJson())?.toList() ??
-        (throw 'labels is required but was not set');
+    __result['uri'] = uri;
+    __result['labels'] = labels.map((item) => item.toJson()).toList();
     return __result;
   }
 
@@ -1385,19 +1283,10 @@ class PublishFlutterOutlineParams implements ToJsonable {
       PublishFlutterOutlineParams.canParse,
       PublishFlutterOutlineParams.fromJson);
 
-  PublishFlutterOutlineParams({@required this.uri, @required this.outline}) {
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-    if (outline == null) {
-      throw 'outline is required but was not provided';
-    }
-  }
+  PublishFlutterOutlineParams({required this.uri, required this.outline});
   static PublishFlutterOutlineParams fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
-    final outline = json['outline'] != null
-        ? FlutterOutline.fromJson(json['outline'])
-        : null;
+    final outline = FlutterOutline.fromJson(json['outline']);
     return PublishFlutterOutlineParams(uri: uri, outline: outline);
   }
 
@@ -1406,9 +1295,8 @@ class PublishFlutterOutlineParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
-    __result['outline'] =
-        outline?.toJson() ?? (throw 'outline is required but was not set');
+    __result['uri'] = uri;
+    __result['outline'] = outline.toJson();
     return __result;
   }
 
@@ -1480,18 +1368,10 @@ class PublishOutlineParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       PublishOutlineParams.canParse, PublishOutlineParams.fromJson);
 
-  PublishOutlineParams({@required this.uri, @required this.outline}) {
-    if (uri == null) {
-      throw 'uri is required but was not provided';
-    }
-    if (outline == null) {
-      throw 'outline is required but was not provided';
-    }
-  }
+  PublishOutlineParams({required this.uri, required this.outline});
   static PublishOutlineParams fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
-    final outline =
-        json['outline'] != null ? Outline.fromJson(json['outline']) : null;
+    final outline = Outline.fromJson(json['outline']);
     return PublishOutlineParams(uri: uri, outline: outline);
   }
 
@@ -1500,9 +1380,8 @@ class PublishOutlineParams implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['uri'] = uri ?? (throw 'uri is required but was not set');
-    __result['outline'] =
-        outline?.toJson() ?? (throw 'outline is required but was not set');
+    __result['uri'] = uri;
+    __result['outline'] = outline.toJson();
     return __result;
   }
 
@@ -1575,24 +1454,13 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
       LspJsonHandler(SnippetTextEdit.canParse, SnippetTextEdit.fromJson);
 
   SnippetTextEdit(
-      {@required this.insertTextFormat,
-      @required this.range,
-      @required this.newText}) {
-    if (insertTextFormat == null) {
-      throw 'insertTextFormat is required but was not provided';
-    }
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
-    if (newText == null) {
-      throw 'newText is required but was not provided';
-    }
-  }
+      {required this.insertTextFormat,
+      required this.range,
+      required this.newText});
   static SnippetTextEdit fromJson(Map<String, dynamic> json) {
-    final insertTextFormat = json['insertTextFormat'] != null
-        ? InsertTextFormat.fromJson(json['insertTextFormat'])
-        : null;
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final insertTextFormat =
+        InsertTextFormat.fromJson(json['insertTextFormat']);
+    final range = Range.fromJson(json['range']);
     final newText = json['newText'];
     return SnippetTextEdit(
         insertTextFormat: insertTextFormat, range: range, newText: newText);
@@ -1609,12 +1477,9 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['insertTextFormat'] = insertTextFormat?.toJson() ??
-        (throw 'insertTextFormat is required but was not set');
-    __result['range'] =
-        range?.toJson() ?? (throw 'range is required but was not set');
-    __result['newText'] =
-        newText ?? (throw 'newText is required but was not set');
+    __result['insertTextFormat'] = insertTextFormat.toJson();
+    __result['range'] = range.toJson();
+    __result['newText'] = newText;
     return __result;
   }
 

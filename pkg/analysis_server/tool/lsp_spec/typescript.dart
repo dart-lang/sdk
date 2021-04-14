@@ -118,6 +118,9 @@ String? getImprovedType(String interfaceName, String? fieldName) {
     'ParameterInformation': {
       'label': 'String',
     },
+    'ProgressParams': {
+      'value': 'object',
+    },
     'ServerCapabilities': {
       'changeNotifications': 'bool',
     },
