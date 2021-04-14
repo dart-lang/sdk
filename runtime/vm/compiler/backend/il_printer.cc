@@ -349,6 +349,13 @@ void ReachabilityFenceInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 }
 
+const char* Value::ToCString() const {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintTo(&f);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
+}
+
 void Value::PrintTo(BaseTextBuffer* f) const {
   PrintUse(f, *definition());
 
@@ -369,6 +376,10 @@ void ConstantInstr::PrintOperandsTo(BaseTextBuffer* f) const {
     strncpy(buffer, cstr, pos);
     buffer[pos] = '\0';
     f->Printf("#%s\\n...", buffer);
+  }
+
+  if (representation() != kNoRepresentation && representation() != kTagged) {
+    f->Printf(" %s", RepresentationToCString(representation()));
   }
 }
 

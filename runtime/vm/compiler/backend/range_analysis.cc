@@ -2714,7 +2714,7 @@ void ConstantInstr::InferRange(RangeAnalysis* analysis, Range* range) {
                    RangeBoundary::FromConstant(value));
   } else {
     // Only Smi and Mint supported.
-    UNREACHABLE();
+    FATAL1("Unexpected constant: %s\n", value_.ToCString());
   }
 }
 
