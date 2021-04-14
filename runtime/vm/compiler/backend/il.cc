@@ -649,14 +649,13 @@ const ICData* Instruction::GetICData(
   return result;
 }
 
-intptr_t Instruction::Hashcode() const {
-  intptr_t result = tag();
+uword Instruction::Hash() const {
+  uword result = tag();
   for (intptr_t i = 0; i < InputCount(); ++i) {
     Value* value = InputAt(i);
-    intptr_t j = value->definition()->ssa_temp_index();
-    result = result * 31 + j;
+    result = CombineHashes(result, value->definition()->ssa_temp_index());
   }
-  return result;
+  return FinalizeHash(result, kBitsPerInt32 - 1);
 }
 
 bool Instruction::Equals(Instruction* other) const {

@@ -258,8 +258,8 @@ main() {
     "Incorrect parent pointer on FunctionNode:"
         " expected 'Procedure', but found: 'Null'.",
     (TestHarness test) {
-      var procedure =
-          new Procedure(new Name('bar'), ProcedureKind.Method, null);
+      var procedure = new Procedure(
+          new Name('bar'), ProcedureKind.Method, dummyFunctionNode);
       procedure.function = new FunctionNode(new EmptyStatement());
       test.addNode(procedure);
     },

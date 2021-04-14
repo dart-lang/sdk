@@ -1116,9 +1116,7 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFunction:
-      if (helper_->ReadTag() == kSomething) {
-        helper_->SkipFunctionNode();  // read function node.
-      }
+      helper_->SkipFunctionNode();  // read function node.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kEnd:
@@ -2105,10 +2103,6 @@ void KernelReaderHelper::ReadUntilFunctionNode() {
   if (tag == kProcedure) {
     ProcedureHelper procedure_helper(this);
     procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
-    if (ReadTag() == kNothing) {  // read function node tag.
-      // Running a procedure without a function node doesn't make sense.
-      UNREACHABLE();
-    }
     // Now at start of FunctionNode.
   } else if (tag == kConstructor) {
     ConstructorHelper constructor_helper(this);

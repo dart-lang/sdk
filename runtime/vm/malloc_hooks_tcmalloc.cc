@@ -180,7 +180,9 @@ class AddressKeyValueTrait : public AllStatic {
 
   static Key KeyOf(Pair kv) { return kv.key; }
   static Value ValueOf(Pair kv) { return kv.value; }
-  static intptr_t Hashcode(Key key) { return reinterpret_cast<intptr_t>(key); }
+  static uword Hash(Key key) {
+    return Utils::WordHash(reinterpret_cast<intptr_t>(key));
+  }
   static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
 };
 

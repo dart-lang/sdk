@@ -259,7 +259,7 @@ void AssemblerBase::Stop(const char* message) {
   Breakpoint();
 }
 
-intptr_t ObjIndexPair::Hashcode(Key key) {
+uword ObjIndexPair::Hash(Key key) {
   if (key.type() != ObjectPoolBuilderEntry::kTaggedObject) {
     return key.raw_value_;
   }

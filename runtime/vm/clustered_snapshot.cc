@@ -1045,12 +1045,6 @@ class FunctionDeserializationCluster : public DeserializationCluster {
   }
 };
 
-// If DROPPED_NAME(name) is used for a v8 snapshot profile edge, then
-// possiblyDroppedTarget() should be used to retrieve the edge target in
-// pkg/vm_snapshot_analysis/v8_profile.dart so the artificial node is found
-// instead of its in-snapshot replacement.
-#define DROPPED_NAME(name) (":" #name)
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class ClosureDataSerializationCluster : public SerializationCluster {
  public:
@@ -1094,25 +1088,6 @@ class ClosureDataSerializationCluster : public SerializationCluster {
       WriteCompressedField(data, default_type_arguments);
       s->WriteUnsigned(
           static_cast<intptr_t>(data->untag()->default_type_arguments_kind_));
-    }
-  }
-
-  // Some closure data objects have their parent functions dropped from the
-  // snapshot, which makes it is impossible to recover program structure when
-  // analysing snapshot profile. To facilitate analysis of snapshot profiles
-  // we include artificial nodes into profile representing such dropped
-  // parent functions.
-  void WriteDroppedParentFunctionsIntoProfile(Serializer* s) {
-    ASSERT(s->profile_writer() != nullptr);
-
-    for (auto data : objects_) {
-      ObjectPtr parent_function =
-          WeakSerializationReference::Unwrap(data->untag()->parent_function());
-      if (s->CreateArtificialNodeIfNeeded(parent_function)) {
-        AutoTraceObject(data);
-        s->AttributePropertyRef(parent_function, DROPPED_NAME(parent_function_),
-                                /*permit_artificial_ref=*/true);
-      }
     }
   }
 
@@ -1958,38 +1933,19 @@ class CodeSerializationCluster : public SerializationCluster {
       if (kind == Snapshot::kFullAOT && FLAG_use_bare_instructions &&
           code->untag()->object_pool_ != ObjectPool::null()) {
         ObjectPoolPtr pool = code->untag()->object_pool_;
-
-        for (intptr_t i = 0; i < pool->untag()->length_; i++) {
-          uint8_t bits = pool->untag()->entry_bits()[i];
-          if (ObjectPool::TypeBits::decode(bits) ==
-              ObjectPool::EntryType::kTaggedObject) {
-            s->AttributeElementRef(pool->untag()->data()[i].raw_obj_, i);
-          }
-        }
+        // Non-empty per-code object pools should not be reachable in this mode.
+        ASSERT(!s->HasRef(pool) || pool == Object::empty_object_pool().ptr());
+        s->CreateArtificialNodeIfNeeded(pool);
+        s->AttributePropertyRef(pool, "object_pool_");
       }
-      if (code->untag()->static_calls_target_table_ != Array::null()) {
-        array_ = code->untag()->static_calls_target_table_;
-        intptr_t index = code->untag()->object_pool_ != ObjectPool::null()
-                             ? code->untag()->object_pool_->untag()->length_
-                             : 0;
-        for (auto entry : StaticCallsTable(array_)) {
-          auto kind = Code::KindField::decode(
-              Smi::Value(entry.Get<Code::kSCallTableKindAndOffset>()));
-          switch (kind) {
-            case Code::kCallViaCode:
-              // Code object in the pool.
-              continue;
-            case Code::kPcRelativeTTSCall:
-              // TTS will be reachable through type object which itself is
-              // in the pool.
-              continue;
-            case Code::kPcRelativeCall:
-            case Code::kPcRelativeTailCall:
-              auto destination = entry.Get<Code::kSCallTableCodeOrTypeTarget>();
-              ASSERT(destination->IsHeapObject() && destination->IsCode());
-              s->AttributeElementRef(destination, index++);
-          }
-        }
+      if (kind != Snapshot::kFullJIT &&
+          code->untag()->static_calls_target_table_ != Array::null()) {
+        auto const table = code->untag()->static_calls_target_table_;
+        // Non-empty static call target tables shouldn't be reachable in this
+        // mode.
+        ASSERT(!s->HasRef(table) || table == Object::empty_array().ptr());
+        s->CreateArtificialNodeIfNeeded(table);
+        s->AttributePropertyRef(table, "static_calls_target_table_");
       }
     }
 #endif  // defined(DART_PRECOMPILER)
@@ -1999,6 +1955,15 @@ class CodeSerializationCluster : public SerializationCluster {
       // for the discarded Code objects.
       ASSERT(kind == Snapshot::kFullAOT && FLAG_use_bare_instructions &&
              FLAG_dwarf_stack_traces_mode && !FLAG_retain_code_objects);
+#if defined(DART_PRECOMPILER)
+      if (FLAG_write_v8_snapshot_profile_to != nullptr) {
+        // Keep the owner as a (possibly artificial) node for snapshot analysis.
+        const auto& owner = code->untag()->owner_;
+        s->CreateArtificialNodeIfNeeded(owner);
+        s->AttributePropertyRef(owner, "owner_");
+      }
+#endif
+
       return;
     }
 
@@ -2046,25 +2011,6 @@ class CodeSerializationCluster : public SerializationCluster {
 
   GrowableArray<CodePtr>* objects() { return &objects_; }
   GrowableArray<CodePtr>* deferred_objects() { return &deferred_objects_; }
-
-  // Some code objects would have their owners dropped from the snapshot,
-  // which makes it is impossible to recover program structure when
-  // analysing snapshot profile. To facilitate analysis of snapshot profiles
-  // we include artificial nodes into profile representing such dropped
-  // owners.
-  void WriteDroppedOwnersIntoProfile(Serializer* s) {
-    ASSERT(s->profile_writer() != nullptr);
-
-    for (auto code : objects_) {
-      ObjectPtr owner =
-          WeakSerializationReference::Unwrap(code->untag()->owner_);
-      if (s->CreateArtificialNodeIfNeeded(owner) || Code::IsDiscarded(code)) {
-        AutoTraceObject(code);
-        s->AttributePropertyRef(owner, DROPPED_NAME(owner_),
-                                /*permit_artificial_ref=*/true);
-      }
-    }
-  }
 
  private:
   static const char* MakeDisambiguatedCodeName(Serializer* s, CodePtr c) {
@@ -2417,42 +2363,27 @@ class WeakSerializationReferenceSerializationCluster
 
   void Trace(Serializer* s, ObjectPtr object) {
     ASSERT(s->kind() == Snapshot::kFullAOT);
-    WeakSerializationReferencePtr weak =
-        WeakSerializationReference::RawCast(object);
-    objects_.Add(weak);
+    objects_.Add(WeakSerializationReference::RawCast(object));
   }
 
   void RetraceEphemerons(Serializer* s) {
     for (intptr_t i = 0; i < objects_.length(); i++) {
       WeakSerializationReferencePtr weak = objects_[i];
-      if (!s->HasRef(weak->untag()->target())) {
+      if (!s->IsReachable(weak->untag()->target())) {
         s->Push(weak->untag()->replacement());
       }
     }
   }
 
-  intptr_t FinalizeWeak(Serializer* s) { return objects_.length(); }
+  intptr_t Count(Serializer* s) { return objects_.length(); }
 
   void WriteAlloc(Serializer* s) {
-    s->WriteCid(kWeakSerializationReferenceCid);
+    UNREACHABLE();  // No WSRs are serialized, and so this cluster is not added.
   }
 
-  void ForwardWeakRefs(Serializer* s) {
-    Heap* heap = s->heap();
-    for (intptr_t i = 0; i < objects_.length(); i++) {
-      WeakSerializationReferencePtr weak = objects_[i];
-
-      intptr_t id = heap->GetObjectId(weak->untag()->target());
-      if (id == kUnreachableReference) {
-        id = heap->GetObjectId(weak->untag()->replacement());
-        ASSERT(id != kUnreachableReference);
-      }
-      ASSERT(IsAllocatedReference(id));
-      heap->SetObjectId(weak, id);
-    }
+  void WriteFill(Serializer* s) {
+    UNREACHABLE();  // No WSRs are serialized, and so this cluster is not added.
   }
-
-  void WriteFill(Serializer* s) {}
 
  private:
   GrowableArray<WeakSerializationReferencePtr> objects_;
@@ -2748,11 +2679,9 @@ class RODataSerializationCluster
     for (intptr_t i = 0; i < count; i++) {
       ObjectPtr object = objects_[i];
       s->AssignRef(object);
-      if (is_string_cluster) {
-        s->TraceStartWritingObject(type_, object, String::RawCast(object));
-      } else {
-        s->TraceStartWritingObject(type_, object, nullptr);
-      }
+      const StringPtr name =
+          is_string_cluster ? String::RawCast(object) : nullptr;
+      Serializer::WritingObjectScope scope(s, type_, object, name);
       uint32_t offset = s->GetDataOffset(object);
       s->TraceDataOffset(offset);
       ASSERT(Utils::IsAligned(
@@ -2761,7 +2690,6 @@ class RODataSerializationCluster
       s->WriteUnsigned((offset - running_offset) >>
                        compiler::target::ObjectAlignment::kObjectAlignmentLog2);
       running_offset = offset;
-      s->TraceEndWritingObject();
     }
     WriteCanonicalSetLayout(s);
   }
@@ -5050,7 +4978,7 @@ class WeakPropertySerializationCluster : public SerializationCluster {
   void RetraceEphemerons(Serializer* s) {
     for (intptr_t i = 0; i < objects_.length(); i++) {
       WeakPropertyPtr property = objects_[i];
-      if (s->HasRef(property->untag()->key())) {
+      if (s->IsReachable(property->untag()->key())) {
         s->Push(property->untag()->value());
       }
     }
@@ -5650,18 +5578,18 @@ class VMSerializationRoots : public SerializationRoots {
     if (!should_write_symbols_ && s->profile_writer() != nullptr) {
       // If writing V8 snapshot profile create an artifical node representing
       // VM isolate symbol table.
-      auto symbols_ref = s->AssignArtificialRef(symbols_.ptr());
-      const V8SnapshotProfileWriter::ObjectId symbols_snapshot_id(
-          V8SnapshotProfileWriter::kSnapshot, symbols_ref);
+      s->AssignArtificialRef(symbols_.ptr());
+      const auto& symbols_snapshot_id = s->GetProfileId(symbols_.ptr());
       s->profile_writer()->AddRoot(symbols_snapshot_id, "vm_symbols");
-      s->profile_writer()->SetObjectTypeAndName(symbols_snapshot_id, "Symbols",
-                                                nullptr);
+      s->profile_writer()->SetObjectType(symbols_snapshot_id, "Symbols");
       for (intptr_t i = 0; i < symbols_.Length(); i++) {
-        const V8SnapshotProfileWriter::ObjectId code_id(
-            V8SnapshotProfileWriter::kSnapshot, s->RefId(symbols_.At(i)));
         s->profile_writer()->AttributeReferenceTo(
             symbols_snapshot_id,
-            {code_id, V8SnapshotProfileWriter::Reference::kElement, i});
+            {
+                V8SnapshotProfileWriter::Reference::kElement,
+                {.offset = i},
+            },
+            s->GetProfileId(symbols_.At(i)));
       }
     }
   }
@@ -6156,16 +6084,16 @@ Serializer::~Serializer() {
 void Serializer::AddBaseObject(ObjectPtr base_object,
                                const char* type,
                                const char* name) {
-  intptr_t ref = AssignRef(base_object);
+  AssignRef(base_object);
   num_base_objects_++;
 
   if ((profile_writer_ != nullptr) && (type != nullptr)) {
     if (name == nullptr) {
       name = "<base object>";
     }
-    profile_writer_->SetObjectTypeAndName(
-        {V8SnapshotProfileWriter::kSnapshot, ref}, type, name);
-    profile_writer_->AddRoot({V8SnapshotProfileWriter::kSnapshot, ref});
+    const auto& profile_id = GetProfileId(base_object);
+    profile_writer_->SetObjectTypeAndName(profile_id, type, name);
+    profile_writer_->AddRoot(profile_id);
   }
 }
 
@@ -6184,7 +6112,8 @@ intptr_t Serializer::AssignRef(ObjectPtr object) {
 }
 
 intptr_t Serializer::AssignArtificialRef(ObjectPtr object) {
-  ASSERT(object.IsHeapObject());
+  ASSERT(!object.IsHeapObject() || !object.IsInstructions());
+  ASSERT(heap_->GetObjectId(object) == kUnreachableReference);
   const intptr_t ref = -(next_ref_index_++);
   ASSERT(IsArtificialReference(ref));
   heap_->SetObjectId(object, ref);
@@ -6192,120 +6121,248 @@ intptr_t Serializer::AssignArtificialRef(ObjectPtr object) {
   return ref;
 }
 
-void Serializer::FlushBytesWrittenToRoot() {
-#if defined(DART_PRECOMPILER)
-  if (profile_writer_ != nullptr) {
-    ASSERT(object_currently_writing_.id_ == 0);
-    // All bytes between objects are attributed into root node.
-    profile_writer_->AttributeBytesTo(
-        V8SnapshotProfileWriter::ArtificialRootId(),
-        stream_->Position() - object_currently_writing_.stream_start_);
-    object_currently_writing_.stream_start_ = stream_->Position();
-  }
-#endif
+void Serializer::FlushProfile() {
+  if (profile_writer_ == nullptr) return;
+  const intptr_t bytes =
+      stream_->Position() - object_currently_writing_.last_stream_position_;
+  profile_writer_->AttributeBytesTo(object_currently_writing_.id_, bytes);
+  object_currently_writing_.last_stream_position_ = stream_->Position();
 }
 
-void Serializer::TraceStartWritingObject(const char* type,
-                                         ObjectPtr obj,
-                                         StringPtr name) {
+V8SnapshotProfileWriter::ObjectId Serializer::GetProfileId(
+    ObjectPtr object) const {
+  // Instructions are handled separately.
+  ASSERT(!object->IsHeapObject() || !object->IsInstructions());
+  intptr_t heap_id = UnsafeRefId(object);
+  if (IsArtificialReference(heap_id)) {
+    return {V8SnapshotProfileWriter::kArtificial, -heap_id};
+  }
+  ASSERT(IsAllocatedReference(heap_id));
+  return {V8SnapshotProfileWriter::kSnapshot, heap_id};
+}
+
+void Serializer::AttributeReference(
+    ObjectPtr object,
+    const V8SnapshotProfileWriter::Reference& reference) {
   if (profile_writer_ == nullptr) return;
 
+#if defined(DART_PRECOMPILER)
+  // Make artificial nodes for dropped targets in WSRs.
+  if (object->IsHeapObject() && object->IsWeakSerializationReference()) {
+    const auto& wsr = WeakSerializationReference::RawCast(object);
+    const auto& target = wsr->untag()->target();
+    if (!CreateArtificialNodeIfNeeded(wsr) && HasArtificialRef(target)) {
+      // The target has artificial information used for snapshot analysis and
+      // the replacement is part of the snapshot, so write information for both.
+      const auto& replacement = wsr->untag()->replacement();
+      profile_writer_->AttributeDroppedReferenceTo(
+          object_currently_writing_.id_, reference, GetProfileId(target),
+          GetProfileId(replacement));
+      return;
+    }
+    // Either the target of the WSR is strongly referenced or the WSR itself is
+    // unreachable, in which case it shares an artificial object ID with the
+    // target due to CreateArtificialNodeIfNeeded, so fall through.
+    ASSERT(HasRef(target) || HasArtificialRef(wsr));
+  } else if (object_currently_writing_.id_.first ==
+             V8SnapshotProfileWriter::kArtificial) {
+    // We may need to recur when writing members of artificial nodes in
+    // CreateArtificialNodeIfNeeded.
+    CreateArtificialNodeIfNeeded(object);
+  }
+#endif
+  profile_writer_->AttributeReferenceTo(object_currently_writing_.id_,
+                                        reference, GetProfileId(object));
+}
+
+Serializer::WritingObjectScope::WritingObjectScope(
+    Serializer* serializer,
+    const V8SnapshotProfileWriter::ObjectId& id,
+    ObjectPtr object)
+    : serializer_(serializer),
+      old_object_(serializer->object_currently_writing_.object_),
+      old_id_(serializer->object_currently_writing_.id_),
+      old_cid_(serializer->object_currently_writing_.cid_) {
+  if (serializer_->profile_writer_ == nullptr) return;
+  // The ID should correspond to one already added appropriately to the
+  // profile writer.
+  ASSERT(serializer_->profile_writer_->HasId(id));
+  serializer_->FlushProfile();
+  serializer_->object_currently_writing_.object_ = object;
+  serializer_->object_currently_writing_.id_ = id;
+  serializer_->object_currently_writing_.cid_ =
+      object == nullptr ? -1 : object->GetClassIdMayBeSmi();
+}
+
+Serializer::WritingObjectScope::~WritingObjectScope() {
+  if (serializer_->profile_writer_ == nullptr) return;
+  serializer_->FlushProfile();
+  serializer_->object_currently_writing_.object_ = old_object_;
+  serializer_->object_currently_writing_.id_ = old_id_;
+  serializer_->object_currently_writing_.cid_ = old_cid_;
+}
+
+V8SnapshotProfileWriter::ObjectId Serializer::WritingObjectScope::ReserveId(
+    Serializer* s,
+    const char* type,
+    ObjectPtr obj,
+    StringPtr name) {
   const char* name_str = nullptr;
   if (name != nullptr) {
-    REUSABLE_STRING_HANDLESCOPE(thread());
+    REUSABLE_STRING_HANDLESCOPE(s->thread());
     String& str = reused_string_handle.Handle();
     str = name;
     name_str = str.ToCString();
   }
-
-  TraceStartWritingObject(type, obj, name_str);
+  return ReserveId(s, type, obj, name_str);
 }
 
-void Serializer::TraceStartWritingObject(const char* type,
-                                         ObjectPtr obj,
-                                         const char* name) {
-  if (profile_writer_ == nullptr) return;
-
-  intptr_t id = heap_->GetObjectId(obj);
-  intptr_t cid = obj->GetClassIdMayBeSmi();
-  if (IsArtificialReference(id)) {
-    id = -id;
+V8SnapshotProfileWriter::ObjectId Serializer::WritingObjectScope::ReserveId(
+    Serializer* s,
+    const char* type,
+    ObjectPtr obj,
+    const char* name) {
+  if (s->profile_writer_ == nullptr) {
+    return V8SnapshotProfileWriter::kArtificialRootId;
   }
-  ASSERT(IsAllocatedReference(id));
-
-  FlushBytesWrittenToRoot();
-  object_currently_writing_.object_ = obj;
-  object_currently_writing_.id_ = id;
-  object_currently_writing_.stream_start_ = stream_->Position();
-  object_currently_writing_.cid_ = cid;
-  profile_writer_->SetObjectTypeAndName(
-      {V8SnapshotProfileWriter::kSnapshot, id}, type, name);
-}
-
-void Serializer::TraceEndWritingObject() {
-  if (profile_writer_ != nullptr) {
-    ASSERT(IsAllocatedReference(object_currently_writing_.id_));
-    profile_writer_->AttributeBytesTo(
-        {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
-        stream_->Position() - object_currently_writing_.stream_start_);
-    object_currently_writing_ = ProfilingObject();
-    object_currently_writing_.stream_start_ = stream_->Position();
+  if (name == nullptr) {
+    // Handle some cases where there are obvious names to assign.
+    switch (obj->GetClassIdMayBeSmi()) {
+      case kSmiCid: {
+        name = OS::SCreate(s->zone(), "%" Pd "", Smi::Value(Smi::RawCast(obj)));
+        break;
+      }
+      case kMintCid: {
+        name = OS::SCreate(s->zone(), "%" Pd64 "",
+                           Mint::RawCast(obj)->untag()->value_);
+        break;
+      }
+      case kOneByteStringCid:
+      case kTwoByteStringCid: {
+        REUSABLE_STRING_HANDLESCOPE(s->thread());
+        String& str = reused_string_handle.Handle();
+        str = String::RawCast(obj);
+        name = str.ToCString();
+        break;
+      }
+    }
   }
+  const auto& obj_id = s->GetProfileId(obj);
+  s->profile_writer_->SetObjectTypeAndName(obj_id, type, name);
+  return obj_id;
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
   ASSERT(profile_writer() != nullptr);
 
-  if (obj->GetClassId() == kWeakSerializationReferenceCid) {
-    auto wsr = static_cast<WeakSerializationReferencePtr>(obj);
-    return CreateArtificialNodeIfNeeded(wsr->untag()->target());
-  }
-
-  intptr_t id = heap_->GetObjectId(obj);
-  if (IsAllocatedReference(id)) {
-    return false;
-  }
+  // UnsafeRefId will do lazy reference allocation for WSRs.
+  intptr_t id = UnsafeRefId(obj);
+  ASSERT(id != kUnallocatedReference);
   if (IsArtificialReference(id)) {
     return true;
+  }
+  if (obj->IsHeapObject() && obj->IsWeakSerializationReference()) {
+    // The object ID for the WSR may need lazy resolution.
+    if (id == kUnallocatedReference) {
+      id = UnsafeRefId(obj);
+    }
+    ASSERT(id != kUnallocatedReference);
+    // Create an artificial node for an unreachable target at this point,
+    // whether or not the WSR itself is reachable.
+    const auto& target =
+        WeakSerializationReference::RawCast(obj)->untag()->target();
+    CreateArtificialNodeIfNeeded(target);
+    if (id == kUnreachableReference) {
+      ASSERT(HasArtificialRef(target));
+      // We can safely set the WSR's object ID to the target's artificial one,
+      // as that won't make it look reachable.
+      heap_->SetObjectId(obj, heap_->GetObjectId(target));
+      return true;
+    }
+    // The WSR is reachable, so continue to the IsAllocatedReference behavior.
+  }
+  if (IsAllocatedReference(id)) {
+    return false;
   }
   ASSERT_EQUAL(id, kUnreachableReference);
   id = AssignArtificialRef(obj);
 
+  auto property = [](const char* name) -> V8SnapshotProfileWriter::Reference {
+    return {V8SnapshotProfileWriter::Reference::kProperty, {.name = name}};
+  };
+  auto element = [](intptr_t index) -> V8SnapshotProfileWriter::Reference {
+    return {V8SnapshotProfileWriter::Reference::kElement, {.offset = index}};
+  };
+
   const char* type = nullptr;
   StringPtr name_string = nullptr;
   const char* name = nullptr;
-  GrowableArray<std::pair<ObjectPtr, const char*>> links;
-  switch (obj->GetClassId()) {
+  GrowableArray<std::pair<ObjectPtr, V8SnapshotProfileWriter::Reference>> links;
+  switch (obj->GetClassIdMayBeSmi()) {
+    // For profiling static call target tables in AOT mode.
+    case kSmiCid: {
+      type = "Smi";
+      break;
+    }
+    // For profiling per-code object pools in bare instructions mode.
+    case kObjectPoolCid: {
+      type = "ObjectPool";
+      auto const pool = ObjectPool::RawCast(obj);
+      for (intptr_t i = 0; i < pool->untag()->length_; i++) {
+        uint8_t bits = pool->untag()->entry_bits()[i];
+        if (ObjectPool::TypeBits::decode(bits) ==
+            ObjectPool::EntryType::kTaggedObject) {
+          auto const elem = pool->untag()->data()[i].raw_obj_;
+          // Elements should be reachable from the global object pool.
+          ASSERT(HasRef(elem));
+          links.Add({elem, element(i)});
+        }
+      }
+      break;
+    }
+    // For profiling static call target tables in AOT mode.
+    case kArrayCid: {
+      type = "Array";
+      auto const array = Array::RawCast(obj);
+      for (intptr_t i = 0, n = Smi::Value(array->untag()->length()); i < n;
+           i++) {
+        ObjectPtr elem = array->untag()->data()[i];
+        links.Add({elem, element(i)});
+      }
+      break;
+    }
     case kFunctionCid: {
       FunctionPtr func = static_cast<FunctionPtr>(obj);
       type = "Function";
       name = FunctionSerializationCluster::MakeDisambiguatedFunctionName(this,
                                                                          func);
-      links.Add({func->untag()->owner(), "owner_"});
+      links.Add({func->untag()->owner(), property("owner_")});
       ObjectPtr data = func->untag()->data();
       if (data->GetClassId() == kClosureDataCid) {
-        links.Add({func->untag()->data(), "data_"});
+        links.Add({func->untag()->data(), property("data_")});
       }
       break;
     }
     case kClosureDataCid: {
       auto data = static_cast<ClosureDataPtr>(obj);
       type = "ClosureData";
-      links.Add({data->untag()->parent_function(), "parent_function_"});
+      links.Add(
+          {data->untag()->parent_function(), property("parent_function_")});
       break;
     }
     case kClassCid: {
       ClassPtr cls = static_cast<ClassPtr>(obj);
       type = "Class";
       name_string = cls->untag()->name();
-      links.Add({cls->untag()->library(), "library_"});
+      links.Add({cls->untag()->library(), property("library_")});
       break;
     }
     case kPatchClassCid: {
       PatchClassPtr patch_cls = static_cast<PatchClassPtr>(obj);
       type = "PatchClass";
-      links.Add({patch_cls->untag()->patched_class(), "patched_class_"});
+      links.Add(
+          {patch_cls->untag()->patched_class(), property("patched_class_")});
       break;
     }
     case kLibraryCid: {
@@ -6325,22 +6382,56 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
     name = str.ToCString();
   }
 
-  // CreateArtificialNodeIfNeeded might call TraceStartWritingObject
-  // and these calls don't nest, so we need to call this outside
-  // of the tracing scope created below.
+  Serializer::WritingObjectScope scope(this, type, obj, name);
   for (const auto& link : links) {
-    CreateArtificialNodeIfNeeded(link.first);
+    AttributeReference(link.first, link.second);
   }
-
-  TraceStartWritingObject(type, obj, name);
-  for (const auto& link : links) {
-    AttributePropertyRef(link.first, link.second,
-                         /*permit_artificial_ref=*/true);
-  }
-  TraceEndWritingObject();
   return true;
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+intptr_t Serializer::RefId(ObjectPtr object) const {
+  auto const id = UnsafeRefId(object);
+  if (IsAllocatedReference(id)) {
+    return id;
+  }
+  ASSERT(id == kUnreachableReference || IsArtificialReference(id));
+  REUSABLE_OBJECT_HANDLESCOPE(thread());
+  auto& handle = thread()->ObjectHandle();
+  handle = object;
+  FATAL("Reference to unreachable object %s", handle.ToCString());
+}
+
+intptr_t Serializer::UnsafeRefId(ObjectPtr object) const {
+  // The object id weak table holds image offsets for Instructions instead
+  // of ref indices.
+  ASSERT(!object->IsHeapObject() || !object->IsInstructions());
+  if (!Snapshot::IncludesCode(kind_) &&
+      object->GetClassIdMayBeSmi() == kCodeCid) {
+    return RefId(Object::null());
+  }
+  auto id = heap_->GetObjectId(object);
+  if (id != kUnallocatedReference) {
+    return id;
+  }
+  // This is the only case where we may still see unallocated references after
+  // WriteAlloc is finished.
+  if (object->IsWeakSerializationReference()) {
+    // Lazily set the object ID of the WSR to the object which will replace
+    // it in the snapshot.
+    auto const wsr = static_cast<WeakSerializationReferencePtr>(object);
+    // Either the target or the replacement must be allocated, since the
+    // WSR is reachable.
+    id = HasRef(wsr->untag()->target()) ? RefId(wsr->untag()->target())
+                                        : RefId(wsr->untag()->replacement());
+    heap_->SetObjectId(wsr, id);
+    return id;
+  }
+  REUSABLE_OBJECT_HANDLESCOPE(thread());
+  auto& handle = thread()->ObjectHandle();
+  handle = object;
+  FATAL("Reference for object %s is unallocated", handle.ToCString());
+}
 
 const char* Serializer::ReadOnlyObjectType(intptr_t cid) {
   switch (cid) {
@@ -6606,15 +6697,17 @@ void Serializer::WriteInstructions(InstructionsPtr instr,
   const intptr_t offset = image_writer_->GetTextOffsetFor(instr, code);
 #if defined(DART_PRECOMPILER)
   if (profile_writer_ != nullptr) {
-    ASSERT(IsAllocatedReference(object_currently_writing_.id_));
+    ASSERT(IsAllocatedReference(object_currently_writing_.id_.second));
     const auto offset_space = vm_ ? V8SnapshotProfileWriter::kVmText
                                   : V8SnapshotProfileWriter::kIsolateText;
     const V8SnapshotProfileWriter::ObjectId to_object(offset_space, offset);
-    const V8SnapshotProfileWriter::ObjectId from_object(
-        V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_);
     profile_writer_->AttributeReferenceTo(
-        from_object, {to_object, V8SnapshotProfileWriter::Reference::kProperty,
-                      profile_writer_->EnsureString("<instructions>")});
+        object_currently_writing_.id_,
+        {
+            V8SnapshotProfileWriter::Reference::kProperty,
+            {.name = "<instructions>"},
+        },
+        to_object);
   }
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
@@ -6646,17 +6739,19 @@ void Serializer::WriteInstructions(InstructionsPtr instr,
 void Serializer::TraceDataOffset(uint32_t offset) {
   if (profile_writer_ != nullptr) {
     // ROData cannot be roots.
-    ASSERT(IsAllocatedReference(object_currently_writing_.id_));
+    ASSERT(IsAllocatedReference(object_currently_writing_.id_.second));
     auto offset_space = vm_ ? V8SnapshotProfileWriter::kVmData
                             : V8SnapshotProfileWriter::kIsolateData;
-    V8SnapshotProfileWriter::ObjectId from_object = {
-        V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_};
     V8SnapshotProfileWriter::ObjectId to_object = {offset_space, offset};
     // TODO(sjindel): Give this edge a more appropriate type than element
     // (internal, maybe?).
     profile_writer_->AttributeReferenceTo(
-        from_object,
-        {to_object, V8SnapshotProfileWriter::Reference::kElement, 0});
+        object_currently_writing_.id_,
+        {
+            V8SnapshotProfileWriter::Reference::kElement,
+            {.offset = 0},
+        },
+        to_object);
   }
 }
 
@@ -6797,13 +6892,37 @@ static int CompareClusters(SerializationCluster* const* a,
   }
 }
 
+#define CID_CLUSTER(Type)                                                      \
+  reinterpret_cast<Type##SerializationCluster*>(clusters_by_cid_[k##Type##Cid])
+
 ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
+  // While object_currently_writing_ is initialized to the artificial root, we
+  // set up a scope to ensure proper flushing to the profile.
+  Serializer::WritingObjectScope scope(
+      this, V8SnapshotProfileWriter::kArtificialRootId);
   roots->AddBaseObjects(this);
 
   NoSafepointScope no_safepoint;
 
   roots->PushRoots(this);
 
+  // Resolving WeakSerializationReferences and WeakProperties may cause new
+  // objects to be pushed on the stack, and handling the changes to the stack
+  // may cause the targets of WeakSerializationReferences and keys of
+  // WeakProperties to become reachable, so we do this as a fixed point
+  // computation. Note that reachability is computed monotonically (an object
+  // can change from not reachable to reachable, but never the reverse), which
+  // is technically a conservative approximation for WSRs, but doing a strict
+  // analysis that allows non-motonoic reachability may not halt.
+  //
+  // To see this, take a WSR whose replacement causes the target of another WSR
+  // to become reachable, which then causes the target of the first WSR to
+  // become reachable, but the only way to reach the target is through the
+  // target of the second WSR, which was only reachable via the replacement
+  // the first.
+  //
+  // In practice, this case doesn't come up as replacements tend to be either
+  // null, smis, or singleton objects that do not contain WSRs currently.
   while (stack_.length() > 0) {
     // Strong references.
     while (stack_.length() > 0) {
@@ -6812,18 +6931,22 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
 
     // Ephemeron references.
 #if defined(DART_PRECOMPILER)
-    if (auto const cluster =
-            reinterpret_cast<WeakSerializationReferenceSerializationCluster*>(
-                clusters_by_cid_[kWeakSerializationReferenceCid])) {
+    if (auto const cluster = CID_CLUSTER(WeakSerializationReference)) {
       cluster->RetraceEphemerons(this);
     }
 #endif
-    if (auto const cluster =
-            reinterpret_cast<WeakPropertySerializationCluster*>(
-                clusters_by_cid_[kWeakPropertyCid])) {
+    if (auto const cluster = CID_CLUSTER(WeakProperty)) {
       cluster->RetraceEphemerons(this);
     }
   }
+
+#if defined(DART_PRECOMPILER)
+  if (auto const cluster = CID_CLUSTER(WeakSerializationReference)) {
+    // Now that we have computed the reachability fixpoint, we remove the
+    // count of now-reachable WSRs as they are not actually serialized.
+    num_written_objects_ -= cluster->Count(this);
+  }
+#endif
 
   GrowableArray<SerializationCluster*> canonical_clusters;
   // The order that PostLoad runs matters for some classes because of
@@ -6857,18 +6980,15 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
     clusters.Add(clusters_by_cid_[kCodeCid]);
   }
   for (intptr_t cid = 0; cid < num_cids_; cid++) {
-    if (clusters_by_cid_[cid] != nullptr && cid != kCodeCid) {
+    // We don't actually have any WSR objects, references to them are replaced
+    // either with the target or replacement.
+    if (cid == kWeakSerializationReferenceCid) continue;
+    // The code serialization cluster is already handled above.
+    if (cid == kCodeCid) continue;
+    if (clusters_by_cid_[cid] != nullptr) {
       clusters.Add(clusters_by_cid_[cid]);
     }
   }
-
-#if defined(DART_PRECOMPILER)
-  if (auto const cluster =
-          reinterpret_cast<WeakSerializationReferenceSerializationCluster*>(
-              clusters_by_cid_[kWeakSerializationReferenceCid])) {
-    num_written_objects_ -= cluster->FinalizeWeak(this);
-  }
-#endif
 
   instructions_table_len_ = PrepareInstructions();
 
@@ -6913,26 +7033,6 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   // And recorded them all in [objects_].
   ASSERT(objects_->length() == num_objects);
 
-#if defined(DART_PRECOMPILER)
-  if (auto cluster =
-          reinterpret_cast<WeakSerializationReferenceSerializationCluster*>(
-              clusters_by_cid_[kWeakSerializationReferenceCid])) {
-    cluster->ForwardWeakRefs(this);
-  }
-
-  // When writing snapshot profile, we want to retain some of the program
-  // structure information (e.g. information about libraries, classes and
-  // functions - even if it was dropped when writing snapshot itself).
-  if (FLAG_write_v8_snapshot_profile_to != nullptr) {
-    static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid])
-        ->WriteDroppedOwnersIntoProfile(this);
-    if (auto const cluster = static_cast<ClosureDataSerializationCluster*>(
-            clusters_by_cid_[kClosureDataCid])) {
-      cluster->WriteDroppedParentFunctionsIntoProfile(this);
-    }
-  }
-#endif
-
   for (SerializationCluster* cluster : canonical_clusters) {
     cluster->WriteAndMeasureFill(this);
 #if defined(DEBUG)
@@ -6951,9 +7051,6 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
 #if defined(DEBUG)
   Write<int32_t>(kSectionMarker);
 #endif
-
-  FlushBytesWrittenToRoot();
-  object_currently_writing_.stream_start_ = stream_->Position();
 
   PrintSnapshotSizes();
 
@@ -6989,6 +7086,14 @@ void Serializer::WriteDispatchTable(const Array& entries) {
 #if defined(DART_PRECOMPILER)
   if (kind() != Snapshot::kFullAOT) return;
 
+  AssignArtificialRef(entries.ptr());
+  const auto& dispatch_table_snapshot_id = GetProfileId(entries.ptr());
+  if (profile_writer_ != nullptr) {
+    profile_writer_->AddRoot(dispatch_table_snapshot_id, "dispatch_table");
+    profile_writer_->SetObjectType(dispatch_table_snapshot_id, "DispatchTable");
+  }
+  WritingObjectScope scope(this, dispatch_table_snapshot_id);
+
   const intptr_t bytes_before = bytes_written();
   const intptr_t table_length = entries.IsNull() ? 0 : entries.Length();
 
@@ -6999,8 +7104,7 @@ void Serializer::WriteDispatchTable(const Array& entries) {
     return;
   }
 
-  auto const code_cluster =
-      reinterpret_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid]);
+  auto const code_cluster = CID_CLUSTER(Code);
   ASSERT(code_cluster != nullptr);
   // Reference IDs in a cluster are allocated sequentially, so we can use the
   // first code object's reference ID to calculate the cluster index.
@@ -7079,29 +7183,19 @@ void Serializer::WriteDispatchTable(const Array& entries) {
   }
   dispatch_table_size_ = bytes_written() - bytes_before;
 
-  object_currently_writing_.stream_start_ = stream_->Position();
-  // If any bytes were written for the dispatch table, add it to the profile.
-  if (dispatch_table_size_ > 0 && profile_writer_ != nullptr) {
-    // Grab an unused ref index for a unique object id for the dispatch table.
-    const auto dispatch_table_id = next_ref_index_++;
-    const V8SnapshotProfileWriter::ObjectId dispatch_table_snapshot_id(
-        V8SnapshotProfileWriter::kSnapshot, dispatch_table_id);
-    profile_writer_->AddRoot(dispatch_table_snapshot_id, "dispatch_table");
-    profile_writer_->SetObjectTypeAndName(dispatch_table_snapshot_id,
-                                          "DispatchTable", nullptr);
-    profile_writer_->AttributeBytesTo(dispatch_table_snapshot_id,
-                                      dispatch_table_size_);
-
-    if (!entries.IsNull()) {
-      for (intptr_t i = 0; i < entries.Length(); i++) {
-        auto const code = Code::RawCast(entries.At(i));
-        if (code == Code::null()) continue;
-        const V8SnapshotProfileWriter::ObjectId code_id(
-            V8SnapshotProfileWriter::kSnapshot, RefId(code));
-        profile_writer_->AttributeReferenceTo(
-            dispatch_table_snapshot_id,
-            {code_id, V8SnapshotProfileWriter::Reference::kElement, i});
-      }
+  // If any bytes were written for the dispatch table, add the elements of
+  // the dispatch table in the profile.
+  if (profile_writer_ != nullptr && !entries.IsNull()) {
+    for (intptr_t i = 0; i < entries.Length(); i++) {
+      auto const code = Code::RawCast(entries.At(i));
+      if (code == Code::null()) continue;
+      profile_writer_->AttributeReferenceTo(
+          dispatch_table_snapshot_id,
+          {
+              V8SnapshotProfileWriter::Reference::kElement,
+              {.offset = i},
+          },
+          GetProfileId(code));
     }
   }
 

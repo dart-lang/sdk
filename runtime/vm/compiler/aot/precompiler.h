@@ -42,7 +42,7 @@ class TableSelectorKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key; }
+  static inline uword Hash(Key key) { return key; }
 
   static inline bool IsKeyEqual(Pair pair, Key key) { return pair == key; }
 };
@@ -60,7 +60,7 @@ class SymbolKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -92,7 +92,7 @@ class FieldKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
+  static inline uword Hash(Key key) {
     const TokenPosition token_pos = key->token_pos();
     if (token_pos.IsReal()) {
       return token_pos.Hash();
@@ -118,7 +118,7 @@ class ClassKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->token_pos().Hash(); }
+  static inline uword Hash(Key key) { return key->token_pos().Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -138,7 +138,7 @@ class AbstractTypeKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -158,7 +158,7 @@ class FunctionTypeKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -178,7 +178,7 @@ class TypeParameterKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -198,7 +198,7 @@ class TypeArgumentsKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
@@ -218,7 +218,7 @@ class InstanceKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->GetClassId(); }
+  static inline uword Hash(Key key) { return key->GetClassId(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();

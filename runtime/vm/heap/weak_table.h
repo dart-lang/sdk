@@ -193,9 +193,7 @@ class WeakTable {
 
   void Rehash();
 
-  static intptr_t Hash(ObjectPtr key) {
-    return static_cast<uintptr_t>(key) * 92821;
-  }
+  static uword Hash(ObjectPtr key) { return static_cast<uword>(key) * 92821; }
 
   Mutex mutex_;
 

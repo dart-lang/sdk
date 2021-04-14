@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if defined(DART_PRECOMPILER)
-
 #include "vm/v8_snapshot_writer.h"
 
 #include "vm/dart.h"
@@ -11,18 +9,20 @@
 
 namespace dart {
 
-const char* ZoneString(Zone* Z, const char* str) {
-  const intptr_t len = strlen(str) + 1;
-  char* dest = Z->Alloc<char>(len);
-  snprintf(dest, len, "%s", str);
-  return dest;
+const V8SnapshotProfileWriter::ObjectId
+    V8SnapshotProfileWriter::kArtificialRootId{kArtificial, 0};
+
+#if defined(DART_PRECOMPILER)
+
+static const char* ZoneString(Zone* Z, const char* str) {
+  return OS::SCreate(Z, "%s", str);
 }
 
 V8SnapshotProfileWriter::V8SnapshotProfileWriter(Zone* zone)
     : zone_(zone),
       node_types_(zone_),
       edge_types_(zone_),
-      strings_(zone),
+      strings_(zone_),
       roots_(zone_) {
   node_types_.Insert({"Unknown", kUnknown});
   node_types_.Insert({"ArtificialRoot", kArtificialRoot});
@@ -35,28 +35,21 @@ V8SnapshotProfileWriter::V8SnapshotProfileWriter(Zone* zone)
   strings_.Insert({"<unknown>", kUnknownString});
   strings_.Insert({"<artificial root>", kArtificialRootString});
 
-  nodes_.Insert({ArtificialRootId(),
-                 {
-                     kArtificialRoot,
-                     kArtificialRootString,
-                     ArtificialRootId(),
-                     0,
-                     nullptr,
-                     0,
-                 }});
+  nodes_.Insert(NodeInfo(zone_, kArtificialRoot, kArtificialRootString,
+                         kArtificialRootId, 0, 0));
 }
 
 void V8SnapshotProfileWriter::SetObjectTypeAndName(ObjectId object_id,
                                                    const char* type,
                                                    const char* name) {
   ASSERT(type != nullptr);
-  NodeInfo* info = EnsureId(object_id);
 
   if (!node_types_.HasKey(type)) {
     node_types_.Insert({ZoneString(zone_, type), node_types_.Size()});
   }
 
   intptr_t type_id = node_types_.LookupValue(type);
+  NodeInfo* info = EnsureId(object_id);
   ASSERT(info->type == kUnknown || info->type == type_id);
   info->type = type_id;
   if (name != nullptr) {
@@ -72,46 +65,66 @@ void V8SnapshotProfileWriter::AttributeBytesTo(ObjectId object_id,
   EnsureId(object_id)->self_size += num_bytes;
 }
 
-void V8SnapshotProfileWriter::AttributeReferenceTo(ObjectId object_id,
-                                                   Reference reference) {
-  EnsureId(reference.to_object_id);
-  NodeInfo* info = EnsureId(object_id);
+V8SnapshotProfileWriter::ConstantEdgeType
+V8SnapshotProfileWriter::ReferenceTypeToEdgeType(Reference::Type type) {
+  switch (type) {
+    case Reference::kElement:
+      return ConstantEdgeType::kElement;
+    case Reference::kProperty:
+      return ConstantEdgeType::kProperty;
+  }
+}
 
-  ASSERT(reference.offset_or_name >= 0);
-  info->edges->Add({
-      static_cast<intptr_t>(reference.reference_type == Reference::kElement
-                                ? kElement
-                                : kProperty),
-      reference.offset_or_name,
-      reference.to_object_id,
-  });
+void V8SnapshotProfileWriter::AttributeReferenceTo(ObjectId from_object_id,
+                                                   Reference reference,
+                                                   ObjectId to_object_id) {
+  const bool is_element = reference.reference_type == Reference::kElement;
+  ASSERT(is_element ? reference.offset >= 0 : reference.name != nullptr);
+
+  EnsureId(to_object_id);
+  const Edge edge(ReferenceTypeToEdgeType(reference.reference_type),
+                  is_element ? reference.offset : EnsureString(reference.name));
+  EnsureId(from_object_id)->AddEdge(edge, to_object_id);
   ++edge_count_;
 }
 
-V8SnapshotProfileWriter::NodeInfo V8SnapshotProfileWriter::DefaultNode(
-    ObjectId object_id) {
-  return {
-      kUnknown,
-      kUnknownString,
-      object_id,
-      0,
-      new (zone_) ZoneGrowableArray<EdgeInfo>(zone_, 0),
-      -1,
-  };
+void V8SnapshotProfileWriter::AttributeDroppedReferenceTo(
+    ObjectId from_object_id,
+    Reference reference,
+    ObjectId to_object_id,
+    ObjectId replacement_object_id) {
+  ASSERT(to_object_id.first == kArtificial);
+  ASSERT(replacement_object_id.first != kArtificial);
+
+  const bool is_element = reference.reference_type == Reference::kElement;
+  ASSERT(is_element ? reference.offset >= 0 : reference.name != nullptr);
+
+  // The target node is added normally.
+  AttributeReferenceTo(from_object_id, reference, to_object_id);
+
+  // Put the replacement node at an invalid offset or name that can still be
+  // associated with the real one. For offsets, this is the negative offset.
+  // For names, it's the name prefixed with ":replacement_".
+  EnsureId(replacement_object_id);
+  const Edge replacement_edge(
+      ReferenceTypeToEdgeType(reference.reference_type),
+      is_element ? -reference.offset
+                 : EnsureString(
+                       OS::SCreate(zone_, ":replacement_%s", reference.name)));
+  EnsureId(from_object_id)->AddEdge(replacement_edge, replacement_object_id);
+  ++edge_count_;
 }
 
-const V8SnapshotProfileWriter::NodeInfo&
-V8SnapshotProfileWriter::ArtificialRoot() {
-  return nodes_.Lookup(ArtificialRootId())->value;
+bool V8SnapshotProfileWriter::HasId(const ObjectId& object_id) {
+  return nodes_.HasKey(object_id);
 }
 
 V8SnapshotProfileWriter::NodeInfo* V8SnapshotProfileWriter::EnsureId(
     ObjectId object_id) {
-  if (!nodes_.HasKey(object_id)) {
-    NodeInfo info = DefaultNode(object_id);
-    nodes_.Insert({object_id, info});
+  if (!HasId(object_id)) {
+    nodes_.Insert(NodeInfo(zone_, kUnknown, kUnknownString, object_id, 0, -1));
   }
-  return &nodes_.Lookup(object_id)->value;
+  return nodes_.Lookup(object_id);
 }
 
 intptr_t V8SnapshotProfileWriter::EnsureString(const char* str) {
@@ -122,24 +135,23 @@ intptr_t V8SnapshotProfileWriter::EnsureString(const char* str) {
   return strings_.LookupValue(str);
 }
 
-void V8SnapshotProfileWriter::WriteNodeInfo(JSONWriter* writer,
-                                            const NodeInfo& info) {
+intptr_t V8SnapshotProfileWriter::WriteNodeInfo(JSONWriter* writer,
+                                                const NodeInfo& info) {
   writer->PrintValue(info.type);
   writer->PrintValue(info.name);
   writer->PrintValue(NodeIdFor(info.id));
   writer->PrintValue(info.self_size);
-  // The artificial root has 'nullptr' edges, it actually points to all the
-  // roots.
-  writer->PrintValue64(info.edges != nullptr ? info.edges->length()
-                                             : roots_.Size());
+  writer->PrintValue64(info.edges->Length());
   writer->PrintNewline();
+  return kNumNodeFields;
 }
 
 void V8SnapshotProfileWriter::WriteEdgeInfo(JSONWriter* writer,
-                                            const EdgeInfo& info) {
-  writer->PrintValue64(info.type);
-  writer->PrintValue64(info.name_or_index);
-  writer->PrintValue64(nodes_.LookupValue(info.to_node).offset);
+                                            const Edge& info,
+                                            const ObjectId& target) {
+  writer->PrintValue64(info.first);
+  writer->PrintValue64(info.second);
+  writer->PrintValue64(nodes_.LookupValue(target).offset);
   writer->PrintNewline();
 }
 
@@ -151,11 +163,13 @@ void V8SnapshotProfileWriter::AddRoot(ObjectId object_id,
   // (most likely an oversight).
   if (roots_.HasKey(object_id)) return;
 
-  ObjectIdToNodeInfoTraits::Pair pair;
-  pair.key = object_id;
-  pair.value = NodeInfo{
-      0, name != nullptr ? EnsureString(name) : -1, object_id, 0, nullptr, 0};
-  roots_.Insert(pair);
+  auto const info = NodeInfo(
+      zone_, 0, name != nullptr ? EnsureString(name) : -1, object_id, 0, 0);
+  roots_.Insert(info);
+  auto const root = EnsureId(kArtificialRootId);
+  root->AddEdge(info.name != -1 ? Edge(kProperty, info.name)
+                                : Edge(kInternal, root->edges->Length()),
+                object_id);
 }
 
 void V8SnapshotProfileWriter::WriteStringsTable(
@@ -226,50 +240,37 @@ void V8SnapshotProfileWriter::Write(JSONWriter* writer) {
   }
   writer->CloseObject();
 
+  const auto& root = *nodes_.Lookup(kArtificialRootId);
+  auto nodes_it = nodes_.GetIterator();
+
   {
     writer->OpenArray("nodes");
-    // Write the artificial root node.
-    WriteNodeInfo(writer, ArtificialRoot());
-    intptr_t offset = kNumNodeFields;
-    ObjectIdToNodeInfoTraits::Pair* entry = nullptr;
-    auto it = nodes_.GetIterator();
-    while ((entry = it.Next()) != nullptr) {
-      ASSERT(entry->key == entry->value.id);
-      if (entry->value.id == ArtificialRootId()) {
-        continue;  // Written separately above.
-      }
-      entry->value.offset = offset;
-      WriteNodeInfo(writer, entry->value);
-      offset += kNumNodeFields;
+    //  Always write the information for the artificial root first.
+    intptr_t offset = WriteNodeInfo(writer, root);
+    for (auto entry = nodes_it.Next(); entry != nullptr;
+         entry = nodes_it.Next()) {
+      if (entry->id == kArtificialRootId) continue;
+      entry->offset = offset;
+      offset += WriteNodeInfo(writer, *entry);
     }
     writer->CloseArray();
+    nodes_it.Reset();
   }
 
   {
+    auto write_edges = [&](const NodeInfo& info) {
+      auto edges_it = info.edges->GetIterator();
+      while (auto const pair = edges_it.Next()) {
+        WriteEdgeInfo(writer, pair->edge, pair->target);
+      }
+    };
     writer->OpenArray("edges");
-
-    // Write references from the artificial root to the actual roots.
-    ObjectIdToNodeInfoTraits::Pair* entry = nullptr;
-    auto roots_it = roots_.GetIterator();
-    for (int i = 0; (entry = roots_it.Next()) != nullptr; ++i) {
-      if (entry->value.name != -1) {
-        WriteEdgeInfo(writer, {kProperty, entry->value.name, entry->key});
-      } else {
-        WriteEdgeInfo(writer, {kInternal, i, entry->key});
-      }
+    //  Always write the information for the artificial root first.
+    write_edges(root);
+    while (auto const entry = nodes_it.Next()) {
+      if (entry->id == kArtificialRootId) continue;
+      write_edges(*entry);
     }
-
-    auto nodes_it = nodes_.GetIterator();
-    while ((entry = nodes_it.Next()) != nullptr) {
-      if (entry->value.edges == nullptr) {
-        continue;  // Artificial root, its edges are written separately above.
-      }
-
-      for (intptr_t i = 0; i < entry->value.edges->length(); ++i) {
-        WriteEdgeInfo(writer, entry->value.edges->At(i));
-      }
-    }
-
     writer->CloseArray();
   }
 
@@ -308,6 +309,6 @@ void V8SnapshotProfileWriter::Write(const char* filename) {
   }
 }
 
-}  // namespace dart
-
 #endif
+
+}  // namespace dart

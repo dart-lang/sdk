@@ -208,7 +208,7 @@ class _WidgetCallSiteTransformer extends Transformer {
       return node;
     }
 
-    _addLocationArgument(node, target.function!, constructedClass,
+    _addLocationArgument(node, target.function, constructedClass,
         isConst: node.isConst);
     return node;
   }
@@ -234,7 +234,7 @@ class _WidgetCallSiteTransformer extends Transformer {
       return node;
     }
 
-    _addLocationArgument(node, constructor.function!, constructedClass,
+    _addLocationArgument(node, constructor.function, constructedClass,
         isConst: node.isConst);
     return node;
   }
@@ -252,7 +252,7 @@ class _WidgetCallSiteTransformer extends Transformer {
         // constant expression.
         !isConst) {
       final VariableDeclaration? creationLocationParameter = _getNamedParameter(
-        _currentFactory!.function!,
+        _currentFactory!.function,
         _creationLocationParameterName,
       );
       if (creationLocationParameter != null) {
@@ -401,7 +401,7 @@ class WidgetCreatorTracker {
         return;
       }
       assert(!_hasNamedParameter(
-        constructor.function!,
+        constructor.function,
         _creationLocationParameterName,
       ));
       final VariableDeclaration variable = new VariableDeclaration(
@@ -409,7 +409,7 @@ class WidgetCreatorTracker {
           type: new InterfaceType(
               _locationClass, clazz.enclosingLibrary.nullable),
           initializer: new NullLiteral());
-      if (!_maybeAddNamedParameter(constructor.function!, variable)) {
+      if (!_maybeAddNamedParameter(constructor.function, variable)) {
         return;
       }
 
@@ -424,7 +424,7 @@ class WidgetCreatorTracker {
           }
           _maybeAddCreationLocationArgument(
             initializer.arguments,
-            initializer.target.function!,
+            initializer.target.function,
             new VariableGet(variable),
             _locationClass,
           );
@@ -548,7 +548,7 @@ class WidgetCreatorTracker {
     for (Procedure procedure in clazz.procedures) {
       if (procedure.isFactory) {
         _maybeAddNamedParameter(
-          procedure.function!,
+          procedure.function,
           new VariableDeclaration(_creationLocationParameterName,
               type: new InterfaceType(
                   _locationClass, clazz.enclosingLibrary.nullable),
@@ -578,12 +578,12 @@ class WidgetCreatorTracker {
               _locationClass, clazz.enclosingLibrary.nullable),
           initializer: new NullLiteral());
       if (_hasNamedParameter(
-          constructor.function!, _creationLocationParameterName)) {
+          constructor.function, _creationLocationParameterName)) {
         // Constructor was already rewritten.
         // TODO(jacobr): is this case actually hit?
         return;
       }
-      if (!_maybeAddNamedParameter(constructor.function!, variable)) {
+      if (!_maybeAddNamedParameter(constructor.function, variable)) {
         return;
       }
       for (Initializer initializer in constructor.initializers) {
@@ -597,7 +597,7 @@ class WidgetCreatorTracker {
 
           _maybeAddCreationLocationArgument(
             initializer.arguments,
-            initializer.target.function!,
+            initializer.target.function,
             new VariableGet(variable),
             _locationClass,
           );
@@ -605,7 +605,7 @@ class WidgetCreatorTracker {
             _isSubclassOfWidget(initializer.target.enclosingClass)) {
           _maybeAddCreationLocationArgument(
             initializer.arguments,
-            initializer.target.function!,
+            initializer.target.function,
             new VariableGet(variable),
             _locationClass,
           );

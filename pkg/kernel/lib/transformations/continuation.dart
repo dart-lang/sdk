@@ -189,7 +189,7 @@ class RecursiveContinuationRewriter extends RemovingTransformer {
     assert(const [
       Nullability.nonNullable,
       Nullability.legacy
-    ].contains(coreTypes.iterableGetIterator.function!.returnType.nullability));
+    ].contains(coreTypes.iterableGetIterator.function.returnType.nullability));
 
     final DartType elementType = stmt.getElementType(staticTypeContext);
     final iteratorType = InterfaceType(
@@ -1144,7 +1144,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
   TreeNode visitFunctionDeclaration(
       FunctionDeclaration stmt, TreeNode? removalSentinel) {
-    stmt.function = transform(stmt.function!)..parent = stmt;
+    stmt.function = transform(stmt.function)..parent = stmt;
     statements.add(stmt);
     return removalSentinel ?? EmptyStatement();
   }

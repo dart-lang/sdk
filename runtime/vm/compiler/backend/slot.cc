@@ -408,8 +408,8 @@ bool Slot::Equals(const Slot* other) const {
   }
 }
 
-intptr_t Slot::Hashcode() const {
-  intptr_t result = (static_cast<int8_t>(kind_) * 63 + offset_in_bytes_) * 31;
+uword Slot::Hash() const {
+  uword result = (static_cast<int8_t>(kind_) * 63 + offset_in_bytes_) * 31;
   if (IsDartField()) {
     result += String::Handle(DataAs<const Field>()->name()).Hash();
   } else if (IsLocalVariable()) {

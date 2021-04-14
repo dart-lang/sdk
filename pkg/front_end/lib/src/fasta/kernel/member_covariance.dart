@@ -95,7 +95,7 @@ class Covariance {
   /// Computes the covariance for the [setter].
   factory Covariance.fromSetter(Procedure setter) {
     int covariance =
-        covarianceFromParameter(setter.function!.positionalParameters.first);
+        covarianceFromParameter(setter.function.positionalParameters.first);
     if (covariance == 0) {
       return const Covariance.empty();
     }
@@ -104,7 +104,7 @@ class Covariance {
 
   /// Computes the covariance for the [procedure].
   factory Covariance.fromMethod(Procedure procedure) {
-    FunctionNode function = procedure.function!;
+    FunctionNode function = procedure.function;
     List<int>? positionalParameters;
     if (function.positionalParameters.isNotEmpty) {
       for (int index = 0;
@@ -269,7 +269,7 @@ class Covariance {
   void applyCovariance(Member member) {
     if (isEmpty) return;
     if (member is Procedure) {
-      FunctionNode function = member.function!;
+      FunctionNode function = member.function;
       List<int>? positionalParameters = _positionalParameters;
       if (positionalParameters != null) {
         for (int index = 0; index < positionalParameters.length; index++) {

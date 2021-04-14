@@ -1750,7 +1750,7 @@ TextSerializer<ContinueSwitchStatement> continueSwitchStatementSerializer =
 
 TextSerializer<FunctionDeclaration> functionDeclarationSerializer =
     Wrapped<Tuple2<VariableDeclaration, FunctionNode>, FunctionDeclaration>(
-        (w) => Tuple2(w.variable, w.function!),
+        (w) => Tuple2(w.variable, w.function),
         (u) => FunctionDeclaration(u.first, u.second),
         Rebind(variableDeclarationSerializer, functionNodeSerializer));
 
@@ -1983,7 +1983,7 @@ TextSerializer<Field> immutableFieldSerializer =
 
 TextSerializer<Procedure> methodSerializer =
     Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name, w.flags, w.function!),
+        (w) => Tuple3(w.name, w.flags, w.function),
         (u) =>
             Procedure(u.first, ProcedureKind.Method, u.third)..flags = u.second,
         Tuple3Serializer(
@@ -1991,7 +1991,7 @@ TextSerializer<Procedure> methodSerializer =
 
 TextSerializer<Procedure> getterSerializer =
     Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name, w.flags, w.function!),
+        (w) => Tuple3(w.name, w.flags, w.function),
         (u) =>
             Procedure(u.first, ProcedureKind.Getter, u.third)..flags = u.second,
         Tuple3Serializer(
@@ -1999,7 +1999,7 @@ TextSerializer<Procedure> getterSerializer =
 
 TextSerializer<Procedure> setterSerializer =
     Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name, w.flags, w.function!),
+        (w) => Tuple3(w.name, w.flags, w.function),
         (u) =>
             Procedure(u.first, ProcedureKind.Setter, u.third)..flags = u.second,
         Tuple3Serializer(
@@ -2007,7 +2007,7 @@ TextSerializer<Procedure> setterSerializer =
 
 TextSerializer<Procedure> operatorSerializer =
     Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name, w.flags, w.function!),
+        (w) => Tuple3(w.name, w.flags, w.function),
         (u) => Procedure(u.first, ProcedureKind.Operator, u.third)
           ..flags = u.second,
         Tuple3Serializer(
@@ -2015,7 +2015,7 @@ TextSerializer<Procedure> operatorSerializer =
 
 TextSerializer<Procedure> factorySerializer =
     Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name, w.flags, w.function!),
+        (w) => Tuple3(w.name, w.flags, w.function),
         (u) => Procedure(u.first, ProcedureKind.Factory, u.third)
           ..flags = u.second,
         Tuple3Serializer(
@@ -2024,7 +2024,7 @@ TextSerializer<Procedure> factorySerializer =
 TextSerializer<Constructor> constructorSerializer = Wrapped<
         Tuple3<Name, int, Tuple2<FunctionNode, List<Initializer>?>>,
         Constructor>(
-    (w) => Tuple3(w.name, w.flags, Tuple2(w.function!, w.initializers)),
+    (w) => Tuple3(w.name, w.flags, Tuple2(w.function, w.initializers)),
     (u) =>
         Constructor(u.third.first, name: u.first, initializers: u.third.second)
           ..flags = u.second,

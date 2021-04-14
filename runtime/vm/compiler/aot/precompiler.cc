@@ -255,7 +255,7 @@ class RetainedReasonsWriter : public ValueObject {
 
     static Value ValueOf(Pair kv) { return kv.value; }
 
-    static inline intptr_t Hashcode(Key key) {
+    static inline uword Hash(Key key) {
       if (key->IsFunction()) {
         return Function::Cast(*key).Hash();
       }

@@ -820,27 +820,41 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     throw _FfiStaticTypeError();
   }
 
+  /// Returns the class that should not be implemented or extended.
+  ///
+  /// If the superclass is not sealed, returns `null`.
   Class _extendsOrImplementsSealedClass(Class klass) {
-    final Class superClass = klass.superclass;
+    // Classes in dart:ffi themselves can extend FFI classes.
+    if (klass == arrayClass ||
+        klass == arraySizeClass ||
+        klass == compoundClass ||
+        klass == opaqueClass ||
+        klass == structClass ||
+        nativeTypesClasses.contains(klass)) {
+      return null;
+    }
 
     // The Opaque and Struct classes can be extended, but subclasses
     // cannot be (nor implemented).
-    if (klass != opaqueClass &&
-        klass != structClass &&
-        (hierarchy.isSubtypeOf(klass, opaqueClass) ||
-            hierarchy.isSubtypeOf(klass, compoundClass))) {
-      return superClass != opaqueClass && superClass != structClass
-          ? superClass
-          : null;
-    }
-
-    if (!nativeTypesClasses.contains(klass) && klass != arrayClass) {
-      for (final parent in nativeTypesClasses) {
-        if (hierarchy.isSubtypeOf(klass, parent)) {
-          return parent;
+    final onlyDirectExtendsClasses = [opaqueClass, structClass];
+    final superClass = klass.superclass;
+    for (final onlyDirectExtendsClass in onlyDirectExtendsClasses) {
+      if (hierarchy.isSubtypeOf(klass, onlyDirectExtendsClass)) {
+        if (superClass == onlyDirectExtendsClass) {
+          // Directly extending is fine.
+          return null;
+        } else {
+          return superClass;
         }
       }
     }
+
+    for (final parent in nativeTypesClasses) {
+      if (hierarchy.isSubtypeOf(klass, parent)) {
+        return parent;
+      }
+    }
+
     return null;
   }
 

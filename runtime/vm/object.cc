@@ -6012,7 +6012,7 @@ void TypeArguments::set_nullability(intptr_t value) const {
   untag()->set_nullability(Smi::New(value));
 }
 
-intptr_t TypeArguments::HashForRange(intptr_t from_index, intptr_t len) const {
+uword TypeArguments::HashForRange(intptr_t from_index, intptr_t len) const {
   if (IsNull()) return kAllDynamicHash;
   if (IsRaw(from_index, len)) return kAllDynamicHash;
   uint32_t result = 0;
@@ -6045,10 +6045,9 @@ intptr_t TypeArguments::HashForRange(intptr_t from_index, intptr_t len) const {
   return result;
 }
 
-intptr_t TypeArguments::ComputeHash() const {
+uword TypeArguments::ComputeHash() const {
   if (IsNull()) return kAllDynamicHash;
-  const intptr_t num_types = Length();
-  const uint32_t result = HashForRange(0, num_types);
+  const uword result = HashForRange(0, Length());
   if (result != 0) {
     SetHash(result);
   }
@@ -6819,7 +6818,7 @@ void PatchClass::set_library_kernel_data(const ExternalTypedData& data) const {
   untag()->set_library_kernel_data(data.ptr());
 }
 
-intptr_t Function::Hash() const {
+uword Function::Hash() const {
   return String::HashRawSymbol(name());
 }
 
@@ -14567,7 +14566,7 @@ const char* CodeSourceMap::ToCString() const {
   return "CodeSourceMap";
 }
 
-intptr_t CompressedStackMaps::Hashcode() const {
+uword CompressedStackMaps::Hash() const {
   NoSafepointScope scope;
   uint8_t* data = UnsafeMutableNonPointer(&untag()->data()[0]);
   uint8_t* end = data + payload_size();
@@ -15111,7 +15110,7 @@ void UnlinkedCall::set_can_patch_to_monomorphic(bool value) const {
   StoreNonPointer(&untag()->can_patch_to_monomorphic_, value);
 }
 
-intptr_t UnlinkedCall::Hashcode() const {
+uword UnlinkedCall::Hash() const {
   return String::Handle(target_name()).Hash();
 }
 
@@ -19955,7 +19954,7 @@ bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
   return false;
 }
 
-intptr_t AbstractType::Hash() const {
+uword AbstractType::Hash() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return 0;
@@ -20662,7 +20661,7 @@ void Type::EnumerateURIs(URIs* uris) const {
   type_args.EnumerateURIs(uris);
 }
 
-intptr_t Type::ComputeHash() const {
+uword Type::ComputeHash() const {
   ASSERT(IsFinalized());
   uint32_t result = type_class_id();
   // A legacy type should have the same hash as its non-nullable version to be
@@ -20695,7 +20694,7 @@ intptr_t Type::ComputeHash() const {
   return result;
 }
 
-intptr_t FunctionType::ComputeHash() const {
+uword FunctionType::ComputeHash() const {
   ASSERT(IsFinalized());
   uint32_t result = packed_fields();
   // A legacy type should have the same hash as its non-nullable version to be
@@ -21121,7 +21120,7 @@ void TypeRef::EnumerateURIs(URIs* uris) const {
   // Break cycle by not printing type arguments.
 }
 
-intptr_t TypeRef::Hash() const {
+uword TypeRef::Hash() const {
   // Do not use hash of the referenced type because
   //  - we could be in process of calculating it (as TypeRef is used to
   //    represent recursive references to types).
@@ -21614,7 +21613,7 @@ bool TypeParameter::CheckIsCanonical(Thread* thread) const {
 }
 #endif  // DEBUG
 
-intptr_t TypeParameter::ComputeHash() const {
+uword TypeParameter::ComputeHash() const {
   ASSERT(IsFinalized() || IsBeingFinalized());  // Bound may not be finalized.
   uint32_t result = parameterized_class_id();
   // Hashing the bound reduces collisions, but may also create cycles.
@@ -22308,20 +22307,20 @@ void StringHasher::Add(const String& str, intptr_t begin_index, intptr_t len) {
   }
 }
 
-intptr_t String::Hash(const String& str, intptr_t begin_index, intptr_t len) {
+uword String::Hash(const String& str, intptr_t begin_index, intptr_t len) {
   StringHasher hasher;
   hasher.Add(str, begin_index, len);
   return hasher.Finalize();
 }
 
-intptr_t String::HashConcat(const String& str1, const String& str2) {
+uword String::HashConcat(const String& str1, const String& str2) {
   StringHasher hasher;
   hasher.Add(str1, 0, str1.Length());
   hasher.Add(str2, 0, str2.Length());
   return hasher.Finalize();
 }
 
-intptr_t String::Hash(StringPtr raw) {
+uword String::Hash(StringPtr raw) {
   StringHasher hasher;
   uword length = Smi::Value(raw->untag()->length());
   if (raw->IsOneByteString() || raw->IsExternalOneByteString()) {
@@ -22347,19 +22346,19 @@ intptr_t String::Hash(StringPtr raw) {
   }
 }
 
-intptr_t String::Hash(const char* characters, intptr_t len) {
+uword String::Hash(const char* characters, intptr_t len) {
   StringHasher hasher;
   hasher.Add(reinterpret_cast<const uint8_t*>(characters), len);
   return hasher.Finalize();
 }
 
-intptr_t String::Hash(const uint8_t* characters, intptr_t len) {
+uword String::Hash(const uint8_t* characters, intptr_t len) {
   StringHasher hasher;
   hasher.Add(characters, len);
   return hasher.Finalize();
 }
 
-intptr_t String::Hash(const uint16_t* characters, intptr_t len) {
+uword String::Hash(const uint16_t* characters, intptr_t len) {
   StringHasher hasher;
   hasher.Add(characters, len);
   return hasher.Finalize();
@@ -24767,7 +24766,7 @@ const char* Closure::ToCString() const {
   return buffer.buffer();
 }
 
-int64_t Closure::ComputeHash() const {
+uword Closure::ComputeHash() const {
   Thread* thread = Thread::Current();
   DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();

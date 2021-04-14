@@ -363,7 +363,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "Only forwarding stubs can have a forwarding stub super target "
           "$node.");
     }
-    node.function!.accept(this);
+    node.function.accept(this);
     classTypeParametersAreInScope = false;
     visitList(node.annotations, this);
     exitParent(oldParent);
@@ -377,7 +377,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     // in scope in the initializer list.
     TreeNode? oldParent = enterParent(node);
     int stackHeight = enterLocalScope();
-    visitChildren(node.function!);
+    visitChildren(node.function);
     visitList(node.initializers, this);
     if (!isOutline) {
       checkInitializers(node);

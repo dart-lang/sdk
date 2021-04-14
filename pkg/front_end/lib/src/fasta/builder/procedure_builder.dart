@@ -107,14 +107,19 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
         this.isExtensionInstanceMember = isInstanceMember && isExtensionMember,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             libraryBuilder, charOffset, nativeMethodName) {
-    _procedure = new Procedure(procedureNameScheme.getName(kind, name),
-        isExtensionInstanceMember ? ProcedureKind.Method : kind, null,
-        fileUri: libraryBuilder.fileUri, reference: procedureReference)
+    _procedure = new Procedure(
+        procedureNameScheme.getName(kind, name),
+        isExtensionInstanceMember ? ProcedureKind.Method : kind,
+        new FunctionNode(null),
+        fileUri: libraryBuilder.fileUri,
+        reference: procedureReference)
       ..startFileOffset = startCharOffset
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
   }
+
+  FunctionNode get function => _procedure.function;
 
   @override
   ProcedureBuilder get origin => actualOrigin ?? this;
@@ -136,11 +141,8 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
   @override
   void set asyncModifier(AsyncMarker newModifier) {
     actualAsyncModifier = newModifier;
-    if (function != null) {
-      // No parent, it's an enum.
-      function.asyncMarker = actualAsyncModifier;
-      function.dartAsyncMarker = actualAsyncModifier;
-    }
+    function.asyncMarker = actualAsyncModifier;
+    function.dartAsyncMarker = actualAsyncModifier;
   }
 
   @override
@@ -266,7 +268,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
       _extensionTearOff ??= new Procedure(
           procedureNameScheme.getName(ProcedureKind.Getter, name),
           ProcedureKind.Method,
-          null,
+          new FunctionNode(null),
           isStatic: true,
           isExtensionMember: true,
           reference: _tearOffReference)
@@ -379,8 +381,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
 
   @override
   Procedure build(SourceLibraryBuilder libraryBuilder) {
-    _procedure.function = buildFunction(libraryBuilder);
-    _procedure.function.parent = _procedure;
+    buildFunction(libraryBuilder);
     _procedure.function.fileOffset = charOpenParenOffset;
     _procedure.function.fileEndOffset = _procedure.fileEndOffset;
     _procedure.isAbstract = isAbstract;
@@ -747,8 +748,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
 
   @override
   Procedure build(SourceLibraryBuilder libraryBuilder) {
-    _procedure.function = buildFunction(libraryBuilder);
-    _procedure.function.parent = _procedure;
+    buildFunction(libraryBuilder);
     _procedure.function.fileOffset = charOpenParenOffset;
     _procedure.function.fileEndOffset = _procedure.fileEndOffset;
     _procedure.isAbstract = isAbstract;

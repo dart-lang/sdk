@@ -488,15 +488,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  void writeOptionalFunctionNode(FunctionNode? node) {
-    if (node == null) {
-      writeByte(Tag.Nothing);
-    } else {
-      writeByte(Tag.Something);
-      writeFunctionNode(node);
-    }
-  }
-
   void writeLinkTable(Component component) {
     _binaryOffsetForLinkTable = getBufferOffset();
     writeList(_canonicalNameList, writeCanonicalNameEntry);
@@ -1209,12 +1200,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeName(node.name);
 
     writeAnnotationList(node.annotations);
-    assert(node.function!.typeParameters.isEmpty);
-    writeFunctionNode(node.function!);
+    assert(node.function.typeParameters.isEmpty);
+    writeFunctionNode(node.function);
     // Parameters are in scope in the initializers.
     _variableIndexer ??= new VariableIndexer();
-    _variableIndexer!.restoreScope(node.function!.positionalParameters.length +
-        node.function!.namedParameters.length);
+    _variableIndexer!.restoreScope(node.function.positionalParameters.length +
+        node.function.namedParameters.length);
     writeNodeList(node.initializers);
 
     leaveScope(memberScope: true);
@@ -1273,13 +1264,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeName(node.name);
     writeAnnotationList(node.annotations);
     writeNullAllowedReference(node.stubTargetReference);
-    writeOptionalFunctionNode(node.function);
+    writeFunctionNode(node.function);
     leaveScope(memberScope: true);
 
     _currentlyInNonimplementation = currentlyInNonimplementationSaved;
     assert(
         (node.concreteForwardingStubTarget != null) ||
-            !(node.isForwardingStub && node.function!.body != null),
+            !(node.isForwardingStub && node.function.body != null),
         "Invalid forwarding stub $node.");
   }
 
@@ -2251,7 +2242,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.FunctionDeclaration);
     writeOffset(node.fileOffset);
     writeVariableDeclaration(node.variable);
-    writeFunctionNode(node.function!);
+    writeFunctionNode(node.function);
   }
 
   @override

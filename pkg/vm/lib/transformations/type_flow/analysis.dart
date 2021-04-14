@@ -373,8 +373,8 @@ class _DispatchableInvocation extends _Invocation {
   }
 
   /// Marker for noSuchMethod() invocation in the map of invocation targets.
-  static final Member kNoSuchMethodMarker =
-      new Procedure(new Name('noSuchMethod&&'), ProcedureKind.Method, null);
+  static final Member kNoSuchMethodMarker = new Procedure(
+      new Name('noSuchMethod&&'), ProcedureKind.Method, new FunctionNode(null));
 
   _DispatchableInvocation(Selector selector, Args<Type> args)
       : super(selector, args) {

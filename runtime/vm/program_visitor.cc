@@ -468,7 +468,7 @@ class StackMapEntry : public ZoneAllocated {
 
   static const intptr_t kHashBits = 30;
 
-  intptr_t Hashcode() {
+  uword Hash() {
     if (hash_ != 0) return hash_;
     uint32_t hash = 0;
     hash = CombineHashes(hash, spill_slot_bit_count_);
@@ -555,7 +555,7 @@ class StackMapEntryKeyIntValueTrait {
 
   static Key KeyOf(Pair kv) { return kv.key; }
   static Value ValueOf(Pair kv) { return kv.value; }
-  static intptr_t Hashcode(Key key) { return key->Hashcode(); }
+  static uword Hash(Key key) { return key->Hash(); }
   static bool IsKeyEqual(Pair kv, Key key) { return key->Equals(kv.key); }
 };
 
@@ -739,7 +739,7 @@ class PcDescriptorsKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Length(); }
+  static inline uword Hash(Key key) { return Utils::WordHash(key->Length()); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->Equals(*key);
@@ -786,7 +786,7 @@ class TypedDataKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->CanonicalizeHash(); }
+  static inline uword Hash(Key key) { return key->CanonicalizeHash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->CanonicalizeEquals(*key);
@@ -876,7 +876,7 @@ class UnlinkedCallKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hashcode(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->Equals(*key);
@@ -951,9 +951,9 @@ class CodeSourceMapKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
+  static inline uword Hash(Key key) {
     ASSERT(!key->IsNull());
-    return key->Length();
+    return Utils::WordHash(key->Length());
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
@@ -1001,9 +1001,9 @@ class ArrayKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
+  static inline uword Hash(Key key) {
     ASSERT(!key->IsNull());
-    return key->Length();
+    return Utils::WordHash(key->Length());
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
@@ -1125,7 +1125,7 @@ class InstructionsKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->Equals(*key);
@@ -1157,7 +1157,7 @@ class CodeKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Size(); }
+  static inline uword Hash(Key key) { return Utils::WordHash(key->Size()); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     // In AOT, disabled code objects should not be considered for deduplication.

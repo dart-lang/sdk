@@ -251,12 +251,52 @@ class Serializer : public ThreadStackResource {
   intptr_t bytes_written() { return stream_->bytes_written(); }
   intptr_t bytes_heap_allocated() { return bytes_heap_allocated_; }
 
-  void FlushBytesWrittenToRoot();
-  void TraceStartWritingObject(const char* type, ObjectPtr obj, StringPtr name);
-  void TraceStartWritingObject(const char* type,
-                               ObjectPtr obj,
-                               const char* name);
-  void TraceEndWritingObject();
+  class WritingObjectScope : ValueObject {
+   public:
+    WritingObjectScope(Serializer* serializer,
+                       const char* type,
+                       ObjectPtr object,
+                       StringPtr name)
+        : WritingObjectScope(serializer,
+                             ReserveId(serializer, type, object, name),
+                             object) {}
+
+    WritingObjectScope(Serializer* serializer,
+                       const char* type,
+                       ObjectPtr object,
+                       const char* name)
+        : WritingObjectScope(serializer,
+                             ReserveId(serializer, type, object, name),
+                             object) {}
+
+    WritingObjectScope(Serializer* serializer,
+                       const V8SnapshotProfileWriter::ObjectId& id,
+                       ObjectPtr object = nullptr);
+
+    WritingObjectScope(Serializer* serializer, ObjectPtr object)
+        : WritingObjectScope(serializer,
+                             serializer->GetProfileId(object),
+                             object) {}
+
+    ~WritingObjectScope();
+
+   private:
+    static V8SnapshotProfileWriter::ObjectId ReserveId(Serializer* serializer,
+                                                       const char* type,
+                                                       ObjectPtr object,
+                                                       StringPtr name);
+
+    static V8SnapshotProfileWriter::ObjectId ReserveId(Serializer* serializer,
+                                                       const char* type,
+                                                       ObjectPtr object,
+                                                       const char* name);
+
+   private:
+    Serializer* const serializer_;
+    const ObjectPtr old_object_;
+    const V8SnapshotProfileWriter::ObjectId old_id_;
+    const classid_t old_cid_;
+  };
 
   // Writes raw data to the stream (basic type).
   // sizeof(T) must be in {1,2,4,8}.
@@ -276,72 +316,50 @@ class Serializer : public ThreadStackResource {
   }
   void Align(intptr_t alignment) { stream_->Align(alignment); }
 
+  V8SnapshotProfileWriter::ObjectId GetProfileId(ObjectPtr object) const;
+
   void WriteRootRef(ObjectPtr object, const char* name = nullptr) {
     intptr_t id = RefId(object);
     WriteUnsigned(id);
     if (profile_writer_ != nullptr) {
-      profile_writer_->AddRoot({V8SnapshotProfileWriter::kSnapshot, id}, name);
+      profile_writer_->AddRoot(GetProfileId(object), name);
     }
+  }
+
+  // Record a reference from the currently written object to the given object
+  // and return reference id for the given object.
+  void AttributeReference(ObjectPtr object,
+                          const V8SnapshotProfileWriter::Reference& reference);
+
+  void AttributeElementRef(ObjectPtr object, intptr_t index) {
+    AttributeReference(object, {V8SnapshotProfileWriter::Reference::kElement,
+                                {.offset = index}});
   }
 
   void WriteElementRef(ObjectPtr object, intptr_t index) {
-    WriteUnsigned(AttributeElementRef(object, index));
+    AttributeElementRef(object, index);
+    WriteUnsigned(RefId(object));
   }
 
-  // Record a reference from the currently written object to the given object
-  // and return reference id for the given object.
-  intptr_t AttributeElementRef(ObjectPtr object,
-                               intptr_t index,
-                               bool permit_artificial_ref = false) {
-    intptr_t id = RefId(object, permit_artificial_ref);
-    if (profile_writer_ != nullptr) {
-      profile_writer_->AttributeReferenceTo(
-          {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
-          {{V8SnapshotProfileWriter::kSnapshot, id},
-           V8SnapshotProfileWriter::Reference::kElement,
-           index});
-    }
-    return id;
+  void AttributePropertyRef(ObjectPtr object, const char* property) {
+    AttributeReference(object, {V8SnapshotProfileWriter::Reference::kProperty,
+                                {.name = property}});
   }
 
   void WritePropertyRef(ObjectPtr object, const char* property) {
-    WriteUnsigned(AttributePropertyRef(object, property));
-  }
-
-  // Record a reference from the currently written object to the given object
-  // and return reference id for the given object.
-  intptr_t AttributePropertyRef(ObjectPtr object,
-                                const char* property,
-                                bool permit_artificial_ref = false) {
-    intptr_t id = RefId(object, permit_artificial_ref);
-    if (profile_writer_ != nullptr) {
-      profile_writer_->AttributeReferenceTo(
-          {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
-          {{V8SnapshotProfileWriter::kSnapshot, id},
-           V8SnapshotProfileWriter::Reference::kProperty,
-           profile_writer_->EnsureString(property)});
-    }
-    return id;
+    AttributePropertyRef(object, property);
+    WriteUnsigned(RefId(object));
   }
 
   void WriteOffsetRef(ObjectPtr object, intptr_t offset) {
     intptr_t id = RefId(object);
     WriteUnsigned(id);
     if (profile_writer_ != nullptr) {
-      const char* property = offsets_table_->FieldNameForOffset(
-          object_currently_writing_.cid_, offset);
-      if (property != nullptr) {
-        profile_writer_->AttributeReferenceTo(
-            {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
-            {{V8SnapshotProfileWriter::kSnapshot, id},
-             V8SnapshotProfileWriter::Reference::kProperty,
-             profile_writer_->EnsureString(property)});
+      if (auto const property = offsets_table_->FieldNameForOffset(
+              object_currently_writing_.cid_, offset)) {
+        AttributePropertyRef(object, property);
       } else {
-        profile_writer_->AttributeReferenceTo(
-            {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
-            {{V8SnapshotProfileWriter::kSnapshot, id},
-             V8SnapshotProfileWriter::Reference::kElement,
-             offset});
+        AttributeElementRef(object, offset);
       }
     }
   }
@@ -417,26 +435,29 @@ class Serializer : public ThreadStackResource {
   // Returns the reference ID for the object. Fails for objects that have not
   // been allocated a reference ID yet, so should be used only after all
   // WriteAlloc calls.
-  intptr_t RefId(ObjectPtr object, bool permit_artificial_ref = false) {
-    // The object id weak table holds image offsets for Instructions instead
-    // of ref indices.
-    ASSERT(!object->IsHeapObject() || !object->IsInstructions());
-    auto const id = heap_->GetObjectId(object);
-    if (permit_artificial_ref && IsArtificialReference(id)) {
-      return -id;
-    }
-    ASSERT(!IsArtificialReference(id));
-    if (IsAllocatedReference(id)) {
-      return id;
-    }
-    if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
-      return RefId(Object::null());
-    }
-    FATAL("Missing ref");
-  }
+  intptr_t RefId(ObjectPtr object) const;
 
+  // Same as RefId, but allows artificial and unreachable references. Still
+  // fails for unallocated references.
+  intptr_t UnsafeRefId(ObjectPtr object) const;
+
+  // Whether the object is reachable.
+  bool IsReachable(ObjectPtr object) const {
+    return IsReachableReference(heap_->GetObjectId(object));
+  }
+  // Whether the object has an allocated reference.
   bool HasRef(ObjectPtr object) const {
-    return heap_->GetObjectId(object) != kUnreachableReference;
+    return IsAllocatedReference(heap_->GetObjectId(object));
+  }
+  // Whether the object only appears in the V8 snapshot profile.
+  bool HasArtificialRef(ObjectPtr object) const {
+    return IsArtificialReference(heap_->GetObjectId(object));
+  }
+  // Whether a node for the object already has been added to the V8 snapshot
+  // profile.
+  bool HasProfileNode(ObjectPtr object) const {
+    ASSERT(profile_writer_ != nullptr);
+    return profile_writer_->HasId(GetProfileId(object));
   }
   bool IsWritten(ObjectPtr object) const {
     return heap_->GetObjectId(object) > num_base_objects_;
@@ -444,6 +465,7 @@ class Serializer : public ThreadStackResource {
 
  private:
   const char* ReadOnlyObjectType(intptr_t cid);
+  void FlushProfile();
 
   Heap* heap_;
   Zone* zone_;
@@ -471,8 +493,11 @@ class Serializer : public ThreadStackResource {
   V8SnapshotProfileWriter* profile_writer_ = nullptr;
   struct ProfilingObject {
     ObjectPtr object_ = nullptr;
-    intptr_t id_ = 0;
-    intptr_t stream_start_ = 0;
+    // Unless within a WritingObjectScope, any bytes written are attributed to
+    // the artificial root.
+    V8SnapshotProfileWriter::ObjectId id_ =
+        V8SnapshotProfileWriter::kArtificialRootId;
+    intptr_t last_stream_position_ = 0;
     intptr_t cid_ = -1;
   } object_currently_writing_;
   OffsetsTable* offsets_table_ = nullptr;
@@ -494,10 +519,10 @@ class Serializer : public ThreadStackResource {
 };
 
 #define AutoTraceObject(obj)                                                   \
-  SerializerWritingObjectScope scope_##__COUNTER__(s, name(), obj, nullptr)
+  Serializer::WritingObjectScope scope_##__COUNTER__(s, name(), obj, nullptr)
 
 #define AutoTraceObjectName(obj, str)                                          \
-  SerializerWritingObjectScope scope_##__COUNTER__(s, name(), obj, str)
+  Serializer::WritingObjectScope scope_##__COUNTER__(s, name(), obj, str)
 
 #define WriteFieldValue(field, value) s->WritePropertyRef(value, #field);
 
@@ -509,29 +534,6 @@ class Serializer : public ThreadStackResource {
 #define WriteCompressedField(obj, name)                                        \
   s->WritePropertyRef(obj->untag()->name(), #name "_")
 
-class SerializerWritingObjectScope {
- public:
-  SerializerWritingObjectScope(Serializer* serializer,
-                               const char* type,
-                               ObjectPtr object,
-                               StringPtr name)
-      : serializer_(serializer) {
-    serializer_->TraceStartWritingObject(type, object, name);
-  }
-
-  SerializerWritingObjectScope(Serializer* serializer,
-                               const char* type,
-                               ObjectPtr object,
-                               const char* name)
-      : serializer_(serializer) {
-    serializer_->TraceStartWritingObject(type, object, name);
-  }
-
-  ~SerializerWritingObjectScope() { serializer_->TraceEndWritingObject(); }
-
- private:
-  Serializer* serializer_;
-};
 
 // This class can be used to read version and features from a snapshot before
 // the VM has been initialized.

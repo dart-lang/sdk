@@ -54,7 +54,7 @@ class PrecompilerTracer : public ZoneAllocated {
   struct CString {
     const char* str;
     const intptr_t length;
-    intptr_t hash;
+    uword hash;
   };
 
   struct StringTableTraits {

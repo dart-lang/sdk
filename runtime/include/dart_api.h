@@ -475,7 +475,7 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
  *
  * Requires there to be a current isolate.
  *
- * \param object An object.
+ * \param object An object with identity.
  * \param peer A pointer to a native object or NULL.  This value is
  *   provided to callback when it is invoked.
  * \param external_allocation_size The number of externally allocated
@@ -531,7 +531,7 @@ DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
  *
  * Requires there to be a current isolate.
  *
- * \param object An object.
+ * \param object An object with identity.
  * \param peer A pointer to a native object or NULL.  This value is
  *   provided to callback when it is invoked.
  * \param external_allocation_size The number of externally allocated
