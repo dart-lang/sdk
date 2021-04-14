@@ -499,7 +499,7 @@ class BinaryBuilder {
     }
   }
 
-  List<Expression> readAnnotationList(TreeNode? parent) {
+  List<Expression> readAnnotationList([TreeNode? parent]) {
     int length = readUInt30();
     if (length == 0) return const <Expression>[];
     return new List<Expression>.generate(
@@ -1493,15 +1493,15 @@ class BinaryBuilder {
     int fileEndOffset = readOffset();
     int flags = readByte();
     Name name = readName();
-    if (node == null) {
-      node = new Constructor(null, reference: reference, name: name);
-    }
-    List<Expression> annotations = readAnnotationList(node);
+    List<Expression> annotations = readAnnotationList();
     assert(() {
       debugPath.add(name.text);
       return true;
     }());
     FunctionNode function = readFunctionNode();
+    if (node == null) {
+      node = new Constructor(function, reference: reference, name: name);
+    }
     pushVariableDeclarations(function.positionalParameters);
     pushVariableDeclarations(function.namedParameters);
     _fillTreeNodeList(node.initializers, (index) => readInitializer(), node);
@@ -1515,6 +1515,7 @@ class BinaryBuilder {
     node.name = name;
     node.fileUri = fileUri;
     node.annotations = annotations;
+    setParents(annotations, node);
     node.function = function..parent = node;
     node.transformerFlags = transformerFlags;
     return node;
@@ -1538,12 +1539,7 @@ class BinaryBuilder {
     ProcedureStubKind stubKind = ProcedureStubKind.values[readByte()];
     int flags = readUInt30();
     Name name = readName();
-    if (node == null) {
-      node = new Procedure(name, kind, null, reference: reference);
-    } else {
-      assert(node.kind == kind);
-    }
-    List<Expression> annotations = readAnnotationList(node);
+    List<Expression> annotations = readAnnotationList();
     assert(() {
       debugPath.add(name.text);
       return true;
@@ -1554,8 +1550,13 @@ class BinaryBuilder {
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
     Reference? stubTargetReference = readNullableMemberReference();
-    FunctionNode? function =
-        readFunctionNodeOption(!readFunctionNodeNow, endOffset);
+    FunctionNode function = readFunctionNode(
+        lazyLoadBody: !readFunctionNodeNow, outerEndOffset: endOffset);
+    if (node == null) {
+      node = new Procedure(name, kind, function, reference: reference);
+    } else {
+      assert(node.kind == kind);
+    }
     int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
     node.startFileOffset = startFileOffset;
@@ -1565,15 +1566,15 @@ class BinaryBuilder {
     node.name = name;
     node.fileUri = fileUri;
     node.annotations = annotations;
-    node.function = function;
-    function?.parent = node;
+    setParents(annotations, node);
+    node.function = function..parent = node;
     node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
     node.stubKind = stubKind;
     node.stubTargetReference = stubTargetReference;
 
     assert((node.stubKind == ProcedureStubKind.ConcreteForwardingStub &&
             node.stubTargetReference != null) ||
-        !(node.isForwardingStub && node.function!.body != null));
+        !(node.isForwardingStub && node.function.body != null));
     assert(!(node.isMemberSignature && node.stubTargetReference == null),
         "No member signature origin for member signature $node.");
     return node;
@@ -1684,13 +1685,6 @@ class BinaryBuilder {
 
   Initializer _readAssertInitializer() {
     return new AssertInitializer(readStatement() as AssertStatement);
-  }
-
-  FunctionNode? readFunctionNodeOption(bool lazyLoadBody, int outerEndOffset) {
-    return readAndCheckOptionTag()
-        ? readFunctionNode(
-            lazyLoadBody: lazyLoadBody, outerEndOffset: outerEndOffset)
-        : null;
   }
 
   FunctionNode readFunctionNode(

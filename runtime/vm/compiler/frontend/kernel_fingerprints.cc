@@ -778,9 +778,7 @@ uint32_t KernelFingerprintHelper::CalculateFunctionFingerprint() {
   procedure_helper.SetJustRead(ProcedureHelper::kName);
 
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
-  if (ReadTag() == kSomething) {
-    CalculateFunctionNodeFingerprint();
-  }
+  CalculateFunctionNodeFingerprint();
 
   BuildHash(procedure_helper.kind_);
   BuildHash(procedure_helper.flags_);

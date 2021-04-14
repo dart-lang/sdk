@@ -1988,9 +1988,8 @@ class Constructor extends Member {
 
   int flags = 0;
 
-  // TODO(johnniwinther): Make this non-nullable.
   @override
-  FunctionNode? function;
+  FunctionNode function;
 
   List<Initializer> initializers;
 
@@ -2004,8 +2003,10 @@ class Constructor extends Member {
       Uri? fileUri,
       Reference? reference})
       : this.initializers = initializers ?? <Initializer>[],
+        // ignore: unnecessary_null_comparison
+        assert(function != null),
         super(name, fileUri, reference) {
-    function?.parent = this;
+    function.parent = this;
     setParents(this.initializers, this);
     this.isConst = isConst;
     this.isExternal = isExternal;
@@ -2082,16 +2083,17 @@ class Constructor extends Member {
     visitList(annotations, v);
     name.accept(v);
     visitList(initializers, v);
-    function?.accept(v);
+    function.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
     v.transformList(initializers, this);
+    // ignore: unnecessary_null_comparison
     if (function != null) {
-      function = v.transform(function!);
-      function?.parent = this;
+      function = v.transform(function);
+      function.parent = this;
     }
   }
 
@@ -2099,9 +2101,10 @@ class Constructor extends Member {
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
     v.transformInitializerList(initializers, this);
+    // ignore: unnecessary_null_comparison
     if (function != null) {
-      function = v.transformOrRemove(function!, dummyFunctionNode);
-      function?.parent = this;
+      function = v.transform(function);
+      function.parent = this;
     }
   }
 
@@ -2504,16 +2507,15 @@ class Procedure extends Member {
   final ProcedureKind kind;
   int flags = 0;
 
-  // TODO(johnniwinther): Make this non-nullable.
   @override
-  FunctionNode? function;
+  FunctionNode function;
 
   // The function node's body might be lazily loaded, meaning that this value
   // might not be set correctly yet. Make sure the body is loaded before
   // returning anything.
   @override
   int get transformerFlags {
-    function?.body;
+    function.body;
     return super.transformerFlags;
   }
 
@@ -2522,7 +2524,7 @@ class Procedure extends Member {
   // body now and only set the value afterwards.
   @override
   void set transformerFlags(int newValue) {
-    function?.body;
+    function.body;
     super.transformerFlags = newValue;
   }
 
@@ -2536,7 +2538,7 @@ class Procedure extends Member {
   ProcedureStubKind stubKind;
   Reference? stubTargetReference;
 
-  Procedure(Name name, ProcedureKind kind, FunctionNode? function,
+  Procedure(Name name, ProcedureKind kind, FunctionNode function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
@@ -2576,15 +2578,17 @@ class Procedure extends Member {
       this.stubTargetReference})
       // ignore: unnecessary_null_comparison
       : assert(kind != null),
+        // ignore: unnecessary_null_comparison
+        assert(function != null),
         super(name, fileUri, reference) {
-    function?.parent = this;
+    function.parent = this;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
     this.isExternal = isExternal;
     this.isConst = isConst;
     this.isExtensionMember = isExtensionMember;
     this.isSynthetic = isSynthetic;
-    this.transformerFlags = transformerFlags;
+    setTransformerFlagsWithoutLazyLoading(transformerFlags);
     assert(!(isMemberSignature && stubTargetReference == null),
         "No member signature origin for member signature $this.");
     assert(
@@ -2753,38 +2757,40 @@ class Procedure extends Member {
   void visitChildren(Visitor v) {
     visitList(annotations, v);
     name.accept(v);
-    function?.accept(v);
+    function.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
+    // ignore: unnecessary_null_comparison
     if (function != null) {
-      function = v.transform(function!);
-      function?.parent = this;
+      function = v.transform(function);
+      function.parent = this;
     }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
+    // ignore: unnecessary_null_comparison
     if (function != null) {
-      function = v.transformOrRemove(function!, dummyFunctionNode);
-      function?.parent = this;
+      function = v.transform(function);
+      function.parent = this;
     }
   }
 
   @override
   DartType get getterType {
     return isGetter
-        ? function!.returnType
-        : function!.computeFunctionType(enclosingLibrary.nonNullable);
+        ? function.returnType
+        : function.computeFunctionType(enclosingLibrary.nonNullable);
   }
 
   @override
   DartType get setterType {
     return isSetter
-        ? function!.positionalParameters[0].type
+        ? function.positionalParameters[0].type
         : const NeverType.nonNullable();
   }
 
@@ -6025,9 +6031,9 @@ class SuperMethodInvocation extends InvocationExpression {
         .getTypeArgumentsAsInstanceOf(context.thisType!, superclass);
     DartType returnType = Substitution.fromPairs(
             superclass.typeParameters, receiverTypeArguments!)
-        .substituteType(interfaceTarget.function!.returnType);
+        .substituteType(interfaceTarget.function.returnType);
     return Substitution.fromPairs(
-            interfaceTarget.function!.typeParameters, arguments.types)
+            interfaceTarget.function.typeParameters, arguments.types)
         .substituteType(returnType);
   }
 
@@ -6114,8 +6120,8 @@ class StaticInvocation extends InvocationExpression {
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
     return Substitution.fromPairs(
-            target.function!.typeParameters, arguments.types)
-        .substituteType(target.function!.returnType);
+            target.function.typeParameters, arguments.types)
+        .substituteType(target.function.returnType);
   }
 
   @override
@@ -8077,8 +8083,7 @@ class AwaitExpression extends Expression {
 
 /// Common super-interface for [FunctionExpression] and [FunctionDeclaration].
 abstract class LocalFunction implements TreeNode {
-  // TODO(johnniwinther): Make this non-nullable.
-  FunctionNode? get function;
+  FunctionNode get function;
 }
 
 /// Expression of form `(x,y) => ...` or `(x,y) { ... }`
@@ -10118,11 +10123,13 @@ class FunctionDeclaration extends Statement implements LocalFunction {
   VariableDeclaration variable; // Is final and has no initializer.
 
   @override
-  FunctionNode? function;
+  FunctionNode function;
 
-  FunctionDeclaration(this.variable, this.function) {
+  FunctionDeclaration(this.variable, this.function)
+      // ignore: unnecessary_null_comparison
+      : assert(function != null) {
     variable.parent = this;
-    function?.parent = this;
+    function.parent = this;
   }
 
   @override
@@ -10135,7 +10142,7 @@ class FunctionDeclaration extends Statement implements LocalFunction {
   @override
   void visitChildren(Visitor v) {
     variable.accept(v);
-    function?.accept(v);
+    function.accept(v);
   }
 
   @override
@@ -10145,9 +10152,10 @@ class FunctionDeclaration extends Statement implements LocalFunction {
       variable = v.transform(variable);
       variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (function != null) {
-      function = v.transform(function!);
-      function?.parent = this;
+      function = v.transform(function);
+      function.parent = this;
     }
   }
 
@@ -10158,9 +10166,10 @@ class FunctionDeclaration extends Statement implements LocalFunction {
       variable = v.transform(variable);
       variable.parent = this;
     }
+    // ignore: unnecessary_null_comparison
     if (function != null) {
-      function = v.transformOrRemove(function!, dummyFunctionNode);
-      function?.parent = this;
+      function = v.transform(function);
+      function.parent = this;
     }
   }
 
@@ -10171,9 +10180,10 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 
   @override
   void toTextInternal(AstPrinter printer) {
+    // ignore: unnecessary_null_comparison
     if (function != null) {
-      printer.writeFunctionNode(function!, printer.getVariableName(variable));
-      if (function!.body is ReturnStatement) {
+      printer.writeFunctionNode(function, printer.getVariableName(variable));
+      if (function.body is ReturnStatement) {
         printer.write(';');
       }
     }
@@ -12624,7 +12634,7 @@ class TearOffConstant extends Constant {
   }
 
   FunctionType getType(StaticTypeContext context) {
-    return procedure.function!.computeFunctionType(context.nonNullable);
+    return procedure.function.computeFunctionType(context.nonNullable);
   }
 }
 

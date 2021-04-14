@@ -2032,8 +2032,6 @@ void KernelLoader::LoadProcedure(const Library& library,
 
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
 
-  Tag function_node_tag = helper_.ReadTag();
-  ASSERT(function_node_tag == kSomething);
   FunctionNodeHelper function_node_helper(&helper_);
   function_node_helper.ReadUntilIncluding(FunctionNodeHelper::kDartAsyncMarker);
   function.set_is_debuggable(function_node_helper.dart_async_marker_ ==

@@ -485,8 +485,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
     // Create the declaration before cloning the body to support recursive
     // [LocalFunctionInvocation] nodes.
     FunctionDeclaration declaration =
-        new FunctionDeclaration(newVariable, null);
-    FunctionNode functionNode = clone(node.function!);
+        new FunctionDeclaration(newVariable, dummyFunctionNode);
+    FunctionNode functionNode = clone(node.function);
     declaration.function = functionNode..parent = declaration;
     return declaration;
   }
@@ -757,7 +757,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     _activeFileUri = node.fileUri ?? _activeFileUri;
 
     Constructor result = new Constructor(
-      super.clone(node.function!),
+      super.clone(node.function),
       name: node.name,
       isConst: node.isConst,
       isExternal: node.isExternal,
@@ -781,7 +781,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     final Uri? activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri ?? _activeFileUri;
     Procedure result = new Procedure(
-        node.name, node.kind, super.clone(node.function!),
+        node.name, node.kind, super.clone(node.function),
         reference: reference,
         transformerFlags: node.transformerFlags,
         fileUri: _activeFileUri,

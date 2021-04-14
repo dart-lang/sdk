@@ -1206,13 +1206,13 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       case ProcedureStubKind.ConcreteForwardingStub:
       case ProcedureStubKind.NoSuchMethodForwarder:
       case ProcedureStubKind.ConcreteMixinStub:
-        writeFunction(node.function!, name: getMemberName(node));
+        writeFunction(node.function, name: getMemberName(node));
         break;
       case ProcedureStubKind.MemberSignature:
       case ProcedureStubKind.AbstractMixinStub:
-        writeFunction(node.function!,
+        writeFunction(node.function,
             name: getMemberName(node), terminateLine: false);
-        if (node.function!.body is ReturnStatement) {
+        if (node.function.body is ReturnStatement) {
           writeSymbol(';');
         }
         writeSymbol(' -> ');
@@ -1241,7 +1241,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (features.isNotEmpty) {
       writeWord("/*${features.join(',')}*/");
     }
-    writeFunction(node.function!,
+    writeFunction(node.function,
         name: node.name, initializers: node.initializers);
   }
 
@@ -2289,8 +2289,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeAnnotationList(node.variable.annotations);
     writeIndentation();
     writeWord('function');
+    // ignore: unnecessary_null_comparison
     if (node.function != null) {
-      writeFunction(node.function!, name: getVariableName(node.variable));
+      writeFunction(node.function, name: getVariableName(node.variable));
     } else {
       writeWord(getVariableName(node.variable));
       endLine('...;');

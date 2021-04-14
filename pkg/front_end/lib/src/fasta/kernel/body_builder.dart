@@ -4999,8 +4999,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     push(new FunctionDeclarationImpl(
         variable,
-        // The function node is created later.
-        null)
+        // The real function node is created later.
+        dummyFunctionNode)
       ..fileOffset = beginToken.charOffset);
     declareVariable(variable, scope.parent);
   }

@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 60;
+  UInt32 formatVersion = 61;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -425,8 +425,7 @@ type Procedure extends Member {
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
-  // Can only be absent if abstract, but tag is there anyway.
-  Option<FunctionNode> function;
+  FunctionNode function;
 }
 
 type RedirectingFactoryConstructor extends Member {

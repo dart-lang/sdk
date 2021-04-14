@@ -512,9 +512,7 @@ void ScopeBuilder::VisitConstructor() {
 void ScopeBuilder::VisitProcedure() {
   ProcedureHelper procedure_helper(&helper_);
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
-  if (helper_.ReadTag() == kSomething) {
-    VisitFunctionNode();
-  }
+  VisitFunctionNode();
 }
 
 void ScopeBuilder::VisitField() {

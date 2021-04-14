@@ -138,7 +138,7 @@ class MixinFullResolution {
         if (setter != null) {
           setters.remove(field.name);
           VariableDeclaration parameter =
-              setter.function!.positionalParameters.first;
+              setter.function.positionalParameters.first;
           clone.isCovariant = parameter.isCovariant;
           clone.isGenericCovariantImpl = parameter.isGenericCovariantImpl;
         }
@@ -180,8 +180,8 @@ class MixinFullResolution {
         var originalProcedure = class_.procedures[i];
         if (originalProcedure.name == procedure.name &&
             originalProcedure.kind == procedure.kind) {
-          FunctionNode src = originalProcedure.function!;
-          FunctionNode dst = procedure.function!;
+          FunctionNode src = originalProcedure.function;
+          FunctionNode dst = procedure.function;
 
           if (src.positionalParameters.length !=
                   dst.positionalParameters.length ||
@@ -200,8 +200,8 @@ class MixinFullResolution {
       Procedure clone = cloner.cloneProcedure(procedure, reference);
       if (originalIndex != null) {
         Procedure originalProcedure = class_.procedures[originalIndex];
-        FunctionNode src = originalProcedure.function!;
-        FunctionNode dst = clone.function!;
+        FunctionNode src = originalProcedure.function;
+        FunctionNode dst = clone.function;
         assert(src.typeParameters.length == dst.typeParameters.length);
         for (int j = 0; j < src.typeParameters.length; ++j) {
           dst.typeParameters[j].flags = src.typeParameters[j].flags;
