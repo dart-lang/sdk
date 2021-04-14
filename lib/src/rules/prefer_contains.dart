@@ -29,12 +29,12 @@ Instead, prefer `contains`.
 
 **GOOD:**
 ```dart
-if (!lunchBox.contains('sandwich') return 'so hungry...';
+if (!lunchBox.contains('sandwich')) return 'so hungry...';
 ```
 
 **BAD:**
 ```dart
-if (lunchBox.indexOf('sandwich') == -1 return 'so hungry...';
+if (lunchBox.indexOf('sandwich')) == -1 return 'so hungry...';
 ```
 
 ''';
