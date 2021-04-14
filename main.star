@@ -996,6 +996,7 @@ nightly_builder(
     category = "vm|nnbd|aot|ma6",
     channels = ["try"],
     dimensions = mac(),
+    properties = {"shard_timeout": (90 * time.minute) // time.second},
 )
 nightly_builder(
     "vm-kernel-precomp-nnbd-win-release-x64",
