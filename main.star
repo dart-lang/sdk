@@ -99,6 +99,7 @@ HIGHEST = 25  # Used for shards in the recipes, included here for completeness.
 
 CHROME = {"custom_vars": {"download_chrome": True}}
 FIREFOX = {"custom_vars": {"download_firefox": True}}
+JS_ENGINES = {"custom_vars": {"checkout_javascript_engines": True}}
 
 def to_location_regexp(paths):
     return [".+/[+]/%s" % path for path in paths]
@@ -1609,7 +1610,7 @@ dart_ci_sandbox_builder(
 )
 
 # Try only builders
-dart_try_builder("benchmark-linux", on_cq = True)
+dart_try_builder("benchmark-linux", on_cq = True, properties = JS_ENGINES)
 
 # Our sysroot does not support gcc, we can't use goma on RBE for this builder
 dart_try_builder("vm-kernel-gcc-linux", goma = False)
