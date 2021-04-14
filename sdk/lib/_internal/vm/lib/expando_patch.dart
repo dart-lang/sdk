@@ -140,9 +140,12 @@ class Expando<T> {
     if ((object == null) ||
         (object is bool) ||
         (object is num) ||
-        (object is String)) {
+        (object is String) ||
+        (object is Pointer) ||
+        (object is Struct)) {
+      // TODO(https://dartbug.com/38491): Reject Unions here as well.
       throw new ArgumentError.value(object,
-          "Expandos are not allowed on strings, numbers, booleans or null");
+          "Expandos are not allowed on strings, numbers, booleans, null, Pointers or Structs.");
     }
   }
 
