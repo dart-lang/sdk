@@ -204,15 +204,11 @@ class MockVisitor extends GeneralizingAstVisitor with PubspecVisitor {
 
   @override
   void visitNode(AstNode node) {
-    if (nodeVisitor != null) {
-      nodeVisitor!(node);
-    }
+    nodeVisitor?.call(node);
   }
 
   @override
   void visitPackageName(PSEntry node) {
-    if (nodeVisitor != null) {
-      nodeVisitor!(node);
-    }
+    nodeVisitor?.call(node);
   }
 }
