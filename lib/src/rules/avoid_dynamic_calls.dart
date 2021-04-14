@@ -126,7 +126,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   bool _lintIfDynamic(Expression? node) {
-    if (node?.staticType?.isDynamic == true) {
+    if (node?.staticType?.isDynamic ?? false) {
       rule.reportLint(node);
       return true;
     } else {
@@ -233,7 +233,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (root is CompoundAssignmentExpression) {
       // Not promoted by "is" since the type would lose capabilities.
       var rootAsAssignment = root as CompoundAssignmentExpression;
-      if (rootAsAssignment.readType?.isDynamic == true) {
+      if (rootAsAssignment.readType?.isDynamic ?? false) {
         // An assignment expression can only be a dynamic call if it is a
         // "compound assignment" (i.e. such as `x += 1`); so if `readType` is
         // dynamic we should lint.

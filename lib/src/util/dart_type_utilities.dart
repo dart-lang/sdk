@@ -497,7 +497,7 @@ class DartTypeUtilities {
         // Otherwise, they might be related.
         return false;
       } else {
-        return leftElement.supertype?.isDartCoreObject == true ||
+        return (leftElement.supertype?.isDartCoreObject ?? false) ||
             leftElement.supertype != rightElement.supertype;
       }
     } else if (promotedLeftType is TypeParameterType &&

@@ -136,7 +136,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var rightOperand = binaryExpression.rightOperand;
     var rightValue = context.evaluateConstant(rightOperand).value;
 
-    if (rightValue != null && rightValue.type?.isDartCoreInt == true) {
+    if (rightValue != null && (rightValue.type?.isDartCoreInt ?? false)) {
       // Constant is on right side of comparison operator
       _checkConstant(binaryExpression, rightValue.toIntValue(), operator.type);
       return;
@@ -144,7 +144,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var leftOperand = binaryExpression.leftOperand;
     var leftValue = context.evaluateConstant(leftOperand).value;
-    if (leftValue != null && leftValue.type?.isDartCoreInt == true) {
+    if (leftValue != null && (leftValue.type?.isDartCoreInt ?? false)) {
       // Constants is on left side of comparison operator
       _checkConstant(binaryExpression, leftValue.toIntValue(),
           _invertedTokenType(operator.type));

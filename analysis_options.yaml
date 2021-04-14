@@ -108,6 +108,7 @@ linter:
     - unnecessary_overrides
     - unnecessary_parenthesis
     - unnecessary_statements
+    - use_if_null_to_convert_nulls_to_bools
     - use_late_for_private_fields_and_variables
     - use_setters_to_change_properties
     - use_string_buffers

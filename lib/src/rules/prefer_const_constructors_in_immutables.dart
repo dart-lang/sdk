@@ -85,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         !element.isConst &&
         !_hasMixin(element.enclosingElement) &&
         _hasImmutableAnnotation(element.enclosingElement) &&
-        (isRedirected && element.redirectedConstructor?.isConst == true ||
+        (isRedirected && (element.redirectedConstructor?.isConst ?? false) ||
             (!isRedirected &&
                 _hasConstConstructorInvocation(node) &&
                 context.canBeConstConstructor(node)))) {
@@ -104,14 +104,14 @@ class _Visitor extends SimpleAstVisitor<void> {
             .firstWhereOrNull((e) => e is SuperConstructorInvocation)
         as SuperConstructorInvocation?;
     if (superInvocation != null) {
-      return superInvocation.staticElement?.isConst == true;
+      return superInvocation.staticElement?.isConst ?? false;
     }
     // construct with this
     var redirectInvocation = node.initializers
             .firstWhereOrNull((e) => e is RedirectingConstructorInvocation)
         as RedirectingConstructorInvocation?;
     if (redirectInvocation != null) {
-      return redirectInvocation.staticElement?.isConst == true;
+      return redirectInvocation.staticElement?.isConst ?? false;
     }
     // construct with implicit super()
     var supertype = clazz.supertype;

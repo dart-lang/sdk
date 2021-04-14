@@ -105,7 +105,7 @@ class TestedExpressions {
             ? binaryExpression.operator.type
             : TokenType.AMPERSAND_AMPERSAND);
 
-    if (_contradictions?.isEmpty == true) {
+    if (_contradictions?.isEmpty ?? false) {
       var set = (binaryExpression != null
           ? _extractComparisons(testingExpression as BinaryExpression)
           : {testingExpression})

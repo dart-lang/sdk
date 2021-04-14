@@ -127,7 +127,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  bool _isDartCoreDouble(DartType? type) => type?.isDartCoreDouble == true;
+  bool _isDartCoreDouble(DartType? type) => type?.isDartCoreDouble ?? false;
 
   bool _isDartCoreDoubleTypeAnnotation(TypeAnnotation? annotation) =>
       _isDartCoreDouble(annotation?.type);
