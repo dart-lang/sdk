@@ -54,6 +54,10 @@ vars = {
   # Checkout Android dependencies only on Mac and Linux.
   "download_android_deps": 'host_os == "mac" or host_os == "linux"',
 
+  # Checkout extra javascript engines for testing or benchmarking.
+  # d8, the V8 shell, is always checked out.
+  "checkout_javascript_engines": False,
+
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
   # The list of revisions for these tools comes from Fuchsia, here:
@@ -662,6 +666,7 @@ hooks = [
       "--directory",
       Var('dart_root') + "/third_party/firefox_jsshell",
     ],
+    "condition": "checkout_javascript_engines",
   },
   {
     # Pull Debian sysroot for i386 Linux
