@@ -114,6 +114,7 @@ class ProgramVisitor : public AllStatic {
 #if defined(DART_PRECOMPILER)
   static void DedupCatchEntryMovesMaps(Zone* zone, IsolateGroup* isolate_group);
   static void DedupUnlinkedCalls(Zone* zone, IsolateGroup* isolate_group);
+  static void PruneSubclasses(Zone* zone, IsolateGroup* isolate_group);
 #endif
   static void DedupCodeSourceMaps(Zone* zone, IsolateGroup* isolate_group);
   static void DedupLists(Zone* zone, IsolateGroup* isolate_group);

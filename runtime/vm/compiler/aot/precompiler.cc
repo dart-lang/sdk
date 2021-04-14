@@ -2407,10 +2407,6 @@ void Precompiler::TraceTypesFromRetainedClasses() {
     while (it.HasNext()) {
       cls = it.GetNextClass();
 
-      // The subclasses/implementors array is only needed for CHA.
-      cls.ClearDirectSubclasses();
-      cls.ClearDirectImplementors();
-
       bool retain = false;
       members = cls.fields();
       if (members.Length() > 0) {
@@ -2563,6 +2559,12 @@ void Precompiler::DropLibraryEntries() {
 void Precompiler::DropClasses() {
   Class& cls = Class::Handle(Z);
   Array& constants = Array::Handle(Z);
+  GrowableObjectArray& implementors = GrowableObjectArray::Handle(Z);
+  GrowableObjectArray& retained_implementors = GrowableObjectArray::Handle(Z);
+  Class& implementor = Class::Handle(Z);
+  GrowableObjectArray& subclasses = GrowableObjectArray::Handle(Z);
+  GrowableObjectArray& retained_subclasses = GrowableObjectArray::Handle(Z);
+  Class& subclass = Class::Handle(Z);
 
   // We are about to remove classes from the class table. For this to be safe,
   // there must be no instances of these classes on the heap, not even
@@ -2572,6 +2574,7 @@ void Precompiler::DropClasses() {
   IG->heap()->CollectAllGarbage();
   IG->heap()->WaitForSweeperTasks(T);
 
+  SafepointWriteRwLocker ml(T, IG->program_lock());
   ClassTable* class_table = IG->class_table();
   intptr_t num_cids = class_table->NumCids();
 
@@ -2589,6 +2592,30 @@ void Precompiler::DropClasses() {
 
     cls = class_table->At(cid);
     ASSERT(!cls.IsNull());
+
+    implementors = cls.direct_implementors();
+    if (!implementors.IsNull()) {
+      retained_implementors = GrowableObjectArray::New();
+      for (intptr_t i = 0; i < implementors.Length(); i++) {
+        implementor ^= implementors.At(i);
+        if (classes_to_retain_.HasKey(&implementor)) {
+          retained_implementors.Add(implementor);
+        }
+      }
+      cls.set_direct_implementors(retained_implementors);
+    }
+
+    subclasses = cls.direct_subclasses();
+    if (!subclasses.IsNull()) {
+      retained_subclasses = GrowableObjectArray::New();
+      for (intptr_t i = 0; i < subclasses.Length(); i++) {
+        subclass ^= subclasses.At(i);
+        if (classes_to_retain_.HasKey(&subclass)) {
+          retained_subclasses.Add(subclass);
+        }
+      }
+      cls.set_direct_subclasses(retained_subclasses);
+    }
 
     if (cls.IsTopLevel()) {
       // Top-level classes are referenced directly from their library. They

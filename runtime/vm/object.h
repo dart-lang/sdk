@@ -1201,8 +1201,11 @@ class Class : public Object {
         IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
     return untag()->direct_implementors();
   }
+  GrowableObjectArrayPtr direct_implementors_unsafe() const {
+    return untag()->direct_implementors();
+  }
+  void set_direct_implementors(const GrowableObjectArray& implementors) const;
   void AddDirectImplementor(const Class& subclass, bool is_mixin) const;
-  void ClearDirectImplementors() const;
 
   // Returns the list of classes having this class as direct superclass.
   GrowableObjectArrayPtr direct_subclasses() const {
@@ -1213,8 +1216,8 @@ class Class : public Object {
   GrowableObjectArrayPtr direct_subclasses_unsafe() const {
     return untag()->direct_subclasses();
   }
+  void set_direct_subclasses(const GrowableObjectArray& subclasses) const;
   void AddDirectSubclass(const Class& subclass) const;
-  void ClearDirectSubclasses() const;
 
   // Check if this class represents the class of null.
   bool IsNullClass() const { return id() == kNullCid; }
