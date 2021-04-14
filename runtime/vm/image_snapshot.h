@@ -472,13 +472,14 @@ class TraceImageObjectScope : ValueObject {
         stream_(ASSERT_NOTNULL(stream)),
         section_offset_(section_offset),
         start_offset_(stream_->Position() - section_offset),
-        object_type_(writer->ObjectTypeForProfile(object)) {}
+        object_type_(writer->ObjectTypeForProfile(object)),
+        object_name_(object.IsString() ? object.ToCString() : nullptr) {}
 
   ~TraceImageObjectScope() {
     if (writer_->profile_writer_ == nullptr) return;
     ASSERT(writer_->IsROSpace());
     writer_->profile_writer_->SetObjectTypeAndName(
-        {writer_->offset_space_, start_offset_}, object_type_, nullptr);
+        {writer_->offset_space_, start_offset_}, object_type_, object_name_);
     writer_->profile_writer_->AttributeBytesTo(
         {writer_->offset_space_, start_offset_},
         stream_->Position() - section_offset_ - start_offset_);
@@ -490,6 +491,7 @@ class TraceImageObjectScope : ValueObject {
   const intptr_t section_offset_;
   const intptr_t start_offset_;
   const char* const object_type_;
+  const char* const object_name_;
 
   DISALLOW_COPY_AND_ASSIGN(TraceImageObjectScope);
 };

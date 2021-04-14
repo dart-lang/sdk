@@ -60,17 +60,21 @@ void main(List<String> args) => input.main(args);
       if (flag != null) '$flag=${snapshot.sizesJson}',
     ];
 
-    // Compile input.dart to native and output instruction sizes.
-    final result = await Process.run(dart2native, [
+    final args = [
       '-o',
       snapshot.outputBinary,
       '--packages=$packages',
       '--extra-gen-snapshot-options=${extraGenSnapshotOptions.join(',')}',
       mainDart,
-    ]);
+    ];
+
+    // Compile input.dart to native and output instruction sizes.
+    final result = await Process.run(dart2native, args);
 
     expect(result.exitCode, equals(0), reason: '''
-Compilation completed successfully.
+Compilation completed with exit code ${result.exitCode}.
+
+Command line: $dart2native ${args.join(' ')}
 
 stdout: ${result.stdout}
 stderr: ${result.stderr}
@@ -86,13 +90,18 @@ stderr: ${result.stderr}
   });
 }
 
+const keepTempKey = 'KEEP_TEMPORARY_DIRECTORIES';
+
 Future withTempDir(Future Function(String dir) f) async {
   final tempDir =
       Directory.systemTemp.createTempSync('instruction-sizes-test-');
   try {
     await f(tempDir.path);
   } finally {
-    tempDir.deleteSync(recursive: true);
+    if (!Platform.environment.containsKey(keepTempKey) ||
+        Platform.environment[keepTempKey].isEmpty) {
+      tempDir.deleteSync(recursive: true);
+    }
   }
 }
 

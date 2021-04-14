@@ -493,7 +493,7 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
   if (profile_writer_ != nullptr) {
     const intptr_t end_position = stream->Position();
     profile_writer_->AttributeBytesTo(
-        V8SnapshotProfileWriter::ArtificialRootId(),
+        V8SnapshotProfileWriter::kArtificialRootId,
         end_position - start_position);
   }
 #endif
@@ -683,7 +683,11 @@ void ImageWriter::WriteText(bool vm) {
       const intptr_t element_offset = id.second - parent_id.second;
       profile_writer_->AttributeReferenceTo(
           parent_id,
-          {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
+          {
+              V8SnapshotProfileWriter::Reference::kElement,
+              {.offset = element_offset},
+          },
+          id);
       // Later objects will have the InstructionsSection as a parent if in
       // bare instructions mode, otherwise the image.
       if (bare_instruction_payloads) {
@@ -747,7 +751,11 @@ void ImageWriter::WriteText(bool vm) {
       const intptr_t element_offset = id.second - parent_id.second;
       profile_writer_->AttributeReferenceTo(
           parent_id,
-          {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
+          {
+              V8SnapshotProfileWriter::Reference::kElement,
+              {.offset = element_offset},
+          },
+          id);
     }
 #endif
 

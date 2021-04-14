@@ -88,6 +88,25 @@ class Snapshot {
         m['strings'],
         edgesStartIndexForNode);
   }
+
+  @override
+  String toString() {
+    final buffer = StringBuffer();
+    buffer
+      ..write("Node count: ")
+      ..writeln(nodeCount)
+      ..write("Edge count: ")
+      ..writeln(edgeCount);
+    buffer.write("Nodes:");
+    for (final node in nodes) {
+      buffer
+        ..writeln()
+        ..write(node.index)
+        ..write(': ')
+        ..writeln(node);
+    }
+    return buffer.toString();
+  }
 }
 
 /// Meta-information about the serialized snapshot.
@@ -227,12 +246,6 @@ class Node {
       'edges': edges.toList(),
     }.toString();
   }
-
-  /// Returns the target of an outgoing edge with the given name (if any),
-  /// but first checks for a corresponding artificial edge indicating a dropped
-  /// object.
-  Node possiblyDroppedTarget(String edgeName) =>
-      this[':$edgeName'] ?? this[edgeName];
 
   /// Returns the target of an outgoing edge with the given name (if any).
   Node operator [](String edgeName) => this
@@ -404,7 +417,7 @@ class _ProgramInfoBuilder {
   ProgramInfoNode createInfoNodeFor(Node node) {
     switch (node.type) {
       case 'Code':
-        var owner = node.possiblyDroppedTarget('owner_');
+        var owner = node['owner_'];
         if (owner.type != 'Type') {
           final ownerNode =
               owner.type == 'Null' ? program.stubs : getInfoNodeFor(owner);
@@ -428,7 +441,7 @@ class _ProgramInfoBuilder {
           // Artificial nodes may not have a data_ field.
           var data = node['data_'];
           if (data?.type == 'ClosureData') {
-            owner = data.possiblyDroppedTarget('parent_function_');
+            owner = data['parent_function_'];
           }
           return makeInfoNode(node.index,
               name: node.name,
