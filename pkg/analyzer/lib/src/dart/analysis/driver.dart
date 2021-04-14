@@ -622,7 +622,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Future<LibraryElement> getLibraryByUri(String uri) async {
     var uriObj = Uri.parse(uri);
     var fileOr = _fsState.getFileForUri(uriObj);
-    return fileOr.mapAsync(
+    return fileOr.map(
       (file) async {
         if (file == null) {
           throw ArgumentError('$uri cannot be resolved to a file.');
@@ -751,7 +751,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// to "idle".
   Future<ResolvedLibraryResult> getResolvedLibraryByUri(Uri uri) {
     var fileOr = _fsState.getFileForUri(uri);
-    return fileOr.mapAsync(
+    return fileOr.map(
       (file) {
         if (file == null) {
           throw ArgumentError('URI cannot be resolved: $uri');

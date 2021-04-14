@@ -23,14 +23,6 @@ class Either2<T1, T2> {
     }
   }
 
-  Future<T> mapAsync<T>(Future<T> Function(T1) f1, Future<T> Function(T2) f2) {
-    if (_which == 1) {
-      return f1(_value as T1);
-    } else {
-      return f2(_value as T2);
-    }
-  }
-
   @override
   String toString() => map((t) => t.toString(), (t) => t.toString());
 }
