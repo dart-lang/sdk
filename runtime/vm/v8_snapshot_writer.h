@@ -155,7 +155,7 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
 
     static Key KeyOf(Pair kv) { return kv.edge; }
     static Value ValueOf(Pair kv) { return kv.target; }
-    static intptr_t Hashcode(Key key) {
+    static uword Hash(Key key) {
       return FinalizeHash(CombineHashes(key.first, key.second), 30);
     }
     static bool IsKeyEqual(Pair kv, Key key) { return kv.edge == key; }
