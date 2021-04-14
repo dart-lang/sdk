@@ -2,18 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:dart_style/dart_style.dart';
-import 'package:meta/meta.dart';
 
 import 'typescript.dart';
 import 'typescript_parser.dart';
 
 final formatter = DartFormatter();
 Map<String, Interface> _interfaces = {};
+
+/// TODO(dantup): Rename namespaces -> enums since they're always that now.
 Map<String, Namespace> _namespaces = {};
-// TODO(dantup): Rename namespaces -> enums since they're always that now.
 Map<String, List<String>> _subtypes = {};
 Map<String, TypeAlias> _typeAliases = {};
 
@@ -63,10 +61,11 @@ void recordTypes(List<AstNode> types) {
 }
 
 TypeBase resolveTypeAlias(TypeBase type, {resolveEnumClasses = false}) {
-  if (type is Type && _typeAliases.containsKey(type.name)) {
+  if (type is Type) {
     final alias = _typeAliases[type.name];
     // Only follow the type if we're not an enum, or we wanted to follow enums.
-    if (!_namespaces.containsKey(alias.name) || resolveEnumClasses) {
+    if (alias != null &&
+        (!_namespaces.containsKey(alias.name) || resolveEnumClasses)) {
       return alias.baseType;
     }
   }
@@ -83,7 +82,7 @@ String _formatCode(String code) {
 }
 
 /// Recursively gets all members from superclasses.
-List<Field> _getAllFields(Interface interface) {
+List<Field> _getAllFields(Interface? interface) {
   // Handle missing interfaces (such as special cased interfaces that won't
   // be included in this model).
   if (interface == null) {
@@ -99,8 +98,8 @@ List<Field> _getAllFields(Interface interface) {
 }
 
 /// Returns a copy of the list sorted by name with duplicates (by name+type) removed.
-List<AstNode> _getSortedUnique(List<AstNode> items) {
-  final uniqueByName = <String, AstNode>{};
+List<N> _getSortedUnique<N extends AstNode>(List<N> items) {
+  final uniqueByName = <String, N>{};
   items.forEach((item) {
     // It's fine to have the same name used for different types (eg. namespace +
     // type alias) but some types are just duplicated entirely in the spec in
@@ -325,10 +324,11 @@ void _writeDocCommentsAndAnnotations(
   var comment = node.commentText?.trim();
   if (comment != null && comment.isNotEmpty) {
     comment = _rewriteCommentReference(comment);
-    Iterable<String> lines = comment.split('\n');
+    var originalLines = comment.split('\n');
     // Wrap at 80 - 4 ('/// ') - indent characters.
-    lines = _wrapLines(lines, (80 - 4 - buffer.totalIndent).clamp(0, 80));
-    lines.forEach((l) => buffer.writeIndentedln('/// $l'.trim()));
+    var wrappedLines =
+        _wrapLines(originalLines, (80 - 4 - buffer.totalIndent).clamp(0, 80));
+    wrappedLines.forEach((l) => buffer.writeIndentedln('/// $l'.trim()));
   }
   // Marking LSP-deprecated fields as deprecated in Dart results in a lot
   // of warnings because we still often populate these fields for clients that
@@ -466,7 +466,7 @@ void _writeField(IndentableStringBuffer buffer, Field field) {
 
 void _writeFromJsonCode(
     IndentableStringBuffer buffer, TypeBase type, String valueCode,
-    {bool allowsNull, bool requiresBracesInInterpolation = false}) {
+    {required bool allowsNull, bool requiresBracesInInterpolation = false}) {
   type = resolveTypeAlias(type);
 
   if (_isSimpleType(type)) {
@@ -506,7 +506,7 @@ void _writeFromJsonCode(
 
 void _writeFromJsonCodeForLiteralUnion(
     IndentableStringBuffer buffer, LiteralUnionType union, String valueCode,
-    {bool allowsNull}) {
+    {required bool allowsNull}) {
   final allowedValues = [
     if (allowsNull) null,
     ...union.literalTypes.map((t) => t.literal)
@@ -518,7 +518,7 @@ void _writeFromJsonCodeForLiteralUnion(
 
 void _writeFromJsonCodeForUnion(
     IndentableStringBuffer buffer, UnionType union, String valueCode,
-    {bool allowsNull, @required bool requiresBracesInInterpolation}) {
+    {required bool allowsNull, required bool requiresBracesInInterpolation}) {
   // Write a check against each type, eg.:
   // x is y ? new Either.tx(x) : (...)
   var hasIncompleteCondition = false;
@@ -575,7 +575,7 @@ void _writeFromJsonConstructor(
     ..indent();
   // First check whether any of our subclasses can deserialise this.
   for (final subclassName in _subtypes[interface.name] ?? const <String>[]) {
-    final subclass = _interfaces[subclassName];
+    final subclass = _interfaces[subclassName]!;
     buffer
       ..writeIndentedln(
           'if (${subclass.name}.canParse(json, nullLspJsonReporter)) {')
@@ -792,7 +792,7 @@ void _writeType(IndentableStringBuffer buffer, AstNode type) {
 }
 
 void _writeTypeCheckCondition(IndentableStringBuffer buffer,
-    Interface interface, String valueCode, TypeBase type, String reporter) {
+    Interface? interface, String valueCode, TypeBase type, String reporter) {
   type = resolveTypeAlias(type);
 
   final dartType = type.dartType;
@@ -840,7 +840,6 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
     }
     buffer.write(')');
   } else if (interface != null &&
-      interface.typeArgs != null &&
       interface.typeArgs.any((typeArg) => typeArg.lexeme == fullDartType)) {
     final comment = '/* $fullDartType.canParse($valueCode) */';
     print(
