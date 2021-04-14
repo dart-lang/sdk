@@ -805,23 +805,12 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisServer.declarationsTracker
         ?.addContext(analysisDriver.analysisContext);
 
-    final supportedDiagnosticTags =
-        analysisServer.clientCapabilities.diagnosticTags;
     analysisDriver.results.listen((result) {
       var path = result.path;
       filesToFlush.add(path);
       if (analysisServer.isAnalyzed(path)) {
-        final serverErrors = protocol.mapEngineErrors(
-            result,
-            result.errors.where(_shouldSendDiagnostic).toList(),
-            (result, error, [severity]) => toDiagnostic(
-                  result,
-                  error,
-                  supportedTags: supportedDiagnosticTags,
-                  errorSeverity: severity,
-                ));
-
-        analysisServer.publishDiagnostics(result.path, serverErrors);
+        final serverErrors = protocol.doAnalysisError_listFromEngine(result);
+        recordAnalysisErrors(result.path, serverErrors);
       }
       if (result.unit != null) {
         if (analysisServer.shouldSendClosingLabelsFor(path)) {
@@ -854,12 +843,13 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void recordAnalysisErrors(String path, List<protocol.AnalysisError> errors) {
+    final errorsToSend = errors.where(_shouldSendError).toList();
     filesToFlush.add(path);
     analysisServer.notificationManager
-        .recordAnalysisErrors(NotificationManager.serverId, path, errors);
+        .recordAnalysisErrors(NotificationManager.serverId, path, errorsToSend);
   }
 
-  bool _shouldSendDiagnostic(AnalysisError error) =>
-      error.errorCode.type != ErrorType.TODO ||
+  bool _shouldSendError(protocol.AnalysisError error) =>
+      error.code != ErrorType.TODO.name.toLowerCase() ||
       analysisServer.clientConfiguration.showTodos;
 }

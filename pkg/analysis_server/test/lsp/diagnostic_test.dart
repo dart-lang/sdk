@@ -266,6 +266,44 @@ version: latest
     await checkPluginErrorsForFile(mainFilePath);
   }
 
+  Future<void> test_fromPlugins_dartFile_combined() async {
+    // Check that if code has both a plugin and a server error, that when the
+    // plugin produces an error, it comes through _with_ the server-produced
+    // error.
+    // https://github.com/dart-lang/sdk/issues/45678
+    //
+    final serverErrorMessage =
+        "A value of type 'int' can't be assigned to a variable of type 'String'";
+    final pluginErrorMessage = 'Test error from plugin';
+
+    newFile(mainFilePath, content: 'String a = 1;');
+    final initialDiagnosticsFuture = waitForDiagnostics(mainFileUri);
+    await initialize();
+    final initialDiagnostics = await initialDiagnosticsFuture;
+    expect(initialDiagnostics, hasLength(1));
+    expect(initialDiagnostics.first.message, contains(serverErrorMessage));
+
+    final pluginTriggeredDiagnosticFuture = waitForDiagnostics(mainFileUri);
+    final pluginError = plugin.AnalysisError(
+      plugin.AnalysisErrorSeverity.ERROR,
+      plugin.AnalysisErrorType.STATIC_TYPE_WARNING,
+      plugin.Location(mainFilePath, 0, 1, 0, 0, 0, 1),
+      pluginErrorMessage,
+      'ERR1',
+    );
+    final pluginResult =
+        plugin.AnalysisErrorsParams(mainFilePath, [pluginError]);
+    configureTestPlugin(notification: pluginResult.toNotification());
+
+    final pluginTriggeredDiagnostics = await pluginTriggeredDiagnosticFuture;
+    expect(
+        pluginTriggeredDiagnostics.map((error) => error.message),
+        containsAll([
+          pluginErrorMessage,
+          contains(serverErrorMessage),
+        ]));
+  }
+
   Future<void> test_fromPlugins_nonDartFile() async {
     await checkPluginErrorsForFile(join(projectFolderPath, 'lib', 'foo.sql'));
   }

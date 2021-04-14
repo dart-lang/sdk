@@ -24,7 +24,6 @@ import 'package:analysis_server/src/protocol_server.dart' as server
 import 'package:analysis_server/src/search/workspace_symbols.dart' as server
     show DeclarationKind;
 import 'package:analyzer/dart/analysis/results.dart' as server;
-import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/source/source_range.dart' as server;
@@ -35,19 +34,21 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/pair.dart';
 import 'package:meta/meta.dart';
 
-const diagnosticTagsForErrorCode = <server.ErrorCode, List<lsp.DiagnosticTag>>{
-  HintCode.DEAD_CODE: [lsp.DiagnosticTag.Unnecessary],
-  HintCode.DEPRECATED_MEMBER_USE: [lsp.DiagnosticTag.Deprecated],
-  HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE: [
-    lsp.DiagnosticTag.Deprecated
-  ],
-  HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE: [
-    lsp.DiagnosticTag.Deprecated
-  ],
-  HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [lsp.DiagnosticTag.Deprecated],
-};
-
 const languageSourceName = 'dart';
+
+final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
+  _errorCode(HintCode.DEAD_CODE): [lsp.DiagnosticTag.Unnecessary],
+  _errorCode(HintCode.DEPRECATED_MEMBER_USE): [lsp.DiagnosticTag.Deprecated],
+  _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE): [
+    lsp.DiagnosticTag.Deprecated
+  ],
+  _errorCode(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE): [
+    lsp.DiagnosticTag.Deprecated
+  ],
+  _errorCode(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE): [
+    lsp.DiagnosticTag.Deprecated
+  ],
+};
 
 lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
     Set<lsp.MarkupKind> preferredFormats, String content) {
@@ -625,12 +626,12 @@ String getDeclarationCompletionDetail(
 }
 
 List<lsp.DiagnosticTag> getDiagnosticTags(
-    Set<lsp.DiagnosticTag> supportedTags, server.AnalysisError error) {
+    Set<lsp.DiagnosticTag> supportedTags, plugin.AnalysisError error) {
   if (supportedTags == null) {
     return null;
   }
 
-  final tags = diagnosticTagsForErrorCode[error.errorCode]
+  final tags = diagnosticTagsForErrorCode[error.code]
       ?.where(supportedTags.contains)
       ?.toList();
 
@@ -717,8 +718,9 @@ ErrorOr<String> pathOfUri(Uri uri) {
 
 lsp.Diagnostic pluginToDiagnostic(
   server.LineInfo Function(String) getLineInfo,
-  plugin.AnalysisError error,
-) {
+  plugin.AnalysisError error, {
+  @required Set<lsp.DiagnosticTag> supportedTags,
+}) {
   List<lsp.DiagnosticRelatedInformation> relatedInformation;
   if (error.contextMessages != null && error.contextMessages.isNotEmpty) {
     relatedInformation = error.contextMessages
@@ -739,6 +741,7 @@ lsp.Diagnostic pluginToDiagnostic(
     code: error.code,
     source: languageSourceName,
     message: message,
+    tags: getDiagnosticTags(supportedTags, error),
     relatedInformation: relatedInformation,
   );
 }
@@ -996,67 +999,10 @@ lsp.Diagnostic toDiagnostic(
   server.AnalysisError error, {
   @required Set<lsp.DiagnosticTag> supportedTags,
   server.ErrorSeverity errorSeverity,
-}) {
-  var errorCode = error.errorCode;
-
-  // Default to the error's severity if none is specified.
-  errorSeverity ??= errorCode.errorSeverity;
-
-  List<lsp.DiagnosticRelatedInformation> relatedInformation;
-  if (error.contextMessages.isNotEmpty) {
-    relatedInformation = error.contextMessages
-        .map((message) => toDiagnosticRelatedInformation(result, message))
-        .toList();
-  }
-
-  var message = error.message;
-  if (error.correctionMessage != null) {
-    message = '$message\n${error.correctionMessage}';
-  }
-
-  return lsp.Diagnostic(
-    range: toRange(result.lineInfo, error.offset, error.length),
-    severity: toDiagnosticSeverity(errorSeverity),
-    code: errorCode.name.toLowerCase(),
-    source: languageSourceName,
-    message: message,
-    tags: getDiagnosticTags(supportedTags, error),
-    relatedInformation: relatedInformation,
-  );
-}
-
-lsp.DiagnosticRelatedInformation toDiagnosticRelatedInformation(
-    server.ResolvedUnitResult result, analyzer.DiagnosticMessage message) {
-  var file = message.filePath;
-  var lineInfo = result.session.getFile(file).lineInfo;
-  return lsp.DiagnosticRelatedInformation(
-      location: lsp.Location(
-        uri: Uri.file(file).toString(),
-        range: toRange(
-          lineInfo,
-          message.offset,
-          message.length,
-        ),
-      ),
-      message: message.message);
-}
-
-lsp.DiagnosticSeverity toDiagnosticSeverity(server.ErrorSeverity severity) {
-  switch (severity) {
-    case server.ErrorSeverity.ERROR:
-      return lsp.DiagnosticSeverity.Error;
-    case server.ErrorSeverity.WARNING:
-      return lsp.DiagnosticSeverity.Warning;
-    case server.ErrorSeverity.INFO:
-      return lsp.DiagnosticSeverity.Information;
-    // Note: LSP also supports "Hint", but they won't render in things like the
-    // VS Code errors list as they're apparently intended to communicate
-    // non-visible diagnostics back (for example, if you wanted to grey out
-    // unreachable code without producing an item in the error list).
-    default:
-      throw 'Unknown AnalysisErrorSeverity: $severity';
-  }
-}
+}) =>
+    pluginToDiagnostic((_) => result.lineInfo,
+        server.newAnalysisError_fromEngine(result, error),
+        supportedTags: supportedTags);
 
 lsp.Element toElement(server.LineInfo lineInfo, server.Element element) =>
     lsp.Element(
@@ -1481,3 +1427,5 @@ Pair<String, lsp.InsertTextFormat> _buildInsertText({
 
   return Pair(insertText, insertTextFormat);
 }
+
+String _errorCode(server.ErrorCode code) => code.name.toLowerCase();
