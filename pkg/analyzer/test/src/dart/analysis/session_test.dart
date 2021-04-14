@@ -175,7 +175,7 @@ class B {}
 
     expect(parsedLibrary.units, hasLength(1));
     {
-      var parsedUnit = parsedLibrary.units[0];
+      var parsedUnit = parsedLibrary.units![0];
       expect(parsedUnit.session, session);
       expect(parsedUnit.path, testPath);
       expect(parsedUnit.uri, Uri.parse('package:test/test.dart'));
@@ -249,15 +249,15 @@ part 'c.dart';
 
     expect(parsedLibrary.units, hasLength(3));
     expect(
-      parsedLibrary.units[0].path,
+      parsedLibrary.units![0].path,
       convertPath('/home/test/lib/test.dart'),
     );
     expect(
-      parsedLibrary.units[1].path,
+      parsedLibrary.units![1].path,
       convertPath('/home/test/lib/a.dart'),
     );
     expect(
-      parsedLibrary.units[2].path,
+      parsedLibrary.units![2].path,
       convertPath('/home/test/lib/c.dart'),
     );
   }
@@ -307,21 +307,21 @@ class C3 {}
     expect(parsedLibrary.units, hasLength(3));
 
     {
-      var aUnit = parsedLibrary.units[0];
+      var aUnit = parsedLibrary.units![0];
       expect(aUnit.path, a);
       expect(aUnit.uri, Uri.parse('package:test/a.dart'));
       expect(aUnit.unit.declarations, hasLength(1));
     }
 
     {
-      var bUnit = parsedLibrary.units[1];
+      var bUnit = parsedLibrary.units![1];
       expect(bUnit.path, b);
       expect(bUnit.uri, Uri.parse('package:test/b.dart'));
       expect(bUnit.unit.declarations, hasLength(2));
     }
 
     {
-      var cUnit = parsedLibrary.units[2];
+      var cUnit = parsedLibrary.units![2];
       expect(cUnit.path, c);
       expect(cUnit.uri, Uri.parse('package:test/c.dart'));
       expect(cUnit.unit.declarations, hasLength(3));
@@ -393,13 +393,13 @@ class B2 extends X {}
     var typeProvider = resolvedLibrary.typeProvider;
     expect(typeProvider.intType.element.name, 'int');
 
-    var libraryElement = resolvedLibrary.element;
+    var libraryElement = resolvedLibrary.element!;
 
     var aClass = libraryElement.getType('A')!;
 
     var bClass = libraryElement.getType('B')!;
 
-    var aUnitResult = resolvedLibrary.units[0];
+    var aUnitResult = resolvedLibrary.units![0];
     expect(aUnitResult.path, a);
     expect(aUnitResult.uri, Uri.parse('package:test/a.dart'));
     expect(aUnitResult.content, aContent);
@@ -408,7 +408,7 @@ class B2 extends X {}
     expect(aUnitResult.unit!.declarations, hasLength(1));
     expect(aUnitResult.errors, isEmpty);
 
-    var bUnitResult = resolvedLibrary.units[1];
+    var bUnitResult = resolvedLibrary.units![1];
     expect(bUnitResult.path, b);
     expect(bUnitResult.uri, Uri.parse('package:test/b.dart'));
     expect(bUnitResult.content, bContent);
@@ -449,7 +449,7 @@ int foo = 0;
 ''');
 
     var resolvedLibrary = await session.getResolvedLibrary(testPath);
-    var unitElement = resolvedLibrary.element.definingCompilationUnit;
+    var unitElement = resolvedLibrary.element!.definingCompilationUnit;
 
     var fooElement = unitElement.topLevelVariables[0];
     expect(fooElement.name, 'foo');
@@ -478,15 +478,15 @@ part 'c.dart';
 
     expect(resolvedLibrary.units, hasLength(3));
     expect(
-      resolvedLibrary.units[0].path,
+      resolvedLibrary.units![0].path,
       convertPath('/home/test/lib/test.dart'),
     );
     expect(
-      resolvedLibrary.units[1].path,
+      resolvedLibrary.units![1].path,
       convertPath('/home/test/lib/a.dart'),
     );
     expect(
-      resolvedLibrary.units[2].path,
+      resolvedLibrary.units![2].path,
       convertPath('/home/test/lib/c.dart'),
     );
   }
@@ -509,7 +509,7 @@ part 'c.dart';
     expect(resolvedLibrary.path, testPath);
     expect(resolvedLibrary.uri, Uri.parse('package:test/test.dart'));
     expect(resolvedLibrary.units, hasLength(1));
-    expect(resolvedLibrary.units[0].unit!.declaredElement, isNotNull);
+    expect(resolvedLibrary.units![0].unit!.declaredElement, isNotNull);
   }
 
   test_getResolvedLibraryByElement_differentSession() async {

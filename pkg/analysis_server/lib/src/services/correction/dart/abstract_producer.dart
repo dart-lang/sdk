@@ -248,7 +248,7 @@ class CorrectionProducerContext {
     this.overrideSet,
     this.selectionOffset = -1,
     this.selectionLength = 0,
-  })  : file = resolvedResult.path,
+  })  : file = resolvedResult.path!,
         session = resolvedResult.session,
         sessionHelper = AnalysisSessionHelper(resolvedResult.session),
         typeProvider = resolvedResult.typeProvider,

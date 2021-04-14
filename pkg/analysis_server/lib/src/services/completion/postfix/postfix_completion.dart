@@ -264,7 +264,7 @@ class PostfixCompletionProcessor {
 
   String get eol => utils.endOfLine;
 
-  String get file => completionContext.resolveResult.path;
+  String get file => completionContext.resolveResult.path!;
 
   String get key => completionContext.key;
 

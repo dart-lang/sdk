@@ -20,7 +20,7 @@ class DartOccurrencesRequestImpl implements DartOccurrencesRequest {
   DartOccurrencesRequestImpl(this.resourceProvider, this.result);
 
   @override
-  String get path => result.path;
+  String get path => result.path!;
 }
 
 /// A concrete implementation of [OccurrencesCollector].

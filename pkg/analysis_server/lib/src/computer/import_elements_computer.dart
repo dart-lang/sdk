@@ -33,7 +33,7 @@ class ImportElementsComputer {
       List<ImportedElements> importedElementsList) async {
     var unit = libraryResult.unit;
     var path = libraryResult.path;
-    if (unit == null) {
+    if (unit == null || path == null) {
       // We should never reach this point because the libraryResult should be
       // valid.
       return SourceChange('');

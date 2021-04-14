@@ -96,7 +96,7 @@ class DartCompletionManager {
   }) async {
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
-    if (!file_paths.isDart(pathContext, request.result.path)) {
+    if (!file_paths.isDart(pathContext, request.result.path!)) {
       return const <CompletionSuggestion>[];
     }
 

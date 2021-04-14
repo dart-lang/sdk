@@ -398,7 +398,7 @@ class FileResolver {
         performance: performance,
       );
       var result =
-          libraryUnit.units.firstWhere((element) => element.path == path);
+          libraryUnit.units!.firstWhere((element) => element.path == path);
       return result;
     });
   }

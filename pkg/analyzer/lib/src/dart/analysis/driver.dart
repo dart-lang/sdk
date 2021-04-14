@@ -215,7 +215,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _resultController = StreamController<ResolvedUnitResult>();
 
   /// The stream that will be written to when analysis results are produced.
-  late final Stream<ResolvedUnitResult> _resultStream;
+  late final Stream<ResolvedUnitResult> _onResults;
 
   /// Resolution signatures of the most recently produced results for files.
   final Map<String, String> _lastProducedSignatures = {};
@@ -282,7 +282,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _externalSummaries = externalSummaries,
         testingData = retainDataForTesting ? TestingData() : null {
     _createNewSession(null);
-    _resultStream = _resultController.stream.asBroadcastStream();
+    _onResults = _resultController.stream.asBroadcastStream();
     _testView = AnalysisDriverTestView(this);
     _createFileTracker();
     _scheduler.add(this);
@@ -361,7 +361,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// Results might be produced even for files that have never been added
   /// using [addFile], for example when [getResult] was called for a file.
-  Stream<ResolvedUnitResult> get results => _resultStream;
+  Stream<ResolvedUnitResult> get results => _onResults;
 
   /// Return the search support for the driver.
   Search get search => _search;
@@ -649,7 +649,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     FileState file = _fsState.getFileForPath(path);
 
     if (file.isExternalLibrary) {
-      return NotValidParsedLibraryResultImpl(ResultState.EXTERNAL_LIBRARY);
+      return ParsedLibraryResultImpl.external(currentSession, file.uri);
     }
 
     if (file.isPart) {
@@ -680,7 +680,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     if (file.isExternalLibrary) {
-      return NotValidParsedLibraryResultImpl(ResultState.EXTERNAL_LIBRARY);
+      return ParsedLibraryResultImpl.external(currentSession, file.uri);
     }
 
     if (file.isPart) {
@@ -718,7 +718,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     if (file.isExternalLibrary) {
       return Future.value(
-        NotValidResolvedLibraryResultImpl(ResultState.EXTERNAL_LIBRARY),
+        ResolvedLibraryResultImpl.external(currentSession, file.uri),
       );
     }
 
@@ -756,7 +756,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     if (file.isExternalLibrary) {
       return Future.value(
-        NotValidResolvedLibraryResultImpl(ResultState.EXTERNAL_LIBRARY),
+        ResolvedLibraryResultImpl.external(currentSession, file.uri),
       );
     }
 
@@ -1102,7 +1102,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           // last time, so we don't need to produce it again now.
         } else {
           _resultController.add(result);
-          _lastProducedSignatures[result.path] = result._signature;
+          _lastProducedSignatures[result.path!] = result._signature;
         }
       } catch (exception, stackTrace) {
         _reportException(path, exception, stackTrace);
