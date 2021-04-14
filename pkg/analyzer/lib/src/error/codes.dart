@@ -14200,13 +14200,6 @@ class StrongModeCode extends ErrorCode {
   /* TODO(leafp) Delete most of these.
    */
 
-  static const StrongModeCode TOP_LEVEL_FUNCTION_LITERAL_BLOCK = StrongModeCode(
-      ErrorType.HINT,
-      'TOP_LEVEL_FUNCTION_LITERAL_BLOCK',
-      "The type of the function literal can't be inferred because the "
-          "literal has a block as its body.",
-      correction: "Try adding an explicit type to the variable.");
-
   static const StrongModeCode TOP_LEVEL_IDENTIFIER_NO_TYPE = StrongModeCode(
       ErrorType.HINT,
       'TOP_LEVEL_IDENTIFIER_NO_TYPE',

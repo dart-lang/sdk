@@ -122,11 +122,13 @@ var b1 = a[1];
   }
 
   test_initializer_functionLiteral_blockBody() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 var t = (int p) {};
-''', [
-      error(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK, 8, 10),
-    ]);
+''');
+    assertType(
+      findElement.topVar('t').type,
+      'Null Function(int)',
+    );
   }
 
   test_initializer_functionLiteral_expressionBody() async {
@@ -134,12 +136,20 @@ var t = (int p) {};
 var a = 0;
 var t = (int p) => (a = 1);
 ''');
+    assertType(
+      findElement.topVar('t').type,
+      'int Function(int)',
+    );
   }
 
   test_initializer_functionLiteral_parameters_withoutType() async {
     await assertNoErrorsInCode('''
 var t = (int a, b,int c, d) => 0;
 ''');
+    assertType(
+      findElement.topVar('t').type,
+      'int Function(int, dynamic, int, dynamic)',
+    );
   }
 
   test_initializer_hasTypeAnnotation() async {

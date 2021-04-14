@@ -1064,17 +1064,6 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
   }
 
   @override
-  visitFunctionExpression(FunctionExpression node) {
-    var body = node.body;
-    if (body is ExpressionFunctionBody) {
-      body.expression.accept(this);
-    } else {
-      _codeChecker._recordMessage(
-          node, StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK, []);
-    }
-  }
-
-  @override
   visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     if (node.typeArguments != null) {
       return;
