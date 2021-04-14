@@ -5851,8 +5851,9 @@ Definition* PhiInstr::GetReplacementForRedundantPhi() const {
   bool look_for_redefinition = false;
   for (intptr_t i = 1; i < InputCount(); ++i) {
     Definition* def = InputAt(i)->definition();
-    if (def != first) {
-      if (def->OriginalDefinition() != first_origin) return nullptr;
+    if ((def != first) && (def != this)) {
+      Definition* origin = def->OriginalDefinition();
+      if ((origin != first_origin) && (origin != this)) return nullptr;
       look_for_redefinition = true;
     }
   }
@@ -5865,7 +5866,7 @@ Definition* PhiInstr::GetReplacementForRedundantPhi() const {
       bool found = false;
       do {
         Definition* def = value->definition();
-        if (def == redef) {
+        if ((def == redef) || (def == this)) {
           found = true;
           break;
         }
@@ -5973,7 +5974,8 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   if (create_array == nullptr) {
     // Do not try to fold interpolate if array is an OSR argument.
     ASSERT(flow_graph->IsCompiledForOsr());
-    ASSERT(value()->definition()->IsPhi());
+    ASSERT(value()->definition()->IsPhi() ||
+           value()->definition()->IsParameter());
     return this;
   }
   // Check if the string interpolation has only constant inputs.

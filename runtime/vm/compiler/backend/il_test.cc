@@ -261,4 +261,56 @@ ISOLATE_UNIT_TEST_CASE(IL_IntConverterCanonicalization) {
                                                kUnboxedInt64, kUnboxedUint32));
 }
 
+ISOLATE_UNIT_TEST_CASE(IL_PhiCanonicalization) {
+  using compiler::BlockBuilder;
+
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+
+  FlowGraphBuilderHelper H;
+
+  auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+  auto b2 = H.JoinEntry();
+  auto b3 = H.TargetEntry();
+  auto b4 = H.TargetEntry();
+
+  Definition* v0;
+  ReturnInstr* ret;
+  PhiInstr* phi;
+
+  {
+    BlockBuilder builder(H.flow_graph(), normal_entry);
+    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    builder.AddInstruction(new GotoInstr(b2, S.GetNextDeoptId()));
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), b2);
+    phi = new PhiInstr(b2, 2);
+    phi->SetInputAt(0, new Value(v0));
+    phi->SetInputAt(1, new Value(phi));
+    builder.AddPhi(phi);
+    builder.AddBranch(new StrictCompareInstr(
+                          InstructionSource(), Token::kEQ_STRICT,
+                          new Value(H.IntConstant(1)), new Value(phi),
+                          /*needs_number_check=*/false, S.GetNextDeoptId()),
+                      b3, b4);
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), b3);
+    builder.AddInstruction(new GotoInstr(b2, S.GetNextDeoptId()));
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), b4);
+    ret = builder.AddReturn(new Value(phi));
+  }
+
+  H.FinishGraph();
+
+  H.flow_graph()->Canonicalize();
+
+  EXPECT(ret->value()->definition() == v0);
+}
+
 }  // namespace dart
