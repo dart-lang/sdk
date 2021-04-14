@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
@@ -154,7 +152,7 @@ class RegionTypeMapper {
     // for faster lookups.
     for (final regionType in highlightRegionTokenTypes.keys) {
       _tokenTypeIndexForHighlightRegion[regionType] = semanticTokenLegend
-          .indexForType(highlightRegionTokenTypes[regionType]);
+          .indexForType(highlightRegionTokenTypes[regionType]!);
     }
 
     for (final regionType in highlightRegionTokenTypes.keys) {
@@ -166,10 +164,10 @@ class RegionTypeMapper {
   /// Gets the [SemanticTokenModifiers] bitmask for a [HighlightRegionType]. Returns
   /// null if the region type has not been mapped.
   int bitmaskForModifier(HighlightRegionType type) =>
-      _tokenModifierBitmaskForHighlightRegion[type];
+      _tokenModifierBitmaskForHighlightRegion[type]!;
 
   /// Gets the [SemanticTokenTypes] index for a [HighlightRegionType]. Returns
   /// null if the region type has not been mapped.
   int indexForToken(HighlightRegionType type) =>
-      _tokenTypeIndexForHighlightRegion[type];
+      _tokenTypeIndexForHighlightRegion[type]!;
 }

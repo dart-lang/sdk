@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:analysis_server/src/utilities/strings.dart';
@@ -93,7 +91,7 @@ code, run the same script with an argument of "--download".''',
     licenseResp.body,
     specResp.body
   ];
-  return File(localSpecPath).writeAsString(text.join('\n\n---\n\n'));
+  await File(localSpecPath).writeAsString(text.join('\n\n---\n\n'));
 }
 
 Namespace extractMethodsEnum(String spec) {
@@ -136,7 +134,8 @@ List<AstNode> extractResultsInlineTypes(String spec) {
     final parsed = parseString(typeAlias);
 
     // Extract the InlineInterface that was created.
-    InlineInterface interface = parsed.firstWhere((t) => t is InlineInterface);
+    final interface =
+        parsed.firstWhere((t) => t is InlineInterface) as InlineInterface;
 
     // Create a new name based on the fields.
     var newName = interface.members.map((m) => capitalize(m.name)).join('And');
@@ -146,7 +145,7 @@ List<AstNode> extractResultsInlineTypes(String spec) {
 
   return _resultsInlineTypesPattern
       .allMatches(spec)
-      .map((m) => m.group(1).trim())
+      .map((m) => m.group(1)!.trim())
       .toList()
       .map(toInterface)
       .toList();
@@ -178,7 +177,7 @@ const jsonEncoder = JsonEncoder.withIndent('    ');
 ''';
 
 List<AstNode> getCustomClasses() {
-  Interface interface(String name, List<Member> fields, {String baseType}) {
+  Interface interface(String name, List<Member> fields, {String? baseType}) {
     return Interface(
       null,
       Token.identifier(name),
@@ -188,8 +187,13 @@ List<AstNode> getCustomClasses() {
     );
   }
 
-  Field field(String name,
-      {String type, array = false, canBeNull = false, canBeUndefined = false}) {
+  Field field(
+    String name, {
+    required String type,
+    array = false,
+    canBeNull = false,
+    canBeUndefined = false,
+  }) {
     var fieldType =
         array ? ArrayType(Type.identifier(type)) : Type.identifier(type);
 
