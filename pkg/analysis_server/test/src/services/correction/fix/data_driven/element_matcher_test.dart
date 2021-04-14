@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -21,11 +19,11 @@ void main() {
 
 abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
   void _assertMatcher(String search,
-      {List<String> expectedComponents,
-      List<ElementKind> expectedKinds,
-      List<String> expectedUris}) {
+      {List<String>? expectedComponents,
+      List<ElementKind>? expectedKinds,
+      List<String>? expectedUris}) {
     var node = findNode.any(search);
-    var matcher = ElementMatcher.forNode(node);
+    var matcher = ElementMatcher.forNode(node)!;
     if (expectedUris != null) {
       expect(matcher.importedUris,
           unorderedEquals(expectedUris.map((uri) => Uri.parse(uri))));

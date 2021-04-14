@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/changes_selector.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
@@ -336,7 +334,7 @@ abstract class _AbstractRenameParameterInTest
           date: DateTime.now(),
           element: ElementDescriptor(
               libraryUris: [Uri.parse(importUri)],
-              kind: ElementKindUtilities.fromName(_kind),
+              kind: ElementKindUtilities.fromName(_kind)!,
               components: components),
           bulkApply: false,
           changesSelector: UnconditionalChangesSelector([

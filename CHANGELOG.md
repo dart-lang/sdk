@@ -8,6 +8,21 @@
     daylight saving changes that are not precisely one hour.
     (No change on the Web which uses the JavaScript `Date` object.)
 
+
+### Tools
+
+#### Linter
+
+Updated the Linter to `1.3.0`, which includes:
+
+- updated `non_constant_identifier_names` to check local variables, for-loop
+  initializers and catch clauses.
+- updated error range of `lines_longer_than_80_chars` to start at 80 to make
+  splitting easier.
+- new lint: `require_trailing_commas`.
+- new lint: `prefer_null_aware_method_calls`.
+
+
 ## 2.13.0
 
 ### Language

@@ -1133,7 +1133,6 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
 
 bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
   ASSERT(AllowsCSE());
-  ASSERT(!field().is_late() || calls_initializer());
   return field().ptr() == other->AsLoadStaticField()->field().ptr();
 }
 
@@ -6190,7 +6189,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   if (idx == 0) return kNoRepresentation;  // Flexible input representation.
   if (idx == 1) {
     if (index_unboxed_) {
-#if defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IS_64_BIT)
       return kUnboxedInt64;
 #else
       // TODO(dartbug.com/39432): kUnboxedInt32 || kUnboxedUint32 on 32-bit

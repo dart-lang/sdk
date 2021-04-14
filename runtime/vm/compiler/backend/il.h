@@ -5536,9 +5536,10 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
     // the dominating load.
     //
     // Though if the field is final-late there can be stores into it via
-    // load/compare-with-sentinel/store. Those loads have `!calls_initializer()`
-    // and we won't allow CSE for them.
-    return field().is_final() && (!field().is_late() || calls_initializer());
+    // load/compare-with-sentinel/store. Those loads have
+    // `!field().has_initializer()` and we won't allow CSE for them.
+    return field().is_final() &&
+           (!field().is_late() || field().has_initializer());
   }
 
   virtual bool ComputeCanDeoptimize() const {
