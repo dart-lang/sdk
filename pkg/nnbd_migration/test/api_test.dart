@@ -2138,6 +2138,37 @@ int f(int? i) => i!;
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  Future<void> test_extension_complex() async {
+    var content = '''
+import 'already_migrated.dart';
+class D<V> extends C<V> {}
+abstract class Foo {
+  D<List<int>> get z;
+  List<int> test() => z.x ?? [];
+}
+''';
+    var alreadyMigrated = '''
+// @dart=2.12
+extension E<T> on C<T> {
+  T? get x => y;
+}
+class C<U> {
+  U? y;
+}
+''';
+    var expected = '''
+import 'already_migrated.dart';
+class D<V> extends C<V> {}
+abstract class Foo {
+  D<List<int>> get z;
+  List<int> test() => z.x ?? [];
+}
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '$projectPath/lib/already_migrated.dart': alreadyMigrated
+    });
+  }
+
   Future<void> test_extension_extended_type_nullability_intent() async {
     var content = '''
 extension E on C {
@@ -2183,7 +2214,7 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_extension_null_check_non_nullable() async {
+  Future<void> test_extension_null_check_non_nullable_method() async {
     var content = '''
 class C {}
 extension E on C/*!*/ {
@@ -2204,6 +2235,90 @@ extension E on C {
 void f(C? c, bool b) {
   if (b) {
     c!.m();
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_non_nullable_binary() async {
+    var content = '''
+class C {}
+extension E on C/*!*/ {
+  void operator+(int other) {}
+}
+void f(C c, bool b) {
+  if (b) {
+    c + 0;
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E on C {
+  void operator+(int other) {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    c! + 0;
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_non_nullable_prefix() async {
+    var content = '''
+class C {}
+extension E on C/*!*/ {
+  void operator-() {}
+}
+void f(C c, bool b) {
+  if (b) {
+    -c;
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E on C {
+  void operator-() {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    -c!;
+  }
+}
+void g() => f(null, false);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_null_check_non_nullable_index() async {
+    var content = '''
+class C {}
+extension E on C/*!*/ {
+  void operator[](int index) {}
+}
+void f(C c, bool b) {
+  if (b) {
+    c[0];
+  }
+}
+void g() => f(null, false);
+''';
+    var expected = '''
+class C {}
+extension E on C {
+  void operator[](int index) {}
+}
+void f(C? c, bool b) {
+  if (b) {
+    c![0];
   }
 }
 void g() => f(null, false);
@@ -2480,6 +2595,25 @@ C f(C c) => c.clone();
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_extension_on_type_substitution() async {
+    var content = '''
+extension E<T> on T {
+  T get foo => this;
+}
+List<int> f(List<int/*?*/> x) => x.foo;
+''';
+    // To see that the return type of `f` must be `List<int?`, the migration
+    // tool needs to substitute the actual type argument (`T=List<int?>`) into
+    // the extension's "on" type.
+    var expected = '''
+extension E<T> on T {
+  T get foo => this;
+}
+List<int?> f(List<int?> x) => x.foo;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_extension_override() async {
     var content = '''
 extension E on int {
@@ -2540,6 +2674,38 @@ extension E on int? {
   int get one => 1;
 }
 int f(int? x) => E(x).one;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_extension_use_can_imply_non_null_intent() async {
+    var content = '''
+extension E<T extends Object/*!*/> on T/*!*/ {
+  void foo() {}
+}
+f(int i) {
+  i.foo();
+}
+g(bool b, int/*?*/ j) {
+  if (b) {
+    f(j);
+  }
+}
+''';
+    // Since the extension declaration says `T extends Object/*!*/`, `i` will
+    // not be made nullable.
+    var expected = '''
+extension E<T extends Object> on T {
+  void foo() {}
+}
+f(int i) {
+  i.foo();
+}
+g(bool b, int? j) {
+  if (b) {
+    f(j!);
+  }
+}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
