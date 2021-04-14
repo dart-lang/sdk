@@ -804,6 +804,29 @@ C f() {}
 ''');
   }
 
+  test_initializer_fromInstanceMethod() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A {
+  int foo() => 0;
+}
+class B extends A {
+  foo() => 1;
+}
+var x = A().foo();
+var y = B().foo();
+''');
+    checkElementText(library, r'''
+class A {
+  int foo() {}
+}
+class B extends A {
+  int foo() {}
+}
+int x;
+int y;
+''');
+  }
+
   test_initializer_functionExpression() async {
     var library = await _encodeDecodeLibrary(r'''
 import 'dart:async';

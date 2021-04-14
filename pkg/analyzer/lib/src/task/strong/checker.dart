@@ -1029,14 +1029,6 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
           _codeChecker._recordMessage(
               n, StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, [_name, e.name]);
         }
-      } else if (!isMethodCall &&
-          e is ExecutableElement &&
-          e.kind == ElementKind.METHOD &&
-          !e.isStatic) {
-        if (_hasAnyImplicitType(e)) {
-          _codeChecker._recordMessage(
-              n, StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, [_name, e.name]);
-        }
       }
     }
   }
@@ -1135,19 +1127,7 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
     var method = node.methodName.staticElement;
     validateIdentifierElement(node, method, isMethodCall: true);
     if (method is ExecutableElement) {
-      if (method.kind == ElementKind.METHOD &&
-          !method.isStatic &&
-          method.hasImplicitReturnType) {
-        _codeChecker._recordMessage(node,
-            StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, [_name, method.name]);
-      }
       if (node.typeArguments == null && method.typeParameters.isNotEmpty) {
-        if (method.kind == ElementKind.METHOD &&
-            !method.isStatic &&
-            _anyParameterHasImplicitType(method)) {
-          _codeChecker._recordMessage(node,
-              StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, [_name, method.name]);
-        }
         // Type inference might depend on the parameters
         node.argumentList.accept(this);
       }
@@ -1178,17 +1158,5 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
   @override
   visitThrowExpression(ThrowExpression node) {
     // Nothing to validate.
-  }
-
-  bool _anyParameterHasImplicitType(ExecutableElement e) {
-    for (var parameter in e.parameters) {
-      if (parameter.hasImplicitType) return true;
-    }
-    return false;
-  }
-
-  bool _hasAnyImplicitType(ExecutableElement e) {
-    if (e.hasImplicitReturnType) return true;
-    return _anyParameterHasImplicitType(e);
   }
 }
