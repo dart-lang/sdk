@@ -680,8 +680,9 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   bool typeChecksEnabled = false;
   int nativeZoneMemoryUsage = 0;
   int pid = 0;
-  int heapAllocatedMemoryUsage = 0;
-  int heapAllocationCount = 0;
+  int mallocUsed = 0;
+  int mallocCapacity = 0;
+  String mallocImplementation = 'unknown';
   int currentMemory = 0;
   int maxRSS = 0;
   int currentRSS = 0;
@@ -1041,8 +1042,9 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       nativeZoneMemoryUsage = map['_nativeZoneMemoryUsage'];
     }
     pid = map['pid'];
-    heapAllocatedMemoryUsage = map['_heapAllocatedMemoryUsage'];
-    heapAllocationCount = map['_heapAllocationCount'];
+    mallocUsed = map['_mallocUsed'];
+    mallocCapacity = map['_mallocCapacity'];
+    mallocImplementation = map['_mallocImplementation'];
     embedder = map['_embedder'];
     currentMemory = map['_currentMemory'];
     maxRSS = map['_maxRSS'];
