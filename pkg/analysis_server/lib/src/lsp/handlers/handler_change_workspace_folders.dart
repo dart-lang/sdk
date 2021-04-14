@@ -40,7 +40,7 @@ class WorkspaceFoldersHandler
         ?.map((wf) => Uri.parse(wf.uri).toFilePath())
         ?.toList();
 
-    server.updateAnalysisRoots(added, removed);
+    server.updateWorkspaceFolders(added, removed);
 
     return success();
   }

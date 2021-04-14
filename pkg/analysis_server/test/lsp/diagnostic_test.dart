@@ -285,6 +285,28 @@ version: latest
     expect(diagnostic.range.end.character, equals(12));
   }
 
+  Future<void> test_looseFile_withoutPubpsec() async {
+    await initialize(allowEmptyRootUri: true);
+
+    // Opening the file should trigger diagnostics.
+    {
+      final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+      await openFile(mainFileUri, 'final a = Bad();');
+      final diagnostics = await diagnosticsUpdate;
+      expect(diagnostics, hasLength(1));
+      final diagnostic = diagnostics.first;
+      expect(diagnostic.message, contains("The function 'Bad' isn't defined"));
+    }
+
+    // Closing the file should remove the diagnostics.
+    {
+      final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+      await closeFile(mainFileUri);
+      final diagnostics = await diagnosticsUpdate;
+      expect(diagnostics, hasLength(0));
+    }
+  }
+
   Future<void> test_todos() async {
     // TODOs only show up if there's also some code in the file.
     const contents = '''

@@ -11,28 +11,6 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:path/path.dart' show dirname, join;
-
-/// Finds the nearest ancestor to [filePath] that contains a pubspec/.packages/build file.
-String _findProjectFolder(ResourceProvider resourceProvider, String filePath) {
-  // TODO(dantup): Is there something we can reuse for this?
-  var folder = dirname(filePath);
-  while (folder != dirname(folder)) {
-    final pubspec =
-        resourceProvider.getFile(join(folder, file_paths.pubspecYaml));
-    final packages =
-        resourceProvider.getFile(join(folder, file_paths.dotPackages));
-    final build = resourceProvider.getFile(join(folder, 'BUILD'));
-
-    if (pubspec.exists || packages.exists || build.exists) {
-      return folder;
-    }
-    folder = dirname(folder);
-  }
-  return null;
-}
 
 class TextDocumentChangeHandler
     extends MessageHandler<DidChangeTextDocumentParams, void> {
@@ -95,7 +73,6 @@ class TextDocumentCloseHandler
       server.removePriorityFile(path);
       server.documentVersions.remove(path);
       server.onOverlayDestroyed(path);
-      server.removeTemporaryAnalysisRoot(path);
 
       return success();
     });
@@ -127,22 +104,9 @@ class TextDocumentOpenHandler
       );
       server.onOverlayCreated(path, doc.text);
 
-      final driver = server.getAnalysisDriver(path);
       // If the file did not exist, and is "overlay only", it still should be
       // analyzed. Add it to driver to which it should have been added.
-
-      driver?.addFile(path);
-
-      // Figure out the best analysis root for this file and register it as a temporary
-      // analysis root. We need to register it even if we found a driver, so that if
-      // the driver existed only because of another open file, it will not be removed
-      // when that file is closed.
-      final analysisRoot = driver?.analysisContext?.contextRoot?.root?.path ??
-          _findProjectFolder(server.resourceProvider, path) ??
-          dirname(path);
-      if (analysisRoot != null) {
-        server.addTemporaryAnalysisRoot(path, analysisRoot);
-      }
+      server.contextManager.getDriverFor(path)?.addFile(path);
 
       server.addPriorityFile(path);
 
