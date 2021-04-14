@@ -16545,7 +16545,7 @@ class FontFaceSet extends EventTarget {
 
   String? get status native;
 
-  FontFaceSet add(FontFace arg) native;
+  FontFaceSet? add(FontFace arg) native;
 
   bool check(String font, [String? text]) native;
 

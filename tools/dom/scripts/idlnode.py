@@ -796,7 +796,11 @@ def generate_callback(interface_name, result_type, arguments):
     return syn_op
 
 
-def generate_operation(interface_name, result_type_name, oper_name, arguments):
+def generate_operation(interface_name,
+                       result_type_name,
+                       oper_name,
+                       arguments,
+                       result_nullable=False):
     """ Synthesize an IDLOperation with no AST used for support of setlike."""
     """ Arguments is a list of argument where each argument is:
           [IDLType, argument_name, optional_boolean] """
@@ -805,6 +809,7 @@ def generate_operation(interface_name, result_type_name, oper_name, arguments):
 
     syn_op.type = IDLType(None, result_type_name)
     syn_op.type = resolveTypedef(syn_op.type)
+    syn_op.type.nullable = result_nullable
 
     for argument in arguments:
         arg = IDLArgument(None, argument[1])
@@ -854,9 +859,13 @@ def generate_setLike_operations_properties(interface, set_like):
     setlike_ops.append(set_op)
 
     if not set_like.is_read_only:
+        # Issue #45676: `add` can return null on Firefox, so this should be
+        # typed nullable.
+        add_result_nullable = True
         set_op = generate_operation(
             interface.id, interface.id, 'add',
-            [[IDLType(None, set_like.value_type.base_type), 'arg']])
+            [[IDLType(None, set_like.value_type.base_type), 'arg']],
+            add_result_nullable)
         setlike_ops.append(set_op)
         set_op = generate_operation(
             interface.id, 'boolean', 'delete',
