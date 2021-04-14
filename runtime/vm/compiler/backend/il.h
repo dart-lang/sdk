@@ -1077,7 +1077,7 @@ class Instruction : public ZoneAllocated {
   virtual bool has_inlining_id() const { return inlining_id_ >= 0; }
 
   // Returns a hash code for use with hash maps.
-  virtual intptr_t Hashcode() const;
+  virtual uword Hash() const;
 
   // Compares two instructions.  Returns true, iff:
   // 1. They have the same tag.
@@ -2486,7 +2486,7 @@ class PhiInstr : public Definition {
     return CompilerState::Current().is_aot() ? kNotSpeculative : kGuardInputs;
   }
 
-  virtual intptr_t Hashcode() const {
+  virtual uword Hash() const {
     UNREACHABLE();
     return 0;
   }
@@ -2587,7 +2587,7 @@ class ParameterInstr : public Definition {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual intptr_t Hashcode() const {
+  virtual uword Hash() const {
     UNREACHABLE();
     return 0;
   }

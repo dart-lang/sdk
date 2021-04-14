@@ -31,7 +31,7 @@ struct StringToIntMapTraits {
 
   static Key KeyOf(Pair pair) { return pair.key; }
 
-  static size_t Hashcode(Key key) { return String::Hash(key, strlen(key)); }
+  static uword Hash(Key key) { return String::Hash(key, strlen(key)); }
 
   static bool IsKeyEqual(Pair x, Key y) { return strcmp(x.key, y) == 0; }
 };
@@ -234,7 +234,7 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
 
     static Value ValueOf(const Pair& pair) { return pair; }
 
-    static size_t Hashcode(Key key) { return NodeIdFor(key); }
+    static uword Hash(Key key) { return Utils::WordHash(NodeIdFor(key)); }
 
     static bool IsKeyEqual(const Pair& x, Key y) { return x.id == y; }
   };

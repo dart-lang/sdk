@@ -178,7 +178,7 @@ class ObjectOffsetTrait {
 
   static Key KeyOf(Pair kv) { return kv.object; }
   static Value ValueOf(Pair kv) { return kv.offset; }
-  static intptr_t Hashcode(Key key);
+  static uword Hash(Key key);
   static inline bool IsKeyEqual(Pair pair, Key key);
 };
 

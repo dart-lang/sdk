@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <functional>
-
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/write_barrier_elimination.h"
@@ -31,7 +29,9 @@ class DefinitionIndexPairTrait {
 
   static Key KeyOf(Pair kv) { return kv.definition; }
   static Value ValueOf(Pair kv) { return kv.index; }
-  static inline intptr_t Hashcode(Key key) { return std::hash<Key>()(key); }
+  static inline uword Hash(Key key) {
+    return Utils::WordHash(reinterpret_cast<intptr_t>(key));
+  }
   static inline bool IsKeyEqual(Pair kv, Key key) {
     return kv.definition == key;
   }

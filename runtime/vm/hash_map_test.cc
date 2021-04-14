@@ -11,7 +11,7 @@ namespace dart {
 class TestValue {
  public:
   explicit TestValue(intptr_t x) : x_(x) {}
-  intptr_t Hashcode() const { return x_ & 1; }
+  uword Hash() const { return x_ & 1; }
   bool Equals(TestValue* other) { return x_ == other->x_; }
 
  private:

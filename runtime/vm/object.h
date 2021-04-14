@@ -1918,7 +1918,7 @@ class UnlinkedCall : public CallSiteData {
     return RoundedAllocationSize(sizeof(UntaggedUnlinkedCall));
   }
 
-  intptr_t Hashcode() const;
+  uword Hash() const;
   bool Equals(const UnlinkedCall& other) const;
 
   static UnlinkedCallPtr New();
@@ -2684,7 +2684,7 @@ class Function : public Object {
     return OFFSET_OF(UntaggedFunction, unchecked_entry_point_);
   }
 
-  virtual intptr_t Hash() const;
+  virtual uword Hash() const;
 
   // Returns true if there is at least one debugger breakpoint
   // set in this function.
@@ -5752,7 +5752,7 @@ class CompressedStackMaps : public Object {
 
   // Methods to allow use with PointerKeyValueTrait to create sets of CSMs.
   bool Equals(const CompressedStackMaps* other) const { return Equals(*other); }
-  intptr_t Hashcode() const;
+  uword Hash() const;
 
   static intptr_t HeaderSize() { return sizeof(UntaggedCompressedStackMaps); }
   static intptr_t UnroundedSize(CompressedStackMapsPtr maps) {
@@ -7668,8 +7668,8 @@ class TypeArguments : public Instance {
     // Hash() is not stable until finalization is done.
     return 0;
   }
-  intptr_t Hash() const;
-  intptr_t HashForRange(intptr_t from_index, intptr_t len) const;
+  uword Hash() const;
+  uword HashForRange(intptr_t from_index, intptr_t len) const;
 
   static TypeArgumentsPtr New(intptr_t len, Heap::Space space = Heap::kOld);
 
@@ -7677,7 +7677,7 @@ class TypeArguments : public Instance {
   intptr_t ComputeNullability() const;
   void set_nullability(intptr_t value) const;
 
-  intptr_t ComputeHash() const;
+  uword ComputeHash() const;
   void SetHash(intptr_t value) const;
 
   // Check if the subvector of length 'len' starting at 'from_index' of this
@@ -7843,7 +7843,7 @@ class AbstractType : public Instance {
   // list and mark ambiguous triplets to be printed.
   virtual void EnumerateURIs(URIs* uris) const;
 
-  virtual intptr_t Hash() const;
+  virtual uword Hash() const;
 
   // The name of this type's class, i.e. without the type argument names of this
   // type.
@@ -8047,8 +8047,8 @@ class Type : public AbstractType {
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
 
-  virtual intptr_t Hash() const;
-  intptr_t ComputeHash() const;
+  virtual uword Hash() const;
+  uword ComputeHash() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedType));
@@ -8191,8 +8191,8 @@ class FunctionType : public AbstractType {
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
 
-  virtual intptr_t Hash() const;
-  intptr_t ComputeHash() const;
+  virtual uword Hash() const;
+  uword ComputeHash() const;
 
   bool IsSubtypeOf(const FunctionType& other, Heap::Space space) const;
 
@@ -8447,7 +8447,7 @@ class TypeRef : public AbstractType {
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
 
-  virtual intptr_t Hash() const;
+  virtual uword Hash() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedTypeRef));
@@ -8561,7 +8561,7 @@ class TypeParameter : public AbstractType {
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const { return; }
 
-  virtual intptr_t Hash() const;
+  virtual uword Hash() const;
 
   // Returns type corresponding to [this] type parameter from the
   // given [instantiator_type_arguments] and [function_type_arguments].
@@ -8585,7 +8585,7 @@ class TypeParameter : public AbstractType {
                               Nullability nullability);
 
  private:
-  intptr_t ComputeHash() const;
+  uword ComputeHash() const;
   void SetHash(intptr_t value) const;
 
   void set_parameterized_class(const Class& value) const;
@@ -8918,8 +8918,8 @@ class String : public Instance {
   }
   static intptr_t length_offset() { return OFFSET_OF(UntaggedString, length_); }
 
-  intptr_t Hash() const {
-    intptr_t result = GetCachedHash(ptr());
+  uword Hash() const {
+    uword result = GetCachedHash(ptr());
     if (result != 0) {
       return result;
     }
@@ -8928,7 +8928,7 @@ class String : public Instance {
     return result;
   }
 
-  static intptr_t Hash(StringPtr raw);
+  static uword Hash(StringPtr raw);
 
   bool HasHash() const {
     ASSERT(Smi::New(0) == nullptr);
@@ -8944,19 +8944,19 @@ class String : public Instance {
     return OFFSET_OF(UntaggedString, hash_);
 #endif
   }
-  static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
-  static intptr_t Hash(const char* characters, intptr_t len);
-  static intptr_t Hash(const uint16_t* characters, intptr_t len);
-  static intptr_t Hash(const int32_t* characters, intptr_t len);
-  static intptr_t HashRawSymbol(const StringPtr symbol) {
+  static uword Hash(const String& str, intptr_t begin_index, intptr_t len);
+  static uword Hash(const char* characters, intptr_t len);
+  static uword Hash(const uint16_t* characters, intptr_t len);
+  static uword Hash(const int32_t* characters, intptr_t len);
+  static uword HashRawSymbol(const StringPtr symbol) {
     ASSERT(symbol->untag()->IsCanonical());
-    intptr_t result = GetCachedHash(symbol);
+    const uword result = GetCachedHash(symbol);
     ASSERT(result != 0);
     return result;
   }
 
   // Returns the hash of str1 + str2.
-  static intptr_t HashConcat(const String& str1, const String& str2);
+  static uword HashConcat(const String& str1, const String& str2);
 
   virtual ObjectPtr HashCode() const { return Integer::New(Hash()); }
 
@@ -9178,7 +9178,7 @@ class String : public Instance {
   // They are protected to avoid mistaking Latin-1 for UTF-8, but used
   // by friendly templated code (e.g., Symbols).
   bool Equals(const uint8_t* characters, intptr_t len) const;
-  static intptr_t Hash(const uint8_t* characters, intptr_t len);
+  static uword Hash(const uint8_t* characters, intptr_t len);
 
   void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause
@@ -10812,7 +10812,7 @@ class Closure : public Instance {
   virtual uint32_t CanonicalizeHash() const {
     return Function::Handle(function()).Hash();
   }
-  int64_t ComputeHash() const;
+  uword ComputeHash() const;
 
   static ClosurePtr New(const TypeArguments& instantiator_type_arguments,
                         const TypeArguments& function_type_arguments,
@@ -11536,7 +11536,7 @@ ObjectPtr MegamorphicCache::GetTargetFunction(const Array& array,
   return array.At((index * kEntryLength) + kTargetFunctionIndex);
 }
 
-inline intptr_t Type::Hash() const {
+inline uword Type::Hash() const {
   ASSERT(IsFinalized());
   intptr_t result = Smi::Value(untag()->hash());
   if (result != 0) {
@@ -11551,7 +11551,7 @@ inline void Type::SetHash(intptr_t value) const {
   untag()->set_hash(Smi::New(value));
 }
 
-inline intptr_t FunctionType::Hash() const {
+inline uword FunctionType::Hash() const {
   ASSERT(IsFinalized());
   intptr_t result = Smi::Value(untag()->hash());
   if (result != 0) {
@@ -11566,7 +11566,7 @@ inline void FunctionType::SetHash(intptr_t value) const {
   untag()->set_hash(Smi::New(value));
 }
 
-inline intptr_t TypeParameter::Hash() const {
+inline uword TypeParameter::Hash() const {
   ASSERT(IsFinalized() || IsBeingFinalized());  // Bound may not be finalized.
   intptr_t result = Smi::Value(untag()->hash());
   if (result != 0) {
@@ -11581,7 +11581,7 @@ inline void TypeParameter::SetHash(intptr_t value) const {
   untag()->set_hash(Smi::New(value));
 }
 
-inline intptr_t TypeArguments::Hash() const {
+inline uword TypeArguments::Hash() const {
   if (IsNull()) return kAllDynamicHash;
   intptr_t result = Smi::Value(untag()->hash());
   if (result != 0) {

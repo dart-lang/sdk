@@ -142,7 +142,7 @@ bool Image::compiled_to_elf() const {
 #endif
 }
 
-intptr_t ObjectOffsetTrait::Hashcode(Key key) {
+uword ObjectOffsetTrait::Hash(Key key) {
   ObjectPtr obj = key;
   ASSERT(!obj->IsSmi());
 

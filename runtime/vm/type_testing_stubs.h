@@ -287,7 +287,7 @@ class TypeUsageInfo : public ThreadStackResource {
 
     static Key KeyOf(Pair kv) { return kv; }
     static Value ValueOf(Pair kv) { return kv; }
-    static inline intptr_t Hashcode(Key key) { return key->Hash(); }
+    static inline uword Hash(Key key) { return key->Hash(); }
   };
 
   class TypeSetTrait : public ObjectSetTrait<const AbstractType> {

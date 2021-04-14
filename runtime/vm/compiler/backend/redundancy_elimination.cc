@@ -428,9 +428,10 @@ class Place : public ValueObject {
     }
   }
 
-  intptr_t Hashcode() const {
-    return (flags_ * 63 + reinterpret_cast<intptr_t>(instance_)) * 31 +
-           FieldHashcode();
+  uword Hash() const {
+    return FinalizeHash(
+        CombineHashes(flags_, reinterpret_cast<uword>(instance_)),
+        kBitsPerInt32 - 1);
   }
 
   bool Equals(const Place* other) const {
@@ -460,7 +461,7 @@ class Place : public ValueObject {
                : (raw_selector_ == other->raw_selector_);
   }
 
-  intptr_t FieldHashcode() const {
+  uword FieldHash() const {
     return (kind() == kStaticField)
                ? String::Handle(Field::Handle(static_field().Original()).name())
                      .Hash()

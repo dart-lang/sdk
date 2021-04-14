@@ -58,7 +58,7 @@ struct ConstantPoolTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
+  static inline uword Hash(Key key) {
     if (key.IsSmi()) {
       return Smi::Cast(key).Value();
     }

@@ -51,7 +51,9 @@ class OffsetsTable : public ZoneAllocated {
 
     static Value ValueOf(Pair pair) { return pair.value; }
     static Key KeyOf(Pair pair) { return pair.key; }
-    static size_t Hashcode(Key key) { return key.first ^ key.second; }
+    static uword Hash(Key key) {
+      return Utils::WordHash(key.first ^ key.second);
+    }
     static bool IsKeyEqual(Pair x, Key y) {
       return x.key.first == y.first && x.key.second == y.second;
     }

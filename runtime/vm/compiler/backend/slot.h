@@ -265,7 +265,7 @@ class Slot : public ZoneAllocated {
   }
 
   bool Equals(const Slot* other) const;
-  intptr_t Hashcode() const;
+  uword Hash() const;
 
   bool IsIdentical(const Slot& other) const { return this == &other; }
 

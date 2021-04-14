@@ -155,7 +155,7 @@ BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Lookup(
   const typename KeyValueTrait::Value kNoValue =
       KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
 
-  uword hash = static_cast<uword>(KeyValueTrait::Hashcode(key));
+  uword hash = KeyValueTrait::Hash(key);
   uword pos = Bound(hash);
   if (KeyValueTrait::ValueOf(array_[pos].kv) != kNoValue) {
     if (KeyValueTrait::IsKeyEqual(array_[pos].kv, key)) {
@@ -301,8 +301,7 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Insert(
   if (count_ >= array_size_ >> 1) Resize(array_size_ << 1);
   ASSERT(count_ < array_size_);
   count_++;
-  uword pos = Bound(
-      static_cast<uword>(KeyValueTrait::Hashcode(KeyValueTrait::KeyOf(kv))));
+  uword pos = Bound(KeyValueTrait::Hash(KeyValueTrait::KeyOf(kv)));
   if (KeyValueTrait::ValueOf(array_[pos].kv) == kNoValue) {
     array_[pos].kv = kv;
     array_[pos].next = kNil;
@@ -341,7 +340,7 @@ bool BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Remove(
   const typename KeyValueTrait::Value kNoValue =
       KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
 
-  uword pos = Bound(static_cast<uword>(KeyValueTrait::Hashcode(key)));
+  uword pos = Bound(KeyValueTrait::Hash(key));
 
   // Check to see if the first element in the bucket is the one we want to
   // remove.
@@ -465,7 +464,7 @@ class PointerKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hashcode(); }
+  static inline uword Hash(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair kv, Key key) { return kv->Equals(key); }
 };
@@ -479,7 +478,7 @@ class NumbersKeyValueTrait {
 
   static intptr_t KeyOf(Pair kv) { return kv.first(); }
   static T ValueOf(Pair kv) { return kv; }
-  static inline intptr_t Hashcode(Key key) { return key; }
+  static inline uword Hash(Key key) { return key; }
   static inline bool IsKeyEqual(Pair kv, Key key) { return kv.first() == key; }
 };
 
@@ -500,7 +499,7 @@ class RawPointerKeyValueTrait {
 
   static Key KeyOf(Pair kv) { return kv.key; }
   static Value ValueOf(Pair kv) { return kv.value; }
-  static intptr_t Hashcode(Key key) { return reinterpret_cast<intptr_t>(key); }
+  static uword Hash(Key key) { return reinterpret_cast<intptr_t>(key); }
   static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
 };
 
@@ -510,7 +509,7 @@ class CStringSetKeyValueTrait : public PointerKeyValueTrait<const char> {
   using Value = PointerKeyValueTrait<const char>::Value;
   using Pair = PointerKeyValueTrait<const char>::Pair;
 
-  static intptr_t Hashcode(Key key) {
+  static uword Hash(Key key) {
     ASSERT(key != nullptr);
     return Utils::StringHash(key, strlen(key));
   }
@@ -550,7 +549,7 @@ class CStringMapKeyValueTrait : public RawPointerKeyValueTrait<const char, V> {
   typedef typename RawPointerKeyValueTrait<const char, V>::Value Value;
   typedef typename RawPointerKeyValueTrait<const char, V>::Pair Pair;
 
-  static intptr_t Hashcode(Key key) {
+  static uword Hash(Key key) {
     ASSERT(key != nullptr);
     return Utils::StringHash(key, strlen(key));
   }
@@ -603,7 +602,7 @@ class IntKeyRawPointerValueTrait {
 
   static Key KeyOf(Pair kv) { return kv.key; }
   static Value ValueOf(Pair kv) { return kv.value; }
-  static intptr_t Hashcode(Key key) { return key; }
+  static uword Hash(Key key) { return key; }
   static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
 };
 
@@ -653,8 +652,8 @@ class IdentitySetKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return reinterpret_cast<intptr_t>(key);
+  static inline uword Hash(Key key) {
+    return Utils::WordHash(reinterpret_cast<intptr_t>(key));
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) { return pair == key; }

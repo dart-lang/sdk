@@ -168,7 +168,7 @@ struct UriToSourceTableTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->uri->Hash(); }
+  static inline uword Hash(Key key) { return key->uri->Hash(); }
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
     // Only compare uri.

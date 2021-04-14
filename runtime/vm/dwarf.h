@@ -28,7 +28,7 @@ struct ScriptIndexPair {
 
   static Value ValueOf(Pair kv) { return kv.index_; }
 
-  static inline intptr_t Hashcode(Key key) {
+  static inline uword Hash(Key key) {
     return String::Handle(key->url()).Hash();
   }
 
@@ -61,7 +61,7 @@ struct FunctionIndexPair {
 
   static Value ValueOf(Pair kv) { return kv.index_; }
 
-  static inline intptr_t Hashcode(Key key) { return key->token_pos().Hash(); }
+  static inline uword Hash(Key key) { return key->token_pos().Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair.function_->ptr() == key->ptr();
@@ -110,9 +110,9 @@ struct DwarfCodeKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv.value; }
 
-  static inline intptr_t Hashcode(Key key) {
+  static inline uword Hash(Key key) {
     // Instructions are always allocated in old space, so they don't move.
-    return FinalizeHash(key->PayloadStart(), 32);
+    return Utils::WordHash(key->PayloadStart());
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {

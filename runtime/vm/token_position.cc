@@ -4,14 +4,13 @@
 
 #include "vm/token_position.h"
 
-#include "vm/hash.h"
 #include "vm/object.h"
 #include "vm/zone_text_buffer.h"
 
 namespace dart {
 
-intptr_t TokenPosition::Hash() const {
-  return FinalizeHash(value_, 31);
+uword TokenPosition::Hash() const {
+  return Utils::WordHash(value_);
 }
 
 TokenPosition TokenPosition::Deserialize(int32_t value) {

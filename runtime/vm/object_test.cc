@@ -1365,7 +1365,7 @@ ISOLATE_UNIT_TEST_CASE(StringHashConcat) {
   const String& clef = String::Handle(String::FromUTF16(clef_utf16, 2));
   int32_t clef_utf32[] = {0x1D11E};
   EXPECT(clef.Equals(clef_utf32, 1));
-  intptr_t hash32 = String::Hash(String::FromUTF32(clef_utf32, 1));
+  uword hash32 = String::Hash(String::FromUTF32(clef_utf32, 1));
   EXPECT_EQ(hash32, clef.Hash());
   EXPECT_EQ(hash32, String::HashConcat(
                         String::Handle(String::FromUTF16(clef_utf16, 1)),
