@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.transformations.value_class;
 
 import 'package:kernel/type_environment.dart';
@@ -21,7 +19,7 @@ class ValueClassScanner extends ClassScanner<Null> {
 }
 
 class JenkinsClassScanner extends ClassScanner<Procedure> {
-  JenkinsClassScanner(Scanner<Procedure, TreeNode> next) : super(next);
+  JenkinsClassScanner(Scanner<Procedure, TreeNode?> next) : super(next);
 
   bool predicate(Class node) {
     return node.name == "JenkinsSmiHash";
@@ -37,7 +35,7 @@ class HashCombineMethodsScanner extends ProcedureScanner<Null> {
 }
 
 class AllMemberScanner extends MemberScanner<MethodInvocation> {
-  AllMemberScanner(Scanner<MethodInvocation, TreeNode> next) : super(next);
+  AllMemberScanner(Scanner<MethodInvocation, TreeNode?> next) : super(next);
 
   bool predicate(Member member) => true;
 }
@@ -78,7 +76,7 @@ void transformComponent(Component node, CoreTypes coreTypes,
 
 void transformValueClass(Class cls, CoreTypes coreTypes,
     ClassHierarchy hierarchy, TypeEnvironment typeEnvironment) {
-  Constructor syntheticConstructor = null;
+  Constructor? syntheticConstructor = null;
   for (Constructor constructor in cls.constructors) {
     if (constructor.isSynthetic) {
       syntheticConstructor = constructor;
@@ -87,9 +85,9 @@ void transformValueClass(Class cls, CoreTypes coreTypes,
 
   List<VariableDeclaration> allVariables = queryAllInstanceVariables(cls);
   List<VariableDeclaration> allVariablesList = allVariables.toList();
-  allVariablesList.sort((a, b) => a.name.compareTo(b.name));
+  allVariablesList.sort((a, b) => a.name!.compareTo(b.name!));
 
-  addConstructor(cls, coreTypes, syntheticConstructor);
+  addConstructor(cls, coreTypes, syntheticConstructor!);
   addEqualsOperator(cls, coreTypes, hierarchy, allVariablesList);
   addHashCode(cls, coreTypes, hierarchy, allVariablesList);
   addToString(cls, coreTypes, hierarchy, allVariablesList);
@@ -99,13 +97,13 @@ void transformValueClass(Class cls, CoreTypes coreTypes,
 
 void addConstructor(
     Class cls, CoreTypes coreTypes, Constructor syntheticConstructor) {
-  Constructor superConstructor = null;
-  for (Constructor constructor in cls.superclass.constructors) {
+  Constructor? superConstructor = null;
+  for (Constructor constructor in cls.superclass!.constructors) {
     if (constructor.name.text == "") {
       superConstructor = constructor;
     }
   }
-  List<VariableDeclaration> superParameters = superConstructor
+  List<VariableDeclaration> superParameters = superConstructor!
       .function.namedParameters
       .map<VariableDeclaration>((e) => VariableDeclaration(e.name, type: e.type)
         ..parent = syntheticConstructor.function)
@@ -118,7 +116,7 @@ void addConstructor(
 
   List<Initializer> initializersConstructor = cls.fields
       .map<Initializer>((f) =>
-          FieldInitializer(f, VariableGet(ownFields[f.name.text]))
+          FieldInitializer(f, VariableGet(ownFields[f.name.text]!))
             ..parent = syntheticConstructor)
       .toList();
 
@@ -157,8 +155,8 @@ void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
     DartType fieldsType = variable.type;
     if (fieldsType is InterfaceType) {
       targetEquals =
-          hierarchy.getInterfaceMember(fieldsType.classNode, Name("=="));
-      target = hierarchy.getInterfaceMember(cls, Name(variable.name));
+          hierarchy.getInterfaceMember(fieldsType.classNode, Name("=="))!;
+      target = hierarchy.getInterfaceMember(cls, Name(variable.name!))!;
     }
     targetsEquals[variable] = targetEquals;
     targets[variable] = target;
@@ -170,17 +168,17 @@ void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
       FunctionNode(
           ReturnStatement(allVariables
               .map((f) => MethodInvocation(
-                  PropertyGet(ThisExpression(), Name(f.name), targets[f]),
+                  PropertyGet(ThisExpression(), Name(f.name!), targets[f]),
                   Name("=="),
                   Arguments([
                     PropertyGet(
-                        VariableGet(other, myType), Name(f.name), targets[f])
+                        VariableGet(other, myType), Name(f.name!), targets[f])
                   ]),
                   targetsEquals[f]))
               .fold(
                   IsExpression(VariableGet(other), myType),
                   (previousValue, element) => LogicalExpression(
-                      previousValue, LogicalExpressionOperator.AND, element))),
+                      previousValue!, LogicalExpressionOperator.AND, element))),
           returnType: returnType,
           positionalParameters: [other]),
       fileUri: cls.fileUri)
@@ -200,17 +198,22 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
   }
   DartType returnType = coreTypes.intRawType(cls.enclosingLibrary.nonNullable);
 
-  Procedure hashCombine, hashFinish;
+  Procedure? hashCombine, hashFinish;
   HashCombineMethodsScanner hashCombineMethodsScanner =
       new HashCombineMethodsScanner();
   JenkinsClassScanner jenkinsScanner =
       new JenkinsClassScanner(hashCombineMethodsScanner);
   ScanResult<Class, Procedure> hashMethodsResult =
-      jenkinsScanner.scan(cls.enclosingLibrary.enclosingComponent);
+      jenkinsScanner.scan(cls.enclosingLibrary.enclosingComponent!);
   for (Class clazz in hashMethodsResult.targets.keys) {
-    for (Procedure procedure in hashMethodsResult.targets[clazz].targets.keys) {
-      if (procedure.name.text == "combine") hashCombine = procedure;
-      if (procedure.name.text == "finish") hashFinish = procedure;
+    for (Procedure procedure
+        in hashMethodsResult.targets[clazz]!.targets.keys) {
+      if (procedure.name.text == "combine") {
+        hashCombine = procedure;
+      }
+      if (procedure.name.text == "finish") {
+        hashFinish = procedure;
+      }
     }
   }
 
@@ -222,8 +225,8 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
     DartType fieldsType = variable.type;
     if (fieldsType is InterfaceType) {
       targetHashcode =
-          hierarchy.getInterfaceMember(fieldsType.classNode, Name("hashCode"));
-      target = hierarchy.getInterfaceMember(cls, Name(variable.name));
+          hierarchy.getInterfaceMember(fieldsType.classNode, Name("hashCode"))!;
+      target = hierarchy.getInterfaceMember(cls, Name(variable.name!))!;
     }
     targetsHashcode[variable] = targetHashcode;
     targets[variable] = target;
@@ -233,11 +236,12 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
       ProcedureKind.Getter,
       FunctionNode(
           ReturnStatement(StaticInvocation(
-              hashFinish,
+              hashFinish!,
               Arguments([
                 allVariables
                     .map((f) => (PropertyGet(
-                        PropertyGet(ThisExpression(), Name(f.name), targets[f]),
+                        PropertyGet(
+                            ThisExpression(), Name(f.name!), targets[f]),
                         Name("hashCode"),
                         targetsHashcode[f])))
                     .fold(
@@ -249,7 +253,7 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
                             hierarchy.getInterfaceMember(
                                 coreTypes.stringClass, Name("hashCode"))),
                         (previousValue, element) => StaticInvocation(
-                            hashCombine, Arguments([previousValue, element])))
+                            hashCombine!, Arguments([previousValue, element])))
               ]))),
           returnType: returnType),
       fileUri: cls.fileUri)
@@ -263,8 +267,8 @@ void addToString(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
   for (VariableDeclaration variable in allVariablesList) {
     wording.add(StringLiteral("${variable.name}: "));
     wording.add(MethodInvocation(
-        PropertyGet(ThisExpression(), Name(variable.name),
-            hierarchy.getInterfaceMember(cls, Name(variable.name))),
+        PropertyGet(ThisExpression(), Name(variable.name!),
+            hierarchy.getInterfaceMember(cls, Name(variable.name!))),
         Name("toString"),
         Arguments([]),
         (variable.type is InterfaceType)
@@ -306,8 +310,8 @@ void addCopyWith(
     DartType fieldsType = variable.type;
     if (fieldsType is InterfaceType) {
       targetEquals =
-          hierarchy.getInterfaceMember(fieldsType.classNode, Name("=="));
-      target = hierarchy.getInterfaceMember(cls, Name(variable.name));
+          hierarchy.getInterfaceMember(fieldsType.classNode, Name("=="))!;
+      target = hierarchy.getInterfaceMember(cls, Name(variable.name!))!;
     }
     targetsEquals[variable] = targetEquals;
     targets[variable] = target;
@@ -321,7 +325,7 @@ void addCopyWith(
               syntheticConstructor,
               Arguments([],
                   named: allVariables
-                      .map((f) => NamedExpression(f.name, VariableGet(f)))
+                      .map((f) => NamedExpression(f.name!, VariableGet(f)))
                       .toList()))),
           namedParameters: allVariables),
       fileUri: cls.fileUri)
@@ -329,13 +333,13 @@ void addCopyWith(
 }
 
 List<VariableDeclaration> queryAllInstanceVariables(Class cls) {
-  Constructor superConstructor = null;
-  for (Constructor constructor in cls.superclass.constructors) {
+  Constructor? superConstructor = null;
+  for (Constructor constructor in cls.superclass!.constructors) {
     if (constructor.name.text == "") {
       superConstructor = constructor;
     }
   }
-  return superConstructor.function.namedParameters
+  return superConstructor!.function.namedParameters
       .map<VariableDeclaration>(
           (f) => VariableDeclaration(f.name, type: f.type))
       .toList()
@@ -344,20 +348,20 @@ List<VariableDeclaration> queryAllInstanceVariables(Class cls) {
 }
 
 void removeValueClassAnnotation(Class cls) {
-  int valueClassAnnotationIndex;
+  int? valueClassAnnotationIndex;
   for (int annotationIndex = 0;
       annotationIndex < cls.annotations.length;
       annotationIndex++) {
     Expression annotation = cls.annotations[annotationIndex];
     if (annotation is ConstantExpression &&
         annotation.constant is StringConstant) {
-      StringConstant constant = annotation.constant;
+      StringConstant constant = annotation.constant as StringConstant;
       if (constant.value == 'valueClass') {
         valueClassAnnotationIndex = annotationIndex;
       }
     }
   }
-  cls.annotations.removeAt(valueClassAnnotationIndex);
+  cls.annotations.removeAt(valueClassAnnotationIndex!);
 }
 
 void treatCopyWithCallSites(Component component, CoreTypes coreTypes,
@@ -368,11 +372,12 @@ void treatCopyWithCallSites(Component component, CoreTypes coreTypes,
   ScanResult<Member, MethodInvocation> copyWithCallSites =
       copyWithScanner.scan(component);
   for (Member memberWithCopyWith in copyWithCallSites.targets.keys) {
-    if (copyWithCallSites.targets[memberWithCopyWith].targets != null) {
+    Map<MethodInvocation, ScanResult<TreeNode?, TreeNode?>?>? targets =
+        copyWithCallSites.targets[memberWithCopyWith]?.targets;
+    if (targets != null) {
       StaticTypeContext staticTypeContext =
           StaticTypeContext(memberWithCopyWith, typeEnvironment);
-      for (MethodInvocation copyWithCall
-          in copyWithCallSites.targets[memberWithCopyWith].targets.keys) {
+      for (MethodInvocation copyWithCall in targets.keys) {
         AsExpression receiver = copyWithCall.receiver as AsExpression;
 
         Expression valueClassInstance = receiver.operand;
@@ -396,14 +401,14 @@ void treatCopyWithCallSite(Class valueClass, MethodInvocation copyWithCall,
   for (NamedExpression argument in copyWithCall.arguments.named) {
     preTransformationArguments[argument.name] = argument.value;
   }
-  Constructor syntheticConstructor;
+  Constructor? syntheticConstructor;
   for (Constructor constructor in valueClass.constructors) {
     if (constructor.isSynthetic) {
       syntheticConstructor = constructor;
     }
   }
   List<VariableDeclaration> allArguments =
-      syntheticConstructor.function.namedParameters;
+      syntheticConstructor!.function.namedParameters;
 
   VariableDeclaration letVariable =
       VariableDeclaration.forValue(copyWithCall.receiver);
@@ -411,11 +416,11 @@ void treatCopyWithCallSite(Class valueClass, MethodInvocation copyWithCall,
   for (VariableDeclaration argument in allArguments) {
     if (preTransformationArguments.containsKey(argument.name)) {
       postTransformationArguments.named.add(NamedExpression(
-          argument.name, preTransformationArguments[argument.name])
+          argument.name!, preTransformationArguments[argument.name]!)
         ..parent = postTransformationArguments);
     } else {
-      postTransformationArguments.named.add(NamedExpression(argument.name,
-          PropertyGet(VariableGet(letVariable), Name(argument.name)))
+      postTransformationArguments.named.add(NamedExpression(argument.name!,
+          PropertyGet(VariableGet(letVariable), Name(argument.name!)))
         ..parent = postTransformationArguments);
     }
   }
@@ -429,7 +434,7 @@ bool isValueClass(Class node) {
   for (Expression annotation in node.annotations) {
     if (annotation is ConstantExpression &&
         annotation.constant is StringConstant) {
-      StringConstant constant = annotation.constant;
+      StringConstant constant = annotation.constant as StringConstant;
       if (constant.value == "valueClass") {
         return true;
       }
