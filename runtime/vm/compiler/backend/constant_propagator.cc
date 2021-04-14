@@ -1190,13 +1190,11 @@ void ConstantPropagator::VisitSpeculativeShiftUint32Op(
 }
 
 void ConstantPropagator::VisitBoxInt64(BoxInt64Instr* instr) {
-  // TODO(kmillikin): Handle box operation.
-  SetValue(instr, non_constant_);
+  VisitBox(instr);
 }
 
 void ConstantPropagator::VisitUnboxInt64(UnboxInt64Instr* instr) {
-  // TODO(kmillikin): Handle unbox operation.
-  SetValue(instr, non_constant_);
+  VisitUnbox(instr);
 }
 
 void ConstantPropagator::VisitUnaryIntegerOp(UnaryIntegerOpInstr* unary_op) {
@@ -1408,38 +1406,46 @@ void ConstantPropagator::VisitCaseInsensitiveCompare(
 }
 
 void ConstantPropagator::VisitUnbox(UnboxInstr* instr) {
-  // TODO(kmillikin): Handle conversion.
-  SetValue(instr, non_constant_);
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsUnknown(value)) {
+    return;
+  }
+
+  SetValue(instr, value);
 }
 
 void ConstantPropagator::VisitBox(BoxInstr* instr) {
-  // TODO(kmillikin): Handle conversion.
-  SetValue(instr, non_constant_);
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsUnknown(value)) {
+    return;
+  }
+
+  if (instr->value()->definition()->representation() ==
+      instr->from_representation()) {
+    SetValue(instr, value);
+  } else {
+    SetValue(instr, non_constant_);
+  }
 }
 
 void ConstantPropagator::VisitBoxUint8(BoxUint8Instr* instr) {
-  // TODO(kmillikin): Handle box operation.
-  SetValue(instr, non_constant_);
+  VisitBox(instr);
 }
 
 void ConstantPropagator::VisitBoxUint32(BoxUint32Instr* instr) {
-  // TODO(kmillikin): Handle box operation.
-  SetValue(instr, non_constant_);
+  VisitBox(instr);
 }
 
 void ConstantPropagator::VisitUnboxUint32(UnboxUint32Instr* instr) {
-  // TODO(kmillikin): Handle unbox operation.
-  SetValue(instr, non_constant_);
+  VisitUnbox(instr);
 }
 
 void ConstantPropagator::VisitBoxInt32(BoxInt32Instr* instr) {
-  // TODO(kmillikin): Handle box operation.
-  SetValue(instr, non_constant_);
+  VisitBox(instr);
 }
 
 void ConstantPropagator::VisitUnboxInt32(UnboxInt32Instr* instr) {
-  // TODO(kmillikin): Handle unbox operation.
-  SetValue(instr, non_constant_);
+  VisitUnbox(instr);
 }
 
 void ConstantPropagator::VisitIntConverter(IntConverterInstr* instr) {
