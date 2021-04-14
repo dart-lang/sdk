@@ -485,16 +485,16 @@ class StackMapEntry : public ZoneAllocated {
     return hash_;
   }
 
-  bool Equals(const StackMapEntry* other) const {
-    if (spill_slot_bit_count_ != other->spill_slot_bit_count_ ||
-        non_spill_slot_bit_count_ != other->non_spill_slot_bit_count_) {
+  bool Equals(const StackMapEntry& other) const {
+    if (spill_slot_bit_count_ != other.spill_slot_bit_count_ ||
+        non_spill_slot_bit_count_ != other.non_spill_slot_bit_count_) {
       return false;
     }
     // Since we ensure that bits in the payload that are not part of the
     // actual stackmap data are cleared, we can just compare payloads by byte
     // instead of calling IsObject for each bit.
     NoSafepointScope scope;
-    return memcmp(PayloadData(), other->PayloadData(), PayloadLength()) == 0;
+    return memcmp(PayloadData(), other.PayloadData(), PayloadLength()) == 0;
   }
 
   // Encodes this StackMapEntry to the given array of bytes and returns the
@@ -556,7 +556,7 @@ class StackMapEntryKeyIntValueTrait {
   static Key KeyOf(Pair kv) { return kv.key; }
   static Value ValueOf(Pair kv) { return kv.value; }
   static uword Hash(Key key) { return key->Hash(); }
-  static bool IsKeyEqual(Pair kv, Key key) { return key->Equals(kv.key); }
+  static bool IsKeyEqual(Pair kv, Key key) { return key->Equals(*kv.key); }
 };
 
 typedef DirectChainedHashMap<StackMapEntryKeyIntValueTrait> StackMapEntryIntMap;

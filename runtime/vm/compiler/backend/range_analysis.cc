@@ -316,7 +316,7 @@ bool RangeBoundary::ParseKind(const char* str, Kind* out) {
 static bool AreEqualDefinitions(Definition* a, Definition* b) {
   a = UnwrapConstraint(a);
   b = UnwrapConstraint(b);
-  return (a == b) || (a->AllowsCSE() && b->AllowsCSE() && a->Equals(b));
+  return (a == b) || (a->AllowsCSE() && b->AllowsCSE() && a->Equals(*b));
 }
 
 static bool DependOnSameSymbol(const RangeBoundary& a, const RangeBoundary& b) {

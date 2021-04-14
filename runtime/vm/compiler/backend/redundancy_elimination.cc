@@ -434,8 +434,8 @@ class Place : public ValueObject {
         kBitsPerInt32 - 1);
   }
 
-  bool Equals(const Place* other) const {
-    return (flags_ == other->flags_) && (instance_ == other->instance_) &&
+  bool Equals(const Place& other) const {
+    return (flags_ == other.flags_) && (instance_ == other.instance_) &&
            SameField(other);
   }
 
@@ -455,10 +455,10 @@ class Place : public ValueObject {
   Place(uword flags, Definition* instance, intptr_t selector)
       : flags_(flags), instance_(instance), raw_selector_(selector), id_(0) {}
 
-  bool SameField(const Place* other) const {
+  bool SameField(const Place& other) const {
     return (kind() == kStaticField)
-               ? (static_field().Original() == other->static_field().Original())
-               : (raw_selector_ == other->raw_selector_);
+               ? (static_field().Original() == other.static_field().Original())
+               : (raw_selector_ == other.raw_selector_);
   }
 
   uword FieldHash() const {
@@ -1027,7 +1027,7 @@ class AliasedSet : public ZoneAllocated {
       bool is_load = false, is_store;
       Place load_place(instr, &is_load, &is_store);
 
-      if (is_load && load_place.Equals(place)) {
+      if (is_load && load_place.Equals(*place)) {
         return true;
       }
     }
@@ -2554,7 +2554,7 @@ class LoadOptimizer : public ValueObject {
   bool CanBeCongruent(Definition* a, Definition* b) {
     return (a->tag() == b->tag()) &&
            ((a->IsPhi() && (a->GetBlock() == b->GetBlock())) ||
-            (a->AllowsCSE() && a->AttributesEqual(b)));
+            (a->AllowsCSE() && a->AttributesEqual(*b)));
   }
 
   // Given two definitions check if they are congruent under assumption that

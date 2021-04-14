@@ -12,7 +12,7 @@ class TestValue {
  public:
   explicit TestValue(intptr_t x) : x_(x) {}
   uword Hash() const { return x_ & 1; }
-  bool Equals(TestValue* other) { return x_ == other->x_; }
+  bool Equals(const TestValue& other) { return x_ == other.x_; }
 
  private:
   intptr_t x_;

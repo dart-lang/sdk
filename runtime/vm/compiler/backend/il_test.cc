@@ -35,17 +35,17 @@ ISOLATE_UNIT_TEST_CASE(OptimizationTests) {
   Definition* def2 = new PhiInstr(join, 0);
   Value* use1a = new Value(def1);
   Value* use1b = new Value(def1);
-  EXPECT(use1a->Equals(use1b));
+  EXPECT(use1a->Equals(*use1b));
   Value* use2 = new Value(def2);
-  EXPECT(!use2->Equals(use1a));
+  EXPECT(!use2->Equals(*use1a));
 
   ConstantInstr* c1 = new ConstantInstr(Bool::True());
   ConstantInstr* c2 = new ConstantInstr(Bool::True());
-  EXPECT(c1->Equals(c2));
+  EXPECT(c1->Equals(*c2));
   ConstantInstr* c3 = new ConstantInstr(Object::ZoneHandle());
   ConstantInstr* c4 = new ConstantInstr(Object::ZoneHandle());
-  EXPECT(c3->Equals(c4));
-  EXPECT(!c3->Equals(c1));
+  EXPECT(c3->Equals(*c4));
+  EXPECT(!c3->Equals(*c1));
 }
 
 ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {

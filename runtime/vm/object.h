@@ -5741,6 +5741,7 @@ class CompressedStackMaps : public Object {
         raw->untag()->flags_and_size_);
   }
 
+  // Methods to allow use with PointerKeyValueTrait to create sets of CSMs.
   bool Equals(const CompressedStackMaps& other) const {
     // All of the table flags and payload size must match.
     if (untag()->flags_and_size_ != other.untag()->flags_and_size_) {
@@ -5749,9 +5750,6 @@ class CompressedStackMaps : public Object {
     NoSafepointScope no_safepoint;
     return memcmp(untag(), other.untag(), InstanceSize(payload_size())) == 0;
   }
-
-  // Methods to allow use with PointerKeyValueTrait to create sets of CSMs.
-  bool Equals(const CompressedStackMaps* other) const { return Equals(*other); }
   uword Hash() const;
 
   static intptr_t HeaderSize() { return sizeof(UntaggedCompressedStackMaps); }

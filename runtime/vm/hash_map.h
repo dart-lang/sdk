@@ -466,7 +466,7 @@ class PointerKeyValueTrait {
 
   static inline uword Hash(Key key) { return key->Hash(); }
 
-  static inline bool IsKeyEqual(Pair kv, Key key) { return kv->Equals(key); }
+  static inline bool IsKeyEqual(Pair kv, Key key) { return kv->Equals(*key); }
 };
 
 template <typename T>
