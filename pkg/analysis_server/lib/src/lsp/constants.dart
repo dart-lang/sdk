@@ -24,25 +24,17 @@ const dartCompletionCommitCharacters = ['('];
 
 /// Set the characters that will cause the editor to automatically
 /// trigger completion.
-/// TODO(dantup): There are several characters that we want to conditionally
-/// allow to trigger completion, but they can only be added when the completion
-/// provider is able to handle them in context:
-///
-///    {   trigger if being typed in a string immediately after a $
-///    '   trigger if the opening quote for an import/export
-///    "   trigger if the opening quote for an import/export
-///    /   trigger if as part of a path in an import/export
-///    \   trigger if as part of a path in an import/export
-///    :   don't trigger when typing case expressions (`case x:`)
-///
-/// Additionally, we need to prefix `filterText` on completion items
-/// with spaces for those that can follow whitespace (eg. `foo` in
-/// `myArg: foo`) to ensure they're not filtered away when the user
-/// types space.
-///
-/// See https://github.com/Dart-Code/Dart-Code/blob/68d1cd271e88a785570257d487adbdec17abd6a3/src/providers/dart_completion_item_provider.ts#L36-L64
-/// for the VS Code implementation of this.
-const dartCompletionTriggerCharacters = ['.', '=', '(', r'$'];
+const dartCompletionTriggerCharacters = [
+  '.',
+  '=',
+  '(',
+  r'$',
+  '"',
+  "'",
+  '{',
+  '/',
+  ':'
+];
 
 /// Characters that refresh signature help only if it's already open on the client.
 const dartSignatureHelpRetriggerCharacters = <String>[','];
