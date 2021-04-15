@@ -118,7 +118,7 @@ abstract class Page {
     buf.writeln('</pre>');
   }
 
-  void prettyJson(Map<String, dynamic> data) {
+  void prettyJson(Object? data) {
     const jsonEncoder = JsonEncoder.withIndent('  ');
     pre(() {
       buf.write(jsonEncoder.convert(data));

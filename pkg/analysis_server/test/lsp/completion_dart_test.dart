@@ -125,7 +125,7 @@ main() {
     );
 
     Registration registration(Method method) =>
-        registrationFor(registrations, method);
+        registrationForDart(registrations, method);
 
     // By default, there should be no commit characters.
     var reg = registration(Method.textDocument_completion);
