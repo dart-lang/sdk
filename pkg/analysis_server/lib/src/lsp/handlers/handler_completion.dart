@@ -6,6 +6,7 @@
 
 import 'dart:math' as math;
 
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -422,6 +423,17 @@ class CompletionHandler
             suggestions.replacementLength,
             includeCommitCharacters: false,
             completeFunctionCalls: false,
+            // Add on any completion-kind-specific resolution data that will be
+            // used during resolve() calls to provide additional information.
+            resolutionData: item.kind == CompletionSuggestionKind.PACKAGE_NAME
+                ? PubPackageCompletionItemResolutionInfo(
+                    file: path,
+                    offset: offset,
+                    // The completion for package names may contain a trailing
+                    // ': ' for convenience, so if it's there, trim it off.
+                    packageName: item.completion.split(':').first,
+                  )
+                : null,
           ),
         )
         .toList();

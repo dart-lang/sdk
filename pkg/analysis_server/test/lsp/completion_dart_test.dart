@@ -1009,11 +1009,12 @@ main() { }
     );
   }
 
-  Future<void> test_nonDartFile() async {
-    newFile(pubspecFilePath, content: simplePubspecContent);
+  Future<void> test_nonAnalyzedFile() async {
+    final readmeFilePath = convertPath(join(projectFolderPath, 'README.md'));
+    newFile(readmeFilePath, content: '');
     await initialize();
 
-    final res = await getCompletion(pubspecFileUri, startOfDocPos);
+    final res = await getCompletion(Uri.file(readmeFilePath), startOfDocPos);
     expect(res, isEmpty);
   }
 

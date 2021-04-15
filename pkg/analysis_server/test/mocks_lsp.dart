@@ -124,7 +124,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   Future<lsp.ResponseMessage> sendRequestToServer(lsp.RequestMessage request) {
     // No further requests should be sent after the connection is closed.
     if (_closed.isCompleted) {
-      throw Exception('sendLspRequest after connection closed');
+      throw Exception('${request.method} request sent after connection closed');
     }
 
     request = _convertJson(request, lsp.RequestMessage.fromJson);

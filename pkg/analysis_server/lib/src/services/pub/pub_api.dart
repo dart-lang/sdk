@@ -17,6 +17,7 @@ import 'package:meta/meta.dart';
 /// Failed requests will automatically be retried.
 class PubApi {
   static const packageNameListPath = '/api/package-name-completion-data';
+  static const packageInfoPath = '/api/packages';
 
   /// Maximum number of retries if requests fail.
   static const maxFailedRequests = 5;
@@ -64,6 +65,28 @@ class PubApi {
 
   void close() {
     httpClient.close();
+  }
+
+  /// Fetches package details from the Pub API.
+  ///
+  /// Failed requests will be retried a number of times. If no successful response
+  /// is received, will return null.
+  Future<PubApiPackageDetails?> packageInfo(String packageName) async {
+    final json = await _getJson('$_pubHostedUrl$packageInfoPath/$packageName');
+    if (json == null) {
+      return null;
+    }
+
+    final latest = json['latest'] as Map<String, Object?>?;
+    if (latest == null) {
+      return null;
+    }
+
+    final pubspec = latest['pubspec'] as Map<String, Object?>?;
+    final description =
+        pubspec != null ? pubspec['description'] as String? : null;
+    final version = latest['version'] as String?;
+    return PubApiPackageDetails(packageName, description, version);
   }
 
   /// Calls a pub API and decodes the resulting JSON.
@@ -130,6 +153,14 @@ class PubApiPackage {
   final String packageName;
 
   PubApiPackage(this.packageName);
+}
+
+class PubApiPackageDetails {
+  final String packageName;
+  final String? description;
+  final String? latestVersion;
+
+  PubApiPackageDetails(this.packageName, this.description, this.latestVersion);
 }
 
 /// A wrapper over a package:http Client that does not pass on calls to [close].

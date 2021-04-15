@@ -13,7 +13,7 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
   int sortTextSorter(CompletionItem item1, CompletionItem item2) =>
       (item1.sortText ?? item1.label).compareTo(item2.sortText ?? item2.label);
 
-  Future<void> verifyCompletions(
+  Future<String> verifyCompletions(
     Uri fileUri,
     String content, {
     List<String> expectCompletions,
@@ -22,6 +22,7 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
     String expectedContent,
     String expectedContentIfInserting,
     bool verifyInsertReplaceRanges = false,
+    bool openCloseFile = true,
   }) async {
     // If verifyInsertReplaceRanges is true, we need both expected contents.
     assert(verifyInsertReplaceRanges == false ||
@@ -38,9 +39,13 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
       await initialize(textDocumentCapabilities: textDocCapabilities);
     }
 
-    await openFile(fileUri, withoutMarkers(content));
+    if (openCloseFile) {
+      await openFile(fileUri, withoutMarkers(content));
+    }
     final res = await getCompletion(fileUri, positionFromMarker(content));
-    await closeFile(fileUri);
+    if (openCloseFile) {
+      await closeFile(fileUri);
+    }
 
     // Sort the completions by sortText and filter to those we expect, so the ordering
     // can be compared.
@@ -60,14 +65,16 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
         item = await resolveCompletion(item);
       }
 
+      String updatedContent;
       if (verifyInsertReplaceRanges &&
           expectedContent != expectedContentIfInserting) {
         // Replacing.
-        final replaced = applyTextEdits(
+        updatedContent = applyTextEdits(
           withoutMarkers(content),
           [textEditForReplace(item.textEdit)],
         );
-        expect(withCaret(replaced, insertFormat), equals(expectedContent));
+        expect(
+            withCaret(updatedContent, insertFormat), equals(expectedContent));
 
         // Inserting.
         final inserted = applyTextEdits(
@@ -77,13 +84,19 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
         expect(withCaret(inserted, insertFormat),
             equals(expectedContentIfInserting));
       } else {
-        final updated = applyTextEdits(
+        updatedContent = applyTextEdits(
           withoutMarkers(content),
           [toTextEdit(item.textEdit)],
         );
-        expect(withCaret(updated, insertFormat), equals(expectedContent));
+        if (expectedContent != null) {
+          expect(
+              withCaret(updatedContent, insertFormat), equals(expectedContent));
+        }
       }
+      return updatedContent;
     }
+
+    return null;
   }
 
   /// Replaces the LSP snippet placeholder '${0:}' with '^' for easier verifying

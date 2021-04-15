@@ -271,6 +271,13 @@ List<AstNode> getCustomClasses() {
       ],
       baseType: 'CompletionItemResolutionInfo',
     ),
+    interface(
+      'PubPackageCompletionItemResolutionInfo',
+      [
+        field('packageName', type: 'string'),
+      ],
+      baseType: 'CompletionItemResolutionInfo',
+    ),
     // Custom types for experimental SnippetTextEdits
     // https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit
     interface(
