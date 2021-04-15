@@ -54,8 +54,8 @@ class Search {
     List<String> files = await _driver.getFilesDefiningClassMemberName(name);
     for (String file in files) {
       if (searchedFiles.add(file, this)) {
-        var unitResult = await _driver.getUnitElement(file);
-        if (unitResult.state == ResultState.VALID) {
+        var unitResult = await _driver.getUnitElement2(file);
+        if (unitResult is UnitElementResult) {
           unitResult.element.types.forEach(addElements);
           unitResult.element.mixins.forEach(addElements);
         }
@@ -174,8 +174,8 @@ class Search {
 
     List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
     for (FileState file in knownFiles) {
-      var unitResult = await _driver.getUnitElement(file.path);
-      if (unitResult.state == ResultState.VALID) {
+      var unitResult = await _driver.getUnitElement2(file.path);
+      if (unitResult is UnitElementResult) {
         CompilationUnitElement unitElement = unitResult.element;
         unitElement.accessors.forEach(addElement);
         unitElement.enums.forEach(addElement);
@@ -283,8 +283,8 @@ class Search {
   }
 
   Future<CompilationUnitElement?> _getUnitElement(String file) async {
-    var result = await _driver.getUnitElement(file);
-    return result.state == ResultState.VALID ? result.element : null;
+    var result = await _driver.getUnitElement2(file);
+    return result is UnitElementResult ? result.element : null;
   }
 
   Future<List<SearchResult>> _searchReferences(

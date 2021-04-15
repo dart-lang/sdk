@@ -193,13 +193,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _unitElementSignatureParts = <String, List<Completer<String>>>{};
 
   /// The mapping from the files for which the unit element was requested using
-  /// [getUnitElement] to the [Completer]s to report the result.
+  /// [getUnitElement2] to the [Completer]s to report the result.
   final _unitElementRequestedFiles =
       <String, List<Completer<UnitElementResult>>>{};
 
   /// The mapping from the files for which the unit element was requested using
-  /// [getUnitElement], and which were found to be parts without known libraries,
-  /// to the [Completer]s to report the result.
+  /// [getUnitElement2], and which were found to be parts without known
+  /// libraries, to the [Completer]s to report the result.
   final _unitElementRequestedParts =
       <String, List<Completer<UnitElementResult>>>{};
 
@@ -632,7 +632,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           throw ArgumentError('$uri is not a library.');
         }
 
-        var unitResult = await getUnitElement(file.path);
+        var unitResult = await getUnitElement2(file.path);
+        // TODO(scheglov) this method should also return a result hierarchy
+        if (unitResult is! UnitElementResult) {
+          throw ArgumentError('$uri has no valid result.');
+        }
+
         return unitResult.element.library;
       },
       (externalLibrary) async {
@@ -834,13 +839,35 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// Return a [Future] that completes with the [UnitElementResult] for the
   /// file with the given [path].
-  Future<UnitElementResult> getUnitElement(String path) {
+  @Deprecated('Use getUnitElement2() instead')
+  Future<UnitElementResult> getUnitElement(String path) async {
     _throwIfNotAbsolutePath(path);
-    if (!_fsState.hasUri(path)) {
+    var result = await getUnitElement2(path);
+
+    if (result is NotPathOfUriResult) {
       return Future.value(
         NotValidUnitElementResultImpl(ResultState.NOT_FILE_OF_URI),
       );
     }
+
+    return result as UnitElementResult;
+  }
+
+  /// Return a [Future] that completes with the [SomeUnitElementResult]
+  /// for the file with the given [path].
+  Future<SomeUnitElementResult> getUnitElement2(String path) {
+    if (!_isAbsolutePath(path)) {
+      return Future.value(
+        InvalidPathResult(),
+      );
+    }
+
+    if (!_fsState.hasUri(path)) {
+      return Future.value(
+        NotPathOfUriResult(),
+      );
+    }
+
     var completer = Completer<UnitElementResult>();
     _unitElementRequestedFiles
         .putIfAbsent(path, () => <Completer<UnitElementResult>>[])
@@ -1656,6 +1683,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     );
   }
 
+  bool _isAbsolutePath(String path) {
+    return _resourceProvider.pathContext.isAbsolute(path);
+  }
+
   /// We detected that one of the required `dart` libraries is missing.
   /// Return the empty analysis result with the error.
   AnalysisResult _newMissingDartLibraryResult(
@@ -1773,7 +1804,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The driver supports only absolute paths, this method is used to validate
   /// any input paths to prevent errors later.
   void _throwIfNotAbsolutePath(String path) {
-    if (!_resourceProvider.pathContext.isAbsolute(path)) {
+    if (!_isAbsolutePath(path)) {
       throw ArgumentError('Only absolute paths are supported: $path');
     }
   }

@@ -93,12 +93,18 @@ abstract class AnalysisSession {
   /// Return a future that will complete with information about the results of
   /// building the element model for the file with the given absolute,
   /// normalized [path].
+  @Deprecated('Use getUnitElement2() instead')
   Future<UnitElementResult> getUnitElement(String path);
+
+  /// Return a future that will complete with information about the results of
+  /// building the element model for the file with the given absolute,
+  /// normalized [path].
+  Future<SomeUnitElementResult> getUnitElement2(String path);
 
   /// Return a future that will complete with the signature for the file with
   /// the given absolute, normalized [path], or `null` if the file cannot be
   /// analyzed. This is the same signature returned in the result from
-  /// [getUnitElement].
+  /// [getUnitElement2].
   ///
   /// The signature is based on the APIs of the files of the library (including
   /// the file itself), and the transitive closure of files imported and

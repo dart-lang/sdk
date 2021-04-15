@@ -81,6 +81,27 @@ abstract class FileResult implements AnalysisResult {
   LineInfo get lineInfo;
 }
 
+/// The type of [InvalidResult] returned when the given file path is invalid,
+/// for example is not absolute and normalized.
+///
+/// Clients may not extend, implement or mix-in this class.
+class InvalidPathResult implements InvalidResult, SomeUnitElementResult {}
+
+/// The base class for any invalid result.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class InvalidResult {}
+
+/// The type of [InvalidResult] returned when the given file path does not
+/// represent the corresponding URI.
+///
+/// This usually happens in Bazel workspaces, when a URI is resolved to
+/// a generated file, but there is also a writable file to which this URI
+/// would be resolved, if there were no generated file.
+///
+/// Clients may not extend, implement or mix-in this class.
+class NotPathOfUriResult implements InvalidResult, SomeUnitElementResult {}
+
 /// The result of building parsed AST(s) for the whole library.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -195,7 +216,16 @@ enum ResultState {
 /// The result of building the element model for a single file.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class UnitElementResult implements AnalysisResult {
+///
+/// There are existing implementations of this class.
+/// [UnitElementResult] represents a valid result.
+abstract class SomeUnitElementResult {}
+
+/// The result of building the element model for a single file.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class UnitElementResult
+    implements SomeUnitElementResult, AnalysisResult {
   /// The element of the file.
   CompilationUnitElement get element;
 

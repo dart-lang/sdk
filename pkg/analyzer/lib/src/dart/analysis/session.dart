@@ -126,10 +126,17 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getSourceKind(path);
   }
 
+  @Deprecated('Use getUnitElement2() instead')
   @override
   Future<UnitElementResult> getUnitElement(String path) {
     _checkConsistency();
     return _driver.getUnitElement(path);
+  }
+
+  @override
+  Future<SomeUnitElementResult> getUnitElement2(String path) {
+    _checkConsistency();
+    return _driver.getUnitElement2(path);
   }
 
   @override

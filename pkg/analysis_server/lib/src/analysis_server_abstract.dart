@@ -288,12 +288,13 @@ abstract class AbstractAnalysisServer {
         return null;
       }
 
-      var unitElementResult = await driver.getUnitElement(file);
-      if (unitElementResult == null) {
+      var unitElementResult = await driver.getUnitElement2(file);
+      if (unitElementResult is! UnitElementResult) {
         return null;
       }
 
-      var element = findElementByNameOffset(unitElementResult.element, offset);
+      var element = findElementByNameOffset(
+          (unitElementResult as UnitElementResult).element, offset);
       if (element != null) {
         return element;
       }
