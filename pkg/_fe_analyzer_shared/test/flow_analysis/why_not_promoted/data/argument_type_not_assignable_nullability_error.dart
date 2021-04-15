@@ -473,3 +473,19 @@ indexSetPostIncDec(C32 c, List<int> values) {
       /*analyzer.notPromoted(propertyNotPromoted(target: member:C32.bad, type: int?))*/ c
           . /*cfe.notPromoted(propertyNotPromoted(target: member:C32.bad, type: int?))*/ bad]--;
 }
+
+extension E33 on int {
+  void f() {}
+}
+
+class C33 {
+  int? bad;
+}
+
+test(C33 c) {
+  if (c.bad == null) return;
+  E33(
+          /*analyzer.notPromoted(propertyNotPromoted(target: member:C33.bad, type: int?))*/ c
+              . /*cfe.notPromoted(propertyNotPromoted(target: member:C33.bad, type: int?))*/ bad)
+      .f();
+}

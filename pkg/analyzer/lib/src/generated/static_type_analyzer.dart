@@ -128,7 +128,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionOverride(ExtensionOverride node) {
-    _resolver.extensionResolver.resolveOverride(node);
+    assert(false,
+        'Resolver should call extensionResolver.resolveOverride directly');
   }
 
   /// The Dart Language Specification, 12.9: <blockquote>The static type of a function literal of the
