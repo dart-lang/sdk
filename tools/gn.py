@@ -1,11 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2016 The Dart project authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 import argparse
 import os
-import shutil
 import subprocess
 import sys
 import time
@@ -64,7 +63,7 @@ def ToCommandLine(gn_args):
             return '%s=%d' % (key, value)
         return '%s="%s"' % (key, value)
 
-    return [merge(x, y) for x, y in gn_args.iteritems()]
+    return [merge(x, y) for x, y in gn_args.items()]
 
 
 def HostCpuForArch(arch):

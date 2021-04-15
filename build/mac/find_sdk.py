@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -6,7 +6,7 @@
 given minimum sdk version to standard output.
 
 Usage:
-  python find_sdk.py 10.6  # Ignores SDKs < 10.6
+  python3 find_sdk.py 10.6  # Ignores SDKs < 10.6
 """
 
 import os
@@ -54,7 +54,7 @@ def CreateSymlinkForSDKAt(src, dst):
 
 def parse_version(version_str):
     """'10.6' => [10, 6]"""
-    return map(int, re.findall(r'(\d+)', version_str))
+    return list(map(int, re.findall(r'(\d+)', version_str)))
 
 
 def main():
@@ -90,11 +90,12 @@ def main():
 
     job = subprocess.Popen(['xcode-select', '-print-path'],
                            stdout=subprocess.PIPE,
-                           stderr=subprocess.STDOUT)
+                           stderr=subprocess.STDOUT,
+                           universal_newlines=True)
     out, err = job.communicate()
     if job.returncode != 0:
-        print >> sys.stderr, out
-        print >> sys.stderr, err
+        print(out, file=sys.stderr)
+        print(err, file=sys.stderr)
         raise Exception((
             'Error %d running xcode-select, you might have to run '
             '|sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer| '
@@ -119,27 +120,26 @@ def main():
     best_sdk = sorted(sdks, key=parse_version)[0]
 
     if options.verify and best_sdk != min_sdk_version and not options.sdk_path:
-        print >> sys.stderr, ''
-        print >> sys.stderr, '                                           vvvvvvv'
-        print >> sys.stderr, ''
-        print >> sys.stderr, \
-            'This build requires the %s SDK, but it was not found on your system.' \
-            % min_sdk_version
-        print >> sys.stderr, \
-            'Either install it, or explicitly set mac_sdk in your GYP_DEFINES.'
-        print >> sys.stderr, ''
-        print >> sys.stderr, '                                           ^^^^^^^'
-        print >> sys.stderr, ''
+        print('''
+                                           vvvvvvv
+
+This build requires the %s SDK, but it was not found on your system.
+
+Either install it, or explicitly set mac_sdk in your GYP_DEFINES.
+
+                                           ^^^^^^^'
+''' % min_sdk_version,
+              file=sys.stderr)
         return min_sdk_version
 
     if options.print_sdk_path:
         sdk_path = subprocess.check_output(
-            ['xcodebuild', '-version', '-sdk', 'macosx' + best_sdk,
-             'Path']).strip()
+            ['xcodebuild', '-version', '-sdk', 'macosx' + best_sdk, 'Path'],
+            universal_newlines=True).strip()
         if options.create_symlink_at:
-            print CreateSymlinkForSDKAt(sdk_path, options.create_symlink_at)
+            print(CreateSymlinkForSDKAt(sdk_path, options.create_symlink_at))
         else:
-            print sdk_path
+            print(sdk_path)
 
     return best_sdk
 
@@ -147,4 +147,4 @@ def main():
 if __name__ == '__main__':
     if sys.platform != 'darwin':
         raise Exception("This script only runs on Mac")
-    print main()
+    print(main())

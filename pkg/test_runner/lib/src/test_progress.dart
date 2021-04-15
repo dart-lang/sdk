@@ -622,7 +622,7 @@ void _writeFailureReproductionCommands(
   if (Platform.isFuchsia) {
     arguments = [Platform.executable, Platform.script.path];
   } else {
-    arguments = ['python', 'tools/test.py'];
+    arguments = ['python3', 'tools/test.py'];
   }
   arguments.addAll(test.configuration.reproducingArguments);
   arguments.add(test.displayName);

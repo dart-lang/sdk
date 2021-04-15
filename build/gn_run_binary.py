@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 """Helper script for GN to run an arbitrary binary. See compiled_action.gni.
 
 Run with:
-  python gn_run_binary.py <invoker> <binary_name> [args ...]
+  python3 gn_run_binary.py <invoker> <binary_name> [args ...]
 
 Where <invoker> is either "compiled_action" or "exec_script". If it is
 "compiled_action" the script has a non-zero exit code on a failure. If it is
@@ -21,7 +21,9 @@ import subprocess
 # Run a command, swallowing the output unless there is an error.
 def run_command(command):
     try:
-        subprocess.check_output(command, stderr=subprocess.STDOUT)
+        subprocess.check_output(command,
+                                stderr=subprocess.STDOUT,
+                                universal_newlines=True)
         return 0
     except subprocess.CalledProcessError as e:
         return ("Command failed: " + ' '.join(command) + "\n" + "output: " +

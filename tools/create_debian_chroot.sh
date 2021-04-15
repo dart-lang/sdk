@@ -72,7 +72,7 @@ debootstrap --arch=$ARCH --components=main,restricted,universe,multiverse \
     jessie $CHROOT http://http.us.debian.org/debian/
 chroot $CHROOT apt-get update
 chroot $CHROOT apt-get -y install \
-    debhelper python git gcc sudo make
+    debhelper python3 git gcc sudo make
 
 # Add chrome-bot user.
 chroot $CHROOT groupadd --gid 1001 chrome-bot

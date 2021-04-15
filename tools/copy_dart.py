@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/env python3
 # Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -80,14 +80,14 @@ def mergefiles(srcs, dstfile):
 
 def main(outdir=None, *inputs):
     if not outdir or not inputs:
-        print "Usage: %s OUTDIR INPUTS" % sys.argv[0]
-        print "  OUTDIR is the war directory to copy to"
-        print "  INPUTS is a list of files or patterns used to specify the input"
-        print "   .dart files"
-        print "This script should be run from the client root directory."
-        print "Files will be merged and copied to: OUTDIR/relative-path-of-file,"
-        print "except for dart files with absolute paths, which will be copied to"
-        print " OUTDIR/absolute-path-as-directories"
+        print("""Usage: %s OUTDIR INPUTS
+  OUTDIR is the war directory to copy to
+  INPUTS is a list of files or patterns used to specify the input
+   .dart files
+This script should be run from the client root directory.
+Files will be merged and copied to: OUTDIR/relative-path-of-file,
+except for dart files with absolute paths, which will be copied to
+ OUTDIR/absolute-path-as-directories""" % sys.argv[0])
         return 1
 
     entry_libraries = []

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -80,7 +80,7 @@ def Filter(tar_info):
     # out-of-the-box.
     tar_info.name = join(versiondir, 'dart', original_name)
     if verbose:
-        print 'Adding %s as %s' % (original_name, tar_info.name)
+        print('Adding %s as %s' % (original_name, tar_info.name))
     return tar_info
 
 
@@ -129,7 +129,7 @@ def CreateTarball(tarfilename):
     builddir = utils.GetBuildDir(HOST_OS)
     ignoredPaths.append(builddir)
 
-    print 'Creating tarball: %s' % tarfilename
+    print('Creating tarball: %s' % tarfilename)
     with tarfile.open(tarfilename, mode='w:gz') as tar:
         for f in listdir(DART_DIR):
             tar.add(join(DART_DIR, f), filter=Filter)
@@ -165,7 +165,7 @@ def CreateTarball(tarfilename):
 
 def Main():
     if HOST_OS != 'linux':
-        print 'Tarball can only be created on linux'
+        print('Tarball can only be created on linux')
         return -1
 
     # Parse the options.

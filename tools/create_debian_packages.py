@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -59,7 +59,7 @@ def BuildDebianPackage(tarball, out_dir, arch, toolchain):
     origtarname = 'dart_%s.orig.tar.gz' % version
 
     if not exists(tarball):
-        print 'Source tarball not found'
+        print('Source tarball not found')
         return -1
 
     with utils.TempDir() as temp_dir:
@@ -70,30 +70,30 @@ def BuildDebianPackage(tarball, out_dir, arch, toolchain):
             tar.extractall(path=temp_dir)
 
         # Build source package.
-        print "Building source package"
+        print("Building source package")
         RunBuildPackage(['-S', '-us', '-uc'], join(temp_dir, tarroot))
 
         # Build 32-bit binary package.
         if 'ia32' in arch:
-            print "Building i386 package"
+            print("Building i386 package")
             RunBuildPackage(['-B', '-ai386', '-us', '-uc'],
                             join(temp_dir, tarroot))
 
         # Build 64-bit binary package.
         if 'x64' in arch:
-            print "Building amd64 package"
+            print("Building amd64 package")
             RunBuildPackage(['-B', '-aamd64', '-us', '-uc'],
                             join(temp_dir, tarroot))
 
         # Build armhf binary package.
         if 'armhf' in arch:
-            print "Building armhf package"
+            print("Building armhf package")
             RunBuildPackage(['-B', '-aarmhf', '-us', '-uc'],
                             join(temp_dir, tarroot), toolchain)
 
         # Build armel binary package.
         if 'armel' in arch:
-            print "Building armel package"
+            print("Building armel package")
             RunBuildPackage(['-B', '-aarmel', '-us', '-uc'],
                             join(temp_dir, tarroot), toolchain)
 
@@ -127,7 +127,7 @@ def BuildDebianPackage(tarball, out_dir, arch, toolchain):
 
 def Main():
     if HOST_OS != 'linux':
-        print 'Debian build only supported on linux'
+        print('Debian build only supported on linux')
         return -1
 
     options, args = BuildOptions().parse_args()

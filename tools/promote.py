@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -6,10 +6,8 @@
 
 # Dart SDK promote tools.
 
-import imp
 import optparse
 import os
-import subprocess
 import sys
 import time
 import urllib
@@ -28,7 +26,7 @@ def BuildOptions():
               locations.
 
     Example: Promote version 2.5.0 on the stable channel:
-        python editor/build/promote.py promote --channel=stable --version=2.5.0
+        python3 tools/promote.py promote --channel=stable --version=2.5.0
   """
 
     result = optparse.OptionParser(usage=usage)
@@ -64,7 +62,7 @@ def main():
     (options, args) = parser.parse_args()
 
     def die(msg):
-        print msg
+        print(msg)
         parser.print_help()
         sys.exit(1)
 
@@ -97,14 +95,14 @@ def main():
 
 def UpdateDocs():
     try:
-        print 'Updating docs'
+        print('Updating docs')
         url = 'http://api.dartlang.org/docs/releases/latest/?force_reload=true'
         f = urllib.urlopen(url)
         f.read()
-        print 'Successfully updated api docs'
+        print('Successfully updated api docs')
     except Exception as e:
-        print 'Could not update api docs, please manually update them'
-        print 'Failed with: %s' % e
+        print('Could not update api docs, please manually update them')
+        print('Failed with: %s' % e)
 
 
 def _PromoteDartArchiveBuild(channel, source_channel, revision):
@@ -187,7 +185,7 @@ def Gsutil(cmd, throw_on_error=True):
     gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
     command = [sys.executable, gsutilTool] + cmd
     if DRY_RUN:
-        print 'DRY runnning: %s' % command
+        print('DRY runnning: %s' % command)
         return (None, None, 0)
     return bot_utils.run(command, throw_on_error=throw_on_error)
 

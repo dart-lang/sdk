@@ -12,7 +12,6 @@ import re
 import shutil
 import subprocess
 import stat
-import string
 import sys
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -137,19 +136,19 @@ class WinTool(object):
         #   Popen(['/bin/sh', '-c', args[0], args[1], ...])"
         # For that reason, since going through the shell doesn't seem necessary on
         # non-Windows don't do that there.
-        link = subprocess.Popen(
-            args,
-            shell=sys.platform == 'win32',
-            env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT)
+        link = subprocess.Popen(args,
+                                shell=sys.platform == 'win32',
+                                env=env,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT,
+                                universal_newlines=True)
         # Read output one line at a time as it shows up to avoid OOM failures when
         # GBs of output is produced.
         for line in link.stdout:
             if (not line.startswith('   Creating library ') and
                     not line.startswith('Generating code') and
                     not line.startswith('Finished generating code')):
-                print line,
+                print(line)
         return link.wait()
 
     def ExecMidlWrapper(self, arch, outdir, tlb, h, dlldata, iid, proxy, idl,
@@ -162,12 +161,12 @@ class WinTool(object):
             iid, '/proxy', proxy, idl
         ]
         env = self._GetEnv(arch)
-        popen = subprocess.Popen(
-            args,
-            shell=True,
-            env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT)
+        popen = subprocess.Popen(args,
+                                 shell=True,
+                                 env=env,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT,
+                                 universal_newlines=True)
         out, _ = popen.communicate()
         # Filter junk out of stdout, and write filtered versions. Output we want
         # to filter is pairs of lines that look like this:
@@ -179,18 +178,18 @@ class WinTool(object):
             os.path.basename(x) for x in lines if x.startswith(prefixes))
         for line in lines:
             if not line.startswith(prefixes) and line not in processing:
-                print line
+                print(line)
         return popen.returncode
 
     def ExecAsmWrapper(self, arch, *args):
         """Filter logo banner from invocations of asm.exe."""
         env = self._GetEnv(arch)
-        popen = subprocess.Popen(
-            args,
-            shell=True,
-            env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT)
+        popen = subprocess.Popen(args,
+                                 shell=True,
+                                 env=env,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT,
+                                 universal_newlines=True)
         out, _ = popen.communicate()
         for line in out.splitlines():
             # Split to avoid triggering license checks:
@@ -198,26 +197,26 @@ class WinTool(object):
                                     ') Microsoft Corporation') and
                     not line.startswith('Microsoft (R) Macro Assembler') and
                     not line.startswith(' Assembling: ') and line):
-                print line
+                print(line)
         return popen.returncode
 
     def ExecRcWrapper(self, arch, *args):
         """Filter logo banner from invocations of rc.exe. Older versions of RC
     don't support the /nologo flag."""
         env = self._GetEnv(arch)
-        popen = subprocess.Popen(
-            args,
-            shell=True,
-            env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT)
+        popen = subprocess.Popen(args,
+                                 shell=True,
+                                 env=env,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT,
+                                 universal_newlines=True)
         out, _ = popen.communicate()
         for line in out.splitlines():
             if (not line.startswith(
                     'Microsoft (R) Windows (R) Resource Compiler') and
                     not line.startswith('Copy' + 'right (C' +
                                         ') Microsoft Corporation') and line):
-                print line
+                print(line)
         return popen.returncode
 
     def ExecActionWrapper(self, arch, rspfile, *dirname):

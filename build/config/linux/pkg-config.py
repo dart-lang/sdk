@@ -34,7 +34,7 @@ from optparse import OptionParser
 # success. This allows us to "kind of emulate" a Linux build from other
 # platforms.
 if sys.platform.find("linux") == -1:
-    print "[[],[],[],[],[]]"
+    print("[[],[],[],[],[]]")
     sys.exit(0)
 
 
@@ -50,7 +50,7 @@ def SetConfigPath(options):
     # Compute the library path name based on the architecture.
     arch = options.arch
     if sysroot and not arch:
-        print "You must specify an architecture via -a if using a sysroot."
+        print("You must specify an architecture via -a if using a sysroot.")
         sys.exit(1)
     if arch == 'x64':
         libpath = 'lib64'
@@ -138,9 +138,9 @@ if options.atleast_version:
         [options.pkg_config, "--atleast-version=" + options.atleast_version] +
             args,
             env=os.environ):
-        print "true"
+        print("true")
     else:
-        print "false"
+        print("false")
     sys.exit(0)
 
 if options.libdir:
@@ -148,7 +148,7 @@ if options.libdir:
         libdir = subprocess.check_output(
             [options.pkg_config, "--variable=libdir"] + args, env=os.environ)
     except:
-        print "Error from pkg-config."
+        print("Error from pkg-config.")
         sys.exit(1)
     sys.stdout.write(libdir.strip())
     sys.exit(0)
@@ -163,7 +163,7 @@ try:
     # to happen in practice.
     all_flags = flag_string.strip().split(' ')
 except:
-    print "Could not run pkg-config."
+    print("Could not run pkg-config.")
     sys.exit(1)
 
 sysroot = options.sysroot
@@ -199,4 +199,4 @@ for flag in all_flags[:]:
 # Output a GN array, the first one is the cflags, the second are the libs. The
 # JSON formatter prints GN compatible lists when everything is a list of
 # strings.
-print json.dumps([includes, cflags, libs, lib_dirs, ldflags])
+print(json.dumps([includes, cflags, libs, lib_dirs, ldflags]))

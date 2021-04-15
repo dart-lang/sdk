@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -7,8 +7,6 @@
 import hashlib
 import imp
 import os
-import platform
-import string
 import subprocess
 import sys
 
@@ -176,7 +174,7 @@ class GCSNamerApiDocs(object):
 
 
 def run(command, env=None, shell=False, throw_on_error=True):
-    print "Running command: ", command
+    print("Running command: ", command)
 
     p = subprocess.Popen(
         command,
@@ -186,10 +184,11 @@ def run(command, env=None, shell=False, throw_on_error=True):
         shell=shell)
     (stdout, stderr) = p.communicate()
     if throw_on_error and p.returncode != 0:
-        print >> sys.stderr, "Failed to execute '%s'. Exit code: %s." % (
-            command, p.returncode)
-        print >> sys.stderr, "stdout: ", stdout
-        print >> sys.stderr, "stderr: ", stderr
+        print("Failed to execute '%s'. Exit code: %s." %
+              (command, p.returncode),
+              file=sys.stderr)
+        print("stdout: ", stdout, file=sys.stderr)
+        print("stderr: ", stderr, file=sys.stderr)
         raise Exception("Failed to execute %s." % command)
     return (stdout, stderr, p.returncode)
 
@@ -307,7 +306,7 @@ def CreateMD5ChecksumFile(filename, mangled_filename=None):
     with open(checksum_filename, 'w') as f:
         f.write('%s *%s' % (checksum, mangled_filename))
 
-    print "MD5 checksum of %s is %s" % (filename, checksum)
+    print("MD5 checksum of %s is %s" % (filename, checksum))
     return checksum_filename
 
 
@@ -322,14 +321,14 @@ def CreateSha256ChecksumFile(filename, mangled_filename=None):
     with open(checksum_filename, 'w') as f:
         f.write('%s *%s' % (checksum, mangled_filename))
 
-    print "SHA256 checksum of %s is %s" % (filename, checksum)
+    print("SHA256 checksum of %s is %s" % (filename, checksum))
     return checksum_filename
 
 
 def GetChannelFromName(name):
     """Get the channel from the name. Bleeding edge builders don't
       have a suffix."""
-    channel_name = string.split(name, '-').pop()
+    channel_name = name.split('-').pop()
     if channel_name in Channel.ALL_CHANNELS:
         return channel_name
     return Channel.BLEEDING_EDGE
@@ -337,7 +336,7 @@ def GetChannelFromName(name):
 
 def GetSystemFromName(name):
     """Get the system from the name."""
-    for part in string.split(name, '-'):
+    for part in name.split('-'):
         if part in SYSTEM_RENAMES: return SYSTEM_RENAMES[part]
 
     raise ValueError(

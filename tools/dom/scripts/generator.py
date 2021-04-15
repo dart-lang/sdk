@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -937,7 +937,7 @@ class OperationInfo(object):
 
 def ConstantOutputOrder(a, b):
     """Canonical output ordering for constants."""
-    return cmp(a.id, b.id)
+    return (a.id > b.id) - (a.id < b.id)
 
 
 def _FormatNameList(names):
@@ -2098,7 +2098,8 @@ class TypeRegistry(object):
                 # It's a typedef (implied union)
                 return self.TypeInfo('any')
             else:
-                print "ERROR: Unexpected interface, or type not found. %s" % type_name
+                print("ERROR: Unexpected interface, or type not found. %s" %
+                      type_name)
 
             if 'Callback' in interface.ext_attrs:
                 return CallbackIDLTypeInfo(

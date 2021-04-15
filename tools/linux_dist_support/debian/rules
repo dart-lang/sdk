@@ -53,11 +53,11 @@ override_dh_auto_clean:
 	find . -name *.Makefile -execdir rm -f {} \;
 
 override_dh_auto_configure:
-	python dart/tools/generate_buildfiles.py
+	python3 dart/tools/generate_buildfiles.py
 
 override_dh_auto_build:
 	cd dart; \
-	python tools/build.py -v -m release -a $(ARCH) $(TOOLCHAIN) create_sdk; \
+	python3 tools/build.py -v -m release -a $(ARCH) $(TOOLCHAIN) create_sdk; \
 	cd ..
 
 # Building the Dart SDK will already strip all binaries.
