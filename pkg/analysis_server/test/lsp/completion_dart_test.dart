@@ -44,6 +44,18 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     );
   }
 
+  Future<void> test_comment() async {
+    final content = '''
+    // foo ^
+    main() {}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res, isEmpty);
+  }
+
   Future<void> test_commitCharacter_completionItem() async {
     await provideConfig(
       () => initialize(
