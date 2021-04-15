@@ -632,7 +632,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           throw ArgumentError('$uri is not a library.');
         }
 
-        var unitResult = await getUnitElement(file.path!);
+        var unitResult = await getUnitElement(file.path);
         return unitResult.element.library;
       },
       (externalLibrary) async {
@@ -662,10 +662,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var units = <ParsedUnitResult>[];
     for (var unitFile in file.libraryFiles) {
       var unitPath = unitFile.path;
-      if (unitPath != null) {
-        var unitResult = parseFileSync(unitPath);
-        units.add(unitResult);
-      }
+      var unitResult = parseFileSync(unitPath);
+      units.add(unitResult);
     }
 
     return ParsedLibraryResultImpl(currentSession, path, file.uri, units);
@@ -685,7 +683,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         if (file.isPart) {
           throw ArgumentError('Is a part: $uri');
         }
-        return getParsedLibrary(file.path!);
+        return getParsedLibrary(file.path);
       },
       (externalLibrary) {
         return ParsedLibraryResultImpl.external(currentSession, uri);
@@ -759,7 +757,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         if (file.isPart) {
           throw ArgumentError('Is a part: $uri');
         }
-        return getResolvedLibrary(file.path!);
+        return getResolvedLibrary(file.path);
       },
       (externalLibrary) async {
         return ResolvedLibraryResultImpl.external(currentSession, uri);
@@ -925,7 +923,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     FileState file = _fileTracker.getFile(path);
     RecordingErrorListener listener = RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
-    return ParsedUnitResultImpl(currentSession, file.path!, file.uri,
+    return ParsedUnitResultImpl(currentSession, file.path, file.uri,
         file.content, file.lineInfo, file.isPart, unit, listener.errors);
   }
 
@@ -1403,28 +1401,27 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       Map<FileState, UnitAnalysisResult> unitResults = analyzer.analyze();
       var resolvedUnits = <ResolvedUnitResult>[];
 
-      for (var unitFile in unitResults.keys) {
-        if (unitFile.path != null) {
-          var unitResult = unitResults[unitFile]!;
-          resolvedUnits.add(
-            ResolvedUnitResultImpl(
-              currentSession,
-              unitFile.path!,
-              unitFile.uri,
-              unitFile.exists,
-              unitFile.content,
-              unitFile.lineInfo,
-              unitFile.isPart,
-              unitResult.unit,
-              unitResult.errors,
-            ),
-          );
-        }
+      for (var entry in unitResults.entries) {
+        var unitFile = entry.key;
+        var unitResult = entry.value;
+        resolvedUnits.add(
+          ResolvedUnitResultImpl(
+            currentSession,
+            unitFile.path,
+            unitFile.uri,
+            unitFile.exists,
+            unitFile.content,
+            unitFile.lineInfo,
+            unitFile.isPart,
+            unitResult.unit,
+            unitResult.errors,
+          ),
+        );
       }
 
       return ResolvedLibraryResultImpl(
         currentSession,
-        library.path!,
+        library.path,
         library.uri,
         resolvedUnits.first.libraryElement,
         resolvedUnits,
@@ -1610,7 +1607,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _updateHasErrorOrWarningFlag(file, errors);
     return AnalysisResult(
         currentSession,
-        file.path!,
+        file.path,
         file.uri,
         file.exists,
         content,
@@ -1627,7 +1624,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       FileState file, List<AnalysisDriverUnitError> serialized) {
     List<AnalysisError> errors = <AnalysisError>[];
     for (AnalysisDriverUnitError error in serialized) {
-      var analysisError = ErrorEncoding.decode(file.source!, error);
+      var analysisError = ErrorEncoding.decode(file.source, error);
       if (analysisError != null) {
         errors.add(analysisError);
       }
@@ -1666,7 +1663,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // TODO(scheglov) Find a better way to report this.
     return AnalysisResult(
         currentSession,
-        file.path!,
+        file.path,
         file.uri,
         file.exists,
         null,
@@ -1675,7 +1672,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         'missing',
         null,
         [
-          AnalysisError(file.source!, 0, 0,
+          AnalysisError(file.source, 0, 0,
               CompileTimeErrorCode.MISSING_DART_LIBRARY, [missingUri])
         ],
         null);
@@ -1696,9 +1693,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var libraryFile = _fsState.getFileForPath(path);
     for (var file in libraryFile.libraryFiles) {
       var path = file.path;
-      if (path != null) {
-        fileContentMap[path] = file.content;
-      }
+      fileContentMap[path] = file.content;
     }
 
     _exceptionController.add(
@@ -1737,7 +1732,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       List<AnalysisDriverExceptionFileBuilder> contextFiles = libraryFile
           .transitiveFiles
           .map((file) => AnalysisDriverExceptionFileBuilder(
-              path: file.path!, content: file.content))
+              path: file.path, content: file.content))
           .toList();
       contextFiles.sort((a, b) => a.path.compareTo(b.path));
       AnalysisDriverExceptionContextBuilder contextBuilder =
@@ -2409,7 +2404,7 @@ class _FilesReferencingNameTask {
       }
       FileState file = filesToCheck![filesToCheckIndex++];
       if (file.referencedNames.contains(name)) {
-        referencingFiles.add(file.path!);
+        referencingFiles.add(file.path);
       }
     }
 

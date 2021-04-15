@@ -138,7 +138,7 @@ class LibraryContext {
         librariesLinkedTimer.start();
 
         testView.linkedCycles.add(
-          cycle.libraries.map((e) => e.path!).toSet(),
+          cycle.libraries.map((e) => e.path).toSet(),
         );
 
         timerInputLibraries.start();
@@ -146,7 +146,6 @@ class LibraryContext {
         var inputLibraries = <link2.LinkInputLibrary>[];
         for (var libraryFile in cycle.libraries) {
           var librarySource = libraryFile.source;
-          if (librarySource == null) continue;
 
           var inputUnits = <link2.LinkInputUnit>[];
           var partIndex = -1;
@@ -163,7 +162,7 @@ class LibraryContext {
             inputUnits.add(
               link2.LinkInputUnit(
                 partUriStr,
-                file.source!,
+                file.source,
                 isSynthetic,
                 unit,
               ),
@@ -316,7 +315,7 @@ class LibraryContext {
     var fileContentMap = <String, String>{};
     for (var libraryFile in cycle.libraries) {
       for (var file in libraryFile.libraryFiles) {
-        fileContentMap[file.path!] = file.content;
+        fileContentMap[file.path] = file.content;
       }
     }
     throw CaughtExceptionWithFiles(exception, stackTrace, fileContentMap);

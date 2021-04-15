@@ -149,8 +149,8 @@ class Search {
 
     if (files != null) {
       for (FileState file in files) {
-        if (searchedFiles.add(file.path!, this)) {
-          var index = await _driver.getIndex(file.path!);
+        if (searchedFiles.add(file.path, this)) {
+          var index = await _driver.getIndex(file.path);
           if (index != null) {
             var request = _IndexRequest(index);
             request.addSubtypes(id, results, file);
@@ -174,7 +174,7 @@ class Search {
 
     List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
     for (FileState file in knownFiles) {
-      var unitResult = await _driver.getUnitElement(file.path!);
+      var unitResult = await _driver.getUnitElement(file.path);
       if (unitResult.state == ResultState.VALID) {
         CompilationUnitElement unitElement = unitResult.element;
         unitElement.accessors.forEach(addElement);
@@ -245,7 +245,7 @@ class Search {
         FileState library = _driver.fsState.getFileForPath(libraryPath);
         for (FileState file in library.libraryFiles) {
           if (file.path == path || file.referencedNames.contains(name)) {
-            files.add(file.path!);
+            files.add(file.path);
           }
         }
       }
@@ -316,7 +316,7 @@ class Search {
               const {
                 IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE
               },
-              file.path!);
+              file.path);
         }
       }
     }
