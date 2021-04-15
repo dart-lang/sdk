@@ -950,7 +950,7 @@ get erroneous migration suggestions.
     _dartFixListener.reset();
     _fixCodeProcessor.prepareToRerun();
     var analysisResult = await _fixCodeProcessor.runFirstPhase();
-    if (analysisResult.hasErrors) {
+    if (analysisResult.hasErrors && !options.ignoreErrors) {
       _logErrors(analysisResult);
       return MigrationState(
           _fixCodeProcessor._task.migration,

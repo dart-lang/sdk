@@ -1272,6 +1272,32 @@ int f() => null;
     });
   }
 
+  test_lifecycle_preview_rerun_with_ignore_errors() async {
+    var origSourceText = 'void f(int i) {}';
+    var projectContents = simpleProject(sourceText: origSourceText);
+    var projectDir = createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, ['--ignore-errors', projectDir],
+        (url) async {
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var testPath =
+          resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
+      resourceProvider.getFile(testPath).writeAsStringSync('void f(int? i) {}');
+      // We haven't rerun, so getting the file details from the server should
+      // still yield the original source text, with informational space.
+      expect(await getSourceFromServer(uri, testPath), 'void f(int  i) {}');
+      var response = await httpPost(uri.replace(path: 'rerun-migration'),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      var body = jsonDecode(response.body);
+      expect(body['success'], isTrue);
+      expect(body['errors'], isNull);
+      // Now that we've rerun, the server should yield the new source text
+      expect(await getSourceFromServer(uri, testPath), 'void f(int?  i) {}');
+    });
+  }
+
   test_lifecycle_preview_rerun_with_new_analysis_errors() async {
     var origSourceText = 'void f(int i) {}';
     var projectContents = simpleProject(sourceText: origSourceText);
