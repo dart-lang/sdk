@@ -18,21 +18,21 @@ import 'package:kernel/ast.dart' hide Variance;
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(
       Platform.script.resolve('../../../_fe_analyzer_shared/test/'
-          'inference/inferred_type_arguments/data'));
-  await runTests<List<DartType>>(dataDir,
+          'inference/inferred_variable_types/data'));
+  await runTests<DartType>(dataDir,
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const InferredTypeArgumentDataComputer(),
+      runTest: runTestFor(const InferredVariableTypesDataComputer(),
           [cfeNonNullableOnlyConfig]));
 }
 
-class InferredTypeArgumentDataComputer extends DataComputer<List<DartType>> {
-  const InferredTypeArgumentDataComputer();
+class InferredVariableTypesDataComputer extends DataComputer<DartType> {
+  const InferredVariableTypesDataComputer();
 
   @override
-  DataInterpreter<List<DartType>> get dataValidator =>
-      const _InferredTypeArgumentsDataInterpreter();
+  DataInterpreter<DartType> get dataValidator =>
+      const _InferredVariableTypesDataInterpreter();
 
   @override
   bool get supportsErrors => true;
@@ -44,7 +44,7 @@ class InferredTypeArgumentDataComputer extends DataComputer<List<DartType>> {
       TestConfig config,
       InternalCompilerResult compilerResult,
       Member member,
-      Map<Id, ActualData<List<DartType>>> actualMap,
+      Map<Id, ActualData<DartType>> actualMap,
       {bool verbose}) {
     MemberBuilderImpl memberBuilder =
         lookupMemberBuilder(compilerResult, member);
@@ -55,49 +55,34 @@ class InferredTypeArgumentDataComputer extends DataComputer<List<DartType>> {
   }
 }
 
-class InferredTypeArgumentDataExtractor
-    extends CfeDataExtractor<List<DartType>> {
+class InferredTypeArgumentDataExtractor extends CfeDataExtractor<DartType> {
   final TypeInferenceResultForTesting typeInferenceResult;
 
   InferredTypeArgumentDataExtractor(InternalCompilerResult compilerResult,
-      this.typeInferenceResult, Map<Id, ActualData<List<DartType>>> actualMap)
+      this.typeInferenceResult, Map<Id, ActualData<DartType>> actualMap)
       : super(compilerResult, actualMap);
 
   @override
-  List<DartType> computeNodeValue(Id id, TreeNode node) {
-    if (node is Arguments ||
-        node is ListLiteral ||
-        node is SetLiteral ||
-        node is MapLiteral) {
-      return typeInferenceResult.inferredTypeArguments[node];
+  DartType computeNodeValue(Id id, TreeNode node) {
+    if (node is VariableDeclaration || node is LocalFunction) {
+      return typeInferenceResult.inferredVariableTypes[node];
     }
     return null;
   }
 }
 
-class _InferredTypeArgumentsDataInterpreter
-    implements DataInterpreter<List<DartType>> {
-  const _InferredTypeArgumentsDataInterpreter();
+class _InferredVariableTypesDataInterpreter
+    implements DataInterpreter<DartType> {
+  const _InferredVariableTypesDataInterpreter();
 
   @override
-  String getText(List<DartType> actualData, [String indentation]) {
-    StringBuffer sb = new StringBuffer();
-    if (actualData.isNotEmpty) {
-      sb.write('<');
-      for (int i = 0; i < actualData.length; i++) {
-        if (i > 0) {
-          sb.write(',');
-        }
-        sb.write(typeToText(
-            actualData[i], TypeRepresentation.analyzerNonNullableByDefault));
-      }
-      sb.write('>');
-    }
-    return sb.toString();
+  String getText(DartType actualData, [String indentation]) {
+    return typeToText(
+        actualData, TypeRepresentation.analyzerNonNullableByDefault);
   }
 
   @override
-  String isAsExpected(List<DartType> actualData, String expectedData) {
+  String isAsExpected(DartType actualData, String expectedData) {
     if (getText(actualData) == expectedData) {
       return null;
     } else {
@@ -106,6 +91,5 @@ class _InferredTypeArgumentsDataInterpreter
   }
 
   @override
-  bool isEmpty(List<DartType> actualData) =>
-      actualData == null || actualData.isEmpty;
+  bool isEmpty(DartType actualData) => actualData == null;
 }

@@ -201,9 +201,6 @@ enum JsGetName {
   CALL_NAME_PROPERTY,
   DEFERRED_ACTION_PROPERTY,
 
-  /// Prefix used for generated type argument substitutions on classes.
-  OPERATOR_AS_PREFIX,
-
   /// Prefix used for generated type test property on classes.
   OPERATOR_IS_PREFIX,
 

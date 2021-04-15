@@ -324,5 +324,6 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
 
 /// Type inference results used for testing.
 class TypeInferenceResultForTesting {
-  final Map<Arguments, List<DartType>> inferredTypeArguments = {};
+  final Map<TreeNode, List<DartType>> inferredTypeArguments = {};
+  final Map<TreeNode, DartType> inferredVariableTypes = {};
 }

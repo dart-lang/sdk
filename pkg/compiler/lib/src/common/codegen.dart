@@ -554,9 +554,6 @@ class CodegenResult {
         case ModularNameKind.operatorIsType:
           name.value = namer.operatorIsType(name.data);
           break;
-        case ModularNameKind.substitution:
-          name.value = namer.substitutionName(name.data);
-          break;
         case ModularNameKind.instanceMethod:
           name.value = namer.instanceMethodName(name.data);
           break;
@@ -630,7 +627,6 @@ enum ModularNameKind {
   methodProperty,
   operatorIs,
   operatorIsType,
-  substitution,
   instanceMethod,
   instanceField,
   invocation,
@@ -666,7 +662,6 @@ class ModularName extends js.Name implements js.AstContainer {
       case ModularNameKind.runtimeTypeName:
       case ModularNameKind.className:
       case ModularNameKind.operatorIs:
-      case ModularNameKind.substitution:
       case ModularNameKind.globalPropertyNameForClass:
         data = source.readClass();
         break;
@@ -713,7 +708,6 @@ class ModularName extends js.Name implements js.AstContainer {
       case ModularNameKind.runtimeTypeName:
       case ModularNameKind.className:
       case ModularNameKind.operatorIs:
-      case ModularNameKind.substitution:
       case ModularNameKind.globalPropertyNameForClass:
         sink.writeClass(data);
         break;
