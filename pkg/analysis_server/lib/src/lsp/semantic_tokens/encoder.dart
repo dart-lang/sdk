@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 import 'dart:math' as math;
 
@@ -34,12 +32,10 @@ class SemanticTokenEncoder {
         .where((region) => highlightRegionTokenTypes.containsKey(region.type));
 
     for (final region in translatedRegions) {
-      final tokenType = highlightRegionTokenTypes[region.type];
-
       tokens.add(SemanticTokenInfo(
         region.offset,
         region.length,
-        tokenType,
+        highlightRegionTokenTypes[region.type]!,
         highlightRegionTokenModifiers[region.type],
       ));
     }
@@ -73,7 +69,7 @@ class SemanticTokenEncoder {
         relativeColumn,
         token.length,
         semanticTokenLegend.indexForType(token.type),
-        semanticTokenLegend.bitmaskForModifiers(token.modifiers) ?? 0
+        semanticTokenLegend.bitmaskForModifiers(token.modifiers)
       ]);
 
       lastLine = tokenLine;
@@ -126,17 +122,15 @@ class SemanticTokenEncoder {
     var pos = firstToken.offset;
 
     for (final current in sortedTokens.skip(1)) {
-      if (stack.last != null) {
-        final last = stack.last;
-        final newPos = current.offset;
-        if (newPos - pos > 0) {
-          // The previous region ends at either its original end or
-          // the position of this next region, whichever is shorter.
-          final end = math.min(last.offset + last.length, newPos);
-          final length = end - pos;
-          yield SemanticTokenInfo(pos, length, last.type, last.modifiers);
-          pos = newPos;
-        }
+      final last = stack.last;
+      final newPos = current.offset;
+      if (newPos - pos > 0) {
+        // The previous region ends at either its original end or
+        // the position of this next region, whichever is shorter.
+        final end = math.min(last.offset + last.length, newPos);
+        final length = end - pos;
+        yield SemanticTokenInfo(pos, length, last.type, last.modifiers);
+        pos = newPos;
       }
 
       stack.addLast(current);
@@ -159,7 +153,7 @@ class SemanticTokenInfo {
   final int offset;
   final int length;
   final SemanticTokenTypes type;
-  final Set<SemanticTokenModifiers> modifiers;
+  final Set<SemanticTokenModifiers>? modifiers;
 
   SemanticTokenInfo(this.offset, this.length, this.type, this.modifiers);
 

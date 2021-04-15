@@ -3109,23 +3109,72 @@ static bool EvaluateInFrame(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static void MarkClasses(const Class& root,
+                        bool include_subclasses,
+                        bool include_implementors) {
+  Thread* thread = Thread::Current();
+  HANDLESCOPE(thread);
+  SharedClassTable* table = thread->isolate()->group()->shared_class_table();
+  GrowableArray<const Class*> worklist;
+  table->SetCollectInstancesFor(root.id(), true);
+  worklist.Add(&root);
+  GrowableObjectArray& subclasses = GrowableObjectArray::Handle();
+  GrowableObjectArray& implementors = GrowableObjectArray::Handle();
+  while (!worklist.is_empty()) {
+    const Class& cls = *worklist.RemoveLast();
+    // All subclasses are implementors, but they are not included in
+    // `direct_implementors`.
+    if (include_subclasses || include_implementors) {
+      subclasses = cls.direct_subclasses_unsafe();
+      if (!subclasses.IsNull()) {
+        for (intptr_t j = 0; j < subclasses.Length(); j++) {
+          Class& subclass = Class::Handle();
+          subclass ^= subclasses.At(j);
+          if (!table->CollectInstancesFor(subclass.id())) {
+            table->SetCollectInstancesFor(subclass.id(), true);
+            worklist.Add(&subclass);
+          }
+        }
+      }
+    }
+    if (include_implementors) {
+      implementors = cls.direct_implementors_unsafe();
+      if (!implementors.IsNull()) {
+        for (intptr_t j = 0; j < implementors.Length(); j++) {
+          Class& implementor = Class::Handle();
+          implementor ^= implementors.At(j);
+          if (!table->CollectInstancesFor(implementor.id())) {
+            table->SetCollectInstancesFor(implementor.id(), true);
+            worklist.Add(&implementor);
+          }
+        }
+      }
+    }
+  }
+}
+
+static void UnmarkClasses() {
+  SharedClassTable* table = IsolateGroup::Current()->shared_class_table();
+  for (intptr_t i = 1; i < table->NumCids(); i++) {
+    table->SetCollectInstancesFor(i, false);
+  }
+}
+
 class GetInstancesVisitor : public ObjectGraph::Visitor {
  public:
-  GetInstancesVisitor(const Class& cls,
-                      ZoneGrowableHandlePtrArray<Object>* storage,
+  GetInstancesVisitor(ZoneGrowableHandlePtrArray<Object>* storage,
                       intptr_t limit)
-      : cls_(cls), storage_(storage), limit_(limit), count_(0) {}
+      : table_(IsolateGroup::Current()->shared_class_table()),
+        storage_(storage),
+        limit_(limit),
+        count_(0) {}
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     ObjectPtr raw_obj = it->Get();
     if (raw_obj->IsPseudoObject()) {
       return kProceed;
     }
-    Thread* thread = Thread::Current();
-    REUSABLE_OBJECT_HANDLESCOPE(thread);
-    Object& obj = thread->ObjectHandle();
-    obj = raw_obj;
-    if (obj.GetClassId() == cls_.id()) {
+    if (table_->CollectInstancesFor(raw_obj->GetClassId())) {
       if (count_ < limit_) {
         storage_->Add(Object::Handle(raw_obj));
       }
@@ -3137,7 +3186,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
   intptr_t count() const { return count_; }
 
  private:
-  const Class& cls_;
+  SharedClassTable* const table_;
   ZoneGrowableHandlePtrArray<Object>* storage_;
   const intptr_t limit_;
   intptr_t count_;
@@ -3177,11 +3226,13 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
   HANDLESCOPE(thread);
 
   ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), limit);
-  GetInstancesVisitor visitor(cls, &storage, limit);
+  GetInstancesVisitor visitor(&storage, limit);
   {
     ObjectGraph graph(thread);
     HeapIterationScope iteration_scope(Thread::Current(), true);
+    MarkClasses(cls, false, false);
     graph.IterateObjects(&visitor);
+    UnmarkClasses();
   }
   intptr_t count = visitor.count();
   JSONObject jsobj(js);
@@ -3193,6 +3244,55 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
       samples.AddValue(storage.At(i));
     }
   }
+  return true;
+}
+
+static const MethodParameter* get_instances_as_array_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool GetInstancesAsArray(Thread* thread, JSONStream* js) {
+  const char* object_id = js->LookupParam("objectId");
+  if (object_id == NULL) {
+    PrintMissingParamError(js, "objectId");
+    return true;
+  }
+
+  bool include_subclasses =
+      BoolParameter::Parse(js->LookupParam("includeSubclasses"), false);
+  bool include_implementors =
+      BoolParameter::Parse(js->LookupParam("includeImplementors"), false);
+
+  const Object& obj = Object::Handle(LookupHeapObject(thread, object_id, NULL));
+  if (obj.ptr() == Object::sentinel().ptr() || !obj.IsClass()) {
+    PrintInvalidParamError(js, "objectId");
+    return true;
+  }
+  const Class& cls = Class::Cast(obj);
+
+  // Ensure the array and handles created below are promptly destroyed.
+  Array& instances = Array::Handle();
+  {
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+
+    ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), 1024);
+    GetInstancesVisitor visitor(&storage, kSmiMax);
+    {
+      ObjectGraph graph(thread);
+      HeapIterationScope iteration_scope(Thread::Current(), true);
+      MarkClasses(cls, include_subclasses, include_implementors);
+      graph.IterateObjects(&visitor);
+      UnmarkClasses();
+    }
+    intptr_t count = visitor.count();
+    instances = Array::New(count);
+    for (intptr_t i = 0; i < count; i++) {
+      instances.SetAt(i, storage.At(i));
+    }
+  }
+  instances.PrintJSON(js, /* as_ref */ true);
   return true;
 }
 
@@ -4229,94 +4329,122 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   rss.AddProperty64("size", Service::CurrentRSS());
   JSONArray rss_children(&rss, "children");
 
-  JSONObject vm(&rss_children);
   intptr_t vm_size = 0;
   {
-    JSONArray vm_children(&vm, "children");
+    JSONObject vm(&rss_children);
+    {
+      JSONArray vm_children(&vm, "children");
+
+      {
+        JSONObject profiler(&vm_children);
+        profiler.AddProperty("name", "Profiler");
+        profiler.AddProperty("description",
+                             "Samples from the Dart VM's profiler");
+        intptr_t size = Profiler::Size();
+        vm_size += size;
+        profiler.AddProperty64("size", size);
+        JSONArray(&profiler, "children");
+      }
+
+      {
+        JSONObject timeline(&vm_children);
+        timeline.AddProperty("name", "Timeline");
+        timeline.AddProperty(
+            "description",
+            "Timeline events from dart:developer and Dart_TimelineEvent");
+        intptr_t size = Timeline::recorder()->Size();
+        vm_size += size;
+        timeline.AddProperty64("size", size);
+        JSONArray(&timeline, "children");
+      }
+
+      {
+        JSONObject zone(&vm_children);
+        zone.AddProperty("name", "Zone");
+        zone.AddProperty("description", "Arena allocation in the Dart VM");
+        intptr_t size = Zone::Size();
+        vm_size += size;
+        zone.AddProperty64("size", size);
+        JSONArray(&zone, "children");
+      }
+
+      {
+        JSONObject semi(&vm_children);
+        semi.AddProperty("name", "SemiSpace Cache");
+        semi.AddProperty("description", "Cached heap regions");
+        intptr_t size = SemiSpace::CachedSize();
+        vm_size += size;
+        semi.AddProperty64("size", size);
+        JSONArray(&semi, "children");
+      }
+
+      IsolateGroup::ForEach([&vm_children,
+                             &vm_size](IsolateGroup* isolate_group) {
+        // Note: new_space()->CapacityInWords() includes memory that hasn't been
+        // allocated from the OS yet.
+        int64_t capacity =
+            (isolate_group->heap()->new_space()->UsedInWords() +
+             isolate_group->heap()->old_space()->CapacityInWords()) *
+            kWordSize;
+        int64_t used = isolate_group->heap()->TotalUsedInWords() * kWordSize;
+        int64_t free = capacity - used;
+
+        JSONObject group(&vm_children);
+        group.AddPropertyF("name", "IsolateGroup %s",
+                           isolate_group->source()->name);
+        group.AddProperty("description", "Dart heap capacity");
+        vm_size += capacity;
+        group.AddProperty64("size", capacity);
+        JSONArray group_children(&group, "children");
+
+        {
+          JSONObject jsused(&group_children);
+          jsused.AddProperty("name", "Used");
+          jsused.AddProperty("description", "");
+          jsused.AddProperty64("size", used);
+          JSONArray(&jsused, "children");
+        }
+
+        {
+          JSONObject jsfree(&group_children);
+          jsfree.AddProperty("name", "Free");
+          jsfree.AddProperty("description", "");
+          jsfree.AddProperty64("size", free);
+          JSONArray(&jsfree, "children");
+        }
+      });
+    }  // vm_children
+
+    vm.AddProperty("name", "Dart VM");
+    vm.AddProperty("description", "");
+    vm.AddProperty64("size", vm_size);
+  }
+
+  intptr_t used, capacity;
+  const char* implementation;
+  if (MallocHooks::GetStats(&used, &capacity, &implementation)) {
+    JSONObject malloc(&rss_children);
+    malloc.AddPropertyF("name", "Malloc (%s)", implementation);
+    malloc.AddProperty("description", "");
+    malloc.AddProperty64("size", capacity);
+    JSONArray malloc_children(&malloc, "children");
 
     {
-      JSONObject profiler(&vm_children);
-      profiler.AddProperty("name", "Profiler");
-      profiler.AddProperty("description",
-                           "Samples from the Dart VM's profiler");
-      intptr_t size = Profiler::Size();
-      vm_size += size;
-      profiler.AddProperty64("size", size);
-      JSONArray(&profiler, "children");
+      JSONObject malloc_used(&malloc_children);
+      malloc_used.AddProperty("name", "Used");
+      malloc_used.AddProperty("description", "");
+      malloc_used.AddProperty64("size", used);
+      JSONArray(&malloc_used, "children");
     }
 
     {
-      JSONObject timeline(&vm_children);
-      timeline.AddProperty("name", "Timeline");
-      timeline.AddProperty(
-          "description",
-          "Timeline events from dart:developer and Dart_TimelineEvent");
-      intptr_t size = Timeline::recorder()->Size();
-      vm_size += size;
-      timeline.AddProperty64("size", size);
-      JSONArray(&timeline, "children");
+      JSONObject malloc_free(&malloc_children);
+      malloc_free.AddProperty("name", "Free");
+      malloc_free.AddProperty("description", "");
+      malloc_free.AddProperty64("size", capacity - used);
+      JSONArray(&malloc_free, "children");
     }
-
-    {
-      JSONObject zone(&vm_children);
-      zone.AddProperty("name", "Zone");
-      zone.AddProperty("description", "Arena allocation in the Dart VM");
-      intptr_t size = Zone::Size();
-      vm_size += size;
-      zone.AddProperty64("size", size);
-      JSONArray(&zone, "children");
-    }
-
-    {
-      JSONObject semi(&vm_children);
-      semi.AddProperty("name", "SemiSpace Cache");
-      semi.AddProperty("description", "Cached heap regions");
-      intptr_t size = SemiSpace::CachedSize();
-      vm_size += size;
-      semi.AddProperty64("size", size);
-      JSONArray(&semi, "children");
-    }
-
-    IsolateGroup::ForEach(
-        [&vm_children, &vm_size](IsolateGroup* isolate_group) {
-          // Note: new_space()->CapacityInWords() includes memory that hasn't
-          // been allocated from the OS yet.
-          int64_t capacity =
-              (isolate_group->heap()->new_space()->UsedInWords() +
-               isolate_group->heap()->old_space()->CapacityInWords()) *
-              kWordSize;
-          int64_t used = isolate_group->heap()->TotalUsedInWords() * kWordSize;
-          int64_t free = capacity - used;
-
-          JSONObject group(&vm_children);
-          group.AddPropertyF("name", "IsolateGroup %s",
-                             isolate_group->source()->name);
-          group.AddProperty("description", "Dart heap capacity");
-          vm_size += capacity;
-          group.AddProperty64("size", capacity);
-          JSONArray group_children(&group, "children");
-
-          {
-            JSONObject jsused(&group_children);
-            jsused.AddProperty("name", "Used");
-            jsused.AddProperty("description", "");
-            jsused.AddProperty64("size", used);
-            JSONArray(&jsused, "children");
-          }
-
-          {
-            JSONObject jsfree(&group_children);
-            jsfree.AddProperty("name", "Free");
-            jsfree.AddProperty("description", "");
-            jsfree.AddProperty64("size", free);
-            JSONArray(&jsfree, "children");
-          }
-        });
-  }  // vm_children
-
-  vm.AddProperty("name", "Dart VM");
-  vm.AddProperty("description", "");
-  vm.AddProperty64("size", vm_size);
+  }
 
   return vm_size;
 }
@@ -4748,7 +4876,15 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty64("pid", OS::ProcessId());
   jsobj.AddPropertyTimeMillis(
       "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
-  MallocHooks::PrintToJSONObject(&jsobj);
+  {
+    intptr_t used, capacity;
+    const char* implementation;
+    if (MallocHooks::GetStats(&used, &capacity, &implementation)) {
+      jsobj.AddProperty("_mallocUsed", used);
+      jsobj.AddProperty("_mallocCapacity", capacity);
+      jsobj.AddProperty("_mallocImplementation", implementation);
+    }
+  }
   PrintJSONForEmbedderInformation(&jsobj);
   // Construct the isolate and isolate_groups list.
   {
@@ -5176,6 +5312,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_inbound_references_params },
   { "getInstances", GetInstances,
     get_instances_params },
+  { "_getInstancesAsArray", GetInstancesAsArray,
+    get_instances_as_array_params },
   { "getPorts", GetPorts,
     get_ports_params },
   { "getIsolate", GetIsolate,

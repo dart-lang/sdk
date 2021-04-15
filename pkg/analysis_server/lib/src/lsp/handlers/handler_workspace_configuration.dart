@@ -30,6 +30,6 @@ class WorkspaceDidChangeConfigurationMessageHandler
     // whenever we are told they may have changed.
     await server.fetchClientConfigurationAndPerformDynamicRegistration();
 
-    return success();
+    return success(null);
   }
 }

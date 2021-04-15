@@ -67,7 +67,7 @@ class ReferencesHandler
       element = (element as PropertyAccessorElement).variable;
     }
     if (element == null) {
-      return success();
+      return success(null);
     }
 
     final computer = ElementReferencesComputer(server.searchEngine);

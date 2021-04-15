@@ -23,13 +23,13 @@ class TextDocumentChangeHandler
       DidChangeTextDocumentParams.jsonHandler;
 
   @override
-  ErrorOr<void> handle(
+  ErrorOr<Null> handle(
       DidChangeTextDocumentParams params, CancellationToken token) {
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) => _changeFile(path, params));
   }
 
-  ErrorOr<void> _changeFile(String path, DidChangeTextDocumentParams params) {
+  ErrorOr<Null> _changeFile(String path, DidChangeTextDocumentParams params) {
     String oldContents;
     if (server.resourceProvider.hasOverlay(path)) {
       oldContents = server.resourceProvider.getFile(path).readAsStringSync();
@@ -49,7 +49,7 @@ class TextDocumentChangeHandler
     return newContents.mapResult((result) {
       server.documentVersions[path] = params.textDocument;
       server.onOverlayUpdated(path, result.last, newContent: result.first);
-      return success();
+      return success(null);
     });
   }
 }
@@ -66,7 +66,7 @@ class TextDocumentCloseHandler
       DidCloseTextDocumentParams.jsonHandler;
 
   @override
-  ErrorOr<void> handle(
+  ErrorOr<Null> handle(
       DidCloseTextDocumentParams params, CancellationToken token) {
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) {
@@ -74,7 +74,7 @@ class TextDocumentCloseHandler
       server.documentVersions.remove(path);
       server.onOverlayDestroyed(path);
 
-      return success();
+      return success(null);
     });
   }
 }
@@ -91,7 +91,7 @@ class TextDocumentOpenHandler
       DidOpenTextDocumentParams.jsonHandler;
 
   @override
-  ErrorOr<void> handle(
+  ErrorOr<Null> handle(
       DidOpenTextDocumentParams params, CancellationToken token) {
     final doc = params.textDocument;
     final path = pathOfDocItem(doc);
@@ -110,7 +110,7 @@ class TextDocumentOpenHandler
 
       server.addPriorityFile(path);
 
-      return success();
+      return success(null);
     });
   }
 }

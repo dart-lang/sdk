@@ -53,7 +53,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
         // LSP requests return errors).
         server.instrumentationService.logInfo(
             'Unable to $commandName because the file contains parse errors');
-        return success();
+        return success(null);
       }
 
       final organizer = ImportOrganizer(code, unit, result.errors);

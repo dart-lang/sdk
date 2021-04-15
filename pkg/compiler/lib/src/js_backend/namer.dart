@@ -31,6 +31,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
 import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
+import 'deferred_holder_expression.dart';
 import 'native_data.dart';
 
 part 'field_naming_mixin.dart';
@@ -2622,34 +2623,26 @@ class ModularNamerImpl extends ModularNamer {
 
   @override
   jsAst.Expression readGlobalObjectForLibrary(LibraryEntity library) {
-    jsAst.Expression expression = new ModularExpression(
-        ModularExpressionKind.globalObjectForLibrary, library);
-    _registry.registerModularExpression(expression);
-    return expression;
+    return DeferredHolderExpression(
+        DeferredHolderExpressionKind.globalObjectForLibrary, library);
   }
 
   @override
   jsAst.Expression readGlobalObjectForClass(ClassEntity element) {
-    jsAst.Expression expression = new ModularExpression(
-        ModularExpressionKind.globalObjectForClass, element);
-    _registry.registerModularExpression(expression);
-    return expression;
+    return DeferredHolderExpression(
+        DeferredHolderExpressionKind.globalObjectForClass, element);
   }
 
   @override
   jsAst.Expression readGlobalObjectForType(Entity element) {
-    jsAst.Expression expression = new ModularExpression(
-        ModularExpressionKind.globalObjectForType, element);
-    _registry.registerModularExpression(expression);
-    return expression;
+    return DeferredHolderExpression(
+        DeferredHolderExpressionKind.globalObjectForType, element);
   }
 
   @override
   jsAst.Expression readGlobalObjectForMember(MemberEntity element) {
-    jsAst.Expression expression = new ModularExpression(
-        ModularExpressionKind.globalObjectForMember, element);
-    _registry.registerModularExpression(expression);
-    return expression;
+    return DeferredHolderExpression(
+        DeferredHolderExpressionKind.globalObjectForMember, element);
   }
 
   @override

@@ -202,7 +202,7 @@ abstract class ServerStateMessageHandler {
     // Otherwise respond with failure. Optional Requests must still be responded
     // to so they don't leave open requests on the client.
     return _isOptionalNotification(message)
-        ? success()
+        ? success(null)
         : error(ErrorCodes.MethodNotFound, 'Unknown method ${message.method}');
   }
 

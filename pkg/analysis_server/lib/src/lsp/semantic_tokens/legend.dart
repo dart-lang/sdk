@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:math' as math;
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -17,17 +15,17 @@ final semanticTokenLegend = SemanticTokenLegendLookup();
 /// [SemanticTokenModifiers].
 class SemanticTokenLegendLookup {
   /// An LSP [SemanticTokensLegend] describing all supported tokens and modifiers.
-  SemanticTokensLegend lspLegend;
+  late SemanticTokensLegend lspLegend;
 
   /// All [SemanticTokenModifiers] the server may generate. The order of these
   /// items is important as the indexes will be used in communication between
   /// server and client.
-  List<SemanticTokenModifiers> _usedTokenModifiers;
+  late List<SemanticTokenModifiers> _usedTokenModifiers;
 
   /// All [SemanticTokenTypes] the server may generate. The order of these
   /// items is important as the indexes will be used in communication betewen
   /// server and client.
-  List<SemanticTokenTypes> _usedTokenTypes;
+  late List<SemanticTokenTypes> _usedTokenTypes;
 
   SemanticTokenLegendLookup() {
     // Build lists of all tokens and modifiers that exist in our mappings or that
@@ -51,13 +49,14 @@ class SemanticTokenLegendLookup {
     );
   }
 
-  int bitmaskForModifiers(Set<SemanticTokenModifiers> modifiers) {
+  int bitmaskForModifiers(Set<SemanticTokenModifiers>? modifiers) {
     // Modifiers use a bit mask where each bit represents the index of a modifier.
     // 001001 would indicate the 1st and 4th modifiers are applied.
     return modifiers
             ?.map(_usedTokenModifiers.indexOf)
-            ?.map((index) => math.pow(2, index))
-            ?.reduce((a, b) => a + b) ??
+            .map((index) => math.pow(2, index))
+            .reduce((a, b) => a + b)
+            .toInt() ??
         0;
   }
 

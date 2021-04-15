@@ -658,11 +658,11 @@ uword Instruction::Hash() const {
   return FinalizeHash(result, kBitsPerInt32 - 1);
 }
 
-bool Instruction::Equals(Instruction* other) const {
-  if (tag() != other->tag()) return false;
-  if (InputCount() != other->InputCount()) return false;
+bool Instruction::Equals(const Instruction& other) const {
+  if (tag() != other.tag()) return false;
+  if (InputCount() != other.InputCount()) return false;
   for (intptr_t i = 0; i < InputCount(); ++i) {
-    if (!InputAt(i)->Equals(other->InputAt(i))) return false;
+    if (!InputAt(i)->Equals(*other.InputAt(i))) return false;
   }
   return AttributesEqual(other);
 }
@@ -672,8 +672,8 @@ void Instruction::Unsupported(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
-bool Value::Equals(Value* other) const {
-  return definition() == other->definition();
+bool Value::Equals(const Value& other) const {
+  return definition() == other.definition();
 }
 
 static int OrderById(CidRange* const* a, CidRange* const* b) {
@@ -897,8 +897,8 @@ CheckClassInstr::CheckClassInstr(Value* value,
          cids[0].cid_start != kSmiCid);
 }
 
-bool CheckClassInstr::AttributesEqual(Instruction* other) const {
-  CheckClassInstr* other_check = other->AsCheckClass();
+bool CheckClassInstr::AttributesEqual(const Instruction& other) const {
+  auto const other_check = other.AsCheckClass();
   ASSERT(other_check != NULL);
   return cids().Equals(other_check->cids());
 }
@@ -1057,16 +1057,16 @@ Instruction* StoreInstanceFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
-bool GuardFieldClassInstr::AttributesEqual(Instruction* other) const {
-  return field().ptr() == other->AsGuardFieldClass()->field().ptr();
+bool GuardFieldClassInstr::AttributesEqual(const Instruction& other) const {
+  return field().ptr() == other.AsGuardFieldClass()->field().ptr();
 }
 
-bool GuardFieldLengthInstr::AttributesEqual(Instruction* other) const {
-  return field().ptr() == other->AsGuardFieldLength()->field().ptr();
+bool GuardFieldLengthInstr::AttributesEqual(const Instruction& other) const {
+  return field().ptr() == other.AsGuardFieldLength()->field().ptr();
 }
 
-bool GuardFieldTypeInstr::AttributesEqual(Instruction* other) const {
-  return field().ptr() == other->AsGuardFieldType()->field().ptr();
+bool GuardFieldTypeInstr::AttributesEqual(const Instruction& other) const {
+  return field().ptr() == other.AsGuardFieldType()->field().ptr();
 }
 
 Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -1102,37 +1102,37 @@ Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
-bool StrictCompareInstr::AttributesEqual(Instruction* other) const {
-  StrictCompareInstr* other_op = other->AsStrictCompare();
+bool StrictCompareInstr::AttributesEqual(const Instruction& other) const {
+  auto const other_op = other.AsStrictCompare();
   ASSERT(other_op != NULL);
   return ComparisonInstr::AttributesEqual(other) &&
          (needs_number_check() == other_op->needs_number_check());
 }
 
-bool MathMinMaxInstr::AttributesEqual(Instruction* other) const {
-  MathMinMaxInstr* other_op = other->AsMathMinMax();
+bool MathMinMaxInstr::AttributesEqual(const Instruction& other) const {
+  auto const other_op = other.AsMathMinMax();
   ASSERT(other_op != NULL);
   return (op_kind() == other_op->op_kind()) &&
          (result_cid() == other_op->result_cid());
 }
 
-bool BinaryIntegerOpInstr::AttributesEqual(Instruction* other) const {
-  ASSERT(other->tag() == tag());
-  BinaryIntegerOpInstr* other_op = other->AsBinaryIntegerOp();
+bool BinaryIntegerOpInstr::AttributesEqual(const Instruction& other) const {
+  ASSERT(other.tag() == tag());
+  auto const other_op = other.AsBinaryIntegerOp();
   return (op_kind() == other_op->op_kind()) &&
          (can_overflow() == other_op->can_overflow()) &&
          (is_truncating() == other_op->is_truncating());
 }
 
-bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
-  LoadFieldInstr* other_load = other->AsLoadField();
+bool LoadFieldInstr::AttributesEqual(const Instruction& other) const {
+  auto const other_load = other.AsLoadField();
   ASSERT(other_load != NULL);
   return &this->slot_ == &other_load->slot_;
 }
 
-bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
+bool LoadStaticFieldInstr::AttributesEqual(const Instruction& other) const {
   ASSERT(AllowsCSE());
-  return field().ptr() == other->AsLoadStaticField()->field().ptr();
+  return field().ptr() == other.AsLoadStaticField()->field().ptr();
 }
 
 bool LoadStaticFieldInstr::IsFieldInitialized(Instance* field_value) const {
@@ -1218,8 +1218,8 @@ ConstantInstr::ConstantInstr(const Object& value,
 #endif
 }
 
-bool ConstantInstr::AttributesEqual(Instruction* other) const {
-  ConstantInstr* other_constant = other->AsConstant();
+bool ConstantInstr::AttributesEqual(const Instruction& other) const {
+  auto const other_constant = other.AsConstant();
   ASSERT(other_constant != NULL);
   return (value().ptr() == other_constant->value().ptr() &&
           representation() == other_constant->representation());
@@ -3778,8 +3778,8 @@ Definition* CheckNullInstr::Canonicalize(FlowGraph* flow_graph) {
   return (!value()->Type()->is_nullable()) ? value()->definition() : this;
 }
 
-bool CheckNullInstr::AttributesEqual(Instruction* other) const {
-  CheckNullInstr* other_check = other->AsCheckNull();
+bool CheckNullInstr::AttributesEqual(const Instruction& other) const {
+  auto const other_check = other.AsCheckNull();
   ASSERT(other_check != nullptr);
   return function_name().Equals(other_check->function_name()) &&
          exception_type() == other_check->exception_type();
@@ -5798,8 +5798,8 @@ ComparisonInstr* TestCidsInstr::CopyWithNewOperands(Value* new_left,
                            deopt_id());
 }
 
-bool TestCidsInstr::AttributesEqual(Instruction* other) const {
-  TestCidsInstr* other_instr = other->AsTestCids();
+bool TestCidsInstr::AttributesEqual(const Instruction& other) const {
+  auto const other_instr = other.AsTestCids();
   if (!ComparisonInstr::AttributesEqual(other)) {
     return false;
   }
@@ -5851,8 +5851,9 @@ Definition* PhiInstr::GetReplacementForRedundantPhi() const {
   bool look_for_redefinition = false;
   for (intptr_t i = 1; i < InputCount(); ++i) {
     Definition* def = InputAt(i)->definition();
-    if (def != first) {
-      if (def->OriginalDefinition() != first_origin) return nullptr;
+    if ((def != first) && (def != this)) {
+      Definition* origin = def->OriginalDefinition();
+      if ((origin != first_origin) && (origin != this)) return nullptr;
       look_for_redefinition = true;
     }
   }
@@ -5865,7 +5866,7 @@ Definition* PhiInstr::GetReplacementForRedundantPhi() const {
       bool found = false;
       do {
         Definition* def = value->definition();
-        if (def == redef) {
+        if ((def == redef) || (def == this)) {
           found = true;
           break;
         }
@@ -5973,7 +5974,8 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   if (create_array == nullptr) {
     // Do not try to fold interpolate if array is an OSR argument.
     ASSERT(flow_graph->IsCompiledForOsr());
-    ASSERT(value()->definition()->IsPhi());
+    ASSERT(value()->definition()->IsPhi() ||
+           value()->definition()->IsParameter());
     return this;
   }
   // Check if the string interpolation has only constant inputs.

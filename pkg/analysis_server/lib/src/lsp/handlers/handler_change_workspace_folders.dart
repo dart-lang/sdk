@@ -29,7 +29,7 @@ class WorkspaceFoldersHandler
       DidChangeWorkspaceFoldersParams params, CancellationToken token) {
     // Don't do anything if our analysis roots are not based on open workspaces.
     if (!updateAnalysisRoots) {
-      return success();
+      return success(null);
     }
 
     final added = params?.event?.added
@@ -42,6 +42,6 @@ class WorkspaceFoldersHandler
 
     server.updateWorkspaceFolders(added, removed);
 
-    return success();
+    return success(null);
   }
 }

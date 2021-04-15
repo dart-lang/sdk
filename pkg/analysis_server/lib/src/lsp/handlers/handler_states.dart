@@ -131,7 +131,7 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
     if (message is! RequestMessage) {
       server.instrumentationService
           .logInfo('Ignoring ${message.method} message while initializing');
-      return success();
+      return success(null);
     }
     return error(
         ErrorCodes.ServerNotInitialized,
@@ -151,7 +151,7 @@ class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
     if (message is! RequestMessage) {
       server.instrumentationService
           .logInfo('Ignoring ${message.method} message while shutting down');
-      return success();
+      return success(null);
     }
     return error(ErrorCodes.InvalidRequest,
         'Unable to handle ${message.method} after shutdown request');
@@ -171,7 +171,7 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
     if (message is! RequestMessage) {
       server.instrumentationService
           .logInfo('Ignoring ${message.method} message while uninitialized');
-      return success();
+      return success(null);
     }
     return error(ErrorCodes.ServerNotInitialized,
         'Unable to handle ${message.method} before client has sent initialize request');

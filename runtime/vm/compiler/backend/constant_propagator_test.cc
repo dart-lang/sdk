@@ -5,6 +5,7 @@
 #include "vm/compiler/backend/constant_propagator.h"
 
 #include "vm/compiler/backend/block_builder.h"
+#include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/il_test_helper.h"
 #include "vm/compiler/backend/type_propagator.h"
 #include "vm/unit_test.h"
@@ -80,7 +81,9 @@ ISOLATE_UNIT_TEST_CASE(ConstantPropagation_PhiUnwrappingAndConvergence) {
   // To disable copying we mark graph to disable LICM.
   H.flow_graph()->disallow_licm();
 
+  FlowGraphPrinter::PrintGraph("Before ConstantPropagator", H.flow_graph());
   ConstantPropagator::Optimize(H.flow_graph());
+  FlowGraphPrinter::PrintGraph("After ConstantPropagator", H.flow_graph());
 
   auto& blocks = H.flow_graph()->reverse_postorder();
   EXPECT_EQ(2, blocks.length());
@@ -188,20 +191,27 @@ static void ConstantPropagatorUnboxedOpTest(
   }
 
   H.FinishGraph();
+  FlowGraphPrinter::PrintGraph("Before Optimization", H.flow_graph());
   FlowGraphTypePropagator::Propagate(H.flow_graph());
+  FlowGraphPrinter::PrintGraph("After Propagate", H.flow_graph());
   // Force phi unboxing independent of heuristics.
   v1->set_representation(op->representation());
   H.flow_graph()->SelectRepresentations();
+  FlowGraphPrinter::PrintGraph("After SelectRepresentations", H.flow_graph());
   H.flow_graph()->Canonicalize();
-  EXPECT_PROPERTY(ret->value()->definition(),
-                  it.IsBoxInteger() && it.RequiredInputRepresentation(0) ==
-                                           op->representation());
+  FlowGraphPrinter::PrintGraph("After Canonicalize", H.flow_graph());
+  if (!expected.should_fold) {
+    EXPECT_PROPERTY(ret->value()->definition(),
+                    it.IsBoxInteger() && it.RequiredInputRepresentation(0) ==
+                                             op->representation());
+  }
 
   ConstantPropagator::Optimize(H.flow_graph());
+  FlowGraphPrinter::PrintGraph("After ConstantPropagator", H.flow_graph());
 
   // If |should_fold| then check that resulting graph is
   //
-  //         Return(Box(Unbox(Constant(result))))
+  //         Return(Constant(result))
   //
   // otherwise check that the graph is
   //
@@ -209,21 +219,16 @@ static void ConstantPropagatorUnboxedOpTest(
   //
   {
     auto ret_val = ret->value()->definition();
-    EXPECT_PROPERTY(
-        ret_val, it.IsBoxInteger() &&
-                     it.RequiredInputRepresentation(0) == op->representation());
-    auto boxed_value = ret_val->AsBoxInteger()->value()->definition();
     if (expected.should_fold) {
-      EXPECT_PROPERTY(
-          boxed_value,
-          it.IsUnboxInteger() && it.representation() == op->representation());
-      auto unboxed_value = boxed_value->AsUnboxInteger()->value()->definition();
-      EXPECT_PROPERTY(unboxed_value,
-                      it.IsConstant() && it.AsConstant()->value().IsInteger());
-      EXPECT_EQ(
-          expected.result,
-          Integer::Cast(unboxed_value->AsConstant()->value()).AsInt64Value());
+      EXPECT_PROPERTY(ret_val,
+                      it.IsConstant() && it.representation() == kTagged);
+      EXPECT_EQ(expected.result,
+                Integer::Cast(ret_val->AsConstant()->value()).AsInt64Value());
     } else {
+      EXPECT_PROPERTY(ret_val,
+                      it.IsBoxInteger() && it.RequiredInputRepresentation(0) ==
+                                               op->representation());
+      auto boxed_value = ret_val->AsBoxInteger()->value()->definition();
       EXPECT_PROPERTY(boxed_value, &it == op);
     }
   }

@@ -99,12 +99,12 @@ ErrorOr<List<TextEdit>> generateEditsForFormatting(
     // use seeing edits on every save with invalid code (if LSP gains the
     // ability to pass a context to know if the format was manually invoked
     // we may wish to change this to return an error for that case).
-    return success();
+    return success(null);
   }
   final formattedSource = formattedResult.text;
 
   if (formattedSource == unformattedSource) {
-    return success();
+    return success(null);
   }
 
   return _generateMinimalEdits(result, formattedSource, range: range);

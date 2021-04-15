@@ -36,6 +36,6 @@ class ExitMessageHandler extends MessageHandler<void, void> {
     Future(() {
       exit(clientDidCallShutdown ? 0 : 1);
     });
-    return success();
+    return success(null);
   }
 }

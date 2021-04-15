@@ -31,7 +31,7 @@ class FormatOnTypeHandler
 
     final result = server.getParsedUnit(path);
     if (result.state != ResultState.VALID || result.errors.isNotEmpty) {
-      return success();
+      return success(null);
     }
 
     return generateEditsForFormatting(

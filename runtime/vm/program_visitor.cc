@@ -485,16 +485,16 @@ class StackMapEntry : public ZoneAllocated {
     return hash_;
   }
 
-  bool Equals(const StackMapEntry* other) const {
-    if (spill_slot_bit_count_ != other->spill_slot_bit_count_ ||
-        non_spill_slot_bit_count_ != other->non_spill_slot_bit_count_) {
+  bool Equals(const StackMapEntry& other) const {
+    if (spill_slot_bit_count_ != other.spill_slot_bit_count_ ||
+        non_spill_slot_bit_count_ != other.non_spill_slot_bit_count_) {
       return false;
     }
     // Since we ensure that bits in the payload that are not part of the
     // actual stackmap data are cleared, we can just compare payloads by byte
     // instead of calling IsObject for each bit.
     NoSafepointScope scope;
-    return memcmp(PayloadData(), other->PayloadData(), PayloadLength()) == 0;
+    return memcmp(PayloadData(), other.PayloadData(), PayloadLength()) == 0;
   }
 
   // Encodes this StackMapEntry to the given array of bytes and returns the
@@ -556,7 +556,7 @@ class StackMapEntryKeyIntValueTrait {
   static Key KeyOf(Pair kv) { return kv.key; }
   static Value ValueOf(Pair kv) { return kv.value; }
   static uword Hash(Key key) { return key->Hash(); }
-  static bool IsKeyEqual(Pair kv, Key key) { return key->Equals(kv.key); }
+  static bool IsKeyEqual(Pair kv, Key key) { return key->Equals(*kv.key); }
 };
 
 typedef DirectChainedHashMap<StackMapEntryKeyIntValueTrait> StackMapEntryIntMap;
@@ -938,6 +938,68 @@ void ProgramVisitor::DedupUnlinkedCalls(Zone* zone,
     WalkProgram(zone, isolate_group, &deduper);
   }
 }
+
+void ProgramVisitor::PruneSubclasses(Zone* zone, IsolateGroup* isolate_group) {
+  class PruneSubclassesVisitor : public ClassVisitor {
+   public:
+    explicit PruneSubclassesVisitor(Zone* zone)
+        : ClassVisitor(),
+          old_implementors_(GrowableObjectArray::Handle(zone)),
+          new_implementors_(GrowableObjectArray::Handle(zone)),
+          implementor_(Class::Handle(zone)),
+          old_subclasses_(GrowableObjectArray::Handle(zone)),
+          new_subclasses_(GrowableObjectArray::Handle(zone)),
+          subclass_(Class::Handle(zone)),
+          null_list_(GrowableObjectArray::Handle(zone)) {}
+
+    void VisitClass(const Class& klass) {
+      old_implementors_ = klass.direct_implementors_unsafe();
+      if (!old_implementors_.IsNull()) {
+        new_implementors_ = GrowableObjectArray::New();
+        for (intptr_t i = 0; i < old_implementors_.Length(); i++) {
+          implementor_ ^= old_implementors_.At(i);
+          if (implementor_.id() != kIllegalCid) {
+            new_implementors_.Add(implementor_);
+          }
+        }
+        if (new_implementors_.Length() == 0) {
+          klass.set_direct_implementors(null_list_);
+        } else {
+          klass.set_direct_implementors(new_implementors_);
+        }
+      }
+
+      old_subclasses_ = klass.direct_subclasses_unsafe();
+      if (!old_subclasses_.IsNull()) {
+        new_subclasses_ = GrowableObjectArray::New();
+        for (intptr_t i = 0; i < old_subclasses_.Length(); i++) {
+          subclass_ ^= old_subclasses_.At(i);
+          if (subclass_.id() != kIllegalCid) {
+            new_subclasses_.Add(subclass_);
+          }
+        }
+        if (new_subclasses_.Length() == 0) {
+          klass.set_direct_subclasses(null_list_);
+        } else {
+          klass.set_direct_subclasses(new_subclasses_);
+        }
+      }
+    }
+
+   private:
+    GrowableObjectArray& old_implementors_;
+    GrowableObjectArray& new_implementors_;
+    Class& implementor_;
+    GrowableObjectArray& old_subclasses_;
+    GrowableObjectArray& new_subclasses_;
+    Class& subclass_;
+    GrowableObjectArray& null_list_;
+  };
+
+  PruneSubclassesVisitor visitor(zone);
+  SafepointWriteRwLocker ml(Thread::Current(), isolate_group->program_lock());
+  WalkProgram(zone, isolate_group, &visitor);
+}
 #endif  // defined(DART_PRECOMPILER)
 
 class CodeSourceMapKeyValueTrait {
@@ -1304,6 +1366,7 @@ void ProgramVisitor::Dedup(Thread* thread) {
 #if defined(DART_PRECOMPILER)
   DedupCatchEntryMovesMaps(zone, isolate_group);
   DedupUnlinkedCalls(zone, isolate_group);
+  PruneSubclasses(zone, isolate_group);
 #endif
   DedupCodeSourceMaps(zone, isolate_group);
   DedupLists(zone, isolate_group);

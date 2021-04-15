@@ -35,17 +35,17 @@ ISOLATE_UNIT_TEST_CASE(OptimizationTests) {
   Definition* def2 = new PhiInstr(join, 0);
   Value* use1a = new Value(def1);
   Value* use1b = new Value(def1);
-  EXPECT(use1a->Equals(use1b));
+  EXPECT(use1a->Equals(*use1b));
   Value* use2 = new Value(def2);
-  EXPECT(!use2->Equals(use1a));
+  EXPECT(!use2->Equals(*use1a));
 
   ConstantInstr* c1 = new ConstantInstr(Bool::True());
   ConstantInstr* c2 = new ConstantInstr(Bool::True());
-  EXPECT(c1->Equals(c2));
+  EXPECT(c1->Equals(*c2));
   ConstantInstr* c3 = new ConstantInstr(Object::ZoneHandle());
   ConstantInstr* c4 = new ConstantInstr(Object::ZoneHandle());
-  EXPECT(c3->Equals(c4));
-  EXPECT(!c3->Equals(c1));
+  EXPECT(c3->Equals(*c4));
+  EXPECT(!c3->Equals(*c1));
 }
 
 ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {
@@ -259,6 +259,58 @@ ISOLATE_UNIT_TEST_CASE(IL_IntConverterCanonicalization) {
       kUnboxedUint32));
   EXPECT(!TestIntConverterCanonicalizationRule(thread, -1, kMaxInt16,
                                                kUnboxedInt64, kUnboxedUint32));
+}
+
+ISOLATE_UNIT_TEST_CASE(IL_PhiCanonicalization) {
+  using compiler::BlockBuilder;
+
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+
+  FlowGraphBuilderHelper H;
+
+  auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+  auto b2 = H.JoinEntry();
+  auto b3 = H.TargetEntry();
+  auto b4 = H.TargetEntry();
+
+  Definition* v0;
+  ReturnInstr* ret;
+  PhiInstr* phi;
+
+  {
+    BlockBuilder builder(H.flow_graph(), normal_entry);
+    v0 = builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    builder.AddInstruction(new GotoInstr(b2, S.GetNextDeoptId()));
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), b2);
+    phi = new PhiInstr(b2, 2);
+    phi->SetInputAt(0, new Value(v0));
+    phi->SetInputAt(1, new Value(phi));
+    builder.AddPhi(phi);
+    builder.AddBranch(new StrictCompareInstr(
+                          InstructionSource(), Token::kEQ_STRICT,
+                          new Value(H.IntConstant(1)), new Value(phi),
+                          /*needs_number_check=*/false, S.GetNextDeoptId()),
+                      b3, b4);
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), b3);
+    builder.AddInstruction(new GotoInstr(b2, S.GetNextDeoptId()));
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), b4);
+    ret = builder.AddReturn(new Value(phi));
+  }
+
+  H.FinishGraph();
+
+  H.flow_graph()->Canonicalize();
+
+  EXPECT(ret->value()->definition() == v0);
 }
 
 }  // namespace dart

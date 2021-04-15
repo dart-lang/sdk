@@ -380,8 +380,8 @@ const char* Slot::Name() const {
   }
 }
 
-bool Slot::Equals(const Slot* other) const {
-  if (kind_ != other->kind_) {
+bool Slot::Equals(const Slot& other) const {
+  if (kind_ != other.kind_ || offset_in_bytes_ != other.offset_in_bytes_) {
     return false;
   }
 
@@ -389,18 +389,15 @@ bool Slot::Equals(const Slot* other) const {
     case Kind::kTypeArguments:
     case Kind::kTypeArgumentsIndex:
     case Kind::kArrayElement:
-      return (offset_in_bytes_ == other->offset_in_bytes_);
+      return true;
 
     case Kind::kCapturedVariable:
-      return (offset_in_bytes_ == other->offset_in_bytes_) &&
-             (flags_ == other->flags_) &&
-             (DataAs<const String>()->ptr() ==
-              other->DataAs<const String>()->ptr());
+      return (flags_ == other.flags_) && (DataAs<const String>()->ptr() ==
+                                          other.DataAs<const String>()->ptr());
 
     case Kind::kDartField:
-      return (offset_in_bytes_ == other->offset_in_bytes_) &&
-             other->DataAs<const Field>()->Original() ==
-                 DataAs<const Field>()->Original();
+      return other.DataAs<const Field>()->Original() ==
+             DataAs<const Field>()->Original();
 
     default:
       UNREACHABLE();

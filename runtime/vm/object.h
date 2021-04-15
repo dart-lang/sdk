@@ -1201,8 +1201,11 @@ class Class : public Object {
         IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
     return untag()->direct_implementors();
   }
+  GrowableObjectArrayPtr direct_implementors_unsafe() const {
+    return untag()->direct_implementors();
+  }
+  void set_direct_implementors(const GrowableObjectArray& implementors) const;
   void AddDirectImplementor(const Class& subclass, bool is_mixin) const;
-  void ClearDirectImplementors() const;
 
   // Returns the list of classes having this class as direct superclass.
   GrowableObjectArrayPtr direct_subclasses() const {
@@ -1213,8 +1216,8 @@ class Class : public Object {
   GrowableObjectArrayPtr direct_subclasses_unsafe() const {
     return untag()->direct_subclasses();
   }
+  void set_direct_subclasses(const GrowableObjectArray& subclasses) const;
   void AddDirectSubclass(const Class& subclass) const;
-  void ClearDirectSubclasses() const;
 
   // Check if this class represents the class of null.
   bool IsNullClass() const { return id() == kNullCid; }
@@ -5741,6 +5744,7 @@ class CompressedStackMaps : public Object {
         raw->untag()->flags_and_size_);
   }
 
+  // Methods to allow use with PointerKeyValueTrait to create sets of CSMs.
   bool Equals(const CompressedStackMaps& other) const {
     // All of the table flags and payload size must match.
     if (untag()->flags_and_size_ != other.untag()->flags_and_size_) {
@@ -5749,9 +5753,6 @@ class CompressedStackMaps : public Object {
     NoSafepointScope no_safepoint;
     return memcmp(untag(), other.untag(), InstanceSize(payload_size())) == 0;
   }
-
-  // Methods to allow use with PointerKeyValueTrait to create sets of CSMs.
-  bool Equals(const CompressedStackMaps* other) const { return Equals(*other); }
   uword Hash() const;
 
   static intptr_t HeaderSize() { return sizeof(UntaggedCompressedStackMaps); }

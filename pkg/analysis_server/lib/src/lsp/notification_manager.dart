@@ -30,7 +30,11 @@ class LspNotificationManager extends AbstractNotificationManager {
   void sendAnalysisErrors(
       String filePath, List<protocol.AnalysisError> errors) {
     final diagnostics = errors
-        .map((error) => pluginToDiagnostic(server.getLineInfo, error))
+        .map((error) => pluginToDiagnostic(
+              server.getLineInfo,
+              error,
+              supportedTags: server.clientCapabilities.diagnosticTags,
+            ))
         .toList();
 
     final params = PublishDiagnosticsParams(

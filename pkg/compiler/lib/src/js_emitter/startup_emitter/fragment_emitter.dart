@@ -834,7 +834,7 @@ class FragmentEmitter {
         mainCode
       ]);
     }
-    finalizeStringAndTypeReferences(mainCode);
+    finalizeCode(mainCode);
     return mainCode;
   }
 
@@ -920,11 +920,11 @@ class FragmentEmitter {
     if (_options.experimentStartupFunctions) {
       code = js.Parentheses(code);
     }
-    finalizeStringAndTypeReferences(code);
+    finalizeCode(code);
     return code;
   }
 
-  void finalizeStringAndTypeReferences(js.Node code) {
+  void finalizeCode(js.Node code) {
     StringReferenceFinalizer stringFinalizer =
         StringReferenceFinalizerImpl(_options.enableMinification);
     stringFinalizer.addCode(code);
@@ -933,6 +933,12 @@ class FragmentEmitter {
         _emitter, _commonElements, _recipeEncoder, _options.enableMinification);
     finalizer.addCode(code);
     finalizer.finalize();
+
+    // DeferredHolders need to be finalized last.
+    DeferredHolderExpressionFinalizer holderFinalizer =
+        DeferredHolderExpressionFinalizerImpl(_namer);
+    holderFinalizer.addCode(code);
+    holderFinalizer.finalize();
   }
 
   /// Emits all holders, except for the static-state holder.

@@ -36,7 +36,7 @@ abstract class SimpleEditCommandHandler
     // If there are no edits to apply, just complete the command without going
     // back to the client.
     if (edits.isEmpty) {
-      return success();
+      return success(null);
     }
 
     final workspaceEdit = toWorkspaceEdit(
@@ -70,7 +70,7 @@ abstract class SimpleEditCommandHandler
     final editResponseResult =
         ApplyWorkspaceEditResponse.fromJson(editResponse.result);
     if (editResponseResult.applied) {
-      return success();
+      return success(null);
     } else {
       return error(
         ServerErrorCodes.ClientFailedToApplyEdit,

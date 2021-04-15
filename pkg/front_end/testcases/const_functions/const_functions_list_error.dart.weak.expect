@@ -1,0 +1,79 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:36:12: Error: The getter 'invalidProperty' isn't defined for the class 'List<int>'.
+//  - 'List' is from 'dart:core'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'invalidProperty'.
+//   return x.invalidProperty;
+//            ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:9:24: Error: Constant evaluation error:
+// const firstException = firstExceptionFn();
+//                        ^
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:12:12: Context: Bad state: 'No element'
+//   return x.first;
+//            ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:15:23: Error: Constant evaluation error:
+// const lastException = lastExceptionFn();
+//                       ^
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:18:12: Context: Bad state: 'No element'
+//   return x.last;
+//            ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:21:25: Error: Constant evaluation error:
+// const singleException = singleExceptionFn();
+//                         ^
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:24:12: Context: Bad state: 'No element'
+//   return x.single;
+//            ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:27:30: Error: Constant evaluation error:
+// const singleExceptionMulti = singleExceptionMultiFn();
+//                              ^
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:30:12: Context: Bad state: 'Too many elements'
+//   return x.single;
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static const field core::int firstException = invalid-expression "Bad state: 'No element'";
+static const field core::int lastException = invalid-expression "Bad state: 'No element'";
+static const field core::int singleException = invalid-expression "Bad state: 'No element'";
+static const field core::int singleExceptionMulti = invalid-expression "Bad state: 'Too many elements'";
+static const field core::int invalidProperty = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_list_error.dart:36:12: Error: The getter 'invalidProperty' isn't defined for the class 'List<int>'.
+ - 'List' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'invalidProperty'.
+  return x.invalidProperty;
+           ^^^^^^^^^^^^^^^";
+static method firstExceptionFn() → core::int {
+  return (#C1).{core::Iterable::first};
+}
+static method lastExceptionFn() → core::int {
+  return (#C1).{core::Iterable::last};
+}
+static method singleExceptionFn() → core::int {
+  return (#C1).{core::Iterable::single};
+}
+static method singleExceptionMultiFn() → core::int {
+  return (#C4).{core::Iterable::single};
+}
+static method invalidPropertyFn() → core::int {
+  return invalid-expression "pkg/front_end/testcases/const_functions/const_functions_list_error.dart:36:12: Error: The getter 'invalidProperty' isn't defined for the class 'List<int>'.
+ - 'List' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'invalidProperty'.
+  return x.invalidProperty;
+           ^^^^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+}
+static method main() → void {}
+
+constants  {
+  #C1 = <core::int*>[]
+  #C2 = 1
+  #C3 = 2
+  #C4 = <core::int*>[#C2, #C3]
+}

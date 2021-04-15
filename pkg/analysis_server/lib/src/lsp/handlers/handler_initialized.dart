@@ -36,6 +36,6 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
       server.updateWorkspaceFolders(openWorkspacePaths, const []);
     }
 
-    return success();
+    return success(null);
   }
 }

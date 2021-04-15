@@ -203,6 +203,9 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
   // Any fields that are optional but present, must still type check.
   final fields = _getAllFields(interface);
   for (var field in fields) {
+    if (isAnyType(field.type)) {
+      continue;
+    }
     buffer
       ..writeIndentedln("reporter.push('${field.name}');")
       ..writeIndentedln('try {')
@@ -277,16 +280,14 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
       final isLiteral = field.type is LiteralType;
       final isRequired =
           !isLiteral && !field.allowsNull && !field.allowsUndefined;
-      final annotation = isRequired ? '@required' : '';
+      final requiredKeyword = isRequired ? 'required' : '';
       final valueCode =
           isLiteral ? ' = ${(field.type as LiteralType).literal}' : '';
-      return '$annotation this.${field.name}$valueCode';
+      return '$requiredKeyword this.${field.name}$valueCode';
     }).join(', '))
     ..write('})');
-  final fieldsWithValidation = allFields
-      .where(
-          (f) => (!f.allowsNull && !f.allowsUndefined) || f.type is LiteralType)
-      .toList();
+  final fieldsWithValidation =
+      allFields.where((f) => f.type is LiteralType).toList();
   if (fieldsWithValidation.isNotEmpty) {
     buffer
       ..writeIndentedln(' {')
@@ -299,14 +300,6 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
           ..indent()
           ..writeIndentedln(
               "throw '${field.name} may only be the literal ${type.literal.replaceAll("'", "\\'")}';")
-          ..outdent()
-          ..writeIndentedln('}');
-      } else if (!field.allowsNull && !field.allowsUndefined) {
-        buffer
-          ..writeIndentedln('if (${field.name} == null) {')
-          ..indent()
-          ..writeIndentedln(
-              "throw '${field.name} is required but was not provided';")
           ..outdent()
           ..writeIndentedln('}');
       }
@@ -458,9 +451,12 @@ void _writeEqualsExpression(IndentableStringBuffer buffer, TypeBase type,
 
 void _writeField(IndentableStringBuffer buffer, Field field) {
   _writeDocCommentsAndAnnotations(buffer, field);
+  final needsNullable =
+      (field.allowsNull || field.allowsUndefined) && !isAnyType(field.type);
   buffer
     ..writeIndented('final ')
     ..write(field.type.dartTypeWithTypeArgs)
+    ..write(needsNullable ? '?' : '')
     ..writeln(' ${field.name};');
 }
 
@@ -473,8 +469,13 @@ void _writeFromJsonCode(
     buffer.write('$valueCode');
   } else if (_isSpecType(type)) {
     // Our own types have fromJson() constructors we can call.
-    buffer.write(
-        '$valueCode != null ? ${type.dartType}.fromJson${type.typeArgsString}($valueCode) : null');
+    if (allowsNull) {
+      buffer.write('$valueCode != null ? ');
+    }
+    buffer.write('${type.dartType}.fromJson${type.typeArgsString}($valueCode)');
+    if (allowsNull) {
+      buffer.write(': null');
+    }
   } else if (type is ArrayType) {
     // Lists need to be map()'d so we can recursively call writeFromJsonCode
     // as they may need fromJson on each element.
@@ -523,12 +524,19 @@ void _writeFromJsonCodeForUnion(
   // x is y ? new Either.tx(x) : (...)
   var hasIncompleteCondition = false;
   var unclosedParens = 0;
+
+  if (allowsNull) {
+    buffer.write('$valueCode == null ? null : (');
+    hasIncompleteCondition = true;
+    unclosedParens++;
+  }
+
   for (var i = 0; i < union.types.length; i++) {
     final type = union.types[i];
-    final isDynamic = type.dartType == 'dynamic';
+    final isAny = isAnyType(type);
 
     // Dynamic matches all type checks, so only emit it if required.
-    if (!isDynamic) {
+    if (!isAny) {
       _writeTypeCheckCondition(
           buffer, null, valueCode, type, 'nullLspJsonReporter');
       buffer.write(' ? ');
@@ -537,13 +545,13 @@ void _writeFromJsonCodeForUnion(
     // The code to construct a value with this "side" of the union.
     buffer.write('${union.dartTypeWithTypeArgs}.t${i + 1}(');
     _writeFromJsonCode(buffer, type, valueCode,
-        allowsNull: allowsNull,
+        allowsNull: false, // null is already handled above this loop
         requiresBracesInInterpolation:
             requiresBracesInInterpolation); // Call recursively!
     buffer.write(')');
 
     // If we output the type condition at the top, prepare for the next condition.
-    if (!isDynamic) {
+    if (!isAny) {
       buffer.write(' : (');
       hasIncompleteCondition = true;
       unclosedParens++;
@@ -554,10 +562,6 @@ void _writeFromJsonCodeForUnion(
   // Fill the final parens with a throw because if we fell through all of the
   // cases then the value we had didn't match any of the types in the union.
   if (hasIncompleteCondition) {
-    if (allowsNull) {
-      buffer.write('$valueCode == null ? null : (');
-      unclosedParens++;
-    }
     var interpolation =
         requiresBracesInInterpolation ? '\${$valueCode}' : '\$$valueCode';
     buffer.write(
@@ -676,13 +680,10 @@ void _writeJsonMapAssignment(
       ..writeIndentedln('if (${field.name} != null) {')
       ..indent();
   }
-  // Suppress the ? operator if we've output a null check already.
-  final nullOp = shouldBeOmittedIfNoValue ? '' : '?';
+  // Use the correct null operator depending on whether the value could be null.
+  final nullOp = field.allowsNull || field.allowsUndefined ? '?' : '';
   buffer.writeIndented('''$mapName['${field.name}'] = ''');
   _writeToJsonCode(buffer, field.type, field.name, nullOp);
-  if (!field.allowsUndefined && !field.allowsNull) {
-    buffer.write(''' ?? (throw '${field.name} is required but was not set')''');
-  }
   buffer.writeln(';');
   if (shouldBeOmittedIfNoValue) {
     buffer
@@ -712,7 +713,7 @@ void _writeToJsonCode(IndentableStringBuffer buffer, TypeBase type,
   } else if (type is ArrayType && _isSpecType(type.elementType)) {
     buffer.write('$valueCode$nullOp.map((item) => ');
     _writeToJsonCode(buffer, type.elementType, 'item', '');
-    buffer.write(')$nullOp.toList()');
+    buffer.write(').toList()');
   } else {
     buffer.write(valueCode);
   }

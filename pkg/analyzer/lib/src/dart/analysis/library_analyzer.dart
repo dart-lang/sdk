@@ -45,6 +45,7 @@ import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -507,6 +508,9 @@ class LibraryAnalyzer {
   }
 
   bool _isExistingSource(Source source) {
+    if (source is InSummarySource) {
+      return true;
+    }
     for (var file in _library.directReferencedFiles) {
       if (file.uri == source.uri) {
         return file.exists;
