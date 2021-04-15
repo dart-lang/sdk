@@ -148,6 +148,14 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   bool isAsync(Statement statement) {
+    if (statement is IfStatement) {
+      if (terminatesControl(statement.thenStatement)) {
+        var elseStatement = statement.elseStatement;
+        if (elseStatement == null || terminatesControl(elseStatement)) {
+          return false;
+        }
+      }
+    }
     var visitor = _AwaitVisitor();
     statement.accept(visitor);
     return visitor.hasAwait;
@@ -183,24 +191,21 @@ class _Visitor extends SimpleAstVisitor {
             return true;
           }
           var then = statement.thenStatement;
-          if (then is ReturnStatement) {
-            return true;
-          }
-          if (then is BreakStatement) {
-            return true;
-          }
-          if (then is Block) {
-            return terminatesControl(then.statements.last);
-          }
+          return terminatesControl(then);
         }
       }
     }
     return false;
   }
 
-  bool terminatesControl(Statement statement) =>
-      // todo (pq): add support (and tests) for `break` and `continue`
-      statement is ReturnStatement;
+  bool terminatesControl(Statement statement) {
+    if (statement is Block) {
+      return terminatesControl(statement.statements.last);
+    }
+    return statement is ReturnStatement ||
+        statement is BreakStatement ||
+        statement is ContinueStatement;
+  }
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {

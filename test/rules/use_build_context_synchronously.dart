@@ -284,6 +284,47 @@ void topLevel5(BuildContext context) async {
   }
 }
 
+void topLevel6(BuildContext context) async {
+  Navigator.of(context).pushNamed('route1'); // OK
+  if (true) {
+    await Future<void>.delayed(Duration());
+    return;
+  }
+  Navigator.of(context).pushNamed('route2'); // OK
+}
+
+void topLevel7(BuildContext context) async {
+  Navigator.of(context).pushNamed('route1'); // OK
+  if (true) {
+    await Future<void>.delayed(Duration());
+    return;
+  } else {
+    await Future<void>.delayed(Duration());
+    return;
+  }
+  Navigator.of(context).pushNamed('route2'); // OK
+}
+
+void topLevel8(BuildContext context) async {
+  Navigator.of(context).pushNamed('route1'); // OK
+  if (true) {
+    await Future<void>.delayed(Duration());
+  } else {
+    await Future<void>.delayed(Duration());
+    return;
+  }
+  Navigator.of(context).pushNamed('route2'); // LINT
+}
+
+void topLevel9(BuildContext context) async {
+  Navigator.of(context).pushNamed('route1'); // OK
+  while (true) {
+    await Future<void>.delayed(Duration());
+    break;
+  }
+  Navigator.of(context).pushNamed('route2'); // LINT
+}
+
 void closure(BuildContext context) async {
   await Future<void>.delayed(Duration());
 
