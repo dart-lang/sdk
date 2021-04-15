@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library kernel.external_name;
 
 import 'ast.dart';
 
 /// Returns external (native) name of given [Member].
-String? getExternalName(Member procedure) {
+String getExternalName(Member procedure) {
   // Native procedures are marked as external and have an annotation,
   // which looks like this:
   //
@@ -20,7 +22,7 @@ String? getExternalName(Member procedure) {
     return null;
   }
   for (final Expression annotation in procedure.annotations) {
-    final String? value = _getExternalNameValue(annotation);
+    final String value = _getExternalNameValue(annotation);
     if (value != null) {
       return value;
     }
@@ -32,7 +34,7 @@ String? getExternalName(Member procedure) {
 List<String> getNativeExtensionUris(Library library) {
   final List<String> uris = <String>[];
   for (Expression annotation in library.annotations) {
-    final String? value = _getExternalNameValue(annotation);
+    final String value = _getExternalNameValue(annotation);
     if (value != null) {
       uris.add(value);
     }
@@ -40,7 +42,7 @@ List<String> getNativeExtensionUris(Library library) {
   return uris;
 }
 
-String? _getExternalNameValue(Expression annotation) {
+String _getExternalNameValue(Expression annotation) {
   if (annotation is ConstructorInvocation) {
     if (_isExternalName(annotation.target.enclosingClass)) {
       return (annotation.arguments.positional.single as StringLiteral).value;
