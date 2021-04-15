@@ -433,7 +433,10 @@ abstract class PollTrigger {
 /// target of a symlink.
 class _BazelInvocationWatcher implements PollTrigger {
   /// Determines how often do we check for `command.log` changes.
-  static const _pollInterval = Duration(seconds: 1);
+  ///
+  /// Note that on some systems the granularity is about 1s, so let's set this
+  /// to some greater value just to be safe we don't miss any updates.
+  static const _pollInterval = Duration(seconds: 2);
 
   /// To confirm that a build finished, we check for these messages in the
   /// `command.log`.
@@ -461,8 +464,8 @@ class _BazelInvocationWatcher implements PollTrigger {
   void cancel() => _timer.cancel();
 
   bool _buildFinished(String contents) {
-    // Only look at the last 100 characters.
-    var offset = max(0, contents.length - 100);
+    // Only look at the last 1024 characters.
+    var offset = max(0, contents.length - 1024);
     return _buildCompletedMsgs.any((msg) => contents.contains(msg, offset));
   }
 

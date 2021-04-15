@@ -3330,7 +3330,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 
   Constant canonicalize(Constant constant) {
-    return canonicalizationCache.putIfAbsent(constant, () => constant);
+    // Don't use putIfAbsent to avoid the context allocation needed
+    // for the closure.
+    return canonicalizationCache[constant] ??= constant;
   }
 
   T withNewInstanceBuilder<T>(
