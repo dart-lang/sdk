@@ -176,12 +176,12 @@ class GCSNamerApiDocs(object):
 def run(command, env=None, shell=False, throw_on_error=True):
     print("Running command: ", command)
 
-    p = subprocess.Popen(
-        command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        env=env,
-        shell=shell)
+    p = subprocess.Popen(command,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         env=env,
+                         shell=shell,
+                         universal_newlines=True)
     (stdout, stderr) = p.communicate()
     if throw_on_error and p.returncode != 0:
         print("Failed to execute '%s'. Exit code: %s." %

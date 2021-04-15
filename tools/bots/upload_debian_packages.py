@@ -36,7 +36,7 @@ def ArchiveArtifacts(tarfile, builddir, channel):
 if __name__ == '__main__':
     bot_name = os.environ.get('BUILDBOT_BUILDERNAME')
     channel = bot_utils.GetChannelFromName(bot_name)
-    if channel != bot_utils.Channel.BLEEDING_EDGE:
+    if channel not in (bot_utils.Channel.BLEEDING_EDGE, bot_utils.Channel.TRY):
         builddir = os.path.join(bot_utils.DART_DIR, utils.GetBuildDir(HOST_OS),
                                 'src_and_installation')
         version = utils.GetVersion()
