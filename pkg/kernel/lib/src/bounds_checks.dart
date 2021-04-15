@@ -165,13 +165,18 @@ List<DartType> calculateBoundsInternal(
       new List<DartType>.filled(typeParameters.length, dummyDartType);
   for (int i = 0; i < typeParameters.length; i++) {
     DartType? bound = typeParameters[i].bound;
+    bool isContravariant = typeParameters[i].variance == Variance.contravariant;
     if (bound == null) {
-      bound = const DynamicType();
+      bound = isNonNullableByDefault && isContravariant
+          ? const NeverType.nonNullable()
+          : const DynamicType();
     } else if (bound is InterfaceType && bound.classNode == objectClass) {
       DartType defaultType = typeParameters[i].defaultType!;
       if (!(defaultType is InterfaceType &&
           defaultType.classNode == objectClass)) {
-        bound = const DynamicType();
+        bound = isNonNullableByDefault && isContravariant
+            ? const NeverType.nonNullable()
+            : const DynamicType();
       }
     }
     bounds[i] = bound;
@@ -193,8 +198,10 @@ List<DartType> calculateBoundsInternal(
     Substitution substitution =
         Substitution.fromUpperAndLowerBounds(upperBounds, lowerBounds);
     for (int typeParameterIndex in component) {
-      bounds[typeParameterIndex] =
-          substitution.substituteType(bounds[typeParameterIndex]);
+      bounds[typeParameterIndex] = substitution.substituteType(
+          bounds[typeParameterIndex],
+          contravariant: typeParameters[typeParameterIndex].variance ==
+              Variance.contravariant);
     }
   }
 
@@ -206,7 +213,8 @@ List<DartType> calculateBoundsInternal(
     Substitution substitution =
         Substitution.fromUpperAndLowerBounds(upperBounds, lowerBounds);
     for (int j = 0; j < typeParameters.length; j++) {
-      bounds[j] = substitution.substituteType(bounds[j]);
+      bounds[j] = substitution.substituteType(bounds[j],
+          contravariant: typeParameters[j].variance == Variance.contravariant);
     }
   }
 

@@ -10,9 +10,12 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_algebra.dart'
+    show FreshTypeParameters, Substitution, getFreshTypeParameters, substitute;
 
 import 'package:kernel/type_environment.dart';
+
+import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
 
 import 'package:kernel/src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
@@ -357,6 +360,42 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             preferUpwardsInference: !typeParam.isLegacyCovariant);
       }
     }
+
+    if (!downwardsInferPhase) {
+      assert(typeParametersToInfer.length == inferredTypes.length);
+      FreshTypeParameters freshTypeParameters =
+          getFreshTypeParameters(typeParametersToInfer);
+      List<TypeParameter> helperTypeParameters =
+          freshTypeParameters.freshTypeParameters;
+
+      Map<TypeParameter, DartType> inferredSubstitution =
+          <TypeParameter, DartType>{};
+      for (int i = 0; i < helperTypeParameters.length; ++i) {
+        if (inferredTypes[i] is UnknownType) {
+          inferredSubstitution[helperTypeParameters[i]] =
+              new TypeParameterType.forAlphaRenaming(
+                  helperTypeParameters[i], helperTypeParameters[i]);
+        } else {
+          assert(isKnown(inferredTypes[i]));
+          inferredSubstitution[helperTypeParameters[i]] = inferredTypes[i];
+        }
+      }
+      for (int i = 0; i < helperTypeParameters.length; ++i) {
+        if (inferredTypes[i] is UnknownType) {
+          helperTypeParameters[i].bound =
+              substitute(helperTypeParameters[i].bound, inferredSubstitution);
+        } else {
+          helperTypeParameters[i].bound = inferredTypes[i];
+        }
+      }
+      List<DartType> instantiatedTypes = calculateBounds(
+          helperTypeParameters, coreTypes.objectClass, clientLibrary);
+      for (int i = 0; i < instantiatedTypes.length; ++i) {
+        if (inferredTypes[i] is UnknownType) {
+          inferredTypes[i] = instantiatedTypes[i];
+        }
+      }
+    }
   }
 
   @override
@@ -423,7 +462,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// of constraints.
   ///
   /// If [grounded] is `true`, then the returned type is guaranteed to be a
-  /// known type (i.e. it will not contain any instances of `?`).
+  /// known type (i.e. it will not contain any instances of `?`) if it is
+  /// constrained at all.  The returned type for unconstrained variables is
+  /// [UnknownType].
   ///
   /// If [isContravariant] is `true`, then we are solving for a contravariant
   /// type parameter which means we choose the upper bound rather than the
@@ -449,7 +490,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             ? greatestClosure(constraint.upper, topType, bottomType)
             : constraint.upper;
       } else {
-        return grounded ? const DynamicType() : const UnknownType();
+        return const UnknownType();
       }
     } else {
       // Prefer the known bound, if any.
@@ -467,7 +508,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             ? leastClosure(constraint.lower, topType, bottomType)
             : constraint.lower;
       } else {
-        return grounded ? bottomType : const UnknownType();
+        return const UnknownType();
       }
     }
   }
