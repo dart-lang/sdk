@@ -561,6 +561,7 @@ computes
 computing
 concatenated
 concatenation
+concepts
 conclude
 conclusion
 concrete
@@ -587,6 +588,7 @@ conjunction
 connect
 connected
 connection
+connects
 consequence
 consequently
 conservative
