@@ -61,6 +61,9 @@ class _InferredTypeArgumentsDataExtractor
     } else if (node is InvocationExpression) {
       typeArguments = node.typeArguments;
       typeArgumentTypes = node.typeArgumentTypes!;
+    } else if (node is TypedLiteral) {
+      typeArguments = node.typeArguments;
+      typeArgumentTypes = (node.staticType as InterfaceType).typeArguments;
     } else {
       return null;
     }
