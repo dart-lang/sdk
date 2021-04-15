@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show BytesBuilder, File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
@@ -27,8 +29,8 @@ import 'package:kernel/text/ast_to_text.dart' show Printer;
 /// Print the given [component].  Do nothing if it is `null`.  If the
 /// [libraryFilter] is provided, then only libraries that satisfy it are
 /// printed.
-void printComponentText(Component? component,
-    {bool Function(Library library)? libraryFilter}) {
+void printComponentText(Component component,
+    {bool libraryFilter(Library library)}) {
   if (component == null) return;
   StringBuffer sb = new StringBuffer();
   Printer printer = new Printer(sb);
@@ -43,7 +45,7 @@ void printComponentText(Component? component,
 
 /// Write [component] to file only including libraries that match [filter].
 Future<Null> writeComponentToFile(Component component, Uri uri,
-    {bool Function(Library library)? filter}) async {
+    {bool filter(Library library)}) async {
   File output = new File.fromUri(uri);
   IOSink sink = output.openWrite();
   try {
@@ -56,7 +58,7 @@ Future<Null> writeComponentToFile(Component component, Uri uri,
 
 /// Serialize the libraries in [component] that match [filter].
 Uint8List serializeComponent(Component component,
-    {bool Function(Library library)? filter,
+    {bool filter(Library library),
     bool includeSources: true,
     bool includeOffsets: true}) {
   ByteSink byteSink = new ByteSink();
@@ -79,8 +81,9 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
     ..nonNullableByDefaultCompiledMode =
         realLibrary.nonNullableByDefaultCompiledMode;
 
-  TreeNode? realClass = procedure.parent;
-  if (realClass is Class) {
+  if (procedure.parent is Class) {
+    Class realClass = procedure.parent;
+
     Class fakeClass = new Class(name: kDebugClassName)..parent = fakeLibrary;
     Map<TypeParameter, TypeParameter> typeParams =
         <TypeParameter, TypeParameter>{};
@@ -96,15 +99,14 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
         typeSubstitution: typeSubstitution, typeParams: typeParams);
 
     for (TypeParameter typeParam in realClass.typeParameters) {
-      fakeClass.typeParameters
-          .add(typeParam.accept<TreeNode>(cloner) as TypeParameter);
+      fakeClass.typeParameters.add(typeParam.accept<TreeNode>(cloner));
     }
 
     if (realClass.supertype != null) {
       // supertype is null for Object.
       fakeClass.supertype = new Supertype.byReference(
-          realClass.supertype!.className,
-          realClass.supertype!.typeArguments.map(cloner.visitType).toList());
+          realClass.supertype.className,
+          realClass.supertype.typeArguments.map(cloner.visitType).toList());
     }
 
     // Rebind the type parameters in the procedure.

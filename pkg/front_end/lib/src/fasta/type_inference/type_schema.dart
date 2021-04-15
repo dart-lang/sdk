@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+// @dart = 2.9
+
 import 'package:kernel/ast.dart'
     show
         DartType,
@@ -36,10 +38,10 @@ String typeSchemaToString(DartType schema) {
 /// Extension of [Printer] that represents the unknown type as `?`.
 class TypeSchemaPrinter extends Printer {
   TypeSchemaPrinter(StringSink sink,
-      {NameSystem? syntheticNames,
+      {NameSystem syntheticNames,
       bool showOffsets: false,
-      ImportTable? importTable,
-      Annotator? annotator})
+      ImportTable importTable,
+      Annotator annotator})
       : super(sink,
             syntheticNames: syntheticNames,
             showOffsets: showOffsets,
@@ -62,16 +64,16 @@ class UnknownType extends DartType {
   const UnknownType();
 
   @override
-  Nullability get declaredNullability => Nullability.undetermined;
+  Nullability get declaredNullability => null;
 
   @override
-  Nullability get nullability => Nullability.undetermined;
+  Nullability get nullability => null;
 
   @override
   bool operator ==(Object other) => equals(other, null);
 
   @override
-  bool equals(Object other, Assumptions? assumptions) {
+  bool equals(Object other, Assumptions assumptions) {
     // This class doesn't have any fields so all instances of `UnknownType` are
     // equal.
     return other is UnknownType;
@@ -122,7 +124,7 @@ class _IsKnownVisitor extends DartTypeVisitor<bool> {
     for (NamedType namedParameterType in node.namedParameters) {
       if (!namedParameterType.type.accept(this)) return false;
     }
-    if (node.typedefType != null && !node.typedefType!.accept(this)) {
+    if (node.typedefType != null && !node.typedefType.accept(this)) {
       return false;
     }
     return true;
