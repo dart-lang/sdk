@@ -2043,8 +2043,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           '(${expression.toSource()}) offset=${expression.offset}');
     }
     var origin = _makeEdgeOrigin(sourceType, expression);
-    var hard = _postDominatedLocals.isReferenceInScope(expression) ||
-        expression.unParenthesized is AsExpression;
+    var hard = _shouldUseHardEdge(expression);
     var edge = _graph.makeNonNullable(sourceType.node, origin,
         hard: hard, guards: _guards);
     if (origin is ExpressionChecksOrigin) {
@@ -2407,8 +2406,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               FixReasonTarget.root,
               source: destinationType,
               destination: _createNonNullableType(compoundOperatorInfo),
-              hard: _postDominatedLocals
-                  .isReferenceInScope(assignmentExpression.leftHandSide));
+              hard: _shouldUseHardEdge(assignmentExpression.leftHandSide));
           DecoratedType compoundOperatorType = getOrComputeElementType(
               compoundOperatorInfo, compoundOperatorMethod,
               targetType: destinationType,
@@ -2417,7 +2415,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _checkAssignment(edgeOrigin, FixReasonTarget.root,
               source: sourceType,
               destination: compoundOperatorType.positionalParameters[0],
-              hard: _postDominatedLocals.isReferenceInScope(expression),
+              hard: _shouldUseHardEdge(expression),
               sourceIsFunctionLiteral: expression is FunctionExpression);
           sourceType = _fixNumericTypes(
               compoundOperatorType.returnType, compoundOperatorInfo.staticType);
@@ -2452,13 +2450,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             return methodInvocationType.withNode(newNode);
           };
         } else {
-          var unwrappedExpression = expression.unParenthesized;
-          var hard = (questionAssignNode == null &&
-                  _postDominatedLocals.isReferenceInScope(expression)) ||
-              // An edge from a cast should be hard, so that the cast type
-              // annotation is appropriately made nullable according to the
-              // destination type.
-              unwrappedExpression is AsExpression;
+          var hard = _shouldUseHardEdge(expression,
+              isConditionallyExecuted: questionAssignNode != null);
           _checkAssignment(edgeOrigin, FixReasonTarget.root,
               source: sourceType,
               destination: destinationType,
@@ -3266,6 +3259,37 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     return node;
   }
 
+  /// Determines whether uses of [expression] should cause hard edges to be
+  /// created in the nullability graph.
+  ///
+  /// If [isConditionallyExecuted] is `true`, that indicates that [expression]
+  /// appears in a context where it might not get executed (e.g. on the RHS of
+  /// a `??=`).
+  bool _shouldUseHardEdge(Expression expression,
+      {bool isConditionallyExecuted = false}) {
+    expression = expression.unParenthesized;
+    if (expression is ListLiteral || expression is SetOrMapLiteral) {
+      // List, set, and map literals have either explicit or implicit type
+      // arguments.  If supplying a nullable type for one of these type
+      // arguments would lead to an error (e.g. `f(<int?>[])` where `f` requires
+      // a `List<int>`), then we should use a hard edge, to ensure that the
+      // migrated type argument will be non-nullable.
+      return true;
+    } else if (expression is AsExpression) {
+      // "as" expressions have an explicit type.  If making this type nullable
+      // would lead to an error (e.g. `f(x as int?)` where `f` requires an
+      // `int`),then we should use a hard edge, to ensure that the migrated type
+      // will be non-nullable.
+      return true;
+    }
+    // For other expressions, we should use a hard edge only if (a) the
+    // expression is unconditionally executed, and (b) the expression is a
+    // reference to a local variable or parameter and it post-dominates the
+    // declaration of that local variable or parameter.
+    return !isConditionallyExecuted &&
+        _postDominatedLocals.isReferenceInScope(expression);
+  }
+
   DecoratedType _thisOrSuper(Expression node) {
     if (_currentClassOrExtension == null) {
       return null;
@@ -3439,7 +3463,8 @@ mixin _AssignmentChecker {
     _checkAssignment_recursion(origin, edgeTarget,
         source: source,
         destination: destination,
-        sourceIsFunctionLiteral: sourceIsFunctionLiteral);
+        sourceIsFunctionLiteral: sourceIsFunctionLiteral,
+        hard: hard);
   }
 
   /// Does the recursive part of [_checkAssignment], visiting all of the types
@@ -3449,7 +3474,8 @@ mixin _AssignmentChecker {
   void _checkAssignment_recursion(EdgeOrigin origin, FixReasonTarget edgeTarget,
       {@required DecoratedType source,
       @required DecoratedType destination,
-      bool sourceIsFunctionLiteral = false}) {
+      bool sourceIsFunctionLiteral = false,
+      bool hard = false}) {
     var sourceType = source.type;
     var destinationType = destination.type;
     assert(_typeSystem.isSubtypeOf(sourceType, destinationType));
@@ -3554,7 +3580,7 @@ mixin _AssignmentChecker {
         _checkAssignment(origin, edgeTarget.typeArgument(i),
             source: rewrittenSource.typeArguments[i],
             destination: destination.typeArguments[i],
-            hard: false,
+            hard: hard,
             checkable: false);
       }
     } else if (sourceType is FunctionType && destinationType is FunctionType) {
