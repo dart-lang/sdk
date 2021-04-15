@@ -56,6 +56,30 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     expect(res, isEmpty);
   }
 
+  Future<void> test_comment_endOfFile_withNewline() async {
+    // Checks for a previous bug where invoking completion inside a comment
+    // at the end of a file would return results.
+    final content = '''
+    // foo ^
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res, isEmpty);
+  }
+
+  Future<void> test_comment_endOfFile_withoutNewline() async {
+    // Checks for a previous bug where invoking completion inside a comment
+    // at the very end of a file with no trailing newline would return results.
+    final content = '// foo ^';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res, isEmpty);
+  }
+
   Future<void> test_commitCharacter_completionItem() async {
     await provideConfig(
       () => initialize(
