@@ -2,32 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-import "package:kernel/ast.dart"
-    show
-        Class,
-        Component,
-        DartType,
-        DynamicType,
-        FunctionType,
-        FutureOrType,
-        InterfaceType,
-        InvalidType,
-        Library,
-        NamedType,
-        NeverType,
-        Node,
-        NullType,
-        Nullability,
-        Supertype,
-        TreeNode,
-        TypeParameter,
-        TypeParameterType,
-        Typedef,
-        TypedefType,
-        VoidType,
-        setParents;
+import "package:kernel/ast.dart" hide Visitor;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -64,7 +39,7 @@ Component parseComponent(String source, Uri uri) {
 }
 
 Library parseLibrary(Uri uri, String text,
-    {Uri fileUri, TypeParserEnvironment environment}) {
+    {Uri? fileUri, TypeParserEnvironment? environment}) {
   fileUri ??= uri;
   environment ??= new TypeParserEnvironment(uri, fileUri);
   Library library =
@@ -76,8 +51,9 @@ Library parseLibrary(Uri uri, String text,
       environment._registerDeclaration(
           name,
           new Class(fileUri: fileUri, name: name)
-            ..typeParameters.addAll(new List<TypeParameter>.filled(
-                type.typeVariables.length, null)));
+            ..typeParameters.addAll(new List<TypeParameter>.generate(
+                type.typeVariables.length,
+                (int i) => new TypeParameter('T$i'))));
     }
   }
   for (ParsedType type in types) {
@@ -94,15 +70,16 @@ Library parseLibrary(Uri uri, String text,
 }
 
 class Env {
-  Component component;
+  late Component component;
 
-  CoreTypes coreTypes;
+  late CoreTypes coreTypes;
 
-  TypeParserEnvironment _libraryEnvironment;
+  late TypeParserEnvironment _libraryEnvironment;
 
   final bool isNonNullableByDefault;
 
-  Env(String source, {this.isNonNullableByDefault}) {
+  Env(String source, {required this.isNonNullableByDefault}) {
+    // ignore: unnecessary_null_comparison
     assert(isNonNullableByDefault != null);
     Uri libraryUri = Uri.parse('memory:main.dart');
     Uri coreUri = Uri.parse("dart:core");
@@ -122,18 +99,18 @@ class Env {
   }
 
   DartType parseType(String text,
-      {Map<String, DartType Function()> additionalTypes}) {
+      {Map<String, DartType Function()>? additionalTypes}) {
     return _libraryEnvironment.parseType(text,
         additionalTypes: additionalTypes);
   }
 
   List<DartType> parseTypes(String text,
-      {Map<String, DartType Function()> additionalTypes}) {
+      {Map<String, DartType Function()>? additionalTypes}) {
     return _libraryEnvironment.parseTypes(text,
         additionalTypes: additionalTypes);
   }
 
-  List<TypeParameter> extendWithTypeParameters(String typeParameters) {
+  List<TypeParameter> extendWithTypeParameters(String? typeParameters) {
     if (typeParameters == null || typeParameters.isEmpty) {
       return <TypeParameter>[];
     }
@@ -144,7 +121,7 @@ class Env {
   }
 
   void withTypeParameters(
-      String typeParameters, void Function(List<TypeParameter>) f) {
+      String? typeParameters, void Function(List<TypeParameter>) f) {
     if (typeParameters == null || typeParameters.isEmpty) {
       f(<TypeParameter>[]);
     } else {
@@ -164,7 +141,7 @@ class TypeParserEnvironment {
 
   final Map<String, TreeNode> _declarations = <String, TreeNode>{};
 
-  final TypeParserEnvironment _parent;
+  final TypeParserEnvironment? _parent;
 
   /// Collects types to set their nullabilities after type parameters are ready.
   ///
@@ -181,7 +158,7 @@ class TypeParserEnvironment {
   TypeParserEnvironment(this.uri, this.fileUri, [this._parent]);
 
   Node _kernelFromParsedType(ParsedType type,
-      {Map<String, DartType Function()> additionalTypes}) {
+      {Map<String, DartType Function()>? additionalTypes}) {
     Node node = type.accept(
         new _KernelFromParsedType(additionalTypes: additionalTypes), this);
     return node;
@@ -189,14 +166,14 @@ class TypeParserEnvironment {
 
   /// Parses a single type.
   DartType parseType(String text,
-      {Map<String, DartType Function()> additionalTypes}) {
+      {Map<String, DartType Function()>? additionalTypes}) {
     return _kernelFromParsedType(type_parser.parse(text).single,
-        additionalTypes: additionalTypes);
+        additionalTypes: additionalTypes) as DartType;
   }
 
   /// Parses a list of types separated by commas.
   List<DartType> parseTypes(String text,
-      {Map<String, DartType Function()> additionalTypes}) {
+      {Map<String, DartType Function()>? additionalTypes}) {
     return (parseType("(${text}) -> void", additionalTypes: additionalTypes)
             as FunctionType)
         .positionalParameters;
@@ -204,19 +181,19 @@ class TypeParserEnvironment {
 
   bool isObject(String name) => name == "Object" && "$uri" == "dart:core";
 
-  Class get objectClass => lookupDeclaration("Object");
+  Class get objectClass => lookupDeclaration("Object") as Class;
 
   TreeNode lookupDeclaration(String name) {
-    TreeNode result = _declarations[name];
+    TreeNode? result = _declarations[name];
     if (result == null && _parent != null) {
-      return _parent.lookupDeclaration(name);
+      return _parent!.lookupDeclaration(name);
     }
     if (result == null) throw "Not found: $name";
     return result;
   }
 
-  TreeNode _registerDeclaration(String name, TreeNode declaration) {
-    TreeNode existing = _declarations[name];
+  T _registerDeclaration<T extends TreeNode>(String name, T declaration) {
+    TreeNode? existing = _declarations[name];
     if (existing != null) {
       throw "Duplicated declaration: $name";
     }
@@ -228,12 +205,13 @@ class TypeParserEnvironment {
       .._declarations.addAll(declarations);
   }
 
-  TypeParserEnvironment extendWithTypeParameters(String typeParameters) {
+  TypeParserEnvironment extendWithTypeParameters(String? typeParameters) {
     if (typeParameters?.isEmpty ?? true) return this;
-    return extendToParameterEnvironment(typeParameters).environment;
+    return extendToParameterEnvironment(typeParameters!).environment;
   }
 
   ParameterEnvironment extendToParameterEnvironment(String typeParameters) {
+    // ignore: unnecessary_null_comparison
     assert(typeParameters != null && typeParameters.isNotEmpty);
     return const _KernelFromParsedType().computeTypeParameterEnvironment(
         parseTypeVariables("<${typeParameters}>"), this);
@@ -242,23 +220,34 @@ class TypeParserEnvironment {
   /// Returns the predefined type by the [name], if any.
   ///
   /// Use this in subclasses to add support for additional predefined types.
-  DartType getPredefinedNamedType(String name) {
+  DartType? getPredefinedNamedType(String name) {
     if (_parent != null) {
-      return _parent.getPredefinedNamedType(name);
+      return _parent!.getPredefinedNamedType(name);
     }
     return null;
   }
 }
 
 class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
-  final Map<String, DartType Function()> additionalTypes; // Can be null.
+  final Map<String, DartType Function()>? additionalTypes; // Can be null.
 
   const _KernelFromParsedType({this.additionalTypes});
+
+  DartType _parseType(ParsedType type, TypeParserEnvironment environment) {
+    return type.accept<Node, TypeParserEnvironment>(this, environment)
+        as DartType;
+  }
+
+  InterfaceType? _parseOptionalInterfaceType(
+      ParsedType? type, TypeParserEnvironment environment) {
+    return type?.accept<Node, TypeParserEnvironment>(this, environment)
+        as InterfaceType?;
+  }
 
   DartType visitInterfaceType(
       ParsedInterfaceType node, TypeParserEnvironment environment) {
     String name = node.name;
-    DartType predefined = environment.getPredefinedNamedType(name);
+    DartType? predefined = environment.getPredefinedNamedType(name);
     if (predefined != null) {
       return predefined;
     } else if (name == "dynamic") {
@@ -282,16 +271,15 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       // Don't return a const object to ensure we test implementations that use
       // identical.
       return new InvalidType();
-    } else if (additionalTypes != null && additionalTypes.containsKey(name)) {
-      return additionalTypes[name].call();
+    } else if (additionalTypes != null && additionalTypes!.containsKey(name)) {
+      return additionalTypes![name]!.call();
     }
     TreeNode declaration = environment.lookupDeclaration(name);
     List<ParsedType> arguments = node.arguments;
     List<DartType> kernelArguments =
-        new List<DartType>.filled(arguments.length, null);
+        new List<DartType>.filled(arguments.length, dummyDartType);
     for (int i = 0; i < arguments.length; i++) {
-      kernelArguments[i] =
-          arguments[i].accept<Node, TypeParserEnvironment>(this, environment);
+      kernelArguments[i] = _parseType(arguments[i], environment);
     }
     if (name == "FutureOr") {
       return new FutureOrType(kernelArguments.single,
@@ -310,9 +298,10 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       }
       List<TypeParameter> typeVariables = declaration.typeParameters;
       if (kernelArguments.isEmpty && typeVariables.isNotEmpty) {
-        kernelArguments = new List<DartType>.filled(typeVariables.length, null);
+        kernelArguments =
+            new List<DartType>.filled(typeVariables.length, dummyDartType);
         for (int i = 0; i < typeVariables.length; i++) {
-          kernelArguments[i] = typeVariables[i].defaultType;
+          kernelArguments[i] = typeVariables[i].defaultType!;
         }
       } else if (kernelArguments.length != typeVariables.length) {
         throw "Expected ${typeVariables.length} type arguments: $node";
@@ -323,7 +312,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
         throw "Type variable can't have arguments (${node.name})";
       }
       Nullability nullability = declaration.bound == null
-          ? null
+          ? Nullability.nonNullable
           : TypeParameterType.computeNullabilityFromBound(declaration);
       TypeParameterType type = new TypeParameterType(
           declaration,
@@ -333,6 +322,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       // the bound because it's not yet available, it will be set to null.  In
       // that case, put it to the list to be updated later, when the bound is
       // available.
+      // ignore: unnecessary_null_comparison
       if (type.declaredNullability == null) {
         environment.pendingNullabilities.add(type);
       }
@@ -347,7 +337,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
 
   Class visitClass(ParsedClass node, TypeParserEnvironment environment) {
     String name = node.name;
-    Class cls = environment.lookupDeclaration(name);
+    Class cls = environment.lookupDeclaration(name) as Class;
     ParameterEnvironment parameterEnvironment =
         computeTypeParameterEnvironment(node.typeVariables, environment);
     List<TypeParameter> parameters = parameterEnvironment.parameters;
@@ -357,8 +347,8 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       ..addAll(parameters);
     {
       TypeParserEnvironment environment = parameterEnvironment.environment;
-      InterfaceType type = node.supertype
-          ?.accept<Node, TypeParserEnvironment>(this, environment);
+      InterfaceType? type =
+          _parseOptionalInterfaceType(node.supertype, environment);
       if (type == null) {
         if (!environment.isObject(name)) {
           cls.supertype = environment.objectClass.asRawSupertype;
@@ -366,15 +356,15 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       } else {
         cls.supertype = toSupertype(type);
       }
-      InterfaceType mixedInType = node.mixedInType
-          ?.accept<Node, TypeParserEnvironment>(this, environment);
+      InterfaceType? mixedInType =
+          _parseOptionalInterfaceType(node.mixedInType, environment);
       if (mixedInType != null) {
         cls.mixedInType = toSupertype(mixedInType);
       }
       List<ParsedType> interfaces = node.interfaces;
       for (int i = 0; i < interfaces.length; i++) {
-        cls.implementedTypes.add(toSupertype(interfaces[i]
-            .accept<Node, TypeParserEnvironment>(this, environment)));
+        cls.implementedTypes.add(toSupertype(
+            _parseOptionalInterfaceType(interfaces[i], environment)!));
       }
     }
     return cls;
@@ -390,7 +380,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     DartType type;
     {
       TypeParserEnvironment environment = parameterEnvironment.environment;
-      type = node.type.accept<Node, TypeParserEnvironment>(this, environment);
+      type = _parseType(node.type, environment);
       if (type is FunctionType) {
         FunctionType f = type;
         type = new FunctionType(
@@ -419,21 +409,16 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     DartType returnType;
     {
       TypeParserEnvironment environment = parameterEnvironment.environment;
-      returnType = node.returnType
-          ?.accept<Node, TypeParserEnvironment>(this, environment);
+      returnType = _parseType(node.returnType, environment);
       for (ParsedType argument in node.arguments.required) {
-        positionalParameters.add(
-            argument.accept<Node, TypeParserEnvironment>(this, environment));
+        positionalParameters.add(_parseType(argument, environment));
       }
       for (ParsedType argument in node.arguments.positional) {
-        positionalParameters.add(
-            argument.accept<Node, TypeParserEnvironment>(this, environment));
+        positionalParameters.add(_parseType(argument, environment));
       }
       for (ParsedNamedArgument argument in node.arguments.named) {
         namedParameters.add(new NamedType(
-            argument.name,
-            argument.type
-                .accept<Node, TypeParserEnvironment>(this, environment),
+            argument.name, _parseType(argument.type, environment),
             isRequired: argument.isRequired));
       }
     }
@@ -458,9 +443,8 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
   TypeParameterType visitIntersectionType(
       ParsedIntersectionType node, TypeParserEnvironment environment) {
     TypeParameterType type =
-        node.a.accept<Node, TypeParserEnvironment>(this, environment);
-    DartType bound =
-        node.b.accept<Node, TypeParserEnvironment>(this, environment);
+        _parseType(node.a, environment) as TypeParameterType;
+    DartType bound = _parseType(node.b, environment);
     return new TypeParameterType.intersection(
         type.parameter, type.nullability, bound);
   }
@@ -472,8 +456,8 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
   ParameterEnvironment computeTypeParameterEnvironment(
       List<ParsedTypeVariable> typeVariables,
       TypeParserEnvironment environment) {
-    List<TypeParameter> typeParameters =
-        new List<TypeParameter>.filled(typeVariables.length, null);
+    List<TypeParameter> typeParameters = new List<TypeParameter>.filled(
+        typeVariables.length, dummyTypeParameter);
     Map<String, TypeParameter> typeParametersByName = <String, TypeParameter>{};
     for (int i = 0; i < typeVariables.length; i++) {
       String name = typeVariables[i].name;
@@ -483,7 +467,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
         environment._extend(typeParametersByName);
     Class objectClass = environment.objectClass;
     for (int i = 0; i < typeVariables.length; i++) {
-      ParsedType bound = typeVariables[i].bound;
+      ParsedType? bound = typeVariables[i].bound;
       TypeParameter typeParameter = typeParameters[i];
       if (bound == null) {
         typeParameter
@@ -491,8 +475,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
               objectClass, Nullability.nullable, const <DartType>[])
           ..defaultType = const DynamicType();
       } else {
-        DartType type =
-            bound.accept<Node, TypeParserEnvironment>(this, nestedEnvironment);
+        DartType type = _parseType(bound, nestedEnvironment);
         typeParameter
           ..bound = type
           // The default type will be overridden below, but we need to set it

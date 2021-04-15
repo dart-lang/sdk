@@ -3,8 +3,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/src/tool/command_line_util.dart';
@@ -32,8 +30,7 @@ class TypeCounter extends RecursiveVisitor {
   Map<String, int> _typeCounts = <String, int>{};
   defaultNode(Node node) {
     String key = node.runtimeType.toString();
-    _typeCounts[key] ??= 0;
-    _typeCounts[key]++;
+    _typeCounts[key] = (_typeCounts[key] ??= 0) + 1;
     super.defaultNode(node);
   }
 
@@ -43,8 +40,8 @@ class TypeCounter extends RecursiveVisitor {
       data.add([type, count]);
     });
     data.sort((a, b) {
-      int aCount = a[1];
-      int bCount = b[1];
+      int aCount = a[1] as int;
+      int bCount = b[1] as int;
       return bCount - aCount;
     });
     for (var entry in data) {

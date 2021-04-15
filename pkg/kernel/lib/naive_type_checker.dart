@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'class_hierarchy.dart';
 import 'core_types.dart';
 import 'kernel.dart';
@@ -79,7 +77,7 @@ ${superMember} is a ${_memberKind(superMember)}
         final DartType superType = setterType(host, superMember);
         final bool isCovariant = ownMember is Field
             ? ownMember.isCovariant
-            : ownMember.function.positionalParameters[0].isCovariant;
+            : ownMember.function!.positionalParameters[0].isCovariant;
         if (!_isValidParameterOverride(isCovariant, ownType, superType)) {
           if (isCovariant) {
             return failures.reportInvalidOverride(ownMember, superMember, '''
@@ -101,7 +99,8 @@ ${ownType} is not a subtype of ${superType}
         }
       }
     } else {
-      final String msg = _checkFunctionOverride(host, ownMember, superMember);
+      final String? msg =
+          _checkFunctionOverride(host, ownMember, superMember as Procedure);
       if (msg != null) {
         return failures.reportInvalidOverride(ownMember, superMember, msg);
       }
@@ -128,7 +127,7 @@ ${ownType} is not a subtype of ${superType}
 
   Substitution _makeSubstitutionForMember(Class host, Member member) {
     final Supertype hostType =
-        hierarchy.getClassAsInstanceOf(host, member.enclosingClass);
+        hierarchy.getClassAsInstanceOf(host, member.enclosingClass!)!;
     return Substitution.fromSupertype(hostType);
   }
 
@@ -137,11 +136,10 @@ ${ownType} is not a subtype of ${superType}
   ///
   /// Note: this function is a copy of [SubtypeTester._isFunctionSubtypeOf]
   /// but it additionally accounts for parameter covariance.
-  String _checkFunctionOverride(
-      Class host, Member ownMember, Member superMember) {
-    if (ownMember is Procedure &&
-        (ownMember.isMemberSignature ||
-            (ownMember.isForwardingStub && !ownMember.isForwardingSemiStub))) {
+  String? _checkFunctionOverride(
+      Class host, Procedure ownMember, Procedure superMember) {
+    if (ownMember.isMemberSignature ||
+        (ownMember.isForwardingStub && !ownMember.isForwardingSemiStub)) {
       // Synthesized members are not obligated to override super members.
       return null;
     }
@@ -180,9 +178,10 @@ ${ownType} is not a subtype of ${superType}
       for (int i = 0; i < ownFunction.typeParameters.length; ++i) {
         TypeParameter subParameter = ownFunction.typeParameters[i];
         TypeParameter superParameter = superFunction.typeParameters[i];
-        DartType subBound = ownSubstitution.substituteType(subParameter.bound);
+        DartType subBound = ownSubstitution.substituteType(subParameter.bound!);
         if (!_isSubtypeOf(
-            superSubstitution.substituteType(superParameter.bound), subBound)) {
+            superSubstitution.substituteType(superParameter.bound!),
+            subBound)) {
           return 'type parameters have incompatible bounds';
         }
       }
@@ -222,7 +221,7 @@ super method declares ${superParameter.type}
             ownFunction.namedParameters,
             key: (v) => v.name);
     for (VariableDeclaration superParameter in superFunction.namedParameters) {
-      final VariableDeclaration ownParameter =
+      final VariableDeclaration? ownParameter =
           ownParameters[superParameter.name];
       if (ownParameter == null) {
         return 'override is missing ${superParameter.name} parameter';

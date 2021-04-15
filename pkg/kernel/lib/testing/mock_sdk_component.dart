@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 
 /// Returns a [Component] object containing empty definitions of core SDK
@@ -23,14 +21,14 @@ Component createMockSdkComponent() {
   InterfaceType objectType =
       new InterfaceType(objectClass, coreLib.nonNullable);
 
-  TypeParameter typeParam(String name, [DartType bound]) {
+  TypeParameter typeParam(String name, [DartType? bound]) {
     return new TypeParameter(name, bound ?? objectType);
   }
 
   Class class_(String name,
-      {Supertype supertype,
-      List<TypeParameter> typeParameters,
-      List<Supertype> implementedTypes}) {
+      {Supertype? supertype,
+      List<TypeParameter>? typeParameters,
+      List<Supertype>? implementedTypes}) {
     return new Class(
         name: name,
         supertype: supertype ?? objectClass.asThisSupertype,

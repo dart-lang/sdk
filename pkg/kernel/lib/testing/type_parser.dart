@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart' show Nullability;
 
 abstract class ParsedType {
-  R accept<R, A>(Visitor<R, A> visitor, [A a]);
+  R accept<R, A>(Visitor<R, A> visitor, A a);
 }
 
 enum ParsedNullability {
@@ -31,8 +29,6 @@ Nullability interpretParsedNullability(ParsedNullability parsedNullability,
     case ParsedNullability.omitted:
       return ifOmitted;
   }
-  return throw new UnsupportedError(
-      "$parsedNullability in interpretParsedNullability");
 }
 
 String parsedNullabilityToString(ParsedNullability parsedNullability) {
@@ -44,8 +40,6 @@ String parsedNullabilityToString(ParsedNullability parsedNullability) {
     case ParsedNullability.omitted:
       return '';
   }
-  return throw new UnsupportedError(
-      "$parsedNullability parsedNullabilityToString");
 }
 
 class ParsedInterfaceType extends ParsedType {
@@ -69,7 +63,7 @@ class ParsedInterfaceType extends ParsedType {
     return "$sb";
   }
 
-  R accept<R, A>(Visitor<R, A> visitor, [A a]) {
+  R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitInterfaceType(this, a);
   }
 }
@@ -82,10 +76,10 @@ abstract class ParsedDeclaration extends ParsedType {
 
 class ParsedClass extends ParsedDeclaration {
   final List<ParsedTypeVariable> typeVariables;
-  final ParsedInterfaceType supertype;
-  final ParsedInterfaceType mixedInType;
+  final ParsedInterfaceType? supertype;
+  final ParsedInterfaceType? mixedInType;
   final List<ParsedType> interfaces;
-  final ParsedFunctionType callableType;
+  final ParsedFunctionType? callableType;
 
   ParsedClass(String name, this.typeVariables, this.supertype, this.mixedInType,
       this.interfaces, this.callableType)
@@ -118,7 +112,7 @@ class ParsedClass extends ParsedDeclaration {
     return "$sb";
   }
 
-  R accept<R, A>(Visitor<R, A> visitor, [A a]) {
+  R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitClass(this, a);
   }
 }
@@ -144,7 +138,7 @@ class ParsedTypedef extends ParsedDeclaration {
     return "$sb;";
   }
 
-  R accept<R, A>(Visitor<R, A> visitor, [A a]) {
+  R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitTypedef(this, a);
   }
 }
@@ -176,7 +170,7 @@ class ParsedFunctionType extends ParsedType {
     return "$sb";
   }
 
-  R accept<R, A>(Visitor<R, A> visitor, [A a]) {
+  R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitFunctionType(this, a);
   }
 }
@@ -184,7 +178,7 @@ class ParsedFunctionType extends ParsedType {
 class ParsedVoidType extends ParsedType {
   String toString() => "void";
 
-  R accept<R, A>(Visitor<R, A> visitor, [A a]) {
+  R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitVoidType(this, a);
   }
 }
@@ -192,7 +186,7 @@ class ParsedVoidType extends ParsedType {
 class ParsedTypeVariable extends ParsedType {
   final String name;
 
-  final ParsedType bound;
+  final ParsedType? bound;
 
   ParsedTypeVariable(this.name, this.bound);
 
@@ -205,7 +199,7 @@ class ParsedTypeVariable extends ParsedType {
     return "$sb";
   }
 
-  R accept<R, A>(Visitor<R, A> visitor, [A a]) {
+  R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitTypeVariable(this, a);
   }
 }
@@ -225,7 +219,7 @@ class ParsedIntersectionType extends ParsedType {
     return "$sb";
   }
 
-  R accept<R, A>(Visitor<R, A> visitor, [A a]) {
+  R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitIntersectionType(this, a);
   }
 }
@@ -285,10 +279,10 @@ class ParsedNamedArgument {
 
 class Token {
   final int charOffset;
-  final String text;
+  final String? text;
   final bool isIdentifier;
 
-  Token next;
+  Token? next;
 
   Token(this.charOffset, this.text, {this.isIdentifier: false});
 
@@ -305,7 +299,7 @@ class Parser {
   bool get atEof => peek.isEof;
 
   void advance() {
-    peek = peek.next;
+    peek = peek.next!;
   }
 
   String computeLocation() {
@@ -377,7 +371,7 @@ class Parser {
       results.add(type);
     } while (optionalAdvance("&"));
     // Parse `A & B & C` as `A & (B & C)` and not `(A & B) & C`.
-    ParsedType result;
+    ParsedType? result;
     for (ParsedType type in results.reversed) {
       if (result == null) {
         result = type;
@@ -385,7 +379,7 @@ class Parser {
         result = new ParsedIntersectionType(type, result);
       }
     }
-    return result;
+    return result!;
   }
 
   ParsedType parseReturnType() {
@@ -409,7 +403,7 @@ class Parser {
       throw "Expected a name, "
           "but got '${peek.text}'\n${computeLocation()}";
     }
-    String result = peek.text;
+    String result = peek.text!;
     advance();
     return result;
   }
@@ -458,7 +452,7 @@ class Parser {
 
   ParsedTypeVariable parseTypeVariable() {
     String name = parseName();
-    ParsedType bound;
+    ParsedType? bound;
     if (optionalAdvance("extends")) {
       bound = parseType();
     }
@@ -469,12 +463,12 @@ class Parser {
     expect("class");
     String name = parseName();
     List<ParsedTypeVariable> typeVariables = parseTypeVariablesOpt();
-    ParsedType supertype;
-    ParsedType mixedInType;
+    ParsedInterfaceType? supertype;
+    ParsedInterfaceType? mixedInType;
     if (optionalAdvance("extends")) {
-      supertype = parseType();
+      supertype = parseType() as ParsedInterfaceType;
       if (optionalAdvance("with")) {
-        mixedInType = parseType();
+        mixedInType = parseType() as ParsedInterfaceType;
       }
     }
     List<ParsedType> interfaces = <ParsedType>[];
@@ -483,7 +477,7 @@ class Parser {
         interfaces.add(parseType());
       } while (optionalAdvance(","));
     }
-    ParsedFunctionType callableType;
+    ParsedFunctionType? callableType;
     if (optionalAdvance("{")) {
       callableType = parseFunctionType();
       expect("}");
@@ -548,8 +542,8 @@ bool isWhiteSpace(int c) =>
 
 Token scanString(String text) {
   int offset = 0;
-  Token first;
-  Token current;
+  Token? first;
+  Token? current;
   while (offset < text.length) {
     int c = text.codeUnitAt(offset);
     if (isWhiteSpace(c)) {
@@ -584,7 +578,7 @@ Token scanString(String text) {
   } else {
     current.next = eof;
   }
-  return first;
+  return first!;
 }
 
 List<ParsedType> parse(String text) {
@@ -598,7 +592,7 @@ List<ParsedType> parse(String text) {
 
 List<ParsedTypeVariable> parseTypeVariables(String text) {
   Parser parser = new Parser(scanString(text), text);
-  List<ParsedType> result = parser.parseTypeVariablesOpt();
+  List<ParsedTypeVariable> result = parser.parseTypeVariablesOpt();
   if (!parser.atEof) {
     throw "Expected EOF, but got '${parser.peek.text}'\n"
         "${parser.computeLocation()}";

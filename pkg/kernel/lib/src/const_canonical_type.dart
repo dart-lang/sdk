@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'package:kernel/src/bounds_checks.dart';
 
 import '../ast.dart';
@@ -15,7 +13,8 @@ import '../type_algebra.dart';
 /// The algorithm is specified at
 /// https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#constant-instances
 DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
-    {bool isNonNullableByDefault}) {
+    {required bool isNonNullableByDefault}) {
+  // ignore: unnecessary_null_comparison
   assert(isNonNullableByDefault != null);
 
   if (type is InvalidType) {
@@ -112,7 +111,7 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
     assert(type.declaredNullability == Nullability.nonNullable);
 
     List<TypeParameter> canonicalizedTypeParameters;
-    Substitution substitution;
+    Substitution? substitution;
     if (type.typeParameters.isEmpty) {
       canonicalizedTypeParameters = const <TypeParameter>[];
       substitution = null;
@@ -122,7 +121,7 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
       substitution = freshTypeParameters.substitution;
       canonicalizedTypeParameters = freshTypeParameters.freshTypeParameters;
       for (TypeParameter parameter in canonicalizedTypeParameters) {
-        parameter.bound = computeConstCanonicalType(parameter.bound, coreTypes,
+        parameter.bound = computeConstCanonicalType(parameter.bound!, coreTypes,
             isNonNullableByDefault: isNonNullableByDefault);
       }
       List<DartType> defaultTypes = calculateBoundsInternal(
@@ -178,24 +177,24 @@ DartType computeConstCanonicalType(DartType type, CoreTypes coreTypes,
     }
 
     // Canonicalize typedef type, just in case.
-    TypedefType canonicalizedTypedefType;
-    if (type.typedefType == null) {
+    TypedefType? canonicalizedTypedefType;
+    TypedefType? typedefType = type.typedefType;
+    if (typedefType == null) {
       canonicalizedTypedefType = null;
     } else {
       List<DartType> canonicalizedTypeArguments;
-      if (type.typedefType.typeArguments.isEmpty) {
+      if (typedefType.typeArguments.isEmpty) {
         canonicalizedTypeArguments = const <DartType>[];
       } else {
-        canonicalizedTypeArguments = new List<DartType>.of(
-            type.typedefType.typeArguments,
-            growable: false);
+        canonicalizedTypeArguments =
+            new List<DartType>.of(typedefType.typeArguments, growable: false);
         for (int i = 0; i < canonicalizedTypeArguments.length; ++i) {
           canonicalizedTypeArguments[i] = computeConstCanonicalType(
               canonicalizedTypeArguments[i], coreTypes,
               isNonNullableByDefault: isNonNullableByDefault);
         }
       }
-      canonicalizedTypedefType = new TypedefType(type.typedefType.typedefNode,
+      canonicalizedTypedefType = new TypedefType(typedefType.typedefNode,
           Nullability.legacy, canonicalizedTypeArguments);
     }
 

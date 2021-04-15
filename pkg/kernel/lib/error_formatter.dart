@@ -3,8 +3,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/kernel.dart';
 import 'package:kernel/naive_type_checker.dart';
 import 'package:kernel/text/ast_to_text.dart';
@@ -36,19 +34,20 @@ Incompatible override of ${superMember} with ${ownMember}:
         ? where
         : _findEnclosingMember(where);
     String sourceLocation = '<unknown source>';
-    String sourceLine = null;
+    String? sourceLine = null;
 
     // Try finding original source line.
     final int fileOffset = _findFileOffset(where);
     if (fileOffset != TreeNode.noOffset) {
-      final Uri fileUri = _fileUriOf(context);
+      final Uri? fileUri = _fileUriOf(context);
 
       final Component component = context.enclosingComponent;
-      final Source source = component.uriToSource[fileUri];
-      final Location location = component.getLocation(fileUri, fileOffset);
-      final int lineStart = source.lineStarts[location.line - 1];
-      final int lineEnd = (location.line < source.lineStarts.length)
-          ? source.lineStarts[location.line]
+      final Source source = component.uriToSource[fileUri]!;
+      final Location location = component.getLocation(fileUri, fileOffset)!;
+      final List<int> lineStarts = source.lineStarts!;
+      final int lineStart = lineStarts[location.line - 1];
+      final int lineEnd = (location.line < lineStarts.length)
+          ? lineStarts[location.line]
           : (source.source.length - 1);
       if (lineStart < source.source.length &&
           lineEnd < source.source.length &&
@@ -66,7 +65,7 @@ Incompatible override of ${superMember} with ${ownMember}:
       name = context.name;
     } else if (context is Procedure || context is Constructor) {
       final dynamic parent = context.parent;
-      final String parentName =
+      final String? parentName =
           parent is Class ? parent.name : (parent as Library).name;
       name = "${parentName}::${context.name.text}";
     } else {
@@ -101,14 +100,14 @@ Source:
     failures.add(failure);
   }
 
-  static Uri _fileUriOf(FileUriNode node) {
+  static Uri? _fileUriOf(FileUriNode node) {
     return node.fileUri;
   }
 
   static String _realign(String str, [String prefix = '|   ']) =>
       str.trimRight().replaceAll('\n', '\n${prefix}');
 
-  static int _findFileOffset(TreeNode context) {
+  static int _findFileOffset(TreeNode? context) {
     while (context != null && context.fileOffset == TreeNode.noOffset) {
       context = context.parent;
     }
@@ -117,9 +116,9 @@ Source:
   }
 
   static Member _findEnclosingMember(TreeNode n) {
-    TreeNode context = n;
+    TreeNode? context = n;
     while (context is! Member) {
-      context = context.parent;
+      context = context!.parent;
     }
     return context;
   }
