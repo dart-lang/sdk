@@ -106,9 +106,6 @@ AsciiControlCharacter:
 ConstEvalStartingPoint:
   template: "Constant evaluation error:"
 
-ConstEvalBadState:
-  template: "Bad state: '#stringOKEmpty'"
-
 ConstEvalContext:
   template: "While analyzing:"
 
@@ -224,6 +221,9 @@ ConstEvalExtension:
 
 ConstEvalUnevaluated:
   template: "Couldn't evaluate constant expression."
+
+ConstEvalUnhandledCoreException:
+  template: "Unhandled core exception: #stringOKEmpty"
 
 ConstEvalUnhandledException:
   template: "Unhandled exception: #constant"

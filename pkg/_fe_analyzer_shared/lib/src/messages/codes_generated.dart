@@ -1261,28 +1261,6 @@ const MessageCode messageConstConstructorWithNonConstSuper = const MessageCode(
         r"""A constant constructor can't call a non-constant super constructor.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String stringOKEmpty)>
-    templateConstEvalBadState =
-    const Template<Message Function(String stringOKEmpty)>(
-        messageTemplate: r"""Bad state: '#stringOKEmpty'""",
-        withArguments: _withArgumentsConstEvalBadState);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String stringOKEmpty)> codeConstEvalBadState =
-    const Code<Message Function(String stringOKEmpty)>(
-  "ConstEvalBadState",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalBadState(String stringOKEmpty) {
-  // ignore: unnecessary_null_comparison
-  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
-  return new Message(codeConstEvalBadState,
-      message: """Bad state: '${stringOKEmpty}'""",
-      arguments: {'stringOKEmpty': stringOKEmpty});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalCircularity = messageConstEvalCircularity;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1559,6 +1537,29 @@ const Code<Null> codeConstEvalUnevaluated = messageConstEvalUnevaluated;
 const MessageCode messageConstEvalUnevaluated = const MessageCode(
     "ConstEvalUnevaluated",
     message: r"""Couldn't evaluate constant expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String stringOKEmpty)>
+    templateConstEvalUnhandledCoreException =
+    const Template<Message Function(String stringOKEmpty)>(
+        messageTemplate: r"""Unhandled core exception: #stringOKEmpty""",
+        withArguments: _withArgumentsConstEvalUnhandledCoreException);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String stringOKEmpty)>
+    codeConstEvalUnhandledCoreException =
+    const Code<Message Function(String stringOKEmpty)>(
+  "ConstEvalUnhandledCoreException",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalUnhandledCoreException(String stringOKEmpty) {
+  // ignore: unnecessary_null_comparison
+  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  return new Message(codeConstEvalUnhandledCoreException,
+      message: """Unhandled core exception: ${stringOKEmpty}""",
+      arguments: {'stringOKEmpty': stringOKEmpty});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
