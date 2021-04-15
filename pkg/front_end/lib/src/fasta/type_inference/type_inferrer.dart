@@ -2467,7 +2467,7 @@ class TypeInferrerImpl implements TypeInferrer {
     return new SuccessfulInferenceResult(inferredType, calleeType);
   }
 
-  DartType inferLocalFunction(FunctionNode function, DartType typeContext,
+  FunctionType inferLocalFunction(FunctionNode function, DartType typeContext,
       int fileOffset, DartType returnContext) {
     bool hasImplicitReturnType = false;
     if (returnContext == null) {
@@ -2579,6 +2579,10 @@ class TypeInferrerImpl implements TypeInferrer {
         instrumentation?.record(uriForInstrumentation, formal.fileOffset,
             'type', new InstrumentationValueForType(inferredType));
         formal.type = demoteTypeInLibrary(inferredType, library.library);
+        if (dataForTesting != null) {
+          dataForTesting.typeInferenceResult.inferredVariableTypes[formal] =
+              formal.type;
+        }
       }
 
       if (isNonNullableByDefault) {

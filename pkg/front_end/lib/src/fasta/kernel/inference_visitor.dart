@@ -1161,7 +1161,7 @@ class InferenceVisitor
     return const StatementInferenceResult();
   }
 
-  DartType visitFunctionNode(FunctionNode node, DartType typeContext,
+  FunctionType visitFunctionNode(FunctionNode node, DartType typeContext,
       DartType returnContext, int returnTypeInstrumentationOffset) {
     return inferrer.inferLocalFunction(
         node, typeContext, returnTypeInstrumentationOffset, returnContext);
@@ -1176,8 +1176,12 @@ class InferenceVisitor
         node.variable, node.variable.annotations);
     DartType returnContext =
         node.hasImplicitReturnType ? null : node.function.returnType;
-    DartType inferredType =
+    FunctionType inferredType =
         visitFunctionNode(node.function, null, returnContext, node.fileOffset);
+    if (inferrer.dataForTesting != null && node.hasImplicitReturnType) {
+      inferrer.dataForTesting.typeInferenceResult.inferredVariableTypes[node] =
+          inferredType.returnType;
+    }
     inferrer.library.checkBoundsInFunctionNode(node.function,
         inferrer.typeSchemaEnvironment, inferrer.library.fileUri);
     node.variable.type = inferredType;
@@ -1189,8 +1193,12 @@ class InferenceVisitor
   ExpressionInferenceResult visitFunctionExpression(
       FunctionExpression node, DartType typeContext) {
     inferrer.flowAnalysis.functionExpression_begin(node);
-    DartType inferredType =
+    FunctionType inferredType =
         visitFunctionNode(node.function, typeContext, null, node.fileOffset);
+    if (inferrer.dataForTesting != null) {
+      inferrer.dataForTesting.typeInferenceResult.inferredVariableTypes[node] =
+          inferredType.returnType;
+    }
     // In anonymous functions the return type isn't declared, so
     // it shouldn't be checked.
     inferrer.library.checkBoundsInFunctionNode(
@@ -1817,6 +1825,10 @@ class InferenceVisitor
           inferrer.library.library,
           isConst: node.isConst);
       inferredTypeArgument = inferredTypes[0];
+      if (inferrer.dataForTesting != null) {
+        inferrer.dataForTesting.typeInferenceResult
+            .inferredTypeArguments[node] = inferredTypes;
+      }
     } else {
       inferredTypeArgument = node.typeArgument;
     }
@@ -2492,6 +2504,10 @@ class InferenceVisitor
           isConst: node.isConst);
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
+      if (inferrer.dataForTesting != null) {
+        inferrer.dataForTesting.typeInferenceResult
+            .inferredTypeArguments[node] = inferredTypes;
+      }
     } else {
       inferredKeyType = node.keyType;
       inferredValueType = node.valueType;
@@ -5952,6 +5968,10 @@ class InferenceVisitor
           inferrer.library.library,
           isConst: node.isConst);
       inferredTypeArgument = inferredTypes[0];
+      if (inferrer.dataForTesting != null) {
+        inferrer.dataForTesting.typeInferenceResult
+            .inferredTypeArguments[node] = inferredTypes;
+      }
     } else {
       inferredTypeArgument = node.typeArgument;
     }
@@ -6524,6 +6544,10 @@ class InferenceVisitor
           node.fileOffset,
           'type',
           new InstrumentationValueForType(inferredType));
+      if (inferrer.dataForTesting != null) {
+        inferrer.dataForTesting.typeInferenceResult
+            .inferredVariableTypes[node] = inferredType;
+      }
       node.type = inferredType;
     }
     if (initializerResult != null) {
