@@ -53,13 +53,15 @@ precompiler trace (an output of --trace-precompiler-to flag).
 
   @override
   Future<void> run() async {
-    final sizesJson = File(argResults.rest[0]);
+    final args = argResults!;
+
+    final sizesJson = File(args.rest[0]);
     if (!sizesJson.existsSync()) {
       usageException('Size profile ${sizesJson.path} does not exist!');
     }
     final sizesJsonRaw = await loadJsonFromFile(sizesJson);
 
-    final traceJson = File(argResults.rest[1]);
+    final traceJson = File(args.rest[1]);
     if (!traceJson.existsSync()) {
       usageException('Size profile ${traceJson.path} does not exist!');
     }
@@ -103,7 +105,7 @@ precompiler trace (an output of --trace-precompiler-to flag).
     }, bucketInfo: BucketInfo(nameComponents: ['Selector']));
 
     printHistogram(programInfo, histogram,
-        prefix: histogram.bySize.where((key) => histogram.buckets[key] > 0));
+        prefix: histogram.bySize.where((key) => histogram.buckets[key]! > 0));
 
     // For top 10 dynamic selectors print the functions which contain these
     // dynamic calls.

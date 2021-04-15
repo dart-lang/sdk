@@ -5,6 +5,8 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:collection/collection.dart';
+
 import 'package:vm_snapshot_analysis/instruction_sizes.dart'
     as instruction_sizes;
 import 'package:vm_snapshot_analysis/program_info.dart';
@@ -242,7 +244,7 @@ void main() async {
     test('basic-parsing', () async {
       await withSymbolSizes(testSource, (sizesJson) async {
         final json = await loadJson(File(sizesJson));
-        final symbols = instruction_sizes.fromJson(json);
+        final symbols = instruction_sizes.fromJson(json as List<dynamic>);
         expect(symbols, isNotNull,
             reason: 'Sizes file was successfully parsed');
         expect(symbols.length, greaterThan(0),
@@ -254,7 +256,7 @@ void main() async {
         final symbolScrubbedNames = <String, Map<String, Set<String>>>{};
 
         Set<String> getSetOfNames(Map<String, Map<String, Set<String>>> map,
-            String libraryUri, String className) {
+            String? libraryUri, String? className) {
           return map
               .putIfAbsent(libraryUri ?? '', () => {})
               .putIfAbsent(className ?? '', () => {});
@@ -280,10 +282,12 @@ void main() async {
         expect(inputDartSymbolNames, isNotNull,
             reason: 'Symbols from input.dart are included into sizes output');
 
+        inputDartSymbolNames!; // Checked above. Promote the variable type.
+
         expect(inputDartSymbolNames[''], isNotNull,
             reason: 'Should include top-level members from input.dart');
         expect(inputDartSymbolNames[''], contains('makeSomeClosures'));
-        final closures = inputDartSymbolNames[''].where(
+        final closures = inputDartSymbolNames['']!.where(
             (name) => name.startsWith('makeSomeClosures.<anonymous closure'));
         expect(closures.length, 3,
             reason: 'There are three closures inside makeSomeClosure');
@@ -311,7 +315,7 @@ void main() async {
         expect(inputDartSymbolNames['D'], contains('[tear-off] tornOff'));
 
         // Check that output does not contain '[unknown stub]'
-        expect(symbolRawNames[''][''], isNot(contains('[unknown stub]')),
+        expect(symbolRawNames['']![''], isNot(contains('[unknown stub]')),
             reason: 'All stubs must be named');
       });
     });
@@ -324,19 +328,18 @@ void main() async {
         expect(info.root.children, contains('dart:typed_data'));
         expect(info.root.children, contains('package:input'));
 
-        final inputLib = info.root.children['package:input']
-            .children['package:input/input.dart'];
-        expect(inputLib, isNotNull);
+        final inputLib = info.root.children['package:input']!
+            .children['package:input/input.dart']!;
         expect(inputLib.children, contains('')); // Top-level class.
         expect(inputLib.children, contains('A'));
         expect(inputLib.children, contains('B'));
         expect(inputLib.children, contains('C'));
         expect(inputLib.children, contains('D'));
 
-        final topLevel = inputLib.children[''];
+        final topLevel = inputLib.children['']!;
         expect(topLevel.children, contains('makeSomeClosures'));
         expect(
-            topLevel.children['makeSomeClosures'].children.length, equals(3));
+            topLevel.children['makeSomeClosures']!.children.length, equals(3));
 
         for (var name in [
           '[tear-off] tornOff',
@@ -344,8 +347,8 @@ void main() async {
           'Allocate A',
           '[tear-off-extractor] get:tornOff'
         ]) {
-          expect(inputLib.children['A'].children, contains(name));
-          expect(inputLib.children['A'].children[name].children, isEmpty);
+          expect(inputLib.children['A']!.children, contains(name));
+          expect(inputLib.children['A']!.children[name]!.children, isEmpty);
         }
 
         for (var name in [
@@ -354,13 +357,13 @@ void main() async {
           'Allocate B',
           '[tear-off-extractor] get:tornOff'
         ]) {
-          expect(inputLib.children['B'].children, contains(name));
-          expect(inputLib.children['B'].children[name].children, isEmpty);
+          expect(inputLib.children['B']!.children, contains(name));
+          expect(inputLib.children['B']!.children[name]!.children, isEmpty);
         }
 
         for (var name in ['tornOff{body}', 'tornOff', '[tear-off] tornOff']) {
-          expect(inputLib.children['C'].children, contains(name));
-          expect(inputLib.children['C'].children[name].children, isEmpty);
+          expect(inputLib.children['C']!.children, contains(name));
+          expect(inputLib.children['C']!.children[name]!.children, isEmpty);
         }
 
         for (var name in [
@@ -369,8 +372,8 @@ void main() async {
           'tornOff',
           '[tear-off] tornOff'
         ]) {
-          expect(inputLib.children['D'].children, contains(name));
-          expect(inputLib.children['D'].children[name].children, isEmpty);
+          expect(inputLib.children['D']!.children, contains(name));
+          expect(inputLib.children['D']!.children[name]!.children, isEmpty);
         }
       });
     });
@@ -432,6 +435,64 @@ void main() async {
                 'package:input/does-not-matter.dart',
                 'does-not-matter',
                 'does-not-matter')));
+      });
+    });
+
+    test('histograms-filter', () async {
+      await withSymbolSizes(testSource, (sizesJson) async {
+        final json = await loadJson(File(sizesJson));
+        final info = loadProgramInfoFromJson(json);
+
+        {
+          final h = computeHistogram(info, HistogramType.bySymbol,
+              filter: 'A.tornOff');
+          expect(
+              h.buckets,
+              contains(h.bucketFor('package:input', 'package:input/input.dart',
+                  'A', 'tornOff')));
+          expect(
+              h.buckets,
+              isNot(contains(h.bucketFor('package:input',
+                  'package:input/input.dart', 'B', 'tornOff'))));
+        }
+
+        {
+          final h = computeHistogram(info, HistogramType.bySymbol,
+              filter: '::A*tornOff');
+          expect(
+              h.buckets,
+              contains(h.bucketFor('package:input', 'package:input/input.dart',
+                  'A', 'tornOff')));
+          expect(
+              h.buckets,
+              isNot(contains(h.bucketFor('package:input',
+                  'package:input/input.dart', 'B', 'tornOff'))));
+        }
+
+        {
+          final h = computeHistogram(info, HistogramType.bySymbol,
+              filter: 'input.dart*tornOff');
+          expect(
+              h.buckets,
+              contains(h.bucketFor('package:input', 'package:input/input.dart',
+                  'A', 'tornOff')));
+          expect(
+              h.buckets,
+              contains(h.bucketFor('package:input', 'package:input/input.dart',
+                  'B', 'tornOff')));
+        }
+
+        {
+          final h =
+              computeHistogram(info, HistogramType.byPackage, filter: 'A');
+          expect(
+              h.buckets,
+              contains(h.bucketFor(
+                  'package:input',
+                  'package:input/does-not-matter.dart',
+                  'does-not-matter',
+                  'does-not-matter')));
+        }
       });
     });
 
@@ -534,18 +595,17 @@ void main() async {
         expect(info.root.children, contains('dart:typed_data'));
         expect(info.root.children, contains('package:input'));
 
-        final inputLib = info.root.children['package:input']
-            .children['package:input/input.dart'];
-        expect(inputLib, isNotNull);
+        final inputLib = info.root.children['package:input']!
+            .children['package:input/input.dart']!;
         expect(inputLib.children, contains('::')); // Top-level class.
         expect(inputLib.children, contains('A'));
         expect(inputLib.children, contains('B'));
         expect(inputLib.children, contains('C'));
 
-        final topLevel = inputLib.children['::'];
+        final topLevel = inputLib.children['::']!;
         expect(topLevel.children, contains('makeSomeClosures'));
         expect(
-            topLevel.children['makeSomeClosures'].children.values
+            topLevel.children['makeSomeClosures']!.children.values
                 .where((child) => child.type == NodeType.functionNode)
                 .length,
             equals(3));
@@ -555,9 +615,9 @@ void main() async {
           'Allocate A',
           '[tear-off-extractor] get:tornOff'
         ]) {
-          expect(inputLib.children['A'].children, contains(name));
+          expect(inputLib.children['A']!.children, contains(name));
         }
-        expect(inputLib.children['A'].children['tornOff'].children,
+        expect(inputLib.children['A']!.children['tornOff']!.children,
             contains('[tear-off] tornOff'));
 
         for (var name in [
@@ -565,35 +625,35 @@ void main() async {
           'Allocate B',
           '[tear-off-extractor] get:tornOff'
         ]) {
-          expect(inputLib.children['B'].children, contains(name));
+          expect(inputLib.children['B']!.children, contains(name));
         }
-        expect(inputLib.children['B'].children['tornOff'].children,
+        expect(inputLib.children['B']!.children['tornOff']!.children,
             contains('[tear-off] tornOff'));
 
-        final classC = inputLib.children['C'];
+        final classC = inputLib.children['C']!;
         expect(classC.children, contains('tornOff'));
         for (var name in ['tornOff{body}', '[tear-off] tornOff']) {
-          expect(classC.children['tornOff'].children, contains(name));
+          expect(classC.children['tornOff']!.children, contains(name));
         }
 
         // Verify that [ProgramInfoNode] owns its corresponding snapshot [Node].
-        final classesOwnedByC = info.snapshotInfo.snapshot.nodes
-            .where((n) => info.snapshotInfo.ownerOf(n) == classC)
+        final classesOwnedByC = info.snapshotInfo!.snapshot.nodes
+            .where((n) => info.snapshotInfo!.ownerOf(n) == classC)
             .where((n) => n.type == 'Class')
             .map((n) => n.name);
         expect(classesOwnedByC, equals(['C']));
 
-        final classD = inputLib.children['D'];
+        final classD = inputLib.children['D']!;
         expect(classD.children, contains('tornOff'));
         for (var name in ['tornOff{body}', '[tear-off] tornOff']) {
-          expect(classD.children['tornOff'].children, contains(name));
+          expect(classD.children['tornOff']!.children, contains(name));
         }
-        expect(classD.children['tornOff'].children['tornOff{body}'].children,
+        expect(classD.children['tornOff']!.children['tornOff{body}']!.children,
             contains('tornOff{body depth 2}'));
 
         // Verify that [ProgramInfoNode] owns its corresponding snapshot [Node].
-        final classesOwnedByD = info.snapshotInfo.snapshot.nodes
-            .where((n) => info.snapshotInfo.ownerOf(n) == classD)
+        final classesOwnedByD = info.snapshotInfo!.snapshot.nodes
+            .where((n) => info.snapshotInfo!.ownerOf(n) == classD)
             .where((n) => n.type == 'Class')
             .map((n) => n.name);
         expect(classesOwnedByD, equals(['D']));
@@ -616,20 +676,20 @@ void main() async {
             '::',
             'makeSomeClosures'
           ]);
-          final codeNode = fromProfile.snapshotInfo.snapshot.nodes.firstWhere(
+          final codeNode = fromProfile.snapshotInfo!.snapshot.nodes.firstWhere(
               (n) =>
                   n.type == 'Code' &&
-                  fromProfile.snapshotInfo.ownerOf(n) == functionNode &&
+                  fromProfile.snapshotInfo!.ownerOf(n) == functionNode &&
                   n.name.contains('makeSomeClosures'));
           expect(codeNode['<instructions>'], isNotNull);
-          final instructionsSize = codeNode['<instructions>'].selfSize;
+          final instructionsSize = codeNode['<instructions>']!.selfSize;
           final symbolSize = fromSymbolSizes.lookup([
             'package:input',
             'package:input/input.dart',
             '',
             'makeSomeClosures'
-          ]).size;
-          expect(instructionsSize - symbolSize, equals(0));
+          ])!.size;
+          expect(instructionsSize - symbolSize!, equals(0));
         });
       });
     });
@@ -786,9 +846,10 @@ void main() async {
 
         String nameOf(Map<String, dynamic> node) => node['n'];
 
-        Map<String, dynamic> findChild(Map<String, dynamic> node, String name) {
+        Map<String, dynamic>? findChild(
+            Map<String, dynamic> node, String name) {
           return childrenOf(node)
-              .firstWhere((child) => nameOf(child) == name, orElse: () => null);
+              .firstWhereOrNull((child) => nameOf(child) == name);
         }
 
         Set<String> childrenNames(Map<String, dynamic> node) {
@@ -802,7 +863,7 @@ void main() async {
           // for some reason.
           expect(findChild(treemap, 'package:input/input.dart'), isNotNull);
         } else {
-          expect(childrenNames(findChild(treemap, 'package:input')),
+          expect(childrenNames(findChild(treemap, 'package:input')!),
               equals({'main.dart', 'input.dart'}));
         }
       });
@@ -813,7 +874,7 @@ void main() async {
         // Note: computing dominators also verifies that we don't have
         // unreachable nodes in the snapshot.
         final infoJson = await loadJson(File(profileJson));
-        final snapshot = Snapshot.fromJson(infoJson);
+        final snapshot = Snapshot.fromJson(infoJson as Map<String, dynamic>);
         for (var n in snapshot.nodes.skip(1)) {
           expect(snapshot.dominatorOf(n), isNotNull);
         }
@@ -839,7 +900,7 @@ Future withV8Profile(
 // simply ignore entry point library (main.dart).
 // Additionally this function removes all nodes with the size below
 // the given threshold.
-Map<String, dynamic> diffToJson(ProgramInfo diff,
+Map<String, dynamic>? diffToJson(ProgramInfo diff,
     {bool keepOnlyInputPackage = false}) {
   final diffJson = diff.toJson();
   diffJson.removeWhere((key, _) =>
@@ -847,7 +908,7 @@ Map<String, dynamic> diffToJson(ProgramInfo diff,
 
   // Rebuild the diff JSON discarding all nodes with size below threshold.
   const smallChangeThreshold = 16;
-  Map<String, dynamic> discardSmallChanges(Map<String, dynamic> map) {
+  Map<String, dynamic>? discardSmallChanges(Map<String, dynamic> map) {
     final result = <String, dynamic>{};
 
     // First recursively process all children (skipping #type and #size keys).

@@ -13,16 +13,16 @@ import 'dart:math' as math;
 /// native compiler (see runtime/vm/compiler/backend/flow_graph.cc).
 @pragma('vm:prefer-inline')
 List<int> computeDominators({
-  int size,
-  int root,
-  Iterable<int> succ(int n),
-  Iterable<int> predOf(int n),
-  void handleEdge(int from, int to),
+  required int size,
+  required int root,
+  required Iterable<int> Function(int) succ,
+  required Iterable<int> Function(int) predOf,
+  required void handleEdge(int from, int to),
 }) {
   // Compute preorder numbering for the graph using DFS.
   final parent = List<int>.filled(size, -1);
-  final preorder = List<int>.filled(size, null);
-  final preorderNumber = List<int>.filled(size, null);
+  final preorder = List<int>.filled(size, -1);
+  final preorderNumber = List<int>.filled(size, -1);
 
   var N = 0;
   void dfs() {
@@ -32,7 +32,7 @@ List<int> computeDominators({
       final p = s.p;
       final n = s.n;
       handleEdge(s.n, s.p);
-      if (preorderNumber[n] == null) {
+      if (preorderNumber[n] == -1) {
         preorderNumber[n] = N;
         preorder[preorderNumber[n]] = n;
         parent[preorderNumber[n]] = p;
@@ -122,5 +122,5 @@ List<int> computeDominators({
 class _DfsState {
   final int p;
   final int n;
-  _DfsState({this.p, this.n});
+  _DfsState({required this.p, required this.n});
 }
