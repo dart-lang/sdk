@@ -51,7 +51,7 @@ class C3 {
 required_named(C3 c) {
   if (c.bad == null) return;
   c.f(i: c.bad);
-  //  ^^^^^^^^
+  //     ^^^^^
   // [analyzer 6] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //       ^
   // [cfe 50] The argument type 'int?' can't be assigned to the parameter type 'int' because 'int?' is nullable and 'int' isn't.
@@ -68,7 +68,7 @@ class C4 {
 optional_named(C4 c) {
   if (c.bad == null) return;
   c.f(i: c.bad);
-  //  ^^^^^^^^
+  //     ^^^^^
   // [analyzer 15] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //       ^
   // [cfe 51] The argument type 'int?' can't be assigned to the parameter type 'int' because 'int?' is nullable and 'int' isn't.

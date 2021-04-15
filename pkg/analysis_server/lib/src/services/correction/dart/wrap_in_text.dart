@@ -48,15 +48,17 @@ class WrapInText extends CorrectionProducer {
   static WrapInText newInstance() => WrapInText();
 
   static _Context? _extractContextInformation(AstNode node) {
-    if (node is NamedExpression) {
-      var expression = node.expression;
-      if (expression.typeOrThrow.isDartCoreString) {
-        var parameterElement = node.name.label.staticElement;
-        if (parameterElement is ParameterElement) {
-          return _Context(
-            stringExpression: expression,
-            parameterElement: parameterElement,
-          );
+    if (node is Expression) {
+      var parent = node.parent;
+      if (parent is NamedExpression) {
+        if (node.typeOrThrow.isDartCoreString) {
+          var parameterElement = parent.name.label.staticElement;
+          if (parameterElement is ParameterElement) {
+            return _Context(
+              stringExpression: node,
+              parameterElement: parameterElement,
+            );
+          }
         }
       }
     }

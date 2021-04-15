@@ -38,8 +38,9 @@ class C3 {
 required_named(C3 c) {
   if (c.bad == null) return;
   c.f(
-      /*analyzer.notPromoted(propertyNotPromoted(target: member:C3.bad, type: int?))*/ i:
-          c. /*cfe.notPromoted(propertyNotPromoted(target: member:C3.bad, type: int?))*/ bad);
+      i:
+          /*analyzer.notPromoted(propertyNotPromoted(target: member:C3.bad, type: int?))*/ c
+              . /*cfe.notPromoted(propertyNotPromoted(target: member:C3.bad, type: int?))*/ bad);
 }
 
 class C4 {
@@ -50,8 +51,9 @@ class C4 {
 optional_named(C4 c) {
   if (c.bad == null) return;
   c.f(
-      /*analyzer.notPromoted(propertyNotPromoted(target: member:C4.bad, type: int?))*/ i:
-          c. /*cfe.notPromoted(propertyNotPromoted(target: member:C4.bad, type: int?))*/ bad);
+      i:
+          /*analyzer.notPromoted(propertyNotPromoted(target: member:C4.bad, type: int?))*/ c
+              . /*cfe.notPromoted(propertyNotPromoted(target: member:C4.bad, type: int?))*/ bad);
 }
 
 class C5 {

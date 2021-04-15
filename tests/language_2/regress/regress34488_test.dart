@@ -32,9 +32,8 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
   d.h(i: 'bad');
-  //  ^^^^^^^^
+  //     ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  //     ^
   // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
   Object x = d.f(1);
   //           ^
