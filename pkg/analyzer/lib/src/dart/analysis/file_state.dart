@@ -92,13 +92,13 @@ class FileState {
   final FileSystemState _fsState;
 
   /// The absolute path of the file.
-  final String? path;
+  final String path;
 
   /// The absolute URI of the file.
   final Uri uri;
 
   /// The [Source] of the file with the [uri].
-  final Source? source;
+  final Source source;
 
   /// The [WorkspacePackage] that contains this file.
   ///
@@ -111,12 +111,12 @@ class FileState {
   /// possibly additional enabled experiments (from the analysis options file,
   /// or from SDK allowed experiments).
   ///
-  /// This feature set is then restricted, with the [_packageLanguageVersion],
+  /// This feature set is then restricted, with the [packageLanguageVersion],
   /// or with a `@dart` language override token in the file header.
-  final FeatureSet? _contextFeatureSet;
+  final FeatureSet _contextFeatureSet;
 
   /// The language version for the package that contains this file.
-  final Version? packageLanguageVersion;
+  final Version packageLanguageVersion;
 
   int id = fileObjectId++;
   int? refreshId;
@@ -371,7 +371,7 @@ class FileState {
 
   String get _invalidTransitiveSignature {
     return (ApiSignature()
-          ..addString(path!)
+          ..addString(path)
           ..addBytes(unlinkedSignature))
         .toHex();
   }
@@ -434,7 +434,7 @@ class FileState {
     _invalidateCurrentUnresolvedData();
 
     {
-      var rawFileState = _fsState._fileContentCache.get(path!, allowCached);
+      var rawFileState = _fsState._fileContentCache.get(path, allowCached);
       _content = rawFileState.content;
       _exists = rawFileState.exists;
       _contentHash = rawFileState.contentHash;
@@ -444,8 +444,8 @@ class FileState {
     {
       var signature = ApiSignature();
       signature.addUint32List(_fsState._saltForUnlinked);
-      signature.addFeatureSet(_contextFeatureSet!);
-      signature.addLanguageVersion(packageLanguageVersion!);
+      signature.addFeatureSet(_contextFeatureSet);
+      signature.addLanguageVersion(packageLanguageVersion);
       signature.addString(_contentHash!);
       signature.addBool(_exists!);
       _unlinkedSignature = signature.toByteList();
@@ -522,11 +522,7 @@ class FileState {
 
   @override
   String toString() {
-    if (path == null) {
-      return '<unresolved>';
-    } else {
-      return '[id: $id][rid: $refreshId]$uri = $path';
-    }
+    return '[id: $id][rid: $refreshId]$uri = $path';
   }
 
   CompilationUnitImpl _createEmptyCompilationUnit() {
@@ -534,13 +530,13 @@ class FileState {
     var unit = astFactory.compilationUnit(
       beginToken: token,
       endToken: token,
-      featureSet: _contextFeatureSet!,
+      featureSet: _contextFeatureSet,
     );
 
     unit.lineInfo = LineInfo(const <int>[0]);
 
     unit.languageVersion = LibraryLanguageVersion(
-      package: packageLanguageVersion!,
+      package: packageLanguageVersion,
       override: null,
     );
 
@@ -610,23 +606,19 @@ class FileState {
   }
 
   CompilationUnitImpl _parse(AnalysisErrorListener errorListener) {
-    if (source == null) {
-      return _createEmptyCompilationUnit();
-    }
-
     CharSequenceReader reader = CharSequenceReader(content);
-    Scanner scanner = Scanner(source!, reader, errorListener)
+    Scanner scanner = Scanner(source, reader, errorListener)
       ..configureFeatures(
-        featureSetForOverriding: _contextFeatureSet!,
-        featureSet: _contextFeatureSet!.restrictToVersion(
-          packageLanguageVersion!,
+        featureSetForOverriding: _contextFeatureSet,
+        featureSet: _contextFeatureSet.restrictToVersion(
+          packageLanguageVersion,
         ),
       );
     Token token = scanner.tokenize(reportScannerErrors: false);
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
     Parser parser = Parser(
-      source!,
+      source,
       errorListener,
       featureSet: scanner.featureSet,
     );
@@ -635,7 +627,7 @@ class FileState {
     var unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     unit.languageVersion = LibraryLanguageVersion(
-      package: packageLanguageVersion!,
+      package: packageLanguageVersion,
       override: scanner.overrideVersion,
     );
 

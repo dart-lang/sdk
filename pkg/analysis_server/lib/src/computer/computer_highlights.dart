@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart'
     show SemanticTokenTypes, SemanticTokenModifiers;
 import 'package:analysis_server/src/lsp/constants.dart'
@@ -24,7 +22,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 /// A computer for [HighlightRegion]s and LSP [SemanticTokenInfo] in a Dart [CompilationUnit].
 class DartUnitHighlightsComputer {
   final CompilationUnit _unit;
-  final SourceRange range;
+  final SourceRange? range;
 
   final _regions = <HighlightRegion>[];
   final _semanticTokens = <SemanticTokenInfo>[];
@@ -57,11 +55,11 @@ class DartUnitHighlightsComputer {
   }
 
   void _addCommentRanges() {
-    var token = _unit.beginToken;
+    Token? token = _unit.beginToken;
     while (token != null) {
-      Token commentToken = token.precedingComments;
+      Token? commentToken = token.precedingComments;
       while (commentToken != null) {
-        HighlightRegionType highlightType;
+        HighlightRegionType? highlightType;
         if (commentToken.type == TokenType.MULTI_LINE_COMMENT) {
           if (commentToken.lexeme.startsWith('/**')) {
             highlightType = HighlightRegionType.COMMENT_DOCUMENTATION;
@@ -155,15 +153,16 @@ class DartUnitHighlightsComputer {
     if (element is! ClassElement) {
       return false;
     }
-    ClassElement classElement = element;
     // prepare type
     HighlightRegionType type;
-    if (node.parent is TypeName &&
-        node.parent.parent is ConstructorName &&
-        node.parent.parent.parent is InstanceCreationExpression) {
+    var parent = node.parent;
+    var grandParent = parent?.parent;
+    if (parent is TypeName &&
+        grandParent is ConstructorName &&
+        grandParent.parent is InstanceCreationExpression) {
       // new Class()
       type = HighlightRegionType.CONSTRUCTOR;
-    } else if (classElement.isEnum) {
+    } else if (element.isEnum) {
       type = HighlightRegionType.ENUM;
     } else {
       type = HighlightRegionType.CLASS;
@@ -184,7 +183,7 @@ class DartUnitHighlightsComputer {
     var element = node.writeOrReadElement;
     if (element is LocalVariableElement) {
       var elementType = element.type;
-      if (elementType?.isDynamic == true) {
+      if (elementType.isDynamic) {
         var type = node.inDeclarationContext()
             ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
             : HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE;
@@ -193,7 +192,7 @@ class DartUnitHighlightsComputer {
     }
     if (element is ParameterElement) {
       var elementType = element.type;
-      if (elementType?.isDynamic == true) {
+      if (elementType.isDynamic) {
         var type = node.inDeclarationContext()
             ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
             : HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE;
@@ -207,11 +206,11 @@ class DartUnitHighlightsComputer {
     var element = node.writeOrReadElement;
     if (element is FieldFormalParameterElement) {
       if (node.parent is FieldFormalParameter) {
-        element = (element as FieldFormalParameterElement).field;
+        element = element.field;
       }
     }
     // prepare type
-    HighlightRegionType type;
+    HighlightRegionType? type;
     if (element is FieldElement) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement && enclosingElement.isEnum) {
@@ -283,13 +282,12 @@ class DartUnitHighlightsComputer {
       return false;
     }
     // getter or setter
-    var propertyAccessorElement = element as PropertyAccessorElement;
     var isTopLevel = element.enclosingElement is CompilationUnitElement;
     HighlightRegionType type;
-    if (propertyAccessorElement.isGetter) {
+    if (element.isGetter) {
       if (isTopLevel) {
         type = HighlightRegionType.TOP_LEVEL_GETTER_DECLARATION;
-      } else if (propertyAccessorElement.isStatic) {
+      } else if (element.isStatic) {
         type = HighlightRegionType.STATIC_GETTER_DECLARATION;
       } else {
         type = HighlightRegionType.INSTANCE_GETTER_DECLARATION;
@@ -297,7 +295,7 @@ class DartUnitHighlightsComputer {
     } else {
       if (isTopLevel) {
         type = HighlightRegionType.TOP_LEVEL_SETTER_DECLARATION;
-      } else if (propertyAccessorElement.isStatic) {
+      } else if (element.isStatic) {
         type = HighlightRegionType.STATIC_SETTER_DECLARATION;
       } else {
         type = HighlightRegionType.INSTANCE_SETTER_DECLARATION;
@@ -347,8 +345,7 @@ class DartUnitHighlightsComputer {
     if (element is! MethodElement) {
       return false;
     }
-    var methodElement = element as MethodElement;
-    var isStatic = methodElement.isStatic;
+    var isStatic = element.isStatic;
     // OK
     HighlightRegionType type;
     if (node.inDeclarationContext()) {
@@ -443,9 +440,10 @@ class DartUnitHighlightsComputer {
     int offset,
     int length,
     HighlightRegionType type, {
-    SemanticTokenTypes semanticTokenType,
-    Set<SemanticTokenModifiers> semanticTokenModifiers,
+    SemanticTokenTypes? semanticTokenType,
+    Set<SemanticTokenModifiers>? semanticTokenModifiers,
   }) {
+    final range = this.range;
     if (range != null) {
       final end = offset + length;
       // Skip token if it ends before the range of starts after the range.
@@ -470,8 +468,8 @@ class DartUnitHighlightsComputer {
   bool _addRegion_node(
     AstNode node,
     HighlightRegionType type, {
-    SemanticTokenTypes semanticTokenType,
-    Set<SemanticTokenModifiers> semanticTokenModifiers,
+    SemanticTokenTypes? semanticTokenType,
+    Set<SemanticTokenModifiers>? semanticTokenModifiers,
   }) {
     var offset = node.offset;
     var length = node.length;
@@ -493,10 +491,10 @@ class DartUnitHighlightsComputer {
   }
 
   void _addRegion_token(
-    Token token,
+    Token? token,
     HighlightRegionType type, {
-    SemanticTokenTypes semanticTokenType,
-    Set<SemanticTokenModifiers> semanticTokenModifiers,
+    SemanticTokenTypes? semanticTokenType,
+    Set<SemanticTokenModifiers>? semanticTokenModifiers,
   }) {
     if (token != null) {
       var offset = token.offset;

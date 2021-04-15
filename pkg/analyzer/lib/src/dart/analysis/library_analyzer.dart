@@ -176,15 +176,13 @@ class LibraryAnalyzer {
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
     for (var file in _library.libraryFiles) {
-      if (file.source != null) {
-        IgnoreValidator(
-          _getErrorReporter(file),
-          _getErrorListener(file).errors,
-          _fileToIgnoreInfo[file]!,
-          _fileToLineInfo[file]!,
-          _analysisOptions.unignorableNames,
-        ).reportErrors();
-      }
+      IgnoreValidator(
+        _getErrorReporter(file),
+        _getErrorListener(file).errors,
+        _fileToIgnoreInfo[file]!,
+        _fileToLineInfo[file]!,
+        _analysisOptions.unignorableNames,
+      ).reportErrors();
     }
 
     timerLibraryAnalyzerVerify.stop();
@@ -256,10 +254,6 @@ class LibraryAnalyzer {
   }
 
   void _computeHints(FileState file, CompilationUnit unit) {
-    if (file.source == null) {
-      return;
-    }
-
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
 
@@ -333,10 +327,6 @@ class LibraryAnalyzer {
   void _computeLints(FileState file, LinterContextUnit currentUnit,
       List<LinterContextUnit> allUnits) {
     var unit = currentUnit.unit;
-    if (file.source == null) {
-      return;
-    }
-
     ErrorReporter errorReporter = _getErrorReporter(file);
 
     var nodeRegistry = NodeLintRegistry(_analysisOptions.enableTiming);
@@ -370,10 +360,6 @@ class LibraryAnalyzer {
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
-    if (file.source == null) {
-      return;
-    }
-
     RecordingErrorListener errorListener = _getErrorListener(file);
 
     CodeChecker checker = CodeChecker(
@@ -478,7 +464,7 @@ class LibraryAnalyzer {
       RecordingErrorListener listener = _getErrorListener(file);
       return ErrorReporter(
         listener,
-        file.source!,
+        file.source,
         isNonNullableByDefault: _libraryElement.isNonNullableByDefault,
       );
     });
@@ -665,10 +651,6 @@ class LibraryAnalyzer {
 
   void _resolveFile(FileState file, CompilationUnit unit) {
     var source = file.source;
-    if (source == null) {
-      return;
-    }
-
     RecordingErrorListener errorListener = _getErrorListener(file);
 
     var unitElement = unit.declaredElement as CompilationUnitElementImpl;

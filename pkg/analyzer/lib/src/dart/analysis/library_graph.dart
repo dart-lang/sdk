@@ -110,8 +110,8 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Sort libraries to produce stable signatures.
     scc.sort((first, second) {
-      var firstPath = first.file.path!;
-      var secondPath = second.file.path!;
+      var firstPath = first.file.path;
+      var secondPath = second.file.path;
       return firstPath.compareTo(secondPath);
     });
 
@@ -128,7 +128,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     for (var node in scc) {
       cycle.libraries.add(node.file);
 
-      signature.addLanguageVersion(node.file.packageLanguageVersion!);
+      signature.addLanguageVersion(node.file.packageLanguageVersion);
       signature.addString(node.file.uriStr);
 
       signature.addInt(node.file.libraryFiles.length);
