@@ -1201,10 +1201,10 @@ class Namer extends ModularNamer {
     return new StringBackedName(candidate);
   }
 
-  /// Returns a variant of [name] that cannot clash with the annotated
-  /// version of another name, that is, the resulting name can never be returned
-  /// by [deriveGetterName], [deriveSetterName], [deriveCallMethodName],
-  /// [operatorIs], or [substitutionName].
+  /// Returns a variant of [name] that cannot clash with the annotated version
+  /// of another name, that is, the resulting name can never be returned by
+  /// [deriveGetterName], [deriveSetterName], [deriveCallMethodName], or
+  /// [operatorIs].
   ///
   /// For example, a name `get$x` would be converted to `$get$x` to ensure it
   /// cannot clash with the getter for `x`.
@@ -1536,14 +1536,6 @@ class Namer extends ModularNamer {
     }
     assert(!jsReserved.contains(name));
     return name;
-  }
-
-  @override
-  jsAst.Name substitutionName(ClassEntity element) {
-    return new CompoundName([
-      new StringBackedName(fixedNames.operatorAsPrefix),
-      runtimeTypeName(element)
-    ]);
   }
 
   @override
@@ -2262,7 +2254,6 @@ class FixedNames {
   String get defaultValuesField => r'$defaultValues';
   String get deferredAction => r'$deferredAction';
   String get operatorIsPrefix => r'$is';
-  String get operatorAsPrefix => r'$as';
   String get operatorSignature => r'$signature';
   String get requiredParameterField => r'$requiredArgCount';
   String get rtiName => r'$ti';
@@ -2282,8 +2273,6 @@ class MinifiedFixedNames extends FixedNames {
   String get callPrefix => ''; // this will create function names $<n>
   @override
   String get operatorIsPrefix => r'$i';
-  @override
-  String get operatorAsPrefix => r'$a';
   @override
   String get callCatchAllName => r'$C';
   @override
@@ -2408,9 +2397,8 @@ abstract class ModularNamer {
   /// for the given type.
   ///
   /// The result is not always safe as a property name unless prefixing
-  /// [operatorIsPrefix] or [operatorAsPrefix]. If this is a function type,
-  /// then by convention, an underscore must also separate [operatorIsPrefix]
-  /// from the type name.
+  /// [operatorIsPrefix]. If this is a function type, then by convention, an
+  /// underscore must also separate [operatorIsPrefix] from the type name.
   jsAst.Name runtimeTypeName(Entity element);
 
   /// Property name in which to store the given static or instance [method].
@@ -2427,10 +2415,6 @@ abstract class ModularNamer {
 
   /// Return the name of the `isX` property for classes that implement [type].
   jsAst.Name operatorIsType(DartType type);
-
-  /// Returns the name of the `asX` function for classes that implement the
-  /// generic class [element].
-  jsAst.Name substitutionName(ClassEntity element);
 
   /// Returns the name of the lazy initializer for the static field [element].
   jsAst.Name lazyInitializerName(FieldEntity element);
@@ -2563,8 +2547,6 @@ abstract class ModularNamer {
         return asName(fixedNames.callNameField);
       case JsGetName.DEFERRED_ACTION_PROPERTY:
         return asName(fixedNames.deferredAction);
-      case JsGetName.OPERATOR_AS_PREFIX:
-        return asName(fixedNames.operatorAsPrefix);
       case JsGetName.OPERATOR_IS_PREFIX:
         return asName(fixedNames.operatorIsPrefix);
       case JsGetName.SIGNATURE_NAME:
@@ -2772,14 +2754,6 @@ class ModularNamerImpl extends ModularNamer {
   @override
   jsAst.Name asName(String text) {
     jsAst.Name name = new ModularName(ModularNameKind.asName, data: text);
-    _registry.registerModularName(name);
-    return name;
-  }
-
-  @override
-  jsAst.Name substitutionName(ClassEntity element) {
-    jsAst.Name name =
-        new ModularName(ModularNameKind.substitution, data: element);
     _registry.registerModularName(name);
     return name;
   }
