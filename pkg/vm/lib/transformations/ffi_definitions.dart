@@ -146,8 +146,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (report) {
         component.forEach((Class e) {
           diagnosticReporter.report(
-              templateFfiFieldCyclic.withArguments(
-                  e.name, component.map((e) => e.name).toList()),
+              templateFfiFieldCyclic.withArguments(e.superclass.name, e.name,
+                  component.map((e) => e.name).toList()),
               e.fileOffset,
               e.name.length,
               e.fileUri);
@@ -175,7 +175,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   visitClass(Class node) {
     if (!hierarchy.isSubclassOf(node, compoundClass) ||
         node == compoundClass ||
-        node == structClass) {
+        node == structClass ||
+        node == unionClass) {
       return node;
     }
 
@@ -203,39 +204,41 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   int _checkCompoundClass(Class node) {
     if (node.typeParameters.length > 0) {
       diagnosticReporter.report(
-          templateFfiStructGeneric.withArguments(node.name),
+          templateFfiStructGeneric.withArguments(
+              node.superclass.name, node.name),
           node.fileOffset,
           1,
           node.location.file);
     }
 
-    if (node.superclass != structClass) {
-      // Not a struct, but extends a struct. The error will be emitted by
-      // _FfiUseSiteTransformer.
+    if (node.superclass != structClass && node.superclass != unionClass) {
+      // Not a struct or union, but extends a struct or union.
+      // The error will be emitted by _FfiUseSiteTransformer.
       return null;
     }
 
-    final packingAnnotations = _getPackedAnnotations(node);
-    if (packingAnnotations.length > 1) {
-      diagnosticReporter.report(
-          templateFfiPackedAnnotation.withArguments(node.name),
-          node.fileOffset,
-          node.name.length,
-          node.location.file);
-    }
-    if (packingAnnotations.isNotEmpty) {
-      final packing = packingAnnotations.first;
-      if (!(packing == 1 ||
-          packing == 2 ||
-          packing == 4 ||
-          packing == 8 ||
-          packing == 16)) {
-        diagnosticReporter.report(messageFfiPackedAnnotationAlignment,
-            node.fileOffset, node.name.length, node.location.file);
+    if (node.superclass == structClass) {
+      final packingAnnotations = _getPackedAnnotations(node);
+      if (packingAnnotations.length > 1) {
+        diagnosticReporter.report(
+            templateFfiPackedAnnotation.withArguments(node.name),
+            node.fileOffset,
+            node.name.length,
+            node.location.file);
       }
-      return packing;
+      if (packingAnnotations.isNotEmpty) {
+        final packing = packingAnnotations.first;
+        if (!(packing == 1 ||
+            packing == 2 ||
+            packing == 4 ||
+            packing == 8 ||
+            packing == 16)) {
+          diagnosticReporter.report(messageFfiPackedAnnotationAlignment,
+              node.fileOffset, node.name.length, node.location.file);
+        }
+        return packing;
+      }
     }
-
     return null;
   }
 
@@ -440,7 +443,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         name: name,
         initializers: [
           SuperInitializer(
-              structFromTypedDataBase, Arguments([VariableGet(typedDataBase)]))
+              node.superclass == structClass
+                  ? structFromTypedDataBase
+                  : unionFromTypedDataBase,
+              Arguments([VariableGet(typedDataBase)]))
         ],
         fileUri: node.fileUri,
         reference: referenceFrom?.reference)
@@ -511,12 +517,17 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
     _annoteCompoundWithFields(node, types, packing);
     if (types.isEmpty) {
-      diagnosticReporter.report(templateFfiEmptyStruct.withArguments(node.name),
-          node.fileOffset, node.name.length, node.location.file);
+      diagnosticReporter.report(
+          templateFfiEmptyStruct.withArguments(node.superclass.name, node.name),
+          node.fileOffset,
+          node.name.length,
+          node.location.file);
       emptyCompounds.add(node);
     }
 
-    final compoundType = StructNativeTypeCfe(node, types, packing: packing);
+    final compoundType = node.superclass == structClass
+        ? StructNativeTypeCfe(node, types, packing: packing)
+        : UnionNativeTypeCfe(node, types);
     compoundCache[node] = compoundType;
     final compoundLayout = compoundType.layout;
 
@@ -1087,6 +1098,34 @@ class StructNativeTypeCfe extends CompoundNativeTypeCfe {
     }
     final int size = _alignOffset(offset, structAlignment);
     return CompoundLayout(size, structAlignment, offsets);
+  }
+}
+
+class UnionNativeTypeCfe extends CompoundNativeTypeCfe {
+  factory UnionNativeTypeCfe(Class clazz, List<NativeTypeCfe> members) {
+    final layout = Map.fromEntries(
+        Abi.values.map((abi) => MapEntry(abi, _calculateLayout(members, abi))));
+    return UnionNativeTypeCfe._(clazz, members, layout);
+  }
+
+  UnionNativeTypeCfe._(
+      Class clazz, List<NativeTypeCfe> members, Map<Abi, CompoundLayout> layout)
+      : super._(clazz, members, layout);
+
+  // Keep consistent with runtime/vm/compiler/ffi/native_type.cc
+  // NativeUnionType::FromNativeTypes.
+  static CompoundLayout _calculateLayout(List<NativeTypeCfe> types, Abi abi) {
+    int unionSize = 1;
+    int unionAlignment = 1;
+    for (int i = 0; i < types.length; i++) {
+      final int size = types[i].size[abi];
+      int alignment = types[i].alignment[abi];
+      unionSize = math.max(unionSize, size);
+      unionAlignment = math.max(unionAlignment, alignment);
+    }
+    final int size = _alignOffset(unionSize, unionAlignment);
+    return CompoundLayout(
+        size, unionAlignment, List.filled(Abi.values.length, 0));
   }
 }
 

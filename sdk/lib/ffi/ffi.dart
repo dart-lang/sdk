@@ -19,6 +19,7 @@ part "allocation.dart";
 part "annotations.dart";
 part "dynamic_library.dart";
 part "struct.dart";
+part "union.dart";
 
 /// Number of bytes used by native type T.
 ///
@@ -692,6 +693,27 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   external T operator [](int index);
 }
 
+/// Extension on [Pointer] specialized for the type argument [Union].
+extension UnionPointer<T extends Union> on Pointer<T> {
+  /// Creates a reference to access the fields of this union backed by native
+  /// memory at [address].
+  ///
+  /// The [address] must be aligned according to the union alignment rules of
+  /// the platform.
+  ///
+  /// This extension method must be invoked with a compile-time constant [T].
+  external T get ref;
+
+  /// Creates a reference to access the fields of this union backed by native
+  /// memory at `address + sizeOf<T>() * index`.
+  ///
+  /// The [address] must be aligned according to the union alignment rules of
+  /// the platform.
+  ///
+  /// This extension method must be invoked with a compile-time constant [T].
+  external T operator [](int index);
+}
+
 /// Bounds checking indexing methods on [Array]s of [Pointer].
 extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
   external Pointer<T> operator [](int index);
@@ -701,6 +723,12 @@ extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
 
 /// Bounds checking indexing methods on [Array]s of [Struct].
 extension StructArray<T extends Struct> on Array<T> {
+  /// This extension method must be invoked with a compile-time constant [T].
+  external T operator [](int index);
+}
+
+/// Bounds checking indexing methods on [Array]s of [Union].
+extension UnionArray<T extends Union> on Array<T> {
   /// This extension method must be invoked with a compile-time constant [T].
   external T operator [](int index);
 }
