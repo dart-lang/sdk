@@ -209,6 +209,13 @@ class EquivalenceVisitor implements NodeVisitor1<bool, Node> {
   }
 
   @override
+  bool visitDeferredStatement(DeferredStatement node, Node arg) {
+    if (arg is! DeferredStatement) return failAt(node, arg);
+    DeferredStatement other = arg;
+    return testNodes(node.statement, other.statement);
+  }
+
+  @override
   bool visitFun(Fun node, Node arg) {
     if (arg is! Fun) return failAt(node, arg);
     Fun other = arg;

@@ -1237,6 +1237,11 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
   }
 
   @override
+  void visitDeferredStatement(js.DeferredStatement node) {
+    throw new UnsupportedError('JsNodeSerializer.visitDeferredStatement');
+  }
+
+  @override
   void visitDeferredNumber(js.DeferredNumber node) {
     throw new UnsupportedError('JsNodeSerializer.visitDeferredNumber');
   }
