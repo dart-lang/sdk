@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
@@ -107,11 +108,25 @@ class _Visitor extends SimpleAstVisitor {
 
   bool accessesContext(ArgumentList argumentList) {
     for (var argument in argumentList.arguments) {
-      var argType = argument.staticType;
-      var isGetter = argument is Identifier &&
-          argument.staticElement is PropertyAccessorElement;
-      if (isBuildContext(argType, skipNullable: isGetter)) {
-        return true;
+      if (argument is Identifier) {
+        var element = argument.staticElement;
+        if (element == null) {
+          return false;
+        }
+
+        // Get the declaration to ensure checks from un-migrated libraries work.
+        DartType? argType;
+        var declaration = element.declaration;
+        if (declaration is ExecutableElement) {
+          argType = declaration.returnType;
+        } else if (declaration is VariableElement) {
+          argType = declaration.type;
+        }
+
+        var isGetter = element is PropertyAccessorElement;
+        if (isBuildContext(argType, skipNullable: isGetter)) {
+          return true;
+        }
       }
     }
     return false;

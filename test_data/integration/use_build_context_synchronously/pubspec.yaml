@@ -1,0 +1,8 @@
+name: use_build_context_synchronously
+
+environment:
+  sdk: '>=2.13.0-0 <3.0.0'
+
+dependency_overrides:
+  flutter:
+    path: ../../../test/mock_packages/flutter

@@ -44,6 +44,8 @@ import 'integration/sort_pub_dependencies.dart' as sort_pub_dependencies;
 import 'integration/unnecessary_lambdas.dart' as unnecessary_lambdas;
 import 'integration/unnecessary_string_escapes.dart'
     as unnecessary_string_escapes;
+import 'integration/use_build_context_synchronously.dart'
+    as use_build_context_synchronously;
 import 'mocks.dart';
 import 'rules/experiments/experiments.dart';
 
@@ -186,6 +188,7 @@ void ruleTests() {
     sort_pub_dependencies.main();
     unnecessary_string_escapes.main();
     prefer_mixin.main();
+    use_build_context_synchronously.main();
   });
 }
 

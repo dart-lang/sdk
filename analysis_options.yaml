@@ -9,6 +9,7 @@ analyzer:
     - test/_data/**
     - test/mock_packages/**
     - test/rules/**
+    - test_data/**
 linter:
   rules:
 #    - always_put_control_body_on_new_line
