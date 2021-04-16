@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
@@ -53,6 +51,11 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       var prefix = element.prefix;
       SourceEdit edit;
       if (newName.isEmpty) {
+        // We should not get `prefix == null` because we check in
+        // `checkNewName` that the new name is different.
+        if (prefix == null) {
+          return;
+        }
         var node = _findNode();
         var uriEnd = node.uri.end;
         var prefixEnd = element.prefixOffset + prefix.nameLength;
@@ -69,9 +72,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
           edit = newSourceEdit_range(SourceRange(offset, length), newName);
         }
       }
-      if (edit != null) {
-        doSourceChange_addElementEdit(change, element, edit);
-      }
+      doSourceChange_addElementEdit(change, element, edit);
     }
     // update references
     var matches = await searchEngine.searchReferences(element);
@@ -108,8 +109,8 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   /// If the given [reference] is before an interpolated [SimpleIdentifier] in
   /// an [InterpolationExpression] without surrounding curly brackets, return
   /// it. Otherwise return `null`.
-  SimpleIdentifier _getInterpolationIdentifier(SourceReference reference) {
-    var source = reference.element.source;
+  SimpleIdentifier? _getInterpolationIdentifier(SourceReference reference) {
+    var source = reference.element.source!;
     var unit = session.getParsedUnit(source.fullName).unit;
     var nodeLocator = NodeLocator(reference.range.offset);
     var node = nodeLocator.searchWithin(unit);

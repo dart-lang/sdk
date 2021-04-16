@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
@@ -89,13 +87,13 @@ class SourceReference {
   }
 
   /// Adds the [SourceEdit] to replace this reference.
-  void addEdit(SourceChange change, String newText, {String id}) {
+  void addEdit(SourceChange change, String newText, {String? id}) {
     var edit = createEdit(newText, id: id);
     doSourceChange_addSourceEdit(change, unitSource, edit);
   }
 
   /// Returns the [SourceEdit] to replace this reference.
-  SourceEdit createEdit(String newText, {String id}) {
+  SourceEdit createEdit(String newText, {String? id}) {
     return newSourceEdit_range(range, newText, id: id);
   }
 

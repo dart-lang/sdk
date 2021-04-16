@@ -57,7 +57,8 @@ class RenameRefactoringTest extends RefactoringTest {
       [driverFor(testFile)],
       searchEngine,
     );
-    refactoring = RenameRefactoring(workspace, testAnalysisResult, element);
+    refactoring =
+        RenameRefactoring.create(workspace, testAnalysisResult, element);
     expect(refactoring, isNotNull, reason: "No refactoring for '$element'.");
   }
 

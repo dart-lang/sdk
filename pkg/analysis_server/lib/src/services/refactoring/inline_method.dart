@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
@@ -47,14 +45,14 @@ String _getMethodSourceForInvocation(
     _SourcePart part,
     CorrectionUtils utils,
     AstNode contextNode,
-    Expression targetExpression,
+    Expression? targetExpression,
     List<Expression> arguments) {
   // prepare edits to replace parameters with arguments
   var edits = <SourceEdit>[];
   part._parameters.forEach(
       (ParameterElement parameter, List<_ParameterOccurrence> occurrences) {
     // prepare argument
-    Expression argument;
+    Expression? argument;
     for (var arg in arguments) {
       if (arg.staticParameterElement == parameter) {
         argument = arg;
@@ -62,11 +60,11 @@ String _getMethodSourceForInvocation(
       }
     }
     if (argument is NamedExpression) {
-      argument = (argument as NamedExpression).expression;
+      argument = argument.expression;
     }
     // prepare argument properties
     Precedence argumentPrecedence;
-    String argumentSource;
+    String? argumentSource;
     if (argument != null) {
       argumentPrecedence = getExpressionPrecedence(argument);
       argumentSource = utils.getNodeText(argument);
@@ -149,7 +147,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   // local variables and functions
   {
     var localsRange = _getLocalsConflictingRange(node);
-    var enclosingExecutable = getEnclosingExecutableNode(node);
+    var enclosingExecutable = getEnclosingExecutableNode(node)!;
     var visibleRangeMap = VisibleRangesComputer.forNode(enclosingExecutable);
     visibleRangeMap.forEach((element, elementRange) {
       if (elementRange.intersects(localsRange)) {
@@ -183,23 +181,23 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   final ResolvedUnitResult resolveResult;
   final int offset;
   final AnalysisSessionHelper sessionHelper;
-  CorrectionUtils utils;
-  SourceChange change;
+  late CorrectionUtils utils;
+  late SourceChange change;
 
   @override
   bool isDeclaration = false;
   bool deleteSource = false;
   bool inlineAll = true;
 
-  ExecutableElement _methodElement;
-  CompilationUnit _methodUnit;
-  CorrectionUtils _methodUtils;
-  AstNode _methodNode;
-  FormalParameterList _methodParameters;
-  FunctionBody _methodBody;
-  Expression _methodExpression;
-  _SourcePart _methodExpressionPart;
-  _SourcePart _methodStatementsPart;
+  ExecutableElement? _methodElement;
+  late CompilationUnit _methodUnit;
+  late CorrectionUtils _methodUtils;
+  late AstNode _methodNode;
+  FormalParameterList? _methodParameters;
+  FunctionBody? _methodBody;
+  Expression? _methodExpression;
+  _SourcePart? _methodExpressionPart;
+  _SourcePart? _methodStatementsPart;
   final List<_ReferenceProcessor> _referenceProcessors = [];
   final Set<Element> _alreadyMadeAsync = <Element>{};
 
@@ -210,11 +208,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   }
 
   @override
-  String get className {
-    if (_methodElement == null) {
-      return null;
-    }
-    var classElement = _methodElement.enclosingElement;
+  String? get className {
+    var classElement = _methodElement?.enclosingElement;
     if (classElement is ClassElement) {
       return classElement.displayName;
     }
@@ -222,11 +217,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   }
 
   @override
-  String get methodName {
-    if (_methodElement == null) {
-      return null;
-    }
-    return _methodElement.displayName;
+  String? get methodName {
+    return _methodElement?.displayName;
   }
 
   @override
@@ -256,7 +248,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       var linesRange =
           _methodUtils.getLinesRange(methodRange, skipLeadingEmptyLines: true);
       doSourceChange_addElementEdit(
-          change, _methodElement, newSourceEdit_range(linesRange, ''));
+          change, _methodElement!, newSourceEdit_range(linesRange, ''));
     }
     // done
     return Future.value(result);
@@ -271,19 +263,19 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       return Future<RefactoringStatus>.value(result);
     }
     // maybe operator
-    if (_methodElement.isOperator) {
+    if (_methodElement!.isOperator) {
       result = RefactoringStatus.fatal('Cannot inline operator.');
       return Future<RefactoringStatus>.value(result);
     }
     // maybe [a]sync*
-    if (_methodElement.isGenerator) {
+    if (_methodElement!.isGenerator) {
       result = RefactoringStatus.fatal('Cannot inline a generator.');
       return Future<RefactoringStatus>.value(result);
     }
     // analyze method body
     result.addStatus(_prepareMethodParts());
     // process references
-    var references = await searchEngine.searchReferences(_methodElement);
+    var references = await searchEngine.searchReferences(_methodElement!);
     _referenceProcessors.clear();
     for (var reference in references) {
       var processor = _ReferenceProcessor(this, reference);
@@ -303,7 +295,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     var prefix = getLinePrefix(source);
     var result = _SourcePart(range.offset, source, prefix);
     // remember parameters and variables occurrences
-    _methodUnit.accept(_VariablesVisitor(_methodElement, range, result));
+    _methodUnit.accept(_VariablesVisitor(_methodElement!, range, result));
     // done
     return result;
   }
@@ -319,11 +311,10 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     var fatalStatus = RefactoringStatus.fatal(
         'Method declaration or reference must be selected to activate this refactoring.');
     // prepare selected SimpleIdentifier
-    var node = NodeLocator(offset).searchWithin(resolveResult.unit);
-    if (node is! SimpleIdentifier) {
+    var identifier = NodeLocator(offset).searchWithin(resolveResult.unit);
+    if (identifier is! SimpleIdentifier) {
       return fatalStatus;
     }
-    var identifier = node as SimpleIdentifier;
     // prepare selected ExecutableElement
     var element = identifier.writeOrReadElement;
     if (element is! ExecutableElement) {
@@ -332,14 +323,14 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     if (element.isSynthetic) {
       return fatalStatus;
     }
-    _methodElement = element as ExecutableElement;
+    _methodElement = element;
 
-    var declaration = await sessionHelper.getElementDeclaration(_methodElement);
-    var methodNode = declaration.node;
+    var declaration = await sessionHelper.getElementDeclaration(element);
+    var methodNode = declaration!.node;
     _methodNode = methodNode;
 
-    var resolvedUnit = declaration.resolvedUnit;
-    _methodUnit = resolvedUnit.unit;
+    var resolvedUnit = declaration.resolvedUnit!;
+    _methodUnit = resolvedUnit.unit!;
     _methodUtils = CorrectionUtils(resolvedUnit);
 
     if (methodNode is MethodDeclaration) {
@@ -353,7 +344,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
 
     isDeclaration = resolveResult.uri == element.source.uri &&
-        node.offset == element.nameOffset;
+        identifier.offset == element.nameOffset;
     deleteSource = isDeclaration;
     inlineAll = deleteSource;
     return RefactoringStatus();
@@ -366,7 +357,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     if (_methodBody is ExpressionFunctionBody) {
       var body = _methodBody as ExpressionFunctionBody;
       _methodExpression = body.expression;
-      var methodExpressionRange = range.node(_methodExpression);
+      var methodExpressionRange = range.node(_methodExpression!);
       _methodExpressionPart = _createSourcePart(methodExpressionRange);
     } else if (_methodBody is BlockFunctionBody) {
       var body = (_methodBody as BlockFunctionBody).block;
@@ -377,7 +368,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
         if (lastStatement is ReturnStatement) {
           _methodExpression = lastStatement.expression;
           if (_methodExpression != null) {
-            var methodExpressionRange = range.node(_methodExpression);
+            var methodExpressionRange = range.node(_methodExpression!);
             _methodExpressionPart = _createSourcePart(methodExpressionRange);
           }
           // exclude "return" statement from statements
@@ -411,11 +402,11 @@ class _ReferenceProcessor {
   final InlineMethodRefactoringImpl ref;
   final SearchMatch reference;
 
-  Element refElement;
-  CorrectionUtils _refUtils;
-  SimpleIdentifier _node;
-  SourceRange _refLineRange;
-  String _refPrefix;
+  late Element refElement;
+  late CorrectionUtils _refUtils;
+  late SimpleIdentifier _node;
+  SourceRange? _refLineRange;
+  late String _refPrefix;
 
   _ReferenceProcessor(this.ref, this.reference);
 
@@ -424,10 +415,11 @@ class _ReferenceProcessor {
 
     // prepare CorrectionUtils
     var result = await ref.sessionHelper.getResolvedUnitByElement(refElement);
-    _refUtils = CorrectionUtils(result);
+    _refUtils = CorrectionUtils(result!);
 
     // prepare node and environment
-    _node = _refUtils.findNode(reference.sourceRange.offset);
+    _node =
+        _refUtils.findNode(reference.sourceRange.offset) as SimpleIdentifier;
     var refStatement = _node.thisOrAncestorOfType<Statement>();
     if (refStatement != null) {
       _refLineRange = _refUtils.getLinesRangeStatements([refStatement]);
@@ -454,7 +446,7 @@ class _ReferenceProcessor {
     }
     // analyze point of invocation
     var parent = usage.parent;
-    var parent2 = parent.parent;
+    var parent2 = parent?.parent;
     // OK, if statement in block
     if (parent is Statement) {
       return parent2 is Block;
@@ -484,7 +476,7 @@ class _ReferenceProcessor {
   }
 
   void _inlineMethodInvocation(RefactoringStatus status, Expression usage,
-      bool cascaded, Expression target, List<Expression> arguments) {
+      bool cascaded, Expression? target, List<Expression> arguments) {
     // we don't support cascade
     if (cascaded) {
       status.addError(
@@ -496,20 +488,20 @@ class _ReferenceProcessor {
       if (ref._methodStatementsPart != null) {
         // prepare statements source for invocation
         var source = _getMethodSourceForInvocation(status,
-            ref._methodStatementsPart, _refUtils, usage, target, arguments);
+            ref._methodStatementsPart!, _refUtils, usage, target, arguments);
         source = _refUtils.replaceSourceIndent(
-            source, ref._methodStatementsPart._prefix, _refPrefix);
+            source, ref._methodStatementsPart!._prefix, _refPrefix);
         // do insert
         var edit =
-            newSourceEdit_range(SourceRange(_refLineRange.offset, 0), source);
+            newSourceEdit_range(SourceRange(_refLineRange!.offset, 0), source);
         _addRefEdit(edit);
       }
       // replace invocation with return expression
       if (ref._methodExpressionPart != null) {
         // prepare expression source for invocation
         var source = _getMethodSourceForInvocation(status,
-            ref._methodExpressionPart, _refUtils, usage, target, arguments);
-        if (getExpressionPrecedence(ref._methodExpression) <
+            ref._methodExpressionPart!, _refUtils, usage, target, arguments);
+        if (getExpressionPrecedence(ref._methodExpression!) <
             getExpressionParentPrecedence(usage)) {
           source = '($source)';
         }
@@ -518,7 +510,7 @@ class _ReferenceProcessor {
         var edit = newSourceEdit_range(methodUsageRange, source);
         _addRefEdit(edit);
       } else {
-        var edit = newSourceEdit_range(_refLineRange, '');
+        var edit = newSourceEdit_range(_refLineRange!, '');
         _addRefEdit(edit);
       }
       return;
@@ -527,7 +519,7 @@ class _ReferenceProcessor {
     String source;
     {
       source = ref._methodUtils.getRangeText(range.startEnd(
-          ref._methodParameters.leftParenthesis, ref._methodNode));
+          ref._methodParameters!.leftParenthesis, ref._methodNode));
       var methodPrefix = ref._methodUtils.getLinePrefix(ref._methodNode.offset);
       source = _refUtils.replaceSourceIndent(source, methodPrefix, _refPrefix);
       source = source.trim();
@@ -545,7 +537,7 @@ class _ReferenceProcessor {
     }
     // If the element being inlined is async, ensure that the function
     // body that encloses the method is also async.
-    if (ref._methodElement.isAsynchronous) {
+    if (ref._methodElement!.isAsynchronous) {
       var body = _node.thisOrAncestorOfType<FunctionBody>();
       if (body != null) {
         if (body.isSynchronous) {
@@ -587,7 +579,7 @@ class _ReferenceProcessor {
       // PropertyAccessorElement
       if (ref._methodElement is PropertyAccessorElement) {
         Expression usage = _node;
-        Expression target;
+        Expression? target;
         var cascade = false;
         if (nodeParent is PrefixedIdentifier) {
           var propertyAccess = nodeParent;
@@ -604,7 +596,7 @@ class _ReferenceProcessor {
         // prepare arguments
         var arguments = <Expression>[];
         if (_node.inSetterContext()) {
-          var assignment = _node.thisOrAncestorOfType<AssignmentExpression>();
+          var assignment = _node.thisOrAncestorOfType<AssignmentExpression>()!;
           arguments.add(assignment.rightHandSide);
         }
         // inline body
@@ -615,13 +607,13 @@ class _ReferenceProcessor {
       String source;
       {
         source = ref._methodUtils.getRangeText(range.startEnd(
-            ref._methodParameters.leftParenthesis, ref._methodNode));
+            ref._methodParameters!.leftParenthesis, ref._methodNode));
         var methodPrefix =
             ref._methodUtils.getLinePrefix(ref._methodNode.offset);
         source =
             _refUtils.replaceSourceIndent(source, methodPrefix, _refPrefix);
         source = source.trim();
-        source = removeEnd(source, ';');
+        source = removeEnd(source, ';')!;
       }
       // do insert
       var edit = newSourceEdit_range(range.node(_node), source);
@@ -700,15 +692,13 @@ class _SourcePart {
 
   void addParameterOccurrence(ParameterElement parameter,
       SourceRange identifierRange, Precedence precedence) {
-    if (parameter != null) {
-      var occurrences = _parameters[parameter];
-      if (occurrences == null) {
-        occurrences = [];
-        _parameters[parameter] = occurrences;
-      }
-      identifierRange = range.offsetBy(identifierRange, -_base);
-      occurrences.add(_ParameterOccurrence(precedence, identifierRange));
+    var occurrences = _parameters[parameter];
+    if (occurrences == null) {
+      occurrences = [];
+      _parameters[parameter] = occurrences;
     }
+    identifierRange = range.offsetBy(identifierRange, -_base);
+    occurrences.add(_ParameterOccurrence(precedence, identifierRange));
   }
 
   void addVariable(VariableElement element, SourceRange identifierRange) {
@@ -732,8 +722,6 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
 
   /// The [_SourcePart] to record reference into.
   final _SourcePart result;
-
-  int offset;
 
   _VariablesVisitor(this.methodElement, this.bodyRange, this.result);
 
@@ -766,23 +754,31 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
 
   void _addMemberQualifier(SimpleIdentifier node) {
     // should be unqualified
-    AstNode qualifier = getNodeQualifier(node);
+    var qualifier = getNodeQualifier(node);
     if (qualifier != null) {
       return;
     }
     // should be a method or field reference
     var element = node.writeOrReadElement;
-    if (!(element is MethodElement || element is PropertyAccessorElement)) {
+    if (element is ExecutableElement) {
+      if (element is MethodElement || element is PropertyAccessorElement) {
+        // OK
+      } else {
+        return;
+      }
+    } else {
       return;
     }
+    // if (!(element is MethodElement || element is PropertyAccessorElement)) {
+    //   return;
+    // }
     if (element.enclosingElement is! ClassElement) {
       return;
     }
     // record the implicit static or instance reference
-    ExecutableElement member = element;
     var offset = node.offset;
-    if (member.isStatic) {
-      var className = member.enclosingElement.displayName;
+    if (element.isStatic) {
+      var className = element.enclosingElement.displayName;
       result.addImplicitClassNameOffset(className, offset);
     } else {
       result.addImplicitThisOffset(offset);
@@ -807,7 +803,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   }
 
   void _addVariable(SimpleIdentifier node) {
-    VariableElement variableElement = getLocalVariableElement(node);
+    var variableElement = getLocalVariableElement(node);
     if (variableElement != null) {
       var nodeRange = range.node(node);
       result.addVariable(variableElement, nodeRange);

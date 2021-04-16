@@ -41,6 +41,22 @@ class RenameImportTest extends RenameRefactoringTest {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
+  Future<void> test_checkNewName_sameName_empty() async {
+    await indexTestUnit('''
+import 'dart:math';
+void f(Random r) {}
+''');
+
+    _createRefactoring("import 'dart:math");
+
+    refactoring.newName = '';
+    assertRefactoringStatus(
+      refactoring.checkNewName(),
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: 'The new name must be different than the current name.',
+    );
+  }
+
   Future<void> test_createChange_add() async {
     await indexTestUnit('''
 import 'dart:async';
