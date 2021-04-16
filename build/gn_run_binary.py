@@ -21,17 +21,18 @@ import subprocess
 # Run a command, swallowing the output unless there is an error.
 def run_command(command):
     try:
-        subprocess.check_output(command,
-                                encoding="UTF-8",
-                                stderr=subprocess.STDOUT,
-                                universal_newlines=True)
+        subprocess.check_output(command, stderr=subprocess.STDOUT)
         return 0
     except subprocess.CalledProcessError as e:
         return ("Command failed: " + ' '.join(command) + "\n" + "output: " +
-                e.output)
+                _decode(e.output))
     except OSError as e:
         return ("Command failed: " + ' '.join(command) + "\n" + "output: " +
-                e.strerror)
+                _decode(e.strerror))
+
+
+def _decode(bytes):
+    return bytes.decode("utf-8")
 
 
 def main(argv):
