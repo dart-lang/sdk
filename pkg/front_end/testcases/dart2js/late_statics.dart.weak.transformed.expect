@@ -1,7 +1,6 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 import "dart:_late_helper" as _la;
 import "late_statics_lib.dart" as lat;
 additionalExports = (lat::c,
@@ -16,17 +15,11 @@ export "org-dartlang-testcase:///late_statics_lib.dart";
 class Statics extends core::Object {
   static final field _la::_Cell a = new _la::_Cell::•();
   static final field _la::_Cell b = new _la::_Cell::•();
-  static field core::int? _#c = _in::createSentinel<core::int>();
-  static field core::int? _#d = _in::createSentinel<core::int>();
+  late static field core::int c = 1.{core::int::unary-}(){() → core::int};
+  late static final field core::int d = 1.{core::int::unary-}(){() → core::int};
   synthetic constructor •() → self::Statics
     : super core::Object::•()
     ;
-  static get c() → core::int
-    return let final core::int? #t1 = self::Statics::_#c in _in::isSentinel(#t1) ?{core::int} self::Statics::_#c = 1.{core::int::unary-}(){() → core::int} : #t1{core::int};
-  static set c(core::int #t2) → void
-    self::Statics::_#c = #t2;
-  static get d() → core::int
-    return let final core::int #t3 = self::Statics::_#d in _in::isSentinel(#t3) ?{core::int} let final core::int #t4 = 1.{core::int::unary-}(){() → core::int} in _in::isSentinel(self::Statics::_#d) ?{core::int} self::Statics::_#d = #t4 : throw new _in::LateError::fieldADI("d") : #t3;
 }
 static method main() → void {
   self::testUninitializedNonFinalStaticField();
@@ -77,27 +70,18 @@ static method testInitializedFinalTopLevelField() → void {
 
 library /*isNonNullableByDefault*/;
 import self as lat;
-import "dart:core" as core;
-import "dart:_internal" as _in;
 import "dart:_late_helper" as _la;
+import "dart:core" as core;
 
 static final field _la::_Cell a = new _la::_Cell::•();
 static final field _la::_Cell b = new _la::_Cell::•();
-static field core::int? _#c = _in::createSentinel<core::int>();
-static field core::int? _#d = _in::createSentinel<core::int>();
-static get c() → core::int
-  return let final core::int? #t5 = lat::_#c in _in::isSentinel(#t5) ?{core::int} lat::_#c = 1.{core::int::unary-}(){() → core::int} : #t5{core::int};
-static set c(core::int #t6) → void
-  lat::_#c = #t6;
-static get d() → core::int
-  return let final core::int #t7 = lat::_#d in _in::isSentinel(#t7) ?{core::int} let final core::int #t8 = 1.{core::int::unary-}(){() → core::int} in _in::isSentinel(lat::_#d) ?{core::int} lat::_#d = #t8 : throw new _in::LateError::fieldADI("d") : #t7;
+late static field core::int c = 1.{core::int::unary-}(){() → core::int};
+late static final field core::int d = 1.{core::int::unary-}(){() → core::int};
 
 
 Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_statics.dart:22:23 -> DoubleConstant(-1.0)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_statics.dart:23:29 -> DoubleConstant(-1.0)
-Evaluated: VariableGet @ org-dartlang-testcase:///late_statics.dart:23:25 -> DoubleConstant(-1.0)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_statics_lib.dart:7:14 -> DoubleConstant(-1.0)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_statics_lib.dart:8:20 -> DoubleConstant(-1.0)
-Evaluated: VariableGet @ org-dartlang-testcase:///late_statics_lib.dart:8:16 -> DoubleConstant(-1.0)
-Extra constant evaluation: evaluated: 112, effectively constant: 6
+Extra constant evaluation: evaluated: 62, effectively constant: 4
