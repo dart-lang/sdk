@@ -306,6 +306,67 @@ class CoreTypes {
   late final Procedure isSentinelMethod =
       index.getTopLevelMember('dart:_internal', 'isSentinel') as Procedure;
 
+  late final Constructor
+      lateInitializationFieldAssignedDuringInitializationConstructor =
+      index.getMember('dart:_internal', 'LateError', 'fieldADI') as Constructor;
+
+  late final Constructor
+      lateInitializationLocalAssignedDuringInitializationConstructor =
+      index.getMember('dart:_internal', 'LateError', 'localADI') as Constructor;
+
+  late final Constructor lateInitializationFieldNotInitializedConstructor =
+      index.getMember('dart:_internal', 'LateError', 'fieldNI') as Constructor;
+
+  late final Constructor lateInitializationLocalNotInitializedConstructor =
+      index.getMember('dart:_internal', 'LateError', 'localNI') as Constructor;
+
+  late final Constructor lateInitializationFieldAlreadyInitializedConstructor =
+      index.getMember('dart:_internal', 'LateError', 'fieldAI') as Constructor;
+
+  late final Constructor lateInitializationLocalAlreadyInitializedConstructor =
+      index.getMember('dart:_internal', 'LateError', 'localAI') as Constructor;
+
+  late final Constructor reachabilityErrorConstructor =
+      index.getMember('dart:_internal', 'ReachabilityError', '') as Constructor;
+
+  late final Class cellClass = index.getClass('dart:_late_helper', '_Cell');
+
+  late final Constructor cellConstructor =
+      index.getMember('dart:_late_helper', '_Cell', '') as Constructor;
+
+  late final Class initializedCellClass =
+      index.getClass('dart:_late_helper', '_InitializedCell');
+
+  late final Constructor initializedCellConstructor = index.getMember(
+      'dart:_late_helper', '_InitializedCell', '') as Constructor;
+
+  late final Procedure cellReadLocal =
+      index.getMember('dart:_late_helper', '_Cell', 'readLocal') as Procedure;
+
+  late final Procedure cellReadField =
+      index.getMember('dart:_late_helper', '_Cell', 'readField') as Procedure;
+
+  late final Procedure initializedCellRead = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'read') as Procedure;
+
+  late final Procedure initializedCellReadFinal = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'readFinal') as Procedure;
+
+  late final Procedure cellValueSetter =
+      index.getMember('dart:_late_helper', '_Cell', 'set:value') as Procedure;
+
+  late final Procedure cellFinalLocalValueSetter = index.getMember(
+      'dart:_late_helper', '_Cell', 'set:finalLocalValue') as Procedure;
+
+  late final Procedure cellFinalFieldValueSetter = index.getMember(
+      'dart:_late_helper', '_Cell', 'set:finalFieldValue') as Procedure;
+
+  late final Procedure initializedCellValueSetter = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'set:value') as Procedure;
+
+  late final Procedure initializedCellFinalValueSetter = index.getMember(
+      'dart:_late_helper', '_InitializedCell', 'set:finalValue') as Procedure;
+
   InterfaceType get objectLegacyRawType {
     return _objectLegacyRawType ??= _legacyRawTypes[objectClass] ??=
         new InterfaceType(objectClass, Nullability.legacy, const <DartType>[]);
@@ -1027,29 +1088,6 @@ class CoreTypes {
     }
     return result;
   }
-
-  late final Constructor
-      lateInitializationFieldAssignedDuringInitializationConstructor =
-      index.getMember('dart:_internal', 'LateError', 'fieldADI') as Constructor;
-
-  late final Constructor
-      lateInitializationLocalAssignedDuringInitializationConstructor =
-      index.getMember('dart:_internal', 'LateError', 'localADI') as Constructor;
-
-  late final Constructor lateInitializationFieldNotInitializedConstructor =
-      index.getMember('dart:_internal', 'LateError', 'fieldNI') as Constructor;
-
-  late final Constructor lateInitializationLocalNotInitializedConstructor =
-      index.getMember('dart:_internal', 'LateError', 'localNI') as Constructor;
-
-  late final Constructor lateInitializationFieldAlreadyInitializedConstructor =
-      index.getMember('dart:_internal', 'LateError', 'fieldAI') as Constructor;
-
-  late final Constructor lateInitializationLocalAlreadyInitializedConstructor =
-      index.getMember('dart:_internal', 'LateError', 'localAI') as Constructor;
-
-  late final Constructor reachabilityErrorConstructor =
-      index.getMember('dart:_internal', 'ReachabilityError', '') as Constructor;
 
   InterfaceType bottomInterfaceType(Class klass, Nullability nullability) {
     InterfaceType? result = _bottomInterfaceTypes[klass];
