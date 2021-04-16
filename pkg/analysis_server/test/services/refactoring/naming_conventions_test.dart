@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -22,7 +20,7 @@ void main() {
 @reflectiveTest
 class NamingConventionsTest extends RefactoringTest {
   @override
-  Refactoring get refactoring => null;
+  Refactoring get refactoring => throw UnimplementedError();
 
   void test_validateClassName_doesNotStartWithLowerCase() {
     assertRefactoringStatus(
@@ -58,12 +56,6 @@ class NamingConventionsTest extends RefactoringTest {
     assertRefactoringStatus(
         validateClassName('badName'), RefactoringProblemSeverity.WARNING,
         expectedMessage: 'Class name should start with an uppercase letter.');
-  }
-
-  void test_validateClassName_null() {
-    assertRefactoringStatus(
-        validateClassName(null), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Class name must not be null.');
   }
 
   void test_validateClassName_OK() {
@@ -177,12 +169,6 @@ class NamingConventionsTest extends RefactoringTest {
             'Field name must begin with a lowercase letter or underscore.');
   }
 
-  void test_validateFieldName_null() {
-    assertRefactoringStatus(
-        validateFieldName(null), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Field name must not be null.');
-  }
-
   void test_validateFieldName_OK() {
     assertRefactoringStatusOK(validateFieldName('newName'));
   }
@@ -240,12 +226,6 @@ class NamingConventionsTest extends RefactoringTest {
         validateFunctionName('2newName'), RefactoringProblemSeverity.FATAL,
         expectedMessage:
             'Function name must begin with a lowercase letter or underscore.');
-  }
-
-  void test_validateFunctionName_null() {
-    assertRefactoringStatus(
-        validateFunctionName(null), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Function name must not be null.');
   }
 
   void test_validateFunctionName_OK() {
@@ -373,12 +353,6 @@ class NamingConventionsTest extends RefactoringTest {
         validateLabelName('2newName'), RefactoringProblemSeverity.FATAL,
         expectedMessage:
             'Label name must begin with a lowercase letter or underscore.');
-  }
-
-  void test_validateLabelName_null() {
-    assertRefactoringStatus(
-        validateLabelName(null), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Label name must not be null.');
   }
 
   void test_validateLabelName_OK() {
@@ -517,12 +491,6 @@ class NamingConventionsTest extends RefactoringTest {
             'Method name must begin with a lowercase letter or underscore.');
   }
 
-  void test_validateMethodName_null() {
-    assertRefactoringStatus(
-        validateMethodName(null), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Method name must not be null.');
-  }
-
   void test_validateMethodName_OK() {
     assertRefactoringStatusOK(validateMethodName('newName'));
   }
@@ -587,12 +555,6 @@ class NamingConventionsTest extends RefactoringTest {
             'Parameter name must begin with a lowercase letter or underscore.');
   }
 
-  void test_validateParameterName_null() {
-    assertRefactoringStatus(
-        validateParameterName(null), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Parameter name must not be null.');
-  }
-
   void test_validateParameterName_OK() {
     assertRefactoringStatusOK(validateParameterName('newName'));
   }
@@ -651,12 +613,6 @@ class NamingConventionsTest extends RefactoringTest {
         validateTypeAliasName('newName'), RefactoringProblemSeverity.WARNING,
         expectedMessage:
             'Type alias name should start with an uppercase letter.');
-  }
-
-  void test_validateTypeAliasName_null() {
-    assertRefactoringStatus(
-        validateTypeAliasName(null), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Type alias name must not be null.');
   }
 
   void test_validateTypeAliasName_OK() {
@@ -720,12 +676,6 @@ class NamingConventionsTest extends RefactoringTest {
         validateVariableName('2newName'), RefactoringProblemSeverity.FATAL,
         expectedMessage:
             'Variable name must begin with a lowercase letter or underscore.');
-  }
-
-  void test_validateVariableName_null() {
-    assertRefactoringStatus(
-        validateVariableName(null), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Variable name must not be null.');
   }
 
   void test_validateVariableName_OK() {

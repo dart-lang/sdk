@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,7 +18,7 @@ void main() {
 @reflectiveTest
 class ExtractMethodTest extends RefactoringTest {
   @override
-  ExtractMethodRefactoringImpl refactoring;
+  late ExtractMethodRefactoringImpl refactoring;
 
   Future<void> test_bad_assignmentLeftHandSide() async {
     await indexTestUnit('''
@@ -791,11 +788,6 @@ main() {
 }
 ''');
     _createRefactoringForString('1 + 2');
-    // null
-    refactoring.name = null;
-    assertRefactoringStatus(
-        refactoring.checkName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Method name must not be null.');
     // empty
     refactoring.name = '';
     assertRefactoringStatus(
@@ -2919,7 +2911,7 @@ Completer<int> newCompleter() => null;
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring = ExtractMethodRefactoring(
+    refactoring = ExtractMethodRefactoringImpl(
         searchEngine, testAnalysisResult, offset, length);
     refactoring.name = 'res';
   }

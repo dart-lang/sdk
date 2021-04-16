@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/refactoring/inline_method.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:test/test.dart';
@@ -22,9 +19,9 @@ void main() {
 @reflectiveTest
 class InlineMethodTest extends RefactoringTest {
   @override
-  InlineMethodRefactoringImpl refactoring;
-  bool deleteSource;
-  bool inlineAll;
+  late InlineMethodRefactoringImpl refactoring;
+  bool? deleteSource;
+  bool? inlineAll;
 
   Future<void> test_access_FunctionElement() async {
     await indexTestUnit(r'''
@@ -1763,9 +1760,11 @@ void f(bool p, bool p2, bool p3) {
     var status = await refactoring.checkInitialConditions();
     assertRefactoringStatusOK(status);
     // configure
+    var deleteSource = this.deleteSource;
     if (deleteSource != null) {
       refactoring.deleteSource = deleteSource;
     }
+    var inlineAll = this.inlineAll;
     if (inlineAll != null) {
       refactoring.inlineAll = inlineAll;
     }
@@ -1780,7 +1779,7 @@ void f(bool p, bool p2, bool p3) {
 
   void _createRefactoring(String search) {
     var offset = findOffset(search);
-    refactoring = InlineMethodRefactoring(
+    refactoring = InlineMethodRefactoringImpl(
       searchEngine,
       testAnalysisResult,
       offset,

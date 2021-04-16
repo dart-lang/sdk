@@ -769,9 +769,6 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     } else {
       return;
     }
-    // if (!(element is MethodElement || element is PropertyAccessorElement)) {
-    //   return;
-    // }
     if (element.enclosingElement is! ClassElement) {
       return;
     }

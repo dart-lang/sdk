@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:test/test.dart';
@@ -20,7 +18,7 @@ void main() {
 @reflectiveTest
 class MoveFileTest extends RefactoringTest {
   @override
-  MoveFileRefactoring refactoring;
+  late MoveFileRefactoring refactoring;
 
   Future<void> test_file_containing_imports_exports_parts() async {
     var pathA = convertPath('/home/test/000/1111/a.dart');
@@ -492,7 +490,7 @@ part 'test2.dart';
   }
 
   Future _assertFailedRefactoring(RefactoringProblemSeverity expectedSeverity,
-      {String expectedMessage}) async {
+      {String? expectedMessage}) async {
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, expectedSeverity,
         expectedMessage: expectedMessage);
@@ -504,7 +502,7 @@ part 'test2.dart';
     refactoringChange = await refactoring.createChange();
   }
 
-  void _createRefactoring(String newFile, {String oldFile}) {
+  void _createRefactoring(String newFile, {String? oldFile}) {
     var refactoringWorkspace =
         RefactoringWorkspace([driverFor(testFile)], searchEngine);
     // Allow passing an oldName for when we don't want to rename testSource,

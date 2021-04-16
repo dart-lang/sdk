@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -242,11 +240,11 @@ main() {
 }
 ''');
     createRenameRefactoringAtString('test() => 0;');
-    // null
-    refactoring.newName = null;
+    // empty
+    refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Function name must not be null.');
+        expectedMessage: 'Function name must not be empty.');
     // OK
     refactoring.newName = 'newName';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -259,11 +257,6 @@ main() {
 }
 ''');
     createRenameRefactoringAtString('test = 0;');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Variable name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
@@ -280,11 +273,11 @@ main(test) {
 }
 ''');
     createRenameRefactoringAtString('test) {');
-    // null
-    refactoring.newName = null;
+    // empty
+    refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Parameter name must not be null.');
+        expectedMessage: 'Parameter name must not be empty.');
     // OK
     refactoring.newName = 'newName';
     assertRefactoringStatusOK(refactoring.checkNewName());
