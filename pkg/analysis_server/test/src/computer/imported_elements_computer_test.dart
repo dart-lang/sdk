@@ -6,6 +6,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/imported_elements_computer.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -471,7 +472,8 @@ bool randomBool() {
   Future<void> _computeElements(String content, String selection) async {
     // TODO(brianwilkerson) Automatically extract the selection from the content.
     newFile(sourcePath, content: content);
-    var result = await session.getResolvedUnit(sourcePath);
+    var result =
+        await session.getResolvedUnit2(sourcePath) as ResolvedUnitResult;
     var computer = ImportedElementsComputer(
         result.unit, content.indexOf(selection), selection.length);
     importedElements = computer.compute();

@@ -1088,11 +1088,10 @@ class _FixCodeProcessor extends Object {
     }
 
     for (var path in pathsToProcess.difference(pathsProcessed)) {
-      var result = await driver.getResolvedUnit(path);
-      if (result == null || result.unit == null) {
-        continue;
+      var result = await driver.getResolvedUnit2(path);
+      if (result is ResolvedUnitResult) {
+        await process(result);
       }
-      await process(result);
     }
   }
 

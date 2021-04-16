@@ -85,7 +85,8 @@ abstract class FileResult implements AnalysisResult {
 /// for example is not absolute and normalized.
 ///
 /// Clients may not extend, implement or mix-in this class.
-class InvalidPathResult implements InvalidResult, SomeUnitElementResult {}
+class InvalidPathResult
+    implements InvalidResult, SomeResolvedUnitResult, SomeUnitElementResult {}
 
 /// The base class for any invalid result.
 ///
@@ -100,7 +101,8 @@ abstract class InvalidResult {}
 /// would be resolved, if there were no generated file.
 ///
 /// Clients may not extend, implement or mix-in this class.
-class NotPathOfUriResult implements InvalidResult, SomeUnitElementResult {}
+class NotPathOfUriResult
+    implements InvalidResult, SomeResolvedUnitResult, SomeUnitElementResult {}
 
 /// The result of building parsed AST(s) for the whole library.
 ///
@@ -173,9 +175,13 @@ abstract class ResolvedLibraryResult implements AnalysisResult {
 /// include both syntactic and semantic errors.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ResolvedUnitResult implements AnalysisResultWithErrors {
+abstract class ResolvedUnitResult
+    implements SomeResolvedUnitResult, AnalysisResultWithErrors {
   /// The content of the file that was scanned, parsed and resolved.
   String? get content;
+
+  /// Return `true` if the file exists.
+  bool get exists;
 
   /// The element representing the library containing the compilation [unit].
   LibraryElement get libraryElement;
@@ -212,6 +218,15 @@ enum ResultState {
   /// An indication that analysis completed normally and the results are valid.
   VALID
 }
+
+/// The result of building a resolved AST for a single file. The errors returned
+/// include both syntactic and semantic errors.
+///
+/// Clients may not extend, implement or mix-in this class.
+///
+/// There are existing implementations of this class.
+/// [ResolvedUnitResult] represents a valid result.
+abstract class SomeResolvedUnitResult {}
 
 /// The result of building the element model for a single file.
 ///

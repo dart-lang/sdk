@@ -151,7 +151,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _priorityFiles = <String>{};
 
   /// The mapping from the files for which analysis was requested using
-  /// [getResult] to the [Completer]s to report the result.
+  /// [getResult2] to the [Completer]s to report the result.
   final _requestedFiles = <String, List<Completer<ResolvedUnitResult>>>{};
 
   /// The mapping from the files for which analysis was requested using
@@ -204,7 +204,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       <String, List<Completer<UnitElementResult>>>{};
 
   /// The mapping from the files for which analysis was requested using
-  /// [getResult], and which were found to be parts without known libraries,
+  /// [getResult2], and which were found to be parts without known libraries,
   /// to the [Completer]s to report the result.
   final _requestedParts = <String, List<Completer<ResolvedUnitResult>>>{};
 
@@ -360,7 +360,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// client does not change the state of the files.
   ///
   /// Results might be produced even for files that have never been added
-  /// using [addFile], for example when [getResult] was called for a file.
+  /// using [addFile], for example when [getResult2] was called for a file.
   Stream<ResolvedUnitResult> get results => _onResults;
 
   /// Return the search support for the driver.
@@ -465,7 +465,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// transitions to "idle".
   ///
   /// Invocation of this method will not prevent a [Future] returned from
-  /// [getResult] from completing with a result, but the result is not
+  /// [getResult2] from completing with a result, but the result is not
   /// guaranteed to be consistent with the new current file state after this
   /// [changeFile] invocation.
   void changeFile(String path) {
@@ -794,12 +794,46 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// it, which is consistent with the current file state (including new states
   /// of the files previously reported using [changeFile]), prior to the next
   /// time the analysis state transitions to "idle".
+  @Deprecated('Use getResult2() instead')
   Future<ResolvedUnitResult> getResult(String path,
-      {bool sendCachedToStream = false}) {
+      {bool sendCachedToStream = false}) async {
     _throwIfNotAbsolutePath(path);
+
+    var result = await getResult2(path, sendCachedToStream: sendCachedToStream);
+    if (result is NotPathOfUriResult) {
+      return NotValidResolvedUnitResultImpl(ResultState.NOT_FILE_OF_URI);
+    }
+
+    return result as ResolvedUnitResult;
+  }
+
+  /// Return a [Future] that completes with a [SomeResolvedUnitResult] for the
+  /// Dart file with the given [path].
+  ///
+  /// The [path] must be absolute and normalized.
+  ///
+  /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
+  ///
+  /// If the driver has the cached analysis result for the file, it is returned.
+  /// If [sendCachedToStream] is `true`, then the result is also reported into
+  /// the [results] stream, just as if it were freshly computed.
+  ///
+  /// Otherwise causes the analysis state to transition to "analyzing" (if it is
+  /// not in that state already), the driver will produce the analysis result for
+  /// it, which is consistent with the current file state (including new states
+  /// of the files previously reported using [changeFile]), prior to the next
+  /// time the analysis state transitions to "idle".
+  Future<SomeResolvedUnitResult> getResult2(String path,
+      {bool sendCachedToStream = false}) {
+    if (!_isAbsolutePath(path)) {
+      return Future.value(
+        InvalidPathResult(),
+      );
+    }
+
     if (!_fsState.hasUri(path)) {
       return Future.value(
-        NotValidResolvedUnitResultImpl(ResultState.NOT_FILE_OF_URI),
+        NotPathOfUriResult(),
       );
     }
 

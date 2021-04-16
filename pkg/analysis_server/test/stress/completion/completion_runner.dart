@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -79,7 +80,8 @@ class CompletionRunner {
         }
         fileCount++;
         output.write('.');
-        var result = await context.currentSession.getResolvedUnit(path);
+        var result = await context.currentSession.getResolvedUnit2(path)
+            as ResolvedUnitResult;
         var content = result.content!;
         var lineInfo = result.lineInfo;
         var identifiers = _identifiersIn(result.unit!);
@@ -92,7 +94,8 @@ class CompletionRunner {
                 content.substring(identifier.end);
             resourceProvider.setOverlay(path,
                 content: modifiedContent, modificationStamp: stamp++);
-            result = await context.currentSession.getResolvedUnit(path);
+            result = await context.currentSession.getResolvedUnit2(path)
+                as ResolvedUnitResult;
           }
 
           timer.start();

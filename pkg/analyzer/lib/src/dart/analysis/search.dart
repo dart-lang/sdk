@@ -378,11 +378,12 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
-      _ImportElementReferencesVisitor visitor =
-          _ImportElementReferencesVisitor(element, unitElement);
-      unitResult.unit!.accept(visitor);
-      results.addAll(visitor.results);
+      var unitResult = await _driver.getResult2(unitPath);
+      if (unitResult is ResolvedUnitResult) {
+        var visitor = _ImportElementReferencesVisitor(element, unitElement);
+        unitResult.unit!.accept(visitor);
+        results.addAll(visitor.results);
+      }
     }
     return results;
   }
@@ -397,17 +398,22 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     for (CompilationUnitElement unitElement in element.units) {
       String unitPath = unitElement.source.fullName;
-      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
-      CompilationUnit unit = unitResult.unit!;
-      for (Directive directive in unit.directives) {
-        if (directive is PartOfDirective && directive.element == element) {
-          results.add(SearchResult._(
-              unit.declaredElement!,
-              SearchResultKind.REFERENCE,
-              directive.libraryName!.offset,
-              directive.libraryName!.length,
-              true,
-              false));
+      var unitResult = await _driver.getResult2(unitPath);
+      if (unitResult is ResolvedUnitResult) {
+        CompilationUnit unit = unitResult.unit!;
+        for (Directive directive in unit.directives) {
+          if (directive is PartOfDirective && directive.element == element) {
+            results.add(
+              SearchResult._(
+                unit.declaredElement!,
+                SearchResultKind.REFERENCE,
+                directive.libraryName!.offset,
+                directive.libraryName!.length,
+                true,
+                false,
+              ),
+            );
+          }
         }
       }
     }
@@ -422,7 +428,10 @@ class Search {
     }
 
     // Prepare the unit.
-    ResolvedUnitResult unitResult = await _driver.getResult(path);
+    var unitResult = await _driver.getResult2(path);
+    if (unitResult is! ResolvedUnitResult) {
+      return const <SearchResult>[];
+    }
     var unit = unitResult.unit;
     if (unit == null) {
       return const <SearchResult>[];
@@ -475,11 +484,12 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      ResolvedUnitResult unitResult = await _driver.getResult(unitPath);
-      _LocalReferencesVisitor visitor =
-          _LocalReferencesVisitor(element, unitElement);
-      unitResult.unit!.accept(visitor);
-      results.addAll(visitor.results);
+      var unitResult = await _driver.getResult2(unitPath);
+      if (unitResult is ResolvedUnitResult) {
+        var visitor = _LocalReferencesVisitor(element, unitElement);
+        unitResult.unit!.accept(visitor);
+        results.addAll(visitor.results);
+      }
     }
     return results;
   }

@@ -80,7 +80,12 @@ abstract class AnalysisSession {
 
   /// Return a future that will complete with information about the results of
   /// resolving the file with the given absolute, normalized [path].
+  @Deprecated('Use getResolvedUnit2() instead')
   Future<ResolvedUnitResult> getResolvedUnit(String path);
+
+  /// Return a future that will complete with information about the results of
+  /// resolving the file with the given absolute, normalized [path].
+  Future<SomeResolvedUnitResult> getResolvedUnit2(String path);
 
   /// Return a future that will complete with the source kind of the file with
   /// the given absolute, normalized [path]. If the path does not represent a

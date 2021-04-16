@@ -133,6 +133,11 @@ class NotValidResolvedUnitResultImpl extends NotValidFileResultImpl
   }
 
   @override
+  bool get exists {
+    throw StateError('This result is not valid');
+  }
+
+  @override
   LibraryElement get libraryElement {
     throw StateError('This result is not valid');
   }
@@ -331,7 +336,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 
 class ResolvedUnitResultImpl extends FileResultImpl
     implements ResolvedUnitResult {
-  /// Return `true` if the file exists.
+  @override
   final bool exists;
 
   @override

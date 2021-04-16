@@ -7,6 +7,7 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -25,7 +26,11 @@ class RuntimeCompletionComputer {
       this.code, this.offset, this.contextPath, this.contextOffset);
 
   Future<RuntimeCompletionResult> compute() async {
-    var contextResult = await analysisDriver.getResult(contextPath);
+    var contextResult = await analysisDriver.getResult2(contextPath);
+    if (contextResult is! ResolvedUnitResult) {
+      return RuntimeCompletionResult([], []);
+    }
+
     var session = contextResult.session;
 
     const codeMarker = '__code_\_';
@@ -59,8 +64,11 @@ class RuntimeCompletionComputer {
     // Update the context file content to include the code being completed.
     // Then resolve it, and restore the file to its initial state.
     var targetResult = await _withContextFileContent(targetCode, () async {
-      return await analysisDriver.getResult(contextPath);
+      return await analysisDriver.getResult2(contextPath);
     });
+    if (targetResult is! ResolvedUnitResult) {
+      return RuntimeCompletionResult([], []);
+    }
 
     var contributor = DartCompletionManager(
         // dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(targetResult)

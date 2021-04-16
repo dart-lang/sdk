@@ -24,6 +24,7 @@ import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -242,17 +243,16 @@ class AstPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    var result = await driver.getResult(filePath);
-    if (result == null) {
+    var result = await driver.getResult2(filePath);
+    if (result is ResolvedUnitResult) {
+      var writer = AstWriter(buf);
+      result.unit.accept(writer);
+    } else {
       p(
           'An AST could not be produced for the file '
           '<code>${escape(filePath)}</code>.',
           raw: true);
-      return;
     }
-
-    var writer = AstWriter(buf);
-    result.unit.accept(writer);
   }
 
   @override
@@ -829,17 +829,16 @@ class ElementModelPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    var result = await driver.getResult(filePath);
-    if (result == null) {
+    var result = await driver.getResult2(filePath);
+    if (result is ResolvedUnitResult) {
+      var writer = ElementWriter(buf);
+      result.unit.declaredElement.accept(writer);
+    } else {
       p(
           'An element model could not be produced for the file '
           '<code>${escape(filePath)}</code>.',
           raw: true);
-      return;
     }
-
-    var writer = ElementWriter(buf);
-    result.unit.declaredElement.accept(writer);
   }
 
   @override

@@ -51,6 +51,32 @@ class AnalysisSessionImpl_BazelWorkspaceTest
     expect(result.uri.toString(), 'package:dart.my/a.dart');
   }
 
+  void test_getResolvedUnit2_notFileOfUri() async {
+    var relPath = 'dart/my/lib/a.dart';
+    newFile('$workspaceRootPath/bazel-bin/$relPath');
+
+    var path = convertPath('$workspaceRootPath/$relPath');
+    var session = contextFor(path).currentSession;
+    var result = await session.getResolvedUnit2(path);
+    expect(result, isA<NotPathOfUriResult>());
+  }
+
+  void test_getResolvedUnit2_valid() async {
+    var file = newFile(
+      '$workspaceRootPath/dart/my/lib/a.dart',
+      content: 'class A {}',
+    );
+
+    var session = contextFor(file.path).currentSession;
+    var result =
+        await session.getResolvedUnit2(file.path) as ResolvedUnitResult;
+    expect(result.state, ResultState.VALID);
+    expect(result.path, file.path);
+    expect(result.errors, isEmpty);
+    expect(result.uri.toString(), 'package:dart.my/a.dart');
+  }
+
+  @deprecated
   void test_getResolvedUnit_notFileOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
     newFile('$workspaceRootPath/bazel-bin/$relPath');
@@ -62,6 +88,7 @@ class AnalysisSessionImpl_BazelWorkspaceTest
     expect(() => result.errors, throwsStateError);
   }
 
+  @deprecated
   void test_getResolvedUnit_valid() async {
     var file = newFile(
       '$workspaceRootPath/dart/my/lib/a.dart',
@@ -227,10 +254,26 @@ class B {}
     expect(node.length, 10);
   }
 
+  @deprecated
   test_getParsedLibrary_getElementDeclaration_notThisLibrary() async {
     newFile(testPath, content: '');
 
     var resolvedUnit = await session.getResolvedUnit(testPath);
+    var typeProvider = resolvedUnit.typeProvider;
+    var intClass = typeProvider.intType.element;
+
+    var parsedLibrary = session.getParsedLibrary(testPath);
+
+    expect(() {
+      parsedLibrary.getElementDeclaration(intClass);
+    }, throwsArgumentError);
+  }
+
+  test_getParsedLibrary_getElementDeclaration_notThisLibrary2() async {
+    newFile(testPath, content: '');
+
+    var resolvedUnit =
+        await session.getResolvedUnit2(testPath) as ResolvedUnitResult;
     var typeProvider = resolvedUnit.typeProvider;
     var intClass = typeProvider.intType.element;
 
@@ -578,6 +621,7 @@ part 'c.dart';
     }, throwsArgumentError);
   }
 
+  @deprecated
   test_getResolvedUnit() async {
     newFile(testPath, content: r'''
 class A {}
@@ -585,6 +629,22 @@ class B {}
 ''');
 
     var unitResult = await session.getResolvedUnit(testPath);
+    expect(unitResult.session, session);
+    expect(unitResult.path, testPath);
+    expect(unitResult.uri, Uri.parse('package:test/test.dart'));
+    expect(unitResult.unit!.declarations, hasLength(2));
+    expect(unitResult.typeProvider, isNotNull);
+    expect(unitResult.libraryElement, isNotNull);
+  }
+
+  test_getResolvedUnit2() async {
+    newFile(testPath, content: r'''
+class A {}
+class B {}
+''');
+
+    var unitResult =
+        await session.getResolvedUnit2(testPath) as ResolvedUnitResult;
     expect(unitResult.session, session);
     expect(unitResult.path, testPath);
     expect(unitResult.uri, Uri.parse('package:test/test.dart'));

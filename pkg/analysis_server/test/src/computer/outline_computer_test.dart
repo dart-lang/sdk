@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -30,7 +31,8 @@ class AbstractOutlineComputerTest extends AbstractContextTest
   Future<Outline> _computeOutline(String code) async {
     testCode = code;
     newFile(testPath, content: code);
-    var resolveResult = await session.getResolvedUnit(testPath);
+    var resolveResult =
+        await session.getResolvedUnit2(testPath) as ResolvedUnitResult;
     return DartUnitOutlineComputer(
       resolveResult,
       withBasicFlutter: true,

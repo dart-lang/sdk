@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show Position;
@@ -147,7 +148,10 @@ class CreateMethod extends CorrectionProducer {
       // use different utils
       var targetPath = targetClassElement.source.fullName;
       var targetResolveResult =
-          await resolvedResult.session.getResolvedUnit(targetPath);
+          await resolvedResult.session.getResolvedUnit2(targetPath);
+      if (targetResolveResult is! ResolvedUnitResult) {
+        return;
+      }
       utils = CorrectionUtils(targetResolveResult);
     }
     if (targetElement == null || targetNode == null) {

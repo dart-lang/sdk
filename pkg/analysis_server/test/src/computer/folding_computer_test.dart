@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/computer/computer_folding.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -555,7 +556,8 @@ main() {}
 
   Future<List<FoldingRegion>> _computeRegions(String sourceContent) async {
     newFile(sourcePath, content: sourceContent);
-    var result = await session.getResolvedUnit(sourcePath);
+    var result =
+        await session.getResolvedUnit2(sourcePath) as ResolvedUnitResult;
     var computer = DartUnitFoldingComputer(result.lineInfo, result.unit!);
     return computer.compute();
   }

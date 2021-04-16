@@ -1114,8 +1114,8 @@ class CompletionMetricsComputer {
     for (var filePath in context.contextRoot.analyzedFiles()) {
       if (file_paths.isDart(pathContext, filePath)) {
         try {
-          _resolvedUnitResult =
-              await context.currentSession.getResolvedUnit(filePath);
+          _resolvedUnitResult = await context.currentSession
+              .getResolvedUnit2(filePath) as ResolvedUnitResult;
 
           var analysisError = getFirstErrorOrNull(_resolvedUnitResult);
           if (analysisError != null) {
@@ -1144,8 +1144,8 @@ class CompletionMetricsComputer {
                   content: overlayContents,
                   modificationStamp: overlayModificationStamp++);
               context.driver.changeFile(filePath);
-              resolvedUnitResult =
-                  await context.currentSession.getResolvedUnit(filePath);
+              resolvedUnitResult = await context.currentSession
+                  .getResolvedUnit2(filePath) as ResolvedUnitResult;
             }
 
             // As this point the completion suggestions are computed,

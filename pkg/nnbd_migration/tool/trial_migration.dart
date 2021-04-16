@@ -10,6 +10,7 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -68,7 +69,8 @@ void main(List<String> args) async {
       var migration =
           NullabilityMigration(listener, getLineInfo, permissive: true);
       for (var file in localFiles) {
-        var resolvedUnit = await session.getResolvedUnit(file);
+        var resolvedUnit =
+            await session.getResolvedUnit2(file) as ResolvedUnitResult;
         if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
           migration.prepareInput(resolvedUnit);
         } else {
@@ -76,13 +78,15 @@ void main(List<String> args) async {
         }
       }
       for (var file in localFiles) {
-        var resolvedUnit = await session.getResolvedUnit(file);
+        var resolvedUnit =
+            await session.getResolvedUnit2(file) as ResolvedUnitResult;
         if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
           migration.processInput(resolvedUnit);
         }
       }
       for (var file in localFiles) {
-        var resolvedUnit = await session.getResolvedUnit(file);
+        var resolvedUnit =
+            await session.getResolvedUnit2(file) as ResolvedUnitResult;
         if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
           migration.finalizeInput(resolvedUnit);
         }

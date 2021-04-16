@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -396,7 +397,8 @@ void myMethod() {
 
   Future<List<ClosingLabel>> _computeElements(String sourceContent) async {
     newFile(sourcePath, content: sourceContent);
-    var result = await session.getResolvedUnit(sourcePath);
+    var result =
+        await session.getResolvedUnit2(sourcePath) as ResolvedUnitResult;
     var computer = DartUnitClosingLabelsComputer(result.lineInfo, result.unit!);
     return computer.compute();
   }

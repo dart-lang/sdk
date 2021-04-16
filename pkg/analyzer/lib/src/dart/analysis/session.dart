@@ -114,10 +114,17 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getResolvedLibraryByUri(element.source.uri);
   }
 
+  @Deprecated('Use getResolvedUnit2() instead')
   @override
   Future<ResolvedUnitResult> getResolvedUnit(String path) {
     _checkConsistency();
     return _driver.getResult(path);
+  }
+
+  @override
+  Future<SomeResolvedUnitResult> getResolvedUnit2(String path) {
+    _checkConsistency();
+    return _driver.getResult2(path);
   }
 
   @override
