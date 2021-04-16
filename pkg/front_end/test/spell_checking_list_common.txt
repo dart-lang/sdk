@@ -1726,6 +1726,7 @@ lightweight
 like
 likely
 limit
+limitation
 limited
 line
 linear
