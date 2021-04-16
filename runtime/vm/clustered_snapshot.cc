@@ -6112,12 +6112,14 @@ intptr_t Serializer::AssignRef(ObjectPtr object) {
 }
 
 intptr_t Serializer::AssignArtificialRef(ObjectPtr object) {
-  ASSERT(!object.IsHeapObject() || !object.IsInstructions());
-  ASSERT(heap_->GetObjectId(object) == kUnreachableReference);
   const intptr_t ref = -(next_ref_index_++);
   ASSERT(IsArtificialReference(ref));
-  heap_->SetObjectId(object, ref);
-  ASSERT(heap_->GetObjectId(object) == ref);
+  if (object != nullptr) {
+    ASSERT(!object.IsHeapObject() || !object.IsInstructions());
+    ASSERT(heap_->GetObjectId(object) == kUnreachableReference);
+    heap_->SetObjectId(object, ref);
+    ASSERT(heap_->GetObjectId(object) == ref);
+  }
   return ref;
 }
 
@@ -6133,7 +6135,11 @@ V8SnapshotProfileWriter::ObjectId Serializer::GetProfileId(
     ObjectPtr object) const {
   // Instructions are handled separately.
   ASSERT(!object->IsHeapObject() || !object->IsInstructions());
-  intptr_t heap_id = UnsafeRefId(object);
+  return GetProfileId(UnsafeRefId(object));
+}
+
+V8SnapshotProfileWriter::ObjectId Serializer::GetProfileId(
+    intptr_t heap_id) const {
   if (IsArtificialReference(heap_id)) {
     return {V8SnapshotProfileWriter::kArtificial, -heap_id};
   }
@@ -7086,13 +7092,24 @@ void Serializer::WriteDispatchTable(const Array& entries) {
 #if defined(DART_PRECOMPILER)
   if (kind() != Snapshot::kFullAOT) return;
 
-  AssignArtificialRef(entries.ptr());
-  const auto& dispatch_table_snapshot_id = GetProfileId(entries.ptr());
+  // Create an artifical node to which the bytes should be attributed. We
+  // don't attribute them to entries.ptr(), as we don't want to attribute the
+  // bytes for printing out a length of 0 to Object::null() when the dispatch
+  // table is empty.
+  const intptr_t profile_ref = AssignArtificialRef();
+  const auto& dispatch_table_profile_id = GetProfileId(profile_ref);
   if (profile_writer_ != nullptr) {
-    profile_writer_->AddRoot(dispatch_table_snapshot_id, "dispatch_table");
-    profile_writer_->SetObjectType(dispatch_table_snapshot_id, "DispatchTable");
+    profile_writer_->AddRoot(dispatch_table_profile_id, "dispatch_table");
+    profile_writer_->SetObjectType(dispatch_table_profile_id, "DispatchTable");
   }
-  WritingObjectScope scope(this, dispatch_table_snapshot_id);
+  WritingObjectScope scope(this, dispatch_table_profile_id);
+  if (profile_writer_ != nullptr) {
+    // We'll write the Array object as a property of the artificial dispatch
+    // table node, so Code objects otherwise unreferenced will have it as an
+    // ancestor.
+    CreateArtificialNodeIfNeeded(entries.ptr());
+    AttributePropertyRef(entries.ptr(), "<code entries>");
+  }
 
   const intptr_t bytes_before = bytes_written();
   const intptr_t table_length = entries.IsNull() ? 0 : entries.Length();
@@ -7182,23 +7199,6 @@ void Serializer::WriteDispatchTable(const Array& entries) {
     Write(repeat_count);
   }
   dispatch_table_size_ = bytes_written() - bytes_before;
-
-  // If any bytes were written for the dispatch table, add the elements of
-  // the dispatch table in the profile.
-  if (profile_writer_ != nullptr && !entries.IsNull()) {
-    for (intptr_t i = 0; i < entries.Length(); i++) {
-      auto const code = Code::RawCast(entries.At(i));
-      if (code == Code::null()) continue;
-      profile_writer_->AttributeReferenceTo(
-          dispatch_table_snapshot_id,
-          {
-              V8SnapshotProfileWriter::Reference::kElement,
-              {.offset = i},
-          },
-          GetProfileId(code));
-    }
-  }
-
 #endif  // defined(DART_PRECOMPILER)
 }
 
