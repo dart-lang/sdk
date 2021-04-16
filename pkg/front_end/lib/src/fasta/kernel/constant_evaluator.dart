@@ -3605,6 +3605,7 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
     Constant result;
     if (node.expression != null) {
       result = evaluate(node.expression);
+      if (result is AbortConstant) return new AbortStatus(result);
     }
     return new ReturnStatus(result);
   }
