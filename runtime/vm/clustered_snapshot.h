@@ -213,7 +213,7 @@ class Serializer : public ThreadStackResource {
                      const char* type = nullptr,
                      const char* name = nullptr);
   intptr_t AssignRef(ObjectPtr object);
-  intptr_t AssignArtificialRef(ObjectPtr object = nullptr);
+  intptr_t AssignArtificialRef(ObjectPtr object);
 
   void Push(ObjectPtr object);
 
@@ -317,7 +317,6 @@ class Serializer : public ThreadStackResource {
   void Align(intptr_t alignment) { stream_->Align(alignment); }
 
   V8SnapshotProfileWriter::ObjectId GetProfileId(ObjectPtr object) const;
-  V8SnapshotProfileWriter::ObjectId GetProfileId(intptr_t ref) const;
 
   void WriteRootRef(ObjectPtr object, const char* name = nullptr) {
     intptr_t id = RefId(object);
