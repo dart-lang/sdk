@@ -135,6 +135,7 @@ class5b
 class5c
 class5d
 cloneable
+cm
 cmd
 cmp
 cnn
