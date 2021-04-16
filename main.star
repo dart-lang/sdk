@@ -1656,13 +1656,20 @@ luci.console_view_entry(
     console_view = "flutter-hhh",
 )
 
+def chromium_infra_recipe(name, cipd_version):
+    return luci.recipe(
+        name = name,
+        cipd_package =
+            "infra/recipe_bundles/chromium.googlesource.com/infra/infra",
+        cipd_version = cipd_version,
+        use_bbagent = True,
+    )
+
 # Rolls dart recipe dependencies.
 dart_infra_builder(
     name = "recipe-deps-roller",
-    executable = luci.recipe(
-        name = "recipe_autoroller",
-        cipd_package =
-            "infra/recipe_bundles/chromium.googlesource.com/infra/infra",
+    executable = chromium_infra_recipe(
+        "recipe_autoroller",
         cipd_version = "git_revision:905c1df843d7771bf3adc0cf21f58eb9498ff063",
     ),
     execution_timeout = 20 * time.minute,
@@ -1679,10 +1686,8 @@ dart_infra_builder(
 
 dart_infra_builder(
     name = "recipe-bundler",
-    executable = luci.recipe(
-        name = "recipe_bundler",
-        cipd_package =
-            "infra/recipe_bundles/chromium.googlesource.com/infra/infra",
+    executable = chromium_infra_recipe(
+        "recipe_bundler",
         cipd_version = "git_revision:40621e908eb88bd10451ee9d013b7ef89ea91e37",
     ),
     execution_timeout = 5 * time.minute,
