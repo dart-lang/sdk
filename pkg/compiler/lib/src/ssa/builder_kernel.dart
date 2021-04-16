@@ -48,7 +48,6 @@ import '../universe/call_structure.dart';
 import '../universe/feature.dart';
 import '../universe/member_usage.dart' show MemberAccess;
 import '../universe/selector.dart';
-import '../universe/side_effects.dart' show SideEffects;
 import '../universe/target_checks.dart' show TargetChecks;
 import '../universe/use.dart' show ConstantUse, StaticUse, TypeUse;
 import '../world.dart';
@@ -4168,10 +4167,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       _handleForeignDartClosureToJs(invocation, 'DART_CLOSURE_TO_JS');
     } else if (name == 'RAW_DART_FUNCTION_REF') {
       _handleForeignRawFunctionRef(invocation, 'RAW_DART_FUNCTION_REF');
-    } else if (name == 'JS_SET_STATIC_STATE') {
-      _handleForeignJsSetStaticState(invocation);
-    } else if (name == 'JS_GET_STATIC_STATE') {
-      _handleForeignJsGetStaticState(invocation);
     } else if (name == 'JS_GET_NAME') {
       _handleForeignJsGetName(invocation);
     } else if (name == 'JS_EMBEDDED_GLOBAL') {
@@ -4497,37 +4492,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         {'text': "'$name' $problem."});
     stack.add(graph.addConstantNull(closedWorld)); // Result expected on stack.
     return;
-  }
-
-  void _handleForeignJsSetStaticState(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation,
-        minPositional: 1, maxPositional: 1)) {
-      // Result expected on stack.
-      stack.add(graph.addConstantNull(closedWorld));
-      return;
-    }
-
-    List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
-
-    String isolateName = _namer.staticStateHolder;
-    SideEffects sideEffects = new SideEffects.empty();
-    sideEffects.setAllSideEffects();
-    push(new HForeignCode(js.js.parseForeignJS("$isolateName = #"),
-        _abstractValueDomain.dynamicType, inputs,
-        nativeBehavior: NativeBehavior.CHANGES_OTHER, effects: sideEffects));
-  }
-
-  void _handleForeignJsGetStaticState(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation,
-        minPositional: 0, maxPositional: 0)) {
-      // Result expected on stack.
-      stack.add(graph.addConstantNull(closedWorld));
-      return;
-    }
-
-    push(new HForeignCode(js.js.parseForeignJS(_namer.staticStateHolder),
-        _abstractValueDomain.dynamicType, <HInstruction>[],
-        nativeBehavior: NativeBehavior.DEPENDS_OTHER));
   }
 
   void _handleForeignJsGetName(ir.StaticInvocation invocation) {

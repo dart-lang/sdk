@@ -34,9 +34,6 @@ jsEmbeddedGlobal_getTypeFromName() {
 /*member: jsStringConcat:SideEffects(reads nothing; writes nothing)*/
 jsStringConcat() => JS_STRING_CONCAT('a', 'b');
 
-/*member: jsGetStaticState:SideEffects(reads nothing; writes anything)*/
-jsGetStaticState() => JS_GET_STATIC_STATE();
-
 /*member: main:SideEffects(reads anything; writes anything)*/
 main() {
   jsCallInt();
@@ -47,6 +44,4 @@ main() {
   jsEmbeddedGlobal_getTypeFromName();
 
   jsStringConcat();
-
-  jsGetStaticState();
 }
