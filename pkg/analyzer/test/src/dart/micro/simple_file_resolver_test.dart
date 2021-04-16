@@ -628,7 +628,49 @@ class A {}
     _assertRemovedPaths(isEmpty);
   }
 
-  test_resolve_part_of() async {
+  test_resolve_libraryWithPart_noLibraryDiscovery() async {
+    var partPath = '/workspace/dart/test/lib/a.dart';
+    newFile(partPath, content: r'''
+part of 'test.dart';
+
+class A {}
+''');
+
+    await assertNoErrorsInCode(r'''
+part 'a.dart';
+
+void f(A a) {}
+''');
+
+    // We started resolution from the library, and then followed to the part.
+    // So, the part knows its library, there is no need to discover it.
+    _assertDiscoveredLibraryForParts([]);
+  }
+
+  test_resolve_part_of_name() async {
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+library my.lib;
+
+part 'test.dart';
+
+class A {
+  int m;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+part of my.lib;
+
+void func() {
+  var a = A();
+  print(a.m);
+}
+''');
+
+    _assertDiscoveredLibraryForParts([result.path!]);
+  }
+
+  test_resolve_part_of_uri() async {
     newFile('/workspace/dart/test/lib/a.dart', content: r'''
 part 'test.dart';
 
@@ -645,6 +687,8 @@ void func() {
   print(a.m);
 }
 ''');
+
+    _assertDiscoveredLibraryForParts([result.path!]);
   }
 
   test_resolveFile_cache() async {
@@ -788,6 +832,10 @@ import 'foo:bar';
 ''', [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9),
     ]);
+  }
+
+  void _assertDiscoveredLibraryForParts(List<String> expected) {
+    expect(fileResolver.fsState!.testView.partsDiscoveredLibraries, expected);
   }
 
   void _assertRemovedPaths(Matcher matcher) {

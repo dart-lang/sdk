@@ -666,7 +666,11 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
   @Id(5)
   List<int> get lineStarts;
 
-  /// URI of the `part of` directive.
+  /// The library name of the `part of my.name;` directive.
+  @Id(8)
+  String get partOfName;
+
+  /// URI of the `part of 'uri';` directive.
   @Id(7)
   String get partOfUri;
 
