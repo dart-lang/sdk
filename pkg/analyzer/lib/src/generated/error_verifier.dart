@@ -609,6 +609,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForBuiltInIdentifierAsName(
           name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME);
     }
+    _checkExtensionBadFunctionUse(node);
     super.visitExtensionDeclaration(node);
     _enclosingExtension = null;
   }
@@ -959,6 +960,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForMainFunction(node.name);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       //      _checkForBadFunctionUse(node);
+      _checkMixinBasFunctionUse(node);
       super.visitMixinDeclaration(node);
     } finally {
       _enclosingClass = outerClass;
@@ -1575,20 +1577,70 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  /// Verifies that the mixin is not named `Function` and that its type
+  /// parameters don't named `Function`.
+  void _checkMixinBasFunctionUse(MixinDeclaration node) {
+    final functionToken = "Function";
+    var typeParams = node.typeParameters;
+    if (node.name.name == functionToken) {
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.FUNCTION_MIXIN_DECLARATION, node.name);
+    }
+    if (typeParams != null) {
+      for (TypeParameter parameter in typeParams.typeParameters) {
+        if (parameter.name.name == functionToken) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.FUNCTION_AS_TYPE_PARAMETER, parameter);
+        }
+      }
+    }
+  }
+
+  /// Verifies that the extension is not named `Function` and that its type
+  /// parameters don't named `Function`.
+  void _checkExtensionBadFunctionUse(ExtensionDeclaration node) {
+    final functionToken = "Function";
+    var typeParams = node.typeParameters;
+    if (node.name != null && node.name?.name == functionToken) {
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.FUNCTION_EXTENSION_DECLARATION, node.name!);
+    }
+    if (typeParams != null) {
+      for (TypeParameter parameter in typeParams.typeParameters) {
+        if (parameter.name.name == functionToken) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.FUNCTION_AS_TYPE_PARAMETER, parameter);
+        }
+      }
+    }
+  }
+
   /// Verifies that the class is not named `Function` and that it doesn't
   /// extends/implements/mixes in `Function`.
+  /// Also Verifies that the class's type parameters is not named `Function`.
   void _checkForBadFunctionUse(ClassDeclaration node) {
     var extendsClause = node.extendsClause;
     var withClause = node.withClause;
+    var typeParams = node.typeParameters;
+    final functionToken = "Function";
 
-    if (node.name.name == "Function") {
+    if (node.name.name == functionToken) {
       errorReporter.reportErrorForNode(
-          HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION, node.name);
+          CompileTimeErrorCode.FUNCTION_CLASS_DECLARATION, node.name);
+    }
+
+    if (typeParams != null) {
+      for (TypeParameter parameter in typeParams.typeParameters) {
+        if (parameter.name.name == functionToken) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.FUNCTION_AS_TYPE_PARAMETER, parameter);
+        }
+      }
     }
 
     if (extendsClause != null) {
       var superElement = extendsClause.superclass.name.staticElement;
-      if (superElement != null && superElement.name == "Function") {
+      if (superElement != null && superElement.name == functionToken) {
         errorReporter.reportErrorForNode(
             HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
       }
@@ -1597,7 +1649,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (withClause != null) {
       for (TypeName type in withClause.mixinTypes) {
         var mixinElement = type.name.staticElement;
-        if (mixinElement != null && mixinElement.name == "Function") {
+        if (mixinElement != null && mixinElement.name == functionToken) {
           errorReporter.reportErrorForNode(
               HintCode.DEPRECATED_MIXIN_FUNCTION, type);
         }

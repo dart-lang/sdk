@@ -13721,6 +13721,34 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "to '{1}'.",
           hasPublishedDocs: true);
 
+  static const CompileTimeErrorCode FUNCTION_CLASS_DECLARATION =
+      CompileTimeErrorCode(
+         "FUNCTION_CLASS_DECLARATION",
+         "'Function' is a built-in identifier, could not used as a class name",
+         correction: "Try renaming the class.",
+      );
+
+  static const CompileTimeErrorCode FUNCTION_AS_TYPE_PARAMETER =
+      CompileTimeErrorCode(
+        "FUNCTION_AS_TYPE_PARAMETER",
+        "'Function' is a built-in identifier, could not used as a type parameter name",
+        correction: "Try renaming the type parameter.",
+      );
+
+  static const CompileTimeErrorCode FUNCTION_EXTENSION_DECLARATION =
+      CompileTimeErrorCode(
+        "FUNCTION_EXTENSION_DECLARATION",
+        "'Function' is a built-in identifier, could not used as a extension name",
+        correction: "Try renaming the extension.",
+      );
+
+  static const CompileTimeErrorCode FUNCTION_MIXIN_DECLARATION =
+      CompileTimeErrorCode(
+        "FUNCTION_MIXIN_DECLARATION",
+        "'Function' is a built-in identifier, could not used as a mixin name",
+        correction: "Try renaming the mixin.",
+      );
+
   /**
    * Initialize a newly created error code to have the given [name]. The message
    * associated with the error will be created from the given [message]

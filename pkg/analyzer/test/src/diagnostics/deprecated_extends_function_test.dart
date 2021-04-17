@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,7 +29,7 @@ class A extends Function {}
 class Function {}
 class A extends Function {}
 ''', [
-      error(HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION, 6, 8),
+      error(CompileTimeErrorCode.FUNCTION_CLASS_DECLARATION, 6, 8),
       error(HintCode.DEPRECATED_EXTENDS_FUNCTION, 34, 8),
     ]);
   }
