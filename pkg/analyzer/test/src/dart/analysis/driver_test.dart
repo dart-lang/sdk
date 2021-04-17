@@ -1122,21 +1122,16 @@ bbb() {}
     expect(allExceptions, isEmpty);
     expect(allResults, isEmpty);
 
-    var result = await driver.getResult(templatePath);
-    expect(result.state, ResultState.NOT_FILE_OF_URI);
-    expect(allExceptions, isEmpty);
-    expect(allResults, isEmpty);
-
     {
-      var elementResult = await driver.getUnitElement(templatePath);
-      expect(elementResult.state, ResultState.NOT_FILE_OF_URI);
+      var result = await driver.getResult(templatePath);
+      expect(result.state, ResultState.NOT_FILE_OF_URI);
       expect(allExceptions, isEmpty);
       expect(allResults, isEmpty);
     }
 
     {
-      var elementResult = await driver.getUnitElement2(templatePath);
-      expect(elementResult, isA<NotPathOfUriResult>());
+      var result = await driver.getUnitElement(templatePath);
+      expect(result.state, ResultState.NOT_FILE_OF_URI);
       expect(allExceptions, isEmpty);
       expect(allResults, isEmpty);
     }
@@ -1183,22 +1178,23 @@ bbb() {}
     expect(allExceptions, isEmpty);
     expect(allResults, isEmpty);
 
-    var result = await driver.getResult2(templatePath);
-    expect(result, isA<NotPathOfUriResult>());
-    expect(allExceptions, isEmpty);
-    expect(allResults, isEmpty);
-
     {
-      // ignore: deprecated_member_use_from_same_package
-      var elementResult = await driver.getUnitElement(templatePath);
-      expect(elementResult.state, ResultState.NOT_FILE_OF_URI);
+      var result = await driver.getResolvedLibrary2(templatePath);
+      expect(result, isA<NotPathOfUriResult>());
       expect(allExceptions, isEmpty);
       expect(allResults, isEmpty);
     }
 
     {
-      var elementResult = await driver.getUnitElement2(templatePath);
-      expect(elementResult, isA<NotPathOfUriResult>());
+      var result = await driver.getResult2(templatePath);
+      expect(result, isA<NotPathOfUriResult>());
+      expect(allExceptions, isEmpty);
+      expect(allResults, isEmpty);
+    }
+
+    {
+      var result = await driver.getUnitElement2(templatePath);
+      expect(result, isA<NotPathOfUriResult>());
       expect(allExceptions, isEmpty);
       expect(allResults, isEmpty);
     }
@@ -1462,6 +1458,58 @@ class B {}
     }, throwsArgumentError);
   }
 
+  test_getResolvedLibrary2() async {
+    var content = 'class A {}';
+    addTestFile(content);
+    var result = await driver.getResolvedLibrary2(testFile);
+    result as ResolvedLibraryResult;
+    expect(result.units, hasLength(1));
+    expect(result.units![0].path, testFile);
+    expect(result.units![0].content, content);
+    expect(result.units![0].unit!, isNotNull);
+    expect(result.units![0].errors, isEmpty);
+  }
+
+  test_getResolvedLibrary2_invalidPath_notAbsolute() async {
+    var result = await driver.getResolvedLibrary2('not_absolute.dart');
+    expect(result, isA<InvalidPathResult>());
+  }
+
+  test_getResolvedLibrary2_notLibraryButPart() async {
+    addTestFile('part of my;');
+    var result = await driver.getResolvedLibrary2(testFile);
+    expect(result, isA<NotLibraryButPartResult>());
+  }
+
+  test_getResolvedLibraryByUri2() async {
+    var content = 'class A {}';
+    addTestFile(content);
+
+    var uri = Uri.parse('package:test/test.dart');
+    var result = await driver.getResolvedLibraryByUri2(uri);
+    result as ResolvedLibraryResult;
+    expect(result.uri, uri);
+    expect(result.element!.source.fullName, testFile);
+    expect(result.units, hasLength(1));
+    expect(result.units![0].uri, uri);
+    expect(result.units![0].path, testFile);
+    expect(result.units![0].content, content);
+  }
+
+  test_getResolvedLibraryByUri2_notLibrary() async {
+    addTestFile('part of my;');
+
+    var uri = Uri.parse('package:test/test.dart');
+    var result = await driver.getResolvedLibraryByUri2(uri);
+    expect(result, isA<NotLibraryButPartResult>());
+  }
+
+  test_getResolvedLibraryByUri2_unresolvedUri() async {
+    var uri = Uri.parse('package:unknown/a.dart');
+    var result = await driver.getResolvedLibraryByUri2(uri);
+    expect(result, isA<CannotResolveUriResult>());
+  }
+
   test_getResult() async {
     String content = 'int f() => 42;';
     addTestFile(content, priority: true);
@@ -1483,7 +1531,7 @@ class B {}
     expect(allResults, [result]);
   }
 
-  test_getResult2_notAbsolutePath() async {
+  test_getResult2_invalidPath_notAbsolute() async {
     var result = await driver.getResult2('not_absolute.dart');
     expect(result, isA<InvalidPathResult>());
   }
@@ -2056,11 +2104,11 @@ main() {
 import 'package:test/b.dart';
 ''');
 
-    await driver.getResolvedLibrary(a);
+    await driver.getResolvedLibrary2(a);
     await driver.getUnitElement2(b);
   }
 
-  test_getUnitElement2_notAbsolutePath() async {
+  test_getUnitElement2_invalidPath_notAbsolute() async {
     var result = await driver.getUnitElement2('not_absolute.dart');
     expect(result, isA<InvalidPathResult>());
   }

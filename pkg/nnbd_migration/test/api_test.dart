@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:test/test.dart';
@@ -62,8 +63,9 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);
     for (var path in input.keys) {
-      if (!(session.getFile(path)).isPart) {
-        for (var unit in (await session.getResolvedLibrary(path)).units) {
+      var resolvedLibrary = await session.getResolvedLibrary2(path);
+      if (resolvedLibrary is ResolvedLibraryResult) {
+        for (var unit in resolvedLibrary.units) {
           migration.prepareInput(unit);
         }
       }
@@ -71,16 +73,18 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     expect(migration.unmigratedDependencies, isEmpty);
     _betweenStages();
     for (var path in input.keys) {
-      if (!(session.getFile(path)).isPart) {
-        for (var unit in (await session.getResolvedLibrary(path)).units) {
+      var resolvedLibrary = await session.getResolvedLibrary2(path);
+      if (resolvedLibrary is ResolvedLibraryResult) {
+        for (var unit in resolvedLibrary.units) {
           migration.processInput(unit);
         }
       }
     }
     _betweenStages();
     for (var path in input.keys) {
-      if (!(session.getFile(path)).isPart) {
-        for (var unit in (await session.getResolvedLibrary(path)).units) {
+      var resolvedLibrary = await session.getResolvedLibrary2(path);
+      if (resolvedLibrary is ResolvedLibraryResult) {
+        for (var unit in resolvedLibrary.units) {
           migration.finalizeInput(unit);
         }
       }

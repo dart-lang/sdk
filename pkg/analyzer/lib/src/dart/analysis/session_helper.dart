@@ -36,22 +36,17 @@ class AnalysisSessionHelper {
   Future<ElementDeclarationResult?> getElementDeclaration(
       Element element) async {
     var libraryPath = element.library!.source.fullName;
-
-    // This should not happen in valid code, but sometimes we treat a file
-    // with a `part of` directive as a library, because there is no library
-    // that contains this part, or because it is imported as a library.
-    if (isPart(libraryPath)) {
-      return null;
-    }
-
     var resolvedLibrary = await _getResolvedLibrary(libraryPath);
-    return resolvedLibrary.getElementDeclaration(element);
+    return resolvedLibrary?.getElementDeclaration(element);
   }
 
   /// Return the resolved unit that declares the given [element].
   Future<ResolvedUnitResult?> getResolvedUnitByElement(Element element) async {
     var libraryPath = element.library!.source.fullName;
     var resolvedLibrary = await _getResolvedLibrary(libraryPath);
+    if (resolvedLibrary == null) {
+      return null;
+    }
 
     var unitPath = element.source!.fullName;
     return resolvedLibrary.units!.singleWhere((resolvedUnit) {
@@ -79,11 +74,13 @@ class AnalysisSessionHelper {
   }
 
   /// Return a newly resolved, or cached library with the given [path].
-  Future<ResolvedLibraryResult> _getResolvedLibrary(String path) async {
+  Future<ResolvedLibraryResult?> _getResolvedLibrary(String path) async {
     var result = _resolvedLibraries[path];
     if (result == null) {
-      result = await session.getResolvedLibrary(path);
-      _resolvedLibraries[path] = result;
+      var some = await session.getResolvedLibrary2(path);
+      if (some is ResolvedLibraryResult) {
+        result = _resolvedLibraries[path] = some;
+      }
     }
     return result;
   }

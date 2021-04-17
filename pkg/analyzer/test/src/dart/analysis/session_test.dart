@@ -5,7 +5,9 @@
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -49,6 +51,16 @@ class AnalysisSessionImpl_BazelWorkspaceTest
     expect(result.path, file.path);
     expect(result.errors, hasLength(1));
     expect(result.uri.toString(), 'package:dart.my/a.dart');
+  }
+
+  void test_getResolvedLibrary2_notFileOfUri() async {
+    var relPath = 'dart/my/lib/a.dart';
+    newFile('$workspaceRootPath/bazel-bin/$relPath');
+
+    var path = convertPath('$workspaceRootPath/$relPath');
+    var session = contextFor(path).currentSession;
+    var result = await session.getResolvedLibrary2(path);
+    expect(result, isA<NotPathOfUriResult>());
   }
 
   void test_getResolvedUnit2_notFileOfUri() async {
@@ -103,6 +115,17 @@ class AnalysisSessionImpl_BazelWorkspaceTest
     expect(result.uri.toString(), 'package:dart.my/a.dart');
   }
 
+  void test_getUnitElement2_invalidPath_notAbsolute() async {
+    var file = newFile(
+      '$workspaceRootPath/dart/my/lib/a.dart',
+      content: 'class A {}',
+    );
+
+    var session = contextFor(file.path).currentSession;
+    var result = await session.getUnitElement2('not_absolute.dart');
+    expect(result, isA<InvalidPathResult>());
+  }
+
   void test_getUnitElement2_notPathOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
     newFile('$workspaceRootPath/bazel-bin/$relPath');
@@ -120,8 +143,7 @@ class AnalysisSessionImpl_BazelWorkspaceTest
     );
 
     var session = contextFor(file.path).currentSession;
-    var result = await session.getUnitElement2(file.path);
-    result as UnitElementResult;
+    var result = await session.getUnitElementValid(file.path);
     expect(result.state, ResultState.VALID);
     expect(result.path, file.path);
     expect(result.element.types, hasLength(1));
@@ -481,7 +503,7 @@ class B2 extends X {}
 ''';
     newFile(b, content: bContent);
 
-    var resolvedLibrary = await session.getResolvedLibrary(a);
+    var resolvedLibrary = await session.getResolvedLibraryValid(a);
     expect(resolvedLibrary.session, session);
     expect(resolvedLibrary.path, a);
     expect(resolvedLibrary.uri, Uri.parse('package:test/a.dart'));
@@ -528,10 +550,22 @@ class B2 extends X {}
     expect(bNode.declaredElement!.name, 'B');
   }
 
+  test_getResolvedLibrary2_invalidPath_notAbsolute() async {
+    var result = await session.getResolvedLibrary2('not_absolute.dart');
+    expect(result, isA<InvalidPathResult>());
+  }
+
+  test_getResolvedLibrary2_notLibrary() async {
+    newFile(testPath, content: 'part of "a.dart";');
+
+    var result = await session.getResolvedLibrary2(testPath);
+    expect(result, isA<NotLibraryButPartResult>());
+  }
+
   test_getResolvedLibrary_getElementDeclaration_notThisLibrary() async {
     newFile(testPath, content: '');
 
-    var resolvedLibrary = await session.getResolvedLibrary(testPath);
+    var resolvedLibrary = await session.getResolvedLibraryValid(testPath);
 
     expect(() {
       var intClass = resolvedLibrary.typeProvider.intType.element;
@@ -544,7 +578,7 @@ class B2 extends X {}
 int foo = 0;
 ''');
 
-    var resolvedLibrary = await session.getResolvedLibrary(testPath);
+    var resolvedLibrary = await session.getResolvedLibraryValid(testPath);
     var unitElement = resolvedLibrary.element!.definingCompilationUnit;
 
     var fooElement = unitElement.topLevelVariables[0];
@@ -570,7 +604,7 @@ part ':[invalid uri].dart';
 part 'c.dart';
 ''');
 
-    var resolvedLibrary = await session.getResolvedLibrary(testPath);
+    var resolvedLibrary = await session.getResolvedLibraryValid(testPath);
 
     expect(resolvedLibrary.units, hasLength(3));
     expect(
@@ -587,14 +621,16 @@ part 'c.dart';
     );
   }
 
+  @deprecated
   test_getResolvedLibrary_notLibrary() async {
     newFile(testPath, content: 'part of "a.dart";');
 
-    expect(() {
-      session.getResolvedLibrary(testPath);
+    expect(() async {
+      await session.getResolvedLibrary(testPath);
     }, throwsArgumentError);
   }
 
+  @deprecated
   test_getResolvedLibraryByElement() async {
     newFile(testPath, content: '');
 
@@ -608,6 +644,32 @@ part 'c.dart';
     expect(resolvedLibrary.units![0].unit!.declaredElement, isNotNull);
   }
 
+  test_getResolvedLibraryByElement2() async {
+    newFile(testPath, content: '');
+
+    var element = await session.getLibraryByUri('package:test/test.dart');
+
+    var result = await session.getResolvedLibraryByElementValid(element);
+    expect(result.session, session);
+    expect(result.path, testPath);
+    expect(result.uri, Uri.parse('package:test/test.dart'));
+    expect(result.units, hasLength(1));
+    expect(result.units![0].unit!.declaredElement, isNotNull);
+  }
+
+  test_getResolvedLibraryByElement2_differentSession() async {
+    newFile(testPath, content: '');
+
+    var element = await session.getLibraryByUri('package:test/test.dart');
+
+    var aaaSession =
+        contextCollection.contextFor(aaaContextPath).currentSession;
+
+    var result = await aaaSession.getResolvedLibraryByElement2(element);
+    expect(result, isA<NotElementOfThisSessionResult>());
+  }
+
+  @deprecated
   test_getResolvedLibraryByElement_differentSession() async {
     newFile(testPath, content: '');
 
@@ -690,8 +752,7 @@ class A {}
 class B {}
 ''');
 
-    var unitResult = await session.getUnitElement2(testPath);
-    unitResult as UnitElementResult;
+    var unitResult = await session.getUnitElementValid(testPath);
     expect(unitResult.session, session);
     expect(unitResult.path, testPath);
     expect(unitResult.uri, Uri.parse('package:test/test.dart'));
@@ -703,5 +764,20 @@ class B {}
 
   test_resourceProvider() async {
     expect(session.resourceProvider, resourceProvider);
+  }
+}
+
+extension on AnalysisSession {
+  Future<UnitElementResult> getUnitElementValid(String path) async {
+    return await getUnitElement2(path) as UnitElementResult;
+  }
+
+  Future<ResolvedLibraryResult> getResolvedLibraryValid(String path) async {
+    return await getResolvedLibrary2(path) as ResolvedLibraryResult;
+  }
+
+  Future<ResolvedLibraryResult> getResolvedLibraryByElementValid(
+      LibraryElement element) async {
+    return await getResolvedLibraryByElement2(element) as ResolvedLibraryResult;
   }
 }

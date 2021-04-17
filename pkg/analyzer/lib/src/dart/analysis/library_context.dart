@@ -63,7 +63,7 @@ class LibraryContext {
     required DeclaredVariables declaredVariables,
     required SourceFactory sourceFactory,
     required this.externalSummaries,
-  })   : logger = logger,
+  })  : logger = logger,
         byteStore = byteStore,
         analysisSession = session {
     var synchronousSession =

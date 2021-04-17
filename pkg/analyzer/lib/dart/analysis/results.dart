@@ -42,6 +42,12 @@ abstract class AnalysisResultWithErrors implements FileResult {
   List<AnalysisError> get errors;
 }
 
+/// The type of [InvalidResult] returned when the given URI cannot be resolved.
+///
+/// Clients may not extend, implement or mix-in this class.
+class CannotResolveUriResult
+    implements InvalidResult, SomeResolvedLibraryResult {}
+
 /// The declaration of an [Element].
 abstract class ElementDeclarationResult {
   /// The [Element] that this object describes.
@@ -86,12 +92,30 @@ abstract class FileResult implements AnalysisResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InvalidPathResult
-    implements InvalidResult, SomeResolvedUnitResult, SomeUnitElementResult {}
+    implements
+        InvalidResult,
+        SomeResolvedLibraryResult,
+        SomeResolvedUnitResult,
+        SomeUnitElementResult {}
 
 /// The base class for any invalid result.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InvalidResult {}
+
+/// The type of [InvalidResult] returned when the given element was not
+/// created by the requested session.
+///
+/// Clients may not extend, implement or mix-in this class.
+class NotElementOfThisSessionResult
+    implements InvalidResult, SomeResolvedLibraryResult {}
+
+/// The type of [InvalidResult] returned when the given file is not a library,
+/// but a part of a library.
+///
+/// Clients may not extend, implement or mix-in this class.
+class NotLibraryButPartResult
+    implements InvalidResult, SomeResolvedLibraryResult {}
 
 /// The type of [InvalidResult] returned when the given file path does not
 /// represent the corresponding URI.
@@ -102,7 +126,11 @@ abstract class InvalidResult {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 class NotPathOfUriResult
-    implements InvalidResult, SomeResolvedUnitResult, SomeUnitElementResult {}
+    implements
+        InvalidResult,
+        SomeResolvedLibraryResult,
+        SomeResolvedUnitResult,
+        SomeUnitElementResult {}
 
 /// The result of building parsed AST(s) for the whole library.
 ///
@@ -155,7 +183,8 @@ abstract class ParseStringResult {
 /// The result of building resolved AST(s) for the whole library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ResolvedLibraryResult implements AnalysisResult {
+abstract class ResolvedLibraryResult
+    implements SomeResolvedLibraryResult, AnalysisResult {
   /// The element representing this library.
   LibraryElement? get element;
 
@@ -219,6 +248,14 @@ enum ResultState {
   VALID
 }
 
+/// The result of building resolved AST(s) for the whole library.
+///
+/// Clients may not extend, implement or mix-in this class.
+///
+/// There are existing implementations of this class.
+/// [ResolvedLibraryResult] represents a valid result.
+abstract class SomeResolvedLibraryResult {}
+
 /// The result of building a resolved AST for a single file. The errors returned
 /// include both syntactic and semantic errors.
 ///
@@ -255,3 +292,10 @@ abstract class UnitElementResult
   /// to need to be re-analyzed.
   String get signature;
 }
+
+/// The type of [InvalidResult] returned when the given URI corresponds to
+/// a library that is served from an external summary bundle.
+///
+/// Clients may not extend, implement or mix-in this class.
+class UriOfExternalLibraryResult
+    implements InvalidResult, SomeResolvedLibraryResult {}

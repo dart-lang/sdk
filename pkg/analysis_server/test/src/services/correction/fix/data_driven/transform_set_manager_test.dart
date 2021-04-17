@@ -5,6 +5,8 @@
 // @dart = 2.9
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -35,7 +37,7 @@ class TransformSetManagerTest extends AbstractContextTest {
 
     var testFile = convertPath('/home/test/lib/test.dart');
     addSource(testFile, '');
-    var result = await session.getResolvedLibrary(testFile);
+    var result = await session.getResolvedLibraryValid(testFile);
     var sets = manager.forLibrary(result.element);
     expect(sets, hasLength(2));
   }
@@ -46,7 +48,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     addSource('/home/test/pubspec.yaml', '');
     var testFile = convertPath('/home/test/lib/test.dart');
     addSource(testFile, '');
-    var result = await session.getResolvedLibrary(testFile);
+    var result = await session.getResolvedLibraryValid(testFile);
     var sets = manager.forLibrary(result.element);
     expect(sets, hasLength(0));
   }
@@ -65,5 +67,11 @@ transforms:
     - kind: 'rename'
       newName: 'B'
 ''');
+  }
+}
+
+extension on AnalysisSession {
+  Future<ResolvedLibraryResult> getResolvedLibraryValid(String path) async {
+    return await getResolvedLibrary2(path) as ResolvedLibraryResult;
   }
 }

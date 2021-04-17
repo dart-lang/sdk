@@ -455,8 +455,8 @@ class GetElementDeclarationResolvedTest extends PubPackageResolutionTest
     return library.getElementDeclaration(element);
   }
 
-  Future<ResolvedLibraryResult> _getResolvedLibrary(String path) {
+  Future<ResolvedLibraryResult> _getResolvedLibrary(String path) async {
     var session = contextFor(path).currentSession;
-    return session.getResolvedLibrary(path);
+    return await session.getResolvedLibrary2(path) as ResolvedLibraryResult;
   }
 }

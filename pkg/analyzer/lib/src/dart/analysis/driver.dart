@@ -155,7 +155,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _requestedFiles = <String, List<Completer<ResolvedUnitResult>>>{};
 
   /// The mapping from the files for which analysis was requested using
-  /// [getResolvedLibrary] to the [Completer]s to report the result.
+  /// [getResolvedLibrary2] to the [Completer]s to report the result.
   final _requestedLibraries =
       <String, List<Completer<ResolvedLibraryResult>>>{};
 
@@ -713,22 +713,56 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// state (including new states of the files previously reported using
   /// [changeFile]), prior to the next time the analysis state transitions
   /// to "idle".
-  Future<ResolvedLibraryResult> getResolvedLibrary(String path) {
+  @Deprecated('Use getResolvedLibrary2() instead')
+  Future<ResolvedLibraryResult> getResolvedLibrary(String path) async {
     _throwIfNotAbsolutePath(path);
+
+    var result = await getResolvedLibrary2(path);
+
+    if (result is NotPathOfUriResult) {
+      return Future.value(); // bug?
+    }
+
+    if (result is NotLibraryButPartResult) {
+      throw ArgumentError('Is a part: $path');
+    }
+
+    return result as ResolvedLibraryResult;
+  }
+
+  /// Return a [Future] that completes with a [ResolvedLibraryResult] for the
+  /// Dart library file with the given [path].  If the file cannot be analyzed,
+  /// the [Future] completes with an [InvalidResult].
+  ///
+  /// The [path] must be absolute and normalized.
+  ///
+  /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
+  ///
+  /// Invocation of this method causes the analysis state to transition to
+  /// "analyzing" (if it is not in that state already), the driver will produce
+  /// the resolution result for it, which is consistent with the current file
+  /// state (including new states of the files previously reported using
+  /// [changeFile]), prior to the next time the analysis state transitions
+  /// to "idle".
+  Future<SomeResolvedLibraryResult> getResolvedLibrary2(String path) {
+    if (!_isAbsolutePath(path)) {
+      return Future.value(
+        InvalidPathResult(),
+      );
+    }
+
     if (!_fsState.hasUri(path)) {
-      return Future.value();
+      return Future.value(
+        NotPathOfUriResult(),
+      );
     }
 
     FileState file = _fsState.getFileForPath(path);
 
-    if (file.isExternalLibrary) {
-      return Future.value(
-        ResolvedLibraryResultImpl.external(currentSession, file.uri),
-      );
-    }
-
     if (file.isPart) {
-      throw ArgumentError('Is a part: $path');
+      return Future.value(
+        NotLibraryButPartResult(),
+      );
     }
 
     // Schedule analysis.
@@ -752,6 +786,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// state (including new states of the files previously reported using
   /// [changeFile]), prior to the next time the analysis state transitions
   /// to "idle".
+  @Deprecated('Use getResolvedLibraryByUri2() instead')
   Future<ResolvedLibraryResult> getResolvedLibraryByUri(Uri uri) {
     var fileOr = _fsState.getFileForUri(uri);
     return fileOr.map(
@@ -766,6 +801,34 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       },
       (externalLibrary) async {
         return ResolvedLibraryResultImpl.external(currentSession, uri);
+      },
+    );
+  }
+
+  /// Return a [Future] that completes with a [ResolvedLibraryResult] for the
+  /// Dart library file with the given [uri].  If the file cannot be analyzed,
+  /// the [Future] completes with an [InvalidResult].
+  ///
+  /// Invocation of this method causes the analysis state to transition to
+  /// "analyzing" (if it is not in that state already), the driver will produce
+  /// the resolution result for it, which is consistent with the current file
+  /// state (including new states of the files previously reported using
+  /// [changeFile]), prior to the next time the analysis state transitions
+  /// to "idle".
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByUri2(Uri uri) {
+    var fileOr = _fsState.getFileForUri(uri);
+    return fileOr.map(
+      (file) async {
+        if (file == null) {
+          return CannotResolveUriResult();
+        }
+        if (file.isPart) {
+          return NotLibraryButPartResult();
+        }
+        return getResolvedLibrary2(file.path);
+      },
+      (externalLibrary) async {
+        return UriOfExternalLibraryResult();
       },
     );
   }
@@ -808,7 +871,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /// Return a [Future] that completes with a [SomeResolvedUnitResult] for the
-  /// Dart file with the given [path].
+  /// Dart file with the given [path].  If the file cannot be analyzed,
+  /// the [Future] completes with an [InvalidResult].
   ///
   /// The [path] must be absolute and normalized.
   ///

@@ -203,7 +203,7 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
   }
 
   @override
-  Future<ResolvedLibraryResult> getResolvedLibrary(String path) async {
+  Future<SomeResolvedLibraryResult> getResolvedLibrary2(String path) async {
     return analysisContext.fileResolver.resolveLibrary(path: path);
   }
 

@@ -176,8 +176,10 @@ class BulkFixProcessor {
         if (kind != SourceKind.LIBRARY) {
           continue;
         }
-        var library = await context.currentSession.getResolvedLibrary(path);
-        await _fixErrorsInLibrary(library);
+        var library = await context.currentSession.getResolvedLibrary2(path);
+        if (library is ResolvedLibraryResult) {
+          await _fixErrorsInLibrary(library);
+        }
       }
     }
 
