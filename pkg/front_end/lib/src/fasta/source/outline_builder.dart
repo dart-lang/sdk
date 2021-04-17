@@ -555,8 +555,13 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleMixinOn(Token onKeyword, int typeCount) {
     debugEvent("handleMixinOn");
-    push(const FixedNullableList<NamedTypeBuilder>().pop(stack, typeCount) ??
-        new ParserRecovery(offsetForToken(onKeyword)));
+    final onCauseList = const FixedNullableList<TypeBuilder>().pop(
+        stack, typeCount,);
+    if (onCauseList.where((e) => e is! NamedTypeBuilder).isNotEmpty) {
+      push(new ParserRecovery(offsetForToken(onKeyword)));
+    } else {
+      push(onCauseList.cast<NamedTypeBuilder>());
+    }
   }
 
   @override

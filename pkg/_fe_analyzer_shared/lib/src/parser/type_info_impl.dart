@@ -590,6 +590,9 @@ class ComplexTypeInfo implements TypeInfo {
 
       --endGroupIndex;
       parser.listener.endFunctionType(functionToken, questionMark);
+      if (parser.isParsingMixinOnCause) {
+        parser.reportRecoverableError(token, codes.messageMixinOnFunction);
+      }
     }
 
     // There are two situations in which the [token] != [end]:

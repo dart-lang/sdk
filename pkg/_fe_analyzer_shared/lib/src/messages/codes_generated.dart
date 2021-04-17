@@ -6802,6 +6802,14 @@ const MessageCode messageMixinFunction = const MessageCode("MixinFunction",
     tip: r"""Try removing 'Function' from the 'with' clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinOnFunction = messageMixinOnFunction;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinOnFunction = const MessageCode("MixinOnFunction",
+    message: r"""Can't create mixin declaration on 'Function'.""",
+    tip: r"""Try removing 'Function' from the 'on' clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String string,

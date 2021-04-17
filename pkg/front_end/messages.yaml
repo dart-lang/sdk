@@ -4974,6 +4974,12 @@ MixinFunction:
   script: |
     class A extends Object with Function {}
 
+MixinOnFunction:
+  template: "Can't create mixin declaration on 'Function'."
+  tip: "Try removing 'Function' from the 'on' clause."
+  script: |
+    mixin A on Function() {}
+
 CannotAssignToFinalVariable:
   template: "Can't assign to the final variable '#name'."
   script: |

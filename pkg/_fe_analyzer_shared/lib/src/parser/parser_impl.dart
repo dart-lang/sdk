@@ -2283,6 +2283,8 @@ class Parser {
     return parseMixinOn(token);
   }
 
+  bool isParsingMixinOnCause = false;
+
   Token parseMixinOn(Token token) {
     Token onKeyword = token.next!;
     // During recovery, the [onKeyword] can be "extend" or "extends"
@@ -2290,11 +2292,13 @@ class Parser {
         optional('extends', onKeyword) ||
         onKeyword.lexeme == 'extend');
     int typeCount = 0;
+    this.isParsingMixinOnCause = true;
     do {
       token = computeType(token.next!, /* required = */ true)
           .ensureTypeNotVoid(token.next!, this);
       ++typeCount;
     } while (optional(',', token.next!));
+    this.isParsingMixinOnCause = false;
     listener.handleMixinOn(onKeyword, typeCount);
     return token;
   }
