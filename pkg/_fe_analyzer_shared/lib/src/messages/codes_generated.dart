@@ -4386,6 +4386,15 @@ const MessageCode messageForInLoopWithConstVariable = const MessageCode(
     tip: r"""Try removing the 'const' modifier.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFunctionAsTypeParameter = messageFunctionAsTypeParameter;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFunctionAsTypeParameter = const MessageCode(
+    "FunctionAsTypeParameter",
+    message:
+        r"""'Function' is a built-in identifier, could not used as a type identifier.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFunctionTypeDefaultValue = messageFunctionTypeDefaultValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4405,6 +4414,30 @@ const MessageCode messageFunctionTypedParameterVar = const MessageCode(
     message:
         r"""Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.""",
     tip: r"""Try replacing the keyword with a return type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(String name)> templateFunctionUsedAsDec = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""'Function' is a built-in identifier, could not used as a #name name.""",
+    withArguments: _withArgumentsFunctionUsedAsDec);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFunctionUsedAsDec =
+    const Code<Message Function(String name)>(
+  "FunctionUsedAsDec",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFunctionUsedAsDec(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFunctionUsedAsDec,
+      message:
+          """'Function' is a built-in identifier, could not used as a ${name} name.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeGeneratorReturnsValue = messageGeneratorReturnsValue;

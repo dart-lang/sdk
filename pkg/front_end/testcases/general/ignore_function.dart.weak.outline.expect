@@ -1,4 +1,9 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/ignore_function.dart: Error: 'Function' is a built-in identifier, could not used as a class name.
+//
 import self as self;
 import "dart:core" as core;
 
@@ -49,5 +54,3 @@ class Function extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static method main() → dynamic
-  ;

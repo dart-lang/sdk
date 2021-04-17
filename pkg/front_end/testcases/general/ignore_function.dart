@@ -14,8 +14,7 @@ class B implements Function {
   operator ==(other) => false;
 }
 
+// CFE Error here: Function is built-in id, could not used as type id.
 class Function {
   core.bool operator ==(core.Object other) => false;
 }
-
-main() {}

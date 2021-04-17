@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/function_bad_use.dart: Error: 'Function' is a built-in identifier, could not used as a class name.
+//
+// pkg/front_end/testcases/general/function_bad_use.dart: Error: 'Function' is a built-in identifier, could not used as a type identifier.
+//
+import self as self;
+import "dart:core" as core;
+
+class Function extends core::Object {
+  synthetic constructor •() → self::Function
+    : super core::Object::•()
+    ;
+}
+class C<Function extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::Function%>
+    : super core::Object::•()
+    ;
+}
+abstract class M<Function extends core::Object? = dynamic> extends core::Object implements core::List<self::M::Function%> /*isMixinDeclaration*/  {
+}
+static method main() → dynamic {}

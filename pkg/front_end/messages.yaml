@@ -1797,6 +1797,12 @@ NotAPrefixInTypeAnnotation:
           T.String field;
         }
 
+FunctionUsedAsDec:
+  template: "'Function' is a built-in identifier, could not used as a #name name."
+
+FunctionAsTypeParameter:
+  template: "'Function' is a built-in identifier, could not used as a type identifier."
+
 UnresolvedPrefixInTypeAnnotation:
   template: "'#name.#name2' can't be used as a type because '#name' isn't defined."
   analyzerCode: NOT_A_TYPE

@@ -1464,6 +1464,42 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           new VoidTypeDeclarationBuilder(const VoidType(), this, charOffset));
   }
 
+  void _checkBadFuncitonParameter(List<TypeVariableBuilder> typeVariables) {
+    if (typeVariables == null || typeVariables.isEmpty) {
+      return;
+    }
+
+    for (TypeVariableBuilder type in typeVariables) {
+      if (type.name == "Function") {
+        addProblem(messageFunctionAsTypeParameter, charOffset,
+          type.name?.length, fileUri,);
+      }
+    }
+  }
+
+  void _checkBadFunctionDeclUse(String className, TypeParameterScopeKind kind) {
+    String decType;
+    switch (kind) {
+      case TypeParameterScopeKind.classDeclaration:
+        decType = "class";
+        break;
+      case TypeParameterScopeKind.mixinDeclaration:
+        decType = "mixin";
+        break;
+      case TypeParameterScopeKind.extensionDeclaration:
+        decType = "extension";
+        break;
+      default:
+        break;
+    }
+    if (className == "Function") {
+      if (decType != null) {
+        addProblem(templateFunctionUsedAsDec.withArguments(decType), charOffset,
+          className?.length, fileUri,);
+      }
+    }
+  }
+
   /// Add a problem that might not be reported immediately.
   ///
   /// Problems will be issued after source information has been added.
@@ -1573,6 +1609,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int nameOffset,
       int endOffset,
       int supertypeOffset) {
+    _checkBadFunctionDeclUse(className, kind,);
+    _checkBadFuncitonParameter(typeVariables);
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(kind, className)
@@ -1805,6 +1843,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int startOffset,
       int nameOffset,
       int endOffset) {
+    _checkBadFunctionDeclUse(
+      extensionName, TypeParameterScopeKind.extensionDeclaration,);
+    _checkBadFuncitonParameter(typeVariables);
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
     TypeParameterScopeBuilder declaration = endNestedDeclaration(
         TypeParameterScopeKind.extensionDeclaration, extensionName)
