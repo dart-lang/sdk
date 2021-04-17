@@ -33,7 +33,7 @@ class NativeArrayType;
 class NativeCompoundType;
 
 // NativeTypes are the types used in calling convention specifications:
-// integers, floats, and composites.
+// integers, floats, and compounds.
 //
 // NativeTypes exclude C types which are not discussed in calling conventions:
 // pointer types (they are lowered to integers).

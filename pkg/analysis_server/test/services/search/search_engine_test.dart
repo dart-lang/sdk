@@ -427,7 +427,7 @@ class B extends A {}
       var contextRoot = driver.analysisContext!.contextRoot;
       for (var file in contextRoot.analyzedFiles()) {
         if (file.endsWith('.dart')) {
-          await driver.getUnitElement(file);
+          await driver.getUnitElement2(file);
         }
       }
     }

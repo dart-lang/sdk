@@ -2292,10 +2292,10 @@ main() {
       error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 254, 1),
       error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 271, 1),
       error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 327, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 345, 4),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 351, 4),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 348, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 354, 1),
       error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 357, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 374, 4),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 377, 1),
     ]);
   }
 

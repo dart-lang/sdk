@@ -35,7 +35,12 @@ import 'package:path/path.dart' as path;
 Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
     LibraryElement targetLibrary, Set<Source> libraries) async {
   var libraryPath = targetLibrary.source.fullName;
-  var resolveResult = await session.getResolvedUnit(libraryPath);
+
+  var resolveResult = await session.getResolvedUnit2(libraryPath);
+  if (resolveResult is! ResolvedUnitResult) {
+    return;
+  }
+
   var libUtils = CorrectionUtils(resolveResult);
   var eol = libUtils.endOfLine;
   // Prepare information about existing imports.

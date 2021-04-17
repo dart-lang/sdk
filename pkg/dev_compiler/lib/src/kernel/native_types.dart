@@ -49,6 +49,8 @@ class NativeTypeSet {
     _addExtensionType(coreTypes.doubleClass, true);
     _addExtensionType(coreTypes.boolClass, true);
     _addExtensionType(coreTypes.stringClass, true);
+    // Allow `Function.==` to be recognized as a symbolized member.
+    _addExtensionType(coreTypes.functionClass, false);
 
     var sdk = coreTypes.index;
     _addExtensionTypes(sdk.getLibrary('dart:_interceptors'));

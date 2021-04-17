@@ -44,6 +44,42 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     );
   }
 
+  Future<void> test_comment() async {
+    final content = '''
+    // foo ^
+    main() {}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res, isEmpty);
+  }
+
+  Future<void> test_comment_endOfFile_withNewline() async {
+    // Checks for a previous bug where invoking completion inside a comment
+    // at the end of a file would return results.
+    final content = '''
+    // foo ^
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res, isEmpty);
+  }
+
+  Future<void> test_comment_endOfFile_withoutNewline() async {
+    // Checks for a previous bug where invoking completion inside a comment
+    // at the very end of a file with no trailing newline would return results.
+    final content = '// foo ^';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res, isEmpty);
+  }
+
   Future<void> test_commitCharacter_completionItem() async {
     await provideConfig(
       () => initialize(
@@ -89,7 +125,7 @@ main() {
     );
 
     Registration registration(Method method) =>
-        registrationFor(registrations, method);
+        registrationForDart(registrations, method);
 
     // By default, there should be no commit characters.
     var reg = registration(Method.textDocument_completion);
@@ -342,6 +378,81 @@ class _MyWidgetState extends State<MyWidget> {
       kinds,
       everyElement(anyOf(isNull, equals(CompletionItemKind.Field))),
     );
+  }
+
+  Future<void> test_completionTrigger_brace_block() async {
+    // Brace should not trigger completion if a normal code block.
+    final content = r'''
+    main () {^}
+    ''';
+    await _checkResultsForTriggerCharacters(content, ['{'], isEmpty);
+  }
+
+  Future<void>
+      test_completionTrigger_brace_interpolatedStringExpression() async {
+    // Brace should trigger completion if at the start of an interpolated expression
+    final content = r'''
+    var a = '${^';
+    ''';
+    await _checkResultsForTriggerCharacters(content, [r'{'], isNotEmpty);
+  }
+
+  Future<void> test_completionTrigger_brace_rawString() async {
+    // Brace should not trigger completion if in a raw string.
+    final content = r'''
+    var a = r'${^';
+    ''';
+    await _checkResultsForTriggerCharacters(content, [r'{'], isEmpty);
+  }
+
+  Future<void> test_completionTrigger_brace_string() async {
+    // Brace should not trigger completion if not at the start of an interpolated
+    // expression.
+    final content = r'''
+    var a = '{^';
+    ''';
+    await _checkResultsForTriggerCharacters(content, [r'{'], isEmpty);
+  }
+
+  Future<void> test_completionTrigger_quotes_endingString() async {
+    // Completion triggered by a quote ending a string should not return results.
+    final content = "foo(''^);";
+    await _checkResultsForTriggerCharacters(content, ["'", '"'], isEmpty);
+  }
+
+  Future<void> test_completionTrigger_quotes_startingImport() async {
+    // Completion triggered by a quote for import should return results.
+    final content = "import '^'";
+    await _checkResultsForTriggerCharacters(content, ["'", '"'], isNotEmpty);
+  }
+
+  Future<void> test_completionTrigger_quotes_startingString() async {
+    // Completion triggered by a quote for normal string should not return results.
+    final content = "foo('^');";
+    await _checkResultsForTriggerCharacters(content, ["'", '"'], isEmpty);
+  }
+
+  Future<void> test_completionTrigger_quotes_terminatingImport() async {
+    // Completion triggered by a quote ending an import should not return results.
+    final content = "import ''^";
+    await _checkResultsForTriggerCharacters(content, ["'", '"'], isEmpty);
+  }
+
+  Future<void> test_completionTrigger_slash_directivePath() async {
+    // Slashes should trigger completion when typing in directive paths, eg.
+    // after typing 'package:foo/' completion should give the next folder segments.
+    final content = r'''
+    import 'package:test/^';
+    ''';
+    await _checkResultsForTriggerCharacters(content, [r'/'], isNotEmpty);
+  }
+
+  Future<void> test_completionTrigger_slash_divide() async {
+    // Slashes should not trigger completion when typing in a normal expression.
+    final content = r'''
+    var a = 1 /^
+    ''';
+    await _checkResultsForTriggerCharacters(content, [r'/'], isEmpty);
   }
 
   Future<void> test_completionTriggerKinds_invalidParams() async {
@@ -898,11 +1009,12 @@ main() { }
     );
   }
 
-  Future<void> test_nonDartFile() async {
-    newFile(pubspecFilePath, content: simplePubspecContent);
+  Future<void> test_nonAnalyzedFile() async {
+    final readmeFilePath = convertPath(join(projectFolderPath, 'README.md'));
+    newFile(readmeFilePath, content: '');
     await initialize();
 
-    final res = await getCompletion(pubspecFileUri, startOfDocPos);
+    final res = await getCompletion(Uri.file(readmeFilePath), startOfDocPos);
     expect(res, isEmpty);
   }
 
@@ -1760,6 +1872,21 @@ main() {
       [toTextEdit(item.textEdit)],
     );
     expect(updated, contains('a.abcdefghij'));
+  }
+
+  Future<void> _checkResultsForTriggerCharacters(String content,
+      List<String> triggerCharacters, Matcher expectedResults) async {
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    for (final triggerCharacter in triggerCharacters) {
+      final context = CompletionContext(
+          triggerKind: CompletionTriggerKind.TriggerCharacter,
+          triggerCharacter: triggerCharacter);
+      final res = await getCompletion(mainFileUri, positionFromMarker(content),
+          context: context);
+      expect(res, expectedResults);
+    }
   }
 }
 

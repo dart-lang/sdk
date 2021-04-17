@@ -238,10 +238,9 @@ class CodeGeneratorDart(object):
                             world['callbacks'].append(idl_world['callback'])
                     idl_pickle_file.close()
 
-        world['interfaces'] = sorted(
-            world['interfaces'], key=lambda (x): x['name'])
-        world['callbacks'] = sorted(
-            world['callbacks'], key=lambda (x): x['name'])
+        world['interfaces'] = sorted(world['interfaces'],
+                                     key=lambda x: x['name'])
+        world['callbacks'] = sorted(world['callbacks'], key=lambda x: x['name'])
 
         template_contents = world
         template_contents['code_generator'] = module_pyname
@@ -299,7 +298,7 @@ def main(argv):
         cache_dir = argv[1]
         dummy_filename = argv[2]
     except IndexError as err:
-        print 'Usage: %s OUTPUT_DIR DUMMY_FILENAME' % argv[0]
+        print('Usage: %s OUTPUT_DIR DUMMY_FILENAME' % argv[0])
         return 1
 
     # Cache templates

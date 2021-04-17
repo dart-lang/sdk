@@ -830,6 +830,16 @@ class SizeEstimator implements NodeVisitor {
     }
   }
 
+  @override
+  visitDeferredStatement(DeferredStatement node) {
+    if (node.isFinalized) {
+      // Continue printing with the statement value.
+      node.statement.accept(this);
+    } else {
+      sizeEstimate(node);
+    }
+  }
+
   outputNumberWithRequiredWhitespace(String number) {
     int charCode = number.codeUnitAt(0);
     if (charCode == charCodes.$MINUS) {

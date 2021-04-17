@@ -151,7 +151,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _priorityFiles = <String>{};
 
   /// The mapping from the files for which analysis was requested using
-  /// [getResult] to the [Completer]s to report the result.
+  /// [getResult2] to the [Completer]s to report the result.
   final _requestedFiles = <String, List<Completer<ResolvedUnitResult>>>{};
 
   /// The mapping from the files for which analysis was requested using
@@ -193,18 +193,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _unitElementSignatureParts = <String, List<Completer<String>>>{};
 
   /// The mapping from the files for which the unit element was requested using
-  /// [getUnitElement] to the [Completer]s to report the result.
+  /// [getUnitElement2] to the [Completer]s to report the result.
   final _unitElementRequestedFiles =
       <String, List<Completer<UnitElementResult>>>{};
 
   /// The mapping from the files for which the unit element was requested using
-  /// [getUnitElement], and which were found to be parts without known libraries,
-  /// to the [Completer]s to report the result.
+  /// [getUnitElement2], and which were found to be parts without known
+  /// libraries, to the [Completer]s to report the result.
   final _unitElementRequestedParts =
       <String, List<Completer<UnitElementResult>>>{};
 
   /// The mapping from the files for which analysis was requested using
-  /// [getResult], and which were found to be parts without known libraries,
+  /// [getResult2], and which were found to be parts without known libraries,
   /// to the [Completer]s to report the result.
   final _requestedParts = <String, List<Completer<ResolvedUnitResult>>>{};
 
@@ -360,7 +360,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// client does not change the state of the files.
   ///
   /// Results might be produced even for files that have never been added
-  /// using [addFile], for example when [getResult] was called for a file.
+  /// using [addFile], for example when [getResult2] was called for a file.
   Stream<ResolvedUnitResult> get results => _onResults;
 
   /// Return the search support for the driver.
@@ -465,7 +465,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// transitions to "idle".
   ///
   /// Invocation of this method will not prevent a [Future] returned from
-  /// [getResult] from completing with a result, but the result is not
+  /// [getResult2] from completing with a result, but the result is not
   /// guaranteed to be consistent with the new current file state after this
   /// [changeFile] invocation.
   void changeFile(String path) {
@@ -632,7 +632,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           throw ArgumentError('$uri is not a library.');
         }
 
-        var unitResult = await getUnitElement(file.path);
+        var unitResult = await getUnitElement2(file.path);
+        // TODO(scheglov) this method should also return a result hierarchy
+        if (unitResult is! UnitElementResult) {
+          throw ArgumentError('$uri has no valid result.');
+        }
+
         return unitResult.element.library;
       },
       (externalLibrary) async {
@@ -789,12 +794,46 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// it, which is consistent with the current file state (including new states
   /// of the files previously reported using [changeFile]), prior to the next
   /// time the analysis state transitions to "idle".
+  @Deprecated('Use getResult2() instead')
   Future<ResolvedUnitResult> getResult(String path,
-      {bool sendCachedToStream = false}) {
+      {bool sendCachedToStream = false}) async {
     _throwIfNotAbsolutePath(path);
+
+    var result = await getResult2(path, sendCachedToStream: sendCachedToStream);
+    if (result is NotPathOfUriResult) {
+      return NotValidResolvedUnitResultImpl(ResultState.NOT_FILE_OF_URI);
+    }
+
+    return result as ResolvedUnitResult;
+  }
+
+  /// Return a [Future] that completes with a [SomeResolvedUnitResult] for the
+  /// Dart file with the given [path].
+  ///
+  /// The [path] must be absolute and normalized.
+  ///
+  /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
+  ///
+  /// If the driver has the cached analysis result for the file, it is returned.
+  /// If [sendCachedToStream] is `true`, then the result is also reported into
+  /// the [results] stream, just as if it were freshly computed.
+  ///
+  /// Otherwise causes the analysis state to transition to "analyzing" (if it is
+  /// not in that state already), the driver will produce the analysis result for
+  /// it, which is consistent with the current file state (including new states
+  /// of the files previously reported using [changeFile]), prior to the next
+  /// time the analysis state transitions to "idle".
+  Future<SomeResolvedUnitResult> getResult2(String path,
+      {bool sendCachedToStream = false}) {
+    if (!_isAbsolutePath(path)) {
+      return Future.value(
+        InvalidPathResult(),
+      );
+    }
+
     if (!_fsState.hasUri(path)) {
       return Future.value(
-        NotValidResolvedUnitResultImpl(ResultState.NOT_FILE_OF_URI),
+        NotPathOfUriResult(),
       );
     }
 
@@ -834,13 +873,35 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// Return a [Future] that completes with the [UnitElementResult] for the
   /// file with the given [path].
-  Future<UnitElementResult> getUnitElement(String path) {
+  @Deprecated('Use getUnitElement2() instead')
+  Future<UnitElementResult> getUnitElement(String path) async {
     _throwIfNotAbsolutePath(path);
-    if (!_fsState.hasUri(path)) {
+    var result = await getUnitElement2(path);
+
+    if (result is NotPathOfUriResult) {
       return Future.value(
         NotValidUnitElementResultImpl(ResultState.NOT_FILE_OF_URI),
       );
     }
+
+    return result as UnitElementResult;
+  }
+
+  /// Return a [Future] that completes with the [SomeUnitElementResult]
+  /// for the file with the given [path].
+  Future<SomeUnitElementResult> getUnitElement2(String path) {
+    if (!_isAbsolutePath(path)) {
+      return Future.value(
+        InvalidPathResult(),
+      );
+    }
+
+    if (!_fsState.hasUri(path)) {
+      return Future.value(
+        NotPathOfUriResult(),
+      );
+    }
+
     var completer = Completer<UnitElementResult>();
     _unitElementRequestedFiles
         .putIfAbsent(path, () => <Completer<UnitElementResult>>[])
@@ -1656,6 +1717,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     );
   }
 
+  bool _isAbsolutePath(String path) {
+    return _resourceProvider.pathContext.isAbsolute(path);
+  }
+
   /// We detected that one of the required `dart` libraries is missing.
   /// Return the empty analysis result with the error.
   AnalysisResult _newMissingDartLibraryResult(
@@ -1773,7 +1838,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The driver supports only absolute paths, this method is used to validate
   /// any input paths to prevent errors later.
   void _throwIfNotAbsolutePath(String path) {
-    if (!_resourceProvider.pathContext.isAbsolute(path)) {
+    if (!_isAbsolutePath(path)) {
       throw ArgumentError('Only absolute paths are supported: $path');
     }
   }

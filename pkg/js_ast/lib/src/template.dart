@@ -661,6 +661,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   Instantiator visitDeferredExpression(DeferredExpression node) => same(node);
 
+  Instantiator visitDeferredStatement(DeferredStatement node) => same(node);
+
   Instantiator visitDeferredNumber(DeferredNumber node) => same(node);
 
   Instantiator visitDeferredString(DeferredString node) => (arguments) => node;

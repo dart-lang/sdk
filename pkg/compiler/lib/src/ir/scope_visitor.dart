@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../ir/constants.dart';
@@ -17,6 +18,9 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     with VariableCollectorMixin, ir.VisitorNullMixin<EvaluationComplexity> {
   final Dart2jsConstantEvaluator _constantEvaluator;
   ir.StaticTypeContext _staticTypeContext;
+
+  ir.TypeEnvironment get _typeEnvironment => _constantEvaluator.typeEnvironment;
+  ir.CoreTypes get _coreTypes => _typeEnvironment.coreTypes;
 
   final ClosureScopeModel _model = new ClosureScopeModel();
 
@@ -87,8 +91,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
           initializerComplexity: const EvaluationComplexity.lazy());
     }
 
-    _staticTypeContext =
-        new ir.StaticTypeContext(node, _constantEvaluator.typeEnvironment);
+    _staticTypeContext = new ir.StaticTypeContext(node, _typeEnvironment);
     if (node is ir.Constructor) {
       _hasThisLocal = true;
     } else if (node is ir.Procedure && node.kind == ir.ProcedureKind.Factory) {
@@ -958,9 +961,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     }
 
     EvaluationComplexity complexity = visitArguments(node.arguments);
-    if (complexity.isConstant &&
-        node.target ==
-            _staticTypeContext.typeEnvironment.coreTypes.identicalProcedure) {
+    if (complexity.isConstant && node.target == _coreTypes.identicalProcedure) {
       return _evaluateImplicitConstant(node);
     }
     return node.isConst
@@ -982,6 +983,14 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitConstructorInvocation(
       ir.ConstructorInvocation node) {
+    // TODO(45681): Investigate if other initializers should be made eager.
+
+    // Lazily invoking the `_Cell` constructor pessimizes certain uses of late
+    // variables, so we ensure it gets called eagerly.
+    if (node.target == _coreTypes.cellConstructor) {
+      return EvaluationComplexity.eager();
+    }
+
     if (node.arguments.types.isNotEmpty) {
       visitNodesInContext(node.arguments.types,
           new VariableUse.constructorTypeArgument(node.target));

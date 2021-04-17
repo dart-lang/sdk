@@ -6,6 +6,7 @@
 
 import 'dart:math' as math;
 
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -24,11 +25,13 @@ import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 
 class CompletionHandler
     extends MessageHandler<CompletionParams, List<CompletionItem>>
@@ -51,6 +54,7 @@ class CompletionHandler
     final includeSuggestionSets =
         suggestFromUnimportedLibraries && server.clientCapabilities.applyEdit;
 
+    final triggerCharacter = params.context?.triggerCharacter;
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
@@ -75,6 +79,7 @@ class CompletionHandler
           includeSuggestionSets,
           unit.result,
           offset,
+          triggerCharacter,
           token,
         );
       } else if (fileExtension == '.yaml') {
@@ -189,6 +194,7 @@ class CompletionHandler
     bool includeSuggestionSets,
     ResolvedUnitResult unit,
     int offset,
+    String triggerCharacter,
     CancellationToken token,
   ) async {
     final performance = CompletionPerformance();
@@ -203,6 +209,13 @@ class CompletionHandler
           server.getDartdocDirectiveInfoFor(completionRequest.result);
       final dartCompletionRequest = await DartCompletionRequestImpl.from(
           perf, completionRequest, directiveInfo);
+
+      if (triggerCharacter != null) {
+        if (!_triggerCharacterValid(
+            offset, triggerCharacter, dartCompletionRequest.target)) {
+          return success([]);
+        }
+      }
 
       Set<ElementKind> includedElementKinds;
       Set<String> includedElementNames;
@@ -410,6 +423,17 @@ class CompletionHandler
             suggestions.replacementLength,
             includeCommitCharacters: false,
             completeFunctionCalls: false,
+            // Add on any completion-kind-specific resolution data that will be
+            // used during resolve() calls to provide additional information.
+            resolutionData: item.kind == CompletionSuggestionKind.PACKAGE_NAME
+                ? PubPackageCompletionItemResolutionInfo(
+                    file: path,
+                    offset: offset,
+                    // The completion for package names may contain a trailing
+                    // ': ' for convenience, so if it's there, trim it off.
+                    packageName: item.completion.split(':').first,
+                  )
+                : null,
           ),
         )
         .toList();
@@ -443,5 +467,38 @@ class CompletionHandler
         ),
       );
     });
+  }
+
+  /// Checks whether the given [triggerCharacter] is valid for [target].
+  ///
+  /// Some trigger characters are only valid in certain locations, for example
+  /// a single quote ' is valid to trigger completion after typing an import
+  /// statement, but not when terminating a string. The client has no context
+  /// and sends the requests unconditionally.
+  bool _triggerCharacterValid(
+      int offset, String triggerCharacter, CompletionTarget target) {
+    final node = target.containingNode;
+
+    switch (triggerCharacter) {
+      // For quotes, it's only valid if we're right after the opening quote of a
+      // directive.
+      case '"':
+      case "'":
+        return node is ast.SimpleStringLiteral &&
+            node.parent is ast.Directive &&
+            offset == node.contentsOffset;
+      // Braces only for starting interpolated expressions.
+      case '{':
+        return node is ast.InterpolationExpression &&
+            node.expression.offset == offset;
+      // Slashes only as path separators in directives.
+      case '/':
+        return node is ast.SimpleStringLiteral &&
+            node.parent is ast.Directive &&
+            offset >= node.contentsOffset &&
+            offset <= node.contentsEnd;
+    }
+
+    return true; // Any other trigger character can be handled always.
   }
 }

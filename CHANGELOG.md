@@ -152,7 +152,14 @@ Updated the Linter to `1.2.1`, which includes:
 
 [#44211]: https://github.com/dart-lang/sdk/issues/44211
 
-## 2.12.3 - 2021-04-12
+## 2.12.4 - 2021-04-15
+
+This is a patch release that fixes a Dart VM compiler crashes when compiling
+initializers containing async closures (issue [#45306][]).
+
+[#45306]: https://github.com/dart-lang/sdk/issues/45306
+
+## 2.12.3 - 2021-04-14
 
 This is a patch release that fixes a vulnerability in `dart:html` related to
 DOM clobbering. Thanks again to **Vincenzo di Cicco** for finding and reporting

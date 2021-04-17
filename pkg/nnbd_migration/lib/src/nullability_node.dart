@@ -141,7 +141,9 @@ class NullabilityEdge implements EdgeInfo {
 
   @override
   bool get isHard =>
-      _kind == _NullabilityEdgeKind.hard || _kind == _NullabilityEdgeKind.union;
+      _kind == _NullabilityEdgeKind.hard ||
+      _kind == _NullabilityEdgeKind.union ||
+      _kind == _NullabilityEdgeKind.uncheckableHard;
 
   @override
   bool get isSatisfied {
@@ -177,6 +179,9 @@ class NullabilityEdge implements EdgeInfo {
       case _NullabilityEdgeKind.uncheckable:
         json['kind'] = 'uncheckable';
         break;
+      case _NullabilityEdgeKind.uncheckableHard:
+        json['kind'] = 'uncheckableHard';
+        break;
       case _NullabilityEdgeKind.hard:
         json['kind'] = 'hard';
         break;
@@ -205,6 +210,9 @@ class NullabilityEdge implements EdgeInfo {
       case _NullabilityEdgeKind.uncheckable:
         edgeDecorations.add('uncheckable');
         break;
+      case _NullabilityEdgeKind.uncheckableHard:
+        edgeDecorations.add('uncheckableHard');
+        break;
       case _NullabilityEdgeKind.hard:
         edgeDecorations.add('hard');
         break;
@@ -228,6 +236,8 @@ class NullabilityEdge implements EdgeInfo {
     switch (kind) {
       case 'uncheckable':
         return _NullabilityEdgeKind.uncheckable;
+      case 'uncheckableHard':
+        return _NullabilityEdgeKind.uncheckableHard;
       case 'hard':
         return _NullabilityEdgeKind.hard;
       case 'union':
@@ -295,7 +305,9 @@ class NullabilityGraph {
       List<NullabilityNode> guards = const []}) {
     var upstreamNodes = [sourceNode, ...guards];
     var kind = hard
-        ? _NullabilityEdgeKind.hard
+        ? checkable
+            ? _NullabilityEdgeKind.hard
+            : _NullabilityEdgeKind.uncheckableHard
         : checkable
             ? _NullabilityEdgeKind.soft
             : _NullabilityEdgeKind.uncheckable;
@@ -1296,6 +1308,11 @@ enum _NullabilityEdgeKind {
   /// Union edge.  Indicates that two nodes should have exactly the same
   /// nullability.
   union,
+
+  /// Uncheckable hard edge.  Propagates nullability downstream and
+  /// non-nullability upstream.  May not be overridden by suggestions that the
+  /// user intends non-nullability.
+  uncheckableHard,
 
   /// Dummy edge.  Indicates that two edges are connected in a way that should
   /// not propagate (non-)nullability in either direction.

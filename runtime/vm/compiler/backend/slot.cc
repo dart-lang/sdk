@@ -392,8 +392,10 @@ bool Slot::Equals(const Slot& other) const {
       return true;
 
     case Kind::kCapturedVariable:
-      return (flags_ == other.flags_) && (DataAs<const String>()->ptr() ==
-                                          other.DataAs<const String>()->ptr());
+      return (flags_ == other.flags_) &&
+             (DataAs<const String>()->ptr() ==
+              other.DataAs<const String>()->ptr()) &&
+             static_type_->Equals(*(other.static_type_));
 
     case Kind::kDartField:
       return other.DataAs<const Field>()->Original() ==

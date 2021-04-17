@@ -1,3 +1,9 @@
+## 1.5.0-dev
+* Deprecated `AnalysisSession.getUnitElement()`.
+  Use `AnalysisSession.getUnitElement2()` instead.
+* Deprecated `AnalysisSession.getResolvedUnit()`.
+  Use `AnalysisSession.getResolvedUnit2()` instead.
+
 ## 1.4.0
 * Deprecated `TypeProvider.nonSubtypableClasses`.
   Use `TypeProvider.isNonSubtypableClass` instead.

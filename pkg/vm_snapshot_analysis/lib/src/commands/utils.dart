@@ -6,9 +6,9 @@ import 'dart:convert';
 import 'dart:io';
 
 Future<Object> loadJsonFromFile(File input) async {
-  return await input
+  return (await input
       .openRead()
       .transform(utf8.decoder)
       .transform(json.decoder)
-      .first;
+      .first)!;
 }

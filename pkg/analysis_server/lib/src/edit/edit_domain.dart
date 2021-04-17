@@ -859,8 +859,8 @@ length: $length
           }
           // try RENAME
           {
-            var renameRefactoring =
-                RenameRefactoring(refactoringWorkspace, resolvedUnit, element);
+            var renameRefactoring = RenameRefactoring.create(
+                refactoringWorkspace, resolvedUnit, element);
             if (renameRefactoring != null) {
               kinds.add(RefactoringKind.RENAME);
             }
@@ -1197,7 +1197,7 @@ class _RefactoringManager {
               RenameRefactoring.getElementToRename(node, element);
 
           // do create the refactoring
-          refactoring = RenameRefactoring(
+          refactoring = RenameRefactoring.create(
               refactoringWorkspace, resolvedUnit, renameElement.element);
           feedback = RenameFeedback(
               renameElement.offset, renameElement.length, 'kind', 'oldName');

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -233,8 +233,8 @@ def DartArchiveFile(local_path, remote_path, checksum_files=False):
 
 
 def Run(command, env=None):
-    print "Running %s" % ' '.join(command)
-    print "Environment %s" % env
+    print("Running %s" % ' '.join(command))
+    print("Environment %s" % env)
     sys.stdout.flush()
     exit_code = subprocess.call(command)
     if exit_code != 0:

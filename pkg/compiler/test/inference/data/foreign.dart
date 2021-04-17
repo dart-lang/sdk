@@ -23,8 +23,6 @@ main() {
   jsEmbeddedGlobal_getTypeFromName();
 
   jsStringConcat();
-
-  jsGetStaticState();
 }
 
 /*member: jsCallEmpty:[null|subclass=Object]*/
@@ -46,6 +44,3 @@ jsEmbeddedGlobal_getTypeFromName() {
 
 /*member: jsStringConcat:[exact=JSString]*/
 jsStringConcat() => JS_STRING_CONCAT('a', 'b');
-
-/*member: jsGetStaticState:[null|subclass=Object]*/
-jsGetStaticState() => JS_GET_STATIC_STATE();

@@ -231,6 +231,7 @@ class FfiTransformer extends Transformer {
   final Class pointerClass;
   final Class compoundClass;
   final Class structClass;
+  final Class unionClass;
   final Class ffiStructLayoutClass;
   final Field ffiStructLayoutTypesField;
   final Field ffiStructLayoutPackingField;
@@ -247,7 +248,10 @@ class FfiTransformer extends Transformer {
   final Procedure addressGetter;
   final Procedure structPointerRef;
   final Procedure structPointerElemAt;
+  final Procedure unionPointerRef;
+  final Procedure unionPointerElemAt;
   final Procedure structArrayElemAt;
+  final Procedure unionArrayElemAt;
   final Procedure arrayArrayElemAt;
   final Procedure arrayArrayAssignAt;
   final Procedure asFunctionMethod;
@@ -264,6 +268,7 @@ class FfiTransformer extends Transformer {
   final Field arrayNestedDimensionsFirst;
   final Field arrayNestedDimensionsRest;
   final Constructor structFromTypedDataBase;
+  final Constructor unionFromTypedDataBase;
   final Constructor arrayConstructor;
   final Procedure fromAddressInternal;
   final Procedure libraryLookupMethod;
@@ -333,6 +338,7 @@ class FfiTransformer extends Transformer {
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
         compoundClass = index.getClass('dart:ffi', '_Compound'),
         structClass = index.getClass('dart:ffi', 'Struct'),
+        unionClass = index.getClass('dart:ffi', 'Union'),
         ffiStructLayoutClass = index.getClass('dart:ffi', '_FfiStructLayout'),
         ffiStructLayoutTypesField =
             index.getMember('dart:ffi', '_FfiStructLayout', 'fieldTypes'),
@@ -369,6 +375,8 @@ class FfiTransformer extends Transformer {
             index.getMember('dart:ffi', 'Array', '_nestedDimensionsRest'),
         structFromTypedDataBase =
             index.getMember('dart:ffi', 'Struct', '_fromTypedDataBase'),
+        unionFromTypedDataBase =
+            index.getMember('dart:ffi', 'Union', '_fromTypedDataBase'),
         arrayConstructor = index.getMember('dart:ffi', 'Array', '_'),
         fromAddressInternal =
             index.getTopLevelMember('dart:ffi', '_fromAddress'),
@@ -376,7 +384,11 @@ class FfiTransformer extends Transformer {
             index.getMember('dart:ffi', 'StructPointer', 'get:ref'),
         structPointerElemAt =
             index.getMember('dart:ffi', 'StructPointer', '[]'),
+        unionPointerRef =
+            index.getMember('dart:ffi', 'UnionPointer', 'get:ref'),
+        unionPointerElemAt = index.getMember('dart:ffi', 'UnionPointer', '[]'),
         structArrayElemAt = index.getMember('dart:ffi', 'StructArray', '[]'),
+        unionArrayElemAt = index.getMember('dart:ffi', 'UnionArray', '[]'),
         arrayArrayElemAt = index.getMember('dart:ffi', 'ArrayArray', '[]'),
         arrayArrayAssignAt = index.getMember('dart:ffi', 'ArrayArray', '[]='),
         asFunctionMethod =
@@ -478,7 +490,7 @@ class FfiTransformer extends Transformer {
       return nativeType;
     }
     if (hierarchy.isSubclassOf(nativeClass, compoundClass)) {
-      if (nativeClass == structClass) {
+      if (nativeClass == structClass || nativeClass == unionClass) {
         return null;
       }
       return allowCompounds ? nativeType : null;
@@ -749,11 +761,13 @@ class FfiTransformer extends Transformer {
       return false;
     }
     if (type is InterfaceType) {
-      if (type.classNode == structClass) {
+      if (type.classNode == structClass || type.classNode == unionClass) {
         return false;
       }
     }
-    return env.isSubtypeOf(type, InterfaceType(structClass, Nullability.legacy),
+    return env.isSubtypeOf(
+        type,
+        InterfaceType(compoundClass, Nullability.legacy),
         SubtypeCheckMode.ignoringNullabilities);
   }
 }

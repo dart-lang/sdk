@@ -22,9 +22,19 @@ int? fn4() {
   return null;
 }
 
+const var5 = fn5();
+int fn5() {
+  try {
+    return throw 1;
+  } on int {
+    return 2;
+  }
+}
+
 void main() {
   Expect.equals((var1 as dynamic), null);
   Expect.equals((var2 as dynamic), null);
   Expect.equals(var3, null);
   Expect.equals(var4, null);
+  Expect.equals(var5, 2);
 }

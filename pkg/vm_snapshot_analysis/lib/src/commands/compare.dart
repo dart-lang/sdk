@@ -64,23 +64,25 @@ precisely based on their source position (which is included in their name).
 
   @override
   Future<void> run() async {
-    if (argResults.rest.length != 2) {
+    final args = argResults!;
+
+    if (args.rest.length != 2) {
       usageException('Need to provide path to old.json and new.json reports.');
     }
 
-    final columnWidth = argResults['column-width'];
+    final columnWidth = args['column-width'];
     final maxWidth = int.tryParse(columnWidth);
     if (maxWidth == null) {
       usageException(
           'Specified column width (${columnWidth}) is not an integer');
     }
 
-    final oldJsonPath = _checkExists(argResults.rest[0]);
-    final newJsonPath = _checkExists(argResults.rest[1]);
+    final oldJsonPath = _checkExists(args.rest[0]);
+    final newJsonPath = _checkExists(args.rest[1]);
     printComparison(oldJsonPath, newJsonPath,
         maxWidth: maxWidth,
-        granularity: _parseHistogramType(argResults['by']),
-        collapseAnonymousClosures: argResults['collapse-anonymous-closures']);
+        granularity: _parseHistogramType(args['by']),
+        collapseAnonymousClosures: args['collapse-anonymous-closures']);
   }
 
   HistogramType _parseHistogramType(String value) {
@@ -93,8 +95,9 @@ precisely based on their source position (which is included in their name).
         return HistogramType.byLibrary;
       case 'package':
         return HistogramType.byPackage;
+      default:
+        usageException('Unrecognized histogram type $value');
     }
-    return null;
   }
 
   File _checkExists(String path) {
@@ -136,10 +139,10 @@ precisely based on their source position (which is included in their name).
     printHistogram(diff, histogram,
         sizeHeader: 'Diff (Bytes)',
         prefix: histogram.bySize
-            .where((k) => histogram.buckets[k] > 0)
+            .where((k) => histogram.buckets[k]! > 0)
             .take(numLargerSymbolsToReport),
         suffix: histogram.bySize.reversed
-            .where((k) => histogram.buckets[k] < 0)
+            .where((k) => histogram.buckets[k]! < 0)
             .take(numSmallerSymbolsToReport)
             .toList()
             .reversed,
@@ -159,7 +162,7 @@ precisely based on their source position (which is included in their name).
       final newTypeHistogram =
           computeHistogram(newSizes, HistogramType.byNodeType);
 
-      final diffTypeHistogram = Histogram.fromIterable(
+      final diffTypeHistogram = Histogram.fromIterable<String>(
           Set<String>()
             ..addAll(oldTypeHistogram.buckets.keys)
             ..addAll(newTypeHistogram.buckets.keys),

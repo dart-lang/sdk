@@ -14,8 +14,15 @@ import 'package:meta/meta.dart';
 /// Information about Pub packages that can be converted to/from JSON and
 /// cached to disk.
 class PackageDetailsCache {
-  static const cacheVersion = 2;
+  static const cacheVersion = 3;
   static const maxCacheAge = Duration(hours: 18);
+  static const maxPackageDetailsRequestsInFlight = 5;
+
+  /// Requests to write the cache from fetching packge details will be debounced
+  /// by this duration to prevent many writes while the user may be cursoring
+  /// though completion requests that will trigger fetching descriptions/versions.
+  static const _writeCacheDebounceDuration = Duration(seconds: 3);
+
   final Map<String, PubPackage> packages;
   DateTime lastUpdatedUtc;
 
@@ -71,7 +78,7 @@ class PackageDetailsCache {
       if (nameJson is! String) {
         return null;
       }
-      packages.add(PubPackage.fromJson(nameJson));
+      packages.add(PubPackage.fromJson(packageJson));
     }
 
     final packageMap = Map.fromEntries(
@@ -96,8 +103,18 @@ class PackageDetailsCache {
 /// Information about a single Pub package.
 class PubPackage {
   String packageName;
+  String? description;
+  String? latestVersion;
 
-  PubPackage.fromJson(this.packageName);
+  PubPackage.fromDetails(PubApiPackageDetails package)
+      : packageName = package.packageName,
+        description = package.description,
+        latestVersion = package.latestVersion;
+
+  PubPackage.fromJson(Map<String, Object?> json)
+      : packageName = json['packageName'] as String,
+        description = json['description'] as String?,
+        latestVersion = json['latestVersion'] as String?;
 
   PubPackage.fromName(PubApiPackage package)
       : packageName = package.packageName;
@@ -105,6 +122,8 @@ class PubPackage {
   Map<String, Object> toJson() {
     return {
       'packageName': packageName,
+      if (description != null) 'description': description!,
+      if (latestVersion != null) 'latestVersion': latestVersion!,
     };
   }
 }
@@ -115,7 +134,8 @@ class PubPackage {
 class PubPackageService {
   final InstrumentationService _instrumentationService;
   final PubApi _api;
-  Timer? _nextRequestTimer;
+  Timer? _nextPackageNameListRequestTimer;
+  Timer? _nextWriteDiskCacheTimer;
 
   /// [ResourceProvider] used for caching. This should generally be a
   /// [PhysicalResourceProvider] outside of tests.
@@ -126,6 +146,8 @@ class PubPackageService {
   @visibleForTesting
   PackageDetailsCache? packageCache;
 
+  int _packageDetailsRequestsInFlight = 0;
+
   PubPackageService(
       this._instrumentationService, this.cacheResourceProvider, this._api);
 
@@ -133,7 +155,7 @@ class PubPackageService {
   List<PubPackage> get cachedPackages =>
       packageCache?.packages.values.toList() ?? [];
 
-  bool get isRunning => _nextRequestTimer != null;
+  bool get isRunning => _nextPackageNameListRequestTimer != null;
 
   @visibleForTesting
   File get packageCacheFile {
@@ -153,8 +175,46 @@ class PubPackageService {
     }
 
     // If there is no queued request, initialize one when the current cache expires.
-    _nextRequestTimer ??=
+    _nextPackageNameListRequestTimer ??=
         Timer(packageCache.cacheTimeRemaining, _fetchFromServer);
+  }
+
+  /// Gets the cached package details for package [packageName].
+  ///
+  /// Returns null if no package details are cached.
+  PubPackage? cachedPackageDetails(String packageName) =>
+      packageCache?.packages[packageName];
+
+  /// Gets package details for package [packageName].
+  ///
+  /// If the package details are not cached, will call the Pub API and cache
+  /// the result. Results are cached for the same period as the main package
+  /// list cache - that is, when the package list cache expires, all cached
+  /// package details will go with it.
+  Future<PubPackage?> packageDetails(String packageName) async {
+    var packageData = packageCache?.packages[packageName];
+    // If we don't have the version for this package, we don't have its full details.
+    if (packageData?.latestVersion == null &&
+        // Limit the number of package details requests that can be in-flight at
+        // once since an editor may send many of these requests as the user
+        // cursors through the results (a good editor will cancel the resolve
+        // requests, but we may have already started the requests synchronously
+        // before handling a cancellation).
+        _packageDetailsRequestsInFlight <=
+            PackageDetailsCache.maxPackageDetailsRequestsInFlight) {
+      _packageDetailsRequestsInFlight++;
+      try {
+        final details = await _api.packageInfo(packageName);
+        if (details != null) {
+          packageData = PubPackage.fromDetails(details);
+          packageCache?.packages[packageName] = packageData;
+          _writeDiskCacheDebounced();
+        }
+      } finally {
+        _packageDetailsRequestsInFlight--;
+      }
+    }
+    return packageData;
   }
 
   @visibleForTesting
@@ -175,10 +235,14 @@ class PubPackageService {
     }
   }
 
-  void shutdown() => _nextRequestTimer?.cancel();
+  void shutdown() => _nextPackageNameListRequestTimer?.cancel();
 
   @visibleForTesting
-  void writeDiskCache(PackageDetailsCache cache) {
+  void writeDiskCache([PackageDetailsCache? cache]) {
+    cache ??= packageCache;
+    if (cache == null) {
+      return;
+    }
     final file = packageCacheFile;
     file.writeAsStringSync(jsonEncode(cache.toJson()));
   }
@@ -194,12 +258,21 @@ class PubPackageService {
 
       final packageCache = PackageDetailsCache.fromApiResults(packages);
       this.packageCache = packageCache;
-      writeDiskCache(packageCache);
+      writeDiskCache();
     } catch (e) {
       _instrumentationService.logError('Failed to fetch packages from Pub: $e');
     } finally {
-      _nextRequestTimer =
+      _nextPackageNameListRequestTimer =
           Timer(PackageDetailsCache.maxCacheAge, _fetchFromServer);
     }
+  }
+
+  /// Writes the package cache to disk after
+  /// [PackageDetailsCache._writeCacheDebounceDuration] has elapsed, restarting
+  /// the timer each time this method is called.
+  void _writeDiskCacheDebounced() {
+    _nextWriteDiskCacheTimer?.cancel();
+    _nextWriteDiskCacheTimer =
+        Timer(PackageDetailsCache._writeCacheDebounceDuration, writeDiskCache);
   }
 }

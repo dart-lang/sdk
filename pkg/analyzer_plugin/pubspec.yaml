@@ -8,7 +8,7 @@ environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
-  analyzer: ^1.4.0
+  analyzer: ^1.5.0
   collection: ^1.15.0
   dart_style: ^2.0.0
   pub_semver: ^2.0.0

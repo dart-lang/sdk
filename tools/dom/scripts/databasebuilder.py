@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -92,11 +92,11 @@ def _compile_idl_file(build, file_name, import_options):
         idl_definition = build.idl_compiler.compile_file(idl_file_fullpath)
         return idl_definition
     except Exception as err:
-        print 'ERROR: idl_compiler.py: ' + os.path.basename(file_name)
-        print err
-        print
-        print 'Stack Dump:'
-        print format_exception(err)
+        print('ERROR: idl_compiler.py: ' + os.path.basename(file_name))
+        print(err)
+        print()
+        print('Stack Dump:')
+        print(format_exception(err))
 
     return 1
 
@@ -110,11 +110,11 @@ def _load_idl_file(build, file_name, import_options):
         idl_definition = new_asts[name]
         return IDLFile(idl_definition, file_name)
     except Exception as err:
-        print 'ERROR: loading AST from cache: ' + os.path.basename(file_name)
-        print err
-        print
-        print 'Stack Dump:'
-        print format_exception(err)
+        print('ERROR: loading AST from cache: ' + os.path.basename(file_name))
+        print(err)
+        print()
+        print('Stack Dump:')
+        print(format_exception(err))
 
     return 1
 
@@ -159,11 +159,11 @@ class Build():
             idl_file_fullpath = os.path.realpath(idl_file)
             self.idl_compiler.compile_file(idl_file_fullpath)
         except Exception as err:
-            print 'ERROR: idl_compiler.py: ' + os.path.basename(idl_file)
-            print err
-            print
-            print 'Stack Dump:'
-            print self.format_exception(err)
+            print('ERROR: idl_compiler.py: ' + os.path.basename(idl_file))
+            print(err)
+            print()
+            print('Stack Dump:')
+            print(self.format_exception(err))
 
             return 1
 
@@ -593,8 +593,8 @@ class DatabaseBuilder(object):
                 self._info_collector.collect_info(file_path)
 
             end_time = time.time()
-            print 'Compute dependencies %s seconds' % round(
-                (end_time - start_time), 2)
+            print('Compute dependencies %s seconds' % round(
+                (end_time - start_time), 2))
         else:
             # Compute the interface_info for dart.idl for implements defined.  This
             # file is special in that more than one interface can exist in this file.
@@ -614,14 +614,14 @@ class DatabaseBuilder(object):
                 os.path.splitext(os.path.basename(file_path))[0], ast)
 
         end_time = time.time()
-        print 'Compiled %s IDL files in %s seconds' % (
-            len(file_paths), round((end_time - start_time), 2))
+        print('Compiled %s IDL files in %s seconds' %
+              (len(file_paths), round((end_time - start_time), 2)))
 
     def _process_ast(self, filename, ast):
         if len(ast) == 1:
             ast = ast.values()[0]
         else:
-            print 'ERROR: Processing AST: ' + os.path.basename(file_name)
+            print('ERROR: Processing AST: ' + os.path.basename(file_name))
         new_asts[filename] = ast
 
     def import_idl_files(self, file_paths, import_options, is_dart_idl):
@@ -642,8 +642,8 @@ class DatabaseBuilder(object):
         for warning in report_unions_to_any():
             _logger.warning(warning)
 
-        print 'Total %s files %sprocessed in databasebuilder in %s seconds' % \
-        (len(file_paths), '', round((end_time - start_time), 2))
+        print('Total %s files %sprocessed in databasebuilder in %s seconds' % \
+        (len(file_paths), '', round((end_time - start_time), 2)))
 
     def _process_idl_file(self, idl_file, import_options, dart_idl=False):
         # TODO(terry): strip_ext_attributes on an idl_file does nothing.
@@ -862,27 +862,30 @@ class DatabaseBuilder(object):
         # Report all interface marked with NoInterfaceObject and their usage.
         self._output_examination(check_dictionaries=False)
 
-        print '\nKey:'
-        print '  (READ-ONLY) - read-only attribute has relationship'
-        print '  (GET/SET)   - attribute has relationship'
-        print '  RETURN      - operation\'s returned value has relationship'
-        print '  (ARGUMENT)  - operation\'s argument(s) has relationship'
-        print ''
-        print '  (New)       - After dictionary name if constructor(s) exist'
-        print '  (Ops,Props,New) after a NoInterfaceObject name is defined as:'
-        print '    Ops       - number of operations for a NoInterfaceObject'
-        print '    Props     - number of properties for a NoInterfaceObject'
-        print '    New       - T(#) number constructors for a NoInterfaceObject'
-        print '                F no constructors for a NoInterfaceObject'
-        print '                e.g., an interface 5 operations, 3 properties and 2'
-        print '                      constructors would display (5,3,T(2))'
+        print('''
+Key:
+  (READ-ONLY) - read-only attribute has relationship
+  (GET/SET)   - attribute has relationship
+  RETURN      - operation\'s returned value has relationship
+  (ARGUMENT)  - operation\'s argument(s) has relationship
 
-        print '\n\nExamination Complete\n'
+  (New)       - After dictionary name if constructor(s) exist
+  (Ops,Props,New) after a NoInterfaceObject name is defined as:
+    Ops       - number of operations for a NoInterfaceObject
+    Props     - number of properties for a NoInterfaceObject
+    New       - T(#) number constructors for a NoInterfaceObject
+                F no constructors for a NoInterfaceObject
+                e.g., an interface 5 operations, 3 properties and 2
+                      constructors would display (5,3,T(2))
+
+
+Examination Complete
+''')
 
     def _output_examination(self, check_dictionaries=True):
         # Output diagnostics. First columns is Dictionary or NoInterfaceObject e.g.,
         # |  Dictionary  |  Used In Interface  |  Usage Operation/Attribute  |
-        print '\n\n'
+        print('\n\n')
         title_bar = ['Dictionary', 'Used In Interface', 'Usage Operation/Attribute'] if check_dictionaries \
                     else ['NoInterfaceObject (Ops,Props,New)', 'Used In Interface', 'Usage Operation/Attribute']
         self._tabulate_title(title_bar)
@@ -993,7 +996,8 @@ class DatabaseBuilder(object):
                         return
 
             # If we get to this point, the IDL dictionary was never defined ... oops.
-            print 'DIAGNOSE_ERROR: IDL Dictionary %s doesn\'t exist.' % dictionary_id
+            print('DIAGNOSE_ERROR: IDL Dictionary %s doesn\'t exist.' %
+                  dictionary_id)
 
     # Iterator function to look for any IDLType that is an interface marked with
     # NoInterfaceObject then remember that interface.

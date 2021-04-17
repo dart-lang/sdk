@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -112,7 +113,8 @@ void main() {
   }) async {
     this.content = content;
     newFile(sourcePath, content: content);
-    var result = await session.getResolvedUnit(sourcePath);
+    var result =
+        await session.getResolvedUnit2(sourcePath) as ResolvedUnitResult;
 
     if (hasErrors) {
       expect(result.errors, isNotEmpty);

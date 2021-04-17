@@ -288,12 +288,13 @@ abstract class AbstractAnalysisServer {
         return null;
       }
 
-      var unitElementResult = await driver.getUnitElement(file);
-      if (unitElementResult == null) {
+      var unitElementResult = await driver.getUnitElement2(file);
+      if (unitElementResult is! UnitElementResult) {
         return null;
       }
 
-      var element = findElementByNameOffset(unitElementResult.element, offset);
+      var element = findElementByNameOffset(
+          (unitElementResult as UnitElementResult).element, offset);
       if (element != null) {
         return element;
       }
@@ -361,7 +362,8 @@ abstract class AbstractAnalysisServer {
     }
 
     return driver
-        .getResult(path, sendCachedToStream: sendCachedToStream)
+        .getResult2(path, sendCachedToStream: sendCachedToStream)
+        .then((value) => value is ResolvedUnitResult ? value : null)
         .catchError((e, st) {
       instrumentationService.logException(e, st);
       return null;

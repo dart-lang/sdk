@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -2745,7 +2746,8 @@ class C extends A implements B {
 
     var path = convertPath(testFilePath);
     var analysisSession = contextFor(path).currentSession;
-    var result = await analysisSession.getUnitElement(path);
+    var result = await analysisSession.getUnitElement2(path);
+    result as UnitElementResult;
     return result.element.library;
   }
 }

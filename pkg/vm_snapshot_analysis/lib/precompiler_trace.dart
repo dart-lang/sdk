@@ -11,7 +11,8 @@ import 'package:vm_snapshot_analysis/program_info.dart';
 
 /// Build [CallGraph] based on the trace written by `--trace-precompiler-to`
 /// flag.
-CallGraph loadTrace(Object inputJson) => _TraceReader(inputJson).readTrace();
+CallGraph loadTrace(Object inputJson) =>
+    _TraceReader(inputJson as Map<String, dynamic>).readTrace();
 
 /// [CallGraphNode] represents a node of the call-graph. It can either be:
 ///
@@ -39,7 +40,7 @@ class CallGraphNode {
   /// Dominator of this node.
   ///
   /// Computed by [CallGraph.computeDominators].
-  CallGraphNode dominator;
+  late CallGraphNode dominator;
 
   /// Nodes dominated by this node.
   ///
@@ -99,13 +100,13 @@ class CallGraph {
 
   // Mapping from [ProgramInfoNode] to a corresponding [CallGraphNode] (if any)
   // via [ProgramInfoNode.id].
-  final List<CallGraphNode> _graphNodeByEntityId;
+  final List<CallGraphNode?> _graphNodeByEntityId;
 
   CallGraph._(this.program, this.nodes, this._graphNodeByEntityId);
 
   CallGraphNode get root => nodes.first;
 
-  CallGraphNode lookup(ProgramInfoNode node) => _graphNodeByEntityId[node.id];
+  CallGraphNode lookup(ProgramInfoNode node) => _graphNodeByEntityId[node.id]!;
 
   Iterable<CallGraphNode> get dynamicCalls =>
       nodes.where((n) => n.isDynamicCallNode);
@@ -113,7 +114,7 @@ class CallGraph {
   /// Compute a collapsed version of the call-graph, where
   CallGraph collapse(NodeType type, {bool dropCallNodes = false}) {
     final graphNodesByData = <Object, CallGraphNode>{};
-    final graphNodeByEntityId = <CallGraphNode>[];
+    final graphNodeByEntityId = <CallGraphNode?>[];
 
     ProgramInfoNode collapsed(ProgramInfoNode nn) {
       // Root always collapses onto itself.
@@ -127,7 +128,7 @@ class CallGraph {
       // hitting the root node.
       var n = nn;
       while (n.parent != program.root && n.type != type) {
-        n = n.parent;
+        n = n.parent!;
       }
       return n;
     }
@@ -186,14 +187,14 @@ class CallGraph {
 ///
 /// See README.md for description of the format.
 class _TraceReader {
-  final List<Object> trace;
-  final List<Object> strings;
-  final List<Object> entities;
+  final List<dynamic> trace;
+  final List<String> strings;
+  final List<dynamic> entities;
 
   final program = ProgramInfo();
 
   /// Mapping between entity ids and corresponding [ProgramInfoNode] nodes.
-  final entityById = List<ProgramInfoNode>.filled(1024, null, growable: true);
+  final entityById = List<ProgramInfoNode?>.filled(1024, null, growable: true);
 
   /// Mapping between functions (represented as [ProgramInfoNode]s) and
   /// their selector ids.
@@ -203,21 +204,22 @@ class _TraceReader {
   final dynamicFunctions = Set<ProgramInfoNode>();
 
   _TraceReader(Map<String, dynamic> data)
-      : strings = data['strings'],
+      : strings = (data['strings'] as List<dynamic>).cast<String>(),
         entities = data['entities'],
         trace = data['trace'];
 
   /// Read all trace events and construct the call graph based on them.
   CallGraph readTrace() {
     var pos = 0; // Position in the [trace] array.
-    CallGraphNode currentNode;
+    late CallGraphNode currentNode;
+    int maxId = 0;
 
     final nodes = <CallGraphNode>[];
-    final nodeByEntityId = <CallGraphNode>[];
+    final nodeByEntityId = <CallGraphNode?>[];
     final callNodesBySelector = <dynamic, CallGraphNode>{};
     final allocated = Set<ProgramInfoNode>();
 
-    Object next() => trace[pos++];
+    T next<T>() => trace[pos++] as T;
 
     CallGraphNode makeNode({dynamic data}) {
       final n = CallGraphNode(nodes.length, data: data);
@@ -231,6 +233,9 @@ class _TraceReader {
     CallGraphNode nodeFor(ProgramInfoNode n) {
       if (nodeByEntityId.length <= n.id) {
         nodeByEntityId.length = n.id * 2 + 1;
+      }
+      if (n.id > maxId) {
+        maxId = n.id;
       }
       return nodeByEntityId[n.id] ??= makeNode(data: n);
     }
@@ -363,10 +368,13 @@ class _TraceReader {
   /// Read the entity at the given [index] in [entities].
   ProgramInfoNode readEntityAt(int index) {
     final type = entities[index];
+    final idx0 = entities[index + 1] as int;
+    final idx1 = entities[index + 2] as int;
+    final idx2 = entities[index + 3] as int;
     switch (type) {
       case 'C': // Class: 'C', <library-uri-idx>, <name-idx>, 0
-        final libraryUri = strings[entities[index + 1]];
-        final className = strings[entities[index + 2]];
+        final libraryUri = strings[idx0];
+        final className = strings[idx1];
 
         return program.makeNode(
             name: className,
@@ -375,9 +383,9 @@ class _TraceReader {
 
       case 'S':
       case 'F': // Function: 'F'|'S', <class-idx>, <name-idx>, <selector-id>
-        final classNode = getEntityAt(entities[index + 1]);
-        final functionName = strings[entities[index + 2]];
-        final int selectorId = entities[index + 3];
+        final classNode = getEntityAt(idx0);
+        final functionName = strings[idx1];
+        final int selectorId = idx2;
 
         final path = Name(functionName).rawComponents;
         if (path.last == 'FfiTrampoline') {
@@ -398,8 +406,8 @@ class _TraceReader {
         return node;
 
       case 'V': // Field: 'V', <class-idx>, <name-idx>, 0
-        final classNode = getEntityAt(entities[index + 1]);
-        final fieldName = strings[entities[index + 2]];
+        final classNode = getEntityAt(idx0);
+        final fieldName = strings[idx1];
 
         return program.makeNode(
             name: fieldName, parent: classNode, type: NodeType.other);

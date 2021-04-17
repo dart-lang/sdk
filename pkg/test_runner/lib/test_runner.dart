@@ -482,7 +482,7 @@ Future<void> runTests(List<String> args) async {
     print("Running tests");
     print("".padLeft(80, "="));
     await runProcessInheritStdio(
-        "python",
+        "python3",
         [
           "tools/test.py",
           "--named-configuration=${configurationsToRun.join(",")}",
@@ -607,7 +607,7 @@ Future<void> deflake(Directory outDirectory, List<String> configurations,
     ];
 
     await runProcessInheritStdio(
-        "python", ["tools/test.py", ...deflakeArguments],
+        "python3", ["tools/test.py", ...deflakeArguments],
         runInShell: Platform.isWindows);
     deflakingResultsPaths.add("${deflakeDirectory.path}/results.json");
   }

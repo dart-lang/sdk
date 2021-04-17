@@ -49,7 +49,7 @@ import "dart:collection"
 
 import "dart:convert" show ascii, Encoding, json, latin1, utf8;
 
-import "dart:ffi" show Pointer, Struct;
+import "dart:ffi" show Pointer, Struct, Union;
 
 import "dart:isolate" show Isolate;
 

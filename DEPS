@@ -73,7 +73,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_rev": "d8fea36c10ef96797be02e3d132d572445cd86f4",
-  "async_rev": "376d418b1b535030fbe3369938d2ffdbb0340a77",
+  "async_rev": "376c0fe95fa6fe7a5a6c41ef7b4585085c826f89",
   "bazel_worker_rev": "0885637b037979afbf5bcd05fd748b309fd669c0",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
@@ -268,8 +268,8 @@ deps = {
 
   Var("dart_root") + "/third_party/gsutil": {
       "packages": [{
-          "package": "infra/gsutil",
-          "version": "version:4.34",
+          "package": "infra/3pp/tools/gsutil",
+          "version": "version:4.58",
       }],
       "dep_type": "cipd",
   },
@@ -672,59 +672,56 @@ hooks = [
     # Pull Debian sysroot for i386 Linux
     'name': 'sysroot_i386',
     'pattern': '.',
-    'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
+    'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
                '--arch', 'i386'],
   },
   {
     # Pull Debian sysroot for amd64 Linux
     'name': 'sysroot_amd64',
     'pattern': '.',
-    'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
+    'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
                '--arch', 'amd64'],
   },
   {
     # Pull Debian sysroot for arm Linux
     'name': 'sysroot_amd64',
     'pattern': '.',
-    'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
+    'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
                '--arch', 'arm'],
   },
   {
     # Pull Debian jessie sysroot for arm64 Linux
     'name': 'sysroot_amd64',
     'pattern': '.',
-    'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
+    'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
                '--arch', 'arm64'],
   },
   {
     'name': 'buildtools',
     'pattern': '.',
-    'action': ['python', 'sdk/tools/buildtools/update.py'],
+    'action': ['python3', 'sdk/tools/buildtools/update.py'],
   },
   {
     # Update the Windows toolchain if necessary.
     'name': 'win_toolchain',
     'pattern': '.',
-    'action': ['python', 'sdk/build/vs_toolchain.py', 'update'],
+    'action': ['python3', 'sdk/build/vs_toolchain.py', 'update'],
+    'condition': 'checkout_win'
+  },
+  {
+    "name": "7zip",
+    "pattern": ".",
+    "action": [
+      "download_from_google_storage",
+      "--no_auth",
+      "--no_resume",
+      "--bucket",
+      "dart-dependencies",
+      "--platform=win32",
+      "--extract",
+      "-s",
+      Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
+    ],
+    'condition': 'checkout_win'
   },
 ]
-
-hooks_os = {
-  "win": [
-    {
-      "name": "7zip",
-      "pattern": ".",
-      "action": [
-        "download_from_google_storage",
-        "--no_auth",
-        "--no_resume",
-        "--bucket",
-        "dart-dependencies",
-        "--platform=win32",
-        "--extract",
-        "-s",
-        Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
-      ],
-    },
-  ]
-}

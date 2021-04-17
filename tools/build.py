@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -143,7 +143,7 @@ def EnsureGomaStarted(out_dir):
         return False
     goma_ctl = os.path.join(goma_dir, 'goma_ctl.py')
     goma_ctl_command = [
-        'python',
+        'python3',
         goma_ctl,
         'ensure_start',
     ]

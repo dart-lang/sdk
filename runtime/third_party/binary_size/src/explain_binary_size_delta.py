@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -362,7 +362,7 @@ def CrunchStats(added, removed, changed, unchanged, showsources, showsymbols):
     for section in sections:
         allFiles = allFiles | section.sources
     allFiles = allFiles | maybe_unchanged_sources
-    print 'Source stats:'
+    print('Source stats:')
     print('  %d sources encountered.' % len(allFiles))
     print('  %d completely new.' % len(new_sources))
     print('  %d removed completely.' % len(removed_sources))
@@ -374,7 +374,7 @@ def CrunchStats(added, removed, changed, unchanged, showsources, showsymbols):
 
     if not showsources:
         return  # Per-source analysis, only if requested
-    print 'Per-source Analysis:'
+    print('Per-source Analysis:')
     delta_by_path = {}
     for section in sections:
         for path in section.symbols_by_path:
@@ -409,10 +409,10 @@ def CrunchStats(added, removed, changed, unchanged, showsources, showsymbols):
         header = ' %s - Source: %s - (gained %d, lost %d)' % (DeltaStr(delta),
                                                               path, gain, loss)
         divider = '-' * len(header)
-        print ''
-        print divider
-        print header
-        print divider
+        print('')
+        print(divider)
+        print(header)
+        print(divider)
         if showsymbols:
 
             def ExtractNewSize(tup):
@@ -424,7 +424,7 @@ def CrunchStats(added, removed, changed, unchanged, showsources, showsymbols):
                 return symbol_delta.old_size
 
             if path in new_symbols.symbols_by_path:
-                print '  New symbols:'
+                print('  New symbols:')
                 for symbol_name, symbol_type, symbol_delta in \
                     sorted(new_symbols.symbols_by_path[path],
                            key=ExtractNewSize,
@@ -434,7 +434,7 @@ def CrunchStats(added, removed, changed, unchanged, showsources, showsymbols):
                            symbol_type, symbol_delta.new_size,
                            SharedInfoStr(symbol_delta)))
             if path in removed_symbols.symbols_by_path:
-                print '  Removed symbols:'
+                print('  Removed symbols:')
                 for symbol_name, symbol_type, symbol_delta in \
                     sorted(removed_symbols.symbols_by_path[path],
                            key=ExtractOldSize):
@@ -446,7 +446,7 @@ def CrunchStats(added, removed, changed, unchanged, showsources, showsymbols):
                  type_str) in [(grown_symbols.symbols_by_path, "Grown"),
                                (shrunk_symbols.symbols_by_path, "Shrunk")]:
                 if path in changed_symbols_by_path:
-                    print '  %s symbols:' % type_str
+                    print('  %s symbols:' % type_str)
 
                     def changed_symbol_sortkey(item):
                         symbol_name, _symbol_type, symbol_delta = item
@@ -505,9 +505,9 @@ def main():
         parser.error('--nm2 is required')
     symbols = []
     for path in [opts.nm1, opts.nm2]:
-        with file(path, 'r') as nm_input:
+        with open(path, 'r') as nm_input:
             if opts.verbose:
-                print 'parsing ' + path + '...'
+                print('parsing ' + path + '...')
             symbols.append(list(binary_size_utils.ParseNm(nm_input)))
     (added, removed, changed, unchanged) = Compare(symbols[0], symbols[1])
     CrunchStats(added, removed, changed, unchanged,

@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:matcher/src/core_matchers.dart';
-import 'package:test_api/src/frontend/expect.dart';
+import 'package:test/test.dart' show expect;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';

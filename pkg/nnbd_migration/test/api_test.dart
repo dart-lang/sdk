@@ -714,6 +714,102 @@ main() {
     await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
+  Future<void> test_collection_literal_typed_list() async {
+    var content = '''
+void f(int/*?*/ x, int/*?*/ y) {
+  g(<int>[x, y]);
+}
+g(List<int/*!*/>/*!*/ z) {}
+''';
+    var expected = '''
+void f(int? x, int? y) {
+  g(<int>[x!, y!]);
+}
+g(List<int> z) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_collection_literal_typed_map() async {
+    var content = '''
+void f(int/*?*/ x, int/*?*/ y) {
+  g(<int, int>{x: y});
+}
+g(Map<int/*!*/, int/*!*/>/*!*/ z) {}
+''';
+    var expected = '''
+void f(int? x, int? y) {
+  g(<int, int>{x!: y!});
+}
+g(Map<int, int> z) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_collection_literal_typed_set() async {
+    var content = '''
+void f(int/*?*/ x, int/*?*/ y) {
+  g(<int>{x, y});
+}
+g(Set<int/*!*/>/*!*/ z) {}
+''';
+    var expected = '''
+void f(int? x, int? y) {
+  g(<int>{x!, y!});
+}
+g(Set<int> z) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_collection_literal_untyped_list() async {
+    var content = '''
+void f(int/*?*/ x, int/*?*/ y) {
+  g([x, y]);
+}
+g(List<int/*!*/>/*!*/ z) {}
+''';
+    var expected = '''
+void f(int? x, int? y) {
+  g([x!, y!]);
+}
+g(List<int> z) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_collection_literal_untyped_map() async {
+    var content = '''
+void f(int/*?*/ x, int/*?*/ y) {
+  g({x: y});
+}
+g(Map<int/*!*/, int/*!*/>/*!*/ z) {}
+''';
+    var expected = '''
+void f(int? x, int? y) {
+  g({x!: y!});
+}
+g(Map<int, int> z) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_collection_literal_untyped_set() async {
+    var content = '''
+void f(int/*?*/ x, int/*?*/ y) {
+  g({x, y});
+}
+g(Set<int/*!*/>/*!*/ z) {}
+''';
+    var expected = '''
+void f(int? x, int? y) {
+  g({x!, y!});
+}
+g(Set<int> z) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_comment_bang_implies_non_null_intent() async {
     var content = '''
 void f(int/*!*/ i) {}
@@ -1577,15 +1673,9 @@ void f(int/*?*/ x, int/*?*/ y) {
 }
 g({List<int/*!*/>/*!*/ named}) {}
 ''';
-    // Note: this test is to ensure that we don't produce
-    // `g((named: <int?>[x, y]) as List<int>)` (which would be a parse error).
-    // The migration we produce (`g(named: <int?>[x, y])`) still isn't great,
-    // because it's a type mismatch, but it's better.
-    //
-    // TODO(paulberry): a better migration would be `g(named: <int>[x!, y!])`.
     var expected = '''
 void f(int? x, int? y) {
-  g(named: <int?>[x, y]);
+  g(named: <int>[x!, y!]);
 }
 g({required List<int> named}) {}
 ''';

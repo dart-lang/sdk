@@ -950,7 +950,7 @@ get erroneous migration suggestions.
     _dartFixListener.reset();
     _fixCodeProcessor.prepareToRerun();
     var analysisResult = await _fixCodeProcessor.runFirstPhase();
-    if (analysisResult.hasErrors) {
+    if (analysisResult.hasErrors && !options.ignoreErrors) {
       _logErrors(analysisResult);
       return MigrationState(
           _fixCodeProcessor._task.migration,
@@ -1088,11 +1088,10 @@ class _FixCodeProcessor extends Object {
     }
 
     for (var path in pathsToProcess.difference(pathsProcessed)) {
-      var result = await driver.getResolvedUnit(path);
-      if (result == null || result.unit == null) {
-        continue;
+      var result = await driver.getResolvedUnit2(path);
+      if (result is ResolvedUnitResult) {
+        await process(result);
       }
-      await process(result);
     }
   }
 

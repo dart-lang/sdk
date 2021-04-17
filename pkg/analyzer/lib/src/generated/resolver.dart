@@ -1456,7 +1456,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
         whyNotPromotedList: whyNotPromotedList);
 
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
+    extensionResolver.resolveOverride(node, whyNotPromotedList);
   }
 
   @override

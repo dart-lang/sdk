@@ -28,6 +28,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
@@ -211,6 +212,7 @@ class FileState {
   }
 
   void refresh({
+    FileState? containingLibrary,
     required OperationPerformanceImpl performance,
   }) {
     _fsState.testView.refreshedFiles.add(path);
@@ -282,6 +284,7 @@ class FileState {
     }
     for (var uri in unlinked2.parts) {
       var file = _fileForRelativeUri(
+        containingLibrary: this,
         relativeUri: uri,
         performance: performance,
       );
@@ -290,15 +293,24 @@ class FileState {
       }
     }
     if (unlinked2.hasPartOfDirective) {
-      var uri = unlinked2.partOfUri;
-      if (uri.isNotEmpty) {
-        partOfLibrary = _fileForRelativeUri(
-          relativeUri: uri,
-          performance: performance,
-        );
-        if (partOfLibrary != null) {
-          directReferencedFiles.add(partOfLibrary!);
+      if (containingLibrary == null) {
+        _fsState.testView.partsDiscoveredLibraries.add(path);
+        var libraryName = unlinked2.partOfName;
+        var libraryUri = unlinked2.partOfUri;
+        partOfLibrary = null;
+        if (libraryName.isNotEmpty) {
+          _findPartOfNameLibrary(performance: performance);
+        } else if (libraryUri.isNotEmpty) {
+          partOfLibrary = _fileForRelativeUri(
+            relativeUri: libraryUri,
+            performance: performance,
+          );
         }
+      } else {
+        partOfLibrary = containingLibrary;
+      }
+      if (partOfLibrary != null) {
+        directReferencedFiles.add(partOfLibrary!);
       }
     }
     libraryFiles.add(this);
@@ -318,6 +330,7 @@ class FileState {
   }
 
   FileState? _fileForRelativeUri({
+    FileState? containingLibrary,
     required String relativeUri,
     required OperationPerformanceImpl performance,
   }) {
@@ -333,6 +346,7 @@ class FileState {
     }
 
     var file = _fsState.getFileForUri(
+      containingLibrary: containingLibrary,
       uri: absoluteUri,
       performance: performance,
     );
@@ -342,6 +356,35 @@ class FileState {
 
     file.referencingFiles.add(this);
     return file;
+  }
+
+  /// This file has a `part of some.library;` directive. Because it does not
+  /// specify the URI of the library, we don't know the library for sure.
+  /// But usually the library is one of the sibling files.
+  void _findPartOfNameLibrary({
+    required OperationPerformanceImpl performance,
+  }) {
+    var resourceProvider = _fsState._resourceProvider;
+    var pathContext = resourceProvider.pathContext;
+
+    var children = <Resource>[];
+    try {
+      var parent = resourceProvider.getFile(path).parent2;
+      children = parent.getChildren();
+    } catch (_) {}
+
+    for (var siblingFile in children) {
+      if (file_paths.isDart(pathContext, siblingFile.path)) {
+        var childState = _fsState.getFileForPath(
+          path: siblingFile.path,
+          performance: performance,
+        );
+        if (childState.partedFiles.contains(this)) {
+          partOfLibrary = childState;
+          break;
+        }
+      }
+    }
   }
 
   void _prefetchDirectReferences(UnlinkedUnit2 unlinkedUnit2) {
@@ -388,6 +431,7 @@ class FileState {
     var hasLibraryDirective = false;
     var hasPartOfDirective = false;
     var partOfUriStr = '';
+    var partOfName = '';
     for (var directive in unit.directives) {
       if (directive is ExportDirective) {
         var builder = _serializeNamespaceDirective(directive);
@@ -405,8 +449,12 @@ class FileState {
         parts.add(uriStr ?? '');
       } else if (directive is PartOfDirective) {
         hasPartOfDirective = true;
-        if (directive.uri != null) {
-          partOfUriStr = directive.uri!.stringValue!;
+        var libraryName = directive.libraryName;
+        var uriStr = directive.uri?.stringValue;
+        if (libraryName != null) {
+          partOfName = libraryName.components.map((e) => e.name).join('.');
+        } else if (uriStr != null) {
+          partOfUriStr = uriStr;
         }
       }
     }
@@ -424,6 +472,7 @@ class FileState {
       parts: parts,
       hasLibraryDirective: hasLibraryDirective,
       hasPartOfDirective: hasPartOfDirective,
+      partOfName: partOfName,
       partOfUri: partOfUriStr,
       lineStarts: unit.lineInfo!.lineStarts,
     );
@@ -583,6 +632,7 @@ class FileSystemState {
   }
 
   FileState? getFileForUri({
+    FileState? containingLibrary,
     required Uri uri,
     required OperationPerformanceImpl performance,
   }) {
@@ -605,6 +655,7 @@ class FileSystemState {
       _uriToFile[uri] = file;
 
       file.refresh(
+        containingLibrary: containingLibrary,
         performance: performance,
       );
     }
@@ -646,6 +697,7 @@ class FileSystemState {
 
 class FileSystemStateTestView {
   final List<String> refreshedFiles = [];
+  final List<String> partsDiscoveredLibraries = [];
   Set<String> removedPaths = {};
 }
 

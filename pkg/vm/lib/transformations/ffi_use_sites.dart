@@ -176,13 +176,16 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
     final Member target = node.target;
     try {
-      if (target == structPointerRef || target == structPointerElemAt) {
+      if (target == structPointerRef ||
+          target == structPointerElemAt ||
+          target == unionPointerRef ||
+          target == unionPointerElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
         _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         return _replaceRef(node);
-      } else if (target == structArrayElemAt) {
+      } else if (target == structArrayElemAt || target == unionArrayElemAt) {
         final DartType nativeType = node.arguments.types[0];
 
         _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
@@ -228,7 +231,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           final returnType = dartType.returnType;
           if (returnType is InterfaceType) {
             final clazz = returnType.classNode;
-            if (clazz.superclass == structClass) {
+            if (clazz.superclass == structClass ||
+                clazz.superclass == unionClass) {
               return _invokeCompoundConstructor(replacement, clazz);
             }
           }
@@ -256,7 +260,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           final returnType = dartType.returnType;
           if (returnType is InterfaceType) {
             final clazz = returnType.classNode;
-            if (clazz.superclass == structClass) {
+            if (clazz.superclass == structClass ||
+                clazz.superclass == unionClass) {
               return _invokeCompoundConstructor(replacement, clazz);
             }
           }
@@ -286,7 +291,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         if (expectedReturn == NativeType.kVoid ||
             expectedReturn == NativeType.kPointer ||
             expectedReturn == NativeType.kHandle ||
-            expectedReturnClass.superclass == structClass) {
+            expectedReturnClass.superclass == structClass ||
+            expectedReturnClass.superclass == unionClass) {
           if (node.arguments.positional.length > 1) {
             diagnosticReporter.report(
                 templateFfiExpectedNoExceptionalReturn.withArguments(
@@ -351,7 +357,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         final compoundClasses = funcType.positionalParameters
             .whereType<InterfaceType>()
             .map((t) => t.classNode)
-            .where((c) => c.superclass == structClass)
+            .where((c) =>
+                c.superclass == structClass || c.superclass == unionClass)
             .toList();
         return _invokeCompoundConstructors(replacement, compoundClasses);
       } else if (target == allocateMethod) {
@@ -778,7 +785,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       if (hierarchy.isSubclassOf(nativeClass, compoundClass)) {
         if (emptyCompounds.contains(nativeClass)) {
           diagnosticReporter.report(
-              templateFfiEmptyStruct.withArguments(nativeClass.name),
+              templateFfiEmptyStruct.withArguments(
+                  nativeClass.superclass.name, nativeClass.name),
               node.fileOffset,
               1,
               node.location.file);
@@ -830,13 +838,14 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         klass == compoundClass ||
         klass == opaqueClass ||
         klass == structClass ||
+        klass == unionClass ||
         nativeTypesClasses.contains(klass)) {
       return null;
     }
 
     // The Opaque and Struct classes can be extended, but subclasses
     // cannot be (nor implemented).
-    final onlyDirectExtendsClasses = [opaqueClass, structClass];
+    final onlyDirectExtendsClasses = [opaqueClass, structClass, unionClass];
     final superClass = klass.superclass;
     for (final onlyDirectExtendsClass in onlyDirectExtendsClasses) {
       if (hierarchy.isSubtypeOf(klass, onlyDirectExtendsClass)) {

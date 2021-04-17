@@ -43,7 +43,7 @@ class PrepareRenameHandler
 
       final refactorDetails =
           RenameRefactoring.getElementToRename(node, element);
-      final refactoring = RenameRefactoring(
+      final refactoring = RenameRefactoring.create(
           server.refactoringWorkspace, unit.result, refactorDetails.element);
       if (refactoring == null) {
         return success(null);
@@ -116,7 +116,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
 
       final refactorDetails =
           RenameRefactoring.getElementToRename(node, element);
-      final refactoring = RenameRefactoring(
+      final refactoring = RenameRefactoring.create(
           server.refactoringWorkspace, unit.result, refactorDetails.element);
       if (refactoring == null) {
         return success(null);

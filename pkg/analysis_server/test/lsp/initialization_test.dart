@@ -31,6 +31,45 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         registrationFor(registrations, method)?.registerOptions);
   }
 
+  Future<void> test_completionRegistrations_triggerCharacters() async {
+    final registrations = <Registration>[];
+    final initResponse = await monitorDynamicRegistrations(
+      registrations,
+      () => initialize(
+        // Support dynamic registration for everything we support.
+        textDocumentCapabilities:
+            withAllSupportedTextDocumentDynamicRegistrations(
+                emptyTextDocumentClientCapabilities),
+        workspaceCapabilities: withAllSupportedWorkspaceDynamicRegistrations(
+            emptyWorkspaceClientCapabilities),
+      ),
+    );
+
+    final initResult = InitializeResult.fromJson(initResponse.result);
+    expect(initResult.capabilities, isNotNull);
+
+    // Check Dart-only registration.
+    final dartRegistration =
+        registrationForDart(registrations, Method.textDocument_completion);
+    final dartOptions = CompletionRegistrationOptions.fromJson(
+        dartRegistration.registerOptions);
+    expect(dartOptions.documentSelector, hasLength(1));
+    expect(dartOptions.documentSelector[0].language, dartLanguageId);
+    expect(dartOptions.triggerCharacters, isNotEmpty);
+
+    // Check non-Dart registration.
+    final nonDartRegistration = registrations.singleWhere((r) =>
+        r.method == Method.textDocument_completion.toJson() &&
+        r != dartRegistration);
+    final nonDartOptions = CompletionRegistrationOptions.fromJson(
+        nonDartRegistration.registerOptions);
+    final otherLanguages = nonDartOptions.documentSelector
+        .map((selector) => selector.language)
+        .toList();
+    expect(otherLanguages, isNot(contains('dart')));
+    expect(nonDartOptions.triggerCharacters, isNull);
+  }
+
   Future<void> test_dynamicRegistration_containsAppropriateSettings() async {
     // Basic check that the server responds with the capabilities we'd expect,
     // for ex including analysis_options.yaml in text synchronization but not
@@ -192,11 +231,22 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     // Ensure all expected dynamic registrations.
     for (final expectedRegistration in ClientDynamicRegistrations.supported) {
+      // We have two completion registrations (to handle different trigger
+      // characters), so exclude that here and check it manually below.
+      if (expectedRegistration == Method.textDocument_completion) {
+        continue;
+      }
+
       final registration =
           registrationOptionsFor(registrations, expectedRegistration);
       expect(registration, isNotNull,
           reason: 'Missing dynamic registration for $expectedRegistration');
     }
+
+    // Check the were two completion registrations.
+    final completionRegistrations = registrations
+        .where((reg) => reg.method == Method.textDocument_completion.toJson());
+    expect(completionRegistrations, hasLength(2));
   }
 
   Future<void> test_dynamicRegistration_unregistersOutdatedAfterChange() async {

@@ -5109,6 +5109,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // If we know that the left type uses identity for equality, we can
     // sometimes emit better code, either `===` or `==`.
     var isEnum = leftType is InterfaceType && leftType.classNode.isEnum;
+
     var usesIdentity = _typeRep.isPrimitive(leftType) ||
         isEnum ||
         _isNull(left) ||

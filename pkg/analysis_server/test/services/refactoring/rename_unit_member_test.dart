@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -267,11 +265,6 @@ main() {
 class Test {}
 ''');
     createRenameRefactoringAtString('Test {}');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Class name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
@@ -293,11 +286,6 @@ class Test {}
 test() {}
 ''');
     createRenameRefactoringAtString('test() {}');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Function name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
@@ -313,11 +301,6 @@ test() {}
 var test;
 ''');
     createRenameRefactoringAtString('test;');
-    // null
-    refactoring.newName = null;
-    assertRefactoringStatus(
-        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Variable name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
@@ -333,11 +316,11 @@ var test;
 typedef Test = void Function();
 ''');
     createRenameRefactoringAtString('Test =');
-    // null
-    refactoring.newName = null;
+    // empty
+    refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Type alias name must not be null.');
+        expectedMessage: 'Type alias name must not be empty.');
     // OK
     refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -348,11 +331,11 @@ typedef Test = void Function();
 typedef Test = List<int>;
 ''');
     createRenameRefactoringAtString('Test =');
-    // null
-    refactoring.newName = null;
+    // empty
+    refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Type alias name must not be null.');
+        expectedMessage: 'Type alias name must not be empty.');
     // OK
     refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -363,11 +346,11 @@ typedef Test = List<int>;
 typedef Test();
 ''');
     createRenameRefactoringAtString('Test();');
-    // null
-    refactoring.newName = null;
+    // empty
+    refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Type alias name must not be null.');
+        expectedMessage: 'Type alias name must not be empty.');
     // OK
     refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());

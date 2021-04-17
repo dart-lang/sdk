@@ -398,7 +398,7 @@ f({String p = ''}) {}
 main() {
   f(p: 42);
 }''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 35, 5),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 38, 2),
     ]);
   }
 

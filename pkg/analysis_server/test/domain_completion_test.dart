@@ -485,10 +485,16 @@ class A {
     expect(suggestions, isEmpty);
   }
 
-  Future<void> test_inComment_endOfFile() async {
+  Future<void> test_inComment_endOfFile_withNewline() async {
     addTestFile('''
     // text ^
   ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  Future<void> test_inComment_endOfFile_withoutNewline() async {
+    addTestFile('// text ^');
     await getSuggestions();
     expect(suggestions, isEmpty);
   }

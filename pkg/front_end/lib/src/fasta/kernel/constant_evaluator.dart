@@ -52,7 +52,6 @@ import '../fasta_codes.dart'
         messageNonAgnosticConstant,
         messageNotAConstantExpression,
         noLength,
-        templateConstEvalBadState,
         templateConstEvalCaseImplementsEqual,
         templateConstEvalDeferredLibrary,
         templateConstEvalDuplicateElement,
@@ -71,6 +70,7 @@ import '../fasta_codes.dart'
         templateConstEvalInvalidSymbolName,
         templateConstEvalKeyImplementsEqual,
         templateConstEvalNonConstantVariableGet,
+        templateConstEvalUnhandledCoreException,
         templateConstEvalUnhandledException,
         templateConstEvalZeroDivisor;
 
@@ -1012,8 +1012,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         if (value is Constant) {
           message = templateConstEvalUnhandledException.withArguments(
               value, isNonNullableByDefault);
-        } else if (value is StateError) {
-          message = templateConstEvalBadState.withArguments(value.message);
+        } else if (value is Error) {
+          message = templateConstEvalUnhandledCoreException
+              .withArguments(value.toString());
         }
         assert(message != null);
 
@@ -3604,6 +3605,7 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
     Constant result;
     if (node.expression != null) {
       result = evaluate(node.expression);
+      if (result is AbortConstant) return new AbortStatus(result);
     }
     return new ReturnStatus(result);
   }

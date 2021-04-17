@@ -1,0 +1,3 @@
+// @dart = 2.9
+foo(Map<String, String> m) {}
+main() {}

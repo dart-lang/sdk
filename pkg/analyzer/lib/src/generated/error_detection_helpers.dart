@@ -56,7 +56,7 @@ mixin ErrorDetectionHelpers {
       {bool promoteParameterToNullable = false,
       Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     _checkForArgumentTypeNotAssignableForArgument2(
-      argument: argument,
+      argument: argument is NamedExpression ? argument.expression : argument,
       parameter: argument.staticParameterElement,
       promoteParameterToNullable: promoteParameterToNullable,
       whyNotPromoted: whyNotPromoted,

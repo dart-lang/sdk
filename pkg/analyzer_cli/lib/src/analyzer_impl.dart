@@ -206,7 +206,8 @@ class AnalyzerImpl {
   Future<LibraryElement> _resolveLibrary() async {
     var libraryPath = libraryFile.path;
     analysisDriver.priorityFiles = [libraryPath];
-    var elementResult = await analysisDriver.getUnitElement(libraryPath);
+    var elementResult =
+        await analysisDriver.getUnitElement2(libraryPath) as UnitElementResult;
     return elementResult.element.library;
   }
 

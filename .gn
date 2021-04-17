@@ -12,3 +12,6 @@ buildconfig = "//build/config/BUILDCONFIG.gn"
 # GN build files are placed when they can not be placed directly
 # in the source tree, e.g. for third party source trees.
 secondary_source = "//build/secondary/"
+
+# Override the default script executable to always be python3.
+script_executable = "python3"

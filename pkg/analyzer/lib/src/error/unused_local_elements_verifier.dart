@@ -687,6 +687,11 @@ class UsedLocalElements {
   }
 
   void addMember(Element? element) {
+    // Store un-parameterized members.
+    if (element is ExecutableMember) {
+      element = element.declaration;
+    }
+
     if (element != null) {
       members.add(element);
     }

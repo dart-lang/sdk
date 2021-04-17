@@ -42,6 +42,8 @@ class CompletionResolveHandler
 
     if (resolutionInfo is DartCompletionItemResolutionInfo) {
       return resolveDartCompletion(item, resolutionInfo, token);
+    } else if (resolutionInfo is PubPackageCompletionItemResolutionInfo) {
+      return resolvePubPackageCompletion(item, resolutionInfo, token);
     } else {
       return success(item);
     }
@@ -214,5 +216,41 @@ class CompletionResolveHandler
       'Request was cancelled for taking too long or another request being received',
       null,
     );
+  }
+
+  Future<ErrorOr<CompletionItem>> resolvePubPackageCompletion(
+    CompletionItem item,
+    PubPackageCompletionItemResolutionInfo data,
+    CancellationToken token,
+  ) async {
+    // Fetch details for this package. This may come from the cache or trigger
+    // a real web request to the Pub API.
+    final packageDetails =
+        await server.pubPackageService.packageDetails(data.packageName);
+
+    if (token.isCancellationRequested) {
+      return cancelled();
+    }
+
+    return success(CompletionItem(
+      label: item.label,
+      kind: item.kind,
+      tags: item.tags,
+      detail: item.detail,
+      documentation: packageDetails?.description != null
+          ? Either2<String, MarkupContent>.t1(packageDetails.description)
+          : null,
+      deprecated: item.deprecated,
+      preselect: item.preselect,
+      sortText: item.sortText,
+      filterText: item.filterText,
+      insertText: item.insertText,
+      insertTextFormat: item.insertTextFormat,
+      textEdit: item.textEdit,
+      additionalTextEdits: item.additionalTextEdits,
+      commitCharacters: item.commitCharacters,
+      command: item.command,
+      data: item.data,
+    ));
   }
 }

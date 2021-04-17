@@ -2127,7 +2127,7 @@ main() {
   print(otherName);
 }
 ''');
-    server.getAnalysisDriver(testFile).getResult(testFile);
+    server.getAnalysisDriver(testFile).getResult2(testFile);
     // send the second request, with the same kind, file and offset
     await waitForTasksFinished();
     result = await getRefactoringResult(() {

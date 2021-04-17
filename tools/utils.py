@@ -192,82 +192,6 @@ def GuessCpus():
     return 2
 
 
-def GetWindowsRegistryKeyName(name):
-    import win32process
-    # Check if python process is 64-bit or if it's 32-bit running in 64-bit OS.
-    # We need to know whether host is 64-bit so that we are looking in right
-    # registry for Visual Studio path.
-    if sys.maxsize > 2**32 or win32process.IsWow64Process():
-        wow6432Node = 'Wow6432Node\\'
-    else:
-        wow6432Node = ''
-    return r'SOFTWARE\{}{}'.format(wow6432Node, name)
-
-
-# Try to guess Visual Studio location when buiding on Windows.
-def GuessVisualStudioPath():
-    defaultPath = r'C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7' \
-                  r'\IDE'
-    defaultExecutable = 'devenv.com'
-
-    if not IsWindows():
-        return (defaultPath, defaultExecutable)
-
-    keyNamesAndExecutables = [
-        # Pair for non-Express editions.
-        (GetWindowsRegistryKeyName(r'Microsoft\VisualStudio'), 'devenv.com'),
-        # Pair for 2012 Express edition.
-        (GetWindowsRegistryKeyName(r'Microsoft\VSWinExpress'),
-         'VSWinExpress.exe'),
-        # Pair for pre-2012 Express editions.
-        (GetWindowsRegistryKeyName(r'Microsoft\VCExpress'), 'VCExpress.exe')
-    ]
-
-    bestGuess = (0.0, (defaultPath, defaultExecutable))
-
-    import _winreg
-    for (keyName, executable) in keyNamesAndExecutables:
-        try:
-            key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, keyName)
-        except WindowsError:
-            # Can't find this key - moving on the next one.
-            continue
-
-        try:
-            subkeyCounter = 0
-            while True:
-                try:
-                    subkeyName = _winreg.EnumKey(key, subkeyCounter)
-                    subkeyCounter += 1
-                except WindowsError:
-                    # Reached end of enumeration. Moving on the next key.
-                    break
-
-                match = re.match(r'^\d+\.\d+$', subkeyName)
-                if match:
-                    with _winreg.OpenKey(key, subkeyName) as subkey:
-                        try:
-                            (installDir, registrytype) = _winreg.QueryValueEx(
-                                subkey, 'InstallDir')
-                        except WindowsError:
-                            # Can't find value under the key - continue to the next key.
-                            continue
-                        isExpress = executable != 'devenv.com'
-                        if not isExpress and subkeyName == '14.0':
-                            # Stop search since if we found non-Express VS2015 version
-                            # installed, which is preferred version.
-                            return installDir, executable
-
-                        version = float(subkeyName)
-                        # We prefer higher version of Visual Studio and given equal
-                        # version numbers we prefer non-Express edition.
-                        if version > bestGuess[0]:
-                            bestGuess = (version, (installDir, executable))
-        finally:
-            _winreg.CloseKey(key)
-    return bestGuess[1]
-
-
 # Returns true if we're running under Windows.
 def IsWindows():
     return GuessOS() == 'win32'
@@ -612,22 +536,6 @@ def ParseTestOptionsMultiple(pattern, source, workspace):
     return None
 
 
-def Daemonize():
-    """
-    Create a detached background process (daemon). Returns True for
-    the daemon, False for the parent process.
-    See: http://www.faqs.org/faqs/unix-faq/programmer/faq/
-    "1.7 How do I get my program to act like a daemon?"
-    """
-    if os.fork() > 0:
-        return False
-    os.setsid()
-    if os.fork() > 0:
-        exit(0)
-        # TODO: What is this supposed to do? Didn't we already exit?
-        raise
-    return True
-
 
 def CheckedUnlink(name):
     """Unlink a file without throwing an exception."""
@@ -664,11 +572,6 @@ def DiagnoseExitCode(exit_code, command):
         sys.stderr.write(
             'Command: {}\nCRASHED with exit code {} (0x{:x})\n'.format(
                 ' '.join(command), exit_code, exit_code & 0xffffffff))
-
-
-def Touch(name):
-    with file(name, 'a'):
-        os.utime(name, None)
 
 
 def ExecuteCommand(cmd):
@@ -1206,21 +1109,19 @@ def CoreDumpArchiver(args):
         (arg[len(prefix):] for arg in args if arg.startswith(prefix)), None)
 
     if not enabled:
-        return NooptContextManager()
+        return (NooptContextManager(),)
 
     osname = GuessOS()
     if osname == 'linux':
-        return contextlib.nested(LinuxCoreDumpEnabler(),
-                                 LinuxCoreDumpArchiver(output_directory))
+        return (LinuxCoreDumpEnabler(), LinuxCoreDumpArchiver(output_directory))
     elif osname == 'macos':
-        return contextlib.nested(PosixCoreDumpEnabler(),
-                                 MacOSCoreDumpArchiver(output_directory))
+        return (PosixCoreDumpEnabler(), MacOSCoreDumpArchiver(output_directory))
     elif osname == 'win32':
-        return contextlib.nested(WindowsCoreDumpEnabler(),
-                                 WindowsCoreDumpArchiver(output_directory))
+        return (WindowsCoreDumpEnabler(),
+                WindowsCoreDumpArchiver(output_directory))
 
     # We don't have support for MacOS yet.
-    return NooptContextManager()
+    return (NooptContextManager(),)
 
 
 def FileDescriptorLimitIncreaser():
@@ -1238,7 +1139,6 @@ def Main():
     print('GuessArchitecture() -> ', GuessArchitecture())
     print('GuessCpus() -> ', GuessCpus())
     print('IsWindows() -> ', IsWindows())
-    print('GuessVisualStudioPath() -> ', GuessVisualStudioPath())
     print('GetGitRevision() -> ', GetGitRevision())
     print('GetGitTimestamp() -> ', GetGitTimestamp())
     print('GetVersionFileContent() -> ', GetVersionFileContent())

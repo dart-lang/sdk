@@ -178,6 +178,10 @@ class CompletionItemResolutionInfo implements ToJsonable {
     if (DartCompletionItemResolutionInfo.canParse(json, nullLspJsonReporter)) {
       return DartCompletionItemResolutionInfo.fromJson(json);
     }
+    if (PubPackageCompletionItemResolutionInfo.canParse(
+        json, nullLspJsonReporter)) {
+      return PubPackageCompletionItemResolutionInfo.fromJson(json);
+    }
     final file = json['file'];
     final offset = json['offset'];
     return CompletionItemResolutionInfo(file: file, offset: offset);
@@ -1178,6 +1182,121 @@ class Outline implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, codeRange.hashCode);
     hash = JenkinsSmiHash.combine(hash, lspHashCode(children));
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class PubPackageCompletionItemResolutionInfo
+    implements CompletionItemResolutionInfo, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+      PubPackageCompletionItemResolutionInfo.canParse,
+      PubPackageCompletionItemResolutionInfo.fromJson);
+
+  PubPackageCompletionItemResolutionInfo(
+      {required this.packageName, required this.file, required this.offset});
+  static PubPackageCompletionItemResolutionInfo fromJson(
+      Map<String, dynamic> json) {
+    final packageName = json['packageName'];
+    final file = json['file'];
+    final offset = json['offset'];
+    return PubPackageCompletionItemResolutionInfo(
+        packageName: packageName, file: file, offset: offset);
+  }
+
+  final String file;
+  final num offset;
+  final String packageName;
+
+  Map<String, dynamic> toJson() {
+    var __result = <String, dynamic>{};
+    __result['packageName'] = packageName;
+    __result['file'] = file;
+    __result['offset'] = offset;
+    return __result;
+  }
+
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
+      reporter.push('packageName');
+      try {
+        if (!obj.containsKey('packageName')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        if (obj['packageName'] == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(obj['packageName'] is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('file');
+      try {
+        if (!obj.containsKey('file')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        if (obj['file'] == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(obj['file'] is String)) {
+          reporter.reportError('must be of type String');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('offset');
+      try {
+        if (!obj.containsKey('offset')) {
+          reporter.reportError('must not be undefined');
+          return false;
+        }
+        if (obj['offset'] == null) {
+          reporter.reportError('must not be null');
+          return false;
+        }
+        if (!(obj['offset'] is num)) {
+          reporter.reportError('must be of type num');
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError(
+          'must be of type PubPackageCompletionItemResolutionInfo');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is PubPackageCompletionItemResolutionInfo &&
+        other.runtimeType == PubPackageCompletionItemResolutionInfo) {
+      return packageName == other.packageName &&
+          file == other.file &&
+          offset == other.offset &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    var hash = 0;
+    hash = JenkinsSmiHash.combine(hash, packageName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 

@@ -315,7 +315,7 @@ class CallingConventions {
   static constexpr AlignmentStrategy kArgumentStackAlignment =
       kAlignedToWordSize;
 
-  // How fields in composites are aligned.
+  // How fields in compounds are aligned.
 #if defined(TARGET_OS_WINDOWS)
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
 #else

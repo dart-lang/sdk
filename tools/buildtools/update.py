@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2017 The Dart project authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -27,9 +27,9 @@ def UpdateClangFormatOnWindows():
     downloader_script = os.path.join(DEPOT_PATH,
                                      'download_from_google_storage.py')
     download_cmd = [
-        'python', downloader_script, '--no_auth', '--no_resume', '--quiet',
-        '--platform=win', '--bucket', 'chromium-clang-format', '-s', sha1_file,
-        '-o', output_dir
+        sys.executable, downloader_script, '--no_auth', '--no_resume',
+        '--quiet', '--platform=win', '--bucket', 'chromium-clang-format', '-s',
+        sha1_file, '-o', output_dir
     ]
     return subprocess.call(download_cmd)
 
@@ -37,7 +37,7 @@ def UpdateClangFormatOnWindows():
 def CreateSymlink(symlink, link_name):
     try:
         os.symlink(symlink, link_name)
-    except OSError, e:
+    except OSError as e:
         if e.errno == errno.EEXIST:
             os.remove(link_name)
             os.symlink(symlink, link_name)
@@ -57,7 +57,7 @@ def LinksForGitCLFormat():
         tools = 'linux64'
         toolchain = 'linux-x64'
     else:
-        print 'Unknown platform: ' + sys.platform
+        print('Unknown platform: ' + sys.platform)
         return 1
 
     clang_format = os.path.join(BUILDTOOLS, toolchain, 'clang', 'bin',

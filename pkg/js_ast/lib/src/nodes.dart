@@ -49,6 +49,7 @@ abstract class NodeVisitor<T> {
   T visitNamedFunction(NamedFunction node);
   T visitFun(Fun node);
 
+  T visitDeferredStatement(DeferredStatement node);
   T visitDeferredExpression(DeferredExpression node);
   T visitDeferredNumber(DeferredNumber node);
   T visitDeferredString(DeferredString node);
@@ -152,6 +153,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
 
   T visitToken(DeferredToken node) => visitExpression(node);
 
+  T visitDeferredStatement(DeferredStatement node) => visitStatement(node);
   T visitDeferredExpression(DeferredExpression node) => visitExpression(node);
   T visitDeferredNumber(DeferredNumber node) => visitToken(node);
   T visitDeferredString(DeferredString node) => visitToken(node);
@@ -243,6 +245,7 @@ abstract class NodeVisitor1<R, A> {
   R visitNamedFunction(NamedFunction node, A arg);
   R visitFun(Fun node, A arg);
 
+  R visitDeferredStatement(DeferredStatement node, A arg);
   R visitDeferredExpression(DeferredExpression node, A arg);
   R visitDeferredNumber(DeferredNumber node, A arg);
   R visitDeferredString(DeferredString node, A arg);
@@ -355,6 +358,8 @@ class BaseVisitor1<R, A> implements NodeVisitor1<R, A> {
 
   R visitToken(DeferredToken node, A arg) => visitExpression(node, arg);
 
+  R visitDeferredStatement(DeferredStatement node, A arg) =>
+      visitStatement(node, arg);
   R visitDeferredExpression(DeferredExpression node, A arg) =>
       visitExpression(node, arg);
   R visitDeferredNumber(DeferredNumber node, A arg) => visitToken(node, arg);
@@ -475,6 +480,25 @@ class Program extends Node {
 
 abstract class Statement extends Node {
   Statement toStatement() => this;
+}
+
+/// Interface for a deferred [Statement] value. An implementation has to provide
+/// a value via the [statement] getter the latest when the ast is printed.
+abstract class DeferredStatement extends Statement {
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitDeferredStatement(this);
+
+  R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
+      visitor.visitDeferredStatement(this, arg);
+
+  void visitChildren<T>(NodeVisitor<T> visitor) {
+    statement.accept(visitor);
+  }
+
+  void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
+    statement.accept1(visitor, arg);
+  }
+
+  Statement get statement;
 }
 
 class Block extends Statement {

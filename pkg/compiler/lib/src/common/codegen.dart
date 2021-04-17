@@ -551,9 +551,6 @@ class CodegenResult {
         case ModularNameKind.operatorIs:
           name.value = namer.operatorIs(name.data);
           break;
-        case ModularNameKind.operatorIsType:
-          name.value = namer.operatorIsType(name.data);
-          break;
         case ModularNameKind.instanceMethod:
           name.value = namer.instanceMethodName(name.data);
           break;
@@ -626,7 +623,6 @@ enum ModularNameKind {
   staticClosure,
   methodProperty,
   operatorIs,
-  operatorIsType,
   instanceMethod,
   instanceField,
   invocation,
@@ -674,9 +670,6 @@ class ModularName extends js.Name implements js.AstContainer {
       case ModularNameKind.globalPropertyNameForMember:
         data = source.readMember();
         break;
-      case ModularNameKind.operatorIsType:
-        data = source.readDartType();
-        break;
       case ModularNameKind.invocation:
         data = Selector.readFromDataSource(source);
         break;
@@ -719,9 +712,6 @@ class ModularName extends js.Name implements js.AstContainer {
       case ModularNameKind.lazyInitializer:
       case ModularNameKind.globalPropertyNameForMember:
         sink.writeMember(data);
-        break;
-      case ModularNameKind.operatorIsType:
-        sink.writeDartType(data);
         break;
       case ModularNameKind.invocation:
         Selector selector = data;
@@ -1244,6 +1234,11 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
   @override
   void visitDeferredString(js.DeferredString node) {
     throw new UnsupportedError('JsNodeSerializer.visitDeferredString');
+  }
+
+  @override
+  void visitDeferredStatement(js.DeferredStatement node) {
+    throw new UnsupportedError('JsNodeSerializer.visitDeferredStatement');
   }
 
   @override

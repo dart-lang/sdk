@@ -368,8 +368,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     var entity = target.entity;
 
     if (entity is Token) {
-      var prev = entity.previous!;
-      if (prev.end == offset && prev.isKeywordOrIdentifier) {
+      var prev = entity.previous;
+      if (prev != null && prev.end == offset && prev.isKeywordOrIdentifier) {
         return prev.lexeme;
       }
     }

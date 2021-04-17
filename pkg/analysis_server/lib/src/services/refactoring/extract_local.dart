@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
@@ -34,10 +32,10 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   final ResolvedUnitResult resolveResult;
   final int selectionOffset;
   final int selectionLength;
-  SourceRange selectionRange;
-  CorrectionUtils utils;
+  late SourceRange selectionRange;
+  late CorrectionUtils utils;
 
-  String name;
+  late String name;
   bool extractAll = true;
   @override
   final List<int> coveringExpressionOffsets = <int>[];
@@ -50,9 +48,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   @override
   final List<int> lengths = <int>[];
 
-  FunctionBody coveringFunctionBody;
-  Expression singleExpression;
-  String stringLiteralPart;
+  FunctionBody? coveringFunctionBody;
+  Expression? singleExpression;
+  String? stringLiteralPart;
   final List<SourceRange> occurrences = <SourceRange>[];
   final Map<Element, int> elementIds = <Element, int>{};
   Set<String> excludedVariableNames = <String>{};
@@ -63,14 +61,14 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     utils = CorrectionUtils(resolveResult);
   }
 
-  String get file => resolveResult.path;
+  String get file => resolveResult.path!;
 
   @override
   String get refactoringName => 'Extract Local Variable';
 
-  CompilationUnit get unit => resolveResult.unit;
+  CompilationUnit get unit => resolveResult.unit!;
 
-  CompilationUnitElement get unitElement => unit.declaredElement;
+  CompilationUnitElement get unitElement => unit.declaredElement!;
 
   String get _declarationKeyword {
     if (_isPartOfConstantExpression(singleExpression)) {
@@ -132,7 +130,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     occurrences.sort((a, b) => a.offset - b.offset);
     // If the whole expression of a statement is selected, like '1 + 2',
     // then convert it into a variable declaration statement.
-    if (singleExpression?.parent is ExpressionStatement &&
+    var singleExpression = this.singleExpression;
+    if (singleExpression != null &&
+        singleExpression.parent is ExpressionStatement &&
         occurrences.length == 1) {
       var keyword = _declarationKeyword;
       var declarationSource = '$keyword $name = ';
@@ -173,7 +173,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         addPosition(edit.offset + nameOffsetInDeclarationCode);
         occurrencesShift = edit.replacement.length;
       } else if (target is ExpressionFunctionBody) {
-        var prefix = utils.getNodePrefix(target.parent);
+        var prefix = utils.getNodePrefix(target.parent!);
         var indent = utils.getIndent(1);
         var expr = target.expression;
         {
@@ -231,7 +231,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       return RefactoringStatus.fatal(
           'The selection offset must be greater than zero.');
     }
-    if (selectionOffset + selectionLength >= resolveResult.content.length) {
+    if (selectionOffset + selectionLength >= resolveResult.content!.length) {
       return RefactoringStatus.fatal(
           'The selection end offset must be less then the length of the file.');
     }
@@ -300,9 +300,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       if (node is MethodInvocation) {
         var invocation = node;
         var element = invocation.methodName.staticElement;
-        if (element is ExecutableElement &&
-            element.returnType != null &&
-            element.returnType.isVoid) {
+        if (element is ExecutableElement && element.returnType.isVoid) {
           if (singleExpression == null) {
             return RefactoringStatus.fatal(
                 'Cannot extract the void expression.',
@@ -338,7 +336,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     }
     // single node selected
     if (singleExpression != null) {
-      selectionRange = range.node(singleExpression);
+      selectionRange = range.node(singleExpression!);
       return RefactoringStatus();
     }
     // invalid selection
@@ -348,7 +346,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   /// Return an unique identifier for the given [Element], or `null` if
   /// [element] is `null`.
-  int _encodeElement(Element element) {
+  int? _encodeElement(Element? element) {
     if (element == null) {
       return null;
     }
@@ -367,10 +365,6 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   /// there are multiple variables with the same name are declared in the
   /// function we are searching occurrences in.
   String _encodeExpressionTokens(Expression expr, List<Token> tokens) {
-    // no expression, i.e. a part of a string
-    if (expr == null) {
-      return tokens.join(_TOKEN_SEPARATOR);
-    }
     // prepare Token -> LocalElement map
     Map<Token, Element> map = HashMap<Token, Element>(
         equals: (Token a, Token b) => a.lexeme == b.lexeme,
@@ -395,7 +389,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   /// Return the [AstNode] to defined the variable before.
   /// It should be accessible by all the given [occurrences].
-  AstNode _findDeclarationTarget(List<SourceRange> occurrences) {
+  AstNode? _findDeclarationTarget(List<SourceRange> occurrences) {
     var nodes = _findNodes(occurrences);
     var commonParent = getNearestCommonAncestor(nodes);
     // Block
@@ -405,14 +399,18 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       return firstParents[commonIndex + 1];
     }
     // ExpressionFunctionBody
-    AstNode expressionBody = _getEnclosingExpressionBody(commonParent);
+    var expressionBody = _getEnclosingExpressionBody(commonParent);
     if (expressionBody != null) {
       return expressionBody;
     }
     // single Statement
-    AstNode target = commonParent.thisOrAncestorOfType<Statement>();
-    while (target.parent is! Block) {
-      target = target.parent;
+    AstNode? target = commonParent?.thisOrAncestorOfType<Statement>();
+    while (target != null) {
+      var parent = target.parent;
+      if (parent is Block) {
+        break;
+      }
+      target = parent;
     }
     return target;
   }
@@ -421,7 +419,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   List<AstNode> _findNodes(List<SourceRange> ranges) {
     var nodes = <AstNode>[];
     for (var range in ranges) {
-      var node = NodeLocator(range.offset).searchWithin(unit);
+      var node = NodeLocator(range.offset).searchWithin(unit)!;
       nodes.add(node);
     }
     return nodes;
@@ -429,7 +427,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   /// Returns the [ExpressionFunctionBody] that encloses [node], or `null`
   /// if [node] is not enclosed with an [ExpressionFunctionBody].
-  ExpressionFunctionBody _getEnclosingExpressionBody(AstNode node) {
+  ExpressionFunctionBody? _getEnclosingExpressionBody(AstNode? node) {
     while (node != null) {
       if (node is Statement) {
         return null;
@@ -447,7 +445,10 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     return analysisOptions.isLintEnabled(name);
   }
 
-  bool _isPartOfConstantExpression(AstNode node) {
+  bool _isPartOfConstantExpression(AstNode? node) {
+    if (node == null) {
+      return false;
+    }
     if (node is TypedLiteral) {
       return node.isConst;
     }
@@ -468,6 +469,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   void _prepareNames() {
     names.clear();
+    final stringLiteralPart = this.stringLiteralPart;
+    final singleExpression = this.singleExpression;
     if (stringLiteralPart != null) {
       names.addAll(getVariableNameSuggestionsForText(
           stringLiteralPart, excludedVariableNames));
@@ -486,13 +489,14 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     elementIds.clear();
 
     // prepare selection
-    String selectionSource;
+    String? selectionSource;
+    var singleExpression = this.singleExpression;
     if (singleExpression != null) {
       var tokens = TokenUtils.getNodeTokens(singleExpression);
       selectionSource = _encodeExpressionTokens(singleExpression, tokens);
     }
     // visit function
-    coveringFunctionBody.accept(_OccurrencesVisitor(
+    coveringFunctionBody!.accept(_OccurrencesVisitor(
         this, occurrences, selectionSource, unit.featureSet));
   }
 
@@ -509,7 +513,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
   final ExtractLocalRefactoringImpl ref;
   final List<SourceRange> occurrences;
-  final String selectionSource;
+  final String? selectionSource;
   final FeatureSet featureSet;
 
   _OccurrencesVisitor(
@@ -533,12 +537,13 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitStringLiteral(StringLiteral node) {
-    if (ref.stringLiteralPart != null) {
-      var length = ref.stringLiteralPart.length;
+    var stringLiteralPart = ref.stringLiteralPart;
+    if (stringLiteralPart != null) {
+      var length = stringLiteralPart.length;
       var value = ref.utils.getNodeText(node);
       var lastIndex = 0;
       while (true) {
-        var index = value.indexOf(ref.stringLiteralPart, lastIndex);
+        var index = value.indexOf(stringLiteralPart, lastIndex);
         if (index == -1) {
           break;
         }

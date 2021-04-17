@@ -7,6 +7,7 @@
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:http/http.dart';
 import 'package:linter/src/rules.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion.dart';
@@ -192,10 +193,14 @@ transforms:''';
 @reflectiveTest
 class PubspecCompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
+  /// Sample package name list JSON in the same format as the API:
+  /// https://pub.dev/api/package-name-completion-data
   static const samplePackageList = '''
   { "packages": ["one", "two", "three"] }
   ''';
 
+  /// Sample package details JSON in the same format as the API:
+  /// https://pub.dev/api/packages/devtools
   static const samplePackageDetails = '''
   {
     "name":"package",
@@ -297,6 +302,41 @@ environment:
     );
   }
 
+  Future<void> test_package_description() async {
+    httpClient.sendHandler = (BaseRequest request) async {
+      if (request.url.path.startsWith(PubApi.packageNameListPath)) {
+        return Response(samplePackageList, 200);
+      } else if (request.url.path.startsWith(PubApi.packageInfoPath)) {
+        return Response(samplePackageDetails, 200);
+      } else {
+        throw UnimplementedError();
+      }
+    };
+
+    final content = '''
+name: foo
+version: 1.0.0
+
+dependencies:
+  ^''';
+
+    await initialize();
+    await openFile(pubspecFileUri, withoutMarkers(content));
+    await pumpEventQueue();
+
+    // Descriptions are included in the documentation field that is only added
+    // when completions are resolved.
+    final completion = await getResolvedCompletion(
+      pubspecFileUri,
+      positionFromMarker(content),
+      'one: ',
+    );
+    expect(
+      completion.documentation.valueEquals('Description of package'),
+      isTrue,
+    );
+  }
+
   Future<void> test_package_names() async {
     httpClient.sendHandler = (BaseRequest request) async {
       if (request.url.toString().endsWith(PubApi.packageNameListPath)) {
@@ -326,6 +366,57 @@ dependencies:
       expectCompletions: ['one: ', 'two: ', 'three: '],
       applyEditsFor: 'one: ',
       expectedContent: expected,
+    );
+  }
+
+  Future<void> test_package_version() async {
+    httpClient.sendHandler = (BaseRequest request) async {
+      if (request.url.path.startsWith(PubApi.packageNameListPath)) {
+        return Response(samplePackageList, 200);
+      } else if (request.url.path.startsWith(PubApi.packageInfoPath)) {
+        return Response(samplePackageDetails, 200);
+      } else {
+        throw UnimplementedError();
+      }
+    };
+
+    final content = '''
+name: foo
+version: 1.0.0
+
+dependencies:
+  ^''';
+
+    final expected = '''
+name: foo
+version: 1.0.0
+
+dependencies:
+  one: ^1.2.3''';
+
+    await initialize();
+    await openFile(pubspecFileUri, withoutMarkers(content));
+
+    // Versions are currently only available if we've previously resolved on the
+    // package name, so first complete/resolve that.
+    final newContent = await verifyCompletions(
+      pubspecFileUri,
+      content,
+      expectCompletions: ['one: '],
+      resolve: true,
+      applyEditsFor: 'one: ',
+      openCloseFile: false,
+    );
+    await replaceFile(222, pubspecFileUri, newContent);
+
+    await verifyCompletions(
+      pubspecFileUri,
+      newContent.replaceFirst(
+          'one: ', 'one: ^'), // Insert caret at new location
+      expectCompletions: ['^1.2.3'],
+      applyEditsFor: '^1.2.3',
+      expectedContent: expected,
+      openCloseFile: false,
     );
   }
 

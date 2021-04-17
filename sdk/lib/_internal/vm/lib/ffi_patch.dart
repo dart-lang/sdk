@@ -714,6 +714,16 @@ extension StructPointer<T extends Struct> on Pointer<T> {
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
+extension UnionPointer<T extends Union> on Pointer<T> {
+  @patch
+  T get ref =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  T operator [](int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+}
+
 extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
   @patch
   Pointer<T> operator [](int index) =>
@@ -739,6 +749,13 @@ extension StructArray<T extends Struct> on Array<T> {
   T operator [](int index) {
     throw ArgumentError(
         "S ($T) should be a subtype of Struct at compile-time.");
+  }
+}
+
+extension UnionArray<T extends Union> on Array<T> {
+  @patch
+  T operator [](int index) {
+    throw ArgumentError("S ($T) should be a subtype of Union at compile-time.");
   }
 }
 

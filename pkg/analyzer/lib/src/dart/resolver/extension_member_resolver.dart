@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -119,7 +120,8 @@ class ExtensionMemberResolver {
   }
 
   /// Perform upward inference for the override.
-  void resolveOverride(ExtensionOverride node) {
+  void resolveOverride(ExtensionOverride node,
+      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
     var nodeImpl = node as ExtensionOverrideImpl;
     var element = node.staticElement!;
     var typeParameters = element.typeParameters;
@@ -173,10 +175,14 @@ class ExtensionMemberResolver {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
     } else if (!_typeSystem.isAssignableTo(receiverType, node.extendedType!)) {
+      var whyNotPromoted =
+          whyNotPromotedList.isEmpty ? null : whyNotPromotedList[0];
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
         receiverExpression,
         [receiverType, node.extendedType],
+        _resolver.computeWhyNotPromotedMessages(
+            receiverExpression, whyNotPromoted?.call()),
       );
     }
   }

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -9,7 +9,6 @@ in the location of the library to be analyzed along with any other options
 you desire.
 """
 
-import collections
 import json
 import logging
 import multiprocessing
@@ -336,7 +335,7 @@ def RunElfSymbolizer(outfile, library, addr2line_binary, nm_binary, jobs,
         user_interrupted = True
         print('Patience you must have my young padawan.')
 
-    print ''
+    print('')
 
     if user_interrupted:
         print('Skipping the rest of the file mapping. '
@@ -379,9 +378,9 @@ def RunNm(binary, nm_binary):
 
     if nm_process.returncode != 0:
         if err_output:
-            raise Exception, err_output
+            raise Exception(err_output)
         else:
-            raise Exception, process_output
+            raise Exception(process_output)
 
     return process_output
 
@@ -393,15 +392,15 @@ def GetNmSymbols(nm_infile, outfile, library, jobs, verbose, addr2line_binary,
             outfile = tempfile.NamedTemporaryFile(delete=False).name
 
         if verbose:
-            print 'Running parallel addr2line, dumping symbols to ' + outfile
+            print('Running parallel addr2line, dumping symbols to ' + outfile)
         RunElfSymbolizer(outfile, library, addr2line_binary, nm_binary, jobs,
                          disambiguate, src_path)
 
         nm_infile = outfile
 
     elif verbose:
-        print 'Using nm input from ' + nm_infile
-    with file(nm_infile, 'r') as infile:
+        print('Using nm input from ' + nm_infile)
+    with open(nm_infile, 'r') as infile:
         return list(binary_size_utils.ParseNm(infile))
 
 
@@ -624,12 +623,12 @@ def main():
         (not opts.nm_in)) or (opts.library and opts.nm_in):
         parser.error('exactly one of --library or --nm-in is required')
     if opts.nm_out:
-        print >> sys.stderr, (
-            'WARNING: --nm-out is deprecated and has no effect.')
+        print('WARNING: --nm-out is deprecated and has no effect.',
+              file=sys.stderr)
     if (opts.nm_in):
         if opts.jobs:
-            print >> sys.stderr, ('WARNING: --jobs has no effect '
-                                  'when used with --nm-in')
+            print('WARNING: --jobs has no effect when used with --nm-in',
+                  file=sys.stderr)
     if not opts.destdir:
         parser.error('--destdir is a required argument')
     if not opts.jobs:
@@ -666,7 +665,7 @@ def main():
 
     # Prepare output directory and report guts
     if not os.path.exists(opts.destdir):
-        os.makedirs(opts.destdir, 0755)
+        os.makedirs(opts.destdir, 0o755)
     nm_out = os.path.join(opts.destdir, 'nm.out')
     if opts.no_nm_out:
         nm_out = None
@@ -677,7 +676,7 @@ def main():
     data_js_file_name = os.path.join(opts.destdir, 'data.js')
     d3_out = os.path.join(opts.destdir, 'd3')
     if not os.path.exists(d3_out):
-        os.makedirs(d3_out, 0755)
+        os.makedirs(d3_out, 0o755)
     d3_src = os.path.join(os.path.dirname(__file__), '..', '..', 'd3', 'src')
     template_src = os.path.join(os.path.dirname(__file__), 'template')
     shutil.copy(os.path.join(d3_src, 'LICENSE'), d3_out)
@@ -701,7 +700,7 @@ def main():
         symbol_path_origin_dir = os.path.abspath(os.getcwd())
     # Dump JSON for the HTML report.
     DumpCompactTree(symbols, symbol_path_origin_dir, data_js_file_name)
-    print 'Report saved to ' + opts.destdir + '/index.html'
+    print('Report saved to ' + opts.destdir + '/index.html')
 
 
 if __name__ == '__main__':

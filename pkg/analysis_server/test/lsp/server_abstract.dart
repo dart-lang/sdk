@@ -118,6 +118,21 @@ abstract class AbstractLspAnalysisServerTest
         orElse: () => null);
   }
 
+  /// Finds the registration for a given LSP method with Dart in its
+  /// documentSelector.
+  Registration registrationForDart(
+    List<Registration> registrations,
+    Method method,
+  ) {
+    return registrations.singleWhere(
+        (r) =>
+            r.method == method.toJson() &&
+            TextDocumentRegistrationOptions.fromJson(r.registerOptions)
+                .documentSelector
+                .any((selector) => selector.language == dartLanguageId),
+        orElse: () => null);
+  }
+
   void resetContextBuildCounter() {
     _previousContextBuilds = server.contextBuilds;
   }

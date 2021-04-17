@@ -33,7 +33,7 @@ class _Lowering extends Transformer {
 
   _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy)
       : factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
-        _lateLowering = LateLowering(coreTypes.index);
+        _lateLowering = LateLowering(coreTypes);
 
   void transformAdditionalExports(Library node) {
     _lateLowering.transformAdditionalExports(node);

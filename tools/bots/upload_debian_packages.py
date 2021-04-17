@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
@@ -36,7 +36,7 @@ def ArchiveArtifacts(tarfile, builddir, channel):
 if __name__ == '__main__':
     bot_name = os.environ.get('BUILDBOT_BUILDERNAME')
     channel = bot_utils.GetChannelFromName(bot_name)
-    if channel != bot_utils.Channel.BLEEDING_EDGE:
+    if channel not in (bot_utils.Channel.BLEEDING_EDGE, bot_utils.Channel.TRY):
         builddir = os.path.join(bot_utils.DART_DIR, utils.GetBuildDir(HOST_OS),
                                 'src_and_installation')
         version = utils.GetVersion()
@@ -44,4 +44,4 @@ if __name__ == '__main__':
         tarfile = os.path.join(builddir, tarfilename)
         ArchiveArtifacts(tarfile, builddir, channel)
     else:
-        print 'Not uploading artifacts on bleeding edge'
+        print('Not uploading artifacts on bleeding edge')

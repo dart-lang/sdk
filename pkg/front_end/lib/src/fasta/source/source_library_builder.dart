@@ -93,6 +93,7 @@ import '../kernel/kernel_builder.dart'
 
 import '../kernel/type_algorithms.dart'
     show
+        NonSimplicityIssue,
         calculateBounds,
         computeTypeVariableBuilderVariance,
         findGenericFunctionTypes,
@@ -3078,24 +3079,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       return variables.length;
     }
 
-    void reportIssues(List<Object> issues) {
-      for (int i = 0; i < issues.length; i += 3) {
-        TypeDeclarationBuilder declaration = issues[i];
-        Message message = issues[i + 1];
-        List<LocatedMessage> context = issues[i + 2];
-
-        addProblem(message, declaration.charOffset, declaration.name.length,
-            declaration.fileUri,
-            context: context);
+    void reportIssues(List<NonSimplicityIssue> issues) {
+      for (NonSimplicityIssue issue in issues) {
+        addProblem(issue.message, issue.declaration.charOffset,
+            issue.declaration.name.length, issue.declaration.fileUri,
+            context: issue.context);
       }
     }
 
     for (Builder declaration in libraryDeclaration.members.values) {
       if (declaration is ClassBuilder) {
         {
-          List<Object> issues = getNonSimplicityIssuesForDeclaration(
-              declaration,
-              performErrorRecovery: true);
+          List<NonSimplicityIssue> issues =
+              getNonSimplicityIssuesForDeclaration(declaration,
+                  performErrorRecovery: true);
           reportIssues(issues);
           count += computeDefaultTypesForVariables(declaration.typeVariables,
               inErrorRecovery: issues.isNotEmpty);
@@ -3417,7 +3414,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       DartType superBoundedAttempt,
       DartType superBoundedAttemptInverted}) {
     List<LocatedMessage> context;
-    if (typeParameter != null && typeParameter.fileOffset != -1) {
+    // Skip reporting location for function-type type parameters as it's a
+    // limitation of Kernel.
+    if (typeParameter != null &&
+        typeParameter.fileOffset != -1 &&
+        typeParameter.parent != null) {
       // It looks like when parameters come from patch files, they don't
       // have a reportable location.
       (context ??= <LocatedMessage>[]).add(

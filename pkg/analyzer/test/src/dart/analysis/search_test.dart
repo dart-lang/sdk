@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -376,7 +377,8 @@ class A {
 ''');
     var element = findElement.unnamedConstructor('A');
 
-    CompilationUnit otherUnit = (await driver.getResult(other)).unit!;
+    var otherUnitResult = await driver.getResult2(other) as ResolvedUnitResult;
+    CompilationUnit otherUnit = otherUnitResult.unit!;
     Element main = otherUnit.declaredElement!.functions[0];
     var expected = [
       ExpectedResult(main, SearchResultKind.REFERENCE,

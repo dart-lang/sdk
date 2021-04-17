@@ -436,7 +436,6 @@ class Namer extends ModularNamer {
   static const String _callPrefixDollar = r'call$';
 
   static final jsAst.Name _literalDollar = new StringBackedName(r'$');
-  static final jsAst.Name _literalUnderscore = new StringBackedName('_');
   static final jsAst.Name literalPlus = new StringBackedName('+');
   static final jsAst.Name _literalDynamic = new StringBackedName("dynamic");
 
@@ -1507,20 +1506,6 @@ class Namer extends ModularNamer {
   }
 
   @override
-  jsAst.Name operatorIsType(DartType type) {
-    if (type is FunctionType) {
-      // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
-      return new CompoundName([
-        new StringBackedName(fixedNames.operatorIsPrefix),
-        _literalUnderscore,
-        getFunctionTypeName(type)
-      ]);
-    }
-    InterfaceType interfaceType = type;
-    return operatorIs(interfaceType.element);
-  }
-
-  @override
   jsAst.Name operatorIs(ClassEntity element) {
     // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
     return new CompoundName([
@@ -2413,9 +2398,6 @@ abstract class ModularNamer {
   /// [element].
   jsAst.Name operatorIs(ClassEntity element);
 
-  /// Return the name of the `isX` property for classes that implement [type].
-  jsAst.Name operatorIsType(DartType type);
-
   /// Returns the name of the lazy initializer for the static field [element].
   jsAst.Name lazyInitializerName(FieldEntity element);
 
@@ -2655,14 +2637,6 @@ class ModularNamerImpl extends ModularNamer {
   jsAst.Name instanceFieldPropertyName(FieldEntity element) {
     jsAst.Name name =
         new ModularName(ModularNameKind.instanceField, data: element);
-    _registry.registerModularName(name);
-    return name;
-  }
-
-  @override
-  jsAst.Name operatorIsType(DartType type) {
-    jsAst.Name name =
-        new ModularName(ModularNameKind.operatorIsType, data: type);
     _registry.registerModularName(name);
     return name;
   }
