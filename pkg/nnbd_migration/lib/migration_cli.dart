@@ -1072,8 +1072,8 @@ class _FixCodeProcessor extends Object {
           continue;
           break;
         case SourceKind.LIBRARY:
-          var result = await driver.getResolvedLibrary(path);
-          if (result != null) {
+          var result = await driver.getResolvedLibrary2(path);
+          if (result is ResolvedLibraryResult) {
             for (var unit in result.units) {
               if (!pathsProcessed.contains(unit.path)) {
                 await process(unit);

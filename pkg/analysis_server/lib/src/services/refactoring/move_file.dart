@@ -85,7 +85,10 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     if (element == libraryElement.definingCompilationUnit) {
       // Handle part-of directives in this library
       var libraryResult = await driver.currentSession
-          .getResolvedLibraryByElement(libraryElement);
+          .getResolvedLibraryByElement2(libraryElement);
+      if (libraryResult is! ResolvedLibraryResult) {
+        return changeBuilder.sourceChange;
+      }
       var definingUnitResult = libraryResult.units!.first;
       for (var result in libraryResult.units!) {
         if (result.isPart) {

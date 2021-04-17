@@ -69,13 +69,27 @@ abstract class AnalysisSession {
   ///
   /// Throw [ArgumentError] if the given [path] is not the defining compilation
   /// unit for a library (that is, is a part of a library).
+  @Deprecated('Use getResolvedLibrary2() instead')
   Future<ResolvedLibraryResult> getResolvedLibrary(String path);
+
+  /// Return a future that will complete with information about the results of
+  /// resolving all of the files in the library with the given absolute,
+  /// normalized [path].
+  Future<SomeResolvedLibraryResult> getResolvedLibrary2(String path);
 
   /// Return a future that will complete with information about the results of
   /// resolving all of the files in the library with the library [element].
   ///
   /// Throw [ArgumentError] if the [element] was not produced by this session.
+  @Deprecated('Use getResolvedLibraryByElement2() instead')
   Future<ResolvedLibraryResult> getResolvedLibraryByElement(
+      LibraryElement element);
+
+  /// Return a future that will complete with information about the results of
+  /// resolving all of the files in the library with the library [element].
+  ///
+  /// Throw [ArgumentError] if the [element] was not produced by this session.
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
       LibraryElement element);
 
   /// Return a future that will complete with information about the results of

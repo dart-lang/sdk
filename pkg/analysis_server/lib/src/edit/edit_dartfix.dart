@@ -224,8 +224,8 @@ class EditDartFix
           continue;
           break;
         case SourceKind.LIBRARY:
-          var result = await driver.getResolvedLibrary(path);
-          if (result != null) {
+          var result = await driver.getResolvedLibrary2(path);
+          if (result is ResolvedLibraryResult) {
             for (var unit in result.units) {
               if (pathsToProcess.contains(unit.path) &&
                   !pathsProcessed.contains(unit.path)) {

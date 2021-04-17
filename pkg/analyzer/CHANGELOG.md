@@ -3,6 +3,10 @@
   Use `AnalysisSession.getUnitElement2()` instead.
 * Deprecated `AnalysisSession.getResolvedUnit()`.
   Use `AnalysisSession.getResolvedUnit2()` instead.
+* Deprecated `AnalysisSession.getResolvedLibrary()`.
+  Use `AnalysisSession.getResolvedLibrary2()` instead.
+* Deprecated `AnalysisSession.getResolvedLibraryByElement()`.
+  Use `AnalysisSession.getResolvedLibraryByElement2()` instead.
 
 ## 1.4.0
 * Deprecated `TypeProvider.nonSubtypableClasses`.
