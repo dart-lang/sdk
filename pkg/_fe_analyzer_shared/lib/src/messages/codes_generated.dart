@@ -6804,6 +6804,31 @@ const MessageCode messageMixinFunction = const MessageCode("MixinFunction",
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String
+            name)> templateMixinInheritsNotFromObject = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""The class '#name' can't be used as a mixin because it extends a class other than Object.""",
+    withArguments: _withArgumentsMixinIneritsNotFromObject);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMixinIneritsNotFromObject =
+    const Code<Message Function(String name)>("MixinIneritsNotFromObject",
+        analyzerCodes: <String>["MIXIN_INHERITS_FROM_NOT_OBJECT"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMixinIneritsNotFromObject(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMixinIneritsNotFromObject,
+      message:
+          """The class '${name}' can't be used as a mixin because it extends a class other than Object.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String string,
         String
             string2)> templateModifierOutOfOrder = const Template<

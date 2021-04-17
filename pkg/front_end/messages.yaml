@@ -398,6 +398,10 @@ ExpectedInstead:
   script:
     - "class B {} mixin A extends B { }"
 
+MixinIneritsNotFromObject:
+  template: "The class '#name' can't be used as a mixin because it extends a class other than Object."
+  analyzerCode: MIXIN_INHERITS_FROM_NOT_OBJECT # CompileTimeErrorCode
+
 MultipleLibraryDirectives:
   index: 27
   template: "Only one library directive may be declared in a file."

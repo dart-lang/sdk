@@ -1,0 +1,60 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/mixin_inherits_non_object.dart:19:7: Error: The class 'Mixed' can't be used as a mixin because it extends a class other than Object.
+// class Mixed = Object with N, M;
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/mixin_inherits_non_object.dart:21:7: Error: The non-abstract class 'A' is missing implementations for these members:
+//  - N.text
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class A with Mixed {}
+//       ^
+// pkg/front_end/testcases/general/mixin_inherits_non_object.dart:16:14: Context: 'N.text' is defined here.
+//   String get text => 'Foo';
+//              ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  get number() → core::int
+    ;
+}
+abstract class N extends core::Object /*isMixinDeclaration*/  {
+  get text() → core::String
+    ;
+}
+abstract class _Mixed&Object&N = core::Object with self::N /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Mixed&Object&N
+    : super core::Object::•()
+    ;
+  mixin-super-stub get text() → core::String
+    return super.{self::N::text};
+}
+class Mixed = self::_Mixed&Object&N with self::M /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::Mixed
+    : super self::_Mixed&Object&N::•()
+    ;
+  mixin-super-stub get number() → core::int
+    return super.{self::M::number};
+}
+abstract class _A&Object&Mixed = core::Object with self::Mixed /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A&Object&Mixed
+    : super core::Object::•()
+    ;
+  mixin-super-stub get number() → core::int
+    return super.{self::M::number};
+}
+class A extends self::_A&Object&Mixed {
+  synthetic constructor •() → self::A
+    ;
+}
+static method main() → void async 
+  ;

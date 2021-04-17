@@ -1983,6 +1983,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         return false;
       }
 
+      /// Verify that the given mixin has the 'Object' superclass.
+      if (type.supertype == null ||
+          type.supertype == loader.target.objectType) {
+        if (type.mixins.length > 1) {
+          addProblem(
+              templateMixinInheritsNotFromObject.withArguments(subclassName),
+              charOffset, subclassName.length, fileUri);
+        }
+      } else {
+        addProblem(
+            templateMixinInheritsNotFromObject.withArguments(subclassName),
+            charOffset, subclassName.length, fileUri);
+      }
+
       /// Iterate over the mixins from left to right. At the end of each
       /// iteration, a new [supertype] is computed that is the mixin
       /// application of [supertype] with the current mixin.

@@ -1,0 +1,10 @@
+class A with Mixed {}
+
+class Mixed = Object with N, M;
+mixin M {
+  int get number => 20;
+}
+mixin N {
+  String get text => 'Foo';
+}
+void main() async {}
