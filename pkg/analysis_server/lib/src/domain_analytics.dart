@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:core';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -19,12 +17,13 @@ class AnalyticsDomainHandler implements RequestHandler {
 
   AnalyticsDomainHandler(this.server);
 
-  Analytics get analytics => server.analytics;
+  Analytics? get analytics => server.analytics;
 
   String get _clientId => server.options.clientId ?? 'client';
 
   Response handleEnable(Request request) {
     var params = AnalyticsEnableParams.fromRequest(request);
+    final analytics = this.analytics;
     if (analytics != null) {
       analytics.enabled = params.value;
     }
@@ -37,7 +36,7 @@ class AnalyticsDomainHandler implements RequestHandler {
   }
 
   @override
-  Response handleRequest(Request request) {
+  Response? handleRequest(Request request) {
     var requestName = request.method;
 
     if (requestName == ANALYTICS_REQUEST_IS_ENABLED) {
@@ -54,6 +53,7 @@ class AnalyticsDomainHandler implements RequestHandler {
   }
 
   Response handleSendEvent(Request request) {
+    final analytics = this.analytics;
     if (analytics == null) {
       return AnalyticsSendEventResult().toResponse(request.id);
     }
@@ -64,6 +64,7 @@ class AnalyticsDomainHandler implements RequestHandler {
   }
 
   Response handleSendTiming(Request request) {
+    final analytics = this.analytics;
     if (analytics == null) {
       return AnalyticsSendTimingResult().toResponse(request.id);
     }

@@ -270,7 +270,7 @@ abstract class RequestHandler {
   /// this handler, return `null` so that other handlers will be given a chance
   /// to handle it. Otherwise, return the response that should be passed back to
   /// the client.
-  Response handleRequest(Request request);
+  Response? handleRequest(Request request);
 }
 
 /// A response to a request.

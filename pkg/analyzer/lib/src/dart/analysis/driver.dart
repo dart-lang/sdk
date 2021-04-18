@@ -2038,7 +2038,9 @@ class AnalysisDriverScheduler {
 
   /// Notify that there is a change to the [driver], it it might need to
   /// perform some work.
-  void notify(AnalysisDriverGeneric driver) {
+  void notify(AnalysisDriverGeneric? driver) {
+    // TODO(brianwilkerson) Consider removing the parameter, given that it isn't
+    //  referenced in the body.
     _hasWork.notify();
     _statusSupport.preTransitionToAnalyzing();
   }

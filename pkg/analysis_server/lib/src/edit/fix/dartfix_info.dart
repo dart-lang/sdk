@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart'
     show DartFix, EditDartfixParams;
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
@@ -553,12 +551,12 @@ class LintFixInfo extends DartFixInfo {
     this.fixKind,
     String description, {
     bool isPedantic = false,
-  }) : super(lintName, description, null, isPedantic: isPedantic);
+  }) : super(lintName, description, (_, __, ___) {}, isPedantic: isPedantic);
 
   @override
   void setup(DartFixRegistrar registrar, DartFixListener listener,
       EditDartfixParams params) {
     registrar.registerLintTask(
-        Registry.ruleRegistry[lintName], FixLintTask(listener));
+        Registry.ruleRegistry[lintName]!, FixLintTask(listener));
   }
 }
