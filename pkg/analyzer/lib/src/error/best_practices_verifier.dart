@@ -367,7 +367,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _checkForReturnOfDoNotStore(node.expression);
+    if (!_invalidAccessVerifier._inTestDirectory) {
+      _checkForReturnOfDoNotStore(node.expression);
+    }
     super.visitExpressionFunctionBody(node);
   }
 
@@ -406,8 +408,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               field.name,
               [field.name, overriddenElement!.enclosingElement.name]);
         }
-
-        _checkForAssignmentOfDoNotStore(field.initializer);
+        if (!_invalidAccessVerifier._inTestDirectory) {
+          _checkForAssignmentOfDoNotStore(field.initializer);
+        }
       }
     } finally {
       _deprecatedVerifier.popInDeprecated();
@@ -678,8 +681,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _deprecatedVerifier.pushInDeprecatedMetadata(node.metadata);
 
-    for (var decl in node.variables.variables) {
-      _checkForAssignmentOfDoNotStore(decl.initializer);
+    if (!_invalidAccessVerifier._inTestDirectory) {
+      for (var decl in node.variables.variables) {
+        _checkForAssignmentOfDoNotStore(decl.initializer);
+      }
     }
 
     try {

@@ -10,11 +10,45 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentOfDoNotStoreTest);
+    defineReflectiveTests(AssignmentOfDoNotStoreInTestsTest);
   });
 }
 
 @reflectiveTest
+class AssignmentOfDoNotStoreInTestsTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
+  test_noHintsInTestDir() async {
+    // Code that is in a test dir (the default for PubPackageResolutionTests)
+    // should not trigger the hint.
+    // (See:https://github.com/dart-lang/sdk/issues/45594)
+    await assertNoErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+
+class A {
+  @doNotStore
+  String get v => '';
+}
+
+class B {
+  String f = A().v;
+}
+''',
+    );
+  }
+}
+
+@reflectiveTest
 class AssignmentOfDoNotStoreTest extends PubPackageResolutionTest {
+  /// Override the default which is in .../test and should not trigger hints.
+  @override
+  String get testPackageRootPath => '$workspaceRootPath/test_project';
+
   @override
   void setUp() {
     super.setUp();
