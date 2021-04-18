@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as ad;
@@ -61,7 +59,7 @@ class WorkspaceSymbols {
   WorkspaceSymbols(this.tracker);
 
   List<Declaration> declarations(
-      RegExp? regExp, int? maxResults, LinkedHashSet<String> files,
+      RegExp? regExp, int? maxResults, Set<String> files,
       {String? onlyForFile}) {
     _doTrackerWork();
 

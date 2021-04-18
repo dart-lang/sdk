@@ -202,7 +202,7 @@ abstract class PluginInfo {
   /// Start a new isolate that is running the plugin. Return the state object
   /// used to interact with the plugin, or `null` if the plugin could not be
   /// run.
-  Future<PluginSession?> start(String byteStorePath, String sdkPath) async {
+  Future<PluginSession?> start(String? byteStorePath, String sdkPath) async {
     if (currentSession != null) {
       throw StateError('Cannot start a plugin that is already running.');
     }
@@ -261,7 +261,7 @@ class PluginManager {
 
   /// The absolute path of the directory containing the on-disk byte store, or
   /// `null` if there is no on-disk store.
-  final String byteStorePath;
+  final String? byteStorePath;
 
   /// The absolute path of the directory containing the SDK.
   final String sdkPath;
@@ -918,11 +918,11 @@ class PluginSession {
   /// Start a new isolate that is running this plugin. The plugin will be sent
   /// the given [byteStorePath]. Return `true` if the plugin is compatible and
   /// running.
-  Future<bool> start(String byteStorePath, String sdkPath) async {
+  Future<bool> start(String? byteStorePath, String sdkPath) async {
     if (channel != null) {
       throw StateError('Cannot start a plugin that is already running.');
     }
-    if (byteStorePath.isEmpty) {
+    if (byteStorePath == null || byteStorePath.isEmpty) {
       throw StateError('Missing byte store path');
     }
     if (!isCompatible) {
