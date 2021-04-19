@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:test/test.dart';
@@ -467,7 +468,9 @@ class _Base extends AbstractContextTest with DartChangeBuilderMixin {
     var path = convertPath('/home/test/lib/test.dart');
     newFile(path, content: initialCode);
 
-    var requestedLibrary = await session.getLibraryByUri(uriStr);
+    var requestedResult =
+        await session.getLibraryByUri2(uriStr) as LibraryElementResult;
+    var requestedLibrary = requestedResult.element;
     var requestedElement = requestedLibrary.exportNamespace.get(name);
     expect(requestedElement, isNotNull, reason: '`$name` in $uriStr');
 

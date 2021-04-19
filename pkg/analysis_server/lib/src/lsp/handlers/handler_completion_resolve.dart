@@ -11,6 +11,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/src/util/comment.dart' as analyzer;
@@ -101,16 +102,17 @@ class CompletionResolveHandler
         }
 
         analyzer.LibraryElement requestedLibraryElement;
-        try {
-          requestedLibraryElement = await session.getLibraryByUri(
-            library.uriStr,
-          );
-        } on ArgumentError catch (e) {
-          return error(
-            ErrorCodes.InvalidParams,
-            'Invalid library URI: ${library.uriStr}',
-            '$e',
-          );
+        {
+          var result = await session.getLibraryByUri2(library.uriStr);
+          if (result is LibraryElementResult) {
+            requestedLibraryElement = result.element;
+          } else {
+            return error(
+              ErrorCodes.InvalidParams,
+              'Invalid library URI: ${library.uriStr}',
+              '${result.runtimeType}',
+            );
+          }
         }
 
         if (token.isCancellationRequested) {

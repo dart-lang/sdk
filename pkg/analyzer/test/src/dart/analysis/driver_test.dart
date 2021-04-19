@@ -1423,6 +1423,7 @@ main() {
     }, throwsArgumentError);
   }
 
+  @deprecated
   test_getLibraryByUri() async {
     var a = '/test/lib/a.dart';
     var b = '/test/lib/b.dart';
@@ -1452,6 +1453,43 @@ class B {}
     }, throwsArgumentError);
   }
 
+  test_getLibraryByUri2() async {
+    var a = '/test/lib/a.dart';
+    var b = '/test/lib/b.dart';
+
+    String aUriStr = 'package:test/a.dart';
+    String bUriStr = 'package:test/b.dart';
+
+    newFile(a, content: r'''
+part 'b.dart';
+
+class A {}
+''');
+
+    newFile(b, content: r'''
+part of 'a.dart';
+
+class B {}
+''');
+
+    var result = await driver.getLibraryByUri2(aUriStr);
+    result as LibraryElementResult;
+    expect(result.element.getType('A'), isNotNull);
+    expect(result.element.getType('B'), isNotNull);
+
+    // It is an error to ask for a library when we know that it is a part.
+    expect(
+      await driver.getLibraryByUri2(bUriStr),
+      isA<NotLibraryButPartResult>(),
+    );
+  }
+
+  test_getLibraryByUri2_unresolvedUri() async {
+    var result = await driver.getLibraryByUri2('package:foo/foo.dart');
+    expect(result, isA<CannotResolveUriResult>());
+  }
+
+  @deprecated
   test_getLibraryByUri_unresolvedUri() async {
     expect(() async {
       await driver.getLibraryByUri('package:foo/foo.dart');

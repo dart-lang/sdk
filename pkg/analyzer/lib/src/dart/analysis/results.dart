@@ -67,6 +67,13 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   ResultState get state => ResultState.VALID;
 }
 
+class LibraryElementResultImpl implements LibraryElementResult {
+  @override
+  final LibraryElement element;
+
+  LibraryElementResultImpl(this.element);
+}
+
 /// The implementation of [AnalysisResult] when not [ResultState.VALID].
 class NotValidAnalysisResultImpl implements AnalysisResult {
   @override

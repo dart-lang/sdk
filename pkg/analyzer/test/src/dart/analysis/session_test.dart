@@ -220,6 +220,7 @@ test:lib/
     expect(errorsResult.errors, isNotEmpty);
   }
 
+  @deprecated
   test_getLibraryByUri() async {
     newFile(testPath, content: r'''
 class A {}
@@ -232,6 +233,25 @@ class B {}
     expect(library.getType('C'), isNull);
   }
 
+  test_getLibraryByUri2() async {
+    newFile(testPath, content: r'''
+class A {}
+class B {}
+''');
+
+    var result = await session.getLibraryByUriValid('package:test/test.dart');
+    var library = result.element;
+    expect(library.getType('A'), isNotNull);
+    expect(library.getType('B'), isNotNull);
+    expect(library.getType('C'), isNull);
+  }
+
+  test_getLibraryByUri2_unresolvedUri() async {
+    var result = await session.getLibraryByUri2('package:foo/foo.dart');
+    expect(result, isA<CannotResolveUriResult>());
+  }
+
+  @deprecated
   test_getLibraryByUri_unresolvedUri() async {
     expect(() async {
       await session.getLibraryByUri('package:foo/foo.dart');
@@ -265,10 +285,12 @@ class A {}
 class B {}
 ''');
 
-    var library = await session.getLibraryByUri('package:test/test.dart');
+    var libraryResult = await session.getLibraryByUriValid(
+      'package:test/test.dart',
+    );
     var parsedLibrary = session.getParsedLibrary(testPath);
 
-    var element = library.getType('A')!;
+    var element = libraryResult.element.getType('A')!;
     var declaration = parsedLibrary.getElementDeclaration(element)!;
     var node = declaration.node as ClassDeclaration;
     expect(node.name.name, 'A');
@@ -449,7 +471,10 @@ class C3 {}
   test_getParsedLibraryByElement() async {
     newFile(testPath, content: '');
 
-    var element = await session.getLibraryByUri('package:test/test.dart');
+    var libraryResult = await session.getLibraryByUriValid(
+      'package:test/test.dart',
+    );
+    var element = libraryResult.element;
 
     var parsedLibrary = session.getParsedLibraryByElement(element);
     expect(parsedLibrary.session, session);
@@ -461,7 +486,10 @@ class C3 {}
   test_getParsedLibraryByElement_differentSession() async {
     newFile(testPath, content: '');
 
-    var element = await session.getLibraryByUri('package:test/test.dart');
+    var libraryResult = await session.getLibraryByUriValid(
+      'package:test/test.dart',
+    );
+    var element = libraryResult.element;
 
     var aaaSession =
         contextCollection.contextFor(aaaContextPath).currentSession;
@@ -647,7 +675,10 @@ part 'c.dart';
   test_getResolvedLibraryByElement2() async {
     newFile(testPath, content: '');
 
-    var element = await session.getLibraryByUri('package:test/test.dart');
+    var libraryResult = await session.getLibraryByUriValid(
+      'package:test/test.dart',
+    );
+    var element = libraryResult.element;
 
     var result = await session.getResolvedLibraryByElementValid(element);
     expect(result.session, session);
@@ -660,7 +691,10 @@ part 'c.dart';
   test_getResolvedLibraryByElement2_differentSession() async {
     newFile(testPath, content: '');
 
-    var element = await session.getLibraryByUri('package:test/test.dart');
+    var libraryResult = await session.getLibraryByUriValid(
+      'package:test/test.dart',
+    );
+    var element = libraryResult.element;
 
     var aaaSession =
         contextCollection.contextFor(aaaContextPath).currentSession;
@@ -774,6 +808,10 @@ extension on AnalysisSession {
 
   Future<ResolvedLibraryResult> getResolvedLibraryValid(String path) async {
     return await getResolvedLibrary2(path) as ResolvedLibraryResult;
+  }
+
+  Future<LibraryElementResult> getLibraryByUriValid(String path) async {
+    return await getLibraryByUri2(path) as LibraryElementResult;
   }
 
   Future<ResolvedLibraryResult> getResolvedLibraryByElementValid(

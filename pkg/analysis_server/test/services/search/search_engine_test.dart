@@ -328,8 +328,9 @@ import 'package:aaa/a.dart';
 int t;
 ''').path;
 
-    var coreLib = await driverFor(testFilePath).getLibraryByUri('dart:core');
-    var intElement = coreLib.getType('int')!;
+    var coreLibResult = await driverFor(testFilePath)
+        .getLibraryByUri2('dart:core') as LibraryElementResult;
+    var intElement = coreLibResult.element.getType('int')!;
 
     var matches = await searchEngine.searchReferences(intElement);
 

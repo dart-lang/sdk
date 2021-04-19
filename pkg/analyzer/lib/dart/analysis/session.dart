@@ -44,7 +44,12 @@ abstract class AnalysisSession {
 
   /// Return a future that will complete with the library element representing
   /// the library with the given [uri].
+  @Deprecated('Use getLibraryByUri2() instead')
   Future<LibraryElement> getLibraryByUri(String uri);
+
+  /// Return a future that will complete with information about the library
+  /// element representing the library with the given [uri].
+  Future<SomeLibraryElementResult> getLibraryByUri2(String uri);
 
   /// Return information about the results of parsing units of the library file
   /// with the given absolute, normalized [path].

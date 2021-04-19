@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -198,8 +197,9 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
   }
 
   @override
-  Future<LibraryElement> getLibraryByUri(String uriStr) async {
-    return analysisContext.fileResolver.getLibraryByUri(uriStr: uriStr);
+  Future<SomeLibraryElementResult> getLibraryByUri2(String uriStr) async {
+    var element = analysisContext.fileResolver.getLibraryByUri(uriStr: uriStr);
+    return LibraryElementResultImpl(element);
   }
 
   @override

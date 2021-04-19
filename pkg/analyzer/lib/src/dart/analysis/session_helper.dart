@@ -22,13 +22,14 @@ class AnalysisSessionHelper {
   /// from the library with the given [libraryUri], or `null` if the library
   /// does not export a class with such name.
   Future<ClassElement?> getClass(String libraryUri, String className) async {
-    var libraryElement = await session.getLibraryByUri(libraryUri);
-    var element = libraryElement.exportNamespace.get(className);
-    if (element is ClassElement) {
-      return element;
-    } else {
-      return null;
+    var libraryResult = await session.getLibraryByUri2(libraryUri);
+    if (libraryResult is LibraryElementResult) {
+      var element = libraryResult.element.exportNamespace.get(className);
+      if (element is ClassElement) {
+        return element;
+      }
     }
+    return null;
   }
 
   /// Return the declaration of the [element], or `null` is the [element]
@@ -59,13 +60,14 @@ class AnalysisSessionHelper {
   /// library does not export a top-level accessor with such name.
   Future<PropertyAccessorElement?> getTopLevelPropertyAccessor(
       String uri, String name) async {
-    var libraryElement = await session.getLibraryByUri(uri);
-    var element = libraryElement.exportNamespace.get(name);
-    if (element is PropertyAccessorElement) {
-      return element;
-    } else {
-      return null;
+    var libraryResult = await session.getLibraryByUri2(uri);
+    if (libraryResult is LibraryElementResult) {
+      var element = libraryResult.element.exportNamespace.get(name);
+      if (element is PropertyAccessorElement) {
+        return element;
+      }
     }
+    return null;
   }
 
   /// Return `true` if the file with the [path] is a part.
