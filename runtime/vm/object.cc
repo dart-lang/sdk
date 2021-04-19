@@ -10148,19 +10148,25 @@ const Object* Field::CloneForUnboxed(const Object& value) const {
 }
 
 void Field::DisableFieldUnboxing() const {
-  Thread* thread = Thread::Current();
   ASSERT(!IsOriginal());
   const Field& original = Field::Handle(Original());
   if (!original.is_unboxing_candidate()) {
     return;
   }
+  auto thread = Thread::Current();
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (!original.is_unboxing_candidate()) {
     return;
   }
-  original.set_is_unboxing_candidate(false);
-  set_is_unboxing_candidate(false);
-  original.DeoptimizeDependentCode();
+
+  // Ensures that to-be-disabled existing code won't continue running as we
+  // update field properties as it might write into now boxed field thinking
+  // it still holds unboxed(reusable box) value.
+  thread->isolate_group()->RunWithStoppedMutators([&]() {
+    original.set_is_unboxing_candidate(false);
+    set_is_unboxing_candidate(false);
+    original.DeoptimizeDependentCode();
+  });
 }
 
 intptr_t Field::guarded_cid() const {
