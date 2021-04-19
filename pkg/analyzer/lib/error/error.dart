@@ -461,6 +461,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR,
   CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
   CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
+  CompileTimeErrorCode.NOT_A_BINARY_OPERATOR,
   FfiCode.ANNOTATION_ON_POINTER_FIELD,
   FfiCode.EMPTY_STRUCT,
   FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD,

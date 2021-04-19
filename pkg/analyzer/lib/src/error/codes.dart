@@ -13722,6 +13722,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * Parameters:
+   * 0: the name of the operator that is not a binary operator.
+   */
+  static const CompileTimeErrorCode NOT_A_BINARY_OPERATOR =
+      CompileTimeErrorCode(
+          'NOT_A_BINARY_OPERATOR', "'{0}' isn't a binary operator.");
+
+  /**
    * Initialize a newly created error code to have the given [name]. The message
    * associated with the error will be created from the given [message]
    * template. The correction associated with the error will be created from the
