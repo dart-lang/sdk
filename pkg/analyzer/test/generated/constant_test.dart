@@ -6,6 +6,7 @@
 library analyzer.test.constant_test;
 
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -456,6 +457,34 @@ const [for (var i = 0; i < 4; i++) i]
 
   test_truncatingDivide_int_int() async {
     await _assertValueInt(3, "10 ~/ 3");
+  }
+
+  test_type_check_in_list_literal() async {
+    await assertErrorsInCode('''
+      const dynamic d = null;
+      const xs = <int>[d];
+    ''',
+    [
+      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 53, 1),
+    ]);
+  }
+
+  test_type_check_in_map_literal() async {
+    await assertErrorsInCode('''
+      const dynamic d = null;
+      const xs = <String, int>{"A": d};
+    ''', [
+      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 61, 6),
+    ]);
+  }
+
+  test_type_check_in_set_literal() async {
+    await assertErrorsInCode('''
+      const dynamic d = null;
+      const xs = <String>{d};
+    ''', [
+      error(CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, 56, 1),
+    ]);
   }
 
   Future<void> _assertValueBool(bool expectedValue, String contents) async {

@@ -1160,17 +1160,18 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     bool errorOccurred = false;
     List<DartObjectImpl> list = [];
+    var nodeType = node.staticType;
+    DartType elementType = nodeType is InterfaceType &&
+        nodeType.typeArguments.isNotEmpty
+        ? nodeType.typeArguments[0]
+        : _typeProvider.dynamicType;
+    // check const element type.
     for (CollectionElement element in node.elements) {
-      errorOccurred = errorOccurred | _addElementsToList(list, element);
+      errorOccurred = errorOccurred | _addElementsToList(list, element, elementType);
     }
     if (errorOccurred) {
       return null;
     }
-    var nodeType = node.staticType;
-    DartType elementType =
-        nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
-            ? nodeType.typeArguments[0]
-            : _typeProvider.dynamicType;
     InterfaceType listType = _typeProvider.listType(elementType);
     return DartObjectImpl(typeSystem, listType, ListState(list));
   }
@@ -1296,12 +1297,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
       bool errorOccurred = false;
       Map<DartObjectImpl, DartObjectImpl> map = {};
-      for (CollectionElement element in node.elements) {
-        errorOccurred = errorOccurred | _addElementsToMap(map, element);
-      }
-      if (errorOccurred) {
-        return null;
-      }
       DartType keyType = _typeProvider.dynamicType;
       DartType valueType = _typeProvider.dynamicType;
       var nodeType = node.staticType;
@@ -1311,6 +1306,12 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
           keyType = typeArguments[0];
           valueType = typeArguments[1];
         }
+      }
+      for (CollectionElement element in node.elements) {
+        errorOccurred = errorOccurred | _addElementsToMap(map, element, keyType, valueType);
+      }
+      if (errorOccurred) {
+        return null;
       }
       InterfaceType mapType = _typeProvider.mapType(keyType, valueType);
       return DartObjectImpl(typeSystem, mapType, MapState(map));
@@ -1322,17 +1323,17 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
       bool errorOccurred = false;
       Set<DartObjectImpl> set = <DartObjectImpl>{};
+      var nodeType = node.staticType;
+      DartType elementType =
+      nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
+          ? nodeType.typeArguments[0]
+          : _typeProvider.dynamicType;
       for (CollectionElement element in node.elements) {
-        errorOccurred = errorOccurred | _addElementsToSet(set, element);
+        errorOccurred = errorOccurred | _addElementsToSet(set, element, elementType);
       }
       if (errorOccurred) {
         return null;
       }
-      var nodeType = node.staticType;
-      DartType elementType =
-          nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
-              ? nodeType.typeArguments[0]
-              : _typeProvider.dynamicType;
       InterfaceType setType = _typeProvider.setType(elementType);
       return DartObjectImpl(typeSystem, setType, SetState(set));
     }
@@ -1415,7 +1416,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// Add the entries produced by evaluating the given collection [element] to
   /// the given [list]. Return `true` if the evaluation of one or more of the
   /// elements failed.
-  bool _addElementsToList(List<DartObject> list, CollectionElement element) {
+  bool _addElementsToList(List<DartObject> list, CollectionElement element,
+      DartType elementType) {
     if (element is ForElement) {
       _error(element, null);
     } else if (element is IfElement) {
@@ -1423,14 +1425,20 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       if (conditionValue == null) {
         return true;
       } else if (conditionValue) {
-        return _addElementsToList(list, element.thenElement);
+        return _addElementsToList(list, element.thenElement, elementType);
       } else if (element.elseElement != null) {
-        return _addElementsToList(list, element.elseElement!);
+        return _addElementsToList(list, element.elseElement!, elementType);
       }
       return false;
     } else if (element is Expression) {
       var value = element.accept(this);
       if (value == null) {
+        return true;
+      }
+      if (!typeSystem.isSubtypeOf(value.type, elementType)) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, element,
+            [value.type, elementType]);
         return true;
       }
       list.add(value);
@@ -1440,6 +1448,14 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       var value = elementResult?.toListValue();
       if (value == null) {
         return true;
+      }
+      for (var e in value) {
+        if (!typeSystem.isSubtypeOf(e.type!, elementType)) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, element,
+              [e.type, elementType]);
+          return true;
+        }
       }
       list.addAll(value);
       return false;
@@ -1451,8 +1467,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// Add the entries produced by evaluating the given map [element] to the
   /// given [map]. Return `true` if the evaluation of one or more of the entries
   /// failed.
-  bool _addElementsToMap(
-      Map<DartObjectImpl, DartObjectImpl> map, CollectionElement element) {
+  bool _addElementsToMap(Map<DartObjectImpl, DartObjectImpl> map,
+      CollectionElement element, DartType keyType, DartType valueType) {
     if (element is ForElement) {
       _error(element, null);
     } else if (element is IfElement) {
@@ -1460,15 +1476,27 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       if (conditionValue == null) {
         return true;
       } else if (conditionValue) {
-        return _addElementsToMap(map, element.thenElement);
+        return _addElementsToMap(map, element.thenElement, keyType, valueType);
       } else if (element.elseElement != null) {
-        return _addElementsToMap(map, element.elseElement!);
+        return _addElementsToMap(map, element.elseElement!, keyType, valueType);
       }
       return false;
     } else if (element is MapLiteralEntry) {
       var keyResult = element.key.accept(this);
       var valueResult = element.value.accept(this);
       if (keyResult == null || valueResult == null) {
+        return true;
+      }
+      if (!typeSystem.isSubtypeOf(keyResult.type, keyType)) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, element,
+            [keyResult.type, keyType]);
+        return true;
+      }
+      if (!typeSystem.isSubtypeOf(valueResult.type, valueType)) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, element,
+            [valueResult.type, valueType]);
         return true;
       }
       map[keyResult] = valueResult;
@@ -1478,6 +1506,22 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       var value = elementResult?.toMapValue();
       if (value == null) {
         return true;
+      }
+      for (var e in value.entries) {
+        var keyResult = e.key;
+        var valueResult = e.value;
+        if (!typeSystem.isSubtypeOf(keyResult.type, keyType)) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, element,
+              [keyResult.type, keyType]);
+          return true;
+        }
+        if (!typeSystem.isSubtypeOf(valueResult.type, valueType)) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, element,
+              [valueResult.type, valueType]);
+          return true;
+        }
       }
       map.addAll(value);
       return false;
@@ -1489,7 +1533,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// Add the entries produced by evaluating the given collection [element] to
   /// the given [set]. Return `true` if the evaluation of one or more of the
   /// elements failed.
-  bool _addElementsToSet(Set<DartObject> set, CollectionElement element) {
+  bool _addElementsToSet(Set<DartObject> set, CollectionElement element,
+      DartType elementType) {
     if (element is ForElement) {
       _error(element, null);
     } else if (element is IfElement) {
@@ -1497,14 +1542,20 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       if (conditionValue == null) {
         return true;
       } else if (conditionValue) {
-        return _addElementsToSet(set, element.thenElement);
+        return _addElementsToSet(set, element.thenElement, elementType);
       } else if (element.elseElement != null) {
-        return _addElementsToSet(set, element.elseElement!);
+        return _addElementsToSet(set, element.elseElement!, elementType);
       }
       return false;
     } else if (element is Expression) {
       var value = element.accept(this);
       if (value == null) {
+        return true;
+      }
+      if (!typeSystem.isSubtypeOf(value.type, elementType)) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, element,
+            [value.type, elementType]);
         return true;
       }
       set.add(value);
@@ -1515,13 +1566,20 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       if (value == null) {
         return true;
       }
+      for (var e in value) {
+        if (!typeSystem.isSubtypeOf(e.type!, elementType)) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, element,
+              [e.type, elementType]);
+          return true;
+        }
+      }
       set.addAll(value);
       return false;
     }
     // This error should have been reported elsewhere.
     return true;
   }
-
   /// Create an error associated with the given [node]. The error will have the
   /// given error [code].
   void _error(AstNode node, ErrorCode? code) {
