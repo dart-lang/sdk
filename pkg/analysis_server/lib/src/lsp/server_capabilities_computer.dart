@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
@@ -133,9 +131,7 @@ class ServerCapabilitiesComputer {
   ServerCapabilities computeServerCapabilities(
       LspClientCapabilities clientCapabilities) {
     final codeActionLiteralSupport = clientCapabilities.literalCodeActions;
-
     final renameOptionsSupport = clientCapabilities.renameValidation;
-
     final enableFormatter = _server.clientConfiguration.enableSdkFormatter;
     final previewCommitCharacters =
         _server.clientConfiguration.previewCommitCharacters;
@@ -204,7 +200,7 @@ class ServerCapabilitiesComputer {
       // `textDocument.codeAction.codeActionLiteralSupport`."
       codeActionProvider: dynamicRegistrations.codeActions
           ? null
-          : codeActionLiteralSupport != null
+          : codeActionLiteralSupport
               ? Either2<bool, CodeActionOptions>.t2(CodeActionOptions(
                   codeActionKinds: DartCodeActionKind.serverSupportedKinds,
                 ))
@@ -322,17 +318,17 @@ class ServerCapabilitiesComputer {
         _server.clientConfiguration.previewCommitCharacters;
 
     /// Helper for creating registrations with IDs.
-    void register(bool condition, Method method, [ToJsonable options]) {
+    void register(bool condition, Method method, [ToJsonable? options]) {
       if (condition == true) {
         registrations.add(Registration(
             id: (_lastRegistrationId++).toString(),
-            method: method.toJson(),
+            method: method.toString(),
             registerOptions: options));
       }
     }
 
     final dynamicRegistrations =
-        ClientDynamicRegistrations(_server.clientCapabilities.raw);
+        ClientDynamicRegistrations(_server.clientCapabilities!.raw);
 
     register(
       dynamicRegistrations.textSync,
@@ -524,11 +520,12 @@ class ServerCapabilitiesComputer {
         RegistrationParams(registrations: registrationsToAdd),
       );
 
-      if (registrationResponse.error != null) {
+      final error = registrationResponse.error;
+      if (error != null) {
         _server.logErrorToClient(
           'Failed to register capabilities with client: '
-          '(${registrationResponse.error.code}) '
-          '${registrationResponse.error.message}',
+          '(${error.code}) '
+          '${error.message}',
         );
       }
     }

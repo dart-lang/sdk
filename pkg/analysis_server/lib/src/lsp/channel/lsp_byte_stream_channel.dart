@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -51,7 +49,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
 
   @override
   void listen(void Function(Message message) onMessage,
-      {Function onError, void Function() onDone}) {
+      {Function? onError, void Function()? onDone}) {
     _input.transform(LspPacketTransformer()).listen(
       (String data) => _readMessage(data, onMessage),
       onError: onError,
@@ -95,7 +93,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   }
 
   /// Sends a message prefixed with the required LSP headers.
-  void _sendLsp(Map<String, Object> json) {
+  void _sendLsp(Map<String, dynamic> json) {
     // Don't send any further responses after the communication channel is
     // closed.
     if (_closeRequested) {

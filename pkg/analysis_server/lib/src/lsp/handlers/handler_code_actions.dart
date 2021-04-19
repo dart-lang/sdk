@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
@@ -50,18 +48,21 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       return success(const []);
     }
 
-    final supportsApplyEdit = server.clientCapabilities.applyEdit;
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return error(ErrorCodes.ServerNotInitialized,
+          'Requests not before server is initilized');
+    }
 
-    final supportsLiteralCodeActions =
-        server.clientCapabilities.literalCodeActions;
-
-    final supportedKinds = server.clientCapabilities.codeActionKinds;
-
-    final supportedDiagnosticTags = server.clientCapabilities.diagnosticTags;
+    final supportsApplyEdit = clientCapabilities.applyEdit;
+    final supportsLiteralCodeActions = clientCapabilities.literalCodeActions;
+    final supportedKinds = clientCapabilities.codeActionKinds;
+    final supportedDiagnosticTags = clientCapabilities.diagnosticTags;
 
     final unit = await path.mapResult(requireResolvedUnit);
 
-    bool shouldIncludeKind(CodeActionKind kind) {
+    bool shouldIncludeKind(CodeActionKind? kind) {
       /// Checks whether the kind matches the [wanted] kind.
       ///
       /// If `wanted` is `refactor.foo` then:
@@ -72,8 +73,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           kind == wanted || kind.toString().startsWith('${wanted.toString()}.');
 
       // If the client wants only a specific set, use only that filter.
-      if (params.context?.only != null) {
-        return params.context.only.any(isMatch);
+      final only = params.context.only;
+      if (only != null) {
+        return only.any(isMatch);
       }
 
       // Otherwise, filter out anything not supported by the client (if they
@@ -108,11 +110,14 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   }
 
   /// Creates a comparer for [CodeActions] that compares the column distance from [pos].
-  Function(CodeAction a, CodeAction b) _codeActionColumnDistanceComparer(
+  int Function(CodeAction a, CodeAction b) _codeActionColumnDistanceComparer(
       Position pos) {
-    Position posOf(CodeAction action) => action.diagnostics.isNotEmpty
-        ? action.diagnostics.first.range.start
-        : pos;
+    Position posOf(CodeAction action) {
+      final diagnostics = action.diagnostics;
+      return diagnostics != null && diagnostics.isNotEmpty
+          ? diagnostics.first.range.start
+          : pos;
+    }
 
     return (a, b) => _columnDistance(posOf(a), pos)
         .compareTo(_columnDistance(posOf(b), pos));
@@ -174,7 +179,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   List<CodeAction> _dedupeActions(Iterable<CodeAction> actions, Position pos) {
     final groups = groupBy(actions, (CodeAction action) => action.title);
     return groups.keys.map((title) {
-      final actions = groups[title];
+      final actions = groups[title]!;
 
       // If there's only one in the group, just return it.
       if (actions.length == 1) {
@@ -213,7 +218,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   }
 
   Future<List<Either2<Command, CodeAction>>> _getAssistActions(
-    bool Function(CodeActionKind) shouldIncludeKind,
+    bool Function(CodeActionKind?) shouldIncludeKind,
     bool supportsLiteralCodeActions,
     Range range,
     int offset,
@@ -248,7 +253,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   }
 
   Future<ErrorOr<List<Either2<Command, CodeAction>>>> _getCodeActions(
-    bool Function(CodeActionKind) shouldIncludeKind,
+    bool Function(CodeActionKind?) shouldIncludeKind,
     bool supportsLiterals,
     bool supportsWorkspaceApplyEdit,
     Set<DiagnosticTag> supportedDiagnosticTags,
@@ -274,7 +279,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   }
 
   Future<List<Either2<Command, CodeAction>>> _getFixActions(
-    bool Function(CodeActionKind) shouldIncludeKind,
+    bool Function(CodeActionKind?) shouldIncludeKind,
     bool supportsLiteralCodeActions,
     Set<DiagnosticTag> supportedDiagnosticTags,
     Range range,
@@ -301,10 +306,10 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         var workspace = DartChangeWorkspace(server.currentSessions);
         var context = DartFixContextImpl(
             server.instrumentationService, workspace, unit, error, (name) {
-          var tracker = server.declarationsTracker;
+          var tracker = server.declarationsTracker!;
           return TopLevelDeclarationsProvider(tracker).get(
             unit.session.analysisContext,
-            unit.path,
+            unit.path!,
             name,
           );
         });
@@ -357,7 +362,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       CodeActionKind actionKind,
       String name,
       RefactoringKind refactorKind, [
-      Map<String, dynamic> options,
+      Map<String, dynamic>? options,
     ]) {
       return _commandOrCodeAction(
           supportsLiteralCodeActions,

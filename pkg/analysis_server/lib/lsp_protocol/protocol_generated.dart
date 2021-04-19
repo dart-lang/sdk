@@ -6320,10 +6320,10 @@ class CompletionItemKind {
   const CompletionItemKind(this._value);
   const CompletionItemKind.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   static const Text = CompletionItemKind(1);
@@ -6370,10 +6370,10 @@ class CompletionItemTag {
   const CompletionItemTag(this._value);
   const CompletionItemTag.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// Render a completion as obsolete, usually using a strike-out.
@@ -10715,10 +10715,10 @@ class DocumentHighlightKind {
   const DocumentHighlightKind(this._value);
   const DocumentHighlightKind.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// A textual occurrence.
@@ -13758,10 +13758,10 @@ class FileChangeType {
   const FileChangeType(this._value);
   const FileChangeType.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// The file got created.
@@ -16902,7 +16902,7 @@ class InsertTextFormat {
   const InsertTextFormat._(this._value);
   const InsertTextFormat.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
     switch (obj) {
@@ -18204,10 +18204,10 @@ class MessageType {
   const MessageType(this._value);
   const MessageType.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// An error message.
@@ -19499,10 +19499,10 @@ class Position implements ToJsonable {
   ///
   /// If the character value is greater than the line length it defaults back to
   /// the line length.
-  final num character;
+  final int character;
 
   /// Line position in a document (zero-based).
-  final num line;
+  final int line;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -19523,8 +19523,8 @@ class Position implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['line'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['line'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -19540,8 +19540,8 @@ class Position implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['character'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['character'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -28247,10 +28247,10 @@ class SymbolKind {
   const SymbolKind(this._value);
   const SymbolKind.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   static const File = SymbolKind(1);
@@ -29926,10 +29926,10 @@ class TextDocumentSaveReason {
   const TextDocumentSaveReason(this._value);
   const TextDocumentSaveReason.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// Manually triggered, e.g. by the user pressing save, by starting debugging,
@@ -30183,10 +30183,10 @@ class TextDocumentSyncKind {
   const TextDocumentSyncKind(this._value);
   const TextDocumentSyncKind.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// Documents should not be synced at all.
@@ -31206,10 +31206,10 @@ class WatchKind {
   const WatchKind(this._value);
   const WatchKind.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// Interested in create events.

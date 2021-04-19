@@ -46,7 +46,7 @@ TypeBase typeOfLiteral(TokenType tokenType) {
   final typeName = tokenType == TokenType.STRING
       ? 'string'
       : tokenType == TokenType.NUMBER
-          ? 'number'
+          ? 'int' // all literal numeric values in LSP spec are ints
           : throw 'Unknown literal type $tokenType';
   return Type.identifier(typeName);
 }

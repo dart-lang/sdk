@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -39,9 +37,22 @@ abstract class SimpleEditCommandHandler
       return success(null);
     }
 
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return error(ErrorCodes.ServerNotInitialized,
+          'Requests not before server is initilized');
+    }
+
+    final lineInfo = unit.lineInfo;
+    if (lineInfo == null) {
+      return error(ErrorCodes.InternalError,
+          'Unable to produce edits for $docIdentifier as no LineInfo was found');
+    }
+
     final workspaceEdit = toWorkspaceEdit(
-      server.clientCapabilities,
-      [FileEditInformation(docIdentifier, unit.lineInfo, edits)],
+      clientCapabilities,
+      [FileEditInformation(docIdentifier, lineInfo, edits)],
     );
 
     return sendWorkspaceEditToClient(workspaceEdit);

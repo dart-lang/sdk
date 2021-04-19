@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -11,7 +9,8 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 
-class WillRenameFilesHandler extends MessageHandler<RenameFilesParams, void> {
+class WillRenameFilesHandler
+    extends MessageHandler<RenameFilesParams, WorkspaceEdit?> {
   WillRenameFilesHandler(LspAnalysisServer server) : super(server);
   @override
   Method get handlesMessage => Method.workspace_willRenameFiles;
@@ -21,9 +20,9 @@ class WillRenameFilesHandler extends MessageHandler<RenameFilesParams, void> {
       RenameFilesParams.jsonHandler;
 
   @override
-  Future<ErrorOr<WorkspaceEdit>> handle(
+  Future<ErrorOr<WorkspaceEdit?>> handle(
       RenameFilesParams params, CancellationToken token) async {
-    final files = params?.files ?? [];
+    final files = params.files;
     // For performance reasons, only single-file rename/moves are currently supported.
     if (files.length > 1 || files.any((f) => !f.oldUri.endsWith('.dart'))) {
       return success(null);
@@ -36,7 +35,7 @@ class WillRenameFilesHandler extends MessageHandler<RenameFilesParams, void> {
         newPath.mapResult((newPath) => _renameFile(oldPath, newPath)));
   }
 
-  Future<ErrorOr<WorkspaceEdit>> _renameFile(
+  Future<ErrorOr<WorkspaceEdit?>> _renameFile(
       String oldPath, String newPath) async {
     final resolvedUnit = await server.getResolvedUnit(oldPath);
     if (resolvedUnit == null) {

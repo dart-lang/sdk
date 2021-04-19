@@ -188,7 +188,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
   }
 
   final String file;
-  final num offset;
+  final int offset;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -226,8 +226,8 @@ class CompletionItemResolutionInfo implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['offset'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['offset'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -295,11 +295,11 @@ class DartCompletionItemResolutionInfo
 
   final String displayUri;
   final String file;
-  final num iLength;
-  final num libId;
-  final num offset;
-  final num rLength;
-  final num rOffset;
+  final int iLength;
+  final int libId;
+  final int offset;
+  final int rLength;
+  final int rOffset;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -325,8 +325,8 @@ class DartCompletionItemResolutionInfo
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['libId'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['libId'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -359,8 +359,8 @@ class DartCompletionItemResolutionInfo
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['rOffset'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['rOffset'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -376,8 +376,8 @@ class DartCompletionItemResolutionInfo
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['iLength'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['iLength'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -393,8 +393,8 @@ class DartCompletionItemResolutionInfo
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['rLength'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['rLength'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -427,8 +427,8 @@ class DartCompletionItemResolutionInfo
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['offset'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['offset'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -484,7 +484,7 @@ class DartDiagnosticServer implements ToJsonable {
     return DartDiagnosticServer(port: port);
   }
 
-  final num port;
+  final int port;
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
@@ -504,8 +504,8 @@ class DartDiagnosticServer implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['port'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['port'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {
@@ -1207,7 +1207,7 @@ class PubPackageCompletionItemResolutionInfo
   }
 
   final String file;
-  final num offset;
+  final int offset;
   final String packageName;
 
   Map<String, dynamic> toJson() {
@@ -1264,8 +1264,8 @@ class PubPackageCompletionItemResolutionInfo
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['offset'] is num)) {
-          reporter.reportError('must be of type num');
+        if (!(obj['offset'] is int)) {
+          reporter.reportError('must be of type int');
           return false;
         }
       } finally {

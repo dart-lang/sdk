@@ -73,8 +73,8 @@ abstract class AbstractAnalysisServer {
   /// The object used to manage the SDK's known to this server.
   final DartSdkManager sdkManager;
 
-  /// The [SearchEngine] for this server, may be `null` if indexing is disabled.
-  SearchEngine? searchEngine;
+  /// The [SearchEngine] for this server.
+  late SearchEngine searchEngine;
 
   late ByteStore byteStore;
 

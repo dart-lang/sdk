@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
+import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
@@ -23,14 +23,15 @@ class TextDocumentChangeHandler
       DidChangeTextDocumentParams.jsonHandler;
 
   @override
-  ErrorOr<Null> handle(
+  FutureOr<ErrorOr<Null>> handle(
       DidChangeTextDocumentParams params, CancellationToken token) {
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) => _changeFile(path, params));
   }
 
-  ErrorOr<Null> _changeFile(String path, DidChangeTextDocumentParams params) {
-    String oldContents;
+  FutureOr<ErrorOr<Null>> _changeFile(
+      String path, DidChangeTextDocumentParams params) {
+    String? oldContents;
     if (server.resourceProvider.hasOverlay(path)) {
       oldContents = server.resourceProvider.getFile(path).readAsStringSync();
     }
@@ -66,7 +67,7 @@ class TextDocumentCloseHandler
       DidCloseTextDocumentParams.jsonHandler;
 
   @override
-  ErrorOr<Null> handle(
+  FutureOr<ErrorOr<Null>> handle(
       DidCloseTextDocumentParams params, CancellationToken token) {
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) {
@@ -91,7 +92,7 @@ class TextDocumentOpenHandler
       DidOpenTextDocumentParams.jsonHandler;
 
   @override
-  ErrorOr<Null> handle(
+  FutureOr<ErrorOr<Null>> handle(
       DidOpenTextDocumentParams params, CancellationToken token) {
     final doc = params.textDocument;
     final path = pathOfDocItem(doc);
