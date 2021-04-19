@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -20,7 +18,6 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -263,7 +260,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   Response testSetAnalysisRoots(List<String> included, List<String> excluded) {
     var request =
         AnalysisSetAnalysisRootsParams(included, excluded).toRequest('0');
-    return handler.handleRequest(request);
+    return handler.handleRequest(request)!;
   }
 
   Future<void> xtest_getReachableSources_invalidSource() async {
@@ -276,10 +273,9 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
 
     var request = AnalysisGetReachableSourcesParams('/does/not/exist.dart')
         .toRequest('0');
-    var response = handler.handleRequest(request);
-    expect(response.error, isNotNull);
-    expect(response.error.code,
-        RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE);
+    var response = handler.handleRequest(request)!;
+    var error = response.error!;
+    expect(error.code, RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE);
   }
 
   Future<void> xtest_getReachableSources_validSources() async {
@@ -293,9 +289,9 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     await server.onAnalysisComplete;
 
     var request = AnalysisGetReachableSourcesParams(fileA).toRequest('0');
-    var response = handler.handleRequest(request);
+    var response = handler.handleRequest(request)!;
 
-    Map json = response.toJson()[Response.RESULT];
+    var json = response.toJson()[Response.RESULT] as Map<String, dynamic>;
 
     // Sanity checks.
     expect(json['sources'], hasLength(6));
@@ -1418,9 +1414,9 @@ void f(A a) {}
   }
 
   void _assertAnalyzedFiles({
-    @required List<String> hasErrors,
+    required List<String> hasErrors,
     List<String> noErrors = const [],
-    @required List<String> notAnalyzed,
+    required List<String> notAnalyzed,
   }) {
     for (var path in hasErrors) {
       assertHasErrors(path);
@@ -1454,9 +1450,9 @@ void f(A a) {}
 
 /// A helper to test 'analysis.*' requests.
 class AnalysisTestHelper with ResourceProviderMixin {
-  MockServerChannel serverChannel;
-  AnalysisServer server;
-  AnalysisDomainHandler handler;
+  late MockServerChannel serverChannel;
+  late AnalysisServer server;
+  late AnalysisDomainHandler handler;
 
   Map<AnalysisService, List<String>> analysisSubscriptions = {};
 
@@ -1464,9 +1460,9 @@ class AnalysisTestHelper with ResourceProviderMixin {
   Map<String, List<HighlightRegion>> filesHighlights = {};
   Map<String, List<NavigationRegion>> filesNavigation = {};
 
-  String projectPath;
-  String testFile;
-  String testCode;
+  late String projectPath;
+  late String testFile;
+  late String testCode;
 
   AnalysisTestHelper() {
     projectPath = convertPath('/project');
@@ -1773,8 +1769,7 @@ class A {}
     addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
     // wait for analysis
     await waitForTasksFinished();
-    var params = pluginManager.analysisSetSubscriptionsParams;
-    expect(params, isNotNull);
+    var params = pluginManager.analysisSetSubscriptionsParams!;
     var subscriptions = params.subscriptions;
     expect(subscriptions, hasLength(1));
     var files = subscriptions[plugin.AnalysisService.HIGHLIGHTS];

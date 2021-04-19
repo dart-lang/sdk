@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -38,7 +36,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     var testFile = convertPath('/home/test/lib/test.dart');
     addSource(testFile, '');
     var result = await session.getResolvedLibraryValid(testFile);
-    var sets = manager.forLibrary(result.element);
+    var sets = manager.forLibrary(result.element!);
     expect(sets, hasLength(2));
   }
 
@@ -49,7 +47,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     var testFile = convertPath('/home/test/lib/test.dart');
     addSource(testFile, '');
     var result = await session.getResolvedLibraryValid(testFile);
-    var sets = manager.forLibrary(result.element);
+    var sets = manager.forLibrary(result.element!);
     expect(sets, hasLength(0));
   }
 

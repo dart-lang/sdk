@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 import 'package:test/test.dart';
@@ -2418,7 +2416,7 @@ class A<Z extends X> {
   /// expected to fail.  This should be used to mark known completion bugs that
   /// have not yet been fixed.
   void buildTests(String baseName, String originalSource, List<String> results,
-      {Map<String, String> extraFiles, String failingTests = ''}) {
+      {Map<String, String>? extraFiles, String failingTests = ''}) {
     var completionTests = LocationSpec.from(originalSource, results);
     completionTests.sort((LocationSpec first, LocationSpec second) {
       return first.id.compareTo(second.id);

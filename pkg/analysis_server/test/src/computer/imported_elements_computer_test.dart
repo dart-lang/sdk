@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/imported_elements_computer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -21,9 +19,9 @@ void main() {
 
 @reflectiveTest
 class ImportedElementsComputerTest extends AbstractContextTest {
-  String sourcePath;
+  late String sourcePath;
 
-  List<ImportedElements> importedElements;
+  late List<ImportedElements> importedElements;
 
   void assertElements(List<ImportedElements> expectedElementsList) {
     expect(importedElements, hasLength(expectedElementsList.length));
@@ -475,7 +473,7 @@ bool randomBool() {
     var result =
         await session.getResolvedUnit2(sourcePath) as ResolvedUnitResult;
     var computer = ImportedElementsComputer(
-        result.unit, content.indexOf(selection), selection.length);
+        result.unit!, content.indexOf(selection), selection.length);
     importedElements = computer.compute();
   }
 }
