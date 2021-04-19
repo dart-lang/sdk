@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
@@ -33,13 +31,13 @@ main() {
   print(y);
 }''';
 
-  List<AnalysisError> get errors => filesErrors[testFile];
+  List<AnalysisError> get errors => filesErrors[testFile]!;
 
-  List<AnalysisError> get optionsFileErrors => filesErrors[optionsFilePath];
+  List<AnalysisError> get optionsFileErrors => filesErrors[optionsFilePath]!;
 
   String get optionsFilePath => '$projectPath/analysis_options.yaml';
 
-  List<AnalysisError> get testFileErrors => filesErrors[testFile];
+  List<AnalysisError> get testFileErrors => filesErrors[testFile]!;
 
   void addOptionsFile(String contents) {
     newFile(optionsFilePath, content: contents);

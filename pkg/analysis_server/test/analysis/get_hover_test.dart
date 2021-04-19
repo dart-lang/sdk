@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -45,18 +42,22 @@ class A {}
 
 @reflectiveTest
 class AnalysisHoverTest extends AbstractAnalysisTest {
-  Future<HoverInformation> prepareHover(String search) {
-    var offset = findOffset(search);
-    return prepareHoverAt(offset);
+  Future<HoverInformation> prepareHover(String search) async {
+    return (await prepareHoverOrNull(search))!;
   }
 
-  Future<HoverInformation> prepareHoverAt(int offset) async {
+  Future<HoverInformation?> prepareHoverAt(int offset) async {
     await waitForTasksFinished();
     var request = AnalysisGetHoverParams(testFile, offset).toRequest('0');
     var response = await waitResponse(request);
     var result = AnalysisGetHoverResult.fromResponse(response);
     var hovers = result.hovers;
     return hovers.isNotEmpty ? hovers.first : null;
+  }
+
+  Future<HoverInformation?> prepareHoverOrNull(String search) {
+    var offset = findOffset(search);
+    return prepareHoverAt(offset);
   }
 
   @override
@@ -662,7 +663,7 @@ main() {
   // nothing
 }
 ''');
-    var hover = await prepareHover('nothing');
+    var hover = await prepareHoverOrNull('nothing');
     expect(hover, isNull);
   }
 
@@ -896,10 +897,10 @@ typedef void A(int a);
 
   void _assertHover(
     HoverInformation hover, {
-    String containingLibraryPath,
-    String containingLibraryName,
-    @required String elementDescription,
-    @required String elementKind,
+    String? containingLibraryPath,
+    String? containingLibraryName,
+    required String elementDescription,
+    required String elementKind,
     bool isDeprecated = false,
   }) {
     containingLibraryName ??= 'bin/test.dart';

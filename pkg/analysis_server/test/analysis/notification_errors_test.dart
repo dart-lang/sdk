@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -27,8 +25,8 @@ void main() {
 
 @reflectiveTest
 class NotificationErrorsTest extends AbstractAnalysisTest {
-  Folder pedanticFolder;
-  Map<String, List<AnalysisError>> filesErrors = {};
+  late Folder pedanticFolder;
+  Map<String, List<AnalysisError>?> filesErrors = {};
 
   @override
   void processNotification(Notification notification) {
@@ -69,7 +67,7 @@ linter:
     //
     // Verify the error result.
     //
-    var errors = filesErrors[analysisOptionsFile];
+    var errors = filesErrors[analysisOptionsFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, filePath);
@@ -90,7 +88,7 @@ include: package:pedantic/analysis_options.yaml
     await pumpEventQueue();
 
     // Verify there's an error for the import.
-    var errors = filesErrors[analysisOptionsFile];
+    var errors = filesErrors[analysisOptionsFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, filePath);
@@ -105,7 +103,7 @@ pedantic:${pedanticFolder.toUri()}
     // Ensure the errors disappear.
     await waitForTasksFinished();
     await pumpEventQueue();
-    errors = filesErrors[analysisOptionsFile];
+    errors = filesErrors[analysisOptionsFile]!;
     expect(errors, hasLength(0));
   }
 
@@ -132,7 +130,7 @@ analyzer:
     //
     // Verify the error result.
     //
-    var errors = filesErrors[manifestFile];
+    var errors = filesErrors[manifestFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, filePath);
@@ -216,7 +214,7 @@ transforms:
     //
     // Verify the error result.
     //
-    var errors = filesErrors[dataFile];
+    var errors = filesErrors[dataFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, filePath);
@@ -309,7 +307,7 @@ import 'does_not_exist.dart';
 ''');
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
-    var errors = filesErrors[testFile];
+    var errors = filesErrors[testFile]!;
     // Verify that we are generating only 1 error for the bad URI.
     // https://github.com/dart-lang/sdk/issues/23754
     expect(errors, hasLength(1));
@@ -336,7 +334,7 @@ linter:
 
     await waitForTasksFinished();
 
-    var testDriver = server.getAnalysisDriver(testFile);
+    var testDriver = server.getAnalysisDriver(testFile)!;
     var lints = testDriver.analysisOptions.lintRules;
 
     // Registry should only contain single lint rule.
@@ -345,7 +343,7 @@ linter:
     expect(lint.name, camelCaseTypesLintName);
 
     // Verify lint error result.
-    var errors = filesErrors[testFile];
+    var errors = filesErrors[testFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, join(projectPath, 'bin', 'test.dart'));
@@ -474,7 +472,7 @@ main() {
     addTestFile('library lib');
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
-    var errors = filesErrors[testFile];
+    var errors = filesErrors[testFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, join(projectPath, 'bin', 'test.dart'));
@@ -499,7 +497,7 @@ version: 1.3.2
     //
     // Verify the error result.
     //
-    var errors = filesErrors[pubspecFile];
+    var errors = filesErrors[pubspecFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, filePath);
@@ -515,7 +513,7 @@ version: 1.3.2
     await waitForTasksFinished();
     await pumpEventQueue();
 
-    errors = filesErrors[pubspecFile];
+    errors = filesErrors[pubspecFile]!;
     expect(errors, hasLength(0));
   }
 
@@ -544,7 +542,7 @@ dependencies:
     //
     // Verify the error result.
     //
-    var errors = filesErrors[pubspecFile];
+    var errors = filesErrors[pubspecFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.location.file, filePath);
@@ -563,7 +561,7 @@ dependencies:
     await waitForTasksFinished();
     await pumpEventQueue();
 
-    errors = filesErrors[pubspecFile];
+    errors = filesErrors[pubspecFile]!;
     expect(errors, hasLength(0));
   }
 
@@ -582,7 +580,7 @@ void f(E e) {
 ''');
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
-    var errors = filesErrors[testFile];
+    var errors = filesErrors[testFile]!;
     expect(errors, hasLength(1));
     var error = errors[0];
     expect(error.severity, AnalysisErrorSeverity.WARNING);

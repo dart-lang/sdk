@@ -7,6 +7,8 @@
   Use `AnalysisSession.getResolvedLibrary2()` instead.
 * Deprecated `AnalysisSession.getResolvedLibraryByElement()`.
   Use `AnalysisSession.getResolvedLibraryByElement2()` instead.
+* Deprecated `AnalysisSession.getLibraryByUri()`.
+  Use `AnalysisSession.getLibraryByUri2()` instead.
 
 ## 1.4.0
 * Deprecated `TypeProvider.nonSubtypableClasses`.

@@ -1823,8 +1823,9 @@ class A {
 }
 ''');
 
-    var aLibrary = await driver.getLibraryByUri(aUri);
-    ClassElement aClass = aLibrary.getType('A')!;
+    var aLibraryResult =
+        await driver.getLibraryByUri2(aUri) as LibraryElementResult;
+    ClassElement aClass = aLibraryResult.element.getType('A')!;
 
     // Search by 'type'.
     List<SubtypeResult> subtypes =
@@ -1868,8 +1869,9 @@ class A {
     newFile(bbbFilePath, content: 'class B implements List {}');
     newFile(cccFilePath, content: 'class C implements List {}');
 
-    LibraryElement coreLib = await driver.getLibraryByUri('dart:core');
-    ClassElement listElement = coreLib.getType('List')!;
+    var coreLibResult =
+        await driver.getLibraryByUri2('dart:core') as LibraryElementResult;
+    ClassElement listElement = coreLibResult.element.getType('List')!;
 
     var searchedFiles = SearchedFiles();
     var results = await driver.search.subTypes(listElement, searchedFiles);

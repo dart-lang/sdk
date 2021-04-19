@@ -46,7 +46,10 @@ abstract class AnalysisResultWithErrors implements FileResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CannotResolveUriResult
-    implements InvalidResult, SomeResolvedLibraryResult {}
+    implements
+        InvalidResult,
+        SomeLibraryElementResult,
+        SomeResolvedLibraryResult {}
 
 /// The declaration of an [Element].
 abstract class ElementDeclarationResult {
@@ -103,6 +106,14 @@ class InvalidPathResult
 /// Clients may not extend, implement or mix-in this class.
 abstract class InvalidResult {}
 
+/// The result of building the element model for a library.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class LibraryElementResult implements SomeLibraryElementResult {
+  /// The element of the library.
+  LibraryElement get element;
+}
+
 /// The type of [InvalidResult] returned when the given element was not
 /// created by the requested session.
 ///
@@ -115,7 +126,10 @@ class NotElementOfThisSessionResult
 ///
 /// Clients may not extend, implement or mix-in this class.
 class NotLibraryButPartResult
-    implements InvalidResult, SomeResolvedLibraryResult {}
+    implements
+        InvalidResult,
+        SomeLibraryElementResult,
+        SomeResolvedLibraryResult {}
 
 /// The type of [InvalidResult] returned when the given file path does not
 /// represent the corresponding URI.
@@ -248,6 +262,13 @@ enum ResultState {
   VALID
 }
 
+/// The result of building the element model for a library.
+///
+/// Clients may not extend, implement or mix-in this class.
+///
+/// [LibraryElementResult] represents a valid result.
+abstract class SomeLibraryElementResult {}
+
 /// The result of building resolved AST(s) for the whole library.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -292,6 +313,13 @@ abstract class UnitElementResult
   /// to need to be re-analyzed.
   String get signature;
 }
+
+/// The type of [InvalidResult] returned when something is wrong, but we
+/// don't know what exactly. Usually this result should not happen.
+///
+/// Clients may not extend, implement or mix-in this class.
+class UnspecifiedInvalidResult
+    implements InvalidResult, SomeLibraryElementResult {}
 
 /// The type of [InvalidResult] returned when the given URI corresponds to
 /// a library that is served from an external summary bundle.

@@ -70,6 +70,7 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getFileSync(path);
   }
 
+  @Deprecated('Use getLibraryByUri2() instead')
   @override
   Future<LibraryElement> getLibraryByUri(String uri) async {
     _checkConsistency();
@@ -79,6 +80,12 @@ class AnalysisSessionImpl implements AnalysisSession {
       _uriToLibraryCache[uri] = libraryElement;
     }
     return libraryElement;
+  }
+
+  @override
+  Future<SomeLibraryElementResult> getLibraryByUri2(String uri) {
+    _checkConsistency();
+    return _driver.getLibraryByUri2(uri);
   }
 
   @override

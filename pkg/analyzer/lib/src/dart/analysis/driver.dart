@@ -619,6 +619,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Throw [ArgumentError] if the [uri] does not correspond to a file.
   ///
   /// Throw [ArgumentError] if the [uri] corresponds to a part.
+  @Deprecated('Use getLibraryByUri2() instead')
   Future<LibraryElement> getLibraryByUri(String uri) async {
     var uriObj = Uri.parse(uri);
     var fileOr = _fsState.getFileForUri(uriObj);
@@ -633,7 +634,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         }
 
         var unitResult = await getUnitElement2(file.path);
-        // TODO(scheglov) this method should also return a result hierarchy
         if (unitResult is! UnitElementResult) {
           throw ArgumentError('$uri has no valid result.');
         }
@@ -643,6 +643,45 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       (externalLibrary) async {
         var libraryContext = _createLibraryContext(null);
         return libraryContext.getLibraryElement(externalLibrary.uri);
+      },
+    );
+  }
+
+  /// Return a [Future] that completes with [LibraryElementResult] for the given
+  /// [uri], which is either resynthesized from the provided external summary
+  /// store, or built for a file to which the given [uri] is resolved.
+  Future<SomeLibraryElementResult> getLibraryByUri2(String uri) async {
+    var uriObj = Uri.parse(uri);
+    var fileOr = _fsState.getFileForUri(uriObj);
+    return fileOr.map(
+      (file) async {
+        if (file == null) {
+          return CannotResolveUriResult();
+        }
+
+        if (file.isPart) {
+          return NotLibraryButPartResult();
+        }
+
+        var unitResult = await getUnitElement2(file.path);
+        if (unitResult is UnitElementResult) {
+          return LibraryElementResultImpl(unitResult.element.library);
+        }
+
+        // Some invalid results are invalid results for this request.
+        // Note that up-down promotion does not work.
+        if (unitResult is InvalidResult &&
+            unitResult is SomeLibraryElementResult) {
+          return unitResult as SomeLibraryElementResult;
+        }
+
+        // Should not happen.
+        return UnspecifiedInvalidResult();
+      },
+      (externalLibrary) async {
+        var libraryContext = _createLibraryContext(null);
+        var element = libraryContext.getLibraryElement(externalLibrary.uri);
+        return LibraryElementResultImpl(element);
       },
     );
   }

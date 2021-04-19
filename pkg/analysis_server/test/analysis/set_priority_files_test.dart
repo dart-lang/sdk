@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
@@ -139,8 +137,7 @@ analyzer:
     var response = await _setPriorityFile(testFile);
     expect(response, isResponseSuccess('0'));
     // verify
-    var params = pluginManager.analysisSetPriorityFilesParams;
-    expect(params, isNotNull);
+    var params = pluginManager.analysisSetPriorityFilesParams!;
     expect(params.files, <String>[testFile]);
   }
 
@@ -155,7 +152,7 @@ analyzer:
   }
 
   void _verifyPriorityFiles(String path) {
-    var driver = server.getAnalysisDriver(path);
+    var driver = server.getAnalysisDriver(path)!;
     var prioritySources = driver.priorityFiles;
     expect(prioritySources, [path]);
   }
