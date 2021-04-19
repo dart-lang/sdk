@@ -74,7 +74,8 @@ abstract class ElementDeclarationResult {
 /// syntactic and semantic.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ErrorsResult implements AnalysisResultWithErrors {}
+abstract class ErrorsResult
+    implements SomeErrorsResult, AnalysisResultWithErrors {}
 
 /// The result of computing some cheap information for a single file, when full
 /// parsed file is not required, so [ParsedUnitResult] is not necessary.
@@ -97,6 +98,7 @@ abstract class FileResult implements AnalysisResult {
 class InvalidPathResult
     implements
         InvalidResult,
+        SomeErrorsResult,
         SomeResolvedLibraryResult,
         SomeResolvedUnitResult,
         SomeUnitElementResult {}
@@ -142,6 +144,7 @@ class NotLibraryButPartResult
 class NotPathOfUriResult
     implements
         InvalidResult,
+        SomeErrorsResult,
         SomeResolvedLibraryResult,
         SomeResolvedUnitResult,
         SomeUnitElementResult {}
@@ -261,6 +264,15 @@ enum ResultState {
   /// An indication that analysis completed normally and the results are valid.
   VALID
 }
+
+/// The result of computing all of the errors contained in a single file, both
+/// syntactic and semantic.
+///
+/// Clients may not extend, implement or mix-in this class.
+///
+/// There are existing implementations of this class.
+/// [ErrorsResult] represents a valid result.
+abstract class SomeErrorsResult {}
 
 /// The result of building the element model for a library.
 ///

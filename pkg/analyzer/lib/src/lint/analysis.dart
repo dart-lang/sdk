@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/context_locator.dart' as api;
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart'
     show File, Folder, ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -201,10 +202,16 @@ class LintDriver {
 
     List<AnalysisErrorInfo> errors = [];
     for (Source source in sources) {
-      var errorsResult = await analysisDriver.getErrors(source.fullName);
-      errors.add(
-          AnalysisErrorInfoImpl(errorsResult.errors, errorsResult.lineInfo));
-      _sourcesAnalyzed.add(source);
+      var errorsResult = await analysisDriver.getErrors2(source.fullName);
+      if (errorsResult is ErrorsResult) {
+        errors.add(
+          AnalysisErrorInfoImpl(
+            errorsResult.errors,
+            errorsResult.lineInfo,
+          ),
+        );
+        _sourcesAnalyzed.add(source);
+      }
     }
 
     return errors;

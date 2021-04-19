@@ -1220,6 +1220,7 @@ bbb() {}
     expect(driver.getCachedResult(a), same(result));
   }
 
+  @deprecated
   test_getErrors() async {
     String content = 'int f() => 42 + bar();';
     addTestFile(content, priority: true);
@@ -1230,6 +1231,22 @@ bbb() {}
     expect(result.errors, hasLength(1));
   }
 
+  test_getErrors2() async {
+    String content = 'int f() => 42 + bar();';
+    addTestFile(content, priority: true);
+
+    var result = await driver.getErrors2(testFile) as ErrorsResult;
+    expect(result.path, testFile);
+    expect(result.uri.toString(), 'package:test/test.dart');
+    expect(result.errors, hasLength(1));
+  }
+
+  test_getErrors2_notAbsolutePath() async {
+    var result = await driver.getErrors2('not_absolute.dart');
+    expect(result, isA<InvalidPathResult>());
+  }
+
+  @deprecated
   test_getErrors_notAbsolutePath() async {
     expect(() async {
       await driver.getErrors('not_absolute.dart');
@@ -2444,7 +2461,7 @@ import 'b.dart';
     getFile(asyncPath).delete();
     addTestFile('class C {}');
 
-    ErrorsResult result = await driver.getErrors(testFile);
+    var result = await driver.getErrors2(testFile) as ErrorsResult;
     expect(result.errors, hasLength(1));
 
     AnalysisError error = result.errors[0];
@@ -2456,7 +2473,7 @@ import 'b.dart';
     getFile(corePath).delete();
     addTestFile('class C {}');
 
-    ErrorsResult result = await driver.getErrors(testFile);
+    var result = await driver.getErrors2(testFile) as ErrorsResult;
     expect(result.errors, hasLength(1));
 
     AnalysisError error = result.errors[0];
@@ -2684,13 +2701,13 @@ var b = new B();
 
     // Process a.dart so that we know that it's a library for c.dart later.
     {
-      ErrorsResult result = await driver.getErrors(a);
+      var result = await driver.getErrors2(a) as ErrorsResult;
       expect(result.errors, isEmpty);
     }
 
     // c.dart does not have errors in the context of a.dart
     {
-      ErrorsResult result = await driver.getErrors(c);
+      var result = await driver.getErrors2(c) as ErrorsResult;
       expect(result.errors, isEmpty);
     }
   }
@@ -2720,7 +2737,7 @@ var b = new B();
 
     // c.dart is resolve in the context of a.dart, so have no errors
     {
-      ErrorsResult result = await driver.getErrors(c);
+      var result = await driver.getErrors2(c) as ErrorsResult;
       expect(result.errors, isEmpty);
     }
   }
