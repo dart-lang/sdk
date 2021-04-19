@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -38,9 +36,9 @@ Widget build(BuildContext context) {
     ClosingLabel(79, 57, '<Widget>[]')
   ];
 
-  List<ClosingLabel> lastLabels;
+  List<ClosingLabel>? lastLabels;
 
-  Completer _labelsReceived;
+  late Completer _labelsReceived;
 
   @override
   void processNotification(Notification notification) {

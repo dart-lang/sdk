@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -17,17 +15,17 @@ import 'analysis_abstract.dart';
 import 'constants.dart';
 
 class AbstractCompletionDomainTest extends AbstractAnalysisTest {
-  String completionId;
-  int completionOffset;
-  int replacementOffset;
-  int replacementLength;
+  late String completionId;
+  late int completionOffset;
+  late int replacementOffset;
+  late int replacementLength;
   Map<String, Completer<void>> receivedSuggestionsCompleters = {};
   List<CompletionSuggestion> suggestions = [];
   bool suggestionsDone = false;
   Map<String, List<CompletionSuggestion>> allSuggestions = {};
 
   @override
-  String addTestFile(String content, {int offset}) {
+  String addTestFile(String content, {int? offset}) {
     completionOffset = content.indexOf('^');
     if (offset != null) {
       expect(completionOffset, -1, reason: 'cannot supply offset and ^');
@@ -44,11 +42,11 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   void assertHasResult(CompletionSuggestionKind kind, String completion,
       {bool isDeprecated = false,
       bool isPotential = false,
-      int selectionOffset,
-      int replacementOffset,
-      int replacementLength,
-      ElementKind elementKind}) {
-    CompletionSuggestion cs;
+      int? selectionOffset,
+      int? replacementOffset,
+      int? replacementLength,
+      ElementKind? elementKind}) {
+    CompletionSuggestion? cs;
     suggestions.forEach((s) {
       if (elementKind != null && s.element?.kind != elementKind) {
         return;
@@ -71,16 +69,17 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
 
       fail('expected $expectationText, but found\n $completions');
     }
-    expect(cs.kind, equals(kind));
-    expect(cs.selectionOffset, selectionOffset ?? completion.length);
-    expect(cs.selectionLength, equals(0));
-    expect(cs.replacementOffset, equals(replacementOffset));
-    expect(cs.replacementLength, equals(replacementLength));
-    expect(cs.isDeprecated, equals(isDeprecated));
-    expect(cs.isPotential, equals(isPotential));
+    var suggestion = cs!;
+    expect(suggestion.kind, equals(kind));
+    expect(suggestion.selectionOffset, selectionOffset ?? completion.length);
+    expect(suggestion.selectionLength, equals(0));
+    expect(suggestion.replacementOffset, equals(replacementOffset));
+    expect(suggestion.replacementLength, equals(replacementLength));
+    expect(suggestion.isDeprecated, equals(isDeprecated));
+    expect(suggestion.isPotential, equals(isPotential));
   }
 
-  void assertNoResult(String completion, {ElementKind elementKind}) {
+  void assertNoResult(String completion, {ElementKind? elementKind}) {
     if (suggestions.any((cs) =>
         cs.completion == completion &&
         (elementKind == null || cs.element?.kind == elementKind))) {

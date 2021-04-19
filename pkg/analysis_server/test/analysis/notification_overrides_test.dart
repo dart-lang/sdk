@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -22,8 +20,8 @@ void main() {
 
 @reflectiveTest
 class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
-  List<Override> overridesList;
-  Override overrideObject;
+  late List<Override> overridesList;
+  late Override overrideObject;
 
   final Completer<void> _resultsAvailable = Completer();
 
@@ -31,13 +29,14 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   /// offset of [search] in [override].
   void assertHasInterfaceMember(String search) {
     var offset = findOffset(search);
-    for (var member in overrideObject.interfaceMembers) {
-      if (member.element.location.offset == offset) {
+    var interfaceMembers = overrideObject.interfaceMembers!;
+    for (var member in interfaceMembers) {
+      if (member.element.location!.offset == offset) {
         return;
       }
     }
     fail('Expect to find an overridden interface members at $offset in '
-        '${overrideObject.interfaceMembers.join('\n')}');
+        '${interfaceMembers.join('\n')}');
   }
 
   /// Validates that there is an [Override] at the offset of [search].
@@ -57,7 +56,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   void assertHasSuperElement(String search) {
     var offset = findOffset(search);
     var member = overrideObject.superclassMember;
-    expect(member.element.location.offset, offset);
+    expect(member!.element.location!.offset, offset);
   }
 
   /// Asserts that there are no overridden members from interfaces.
@@ -88,7 +87,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   /// Otherwise remembers this it into [override].
   ///
   /// If [exists] is `false`, then fails if such [Override] exists.
-  void findOverride(int offset, int length, [bool exists]) {
+  void findOverride(int offset, int length, [bool? exists]) {
     for (var override in overridesList) {
       if (override.offset == offset && override.length == length) {
         if (exists == false) {

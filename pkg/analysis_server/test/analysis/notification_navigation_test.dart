@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -22,14 +20,14 @@ void main() {
 }
 
 class AbstractNavigationTest extends AbstractAnalysisTest {
-  List<NavigationRegion> regions;
-  List<NavigationTarget> targets;
-  List<String> targetFiles;
+  late List<NavigationRegion> regions;
+  late List<NavigationTarget> targets;
+  late List<String> targetFiles;
 
-  NavigationRegion testRegion;
-  List<int> testTargetIndexes;
-  List<NavigationTarget> testTargets;
-  NavigationTarget testTarget;
+  late NavigationRegion testRegion;
+  late List<int> testTargetIndexes;
+  late List<NavigationTarget> testTargets;
+  late NavigationTarget testTarget;
 
   /// Validates that there is a target in [testTargetIndexes] with [file],
   /// at [offset] and with the given [length].

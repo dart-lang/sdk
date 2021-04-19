@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
@@ -23,8 +21,8 @@ void main() {
 
 @reflectiveTest
 class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
-  List<Occurrences> occurrencesList;
-  Occurrences testOccurrences;
+  late List<Occurrences> occurrencesList;
+  late Occurrences testOccurrences;
 
   final Completer<void> _resultsAvailable = Completer();
 
@@ -51,7 +49,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
   /// Otherwise remembers this it into [testOccurrences].
   ///
   /// If [exists] is `false`, then fails if such [Occurrences] exists.
-  void findRegion(int offset, int length, [bool exists]) {
+  void findRegion(int offset, int length, [bool? exists]) {
     for (var occurrences in occurrencesList) {
       if (occurrences.length != length) {
         continue;

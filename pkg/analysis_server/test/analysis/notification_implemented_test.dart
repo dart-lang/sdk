@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -21,8 +19,8 @@ void main() {
 
 @reflectiveTest
 class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
-  List<ImplementedClass> implementedClasses;
-  List<ImplementedMember> implementedMembers;
+  List<ImplementedClass>? implementedClasses;
+  List<ImplementedMember>? implementedMembers;
 
   /// Validates that there is an [ImplementedClass] at the offset of [search].
   ///
@@ -34,9 +32,9 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
       length = findIdentifierLength(search);
     }
     if (implementedClasses == null) {
-      fail('No notification of impemented classes was received');
+      fail('No notification of implemented classes was received');
     }
-    for (var clazz in implementedClasses) {
+    for (var clazz in implementedClasses!) {
       if (clazz.offset == offset && clazz.length == length) {
         return;
       }
@@ -55,9 +53,9 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
       length = findIdentifierLength(search);
     }
     if (implementedMembers == null) {
-      fail('No notification of impemented members was received');
+      fail('No notification of implemented members was received');
     }
-    for (var member in implementedMembers) {
+    for (var member in implementedMembers!) {
       if (member.offset == offset && member.length == length) {
         return;
       }
@@ -76,9 +74,9 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
       length = findIdentifierLength(search);
     }
     if (implementedMembers == null) {
-      fail('No notification of impemented members was received');
+      fail('No notification of implemented members was received');
     }
-    for (var member in implementedMembers) {
+    for (var member in implementedMembers!) {
       if (member.offset == offset) {
         fail('Unexpected implemented member at $offset'
             ' in $implementedMembers');

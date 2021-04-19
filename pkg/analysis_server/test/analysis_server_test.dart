@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -27,8 +25,8 @@ void main() {
 
 @reflectiveTest
 class AnalysisServerTest with ResourceProviderMixin {
-  MockServerChannel channel;
-  AnalysisServer server;
+  late MockServerChannel channel;
+  late AnalysisServer server;
 
   /// Test that having multiple analysis contexts analyze the same file doesn't
   /// cause that file to receive duplicate notifications when it's modified.
@@ -116,8 +114,9 @@ class A {}
     expect(notifications.any((Notification notification) {
       if (notification.event == SERVER_NOTIFICATION_STATUS) {
         var params = ServerStatusParams.fromNotification(notification);
-        if (params.analysis != null) {
-          return params.analysis.isAnalyzing;
+        var analysis = params.analysis;
+        if (analysis != null) {
+          return analysis.isAnalyzing;
         }
       }
       return false;
@@ -126,7 +125,7 @@ class A {}
     // The last notification should indicate that analysis is complete.
     var notification = notifications[notifications.length - 1];
     var params = ServerStatusParams.fromNotification(notification);
-    expect(params.analysis.isAnalyzing, isFalse);
+    expect(params.analysis!.isAnalyzing, isFalse);
   }
 
   Future test_serverStatusNotifications_noFiles() async {
@@ -145,8 +144,9 @@ class A {}
     expect(notifications.any((Notification notification) {
       if (notification.event == SERVER_NOTIFICATION_STATUS) {
         var params = ServerStatusParams.fromNotification(notification);
-        if (params.analysis != null) {
-          return params.analysis.isAnalyzing;
+        var analysis = params.analysis;
+        if (analysis != null) {
+          return analysis.isAnalyzing;
         }
       }
       return false;
@@ -155,7 +155,7 @@ class A {}
     // The last notification should indicate that analysis is complete.
     var notification = notifications[notifications.length - 1];
     var params = ServerStatusParams.fromNotification(notification);
-    expect(params.analysis.isAnalyzing, isFalse);
+    expect(params.analysis!.isAnalyzing, isFalse);
   }
 
   Future<void>
@@ -221,7 +221,7 @@ analyzer:
 
 class EchoHandler implements RequestHandler {
   @override
-  Response handleRequest(Request request) {
+  Response? handleRequest(Request request) {
     if (request.method == 'echo') {
       return Response(request.id, result: {'echo': true});
     }

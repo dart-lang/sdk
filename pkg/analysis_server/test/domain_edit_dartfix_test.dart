@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
@@ -39,18 +37,19 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   void expectSuggestion(DartFixSuggestion suggestion, String partialText,
-      [int offset, int length]) {
+      [int? offset, int? length]) {
     expect(suggestion.description, contains(partialText));
     if (offset == null) {
       expect(suggestion.location, isNull);
     } else {
-      expect(suggestion.location.offset, offset);
-      expect(suggestion.location.length, length);
+      var location = suggestion.location!;
+      expect(location.offset, offset);
+      expect(location.length, length);
     }
   }
 
   Future<EditDartfixResult> performFix(
-      {List<String> includedFixes, bool pedantic}) async {
+      {List<String>? includedFixes, bool? pedantic}) async {
     var response =
         await performFixRaw(includedFixes: includedFixes, pedantic: pedantic);
     expect(response.error, isNull);
@@ -58,9 +57,9 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   Future<Response> performFixRaw(
-      {List<String> includedFixes,
-      List<String> excludedFixes,
-      bool pedantic}) async {
+      {List<String>? includedFixes,
+      List<String>? excludedFixes,
+      bool? pedantic}) async {
     final id = nextRequestId;
     final params = EditDartfixParams([projectPath]);
     params.includedFixes = includedFixes;
