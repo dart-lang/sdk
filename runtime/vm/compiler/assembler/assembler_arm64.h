@@ -311,7 +311,7 @@ class Address : public ValueObject {
       case kArrayCid:
       case kImmutableArrayCid:
       case kTypeArgumentsCid:
-        return kFourBytes;
+        return kEightBytes;
       case kOneByteStringCid:
       case kExternalOneByteStringCid:
         return kByte;
