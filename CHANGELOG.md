@@ -1,3 +1,8 @@
+# 1.3.1
+
+- `directives_ordering` now checks ordering of `package:` imports in code
+  outside pub packages
+
 # 1.3.0
 
 - `non_constant_identifier_names` updated to check local variables, for-loop
@@ -22,7 +27,7 @@
 
 - fixed `prefer_mixin` to properly make exceptions for `dart.collection` legacy
   mixins
-- improved formatting of source examples in docs  
+- improved formatting of source examples in docs
 - new lint: `use_build_context_synchronously` (experimental)
 - new lint: `avoid_multiple_declarations_per_line`
 

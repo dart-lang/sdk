@@ -271,7 +271,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     _checkSectionInOrder(lintedNodes, relativeExports);
 
     var projectName = project?.name;
-    if (projectName != null) {
+    if (projectName == null) {
+      // Not a pub package. Package directives should be sorted in one block.
+      var packageImports = importDirectives.where(_isPackageDirective);
+      var packageExports = exportDirectives.where(_isPackageDirective);
+
+      _checkSectionInOrder(lintedNodes, packageImports);
+      _checkSectionInOrder(lintedNodes, packageExports);
+    } else {
       var packageBox = _PackageBox(projectName);
 
       var thirdPartyPackageImports =
