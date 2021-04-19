@@ -12,6 +12,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 
 class SortMembersCommandHandler extends SimpleEditCommandHandler {
   SortMembersCommandHandler(LspAnalysisServer server) : super(server);
@@ -37,18 +38,20 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
     final docIdentifier = server.getVersionedDocumentIdentifier(path);
 
     var driver = server.getAnalysisDriver(path);
-    final result = await driver?.parseFile(path);
+    final result0 = await driver?.parseFile2(path);
 
     if (cancellationToken.isCancellationRequested) {
       return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
     }
 
-    if (result == null) {
+    if (result0 is! ParsedUnitResult) {
       return ErrorOr.error(ResponseError(
         code: ServerErrorCodes.FileNotAnalyzed,
         message: '$commandName is only available for analyzed files',
       ));
     }
+    // TODO(scheglov) inline after migration
+    var result = result0 as ParsedUnitResult;
     final code = result.content;
     final unit = result.unit;
 

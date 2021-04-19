@@ -1513,6 +1513,57 @@ class B {}
     }, throwsArgumentError);
   }
 
+  test_getParsedLibrary2() async {
+    var content = 'class A {}';
+    addTestFile(content);
+    var result = driver.getParsedLibrary2(testFile);
+    result as ParsedLibraryResult;
+    expect(result.units, hasLength(1));
+    expect(result.units![0].path, testFile);
+    expect(result.units![0].content, content);
+    expect(result.units![0].unit, isNotNull);
+    expect(result.units![0].errors, isEmpty);
+  }
+
+  test_getParsedLibrary2_invalidPath_notAbsolute() async {
+    var result = driver.getParsedLibrary2('not_absolute.dart');
+    expect(result, isA<InvalidPathResult>());
+  }
+
+  test_getParsedLibrary2_notLibraryButPart() async {
+    addTestFile('part of my;');
+    var result = driver.getParsedLibrary2(testFile);
+    expect(result, isA<NotLibraryButPartResult>());
+  }
+
+  test_getParsedLibraryByUri2() async {
+    var content = 'class A {}';
+    addTestFile(content);
+
+    var uri = Uri.parse('package:test/test.dart');
+    var result = driver.getParsedLibraryByUri2(uri);
+    result as ParsedLibraryResult;
+    expect(result.uri, uri);
+    expect(result.units, hasLength(1));
+    expect(result.units![0].uri, uri);
+    expect(result.units![0].path, testFile);
+    expect(result.units![0].content, content);
+  }
+
+  test_getParsedLibraryByUri2_notLibrary() async {
+    addTestFile('part of my;');
+
+    var uri = Uri.parse('package:test/test.dart');
+    var result = driver.getParsedLibraryByUri2(uri);
+    expect(result, isA<NotLibraryButPartResult>());
+  }
+
+  test_getParsedLibraryByUri2_unresolvedUri() async {
+    var uri = Uri.parse('package:unknown/a.dart');
+    var result = driver.getParsedLibraryByUri2(uri);
+    expect(result, isA<CannotResolveUriResult>());
+  }
+
   test_getResolvedLibrary2() async {
     var content = 'class A {}';
     addTestFile(content);
@@ -2480,6 +2531,70 @@ import 'b.dart';
     expect(error.errorCode, CompileTimeErrorCode.MISSING_DART_LIBRARY);
   }
 
+  test_parseFile2_changedFile() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+
+    newFile(a, content: '');
+    newFile(b, content: r'''
+import 'a.dart';
+
+void f(A a) {}
+''');
+
+    // Ensure that [a.dart] library cycle is loaded.
+    // So, `a.dart` is in the library context.
+    await driver.getResultValid(a);
+
+    // Update the file, changing its API signature.
+    // Note that we don't call `changeFile`.
+    newFile(a, content: 'class A {}');
+
+    // Parse the file.
+    // We have not called `changeFile(a)`, so we should not read the file.
+    // Moreover, doing this will create a new library cycle [a.dart].
+    // Library cycles are compared by their identity, so we would try to
+    // reload linked summary for [a.dart], and crash.
+    {
+      var parseResult = await driver.parseFile2(a) as ParsedUnitResult;
+      expect(parseResult.unit.declarations, isEmpty);
+    }
+
+    // We have not read `a.dart`, so `A` is still not declared.
+    {
+      var bResult = await driver.getResultValid(b);
+      expect(bResult.errors, isNotEmpty);
+    }
+
+    // Notify the driver that the file was changed.
+    driver.changeFile(a);
+
+    // So, `class A {}` is declared now.
+    {
+      var parseResult = driver.parseFileSync2(a) as ParsedUnitResult;
+      expect(parseResult.unit.declarations, hasLength(1));
+    }
+    {
+      var bResult = await driver.getResultValid(b);
+      expect(bResult.errors, isEmpty);
+    }
+  }
+
+  test_parseFile2_notAbsolutePath() async {
+    var result = await driver.parseFile2('not_absolute.dart');
+    expect(result, isA<InvalidPathResult>());
+  }
+
+  test_parseFile2_notDart() async {
+    var p = convertPath('/test/bin/a.txt');
+    newFile(p, content: 'class A {}');
+
+    var parseResult = await driver.parseFile2(p) as ParsedUnitResult;
+    expect(parseResult, isNotNull);
+    expect(driver.knownFiles, contains(p));
+  }
+
+  @deprecated
   test_parseFile_changedFile() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
@@ -2529,12 +2644,14 @@ void f(A a) {}
     }
   }
 
+  @deprecated
   test_parseFile_notAbsolutePath() async {
     expect(() async {
       await driver.parseFile('not_absolute.dart');
     }, throwsArgumentError);
   }
 
+  @deprecated
   test_parseFile_notDart() async {
     var p = convertPath('/test/bin/a.txt');
     newFile(p, content: 'class A {}');
@@ -2544,6 +2661,138 @@ void f(A a) {}
     expect(driver.knownFiles, contains(p));
   }
 
+  test_parseFileSync2_changedFile() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+
+    newFile(a, content: '');
+    newFile(b, content: r'''
+import 'a.dart';
+
+void f(A a) {}
+''');
+
+    // Ensure that [a.dart] library cycle is loaded.
+    // So, `a.dart` is in the library context.
+    await driver.getResultValid(a);
+
+    // Update the file, changing its API signature.
+    // Note that we don't call `changeFile`.
+    newFile(a, content: 'class A {}');
+
+    // Parse the file.
+    // We have not called `changeFile(a)`, so we should not read the file.
+    // Moreover, doing this will create a new library cycle [a.dart].
+    // Library cycles are compared by their identity, so we would try to
+    // reload linked summary for [a.dart], and crash.
+    {
+      var parseResult = driver.parseFileSync2(a) as ParsedUnitResult;
+      expect(parseResult.unit.declarations, isEmpty);
+    }
+
+    // We have not read `a.dart`, so `A` is still not declared.
+    {
+      var bResult = await driver.getResultValid(b);
+      expect(bResult.errors, isNotEmpty);
+    }
+
+    // Notify the driver that the file was changed.
+    driver.changeFile(a);
+
+    // So, `class A {}` is declared now.
+    {
+      var parseResult = driver.parseFileSync2(a) as ParsedUnitResult;
+      expect(parseResult.unit.declarations, hasLength(1));
+    }
+    {
+      var bResult = await driver.getResultValid(b);
+      expect(bResult.errors, isEmpty);
+    }
+  }
+
+  test_parseFileSync2_doesNotReadImportedFiles() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+
+    newFile(a, content: '');
+    newFile(b, content: r'''
+import 'a.dart';
+''');
+
+    expect(driver.fsState.knownFilePaths, isEmpty);
+
+    // Don't read `a.dart` when parse.
+    driver.parseFileSync2(b);
+    expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
+
+    // Still don't read `a.dart` when parse the second time.
+    driver.parseFileSync2(b);
+    expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
+  }
+
+  test_parseFileSync2_doesNotReadPartedFiles() async {
+    var a = convertPath('/test/lib/a.dart');
+    var b = convertPath('/test/lib/b.dart');
+
+    newFile(a, content: r'''
+part of my;
+''');
+    newFile(b, content: r'''
+library my;
+part 'a.dart';
+''');
+
+    expect(driver.fsState.knownFilePaths, isEmpty);
+
+    // Don't read `a.dart` when parse.
+    driver.parseFileSync2(b);
+    expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
+
+    // Still don't read `a.dart` when parse the second time.
+    driver.parseFileSync2(b);
+    expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
+  }
+
+  test_parseFileSync2_languageVersion() async {
+    var path = convertPath('/test/lib/test.dart');
+
+    newFile(path, content: r'''
+// @dart = 2.7
+class A {}
+''');
+
+    var parseResult = driver.parseFileSync2(path) as ParsedUnitResult;
+    var languageVersion = parseResult.unit.languageVersionToken!;
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 7);
+  }
+
+  test_parseFileSync2_languageVersion_null() async {
+    var path = convertPath('/test/lib/test.dart');
+
+    newFile(path, content: r'''
+class A {}
+''');
+
+    var parseResult = driver.parseFileSync2(path) as ParsedUnitResult;
+    expect(parseResult.unit.languageVersionToken, isNull);
+  }
+
+  test_parseFileSync2_notAbsolutePath() {
+    var result = driver.parseFileSync2('not_absolute.dart');
+    expect(result, isA<InvalidPathResult>());
+  }
+
+  test_parseFileSync2_notDart() {
+    var p = convertPath('/test/bin/a.txt');
+    newFile(p, content: 'class A {}');
+
+    var parseResult = driver.parseFileSync2(p) as ParsedUnitResult;
+    expect(parseResult, isNotNull);
+    expect(driver.knownFiles, contains(p));
+  }
+
+  @deprecated
   test_parseFileSync_changedFile() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
@@ -2593,6 +2842,7 @@ void f(A a) {}
     }
   }
 
+  @deprecated
   test_parseFileSync_doesNotReadImportedFiles() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
@@ -2613,6 +2863,7 @@ import 'a.dart';
     expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
   }
 
+  @deprecated
   test_parseFileSync_doesNotReadPartedFiles() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
@@ -2636,6 +2887,7 @@ part 'a.dart';
     expect(driver.fsState.knownFilePaths, unorderedEquals([b]));
   }
 
+  @deprecated
   test_parseFileSync_languageVersion() async {
     var path = convertPath('/test/lib/test.dart');
 
@@ -2650,6 +2902,7 @@ class A {}
     expect(languageVersion.minor, 7);
   }
 
+  @deprecated
   test_parseFileSync_languageVersion_null() async {
     var path = convertPath('/test/lib/test.dart');
 
@@ -2661,12 +2914,14 @@ class A {}
     expect(parseResult.unit.languageVersionToken, isNull);
   }
 
-  test_parseFileSync_notAbsolutePath() async {
+  @deprecated
+  test_parseFileSync_notAbsolutePath() {
     expect(() {
       driver.parseFileSync('not_absolute.dart');
     }, throwsArgumentError);
   }
 
+  @deprecated
   test_parseFileSync_notDart() {
     var p = convertPath('/test/bin/a.txt');
     newFile(p, content: 'class A {}');

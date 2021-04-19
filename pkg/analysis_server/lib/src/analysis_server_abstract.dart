@@ -340,7 +340,9 @@ abstract class AbstractAnalysisServer {
       return null;
     }
 
-    return getAnalysisDriver(path)?.currentSession.getParsedUnit(path);
+    var session = getAnalysisDriver(path)?.currentSession;
+    var result = session?.getParsedUnit2(path);
+    return result is ParsedUnitResult ? result : null;
   }
 
   /// Return the resolved unit for the file with the given [path]. The file is

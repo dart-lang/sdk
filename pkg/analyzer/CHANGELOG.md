@@ -11,6 +11,12 @@
   Use `AnalysisSession.getLibraryByUri2()` instead.
 * Deprecated `AnalysisSession.getErrors()`.
   Use `AnalysisSession.getErrors2()` instead.
+* Deprecated `AnalysisSession.getParsedLibrary()`.
+  Use `AnalysisSession.getParsedLibrary2()` instead.
+* Deprecated `AnalysisSession.getParsedLibraryByElement()`.
+  Use `AnalysisSession.getParsedLibraryByElement2()` instead.
+* Deprecated `AnalysisSession.getParsedUnit()`.
+  Use `AnalysisSession.getParsedUnit2()` instead.
 
 ## 1.4.0
 * Deprecated `TypeProvider.nonSubtypableClasses`.

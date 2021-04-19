@@ -95,12 +95,20 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getLibraryByUri2(uri);
   }
 
+  @Deprecated('Use getParsedLibrary2() instead')
   @override
   ParsedLibraryResult getParsedLibrary(String path) {
     _checkConsistency();
     return _driver.getParsedLibrary(path);
   }
 
+  @override
+  SomeParsedLibraryResult getParsedLibrary2(String path) {
+    _checkConsistency();
+    return _driver.getParsedLibrary2(path);
+  }
+
+  @Deprecated('Use getParsedLibraryByElement2() instead')
   @override
   ParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
     _checkConsistency();
@@ -109,9 +117,27 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
+  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element) {
+    _checkConsistency();
+
+    if (element.session != this) {
+      return NotElementOfThisSessionResult();
+    }
+
+    return _driver.getParsedLibraryByUri2(element.source.uri);
+  }
+
+  @Deprecated('Use getParsedUnit2() instead')
+  @override
   ParsedUnitResult getParsedUnit(String path) {
     _checkConsistency();
     return _driver.parseFileSync(path);
+  }
+
+  @override
+  SomeParsedUnitResult getParsedUnit2(String path) {
+    _checkConsistency();
+    return _driver.parseFileSync2(path);
   }
 
   @Deprecated('Use getResolvedLibrary2() instead')
