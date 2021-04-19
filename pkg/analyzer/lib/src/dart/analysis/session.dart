@@ -58,10 +58,17 @@ class AnalysisSessionImpl implements AnalysisSession {
   @deprecated
   driver.AnalysisDriver getDriver() => _driver;
 
+  @Deprecated('Use getErrors2() instead')
   @override
   Future<ErrorsResult> getErrors(String path) {
     _checkConsistency();
     return _driver.getErrors(path);
+  }
+
+  @override
+  Future<SomeErrorsResult> getErrors2(String path) {
+    _checkConsistency();
+    return _driver.getErrors2(path);
   }
 
   @override

@@ -113,8 +113,10 @@ class AnalyzerImpl {
   /// Fills [errorsResults] using [files].
   Future<void> prepareErrors() async {
     for (var path in files) {
-      var errorsResult = await analysisDriver.getErrors(path);
-      errorsResults.add(errorsResult);
+      var errorsResult = await analysisDriver.getErrors2(path);
+      if (errorsResult is ErrorsResult) {
+        errorsResults.add(errorsResult);
+      }
     }
   }
 

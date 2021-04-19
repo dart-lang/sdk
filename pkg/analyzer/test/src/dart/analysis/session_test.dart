@@ -28,6 +28,31 @@ main() {
 @reflectiveTest
 class AnalysisSessionImpl_BazelWorkspaceTest
     extends BazelWorkspaceResolutionTest {
+  void test_getErrors2_notFileOfUri() async {
+    var relPath = 'dart/my/lib/a.dart';
+    newFile('$workspaceRootPath/bazel-bin/$relPath');
+
+    var path = convertPath('$workspaceRootPath/$relPath');
+    var session = contextFor(path).currentSession;
+    var result = await session.getErrors2(path);
+    expect(result, isA<NotPathOfUriResult>());
+  }
+
+  void test_getErrors2_valid() async {
+    var file = newFile(
+      '$workspaceRootPath/dart/my/lib/a.dart',
+      content: 'var x = 0',
+    );
+
+    var session = contextFor(file.path).currentSession;
+    var result = await session.getErrorsValid(file.path);
+    expect(result.state, ResultState.VALID);
+    expect(result.path, file.path);
+    expect(result.errors, hasLength(1));
+    expect(result.uri.toString(), 'package:dart.my/a.dart');
+  }
+
+  @deprecated
   void test_getErrors_notFileOfUri() async {
     var relPath = 'dart/my/lib/a.dart';
     newFile('$workspaceRootPath/bazel-bin/$relPath');
@@ -39,6 +64,7 @@ class AnalysisSessionImpl_BazelWorkspaceTest
     expect(() => result.errors, throwsStateError);
   }
 
+  @deprecated
   void test_getErrors_valid() async {
     var file = newFile(
       '$workspaceRootPath/dart/my/lib/a.dart',
@@ -212,12 +238,26 @@ test:lib/
     testPath = convertPath('/home/test/lib/test.dart');
   }
 
+  @deprecated
   test_getErrors() async {
     newFile(testPath, content: 'class C {');
     var errorsResult = await session.getErrors(testPath);
     expect(errorsResult.session, session);
     expect(errorsResult.path, testPath);
     expect(errorsResult.errors, isNotEmpty);
+  }
+
+  test_getErrors2() async {
+    newFile(testPath, content: 'class C {');
+    var errorsResult = await session.getErrorsValid(testPath);
+    expect(errorsResult.session, session);
+    expect(errorsResult.path, testPath);
+    expect(errorsResult.errors, isNotEmpty);
+  }
+
+  test_getErrors2_invalidPath_notAbsolute() async {
+    var errorsResult = await session.getErrors2('not_absolute.dart');
+    expect(errorsResult, isA<InvalidPathResult>());
   }
 
   @deprecated
@@ -817,5 +857,9 @@ extension on AnalysisSession {
   Future<ResolvedLibraryResult> getResolvedLibraryByElementValid(
       LibraryElement element) async {
     return await getResolvedLibraryByElement2(element) as ResolvedLibraryResult;
+  }
+
+  Future<ErrorsResult> getErrorsValid(String path) async {
+    return await getErrors2(path) as ErrorsResult;
   }
 }

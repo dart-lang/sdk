@@ -171,7 +171,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _referencingNameTasks = <_FilesReferencingNameTask>[];
 
   /// The mapping from the files for which errors were requested using
-  /// [getErrors] to the [Completer]s to report the result.
+  /// [getErrors2] to the [Completer]s to report the result.
   final _errorsRequestedFiles = <String, List<Completer<ErrorsResult>>>{};
 
   /// The requests from [_errorsRequestedFiles] for files which were found to
@@ -549,10 +549,37 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// This method does not use analysis priorities, and must not be used in
   /// interactive analysis, such as Analysis Server or its plugins.
+  @Deprecated('Use getErrors2() instead')
   Future<ErrorsResult> getErrors(String path) async {
     _throwIfNotAbsolutePath(path);
-    if (!_fsState.hasUri(path)) {
+
+    var result = await getErrors2(path);
+
+    if (result is NotPathOfUriResult) {
       return NotValidErrorsResultImpl(ResultState.NOT_FILE_OF_URI);
+    }
+
+    return result as ErrorsResult;
+  }
+
+  /// Return a [Future] that completes with the [ErrorsResult] for the Dart
+  /// file with the given [path].
+  ///
+  /// The [path] must be absolute and normalized.
+  ///
+  /// This method does not use analysis priorities, and must not be used in
+  /// interactive analysis, such as Analysis Server or its plugins.
+  Future<SomeErrorsResult> getErrors2(String path) async {
+    if (!_isAbsolutePath(path)) {
+      return Future.value(
+        InvalidPathResult(),
+      );
+    }
+
+    if (!_fsState.hasUri(path)) {
+      return Future.value(
+        NotPathOfUriResult(),
+      );
     }
 
     var completer = Completer<ErrorsResult>();

@@ -36,7 +36,15 @@ abstract class AnalysisSession {
   ///
   /// If the file cannot be analyzed by this session, then the result will have
   /// a result state indicating the nature of the problem.
+  @Deprecated('Use getErrors2() instead')
   Future<ErrorsResult> getErrors(String path);
+
+  /// Return a future that will complete with information about the errors
+  /// contained in the file with the given absolute, normalized [path].
+  ///
+  /// If the file cannot be analyzed by this session, then the result will have
+  /// a result state indicating the nature of the problem.
+  Future<SomeErrorsResult> getErrors2(String path);
 
   /// Return information about the file at the given absolute, normalized
   /// [path].
