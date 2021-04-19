@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 
@@ -56,7 +54,7 @@ class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
   _TypeSchemaEliminationVisitor(this.topType, this.bottomType);
 
   @override
-  DartType defaultDartType(DartType node, int variance) {
+  DartType? defaultDartType(DartType node, int variance) {
     bool isLeastClosure = variance == Variance.covariant;
     if (node is UnknownType) {
       return isLeastClosure ? bottomType : topType;
@@ -79,7 +77,7 @@ class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
         bottomType == const NeverType.nonNullable() || bottomType is NullType);
     _TypeSchemaEliminationVisitor visitor =
         new _TypeSchemaEliminationVisitor(topType, bottomType);
-    DartType result = schema.accept1(
+    DartType? result = schema.accept1(
         visitor, isLeastClosure ? Variance.covariant : Variance.contravariant);
     return result ?? schema;
   }
