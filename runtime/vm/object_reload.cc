@@ -657,6 +657,17 @@ void Class::CheckReload(const Class& replacement,
   }
 
   if (is_finalized()) {
+    // Make sure the declaration types parameter count matches for the two
+    // classes.
+    // ex. class A<int,B> {} cannot be replace with class A<B> {}.
+    auto group_context = context->group_reload_context();
+    if (NumTypeParameters() != replacement.NumTypeParameters()) {
+      group_context->AddReasonForCancelling(
+          new (context->zone())
+              TypeParametersChanged(context->zone(), *this, replacement));
+      return;
+    }
+
     // Ensure the replacement class is also finalized.
     const Error& error =
         Error::Handle(replacement.EnsureIsFinalized(Thread::Current()));
