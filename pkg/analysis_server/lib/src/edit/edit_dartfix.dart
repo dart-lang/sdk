@@ -15,7 +15,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/source.dart' show SourceKind;
 import 'package:collection/collection.dart';
 
 class EditDartFix
@@ -215,23 +214,16 @@ class EditDartFix
       if (pathsProcessed.contains(path)) continue;
       var driver = server.getAnalysisDriver(path);
       if (driver != null) {
-        switch (await driver.getSourceKind(path)) {
-          case SourceKind.PART:
-            // Parts will either be found in a library, below, or if the library
-            // isn't [isIncluded], will be picked up in the final loop.
-            continue;
-          case SourceKind.LIBRARY:
-            var result = await driver.getResolvedLibrary2(path);
-            if (result is ResolvedLibraryResult) {
-              for (var unit in result.units!) {
-                if (pathsToProcess.contains(unit.path) &&
-                    !pathsProcessed.contains(unit.path)) {
-                  await process(unit);
-                  pathsProcessed.add(unit.path!);
-                }
-              }
-              break;
+        var result = await driver.getResolvedLibrary2(path);
+        if (result is ResolvedLibraryResult) {
+          for (var unit in result.units!) {
+            if (pathsToProcess.contains(unit.path) &&
+                !pathsProcessed.contains(unit.path)) {
+              await process(unit);
+              pathsProcessed.add(unit.path!);
             }
+          }
+          break;
         }
       }
     }

@@ -71,10 +71,17 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getErrors2(path);
   }
 
+  @Deprecated('Use getFile2() instead')
   @override
   FileResult getFile(String path) {
     _checkConsistency();
     return _driver.getFileSync(path);
+  }
+
+  @override
+  SomeFileResult getFile2(String path) {
+    _checkConsistency();
+    return _driver.getFileSync2(path);
   }
 
   @Deprecated('Use getLibraryByUri2() instead')
@@ -190,6 +197,7 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getResult2(path);
   }
 
+  @Deprecated('Use getFile2() instead')
   @override
   Future<SourceKind?> getSourceKind(String path) {
     _checkConsistency();
@@ -209,6 +217,7 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getUnitElement2(path);
   }
 
+  @Deprecated('This method is not used and will be removed')
   @override
   Future<String> getUnitElementSignature(String path) {
     _checkConsistency();

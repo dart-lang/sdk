@@ -65,7 +65,8 @@ void main(List<String> args) async {
           context.contextRoot.analyzedFiles().where((s) => s.endsWith('.dart'));
       files.addAll(localFiles);
       var session = context.currentSession;
-      LineInfo getLineInfo(String path) => session.getFile(path).lineInfo;
+      LineInfo getLineInfo(String path) =>
+          (session.getFile2(path) as FileResult).lineInfo;
       var migration =
           NullabilityMigration(listener, getLineInfo, permissive: true);
       for (var file in localFiles) {

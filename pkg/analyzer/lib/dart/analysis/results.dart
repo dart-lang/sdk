@@ -82,7 +82,7 @@ abstract class ErrorsResult
 /// parsed file is not required, so [ParsedUnitResult] is not necessary.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FileResult implements AnalysisResult {
+abstract class FileResult implements SomeFileResult, AnalysisResult {
   /// Whether the file is a part.
   /// If [state] is not [ResultState.VALID], throws [StateError].
   bool get isPart;
@@ -100,6 +100,7 @@ class InvalidPathResult
     implements
         InvalidResult,
         SomeErrorsResult,
+        SomeFileResult,
         SomeParsedLibraryResult,
         SomeParsedUnitResult,
         SomeResolvedLibraryResult,
@@ -284,6 +285,15 @@ enum ResultState {
 /// [ErrorsResult] represents a valid result.
 abstract class SomeErrorsResult {}
 
+/// The result of computing some cheap information for a single file, when full
+/// parsed file is not required, so [ParsedUnitResult] is not necessary.
+///
+/// Clients may not extend, implement or mix-in this class.
+///
+/// There are existing implementations of this class.
+/// [FileResult] represents a valid result.
+abstract class SomeFileResult {}
+
 /// The result of building the element model for a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -351,6 +361,7 @@ abstract class UnitElementResult
   /// exported by the library. If the signature of a file has not changed, then
   /// there have been no changes that would cause any files that depend on it
   /// to need to be re-analyzed.
+  @Deprecated('This field is not used by clients and will be removed')
   String get signature;
 }
 

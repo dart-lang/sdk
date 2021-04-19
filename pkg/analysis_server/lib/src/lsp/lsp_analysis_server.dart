@@ -36,6 +36,7 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
     show CompletionPerformance;
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -244,7 +245,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// analyzed in one of the analysis drivers to which the file was added,
   /// otherwise in the first driver, otherwise `null` is returned.
   LineInfo? getLineInfo(String path) {
-    return getAnalysisDriver(path)?.getFileSync(path).lineInfo;
+    var result = getAnalysisDriver(path)?.getFileSync2(path);
+    return result is FileResult ? result.lineInfo : null;
   }
 
   /// Gets the version of a document known to the server, returning a
