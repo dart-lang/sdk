@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:test/test.dart';
@@ -112,7 +110,7 @@ main() { int x =
   }
 
   EditFormatResult _formatAt(int selectionOffset, int selectionLength,
-      {int lineLength}) {
+      {int? lineLength}) {
     var request = EditFormatParams(testFile, selectionOffset, selectionLength,
             lineLength: lineLength)
         .toRequest('0');

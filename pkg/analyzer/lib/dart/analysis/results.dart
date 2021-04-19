@@ -49,6 +49,7 @@ class CannotResolveUriResult
     implements
         InvalidResult,
         SomeLibraryElementResult,
+        SomeParsedLibraryResult,
         SomeResolvedLibraryResult {}
 
 /// The declaration of an [Element].
@@ -99,6 +100,8 @@ class InvalidPathResult
     implements
         InvalidResult,
         SomeErrorsResult,
+        SomeParsedLibraryResult,
+        SomeParsedUnitResult,
         SomeResolvedLibraryResult,
         SomeResolvedUnitResult,
         SomeUnitElementResult {}
@@ -121,7 +124,10 @@ abstract class LibraryElementResult implements SomeLibraryElementResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class NotElementOfThisSessionResult
-    implements InvalidResult, SomeResolvedLibraryResult {}
+    implements
+        InvalidResult,
+        SomeParsedLibraryResult,
+        SomeResolvedLibraryResult {}
 
 /// The type of [InvalidResult] returned when the given file is not a library,
 /// but a part of a library.
@@ -131,6 +137,7 @@ class NotLibraryButPartResult
     implements
         InvalidResult,
         SomeLibraryElementResult,
+        SomeParsedLibraryResult,
         SomeResolvedLibraryResult {}
 
 /// The type of [InvalidResult] returned when the given file path does not
@@ -145,6 +152,7 @@ class NotPathOfUriResult
     implements
         InvalidResult,
         SomeErrorsResult,
+        SomeParsedLibraryResult,
         SomeResolvedLibraryResult,
         SomeResolvedUnitResult,
         SomeUnitElementResult {}
@@ -152,7 +160,8 @@ class NotPathOfUriResult
 /// The result of building parsed AST(s) for the whole library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ParsedLibraryResult implements AnalysisResult {
+abstract class ParsedLibraryResult
+    implements SomeParsedLibraryResult, AnalysisResult {
   /// The parsed units of the library.
   ///
   /// TODO(migration): should not be null, probably empty list
@@ -168,7 +177,8 @@ abstract class ParsedLibraryResult implements AnalysisResult {
 /// those discovered during scanning and parsing.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ParsedUnitResult implements AnalysisResultWithErrors {
+abstract class ParsedUnitResult
+    implements SomeParsedUnitResult, AnalysisResultWithErrors {
   /// The content of the file that was scanned and parsed.
   String get content;
 
@@ -278,8 +288,26 @@ abstract class SomeErrorsResult {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 ///
+/// There are existing implementations of this class.
 /// [LibraryElementResult] represents a valid result.
 abstract class SomeLibraryElementResult {}
+
+/// The result of building parsed AST(s) for the whole library.
+///
+/// Clients may not extend, implement or mix-in this class.
+///
+/// There are existing implementations of this class.
+/// [ParsedLibraryResult] represents a valid result.
+abstract class SomeParsedLibraryResult {}
+
+/// The result of parsing of a single file. The errors returned include only
+/// those discovered during scanning and parsing.
+///
+/// Clients may not extend, implement or mix-in this class.
+///
+/// There are existing implementations of this class.
+/// [ParsedUnitResult] represents a valid result.
+abstract class SomeParsedUnitResult {}
 
 /// The result of building resolved AST(s) for the whole library.
 ///
@@ -331,11 +359,17 @@ abstract class UnitElementResult
 ///
 /// Clients may not extend, implement or mix-in this class.
 class UnspecifiedInvalidResult
-    implements InvalidResult, SomeLibraryElementResult {}
+    implements
+        InvalidResult,
+        SomeLibraryElementResult,
+        SomeParsedLibraryResult {}
 
 /// The type of [InvalidResult] returned when the given URI corresponds to
 /// a library that is served from an external summary bundle.
 ///
 /// Clients may not extend, implement or mix-in this class.
 class UriOfExternalLibraryResult
-    implements InvalidResult, SomeResolvedLibraryResult {}
+    implements
+        InvalidResult,
+        SomeParsedLibraryResult,
+        SomeResolvedLibraryResult {}

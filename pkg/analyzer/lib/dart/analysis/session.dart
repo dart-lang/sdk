@@ -64,17 +64,32 @@ abstract class AnalysisSession {
   ///
   /// Throw [ArgumentError] if the given [path] is not the defining compilation
   /// unit for a library (that is, is a part of a library).
+  @Deprecated('Use getParsedLibrary2() instead')
   ParsedLibraryResult getParsedLibrary(String path);
+
+  /// Return information about the results of parsing units of the library file
+  /// with the given absolute, normalized [path].
+  SomeParsedLibraryResult getParsedLibrary2(String path);
 
   /// Return information about the results of parsing units of the library file
   /// with the given library [element].
   ///
   /// Throw [ArgumentError] if the [element] was not produced by this session.
+  @Deprecated('Use getParsedLibraryByElement2() instead')
   ParsedLibraryResult getParsedLibraryByElement(LibraryElement element);
+
+  /// Return information about the results of parsing units of the library file
+  /// with the given library [element].
+  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element);
 
   /// Return information about the results of parsing the file with the given
   /// absolute, normalized [path].
+  @Deprecated('Use getParsedUnit2() instead')
   ParsedUnitResult getParsedUnit(String path);
+
+  /// Return information about the results of parsing the file with the given
+  /// absolute, normalized [path].
+  SomeParsedUnitResult getParsedUnit2(String path);
 
   /// Return a future that will complete with information about the results of
   /// resolving all of the files in the library with the given absolute,

@@ -13,7 +13,7 @@ import '../analysis_abstract.dart';
 
 class AbstractSearchDomainTest extends AbstractAnalysisTest {
   final Map<String, _ResultSet> resultSets = {};
-  late String searchId;
+  String? searchId;
   List<SearchResult> results = <SearchResult>[];
   late SearchResult result;
 

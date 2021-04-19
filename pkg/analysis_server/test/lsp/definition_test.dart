@@ -198,9 +198,6 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     expect(res, isEmpty);
   }
 
-  /// Failing due to incorrect range because _DartNavigationCollector._getCodeLocation
-  /// does not handle parts.
-  @failingTest
   Future<void> test_part() async {
     final mainContents = '''
     import 'lib.dart';

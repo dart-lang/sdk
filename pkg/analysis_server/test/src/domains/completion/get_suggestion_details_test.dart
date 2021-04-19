@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -39,7 +36,7 @@ main() {} // ref
     );
 
     expect(result.completion, 'MyEnum.aaa');
-    _assertTestFileChange(result.change, r'''
+    _assertTestFileChange(result.change!, r'''
 import 'package:test/a.dart';
 
 main() {} // ref
@@ -63,7 +60,7 @@ main() {} // ref
     );
 
     expect(result.completion, 'sin');
-    _assertEmptyChange(result.change);
+    _assertEmptyChange(result.change!);
   }
 
   Future<void> test_existingImport_prefixed() async {
@@ -83,7 +80,7 @@ main() {} // ref
     );
 
     expect(result.completion, 'math.sin');
-    _assertEmptyChange(result.change);
+    _assertEmptyChange(result.change!);
   }
 
   Future<void> test_invalid_library() async {
@@ -92,7 +89,7 @@ main() {} // ref
     var response = await waitResponse(
       _buildRequest(id: -1, label: 'foo', offset: 0),
     );
-    expect(response.error.code, RequestErrorCode.INVALID_PARAMETER);
+    expect(response.error!.code, RequestErrorCode.INVALID_PARAMETER);
   }
 
   Future<void> test_newImport() async {
@@ -110,7 +107,7 @@ main() {} // ref
     );
 
     expect(result.completion, 'sin');
-    _assertTestFileChange(result.change, r'''
+    _assertTestFileChange(result.change!, r'''
 import 'dart:math';
 
 main() {} // ref
@@ -139,7 +136,7 @@ main() {} // ref
     );
 
     expect(result.completion, 'sin');
-    _assertTestFileChange(result.change, r'''
+    _assertTestFileChange(result.change!, r'''
 library foo;
 
 import 'dart:math';
@@ -173,7 +170,7 @@ main() {} // ref
     );
 
     expect(result.completion, 'sin');
-    _assertTestFileChange(result.change, r'''
+    _assertTestFileChange(result.change!, r'''
 @myAnnotation
 
 import 'dart:math';
@@ -205,7 +202,7 @@ main() {} // ref
     );
 
     expect(result.completion, 'sin');
-    _assertTestFileChange(result.change, r'''
+    _assertTestFileChange(result.change!, r'''
 import 'dart:async';
 import 'dart:math';
 @myAnnotation
@@ -237,7 +234,7 @@ part 'a.dart';
     );
 
     expect(result.completion, 'sin');
-    _assertTestFileChange(result.change, r'''
+    _assertTestFileChange(result.change!, r'''
 import 'dart:math';
 
 part 'a.dart';
@@ -260,10 +257,10 @@ part 'a.dart';
   }
 
   Request _buildRequest({
-    String file,
-    @required int id,
-    @required String label,
-    @required int offset,
+    String? file,
+    required int id,
+    required String label,
+    required int offset,
   }) {
     return CompletionGetSuggestionDetailsParams(
       file ?? testFile,

@@ -134,8 +134,8 @@ void buildTestsIn(AnalysisSession session, String testDirPath,
       }
       var relativePath = pathContext.relative(path, from: testDirPath);
       test(relativePath, () {
-        var result = session.getParsedUnit(path);
-        if (result.state != ResultState.VALID) {
+        var result = session.getParsedUnit2(path);
+        if (result is! ParsedUnitResult) {
           fail('Could not parse $path');
         }
         var code = result.content;

@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -471,16 +470,15 @@ var stringV = 'hi';
   }
 
   static void assertNoSuggestion(AvailableSuggestionSet set, String label,
-      {ElementKind kind}) {
-    var suggestion = set.items.singleWhere(
-        (s) => s.label == label && (kind == null || s.element.kind == kind),
-        orElse: () => null);
+      {ElementKind? kind}) {
+    var suggestion = set.items.singleWhereOrNull(
+        (s) => s.label == label && (kind == null || s.element.kind == kind));
     expect(suggestion, null);
   }
 
   static AvailableSuggestion _getSuggestion(
       AvailableSuggestionSet set, String label,
-      {ElementKind kind}) {
+      {ElementKind? kind}) {
     return set.items.singleWhere(
         (s) => s.label == label && (kind == null || s.element.kind == kind));
   }

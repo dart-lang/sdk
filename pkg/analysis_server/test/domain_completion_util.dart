@@ -17,7 +17,7 @@ import 'constants.dart';
 class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   late String completionId;
   late int completionOffset;
-  late int replacementOffset;
+  int? replacementOffset;
   late int replacementLength;
   Map<String, Completer<void>> receivedSuggestionsCompleters = {};
   List<CompletionSuggestion> suggestions = [];
