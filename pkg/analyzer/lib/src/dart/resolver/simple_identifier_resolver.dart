@@ -175,6 +175,19 @@ class SimpleIdentifierResolver {
 
     var element = hasRead ? result.readElement : result.writeElement;
 
+    // search for property writer.
+    var writerResult = _resolver.lexicalLookup(node: node, setter: true);
+    if (writerResult.requested is PropertyAccessorElement) {
+      // verify var of searched writer has getter.
+      var val = (writerResult.requested as PropertyAccessorElement).variable;
+      var getter = val.getter;
+      if (getter == null && val is TopLevelVariableElement) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.UNDEFINED_TOP_LEVEL_GETTER, node,
+            [node.name]);
+      }
+    }
+
     var enclosingClass = _resolver.enclosingClass;
     if (_isFactoryConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {

@@ -12618,6 +12618,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "defining a getter or field named '{0}'.",
       hasPublishedDocs: true);
 
+  static const CompileTimeErrorCode UNDEFINED_TOP_LEVEL_GETTER = CompileTimeErrorCode(
+      'UNDEFINED_TOP_LEVEL_GETTER',
+      "Getter not found: '{0}'.");
+
   /**
    * Parameters:
    * 0: the name of the identifier

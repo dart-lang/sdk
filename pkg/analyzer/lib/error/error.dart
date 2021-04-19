@@ -430,6 +430,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
   CompileTimeErrorCode.UNDEFINED_FUNCTION,
   CompileTimeErrorCode.UNDEFINED_GETTER,
+  CompileTimeErrorCode.UNDEFINED_TOP_LEVEL_GETTER,
   CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
   CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
   CompileTimeErrorCode.UNDEFINED_METHOD,
