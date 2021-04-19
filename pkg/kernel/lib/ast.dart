@@ -231,7 +231,7 @@ abstract class NamedNode extends TreeNode {
 abstract class FileUriNode extends TreeNode {
   /// The URI of the source file this node was loaded from.
   // TODO(johnniwinther): Make this non-nullable.
-  Uri? get fileUri;
+  Uri get fileUri;
 }
 
 abstract class Annotatable extends TreeNode {
@@ -256,7 +256,7 @@ class Library extends NamedNode
 
   /// The URI of the source file this library was loaded from.
   @override
-  Uri? fileUri;
+  Uri fileUri;
 
   Version? _languageVersion;
   Version get languageVersion => _languageVersion ?? defaultLanguageVersion;
@@ -359,9 +359,11 @@ class Library extends NamedNode
       List<Extension>? extensions,
       List<Procedure>? procedures,
       List<Field>? fields,
-      this.fileUri,
+      required this.fileUri,
       Reference? reference})
-      : this.annotations = annotations ?? <Expression>[],
+      // ignore: unnecessary_null_comparison
+      : assert(fileUri != null),
+        this.annotations = annotations ?? <Expression>[],
         this.dependencies = dependencies ?? <LibraryDependency>[],
         this.parts = parts ?? <LibraryPart>[],
         this.typedefs = typedefs ?? <Typedef>[],
@@ -769,7 +771,7 @@ class Combinator extends TreeNode {
 class Typedef extends NamedNode implements FileUriNode, Annotatable {
   /// The URI of the source file that contains the declaration of this typedef.
   @override
-  Uri? fileUri;
+  Uri fileUri;
 
   @override
   List<Expression> annotations = const <Expression>[];
@@ -789,12 +791,14 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
 
   Typedef(this.name, this.type,
       {Reference? reference,
-      this.fileUri,
+      required this.fileUri,
       List<TypeParameter>? typeParameters,
       List<TypeParameter>? typeParametersOfFunctionType,
       List<VariableDeclaration>? positionalParameters,
       List<VariableDeclaration>? namedParameters})
-      : this.typeParameters = typeParameters ?? <TypeParameter>[],
+      // ignore: unnecessary_null_comparison
+      : assert(fileUri != null),
+        this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.typeParametersOfFunctionType =
             typeParametersOfFunctionType ?? <TypeParameter>[],
         this.positionalParameters =
@@ -853,7 +857,7 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 
   @override
@@ -1037,7 +1041,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   /// The URI of the source file this class was loaded from.
   @override
-  Uri? fileUri;
+  Uri fileUri;
 
   final List<TypeParameter> typeParameters;
 
@@ -1146,10 +1150,12 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       List<Procedure>? procedures,
       List<Field>? fields,
       List<RedirectingFactoryConstructor>? redirectingFactoryConstructors,
-      this.fileUri,
+      required this.fileUri,
       Reference? reference})
       // ignore: unnecessary_null_comparison
       : assert(name != null),
+        // ignore: unnecessary_null_comparison
+        assert(fileUri != null),
         this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.implementedTypes = implementedTypes ?? <Supertype>[],
         this.fieldsInternal = fields ?? <Field>[],
@@ -1413,7 +1419,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -1429,7 +1435,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   String name;
 
   /// The URI of the source file this class was loaded from.
-  Uri? fileUri;
+  Uri fileUri;
 
   /// Type parameters declared on the extension.
   final List<TypeParameter> typeParameters;
@@ -1466,10 +1472,12 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
       List<TypeParameter>? typeParameters,
       DartType? onType,
       List<ExtensionMemberDescriptor>? members,
-      this.fileUri,
+      required this.fileUri,
       Reference? reference})
       // ignore: unnecessary_null_comparison
       : assert(name != null),
+        // ignore: unnecessary_null_comparison
+        assert(fileUri != null),
         this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.members = members ?? <ExtensionMemberDescriptor>[],
         super(reference) {
@@ -1515,7 +1523,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 
   @override
@@ -1621,7 +1629,7 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
 
   /// The URI of the source file this member was loaded from.
   @override
-  Uri? fileUri;
+  Uri fileUri;
 
   /// Flags summarizing the kinds of AST nodes contained in this member, for
   /// speeding up transformations that only affect certain types of nodes.
@@ -1643,6 +1651,8 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   Member(this.name, this.fileUri, Reference? reference)
       // ignore: unnecessary_null_comparison
       : assert(name != null),
+        // ignore: unnecessary_null_comparison
+        assert(fileUri != null),
         super(reference);
 
   Class? get enclosingClass => parent is Class ? parent as Class : null;
@@ -1761,7 +1771,7 @@ class Field extends Member {
       bool isStatic: false,
       bool isLate: false,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? getterReference,
       Reference? setterReference})
       : this.setterReference = setterReference ?? new Reference(),
@@ -1786,7 +1796,7 @@ class Field extends Member {
       bool isStatic: false,
       bool isLate: false,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? getterReference})
       : this.setterReference = null,
         super(name, fileUri, getterReference) {
@@ -1959,7 +1969,7 @@ class Field extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 
   @override
@@ -2000,7 +2010,7 @@ class Constructor extends Member {
       bool isSynthetic: false,
       List<Initializer>? initializers,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? reference})
       : this.initializers = initializers ?? <Initializer>[],
         // ignore: unnecessary_null_comparison
@@ -2116,7 +2126,7 @@ class Constructor extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -2180,7 +2190,7 @@ class RedirectingFactoryConstructor extends Member {
       List<VariableDeclaration>? positionalParameters,
       List<VariableDeclaration>? namedParameters,
       int? requiredParameterCount,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? reference})
       : this.typeArguments = typeArguments ?? <DartType>[],
         this.typeParameters = typeParameters ?? <TypeParameter>[],
@@ -2291,7 +2301,7 @@ class RedirectingFactoryConstructor extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -2546,7 +2556,7 @@ class Procedure extends Member {
       bool isExtensionMember: false,
       bool isSynthetic: false,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? reference,
       ProcedureStubKind stubKind: ProcedureStubKind.Regular,
       Member? stubTarget})
@@ -2572,7 +2582,7 @@ class Procedure extends Member {
       bool isExtensionMember: false,
       bool isSynthetic: false,
       int transformerFlags: 0,
-      Uri? fileUri,
+      required Uri fileUri,
       Reference? reference,
       this.stubKind: ProcedureStubKind.Regular,
       this.stubTargetReference})
@@ -2796,7 +2806,7 @@ class Procedure extends Member {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri!, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -13589,7 +13599,7 @@ final Name dummyName = new _PublicName('');
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Library dummyLibrary = new Library(dummyUri);
+final Library dummyLibrary = new Library(dummyUri, fileUri: dummyUri);
 
 /// Non-nullable [LibraryDependency] dummy value.
 ///
@@ -13618,7 +13628,7 @@ final LibraryPart dummyLibraryPart = new LibraryPart(const [], '');
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Class dummyClass = new Class(name: '');
+final Class dummyClass = new Class(name: '', fileUri: dummyUri);
 
 /// Non-nullable [Constructor] dummy value.
 ///
@@ -13626,35 +13636,36 @@ final Class dummyClass = new Class(name: '');
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final Constructor dummyConstructor =
-    new Constructor(dummyFunctionNode, name: dummyName);
+    new Constructor(dummyFunctionNode, name: dummyName, fileUri: dummyUri);
 
 /// Non-nullable [Extension] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Extension dummyExtension = new Extension(name: '');
+final Extension dummyExtension = new Extension(name: '', fileUri: dummyUri);
 
 /// Non-nullable [Member] dummy value.
 ///
 /// This can be used for instance as a dummy initial value for the
 /// `List.filled` constructor.
-final Member dummyMember = new Field.mutable(new _PublicName(''));
+final Member dummyMember = new Field.mutable(dummyName, fileUri: dummyUri);
 
 /// Non-nullable [Procedure] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Procedure dummyProcedure =
-    new Procedure(dummyName, ProcedureKind.Method, dummyFunctionNode);
+final Procedure dummyProcedure = new Procedure(
+    dummyName, ProcedureKind.Method, dummyFunctionNode,
+    fileUri: dummyUri);
 
 /// Non-nullable [Field] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Field dummyField = new Field.mutable(dummyName);
+final Field dummyField = new Field.mutable(dummyName, fileUri: dummyUri);
 
 /// Non-nullable [RedirectingFactoryConstructor] dummy value.
 ///
@@ -13662,14 +13673,14 @@ final Field dummyField = new Field.mutable(dummyName);
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final RedirectingFactoryConstructor dummyRedirectingFactoryConstructor =
-    new RedirectingFactoryConstructor(null, name: dummyName);
+    new RedirectingFactoryConstructor(null, name: dummyName, fileUri: dummyUri);
 
 /// Non-nullable [Typedef] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Typedef dummyTypedef = new Typedef('', null);
+final Typedef dummyTypedef = new Typedef('', null, fileUri: dummyUri);
 
 /// Non-nullable [Initializer] dummy value.
 ///

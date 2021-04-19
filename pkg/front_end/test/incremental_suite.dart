@@ -1923,7 +1923,8 @@ void doSimulateTransformer(Component c) {
         isFinal: true,
         getterReference: lib.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
-            ?.reference);
+            ?.reference,
+        fileUri: lib.fileUri);
     lib.addField(field);
     for (Class c in lib.classes) {
       if (c.fields
@@ -1935,7 +1936,8 @@ void doSimulateTransformer(Component c) {
           isFinal: true,
           getterReference: c.reference.canonicalName
               ?.getChildFromFieldWithName(fieldName)
-              ?.reference);
+              ?.reference,
+          fileUri: c.fileUri);
       c.addField(field);
     }
   }

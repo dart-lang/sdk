@@ -31,9 +31,9 @@ class UnknownTypeTest {
   void test_isKnown() {
     expect(isKnown(unknownType), isFalse);
     expect(isKnown(const DynamicType()), isTrue);
-    var classA = new Class(name: 'A');
+    var classA = new Class(name: 'A', fileUri: dummyUri);
     var A = new InterfaceType(classA, Nullability.legacy);
-    var typedefF = new Typedef('F', A);
+    var typedefF = new Typedef('F', A, fileUri: dummyUri);
     expect(isKnown(A), isTrue);
     expect(isKnown(new InterfaceType(classA, Nullability.legacy, [A])), isTrue);
     expect(

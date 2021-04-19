@@ -20,6 +20,47 @@ DEFINE_FLAG(bool,
             false,
             "Generate always trampolines (for testing purposes).");
 
+DEFINE_FLAG(int,
+            lower_tail_pc_relative_call_distance,
+            -1,
+            "Lower tail call distance.");
+DEFINE_FLAG(int,
+            upper_tail_pc_relative_call_distance,
+            -1,
+            "Upper tail call distance.");
+DEFINE_FLAG(int, lower_pc_relative_call_distance, -1, "Lower call distance.");
+DEFINE_FLAG(int, upper_pc_relative_call_distance, -1, "Upper call distance.");
+
+struct TailCallDistanceLimits {
+  static intptr_t Lower() {
+    if (FLAG_lower_tail_pc_relative_call_distance != -1) {
+      return FLAG_lower_tail_pc_relative_call_distance;
+    }
+    return PcRelativeTailCallPattern::kLowerCallingRange;
+  }
+  static intptr_t Upper() {
+    if (FLAG_upper_tail_pc_relative_call_distance != -1) {
+      return FLAG_upper_tail_pc_relative_call_distance;
+    }
+    return PcRelativeTailCallPattern::kUpperCallingRange;
+  }
+};
+
+struct CallDistanceLimits {
+  static intptr_t Lower() {
+    if (FLAG_lower_pc_relative_call_distance != -1) {
+      return FLAG_lower_pc_relative_call_distance;
+    }
+    return PcRelativeCallPattern::kLowerCallingRange;
+  }
+  static intptr_t Upper() {
+    if (FLAG_upper_pc_relative_call_distance != -1) {
+      return FLAG_upper_pc_relative_call_distance;
+    }
+    return PcRelativeCallPattern::kUpperCallingRange;
+  }
+};
+
 const intptr_t kTrampolineSize =
     Utils::RoundUp(PcRelativeTrampolineJumpPattern::kLengthInBytes,
                    compiler::target::Instructions::kBarePayloadAlignment);
@@ -46,7 +87,7 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
   //    * the maximum number of calls
   //    * the maximum offset into a target instruction
   //
-  FindInstructionAndCallLimits();
+  FindLargestInstruction();
 
   // Emit all instructions and do relocations on the way.
   for (intptr_t i = 0; i < code_objects_->length(); ++i) {
@@ -65,7 +106,8 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
 
     // If we have forward/backwards calls which are almost out-of-range, we'll
     // create trampolines now.
-    BuildTrampolinesForAlmostOutOfRangeCalls();
+    BuildTrampolinesForAlmostOutOfRangeCalls(
+        /*force=*/(i == (code_objects_->length() - 1)));
   }
 
   // We're guaranteed to have all calls resolved, since
@@ -101,7 +143,7 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
   // however we might need it to write information into V8 snapshot profile.
 }
 
-void CodeRelocator::FindInstructionAndCallLimits() {
+void CodeRelocator::FindLargestInstruction() {
   auto zone = thread_->zone();
   auto& current_caller = Code::Handle(zone);
   auto& call_targets = Array::Handle(zone);
@@ -122,48 +164,10 @@ void CodeRelocator::FindInstructionAndCallLimits() {
         kind_type_and_offset_ = call.Get<Code::kSCallTableKindAndOffset>();
         const auto kind =
             Code::KindField::decode(kind_type_and_offset_.Value());
-        const auto return_pc_offset =
-            Code::OffsetField::decode(kind_type_and_offset_.Value());
-        const auto call_entry_point =
-            Code::EntryPointField::decode(kind_type_and_offset_.Value());
-
         if (kind == Code::kCallViaCode) {
           continue;
         }
-
-        destination_ = GetTarget(call);
         num_calls++;
-
-        // A call site can decide to jump not to the beginning of a function but
-        // rather jump into it at a certain (positive) offset.
-        int32_t offset_into_target = 0;
-        if (kind == Code::kPcRelativeCall || kind == Code::kPcRelativeTTSCall) {
-          const intptr_t call_instruction_offset =
-              return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
-          PcRelativeCallPattern call(current_caller.PayloadStart() +
-                                     call_instruction_offset);
-          ASSERT(call.IsValid());
-          offset_into_target = call.distance();
-        } else {
-          ASSERT(kind == Code::kPcRelativeTailCall);
-          const intptr_t call_instruction_offset =
-              return_pc_offset - PcRelativeTailCallPattern::kLengthInBytes;
-          PcRelativeTailCallPattern call(current_caller.PayloadStart() +
-                                         call_instruction_offset);
-          ASSERT(call.IsValid());
-          offset_into_target = call.distance();
-        }
-
-        const uword destination_payload = destination_.PayloadStart();
-        const uword entry_point = call_entry_point == Code::kUncheckedEntry
-                                      ? destination_.UncheckedEntryPoint()
-                                      : destination_.EntryPoint();
-
-        offset_into_target += (entry_point - destination_payload);
-
-        if (offset_into_target > max_offset_into_target_) {
-          max_offset_into_target_ = offset_into_target;
-        }
       }
 
       if (num_calls > max_calls_) {
@@ -323,8 +327,11 @@ bool CodeRelocator::TryResolveBackwardsCall(UnresolvedCall* unresolved_call) {
   auto map_entry = text_offsets_.Lookup(callee);
   if (map_entry == nullptr) return false;
 
-  ResolveCall(unresolved_call);
-  return true;
+  if (IsTargetInRangeFor(unresolved_call, map_entry->value)) {
+    ResolveCall(unresolved_call);
+    return true;
+  }
+  return false;
 }
 
 void CodeRelocator::ResolveUnresolvedCallsTargeting(
@@ -411,11 +418,11 @@ bool CodeRelocator::IsTargetInRangeFor(UnresolvedCall* unresolved_call,
   const auto forward_distance =
       target_text_offset - unresolved_call->text_offset;
   if (unresolved_call->is_tail_call) {
-    return PcRelativeTailCallPattern::kLowerCallingRange < forward_distance &&
-           forward_distance < PcRelativeTailCallPattern::kUpperCallingRange;
+    return TailCallDistanceLimits::Lower() < forward_distance &&
+           forward_distance < TailCallDistanceLimits::Upper();
   } else {
-    return PcRelativeCallPattern::kLowerCallingRange < forward_distance &&
-           forward_distance < PcRelativeCallPattern::kUpperCallingRange;
+    return CallDistanceLimits::Lower() < forward_distance &&
+           forward_distance < CallDistanceLimits::Upper();
   }
 }
 
@@ -471,7 +478,7 @@ CodePtr CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
   return destination_.ptr();
 }
 
-void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {
+void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls(bool force) {
   while (!all_unresolved_calls_.IsEmpty()) {
     UnresolvedCall* unresolved_call = all_unresolved_calls_.First();
 
@@ -484,7 +491,7 @@ void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {
         kTrampolineSize *
             (unresolved_calls_by_destination_.Length() + max_calls_);
     if (IsTargetInRangeFor(unresolved_call, future_boundary) &&
-        !FLAG_always_generate_trampolines_for_testing) {
+        !FLAG_always_generate_trampolines_for_testing && !force) {
       break;
     }
 

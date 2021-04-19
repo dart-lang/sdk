@@ -469,8 +469,8 @@ class BinaryBuilder {
         growable: useGrowableLists);
   }
 
-  Uri? readUriReference() {
-    return _sourceUriTable[readUInt30()];
+  Uri readUriReference() {
+    return _sourceUriTable[readUInt30()]!;
   }
 
   String readStringReference() {
@@ -1110,19 +1110,20 @@ class BinaryBuilder {
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.reference;
     Library? library = reference.node as Library?;
+    String? name = readStringOrNullIfEmpty();
+
+    // TODO(jensj): We currently save (almost the same) uri twice.
+    Uri fileUri = readUriReference();
+
     if (alwaysCreateNewNamedNodes) {
       library = null;
     }
     if (library == null) {
-      library =
-          new Library(Uri.parse(canonicalName.name), reference: reference);
+      library = new Library(Uri.parse(canonicalName.name),
+          reference: reference, fileUri: fileUri);
       component.libraries.add(library..parent = component);
     }
     _currentLibrary = library;
-    String? name = readStringOrNullIfEmpty();
-
-    // TODO(jensj): We currently save (almost the same) uri twice.
-    Uri? fileUri = readUriReference();
 
     List<String>? problemsAsJson = readListOfStrings();
 
@@ -1245,11 +1246,11 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    Uri? fileUri = readUriReference();
+    Uri fileUri = readUriReference();
     int fileOffset = readOffset();
     String name = readStringReference();
     if (node == null) {
-      node = new Typedef(name, null, reference: reference);
+      node = new Typedef(name, null, reference: reference, fileUri: fileUri);
     }
     node.annotations = readAnnotationList(node);
     readAndPushTypeParameterList(node.typeParameters, node);
@@ -1293,14 +1294,15 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    Uri? fileUri = readUriReference();
+    Uri fileUri = readUriReference();
     int startFileOffset = readOffset();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readByte();
     String name = readStringReference();
     if (node == null) {
-      node = new Class(name: name, reference: reference)..dirty = false;
+      node = new Class(name: name, reference: reference, fileUri: fileUri)
+        ..dirty = false;
     }
 
     node.startFileOffset = startFileOffset;
@@ -1351,17 +1353,21 @@ class BinaryBuilder {
     }
 
     String name = readStringReference();
-    if (node == null) {
-      node = new Extension(name: name, reference: reference);
-    }
     assert(() {
       debugPath.add(name);
       return true;
     }());
 
-    node.annotations = readAnnotationList(node);
+    List<Expression> annotations = readAnnotationList();
 
-    Uri? fileUri = readUriReference();
+    Uri fileUri = readUriReference();
+
+    if (node == null) {
+      node = new Extension(name: name, reference: reference, fileUri: fileUri);
+    }
+    node.annotations = annotations;
+    setParents(annotations, node);
+
     node.fileOffset = readOffset();
 
     readAndPushTypeParameterList(node.typeParameters, node);
@@ -1443,7 +1449,7 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    Uri? fileUri = readUriReference();
+    Uri fileUri = readUriReference();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readUInt30();
@@ -1451,9 +1457,12 @@ class BinaryBuilder {
     if (node == null) {
       if (setterReference != null) {
         node = new Field.mutable(name,
-            getterReference: getterReference, setterReference: setterReference);
+            getterReference: getterReference,
+            setterReference: setterReference,
+            fileUri: fileUri);
       } else {
-        node = new Field.immutable(name, getterReference: getterReference);
+        node = new Field.immutable(name,
+            getterReference: getterReference, fileUri: fileUri);
       }
     }
     List<Expression> annotations = readAnnotationList(node);
@@ -1487,7 +1496,7 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    Uri? fileUri = readUriReference();
+    Uri fileUri = readUriReference();
     int startFileOffset = readOffset();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
@@ -1500,7 +1509,8 @@ class BinaryBuilder {
     }());
     FunctionNode function = readFunctionNode();
     if (node == null) {
-      node = new Constructor(function, reference: reference, name: name);
+      node = new Constructor(function,
+          reference: reference, name: name, fileUri: fileUri);
     }
     pushVariableDeclarations(function.positionalParameters);
     pushVariableDeclarations(function.namedParameters);
@@ -1530,7 +1540,7 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    Uri? fileUri = readUriReference();
+    Uri fileUri = readUriReference();
     int startFileOffset = readOffset();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
@@ -1553,7 +1563,8 @@ class BinaryBuilder {
     FunctionNode function = readFunctionNode(
         lazyLoadBody: !readFunctionNodeNow, outerEndOffset: endOffset);
     if (node == null) {
-      node = new Procedure(name, kind, function, reference: reference);
+      node = new Procedure(name, kind, function,
+          reference: reference, fileUri: fileUri);
     } else {
       assert(node.kind == kind);
     }
@@ -1590,14 +1601,14 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    Uri? fileUri = readUriReference();
+    Uri fileUri = readUriReference();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readByte();
     Name name = readName();
     if (node == null) {
       node = new RedirectingFactoryConstructor(null,
-          reference: reference, name: name);
+          reference: reference, name: name, fileUri: fileUri);
     }
     List<Expression> annotations = readAnnotationList(node);
     assert(() {
@@ -2315,7 +2326,7 @@ class BinaryBuilder {
   }
 
   Expression _readFileUriExpression() {
-    Uri fileUri = readUriReference()!;
+    Uri fileUri = readUriReference();
     int offset = readOffset();
     return new FileUriExpression(readExpression(), fileUri)
       ..fileOffset = offset;

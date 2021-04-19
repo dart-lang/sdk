@@ -271,7 +271,8 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
           new FunctionNode(null),
           isStatic: true,
           isExtensionMember: true,
-          reference: _tearOffReference)
+          reference: _tearOffReference,
+          fileUri: fileUri)
         ..isNonNullableByDefault = library.isNonNullableByDefault;
     }
   }

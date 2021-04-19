@@ -68,7 +68,8 @@ Class initializeClass(
       name: name,
       typeParameters:
           TypeVariableBuilder.typeParametersFromBuilders(typeVariables),
-      reference: referencesFrom?.reference);
+      reference: referencesFrom?.reference,
+      fileUri: parent.fileUri);
   cls.fileUri ??= parent.fileUri;
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;

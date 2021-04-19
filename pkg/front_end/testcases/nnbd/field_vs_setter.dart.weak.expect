@@ -1143,7 +1143,7 @@ static field core::int? Extension|duplicateExtensionInstanceFieldAndStaticSetter
 static final field core::int? Extension|duplicateExtensionInstanceFieldAndStaticSetter2;
 static field core::int? Extension|duplicateExtensionStaticFieldAndInstanceSetter1;
 static final field core::int? Extension|duplicateExtensionStaticFieldAndInstanceSetter2;
-static const field dynamic _exports# = #C1 /*isLegacy, from null */;
+static const field dynamic _exports# = #C1 /*isLegacy*/;
 static method test() → dynamic {
   self::topLevelFieldAndSetter = self::topLevelFieldAndSetter;
   self::topLevelFieldAndDuplicateSetter = self::topLevelFieldAndDuplicateSetter;

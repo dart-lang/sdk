@@ -31,32 +31,42 @@ main() {
   }
 
   // Library mocks
-  Library dartCoreLib = new Library(new Uri(scheme: 'dart', path: 'core'));
-  Library myLib = new Library(Uri.parse("org-dartlang-testcase:///mylib.dart"));
+  Uri dartCoreUri = new Uri(scheme: 'dart', path: 'core');
+  Library dartCoreLib = new Library(dartCoreUri, fileUri: dartCoreUri);
+  Uri myUri = Uri.parse("org-dartlang-testcase:///mylib.dart");
+  Library myLib = new Library(myUri, fileUri: myUri);
 
   // Set up some classes
-  Class objectClass = new Class(name: "Object")..parent = dartCoreLib;
+  Class objectClass = new Class(name: "Object", fileUri: dartCoreUri)
+    ..parent = dartCoreLib;
   Supertype objectSuper = new Supertype(objectClass, []);
-  Class boolClass = new Class(name: "bool", supertype: objectSuper)
-    ..parent = dartCoreLib;
-  Class numClass = new Class(name: "num", supertype: objectSuper)
-    ..parent = dartCoreLib;
+  Class boolClass =
+      new Class(name: "bool", supertype: objectSuper, fileUri: dartCoreUri)
+        ..parent = dartCoreLib;
+  Class numClass =
+      new Class(name: "num", supertype: objectSuper, fileUri: dartCoreUri)
+        ..parent = dartCoreLib;
   Supertype numSuper = new Supertype(numClass, []);
-  Class intClass = new Class(name: "int", supertype: numSuper)
-    ..parent = dartCoreLib;
-  Class fooClass = new Class(name: "Foo", supertype: objectSuper)
-    ..parent = myLib;
-  Class foo2Class = new Class(name: "Foo", supertype: objectSuper)
-    ..parent = myLib;
+  Class intClass =
+      new Class(name: "int", supertype: numSuper, fileUri: dartCoreUri)
+        ..parent = dartCoreLib;
+  Class fooClass =
+      new Class(name: "Foo", supertype: objectSuper, fileUri: myUri)
+        ..parent = myLib;
+  Class foo2Class =
+      new Class(name: "Foo", supertype: objectSuper, fileUri: myUri)
+        ..parent = myLib;
   Class barClass = new Class(
       name: "Bar",
       supertype: objectSuper,
-      typeParameters: [new TypeParameter("X")])
+      typeParameters: [new TypeParameter("X")],
+      fileUri: myUri)
     ..parent = myLib;
   Class bazClass = new Class(
       name: "Baz",
       supertype: objectSuper,
-      typeParameters: [new TypeParameter("X"), new TypeParameter("Y")])
+      typeParameters: [new TypeParameter("X"), new TypeParameter("Y")],
+      fileUri: myUri)
     ..parent = myLib;
 
   // Test types
@@ -184,25 +194,30 @@ main() {
   check({funGenericBar: "T Function<T extends Bar<T>>(T)"}, 1);
 
   // Add some members for testing instance constants
-  Field booField = new Field.immutable(new Name("boo"), type: boolType);
+  Field booField = new Field.immutable(new Name("boo"),
+      type: boolType, fileUri: fooClass.fileUri);
   fooClass.fields.add(booField);
-  Field valueField = new Field.immutable(new Name("value"), type: intType);
+  Field valueField = new Field.immutable(new Name("value"),
+      type: intType, fileUri: foo2Class.fileUri);
   foo2Class.fields.add(valueField);
-  Field nextField = new Field.immutable(new Name("next"), type: foo2);
+  Field nextField = new Field.immutable(new Name("next"),
+      type: foo2, fileUri: foo2Class.fileUri);
   foo2Class.fields.add(nextField);
   Field xField = new Field.immutable(new Name("x"),
-      type: new TypeParameterType(
-          bazClass.typeParameters[0], Nullability.legacy));
+      type:
+          new TypeParameterType(bazClass.typeParameters[0], Nullability.legacy),
+      fileUri: bazClass.fileUri);
   bazClass.fields.add(xField);
   Field yField = new Field.immutable(new Name("y"),
-      type: new TypeParameterType(
-          bazClass.typeParameters[1], Nullability.legacy));
+      type:
+          new TypeParameterType(bazClass.typeParameters[1], Nullability.legacy),
+      fileUri: bazClass.fileUri);
   bazClass.fields.add(yField);
   FunctionNode gooFunction = new FunctionNode(new EmptyStatement(),
       typeParameters: [new TypeParameter("V")]);
   Procedure gooMethod = new Procedure(
       new Name("goo"), ProcedureKind.Method, gooFunction,
-      isStatic: true)
+      isStatic: true, fileUri: fooClass.fileUri)
     ..parent = fooClass;
 
   // Test constants

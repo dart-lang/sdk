@@ -16,7 +16,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 final usage = '''
-Usage: binary_bench.dart [--golem] <Benchmark> <SourceDill>
+Usage: binary_bench.dart [--golem|--raw] <Benchmark> <SourceDill>
 
 Benchmark can be one of: ${benchmarks.keys.join(', ')}
 ''';
@@ -38,6 +38,7 @@ final benchmarks = <String, Benchmark>{
 Benchmark benchmark;
 File sourceDill;
 bool forGolem = false;
+bool forRaw = false;
 
 main(List<String> args) async {
   if (!_parseArgs(args)) {
@@ -119,7 +120,13 @@ class BenchmarkResult {
     final std =
         sqrt(runsUs.map((v) => pow(v - avg, 2)).reduce(add) / runsUs.length);
 
-    if (!forGolem) {
+    if (forGolem) {
+      print('${name}(RunTimeRaw): ${avg} us.');
+      print('${name}P50(RunTimeRaw): ${P(50)} us.');
+      print('${name}P90(RunTimeRaw): ${P(90)} us.');
+    } else if (forRaw) {
+      runsUs.forEach(print);
+    } else {
       print('${name}Cold: ${coldRunUs} us');
       print('${name}Warmup: ${warmupUs} us');
       print('${name}: ${avg} us.');
@@ -128,10 +135,6 @@ class BenchmarkResult {
       print('${prefix}> Std Dev: ${std.toStringAsFixed(2)}');
       print('${prefix}> 50th percentile: ${P(50)} us.');
       print('${prefix}> 90th percentile: ${P(90)} us.');
-    } else {
-      print('${name}(RunTimeRaw): ${avg} us.');
-      print('${name}P50(RunTimeRaw): ${P(50)} us.');
-      print('${name}P90(RunTimeRaw): ${P(90)} us.');
     }
   }
 }
@@ -146,6 +149,12 @@ bool _parseArgs(List<String> args) {
       return false;
     }
     forGolem = true;
+    args = args.skip(1).toList(growable: false);
+  } else if (args[0] == '--raw') {
+    if (args.length != 3) {
+      return false;
+    }
+    forRaw = true;
     args = args.skip(1).toList(growable: false);
   }
 

@@ -63,14 +63,19 @@ void main() {
   };
   final testCoreLibraries = [
     for (String requiredLibrary in allRequiredLibraries)
-      Library(Uri.parse(requiredLibrary), classes: [
-        for (String requiredClass in allRequiredTypes[requiredLibrary] ?? [])
-          Class(name: requiredClass),
-      ], procedures: [
-        for (var requiredMethod in requiredMethods[requiredLibrary] ?? [])
-          Procedure(Name(requiredMethod), ProcedureKind.Method,
-              FunctionNode(EmptyStatement())),
-      ]),
+      Library(Uri.parse(requiredLibrary),
+          fileUri: Uri.parse(requiredLibrary),
+          classes: [
+            for (String requiredClass
+                in allRequiredTypes[requiredLibrary] ?? [])
+              Class(name: requiredClass, fileUri: Uri.parse(requiredLibrary)),
+          ],
+          procedures: [
+            for (var requiredMethod in requiredMethods[requiredLibrary] ?? [])
+              Procedure(Name(requiredMethod), ProcedureKind.Method,
+                  FunctionNode(EmptyStatement()),
+                  fileUri: Uri.parse(requiredLibrary)),
+          ]),
   ];
 
   final packageConfig = PackageConfig.parseJson({
@@ -86,12 +91,14 @@ void main() {
   final multiRootScheme = 'org-dartlang-app';
 
   test('compiles JavaScript code', () async {
+    final uri = Uri.file('/c.dart');
     final library = Library(
-      Uri.file('/c.dart'),
-      fileUri: Uri.file('/c.dart'),
+      uri,
+      fileUri: uri,
       procedures: [
         Procedure(Name('ArbitrarilyChosen'), ProcedureKind.Method,
-            FunctionNode(Block([])))
+            FunctionNode(Block([])),
+            fileUri: uri)
       ],
     );
     final testComponent = Component(libraries: [library, ...testCoreLibraries]);
@@ -141,7 +148,8 @@ void main() {
       fileUri: fileUri,
       procedures: [
         Procedure(Name('ArbitrarilyChosen'), ProcedureKind.Method,
-            FunctionNode(Block([])))
+            FunctionNode(Block([])),
+            fileUri: fileUri)
       ],
     );
 
@@ -182,7 +190,8 @@ void main() {
       fileUri: fileUri,
       procedures: [
         Procedure(Name('ArbitrarilyChosen'), ProcedureKind.Method,
-            FunctionNode(Block([])))
+            FunctionNode(Block([])),
+            fileUri: fileUri)
       ],
     );
 
@@ -222,15 +231,17 @@ void main() {
     final libraryB = Library(Uri.file('/b.dart'), fileUri: Uri.file('/b.dart'));
     libraryC.dependencies.add(LibraryDependency.import(libraryB));
     libraryB.dependencies.add(LibraryDependency.import(libraryC));
+    final uriA = Uri.file('/a.dart');
     final libraryA = Library(
-      Uri.file('/a.dart'),
-      fileUri: Uri.file('/a.dart'),
+      uriA,
+      fileUri: uriA,
       dependencies: [
         LibraryDependency.import(libraryB),
       ],
       procedures: [
         Procedure(Name('ArbitrarilyChosen'), ProcedureKind.Method,
-            FunctionNode(Block([])))
+            FunctionNode(Block([])),
+            fileUri: uriA)
       ],
     );
     final testComponent = Component(
