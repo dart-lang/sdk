@@ -187,8 +187,8 @@ class PcRelativeTrampolineJumpPattern : public ValueObject {
 
 class PcRelativeTailCallPattern : public PcRelativeTrampolineJumpPattern {
  public:
-  static constexpr intptr_t kLowerCallingRange = -(1ul << 31) + kLengthInBytes;
-  static constexpr intptr_t kUpperCallingRange = (1ul << 31) - 1;
+  static constexpr intptr_t kLowerCallingRange = -(DART_INT64_C(1) << 31) + kLengthInBytes;
+  static constexpr intptr_t kUpperCallingRange = (DART_INT64_C(1) << 31) - 1;
 
   explicit PcRelativeTailCallPattern(uword pc)
       : PcRelativeTrampolineJumpPattern(pc) {}

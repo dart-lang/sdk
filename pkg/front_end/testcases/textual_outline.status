@@ -65,6 +65,7 @@ general/invalid_operator: FormatterCrash
 general/issue42997: FormatterCrash
 general/issue43363: FormatterCrash
 general/issue45490: FormatterCrash
+general/issue45700: FormatterCrash
 general/many_errors: FormatterCrash
 general/null_safety_invalid_experiment: FormatterCrash
 general/null_safety_invalid_experiment_and_language_version: FormatterCrash
