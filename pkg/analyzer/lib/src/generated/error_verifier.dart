@@ -1582,6 +1582,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkMixinBasFunctionUse(MixinDeclaration node) {
     final functionToken = "Function";
     var typeParams = node.typeParameters;
+    var onClause = node.onClause;
     if (node.name.name == functionToken) {
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.FUNCTION_MIXIN_DECLARATION, node.name);
@@ -1591,6 +1592,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (parameter.name.name == functionToken) {
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.FUNCTION_AS_TYPE_PARAMETER, parameter);
+        }
+      }
+    }
+    // Check Mixin OnClause
+    if (onClause != null) {
+      for (TypeName type in onClause.superclassConstraints) {
+        var mixinElement = type.name.staticElement;
+        if (mixinElement != null && mixinElement.name == functionToken) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, type,
+            [type.name],
+          );
         }
       }
     }

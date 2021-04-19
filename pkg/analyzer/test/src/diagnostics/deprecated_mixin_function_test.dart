@@ -43,4 +43,12 @@ mixin M<Function> implements List<Function> {}
       error(CompileTimeErrorCode.FUNCTION_AS_TYPE_PARAMETER, 26, 8),
     ]);
   }
+
+  test_mixin_onclause() async {
+    await assertErrorsInCode('''
+mixin A on Function {}
+''', [
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 11, 8),
+    ]);
+  }
 }
