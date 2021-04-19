@@ -14,11 +14,8 @@
 #   - the ANTLR3 jar is available as /usr/share/java/antlr4-runtime.jar.
 
 import os
-import string
 import subprocess
 import sys
-
-import utils
 
 
 def Help(missing):
@@ -33,18 +30,14 @@ def Main():
     spec_parser_dir = os.path.join(tools_dir, 'spec_parser')
     spec_parser_file = os.path.join(spec_parser_dir, 'SpecParser.class')
     antlr_jar = '/usr/share/java/antlr4-runtime.jar'
-    class_path = string.join([spec_parser_dir, antlr_jar], ':')
+    class_path = ':'.join([spec_parser_dir, antlr_jar])
     command = ['java', '-cp', class_path, 'SpecParser'] + args
 
     if not os.path.exists(antlr_jar): Help(antlr_jar)
     if not os.path.exists(spec_parser_file):
         Help('"make parser" in spec_parser')
 
-    with utils.CoreDumpArchiver(args):
-        exit_code = subprocess.call(command)
-
-    utils.DiagnoseExitCode(exit_code, command)
-    return exit_code
+    return subprocess.call(command)
 
 
 if __name__ == '__main__':
