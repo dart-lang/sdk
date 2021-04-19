@@ -1,0 +1,12 @@
+import "package:expect/expect.dart";
+
+const String str = "str";
+const var1 = str[-1];
+const var2 = str[3];
+const var3 = fn();
+fn() {}
+const var4 = fn2();
+fn2() {}
+const var5 = fn3();
+fn3() {}
+void main() {}

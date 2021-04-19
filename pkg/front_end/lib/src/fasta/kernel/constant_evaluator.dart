@@ -2089,9 +2089,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // This is a white-listed set of methods we need to support on constants.
     if (receiver is StringConstant) {
       if (arguments.length == 1) {
+        final Constant other = arguments[0];
         switch (op) {
           case '+':
-            final Constant other = arguments[0];
             if (other is StringConstant) {
               return canonicalize(
                   new StringConstant(receiver.value + other.value));
@@ -2104,6 +2104,32 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                     typeEnvironment.coreTypes.stringLegacyRawType,
                     other.getType(_staticTypeContext),
                     isNonNullableByDefault));
+          case '[]':
+            if (enableConstFunctions) {
+              if (intFolder.isInt(other)) {
+                int index;
+                if (intFolder is JsConstantIntFolder) {
+                  index = (other as DoubleConstant).value.toInt();
+                } else if (intFolder is VmConstantIntFolder) {
+                  index = (other as IntConstant).value;
+                }
+                assert(index != null);
+
+                if (index < 0 || index >= receiver.value.length) {
+                  return new _AbortDueToThrowConstant(
+                      node, new RangeError.index(index, receiver.value));
+                }
+                return canonicalize(new StringConstant(receiver.value[index]));
+              }
+              return createErrorConstant(
+                  node,
+                  templateConstEvalInvalidBinaryOperandType.withArguments(
+                      '[]',
+                      receiver,
+                      typeEnvironment.coreTypes.intNonNullableRawType,
+                      other.getType(_staticTypeContext),
+                      isNonNullableByDefault));
+            }
         }
       }
     } else if (intFolder.isInt(receiver)) {
@@ -3644,6 +3670,12 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
               .firstWhere((Class klass) => klass.name == 'StateError');
           throwType =
               new InterfaceType(stateErrorClass, Nullability.nonNullable);
+        } else if (throwValue is RangeError) {
+          final Class rangeErrorClass = exprEvaluator
+              .coreTypes.coreLibrary.classes
+              .firstWhere((Class klass) => klass.name == 'RangeError');
+          throwType =
+              new InterfaceType(rangeErrorClass, Nullability.nonNullable);
         }
         assert(throwType != null);
 
