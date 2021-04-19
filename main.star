@@ -1508,7 +1508,7 @@ dart_ci_sandbox_builder("gclient", recipe = "dart/gclient", category = "misc|g")
 dart_ci_builder(
     "debianpackage-linux",
     category = "misc|dp",
-    channels = RELEASE_CHANNELS,
+    channels = CHANNELS,
     lkgr = True,
     notifies = "infra",
     properties = {
