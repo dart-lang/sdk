@@ -182,7 +182,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.triple_shift,
     documentation: 'Triple-shift operator',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('2.14.0'),
   );
 
   static final value_class = ExperimentalFeature(
@@ -240,7 +240,7 @@ class IsEnabledByDefault {
   static const bool spread_collections = true;
 
   /// Default state of the experiment "triple-shift"
-  static const bool triple_shift = false;
+  static const bool triple_shift = true;
 
   /// Default state of the experiment "value-class"
   static const bool value_class = false;
