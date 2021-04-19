@@ -1966,83 +1966,93 @@ class MemberTagger implements Tagger<Member> {
 }
 
 TextSerializer<Field> mutableFieldSerializer =
-    Wrapped<Tuple4<Name, int, DartType, Expression?>, Field>(
-        (w) => Tuple4(w.name, w.flags, w.type, w.initializer),
-        (u) => Field.mutable(u.first, type: u.third, initializer: u.fourth)
+    Wrapped<Tuple5<Name, int, DartType, Expression?, Uri>, Field>(
+        (w) => Tuple5(w.name, w.flags, w.type, w.initializer, w.fileUri),
+        (u) => Field.mutable(u.first,
+            type: u.third, initializer: u.fourth, fileUri: u.fifth)
           ..flags = u.second,
-        Tuple4Serializer(nameSerializer, fieldFlagsSerializer,
-            dartTypeSerializer, nullableExpressionSerializer));
+        Tuple5Serializer(nameSerializer, fieldFlagsSerializer,
+            dartTypeSerializer, nullableExpressionSerializer, UriSerializer()));
 
 TextSerializer<Field> immutableFieldSerializer =
-    Wrapped<Tuple4<Name, int, DartType, Expression?>, Field>(
-        (w) => Tuple4(w.name, w.flags, w.type, w.initializer),
-        (u) => Field.immutable(u.first, type: u.third, initializer: u.fourth)
+    Wrapped<Tuple5<Name, int, DartType, Expression?, Uri>, Field>(
+        (w) => Tuple5(w.name, w.flags, w.type, w.initializer, w.fileUri),
+        (u) => Field.immutable(u.first,
+            type: u.third, initializer: u.fourth, fileUri: u.fifth)
           ..flags = u.second,
-        Tuple4Serializer(nameSerializer, fieldFlagsSerializer,
-            dartTypeSerializer, nullableExpressionSerializer));
+        Tuple5Serializer(nameSerializer, fieldFlagsSerializer,
+            dartTypeSerializer, nullableExpressionSerializer, UriSerializer()));
 
 TextSerializer<Procedure> methodSerializer =
-    Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name, w.flags, w.function),
+    Wrapped<Tuple4<Name, int, FunctionNode, Uri>, Procedure>(
+        (w) => Tuple4(w.name, w.flags, w.function, w.fileUri),
         (u) =>
-            Procedure(u.first, ProcedureKind.Method, u.third)..flags = u.second,
-        Tuple3Serializer(
-            nameSerializer, procedureFlagsSerializer, functionNodeSerializer));
+            Procedure(u.first, ProcedureKind.Method, u.third, fileUri: u.fourth)
+              ..flags = u.second,
+        Tuple4Serializer(nameSerializer, procedureFlagsSerializer,
+            functionNodeSerializer, UriSerializer()));
 
 TextSerializer<Procedure> getterSerializer =
-    Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name, w.flags, w.function),
+    Wrapped<Tuple4<Name, int, FunctionNode, Uri>, Procedure>(
+        (w) => Tuple4(w.name, w.flags, w.function, w.fileUri),
         (u) =>
-            Procedure(u.first, ProcedureKind.Getter, u.third)..flags = u.second,
-        Tuple3Serializer(
-            nameSerializer, procedureFlagsSerializer, functionNodeSerializer));
+            Procedure(u.first, ProcedureKind.Getter, u.third, fileUri: u.fourth)
+              ..flags = u.second,
+        Tuple4Serializer(nameSerializer, procedureFlagsSerializer,
+            functionNodeSerializer, UriSerializer()));
 
 TextSerializer<Procedure> setterSerializer =
-    Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name, w.flags, w.function),
+    Wrapped<Tuple4<Name, int, FunctionNode, Uri>, Procedure>(
+        (w) => Tuple4(w.name, w.flags, w.function, w.fileUri),
         (u) =>
-            Procedure(u.first, ProcedureKind.Setter, u.third)..flags = u.second,
-        Tuple3Serializer(
-            nameSerializer, procedureFlagsSerializer, functionNodeSerializer));
+            Procedure(u.first, ProcedureKind.Setter, u.third, fileUri: u.fourth)
+              ..flags = u.second,
+        Tuple4Serializer(nameSerializer, procedureFlagsSerializer,
+            functionNodeSerializer, UriSerializer()));
 
 TextSerializer<Procedure> operatorSerializer =
-    Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name, w.flags, w.function),
-        (u) => Procedure(u.first, ProcedureKind.Operator, u.third)
+    Wrapped<Tuple4<Name, int, FunctionNode, Uri>, Procedure>(
+        (w) => Tuple4(w.name, w.flags, w.function, w.fileUri),
+        (u) => Procedure(u.first, ProcedureKind.Operator, u.third,
+            fileUri: u.fourth)
           ..flags = u.second,
-        Tuple3Serializer(
-            nameSerializer, procedureFlagsSerializer, functionNodeSerializer));
+        Tuple4Serializer(nameSerializer, procedureFlagsSerializer,
+            functionNodeSerializer, UriSerializer()));
 
-TextSerializer<Procedure> factorySerializer =
-    Wrapped<Tuple3<Name, int, FunctionNode>, Procedure>(
-        (w) => Tuple3(w.name, w.flags, w.function),
-        (u) => Procedure(u.first, ProcedureKind.Factory, u.third)
-          ..flags = u.second,
-        Tuple3Serializer(
-            nameSerializer, procedureFlagsSerializer, functionNodeSerializer));
+TextSerializer<Procedure> factorySerializer = Wrapped<
+        Tuple4<Name, int, FunctionNode, Uri>, Procedure>(
+    (w) => Tuple4(w.name, w.flags, w.function, w.fileUri),
+    (u) => Procedure(u.first, ProcedureKind.Factory, u.third, fileUri: u.fourth)
+      ..flags = u.second,
+    Tuple4Serializer(nameSerializer, procedureFlagsSerializer,
+        functionNodeSerializer, UriSerializer()));
 
 TextSerializer<Constructor> constructorSerializer = Wrapped<
-        Tuple3<Name, int, Tuple2<FunctionNode, List<Initializer>?>>,
+        Tuple4<Name, int, Tuple2<FunctionNode, List<Initializer>?>, Uri>,
         Constructor>(
-    (w) => Tuple3(w.name, w.flags, Tuple2(w.function, w.initializers)),
-    (u) =>
-        Constructor(u.third.first, name: u.first, initializers: u.third.second)
-          ..flags = u.second,
-    Tuple3Serializer(nameSerializer, constructorFlagsSerializer,
-        functionNodeWithInitializersSerializer));
+    (w) =>
+        Tuple4(w.name, w.flags, Tuple2(w.function, w.initializers), w.fileUri),
+    (u) => Constructor(u.third.first,
+        name: u.first, initializers: u.third.second, fileUri: u.fourth)
+      ..flags = u.second,
+    Tuple4Serializer(nameSerializer, constructorFlagsSerializer,
+        functionNodeWithInitializersSerializer, UriSerializer()));
 
 TextSerializer<RedirectingFactoryConstructor>
-    redirectingFactoryConstructorSerializer = Wrapped<
-            Tuple4<
+    redirectingFactoryConstructorSerializer
+    // Comment added to direct formatter.
+    = Wrapped<
+            Tuple5<
                 Name,
                 int,
                 CanonicalName,
                 Tuple2<
                     List<TypeParameter>,
                     Tuple4<List<VariableDeclaration>, List<VariableDeclaration>,
-                        List<VariableDeclaration>, List<DartType>>>>,
+                        List<VariableDeclaration>, List<DartType>>>,
+                Uri>,
             RedirectingFactoryConstructor>(
-        (w) => Tuple4(
+        (w) => Tuple5(
             w.name,
             w.flags,
             w.targetReference!.canonicalName!,
@@ -2056,7 +2066,8 @@ TextSerializer<RedirectingFactoryConstructor>
                         .skip(w.requiredParameterCount)
                         .toList(),
                     w.namedParameters,
-                    w.typeArguments))),
+                    w.typeArguments)),
+            w.fileUri),
         (u) => RedirectingFactoryConstructor(u.third.reference,
             name: u.first,
             typeParameters: u.fourth.first,
@@ -2064,9 +2075,10 @@ TextSerializer<RedirectingFactoryConstructor>
                 u.fourth.second.first + u.fourth.second.second,
             requiredParameterCount: u.fourth.second.first.length,
             namedParameters: u.fourth.second.third,
-            typeArguments: u.fourth.second.fourth)
+            typeArguments: u.fourth.second.fourth,
+            fileUri: u.fifth)
           ..flags = u.second,
-        Tuple4Serializer(
+        Tuple5Serializer(
             nameSerializer,
             redirectingFactoryConstructorFlagsSerializer,
             CanonicalNameSerializer(),
@@ -2076,7 +2088,8 @@ TextSerializer<RedirectingFactoryConstructor>
                     ListSerializer(variableDeclarationSerializer),
                     ListSerializer(variableDeclarationSerializer),
                     ListSerializer(variableDeclarationSerializer),
-                    ListSerializer(dartTypeSerializer)))));
+                    ListSerializer(dartTypeSerializer))),
+            UriSerializer()));
 
 Case<Member> memberSerializer = new Case.uninitialized(const MemberTagger());
 
@@ -2117,11 +2130,11 @@ TextSerializer<int> libraryFlagsSerializer = Wrapped<List<int>, int>(
         Case(LibraryFlagTagger(), convertFlagsMap(libraryFlagToName))));
 
 TextSerializer<Library> librarySerializer = new Wrapped<
-    Tuple7<Uri, int, List<LibraryPart>, List<Member>, List<Class>,
-        List<Typedef>, List<Extension>>,
+    Tuple8<Uri, int, List<LibraryPart>, List<Member>, List<Class>,
+        List<Typedef>, List<Extension>, Uri>,
     Library>(
-  (w) => Tuple7(w.importUri, w.flags, w.parts, [...w.fields, ...w.procedures],
-      w.classes, w.typedefs, w.extensions),
+  (w) => Tuple8(w.importUri, w.flags, w.parts, [...w.fields, ...w.procedures],
+      w.classes, w.typedefs, w.extensions, w.fileUri),
   (u) => Library(u.first,
       parts: u.third,
       fields: u.fourth.where((m) => m is Field).cast<Field>().toList(),
@@ -2129,16 +2142,18 @@ TextSerializer<Library> librarySerializer = new Wrapped<
           u.fourth.where((m) => m is Procedure).cast<Procedure>().toList(),
       classes: u.fifth,
       typedefs: u.sixth,
-      extensions: u.seventh)
+      extensions: u.seventh,
+      fileUri: u.eighth)
     ..flags = u.second,
-  Tuple7Serializer(
+  Tuple8Serializer(
       UriSerializer(),
       libraryFlagsSerializer,
       ListSerializer(libraryPartSerializer),
       ListSerializer(memberSerializer),
       ListSerializer(classSerializer),
       ListSerializer(typedefSerializer),
-      ListSerializer(extensionSerializer)),
+      ListSerializer(extensionSerializer),
+      UriSerializer()),
 );
 
 TextSerializer<Component> componentSerializer =
@@ -2387,43 +2402,47 @@ TextSerializer<int> classFlagsSerializer = Wrapped<List<int>, int>(
     ListSerializer(Case(ClassFlagTagger(), convertFlagsMap(classFlagToName))));
 
 TextSerializer<Class> classSerializer = Wrapped<
-        Tuple3<
+        Tuple4<
             String,
             int,
+            Uri,
             Tuple2<
                 List<TypeParameter>,
                 /* Comment added to guide formatting. */
                 Tuple4<Supertype?, Supertype?, List<Supertype>, List<Member>>>>,
         Class>(
-    (w) => Tuple3(
+    (w) => Tuple4(
         w.name,
         w.flags,
+        w.fileUri,
         Tuple2(
             w.typeParameters,
             Tuple4(w.supertype, w.mixedInType, w.implementedTypes,
                 <Member>[...w.fields, ...w.constructors, ...w.procedures]))),
     (u) => Class(
         name: u.first,
-        typeParameters: u.third.first,
-        supertype: u.third.second.first,
-        mixedInType: u.third.second.second,
-        implementedTypes: u.third.second.third,
-        fields: u.third.second.fourth
+        typeParameters: u.fourth.first,
+        supertype: u.fourth.second.first,
+        mixedInType: u.fourth.second.second,
+        implementedTypes: u.fourth.second.third,
+        fields: u.fourth.second.fourth
             .where((m) => m is Field)
             .cast<Field>()
             .toList(),
-        constructors: u.third.second.fourth
+        constructors: u.fourth.second.fourth
             .where((m) => m is Constructor)
             .cast<Constructor>()
             .toList(),
-        procedures: u.third.second.fourth
+        procedures: u.fourth.second.fourth
             .where((m) => m is Procedure)
             .cast<Procedure>()
-            .toList())
+            .toList(),
+        fileUri: u.third)
       ..flags = u.second,
-    Tuple3Serializer(
+    Tuple4Serializer(
         DartString(),
         classFlagsSerializer,
+        UriSerializer(),
         Bind(
             typeParametersSerializer,
             Tuple4Serializer(
@@ -2432,13 +2451,13 @@ TextSerializer<Class> classSerializer = Wrapped<
                 ListSerializer(supertypeSerializer),
                 ListSerializer(memberSerializer)))));
 
-TextSerializer<Typedef> typedefSerializer =
-    Wrapped<Tuple2<String, Tuple2<List<TypeParameter>, DartType>>, Typedef>(
-        (w) => Tuple2(w.name, Tuple2(w.typeParameters, w.type!)),
-        (u) =>
-            Typedef(u.first, u.second.second, typeParameters: u.second.first),
-        Tuple2Serializer(
-            DartString(), Bind(typeParametersSerializer, dartTypeSerializer)));
+TextSerializer<Typedef> typedefSerializer = Wrapped<
+        Tuple3<String, Tuple2<List<TypeParameter>, DartType>, Uri>, Typedef>(
+    (w) => Tuple3(w.name, Tuple2(w.typeParameters, w.type!), w.fileUri),
+    (u) => Typedef(u.first, u.second.second,
+        typeParameters: u.second.first, fileUri: u.third),
+    Tuple3Serializer(DartString(),
+        Bind(typeParametersSerializer, dartTypeSerializer), UriSerializer()));
 
 const Map<int, String> extensionMemberDescriptorFlagToName = const {
   ExtensionMemberDescriptor.FlagStatic: "static",
@@ -2498,19 +2517,22 @@ TextSerializer<ExtensionMemberDescriptor> extensionMemberDescriptorSerializer =
             CanonicalNameSerializer()));
 
 TextSerializer<Extension> extensionSerializer = Wrapped<
-        Tuple3<String, Tuple2<List<TypeParameter>, DartType>,
-            List<ExtensionMemberDescriptor>>,
+        Tuple4<String, Tuple2<List<TypeParameter>, DartType>,
+            List<ExtensionMemberDescriptor>, Uri>,
         Extension>(
-    (w) => Tuple3(w.name, Tuple2(w.typeParameters, w.onType), w.members),
+    (w) => Tuple4(
+        w.name, Tuple2(w.typeParameters, w.onType), w.members, w.fileUri),
     (u) => Extension(
         name: u.first,
         typeParameters: u.second.first,
         onType: u.second.second,
-        members: u.third),
-    Tuple3Serializer(
+        members: u.third,
+        fileUri: u.fourth),
+    Tuple4Serializer(
         DartString(),
         Bind(typeParametersSerializer, dartTypeSerializer),
-        ListSerializer(extensionMemberDescriptorSerializer)));
+        ListSerializer(extensionMemberDescriptorSerializer),
+        UriSerializer()));
 
 void initializeSerializers() {
   expressionSerializer.registerTags({

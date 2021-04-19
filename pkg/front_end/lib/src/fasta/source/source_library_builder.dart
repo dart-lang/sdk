@@ -1030,7 +1030,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
           isConst: true,
-          getterReference: getterReference));
+          getterReference: getterReference,
+          fileUri: library.fileUri));
     }
 
     return library;

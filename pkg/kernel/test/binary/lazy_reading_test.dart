@@ -13,21 +13,24 @@ main() {
   {
     /// Create a library with two classes (A and B) where class A - in its
     /// constructor - invokes the constructor for B.
-    lib = new Library(Uri.parse('org-dartlang:///lib.dart'));
-    final Class classA = new Class(name: "A");
+    final Uri uri = Uri.parse('org-dartlang:///lib.dart');
+    lib = new Library(uri, fileUri: uri);
+    final Class classA = new Class(name: "A", fileUri: uri);
     lib.addClass(classA);
-    final Class classB = new Class(name: "B");
+    final Class classB = new Class(name: "B", fileUri: uri);
     lib.addClass(classB);
 
     final Constructor classBConstructor = new Constructor(
         new FunctionNode(new EmptyStatement()),
-        name: new Name(""));
+        name: new Name(""),
+        fileUri: uri);
     classB.addConstructor(classBConstructor);
 
     final Constructor classAConstructor = new Constructor(
         new FunctionNode(new ExpressionStatement(new ConstructorInvocation(
             classBConstructor, new Arguments.empty()))),
-        name: new Name(""));
+        name: new Name(""),
+        fileUri: uri);
     classA.addConstructor(classAConstructor);
   }
   Component c = new Component(libraries: [lib]);

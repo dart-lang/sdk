@@ -9,17 +9,30 @@ import 'package:kernel/ast.dart';
 /// Returns a [Component] object containing empty definitions of core SDK
 /// classes.
 Component createMockSdkComponent() {
-  Library coreLib = new Library(Uri.parse('dart:core'), name: 'dart.core');
-  Library asyncLib = new Library(Uri.parse('dart:async'), name: 'dart.async');
-  Library internalLib =
-      new Library(Uri.parse('dart:_internal'), name: 'dart._internal');
+  Library coreLib = new Library(Uri.parse('dart:core'),
+      name: 'dart.core', fileUri: Uri.parse('dart:core'));
+  Library asyncLib = new Library(Uri.parse('dart:async'),
+      name: 'dart.async', fileUri: Uri.parse('dart:async'));
+  Library internalLib = new Library(Uri.parse('dart:_internal'),
+      name: 'dart._internal', fileUri: Uri.parse('dart:_internal'));
 
-  Class addClass(Library lib, Class c) {
+  Class objectClass = new Class(name: 'Object', fileUri: coreLib.fileUri);
+  coreLib.addClass(objectClass);
+
+  Class addClass(Library lib, String name,
+      {Supertype supertype,
+      List<TypeParameter> typeParameters,
+      List<Supertype> implementedTypes}) {
+    Class c = new Class(
+        name: name,
+        supertype: supertype ?? objectClass.asThisSupertype,
+        typeParameters: typeParameters,
+        implementedTypes: implementedTypes,
+        fileUri: lib.fileUri);
     lib.addClass(c);
     return c;
   }
 
-  Class objectClass = addClass(coreLib, new Class(name: 'Object'));
   InterfaceType objectType =
       new InterfaceType(objectClass, coreLib.nonNullable);
 
@@ -27,48 +40,33 @@ Component createMockSdkComponent() {
     return new TypeParameter(name, bound ?? objectType);
   }
 
-  Class class_(String name,
-      {Supertype supertype,
-      List<TypeParameter> typeParameters,
-      List<Supertype> implementedTypes}) {
-    return new Class(
-        name: name,
-        supertype: supertype ?? objectClass.asThisSupertype,
-        typeParameters: typeParameters,
-        implementedTypes: implementedTypes);
-  }
-
-  addClass(coreLib, class_('Null'));
-  addClass(coreLib, class_('bool'));
-  Class num = addClass(coreLib, class_('num'));
-  addClass(coreLib, class_('String'));
+  addClass(coreLib, 'Null');
+  addClass(coreLib, 'bool');
+  Class num = addClass(coreLib, 'num');
+  addClass(coreLib, 'String');
   Class iterable =
-      addClass(coreLib, class_('Iterable', typeParameters: [typeParam('T')]));
+      addClass(coreLib, 'Iterable', typeParameters: [typeParam('T')]);
   {
     TypeParameter T = typeParam('T');
-    addClass(
-        coreLib,
-        class_('List', typeParameters: [
-          T
-        ], implementedTypes: [
-          new Supertype(iterable, [
-            new TypeParameterType.withDefaultNullabilityForLibrary(T, coreLib)
-          ])
-        ]));
+    addClass(coreLib, 'List', typeParameters: [
+      T
+    ], implementedTypes: [
+      new Supertype(iterable,
+          [new TypeParameterType.withDefaultNullabilityForLibrary(T, coreLib)])
+    ]);
   }
-  addClass(
-      coreLib, class_('Map', typeParameters: [typeParam('K'), typeParam('V')]));
-  addClass(coreLib, class_('int', supertype: num.asThisSupertype));
-  addClass(coreLib, class_('double', supertype: num.asThisSupertype));
-  addClass(coreLib, class_('Iterator', typeParameters: [typeParam('T')]));
-  addClass(coreLib, class_('Symbol'));
-  addClass(coreLib, class_('Type'));
-  addClass(coreLib, class_('Function'));
-  addClass(coreLib, class_('Invocation'));
-  addClass(coreLib, class_('Future', typeParameters: [typeParam('T')]));
-  addClass(asyncLib, class_('FutureOr', typeParameters: [typeParam('T')]));
-  addClass(asyncLib, class_('Stream', typeParameters: [typeParam('T')]));
-  addClass(internalLib, class_('Symbol'));
+  addClass(coreLib, 'Map', typeParameters: [typeParam('K'), typeParam('V')]);
+  addClass(coreLib, 'int', supertype: num.asThisSupertype);
+  addClass(coreLib, 'double', supertype: num.asThisSupertype);
+  addClass(coreLib, 'Iterator', typeParameters: [typeParam('T')]);
+  addClass(coreLib, 'Symbol');
+  addClass(coreLib, 'Type');
+  addClass(coreLib, 'Function');
+  addClass(coreLib, 'Invocation');
+  addClass(coreLib, 'Future', typeParameters: [typeParam('T')]);
+  addClass(asyncLib, 'FutureOr', typeParameters: [typeParam('T')]);
+  addClass(asyncLib, 'Stream', typeParameters: [typeParam('T')]);
+  addClass(internalLib, 'Symbol');
 
   return new Component(libraries: [coreLib, asyncLib, internalLib]);
 }

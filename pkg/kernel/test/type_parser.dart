@@ -326,7 +326,8 @@ class LazyTypeEnvironment {
   final Component component = new Component();
 
   LazyTypeEnvironment() {
-    dummyLibrary = new Library(Uri.parse('file://dummy.dart'))
+    Uri uri = Uri.parse('file://dummy.dart');
+    dummyLibrary = new Library(uri, fileUri: uri)
       ..isNonNullableByDefault = true;
     component.libraries.add(dummyLibrary..parent = component);
     dummyLibrary.name = 'lib';
@@ -346,7 +347,7 @@ class LazyTypeEnvironment {
   }
 
   Class makeClass(String name) {
-    var class_ = new Class(name: name);
+    var class_ = new Class(name: name, fileUri: dummyLibrary.fileUri);
     dummyLibrary.addClass(class_);
     return class_;
   }

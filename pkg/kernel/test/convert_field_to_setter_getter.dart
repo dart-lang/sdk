@@ -9,8 +9,9 @@ import 'package:kernel/binary/ast_to_binary.dart';
 import 'binary/utils.dart';
 
 main() {
-  final Library lib1 = new Library(Uri.parse('org-dartlang:///lib.dart'));
-  final Field field = new Field.mutable(new Name("f"));
+  final Uri lib1Uri = Uri.parse('org-dartlang:///lib.dart');
+  final Library lib1 = new Library(lib1Uri, fileUri: lib1Uri);
+  final Field field = new Field.mutable(new Name("f"), fileUri: lib1Uri);
   lib1.addField(field);
   final Block libProcedureBody = new Block([
     new ExpressionStatement(new StaticSet(field, new IntLiteral(42))),
@@ -19,10 +20,12 @@ main() {
   final Procedure libProcedure = new Procedure(
       new Name("method"),
       ProcedureKind.Method,
-      new FunctionNode(libProcedureBody, returnType: new DynamicType()));
+      new FunctionNode(libProcedureBody, returnType: new DynamicType()),
+      fileUri: lib1Uri);
   lib1.addProcedure(libProcedure);
 
-  final Library lib2 = new Library(Uri.parse('org-dartlang:///lib2.dart'));
+  final Uri lib2Uri = Uri.parse('org-dartlang:///lib2.dart');
+  final Library lib2 = new Library(lib2Uri, fileUri: lib2Uri);
   final Block lib2ProcedureBody = new Block([
     new ExpressionStatement(new StaticSet(field, new IntLiteral(43))),
     new ReturnStatement(new StaticGet(field)),
@@ -30,7 +33,8 @@ main() {
   final Procedure lib2Procedure = new Procedure(
       new Name("method"),
       ProcedureKind.Method,
-      new FunctionNode(lib2ProcedureBody, returnType: new DynamicType()));
+      new FunctionNode(lib2ProcedureBody, returnType: new DynamicType()),
+      fileUri: lib2Uri);
   lib2.addProcedure(lib2Procedure);
 
   verifyTargets(libProcedure, lib2Procedure, field, field);
@@ -53,7 +57,7 @@ main() {
   FunctionNode getterFunction = new FunctionNode(new Block([]));
   Procedure getter = new Procedure(
       new Name("f"), ProcedureKind.Getter, getterFunction,
-      reference: field.getterReference);
+      reference: field.getterReference, fileUri: lib1Uri);
   // Important: Unbind any old canonical name
   // (nulling out the canonical name is not enough because it leaves the old
   // canonical name (which always stays alive) with a pointer to the reference,
@@ -68,7 +72,7 @@ main() {
       positionalParameters: [new VariableDeclaration("foo")]);
   Procedure setter = new Procedure(
       new Name("f"), ProcedureKind.Setter, setterFunction,
-      reference: field.setterReference);
+      reference: field.setterReference, fileUri: lib1Uri);
   // Important: Unbind any old canonical name
   // (nulling out the canonical name is not enough, see above).
   field.setterReference?.canonicalName?.unbind();
@@ -101,7 +105,9 @@ main() {
   lib1.procedures.remove(getter);
   lib1.procedures.remove(setter);
   final Field fieldReplacement = new Field.mutable(new Name("f"),
-      getterReference: getter.reference, setterReference: setter.reference);
+      getterReference: getter.reference,
+      setterReference: setter.reference,
+      fileUri: lib1Uri);
   // Important: Unbind any old canonical name
   // (nulling out the canonical name is not enough, see above).
   fieldReplacement.getterReference?.canonicalName?.unbind();

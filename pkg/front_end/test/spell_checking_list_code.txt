@@ -365,6 +365,7 @@ ef
 effects
 efficient
 efficiently
+eighth
 elem
 eliminating
 elt
@@ -1254,6 +1255,7 @@ tuple4
 tuple5
 tuple6
 tuple7
+tuple8
 type1
 type2
 typeref

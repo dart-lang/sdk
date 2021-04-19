@@ -303,7 +303,7 @@ let final dynamic #0 = 0 in cascade { #0.foo = 1; #0.bar = 2; } => #0''');
 }
 
 void _testDeferredCheck() {
-  Library library = new Library(dummyUri);
+  Library library = new Library(dummyUri, fileUri: dummyUri);
   LibraryDependency dependency =
       LibraryDependency.deferredImport(library, 'pre');
   VariableDeclaration check =
@@ -313,11 +313,12 @@ let final dynamic #0 = pre.checkLibraryIsLoaded() in 0''');
 }
 
 void _testFactoryConstructorInvocationJudgment() {
-  Library library = new Library(dummyUri);
-  Class cls = new Class(name: 'Class');
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Class cls = new Class(name: 'Class', fileUri: dummyUri);
   library.addClass(cls);
   Procedure factoryConstructor = new Procedure(
-      new Name(''), ProcedureKind.Factory, new FunctionNode(null));
+      new Name(''), ProcedureKind.Factory, new FunctionNode(null),
+      fileUri: dummyUri);
   cls.addProcedure(factoryConstructor);
 
   testExpression(
@@ -525,7 +526,7 @@ foo{void}''');
 }
 
 void _testLoadLibraryImpl() {
-  Library library = new Library(dummyUri);
+  Library library = new Library(dummyUri, fileUri: dummyUri);
   LibraryDependency dependency =
       LibraryDependency.deferredImport(library, 'pre');
   testExpression(new LoadLibraryImpl(dependency, new ArgumentsImpl([])), '''
@@ -537,7 +538,7 @@ pre.loadLibrary(0)''');
 }
 
 void _testLoadLibraryTearOff() {
-  Library library = new Library(dummyUri);
+  Library library = new Library(dummyUri, fileUri: dummyUri);
   LibraryDependency dependency =
       LibraryDependency.deferredImport(library, 'pre');
 
@@ -545,7 +546,8 @@ void _testLoadLibraryTearOff() {
 pre.loadLibrary''');
 
   Procedure procedure = new Procedure(new Name('get#loadLibrary'),
-      ProcedureKind.Getter, new FunctionNode(new Block([])));
+      ProcedureKind.Getter, new FunctionNode(new Block([])),
+      fileUri: dummyUri);
   testExpression(new LoadLibraryTearOff(dependency, procedure), ''' 
 pre.loadLibrary''');
 }
@@ -610,12 +612,15 @@ void _testIndexSet() {}
 void _testSuperIndexSet() {}
 
 void _testExtensionIndexSet() {
-  Library library = new Library(dummyUri);
+  Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
-      name: 'Extension', typeParameters: [new TypeParameter('T')]);
+      name: 'Extension',
+      typeParameters: [new TypeParameter('T')],
+      fileUri: dummyUri);
   library.addExtension(extension);
-  Procedure setter =
-      new Procedure(new Name(''), ProcedureKind.Method, new FunctionNode(null));
+  Procedure setter = new Procedure(
+      new Name(''), ProcedureKind.Method, new FunctionNode(null),
+      fileUri: dummyUri);
   library.addProcedure(setter);
 
   testExpression(

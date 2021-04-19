@@ -126,6 +126,9 @@ class EnumBuilder extends SourceClassBuilder {
       Class referencesFrom,
       IndexedClass referencesFromIndexed) {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
+
+    Uri fileUri = parent.fileUri;
+
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
     TypeBuilder intType = new NamedTypeBuilder(
@@ -146,7 +149,8 @@ class EnumBuilder extends SourceClassBuilder {
         /* arguments = */ null,
         /* fileUri = */ null,
         /* charOffset = */ null);
-    Class cls = new Class(name: name, reference: referencesFrom?.reference);
+    Class cls = new Class(
+        name: name, reference: referencesFrom?.reference, fileUri: fileUri);
     Map<String, MemberBuilder> members = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
     NamedTypeBuilder selfType = new NamedTypeBuilder(

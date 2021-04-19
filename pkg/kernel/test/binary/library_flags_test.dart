@@ -58,7 +58,8 @@ main() {
             "isNonNullableByDefault: $isNonNullableByDefault; "
             "nonNullableByDefaultCompiledMode:"
             " $nonNullableByDefaultCompiledMode");
-        Library lib = new Library(Uri.parse("foo://bar.dart"));
+        Uri uri = Uri.parse("foo://bar.dart");
+        Library lib = new Library(uri, fileUri: uri);
         setSynthetic(lib, isSynthetic);
         setNonNullableByDefault(lib, isNonNullableByDefault);
         setNonNullableByDefaultCompiledMode(

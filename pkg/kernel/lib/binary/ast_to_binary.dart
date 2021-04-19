@@ -274,7 +274,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   // Returns the new active file uri.
-  void writeUriReference(Uri? uri) {
+  void writeUriReference(Uri uri) {
     final int index = _sourceUriIndexer.put(uri);
     writeUInt30(index);
     if (!_currentlyInNonimplementation) {
@@ -784,7 +784,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     // Write data.
     int i = 0;
     Uint8List buffer = new Uint8List(1 << 16);
-    for (Uri? uri in _sourceUriIndexer.index.keys) {
+    for (Uri uri in _sourceUriIndexer.index.keys) {
       index[i] = getBufferOffset();
       Source? source = uriToSource[uri];
       if (source == null ||
@@ -795,7 +795,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
             <int>[], const <int>[], source?.importUri, source?.fileUri);
       }
 
-      String uriAsString = uri == null ? "" : "$uri";
+      String uriAsString = "$uri";
       outputStringViaBuffer(uriAsString, buffer);
 
       writeByteList(source.source);
@@ -2863,13 +2863,11 @@ class StringIndexer {
 
 class UriIndexer {
   // Note that the iteration order is important.
-  final Map<Uri?, int> index = new Map<Uri?, int>();
+  final Map<Uri, int> index = new Map<Uri, int>();
 
-  UriIndexer() {
-    put(null);
-  }
+  UriIndexer();
 
-  int put(Uri? uri) {
+  int put(Uri uri) {
     int? result = index[uri];
     if (result == null) {
       result = index.length;

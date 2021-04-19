@@ -75,16 +75,17 @@ const String kDebugClassName = "#DebugClass";
 Component createExpressionEvaluationComponent(Procedure procedure) {
   Library realLibrary = procedure.enclosingLibrary;
 
-  Library fakeLibrary = new Library(new Uri(scheme: 'evaluate', path: 'source'))
+  Uri uri = new Uri(scheme: 'evaluate', path: 'source');
+  Library fakeLibrary = new Library(uri, fileUri: uri)
     ..setLanguageVersion(realLibrary.languageVersion)
     ..isNonNullableByDefault = realLibrary.isNonNullableByDefault
     ..nonNullableByDefaultCompiledMode =
         realLibrary.nonNullableByDefaultCompiledMode;
 
-  if (procedure.parent is Class) {
-    Class realClass = procedure.parent;
-
-    Class fakeClass = new Class(name: kDebugClassName)..parent = fakeLibrary;
+  TreeNode realClass = procedure.parent;
+  if (realClass is Class) {
+    Class fakeClass = new Class(name: kDebugClassName, fileUri: uri)
+      ..parent = fakeLibrary;
     Map<TypeParameter, TypeParameter> typeParams =
         <TypeParameter, TypeParameter>{};
     Map<TypeParameter, DartType> typeSubstitution = <TypeParameter, DartType>{};

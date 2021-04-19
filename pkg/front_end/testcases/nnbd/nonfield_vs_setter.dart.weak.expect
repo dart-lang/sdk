@@ -165,7 +165,7 @@ extension Extension on core::int? {
   static set extensionInstanceMethodAndStaticSetter = set self::Extension|extensionInstanceMethodAndStaticSetter;
   set extensionStaticMethodAndInstanceSetter = self::Extension|set#extensionStaticMethodAndInstanceSetter;
 }
-static const field dynamic _exports# = #C1 /*isLegacy, from null */;
+static const field dynamic _exports# = #C1 /*isLegacy*/;
 static method topLevelMethodAndSetter() → dynamic {}
 static set topLevelMethodAndSetter(dynamic value) → void {}
 static set classAndSetter(dynamic value) → void {}
