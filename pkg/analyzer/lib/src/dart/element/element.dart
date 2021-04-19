@@ -17,7 +17,9 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -41,6 +43,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
@@ -963,22 +966,22 @@ class ClassElementImpl extends AbstractClassElementImpl
       implicitConstructor.isSynthetic = true;
       implicitConstructor.name = name;
       implicitConstructor.nameOffset = -1;
-      implicitConstructor._constantInitializers = const [];
-      implicitConstructor.redirectedConstructor = superclassConstructor;
       var hasMixinWithInstanceVariables = mixins.any(typeHasInstanceVariables);
       implicitConstructor.isConst =
           superclassConstructor.isConst && !hasMixinWithInstanceVariables;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
+      var argumentsForSuperInvocation = <Expression>[];
       if (count > 0) {
         var implicitParameters = <ParameterElement>[];
         for (int i = 0; i < count; i++) {
           ParameterElement superParameter = superParameters[i];
           ParameterElementImpl implicitParameter;
-          if (superParameter is DefaultParameterElementImpl) {
+          if (superParameter is ConstVariableElement) {
+            var constVariable = superParameter as ConstVariableElement;
             implicitParameter =
                 DefaultParameterElementImpl(superParameter.name, -1)
-                  ..constantInitializer = superParameter.constantInitializer;
+                  ..constantInitializer = constVariable.constantInitializer;
           } else {
             implicitParameter = ParameterElementImpl(superParameter.name, -1);
           }
@@ -990,10 +993,36 @@ class ClassElementImpl extends AbstractClassElementImpl
           implicitParameter.type =
               substitution.substituteType(superParameter.type);
           implicitParameters.add(implicitParameter);
+          argumentsForSuperInvocation.add(
+            astFactory.simpleIdentifier(
+              StringToken(TokenType.STRING, implicitParameter.name, -1),
+            )
+              ..staticElement = implicitParameter
+              ..staticType = implicitParameter.type,
+          );
         }
         implicitConstructor.parameters = implicitParameters;
       }
       implicitConstructor.enclosingElement = this;
+
+      var isNamed = superclassConstructor.name.isNotEmpty;
+      implicitConstructor.constantInitializers = [
+        astFactory.superConstructorInvocation(
+          Tokens.SUPER,
+          isNamed ? Tokens.PERIOD : null,
+          isNamed
+              ? (astFactory.simpleIdentifier(
+                  StringToken(TokenType.STRING, superclassConstructor.name, -1),
+                )..staticElement = superclassConstructor)
+              : null,
+          astFactory.argumentList(
+            Tokens.OPEN_PAREN,
+            argumentsForSuperInvocation,
+            Tokens.CLOSE_PAREN,
+          ),
+        )..staticElement = superclassConstructor,
+      ];
+
       return implicitConstructor;
     }).toList(growable: false);
   }

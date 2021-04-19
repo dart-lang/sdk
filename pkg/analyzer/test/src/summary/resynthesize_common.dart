@@ -123,7 +123,7 @@ class G {}
 ''');
     checkElementText(library, r'''
 class alias C extends D with E, F, G {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -144,7 +144,7 @@ class E {}
 ''');
     checkElementText(library, r'''
 abstract class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -168,7 +168,7 @@ class E {}
  * Docs
  */
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -192,7 +192,7 @@ class E {}
 /// b
 /// cc
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -216,7 +216,7 @@ class E {}''');
  * Docs
  */
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -234,7 +234,7 @@ class C<C1> {}
 ''');
     checkElementText(library, r'''
 class alias Z extends A with B<int>, C<double> {
-  synthetic Z() = A;
+  synthetic Z() : super();
 }
 class A {
 }
@@ -253,7 +253,7 @@ class E {}
 ''');
     checkElementText(library, r'''
 notSimplyBounded class alias C<T extends C<dynamic>> extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -272,7 +272,7 @@ class E {}
 ''');
     checkElementText(library, r'''
 class alias C<T> extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -291,7 +291,7 @@ class E {}
 ''');
     checkElementText(library, r'''
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -313,26 +313,44 @@ import "a.dart";
 class M {}
 class MixinApp = Base with M;
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 import 'a.dart';
 class M {
 }
 class alias MixinApp extends Base with M {
-  synthetic const MixinApp() = Base;
-  synthetic const MixinApp.named() = Base.named;
+  synthetic const MixinApp();
+    constantInitializers
+      SuperConstructorInvocation
+        argumentList: ArgumentList
+        staticElement: file:///a.dart::@class::Base::@constructor::•
+  synthetic const MixinApp.named();
+    constantInitializers
+      SuperConstructorInvocation
+        argumentList: ArgumentList
+        constructorName: SimpleIdentifier
+          staticElement: file:///a.dart::@class::Base::@constructor::named
+          staticType: null
+          token: named
+        staticElement: file:///a.dart::@class::Base::@constructor::named
 }
-''');
+''',
+        withFullyResolvedAst: true);
   }
 
   test_class_alias_with_forwarding_constructors() async {
     addLibrarySource('/a.dart', '''
 class Base {
+  bool x = true;
   Base._priv();
   Base();
   Base.noArgs();
   Base.requiredArg(x);
   Base.positionalArg([bool x = true]);
+  Base.positionalArg2([this.x = true]);
   Base.namedArg({int x = 42});
+  Base.namedArg2({this.x = true});
   factory Base.fact() => Base();
   factory Base.fact2() = Base.noArgs;
 }
@@ -347,11 +365,24 @@ import 'a.dart';
 class M {
 }
 class alias MixinApp extends Base with M {
-  synthetic MixinApp() = Base;
-  synthetic MixinApp.noArgs() = Base.noArgs;
-  synthetic MixinApp.requiredArg(dynamic x) = Base.requiredArg;
-  synthetic MixinApp.positionalArg([bool x = true]) = Base.positionalArg;
-  synthetic MixinApp.namedArg({int x: 42}) = Base.namedArg;
+  synthetic MixinApp() : super();
+  synthetic MixinApp.noArgs() : super.
+        noArgs/*location: a.dart;Base;noArgs*/();
+  synthetic MixinApp.requiredArg(dynamic x) : super.
+        requiredArg/*location: a.dart;Base;requiredArg*/(
+        x/*location: test.dart;MixinApp;requiredArg;x*/);
+  synthetic MixinApp.positionalArg([bool x = true]) : super.
+        positionalArg/*location: a.dart;Base;positionalArg*/(
+        x/*location: test.dart;MixinApp;positionalArg;x*/);
+  synthetic MixinApp.positionalArg2([bool x = true]) : super.
+        positionalArg2/*location: a.dart;Base;positionalArg2*/(
+        x/*location: test.dart;MixinApp;positionalArg2;x*/);
+  synthetic MixinApp.namedArg({int x: 42}) : super.
+        namedArg/*location: a.dart;Base;namedArg*/(
+        x/*location: test.dart;MixinApp;namedArg;x*/);
+  synthetic MixinApp.namedArg2({bool x: true}) : super.
+        namedArg2/*location: a.dart;Base;namedArg2*/(
+        x/*location: test.dart;MixinApp;namedArg2;x*/);
 }
 ''');
   }
@@ -371,7 +402,10 @@ class Base<T> {
 class M {
 }
 class alias MixinApp extends Base<dynamic> with M {
-  synthetic MixinApp.ctor(dynamic t, List<dynamic> l) = Base<T>.ctor;
+  synthetic MixinApp.ctor(dynamic t, List<dynamic> l) : super.
+        ctor/*location: test.dart;Base;ctor*/(
+        t/*location: test.dart;MixinApp;ctor;t*/,
+        l/*location: test.dart;MixinApp;ctor;l*/);
 }
 ''');
   }
@@ -391,7 +425,10 @@ class Base<T> {
 class M {
 }
 class alias MixinApp<U> extends Base<List<U>> with M {
-  synthetic MixinApp.ctor(List<U> t, List<List<U>> l) = Base<T>.ctor;
+  synthetic MixinApp.ctor(List<U> t, List<List<U>> l) : super.
+        ctor/*location: test.dart;Base;ctor*/(
+        t/*location: test.dart;MixinApp;ctor;t*/,
+        l/*location: test.dart;MixinApp;ctor;l*/);
 }
 ''');
   }
@@ -408,7 +445,7 @@ class E {
 }''');
     checkElementText(library, r'''
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -2155,33 +2192,33 @@ class A/*codeOffset=0, codeLength=10*/ {
 class B/*codeOffset=12, codeLength=10*/ {
 }
 class alias Raw/*codeOffset=28, codeLength=29*/ extends Object with A, B {
-  synthetic const Raw() = Object;
+  synthetic const Raw() : super();
 }
 /// Comment 1.
 /// Comment 2.
 class alias HasDocComment/*codeOffset=59, codeLength=69*/ extends Object with A, B {
-  synthetic const HasDocComment() = Object;
+  synthetic const HasDocComment() : super();
 }
 @Object()
 class alias HasAnnotation/*codeOffset=130, codeLength=49*/ extends Object with A, B {
-  synthetic const HasAnnotation() = Object;
+  synthetic const HasAnnotation() : super();
 }
 /// Comment 1.
 /// Comment 2.
 @Object()
 class alias AnnotationThenComment/*codeOffset=181, codeLength=87*/ extends Object with A, B {
-  synthetic const AnnotationThenComment() = Object;
+  synthetic const AnnotationThenComment() : super();
 }
 /// Comment 1.
 /// Comment 2.
 @Object()
 class alias CommentThenAnnotation/*codeOffset=270, codeLength=87*/ extends Object with A, B {
-  synthetic const CommentThenAnnotation() = Object;
+  synthetic const CommentThenAnnotation() : super();
 }
 /// Comment 2.
 @Object()
 class alias CommentAroundAnnotation/*codeOffset=374, codeLength=74*/ extends Object with A, B {
-  synthetic const CommentAroundAnnotation() = Object;
+  synthetic const CommentAroundAnnotation() : super();
 }
 ''',
         withCodeRanges: true,
@@ -6162,10 +6199,10 @@ class A {
 class B {
 }
 class alias X extends A with M {
-  synthetic X() = A;
+  synthetic X() : super();
 }
 class alias X extends B with M {
-  synthetic X() = B;
+  synthetic X() : super();
 }
 mixin M on Object {
 }
@@ -6438,7 +6475,7 @@ class C extends Object with M {
   dynamic foo() {}
 }
 class alias D extends Object with M {
-  synthetic const D() = Object;
+  synthetic const D() : super();
 }
 ''');
   }
@@ -9481,7 +9518,7 @@ class main {
         await checkLibrary('class main = C with D; class C {} class D {}');
     checkElementText(library, r'''
 class alias main extends C with D {
-  synthetic main() = C;
+  synthetic main() : super();
 }
 class C {
 }
@@ -9678,7 +9715,7 @@ const dynamic b = null;
 @
         a/*location: test.dart;a?*/
 class alias C extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
@@ -10052,7 +10089,15 @@ class A {
   const A.named();
 }
 class alias C extends A with B {
-  synthetic const C.named() = A.named;
+  synthetic const C.named();
+    constantInitializers
+      SuperConstructorInvocation
+        argumentList: ArgumentList
+        constructorName: SimpleIdentifier
+          staticElement: self::@class::A::@constructor::named
+          staticType: null
+          token: named
+        staticElement: self::@class::A::@constructor::named
 }
   typeParameters
     T
@@ -10354,7 +10399,11 @@ class A {
   const A();
 }
 class alias C extends A with B {
-  synthetic const C() = A;
+  synthetic const C();
+    constantInitializers
+      SuperConstructorInvocation
+        argumentList: ArgumentList
+        staticElement: self::@class::A::@constructor::•
 }
   typeParameters
     T
@@ -11076,7 +11125,7 @@ class E {}''');
 class alias C<@
         a/*location: test.dart;a?*/
 T> extends D with E {
-  synthetic C() = D;
+  synthetic C() : super();
 }
 class D {
 }
