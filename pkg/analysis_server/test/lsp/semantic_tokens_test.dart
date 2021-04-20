@@ -273,6 +273,51 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     expect(decoded, equals(expected));
   }
 
+  Future<void> test_dartdoc() async {
+    final content = '''
+    /// before [aaa] after
+    class MyClass {
+      String aaa;
+    }
+      
+    /// before [bbb] after
+    int double(int bbb) => bbb * 2;
+    ''';
+
+    final expected = [
+      _Token('/// before [', SemanticTokenTypes.comment,
+          [SemanticTokenModifiers.documentation]),
+      _Token('aaa', SemanticTokenTypes.property),
+      _Token('] after', SemanticTokenTypes.comment,
+          [SemanticTokenModifiers.documentation]),
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('String', SemanticTokenTypes.class_),
+      _Token('aaa', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('/// before [', SemanticTokenTypes.comment,
+          [SemanticTokenModifiers.documentation]),
+      _Token('bbb', SemanticTokenTypes.parameter),
+      _Token('] after', SemanticTokenTypes.comment,
+          [SemanticTokenModifiers.documentation]),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('double', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('bbb', SemanticTokenTypes.parameter,
+          [SemanticTokenModifiers.declaration]),
+      _Token('bbb', SemanticTokenTypes.parameter),
+      _Token('2', SemanticTokenTypes.number)
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
   Future<void> test_directives() async {
     final content = '''
     import 'package:flutter/material.dart';
@@ -347,8 +392,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     }
     ''';
 
-    // Expect toe correct tokens for the valid code before/after but don't
-    // check the the tokens for the invalid code as thre are no concrete
+    // Expect the correct tokens for the valid code before/after but don't
+    // check the the tokens for the invalid code as there are no concrete
     // expectations for them.
     final expected1 = [
       _Token('/// class docs', SemanticTokenTypes.comment,
@@ -841,6 +886,13 @@ class _Token {
           modifiers ?? <SemanticTokenModifiers>[],
           (SemanticTokenModifiers a, SemanticTokenModifiers b) => a == b);
 
+  /// Outputs a text representation of the token in the form of constructor
+  /// args for easy copy/pasting into tests to update expectations.
   @override
-  String toString() => '$content (${[type, ...?modifiers]})';
+  String toString() {
+    final modifiersString = modifiers.isEmpty
+        ? ''
+        : ', [${modifiers.map((m) => 'SemanticTokenModifiers.$m').join(', ')}]';
+    return "('$content', SemanticTokenTypes.$type$modifiersString)";
+  }
 }
