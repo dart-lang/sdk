@@ -18,7 +18,6 @@ linter:
     - library_names
     - library_prefixes
     - null_closures
-    - omit_local_variable_types
     - overridden_fields
     - package_names
     - prefer_adjacent_string_concatenation
@@ -33,7 +32,6 @@ linter:
     - prefer_initializing_formals
     - prefer_inlined_adds
     - prefer_is_not_operator
-    - prefer_mixin
     - prefer_null_aware_operators
     - prefer_spread_collections
     - prefer_void_to_null

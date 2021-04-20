@@ -22,7 +22,6 @@ linter:
     - prefer_iterable_whereType
     - prefer_typing_uninitialized_variables
     - provide_deprecation_message
-    - unawaited_futures
     - unnecessary_overrides
     - unrelated_type_equality_checks
     - valid_regexps
