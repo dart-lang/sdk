@@ -45,10 +45,10 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
 
     String kind = arguments[0];
     String path = arguments[1];
-    int docVersion = arguments[2];
+    int? docVersion = arguments[2];
     int offset = arguments[3];
     int length = arguments[4];
-    Map<String, dynamic> options = arguments[5];
+    Map<String, dynamic>? options = arguments[5];
 
     final result = await requireResolvedUnit(path);
     return result.mapResult((result) async {

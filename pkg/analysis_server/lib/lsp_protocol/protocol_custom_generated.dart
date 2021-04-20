@@ -38,7 +38,7 @@ class AnalyzerStatusParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('isAnalyzing');
       try {
@@ -105,7 +105,7 @@ class ClosingLabel implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -197,7 +197,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('file');
       try {
@@ -313,7 +313,7 @@ class DartCompletionItemResolutionInfo
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('libId');
       try {
@@ -492,7 +492,7 @@ class DartDiagnosticServer implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('port');
       try {
@@ -590,7 +590,7 @@ class Element implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -782,7 +782,7 @@ class FlutterOutline implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -973,7 +973,7 @@ class FlutterOutlineAttribute implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('name');
       try {
@@ -1090,7 +1090,7 @@ class Outline implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('element');
       try {
@@ -1218,7 +1218,7 @@ class PubPackageCompletionItemResolutionInfo
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('packageName');
       try {
@@ -1328,7 +1328,7 @@ class PublishClosingLabelsParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -1419,7 +1419,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -1504,7 +1504,7 @@ class PublishOutlineParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -1602,7 +1602,7 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('insertTextFormat');
       try {

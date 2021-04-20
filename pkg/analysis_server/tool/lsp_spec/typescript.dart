@@ -125,6 +125,9 @@ String? getImprovedType(String interfaceName, String? fieldName) {
     'ProgressParams': {
       'value': 'object',
     },
+    'SemanticTokens': {
+      'data': 'int[]',
+    },
     'ServerCapabilities': {
       'changeNotifications': 'bool',
     },

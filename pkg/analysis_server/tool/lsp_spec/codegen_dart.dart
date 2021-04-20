@@ -194,7 +194,7 @@ Iterable<String> _wrapLines(List<String> lines, int maxLength) sync* {
 void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndentedln(
-        'static bool canParse(Object obj, LspJsonReporter reporter) {')
+        'static bool canParse(Object? obj, LspJsonReporter reporter) {')
     ..indent()
     ..writeIndentedln('if (obj is Map<String, dynamic>) {')
     ..indent();

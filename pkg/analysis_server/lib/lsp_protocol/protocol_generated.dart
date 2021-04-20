@@ -54,7 +54,7 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('annotationId');
       try {
@@ -165,7 +165,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('label');
       try {
@@ -263,7 +263,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('applied');
       try {
@@ -358,7 +358,7 @@ class CallHierarchyClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -425,7 +425,7 @@ class CallHierarchyIncomingCall implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('from');
       try {
@@ -545,7 +545,7 @@ class CallHierarchyIncomingCallsParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('item');
       try {
@@ -701,7 +701,7 @@ class CallHierarchyItem implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('name');
       try {
@@ -873,7 +873,7 @@ class CallHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -940,7 +940,7 @@ class CallHierarchyOutgoingCall implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('to');
       try {
@@ -1060,7 +1060,7 @@ class CallHierarchyOutgoingCallsParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('item');
       try {
@@ -1175,7 +1175,7 @@ class CallHierarchyPrepareParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -1300,7 +1300,7 @@ class CallHierarchyRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -1393,7 +1393,7 @@ class CancelParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('id');
       try {
@@ -1480,7 +1480,7 @@ class ChangeAnnotation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('label');
       try {
@@ -1617,7 +1617,7 @@ class ClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workspace');
       try {
@@ -1777,7 +1777,7 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -1919,7 +1919,7 @@ class ClientCapabilitiesGeneral implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('regularExpressions');
       try {
@@ -2021,7 +2021,7 @@ class ClientCapabilitiesWindow implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -2231,7 +2231,7 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('applyEdit');
       try {
@@ -2529,7 +2529,7 @@ class CodeAction implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('title');
       try {
@@ -2748,7 +2748,7 @@ class CodeActionClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -2889,7 +2889,7 @@ class CodeActionClientCapabilitiesCodeActionKind implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -2965,7 +2965,7 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('codeActionKind');
       try {
@@ -3037,7 +3037,7 @@ class CodeActionClientCapabilitiesResolveSupport implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('properties');
       try {
@@ -3129,7 +3129,7 @@ class CodeActionContext implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('diagnostics');
       try {
@@ -3214,7 +3214,7 @@ class CodeActionDisabled implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('reason');
       try {
@@ -3381,7 +3381,7 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('codeActionKinds');
       try {
@@ -3515,7 +3515,7 @@ class CodeActionParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -3686,7 +3686,7 @@ class CodeActionRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -3793,7 +3793,7 @@ class CodeDescription implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('href');
       try {
@@ -3880,7 +3880,7 @@ class CodeLens implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -3961,7 +3961,7 @@ class CodeLensClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -4030,7 +4030,7 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('resolveProvider');
       try {
@@ -4134,7 +4134,7 @@ class CodeLensParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -4247,7 +4247,7 @@ class CodeLensRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -4347,7 +4347,7 @@ class CodeLensWorkspaceClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('refreshSupport');
       try {
@@ -4424,7 +4424,7 @@ class Color implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('red');
       try {
@@ -4551,7 +4551,7 @@ class ColorInformation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -4662,7 +4662,7 @@ class ColorPresentation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('label');
       try {
@@ -4802,7 +4802,7 @@ class ColorPresentationParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -4944,7 +4944,7 @@ class Command implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('title');
       try {
@@ -5079,7 +5079,7 @@ class CompletionClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -5286,7 +5286,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('snippetSupport');
       try {
@@ -5463,7 +5463,7 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -5531,7 +5531,7 @@ class CompletionClientCapabilitiesInsertTextModeSupport implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -5605,7 +5605,7 @@ class CompletionClientCapabilitiesResolveSupport implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('properties');
       try {
@@ -5679,7 +5679,7 @@ class CompletionClientCapabilitiesTagSupport implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -5760,7 +5760,7 @@ class CompletionContext implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('triggerKind');
       try {
@@ -6071,7 +6071,7 @@ class CompletionItem implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('label');
       try {
@@ -6420,7 +6420,7 @@ class CompletionList implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('isIncomplete');
       try {
@@ -6563,7 +6563,7 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('triggerCharacters');
       try {
@@ -6719,7 +6719,7 @@ class CompletionParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('context');
       try {
@@ -6906,7 +6906,7 @@ class CompletionRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -7074,7 +7074,7 @@ class ConfigurationItem implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('scopeUri');
       try {
@@ -7142,7 +7142,7 @@ class ConfigurationParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('items');
       try {
@@ -7243,7 +7243,7 @@ class CreateFile implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -7361,7 +7361,7 @@ class CreateFileOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('overwrite');
       try {
@@ -7435,7 +7435,7 @@ class CreateFilesParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('files');
       try {
@@ -7516,7 +7516,7 @@ class DeclarationClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -7590,7 +7590,7 @@ class DeclarationOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -7693,7 +7693,7 @@ class DeclarationParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -7830,7 +7830,7 @@ class DeclarationRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -7931,7 +7931,7 @@ class DefinitionClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -8005,7 +8005,7 @@ class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -8107,7 +8107,7 @@ class DefinitionParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -8229,7 +8229,7 @@ class DefinitionRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -8339,7 +8339,7 @@ class DeleteFile implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -8457,7 +8457,7 @@ class DeleteFileOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('recursive');
       try {
@@ -8532,7 +8532,7 @@ class DeleteFilesParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('files');
       try {
@@ -8692,7 +8692,7 @@ class Diagnostic implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -8868,7 +8868,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('location');
       try {
@@ -9023,7 +9023,7 @@ class DidChangeConfigurationClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -9083,7 +9083,7 @@ class DidChangeConfigurationParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
@@ -9167,7 +9167,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -9275,7 +9275,7 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -9338,7 +9338,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('changes');
       try {
@@ -9413,7 +9413,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('watchers');
       try {
@@ -9484,7 +9484,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('event');
       try {
@@ -9549,7 +9549,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -9614,7 +9614,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -9687,7 +9687,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -9766,7 +9766,7 @@ class DocumentColorClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -9828,7 +9828,7 @@ class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -9920,7 +9920,7 @@ class DocumentColorParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -10039,7 +10039,7 @@ class DocumentColorRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -10156,7 +10156,7 @@ class DocumentFilter implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('language');
       try {
@@ -10240,7 +10240,7 @@ class DocumentFormattingClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -10304,7 +10304,7 @@ class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -10384,7 +10384,7 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -10499,7 +10499,7 @@ class DocumentFormattingRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -10590,7 +10590,7 @@ class DocumentHighlight implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -10670,7 +10670,7 @@ class DocumentHighlightClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -10766,7 +10766,7 @@ class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -10869,7 +10869,7 @@ class DocumentHighlightParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -10997,7 +10997,7 @@ class DocumentHighlightRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -11107,7 +11107,7 @@ class DocumentLink implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -11210,7 +11210,7 @@ class DocumentLinkClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -11291,7 +11291,7 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('resolveProvider');
       try {
@@ -11396,7 +11396,7 @@ class DocumentLinkParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -11513,7 +11513,7 @@ class DocumentLinkRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -11608,7 +11608,7 @@ class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -11685,7 +11685,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('firstTriggerCharacter');
       try {
@@ -11791,7 +11791,7 @@ class DocumentOnTypeFormattingParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('ch');
       try {
@@ -11945,7 +11945,7 @@ class DocumentOnTypeFormattingRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -12051,7 +12051,7 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -12117,7 +12117,7 @@ class DocumentRangeFormattingOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -12208,7 +12208,7 @@ class DocumentRangeFormattingParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -12342,7 +12342,7 @@ class DocumentRangeFormattingRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -12498,7 +12498,7 @@ class DocumentSymbol implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('name');
       try {
@@ -12726,7 +12726,7 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -12850,7 +12850,7 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -12918,7 +12918,7 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -13001,7 +13001,7 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('label');
       try {
@@ -13105,7 +13105,7 @@ class DocumentSymbolParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -13224,7 +13224,7 @@ class DocumentSymbolRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -13370,7 +13370,7 @@ class ExecuteCommandClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -13438,7 +13438,7 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('commands');
       try {
@@ -13541,7 +13541,7 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('command');
       try {
@@ -13645,7 +13645,7 @@ class ExecuteCommandRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('commands');
       try {
@@ -13805,7 +13805,7 @@ class FileCreate implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -13871,7 +13871,7 @@ class FileDelete implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -13941,7 +13941,7 @@ class FileEvent implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -14033,7 +14033,7 @@ class FileOperationFilter implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('scheme');
       try {
@@ -14141,7 +14141,7 @@ class FileOperationPattern implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('glob');
       try {
@@ -14266,7 +14266,7 @@ class FileOperationPatternOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('ignoreCase');
       try {
@@ -14329,7 +14329,7 @@ class FileOperationRegistrationOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('filters');
       try {
@@ -14405,7 +14405,7 @@ class FileRename implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('oldUri');
       try {
@@ -14507,7 +14507,7 @@ class FileSystemWatcher implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('globPattern');
       try {
@@ -14631,7 +14631,7 @@ class FoldingRange implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('startLine');
       try {
@@ -14777,7 +14777,7 @@ class FoldingRangeClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -14894,7 +14894,7 @@ class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -14986,7 +14986,7 @@ class FoldingRangeParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -15105,7 +15105,7 @@ class FoldingRangeRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -15234,7 +15234,7 @@ class FormattingOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('tabSize');
       try {
@@ -15367,7 +15367,7 @@ class Hover implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('contents');
       try {
@@ -15459,7 +15459,7 @@ class HoverClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -15537,7 +15537,7 @@ class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -15617,7 +15617,7 @@ class HoverParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -15725,7 +15725,7 @@ class HoverRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -15818,7 +15818,7 @@ class ImplementationClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -15892,7 +15892,7 @@ class ImplementationOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -15995,7 +15995,7 @@ class ImplementationParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -16133,7 +16133,7 @@ class ImplementationRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -16332,7 +16332,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('processId');
       try {
@@ -16513,7 +16513,7 @@ class InitializeParamsClientInfo implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('name');
       try {
@@ -16598,7 +16598,7 @@ class InitializeResult implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('capabilities');
       try {
@@ -16683,7 +16683,7 @@ class InitializeResultServerInfo implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('name');
       try {
@@ -16752,7 +16752,7 @@ class InitializedParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
@@ -16812,7 +16812,7 @@ class InsertReplaceEdit implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('newText');
       try {
@@ -16999,7 +16999,7 @@ class LinkedEditingRangeClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -17063,7 +17063,7 @@ class LinkedEditingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -17144,7 +17144,7 @@ class LinkedEditingRangeParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -17270,7 +17270,7 @@ class LinkedEditingRangeRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -17374,7 +17374,7 @@ class LinkedEditingRanges implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('ranges');
       try {
@@ -17454,7 +17454,7 @@ class Location implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -17571,7 +17571,7 @@ class LocationLink implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('originSelectionRange');
       try {
@@ -17691,7 +17691,7 @@ class LogMessageParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('type');
       try {
@@ -17781,7 +17781,7 @@ class LogTraceParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('message');
       try {
@@ -17864,7 +17864,7 @@ class MarkdownClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('parser');
       try {
@@ -17965,7 +17965,7 @@ class MarkupContent implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -18091,7 +18091,7 @@ class Message implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('jsonrpc');
       try {
@@ -18155,7 +18155,7 @@ class MessageActionItem implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('title');
       try {
@@ -18549,7 +18549,7 @@ class Moniker implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('scheme');
       try {
@@ -18669,7 +18669,7 @@ class MonikerClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -18763,7 +18763,7 @@ class MonikerOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -18865,7 +18865,7 @@ class MonikerParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -18986,7 +18986,7 @@ class MonikerRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -19077,7 +19077,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('method');
       try {
@@ -19180,7 +19180,7 @@ class OptionalVersionedTextDocumentIdentifier
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('version');
       try {
@@ -19287,7 +19287,7 @@ class ParameterInformation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('label');
       try {
@@ -19442,7 +19442,7 @@ class PartialResultParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('partialResultToken');
       try {
@@ -19511,7 +19511,7 @@ class Position implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('line');
       try {
@@ -19598,7 +19598,7 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -19718,7 +19718,7 @@ class ProgressParams<T> implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('token');
       try {
@@ -19836,7 +19836,7 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('relatedInformation');
       try {
@@ -19949,7 +19949,7 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -20038,7 +20038,7 @@ class PublishDiagnosticsParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -20141,7 +20141,7 @@ class Range implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('start');
       try {
@@ -20225,7 +20225,7 @@ class RangeAndPlaceholder implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -20312,7 +20312,7 @@ class ReferenceClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -20370,7 +20370,7 @@ class ReferenceContext implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('includeDeclaration');
       try {
@@ -20438,7 +20438,7 @@ class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -20546,7 +20546,7 @@ class ReferenceParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('context');
       try {
@@ -20687,7 +20687,7 @@ class ReferenceRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -20780,7 +20780,7 @@ class Registration implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('id');
       try {
@@ -20869,7 +20869,7 @@ class RegistrationParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('registrations');
       try {
@@ -20949,7 +20949,7 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('engine');
       try {
@@ -21071,7 +21071,7 @@ class RenameClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -21209,7 +21209,7 @@ class RenameFile implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -21346,7 +21346,7 @@ class RenameFileOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('overwrite');
       try {
@@ -21421,7 +21421,7 @@ class RenameFilesParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('files');
       try {
@@ -21500,7 +21500,7 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('prepareProvider');
       try {
@@ -21603,7 +21603,7 @@ class RenameParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('newName');
       try {
@@ -21740,7 +21740,7 @@ class RenameRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -21854,7 +21854,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('id');
       try {
@@ -22009,7 +22009,7 @@ class ResponseError implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('code');
       try {
@@ -22131,7 +22131,7 @@ class ResponseMessage implements Message, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('id');
       try {
@@ -22227,7 +22227,7 @@ class SaveOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('includeText');
       try {
@@ -22292,7 +22292,7 @@ class SelectionRange implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -22374,7 +22374,7 @@ class SelectionRangeClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -22436,7 +22436,7 @@ class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -22538,7 +22538,7 @@ class SelectionRangeParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -22679,7 +22679,7 @@ class SelectionRangeRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -22836,12 +22836,12 @@ class SemanticTokens implements ToJsonable {
   SemanticTokens({this.resultId, required this.data});
   static SemanticTokens fromJson(Map<String, dynamic> json) {
     final resultId = json['resultId'];
-    final data = json['data']?.map((item) => item)?.cast<num>()?.toList();
+    final data = json['data']?.map((item) => item)?.cast<int>()?.toList();
     return SemanticTokens(resultId: resultId, data: data);
   }
 
   /// The actual tokens.
-  final List<num> data;
+  final List<int> data;
 
   /// An optional result id. If provided and clients support delta updating the
   /// client will include the result id in the next semantic token request. A
@@ -22858,7 +22858,7 @@ class SemanticTokens implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('resultId');
       try {
@@ -22880,8 +22880,8 @@ class SemanticTokens implements ToJsonable {
           return false;
         }
         if (!((obj['data'] is List &&
-            (obj['data'].every((item) => item is num))))) {
-          reporter.reportError('must be of type List<num>');
+            (obj['data'].every((item) => item is int))))) {
+          reporter.reportError('must be of type List<int>');
           return false;
         }
       } finally {
@@ -22898,7 +22898,7 @@ class SemanticTokens implements ToJsonable {
   bool operator ==(Object other) {
     if (other is SemanticTokens && other.runtimeType == SemanticTokens) {
       return resultId == other.resultId &&
-          listEqual(data, other.data, (num a, num b) => a == b) &&
+          listEqual(data, other.data, (int a, int b) => a == b) &&
           true;
     }
     return false;
@@ -23002,7 +23002,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -23175,7 +23175,7 @@ class SemanticTokensClientCapabilitiesFull implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('delta');
       try {
@@ -23229,7 +23229,7 @@ class SemanticTokensClientCapabilitiesRange implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
@@ -23309,7 +23309,7 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -23393,7 +23393,7 @@ class SemanticTokensDelta implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('resultId');
       try {
@@ -23515,7 +23515,7 @@ class SemanticTokensDeltaParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -23629,7 +23629,7 @@ class SemanticTokensDeltaPartialResult implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('edits');
       try {
@@ -23712,7 +23712,7 @@ class SemanticTokensEdit implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('start');
       try {
@@ -23819,7 +23819,7 @@ class SemanticTokensLegend implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('tokenTypes');
       try {
@@ -23952,7 +23952,7 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('legend');
       try {
@@ -24060,7 +24060,7 @@ class SemanticTokensOptionsFull implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('delta');
       try {
@@ -24111,7 +24111,7 @@ class SemanticTokensOptionsRange implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
@@ -24192,7 +24192,7 @@ class SemanticTokensParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -24284,7 +24284,7 @@ class SemanticTokensPartialResult implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('data');
       try {
@@ -24391,7 +24391,7 @@ class SemanticTokensRangeParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -24573,7 +24573,7 @@ class SemanticTokensRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -24720,7 +24720,7 @@ class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('refreshSupport');
       try {
@@ -25328,7 +25328,7 @@ class ServerCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocumentSync');
       try {
@@ -25863,7 +25863,7 @@ class ServerCapabilitiesFileOperations implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('didCreate');
       try {
@@ -26011,7 +26011,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workspaceFolders');
       try {
@@ -26088,7 +26088,7 @@ class SetTraceParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('value');
       try {
@@ -26157,7 +26157,7 @@ class ShowDocumentClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('support');
       try {
@@ -26257,7 +26257,7 @@ class ShowDocumentParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -26359,7 +26359,7 @@ class ShowDocumentResult implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('success');
       try {
@@ -26429,7 +26429,7 @@ class ShowMessageParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('type');
       try {
@@ -26521,7 +26521,7 @@ class ShowMessageRequestClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('messageActionItem');
       try {
@@ -26590,7 +26590,7 @@ class ShowMessageRequestClientCapabilitiesMessageActionItem
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('additionalPropertiesSupport');
       try {
@@ -26668,7 +26668,7 @@ class ShowMessageRequestParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('type');
       try {
@@ -26805,7 +26805,7 @@ class SignatureHelp implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('signatures');
       try {
@@ -26929,7 +26929,7 @@ class SignatureHelpClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -27022,7 +27022,7 @@ class SignatureHelpClientCapabilitiesParameterInformation
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('labelOffsetSupport');
       try {
@@ -27118,7 +27118,7 @@ class SignatureHelpClientCapabilitiesSignatureInformation
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentationFormat');
       try {
@@ -27250,7 +27250,7 @@ class SignatureHelpContext implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('triggerKind');
       try {
@@ -27393,7 +27393,7 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('triggerCharacters');
       try {
@@ -27520,7 +27520,7 @@ class SignatureHelpParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('context');
       try {
@@ -27676,7 +27676,7 @@ class SignatureHelpRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -27865,7 +27865,7 @@ class SignatureInformation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('label');
       try {
@@ -28004,7 +28004,7 @@ class StaticRegistrationOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('id');
       try {
@@ -28122,7 +28122,7 @@ class SymbolInformation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('name');
       try {
@@ -28353,7 +28353,7 @@ class TextDocumentChangeRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('syncKind');
       try {
@@ -28738,7 +28738,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('synchronization');
       try {
@@ -29152,7 +29152,7 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -29249,7 +29249,7 @@ class TextDocumentContentChangeEvent2 implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('text');
       try {
@@ -29334,7 +29334,7 @@ class TextDocumentEdit implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -29438,7 +29438,7 @@ class TextDocumentIdentifier implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -29524,7 +29524,7 @@ class TextDocumentItem implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -29698,7 +29698,7 @@ class TextDocumentPositionParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -29874,7 +29874,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -29989,7 +29989,7 @@ class TextDocumentSaveRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('includeText');
       try {
@@ -30102,7 +30102,7 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -30285,7 +30285,7 @@ class TextDocumentSyncOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('openClose');
       try {
@@ -30403,7 +30403,7 @@ class TextEdit implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
@@ -30523,7 +30523,7 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -30597,7 +30597,7 @@ class TypeDefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -30700,7 +30700,7 @@ class TypeDefinitionParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -30838,7 +30838,7 @@ class TypeDefinitionRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentSelector');
       try {
@@ -30971,7 +30971,7 @@ class Unregistration implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('id');
       try {
@@ -31059,7 +31059,7 @@ class UnregistrationParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('unregisterations');
       try {
@@ -31138,7 +31138,7 @@ class VersionedTextDocumentIdentifier
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('version');
       try {
@@ -31259,7 +31259,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('textDocument');
       try {
@@ -31396,7 +31396,7 @@ class WorkDoneProgressBegin implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -31519,7 +31519,7 @@ class WorkDoneProgressCancelParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('token');
       try {
@@ -31589,7 +31589,7 @@ class WorkDoneProgressCreateParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('token');
       try {
@@ -31665,7 +31665,7 @@ class WorkDoneProgressEnd implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -31816,7 +31816,7 @@ class WorkDoneProgressOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -31975,7 +31975,7 @@ class WorkDoneProgressParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneToken');
       try {
@@ -32076,7 +32076,7 @@ class WorkDoneProgressReport implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('kind');
       try {
@@ -32241,7 +32241,7 @@ class WorkspaceEdit implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('changes');
       try {
@@ -32407,7 +32407,7 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('documentChanges');
       try {
@@ -32527,7 +32527,7 @@ class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('groupsOnLabel');
       try {
@@ -32592,7 +32592,7 @@ class WorkspaceFolder implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('uri');
       try {
@@ -32687,7 +32687,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('added');
       try {
@@ -32802,7 +32802,7 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('supported');
       try {
@@ -32904,7 +32904,7 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('dynamicRegistration');
       try {
@@ -33003,7 +33003,7 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -33071,7 +33071,7 @@ class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('valueSet');
       try {
@@ -33146,7 +33146,7 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
@@ -33238,7 +33238,7 @@ class WorkspaceSymbolParams
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('query');
       try {
@@ -33335,7 +33335,7 @@ class WorkspaceSymbolRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, dynamic>) {
       reporter.push('workDoneProgress');
       try {
