@@ -269,10 +269,10 @@ class ImageWriter : public ValueObject {
   void PrepareForSerialization(GrowableArray<ImageWriterCommand>* commands);
 
   bool IsROSpace() const {
-    return offset_space_ == V8SnapshotProfileWriter::kVmData ||
-           offset_space_ == V8SnapshotProfileWriter::kVmText ||
-           offset_space_ == V8SnapshotProfileWriter::kIsolateData ||
-           offset_space_ == V8SnapshotProfileWriter::kIsolateText;
+    return offset_space_ == IdSpace::kVmData ||
+           offset_space_ == IdSpace::kVmText ||
+           offset_space_ == IdSpace::kIsolateData ||
+           offset_space_ == IdSpace::kIsolateText;
   }
   int32_t GetTextOffsetFor(InstructionsPtr instructions, CodePtr code);
   uint32_t GetDataOffsetFor(ObjectPtr raw_object);
@@ -436,8 +436,7 @@ class ImageWriter : public ValueObject {
   GrowableArray<ObjectData> objects_;
   GrowableArray<InstructionsData> instructions_;
 
-  V8SnapshotProfileWriter::IdSpace offset_space_ =
-      V8SnapshotProfileWriter::kSnapshot;
+  IdSpace offset_space_ = IdSpace::kSnapshot;
   V8SnapshotProfileWriter* profile_writer_ = nullptr;
   const char* const image_type_;
   const char* const instructions_section_type_;

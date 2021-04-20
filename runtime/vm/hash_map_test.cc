@@ -259,7 +259,7 @@ TEST_CASE(ZoneCStringSet) {
   EXPECT(set->IsEmpty());
 }
 
-TEST_CASE(CStringMap) {
+TEST_CASE(CStringIntMap) {
   const char* const kConst1 = "test";
   const char* const kConst2 = "test 2";
 
@@ -274,7 +274,7 @@ TEST_CASE(CStringMap) {
   const intptr_t i1 = 1;
   const intptr_t i2 = 2;
 
-  CStringMap<intptr_t> map;
+  CStringIntMap map;
   EXPECT(map.IsEmpty());
 
   map.Insert({str1, i1});
@@ -307,7 +307,7 @@ TEST_CASE(CStringMap) {
   free(str1);
 }
 
-TEST_CASE(CStringMapUpdate) {
+TEST_CASE(CStringIntMapUpdate) {
   const char* const kConst1 = "test";
   const char* const kConst2 = "test 2";
 
@@ -323,11 +323,11 @@ TEST_CASE(CStringMapUpdate) {
   EXPECT_STREQ(str1, str3);
   EXPECT_STREQ(str1, str4);
 
-  CStringMapKeyValueTrait<intptr_t>::Pair p1 = {str1, 1};
-  CStringMapKeyValueTrait<intptr_t>::Pair p2 = {str2, 2};
-  CStringMapKeyValueTrait<intptr_t>::Pair p3 = {str3, 3};
+  CStringIntMapKeyValueTrait::Pair p1{str1, 1};
+  CStringIntMapKeyValueTrait::Pair p2{str2, 2};
+  CStringIntMapKeyValueTrait::Pair p3{str3, 3};
 
-  CStringMap<intptr_t> map;
+  CStringIntMap map;
   EXPECT(map.IsEmpty());
 
   map.Update(p1);

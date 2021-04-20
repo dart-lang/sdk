@@ -1301,12 +1301,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void _unaliasTypeAliasedConstructorInvocations() {
     for (TypeAliasedConstructorInvocationJudgment invocation
         in typeAliasedConstructorInvocations) {
+      bool inferred = !hasExplicitTypeArguments(invocation.arguments);
       DartType aliasedType = new TypedefType(
           invocation.typeAliasBuilder.typedef,
           Nullability.nonNullable,
           invocation.arguments.types);
       libraryBuilder.checkBoundsInType(
-          aliasedType, typeEnvironment, uri, invocation.fileOffset);
+          aliasedType, typeEnvironment, uri, invocation.fileOffset,
+          allowSuperBounded: false, inferred: inferred);
       DartType unaliasedType = aliasedType.unalias;
       List<DartType> invocationTypeArguments = null;
       if (unaliasedType is InterfaceType) {
@@ -1325,12 +1327,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void _unaliasTypeAliasedFactoryInvocations() {
     for (TypeAliasedFactoryInvocationJudgment invocation
         in typeAliasedFactoryInvocations) {
+      bool inferred = !hasExplicitTypeArguments(invocation.arguments);
       DartType aliasedType = new TypedefType(
           invocation.typeAliasBuilder.typedef,
           Nullability.nonNullable,
           invocation.arguments.types);
       libraryBuilder.checkBoundsInType(
-          aliasedType, typeEnvironment, uri, invocation.fileOffset);
+          aliasedType, typeEnvironment, uri, invocation.fileOffset,
+          allowSuperBounded: false, inferred: inferred);
       DartType unaliasedType = aliasedType.unalias;
       List<DartType> invocationTypeArguments = null;
       if (unaliasedType is InterfaceType) {

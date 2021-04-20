@@ -542,47 +542,56 @@ class ZoneCStringSet : public BaseCStringSet<ZoneAllocated, Zone> {
   DISALLOW_COPY_AND_ASSIGN(ZoneCStringSet);
 };
 
-template <typename V>
-class CStringMapKeyValueTrait : public RawPointerKeyValueTrait<const char, V> {
- public:
-  typedef typename RawPointerKeyValueTrait<const char, V>::Key Key;
-  typedef typename RawPointerKeyValueTrait<const char, V>::Value Value;
-  typedef typename RawPointerKeyValueTrait<const char, V>::Pair Pair;
+struct CStringIntMapKeyValueTrait {
+  using Key = const char*;
+  using Value = intptr_t;
 
-  static uword Hash(Key key) {
+  static constexpr Value kNoValue = kIntptrMin;
+
+  struct Pair {
+    Key key;
+    Value value;
+    Pair() : key(nullptr), value(kNoValue) {}
+    Pair(const Key key, const Value& value) : key(key), value(value) {}
+    Pair(const Pair& other) : key(other.key), value(other.value) {}
+    Pair& operator=(const Pair&) = default;
+  };
+
+  static Key KeyOf(const Pair& pair) { return pair.key; }
+  static Value ValueOf(const Pair& pair) { return pair.value; }
+  static uword Hash(const Key& key) {
     ASSERT(key != nullptr);
     return Utils::StringHash(key, strlen(key));
   }
-  static bool IsKeyEqual(Pair kv, Key key) {
+  static bool IsKeyEqual(const Pair& kv, const Key& key) {
     ASSERT(kv.key != nullptr && key != nullptr);
     return kv.key == key || strcmp(kv.key, key) == 0;
   }
 };
 
-template <typename V, typename B, typename Allocator>
-class BaseCStringMap
-    : public BaseDirectChainedHashMap<CStringMapKeyValueTrait<V>,
+template <typename B, typename Allocator>
+class BaseCStringIntMap
+    : public BaseDirectChainedHashMap<CStringIntMapKeyValueTrait,
                                       B,
                                       Allocator> {
  public:
-  explicit BaseCStringMap(Allocator* allocator)
-      : BaseDirectChainedHashMap<CStringMapKeyValueTrait<V>, B, Allocator>(
+  explicit BaseCStringIntMap(Allocator* allocator)
+      : BaseDirectChainedHashMap<CStringIntMapKeyValueTrait, B, Allocator>(
             allocator) {}
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(BaseCStringMap);
+  DISALLOW_COPY_AND_ASSIGN(BaseCStringIntMap);
 };
 
-template <typename V>
-class CStringMap : public BaseCStringMap<V, ValueObject, Zone> {
+class CStringIntMap : public BaseCStringIntMap<ValueObject, Zone> {
  public:
-  CStringMap()
-      : BaseCStringMap<V, ValueObject, Zone>(ThreadState::Current()->zone()) {}
-  explicit CStringMap(Zone* zone)
-      : BaseCStringMap<V, ValueObject, Zone>(zone) {}
+  CStringIntMap()
+      : BaseCStringIntMap<ValueObject, Zone>(ThreadState::Current()->zone()) {}
+  explicit CStringIntMap(Zone* zone)
+      : BaseCStringIntMap<ValueObject, Zone>(zone) {}
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(CStringMap);
+  DISALLOW_COPY_AND_ASSIGN(CStringIntMap);
 };
 
 template <typename V>
@@ -653,7 +662,7 @@ class IdentitySetKeyValueTrait {
   static Value ValueOf(Pair kv) { return kv; }
 
   static inline uword Hash(Key key) {
-    return Utils::WordHash(reinterpret_cast<intptr_t>(key));
+    return Utils::StringHash(reinterpret_cast<const char*>(&key), sizeof(key));
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) { return pair == key; }

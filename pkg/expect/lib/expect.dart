@@ -169,6 +169,15 @@ class Expect {
   }
 
   /**
+   * Checks whether the Iterable [actual] is empty.
+   */
+  static void isEmpty(Iterable actual, [String reason = ""]) {
+    if (actual.isEmpty) return;
+    String msg = _getMessage(reason);
+    _fail("Expect.isEmpty(actual: <$actual>$msg) fails.");
+  }
+
+  /**
    * Checks whether the expected and actual values are identical
    * (using `identical`).
    */

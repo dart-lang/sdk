@@ -28,6 +28,7 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
+#include "vm/v8_snapshot_writer.h"
 #include "vm/version.h"
 #include "vm/zone_text_buffer.h"
 
@@ -1747,19 +1748,6 @@ class CodeSerializationCluster : public SerializationCluster {
       }
     }
 
-    s->Push(code->untag()->owner_);
-    s->Push(code->untag()->exception_handlers_);
-    s->Push(code->untag()->pc_descriptors_);
-    s->Push(code->untag()->catch_entry_);
-    if (s->InCurrentLoadingUnit(code->untag()->compressed_stackmaps_)) {
-      s->Push(code->untag()->compressed_stackmaps_);
-    }
-    if (!FLAG_precompiled_mode || !FLAG_dwarf_stack_traces_mode) {
-      s->Push(code->untag()->inlined_id_to_function_);
-      if (s->InCurrentLoadingUnit(code->untag()->code_source_map_)) {
-        s->Push(code->untag()->code_source_map_);
-      }
-    }
     if (s->kind() == Snapshot::kFullJIT) {
       s->Push(code->untag()->deopt_info_array_);
       s->Push(code->untag()->static_calls_target_table_);
@@ -1792,6 +1780,29 @@ class CodeSerializationCluster : public SerializationCluster {
 #else
       UNREACHABLE();
 #endif
+    }
+
+    if (s->InCurrentLoadingUnit(code->untag()->compressed_stackmaps_)) {
+      s->Push(code->untag()->compressed_stackmaps_);
+    }
+
+    if (Code::IsDiscarded(code)) {
+      ASSERT(s->kind() == Snapshot::kFullAOT && FLAG_use_bare_instructions &&
+             FLAG_dwarf_stack_traces_mode && !FLAG_retain_code_objects);
+      // Only object pool and static call table entries and the compressed
+      // stack maps should be pushed.
+      return;
+    }
+
+    s->Push(code->untag()->owner_);
+    s->Push(code->untag()->exception_handlers_);
+    s->Push(code->untag()->pc_descriptors_);
+    s->Push(code->untag()->catch_entry_);
+    if (!FLAG_precompiled_mode || !FLAG_dwarf_stack_traces_mode) {
+      s->Push(code->untag()->inlined_id_to_function_);
+      if (s->InCurrentLoadingUnit(code->untag()->code_source_map_)) {
+        s->Push(code->untag()->code_source_map_);
+      }
     }
 #if !defined(PRODUCT)
     s->Push(code->untag()->return_address_metadata_);
@@ -2020,7 +2031,6 @@ class CodeSerializationCluster : public SerializationCluster {
   GrowableArray<CodePtr>* objects() { return &objects_; }
   GrowableArray<CodePtr>* deferred_objects() { return &deferred_objects_; }
 
- private:
   static const char* MakeDisambiguatedCodeName(Serializer* s, CodePtr c) {
     if (s->profile_writer() == nullptr) {
       return nullptr;
@@ -2034,6 +2044,7 @@ class CodeSerializationCluster : public SerializationCluster {
             Object::NameVisibility::kInternalName));
   }
 
+ private:
   GrowableArray<CodePtr> objects_;
   GrowableArray<CodePtr> deferred_objects_;
   Array& array_;
@@ -5586,17 +5597,15 @@ class VMSerializationRoots : public SerializationRoots {
     if (!should_write_symbols_ && s->profile_writer() != nullptr) {
       // If writing V8 snapshot profile create an artifical node representing
       // VM isolate symbol table.
+      ASSERT(!s->IsReachable(symbols_.ptr()));
       s->AssignArtificialRef(symbols_.ptr());
       const auto& symbols_snapshot_id = s->GetProfileId(symbols_.ptr());
-      s->profile_writer()->AddRoot(symbols_snapshot_id, "vm_symbols");
-      s->profile_writer()->SetObjectType(symbols_snapshot_id, "Symbols");
+      s->profile_writer()->SetObjectTypeAndName(symbols_snapshot_id, "Symbols",
+                                                "vm_symbols");
+      s->profile_writer()->AddRoot(symbols_snapshot_id);
       for (intptr_t i = 0; i < symbols_.Length(); i++) {
         s->profile_writer()->AttributeReferenceTo(
-            symbols_snapshot_id,
-            {
-                V8SnapshotProfileWriter::Reference::kElement,
-                {.offset = i},
-            },
+            symbols_snapshot_id, V8SnapshotProfileWriter::Reference::Element(i),
             s->GetProfileId(symbols_.At(i)));
       }
     }
@@ -6096,9 +6105,6 @@ void Serializer::AddBaseObject(ObjectPtr base_object,
   num_base_objects_++;
 
   if ((profile_writer_ != nullptr) && (type != nullptr)) {
-    if (name == nullptr) {
-      name = "<base object>";
-    }
     const auto& profile_id = GetProfileId(base_object);
     profile_writer_->SetObjectTypeAndName(profile_id, type, name);
     profile_writer_->AddRoot(profile_id);
@@ -6120,12 +6126,14 @@ intptr_t Serializer::AssignRef(ObjectPtr object) {
 }
 
 intptr_t Serializer::AssignArtificialRef(ObjectPtr object) {
-  ASSERT(!object.IsHeapObject() || !object.IsInstructions());
-  ASSERT(heap_->GetObjectId(object) == kUnreachableReference);
   const intptr_t ref = -(next_ref_index_++);
   ASSERT(IsArtificialReference(ref));
-  heap_->SetObjectId(object, ref);
-  ASSERT(heap_->GetObjectId(object) == ref);
+  if (object != nullptr) {
+    ASSERT(!object.IsHeapObject() || !object.IsInstructions());
+    ASSERT(heap_->GetObjectId(object) == kUnreachableReference);
+    heap_->SetObjectId(object, ref);
+    ASSERT(heap_->GetObjectId(object) == ref);
+  }
   return ref;
 }
 
@@ -6141,12 +6149,16 @@ V8SnapshotProfileWriter::ObjectId Serializer::GetProfileId(
     ObjectPtr object) const {
   // Instructions are handled separately.
   ASSERT(!object->IsHeapObject() || !object->IsInstructions());
-  intptr_t heap_id = UnsafeRefId(object);
+  return GetProfileId(UnsafeRefId(object));
+}
+
+V8SnapshotProfileWriter::ObjectId Serializer::GetProfileId(
+    intptr_t heap_id) const {
   if (IsArtificialReference(heap_id)) {
-    return {V8SnapshotProfileWriter::kArtificial, -heap_id};
+    return {IdSpace::kArtificial, -heap_id};
   }
   ASSERT(IsAllocatedReference(heap_id));
-  return {V8SnapshotProfileWriter::kSnapshot, heap_id};
+  return {IdSpace::kSnapshot, heap_id};
 }
 
 void Serializer::AttributeReference(
@@ -6159,7 +6171,8 @@ void Serializer::AttributeReference(
   if (object->IsHeapObject() && object->IsWeakSerializationReference()) {
     const auto& wsr = WeakSerializationReference::RawCast(object);
     const auto& target = wsr->untag()->target();
-    if (!CreateArtificialNodeIfNeeded(wsr) && HasArtificialRef(target)) {
+    const bool wsr_reachable = !CreateArtificialNodeIfNeeded(wsr);
+    if (wsr_reachable && HasArtificialRef(target)) {
       // The target has artificial information used for snapshot analysis and
       // the replacement is part of the snapshot, so write information for both.
       const auto& replacement = wsr->untag()->replacement();
@@ -6168,12 +6181,11 @@ void Serializer::AttributeReference(
           GetProfileId(replacement));
       return;
     }
-    // Either the target of the WSR is strongly referenced or the WSR itself is
-    // unreachable, in which case it shares an artificial object ID with the
-    // target due to CreateArtificialNodeIfNeeded, so fall through.
-    ASSERT(HasRef(target) || HasArtificialRef(wsr));
-  } else if (object_currently_writing_.id_.first ==
-             V8SnapshotProfileWriter::kArtificial) {
+    // The replacement isn't used, as either the target is strongly referenced
+    // or the WSR itself is unreachable, so fall through to attributing a
+    // reference to the WSR (which shares a profile ID with the target).
+    ASSERT(GetProfileId(wsr) == GetProfileId(target));
+  } else if (object_currently_writing_.id_.IsArtificial()) {
     // We may need to recur when writing members of artificial nodes in
     // CreateArtificialNodeIfNeeded.
     CreateArtificialNodeIfNeeded(object);
@@ -6214,21 +6226,6 @@ V8SnapshotProfileWriter::ObjectId Serializer::WritingObjectScope::ReserveId(
     Serializer* s,
     const char* type,
     ObjectPtr obj,
-    StringPtr name) {
-  const char* name_str = nullptr;
-  if (name != nullptr) {
-    REUSABLE_STRING_HANDLESCOPE(s->thread());
-    String& str = reused_string_handle.Handle();
-    str = name;
-    name_str = str.ToCString();
-  }
-  return ReserveId(s, type, obj, name_str);
-}
-
-V8SnapshotProfileWriter::ObjectId Serializer::WritingObjectScope::ReserveId(
-    Serializer* s,
-    const char* type,
-    ObjectPtr obj,
     const char* name) {
   if (s->profile_writer_ == nullptr) {
     return V8SnapshotProfileWriter::kArtificialRootId;
@@ -6247,10 +6244,7 @@ V8SnapshotProfileWriter::ObjectId Serializer::WritingObjectScope::ReserveId(
       }
       case kOneByteStringCid:
       case kTwoByteStringCid: {
-        REUSABLE_STRING_HANDLESCOPE(s->thread());
-        String& str = reused_string_handle.Handle();
-        str = String::RawCast(obj);
-        name = str.ToCString();
+        name = String::ToCString(s->thread(), String::RawCast(obj));
         break;
       }
     }
@@ -6294,20 +6288,12 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
     return false;
   }
   ASSERT_EQUAL(id, kUnreachableReference);
-  id = AssignArtificialRef(obj);
-
-  auto property = [](const char* name) -> V8SnapshotProfileWriter::Reference {
-    return {V8SnapshotProfileWriter::Reference::kProperty, {.name = name}};
-  };
-  auto element = [](intptr_t index) -> V8SnapshotProfileWriter::Reference {
-    return {V8SnapshotProfileWriter::Reference::kElement, {.offset = index}};
-  };
 
   const char* type = nullptr;
-  StringPtr name_string = nullptr;
   const char* name = nullptr;
   GrowableArray<std::pair<ObjectPtr, V8SnapshotProfileWriter::Reference>> links;
-  switch (obj->GetClassIdMayBeSmi()) {
+  const classid_t cid = obj->GetClassIdMayBeSmi();
+  switch (cid) {
     // For profiling static call target tables in AOT mode.
     case kSmiCid: {
       type = "Smi";
@@ -6324,20 +6310,30 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
           auto const elem = pool->untag()->data()[i].raw_obj_;
           // Elements should be reachable from the global object pool.
           ASSERT(HasRef(elem));
-          links.Add({elem, element(i)});
+          links.Add({elem, V8SnapshotProfileWriter::Reference::Element(i)});
         }
       }
       break;
     }
-    // For profiling static call target tables in AOT mode.
+    // For profiling static call target tables and the dispatch table in AOT.
+    case kImmutableArrayCid:
     case kArrayCid: {
       type = "Array";
       auto const array = Array::RawCast(obj);
       for (intptr_t i = 0, n = Smi::Value(array->untag()->length()); i < n;
            i++) {
         ObjectPtr elem = array->untag()->data()[i];
-        links.Add({elem, element(i)});
+        links.Add({elem, V8SnapshotProfileWriter::Reference::Element(i)});
       }
+      break;
+    }
+    // For profiling the dispatch table.
+    case kCodeCid: {
+      type = "Code";
+      auto const code = Code::RawCast(obj);
+      name = CodeSerializationCluster::MakeDisambiguatedCodeName(this, code);
+      links.Add({code->untag()->owner(),
+                 V8SnapshotProfileWriter::Reference::Property("owner_")});
       break;
     }
     case kFunctionCid: {
@@ -6345,10 +6341,12 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
       type = "Function";
       name = FunctionSerializationCluster::MakeDisambiguatedFunctionName(this,
                                                                          func);
-      links.Add({func->untag()->owner(), property("owner_")});
+      links.Add({func->untag()->owner(),
+                 V8SnapshotProfileWriter::Reference::Property("owner_")});
       ObjectPtr data = func->untag()->data();
       if (data->GetClassId() == kClosureDataCid) {
-        links.Add({func->untag()->data(), property("data_")});
+        links.Add(
+            {data, V8SnapshotProfileWriter::Reference::Property("data_")});
       }
       break;
     }
@@ -6356,40 +6354,37 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
       auto data = static_cast<ClosureDataPtr>(obj);
       type = "ClosureData";
       links.Add(
-          {data->untag()->parent_function(), property("parent_function_")});
+          {data->untag()->parent_function(),
+           V8SnapshotProfileWriter::Reference::Property("parent_function_")});
       break;
     }
     case kClassCid: {
       ClassPtr cls = static_cast<ClassPtr>(obj);
       type = "Class";
-      name_string = cls->untag()->name();
-      links.Add({cls->untag()->library(), property("library_")});
+      name = String::ToCString(thread(), cls->untag()->name());
+      links.Add({cls->untag()->library(),
+                 V8SnapshotProfileWriter::Reference::Property("library_")});
       break;
     }
     case kPatchClassCid: {
       PatchClassPtr patch_cls = static_cast<PatchClassPtr>(obj);
       type = "PatchClass";
       links.Add(
-          {patch_cls->untag()->patched_class(), property("patched_class_")});
+          {patch_cls->untag()->patched_class(),
+           V8SnapshotProfileWriter::Reference::Property("patched_class_")});
       break;
     }
     case kLibraryCid: {
       LibraryPtr lib = static_cast<LibraryPtr>(obj);
       type = "Library";
-      name_string = lib->untag()->url();
+      name = String::ToCString(thread(), lib->untag()->url());
       break;
     }
     default:
-      UNREACHABLE();
+      FATAL("Request to create artificial node for object with cid %d", cid);
   }
 
-  if (name_string != nullptr) {
-    REUSABLE_STRING_HANDLESCOPE(thread());
-    String& str = reused_string_handle.Handle();
-    str = name_string;
-    name = str.ToCString();
-  }
-
+  id = AssignArtificialRef(obj);
   Serializer::WritingObjectScope scope(this, type, obj, name);
   for (const auto& link : links) {
     AttributeReference(link.first, link.second);
@@ -6705,17 +6700,13 @@ void Serializer::WriteInstructions(InstructionsPtr instr,
   const intptr_t offset = image_writer_->GetTextOffsetFor(instr, code);
 #if defined(DART_PRECOMPILER)
   if (profile_writer_ != nullptr) {
-    ASSERT(IsAllocatedReference(object_currently_writing_.id_.second));
-    const auto offset_space = vm_ ? V8SnapshotProfileWriter::kVmText
-                                  : V8SnapshotProfileWriter::kIsolateText;
-    const V8SnapshotProfileWriter::ObjectId to_object(offset_space, offset);
+    ASSERT(object_currently_writing_.id_ !=
+           V8SnapshotProfileWriter::kArtificialRootId);
+    const auto offset_space = vm_ ? IdSpace::kVmText : IdSpace::kIsolateText;
     profile_writer_->AttributeReferenceTo(
         object_currently_writing_.id_,
-        {
-            V8SnapshotProfileWriter::Reference::kProperty,
-            {.name = "<instructions>"},
-        },
-        to_object);
+        V8SnapshotProfileWriter::Reference::Property("<instructions>"),
+        {offset_space, offset});
   }
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
@@ -6745,22 +6736,16 @@ void Serializer::WriteInstructions(InstructionsPtr instr,
 }
 
 void Serializer::TraceDataOffset(uint32_t offset) {
-  if (profile_writer_ != nullptr) {
-    // ROData cannot be roots.
-    ASSERT(IsAllocatedReference(object_currently_writing_.id_.second));
-    auto offset_space = vm_ ? V8SnapshotProfileWriter::kVmData
-                            : V8SnapshotProfileWriter::kIsolateData;
-    V8SnapshotProfileWriter::ObjectId to_object = {offset_space, offset};
-    // TODO(sjindel): Give this edge a more appropriate type than element
-    // (internal, maybe?).
-    profile_writer_->AttributeReferenceTo(
-        object_currently_writing_.id_,
-        {
-            V8SnapshotProfileWriter::Reference::kElement,
-            {.offset = 0},
-        },
-        to_object);
-  }
+  if (profile_writer_ == nullptr) return;
+  // ROData cannot be roots.
+  ASSERT(object_currently_writing_.id_ !=
+         V8SnapshotProfileWriter::kArtificialRootId);
+  auto offset_space = vm_ ? IdSpace::kVmData : IdSpace::kIsolateData;
+  // TODO(sjindel): Give this edge a more appropriate type than element
+  // (internal, maybe?).
+  profile_writer_->AttributeReferenceTo(
+      object_currently_writing_.id_,
+      V8SnapshotProfileWriter::Reference::Element(0), {offset_space, offset});
 }
 
 uint32_t Serializer::GetDataOffset(ObjectPtr object) const {
@@ -7094,13 +7079,25 @@ void Serializer::WriteDispatchTable(const Array& entries) {
 #if defined(DART_PRECOMPILER)
   if (kind() != Snapshot::kFullAOT) return;
 
-  AssignArtificialRef(entries.ptr());
-  const auto& dispatch_table_snapshot_id = GetProfileId(entries.ptr());
+  // Create an artifical node to which the bytes should be attributed. We
+  // don't attribute them to entries.ptr(), as we don't want to attribute the
+  // bytes for printing out a length of 0 to Object::null() when the dispatch
+  // table is empty.
+  const intptr_t profile_ref = AssignArtificialRef();
+  const auto& dispatch_table_profile_id = GetProfileId(profile_ref);
   if (profile_writer_ != nullptr) {
-    profile_writer_->AddRoot(dispatch_table_snapshot_id, "dispatch_table");
-    profile_writer_->SetObjectType(dispatch_table_snapshot_id, "DispatchTable");
+    profile_writer_->SetObjectTypeAndName(dispatch_table_profile_id,
+                                          "DispatchTable", "dispatch_table");
+    profile_writer_->AddRoot(dispatch_table_profile_id);
   }
-  WritingObjectScope scope(this, dispatch_table_snapshot_id);
+  WritingObjectScope scope(this, dispatch_table_profile_id);
+  if (profile_writer_ != nullptr) {
+    // We'll write the Array object as a property of the artificial dispatch
+    // table node, so Code objects otherwise unreferenced will have it as an
+    // ancestor.
+    CreateArtificialNodeIfNeeded(entries.ptr());
+    AttributePropertyRef(entries.ptr(), "<code entries>");
+  }
 
   const intptr_t bytes_before = bytes_written();
   const intptr_t table_length = entries.IsNull() ? 0 : entries.Length();
@@ -7190,23 +7187,6 @@ void Serializer::WriteDispatchTable(const Array& entries) {
     Write(repeat_count);
   }
   dispatch_table_size_ = bytes_written() - bytes_before;
-
-  // If any bytes were written for the dispatch table, add the elements of
-  // the dispatch table in the profile.
-  if (profile_writer_ != nullptr && !entries.IsNull()) {
-    for (intptr_t i = 0; i < entries.Length(); i++) {
-      auto const code = Code::RawCast(entries.At(i));
-      if (code == Code::null()) continue;
-      profile_writer_->AttributeReferenceTo(
-          dispatch_table_snapshot_id,
-          {
-              V8SnapshotProfileWriter::Reference::kElement,
-              {.offset = i},
-          },
-          GetProfileId(code));
-    }
-  }
-
 #endif  // defined(DART_PRECOMPILER)
 }
 

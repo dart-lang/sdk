@@ -17,7 +17,6 @@
 #include "vm/object.h"
 #include "vm/raw_object_fields.h"
 #include "vm/snapshot.h"
-#include "vm/v8_snapshot_writer.h"
 #include "vm/version.h"
 
 #if defined(DEBUG)
@@ -213,7 +212,7 @@ class Serializer : public ThreadStackResource {
                      const char* type = nullptr,
                      const char* name = nullptr);
   intptr_t AssignRef(ObjectPtr object);
-  intptr_t AssignArtificialRef(ObjectPtr object);
+  intptr_t AssignArtificialRef(ObjectPtr object = nullptr);
 
   void Push(ObjectPtr object);
 
@@ -257,9 +256,13 @@ class Serializer : public ThreadStackResource {
                        const char* type,
                        ObjectPtr object,
                        StringPtr name)
-        : WritingObjectScope(serializer,
-                             ReserveId(serializer, type, object, name),
-                             object) {}
+        : WritingObjectScope(
+              serializer,
+              ReserveId(serializer,
+                        type,
+                        object,
+                        String::ToCString(serializer->thread(), name)),
+              object) {}
 
     WritingObjectScope(Serializer* serializer,
                        const char* type,
@@ -281,11 +284,6 @@ class Serializer : public ThreadStackResource {
     ~WritingObjectScope();
 
    private:
-    static V8SnapshotProfileWriter::ObjectId ReserveId(Serializer* serializer,
-                                                       const char* type,
-                                                       ObjectPtr object,
-                                                       StringPtr name);
-
     static V8SnapshotProfileWriter::ObjectId ReserveId(Serializer* serializer,
                                                        const char* type,
                                                        ObjectPtr object,
@@ -317,6 +315,7 @@ class Serializer : public ThreadStackResource {
   void Align(intptr_t alignment) { stream_->Align(alignment); }
 
   V8SnapshotProfileWriter::ObjectId GetProfileId(ObjectPtr object) const;
+  V8SnapshotProfileWriter::ObjectId GetProfileId(intptr_t ref) const;
 
   void WriteRootRef(ObjectPtr object, const char* name = nullptr) {
     intptr_t id = RefId(object);
@@ -332,8 +331,8 @@ class Serializer : public ThreadStackResource {
                           const V8SnapshotProfileWriter::Reference& reference);
 
   void AttributeElementRef(ObjectPtr object, intptr_t index) {
-    AttributeReference(object, {V8SnapshotProfileWriter::Reference::kElement,
-                                {.offset = index}});
+    AttributeReference(object,
+                       V8SnapshotProfileWriter::Reference::Element(index));
   }
 
   void WriteElementRef(ObjectPtr object, intptr_t index) {
@@ -342,8 +341,8 @@ class Serializer : public ThreadStackResource {
   }
 
   void AttributePropertyRef(ObjectPtr object, const char* property) {
-    AttributeReference(object, {V8SnapshotProfileWriter::Reference::kProperty,
-                                {.name = property}});
+    AttributeReference(object,
+                       V8SnapshotProfileWriter::Reference::Property(property));
   }
 
   void WritePropertyRef(ObjectPtr object, const char* property) {

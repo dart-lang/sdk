@@ -16,54 +16,71 @@
 
 namespace dart {
 
-struct StringToIntMapTraits {
-  typedef char const* Key;
-  typedef intptr_t Value;
-
-  struct Pair {
-    Key key;
-    Value value;
-    Pair() : key(nullptr), value(-1) {}
-    Pair(Key k, Value v) : key(k), value(v) {}
-  };
-
-  static Value ValueOf(Pair pair) { return pair.value; }
-
-  static Key KeyOf(Pair pair) { return pair.key; }
-
-  static uword Hash(Key key) { return String::Hash(key, strlen(key)); }
-
-  static bool IsKeyEqual(Pair x, Key y) { return strcmp(x.key, y) == 0; }
+enum class IdSpace : uint8_t {
+  kInvalid = 0,   // So default-constructed ObjectIds are invalid.
+  kSnapshot = 1,  // Can be VM or Isolate heap, they share ids.
+  kVmText = 2,
+  kIsolateText = 3,
+  kVmData = 4,
+  kIsolateData = 5,
+  kArtificial = 6,  // Artificial objects (e.g. the global root).
+  // Change ObjectId::kIdSpaceBits to use last entry if more are added.
 };
 
 class V8SnapshotProfileWriter : public ZoneAllocated {
  public:
-  enum IdSpace {
-    kSnapshot = 0,  // Can be VM or Isolate heap, they share ids.
-    kVmText = 1,
-    kIsolateText = 2,
-    kVmData = 3,
-    kIsolateData = 4,
-    kArtificial = 5,  // Artificial objects (e.g. the global root).
-    kIdSpaceBits = 3,
+  struct ObjectId {
+    ObjectId() : ObjectId(IdSpace::kInvalid, -1) {}
+    ObjectId(IdSpace space, int64_t nonce)
+        : encoded_((nonce << kIdSpaceBits) | static_cast<intptr_t>(space)) {
+      ASSERT(Utils::IsInt(kBitsPerInt64 - kIdSpaceBits, nonce));
+    }
+
+    inline bool operator!=(const ObjectId& other) const {
+      return encoded_ != other.encoded_;
+    }
+    inline bool operator==(const ObjectId& other) const {
+      return !(*this != other);
+    }
+
+    inline uword Hash() const { return Utils::WordHash(encoded_); }
+    inline int64_t nonce() const { return encoded_ >> kIdSpaceBits; }
+    inline IdSpace space() const {
+      return static_cast<IdSpace>(encoded_ & kIdSpaceMask);
+    }
+    inline bool IsArtificial() const { return space() == IdSpace::kArtificial; }
+
+    const char* ToCString(Zone* zone) const;
+    void Write(JSONWriter* writer, const char* property = nullptr) const;
+    void WriteDebug(JSONWriter* writer, const char* property = nullptr) const;
+
+   private:
+    static constexpr size_t kIdSpaceBits =
+        Utils::BitLength(static_cast<int64_t>(IdSpace::kArtificial));
+    static constexpr int64_t kIdSpaceMask = Utils::NBitMaskUnsafe(kIdSpaceBits);
+    static const char* IdSpaceToCString(IdSpace space);
+
+    int64_t encoded_;
   };
 
-  typedef std::pair<IdSpace, intptr_t> ObjectId;
-
   struct Reference {
-    enum Type {
+    enum class Type {
       kElement,
       kProperty,
-    } reference_type;
+    } type;
     union {
       intptr_t offset;   // kElement
       const char* name;  // kProperty
     };
-  };
 
-  enum ConstantStrings {
-    kUnknownString = 0,
-    kArtificialRootString = 1,
+    static Reference Element(intptr_t offset) {
+      return {Type::kElement, {.offset = offset}};
+    }
+    static Reference Property(const char* name) {
+      return {Type::kProperty, {.name = name}};
+    }
+
+    bool IsElement() const { return type == Type::kElement; }
   };
 
   static const ObjectId kArtificialRootId;
@@ -72,47 +89,41 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
   explicit V8SnapshotProfileWriter(Zone* zone) {}
   virtual ~V8SnapshotProfileWriter() {}
 
-  void SetObjectType(ObjectId object_id, const char* type) {}
-  void SetObjectTypeAndName(ObjectId object_id,
+  void SetObjectTypeAndName(const ObjectId& object_id,
                             const char* type,
                             const char* name) {}
-  void AttributeBytesTo(ObjectId object_id, size_t num_bytes) {}
-  void AttributeReferenceTo(ObjectId from_object_id,
-                            Reference reference,
-                            ObjectId to_object_id) {}
-  void AttributeWeakReferenceTo(
-      ObjectId from_object_id,
-      Reference reference,
-      ObjectId to_object_id,
-      ObjectId replacement_object_id = kArtificialRootId) {}
-  void AddRoot(ObjectId object_id, const char* name = nullptr) {}
+  void AttributeBytesTo(const ObjectId& object_id, size_t num_bytes) {}
+  void AttributeReferenceTo(const ObjectId& from_object_id,
+                            const Reference& reference,
+                            const ObjectId& to_object_id) {}
+  void AttributeWeakReferenceTo(const ObjectId& from_object_id,
+                                const Reference& reference,
+                                const ObjectId& to_object_id,
+                                const ObjectId& replacement_object_id) {}
+  void AddRoot(const ObjectId& object_id, const char* name = nullptr) {}
   bool HasId(const ObjectId& object_id) { return false; }
 #else
   explicit V8SnapshotProfileWriter(Zone* zone);
   virtual ~V8SnapshotProfileWriter() {}
 
-  void SetObjectType(ObjectId object_id, const char* type) {
-    SetObjectTypeAndName(object_id, type, nullptr);
-  }
-
   // Records that the object referenced by 'object_id' has type 'type'. The
   // 'type' for all 'Instance's should be 'Instance', not the user-visible type
   // and use 'name' for the real type instead.
-  void SetObjectTypeAndName(ObjectId object_id,
+  void SetObjectTypeAndName(const ObjectId& object_id,
                             const char* type,
                             const char* name);
 
   // Charges 'num_bytes'-many bytes to 'object_id'. In a clustered snapshot,
   // objects can have their data spread across multiple sections, so this can be
   // called multiple times for the same object.
-  void AttributeBytesTo(ObjectId object_id, size_t num_bytes);
+  void AttributeBytesTo(const ObjectId& object_id, size_t num_bytes);
 
   // Records that a reference to the object with id 'to_object_id' was written
   // in order to serialize the object with id 'from_object_id'. This does not
   // affect the number of bytes charged to 'from_object_id'.
-  void AttributeReferenceTo(ObjectId from_object_id,
-                            Reference reference,
-                            ObjectId to_object_id);
+  void AttributeReferenceTo(const ObjectId& from_object_id,
+                            const Reference& reference,
+                            const ObjectId& to_object_id);
 
   // Records that a weak serialization reference to a dropped object
   // with id 'to_object_id' was written in order to serialize the object with id
@@ -120,14 +131,14 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
   // 'replacement_object_id' is recorded as the replacement for the
   // dropped object in the snapshot. This does not affect the number of
   // bytes charged to 'from_object_id'.
-  void AttributeDroppedReferenceTo(ObjectId from_object_id,
-                                   Reference reference,
-                                   ObjectId to_object_id,
-                                   ObjectId replacement_object_id);
+  void AttributeDroppedReferenceTo(const ObjectId& from_object_id,
+                                   const Reference& reference,
+                                   const ObjectId& to_object_id,
+                                   const ObjectId& replacement_object_id);
 
-  // Marks an object as being a root in the graph. Used for analysis of the
-  // graph.
-  void AddRoot(ObjectId object_id, const char* name = nullptr);
+  // Marks an object as being a root in the graph. Used for analysis of
+  // the graph.
+  void AddRoot(const ObjectId& object_id, const char* name = nullptr);
 
   // Write to a file in the V8 Snapshot Profile (JSON/.heapsnapshot) format.
   void Write(const char* file);
@@ -137,17 +148,61 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
   bool HasId(const ObjectId& object_id);
 
  private:
+  static constexpr intptr_t kInvalidString =
+      CStringIntMapKeyValueTrait::kNoValue;
   static constexpr intptr_t kNumNodeFields = 5;
   static constexpr intptr_t kNumEdgeFields = 3;
 
-  using Edge = std::pair<intptr_t, intptr_t>;
+  struct Edge {
+    enum class Type : intptr_t {
+      kInvalid = -1,
+      kContext = 0,
+      kElement = 1,
+      kProperty = 2,
+      kInternal = 3,
+      kHidden = 4,
+      kShortcut = 5,
+      kWeak = 6,
+      kExtra = 7,
+    };
+
+    Edge() : Edge(nullptr, Type::kInvalid, -1) {}
+    Edge(V8SnapshotProfileWriter* profile_writer, const Reference& reference)
+        : Edge(profile_writer,
+               reference.type == Reference::Type::kElement ? Type::kElement
+                                                           : Type::kProperty,
+               reference.type == Reference::Type::kElement
+                   ? reference.offset
+                   : profile_writer->strings_.Add(reference.name)) {}
+    Edge(V8SnapshotProfileWriter* profile_writer,
+         Type type,
+         intptr_t name_or_offset)
+        : type(type),
+          name_or_offset(name_or_offset),
+          profile_writer_(profile_writer) {}
+
+    inline bool operator!=(const Edge& other) {
+      return profile_writer_ != other.profile_writer_ || type != other.type ||
+             name_or_offset != other.name_or_offset;
+    }
+    inline bool operator==(const Edge& other) { return !(*this != other); }
+
+    void Write(JSONWriter* writer, const ObjectId& target_id) const;
+    void WriteDebug(JSONWriter* writer, const ObjectId& target_id) const;
+
+    Type type;
+    intptr_t name_or_offset;
+
+   private:
+    V8SnapshotProfileWriter* profile_writer_;
+  };
 
   struct EdgeToObjectIdMapTrait {
     using Key = Edge;
     using Value = ObjectId;
 
     struct Pair {
-      Pair() : edge{kContext, -1}, target(kArtificialRootId) {}
+      Pair() : edge{}, target(kArtificialRootId) {}
       Pair(Key key, Value value) : edge(key), target(value) {}
       Edge edge;
       ObjectId target;
@@ -156,73 +211,90 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
     static Key KeyOf(Pair kv) { return kv.edge; }
     static Value ValueOf(Pair kv) { return kv.target; }
     static uword Hash(Key key) {
-      return FinalizeHash(CombineHashes(key.first, key.second), 30);
+      return FinalizeHash(
+          CombineHashes(static_cast<intptr_t>(key.type), key.name_or_offset));
     }
     static bool IsKeyEqual(Pair kv, Key key) { return kv.edge == key; }
   };
 
-  using EdgeMap = ZoneDirectChainedHashMap<EdgeToObjectIdMapTrait>;
+  struct EdgeMap : public ZoneDirectChainedHashMap<EdgeToObjectIdMapTrait> {
+    explicit EdgeMap(Zone* zone)
+        : ZoneDirectChainedHashMap<EdgeToObjectIdMapTrait>(zone) {}
+
+    const char* ToCString(Zone* zone) const;
+    void WriteDebug(JSONWriter* writer, const char* property = nullptr) const;
+  };
 
   struct NodeInfo {
-    intptr_t type = 0;
-    intptr_t name = 0;
-    ObjectId id;
-    intptr_t self_size = 0;
-    EdgeMap* edges = nullptr;
-    // Populated during serialization.
-    intptr_t offset = -1;
-    // 'trace_node_id' isn't supported.
-    // 'edge_count' is computed on-demand.
+    NodeInfo() {}
+    NodeInfo(V8SnapshotProfileWriter* profile_writer,
+             const ObjectId& id,
+             intptr_t type = kInvalidString,
+             intptr_t name = kInvalidString)
+        : id(id),
+          type(type),
+          name(name),
+          edges(new (profile_writer->zone_) EdgeMap(profile_writer->zone_)),
+          profile_writer_(profile_writer) {}
 
-    // Used for testing sentinel in the hashtable.
-    bool operator!=(const NodeInfo& other) { return id != other.id; }
-    bool operator==(const NodeInfo& other) { return !(*this != other); }
+    inline bool operator!=(const NodeInfo& other) {
+      return id != other.id || type != other.type || name != other.name ||
+             self_size != other.self_size || edges != other.edges ||
+             offset_ != other.offset_ ||
+             profile_writer_ != other.profile_writer_;
+    }
+    inline bool operator==(const NodeInfo& other) { return !(*this != other); }
 
     void AddEdge(const Edge& edge, const ObjectId& target) {
       edges->Insert({edge, target});
     }
     bool HasEdge(const Edge& edge) { return edges->HasKey(edge); }
 
-    // To allow NodeInfo to be used as the pair in ObjectIdToNodeInfoTraits.
-    NodeInfo() : id{kSnapshot, -1} {}
+    const char* ToCString(Zone* zone) const;
+    void Write(JSONWriter* writer) const;
+    void WriteDebug(JSONWriter* writer) const;
 
-    NodeInfo(Zone* zone,
-             intptr_t type,
-             intptr_t name,
-             const ObjectId& id,
-             intptr_t self_size,
-             intptr_t offset)
-        : type(type),
-          name(name),
-          id(id),
-          self_size(self_size),
-          edges(new (zone) EdgeMap(zone)),
-          offset(offset) {}
+    intptr_t offset() const { return offset_; }
+    void set_offset(intptr_t offset) {
+      ASSERT_EQUAL(offset_, -1);
+      offset_ = offset;
+    }
+
+    ObjectId id;
+    intptr_t type = kInvalidString;
+    intptr_t name = kInvalidString;
+    intptr_t self_size = 0;
+    EdgeMap* edges = nullptr;
+
+   private:
+    // Populated during serialization.
+    intptr_t offset_ = -1;
+    // 'trace_node_id' isn't supported.
+    // 'edge_count' is computed on-demand.
+
+    // Used for debugging prints and creating default names if none given.
+    V8SnapshotProfileWriter* profile_writer_ = nullptr;
   };
 
-  NodeInfo* EnsureId(ObjectId object_id);
-  static intptr_t NodeIdFor(ObjectId id) {
-    return (id.second << kIdSpaceBits) | id.first;
-  }
+  NodeInfo* EnsureId(const ObjectId& object_id);
+  void Write(JSONWriter* writer);
 
-  intptr_t EnsureString(const char* str);
+  // Class that encapsulates both an array of strings and a mapping from
+  // strings to their index in the array.
+  class StringsTable {
+   public:
+    explicit StringsTable(Zone* zone)
+        : zone_(zone), index_map_(zone), strings_(zone, 2) {}
 
-  enum ConstantEdgeType {
-    kContext = 0,
-    kElement = 1,
-    kProperty = 2,
-    kInternal = 3,
-    kHidden = 4,
-    kShortcut = 5,
-    kWeak = 6,
-    kExtra = 7,
-  };
+    intptr_t Add(const char* str);
+    intptr_t AddFormatted(const char* fmt, ...) PRINTF_ATTRIBUTE(2, 3);
+    const char* At(intptr_t index) const;
+    void Write(JSONWriter* writer, const char* property = nullptr) const;
 
-  static ConstantEdgeType ReferenceTypeToEdgeType(Reference::Type type);
-
-  enum ConstantNodeType {
-    kUnknown = 0,
-    kArtificialRoot = 1,
+   private:
+    Zone* zone_;
+    CStringIntMap index_map_;
+    GrowableArray<const char*> strings_;
   };
 
   struct ObjectIdToNodeInfoTraits {
@@ -234,31 +306,30 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
 
     static Value ValueOf(const Pair& pair) { return pair; }
 
-    static uword Hash(Key key) { return Utils::WordHash(NodeIdFor(key)); }
+    static uword Hash(const Key& key) { return key.Hash(); }
 
-    static bool IsKeyEqual(const Pair& x, Key y) { return x.id == y; }
+    static bool IsKeyEqual(const Pair& x, const Key& y) { return x.id == y; }
+  };
+
+  struct ObjectIdSetKeyValueTrait {
+    using Pair = ObjectId;
+    using Key = Pair;
+    using Value = Pair;
+
+    static Key KeyOf(const Pair& pair) { return pair; }
+    static Value ValueOf(const Pair& pair) { return pair; }
+    static uword Hash(const Key& key) { return key.Hash(); }
+    static bool IsKeyEqual(const Pair& pair, const Key& key) {
+      return pair == key;
+    }
   };
 
   Zone* zone_;
-  void Write(JSONWriter* writer);
-  intptr_t WriteNodeInfo(JSONWriter* writer, const NodeInfo& info);
-  void WriteEdgeInfo(JSONWriter* writer,
-                     const Edge& info,
-                     const ObjectId& target);
-  void WriteStringsTable(JSONWriter* writer,
-                         const DirectChainedHashMap<StringToIntMapTraits>& map);
-
   DirectChainedHashMap<ObjectIdToNodeInfoTraits> nodes_;
-  DirectChainedHashMap<StringToIntMapTraits> node_types_;
-  DirectChainedHashMap<StringToIntMapTraits> edge_types_;
-  DirectChainedHashMap<StringToIntMapTraits> strings_;
-
-  // We don't have a zone-allocated hash set, so we just re-use the type for
-  // nodes_ even though we don't need to access the node info (and fill it with
-  // dummy values).
-  DirectChainedHashMap<ObjectIdToNodeInfoTraits> roots_;
-
-  size_t edge_count_ = 0;
+  StringsTable node_types_;
+  StringsTable edge_types_;
+  StringsTable strings_;
+  DirectChainedHashMap<ObjectIdSetKeyValueTrait> roots_;
 #endif
 };
 

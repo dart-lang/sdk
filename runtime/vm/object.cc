@@ -23096,6 +23096,14 @@ void String::ToUTF8(uint8_t* utf8_array, intptr_t array_len) const {
   Utf8::Encode(*this, reinterpret_cast<char*>(utf8_array), array_len);
 }
 
+const char* String::ToCString(Thread* thread, StringPtr ptr) {
+  if (ptr == nullptr) return nullptr;
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  String& str = reused_string_handle.Handle();
+  str = ptr;
+  return str.ToCString();
+}
+
 static FinalizablePersistentHandle* AddFinalizer(const Object& referent,
                                                  void* peer,
                                                  Dart_HandleFinalizer callback,
