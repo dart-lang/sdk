@@ -3330,12 +3330,12 @@ static constexpr dart::compiler::target::word Array_length_offset = 8;
 static constexpr dart::compiler::target::word Array_tags_offset = 0;
 static constexpr dart::compiler::target::word Array_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word Class_declaration_type_offset =
-    48;
+    52;
 static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
-    84;
-static constexpr dart::compiler::target::word Class_super_type_offset = 40;
+    88;
+static constexpr dart::compiler::target::word Class_super_type_offset = 44;
 static constexpr dart::compiler::target::word
-    Class_host_type_arguments_field_offset_in_words_offset = 96;
+    Class_host_type_arguments_field_offset_in_words_offset = 100;
 static constexpr dart::compiler::target::word Closure_context_offset = 20;
 static constexpr dart::compiler::target::word
     Closure_delayed_type_arguments_offset = 12;
@@ -3688,7 +3688,7 @@ static constexpr dart::compiler::target::word Array_InstanceSize = 12;
 static constexpr dart::compiler::target::word Array_header_size = 12;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 8;
 static constexpr dart::compiler::target::word Capability_InstanceSize = 16;
-static constexpr dart::compiler::target::word Class_InstanceSize = 120;
+static constexpr dart::compiler::target::word Class_InstanceSize = 124;
 static constexpr dart::compiler::target::word Closure_InstanceSize = 28;
 static constexpr dart::compiler::target::word ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word Code_InstanceSize = 76;
@@ -3860,12 +3860,12 @@ static constexpr dart::compiler::target::word Array_length_offset = 16;
 static constexpr dart::compiler::target::word Array_tags_offset = 0;
 static constexpr dart::compiler::target::word Array_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Class_declaration_type_offset =
-    96;
+    104;
 static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
-    156;
-static constexpr dart::compiler::target::word Class_super_type_offset = 80;
+    164;
+static constexpr dart::compiler::target::word Class_super_type_offset = 88;
 static constexpr dart::compiler::target::word
-    Class_host_type_arguments_field_offset_in_words_offset = 168;
+    Class_host_type_arguments_field_offset_in_words_offset = 176;
 static constexpr dart::compiler::target::word Closure_context_offset = 40;
 static constexpr dart::compiler::target::word
     Closure_delayed_type_arguments_offset = 24;
@@ -4224,7 +4224,7 @@ static constexpr dart::compiler::target::word Array_InstanceSize = 24;
 static constexpr dart::compiler::target::word Array_header_size = 24;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word Capability_InstanceSize = 16;
-static constexpr dart::compiler::target::word Class_InstanceSize = 192;
+static constexpr dart::compiler::target::word Class_InstanceSize = 200;
 static constexpr dart::compiler::target::word Closure_InstanceSize = 56;
 static constexpr dart::compiler::target::word ClosureData_InstanceSize = 48;
 static constexpr dart::compiler::target::word Code_InstanceSize = 144;
@@ -4395,12 +4395,12 @@ static constexpr dart::compiler::target::word Array_length_offset = 8;
 static constexpr dart::compiler::target::word Array_tags_offset = 0;
 static constexpr dart::compiler::target::word Array_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word Class_declaration_type_offset =
-    48;
+    52;
 static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
-    84;
-static constexpr dart::compiler::target::word Class_super_type_offset = 40;
+    88;
+static constexpr dart::compiler::target::word Class_super_type_offset = 44;
 static constexpr dart::compiler::target::word
-    Class_host_type_arguments_field_offset_in_words_offset = 96;
+    Class_host_type_arguments_field_offset_in_words_offset = 100;
 static constexpr dart::compiler::target::word Closure_context_offset = 20;
 static constexpr dart::compiler::target::word
     Closure_delayed_type_arguments_offset = 12;
@@ -4750,7 +4750,7 @@ static constexpr dart::compiler::target::word Array_InstanceSize = 12;
 static constexpr dart::compiler::target::word Array_header_size = 12;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 8;
 static constexpr dart::compiler::target::word Capability_InstanceSize = 16;
-static constexpr dart::compiler::target::word Class_InstanceSize = 120;
+static constexpr dart::compiler::target::word Class_InstanceSize = 124;
 static constexpr dart::compiler::target::word Closure_InstanceSize = 28;
 static constexpr dart::compiler::target::word ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word Code_InstanceSize = 76;
@@ -4922,12 +4922,12 @@ static constexpr dart::compiler::target::word Array_length_offset = 16;
 static constexpr dart::compiler::target::word Array_tags_offset = 0;
 static constexpr dart::compiler::target::word Array_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Class_declaration_type_offset =
-    96;
+    104;
 static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
-    156;
-static constexpr dart::compiler::target::word Class_super_type_offset = 80;
+    164;
+static constexpr dart::compiler::target::word Class_super_type_offset = 88;
 static constexpr dart::compiler::target::word
-    Class_host_type_arguments_field_offset_in_words_offset = 168;
+    Class_host_type_arguments_field_offset_in_words_offset = 176;
 static constexpr dart::compiler::target::word Closure_context_offset = 40;
 static constexpr dart::compiler::target::word
     Closure_delayed_type_arguments_offset = 24;
@@ -5287,7 +5287,7 @@ static constexpr dart::compiler::target::word Array_InstanceSize = 24;
 static constexpr dart::compiler::target::word Array_header_size = 24;
 static constexpr dart::compiler::target::word Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word Capability_InstanceSize = 16;
-static constexpr dart::compiler::target::word Class_InstanceSize = 192;
+static constexpr dart::compiler::target::word Class_InstanceSize = 200;
 static constexpr dart::compiler::target::word Closure_InstanceSize = 56;
 static constexpr dart::compiler::target::word ClosureData_InstanceSize = 48;
 static constexpr dart::compiler::target::word Code_InstanceSize = 144;
@@ -5458,12 +5458,12 @@ static constexpr dart::compiler::target::word Array_length_offset = 16;
 static constexpr dart::compiler::target::word Array_tags_offset = 0;
 static constexpr dart::compiler::target::word Array_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Class_declaration_type_offset =
-    52;
+    56;
 static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
-    88;
-static constexpr dart::compiler::target::word Class_super_type_offset = 44;
+    92;
+static constexpr dart::compiler::target::word Class_super_type_offset = 48;
 static constexpr dart::compiler::target::word
-    Class_host_type_arguments_field_offset_in_words_offset = 100;
+    Class_host_type_arguments_field_offset_in_words_offset = 104;
 static constexpr dart::compiler::target::word Closure_context_offset = 40;
 static constexpr dart::compiler::target::word
     Closure_delayed_type_arguments_offset = 24;
@@ -5993,12 +5993,12 @@ static constexpr dart::compiler::target::word Array_length_offset = 16;
 static constexpr dart::compiler::target::word Array_tags_offset = 0;
 static constexpr dart::compiler::target::word Array_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Class_declaration_type_offset =
-    52;
+    56;
 static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
-    88;
-static constexpr dart::compiler::target::word Class_super_type_offset = 44;
+    92;
+static constexpr dart::compiler::target::word Class_super_type_offset = 48;
 static constexpr dart::compiler::target::word
-    Class_host_type_arguments_field_offset_in_words_offset = 100;
+    Class_host_type_arguments_field_offset_in_words_offset = 104;
 static constexpr dart::compiler::target::word Closure_context_offset = 40;
 static constexpr dart::compiler::target::word
     Closure_delayed_type_arguments_offset = 24;
@@ -6536,10 +6536,10 @@ static constexpr dart::compiler::target::word AOT_Array_type_arguments_offset =
 static constexpr dart::compiler::target::word
     AOT_Class_declaration_type_offset = 52;
 static constexpr dart::compiler::target::word
-    AOT_Class_num_type_arguments_offset = 72;
+    AOT_Class_num_type_arguments_offset = 88;
 static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 44;
 static constexpr dart::compiler::target::word
-    AOT_Class_host_type_arguments_field_offset_in_words_offset = 84;
+    AOT_Class_host_type_arguments_field_offset_in_words_offset = 100;
 static constexpr dart::compiler::target::word
     AOT_SharedClassTable_class_heap_stats_table_offset = 0;
 static constexpr dart::compiler::target::word AOT_Closure_context_offset = 20;
@@ -6942,7 +6942,7 @@ static constexpr dart::compiler::target::word AOT_Array_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 12;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 8;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
-static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 92;
+static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 108;
 static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 28;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Code_InstanceSize = 88;
@@ -7133,10 +7133,10 @@ static constexpr dart::compiler::target::word AOT_Array_type_arguments_offset =
 static constexpr dart::compiler::target::word
     AOT_Class_declaration_type_offset = 104;
 static constexpr dart::compiler::target::word
-    AOT_Class_num_type_arguments_offset = 140;
+    AOT_Class_num_type_arguments_offset = 164;
 static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 88;
 static constexpr dart::compiler::target::word
-    AOT_Class_host_type_arguments_field_offset_in_words_offset = 152;
+    AOT_Class_host_type_arguments_field_offset_in_words_offset = 176;
 static constexpr dart::compiler::target::word
     AOT_SharedClassTable_class_heap_stats_table_offset = 0;
 static constexpr dart::compiler::target::word AOT_Closure_context_offset = 40;
@@ -7542,7 +7542,7 @@ static constexpr dart::compiler::target::word AOT_Array_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
-static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 160;
+static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 184;
 static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 48;
 static constexpr dart::compiler::target::word AOT_Code_InstanceSize = 152;
@@ -7736,10 +7736,10 @@ static constexpr dart::compiler::target::word AOT_Array_type_arguments_offset =
 static constexpr dart::compiler::target::word
     AOT_Class_declaration_type_offset = 104;
 static constexpr dart::compiler::target::word
-    AOT_Class_num_type_arguments_offset = 140;
+    AOT_Class_num_type_arguments_offset = 164;
 static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 88;
 static constexpr dart::compiler::target::word
-    AOT_Class_host_type_arguments_field_offset_in_words_offset = 152;
+    AOT_Class_host_type_arguments_field_offset_in_words_offset = 176;
 static constexpr dart::compiler::target::word
     AOT_SharedClassTable_class_heap_stats_table_offset = 0;
 static constexpr dart::compiler::target::word AOT_Closure_context_offset = 40;
@@ -8146,7 +8146,7 @@ static constexpr dart::compiler::target::word AOT_Array_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
-static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 160;
+static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 184;
 static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 48;
 static constexpr dart::compiler::target::word AOT_Code_InstanceSize = 152;
@@ -8337,10 +8337,10 @@ static constexpr dart::compiler::target::word AOT_Array_type_arguments_offset =
 static constexpr dart::compiler::target::word
     AOT_Class_declaration_type_offset = 56;
 static constexpr dart::compiler::target::word
-    AOT_Class_num_type_arguments_offset = 76;
+    AOT_Class_num_type_arguments_offset = 92;
 static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 48;
 static constexpr dart::compiler::target::word
-    AOT_Class_host_type_arguments_field_offset_in_words_offset = 88;
+    AOT_Class_host_type_arguments_field_offset_in_words_offset = 104;
 static constexpr dart::compiler::target::word
     AOT_SharedClassTable_class_heap_stats_table_offset = 0;
 static constexpr dart::compiler::target::word AOT_Closure_context_offset = 40;
@@ -8746,7 +8746,7 @@ static constexpr dart::compiler::target::word AOT_Array_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
-static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 96;
+static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 112;
 static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_Code_InstanceSize = 152;
@@ -8937,10 +8937,10 @@ static constexpr dart::compiler::target::word AOT_Array_type_arguments_offset =
 static constexpr dart::compiler::target::word
     AOT_Class_declaration_type_offset = 56;
 static constexpr dart::compiler::target::word
-    AOT_Class_num_type_arguments_offset = 76;
+    AOT_Class_num_type_arguments_offset = 92;
 static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 48;
 static constexpr dart::compiler::target::word
-    AOT_Class_host_type_arguments_field_offset_in_words_offset = 88;
+    AOT_Class_host_type_arguments_field_offset_in_words_offset = 104;
 static constexpr dart::compiler::target::word
     AOT_SharedClassTable_class_heap_stats_table_offset = 0;
 static constexpr dart::compiler::target::word AOT_Closure_context_offset = 40;
@@ -9347,7 +9347,7 @@ static constexpr dart::compiler::target::word AOT_Array_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
-static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 96;
+static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 112;
 static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_Code_InstanceSize = 152;
@@ -9537,12 +9537,12 @@ static constexpr dart::compiler::target::word AOT_Array_tags_offset = 0;
 static constexpr dart::compiler::target::word AOT_Array_type_arguments_offset =
     4;
 static constexpr dart::compiler::target::word
-    AOT_Class_declaration_type_offset = 48;
+    AOT_Class_declaration_type_offset = 52;
 static constexpr dart::compiler::target::word
-    AOT_Class_num_type_arguments_offset = 60;
-static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 40;
+    AOT_Class_num_type_arguments_offset = 88;
+static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 44;
 static constexpr dart::compiler::target::word
-    AOT_Class_host_type_arguments_field_offset_in_words_offset = 72;
+    AOT_Class_host_type_arguments_field_offset_in_words_offset = 100;
 static constexpr dart::compiler::target::word AOT_Closure_context_offset = 20;
 static constexpr dart::compiler::target::word
     AOT_Closure_delayed_type_arguments_offset = 12;
@@ -9938,7 +9938,7 @@ static constexpr dart::compiler::target::word AOT_Array_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 12;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 8;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
-static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 80;
+static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 108;
 static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 28;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Code_InstanceSize = 64;
@@ -10127,12 +10127,12 @@ static constexpr dart::compiler::target::word AOT_Array_tags_offset = 0;
 static constexpr dart::compiler::target::word AOT_Array_type_arguments_offset =
     8;
 static constexpr dart::compiler::target::word
-    AOT_Class_declaration_type_offset = 96;
+    AOT_Class_declaration_type_offset = 104;
 static constexpr dart::compiler::target::word
-    AOT_Class_num_type_arguments_offset = 116;
-static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 80;
+    AOT_Class_num_type_arguments_offset = 164;
+static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 88;
 static constexpr dart::compiler::target::word
-    AOT_Class_host_type_arguments_field_offset_in_words_offset = 128;
+    AOT_Class_host_type_arguments_field_offset_in_words_offset = 176;
 static constexpr dart::compiler::target::word AOT_Closure_context_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Closure_delayed_type_arguments_offset = 24;
@@ -10531,7 +10531,7 @@ static constexpr dart::compiler::target::word AOT_Array_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
-static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 136;
+static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 184;
 static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 48;
 static constexpr dart::compiler::target::word AOT_Code_InstanceSize = 120;
@@ -10723,12 +10723,12 @@ static constexpr dart::compiler::target::word AOT_Array_tags_offset = 0;
 static constexpr dart::compiler::target::word AOT_Array_type_arguments_offset =
     8;
 static constexpr dart::compiler::target::word
-    AOT_Class_declaration_type_offset = 96;
+    AOT_Class_declaration_type_offset = 104;
 static constexpr dart::compiler::target::word
-    AOT_Class_num_type_arguments_offset = 116;
-static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 80;
+    AOT_Class_num_type_arguments_offset = 164;
+static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 88;
 static constexpr dart::compiler::target::word
-    AOT_Class_host_type_arguments_field_offset_in_words_offset = 128;
+    AOT_Class_host_type_arguments_field_offset_in_words_offset = 176;
 static constexpr dart::compiler::target::word AOT_Closure_context_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Closure_delayed_type_arguments_offset = 24;
@@ -11128,7 +11128,7 @@ static constexpr dart::compiler::target::word AOT_Array_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
-static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 136;
+static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 184;
 static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 48;
 static constexpr dart::compiler::target::word AOT_Code_InstanceSize = 120;
@@ -11317,12 +11317,12 @@ static constexpr dart::compiler::target::word AOT_Array_tags_offset = 0;
 static constexpr dart::compiler::target::word AOT_Array_type_arguments_offset =
     8;
 static constexpr dart::compiler::target::word
-    AOT_Class_declaration_type_offset = 52;
+    AOT_Class_declaration_type_offset = 56;
 static constexpr dart::compiler::target::word
-    AOT_Class_num_type_arguments_offset = 64;
-static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 44;
+    AOT_Class_num_type_arguments_offset = 92;
+static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 48;
 static constexpr dart::compiler::target::word
-    AOT_Class_host_type_arguments_field_offset_in_words_offset = 76;
+    AOT_Class_host_type_arguments_field_offset_in_words_offset = 104;
 static constexpr dart::compiler::target::word AOT_Closure_context_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Closure_delayed_type_arguments_offset = 24;
@@ -11721,7 +11721,7 @@ static constexpr dart::compiler::target::word AOT_Array_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
-static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 88;
+static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 112;
 static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_Code_InstanceSize = 120;
@@ -11910,12 +11910,12 @@ static constexpr dart::compiler::target::word AOT_Array_tags_offset = 0;
 static constexpr dart::compiler::target::word AOT_Array_type_arguments_offset =
     8;
 static constexpr dart::compiler::target::word
-    AOT_Class_declaration_type_offset = 52;
+    AOT_Class_declaration_type_offset = 56;
 static constexpr dart::compiler::target::word
-    AOT_Class_num_type_arguments_offset = 64;
-static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 44;
+    AOT_Class_num_type_arguments_offset = 92;
+static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 48;
 static constexpr dart::compiler::target::word
-    AOT_Class_host_type_arguments_field_offset_in_words_offset = 76;
+    AOT_Class_host_type_arguments_field_offset_in_words_offset = 104;
 static constexpr dart::compiler::target::word AOT_Closure_context_offset = 40;
 static constexpr dart::compiler::target::word
     AOT_Closure_delayed_type_arguments_offset = 24;
@@ -12315,7 +12315,7 @@ static constexpr dart::compiler::target::word AOT_Array_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
 static constexpr dart::compiler::target::word AOT_Bool_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_Capability_InstanceSize = 16;
-static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 88;
+static constexpr dart::compiler::target::word AOT_Class_InstanceSize = 112;
 static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
 static constexpr dart::compiler::target::word AOT_ClosureData_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_Code_InstanceSize = 120;

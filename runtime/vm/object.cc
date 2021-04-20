@@ -2829,8 +2829,8 @@ ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
     result ^= raw;
   }
   Object::VerifyBuiltinVtable<FakeObject>(FakeObject::kClassId);
-  NOT_IN_PRECOMPILED(result.set_token_pos(TokenPosition::kNoSource));
-  NOT_IN_PRECOMPILED(result.set_end_token_pos(TokenPosition::kNoSource));
+  result.set_token_pos(TokenPosition::kNoSource);
+  result.set_end_token_pos(TokenPosition::kNoSource);
   result.set_instance_size(FakeObject::InstanceSize(),
                            compiler::target::RoundedAllocationSize(
                                TargetFakeObject::InstanceSize()));
@@ -2865,7 +2865,6 @@ ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
   return result.ptr();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 static void ReportTooManyTypeArguments(const Class& cls) {
   Report::MessageF(Report::kError, Script::Handle(cls.script()),
                    cls.token_pos(), Report::AtLocation,
@@ -2874,12 +2873,8 @@ static void ReportTooManyTypeArguments(const Class& cls) {
                    String::Handle(cls.Name()).ToCString());
   UNREACHABLE();
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void Class::set_num_type_arguments(intptr_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
   if (!Utils::IsInt(16, value)) {
     ReportTooManyTypeArguments(*this);
   }
@@ -2889,7 +2884,6 @@ void Class::set_num_type_arguments(intptr_t value) const {
   DEBUG_ASSERT(old_value == kUnknownNumTypeArguments || old_value == value);
   StoreNonPointer<int16_t, int16_t, std::memory_order_relaxed>(
       &untag()->num_type_arguments_, value);
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Class::set_num_type_arguments_unsafe(intptr_t value) const {
@@ -3278,15 +3272,10 @@ intptr_t Class::NumTypeArguments() const {
     return num_type_args;
   }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-  return 0;
-#else
   num_type_args = ComputeNumTypeArguments();
   ASSERT(num_type_args != kUnknownNumTypeArguments);
   set_num_type_arguments(num_type_args);
   return num_type_args;
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 static TypeArgumentsPtr InstantiateTypeArgumentsToBounds(
@@ -3954,15 +3943,6 @@ void Class::Finalize() const {
   set_is_finalized();
 }
 
-#if defined(DEBUG)
-static bool IsMutatorOrAtSafepoint() {
-  Thread* thread = Thread::Current();
-  return thread->IsMutatorThread() || thread->IsAtSafepoint();
-}
-#endif
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 class CHACodeArray : public WeakCodeReferences {
  public:
   explicit CHACodeArray(const Class& cls)
@@ -3996,6 +3976,13 @@ class CHACodeArray : public WeakCodeReferences {
   DISALLOW_COPY_AND_ASSIGN(CHACodeArray);
 };
 
+#if defined(DEBUG)
+static bool IsMutatorOrAtSafepoint() {
+  Thread* thread = Thread::Current();
+  return thread->IsMutatorThread() || thread->IsAtSafepoint();
+}
+#endif
+
 void Class::RegisterCHACode(const Code& code) {
   if (FLAG_trace_cha) {
     THR_Print("RegisterCHACode '%s' depends on class '%s'\n",
@@ -4026,20 +4013,6 @@ void Class::DisableAllCHAOptimizedCode() {
   DisableCHAOptimizedCode(Class::Handle());
 }
 
-ArrayPtr Class::dependent_code() const {
-  DEBUG_ASSERT(
-      IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
-  return untag()->dependent_code();
-}
-
-void Class::set_dependent_code(const Array& array) const {
-  DEBUG_ASSERT(
-      IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  untag()->set_dependent_code(array.ptr());
-}
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 bool Class::TraceAllocation(IsolateGroup* isolate_group) const {
 #ifndef PRODUCT
   auto class_table = isolate_group->shared_class_table();
@@ -4061,6 +4034,18 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
 #else
   UNREACHABLE();
 #endif
+}
+
+ArrayPtr Class::dependent_code() const {
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
+  return untag()->dependent_code();
+}
+
+void Class::set_dependent_code(const Array& array) const {
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  untag()->set_dependent_code(array.ptr());
 }
 
 // Conventions:
@@ -4392,10 +4377,6 @@ ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
   if (is_finalized()) {
     return Error::null();
   }
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-  return Error::null();
-#else
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (is_finalized()) {
     return Error::null();
@@ -4412,7 +4393,6 @@ ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
     }
   }
   return error.ptr();
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // Ensure that code outdated by finalized class is cleaned up, new instance of
@@ -4439,11 +4419,7 @@ ErrorPtr Class::EnsureIsAllocateFinalized(Thread* thread) const {
   if (is_allocate_finalized()) {
     return Error::null();
   }
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
   error ^= ClassFinalizer::AllocateFinalizeClass(*this);
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
   return error.ptr();
 }
 
@@ -4559,8 +4535,8 @@ ClassPtr Class::NewCommon(intptr_t index) {
   // Here kIllegalCid means not-yet-assigned.
   Object::VerifyBuiltinVtable<FakeInstance>(index == kIllegalCid ? kInstanceCid
                                                                  : index);
-  NOT_IN_PRECOMPILED(result.set_token_pos(TokenPosition::kNoSource));
-  NOT_IN_PRECOMPILED(result.set_end_token_pos(TokenPosition::kNoSource));
+  result.set_token_pos(TokenPosition::kNoSource);
+  result.set_end_token_pos(TokenPosition::kNoSource);
   const intptr_t host_instance_size = FakeInstance::InstanceSize();
   const intptr_t target_instance_size = compiler::target::RoundedAllocationSize(
       TargetFakeInstance::InstanceSize());
@@ -4607,7 +4583,7 @@ ClassPtr Class::New(const Library& lib,
   result.set_library(lib);
   result.set_name(name);
   result.set_script(script);
-  NOT_IN_PRECOMPILED(result.set_token_pos(token_pos));
+  result.set_token_pos(token_pos);
 
   // The size gets initialized to 0. Once the class gets finalized the class
   // finalizer will set the correct size.
@@ -4965,7 +4941,6 @@ void Class::set_script(const Script& value) const {
   untag()->set_script(value.ptr());
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 void Class::set_token_pos(TokenPosition token_pos) const {
   ASSERT(!token_pos.IsClassifying());
   StoreNonPointer(&untag()->token_pos_, token_pos);
@@ -4975,7 +4950,6 @@ void Class::set_end_token_pos(TokenPosition token_pos) const {
   ASSERT(!token_pos.IsClassifying());
   StoreNonPointer(&untag()->end_token_pos_, token_pos);
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 int32_t Class::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -5088,8 +5062,6 @@ void Class::set_interfaces(const Array& value) const {
   untag()->set_interfaces(value.ptr());
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 void Class::AddDirectImplementor(const Class& implementor,
                                  bool is_mixin) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
@@ -5148,8 +5120,6 @@ void Class::set_direct_subclasses(const GrowableObjectArray& subclasses) const {
   untag()->set_direct_subclasses(subclasses.ptr());
 }
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 ArrayPtr Class::constants() const {
   return untag()->constants();
 }
@@ -5197,7 +5167,6 @@ TypePtr Class::DeclarationType() const {
   return type.ptr();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 void Class::set_allocation_stub(const Code& value) const {
   // Never clear the stub as it may still be a target, but will be GC-d if
   // not referenced.
@@ -5205,12 +5174,8 @@ void Class::set_allocation_stub(const Code& value) const {
   ASSERT(untag()->allocation_stub() == Code::null());
   untag()->set_allocation_stub(value.ptr());
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void Class::DisableAllocationStub() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
   {
     const Code& existing_stub = Code::Handle(allocation_stub());
     if (existing_stub.IsNull()) {
@@ -5228,7 +5193,6 @@ void Class::DisableAllocationStub() const {
   existing_stub.DisableStubCode();
   // Disassociate the existing stub from class.
   untag()->set_allocation_stub(Code::null());
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 bool Class::IsDartFunctionClass() const {
