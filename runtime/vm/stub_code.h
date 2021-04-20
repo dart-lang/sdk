@@ -61,8 +61,10 @@ class StubCode : public AllStatic {
   VM_STUB_CODE_LIST(STUB_CODE_ACCESSOR);
 #undef STUB_CODE_ACCESSOR
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static CodePtr GetAllocationStubForClass(const Class& cls);
   static CodePtr GetAllocationStubForTypedData(classid_t class_id);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(TARGET_ARCH_IA32)
   static CodePtr GetBuildMethodExtractorStub(compiler::ObjectPoolBuilder* pool);

@@ -1098,6 +1098,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   toplevel_class.set_is_abstract();
   toplevel_class.set_is_declaration_loaded();
   toplevel_class.set_is_type_finalized();
+  toplevel_class.set_num_type_arguments_unsafe(0);
   library.set_toplevel_class(toplevel_class);
 
   library_helper.ReadUntilExcluding(LibraryHelper::kDependencies);

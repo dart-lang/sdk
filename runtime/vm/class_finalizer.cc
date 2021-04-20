@@ -36,6 +36,15 @@ bool ClassFinalizer::AllClassesFinalized() {
   return classes.Length() == 0;
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+
+bool ClassFinalizer::ProcessPendingClasses() {
+  ASSERT(AllClassesFinalized());
+  return true;
+}
+
+#else
+
 // Removes optimized code once we load more classes, since CHA based
 // optimizations may have become invalid.
 // Only methods which owner classes where subclasses can be invalid.
@@ -220,7 +229,6 @@ bool ClassFinalizer::ProcessPendingClasses() {
   return true;
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 void ClassFinalizer::VerifyBootstrapClasses() {
   if (FLAG_trace_class_finalization) {
     OS::PrintErr("VerifyBootstrapClasses START.\n");
@@ -286,7 +294,6 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   }
   IsolateGroup::Current()->heap()->Verify();
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void ClassFinalizer::FinalizeTypeParameters(const Class& cls,
                                             FinalizationKind finalization) {
@@ -309,6 +316,8 @@ void ClassFinalizer::FinalizeTypeParameters(const Class& cls,
     }
   }
 }
+
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 // This function reports a compilation error if the recursive 'type' T being
 // finalized is a non-contractive type, i.e. if the induced type set S of P is
@@ -533,7 +542,11 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
                                            TrailPtr trail) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   if (!cls.is_type_finalized()) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     FinalizeTypeParameters(cls, kFinalize);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
   }
   AbstractType& super_type = AbstractType::Handle(cls.super_type());
   if (!super_type.IsNull()) {
@@ -851,6 +864,8 @@ AbstractTypePtr ClassFinalizer::FinalizeSignature(Zone* zone,
   return signature.ptr();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #if defined(TARGET_ARCH_X64)
 static bool IsPotentialExactGeneric(const AbstractType& type) {
   // TODO(dartbug.com/34170) Investigate supporting this for fields with types
@@ -956,6 +971,7 @@ static void MarkImplemented(Zone* zone, const Class& iface) {
     cls = type.type_class();
   }
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   Thread* thread = Thread::Current();
@@ -965,6 +981,9 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     return;
   }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (cls.is_type_finalized()) {
     return;
@@ -1000,8 +1019,10 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   cls.set_is_type_finalized();
 
   RegisterClassInHierarchy(thread->zone(), cls);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void ClassFinalizer::RegisterClassInHierarchy(Zone* zone, const Class& cls) {
   auto& type = AbstractType::Handle(zone, cls.super_type());
   auto& other_cls = Class::Handle(zone);
@@ -1025,6 +1046,7 @@ void ClassFinalizer::RegisterClassInHierarchy(Zone* zone, const Class& cls) {
     other_cls.AddDirectImplementor(cls, /* is_mixin = */ i == mixin_index);
   }
 }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 void ClassFinalizer::FinalizeClass(const Class& cls) {
   ASSERT(cls.is_type_finalized());
@@ -1032,6 +1054,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     return;
   }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
 
@@ -1048,7 +1073,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
 #endif  // defined(SUPPORT_TIMELINE)
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
   // If loading from a kernel, make sure that the class is fully loaded.
   ASSERT(cls.IsTopLevel() || (cls.kernel_offset() > 0));
   if (!cls.is_loaded()) {
@@ -1057,7 +1081,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
       return;
     }
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // Ensure super class is finalized.
   const Class& super = Class::Handle(cls.SuperClass());
@@ -1084,7 +1107,10 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (cls.IsTopLevel()) {
     cls.set_is_allocate_finalized();
   }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 ErrorPtr ClassFinalizer::AllocateFinalizeClass(const Class& cls) {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
@@ -1261,6 +1287,8 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
   }
 }
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 void ClassFinalizer::ReportError(const Error& error) {
   Report::LongJump(error);
   UNREACHABLE();
@@ -1275,6 +1303,8 @@ void ClassFinalizer::ReportError(const char* format, ...) {
   va_end(args);
   UNREACHABLE();
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 void ClassFinalizer::VerifyImplicitFieldOffsets() {
 #ifdef DEBUG
@@ -1661,9 +1691,6 @@ void ClassFinalizer::RehashTypes() {
 }
 
 void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
-#ifdef DART_PRECOMPILED_RUNTIME
-  UNREACHABLE();
-#else
   auto const thread = Thread::Current();
   auto const isolate_group = thread->isolate_group();
   SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
@@ -1705,7 +1732,8 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
     auto& null_code = Code::Handle(zone);
     object_store->set_build_method_extractor_code(null_code);
   }
-#endif  // !DART_PRECOMPILED_RUNTIME
 }
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
