@@ -1493,6 +1493,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       default:
         break;
     }
+    if (className == "Function") {
+      return;
+    }
     if (decType == "class" && importUri.scheme == "dart") {
       // Allow declaration of class Function in the sdk.
       return;
@@ -1880,7 +1883,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         nameOffset,
         endOffset,
         referenceFrom);
-
     constructorReferences.clear();
     Map<String, TypeVariableBuilder> typeVariablesByName =
         checkTypeVariables(typeVariables, extensionBuilder);
