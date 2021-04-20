@@ -150,8 +150,8 @@ class CompletionHandler
 
           final key =
               _createImportedSymbolKey(elementName, declaringLibraryUri);
-          alreadyImportedSymbols.putIfAbsent(key, () => <String>{});
-          alreadyImportedSymbols[key]!
+          alreadyImportedSymbols
+              .putIfAbsent(key, () => <String>{})
               .add('${importedLibrary.librarySource.uri}');
         }
       }

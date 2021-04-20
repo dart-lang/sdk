@@ -178,8 +178,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// If multiple actions have the same position, one will arbitrarily be chosen.
   List<CodeAction> _dedupeActions(Iterable<CodeAction> actions, Position pos) {
     final groups = groupBy(actions, (CodeAction action) => action.title);
-    return groups.keys.map((title) {
-      final actions = groups[title]!;
+    return groups.entries.map((entry) {
+      final actions = entry.value;
 
       // If there's only one in the group, just return it.
       if (actions.length == 1) {

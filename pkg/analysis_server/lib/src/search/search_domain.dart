@@ -18,23 +18,15 @@ class SearchDomainHandler implements protocol.RequestHandler {
   /// The analysis server that is using this handler to process requests.
   final AnalysisServer server;
 
-  /// The [SearchEngine] for this server.
-  final SearchEngine? searchEngine;
-
   /// The next search response id.
   int _nextSearchId = 0;
 
   /// Initialize a newly created handler to handle requests for the given
   /// [server].
-  SearchDomainHandler(this.server) : searchEngine = server.searchEngine;
+  SearchDomainHandler(this.server);
 
   Future<void> findElementReferences(protocol.Request request) async {
-    final searchEngine = this.searchEngine;
-    if (searchEngine == null) {
-      server.sendResponse(
-          Response.unsupportedFeature(request.id, 'Search has been disabled.'));
-      return;
-    }
+    final searchEngine = server.searchEngine;
     var params =
         protocol.SearchFindElementReferencesParams.fromRequest(request);
     var file = params.file;
@@ -66,12 +58,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   Future findMemberDeclarations(protocol.Request request) async {
-    final searchEngine = this.searchEngine;
-    if (searchEngine == null) {
-      server.sendResponse(
-          Response.unsupportedFeature(request.id, 'Search has been disabled.'));
-      return;
-    }
+    final searchEngine = server.searchEngine;
     var params =
         protocol.SearchFindMemberDeclarationsParams.fromRequest(request);
     await server.onAnalysisComplete;
@@ -85,12 +72,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   Future findMemberReferences(protocol.Request request) async {
-    final searchEngine = this.searchEngine;
-    if (searchEngine == null) {
-      server.sendResponse(
-          Response.unsupportedFeature(request.id, 'Search has been disabled.'));
-      return;
-    }
+    final searchEngine = server.searchEngine;
     var params = protocol.SearchFindMemberReferencesParams.fromRequest(request);
     await server.onAnalysisComplete;
     // respond
@@ -103,12 +85,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   Future findTopLevelDeclarations(protocol.Request request) async {
-    final searchEngine = this.searchEngine;
-    if (searchEngine == null) {
-      server.sendResponse(
-          Response.unsupportedFeature(request.id, 'Search has been disabled.'));
-      return;
-    }
+    final searchEngine = server.searchEngine;
     var params =
         protocol.SearchFindTopLevelDeclarationsParams.fromRequest(request);
     try {
@@ -217,12 +194,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
 
   /// Implement the `search.getTypeHierarchy` request.
   Future getTypeHierarchy(protocol.Request request) async {
-    final searchEngine = this.searchEngine;
-    if (searchEngine == null) {
-      server.sendResponse(
-          Response.unsupportedFeature(request.id, 'Search has been disabled.'));
-      return;
-    }
+    final searchEngine = server.searchEngine;
     var params = protocol.SearchGetTypeHierarchyParams.fromRequest(request);
     var file = params.file;
     // prepare element
