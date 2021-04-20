@@ -1,4 +1,5 @@
-## 1.5.0-dev
+## 1.5.0
+* Support for the language version `2.14`.
 * Deprecated `AnalysisSession.getUnitElement()`.
   Use `AnalysisSession.getUnitElement2()` instead.
 * Deprecated `AnalysisSession.getResolvedUnit()`.
