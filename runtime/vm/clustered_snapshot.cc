@@ -301,8 +301,10 @@ class ClassSerializationCluster : public SerializationCluster {
     s->Write<int32_t>(Class::target_type_arguments_field_offset_in_words(cls));
     s->Write<int16_t>(cls->untag()->num_type_arguments_);
     s->Write<uint16_t>(cls->untag()->num_native_fields_);
-    s->WriteTokenPosition(cls->untag()->token_pos_);
-    s->WriteTokenPosition(cls->untag()->end_token_pos_);
+    if (s->kind() != Snapshot::kFullAOT) {
+      s->WriteTokenPosition(cls->untag()->token_pos_);
+      s->WriteTokenPosition(cls->untag()->end_token_pos_);
+    }
     s->Write<uint32_t>(cls->untag()->state_bits_);
 
     // In AOT, the bitmap of unboxed fields should also be serialized
@@ -395,8 +397,11 @@ class ClassDeserializationCluster : public DeserializationCluster {
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
       cls->untag()->num_type_arguments_ = d->Read<int16_t>();
       cls->untag()->num_native_fields_ = d->Read<uint16_t>();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      ASSERT(d->kind() != Snapshot::kFullAOT);
       cls->untag()->token_pos_ = d->ReadTokenPosition();
       cls->untag()->end_token_pos_ = d->ReadTokenPosition();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
       cls->untag()->state_bits_ = d->Read<uint32_t>();
 
       if (FLAG_precompiled_mode) {
@@ -433,8 +438,11 @@ class ClassDeserializationCluster : public DeserializationCluster {
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
       cls->untag()->num_type_arguments_ = d->Read<int16_t>();
       cls->untag()->num_native_fields_ = d->Read<uint16_t>();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      ASSERT(d->kind() != Snapshot::kFullAOT);
       cls->untag()->token_pos_ = d->ReadTokenPosition();
       cls->untag()->end_token_pos_ = d->ReadTokenPosition();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
       cls->untag()->state_bits_ = d->Read<uint32_t>();
 
       table->AllocateIndex(class_id);

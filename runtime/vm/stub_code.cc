@@ -162,7 +162,6 @@ ArrayPtr compiler::StubCodeCompiler::BuildStaticCallsTable(
   }
   return static_calls_table.ptr();
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   Thread* thread = Thread::Current();
@@ -179,7 +178,6 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
     return object_store->allocate_unhandled_exception_stub();
   }
   Code& stub = Code::Handle(zone, cls.allocation_stub());
-#if !defined(DART_PRECOMPILED_RUNTIME)
   if (stub.IsNull()) {
     compiler::ObjectPoolBuilder object_pool_builder;
     Precompiler* precompiler = Precompiler::Instance();
@@ -247,7 +245,6 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
     }
 #endif  // !PRODUCT
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return stub.ptr();
 }
 
@@ -286,6 +283,7 @@ CodePtr StubCode::GetAllocationStubForTypedData(classid_t class_id) {
   UNREACHABLE();
   return Code::null();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(TARGET_ARCH_IA32)
 CodePtr StubCode::GetBuildMethodExtractorStub(
