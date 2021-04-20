@@ -166,7 +166,7 @@ class UntaggedObject {
     }
 
     static constexpr bool SizeFits(intptr_t size) {
-      DEBUG_ASSERT(Utils::IsAligned(size, kObjectAlignment));
+      assert(Utils::IsAligned(size, kObjectAlignment));
       return (size <= kMaxSizeTag);
     }
 

@@ -788,8 +788,9 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
     // Detect circles in the exception handler data.
     num_handlers_checked++;
     ASSERT(num_handlers_checked <= handlers.num_entries());
-    // Only consider user written handlers for async methods.
-    if (!is_async || !handlers.IsGenerated(try_index)) {
+    // Only consider user written handlers and ignore synthesized try/catch in
+    // async methods as well as synthetic try/catch hiding inside try/finally.
+    if (!handlers.IsGenerated(try_index)) {
       handled_types = handlers.GetHandledTypes(try_index);
       const intptr_t num_types = handled_types.Length();
       for (intptr_t k = 0; k < num_types; k++) {
