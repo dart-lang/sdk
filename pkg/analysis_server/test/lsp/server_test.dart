@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:test/test.dart';
@@ -79,7 +77,8 @@ class ServerTest extends AbstractLspAnalysisServerTest {
 
     // Wait up to 1sec to ensure no error/log notifications were sent back.
     var didTimeout = false;
-    final notificationFromServer = await firstError.timeout(
+    final notificationFromServer =
+        await firstError.then<NotificationMessage?>((error) => error).timeout(
       const Duration(seconds: 1),
       onTimeout: () {
         didTimeout = true;
@@ -97,7 +96,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.error, isNotNull);
-    expect(response.error.code, equals(ErrorCodes.MethodNotFound));
+    expect(response.error!.code, equals(ErrorCodes.MethodNotFound));
     expect(response.result, isNull);
   }
 
@@ -107,7 +106,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.error, isNotNull);
-    expect(response.error.code, equals(ErrorCodes.MethodNotFound));
+    expect(response.error!.code, equals(ErrorCodes.MethodNotFound));
     expect(response.result, isNull);
   }
 }
