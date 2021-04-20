@@ -1196,7 +1196,7 @@ TextSerializer<List<TypeParameter>> typeParametersSerializer = new Zip(
     unzipTypeParameterDefaultType);
 
 TypeParameter zipTypeParameterBound(TypeParameter node, DartType? bound) {
-  return node..bound = bound;
+  return node..bound = bound!;
 }
 
 Tuple2<TypeParameter, DartType?> unzipTypeParameterBound(TypeParameter node) {

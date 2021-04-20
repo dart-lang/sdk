@@ -2515,7 +2515,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     }
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
-    writeType(node.bound!);
+    writeType(node.bound);
     if (node.defaultType != null) {
       writeSpaced('=');
       writeType(node.defaultType!);

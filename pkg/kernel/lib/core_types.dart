@@ -1180,7 +1180,7 @@ class CoreTypes {
     // BOTTOM(X extends T) is true iff BOTTOM(T).
     if (type is TypeParameterType && type.isPotentiallyNonNullable) {
       assert(type.promotedBound == null);
-      return isBottom(type.parameter.bound!);
+      return isBottom(type.parameter.bound);
     }
 
     return false;

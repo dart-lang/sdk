@@ -182,7 +182,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void declareTypeParameters(List<TypeParameter> parameters) {
     for (int i = 0; i < parameters.length; ++i) {
       TypeParameter parameter = parameters[i];
-      if (parameter.bound == null) {
+      if (identical(parameter.bound, TypeParameter.unsetBoundSentinel)) {
         problem(
             currentParent, "Missing bound for type parameter '$parameter'.");
       }
@@ -434,7 +434,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
     declareTypeParameters(node.typeParameters);
     for (TypeParameter typeParameter in node.typeParameters) {
-      typeParameter.bound?.accept(this);
+      typeParameter.bound.accept(this);
       if (typeParameter.annotations.isNotEmpty) {
         problem(
             typeParameter, "Annotation on type parameter in function type.");

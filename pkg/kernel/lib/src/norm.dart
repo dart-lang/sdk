@@ -93,7 +93,7 @@ class _Norm extends ReplacementVisitor {
   @override
   DartType? visitTypeParameterType(TypeParameterType node, int variance) {
     if (node.promotedBound == null) {
-      DartType bound = node.parameter.bound!;
+      DartType bound = node.parameter.bound;
       if (normalizesToNever(bound)) {
         DartType result = NeverType.fromNullability(node.nullability);
         return result.accept1(this, variance) ?? result;
@@ -118,7 +118,7 @@ class _Norm extends ReplacementVisitor {
         assert(!coreTypes.isTop(bound));
         return new TypeParameterType(node.parameter, node.declaredNullability);
       } else if (bound == coreTypes.objectNonNullableRawType &&
-          norm(coreTypes, node.parameter.bound!) ==
+          norm(coreTypes, node.parameter.bound) ==
               coreTypes.objectNonNullableRawType) {
         return new TypeParameterType(node.parameter, node.declaredNullability);
       } else if (identical(bound, node.promotedBound)) {
@@ -143,7 +143,7 @@ class _Norm extends ReplacementVisitor {
       return true;
     } else if (type is TypeParameterType) {
       if (type.promotedBound == null) {
-        return normalizesToNever(type.parameter.bound!);
+        return normalizesToNever(type.parameter.bound);
       } else {
         return normalizesToNever(type.promotedBound!);
       }

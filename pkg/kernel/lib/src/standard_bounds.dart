@@ -232,7 +232,7 @@ mixin StandardBounds {
     if (s is TypeParameterType && t is TypeParameterType) {
       assert(s.promotedBound == null);
       assert(t.promotedBound == null);
-      return morebottom(s.parameter.bound!, t.parameter.bound!);
+      return morebottom(s.parameter.bound, t.parameter.bound);
     }
 
     throw new UnsupportedError("morebottom($s, $t)");
@@ -947,8 +947,8 @@ mixin StandardBounds {
           // TODO(dmitryas): Figure out if a procedure for syntactic equality
           // should be used instead.
           if (!areMutualSubtypes(
-              f.typeParameters[i].bound!,
-              substitution.substituteType(g.typeParameters[i].bound!),
+              f.typeParameters[i].bound,
+              substitution.substituteType(g.typeParameters[i].bound),
               SubtypeCheckMode.withNullabilities)) {
             boundsMatch = false;
           }
@@ -1146,8 +1146,8 @@ mixin StandardBounds {
           // TODO(dmitryas): Figure out if a procedure for syntactic
           // equality should be used instead.
           if (!areMutualSubtypes(
-              f.typeParameters[i].bound!,
-              substitution.substituteType(g.typeParameters[i].bound!),
+              f.typeParameters[i].bound,
+              substitution.substituteType(g.typeParameters[i].bound),
               SubtypeCheckMode.withNullabilities)) {
             boundsMatch = false;
           }
@@ -1230,12 +1230,12 @@ mixin StandardBounds {
               topFunctionType: coreTypes.functionNonNullableRawType,
               unhandledTypeHandler: (type, recursor) => false);
       return _getNullabilityAwareStandardUpperBound(
-              eliminator.eliminateToGreatest(type1.parameter.bound!),
+              eliminator.eliminateToGreatest(type1.parameter.bound),
               type2,
               clientLibrary)
           .withDeclaredNullability(uniteNullabilities(
               type1.declaredNullability,
-              uniteNullabilities(type1.parameter.bound!.declaredNullability,
+              uniteNullabilities(type1.parameter.bound.declaredNullability,
                   type2.declaredNullability)));
     } else {
       // UP(X1 & B1, T2) =
@@ -1672,14 +1672,14 @@ mixin StandardBounds {
       // we need to replicate that behavior?
       return getStandardUpperBound(
           Substitution.fromMap({type1.parameter: coreTypes.objectLegacyRawType})
-              .substituteType(type1.parameter.bound!),
+              .substituteType(type1.parameter.bound),
           type2,
           clientLibrary);
     } else if (type2 is TypeParameterType) {
       return getStandardUpperBound(
           type1,
           Substitution.fromMap({type2.parameter: coreTypes.objectLegacyRawType})
-              .substituteType(type2.parameter.bound!),
+              .substituteType(type2.parameter.bound),
           clientLibrary);
     } else {
       // We should only be called when at least one of the types is a

@@ -509,7 +509,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   visitTypeParameter(TypeParameter node) {
     TypeParameter newNode = typeParams[node]!;
-    newNode.bound = visitType(node.bound!);
+    newNode.bound = visitType(node.bound);
     if (node.defaultType != null) {
       newNode.defaultType = visitType(node.defaultType!);
     }

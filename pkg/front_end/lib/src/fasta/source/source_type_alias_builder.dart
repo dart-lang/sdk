@@ -179,7 +179,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         new List<DartType>.filled(typedef.typeParameters.length, null);
     for (int i = 0; i < bounds.length; ++i) {
       bounds[i] = typedef.typeParameters[i].bound;
-      if (bounds[i] == null) {
+      if (identical(bounds[i], TypeParameter.unsetBoundSentinel)) {
         typedef.typeParameters[i].bound = const DynamicType();
       }
     }
@@ -188,7 +188,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     TypedefType result =
         new TypedefType(typedef, clientLibrary.nonNullable, asTypeArguments);
     for (int i = 0; i < bounds.length; ++i) {
-      if (bounds[i] == null) {
+      if (identical(bounds[i], TypeParameter.unsetBoundSentinel)) {
         // If the bound is not assigned yet, put the corresponding
         // type-parameter type into the list for the nullability re-computation.
         // At this point, [parent] should be a [SourceLibraryBuilder] because

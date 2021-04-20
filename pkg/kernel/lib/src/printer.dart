@@ -259,7 +259,7 @@ class AstPrinter {
       for (TypeParameter typeParameter in typeParameters) {
         _sb.write(comma);
         _sb.write(typeParameter.name);
-        DartType bound = typeParameter.bound!;
+        DartType bound = typeParameter.bound;
 
         bool isTopObject(DartType type) {
           if (type is InterfaceType &&
@@ -401,7 +401,7 @@ class AstPrinter {
         }
         _sb.write(node.typeParameters[index].name);
         _sb.write(' extends ');
-        writeType(node.typeParameters[index].bound!);
+        writeType(node.typeParameters[index].bound);
       }
       _sb.write('>');
     }

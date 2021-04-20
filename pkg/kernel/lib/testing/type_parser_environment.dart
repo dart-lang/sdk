@@ -322,9 +322,10 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       if (arguments.isNotEmpty) {
         throw "Type variable can't have arguments (${node.name})";
       }
-      Nullability nullability = declaration.bound == null
-          ? null
-          : TypeParameterType.computeNullabilityFromBound(declaration);
+      Nullability nullability =
+          identical(declaration.bound, TypeParameter.unsetBoundSentinel)
+              ? null
+              : TypeParameterType.computeNullabilityFromBound(declaration);
       TypeParameterType type = new TypeParameterType(
           declaration,
           interpretParsedNullability(node.parsedNullability,
