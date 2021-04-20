@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -48,7 +46,7 @@ class FailureStateMessageHandler extends ServerStateMessageHandler {
   FailureStateMessageHandler(LspAnalysisServer server) : super(server);
 
   @override
-  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
+  FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
     return error(
         ErrorCodes.InternalError,
         'An unrecoverable error occurred and the server cannot process messages',
@@ -126,7 +124,7 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
   }
 
   @override
-  ErrorOr<void> handleUnknownMessage(IncomingMessage message) {
+  ErrorOr<Object?> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
       server.instrumentationService
@@ -146,7 +144,7 @@ class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
   }
 
   @override
-  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
+  FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
       server.instrumentationService
@@ -166,7 +164,7 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
   }
 
   @override
-  FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
+  FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
       server.instrumentationService

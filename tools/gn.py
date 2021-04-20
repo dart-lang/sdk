@@ -163,7 +163,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
         # Tell Crashpad's BUILD files which checkout layout to use.
         gn_args['crashpad_dependencies'] = 'dart'
 
-    if arch != HostCpuForArch(arch):
+    if DartTargetCpuForArch(arch) != HostCpuForArch(arch):
         # Training an app-jit snapshot under a simulator is slow. Use script
         # snapshots instead.
         gn_args['dart_snapshot_kind'] = 'kernel'

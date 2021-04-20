@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -26,7 +24,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Perform Refactor';
 
   @override
-  Future<ErrorOr<void>> handle(List<dynamic> arguments,
+  Future<ErrorOr<void>> handle(List<dynamic>? arguments,
       ProgressReporter reporter, CancellationToken cancellationToken) async {
     if (arguments == null ||
         arguments.length != 6 ||
@@ -60,26 +58,29 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
         // If the token we were given is not cancellable, replace it with one that
         // is for the rest of this request, as a future refactor may need to cancel
         // this request.
-        if (cancellationToken is! CancelableToken) {
-          cancellationToken = CancelableToken();
-        }
-        _manager.begin(cancellationToken);
+        // The original token should be kept and also checked for cancellation.
+        final cancelableToken = cancellationToken is CancelableToken
+            ? cancellationToken
+            : CancelableToken();
+        _manager.begin(cancelableToken);
 
         try {
           reporter.begin('Refactoring…');
           final status = await refactoring.checkAllConditions();
 
           if (status.hasError) {
-            return error(ServerErrorCodes.RefactorFailed, status.message);
+            return error(ServerErrorCodes.RefactorFailed, status.message!);
           }
 
-          if (cancellationToken.isCancellationRequested) {
+          if (cancellationToken.isCancellationRequested ||
+              cancelableToken.isCancellationRequested) {
             return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
           }
 
           final change = await refactoring.createChange();
 
-          if (cancellationToken.isCancellationRequested) {
+          if (cancellationToken.isCancellationRequested ||
+              cancelableToken.isCancellationRequested) {
             return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
           }
 
@@ -94,7 +95,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
         } on InconsistentAnalysisException {
           return fileModifiedError;
         } finally {
-          _manager.end(cancellationToken);
+          _manager.end(cancelableToken);
           reporter.end();
         }
       });
@@ -106,7 +107,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
     ResolvedUnitResult result,
     int offset,
     int length,
-    Map<String, dynamic> options,
+    Map<String, dynamic>? options,
   ) async {
     switch (kind) {
       case RefactoringKind.EXTRACT_METHOD:
@@ -168,7 +169,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
 /// Manages a running refactor to help ensure only one refactor runs at a time.
 class _RefactorManager {
   /// The cancellation token for the current in-progress refactor (or null).
-  CancelableToken _currentRefactoringCancellationToken;
+  CancelableToken? _currentRefactoringCancellationToken;
 
   /// Begins a new refactor, cancelling any other in-progress refactors.
   void begin(CancelableToken cancelToken) {

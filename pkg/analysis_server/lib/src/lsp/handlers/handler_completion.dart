@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:math' as math;
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
@@ -51,15 +49,22 @@ class CompletionHandler
   @override
   Future<ErrorOr<List<CompletionItem>>> handle(
       CompletionParams params, CancellationToken token) async {
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return error(ErrorCodes.ServerNotInitialized,
+          'Requests not before server is initilized');
+    }
+
     final includeSuggestionSets =
-        suggestFromUnimportedLibraries && server.clientCapabilities.applyEdit;
+        suggestFromUnimportedLibraries && clientCapabilities.applyEdit;
 
     final triggerCharacter = params.context?.triggerCharacter;
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
 
-    final lineInfo = unit.map<ErrorOr<LineInfo>>(
+    final lineInfo = await unit.map(
       // If we don't have a unit, we can still try to obtain the line info for
       // plugin contributors.
       (error) => path.mapResult(getLineInfo),
@@ -69,13 +74,13 @@ class CompletionHandler
         await lineInfo.mapResult((lineInfo) => toOffset(lineInfo, pos));
 
     return offset.mapResult((offset) async {
-      Future<ErrorOr<List<CompletionItem>>> serverResultsFuture;
+      Future<ErrorOr<List<CompletionItem>>>? serverResultsFuture;
       final pathContext = server.resourceProvider.pathContext;
       final fileExtension = pathContext.extension(path.result);
 
       if (fileExtension == '.dart' && !unit.isError) {
         serverResultsFuture = _getServerDartItems(
-          server.clientCapabilities,
+          clientCapabilities,
           includeSuggestionSets,
           unit.result,
           offset,
@@ -83,7 +88,7 @@ class CompletionHandler
           token,
         );
       } else if (fileExtension == '.yaml') {
-        YamlCompletionGenerator generator;
+        YamlCompletionGenerator? generator;
         if (file_paths.isAnalysisOptionsYaml(pathContext, path.result)) {
           generator = AnalysisOptionsGenerator(server.resourceProvider);
         } else if (file_paths.isFixDataYaml(pathContext, path.result)) {
@@ -95,7 +100,7 @@ class CompletionHandler
         if (generator != null) {
           serverResultsFuture = _getServerYamlItems(
             generator,
-            server.clientCapabilities,
+            clientCapabilities,
             path.result,
             lineInfo.result,
             offset,
@@ -107,7 +112,7 @@ class CompletionHandler
       serverResultsFuture ??= Future.value(success(const <CompletionItem>[]));
 
       final pluginResultsFuture = _getPluginResults(
-          server.clientCapabilities, lineInfo.result, path.result, offset);
+          clientCapabilities, lineInfo.result, path.result, offset);
 
       // Await both server + plugin results together to allow async/IO to
       // overlap.
@@ -138,14 +143,15 @@ class CompletionHandler
       if (importedLibrary == null) continue;
 
       for (var element in import.namespace.definedNames.values) {
-        if (element.librarySource != null) {
-          final declaringLibraryUri = element.librarySource.uri;
-          final elementName = element.name;
+        final librarySource = element.librarySource;
+        final elementName = element.name;
+        if (librarySource != null && elementName != null) {
+          final declaringLibraryUri = librarySource.uri;
 
           final key =
               _createImportedSymbolKey(elementName, declaringLibraryUri);
           alreadyImportedSymbols.putIfAbsent(key, () => <String>{});
-          alreadyImportedSymbols[key]
+          alreadyImportedSymbols[key]!
               .add('${importedLibrary.librarySource.uri}');
         }
       }
@@ -194,12 +200,12 @@ class CompletionHandler
     bool includeSuggestionSets,
     ResolvedUnitResult unit,
     int offset,
-    String triggerCharacter,
+    String? triggerCharacter,
     CancellationToken token,
   ) async {
     final performance = CompletionPerformance();
     performance.path = unit.path;
-    performance.setContentsAndOffset(unit.content, offset);
+    performance.setContentsAndOffset(unit.content!, offset);
     server.performanceStats.completion.add(performance);
 
     return await performance.runRequestOperation((perf) async {
@@ -217,9 +223,9 @@ class CompletionHandler
         }
       }
 
-      Set<ElementKind> includedElementKinds;
-      Set<String> includedElementNames;
-      List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
+      Set<ElementKind>? includedElementKinds;
+      Set<String>? includedElementNames;
+      List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
       if (includeSuggestionSets) {
         includedElementKinds = <ElementKind>{};
         includedElementNames = <String>{};
@@ -288,97 +294,100 @@ class CompletionHandler
 
         // Now compute items in suggestion sets.
         var includedSuggestionSets = <IncludedSuggestionSet>[];
-        if (includedElementKinds != null && unit != null) {
+        final declarationsTracker = server.declarationsTracker;
+        if (declarationsTracker != null &&
+            includedElementKinds != null &&
+            includedElementNames != null &&
+            includedSuggestionRelevanceTags != null) {
           computeIncludedSetList(
-            server.declarationsTracker,
+            declarationsTracker,
             unit,
             includedSuggestionSets,
             includedElementNames,
           );
+
+          // Build a fast lookup for imported symbols so that we can filter out
+          // duplicates.
+          final alreadyImportedSymbols = _buildLookupOfImportedSymbols(unit);
+
+          includedSuggestionSets.forEach((includedSet) {
+            final library = declarationsTracker.getLibrary(includedSet.id);
+            if (library == null) {
+              return;
+            }
+
+            // Make a fast lookup for tag relevance.
+            final tagBoosts = <String, int>{};
+            includedSuggestionRelevanceTags!
+                .forEach((t) => tagBoosts[t.tag] = t.relevanceBoost);
+
+            // Only specific types of child declarations should be included.
+            // This list matches what's in _protocolAvailableSuggestion in
+            // the DAS implementation.
+            bool shouldIncludeChild(Declaration child) =>
+                child.kind == DeclarationKind.CONSTRUCTOR ||
+                child.kind == DeclarationKind.ENUM_CONSTANT ||
+                (child.kind == DeclarationKind.GETTER && child.isStatic) ||
+                (child.kind == DeclarationKind.FIELD && child.isStatic);
+
+            // Collect declarations and their children.
+            final allDeclarations = library.declarations
+                .followedBy(library.declarations
+                    .expand((decl) => decl.children.where(shouldIncludeChild)))
+                .toList();
+
+            final setResults = allDeclarations
+                // Filter to only the kinds we should return.
+                .where((item) => includedElementKinds!
+                    .contains(protocolElementKind(item.kind)))
+                .where((item) {
+              // Check existing imports to ensure we don't already import
+              // this element (this exact element from its declaring
+              // library, not just something with the same name). If we do
+              // we'll want to skip it.
+              final declaringUri =
+                  item.parent?.locationLibraryUri ?? item.locationLibraryUri!;
+
+              // For enums and named constructors, only the parent enum/class is in
+              // the list of imported symbols so we use the parents name.
+              final nameKey = item.kind == DeclarationKind.ENUM_CONSTANT ||
+                      item.kind == DeclarationKind.CONSTRUCTOR
+                  ? item.parent!.name
+                  : item.name;
+              final key = _createImportedSymbolKey(nameKey, declaringUri);
+              final importingUris = alreadyImportedSymbols[key];
+
+              // Keep it only if there are either:
+              // - no URIs importing it
+              // - the URIs importing it include this one
+              return importingUris == null ||
+                  importingUris.contains('${library.uri}');
+            }).map((item) => declarationToCompletionItem(
+                      capabilities,
+                      unit.path!,
+                      offset,
+                      includedSet,
+                      library,
+                      tagBoosts,
+                      unit.lineInfo,
+                      item,
+                      completionRequest.replacementOffset,
+                      insertLength,
+                      completionRequest.replacementLength,
+                      // TODO(dantup): Including commit characters in every completion
+                      // increases the payload size. The LSP spec is ambigious
+                      // about how this should be handled (and VS Code requires it) but
+                      // this should be removed (or made conditional based on a capability)
+                      // depending on how the spec is updated.
+                      // https://github.com/microsoft/vscode-languageserver-node/issues/673
+                      includeCommitCharacters:
+                          server.clientConfiguration.previewCommitCharacters,
+                      completeFunctionCalls:
+                          server.clientConfiguration.completeFunctionCalls,
+                    ));
+            results.addAll(setResults);
+          });
         }
-
-        // Build a fast lookup for imported symbols so that we can filter out
-        // duplicates.
-        final alreadyImportedSymbols = _buildLookupOfImportedSymbols(unit);
-
-        includedSuggestionSets.forEach((includedSet) {
-          final library = server.declarationsTracker.getLibrary(includedSet.id);
-          if (library == null) {
-            return;
-          }
-
-          // Make a fast lookup for tag relevance.
-          final tagBoosts = <String, int>{};
-          includedSuggestionRelevanceTags
-              .forEach((t) => tagBoosts[t.tag] = t.relevanceBoost);
-
-          // Only specific types of child declarations should be included.
-          // This list matches what's in _protocolAvailableSuggestion in
-          // the DAS implementation.
-          bool shouldIncludeChild(Declaration child) =>
-              child.kind == DeclarationKind.CONSTRUCTOR ||
-              child.kind == DeclarationKind.ENUM_CONSTANT ||
-              (child.kind == DeclarationKind.GETTER && child.isStatic) ||
-              (child.kind == DeclarationKind.FIELD && child.isStatic);
-
-          // Collect declarations and their children.
-          final allDeclarations = library.declarations
-              .followedBy(library.declarations
-                  .expand((decl) => decl.children.where(shouldIncludeChild)))
-              .toList();
-
-          final setResults = allDeclarations
-              // Filter to only the kinds we should return.
-              .where((item) =>
-                  includedElementKinds.contains(protocolElementKind(item.kind)))
-              .where((item) {
-            // Check existing imports to ensure we don't already import
-            // this element (this exact element from its declaring
-            // library, not just something with the same name). If we do
-            // we'll want to skip it.
-            final declaringUri = item.parent != null
-                ? item.parent.locationLibraryUri
-                : item.locationLibraryUri;
-
-            // For enums and named constructors, only the parent enum/class is in
-            // the list of imported symbols so we use the parents name.
-            final nameKey = item.kind == DeclarationKind.ENUM_CONSTANT ||
-                    item.kind == DeclarationKind.CONSTRUCTOR
-                ? item.parent.name
-                : item.name;
-            final key = _createImportedSymbolKey(nameKey, declaringUri);
-            final importingUris = alreadyImportedSymbols[key];
-
-            // Keep it only if there are either:
-            // - no URIs importing it
-            // - the URIs importing it include this one
-            return importingUris == null ||
-                importingUris.contains('${library.uri}');
-          }).map((item) => declarationToCompletionItem(
-                    capabilities,
-                    unit.path,
-                    offset,
-                    includedSet,
-                    library,
-                    tagBoosts,
-                    unit.lineInfo,
-                    item,
-                    completionRequest.replacementOffset,
-                    insertLength,
-                    completionRequest.replacementLength,
-                    // TODO(dantup): Including commit characters in every completion
-                    // increases the payload size. The LSP spec is ambigious
-                    // about how this should be handled (and VS Code requires it) but
-                    // this should be removed (or made conditional based on a capability)
-                    // depending on how the spec is updated.
-                    // https://github.com/microsoft/vscode-languageserver-node/issues/673
-                    includeCommitCharacters:
-                        server.clientConfiguration.previewCommitCharacters,
-                    completeFunctionCalls:
-                        server.clientConfiguration.completeFunctionCalls,
-                  ));
-          results.addAll(setResults);
-        });
 
         // Perform fuzzy matching based on the identifier in front of the caret to
         // reduce the size of the payload.

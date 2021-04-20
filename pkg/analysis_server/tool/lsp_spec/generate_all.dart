@@ -202,7 +202,7 @@ List<AstNode> getCustomClasses() {
   }
 
   final customTypes = <AstNode>[
-    interface('DartDiagnosticServer', [field('port', type: 'number')]),
+    interface('DartDiagnosticServer', [field('port', type: 'int')]),
     interface('AnalyzerStatusParams', [field('isAnalyzing', type: 'boolean')]),
     interface('PublishClosingLabelsParams', [
       field('uri', type: 'string'),
@@ -255,7 +255,7 @@ List<AstNode> getCustomClasses() {
       'CompletionItemResolutionInfo',
       [
         field('file', type: 'string'),
-        field('offset', type: 'number'),
+        field('offset', type: 'int'),
       ],
     ),
     interface(
@@ -263,11 +263,11 @@ List<AstNode> getCustomClasses() {
       [
         // These fields have short-ish names because they're on the payload
         // for all suggestion-set backed completions.
-        field('libId', type: 'number'),
+        field('libId', type: 'int'),
         field('displayUri', type: 'string'),
-        field('rOffset', type: 'number'), // replacementOffset
-        field('iLength', type: 'number'), // insertLength
-        field('rLength', type: 'number'), // replacementLength
+        field('rOffset', type: 'int'), // replacementOffset
+        field('iLength', type: 'int'), // insertLength
+        field('rLength', type: 'int'), // replacementLength
       ],
       baseType: 'CompletionItemResolutionInfo',
     ),

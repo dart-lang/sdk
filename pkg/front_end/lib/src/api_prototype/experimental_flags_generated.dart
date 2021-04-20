@@ -90,7 +90,7 @@ const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.nonfunctionTypeAliases: true,
   ExperimentalFlag.setLiterals: true,
   ExperimentalFlag.spreadCollections: true,
-  ExperimentalFlag.tripleShift: false,
+  ExperimentalFlag.tripleShift: true,
   ExperimentalFlag.valueClass: false,
   ExperimentalFlag.variance: false,
 };

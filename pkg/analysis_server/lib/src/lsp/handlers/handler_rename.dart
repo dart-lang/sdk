@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -13,7 +11,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 
 class PrepareRenameHandler
-    extends MessageHandler<TextDocumentPositionParams, RangeAndPlaceholder> {
+    extends MessageHandler<TextDocumentPositionParams, RangeAndPlaceholder?> {
   PrepareRenameHandler(LspAnalysisServer server) : super(server);
   @override
   Method get handlesMessage => Method.textDocument_prepareRename;
@@ -23,7 +21,7 @@ class PrepareRenameHandler
       TextDocumentPositionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<RangeAndPlaceholder>> handle(
+  Future<ErrorOr<RangeAndPlaceholder?>> handle(
       TextDocumentPositionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
@@ -43,6 +41,10 @@ class PrepareRenameHandler
 
       final refactorDetails =
           RenameRefactoring.getElementToRename(node, element);
+      if (refactorDetails == null) {
+        return success(null);
+      }
+
       final refactoring = RenameRefactoring.create(
           server.refactoringWorkspace, unit.result, refactorDetails.element);
       if (refactoring == null) {
@@ -53,7 +55,7 @@ class PrepareRenameHandler
       final initStatus = await refactoring.checkInitialConditions();
       if (initStatus.hasFatalError) {
         return error(
-            ServerErrorCodes.RenameNotValid, initStatus.problem.message, null);
+            ServerErrorCodes.RenameNotValid, initStatus.problem!.message, null);
       }
 
       return success(RangeAndPlaceholder(
@@ -72,7 +74,7 @@ class PrepareRenameHandler
   }
 }
 
-class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
+class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
   RenameHandler(LspAnalysisServer server) : super(server);
 
   @override
@@ -82,7 +84,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
   LspJsonHandler<RenameParams> get jsonHandler => RenameParams.jsonHandler;
 
   @override
-  Future<ErrorOr<WorkspaceEdit>> handle(
+  Future<ErrorOr<WorkspaceEdit?>> handle(
       RenameParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
@@ -116,6 +118,10 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
 
       final refactorDetails =
           RenameRefactoring.getElementToRename(node, element);
+      if (refactorDetails == null) {
+        return success(null);
+      }
+
       final refactoring = RenameRefactoring.create(
           server.refactoringWorkspace, unit.result, refactorDetails.element);
       if (refactoring == null) {
@@ -135,7 +141,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
       }
       if (initStatus.hasFatalError) {
         return error(
-            ServerErrorCodes.RenameNotValid, initStatus.problem.message, null);
+            ServerErrorCodes.RenameNotValid, initStatus.problem!.message, null);
       }
 
       // Check the name is valid.
@@ -143,7 +149,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
       final optionsStatus = refactoring.checkNewName();
       if (optionsStatus.hasError) {
         return error(ServerErrorCodes.RenameNotValid,
-            optionsStatus.problem.message, null);
+            optionsStatus.problem!.message, null);
       }
 
       // Final validation.
@@ -152,13 +158,13 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
         return cancelled();
       }
       if (finalStatus.hasFatalError) {
-        return error(
-            ServerErrorCodes.RenameNotValid, finalStatus.problem.message, null);
+        return error(ServerErrorCodes.RenameNotValid,
+            finalStatus.problem!.message, null);
       } else if (finalStatus.hasError || finalStatus.hasWarning) {
         // Ask the user whether to proceed with the rename.
         final userChoice = await server.showUserPrompt(
           MessageType.Warning,
-          finalStatus.message,
+          finalStatus.message!,
           [
             MessageActionItem(title: UserPromptActions.renameAnyway),
             MessageActionItem(title: UserPromptActions.cancel),

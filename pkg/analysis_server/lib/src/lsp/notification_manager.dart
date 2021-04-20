@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
@@ -20,7 +18,8 @@ class LspNotificationManager extends AbstractNotificationManager {
 
   /// The analysis server, used to fetch LineInfo in order to map plugin
   /// data structures to LSP structures.
-  LspAnalysisServer server;
+  late LspAnalysisServer
+      server; // Set externally immediately after construction
 
   LspNotificationManager(this.channel, Context pathContext)
       : super(pathContext);
@@ -31,9 +30,10 @@ class LspNotificationManager extends AbstractNotificationManager {
       String filePath, List<protocol.AnalysisError> errors) {
     final diagnostics = errors
         .map((error) => pluginToDiagnostic(
-              server.getLineInfo,
+              // We should never errors for a file we can't get a LineInfo for
+              (path) => server.getLineInfo(path)!,
               error,
-              supportedTags: server.clientCapabilities.diagnosticTags,
+              supportedTags: server.clientCapabilities?.diagnosticTags,
             ))
         .toList();
 

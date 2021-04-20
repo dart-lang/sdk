@@ -19,13 +19,22 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'element_text.dart';
 import 'resynthesize_common.dart';
 import 'test_strategies.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ResynthesizeAst2Test);
+    // defineReflectiveTests(ApplyCheckElementTextReplacements);
   });
+}
+
+@reflectiveTest
+class ApplyCheckElementTextReplacements {
+  test_applyReplacements() {
+    applyCheckElementTextReplacements();
+  }
 }
 
 @reflectiveTest

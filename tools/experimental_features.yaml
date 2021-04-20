@@ -106,16 +106,6 @@
 current-version: '2.14.0'
 
 features:
-  triple-shift:
-    help: "Triple-shift operator"
-    validation: |
-      class A {
-        operator>>>(int k) => 42;
-      }
-      void main() {
-        if ((A() >>> 1) == 42) print('feature enabled');
-      }
-
   variance:
     help: "Sound variance"
 
@@ -183,3 +173,14 @@ features:
     help: "Spread Collections"
     enabledIn: '2.0.0'
     expired: true
+
+  triple-shift:
+    help: "Triple-shift operator"
+    enabledIn: '2.14.0'
+    validation: |
+      class A {
+        operator>>>(int k) => 42;
+      }
+      void main() {
+        if ((A() >>> 1) == 42) print('feature enabled');
+      }

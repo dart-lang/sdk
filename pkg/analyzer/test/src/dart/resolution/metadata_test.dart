@@ -767,6 +767,90 @@ A<dynamic>
     );
   }
 
+  test_value_genericMixinApplication_inference_unnamedConstructor() async {
+    await assertNoErrorsInCode(r'''
+ class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+mixin M {}
+
+class B<T> = A<T> with M;
+
+@B(42)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+  element: ConstructorMember
+    base: self::@class::B::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@class::B
+    staticType: null
+    token: B
+''');
+    _assertAnnotationValueText(annotation, r'''
+B<int>
+  (super): A<int>
+    f: int 42
+''');
+  }
+
+  test_value_genericMixinApplication_typeArguments_unnamedConstructor() async {
+    await assertNoErrorsInCode(r'''
+ class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+mixin M {}
+
+class B<T> = A<T> with M;
+
+@B<int>(42)
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+  element: ConstructorMember
+    base: self::@class::B::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@class::B
+    staticType: null
+    token: B
+  typeArguments: TypeArgumentList
+    arguments
+      TypeName
+        name: SimpleIdentifier
+          staticElement: dart:core::@class::int
+          staticType: null
+          token: int
+        type: int
+''');
+    _assertAnnotationValueText(annotation, r'''
+B<int>
+  (super): A<int>
+    f: int 42
+''');
+  }
+
   test_value_otherLibrary_implicitConst() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A {

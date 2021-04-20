@@ -85,9 +85,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   /// [server].
   EditDomainHandler(AnalysisServer server) : super(server) {
     var search = searchEngine = server.searchEngine;
-    refactoringWorkspace = search == null
-        ? null
-        : RefactoringWorkspace(server.driverMap.values, search);
+    refactoringWorkspace =
+        RefactoringWorkspace(server.driverMap.values, search);
     _newRefactoringManager();
   }
 

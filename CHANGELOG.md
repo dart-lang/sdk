@@ -30,6 +30,12 @@ Updated the Linter to `1.3.0`, which includes:
 - new lint: `require_trailing_commas`.
 - new lint: `prefer_null_aware_method_calls`.
 
+### Language
+
+*   Add an unsigned shift right operator `>>>`. Pad with zeroes, ignoring the
+    sign bit. On the web platform `int.>>>` shifts the low 32 bits interpreted
+    as an unsigned integer, so `a >>> b` gives the same result as
+    `a.toUnsigned(32) >>> b` on the VM.
 
 ## 2.13.0
 

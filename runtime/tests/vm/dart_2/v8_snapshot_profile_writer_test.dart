@@ -135,7 +135,13 @@ test(
       stripPrefix = "externally stripped ";
     }
 
-    Expect.approxEquals(expected, actual, 0.03 * actual,
+    // See Elf::kPages in runtime/vm/elf.h.
+    final segmentAlignment = 16384;
+    // Not every byte is accounted for by the snapshot profile, and data and
+    // instruction segments are padded to an alignment boundary.
+    final tolerance = 0.03 * actual + 2 * segmentAlignment;
+
+    Expect.approxEquals(expected, actual, tolerance,
         "failed on $bareUsed $stripPrefix$fileType snapshot type.");
   });
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
@@ -24,7 +22,7 @@ class CompletionResolveHandler
   /// Used to abort previous requests in async handlers if another resolve request
   /// arrives while the previous is being processed (for clients that don't send
   /// cancel events).
-  CompletionItem _latestCompletionItem;
+  CompletionItem? _latestCompletionItem;
 
   CompletionResolveHandler(LspAnalysisServer server) : super(server);
 
@@ -55,6 +53,13 @@ class CompletionResolveHandler
     DartCompletionItemResolutionInfo data,
     CancellationToken token,
   ) async {
+    final clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
+      // This should not happen unless a client misbehaves.
+      return error(ErrorCodes.ServerNotInitialized,
+          'Requests not before server is initilized');
+    }
+
     final lineInfo = server.getLineInfo(data.file);
     if (lineInfo == null) {
       return error(
@@ -68,7 +73,7 @@ class CompletionResolveHandler
     // extracting (with support for the different types of responses between
     // the servers). Where is an appropriate place to put it?
 
-    var library = server.declarationsTracker.getLibrary(data.libId);
+    var library = server.declarationsTracker?.getLibrary(data.libId);
     if (library == null) {
       return error(
         ErrorCodes.InvalidParams,
@@ -94,16 +99,19 @@ class CompletionResolveHandler
     _latestCompletionItem = item;
     while (item == _latestCompletionItem && timer.elapsed < timeout) {
       try {
-        var analysisDriver = server.getAnalysisDriver(data.file);
-        var session = analysisDriver.currentSession;
+        final analysisDriver = server.getAnalysisDriver(data.file);
+        final session = analysisDriver?.currentSession;
 
-        if (token.isCancellationRequested) {
+        // We shouldn't not get a driver/session, but if we did perhaps the file
+        // was removed from the analysis set so assume the request is no longer
+        // valid.
+        if (session == null || token.isCancellationRequested) {
           return cancelled();
         }
 
         analyzer.LibraryElement requestedLibraryElement;
         {
-          var result = await session.getLibraryByUri2(library.uriStr);
+          final result = await session.getLibraryByUri2(library.uriStr);
           if (result is LibraryElementResult) {
             requestedLibraryElement = result.element;
           } else {
@@ -150,7 +158,7 @@ class CompletionResolveHandler
 
         // If this completion involves editing other files, we'll need to build
         // a command that the client will call to apply those edits later.
-        Command command;
+        Command? command;
         if (otherFilesChanges.isNotEmpty) {
           final workspaceEdit =
               createPlainWorkspaceEdit(server, otherFilesChanges);
@@ -161,19 +169,19 @@ class CompletionResolveHandler
         }
 
         // Documentation is added on during resolve for LSP.
-        final formats =
-            server.clientCapabilities.completionDocumentationFormats;
+        final formats = clientCapabilities.completionDocumentationFormats;
         final supportsInsertReplace =
-            server.clientCapabilities.insertReplaceCompletionRanges;
+            clientCapabilities.insertReplaceCompletionRanges;
         final dartDoc =
             analyzer.getDartDocPlainText(requestedElement.documentationComment);
-        final documentation = asStringOrMarkupContent(formats, dartDoc);
+        final documentation =
+            dartDoc != null ? asStringOrMarkupContent(formats, dartDoc) : null;
 
         return success(CompletionItem(
           label: item.label,
           kind: item.kind,
           tags: item.tags,
-          detail: data.displayUri != null && thisFilesChanges.isNotEmpty
+          detail: thisFilesChanges.isNotEmpty
               ? "Auto import from '${data.displayUri}'\n\n${item.detail ?? ''}"
                   .trim()
               : item.detail,
@@ -234,13 +242,14 @@ class CompletionResolveHandler
       return cancelled();
     }
 
+    final description = packageDetails?.description;
     return success(CompletionItem(
       label: item.label,
       kind: item.kind,
       tags: item.tags,
       detail: item.detail,
-      documentation: packageDetails?.description != null
-          ? Either2<String, MarkupContent>.t1(packageDetails.description)
+      documentation: description != null
+          ? Either2<String, MarkupContent>.t1(description)
           : null,
       deprecated: item.deprecated,
       preselect: item.preselect,

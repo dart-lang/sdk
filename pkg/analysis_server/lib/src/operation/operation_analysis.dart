@@ -17,9 +17,6 @@ import 'package:analyzer/src/generated/source.dart';
 Future<void> scheduleImplementedNotification(
     AnalysisServer server, Iterable<String> files) async {
   var searchEngine = server.searchEngine;
-  if (searchEngine == null) {
-    return;
-  }
   for (var file in files) {
     var unit = server.getCachedResolvedUnit(file)?.unit;
     var unitElement = unit?.declaredElement;

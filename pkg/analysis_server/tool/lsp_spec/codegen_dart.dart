@@ -133,7 +133,7 @@ String _getTypeCheckFailureMessage(TypeBase type) {
 }
 
 bool _isSimpleType(TypeBase type) {
-  const literals = ['num', 'String', 'bool'];
+  const literals = ['num', 'String', 'bool', 'int'];
   return type is Type && literals.contains(type.dartType);
 }
 

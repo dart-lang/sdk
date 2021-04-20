@@ -21,6 +21,7 @@ enum class ExperimentalFeature {
   control_flow_collections,
   set_literals,
   spread_collections,
+  triple_shift,
 };
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature);

@@ -60,16 +60,16 @@ def SplitNoPathBucket(node):
         no_path_bucket = root_children[NAME_NO_PATH_BUCKET]
         old_children = no_path_bucket[NODE_CHILDREN_KEY]
         count = 0
-        for symbol_type, symbol_bucket in old_children.iteritems():
+        for symbol_type, symbol_bucket in old_children.items():
             count += len(symbol_bucket[NODE_CHILDREN_KEY])
         if count > BIG_BUCKET_LIMIT:
             new_children = {}
             no_path_bucket[NODE_CHILDREN_KEY] = new_children
             current_bucket = None
             index = 0
-            for symbol_type, symbol_bucket in old_children.iteritems():
+            for symbol_type, symbol_bucket in old_children.items():
                 for symbol_name, value in symbol_bucket[
-                        NODE_CHILDREN_KEY].iteritems():
+                        NODE_CHILDREN_KEY].items():
                     if index % BIG_BUCKET_LIMIT == 0:
                         group_no = (index / BIG_BUCKET_LIMIT) + 1
                         current_bucket = _MkChild(
@@ -89,7 +89,7 @@ def MakeChildrenDictsIntoLists(node):
     if NODE_CHILDREN_KEY in node:
         largest_list_len = len(node[NODE_CHILDREN_KEY])
         child_list = []
-        for child in node[NODE_CHILDREN_KEY].itervalues():
+        for child in node[NODE_CHILDREN_KEY].values():
             child_largest_list_len = MakeChildrenDictsIntoLists(child)
             if child_largest_list_len > largest_list_len:
                 largest_list_len = child_largest_list_len
@@ -305,7 +305,8 @@ def RunElfSymbolizer(outfile, library, addr2line_binary, nm_binary, jobs,
         source_root_path=src_path)
     user_interrupted = False
     try:
-        for line in nm_output_lines:
+        for binary_line in nm_output_lines:
+            line = binary_line.decode()
             match = sNmPattern.match(line)
             if match:
                 location = match.group(5)
@@ -344,7 +345,8 @@ def RunElfSymbolizer(outfile, library, addr2line_binary, nm_binary, jobs,
     symbol_path_origin_dir = os.path.dirname(os.path.abspath(library))
 
     with open(outfile, 'w') as out:
-        for line in nm_output_lines:
+        for binary_line in nm_output_lines:
+            line = binary_line.decode()
             match = sNmPattern.match(line)
             if match:
                 location = match.group(5)
@@ -496,7 +498,8 @@ def CheckDebugFormatSupport(library, addr2line_binary):
   since we are right now transitioning from DWARF2 to newer formats,
   it's possible to have a mix of tools that are not compatible. Detect
   that and abort rather than produce meaningless output."""
-    tool_output = subprocess.check_output([addr2line_binary, '--version'])
+    tool_output = subprocess.check_output([addr2line_binary,
+                                           '--version']).decode()
     version_re = re.compile(r'^GNU [^ ]+ .* (\d+).(\d+).*?$', re.M)
     parsed_output = version_re.match(tool_output)
     major = int(parsed_output.group(1))
@@ -636,7 +639,7 @@ def main():
         # CPU power isn't the limiting factor. It's I/O limited, memory
         # bus limited and available-memory-limited. Too many processes and
         # the computer will run out of memory and it will be slow.
-        opts.jobs = max(2, min(4, str(multiprocessing.cpu_count())))
+        opts.jobs = max(2, min(4, multiprocessing.cpu_count()))
 
     if opts.addr2line_binary:
         assert os.path.isfile(opts.addr2line_binary)
