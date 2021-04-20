@@ -4293,6 +4293,9 @@ abstract class NamespaceDirective implements UriBasedDirective {
   /// Set the semicolon terminating the directive to the given [token].
   @Deprecated('Clients should not build AST manually')
   set semicolon(Token token);
+
+  @override
+  LibraryElement? get uriElement;
 }
 
 /// The "native" clause in an class declaration.
