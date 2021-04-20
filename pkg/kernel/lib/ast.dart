@@ -10239,10 +10239,6 @@ abstract class Name extends Node {
     }
   }
 
-  // TODO(johnniwinther): Remove this when dependent code has been updated to
-  // use [text].
-  String get name => text;
-
   @override
   bool operator ==(other) {
     return other is Name && text == other.text && library == other.library;

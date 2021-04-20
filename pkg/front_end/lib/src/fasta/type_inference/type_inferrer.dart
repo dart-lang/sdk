@@ -3864,7 +3864,7 @@ class TypeInferrerImpl implements TypeInferrer {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
     flowAnalysis.thisOrSuperPropertyGet(
-        expression, expression.name.name, member, inferredType);
+        expression, expression.name.text, member, inferredType);
     return new ExpressionInferenceResult(inferredType, expression);
   }
 
