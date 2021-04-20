@@ -2218,6 +2218,44 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       }
     } else if (receiver is NullConstant) {
       return createErrorConstant(node, messageConstEvalNullValue);
+    } else if (receiver is MapConstant && enableConstFunctions) {
+      if (arguments.length == 1) {
+        final Constant other = arguments[0];
+        switch (op) {
+          case '[]':
+            final ConstantMapEntry mapEntry = receiver.entries
+                .firstWhere((entry) => entry.key == other, orElse: () => null);
+            // Null value if key is not in the map.
+            return mapEntry?.value ?? new NullConstant();
+        }
+      }
+    } else if (receiver is InstanceConstant && enableConstFunctions) {
+      if (arguments.length == 1) {
+        final Constant other = arguments[0];
+        if (receiver.classNode.name == '_ImmutableMap') {
+          switch (op) {
+            case '[]':
+              final ListConstant values = receiver.fieldValues.entries
+                  .firstWhere(
+                      (entry) => entry.key.canonicalName.name == '_kvPairs',
+                      orElse: () => null)
+                  .value;
+              assert(values != null);
+
+              // Each i index element in [values] is a key whose value is the
+              // i+1 index element.
+              int keyIndex = values.entries.indexOf(other);
+              if (keyIndex != -1) {
+                int valueIndex = keyIndex + 1;
+                assert(valueIndex != values.entries.length);
+                return values.entries[valueIndex];
+              } else {
+                // Null value if key is not in the map.
+                return new NullConstant();
+              }
+          }
+        }
+      }
     }
 
     return createErrorConstant(
