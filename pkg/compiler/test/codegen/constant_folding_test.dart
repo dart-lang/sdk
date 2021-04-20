@@ -67,7 +67,7 @@ main() {
       RegExp regexp = new RegExp(r'a == null');
       Expect.isTrue(regexp.hasMatch(generated), 'No match found for ${regexp}');
 
-      regexp = new RegExp(r'null == b');
+      regexp = new RegExp(r'b == null');
       Expect.isTrue(regexp.hasMatch(generated), 'No match found for ${regexp}');
 
       regexp = new RegExp(r'4 === c');

@@ -26,7 +26,7 @@ main() {
 while1(dynamic c) {
   if (/*dynamic*/ c is Class) {
     /*Class*/ c.next;
-    while (/*dynamic*/ c /*invoke: [dynamic]->bool*/ != null) {
+    while (/*dynamic*/ c != null) {
       /*dynamic*/ c.next;
       if (/*dynamic*/ c is Class) {
         /*Class*/ c.next;
@@ -40,7 +40,7 @@ while1(dynamic c) {
 while2(dynamic c) {
   if (/*dynamic*/ c is Class) {
     /*Class*/ c.next;
-    while (/*Class*/ c /*invoke: [Class]->bool*/ != null) {
+    while (/*Class*/ c != null) {
       /*Class*/ c.next;
     }
     /*Class*/ c.next;
@@ -48,7 +48,7 @@ while2(dynamic c) {
 }
 
 whileNext(Class c) {
-  while (/*Class*/ c /*invoke: [Class]->bool*/ != null) {
+  while (/*Class*/ c != null) {
     c = /*Class*/ c.next;
   }
   return /*Class*/ c;
@@ -56,7 +56,7 @@ whileNext(Class c) {
 
 whileNextGeneric(GenericClass<int> c) {
   while (
-      /*GenericClass<int>*/ c /*invoke: [GenericClass<int>]->bool*/ != null) {
+      /*GenericClass<int>*/ c != null) {
     c = /*GenericClass<int>*/ c.next;
   }
   return /*GenericClass<int>*/ c;
@@ -80,7 +80,7 @@ class Class1<T> {
   whileNext2() {
     bool b;
     GenericClass<T> c;
-    while (/*GenericClass<T>*/ c /*invoke: [GenericClass<T>]->bool*/ != null) {
+    while (/*GenericClass<T>*/ c != null) {
       if (/*bool*/ b) {
         GenericClass<T> next = /*GenericClass<T>*/ c.next;
         c = /*GenericClass<T>*/ next;
@@ -94,7 +94,7 @@ class Class1<T> {
   whileNext3() {
     bool b;
     GenericClass<T> c;
-    while (/*GenericClass<T>*/ c /*invoke: [GenericClass<T>]->bool*/ == null) {
+    while (/*GenericClass<T>*/ c == null) {
       if (/*bool*/ b) {
         GenericClass<T> next = /*Null*/ c.next;
         c = /*GenericClass<T>*/ next;

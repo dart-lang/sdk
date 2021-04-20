@@ -5284,28 +5284,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   void visitEqualsNull(ir.EqualsNull node) {
     node.expression.accept(this);
     HInstruction receiverInstruction = pop();
-
-    // Hack to detect `null == o`.
-    // TODO(johnniwinther): Remove this after the new method invocation has
-    // landed stably. This is only included to make the transition a no-op.
-    if (node.fileOffset < node.expression.fileOffset) {
-      _pushDynamicInvocation(
-          node,
-          new StaticType(
-              _elementMap.commonElements.nullType, ClassRelation.subtype),
-          _typeInferenceMap.receiverTypeOfInvocation(
-              node, _abstractValueDomain),
-          Selectors.equals,
-          <HInstruction>[
-            graph.addConstantNull(closedWorld),
-            receiverInstruction
-          ],
-          const <DartType>[],
-          _sourceInformationBuilder.buildCall(node.expression, node));
-    } else {
-      _handleEquals(node, node.expression, receiverInstruction,
-          graph.addConstantNull(closedWorld));
-    }
+    _handleEquals(node, node.expression, receiverInstruction,
+        graph.addConstantNull(closedWorld));
   }
 
   @override
