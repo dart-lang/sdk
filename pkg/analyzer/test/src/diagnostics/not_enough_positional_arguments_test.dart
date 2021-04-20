@@ -24,6 +24,7 @@ main() {
   const A();
 }
 ''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 41, 9),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 48, 2),
     ]);
   }

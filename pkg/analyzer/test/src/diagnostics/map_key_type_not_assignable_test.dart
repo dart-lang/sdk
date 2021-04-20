@@ -16,7 +16,20 @@ main() {
 
 @reflectiveTest
 class MapKeyTypeNotAssignableTest extends PubPackageResolutionTest
-    with MapKeyTypeNotAssignableTestCases {}
+    with MapKeyTypeNotAssignableTestCases {
+  test_const_intQuestion_null_dynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic a = null;
+var v = const <int?, bool>{a : true};
+''');
+  }
+
+  test_const_intQuestion_null_value() async {
+    await assertNoErrorsInCode('''
+var v = const <int?, bool>{null : true};
+''');
+  }
+}
 
 mixin MapKeyTypeNotAssignableTestCases on PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_intInt_dynamic() async {
@@ -82,6 +95,25 @@ var v = const <int, bool>{if (1 < 2) a: true};
 const dynamic a = 0;
 var v = const <int, bool>{a : true};
 ''');
+  }
+
+  test_const_intNull_dynamic() async {
+    var errors = expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 50, 1),
+    ], legacy: []);
+    await assertErrorsInCode('''
+const dynamic a = null;
+var v = const <int, bool>{a : true};
+''', errors);
+  }
+
+  test_const_intNull_value() async {
+    var errors = expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 26, 4),
+    ], legacy: []);
+    await assertErrorsInCode('''
+var v = const <int, bool>{null : true};
+''', errors);
   }
 
   test_const_intString_dynamic() async {
