@@ -585,6 +585,10 @@ class DartFixKind {
       'dart.fix.remove.nonNullAssertion',
       DartFixKindPriority.DEFAULT,
       "Remove the '!'");
+  static const REMOVE_NON_NULL_ASSERTION_MULTI = FixKind(
+      'dart.fix.remove.nonNullAssertion.multi',
+      DartFixKindPriority.IN_FILE,
+      "Remove '!'s in file");
   static const REMOVE_OPERATOR = FixKind('dart.fix.remove.operator',
       DartFixKindPriority.DEFAULT, 'Remove the operator');
   static const REMOVE_OPERATOR_MULTI = FixKind(

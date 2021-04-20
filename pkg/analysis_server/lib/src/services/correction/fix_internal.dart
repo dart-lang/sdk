@@ -381,8 +381,7 @@ class FixProcessor extends BaseProcessor {
     ],
     StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION: [
       FixInfo(
-        // todo (pq): consider adding
-        canBeAppliedToFile: false,
+        canBeAppliedToFile: true,
         canBeBulkApplied: true,
         generators: [
           RemoveNonNullAssertion.newInstance,
