@@ -207,9 +207,7 @@ bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
   // The `field.is_non_nullable_integer()` is set in the kernel loader and can
   // only be set if we consume a AOT kernel (annotated with inferred types).
   ASSERT(!field.is_non_nullable_integer() || FLAG_precompiled_mode);
-  // Unboxed fields in JIT lightweight isolates mode are not supported yet.
   const bool valid_class =
-      (FLAG_precompiled_mode || !IsolateGroup::AreIsolateGroupsEnabled()) &&
       ((SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid)) ||
@@ -224,9 +222,7 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
     // proven to be correct.
     return IsUnboxedField(field);
   }
-  // Unboxed fields in JIT lightweight isolates mode are not supported yet.
-  return !IsolateGroup::AreIsolateGroupsEnabled() &&
-         field.is_unboxing_candidate() &&
+  return field.is_unboxing_candidate() &&
          (FlowGraphCompiler::IsUnboxedField(field) ||
           (field.guarded_cid() == kIllegalCid));
 }
@@ -449,7 +445,7 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
 void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env,
                                               intptr_t try_index) {
 #if defined(DART_PRECOMPILER)
-  env = env ? env : pending_deoptimization_env_;
+  env = env != nullptr ? env : pending_deoptimization_env_;
   try_index = try_index != kInvalidTryIndex ? try_index : CurrentTryIndex();
   if (is_optimizing() && env != nullptr && (try_index != kInvalidTryIndex)) {
     env = env->Outermost();
