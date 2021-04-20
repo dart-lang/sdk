@@ -1050,7 +1050,7 @@ class _FixCodeProcessor extends Object {
   bool get isPreviewServerRunning => _task?.isPreviewServerRunning ?? false;
 
   LineInfo getLineInfo(String path) =>
-      context.currentSession.getFile(path).lineInfo;
+      (context.currentSession.getFile2(path) as FileResult).lineInfo;
 
   void prepareToRerun() {
     var driver = context.driver;
@@ -1065,25 +1065,16 @@ class _FixCodeProcessor extends Object {
     var pathsProcessed = <String>{};
     for (var path in pathsToProcess) {
       if (pathsProcessed.contains(path)) continue;
-      switch (await driver.getSourceKind(path)) {
-        case SourceKind.PART:
-          // Parts will either be found in a library, below, or if the library
-          // isn't [isIncluded], will be picked up in the final loop.
-          continue;
-          break;
-        case SourceKind.LIBRARY:
-          var result = await driver.getResolvedLibrary2(path);
-          if (result is ResolvedLibraryResult) {
-            for (var unit in result.units) {
-              if (!pathsProcessed.contains(unit.path)) {
-                await process(unit);
-                pathsProcessed.add(unit.path);
-              }
-            }
+      var result = await driver.getResolvedLibrary2(path);
+      // Parts will either be found in a library, below, or if the library
+      // isn't [isIncluded], will be picked up in the final loop.
+      if (result is ResolvedLibraryResult) {
+        for (var unit in result.units) {
+          if (!pathsProcessed.contains(unit.path)) {
+            await process(unit);
+            pathsProcessed.add(unit.path);
           }
-          break;
-        default:
-          break;
+        }
       }
     }
 

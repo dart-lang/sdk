@@ -1053,10 +1053,29 @@ class Class : public Object {
   ScriptPtr script() const { return untag()->script(); }
   void set_script(const Script& value) const;
 
-  TokenPosition token_pos() const { return untag()->token_pos_; }
+  TokenPosition token_pos() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return TokenPosition::kNoSource;
+#else
+    return untag()->token_pos_;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   void set_token_pos(TokenPosition value) const;
-  TokenPosition end_token_pos() const { return untag()->end_token_pos_; }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  TokenPosition end_token_pos() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return TokenPosition::kNoSource;
+#else
+    return untag()->end_token_pos_;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   void set_end_token_pos(TokenPosition value) const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   int32_t SourceFingerprint() const;
 
@@ -1195,6 +1214,7 @@ class Class : public Object {
   }
   void set_interfaces(const Array& value) const;
 
+#if !defined(PRODUCT) || !defined(DART_PRECOMPILED_RUNTIME)
   // Returns the list of classes directly implementing this class.
   GrowableObjectArrayPtr direct_implementors() const {
     DEBUG_ASSERT(
@@ -1204,9 +1224,14 @@ class Class : public Object {
   GrowableObjectArrayPtr direct_implementors_unsafe() const {
     return untag()->direct_implementors();
   }
+#endif  // !defined(PRODUCT) || !defined(DART_PRECOMPILED_RUNTIME)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   void set_direct_implementors(const GrowableObjectArray& implementors) const;
   void AddDirectImplementor(const Class& subclass, bool is_mixin) const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+#if !defined(PRODUCT) || !defined(DART_PRECOMPILED_RUNTIME)
   // Returns the list of classes having this class as direct superclass.
   GrowableObjectArrayPtr direct_subclasses() const {
     DEBUG_ASSERT(
@@ -1216,8 +1241,12 @@ class Class : public Object {
   GrowableObjectArrayPtr direct_subclasses_unsafe() const {
     return untag()->direct_subclasses();
   }
+#endif  // !defined(PRODUCT) || !defined(DART_PRECOMPILED_RUNTIME)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   void set_direct_subclasses(const GrowableObjectArray& subclasses) const;
   void AddDirectSubclass(const Class& subclass) const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // Check if this class represents the class of null.
   bool IsNullClass() const { return id() == kNullCid; }
@@ -1438,8 +1467,10 @@ class Class : public Object {
     StoreNonPointer(&untag()->num_native_fields_, value);
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   CodePtr allocation_stub() const { return untag()->allocation_stub(); }
   void set_allocation_stub(const Code& value) const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1539,6 +1570,7 @@ class Class : public Object {
   static ClassPtr NewPointerClass(intptr_t class_id,
                                   IsolateGroup* isolate_group);
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Register code that has used CHA for optimization.
   // TODO(srdjan): Also register kind of CHA optimization (e.g.: leaf class,
   // leaf method, ...).
@@ -1555,6 +1587,7 @@ class Class : public Object {
   // are finalized.
   ArrayPtr dependent_code() const;
   void set_dependent_code(const Array& array) const;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   bool TraceAllocation(IsolateGroup* isolate_group) const;
   void SetTraceAllocation(bool trace_allocation) const;

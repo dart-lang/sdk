@@ -70,11 +70,6 @@ class AnalysisSessionHelper {
     return null;
   }
 
-  /// Return `true` if the file with the [path] is a part.
-  bool isPart(String path) {
-    return session.getFile(path).isPart;
-  }
-
   /// Return a newly resolved, or cached library with the given [path].
   Future<ResolvedLibraryResult?> _getResolvedLibrary(String path) async {
     var result = _resolvedLibraries[path];

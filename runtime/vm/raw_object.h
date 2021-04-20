@@ -905,7 +905,7 @@ class UntaggedClass : public UntaggedObject {
 
   VISIT_FROM(CompressedObjectPtr, name)
   COMPRESSED_POINTER_FIELD(StringPtr, name)
-  COMPRESSED_POINTER_FIELD(StringPtr, user_name)
+  NOT_IN_PRODUCT(COMPRESSED_POINTER_FIELD(StringPtr, user_name))
   COMPRESSED_POINTER_FIELD(ArrayPtr, functions)
   COMPRESSED_POINTER_FIELD(ArrayPtr, functions_hash_table)
   COMPRESSED_POINTER_FIELD(ArrayPtr, fields)
@@ -922,26 +922,49 @@ class UntaggedClass : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(TypePtr, declaration_type)
   // Cache for dispatcher functions.
   COMPRESSED_POINTER_FIELD(ArrayPtr, invocation_dispatcher_cache)
-  // Stub code for allocation of instances.
-  COMPRESSED_POINTER_FIELD(CodePtr, allocation_stub)
+
+#if !defined(PRODUCT) || !defined(DART_PRECOMPILED_RUNTIME)
   // Array of Class.
   COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, direct_implementors)
   // Array of Class.
   COMPRESSED_POINTER_FIELD(GrowableObjectArrayPtr, direct_subclasses)
+#endif  // !defined(PRODUCT) || !defined(DART_PRECOMPILED_RUNTIME)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Stub code for allocation of instances.
+  COMPRESSED_POINTER_FIELD(CodePtr, allocation_stub)
   // CHA optimized codes.
   COMPRESSED_POINTER_FIELD(ArrayPtr, dependent_code)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(PRODUCT)
+  VISIT_TO(CompressedObjectPtr, invocation_dispatcher_cache)
+#else
+  VISIT_TO(CompressedObjectPtr, direct_subclasses)
+#endif  // defined(PRODUCT)
+#else
   VISIT_TO(CompressedObjectPtr, dependent_code)
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
 #if defined(PRODUCT)
-        return reinterpret_cast<CompressedObjectPtr*>(&allocation_stub_);
-#endif
+        return reinterpret_cast<CompressedObjectPtr*>(
+            &invocation_dispatcher_cache_);
+#else
+        return reinterpret_cast<CompressedObjectPtr*>(&direct_subclasses_);
+#endif  // defined(PRODUCT)
       case Snapshot::kFull:
       case Snapshot::kFullCore:
-        return reinterpret_cast<CompressedObjectPtr*>(&direct_subclasses_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        return reinterpret_cast<CompressedObjectPtr*>(&allocation_stub_);
+#endif
       case Snapshot::kFullJIT:
+#if !defined(DART_PRECOMPILED_RUNTIME)
         return reinterpret_cast<CompressedObjectPtr*>(&dependent_code_);
+#endif
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -951,8 +974,8 @@ class UntaggedClass : public UntaggedObject {
     return NULL;
   }
 
-  TokenPosition token_pos_;
-  TokenPosition end_token_pos_;
+  NOT_IN_PRECOMPILED(TokenPosition token_pos_);
+  NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
 
   classid_t id_;                // Class Id, also index in the class table.
   int16_t num_type_arguments_;  // Number of type arguments in flattened vector.
@@ -977,9 +1000,7 @@ class UntaggedClass : public UntaggedObject {
 
   // Offset of the next instance field (target).
   int32_t target_next_field_offset_in_words_;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
   uint32_t kernel_offset_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/program_visitor.h"
 
 #include "vm/closure_functions_cache.h"
@@ -289,7 +291,6 @@ void ProgramVisitor::WalkProgram(Zone* zone,
   walker.VisitWorklist();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 // A base class for deduplication of objects. T is the type of canonical objects
 // being stored, whereas S is a trait appropriate for a DirectChainedHashMap
 // based set containing those canonical objects.
@@ -1349,10 +1350,8 @@ void ProgramVisitor::DedupInstructions(Zone* zone,
   DedupInstructionsVisitor visitor(zone);
   WalkProgram(zone, isolate_group, &visitor);
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void ProgramVisitor::Dedup(Thread* thread) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
   auto const isolate_group = thread->isolate_group();
   StackZone stack_zone(thread);
   HANDLESCOPE(thread);
@@ -1394,7 +1393,6 @@ void ProgramVisitor::Dedup(Thread* thread) {
 
     DedupInstructions(zone, isolate_group);
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 #if defined(DART_PRECOMPILER)
@@ -1560,6 +1558,8 @@ uint32_t ProgramVisitor::Hash(Thread* thread) {
   return visitor.hash();
 }
 
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILER)
 
 }  // namespace dart
+
+#endif  // defined(DART_PRECOMPILED_RUNTIME)

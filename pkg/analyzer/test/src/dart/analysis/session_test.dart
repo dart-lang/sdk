@@ -270,6 +270,29 @@ test:lib/
     expect(errorsResult, isA<InvalidPathResult>());
   }
 
+  test_getFile2_invalidPath_notAbsolute() async {
+    var errorsResult = session.getFile2('not_absolute.dart');
+    expect(errorsResult, isA<InvalidPathResult>());
+  }
+
+  test_getFileSync2_library() async {
+    var path = convertPath('/home/test/lib/a.dart');
+    newFile(path, content: '');
+    var file = session.getFileValid(path);
+    expect(file.path, path);
+    expect(file.uri.toString(), 'package:test/a.dart');
+    expect(file.isPart, isFalse);
+  }
+
+  test_getFileSync2_part() async {
+    var path = convertPath('/home/test/lib/a.dart');
+    newFile(path, content: 'part of lib;');
+    var file = session.getFileValid(path);
+    expect(file.path, path);
+    expect(file.uri.toString(), 'package:test/a.dart');
+    expect(file.isPart, isTrue);
+  }
+
   @deprecated
   test_getLibraryByUri() async {
     newFile(testPath, content: r'''
@@ -942,6 +965,7 @@ class B {}
     expect(unitResult.libraryElement, isNotNull);
   }
 
+  @deprecated
   test_getSourceKind() async {
     newFile(testPath, content: 'class C {}');
 
@@ -949,6 +973,7 @@ class B {}
     expect(kind, SourceKind.LIBRARY);
   }
 
+  @deprecated
   test_getSourceKind_part() async {
     newFile(testPath, content: 'part of "a.dart";');
 
@@ -984,9 +1009,6 @@ class B {}
     expect(unitResult.path, testPath);
     expect(unitResult.uri, Uri.parse('package:test/test.dart'));
     expect(unitResult.element.types, hasLength(2));
-
-    var signature = await session.getUnitElementSignature(testPath);
-    expect(unitResult.signature, signature);
   }
 
   test_resourceProvider() async {
@@ -1001,6 +1023,10 @@ extension on AnalysisSession {
 
   ParsedLibraryResult getParsedLibraryValid(String path) {
     return getParsedLibrary2(path) as ParsedLibraryResult;
+  }
+
+  FileResult getFileValid(String path) {
+    return getFile2(path) as FileResult;
   }
 
   ParsedUnitResult getParsedUnitValid(String path) {

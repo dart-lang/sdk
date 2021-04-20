@@ -184,11 +184,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       <String, List<Completer<AnalysisDriverUnitIndex>>>{};
 
   /// The mapping from the files for which the unit element key was requested
-  /// using [getUnitElementSignature] to the [Completer]s to report the result.
+  /// using `getUnitElementSignature` to the [Completer]s to report the result.
   final _unitElementSignatureFiles = <String, List<Completer<String>>>{};
 
   /// The mapping from the files for which the unit element key was requested
-  /// using [getUnitElementSignature], and which were found to be parts without
+  /// using `getUnitElementSignature`, and which were found to be parts without
   /// known libraries, to the [Completer]s to report the result.
   final _unitElementSignatureParts = <String, List<Completer<String>>>{};
 
@@ -613,8 +613,20 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the [FileResult] for the Dart file with the given [path].
   ///
   /// The [path] must be absolute and normalized.
+  @Deprecated('Use getFileSync2() instead')
   FileResult getFileSync(String path) {
     _throwIfNotAbsolutePath(path);
+    return getFileSync2(path) as FileResult;
+  }
+
+  /// Return the [FileResult] for the Dart file with the given [path].
+  ///
+  /// The [path] must be absolute and normalized.
+  SomeFileResult getFileSync2(String path) {
+    if (!_isAbsolutePath(path)) {
+      return InvalidPathResult();
+    }
+
     FileState file = _fileTracker.getFile(path);
     return FileResultImpl(
         _currentSession, path, file.uri, file.lineInfo, file.isPart);
@@ -1032,6 +1044,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// be analyzed, the [Future] completes with `null`.
   ///
   /// The [path] must be absolute and normalized.
+  @Deprecated('Use getFileSync2() instead')
   Future<SourceKind?> getSourceKind(String path) async {
     _throwIfNotAbsolutePath(path);
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
@@ -1087,6 +1100,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The signature is based the APIs of the files of the library (including
   /// the file itself) of the requested file and the transitive closure of files
   /// imported and exported by the library.
+  @Deprecated('This method is not used and will be removed')
   Future<String> getUnitElementSignature(String path) {
     _throwIfNotAbsolutePath(path);
     if (!_fsState.hasUri(path)) {

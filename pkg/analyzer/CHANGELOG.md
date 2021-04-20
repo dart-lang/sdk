@@ -17,6 +17,10 @@
   Use `AnalysisSession.getParsedLibraryByElement2()` instead.
 * Deprecated `AnalysisSession.getParsedUnit()`.
   Use `AnalysisSession.getParsedUnit2()` instead.
+* Deprecated `AnalysisSession.getFile()` and `getSourceKind()`.
+  Use `AnalysisSession.getFile2()` instead.
+* Deprecated `AnalysisSession.getUnitElementSignature()`.
+  This method is not used by any known client, and will be removed.
 
 ## 1.4.0
 * Deprecated `TypeProvider.nonSubtypableClasses`.

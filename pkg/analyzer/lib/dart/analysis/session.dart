@@ -48,7 +48,12 @@ abstract class AnalysisSession {
 
   /// Return information about the file at the given absolute, normalized
   /// [path].
+  @Deprecated('Use getFile2() instead')
   FileResult getFile(String path);
+
+  /// Return information about the file at the given absolute, normalized
+  /// [path].
+  SomeFileResult getFile2(String path);
 
   /// Return a future that will complete with the library element representing
   /// the library with the given [uri].
@@ -135,6 +140,7 @@ abstract class AnalysisSession {
   /// complete with [SourceKind.UNKNOWN].
   ///
   /// TODO(migration): should not be nullable
+  @Deprecated('Use getFile2() instead')
   Future<SourceKind?> getSourceKind(String path);
 
   /// Return a future that will complete with information about the results of
@@ -158,6 +164,7 @@ abstract class AnalysisSession {
   /// exported by the library. If the signature of a file has not changed, then
   /// there have been no changes that would cause any files that depend on it to
   /// need to be re-analyzed.
+  @Deprecated('This method is not used and will be removed')
   Future<String> getUnitElementSignature(String path);
 }
 
