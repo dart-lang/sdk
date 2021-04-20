@@ -9079,6 +9079,7 @@ class String : public Instance {
 
   char* ToMallocCString() const;
   void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
+  static const char* ToCString(Thread* thread, StringPtr ptr);
 
   // Creates a new String object from a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.

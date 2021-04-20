@@ -11,34 +11,61 @@ import 'package:vm_snapshot_analysis/v8_profile.dart';
 
 import 'use_flag_test_helper.dart';
 
-test(
-    {String dillPath,
-    bool useAsm,
-    bool useBare,
-    bool stripFlag,
-    bool stripUtil,
+// Used to ensure we don't have multiple equivalent calls to test.
+final _seenDescriptions = <String>{};
+
+Future<void> test(String dillPath,
+    {bool useAsm = false,
+    bool useBare = true,
+    bool forceDrops = false,
+    bool useDispatch = true,
+    bool stripUtil = false, // Note: forced if useAsm.
+    bool stripFlag = false, // Note: forced if !stripUtil (and thus !useAsm).
     bool disassemble = false}) async {
   // We don't assume forced disassembler support in Product mode, so skip any
   // disassembly test.
-  if (!const bool.fromEnvironment('dart.vm.product') && disassemble) return;
+  if (!const bool.fromEnvironment('dart.vm.product') && disassemble) {
+    return;
+  }
 
   // The assembler may add extra unnecessary information to the compiled
   // snapshot whether or not we generate DWARF information in the assembly, so
   // we force the use of a utility when generating assembly.
-  if (useAsm) Expect.isTrue(stripUtil);
+  if (useAsm) {
+    stripUtil = true;
+  }
 
   // We must strip the output in some way when generating ELF snapshots,
   // else the debugging information added will cause the test to fail.
-  if (!stripUtil) Expect.isTrue(stripFlag);
+  if (!stripUtil) {
+    stripFlag = true;
+  }
 
-  final tempDirPrefix = 'v8-snapshot-profile' +
-      (useAsm ? '-assembly' : '-elf') +
-      (useBare ? '-bare' : '-nonbare') +
-      (stripFlag ? '-intstrip' : '') +
-      (stripUtil ? '-extstrip' : '') +
-      (disassemble ? '-disassembled' : '');
+  final descriptionBuilder = StringBuffer()..write(useAsm ? 'assembly' : 'elf');
+  if (!useBare) {
+    descriptionBuilder.write('-nonbare');
+  }
+  if (forceDrops) {
+    descriptionBuilder.write('-dropped');
+  }
+  if (!useDispatch) {
+    descriptionBuilder.write('-nodispatch');
+  }
+  if (stripFlag) {
+    descriptionBuilder.write('-intstrip');
+  }
+  if (stripUtil) {
+    descriptionBuilder.write('-extstrip');
+  }
+  if (disassemble) {
+    descriptionBuilder.write('-disassembled');
+  }
 
-  await withTempDir(tempDirPrefix, (String tempDir) async {
+  final description = descriptionBuilder.toString();
+  Expect.isTrue(_seenDescriptions.add(description),
+      "test configuration $description would be run multiple times");
+
+  await withTempDir('v8-snapshot-profile-$description', (String tempDir) async {
     // Generate the snapshot profile.
     final profilePath = path.join(tempDir, 'profile.heapsnapshot');
     final snapshotPath = path.join(tempDir, 'test.snap');
@@ -46,6 +73,12 @@ test(
       if (stripFlag) '--strip',
       useBare ? '--use-bare-instructions' : '--no-use-bare-instructions',
       "--write-v8-snapshot-profile-to=$profilePath",
+      if (forceDrops) ...[
+        '--dwarf-stack-traces',
+        '--no-retain-function-objects',
+        '--no-retain-code-objects'
+      ],
+      if (!useDispatch) '--no-use-table-dispatch',
       if (disassemble) '--disassemble',
       '--ignore-unrecognized-flags',
       dillPath,
@@ -77,6 +110,8 @@ test(
       strippedPath = snapshotPath;
     }
 
+    print("Snapshot profile generated at $profilePath.");
+
     final profile =
         Snapshot.fromJson(jsonDecode(File(profilePath).readAsStringSync()));
 
@@ -84,39 +119,38 @@ test(
     // reference to an some object but no other metadata about the object was
     // recorded. We should at least record the type for every object in the
     // graph (in some cases the shallow size can legitimately be 0, e.g. for
-    // "base objects").
+    // "base objects" not written to the snapshot or artificial nodes).
     for (final node in profile.nodes) {
-      Expect.notEquals("Unknown", node.type, "unknown node at ID ${node.id}");
+      Expect.notEquals("Unknown", node.type, "unknown node ${node}");
     }
+
+    final root = profile.nodeAt(0);
+    final reachable = <Node>{};
 
     // HeapSnapshotWorker.HeapSnapshot.calculateDistances (from HeapSnapshot.js)
-    // assumes that the root does not have more than one edge to any other node
+    // assumes that the graph root has at most one edge to any other node
     // (most likely an oversight).
-    final Set<int> roots = <int>{};
-    for (final edge in profile.nodeAt(0).edges) {
-      Expect.isTrue(roots.add(edge.target.index));
+    for (final edge in root.edges) {
+      Expect.isTrue(
+          reachable.add(edge.target),
+          "root\n\n$root\n\nhas multiple edges to node\n\n${edge.target}:\n\n"
+          "${root.edges.where((e) => e.target == edge.target).toList()}");
     }
 
-    // Check that all nodes are reachable from the root (index 0).
-    final Set<int> reachable = {0};
-    final dfs = <int>[0];
-    while (!dfs.isEmpty) {
-      final next = dfs.removeLast();
-      for (final edge in profile.nodeAt(next).edges) {
-        final target = edge.target;
-        if (!reachable.contains(target.index)) {
-          reachable.add(target.index);
-          dfs.add(target.index);
+    // Check that all other nodes are reachable from the root.
+    final stack = <Node>[...reachable];
+    while (!stack.isEmpty) {
+      final next = stack.removeLast();
+      for (final edge in next.edges) {
+        if (reachable.add(edge.target)) {
+          stack.add(edge.target);
         }
       }
     }
 
-    if (reachable.length != profile.nodeCount) {
-      for (final node in profile.nodes) {
-        Expect.isTrue(reachable.contains(node.index),
-            "unreachable node at ID ${node.id}");
-      }
-    }
+    final unreachable =
+        profile.nodes.skip(1).where((Node n) => !reachable.contains(n)).toSet();
+    Expect.isEmpty(unreachable);
 
     // Verify that the actual size of the snapshot is close to the sum of the
     // shallow sizes of all objects in the profile. They will not be exactly
@@ -124,25 +158,14 @@ test(
     final actual = await File(strippedPath).length();
     final expected = profile.nodes.fold<int>(0, (size, n) => size + n.selfSize);
 
-    final bareUsed = useBare ? "bare" : "non-bare";
-    final fileType = useAsm ? "assembly" : "ELF";
-    String stripPrefix = "";
-    if (stripFlag && stripUtil) {
-      stripPrefix = "internally and externally stripped ";
-    } else if (stripFlag) {
-      stripPrefix = "internally stripped ";
-    } else if (stripUtil) {
-      stripPrefix = "externally stripped ";
-    }
-
     // See Elf::kPages in runtime/vm/elf.h.
-    final segmentAlignment = 16384;
+    final segmentAlignment = 16 * 1024;
     // Not every byte is accounted for by the snapshot profile, and data and
     // instruction segments are padded to an alignment boundary.
     final tolerance = 0.03 * actual + 2 * segmentAlignment;
 
-    Expect.approxEquals(expected, actual, tolerance,
-        "failed on $bareUsed $stripPrefix$fileType snapshot type.");
+    Expect.approxEquals(
+        expected, actual, tolerance, "failed on $description snapshot");
   });
 }
 
@@ -254,28 +277,22 @@ main() async {
       _thisTestPath
     ]);
 
+    // Just as a reminder (these rules are applied in order inside test):
+    // If useAsm is true, then stripUtil is forced (as the assembler may add
+    // extra information that needs stripping).
+    // If stripUtil is false, then stripFlag is forced (as the output must be
+    // stripped in some way to remove DWARF information).
+
     // Test stripped ELF generation directly.
-    await test(
-        dillPath: dillPath,
-        stripFlag: true,
-        stripUtil: false,
-        useAsm: false,
-        useBare: false);
-    await test(
-        dillPath: dillPath,
-        stripFlag: true,
-        stripUtil: false,
-        useAsm: false,
-        useBare: true);
+    await test(dillPath);
+    await test(dillPath, useBare: false);
+    await test(dillPath, forceDrops: true);
+    await test(dillPath, forceDrops: true, useBare: false);
+    await test(dillPath, forceDrops: true, useDispatch: false);
+    await test(dillPath, forceDrops: true, useDispatch: false, useBare: false);
 
     // Regression test for dartbug.com/41149.
-    await test(
-        dillPath: dillPath,
-        stripFlag: true,
-        stripUtil: false,
-        useAsm: false,
-        useBare: false,
-        disassemble: true);
+    await test(dillPath, useBare: false, disassemble: true);
 
     // We neither generate assembly nor have a stripping utility on Windows.
     if (Platform.isWindows) {
@@ -288,18 +305,8 @@ main() async {
       printSkip('ELF external stripping test');
     } else {
       // Test unstripped ELF generation that is then stripped externally.
-      await test(
-          dillPath: dillPath,
-          stripFlag: false,
-          stripUtil: true,
-          useAsm: false,
-          useBare: false);
-      await test(
-          dillPath: dillPath,
-          stripFlag: false,
-          stripUtil: true,
-          useAsm: false,
-          useBare: true);
+      await test(dillPath, stripUtil: true);
+      await test(dillPath, stripUtil: true, useBare: false);
     }
 
     // TODO(sstrickl): Currently we can't assemble for SIMARM64 on MacOSX.
@@ -310,31 +317,11 @@ main() async {
       return;
     }
 
-    // Test stripped assembly generation that is then compiled and stripped.
-    await test(
-        dillPath: dillPath,
-        stripFlag: true,
-        stripUtil: true,
-        useAsm: true,
-        useBare: false);
-    await test(
-        dillPath: dillPath,
-        stripFlag: true,
-        stripUtil: true,
-        useAsm: true,
-        useBare: true);
     // Test unstripped assembly generation that is then compiled and stripped.
-    await test(
-        dillPath: dillPath,
-        stripFlag: false,
-        stripUtil: true,
-        useAsm: true,
-        useBare: false);
-    await test(
-        dillPath: dillPath,
-        stripFlag: false,
-        stripUtil: true,
-        useAsm: true,
-        useBare: true);
+    await test(dillPath, useAsm: true);
+    await test(dillPath, useAsm: true, useBare: false);
+    // Test stripped assembly generation that is then compiled and stripped.
+    await test(dillPath, useAsm: true, stripFlag: true);
+    await test(dillPath, useAsm: true, stripFlag: true, useBare: false);
   });
 }

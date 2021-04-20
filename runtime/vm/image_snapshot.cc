@@ -462,15 +462,13 @@ void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
   // BSSsection in the text section as an initial InstructionsSection object.
   WriteBss(vm);
 
-  offset_space_ = vm ? V8SnapshotProfileWriter::kVmText
-                     : V8SnapshotProfileWriter::kIsolateText;
+  offset_space_ = vm ? IdSpace::kVmText : IdSpace::kIsolateText;
   WriteText(vm);
 
   // Append the direct-mapped RO data objects after the clustered snapshot
   // and then for ELF and assembly outputs, add appropriate sections with
   // that combined data.
-  offset_space_ = vm ? V8SnapshotProfileWriter::kVmData
-                     : V8SnapshotProfileWriter::kIsolateData;
+  offset_space_ = vm ? IdSpace::kVmData : IdSpace::kIsolateData;
   WriteROData(clustered_stream, vm);
 }
 
@@ -680,14 +678,10 @@ void ImageWriter::WriteText(bool vm) {
                                             instructions_symbol);
       profile_writer_->AttributeBytesTo(id,
                                         section_size - section_payload_length);
-      const intptr_t element_offset = id.second - parent_id.second;
+      const intptr_t element_offset = id.nonce() - parent_id.nonce();
       profile_writer_->AttributeReferenceTo(
           parent_id,
-          {
-              V8SnapshotProfileWriter::Reference::kElement,
-              {.offset = element_offset},
-          },
-          id);
+          V8SnapshotProfileWriter::Reference::Element(element_offset), id);
       // Later objects will have the InstructionsSection as a parent if in
       // bare instructions mode, otherwise the image.
       if (bare_instruction_payloads) {
@@ -718,7 +712,7 @@ void ImageWriter::WriteText(bool vm) {
             ? compiler::target::InstructionsSection::HeaderSize()
             : compiler::target::InstructionsSection::InstanceSize(0);
     text_offset += Align(section_contents_alignment, text_offset);
-    ASSERT_EQUAL(text_offset - id.second, expected_size);
+    ASSERT_EQUAL(text_offset - id.nonce(), expected_size);
   }
 #endif
 
@@ -729,7 +723,7 @@ void ImageWriter::WriteText(bool vm) {
   SnapshotTextObjectNamer namer(zone);
 #endif
 
-  ASSERT(offset_space_ != V8SnapshotProfileWriter::kSnapshot);
+  ASSERT(offset_space_ != IdSpace::kSnapshot);
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     auto& data = instructions_[i];
     const bool is_trampoline = data.trampoline_bytes != nullptr;
@@ -748,14 +742,10 @@ void ImageWriter::WriteText(bool vm) {
                                           : SizeInSnapshot(data.insns_->ptr());
       profile_writer_->SetObjectTypeAndName(id, type, object_name);
       profile_writer_->AttributeBytesTo(id, size);
-      const intptr_t element_offset = id.second - parent_id.second;
+      const intptr_t element_offset = id.nonce() - parent_id.nonce();
       profile_writer_->AttributeReferenceTo(
           parent_id,
-          {
-              V8SnapshotProfileWriter::Reference::kElement,
-              {.offset = element_offset},
-          },
-          id);
+          V8SnapshotProfileWriter::Reference::Element(element_offset), id);
     }
 #endif
 

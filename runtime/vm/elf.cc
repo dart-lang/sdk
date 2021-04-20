@@ -535,8 +535,7 @@ class StringTable : public Section {
         dynamic_(allocate),
         text_(zone, 128),
         text_indices_(zone) {
-    text_.AddChar('\0');
-    text_indices_.Insert({"", 1});
+    AddString("");
   }
 
   intptr_t FileSize() const { return text_.length(); }
@@ -549,11 +548,13 @@ class StringTable : public Section {
 
   intptr_t AddString(const char* str) {
     ASSERT(str != nullptr);
-    if (auto const kv = text_indices_.Lookup(str)) return kv->value - 1;
+    if (auto const kv = text_indices_.Lookup(str)) {
+      return kv->value;
+    }
     intptr_t offset = text_.length();
     text_.AddString(str);
     text_.AddChar('\0');
-    text_indices_.Insert({str, offset + 1});
+    text_indices_.Insert({str, offset});
     return offset;
   }
 
@@ -562,13 +563,12 @@ class StringTable : public Section {
     return text_.buffer() + index;
   }
   intptr_t Lookup(const char* str) const {
-    return text_indices_.LookupValue(str) - 1;
+    return text_indices_.LookupValue(str);
   }
 
   const bool dynamic_;
   ZoneTextBuffer text_;
-  // To avoid kNoValue for intptr_t (0), we store an index n as n + 1.
-  CStringMap<intptr_t> text_indices_;
+  CStringIntMap text_indices_;
 };
 
 class Symbol : public ZoneAllocated {
