@@ -1493,7 +1493,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       default:
         break;
     }
-    if (className == "Function") {
+    if (className != "Function") {
       return;
     }
     if (decType == "class" && importUri.scheme == "dart") {
