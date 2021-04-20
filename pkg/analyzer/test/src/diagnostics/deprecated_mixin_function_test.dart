@@ -29,7 +29,7 @@ class A extends Object with Function {}
 class Function {}
 class A extends Object with Function {}
 ''', [
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 6, 8),
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8),
       error(HintCode.DEPRECATED_MIXIN_FUNCTION, 46, 8),
     ]);
   }
@@ -39,9 +39,8 @@ class A extends Object with Function {}
 mixin Function {}
 mixin M<Function> implements List<Function> {}    
 ''', [
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 6, 8),
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME, 26,
-          8),
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8),
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME, 26, 8),
     ]);
   }
 

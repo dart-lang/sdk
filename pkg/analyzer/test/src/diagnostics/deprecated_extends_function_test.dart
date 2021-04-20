@@ -29,7 +29,7 @@ class A extends Function {}
 class Function {}
 class A extends Function {}
 ''', [
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 6, 8),
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8),
       error(HintCode.DEPRECATED_EXTENDS_FUNCTION, 34, 8),
     ]);
   }
