@@ -75,9 +75,7 @@ import 'package:js/js.dart';
 external set foo(void Function(String, File) f);
 
 /*member: _doStuff:
- dynamic=[
-  File.==,
-  File.name],
+ dynamic=[File.name],
  static=[
   Rti._bind(1),
   Rti._eval(1),

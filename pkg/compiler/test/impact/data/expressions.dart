@@ -364,13 +364,14 @@ testAsGenericDynamic(dynamic o) => o as GenericClass<dynamic, dynamic>;
  type=[inst:JSString]*/
 testThrow() => throw '';
 
-/*member: testIfNotNull:dynamic=[Object.==,foo],type=[inst:JSNull]*/
+/*member: testIfNotNull:
+ dynamic=[foo],
+ type=[inst:JSNull]
+*/
 testIfNotNull(o) => o?.foo;
 
 /*member: testTypedIfNotNull:
- dynamic=[
-  Class.==,
-  Class.field],
+ dynamic=[Class.field],
  static=[
   Rti._bind(1),
   Rti._eval(1),
@@ -415,13 +416,22 @@ testIfNotNull(o) => o?.foo;
 */
 testTypedIfNotNull(Class o) => o?.field;
 
-/*member: testIfNotNullSet:dynamic=[Object.==,foo=],type=[inst:JSBool,inst:JSNull]*/
+/*member: testIfNotNullSet:
+ dynamic=[foo=],
+ type=[
+  inst:JSBool,
+  inst:JSNull]
+*/
 testIfNotNullSet(o) => o?.foo = true;
 
-/*member: testIfNull:dynamic=[Object.==],type=[inst:JSBool,inst:JSNull]*/
+/*member: testIfNull:type=[
+  inst:JSBool,
+  inst:JSNull]*/
 testIfNull(o) => o ?? true;
 
-/*member: testSetIfNull:dynamic=[Object.==],type=[inst:JSBool,inst:JSNull]*/
+/*member: testSetIfNull:type=[
+  inst:JSBool,
+  inst:JSNull]*/
 testSetIfNull(o) => o ??= true;
 
 class Class {

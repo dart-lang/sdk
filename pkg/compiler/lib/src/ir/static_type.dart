@@ -1115,8 +1115,6 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return super.visitEqualsCall(node);
   }
 
-  // TODO(johnniwinther): Remove this after the new method invocation has landed
-  // stably. This is only included to make the transition a no-op.
   void handleEqualsNull(ir.EqualsNull node, ir.DartType expressionType) {}
 
   @override

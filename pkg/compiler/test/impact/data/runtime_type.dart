@@ -36,7 +36,6 @@ class Class1b<T> extends Class1a<T> {
 class Class1c<T> implements Class1a<T> {
   /*member: Class1c.==:
    dynamic=[
-    Object.==,
     Object.runtimeType,
     Type.==,
     this:Class1c.runtimeType],
@@ -52,7 +51,6 @@ class Class1c<T> implements Class1a<T> {
 class Class1d<T> implements Class1a<T> {
   /*member: Class1d.==:
    dynamic=[
-    Object.==,
     Object.runtimeType,
     Type.==,
     this:Class1d.runtimeType],
@@ -134,7 +132,6 @@ toString1(Class2<int> c) => '${c.runtimeType}';
 
 /*member: toString2:
  dynamic=[
-  Class2.==,
   Class2.runtimeType,
   toString(0)],
  runtimeType=[string:Class2<int*>*],
@@ -247,7 +244,6 @@ toString3(Class2<int> c) => c.runtimeType.toString();
 /*member: toString4:
  dynamic=[
   Class2.runtimeType,
-  Type.==,
   Type.toString(0)],
  runtimeType=[string:Class2<int*>*],
  static=[
@@ -302,9 +298,7 @@ toString4(Class2<int> c) => c.runtimeType?.toString();
 
 /*member: toString5:
  dynamic=[
-  Class2.==,
   Class2.runtimeType,
-  Type.==,
   Type.toString(0)],
  runtimeType=[string:Class2<int*>*],
  static=[
@@ -359,7 +353,6 @@ toString5(Class2<int> c) => c?.runtimeType?.toString();
 
 /*member: toString6:
  dynamic=[
-  Class2.==,
   Class2.runtimeType,
   Type.toString(0)],
  runtimeType=[string:Class2<int*>*],
@@ -467,9 +460,7 @@ unknown(Class2<int> c) => c.runtimeType;
 
 /*member: equals1:
  dynamic=[
-  Class1a.==,
   Class1a.runtimeType,
-  Class1d.==,
   Class1d.runtimeType,
   Type.==],
  runtimeType=[equals:Class1a<int*>*==Class1d<int*>*],
@@ -525,9 +516,7 @@ unknown(Class2<int> c) => c.runtimeType;
 equals1(Class1a<int> a, Class1d<int> b) => a?.runtimeType == b?.runtimeType;
 
 /*member: almostEquals1:
- dynamic=[
-  Class3.runtimeType,
-  Type.==],
+ dynamic=[Class3.runtimeType],
  runtimeType=[unknown:Class3*],
  static=[
   Rti._bind(1),
@@ -574,10 +563,7 @@ equals1(Class1a<int> a, Class1d<int> b) => a?.runtimeType == b?.runtimeType;
 almostEquals1(Class3 a) => a.runtimeType == null;
 
 /*member: almostEquals2:
- dynamic=[
-  Class3.==,
-  Class3.runtimeType,
-  Type.==],
+ dynamic=[Class3.runtimeType],
  runtimeType=[unknown:Class3*],
  static=[
   Rti._bind(1),
@@ -624,9 +610,7 @@ almostEquals1(Class3 a) => a.runtimeType == null;
 almostEquals2(Class3 a) => a?.runtimeType == null;
 
 /*member: almostEquals3:
- dynamic=[
-  Class3.runtimeType,
-  Null.==],
+ dynamic=[Class3.runtimeType],
  runtimeType=[unknown:Class3*],
  static=[
   Rti._bind(1),
@@ -673,10 +657,7 @@ almostEquals2(Class3 a) => a?.runtimeType == null;
 almostEquals3(Class3 a) => null == a.runtimeType;
 
 /*member: almostEquals4:
- dynamic=[
-  Class3.==,
-  Class3.runtimeType,
-  Null.==],
+ dynamic=[Class3.runtimeType],
  runtimeType=[unknown:Class3*],
  static=[
   Rti._bind(1),
@@ -773,7 +754,6 @@ almostEquals5(Class3 a) => a.runtimeType == a.field;
 
 /*member: almostEquals6:
  dynamic=[
-  Class3.==,
   Class3.field,
   Class3.runtimeType,
   Type.==],
@@ -824,7 +804,6 @@ almostEquals6(Class3 a) => a?.runtimeType == a.field;
 
 /*member: almostEquals7:
  dynamic=[
-  Class3.==,
   Class3.field,
   Class3.runtimeType,
   Type.==],
@@ -875,7 +854,6 @@ almostEquals7(Class3 a) => a.runtimeType == a?.field;
 
 /*member: almostEquals8:
  dynamic=[
-  Class3.==,
   Class3.field,
   Class3.runtimeType,
   Type.==],
@@ -975,7 +953,6 @@ almostEquals9(Class3 a) => a.field == a.runtimeType;
 
 /*member: almostEquals10:
  dynamic=[
-  Class3.==,
   Class3.field,
   Class3.runtimeType,
   Object.==],
@@ -1026,7 +1003,6 @@ almostEquals10(Class3 a) => a?.field == a.runtimeType;
 
 /*member: almostEquals11:
  dynamic=[
-  Class3.==,
   Class3.field,
   Class3.runtimeType,
   Object.==],
@@ -1077,7 +1053,6 @@ almostEquals11(Class3 a) => a.field == a?.runtimeType;
 
 /*member: almostEquals12:
  dynamic=[
-  Class3.==,
   Class3.field,
   Class3.runtimeType,
   Object.==],
@@ -1176,9 +1151,7 @@ almostToString1(Class3 a) => a.runtimeType.toString;
 
 /*member: almostToString2:
  dynamic=[
-  Class3.==,
   Class3.runtimeType,
-  Type.==,
   Type.toString],
  runtimeType=[unknown:Class3*],
  static=[
@@ -1276,7 +1249,6 @@ almostToString3(Class3 a) => a.runtimeType.noSuchMethod(null);
 
 /*member: almostToString4:
  dynamic=[
-  Class3.==,
   Class3.runtimeType,
   Type.noSuchMethod(1)],
  runtimeType=[unknown:Class3*],
@@ -1376,7 +1348,6 @@ notEquals1(Class3 a, Class4 b) => a.runtimeType != b.runtimeType;
 
 /*member: notEquals2:
  dynamic=[
-  Class3.==,
   Class3.runtimeType,
   Class4.runtimeType,
   Type.==],
@@ -1429,7 +1400,6 @@ notEquals2(Class3 a, Class4 b) => a?.runtimeType != b.runtimeType;
 /*member: notEquals3:
  dynamic=[
   Class3.runtimeType,
-  Class4.==,
   Class4.runtimeType,
   Type.==],
  runtimeType=[equals:Class3*==Class4*],
@@ -1480,9 +1450,7 @@ notEquals3(Class3 a, Class4 b) => a.runtimeType != b?.runtimeType;
 
 /*member: notEquals4:
  dynamic=[
-  Class3.==,
   Class3.runtimeType,
-  Class4.==,
   Class4.runtimeType,
   Type.==],
  runtimeType=[equals:Class3*==Class4*],

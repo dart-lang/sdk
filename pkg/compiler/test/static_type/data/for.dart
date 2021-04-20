@@ -19,7 +19,7 @@ for1(dynamic c) {
   if (/*dynamic*/ c is Class) {
     /*Class*/ c.next;
     for (/*Class*/ c.next;
-        /*dynamic*/ c /*invoke: [dynamic]->bool*/ != null;
+        /*dynamic*/ c != null;
         /*dynamic*/ c.next) {
       /*dynamic*/ c.next;
       if (/*dynamic*/ c is Class) {
@@ -35,7 +35,7 @@ for2(dynamic c) {
   if (/*dynamic*/ c is Class) {
     /*Class*/ c.next;
     for (/*Class*/ c.next;
-        /*Class*/ c /*invoke: [Class]->bool*/ != null;
+        /*Class*/ c != null;
         /*Class*/ c.next) {
       /*Class*/ c.next;
     }
