@@ -817,10 +817,6 @@ class InferenceVisitor
     node.hasBeenInferred = true;
     Expression resultNode = node;
     if (!inferrer.isTopLevel) {
-      SourceLibraryBuilder library = inferrer.library;
-      library.checkBoundsInType(result.inferredType,
-          inferrer.typeSchemaEnvironment, inferrer.helper.uri, node.fileOffset,
-          inferred: true, allowSuperBounded: false);
       if (inferrer.isNonNullableByDefault) {
         if (node.target == inferrer.coreTypes.listDefaultConstructor) {
           resultNode = inferrer.helper.wrapInProblem(node,
@@ -845,10 +841,6 @@ class InferenceVisitor
     node.hasBeenInferred = true;
     Expression resultNode = node;
     if (!inferrer.isTopLevel) {
-      SourceLibraryBuilder library = inferrer.library;
-      library.checkBoundsInType(result.inferredType,
-          inferrer.typeSchemaEnvironment, inferrer.helper.uri, node.fileOffset,
-          inferred: true, allowSuperBounded: false);
       if (inferrer.isNonNullableByDefault) {
         if (node.target == inferrer.coreTypes.listDefaultConstructor) {
           resultNode = inferrer.helper.wrapInProblem(node,
