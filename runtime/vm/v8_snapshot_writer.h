@@ -32,7 +32,8 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
   struct ObjectId {
     ObjectId() : ObjectId(IdSpace::kInvalid, -1) {}
     ObjectId(IdSpace space, int64_t nonce)
-        : encoded_((nonce << kIdSpaceBits) | static_cast<intptr_t>(space)) {
+        : encoded_((static_cast<uint64_t>(nonce) << kIdSpaceBits) |
+                   static_cast<intptr_t>(space)) {
       ASSERT(Utils::IsInt(kBitsPerInt64 - kIdSpaceBits, nonce));
     }
 
