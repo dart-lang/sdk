@@ -5,7 +5,6 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -378,12 +377,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (type == TokenType.QUESTION_QUESTION) {
       _checkForDeadNullCoalesce(
           node.leftOperand.staticType as TypeImpl, node.rightOperand);
-    }
-
-    if (!isBinaryOperator(type.lexeme)) {
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NOT_A_BINARY_OPERATOR, node,
-          [type.lexeme]);
     }
 
     checkForUseOfVoidResult(node.leftOperand);

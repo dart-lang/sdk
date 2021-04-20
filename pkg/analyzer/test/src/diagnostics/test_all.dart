@@ -38,7 +38,6 @@ import 'await_in_late_local_variable_initializer_test.dart'
     as await_in_late_local_variable_initializer;
 import 'await_in_wrong_context_test.dart' as await_in_wrong_context;
 import 'binary_operator_written_out_test.dart' as binary_operator_written_out;
-import 'non_binary_operator.dart' as non_binary_operator;
 import 'body_might_complete_normally_test.dart' as body_might_complete_normally;
 import 'built_in_identifier_as_extension_name_test.dart'
     as built_in_as_extension_name;
@@ -431,6 +430,7 @@ import 'no_generative_constructors_in_superclass_test.dart'
     as no_generative_constructors_in_superclass;
 import 'non_abstract_class_inherits_abstract_member_test.dart'
     as non_abstract_class_inherits_abstract_member;
+import 'non_binary_operator.dart' as non_binary_operator;
 import 'non_bool_condition_test.dart' as non_bool_condition;
 import 'non_bool_expression_test.dart' as non_bool_expression;
 import 'non_bool_negation_expression_test.dart' as non_bool_negation_expression;
@@ -714,7 +714,6 @@ main() {
     await_in_late_local_variable_initializer.main();
     await_in_wrong_context.main();
     binary_operator_written_out.main();
-    non_binary_operator.main();
     body_might_complete_normally.main();
     built_in_as_extension_name.main();
     built_in_as_prefix_name.main();
@@ -968,6 +967,7 @@ main() {
     no_default_super_constructor.main();
     no_generative_constructors_in_superclass.main();
     non_abstract_class_inherits_abstract_member.main();
+    non_binary_operator.main();
     non_bool_condition.main();
     non_bool_expression.main();
     non_bool_negation_expression.main();

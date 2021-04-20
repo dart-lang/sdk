@@ -18,7 +18,7 @@ class NonBinaryOperatorTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   test_unaryTilde() async {
     await assertErrorsInCode('int a = 5 ~ 3;', [
-      error(CompileTimeErrorCode.NOT_A_BINARY_OPERATOR, 8, 5),
+      error(CompileTimeErrorCode.NOT_BINARY_OPERATOR, 8, 5),
     ]);
   }
 }

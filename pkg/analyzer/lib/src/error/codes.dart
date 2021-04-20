@@ -9450,6 +9450,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the operator that is not a binary operator.
+   */
+  static const CompileTimeErrorCode NOT_BINARY_OPERATOR =
+      CompileTimeErrorCode(
+          'NOT_A_BINARY_OPERATOR', "'{0}' isn't a binary operator.");
+
+  /**
+   * Parameters:
    * 0: the name of the variable that is invalid
    */
   // #### Description
@@ -13720,14 +13728,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The type '{0}' implied by the 'yield' expression must be assignable "
               "to '{1}'.",
           hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the operator that is not a binary operator.
-   */
-  static const CompileTimeErrorCode NOT_A_BINARY_OPERATOR =
-      CompileTimeErrorCode(
-          'NOT_A_BINARY_OPERATOR', "'{0}' isn't a binary operator.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
