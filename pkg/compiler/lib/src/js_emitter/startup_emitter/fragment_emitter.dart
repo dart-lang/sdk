@@ -92,10 +92,9 @@ function setFunctionNamesIfNecessary(holders) {
 // proto-property of the classes 'prototype' field.
 // Older IEs use `Object.create` and copy over the properties.
 function inherit(cls, sup) {
-  // Note that RTI needs cls.name, but we don't need to set it anymore.
-  if (#legacyJavaScript) {
-    cls.prototype.constructor = cls;
-  }
+  // cls.prototype.constructor carries the cached RTI. We could avoid this by
+  // using ES6 classes, but the side effects of this need to be tested.
+  cls.prototype.constructor = cls;
   cls.prototype[#operatorIsPrefix + cls.name] = cls;
 
   // The superclass is only null for the Dart Object.
@@ -813,8 +812,7 @@ class FragmentEmitter {
 
       'call0selector': js.quoteName(call0Name),
       'call1selector': js.quoteName(call1Name),
-      'call2selector': js.quoteName(call2Name),
-      'legacyJavaScript': _options.legacyJavaScript
+      'call2selector': js.quoteName(call2Name)
     });
     if (program.hasSoftDeferredClasses) {
       mainCode = js.Block([
@@ -1202,7 +1200,6 @@ class FragmentEmitter {
         properties
             .add(js.Property(js.string("constructor"), classReference(cls)));
       }
-
       properties.add(js.Property(_namer.operatorIs(cls.element), js.number(1)));
     }
 
