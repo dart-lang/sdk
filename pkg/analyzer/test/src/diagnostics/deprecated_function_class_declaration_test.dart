@@ -19,7 +19,7 @@ class DeprecatedFunctionClassDeclarationTest extends PubPackageResolutionTest {
     await assertErrorsInCode('''
 class Function {}
 ''', [
-      error(CompileTimeErrorCode.FUNCTION_CLASS_DECLARATION, 6, 8),
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 6, 8),
     ]);
   }
 
@@ -28,8 +28,8 @@ class Function {}
 class Function {}
 class C<Function> {}
 ''', [
-      error(CompileTimeErrorCode.FUNCTION_CLASS_DECLARATION, 6, 8),
-      error(CompileTimeErrorCode.FUNCTION_AS_TYPE_PARAMETER, 26, 8),
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 6, 8),
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME, 26, 8),
     ]);
   }
 }

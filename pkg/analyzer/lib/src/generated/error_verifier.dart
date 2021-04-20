@@ -1585,13 +1585,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var onClause = node.onClause;
     if (node.name.name == functionToken) {
       errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.FUNCTION_MIXIN_DECLARATION, node.name);
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, node.name);
     }
     if (typeParams != null) {
       for (TypeParameter parameter in typeParams.typeParameters) {
         if (parameter.name.name == functionToken) {
           errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.FUNCTION_AS_TYPE_PARAMETER, parameter);
+              CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME,
+              parameter);
         }
       }
     }
@@ -1616,13 +1617,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var typeParams = node.typeParameters;
     if (node.name != null && node.name?.name == functionToken) {
       errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.FUNCTION_EXTENSION_DECLARATION, node.name!);
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME, node.name!);
     }
     if (typeParams != null) {
       for (TypeParameter parameter in typeParams.typeParameters) {
         if (parameter.name.name == functionToken) {
           errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.FUNCTION_AS_TYPE_PARAMETER, parameter);
+              CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME,
+              parameter);
         }
       }
     }
@@ -1639,14 +1641,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     if (node.name.name == functionToken) {
       errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.FUNCTION_CLASS_DECLARATION, node.name);
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, node.name);
     }
 
     if (typeParams != null) {
       for (TypeParameter parameter in typeParams.typeParameters) {
         if (parameter.name.name == functionToken) {
           errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.FUNCTION_AS_TYPE_PARAMETER, parameter);
+              CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME,
+              parameter);
         }
       }
     }

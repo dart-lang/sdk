@@ -121,10 +121,10 @@ import 'deferred_import_of_extension_test.dart' as deferred_import_of_extension;
 import 'definitely_unassigned_late_local_variable_test.dart'
     as definitely_unassigned_late_local_variable;
 import 'deprecated_extends_function_test.dart' as deprecated_extends_function;
-import 'deprecated_function_class_declaration_test.dart'
-    as deprecated_function_class_declaration;
 import 'deprecated_function_as_type_identifier_test.dart'
     as deprecated_function_as_type_identifier;
+import 'deprecated_function_class_declaration_test.dart'
+    as deprecated_function_class_declaration;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'division_optimization_test.dart' as division_optimization;
@@ -768,8 +768,8 @@ main() {
     deferred_import_of_extension.main();
     definitely_unassigned_late_local_variable.main();
     deprecated_extends_function.main();
-    deprecated_function_class_declaration.main();
     deprecated_function_as_type_identifier.main();
+    deprecated_function_class_declaration.main();
     deprecated_member_use.main();
     deprecated_mixin_function.main();
     division_optimization.main();

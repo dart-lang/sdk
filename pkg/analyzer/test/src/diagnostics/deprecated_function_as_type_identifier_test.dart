@@ -30,8 +30,8 @@ typedef F<Function> = int;
 extension Function on List {}
 extension E<Function> on List<Function> {}    
 ''', [
-      error(CompileTimeErrorCode.FUNCTION_EXTENSION_DECLARATION, 10, 8),
-      error(CompileTimeErrorCode.FUNCTION_AS_TYPE_PARAMETER, 42, 8),
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME, 10, 8),
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME, 42, 8),
     ]);
   }
 }
