@@ -126,6 +126,20 @@ ROLL_TRIGGERERS = {
 }
 CI_SANDBOX_TRIGGERERS = [CI_ACCOUNT, TRY_ACCOUNT]
 
+# List of recipes to opt-in to using the bbagent protocol.
+BBAGENT_ALLOW_LIST = [
+    "dart/external",
+    "dart/forward_branch",
+    "dart/cbuild",
+    "dart/chocolatey",
+    "dart/package_co19",
+    "dart/docker",
+    "dart/linearize",
+    "roller/lkgr",
+    "roller/roll_to_dev",
+    "cron/cron",
+]
+
 lucicfg.config(
     config_dir = ".",
     tracked_files = [
@@ -470,9 +484,14 @@ luci.cq_group(
 )
 
 def dart_recipe(name):
+    # Use kwargs here because using the named argument `bb_agent` with value
+    # false will still change the builder definition to use 'exe' instead of
+    # 'recipe'.
+    enable_bbagent = {"use_bbagent": True} if name in BBAGENT_ALLOW_LIST else {}
     return luci.recipe(
         name = name,
         cipd_package = "dart/recipe_bundles/dart.googlesource.com/recipes",
+        **enable_bbagent
     )
 
 def with_goma(goma, channel, dimensions, properties):
