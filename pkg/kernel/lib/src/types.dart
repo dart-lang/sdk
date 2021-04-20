@@ -357,7 +357,7 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   IsSubtypeOf isTypeParameterRelated(
       TypeParameterType s, InterfaceType t, Types types) {
     return types
-        .performNullabilityAwareSubtypeCheck(s.parameter.bound!, t)
+        .performNullabilityAwareSubtypeCheck(s.parameter.bound, t)
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
   }
 
@@ -437,7 +437,7 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
         TypeParameter sTypeVariable = sTypeVariables[i];
         TypeParameter tTypeVariable = tTypeVariables[i];
         result = result.and(types.performNullabilityAwareMutualSubtypesCheck(
-            sTypeVariable.bound!, tTypeVariable.bound!));
+            sTypeVariable.bound, tTypeVariable.bound));
         typeVariableSubstitution.add(new TypeParameterType.forAlphaRenaming(
             sTypeVariable, tTypeVariable));
       }
@@ -451,8 +451,8 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
           TypeParameter sTypeVariable = sTypeVariables[i];
           TypeParameter tTypeVariable = tTypeVariables[i];
           result = result.and(types.performNullabilityAwareMutualSubtypesCheck(
-              substitution.substituteType(sTypeVariable.bound!),
-              tTypeVariable.bound!));
+              substitution.substituteType(sTypeVariable.bound),
+              tTypeVariable.bound));
           if (!result.isSubtypeWhenIgnoringNullabilities()) {
             return const IsSubtypeOf.never();
           }
@@ -573,7 +573,7 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
       TypeParameterType s, FunctionType t, Types types) {
     // Rule 13.
     return types
-        .performNullabilityAwareSubtypeCheck(s.parameter.bound!, t)
+        .performNullabilityAwareSubtypeCheck(s.parameter.bound, t)
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
   }
 
@@ -828,9 +828,9 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
             s, t.typeArgument.withDeclaredNullability(t.nullability))
         // Rule 13.
         .orSubtypeCheckFor(
-            s.parameter.bound!.withDeclaredNullability(
+            s.parameter.bound.withDeclaredNullability(
                 combineNullabilitiesForSubstitution(
-                    s.parameter.bound!.nullability, s.nullability)),
+                    s.parameter.bound.nullability, s.nullability)),
             t,
             types)
         // Rule 10.

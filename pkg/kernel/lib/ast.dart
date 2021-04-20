@@ -10886,8 +10886,8 @@ class FunctionType extends DartType {
         }
         for (int index = 0; index < typeParameters.length; index++) {
           if (!typeParameters[index]
-              .bound!
-              .equals(other.typeParameters[index].bound!, assumptions)) {
+              .bound
+              .equals(other.typeParameters[index].bound, assumptions)) {
             return false;
           }
         }
@@ -11571,7 +11571,7 @@ class TypeParameterType extends DartType {
   }
 
   /// Returns the bound of the type parameter, accounting for promotions.
-  DartType get bound => (promotedBound ?? parameter.bound)!;
+  DartType get bound => promotedBound ?? parameter.bound;
 
   /// Nullability of the type, calculated from its parts.
   ///
@@ -11621,8 +11621,8 @@ class TypeParameterType extends DartType {
     // non-nullable types can be passed in for the type parameter, making the
     // corresponding type parameter types 'undetermined.'  Otherwise, the
     // nullability matches that of the bound.
-    DartType? bound = typeParameter.bound;
-    if (bound == null) {
+    DartType bound = typeParameter.bound;
+    if (identical(bound, TypeParameter.unsetBoundSentinel)) {
       throw new StateError("Can't compute nullability from an absent bound.");
     }
 
@@ -11632,7 +11632,7 @@ class TypeParameterType extends DartType {
     // other ways for such a dependency to exist, they should be checked here.
     bool nullabilityDependsOnItself = false;
     {
-      DartType? type = typeParameter.bound;
+      DartType type = typeParameter.bound;
       while (type is FutureOrType) {
         type = type.typeArgument;
       }
@@ -11971,12 +11971,17 @@ class TypeParameter extends TreeNode implements Annotatable {
 
   String? name; // Cosmetic name.
 
+  /// Sentinel value used for the [bound] that has not yet been computed. This
+  /// is needed to make the [bound] field non-nullable while supporting
+  /// recursive bounds.
+  static final DartType unsetBoundSentinel = new InvalidType();
+
   /// The bound on the type variable.
   ///
-  /// Should not be null except temporarily during IR construction.  Should
-  /// be set to the root class for type parameters without an explicit bound.
-  // TODO(johnniwinther): Can we make this late non-nullable?
-  DartType? bound;
+  /// This is set to [unsetBoundSentinel] temporarily during IR construction.
+  /// This is set to the `Object?` for type parameters without an explicit
+  /// bound.
+  DartType bound;
 
   /// The default value of the type variable. It is used to provide the
   /// corresponding missing type argument in type annotations and as the
@@ -12002,7 +12007,8 @@ class TypeParameter extends TreeNode implements Annotatable {
 
   static const int legacyCovariantSerializationMarker = 4;
 
-  TypeParameter([this.name, this.bound, this.defaultType]);
+  TypeParameter([this.name, DartType? bound, this.defaultType])
+      : bound = bound ?? unsetBoundSentinel;
 
   // Must match serialized bit positions.
   static const int FlagGenericCovariantImpl = 1 << 0;
@@ -12039,15 +12045,16 @@ class TypeParameter extends TreeNode implements Annotatable {
   @override
   void visitChildren(Visitor v) {
     visitList(annotations, v);
-    bound?.accept(v);
+    bound.accept(v);
     defaultType?.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
+    // ignore: unnecessary_null_comparison
     if (bound != null) {
-      bound = v.visitDartType(bound!);
+      bound = v.visitDartType(bound);
     }
     if (defaultType != null) {
       defaultType = v.visitDartType(defaultType!);
@@ -12057,13 +12064,9 @@ class TypeParameter extends TreeNode implements Annotatable {
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
+    // ignore: unnecessary_null_comparison
     if (bound != null) {
-      DartType newBound = v.visitDartType(bound!, dummyDartType);
-      if (identical(newBound, dummyDartType)) {
-        bound = null;
-      } else {
-        bound = newBound;
-      }
+      bound = v.visitDartType(bound, cannotRemoveSentinel);
     }
     if (defaultType != null) {
       DartType newDefaultType = v.visitDartType(defaultType!, dummyDartType);
