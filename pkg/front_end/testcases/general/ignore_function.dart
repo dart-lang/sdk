@@ -18,3 +18,5 @@ class B implements Function {
 class Function {
   core.bool operator ==(core.Object other) => false;
 }
+
+main() {}
