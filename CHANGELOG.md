@@ -1,7 +1,11 @@
-# 1.3.1
+# 1.4.0
 
 - `directives_ordering` now checks ordering of `package:` imports in code
   outside pub packages
+- simple reachability analysis added to `use_build_context_synchronously` to
+  short-circuit await-discovery in terminating blocks
+- `use_build_context_synchronously` updated to recognize nullable types when
+  accessed from legacy libraries
 
 # 1.3.0
 
