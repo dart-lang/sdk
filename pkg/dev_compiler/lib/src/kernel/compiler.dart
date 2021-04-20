@@ -12,11 +12,11 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide MapEntry;
 import 'package:kernel/library_index.dart';
+import 'package:kernel/src/dart_type_equivalence.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:kernel/src/dart_type_equivalence.dart';
-import 'package:source_span/source_span.dart' show SourceLocation;
 import 'package:path/path.dart' as p;
+import 'package:source_span/source_span.dart' show SourceLocation;
 
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/js_utils.dart' as js_ast;

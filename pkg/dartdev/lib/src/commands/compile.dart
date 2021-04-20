@@ -6,9 +6,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dart2native/generate.dart';
-import 'package:path/path.dart' as path;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
+import 'package:path/path.dart' as path;
 
 import '../core.dart';
 import '../experiments.dart';

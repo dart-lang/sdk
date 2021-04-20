@@ -6,8 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-import 'package:vm_service/vm_service.dart';
+
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
+
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 

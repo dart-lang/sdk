@@ -7,10 +7,10 @@ import 'dart:convert';
 // CommandOutput.exitCode in subclasses of CommandOutput.
 import 'dart:io' as io;
 
+import 'package:dart2js_tools/deobfuscate_stack_trace.dart';
 import 'package:status_file/expectation.dart';
 import 'package:test_runner/src/repository.dart';
 import 'package:test_runner/src/static_error.dart';
-import 'package:dart2js_tools/deobfuscate_stack_trace.dart';
 
 import 'browser_controller.dart';
 import 'command.dart';

@@ -8,6 +8,8 @@ import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
+import 'package:_js_interop_checks/js_interop_checks.dart';
+import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -15,8 +17,6 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
-import 'package:_js_interop_checks/js_interop_checks.dart';
-import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
