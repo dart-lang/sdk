@@ -578,7 +578,7 @@ class FixProcessor extends BaseProcessor {
     LintNames.directives_ordering: [
       FixInfo(
         canBeAppliedToFile: false, // Fix will sort all directives.
-        canBeBulkApplied: false,
+        canBeBulkApplied: true,
         generators: [
           OrganizeImports.newInstance,
         ],
