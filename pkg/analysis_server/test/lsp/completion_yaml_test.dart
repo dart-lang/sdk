@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:http/http.dart';
 import 'package:linter/src/rules.dart';
@@ -107,7 +105,7 @@ linter: ''';
 @reflectiveTest
 class FixDataCompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
-  Uri fixDataUri;
+  late Uri fixDataUri;
 
   @override
   void setUp() {
@@ -332,7 +330,7 @@ dependencies:
       'one: ',
     );
     expect(
-      completion.documentation.valueEquals('Description of package'),
+      completion.documentation!.valueEquals('Description of package'),
       isTrue,
     );
   }
@@ -399,14 +397,14 @@ dependencies:
 
     // Versions are currently only available if we've previously resolved on the
     // package name, so first complete/resolve that.
-    final newContent = await verifyCompletions(
+    final newContent = (await verifyCompletions(
       pubspecFileUri,
       content,
       expectCompletions: ['one: '],
       resolve: true,
       applyEditsFor: 'one: ',
       openCloseFile: false,
-    );
+    ))!;
     await replaceFile(222, pubspecFileUri, newContent);
 
     await verifyCompletions(

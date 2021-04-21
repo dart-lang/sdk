@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 
@@ -13,14 +11,14 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
   int sortTextSorter(CompletionItem item1, CompletionItem item2) =>
       (item1.sortText ?? item1.label).compareTo(item2.sortText ?? item2.label);
 
-  Future<String> verifyCompletions(
+  Future<String?> verifyCompletions(
     Uri fileUri,
     String content, {
-    List<String> expectCompletions,
-    String applyEditsFor,
+    required List<String> expectCompletions,
+    String? applyEditsFor,
     bool resolve = false,
-    String expectedContent,
-    String expectedContentIfInserting,
+    String? expectedContent,
+    String? expectedContentIfInserting,
     bool verifyInsertReplaceRanges = false,
     bool openCloseFile = true,
   }) async {
@@ -71,7 +69,7 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
         // Replacing.
         updatedContent = applyTextEdits(
           withoutMarkers(content),
-          [textEditForReplace(item.textEdit)],
+          [textEditForReplace(item.textEdit!)],
         );
         expect(
             withCaret(updatedContent, insertFormat), equals(expectedContent));
@@ -79,14 +77,14 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
         // Inserting.
         final inserted = applyTextEdits(
           withoutMarkers(content),
-          [textEditForInsert(item.textEdit)],
+          [textEditForInsert(item.textEdit!)],
         );
         expect(withCaret(inserted, insertFormat),
             equals(expectedContentIfInserting));
       } else {
         updatedContent = applyTextEdits(
           withoutMarkers(content),
-          [toTextEdit(item.textEdit)],
+          [toTextEdit(item.textEdit!)],
         );
         if (expectedContent != null) {
           expect(
@@ -101,7 +99,7 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
 
   /// Replaces the LSP snippet placeholder '${0:}' with '^' for easier verifying
   /// of the cursor position in completions.
-  String withCaret(String contents, InsertTextFormat format) =>
+  String withCaret(String contents, InsertTextFormat? format) =>
       format == InsertTextFormat.Snippet
           ? contents.replaceFirst(r'${0:}', '^')
           : contents;

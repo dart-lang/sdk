@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:linter/src/rules.dart';
 import 'package:path/path.dart' as path;
@@ -45,19 +43,21 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
-    final fixAction = findEditAction(codeActions,
-        CodeActionKind('quickfix.remove.unusedImport'), 'Remove unused import');
+    final fixAction = findEditAction(
+        codeActions,
+        CodeActionKind('quickfix.remove.unusedImport'),
+        'Remove unused import')!;
 
     // Ensure the edit came back, and using documentChanges.
-    expect(fixAction, isNotNull);
-    expect(fixAction.edit.documentChanges, isNotNull);
-    expect(fixAction.edit.changes, isNull);
+    final edit = fixAction.edit!;
+    expect(edit.documentChanges, isNotNull);
+    expect(edit.changes, isNull);
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
       mainFilePath: withoutMarkers(content),
     };
-    applyDocumentChanges(contents, fixAction.edit.documentChanges);
+    applyDocumentChanges(contents, edit.documentChanges!);
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
@@ -83,19 +83,21 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
-    final fixAction = findEditAction(codeActions,
-        CodeActionKind('quickfix.remove.unusedImport'), 'Remove unused import');
+    final fixAction = findEditAction(
+        codeActions,
+        CodeActionKind('quickfix.remove.unusedImport'),
+        'Remove unused import')!;
 
     // Ensure the edit came back, and using changes.
-    expect(fixAction, isNotNull);
-    expect(fixAction.edit.changes, isNotNull);
-    expect(fixAction.edit.documentChanges, isNull);
+    final edit = fixAction.edit!;
+    expect(edit.changes, isNotNull);
+    expect(edit.documentChanges, isNull);
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
       mainFilePath: withoutMarkers(content),
     };
-    applyChanges(contents, fixAction.edit.changes);
+    applyChanges(contents, edit.changes!);
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
@@ -118,16 +120,16 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final fixAction = findEditAction(codeActions,
-        CodeActionKind('quickfix.create.file'), "Create file 'newfile.dart'");
+        CodeActionKind('quickfix.create.file'), "Create file 'newfile.dart'")!;
 
-    expect(fixAction, isNotNull);
-    expect(fixAction.edit.documentChanges, isNotNull);
+    final edit = fixAction.edit!;
+    expect(edit.documentChanges!, isNotNull);
 
     // Ensure applying the changes creates the file and with the expected content.
     final contents = {
       mainFilePath: withoutMarkers(content),
     };
-    applyDocumentChanges(contents, fixAction.edit.documentChanges);
+    applyDocumentChanges(contents, edit.documentChanges!);
     expect(contents[expectedCreatedFile], isNotEmpty);
   }
 
@@ -240,18 +242,18 @@ ProcessInfo b;
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final fixAction = findEditAction(codeActions,
-        CodeActionKind('quickfix.organize.imports'), 'Organize Imports');
+        CodeActionKind('quickfix.organize.imports'), 'Organize Imports')!;
 
     // Ensure the edit came back, and using changes.
-    expect(fixAction, isNotNull);
-    expect(fixAction.edit.changes, isNotNull);
-    expect(fixAction.edit.documentChanges, isNull);
+    final edit = fixAction.edit!;
+    expect(edit.changes, isNotNull);
+    expect(edit.documentChanges, isNull);
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
       mainFilePath: withoutMarkers(content),
     };
-    applyChanges(contents, fixAction.edit.changes);
+    applyChanges(contents, edit.changes!);
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
@@ -347,8 +349,6 @@ void f(String a) {
     final fixAction = await getFixAllAction(
         "Apply all: Remove the '!'", mainFileUri, content);
 
-    expect(fixAction, isNotNull);
-
     await verifyCodeActionEdits(
         fixAction, withoutMarkers(content), expectedContent);
   }
@@ -387,7 +387,7 @@ void f(String a) {
     final secondBangPos =
         positionFromOffset(withoutMarkers(content).indexOf('!);'), content);
     expect(removeNnaAction.first.diagnostics, hasLength(1));
-    final diagStart = removeNnaAction.first.diagnostics.first.range.start;
+    final diagStart = removeNnaAction.first.diagnostics!.first.range.start;
     expect(diagStart, equals(secondBangPos));
   }
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -54,7 +52,7 @@ class Bar {
       )),
     ]);
 
-    final notifiedChanges = pluginManager.analysisUpdateContentParams
+    final notifiedChanges = pluginManager.analysisUpdateContentParams!
         .files[mainFilePath] as ChangeContentOverlay;
 
     expect(
@@ -98,7 +96,7 @@ class Bar {
     await _initializeAndOpen();
     await closeFile(mainFileUri);
 
-    expect(pluginManager.analysisUpdateContentParams.files,
+    expect(pluginManager.analysisUpdateContentParams!.files,
         equals({mainFilePath: RemoveContentOverlay()}));
   }
 
@@ -113,8 +111,8 @@ class Bar {
     await openFile(Uri.file(fileOutsideRootPath), content);
 
     // Expect both files return the same driver
-    final driverForInside = server.getAnalysisDriver(fileInsideRootPath);
-    final driverForOutside = server.getAnalysisDriver(fileOutsideRootPath);
+    final driverForInside = server.getAnalysisDriver(fileInsideRootPath)!;
+    final driverForOutside = server.getAnalysisDriver(fileOutsideRootPath)!;
     expect(driverForInside, equals(driverForOutside));
     // But that only the file inside the root was added.
     expect(driverForInside.addedFiles, contains(fileInsideRootPath));
@@ -132,7 +130,7 @@ class Bar {
   Future<void> test_documentOpen_notifiesPlugins() async {
     await _initializeAndOpen();
 
-    expect(pluginManager.analysisUpdateContentParams.files,
+    expect(pluginManager.analysisUpdateContentParams!.files,
         equals({mainFilePath: AddContentOverlay(content)}));
   }
 
@@ -167,7 +165,7 @@ class Bar {
     await pumpEventQueue(times: 5000);
 
     // Ensure the opened file is in the priority list.
-    expect(server.getAnalysisDriver(mainFilePath).priorityFiles,
+    expect(server.getAnalysisDriver(mainFilePath)!.priorityFiles,
         equals([mainFilePath]));
   }
 

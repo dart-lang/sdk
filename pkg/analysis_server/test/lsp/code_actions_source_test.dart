@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
@@ -43,8 +41,7 @@ int minified(int x, int y) => min(x, y);
             withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.organizeImports);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.organizeImports)!;
 
     await verifyCodeActionEdits(codeAction, content, expectedContent,
         expectDocumentChanges: true);
@@ -72,8 +69,7 @@ int minified(int x, int y) => min(x, y);
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.organizeImports);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.organizeImports)!;
 
     await verifyCodeActionEdits(codeAction, content, expectedContent);
   }
@@ -116,12 +112,11 @@ int minified(int x, int y) => min(x, y);
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.organizeImports);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.organizeImports)!;
 
     final command = codeAction.map(
       (command) => command,
-      (codeAction) => codeAction.command,
+      (codeAction) => codeAction.command!,
     );
 
     final commandResponse = await executeCommand(command);
@@ -162,12 +157,11 @@ int minified(int x, int y) => min(x, y);
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.organizeImports);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.organizeImports)!;
 
     final command = codeAction.map(
       (command) => command,
-      (codeAction) => codeAction.command,
+      (codeAction) => codeAction.command!,
     );
 
     // Execute the command and it should return without needing us to process
@@ -217,8 +211,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
             withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.sortMembers);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.sortMembers)!;
 
     await verifyCodeActionEdits(codeAction, content, expectedContent,
         expectDocumentChanges: true);
@@ -239,8 +232,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.sortMembers);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.sortMembers)!;
 
     await verifyCodeActionEdits(codeAction, content, expectedContent);
   }
@@ -286,15 +278,14 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.sortMembers);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.sortMembers)!;
 
     final command = codeAction.map(
       (command) => command,
-      (codeAction) => codeAction.command,
+      (codeAction) => codeAction.command!,
     );
 
-    final commandResponse = handleExpectedRequest<Object,
+    final commandResponse = handleExpectedRequest<Object?,
         ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams.fromJson,
@@ -320,12 +311,11 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
 
     final codeActions = await getCodeActions(mainFileUri.toString());
-    final codeAction = findCommand(codeActions, Commands.sortMembers);
-    expect(codeAction, isNotNull);
+    final codeAction = findCommand(codeActions, Commands.sortMembers)!;
 
     final command = codeAction.map(
       (command) => command,
-      (codeAction) => codeAction.command,
+      (codeAction) => codeAction.command!,
     );
 
     // Ensure the request returned an error (error repsonses are thrown by
