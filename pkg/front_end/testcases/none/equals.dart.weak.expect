@@ -127,7 +127,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   method method(dynamic o) → dynamic {}
 }
 static const field core::Object? nullValue = #C1;
-static method test<T1 extends core::Function = core::Function, T2 extends (core::int) → core::int = (core::int) → core::int>(core::Object o, core::Object nonNullableObject, core::Object? nullableObject, self::Class<core::String> nonNullableClass, self::Class<core::String>? nullableClass, dynamic dyn, Never never, Never? nullableNever, Null nullTypedValue, core::Function nonNullableFunction, core::Function? nullableFunction, (core::int) → core::int nonNullableFunctionType, (core::int) →? core::int nullableFunctionType, self::test::T1 nonNullableTypeVariable1, self::test::T1? nullableTypeVariable1, self::test::T2 nonNullableTypeVariable2, self::test::T2? nullableTypeVariable2) → dynamic {
+static method test<T1 extends core::Function, T2 extends (core::int) → core::int>(core::Object o, core::Object nonNullableObject, core::Object? nullableObject, self::Class<core::String> nonNullableClass, self::Class<core::String>? nullableClass, dynamic dyn, Never never, Never? nullableNever, Null nullTypedValue, core::Function nonNullableFunction, core::Function? nullableFunction, (core::int) → core::int nonNullableFunctionType, (core::int) →? core::int nullableFunctionType, self::test::T1 nonNullableTypeVariable1, self::test::T1? nullableTypeVariable1, self::test::T2 nonNullableTypeVariable2, self::test::T2? nullableTypeVariable2) → dynamic {
   core::print("EqualsNull (literal null)");
   null == null;
   !(null == null);

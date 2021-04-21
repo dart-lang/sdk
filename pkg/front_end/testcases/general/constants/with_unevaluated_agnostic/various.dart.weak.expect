@@ -93,7 +93,7 @@ class C extends core::Object implements self::A /*hasConstConstructor*/  {
   operator unary-() → self::C
     return this;
 }
-class Class<T extends self::A = self::A> extends core::Object /*hasConstConstructor*/  {
+class Class<T extends self::A> extends core::Object /*hasConstConstructor*/  {
   const constructor •(self::Class::T t) → self::Class<self::Class::T>
     : super core::Object::•()
     ;
@@ -107,7 +107,7 @@ class Class<T extends self::A = self::A> extends core::Object /*hasConstConstruc
                                  ^" in t.{self::A::unary-}(){() → self::A} as{TypeError,ForNonNullableByDefault} Never)
     ;
 }
-class Subclass<T extends self::A = self::A> extends self::Class<self::Subclass::T> /*hasConstConstructor*/  {
+class Subclass<T extends self::A> extends self::Class<self::Subclass::T> /*hasConstConstructor*/  {
   const constructor •(dynamic t) → self::Subclass<self::Subclass::T>
     : super self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Subclass::T)
     ;

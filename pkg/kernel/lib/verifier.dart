@@ -186,7 +186,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         problem(
             currentParent, "Missing bound for type parameter '$parameter'.");
       }
-      if (parameter.defaultType == null) {
+      if (identical(
+          parameter.defaultType, TypeParameter.unsetDefaultTypeSentinel)) {
         problem(currentParent,
             "Missing default type for type parameter '$parameter'.");
       }

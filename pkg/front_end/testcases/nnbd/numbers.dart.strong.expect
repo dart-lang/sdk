@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static method add<X extends core::num = core::num, Y extends core::int = core::int, Z extends core::double = core::double>(core::num n, core::int i, core::double d, self::add::X x, self::add::Y y, self::add::Z z) → dynamic {
+static method add<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::add::X x, self::add::Y y, self::add::Z z) → dynamic {
   core::num n_n = n.{core::num::+}(n);
   core::num n_i = n.{core::num::+}(i);
   core::double n_d = n.{core::num::+}(d);
@@ -40,7 +40,7 @@ static method add<X extends core::num = core::num, Y extends core::int = core::i
   core::double z_y = z.{core::double::+}(y);
   core::double z_z = z.{core::double::+}(z);
 }
-static method sub<X extends core::num = core::num, Y extends core::int = core::int, Z extends core::double = core::double>(core::num n, core::int i, core::double d, self::sub::X x, self::sub::Y y, self::sub::Z z) → dynamic {
+static method sub<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::sub::X x, self::sub::Y y, self::sub::Z z) → dynamic {
   core::num n_n = n.{core::num::-}(n);
   core::num n_i = n.{core::num::-}(i);
   core::double n_d = n.{core::num::-}(d);
@@ -78,7 +78,7 @@ static method sub<X extends core::num = core::num, Y extends core::int = core::i
   core::double z_y = z.{core::double::-}(y);
   core::double z_z = z.{core::double::-}(z);
 }
-static method mul<X extends core::num = core::num, Y extends core::int = core::int, Z extends core::double = core::double>(core::num n, core::int i, core::double d, self::mul::X x, self::mul::Y y, self::mul::Z z) → dynamic {
+static method mul<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::mul::X x, self::mul::Y y, self::mul::Z z) → dynamic {
   core::num n_n = n.{core::num::*}(n);
   core::num n_i = n.{core::num::*}(i);
   core::double n_d = n.{core::num::*}(d);
@@ -116,7 +116,7 @@ static method mul<X extends core::num = core::num, Y extends core::int = core::i
   core::double z_y = z.{core::double::*}(y);
   core::double z_z = z.{core::double::*}(z);
 }
-static method mod<X extends core::num = core::num, Y extends core::int = core::int, Z extends core::double = core::double>(core::num n, core::int i, core::double d, self::mod::X x, self::mod::Y y, self::mod::Z z) → dynamic {
+static method mod<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::mod::X x, self::mod::Y y, self::mod::Z z) → dynamic {
   core::num n_n = n.{core::num::%}(n);
   core::num n_i = n.{core::num::%}(i);
   core::double n_d = n.{core::num::%}(d);
@@ -154,7 +154,7 @@ static method mod<X extends core::num = core::num, Y extends core::int = core::i
   core::double z_y = z.{core::double::%}(y);
   core::double z_z = z.{core::double::%}(z);
 }
-static method remainder<X extends core::num = core::num, Y extends core::int = core::int, Z extends core::double = core::double>(core::num n, core::int i, core::double d, self::remainder::X x, self::remainder::Y y, self::remainder::Z z) → dynamic {
+static method remainder<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::remainder::X x, self::remainder::Y y, self::remainder::Z z) → dynamic {
   core::num n_n = n.{core::num::remainder}(n);
   core::num n_i = n.{core::num::remainder}(i);
   core::double n_d = n.{core::num::remainder}(d);
@@ -192,7 +192,7 @@ static method remainder<X extends core::num = core::num, Y extends core::int = c
   core::double z_y = z.{core::double::remainder}(y);
   core::double z_z = z.{core::double::remainder}(z);
 }
-static method clamp<X extends core::num = core::num, Y extends core::int = core::int, Z extends core::double = core::double>(core::num n, core::int i, core::double d, self::clamp::X x, self::clamp::Y y, self::clamp::Z z) → dynamic {
+static method clamp<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::clamp::X x, self::clamp::Y y, self::clamp::Z z) → dynamic {
   core::num n_n_n = n.{core::num::clamp}(n, n);
   core::num n_i_n = n.{core::num::clamp}(i, n);
   core::num n_d_n = n.{core::num::clamp}(d, n);

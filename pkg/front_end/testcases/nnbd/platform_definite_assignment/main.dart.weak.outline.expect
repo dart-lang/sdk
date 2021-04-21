@@ -14,7 +14,7 @@ import "dart:core" as core;
 import "dart:_internal";
 
 @_in::patch
-class Class<T extends core::num = core::num> extends core::Object /*hasConstConstructor*/  {
+class Class<T extends core::num> extends core::Object /*hasConstConstructor*/  {
   final field core::int a;
   final field self2::Class::T b;
   const constructor constConstructor(core::int a, self2::Class::T b) → self2::Class<self2::Class::T>

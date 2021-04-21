@@ -927,9 +927,7 @@ void TypeParameterHelper::ReadUntilExcluding(Field field) {
         helper_->SkipDartType();
         break;
       case kDefaultType:
-        if (helper_->ReadTag() == kSomething) {
-          helper_->SkipDartType();
-        }
+        helper_->SkipDartType();
         break;
       case kEnd:
         return;
@@ -3393,11 +3391,8 @@ void TypeTranslator::LoadAndSetupBounds(
     AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
     parameter.set_bound(bound);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
-    const AbstractType* default_arg = &Object::dynamic_type();
-    if (helper_->ReadTag() == kSomething) {
-      default_arg = &BuildTypeWithoutFinalization();
-    }
-    parameter.set_default_argument(*default_arg);
+    AbstractType& default_arg = BuildTypeWithoutFinalization();
+    parameter.set_default_argument(default_arg);
     helper.Finish();
   }
 

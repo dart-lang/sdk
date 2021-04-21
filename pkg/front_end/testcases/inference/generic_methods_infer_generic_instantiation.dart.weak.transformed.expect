@@ -36,7 +36,7 @@ class C extends core::Object {
   synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
-  method m<T extends core::num* = core::num*>(self::C::m::T* x, self::C::m::T* y) → self::C::m::T*
+  method m<T extends core::num*>(self::C::m::T* x, self::C::m::T* y) → self::C::m::T*
     return null;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

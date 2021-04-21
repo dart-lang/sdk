@@ -94,13 +94,13 @@ library /*isNonNullableByDefault*/;
 import self as mai2;
 import "dart:core" as core;
 
-typedef Typedef<unrelated T extends mai2::Value<dynamic> = mai2::Value<dynamic>, contravariant I extends core::Object? = dynamic> = (I%) → core::Type;
+typedef Typedef<unrelated T extends mai2::Value<dynamic>, contravariant I extends core::Object? = dynamic> = (I%) → core::Type;
 abstract class Value<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → mai2::Value<mai2::Value::T%>
     : super core::Object::•()
     ;
 }
-class Interface<T extends mai2::Value<dynamic> = mai2::Value<dynamic>, I extends core::Object? = dynamic> extends core::Object {
+class Interface<T extends mai2::Value<dynamic>, I extends core::Object? = dynamic> extends core::Object {
   field (mai2::Interface::I%) →? core::Type field = null;
   synthetic constructor •() → mai2::Interface<mai2::Interface::T, mai2::Interface::I%>
     : super core::Object::•()

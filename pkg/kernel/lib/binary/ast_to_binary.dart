@@ -2401,8 +2401,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
     writeStringReference(node.name ?? '');
     writeNode(node.bound);
-    // TODO(johnniwinther): Make this non-optional.
-    writeOptionalNode(node.defaultType);
+    writeNode(node.defaultType);
   }
 
   @override

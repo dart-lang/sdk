@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 62;
+  UInt32 formatVersion = 63;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -1496,7 +1496,7 @@ type TypeParameter {
   Byte variance; // Index into the Variance enum above
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.
-  Option<DartType> defaultType; // type used when the parameter is not passed
+  DartType defaultType; // type used when the parameter is not passed
 }
 
 ```

@@ -94,5 +94,5 @@ abstract class RenderObject extends core::Object {
     ;
   method handleEvent(invalid-type event, covariant invalid-type entry) → void {}
 }
-abstract class RenderObjectWithChildMixin<ChildType extends mai::RenderObject = mai::RenderObject> extends mai::RenderObject /*isMixinDeclaration*/  {
+abstract class RenderObjectWithChildMixin<ChildType extends mai::RenderObject> extends mai::RenderObject /*isMixinDeclaration*/  {
 }

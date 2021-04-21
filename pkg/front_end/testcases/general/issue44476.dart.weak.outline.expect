@@ -13,7 +13,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class A<X extends core::int* = core::int*> extends core::Object {
+class A<X extends core::int*> extends core::Object {
   synthetic constructor •() → self::A<self::A::X*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

@@ -5901,7 +5901,7 @@ class MethodInvocation extends InvocationExpression {
               getterType.typeParameters,
               getterType.typeParameters
                   .map((TypeParameter typeParameter) =>
-                      typeParameter.defaultType!)
+                      typeParameter.defaultType)
                   .toList());
         }
         return substitution.substituteType(getterType.returnType);
@@ -11979,13 +11979,18 @@ class TypeParameter extends TreeNode implements Annotatable {
   /// bound.
   DartType bound;
 
+  /// Sentinel value used for the [defaultType] that has not yet been computed.
+  /// This is needed to make the [defaultType] field non-nullable while
+  /// supporting recursive bounds for which the default type need to be set
+  /// late.
+  static final DartType unsetDefaultTypeSentinel = new InvalidType();
+
   /// The default value of the type variable. It is used to provide the
   /// corresponding missing type argument in type annotations and as the
   /// fall-back type value in type inference at compile time. At run time,
   /// [defaultType] is used by the backends in place of the missing type
   /// argument of a dynamic invocation of a generic function.
-  // TODO(johnniwinther): Can we make this late non-nullable?
-  DartType? defaultType;
+  DartType defaultType;
 
   /// Describes variance of the type parameter w.r.t. declaration on which it is
   /// defined. For classes, if variance is not explicitly set, the type
@@ -12003,8 +12008,9 @@ class TypeParameter extends TreeNode implements Annotatable {
 
   static const int legacyCovariantSerializationMarker = 4;
 
-  TypeParameter([this.name, DartType? bound, this.defaultType])
-      : bound = bound ?? unsetBoundSentinel;
+  TypeParameter([this.name, DartType? bound, DartType? defaultType])
+      : bound = bound ?? unsetBoundSentinel,
+        defaultType = defaultType ?? unsetDefaultTypeSentinel;
 
   // Must match serialized bit positions.
   static const int FlagGenericCovariantImpl = 1 << 0;
@@ -12042,7 +12048,7 @@ class TypeParameter extends TreeNode implements Annotatable {
   void visitChildren(Visitor v) {
     visitList(annotations, v);
     bound.accept(v);
-    defaultType?.accept(v);
+    defaultType.accept(v);
   }
 
   @override
@@ -12052,8 +12058,9 @@ class TypeParameter extends TreeNode implements Annotatable {
     if (bound != null) {
       bound = v.visitDartType(bound);
     }
+    // ignore: unnecessary_null_comparison
     if (defaultType != null) {
-      defaultType = v.visitDartType(defaultType!);
+      defaultType = v.visitDartType(defaultType);
     }
   }
 
@@ -12064,13 +12071,9 @@ class TypeParameter extends TreeNode implements Annotatable {
     if (bound != null) {
       bound = v.visitDartType(bound, cannotRemoveSentinel);
     }
+    // ignore: unnecessary_null_comparison
     if (defaultType != null) {
-      DartType newDefaultType = v.visitDartType(defaultType!, dummyDartType);
-      if (identical(newDefaultType, dummyDartType)) {
-        defaultType = null;
-      } else {
-        defaultType = newDefaultType;
-      }
+      defaultType = v.visitDartType(defaultType, cannotRemoveSentinel);
     }
   }
 

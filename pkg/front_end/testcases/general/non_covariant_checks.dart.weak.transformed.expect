@@ -19,7 +19,7 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   generic-covariant-impl field <S extends self::C::T* = dynamic>(S*) →* S* field14;
   generic-covariant-impl field (<S extends self::C::T* = dynamic>() →* S*) →* void field15;
   constructor •(self::C::T* field1) → self::C<self::C::T*>*
-    : self::C::field1 = field1, self::C::field2 = () → self::C::T* => field1, self::C::field3 = (self::C::T* t) → Null {}, self::C::field4 = (self::C::T* t) → self::C::T* => t, self::C::field5 = () → () →* self::C::T* => () → self::C::T* => field1, self::C::field6 = (() →* self::C::T* f) → Null {}, self::C::field7 = (() →* self::C::T* f) → self::C::T* => field1, self::C::field8 = ((self::C::T*) →* void f) → Null {}, self::C::field9 = ((self::C::T*) →* void f) → self::C::T* => field1, self::C::field10 = ((self::C::T*) →* self::C::T* f) → Null {}, self::C::field11 = ((self::C::T*) →* self::C::T* f) → self::C::T* => field1, self::C::field12 = <S extends self::C::T* = self::C::T*>() → Null => null, self::C::field13 = <S extends self::C::T* = self::C::T*>(S* s) → Null {}, self::C::field14 = <S extends self::C::T* = self::C::T*>(S* s) → S* => s, self::C::field15 = (<S extends self::C::T* = self::C::T*>() →* S* f) → Null {}, super core::Object::•()
+    : self::C::field1 = field1, self::C::field2 = () → self::C::T* => field1, self::C::field3 = (self::C::T* t) → Null {}, self::C::field4 = (self::C::T* t) → self::C::T* => t, self::C::field5 = () → () →* self::C::T* => () → self::C::T* => field1, self::C::field6 = (() →* self::C::T* f) → Null {}, self::C::field7 = (() →* self::C::T* f) → self::C::T* => field1, self::C::field8 = ((self::C::T*) →* void f) → Null {}, self::C::field9 = ((self::C::T*) →* void f) → self::C::T* => field1, self::C::field10 = ((self::C::T*) →* self::C::T* f) → Null {}, self::C::field11 = ((self::C::T*) →* self::C::T* f) → self::C::T* => field1, self::C::field12 = <S extends self::C::T*>() → Null => null, self::C::field13 = <S extends self::C::T*>(S* s) → Null {}, self::C::field14 = <S extends self::C::T*>(S* s) → S* => s, self::C::field15 = (<S extends self::C::T*>() →* S* f) → Null {}, super core::Object::•()
     ;
   get getter1() → self::C::T*
     return this.{self::C::field1};
@@ -370,28 +370,28 @@ static method main() → dynamic {
     core::print(e);
   }
   try {
-    c.{self::C::setter12} = <S extends core::num* = core::num*>() → Null => null;
+    c.{self::C::setter12} = <S extends core::num*>() → Null => null;
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {
     core::print(e);
   }
   try {
-    c.{self::C::setter13} = <S extends core::num* = core::num*>(S* s) → Null {};
+    c.{self::C::setter13} = <S extends core::num*>(S* s) → Null {};
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {
     core::print(e);
   }
   try {
-    c.{self::C::setter14} = <S extends core::num* = core::num*>(S* s) → S* => s;
+    c.{self::C::setter14} = <S extends core::num*>(S* s) → S* => s;
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {
     core::print(e);
   }
   try {
-    c.{self::C::setter15} = (<S extends core::num* = core::num*>() →* S* f) → Null {};
+    c.{self::C::setter15} = (<S extends core::num*>() →* S* f) → Null {};
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {
@@ -463,28 +463,28 @@ static method main() → dynamic {
     core::print(e);
   }
   try {
-    c.{self::C::method12}(<S extends core::num* = core::num*>() → Null => null);
+    c.{self::C::method12}(<S extends core::num*>() → Null => null);
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {
     core::print(e);
   }
   try {
-    c.{self::C::method13}(<S extends core::num* = core::num*>(S* s) → Null {});
+    c.{self::C::method13}(<S extends core::num*>(S* s) → Null {});
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {
     core::print(e);
   }
   try {
-    c.{self::C::method14}(<S extends core::num* = core::num*>(S* s) → S* => s);
+    c.{self::C::method14}(<S extends core::num*>(S* s) → S* => s);
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {
     core::print(e);
   }
   try {
-    c.{self::C::method15}((<S extends core::num* = core::num*>() →* S* f) → Null {});
+    c.{self::C::method15}((<S extends core::num*>() →* S* f) → Null {});
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {

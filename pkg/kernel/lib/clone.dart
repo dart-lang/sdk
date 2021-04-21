@@ -510,8 +510,9 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   visitTypeParameter(TypeParameter node) {
     TypeParameter newNode = typeParams[node]!;
     newNode.bound = visitType(node.bound);
+    // ignore: unnecessary_null_comparison
     if (node.defaultType != null) {
-      newNode.defaultType = visitType(node.defaultType!);
+      newNode.defaultType = visitType(node.defaultType);
     }
     return newNode
       ..annotations = cloneAnnotations && !node.annotations.isEmpty

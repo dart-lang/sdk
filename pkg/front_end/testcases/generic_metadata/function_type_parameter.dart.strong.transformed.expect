@@ -9,7 +9,7 @@ class A<T extends core::Object? = dynamic> extends core::Object /*hasConstConstr
     : super core::Object::•()
     ;
 }
-class Class<T extends <S extends core::Object? = dynamic>(S%) → void = <S extends core::Object? = dynamic>(S%) → void> extends core::Object {
+class Class<T extends <S extends core::Object? = dynamic>(S%) → void> extends core::Object {
   synthetic constructor •() → self::Class<self::Class::T>
     : super core::Object::•()
     ;

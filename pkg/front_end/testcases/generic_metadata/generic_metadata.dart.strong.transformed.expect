@@ -45,12 +45,12 @@ class B<S extends core::Object? = dynamic, T extends core::Object? = dynamic> ex
     : super core::Object::•()
     ;
 }
-class C<T extends core::num = core::num> extends core::Object /*hasConstConstructor*/  {
+class C<T extends core::num> extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::C<self::C::T>
     : super core::Object::•()
     ;
 }
-class D<S extends core::num = core::num, T extends self::D::S = core::num> extends core::Object /*hasConstConstructor*/  {
+class D<S extends core::num, T extends self::D::S = core::num> extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::D<self::D::S, self::D::T>
     : super core::Object::•()
     ;

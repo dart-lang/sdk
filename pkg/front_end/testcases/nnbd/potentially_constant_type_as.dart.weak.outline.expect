@@ -8,7 +8,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
     : self::Class::field = value as{ForNonNullableByDefault} self::Class::T%, super core::Object::•()
     ;
 }
-class ClassWithBound<T extends core::num = core::num> extends core::Object /*hasConstConstructor*/  {
+class ClassWithBound<T extends core::num> extends core::Object /*hasConstConstructor*/  {
   final field self::ClassWithBound::T field;
   const constructor •() → self::ClassWithBound<self::ClassWithBound::T>
     : self::ClassWithBound::field = self::three as{ForNonNullableByDefault} self::ClassWithBound::T, super core::Object::•()

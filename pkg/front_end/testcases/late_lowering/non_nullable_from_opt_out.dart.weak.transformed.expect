@@ -35,7 +35,7 @@ import self as non;
 import "dart:core" as core;
 import "dart:_internal" as _in;
 
-class Class<T extends core::Object = core::Object> extends core::Object {
+class Class<T extends core::Object> extends core::Object {
   field core::int? _#Class#instanceField = null;
   field core::bool _#Class#instanceField#isSet = false;
   field dynamic _#Class#finalInstanceField = null;
@@ -116,7 +116,7 @@ static set finalTopLevelField(dynamic #t13) → void
     non::_#finalTopLevelField#isSet = true;
     non::_#finalTopLevelField = #t13;
   }
-static method method<T extends core::Object = core::Object>(core::bool b, core::int i, non::method::T t) → dynamic {
+static method method<T extends core::Object>(core::bool b, core::int i, non::method::T t) → dynamic {
   lowered core::int? #local;
   lowered core::bool #local#isSet = false;
   function #local#get() → core::int

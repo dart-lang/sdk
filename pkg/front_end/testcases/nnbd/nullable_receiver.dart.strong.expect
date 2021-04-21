@@ -116,7 +116,7 @@ Try removing the extra positional arguments.
   void Function()? f3 = a;
                         ^" in a as{TypeError} () →? void;
 }
-static method ok<T extends core::Object? = core::Object?>(core::String? s, self::A? a, self::ok::T% t, self::B? b, core::Invocation i) → dynamic {
+static method ok<T extends core::Object?>(core::String? s, self::A? a, self::ok::T% t, self::B? b, core::Invocation i) → dynamic {
   s.{core::String::==}(s);
   a.{core::Object::==}(a);
   t.{core::Object::==}(t);

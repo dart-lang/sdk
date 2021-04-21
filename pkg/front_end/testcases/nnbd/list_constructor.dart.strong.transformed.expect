@@ -20,7 +20,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static method foo<T extends core::Object? = core::Object?>() → dynamic {
+static method foo<T extends core::Object?>() → dynamic {
   let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/list_constructor.dart:9:7: Error: Can't use the default List constructor.
 Try using List.filled instead.
   new List<T>(42);

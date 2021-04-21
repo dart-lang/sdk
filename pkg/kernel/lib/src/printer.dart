@@ -274,7 +274,7 @@ class AstPrinter {
           return false;
         }
 
-        if (!isTopObject(bound) || isTopObject(typeParameter.defaultType!)) {
+        if (!isTopObject(bound) || isTopObject(typeParameter.defaultType)) {
           // Include explicit bounds only.
           _sb.write(' extends ');
           writeType(bound);

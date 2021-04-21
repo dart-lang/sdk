@@ -338,7 +338,8 @@ class H extends self::G implements self::C, self::A {}
       {Supertype extends_(List<DartType> typeParameterTypes),
       List<Supertype> implements_(List<DartType> typeParameterTypes)}) {
     var typeParameters = typeParameterNames
-        .map((name) => new TypeParameter(name, coreTypes.objectLegacyRawType))
+        .map((name) => new TypeParameter(
+            name, coreTypes.objectLegacyRawType, coreTypes.objectLegacyRawType))
         .toList();
     var typeParameterTypes = typeParameters
         .map(
@@ -581,7 +582,8 @@ class C extends self::B {
 
     var a = addGenericClass('A', ['T', 'U']);
 
-    var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
+    var bT = new TypeParameter(
+        'T', coreTypes.objectLegacyRawType, coreTypes.objectLegacyRawType);
     var bTT = new TypeParameterType(bT, Nullability.legacy);
     var b = addClass(new Class(
         name: 'B',
@@ -613,7 +615,8 @@ class C extends self::B<core::int*> {}
 
     var a = addGenericClass('A', ['T', 'U']);
 
-    var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
+    var bT = new TypeParameter(
+        'T', coreTypes.objectLegacyRawType, coreTypes.objectLegacyRawType);
     var bTT = new TypeParameterType(bT, Nullability.legacy);
     var b = addClass(new Class(
         name: 'B',
@@ -651,7 +654,8 @@ class C implements self::B<core::int*> {}
 
     var a = addGenericClass('A', ['T', 'U']);
 
-    var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
+    var bT = new TypeParameter(
+        'T', coreTypes.objectLegacyRawType, coreTypes.objectLegacyRawType);
     var bTT = new TypeParameterType(bT, Nullability.legacy);
     var b = addClass(new Class(
         name: 'B',
@@ -1327,7 +1331,8 @@ class B extends self::A {
 
     var a = addGenericClass('A', ['T', 'U']);
 
-    var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
+    var bT = new TypeParameter(
+        'T', coreTypes.objectLegacyRawType, coreTypes.objectLegacyRawType);
     var bTT = new TypeParameterType(bT, Nullability.legacy);
     var b = addClass(new Class(
         name: 'B',

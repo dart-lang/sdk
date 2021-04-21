@@ -47,7 +47,7 @@ class C<T extends core::Object? = dynamic> extends core::Object {
 abstract class B extends core::Object {
   synthetic constructor •() → inf::B
     ;
-  abstract method bar<X extends core::List<core::int?>? = core::List<core::int?>?>() → inf::B::bar::X%;
+  abstract method bar<X extends core::List<core::int?>?>() → inf::B::bar::X%;
   abstract method foo(core::List<core::int> list) → dynamic;
 }
 static field inf::C<dynamic> field1;

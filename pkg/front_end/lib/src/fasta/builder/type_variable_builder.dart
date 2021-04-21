@@ -161,10 +161,13 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     // explicitly specified as Object, in which case defaultType should also be
     // Object. This makes sure instantiation of generic function types with an
     // explicit Object bound results in Object as the instantiated type.
-    parameter.defaultType ??= defaultType?.build(library) ??
-        (bound != null && parameter.bound == objectType
-            ? objectType
-            : dynamicType.build(library));
+    if (identical(
+        parameter.defaultType, TypeParameter.unsetDefaultTypeSentinel)) {
+      parameter.defaultType = defaultType?.build(library) ??
+          (bound != null && parameter.bound == objectType
+              ? objectType
+              : dynamicType.build(library));
+    }
   }
 
   void applyPatch(covariant TypeVariableBuilder patch) {
