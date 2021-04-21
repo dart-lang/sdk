@@ -4481,6 +4481,11 @@ FfiExceptionalReturnNull:
   template: "Exceptional return value must not be null."
   external: test/ffi_test.dart
 
+FfiArrayGetNonPositiveParams:
+  # Used by dart:ffi
+  template: "Array type only accept a positive number."
+  external: test/ffi_test.dart
+
 SpreadTypeMismatch:
   template: "Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable."
   script:

@@ -8,6 +8,7 @@ import 'dart:math' as math;
 
 import 'package:front_end/src/api_unstable/vm.dart'
     show
+        messageFfiArrayGetNonPositiveParams,
         messageFfiPackedAnnotationAlignment,
         templateFfiEmptyStruct,
         templateFfiFieldAnnotation,
@@ -478,11 +479,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final sizeAnnotations = _getArraySizeAnnotations(m).toList();
         if (sizeAnnotations.length == 1) {
           final arrayDimensions = sizeAnnotations.single;
-          type = NativeTypeCfe(this, dartType,
+          type = NativeTypeCfe(this, m, dartType,
               compoundCache: compoundCache, arrayDimensions: arrayDimensions);
         }
       } else if (isPointerType(dartType) || isCompoundSubtype(dartType)) {
-        type = NativeTypeCfe(this, dartType, compoundCache: compoundCache);
+        type =
+            NativeTypeCfe(this, m, dartType, compoundCache: compoundCache);
       } else {
         // The C type is in the annotation, not the field type itself.
         final nativeTypeAnnos = _getNativeTypeAnnotations(m).toList();
@@ -747,9 +749,9 @@ class CompoundLayout {
 /// This algebraic data structure does not stand on its own but refers
 /// intimately to AST nodes such as [Class].
 abstract class NativeTypeCfe {
-  factory NativeTypeCfe(FfiTransformer transformer, DartType dartType,
-      {List<int> arrayDimensions,
-      Map<Class, CompoundNativeTypeCfe> compoundCache = const {}}) {
+  factory NativeTypeCfe(FfiTransformer transformer, Member node,
+      DartType dartType, {List<int> arrayDimensions,
+        Map<Class, CompoundNativeTypeCfe> compoundCache = const {}}) {
     if (transformer.isPrimitiveType(dartType)) {
       final clazz = (dartType as InterfaceType).classNode;
       final nativeType = transformer.getType(clazz);
@@ -772,8 +774,10 @@ abstract class NativeTypeCfe {
       }
       final elementType = transformer.arraySingleElementType(dartType);
       final elementCfeType =
-          NativeTypeCfe(transformer, elementType, compoundCache: compoundCache);
-      return ArrayNativeTypeCfe.multi(elementCfeType, arrayDimensions);
+      NativeTypeCfe(
+          transformer, node, elementType, compoundCache: compoundCache);
+      return ArrayNativeTypeCfe.multi(
+          transformer, node, elementCfeType, arrayDimensions);
     }
     throw "Invalid type $dartType";
   }
@@ -1135,13 +1139,20 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
 
   ArrayNativeTypeCfe(this.elementType, this.length);
 
-  factory ArrayNativeTypeCfe.multi(
-      NativeTypeCfe elementType, List<int> dimensions) {
+  factory ArrayNativeTypeCfe.multi(FfiTransformer transformer,
+      Member member, NativeTypeCfe elementType, List<int> dimensions) {
     if (dimensions.length == 1) {
+      final val = dimensions.single;
+      final reporter = transformer.diagnosticReporter;
+      if (val <= 0) {
+        reporter.report(
+            messageFfiArrayGetNonPositiveParams, member.fileOffset,
+            member.name.name.length, member.fileUri);
+      }
       return ArrayNativeTypeCfe(elementType, dimensions.single);
     }
-    return ArrayNativeTypeCfe(
-        ArrayNativeTypeCfe.multi(elementType, dimensions.sublist(1)),
+    return ArrayNativeTypeCfe(ArrayNativeTypeCfe.multi(
+        transformer, member, elementType, dimensions.sublist(1)),
         dimensions.first);
   }
 
