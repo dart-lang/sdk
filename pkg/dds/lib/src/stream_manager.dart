@@ -137,6 +137,11 @@ class StreamManager {
   ) async {
     assert(stream != null && stream.isNotEmpty);
     if (!streamListeners.containsKey(stream)) {
+      // Initialize the list of clients for the new stream before we do
+      // anything else to ensure multiple clients registering for the same
+      // stream in quick succession doesn't result in multiple streamListen
+      // requests being sent to the VM service.
+      streamListeners[stream] = <DartDevelopmentServiceClient>[];
       if ((stream == kDebugStream && client == null) ||
           stream != kDebugStream) {
         // This will return an RPC exception if the stream doesn't exist. This
@@ -146,7 +151,6 @@ class StreamManager {
         });
         assert(result['type'] == 'Success');
       }
-      streamListeners[stream] = <DartDevelopmentServiceClient>[];
     }
     if (streamListeners[stream].contains(client)) {
       throw kStreamAlreadySubscribedException;

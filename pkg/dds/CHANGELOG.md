@@ -1,3 +1,7 @@
+# 1.7.7-dev
+- Fixed issue where two clients subscribing to the same stream in close succession
+  could result in DDS sending multiple `streamListen` requests to the VM service.
+
 # 1.7.6
 - Update dependencies.
 
