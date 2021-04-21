@@ -832,6 +832,31 @@ int? f() => null
     expect(output, isNot(contains('package:bar/bar.dart')));
   }
 
+  test_lifecycle_import_lib_from_test() async {
+    Map<String, String> makeProject({bool migrated = false}) {
+      return simpleProject(migrated: migrated)
+        ..['test/foo.dart'] = '''
+import '../lib/test.dart';
+''';
+    }
+
+    var projectContents = makeProject();
+    var projectDir = createProjectDir(projectContents);
+    var cli = _createCli();
+    var cliRunner =
+        cli.decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    bool applyHookCalled = false;
+    cli._onApplyHook = () {
+      expect(applyHookCalled, false);
+      applyHookCalled = true;
+      // Changes should have been made
+      assertProjectContents(projectDir, makeProject(migrated: true));
+    };
+    await cliRunner.run();
+    assertNormalExit(cliRunner);
+    expect(applyHookCalled, true);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44118')
   test_lifecycle_issue_44118() async {
     var projectContents = simpleProject(sourceText: '''
