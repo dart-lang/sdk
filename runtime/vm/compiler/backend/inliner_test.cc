@@ -216,15 +216,15 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
   ILMatcher cursor(flow_graph, entry, /*trace=*/true,
                    ParallelMovesHandling::kSkip);
 
-  Instruction* unbox1 = nullptr;
-  Instruction* unbox2 = nullptr;
-
   RELEASE_ASSERT(cursor.TryMatch({
       kMoveGlob,
       kMatchAndMoveCreateArray,
-      {kMoveAny, &unbox1},
       kMatchAndMoveUnboxInt64,
-      {kMoveAny, &unbox2},
+#if defined(TARGET_ARCH_IS_32_BIT)
+      // TODO(rmacnak): Implement missing ops to allow 32-bit architectures in
+      // UnboxInt64Instr::Canonicalize.
+      kMatchAndMoveUnboxInt64,
+#endif
       kMatchAndMoveGoto,
 
       // Loop header
@@ -249,9 +249,6 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
       kMatchAndMoveTargetEntry,
       kMatchReturn,
   }));
-
-  EXPECT(unbox1->IsUnboxedConstant() || unbox1->IsUnboxInt64());
-  EXPECT(unbox2->IsUnboxedConstant() || unbox2->IsUnboxInt64());
 }
 
 #endif  // defined(DART_PRECOMPILER)

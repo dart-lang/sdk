@@ -664,7 +664,8 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
                                        const Location& destination,
-                                       Register tmp) {
+                                       Register tmp,
+                                       intptr_t pair_index) {
   if (destination.IsRegister()) {
     if (RepresentationUtils::IsUnboxedInteger(representation())) {
       int64_t v;
@@ -675,7 +676,9 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
         // Smi untagging, which means the resulting value may be unexpected.
         ASSERT(v >= 0);
       }
-      __ LoadImmediate(destination.reg(), v);
+      __ LoadImmediate(destination.reg(), pair_index == 0
+                                              ? Utils::Low32Bits(v)
+                                              : Utils::High32Bits(v));
     } else {
       ASSERT(representation() == kTagged);
       __ LoadObject(destination.reg(), value_);
@@ -708,7 +711,8 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       int64_t v;
       const bool ok = compiler::HasIntegerValue(value_, &v);
       RELEASE_ASSERT(ok);
-      __ LoadImmediate(tmp, v);
+      __ LoadImmediate(
+          tmp, pair_index == 0 ? Utils::Low32Bits(v) : Utils::High32Bits(v));
     } else {
       __ LoadObject(tmp, value_);
     }

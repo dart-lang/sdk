@@ -1150,47 +1150,48 @@ main() {
   /* Flow graph to match:
 
   4:     CheckStackOverflow:8(stack=0, loop=0)
-  6:     v590 <- UnboxedConstant(#1.0 double) T{_Double}
-  8:     v592 <- UnboxedConstant(#2.0 double) T{_Double}
-  9:     ParallelMove r0 <- S+2
- 10:     CheckClass:14(v2 Cids[1: _Double@0150898 etc.  cid 52])
- 12:     v526 <- Unbox:14(v2 T{_Double}) T{_Double}
- 14:     v352 <- BinaryDoubleOp:22(+, v590, v526) T{_Double}
- 15:     ParallelMove DS-9 <- q3
- 16:     v363 <- BinaryDoubleOp:34(+, v592, v526) T{_Double}
- 17:     ParallelMove DS-7 <- q0
- 18:     v21 <- BinaryDoubleOp:28(+, v352, v363) T{_Double}
- 19:     ParallelMove r1 <- C, r2 <- C, DS-5 <- q1
- 20:     v24 <- CreateArray:30(v0, v23) T{_List}
- 21:     ParallelMove r2 <- r0
- 22:     ParallelMove S-3 <- r2
- 22:     StoreIndexed(v24, v6, v26, NoStoreBarrier)
- 24:     StoreIndexed(v24, v7, v7, NoStoreBarrier)
- 26:     StoreIndexed(v24, v3, v29, NoStoreBarrier)
- 28:     StoreIndexed(v24, v30, v8, NoStoreBarrier)
- 30:     StoreIndexed(v24, v33, v34, NoStoreBarrier)
- 32:     StoreIndexed(v24, v35, v9, NoStoreBarrier)
- 34:     StoreIndexed(v24, v38, v29, NoStoreBarrier)
- 36:     StoreIndexed(v24, v39, v10, NoStoreBarrier)
- 38:     StoreIndexed(v24, v42, v43, NoStoreBarrier)
- 39:     ParallelMove q0 <- DS-9
- 40:     v586 <- Box(v352) T{_Double}
- 41:     ParallelMove r1 <- r2, r0 <- r0
- 42:     StoreIndexed(v24, v44, v586)
- 44:     StoreIndexed(v24, v47, v29, NoStoreBarrier)
- 45:     ParallelMove q0 <- DS-7
- 46:     v588 <- Box(v363) T{_Double}
- 47:     ParallelMove r1 <- r2, r0 <- r0
- 48:     StoreIndexed(v24, v48, v588)
- 50:     StoreIndexed(v24, v51, v52, NoStoreBarrier)
- 51:     ParallelMove q0 <- DS-5
- 52:     v580 <- Box(v21) T{_Double}
- 53:     ParallelMove r1 <- r2, r0 <- r0
- 54:     StoreIndexed(v24, v53, v580)
- 55:     ParallelMove r0 <- r2
- 56:     v54 <- StringInterpolate:44(v24) T{String}
- 57:     ParallelMove r0 <- r0
- 58:     Return:48(v54)
+  5:     ParallelMove rax <- S+2
+  6:     CheckClass:14(v2 Cids[1: _Double@0150898 etc.  cid 52])
+  8:     v526 <- Unbox:14(v2 T{_Double}) T{_Double}
+ 10:     ParallelMove xmm1 <- C
+ 10:     v352 <- BinaryDoubleOp:22(+, v590, v526) T{_Double}
+ 11:     ParallelMove DS-6 <- xmm1
+ 12:     ParallelMove xmm2 <- C
+ 12:     v363 <- BinaryDoubleOp:34(+, v591, v526) T{_Double}
+ 13:     ParallelMove DS-5 <- xmm2
+ 14:     ParallelMove xmm0 <- xmm1
+ 14:     v21 <- BinaryDoubleOp:28(+, v352, v363) T{_Double}
+ 15:     ParallelMove rbx <- C, r10 <- C, DS-4 <- xmm0
+ 16:     v24 <- CreateArray:30(v0, v23) T{_List}
+ 17:     ParallelMove rcx <- rax
+ 18:     ParallelMove S-3 <- rcx
+ 18:     StoreIndexed(v24, v6, v26, NoStoreBarrier)
+ 20:     StoreIndexed(v24, v7, v7, NoStoreBarrier)
+ 22:     StoreIndexed(v24, v3, v29, NoStoreBarrier)
+ 24:     StoreIndexed(v24, v30, v8, NoStoreBarrier)
+ 26:     StoreIndexed(v24, v33, v34, NoStoreBarrier)
+ 28:     StoreIndexed(v24, v35, v9, NoStoreBarrier)
+ 30:     StoreIndexed(v24, v38, v29, NoStoreBarrier)
+ 32:     StoreIndexed(v24, v39, v10, NoStoreBarrier)
+ 34:     StoreIndexed(v24, v42, v43, NoStoreBarrier)
+ 35:     ParallelMove xmm0 <- DS-6
+ 36:     v586 <- Box(v352) T{_Double}
+ 37:     ParallelMove rdx <- rcx, rax <- rax
+ 38:     StoreIndexed(v24, v44, v586)
+ 40:     StoreIndexed(v24, v47, v29, NoStoreBarrier)
+ 41:     ParallelMove xmm0 <- DS-5
+ 42:     v588 <- Box(v363) T{_Double}
+ 43:     ParallelMove rdx <- rcx, rax <- rax
+ 44:     StoreIndexed(v24, v48, v588)
+ 46:     StoreIndexed(v24, v51, v52, NoStoreBarrier)
+ 47:     ParallelMove xmm0 <- DS-4
+ 48:     v580 <- Box(v21) T{_Double}
+ 49:     ParallelMove rdx <- rcx, rax <- rax
+ 50:     StoreIndexed(v24, v53, v580)
+ 51:     ParallelMove rax <- rcx
+ 52:     v54 <- StringInterpolate:44(v24) T{String}
+ 53:     ParallelMove rax <- rax
+ 54:     Return:48(v54)
 */
 
   CreateArrayInstr* create_array = nullptr;
@@ -1201,8 +1202,6 @@ main() {
   RELEASE_ASSERT(cursor.TryMatch({
       kMatchAndMoveFunctionEntry,
       kMatchAndMoveCheckStackOverflow,
-      kMatchAndMoveUnboxedConstant,
-      kMatchAndMoveUnboxedConstant,
       kMatchAndMoveCheckClass,
       kMatchAndMoveUnbox,
       kMatchAndMoveBinaryDoubleOp,

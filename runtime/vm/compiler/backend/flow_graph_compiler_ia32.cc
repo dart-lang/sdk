@@ -918,7 +918,8 @@ void FlowGraphCompiler::EmitMove(Location destination,
     }
   } else {
     ASSERT(source.IsConstant());
-    source.constant_instruction()->EmitMoveToLocation(this, destination);
+    source.constant_instruction()->EmitMoveToLocation(
+        this, destination, kNoRegister, source.pair_index());
   }
 }
 
