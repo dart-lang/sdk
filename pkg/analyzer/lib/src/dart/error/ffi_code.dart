@@ -197,6 +197,14 @@ class FfiCode extends AnalyzerErrorCode {
       correction: "Try changing the type argument to be a 'NativeFunction'.");
 
   /**
+   * No parameters.
+   */
+  static const FfiCode NON_POSITIVE_INPUT_ON_ARRAY = FfiCode(
+    name: 'NON_POSITIVE_INPUT_ON_ARRAY',
+    message: "Array type only accept a positive number.",
+    correction: "Try changing the input to a positive num.");
+
+  /**
    * Parameters:
    * 0: the type of the field
    */
