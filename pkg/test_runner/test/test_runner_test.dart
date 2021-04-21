@@ -10,15 +10,14 @@ import "dart:async";
 import "dart:io";
 
 import "package:status_file/expectation.dart";
-
 import "package:test_runner/src/command.dart";
 import "package:test_runner/src/configuration.dart";
 import "package:test_runner/src/options.dart";
 import "package:test_runner/src/process_queue.dart";
 import "package:test_runner/src/repository.dart";
 import "package:test_runner/src/test_case.dart";
-import "package:test_runner/src/test_suite.dart";
 import "package:test_runner/src/test_progress.dart" as progress;
+import "package:test_runner/src/test_suite.dart";
 
 final DEFAULT_TIMEOUT = 20;
 final LONG_TIMEOUT = 30;
