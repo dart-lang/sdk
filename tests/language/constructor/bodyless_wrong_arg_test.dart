@@ -18,6 +18,4 @@ class C extends Base {
 
 main() {
   const C("str");
-//^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
 }

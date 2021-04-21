@@ -10,26 +10,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetElementTypeNotAssignableTest);
-    defineReflectiveTests(SetElementTypeNotAssignableWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class SetElementTypeNotAssignableTest extends PubPackageResolutionTest
-    with SetElementTypeNotAssignableTestCases {
-  test_const_stringQuestion_null_dynamic() async {
-    await assertNoErrorsInCode('''
-const a = null;
-var v = const <String?>{a};
-''');
-  }
-
-  test_const_stringQuestion_null_value() async {
-    await assertNoErrorsInCode('''
-var v = const <String?>{null};
-''');
-  }
-}
+    with SetElementTypeNotAssignableTestCases {}
 
 mixin SetElementTypeNotAssignableTestCases on PubPackageResolutionTest {
   test_const_ifElement_thenElseFalse_intInt() async {
@@ -81,59 +67,42 @@ var v = const <int>{if (true) a};
     ]);
   }
 
-  test_const_intInt_dynamic() async {
+  test_const_spread_intInt() async {
     await assertNoErrorsInCode('''
-const dynamic a = 42;
-var v = const <int>{a};
+var v = const <int>{...[0, 1]};
 ''');
   }
 
-  test_const_intInt_value() async {
+  test_explicitTypeArgs_const() async {
+    await assertErrorsInCode('''
+var v = const <String>{42};
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
+    ]);
+  }
+
+  test_explicitTypeArgs_const_actualTypeMatch() async {
     await assertNoErrorsInCode('''
-var v = const <int>{42};
+const dynamic x = null;
+var v = const <String>{x};
 ''');
   }
 
-  test_const_intNull_dynamic() async {
-    var errors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
-    ], legacy: []);
+  test_explicitTypeArgs_const_actualTypeMismatch() async {
     await assertErrorsInCode('''
-const a = null;
-var v = const <int>{a};
-''', errors);
-  }
-
-  test_const_intNull_value() async {
-    var errors = expectedErrorsByNullability(nullable: [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 4),
-    ], legacy: []);
-    await assertErrorsInCode('''
-var v = const <int>{null};
-''', errors);
-  }
-
-  test_const_intString_dynamic() async {
-    await assertErrorsInCode('''
-const dynamic x = 'abc';
-var v = const <int>{x};
+const dynamic x = 42;
+var v = const <String>{x};
 ''', [
       error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 45, 1),
     ]);
   }
 
-  test_const_intString_value() async {
+  test_explicitTypeArgs_notConst() async {
     await assertErrorsInCode('''
-var v = const <int>{'abc'};
+var v = <String>{42};
 ''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 20, 5),
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 2),
     ]);
-  }
-
-  test_const_spread_intInt() async {
-    await assertNoErrorsInCode('''
-var v = const <int>{...[0, 1]};
-''');
   }
 
   test_nonConst_ifElement_thenElseFalse_intDynamic() async {
@@ -179,24 +148,4 @@ var v = <int>{if (true) a};
 var v = <int>{...[0, 1]};
 ''');
   }
-
-  test_notConst_intString_dynamic() async {
-    await assertNoErrorsInCode('''
-const dynamic x = 'abc';
-var v = <int>{x};
-''');
-  }
-
-  test_notConst_intString_value() async {
-    await assertErrorsInCode('''
-var v = <int>{'abc'};
-''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
-    ]);
-  }
 }
-
-@reflectiveTest
-class SetElementTypeNotAssignableWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, SetElementTypeNotAssignableTestCases {}
