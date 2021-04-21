@@ -27,10 +27,10 @@ void main() {
 
     test('prefer relative imports', () async {
       await cli.runLinter([
-        'test/_data/prefer_relative_imports',
+        'test_data/integration/prefer_relative_imports',
         '--rules=prefer_relative_imports',
         '--packages',
-        'test/_data/prefer_relative_imports/_packages'
+        'test_data/integration/prefer_relative_imports/_packages'
       ], LinterOptions());
       expect(
           collectingOut.trim(),

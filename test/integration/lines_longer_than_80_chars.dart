@@ -26,7 +26,7 @@ void main() {
 
     test('ignores can exceed 80', () async {
       await cli.run([
-        'test/_data/lines_longer_than_80_chars',
+        'test_data/integration/lines_longer_than_80_chars',
         '--rules=lines_longer_than_80_chars'
       ]);
       expect(

@@ -28,7 +28,7 @@ void main() {
 
     test('check order', () async {
       await cli.run([
-        'test/_data/sort_pub_dependencies',
+        'test_data/integration/sort_pub_dependencies',
         '--rules=sort_pub_dependencies',
       ]);
       expect(

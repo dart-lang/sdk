@@ -25,8 +25,10 @@ void main() {
     });
 
     test('only throw errors', () async {
-      await cli
-          .run(['test/_data/only_throw_errors', '--rules=only_throw_errors']);
+      await cli.run([
+        'test_data/integration/only_throw_errors',
+        '--rules=only_throw_errors'
+      ]);
       expect(
           collectingOut.trim(),
           stringContainsInOrder([

@@ -25,8 +25,10 @@ void main() {
     });
 
     test('on bad TODOs', () async {
-      await cli.run(
-          ['test/_data/flutter_style_todos', '--rules=flutter_style_todos']);
+      await cli.run([
+        'test_data/integration/flutter_style_todos',
+        '--rules=flutter_style_todos'
+      ]);
       expect(
           collectingOut.trim(),
           stringContainsInOrder([

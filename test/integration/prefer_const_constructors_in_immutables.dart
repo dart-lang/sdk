@@ -27,7 +27,7 @@ void main() {
 
     test('only throw errors', () async {
       await cli.runLinter([
-        'test/_data/prefer_const_constructors_in_immutables',
+        'test_data/integration/prefer_const_constructors_in_immutables',
         '--rules=prefer_const_constructors_in_immutables',
         '--packages',
         'test/rules/.mock_packages',

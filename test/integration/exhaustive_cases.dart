@@ -21,7 +21,7 @@ void main() {
     });
     test('exhaustive_cases', () async {
       await cli.runLinter([
-        'test/_data/exhaustive_cases',
+        'test_data/integration/exhaustive_cases',
         '--rules=exhaustive_cases',
       ], LinterOptions());
       expect(collectingOut.trim(),

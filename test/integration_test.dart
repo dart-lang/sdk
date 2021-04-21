@@ -71,7 +71,11 @@ void coreTests() {
         exitCode = 0;
       });
       test('excludes', () async {
-        await cli.run(['test/_data/p2', '-c', 'test/_data/p2/lintconfig.yaml']);
+        await cli.run([
+          'test_data/integration/p2',
+          '-c',
+          'test_data/integration/p2/lintconfig.yaml'
+        ]);
         expect(
             collectingOut.trim(),
             stringContainsInOrder(
@@ -79,14 +83,17 @@ void coreTests() {
         expect(exitCode, 1);
       });
       test('overrides', () async {
-        await cli
-            .run(['test/_data/p2', '-c', 'test/_data/p2/lintconfig2.yaml']);
+        await cli.run([
+          'test_data/integration/p2',
+          '-c',
+          'test_data/integration/p2/lintconfig2.yaml'
+        ]);
         expect(collectingOut.trim(),
             stringContainsInOrder(['4 files analyzed, 0 issues found, in']));
         expect(exitCode, 0);
       });
       test('default', () async {
-        await cli.run(['test/_data/p2']);
+        await cli.run(['test_data/integration/p2']);
         expect(collectingOut.trim(),
             stringContainsInOrder(['4 files analyzed, 3 issues found, in']));
         expect(exitCode, 1);
@@ -102,7 +109,10 @@ void coreTests() {
         outSink = currentOut;
       });
       test('bad pubspec', () async {
-        await cli.run(['test/_data/p3', 'test/_data/p3/_pubpspec.yaml']);
+        await cli.run([
+          'test_data/integration/p3',
+          'test_data/integration/p3/_pubpspec.yaml'
+        ]);
         expect(collectingOut.trim(),
             startsWith('1 file analyzed, 0 issues found, in'));
       });
@@ -117,8 +127,10 @@ void coreTests() {
         outSink = currentOut;
       });
       test('no warnings due to bad canonicalization', () async {
-        var packagesFilePath = File('test/_data/p4/_packages').absolute.path;
-        await cli.runLinter(['--packages', packagesFilePath, 'test/_data/p4'],
+        var packagesFilePath =
+            File('test_data/integration/p4/_packages').absolute.path;
+        await cli.runLinter(
+            ['--packages', packagesFilePath, 'test_data/integration/p4'],
             LinterOptions([]));
         expect(collectingOut.trim(),
             startsWith('3 files analyzed, 0 issues found, in'));

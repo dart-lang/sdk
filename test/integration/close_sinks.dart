@@ -29,7 +29,7 @@ void main() {
       await cli.run([
         '--packages',
         packagesFilePath,
-        'test/_data/close_sinks',
+        'test_data/integration/close_sinks',
         '--rules=close_sinks'
       ]);
       expect(

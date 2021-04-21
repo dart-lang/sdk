@@ -28,7 +28,7 @@ void main() {
 
     test('no pubspec', () async {
       await cli.runLinter([
-        'test/_data/avoid_web_libraries_in_flutter/no_pubspec',
+        'test_data/integration/avoid_web_libraries_in_flutter/no_pubspec',
         '--rules=avoid_web_libraries_in_flutter',
       ], LinterOptions());
       expect(collectingOut.trim(),
@@ -38,7 +38,7 @@ void main() {
 
     test('non flutter app', () async {
       await cli.runLinter([
-        'test/_data/avoid_web_libraries_in_flutter/non_flutter_app',
+        'test_data/integration/avoid_web_libraries_in_flutter/non_flutter_app',
         '--rules=avoid_web_libraries_in_flutter',
       ], LinterOptions());
       expect(collectingOut.trim(),
@@ -48,7 +48,7 @@ void main() {
 
     test('non web app', () async {
       await cli.runLinter([
-        'test/_data/avoid_web_libraries_in_flutter/non_web_app',
+        'test_data/integration/avoid_web_libraries_in_flutter/non_web_app',
         '--rules=avoid_web_libraries_in_flutter',
       ], LinterOptions());
       expect(collectingOut.trim(),
@@ -58,7 +58,7 @@ void main() {
 
     test('web app', () async {
       await cli.runLinter([
-        'test/_data/avoid_web_libraries_in_flutter/web_app',
+        'test_data/integration/avoid_web_libraries_in_flutter/web_app',
         '--rules=avoid_web_libraries_in_flutter',
       ], LinterOptions());
       expect(collectingOut.trim(),
@@ -68,7 +68,7 @@ void main() {
 
     test('web plugin', () async {
       await cli.runLinter([
-        'test/_data/avoid_web_libraries_in_flutter/web_plugin',
+        'test_data/integration/avoid_web_libraries_in_flutter/web_plugin',
         '--rules=avoid_web_libraries_in_flutter',
       ], LinterOptions());
       expect(collectingOut.trim(),

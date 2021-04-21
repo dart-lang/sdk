@@ -21,7 +21,7 @@ void main() {
     });
     test('deferred import', () async {
       await cli.runLinter([
-        'test/_data/unnecessary_lambdas',
+        'test_data/integration/unnecessary_lambdas',
         '--rules=unnecessary_lambdas',
       ], LinterOptions());
       expect(collectingOut.trim(), contains('2 files analyzed, 1 issue found'));

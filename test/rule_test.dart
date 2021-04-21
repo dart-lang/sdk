@@ -189,7 +189,8 @@ void defineSanityTests() {
   group('reporting', () {
     // https://github.com/dart-lang/linter/issues/193
     group('ignore synthetic nodes', () {
-      var path = p.join('test', '_data', 'synthetic', 'synthetic.dart');
+      var path =
+          p.join('test_data', 'integration', 'synthetic', 'synthetic.dart');
       var file = File(path);
       testRule('non_constant_identifier_names', file);
     });

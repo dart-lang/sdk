@@ -29,7 +29,7 @@ void main() {
       await cli.run([
         '--packages',
         packagesFilePath,
-        'test/_data/directives_ordering/dart_directives_go_first',
+        'test_data/integration/directives_ordering/dart_directives_go_first',
         '--rules=directives_ordering'
       ]);
       expect(
@@ -53,7 +53,7 @@ void main() {
       await cli.run([
         '--packages',
         packagesFilePath,
-        'test/_data/directives_ordering/package_directives_before_relative',
+        'test_data/integration/directives_ordering/package_directives_before_relative',
         '--rules=directives_ordering'
       ]);
       expect(
@@ -77,7 +77,7 @@ void main() {
       await cli.run([
         '--packages',
         packagesFilePath,
-        'test/_data/directives_ordering/export_directives_after_import_directives',
+        'test_data/integration/directives_ordering/export_directives_after_import_directives',
         '--rules=directives_ordering'
       ]);
       expect(
@@ -97,7 +97,7 @@ void main() {
       await cli.run([
         '--packages',
         packagesFilePath,
-        'test/_data/directives_ordering/sort_directive_sections_alphabetically',
+        'test_data/integration/directives_ordering/sort_directive_sections_alphabetically',
         '--rules=directives_ordering'
       ]);
       expect(
@@ -137,7 +137,7 @@ void main() {
       await cli.run([
         '--packages',
         packagesFilePath,
-        'test/_data/directives_ordering/lint_one_node_no_more_than_once',
+        'test_data/integration/directives_ordering/lint_one_node_no_more_than_once',
         '--rules=directives_ordering'
       ]);
       expect(

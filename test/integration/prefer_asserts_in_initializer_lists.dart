@@ -27,7 +27,7 @@ void main() {
 
     test('only throw errors', () async {
       await cli.runLinter([
-        'test/_data/prefer_asserts_in_initializer_lists',
+        'test_data/integration/prefer_asserts_in_initializer_lists',
         '--rules=prefer_asserts_in_initializer_lists'
       ], LinterOptions());
       expect(

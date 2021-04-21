@@ -27,7 +27,7 @@ void main() {
 
     test('only throw errors', () async {
       await cli.runLinter([
-        'test/_data/always_require_non_null_named_parameters',
+        'test_data/integration/always_require_non_null_named_parameters',
         '--rules=always_require_non_null_named_parameters',
         '--packages',
         'test/rules/.mock_packages',

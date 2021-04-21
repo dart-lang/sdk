@@ -21,7 +21,7 @@ void main() {
     });
     test('no_closing_quote', () async {
       await cli.runLinter([
-        'test/_data/unnecessary_string_escapes/no_closing_quote.dart',
+        'test_data/integration/unnecessary_string_escapes/no_closing_quote.dart',
         '--rules=unnecessary_string_escapes',
       ], LinterOptions());
       // No exception.

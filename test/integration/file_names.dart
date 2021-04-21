@@ -25,7 +25,8 @@ void main() {
     });
 
     test('bad', () async {
-      await cli.run(['test/_data/file_names/a-b.dart', '--rules=file_names']);
+      await cli.run(
+          ['test_data/integration/file_names/a-b.dart', '--rules=file_names']);
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
@@ -35,8 +36,10 @@ void main() {
     });
 
     test('ok', () async {
-      await cli.run(
-          ['test/_data/file_names/non-strict.css.dart', '--rules=file_names']);
+      await cli.run([
+        'test_data/integration/file_names/non-strict.css.dart',
+        '--rules=file_names'
+      ]);
       expect(exitCode, 0);
     });
   });

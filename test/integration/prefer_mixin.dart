@@ -27,7 +27,7 @@ void main() {
 
     test('analysis', () async {
       await cli.runLinter([
-        'test/_data/prefer_mixin',
+        'test_data/integration/prefer_mixin',
         '--rules=prefer_mixin',
         '--packages',
         'test/rules/.mock_packages',

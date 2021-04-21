@@ -28,9 +28,11 @@ void main() {
     group('.packages', () {
       test('basic', () async {
         // Requires .packages to analyze cleanly.
-        await cli.runLinter(
-            ['test/_data/p5', '--packages', 'test/_data/p5/_packages'],
-            LinterOptions([]));
+        await cli.runLinter([
+          'test_data/integration/p5',
+          '--packages',
+          'test_data/integration/p5/_packages'
+        ], LinterOptions([]));
         // Should have 0 issues.
         expect(exitCode, 0);
       });

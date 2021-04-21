@@ -15,12 +15,12 @@ void main() {
             'pub',
             'get',
           ],
-          workingDirectory: 'test/_data/public_member_api_docs');
+          workingDirectory: 'test_data/integration/public_member_api_docs');
       expect(pubResult.exitCode, 0);
 
       var result = Process.runSync(
         'dart',
-        ['analyze', 'test/_data/public_member_api_docs'],
+        ['analyze', 'test_data/integration/public_member_api_docs'],
       );
       expect(
           result.stdout.trim(),

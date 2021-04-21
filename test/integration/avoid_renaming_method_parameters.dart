@@ -29,8 +29,8 @@ void main() {
     test('lint lib/ sources and non-lib/ sources', () async {
       await cli.run([
         '--packages',
-        'test/_data/avoid_renaming_method_parameters/_packages',
-        'test/_data/avoid_renaming_method_parameters',
+        'test_data/integration/avoid_renaming_method_parameters/_packages',
+        'test_data/integration/avoid_renaming_method_parameters',
         '--rules=avoid_renaming_method_parameters'
       ]);
       expect(

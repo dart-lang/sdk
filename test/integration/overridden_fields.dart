@@ -26,8 +26,11 @@ void main() {
 
     // https://github.com/dart-lang/linter/issues/246
     test('overrides across libraries', () async {
-      await cli.run(
-          ['test/_data/overridden_fields', '--rules', 'overridden_fields']);
+      await cli.run([
+        'test_data/integration/overridden_fields',
+        '--rules',
+        'overridden_fields'
+      ]);
       expect(
           collectingOut.trim(),
           stringContainsInOrder(

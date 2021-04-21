@@ -27,10 +27,10 @@ void main() {
 
     test('avoid relative lib imports', () async {
       await cli.runLinter([
-        'test/_data/avoid_relative_lib_imports',
+        'test_data/integration/avoid_relative_lib_imports',
         '--rules=avoid_relative_lib_imports',
         '--packages',
-        'test/_data/avoid_relative_lib_imports/_packages'
+        'test_data/integration/avoid_relative_lib_imports/_packages'
       ], LinterOptions());
       expect(
           collectingOut.trim(),

@@ -28,8 +28,8 @@ void main() {
 
     test('handles parts', () async {
       await cli.run([
-        'test/_data/avoid_private_typedef_functions/lib.dart',
-        'test/_data/avoid_private_typedef_functions/part.dart',
+        'test_data/integration/avoid_private_typedef_functions/lib.dart',
+        'test_data/integration/avoid_private_typedef_functions/part.dart',
         '--rules=avoid_private_typedef_functions'
       ]);
       expect(

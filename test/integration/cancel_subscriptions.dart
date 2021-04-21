@@ -25,8 +25,10 @@ void main() {
     });
 
     test('cancel subscriptions', () async {
-      await cli.run(
-          ['test/_data/cancel_subscriptions', '--rules=cancel_subscriptions']);
+      await cli.run([
+        'test_data/integration/cancel_subscriptions',
+        '--rules=cancel_subscriptions'
+      ]);
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
