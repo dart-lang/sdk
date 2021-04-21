@@ -17,7 +17,7 @@ import self as self;
 import "dart:core" as core;
 
 typedef Fisk<unrelated TypeY extends core::Object* = dynamic> = () →* void;
-class Hest<TypeX extends () →* void = () →* void> extends core::Object {
+class Hest<TypeX extends () →* void> extends core::Object {
   synthetic constructor •() → self::Hest<self::Hest::TypeX*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

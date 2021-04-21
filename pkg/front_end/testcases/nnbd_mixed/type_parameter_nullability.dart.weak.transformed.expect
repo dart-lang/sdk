@@ -5,7 +5,7 @@ import "type_parameter_nullability_lib.dart" as typ;
 
 import "org-dartlang-testcase:///type_parameter_nullability_lib.dart";
 
-class C<T extends core::num? = core::num?, S extends core::Object? = dynamic, U extends core::Object? = dynamic> extends core::Object {
+class C<T extends core::num?, S extends core::Object? = dynamic, U extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T%, self::C::S%, self::C::U%>
     : super core::Object::•()
     ;
@@ -36,7 +36,7 @@ library;
 import self as typ;
 import "dart:core" as core;
 
-class D<T extends core::num* = core::num*> extends core::Object {
+class D<T extends core::num*> extends core::Object {
   synthetic constructor •() → typ::D<typ::D::T*>*
     : super core::Object::•()
     ;

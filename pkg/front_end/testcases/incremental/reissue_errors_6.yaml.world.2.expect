@@ -12,7 +12,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
 //                     ^^^
 //
 
-  class Bar<X extends invalid-type = invalid-type> extends dart.core::Object {
+  class Bar<X extends invalid-type> extends dart.core::Object {
     synthetic constructor •() → lib::Bar<lib::Bar::X*>*
       : super dart.core::Object::•()
       ;

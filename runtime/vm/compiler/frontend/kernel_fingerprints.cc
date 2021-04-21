@@ -169,10 +169,8 @@ void KernelFingerprintHelper::CalculateTypeParameterFingerprint() {
 
   helper.ReadUntilExcluding(TypeParameterHelper::kBound);
   // The helper isn't needed after this point.
-  CalculateDartTypeFingerprint();
-  if (ReadTag() == kSomething) {
-    CalculateDartTypeFingerprint();
-  }
+  CalculateDartTypeFingerprint();  // read bound
+  CalculateDartTypeFingerprint();  // read default type
   BuildHash(helper.flags_);
 }
 

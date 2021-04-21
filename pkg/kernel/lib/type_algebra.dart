@@ -121,9 +121,7 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
     TypeParameter freshTypeParameter = freshParameters[i];
 
     freshTypeParameter.bound = substitute(typeParameter.bound, map);
-    freshTypeParameter.defaultType = typeParameter.defaultType != null
-        ? substitute(typeParameter.defaultType!, map)
-        : null;
+    freshTypeParameter.defaultType = substitute(typeParameter.defaultType, map);
     freshTypeParameter.variance =
         typeParameter.isLegacyCovariant ? null : typeParameter.variance;
     // Annotations on a type parameter are specific to the declaration of the
@@ -384,8 +382,9 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
     TypeParameterType typeParameterType = substitution[node] =
         new TypeParameterType.forAlphaRenaming(node, fresh);
     fresh.bound = visit(node.bound);
+    // ignore: unnecessary_null_comparison
     if (node.defaultType != null) {
-      fresh.defaultType = visit(node.defaultType!);
+      fresh.defaultType = visit(node.defaultType);
     }
     // If the bound was changed from substituting the bound we need to update
     // implicit nullability to be based on the new bound. If the bound wasn't
@@ -701,8 +700,9 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   bool handleTypeParameter(TypeParameter node) {
     assert(!variables.contains(node));
     if (node.bound.accept(this)) return true;
+    // ignore: unnecessary_null_comparison
     if (node.defaultType == null) return false;
-    return node.defaultType!.accept(this);
+    return node.defaultType.accept(this);
   }
 }
 
@@ -760,8 +760,9 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
   bool handleTypeParameter(TypeParameter node) {
     assert(variables.contains(node));
     if (node.bound.accept(this)) return true;
+    // ignore: unnecessary_null_comparison
     if (node.defaultType == null) return false;
-    return node.defaultType!.accept(this);
+    return node.defaultType.accept(this);
   }
 }
 
@@ -819,8 +820,9 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
   bool handleTypeParameter(TypeParameter node) {
     assert(variables.contains(node));
     if (node.bound.accept(this)) return true;
+    // ignore: unnecessary_null_comparison
     if (node.defaultType == null) return false;
-    return node.defaultType!.accept(this);
+    return node.defaultType.accept(this);
   }
 }
 

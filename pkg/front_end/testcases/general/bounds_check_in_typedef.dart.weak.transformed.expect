@@ -23,7 +23,7 @@ import "dart:core" as core;
 
 typedef F = <Y extends core::num* = dynamic>() →* <Z extends self::A<Y*>* = dynamic>() →* dynamic;
 typedef G = <Y extends core::num* = dynamic>(<Z extends self::A<Y*>* = dynamic>() →* dynamic) →* void;
-class A<X extends core::String* = core::String*> extends core::Object {
+class A<X extends core::String*> extends core::Object {
   synthetic constructor •() → self::A<self::A::X*>*
     : super core::Object::•()
     ;

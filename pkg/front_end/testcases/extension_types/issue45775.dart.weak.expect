@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/issue45775.dart:10:13: Error: A value of type 'Foo' can't be assigned to a variable of type 'Bar'.
+//  - 'Foo' is from 'pkg/front_end/testcases/extension_types/issue45775.dart'.
+//   Bar bar = Foo();
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+}
+extension Bar on self::Foo {
+}
+static method main() → void {
+  self::Bar bar = let final Never #t1 = invalid-expression "pkg/front_end/testcases/extension_types/issue45775.dart:10:13: Error: A value of type 'Foo' can't be assigned to a variable of type 'Bar'.
+ - 'Foo' is from 'pkg/front_end/testcases/extension_types/issue45775.dart'.
+  Bar bar = Foo();
+            ^" in new self::Foo::•() as{TypeError,ForNonNullableByDefault} self::Bar;
+}

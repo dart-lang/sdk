@@ -3001,7 +3001,7 @@ class BinaryBuilder {
     }
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();
-    node.defaultType = readDartTypeOption();
+    node.defaultType = readDartType();
   }
 
   Arguments readArguments() {

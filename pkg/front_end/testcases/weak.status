@@ -10,6 +10,8 @@ general/error_recovery/issue_39202.crash: SemiFuzzCrash
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
 regress/utf_16_le_content.crash: SemiFuzzCrash
 
+extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
+extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_getter_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_method_resolution: ExpectationFileMismatchSerialized # Expected.

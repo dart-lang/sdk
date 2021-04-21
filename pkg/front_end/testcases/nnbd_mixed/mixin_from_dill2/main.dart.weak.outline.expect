@@ -5,7 +5,7 @@ import "dart:core" as core;
 
 import "org-dartlang-testcase:///main_lib.dart";
 
-abstract class RenderAnimatedOpacityMixin<T extends mai::RenderObject = mai::RenderObject> extends mai::RenderObjectWithChildMixin<self::RenderAnimatedOpacityMixin::T> /*isMixinDeclaration*/  {
+abstract class RenderAnimatedOpacityMixin<T extends mai::RenderObject> extends mai::RenderObjectWithChildMixin<self::RenderAnimatedOpacityMixin::T> /*isMixinDeclaration*/  {
 }
 abstract class _RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin = mai::RenderProxyBox with mai::RenderProxyBoxMixin<mai::RenderBox> /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin
@@ -69,16 +69,16 @@ abstract class RenderBox extends mai::RenderObject {
   method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position}) → core::bool
     ;
 }
-abstract class RenderObjectWithChildMixin<ChildType extends mai::RenderObject = mai::RenderObject> extends mai::RenderObject /*isMixinDeclaration*/  {
+abstract class RenderObjectWithChildMixin<ChildType extends mai::RenderObject> extends mai::RenderObject /*isMixinDeclaration*/  {
   generic-covariant-impl field mai::RenderObjectWithChildMixin::ChildType? _child;
   get child() → mai::RenderObjectWithChildMixin::ChildType?
     ;
 }
-abstract class _RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin<T extends mai::RenderBox = mai::RenderBox> extends core::Object implements mai::RenderBox, mai::RenderObjectWithChildMixin<mai::_RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin::T> /*isAnonymousMixin*/  {
+abstract class _RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin<T extends mai::RenderBox> extends core::Object implements mai::RenderBox, mai::RenderObjectWithChildMixin<mai::_RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin::T> /*isAnonymousMixin*/  {
   synthetic constructor •() → mai::_RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin<mai::_RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin::T>
     ;
 }
-abstract class RenderProxyBoxMixin<T extends mai::RenderBox = mai::RenderBox> extends mai::_RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin<mai::RenderProxyBoxMixin::T> /*isMixinDeclaration*/  {
+abstract class RenderProxyBoxMixin<T extends mai::RenderBox> extends mai::_RenderProxyBoxMixin&RenderBox&RenderObjectWithChildMixin<mai::RenderProxyBoxMixin::T> /*isMixinDeclaration*/  {
   @#C1
   method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position}) → core::bool
     ;

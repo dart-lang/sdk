@@ -544,7 +544,8 @@ class MethodInvocationResolver {
       }
       if (element is VariableElement) {
         _resolver.checkReadOfNotAssignedLocalVariable(nameNode, element);
-        var targetType = _localVariableTypeProvider.getType(nameNode);
+        var targetType =
+            _localVariableTypeProvider.getType(nameNode, isRead: true);
         return _rewriteAsFunctionExpressionInvocation(node, targetType);
       }
       // TODO(scheglov) This is a questionable distinction.

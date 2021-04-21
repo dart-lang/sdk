@@ -44,7 +44,7 @@ abstract class Mixin<T extends core::Object* = dynamic> extends core::Object /*i
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-abstract class _Class1&S&Mixin<T extends core::Object* = dynamic, S extends self::SuperClass* = self::SuperClass*> = core::Object with self::Mixin<self::_Class1&S&Mixin::T*> /*isAnonymousMixin*/  {
+abstract class _Class1&S&Mixin<T extends core::Object* = dynamic, S extends self::SuperClass*> = core::Object with self::Mixin<self::_Class1&S&Mixin::T*> /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class1&S&Mixin<self::_Class1&S&Mixin::T*, self::_Class1&S&Mixin::S*>*
     : super core::Object::•()
     ;
@@ -59,7 +59,7 @@ abstract class _Class1&S&Mixin<T extends core::Object* = dynamic, S extends self
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Class1<T extends core::Object* = dynamic, S extends self::SuperClass* = self::SuperClass*> extends self::_Class1&S&Mixin<self::Class1::T*, self::Class1::S*> {
+class Class1<T extends core::Object* = dynamic, S extends self::SuperClass*> extends self::_Class1&S&Mixin<self::Class1::T*, self::Class1::S*> {
   synthetic constructor •() → self::Class1<self::Class1::T*, self::Class1::S*>*
     : super self::_Class1&S&Mixin::•()
     ;

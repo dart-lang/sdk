@@ -39,8 +39,7 @@ class FlowAnalysisDataForTesting {
 
   /// For each top level or class level declaration, the assigned variables
   /// information that was computed for it.
-  final Map<Declaration,
-          AssignedVariablesForTesting<AstNode, PromotableElement>>
+  final Map<AstNode, AssignedVariablesForTesting<AstNode, PromotableElement>>
       assignedVariables = {};
 
   /// For each expression that led to an error because it was not promoted, a
@@ -67,15 +66,21 @@ class FlowAnalysisHelper {
   /// The result for post-resolution stages of analysis, for testing only.
   final FlowAnalysisDataForTesting? dataForTesting;
 
+  final bool isNonNullableByDefault;
+
   /// The current flow, when resolving a function body, or `null` otherwise.
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>?
       flow;
 
-  FlowAnalysisHelper(TypeSystemImpl typeSystem, bool retainDataForTesting)
-      : this._(TypeSystemTypeOperations(typeSystem),
-            retainDataForTesting ? FlowAnalysisDataForTesting() : null);
+  FlowAnalysisHelper(TypeSystemImpl typeSystem, bool retainDataForTesting,
+      bool isNonNullableByDefault)
+      : this._(
+            TypeSystemTypeOperations(typeSystem),
+            retainDataForTesting ? FlowAnalysisDataForTesting() : null,
+            isNonNullableByDefault);
 
-  FlowAnalysisHelper._(this._typeOperations, this.dataForTesting);
+  FlowAnalysisHelper._(
+      this._typeOperations, this.dataForTesting, this.isNonNullableByDefault);
 
   LocalVariableTypeProvider get localVariableTypeProvider {
     return _LocalVariableTypeProvider(this);
@@ -154,11 +159,11 @@ class FlowAnalysisHelper {
   }
 
   void for_bodyBegin(AstNode node, Expression? condition) {
-    flow!.for_bodyBegin(node is Statement ? node : null, condition);
+    flow?.for_bodyBegin(node is Statement ? node : null, condition);
   }
 
   void for_conditionBegin(AstNode node) {
-    flow!.for_conditionBegin(node);
+    flow?.for_conditionBegin(node);
   }
 
   bool isDefinitelyAssigned(
@@ -218,7 +223,7 @@ class FlowAnalysisHelper {
   }
 
   void topLevelDeclaration_enter(
-      Declaration node, FormalParameterList? parameters, FunctionBody? body) {
+      AstNode node, FormalParameterList? parameters, FunctionBody? body) {
     assert(flow == null);
     assignedVariables = computeAssignedVariables(node, parameters,
         retainDataForTesting: dataForTesting != null);
@@ -226,8 +231,11 @@ class FlowAnalysisHelper {
       dataForTesting!.assignedVariables[node] = assignedVariables
           as AssignedVariablesForTesting<AstNode, PromotableElement>;
     }
-    flow = FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
-        DartType>(_typeOperations, assignedVariables!);
+    flow = isNonNullableByDefault
+        ? FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
+            DartType>(_typeOperations, assignedVariables!)
+        : FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
+            DartType>.legacy(_typeOperations, assignedVariables!);
   }
 
   void topLevelDeclaration_exit() {
@@ -267,7 +275,7 @@ class FlowAnalysisHelper {
 
   /// Computes the [AssignedVariables] map for the given [node].
   static AssignedVariables<AstNode, PromotableElement> computeAssignedVariables(
-      Declaration node, FormalParameterList? parameters,
+      AstNode node, FormalParameterList? parameters,
       {bool retainDataForTesting = false}) {
     AssignedVariables<AstNode, PromotableElement> assignedVariables =
         retainDataForTesting
@@ -331,13 +339,13 @@ class FlowAnalysisHelper {
 class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
   final MigrationResolutionHooks migrationResolutionHooks;
 
-  FlowAnalysisHelperForMigration(
-      TypeSystemImpl typeSystem, this.migrationResolutionHooks)
-      : super(typeSystem, false);
+  FlowAnalysisHelperForMigration(TypeSystemImpl typeSystem,
+      this.migrationResolutionHooks, bool isNonNullableByDefault)
+      : super(typeSystem, false, isNonNullableByDefault);
 
   @override
   void topLevelDeclaration_enter(
-      Declaration node, FormalParameterList? parameters, FunctionBody? body) {
+      AstNode node, FormalParameterList? parameters, FunctionBody? body) {
     super.topLevelDeclaration_enter(node, parameters, body);
     migrationResolutionHooks.setFlowAnalysis(flow);
   }
@@ -672,10 +680,12 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   _LocalVariableTypeProvider(this._manager);
 
   @override
-  DartType getType(SimpleIdentifier node) {
+  DartType getType(SimpleIdentifier node, {required bool isRead}) {
     var variable = node.staticElement as VariableElement;
     if (variable is PromotableElement) {
-      var promotedType = _manager.flow?.variableRead(node, variable);
+      var promotedType = isRead
+          ? _manager.flow?.variableRead(node, variable)
+          : _manager.flow?.promotedType(variable);
       if (promotedType != null) return promotedType;
     }
     return variable.type;

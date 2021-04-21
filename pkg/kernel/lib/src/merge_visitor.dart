@@ -81,7 +81,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
         }
         newTypeParameters[i].bound = newBound;
         DartType? newDefaultType = mergeTypes(
-            a.typeParameters[i].defaultType!, b.typeParameters[i].defaultType!);
+            a.typeParameters[i].defaultType, b.typeParameters[i].defaultType);
         if (newDefaultType == null) {
           return null;
         }

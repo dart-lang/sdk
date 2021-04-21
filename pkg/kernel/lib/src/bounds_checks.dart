@@ -88,7 +88,7 @@ class OccurrenceCollectorVisitor extends DartTypeVisitor<void> {
   void visitFunctionType(FunctionType node) {
     for (TypeParameter typeParameter in node.typeParameters) {
       typeParameter.bound.accept(this);
-      typeParameter.defaultType?.accept(this);
+      typeParameter.defaultType.accept(this);
     }
     for (DartType parameter in node.positionalParameters) {
       parameter.accept(this);
@@ -171,7 +171,7 @@ List<DartType> calculateBoundsInternal(
           ? const NeverType.nonNullable()
           : const DynamicType();
     } else if (bound is InterfaceType && bound.classNode == objectClass) {
-      DartType defaultType = typeParameters[i].defaultType!;
+      DartType defaultType = typeParameters[i].defaultType;
       if (!(defaultType is InterfaceType &&
           defaultType.classNode == objectClass)) {
         bound = isNonNullableByDefault && isContravariant

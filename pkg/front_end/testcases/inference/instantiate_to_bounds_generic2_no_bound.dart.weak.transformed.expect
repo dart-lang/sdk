@@ -17,7 +17,7 @@ class A<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class B<T extends self::A<dynamic>* = self::A<dynamic>*> extends core::Object {
+class B<T extends self::A<dynamic>*> extends core::Object {
   synthetic constructor •() → self::B<self::B::T*>*
     : super core::Object::•()
     ;

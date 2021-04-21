@@ -26,7 +26,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
       DartType? newBound = typeParameter.bound
           .accept1(this, Variance.combine(variance, Variance.invariant));
       DartType? newDefaultType = typeParameter.defaultType
-          ?.accept1(this, Variance.combine(variance, Variance.invariant));
+          .accept1(this, Variance.combine(variance, Variance.invariant));
       if (newBound != null || newDefaultType != null) {
         newTypeParameters ??= node.typeParameters.toList(growable: false);
         newTypeParameters[i] = new TypeParameter(

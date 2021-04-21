@@ -9,7 +9,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Foo<S extends core::num* = core::num*> extends core::Object {
+class Foo<S extends core::num*> extends core::Object {
   synthetic constructor •() → self::Foo<self::Foo::S*>*
     : super core::Object::•()
     ;

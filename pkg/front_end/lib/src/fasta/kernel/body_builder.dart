@@ -110,9 +110,6 @@ import '../source/value_kinds.dart';
 import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody;
 
-import '../type_inference/type_promotion.dart'
-    show TypePromoter, TypePromotionFact, TypePromotionScope;
-
 import '../type_inference/type_schema.dart' show UnknownType;
 
 import '../util/helpers.dart' show DelayedActionPerformer;
@@ -201,8 +198,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   final Uri uri;
 
   final TypeInferrer typeInferrer;
-
-  final TypePromoter typePromoter;
 
   /// Only used when [member] is a constructor. It tracks if an implicit super
   /// initializer is needed.
@@ -375,7 +370,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                     libraryBuilder.importUri.path == "ui"),
         needsImplicitSuperInitializer = declarationBuilder is ClassBuilder &&
             coreTypes?.objectClass != declarationBuilder.cls,
-        typePromoter = typeInferrer?.typePromoter,
         super(enclosingScope) {
     formalParameterScope?.forEach((String name, Builder builder) {
       if (builder is VariableBuilder) {
@@ -463,7 +457,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void registerVariableAssignment(VariableDeclaration variable) {
-    typePromoter?.mutateVariable(variable, functionNestingLevel);
     typeInferrer?.assignedVariables?.write(variable);
   }
 
@@ -948,7 +941,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void finishFunction(
       FormalParameters formals, AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
-    typePromoter?.finished();
     typeInferrer?.assignedVariables?.finish();
 
     FunctionBuilder builder = member;
@@ -1791,7 +1783,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     bool isAnd = optional("&&", token);
     if (isAnd || optional("||", token)) {
       Expression lhs = popForValue();
-      typePromoter?.enterLogicalExpression(lhs, token.stringValue);
       // This is matched by the call to [endNode] in
       // [doLogicalExpression].
       if (isAnd) {
@@ -1879,7 +1870,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Expression receiver = pop();
     Expression logicalExpression = forest.createLogicalExpression(
         offsetForToken(token), receiver, token.stringValue, argument);
-    typePromoter?.exitLogicalExpression(argument, logicalExpression);
     push(logicalExpression);
     if (optional("&&", token)) {
       // This is matched by the call to [beginNode] in
@@ -2105,10 +2095,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (!(variable as VariableDeclarationImpl).isLocalFunction) {
       typeInferrer?.assignedVariables?.read(variable);
     }
-    Object fact =
-        typePromoter?.getFactForAccess(variable, functionNestingLevel);
-    Object scope = typePromoter?.currentScope;
-    return new VariableGetImpl(variable, fact, scope,
+    return new VariableGetImpl(variable,
         forNullGuardedAccess: forNullGuardedAccess)
       ..fileOffset = charOffset;
   }
@@ -2472,7 +2459,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginThenStatement(Token token) {
     Expression condition = popForValue();
-    enterThenForTypePromotion(condition);
     // This is matched by the call to [deferNode] in
     // [endThenStatement].
     typeInferrer?.assignedVariables?.beginNode();
@@ -2482,7 +2468,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void endThenStatement(Token token) {
-    typePromoter?.enterElse();
     super.endThenStatement(token);
     // This is matched by the call to [beginNode] in
     // [beginThenStatement] and by the call to [storeInfo] in
@@ -2497,7 +2482,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         pop();
     Statement thenPart = popStatement();
     Expression condition = pop();
-    typePromoter?.exitConditional();
     Statement node = forest.createIfStatement(
         offsetForToken(ifToken), condition, thenPart, elsePart);
     // This is matched by the call to [deferNode] in
@@ -3535,24 +3519,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     DartType type = buildDartType(pop(),
         allowPotentiallyConstantType: libraryBuilder.isNonNullableByDefault);
     Expression operand = popForValue();
-    bool isInverted = not != null;
     Expression isExpression = forest.createIsExpression(
         offsetForToken(isOperator), operand, type,
         forNonNullableByDefault: libraryBuilder.isNonNullableByDefault,
         notFileOffset: not != null ? offsetForToken(not) : null);
     libraryBuilder.checkBoundsInType(
         type, typeEnvironment, uri, isOperator.charOffset);
-    if (operand is VariableGet) {
-      typePromoter?.handleIsCheck(isExpression, isInverted, operand.variable,
-          type, functionNestingLevel);
-    }
     push(isExpression);
   }
 
   @override
   void beginConditionalExpression(Token question) {
     Expression condition = popForValue();
-    typePromoter?.enterThen(condition);
     // This is matched by the call to [deferNode] in
     // [handleConditionalExpressionColon].
     typeInferrer?.assignedVariables?.beginNode();
@@ -3563,7 +3541,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleConditionalExpressionColon() {
     Expression then = popForValue();
-    typePromoter?.enterElse();
     // This is matched by the call to [beginNode] in
     // [beginConditionalExpression] and by the call to [storeInfo] in
     // [endConditionalExpression].
@@ -3580,7 +3557,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesInfo =
         pop();
     Expression condition = pop();
-    typePromoter?.exitConditional();
     Expression node = forest.createConditionalExpression(
         offsetForToken(question), condition, thenExpression, elseExpression);
     push(node);
@@ -4791,7 +4767,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleThenControlFlow(Token token) {
     Expression condition = popForValue();
-    enterThenForTypePromotion(condition);
     // This is matched by the call to [deferNode] in
     // [handleElseControlFlow] and by the call to [endNode] in
     // [endIfControlFlow].
@@ -4811,7 +4786,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // [endIfElseControlFlow].
     push(typeInferrer?.assignedVariables?.deferNode());
     push(node);
-    typePromoter?.enterElse();
   }
 
   @override
@@ -4831,8 +4805,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           offsetForToken(ifToken), toValue(condition), toValue(entry));
     }
     push(node);
-    typePromoter?.enterElse();
-    typePromoter?.exitConditional();
     // This is matched by the call to [beginNode] in
     // [handleThenControlFlow].
     typeInferrer?.assignedVariables?.endNode(node);
@@ -4847,7 +4819,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         pop();
     Object condition = pop(); // parenthesized expression
     Token ifToken = pop();
-    typePromoter?.exitConditional();
 
     transformCollections = true;
     TreeNode node;
@@ -5343,12 +5314,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         ///       lvalue = #t;
         ///       body;
         ///     }
-        TypePromotionFact fact =
-            typePromoter?.getFactForAccess(variable, functionNestingLevel);
-        TypePromotionScope scope = typePromoter?.currentScope;
         elements.syntheticAssignment = lvalue.buildAssignment(
-            new VariableGetImpl(variable, fact, scope,
-                forNullGuardedAccess: false)
+            new VariableGetImpl(variable, forNullGuardedAccess: false)
               ..fileOffset = inToken.offset,
             voidContext: true);
       } else {
@@ -6558,12 +6525,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     VariableDeclaration check = new VariableDeclaration.forValue(
         forest.checkLibraryIsLoaded(charOffset, prefix.dependency));
     return new DeferredCheck(check, expression)..fileOffset = charOffset;
-  }
-
-  /// TODO(ahe): This method is temporarily implemented. Once type promotion is
-  /// independent of shadow nodes, remove this method.
-  void enterThenForTypePromotion(Expression condition) {
-    typePromoter?.enterThen(condition);
   }
 
   bool isErroneousNode(TreeNode node) {

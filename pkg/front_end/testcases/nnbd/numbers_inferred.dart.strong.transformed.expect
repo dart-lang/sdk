@@ -551,7 +551,7 @@ import "dart:core" as core;
 
 static method f<T extends core::Object? = dynamic>() → self::f::T%
   return throw "Unsupported";
-static method add<X extends core::num = core::num, Y extends core::int = core::int, Z extends core::double = core::double>(core::num n, core::int i, core::double d, self::add::X x, self::add::Y y, self::add::Z z) → dynamic {
+static method add<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::add::X x, self::add::Y y, self::add::Z z) → dynamic {
   core::num n_n = n.{core::num::+}(self::f<core::num>());
   core::int n_i = let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:10:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int n_i = n + f();
@@ -633,7 +633,7 @@ static method add<X extends core::num = core::num, Y extends core::int = core::i
   Z z_z = z + f();
             ^" in z.{core::double::+}(self::f<core::num>()) as{TypeError,ForNonNullableByDefault} Never;
 }
-static method sub<X extends core::num = core::num, Y extends core::int = core::int, Z extends core::double = core::double>(core::num n, core::int i, core::double d, self::sub::X x, self::sub::Y y, self::sub::Z z) → dynamic {
+static method sub<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::sub::X x, self::sub::Y y, self::sub::Z z) → dynamic {
   core::num n_n = n.{core::num::-}(self::f<core::num>());
   core::int n_i = let final Never #t23 = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:55:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int n_i = n - f();
@@ -715,7 +715,7 @@ static method sub<X extends core::num = core::num, Y extends core::int = core::i
   Z z_z = z - f();
             ^" in z.{core::double::-}(self::f<core::num>()) as{TypeError,ForNonNullableByDefault} Never;
 }
-static method mul<X extends core::num = core::num, Y extends core::int = core::int, Z extends core::double = core::double>(core::num n, core::int i, core::double d, self::mul::X x, self::mul::Y y, self::mul::Z z) → dynamic {
+static method mul<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::mul::X x, self::mul::Y y, self::mul::Z z) → dynamic {
   core::num n_n = n.{core::num::*}(self::f<core::num>());
   core::int n_i = let final Never #t45 = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:100:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int n_i = n * f();
@@ -797,7 +797,7 @@ static method mul<X extends core::num = core::num, Y extends core::int = core::i
   Z z_z = z * f();
             ^" in z.{core::double::*}(self::f<core::num>()) as{TypeError,ForNonNullableByDefault} Never;
 }
-static method mod<X extends core::num = core::num, Y extends core::int = core::int, Z extends core::double = core::double>(core::num n, core::int i, core::double d, self::mod::X x, self::mod::Y y, self::mod::Z z) → dynamic {
+static method mod<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::mod::X x, self::mod::Y y, self::mod::Z z) → dynamic {
   core::num n_n = n.{core::num::%}(self::f<core::num>());
   core::int n_i = let final Never #t67 = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:145:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int n_i = n % f();
@@ -879,7 +879,7 @@ static method mod<X extends core::num = core::num, Y extends core::int = core::i
   Z z_z = z % f();
             ^" in z.{core::double::%}(self::f<core::num>()) as{TypeError,ForNonNullableByDefault} Never;
 }
-static method remainder<X extends core::num = core::num, Y extends core::int = core::int, Z extends core::double = core::double>(core::num n, core::int i, core::double d, self::remainder::X x, self::remainder::Y y, self::remainder::Z z) → dynamic {
+static method remainder<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::remainder::X x, self::remainder::Y y, self::remainder::Z z) → dynamic {
   core::num n_n = n.{core::num::remainder}(self::f<core::num>());
   core::int n_i = let final Never #t89 = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:190:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int n_i = n.remainder(f());
@@ -961,7 +961,7 @@ static method remainder<X extends core::num = core::num, Y extends core::int = c
   Z z_z = z.remainder(f());
             ^" in z.{core::double::remainder}(self::f<core::num>()) as{TypeError,ForNonNullableByDefault} Never;
 }
-static method clamp<X extends core::num = core::num, Y extends core::int = core::int, Z extends core::double = core::double>(core::num n, core::int i, core::double d, self::clamp::X x, self::clamp::Y y, self::clamp::Z z) → dynamic {
+static method clamp<X extends core::num, Y extends core::int, Z extends core::double>(core::num n, core::int i, core::double d, self::clamp::X x, self::clamp::Y y, self::clamp::Z z) → dynamic {
   core::num n_n = n.{core::num::clamp}(self::f<core::num>(), self::f<core::num>());
   core::int n_i = let final Never #t111 = invalid-expression "pkg/front_end/testcases/nnbd/numbers_inferred.dart:235:15: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
   int n_i = n.clamp(f(), f());

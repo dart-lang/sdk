@@ -463,11 +463,8 @@ void LiveRange::Print() {
   THR_Print("  live range v%" Pd " [%" Pd ", %" Pd ") in ", vreg(), Start(),
             End());
   assigned_location().Print();
-  if (spill_slot_.HasStackIndex()) {
-    const intptr_t stack_slot =
-        -compiler::target::frame_layout.VariableIndexForFrameSlot(
-            spill_slot_.stack_index());
-    THR_Print(" allocated spill slot: %" Pd "", stack_slot);
+  if (!spill_slot_.IsInvalid() && !spill_slot_.IsConstant()) {
+    THR_Print(" assigned spill slot: %s", spill_slot_.ToCString());
   }
   THR_Print("\n");
 

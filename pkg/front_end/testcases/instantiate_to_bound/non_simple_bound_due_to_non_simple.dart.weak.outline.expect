@@ -41,7 +41,7 @@ class B<TypeU extends self::A<dynamic, dynamic>* = dynamic> extends core::Object
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class C<TypeV extends self::B<dynamic>* = self::B<dynamic>*> extends core::Object {
+class C<TypeV extends self::B<dynamic>*> extends core::Object {
   synthetic constructor •() → self::C<self::C::TypeV*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

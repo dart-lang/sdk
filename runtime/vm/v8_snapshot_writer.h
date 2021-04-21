@@ -325,12 +325,13 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
     }
   };
 
-  Zone* zone_;
+  Zone* const zone_;
   DirectChainedHashMap<ObjectIdToNodeInfoTraits> nodes_;
   StringsTable node_types_;
   StringsTable edge_types_;
   StringsTable strings_;
   DirectChainedHashMap<ObjectIdSetKeyValueTrait> roots_;
+  intptr_t unknown_type_string_index_;
 #endif
 };
 

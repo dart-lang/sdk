@@ -50,7 +50,7 @@ class Foo extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Bar<T extends asy::Stream<core::String*>* = asy::Stream<core::String*>*> extends core::Object {
+class Bar<T extends asy::Stream<core::String*>*> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T*>*
     : super core::Object::•()
     ;

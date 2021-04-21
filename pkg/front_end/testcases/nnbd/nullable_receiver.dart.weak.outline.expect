@@ -22,7 +22,7 @@ class B extends core::Object {
 }
 static method error(core::String? s, self::A? a, self::B? b) → dynamic
   ;
-static method ok<T extends core::Object? = core::Object?>(core::String? s, self::A? a, self::ok::T% t, self::B? b, core::Invocation i) → dynamic
+static method ok<T extends core::Object?>(core::String? s, self::A? a, self::ok::T% t, self::B? b, core::Invocation i) → dynamic
   ;
 static method main() → dynamic
   ;

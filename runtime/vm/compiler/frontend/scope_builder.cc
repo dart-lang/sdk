@@ -538,9 +538,7 @@ void ScopeBuilder::VisitFunctionNode() {
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
     VisitDartType();  // read ith bound.
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
-    if (helper_.ReadTag() == kSomething) {
-      VisitDartType();  // read ith default type.
-    }
+    VisitDartType();  // read ith default type.
     helper.Finish();
   }
   function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
@@ -1357,9 +1355,7 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
       VisitDartType();  // read bound.
       helper.ReadUntilExcludingAndSetJustRead(
           TypeParameterHelper::kDefaultType);
-      if (helper_.ReadTag() == kSomething) {
-        VisitDartType();  // read default type.
-      }
+      VisitDartType();  // read default type.
       helper.Finish();
     }
     helper_.ReadUInt();  // read required parameter count.

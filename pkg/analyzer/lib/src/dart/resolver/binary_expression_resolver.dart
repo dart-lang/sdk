@@ -18,20 +18,16 @@ import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/type_promotion_manager.dart';
 
 /// Helper for resolving [BinaryExpression]s.
 class BinaryExpressionResolver {
   final ResolverVisitor _resolver;
-  final TypePromotionManager _promoteManager;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
 
   BinaryExpressionResolver({
     required ResolverVisitor resolver,
-    required TypePromotionManager promoteManager,
   })   : _resolver = resolver,
-        _promoteManager = promoteManager,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper;
 
@@ -176,27 +172,16 @@ class BinaryExpressionResolver {
     left = node.leftOperand;
     var leftWhyNotPromoted = _resolver.flowAnalysis?.flow?.whyNotPromoted(left);
 
-    Map<DartType, NonPromotionReason> Function()? rightWhyNotPromoted;
-    if (_resolver.flowAnalysis != null) {
-      flow?.logicalBinaryOp_rightBegin(left, node, isAnd: true);
-      _resolver.checkUnreachableNode(right);
+    flow?.logicalBinaryOp_rightBegin(left, node, isAnd: true);
+    _resolver.checkUnreachableNode(right);
 
-      right.accept(_resolver);
-      right = node.rightOperand;
-      rightWhyNotPromoted = _resolver.flowAnalysis!.flow?.whyNotPromoted(right);
+    right.accept(_resolver);
+    right = node.rightOperand;
+    var rightWhyNotPromoted =
+        _resolver.flowAnalysis!.flow?.whyNotPromoted(right);
 
-      _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
-      flow?.logicalBinaryOp_end(node, right, isAnd: true);
-    } else {
-      _promoteManager.visitBinaryExpression_and_rhs(
-        left,
-        right,
-        () {
-          right.accept(_resolver);
-          right = node.rightOperand;
-        },
-      );
-    }
+    _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
+    flow?.logicalBinaryOp_end(node, right, isAnd: true);
 
     _checkNonBoolOperand(left, '&&', whyNotPromoted: leftWhyNotPromoted);
     _checkNonBoolOperand(right, '&&', whyNotPromoted: rightWhyNotPromoted);

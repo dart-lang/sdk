@@ -91,7 +91,7 @@ static field core::List<dynamic> list1 = block {
   if(self::i.{core::num::>}(0))
     #t5.{core::List::addAll}{Invariant}(self::nullableList!);
 } =>#t5;
-static method testMap<X extends dynamic = dynamic, Y extends core::Map<core::int, core::String>? = core::Map<core::int, core::String>?, Z extends core::Map<core::int, core::String> = core::Map<core::int, core::String>>(self::testMap::X% x, self::testMap::Y% y, self::testMap::Z z) → dynamic {
+static method testMap<X extends dynamic, Y extends core::Map<core::int, core::String>?, Z extends core::Map<core::int, core::String>>(self::testMap::X% x, self::testMap::Y% y, self::testMap::Z z) → dynamic {
   core::Map<dynamic, dynamic> map2 = block {
     final core::Map<dynamic, dynamic> #t6 = <dynamic, dynamic>{};
     if(self::i.{core::num::>}(0))
@@ -110,7 +110,7 @@ static method testMap<X extends dynamic = dynamic, Y extends core::Map<core::int
         #t6.{core::Map::[]=}{Invariant}(#t8.{core::MapEntry::key}, #t8.{core::MapEntry::value});
   } =>#t6;
 }
-static method testIterables<X extends dynamic = dynamic, Y extends core::List<core::int>? = core::List<core::int>?, Z extends core::List<core::int> = core::List<core::int>>(self::testIterables::X% x, self::testIterables::Y% y, self::testIterables::Z z) → dynamic {
+static method testIterables<X extends dynamic, Y extends core::List<core::int>?, Z extends core::List<core::int>>(self::testIterables::X% x, self::testIterables::Y% y, self::testIterables::Z z) → dynamic {
   core::Set<dynamic> set2 = block {
     final core::Set<dynamic> #t9 = col::LinkedHashSet::•<dynamic>();
     #t9.{core::Set::add}{Invariant}(0);

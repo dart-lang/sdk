@@ -37,7 +37,7 @@ class B extends self::A {
     : super self::A::•()
     ;
 }
-class Class<T extends self::A* = self::A*> extends core::Object {
+class Class<T extends self::A*> extends core::Object {
   synthetic constructor •() → self::Class<self::Class::T*>*
     : super core::Object::•()
     ;
