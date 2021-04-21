@@ -452,3 +452,26 @@ explicitExtensionInvocation(C33 c) {
           /*notPromoted(propertyNotPromoted(target: member:C33.bad, type: int?))*/ bad)
       .f();
 }
+
+class C34 {
+  int? bad;
+  C34(int value);
+}
+
+class D34 extends C34 {
+  int other;
+  D34(C34 c)
+      : other = c.bad!,
+        super(c.
+            /*notPromoted(propertyNotPromoted(target: member:C34.bad, type: int?))*/ bad);
+}
+
+class C35 {
+  int? bad;
+}
+
+indexSetRhs(C35 c, List<int> x) {
+  if (c.bad == null) return;
+  x[0] = c.
+      /*notPromoted(propertyNotPromoted(target: member:C35.bad, type: int?))*/ bad;
+}
