@@ -58,7 +58,7 @@ while others may be marked *EXPERIMENTAL* or *PROPOSED* to indicate that they ar
 ## Mechanics
 
 Lints live in the [lib/src/rules](https://github.com/dart-lang/linter/tree/master/lib/src/rules) directory. 
-Corresponding tests live in [test/rules](https://github.com/dart-lang/linter/tree/master/test/rules). 
+Corresponding tests live in [test_data/rules](https://github.com/dart-lang/linter/tree/master/test_data/rules). 
 
 Rule stubs can be generated with the [rule.dart](https://github.com/dart-lang/linter/blob/master/tool/rule.dart) 
 helper script and documentation gets generated with [doc.dart](https://github.com/dart-lang/linter/blob/master/tool/doc.dart). 
@@ -66,7 +66,7 @@ Helper scripts can be invoked via `dart` or grinder (`pub run grinder docs --dir
 
     $ pub run grinder rule --name=my_new_lint
     
-generates lint and test stubs in `lib/src/rules` and `test/rules`.
+generates lint and test stubs in `lib/src/rules` and `test_data/rules`.
 
 ### Analyzer APIs
 

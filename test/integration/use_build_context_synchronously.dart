@@ -25,7 +25,7 @@ void main() {
       await cli.runLinter([
         '$integrationTestDir/use_build_context_synchronously/lib/unmigrated.dart',
         '--packages',
-        'test/rules/.mock_packages',
+        '$ruleTestDir/.mock_packages',
         '--rules=use_build_context_synchronously',
       ], LinterOptions());
       var out = collectingOut.trim();

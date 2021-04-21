@@ -7,8 +7,8 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import '../test_data/rules/experiments/experiments.dart';
 import 'rule_test.dart';
-import 'rules/experiments/experiments.dart';
 import 'test_constants.dart';
 
 void main() {

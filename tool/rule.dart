@@ -5,8 +5,11 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:path/path.dart' as path;
 
-/// Generates rule and rule test stub files (into `src/rules` and `test/rules`
+import '../test/test_constants.dart';
+
+/// Generates rule and rule test stub files (into `src/rules` and `test_data/rules`
 /// respectively), as well as the rule index (`rules.dart`).
 void main(List<String> args) {
   var parser = ArgParser()
@@ -49,10 +52,11 @@ String capitalize(String s) => s.substring(0, 1).toUpperCase() + s.substring(1);
 
 void generateRule(String ruleName, {String? outDir}) {
   // Generate rule stub.
-  generateStub(ruleName, 'lib/src/rules', _generateClass, outDir: outDir);
+  generateStub(ruleName, path.join('lib', 'src', 'rules'), _generateClass,
+      outDir: outDir);
 
   // Generate test stub.
-  generateStub(ruleName, 'test/rules', _generateTest, outDir: outDir);
+  generateStub(ruleName, ruleTestDir, _generateTest, outDir: outDir);
 
   // Update rule registry.
   updateRuleRegistry(ruleName);
@@ -62,7 +66,7 @@ void generateStub(String ruleName, String stubPath, _Generator generator,
     {String? outDir}) {
   var generated = generator(ruleName, toClassName(ruleName));
   if (outDir != null) {
-    var outPath = '$outDir/$stubPath/$ruleName.dart';
+    var outPath = path.join(outDir, stubPath, '$ruleName.dart');
     var outFile = File(outPath);
     if (outFile.existsSync()) {
       print('Warning: stub already exists at $outPath; skipping');

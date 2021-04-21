@@ -12,6 +12,7 @@ import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
+import '../test_data/rules/experiments/experiments.dart';
 import 'integration/always_require_non_null_named_parameters.dart'
     as always_require_non_null_named_parameters;
 import 'integration/avoid_private_typedef_functions.dart'
@@ -47,7 +48,6 @@ import 'integration/unnecessary_string_escapes.dart'
 import 'integration/use_build_context_synchronously.dart'
     as use_build_context_synchronously;
 import 'mocks.dart';
-import 'rules/experiments/experiments.dart';
 import 'test_constants.dart';
 
 void main() {

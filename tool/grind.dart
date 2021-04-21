@@ -9,6 +9,7 @@ import 'package:grinder/grinder.dart';
 import 'doc.dart';
 import 'rule.dart';
 
+@Deprecated('To be removed')
 void main(List<String> args) => grind(args);
 
 Iterable<String> get sourcePaths => sources.map((dir) => dir.path);

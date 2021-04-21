@@ -31,7 +31,7 @@ void main() {
         '$integrationTestDir/prefer_const_constructors_in_immutables',
         '--rules=prefer_const_constructors_in_immutables',
         '--packages',
-        'test/rules/.mock_packages',
+        '$ruleTestDir/.mock_packages',
       ], LinterOptions());
       expect(
           collectingOut.trim(),

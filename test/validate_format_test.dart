@@ -21,5 +21,4 @@ Run `dart format` and (re)commit.''');
 bool lineIgnored(String line) =>
     line.isEmpty ||
     line.startsWith('Changed test_data/') ||
-    line.startsWith('Changed test/rules/') ||
     line.startsWith('Formatted ');

@@ -31,7 +31,7 @@ void main() {
         '$integrationTestDir/prefer_mixin',
         '--rules=prefer_mixin',
         '--packages',
-        'test/rules/.mock_packages',
+        '$ruleTestDir/.mock_packages',
       ], LinterOptions());
       expect(
           collectingOut.trim(),

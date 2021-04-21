@@ -31,7 +31,7 @@ void main() {
         '$integrationTestDir/always_require_non_null_named_parameters',
         '--rules=always_require_non_null_named_parameters',
         '--packages',
-        'test/rules/.mock_packages',
+        '$ruleTestDir/.mock_packages',
       ], LinterOptions());
       expect(
           collectingOut.trim(),
