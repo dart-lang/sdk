@@ -60,7 +60,6 @@ ignoredDirs = [
     'docs',
     'fuchsia',
     'parser_testcases',
-    'test',
     'testcases',
     'tests',
 ]
