@@ -5,7 +5,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import os
-
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'bots'))
 import bot_utils
 
 utils = bot_utils.GetUtils()

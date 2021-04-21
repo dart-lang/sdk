@@ -11,15 +11,16 @@ Archive tarball and debian package to google cloud storage.
 """
 
 import os
-import re
 import subprocess
 import sys
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'bots'))
 import bot_utils
 
 utils = bot_utils.GetUtils()
 
 HOST_OS = utils.GuessOS()
+
 
 def InstallFromDep(builddir):
     for entry in os.listdir(builddir):
@@ -47,9 +48,7 @@ def Run(command):
     sys.stdout.flush()
     no_color_env = dict(os.environ)
     no_color_env['TERM'] = 'nocolor'
-    exit_code = subprocess.call(command, env=no_color_env)
-    if exit_code != 0:
-        raise OSError(exit_code)
+    subprocess.check_call(command, env=no_color_env)
 
 
 def TestInstallation(assume_installed=True):
@@ -90,13 +89,14 @@ def SrcSteps():
 
     print('Building src tarball')
     Run([
-        sys.executable, './tools/create_tarball.py', '--tar_filename', tarfile
+        sys.executable, 'tools/linux_dist_support/create_tarball.py',
+        '--tar_filename', tarfile
     ])
 
     print('Building Debian packages')
     Run([
-        sys.executable, './tools/create_debian_packages.py', '--tar_filename',
-        tarfile, '--out_dir', builddir
+        sys.executable, 'tools/linux_dist_support/create_debian_packages.py',
+        '--tar_filename', tarfile, '--out_dir', builddir
     ])
 
     if os.path.exists('/usr/bin/dart') or os.path.exists(
@@ -110,7 +110,10 @@ def SrcSteps():
 
     # We build the runtime target to get everything we need to test the
     # standalone target.
-    Run([sys.executable, './tools/build.py', '-mrelease', '-ax64', 'runtime'])
+    Run([
+        sys.executable, 'tools/build.py', '--no-goma', '--mode=release',
+        '--arch=x64', 'runtime'
+    ])
     # Copy in the installed binary to avoid poluting /usr/bin (and having to
     # run as root)
     Run(['cp', '/usr/bin/dart', 'out/ReleaseX64/dart'])

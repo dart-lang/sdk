@@ -14,32 +14,33 @@ import os
 import sys
 import tarfile
 import subprocess
+from os.path import join, exists, abspath, dirname
+sys.path.append(join(dirname(__file__), '..'))
 import utils
-from os.path import join, exists, abspath
 from shutil import copyfile
 
 HOST_OS = utils.GuessOS()
 HOST_CPUS = utils.GuessCpus()
-DART_DIR = abspath(join(__file__, '..', '..'))
+DART_DIR = abspath(join(dirname(__file__), '..', '..'))
 
 
 def BuildOptions():
     result = optparse.OptionParser()
-    result.add_option(
-        "--tar_filename", default=None, help="The tar file to build from.")
-    result.add_option(
-        "--out_dir", default=None, help="Where to put the packages.")
-    result.add_option(
-        "-a",
-        "--arch",
-        help='Target architectures (comma-separated).',
-        metavar='[all,ia32,x64,armel,armhf]',
-        default='x64')
-    result.add_option(
-        "-t",
-        "--toolchain",
-        help='Cross-compilation toolchain prefix',
-        default=None)
+    result.add_option("--tar_filename",
+                      default=None,
+                      help="The tar file to build from.")
+    result.add_option("--out_dir",
+                      default=None,
+                      help="Where to put the packages.")
+    result.add_option("-a",
+                      "--arch",
+                      help='Target architectures (comma-separated).',
+                      metavar='[all,ia32,x64,armel,armhf]',
+                      default='x64')
+    result.add_option("-t",
+                      "--toolchain",
+                      help='Cross-compilation toolchain prefix',
+                      default=None)
 
     return result
 

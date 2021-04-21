@@ -101,8 +101,8 @@ var t = b
 var a = b;
 var b = a;
 ''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 4, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 15, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 8, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 19, 1),
     ]);
   }
 
@@ -718,7 +718,7 @@ var x = new C().f;
 class C {
   int f;
 }
-int x;
+dynamic x;
 ''');
   }
 
@@ -735,7 +735,7 @@ var x = new C().f;
 ''');
     checkElementText(library, r'''
 import 'package:test/a.dart';
-int x;
+dynamic x;
 ''');
   }
 

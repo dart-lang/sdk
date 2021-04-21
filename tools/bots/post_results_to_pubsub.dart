@@ -28,7 +28,7 @@ ${parser.usage}''');
   exit(exitCode);
 }
 
-const resultsPerMessage = 100;
+const resultsPerMessage = 50;
 
 Uri _postUrl(String project) => Uri.https(
     'pubsub.googleapis.com', 'v1/projects/$project/topics/results:publish');

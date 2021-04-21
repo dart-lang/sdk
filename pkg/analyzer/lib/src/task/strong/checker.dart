@@ -17,7 +17,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart' show CompileTimeErrorCode;
+import 'package:analyzer/src/error/codes.dart'
+    show CompileTimeErrorCode, StrongModeCode;
 import 'package:analyzer/src/task/inference_error.dart';
 
 Element? _getKnownElement(Expression expression) {
@@ -496,21 +497,14 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var element = node.declaredElement;
-    if (element is PropertyInducingElementImpl) {
-      var error = element.typeInferenceError;
-      if (error != null) {
-        if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
-          // Errors on const should have been reported with
-          // [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT].
-          if (!element.isConst) {
-            _recordMessage(
-              node.name,
-              CompileTimeErrorCode.TOP_LEVEL_CYCLE,
-              [element.name, error.arguments],
-            );
-          }
-        }
+    var variableElement = node.declaredElement;
+    var parent = node.parent;
+    if (variableElement is PropertyInducingElement &&
+        parent is VariableDeclarationList &&
+        parent.type == null) {
+      var initializer = node.initializer;
+      if (initializer != null) {
+        _validateTopLevelInitializer(variableElement.name, initializer);
       }
     }
     node.visitChildren(this);
@@ -922,6 +916,10 @@ class CodeChecker extends RecursiveAstVisitor {
     reporter.onError(error);
   }
 
+  void _validateTopLevelInitializer(String name, Expression n) {
+    n.accept(_TopLevelInitializerValidator(this, name));
+  }
+
   void _visitForEachParts(ForEachParts node, SimpleIdentifier loopVariable) {
     if (loopVariable.staticElement is! VariableElement) {
       return;
@@ -983,5 +981,171 @@ class CodeChecker extends RecursiveAstVisitor {
       return e.type;
     }
     throw StateError('${e.runtimeType} is unhandled type');
+  }
+}
+
+class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
+  final CodeChecker _codeChecker;
+  final String _name;
+
+  _TopLevelInitializerValidator(this._codeChecker, this._name);
+
+  void validateHasType(AstNode n, PropertyAccessorElement e) {
+    if (e.hasImplicitReturnType) {
+      var variable = e.declaration.variable as PropertyInducingElementImpl;
+      var error = variable.typeInferenceError;
+      if (error != null) {
+        if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
+          // Errors on const should have been reported with
+          // [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT].
+          if (!variable.isConst) {
+            _codeChecker._recordMessage(n, CompileTimeErrorCode.TOP_LEVEL_CYCLE,
+                [_name, error.arguments]);
+          }
+        } else {
+          _codeChecker._recordMessage(
+              n, StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE, [_name, e.name]);
+        }
+      }
+    }
+  }
+
+  void validateIdentifierElement(AstNode n, Element? e,
+      {bool isMethodCall = false}) {
+    if (e == null) {
+      return;
+    }
+
+    var enclosing = e.enclosingElement;
+    if (enclosing is CompilationUnitElement) {
+      if (e is PropertyAccessorElement) {
+        validateHasType(n, e);
+      }
+    } else if (enclosing is ClassElement) {
+      if (e is PropertyAccessorElement) {
+        if (e.isStatic) {
+          validateHasType(n, e);
+        } else if (e.hasImplicitReturnType) {
+          _codeChecker._recordMessage(
+              n, StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, [_name, e.name]);
+        }
+      }
+    }
+  }
+
+  @override
+  visitAsExpression(AsExpression node) {
+    // Nothing to validate.
+  }
+
+  @override
+  visitBinaryExpression(BinaryExpression node) {
+    TokenType operator = node.operator.type;
+    if (operator == TokenType.AMPERSAND_AMPERSAND ||
+        operator == TokenType.BAR_BAR ||
+        operator == TokenType.EQ_EQ ||
+        operator == TokenType.BANG_EQ) {
+      // These operators give 'bool', no need to validate operands.
+    } else {
+      node.leftOperand.accept(this);
+    }
+  }
+
+  @override
+  visitCascadeExpression(CascadeExpression node) {
+    node.target.accept(this);
+  }
+
+  @override
+  visitConditionalExpression(ConditionalExpression node) {
+    // No need to validate the condition, since it can't affect type inference.
+    node.thenExpression.accept(this);
+    node.elseExpression.accept(this);
+  }
+
+  @override
+  visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    if (node.typeArguments != null) {
+      return;
+    }
+
+    var function = node.function;
+    if (function is PropertyAccess) {
+      var propertyName = function.propertyName;
+      validateIdentifierElement(propertyName, propertyName.staticElement);
+    }
+
+    var functionType = node.function.staticType;
+    if (functionType is FunctionType && functionType.typeFormals.isNotEmpty) {
+      node.argumentList.accept(this);
+    }
+  }
+
+  @override
+  visitIndexExpression(IndexExpression node) {
+    // Nothing to validate.
+  }
+
+  @override
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    var constructor = node.constructorName.staticElement;
+    var class_ = constructor?.enclosingElement;
+    if (node.constructorName.type.typeArguments == null &&
+        class_ != null &&
+        class_.typeParameters.isNotEmpty) {
+      // Type inference might depend on the parameters
+      super.visitInstanceCreationExpression(node);
+    }
+  }
+
+  @override
+  visitIsExpression(IsExpression node) {
+    // Nothing to validate.
+  }
+
+  @override
+  visitListLiteral(ListLiteral node) {
+    if (node.typeArguments == null) {
+      super.visitListLiteral(node);
+    }
+  }
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    node.target?.accept(this);
+    var method = node.methodName.staticElement;
+    validateIdentifierElement(node, method, isMethodCall: true);
+    if (method is ExecutableElement) {
+      if (node.typeArguments == null && method.typeParameters.isNotEmpty) {
+        // Type inference might depend on the parameters
+        node.argumentList.accept(this);
+      }
+    }
+  }
+
+  @override
+  visitPrefixExpression(PrefixExpression node) {
+    if (node.operator.type == TokenType.BANG) {
+      // This operator gives 'bool', no need to validate operands.
+    } else {
+      node.operand.accept(this);
+    }
+  }
+
+  @override
+  visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (node.typeArguments == null) {
+      super.visitSetOrMapLiteral(node);
+    }
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    validateIdentifierElement(node, node.staticElement);
+  }
+
+  @override
+  visitThrowExpression(ThrowExpression node) {
+    // Nothing to validate.
   }
 }
