@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,7 +27,7 @@ void f() {
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
-    final diagnostics = await diagnosticsUpdate;
+    final diagnostics = (await diagnosticsUpdate)!;
 
     expect(diagnostics, hasLength(1));
     final diagnostic = diagnostics.first;
@@ -38,8 +36,9 @@ void f() {
         startsWith(
             "Local variable 'x' can't be referenced before it is declared"));
 
-    expect(diagnostic.relatedInformation, hasLength(1));
-    final relatedInfo = diagnostic.relatedInformation.first;
+    final relatedInformation = diagnostic.relatedInformation!;
+    expect(relatedInformation, hasLength(1));
+    final relatedInfo = relatedInformation.first;
     expect(relatedInfo.message, equals("The declaration of 'x' is here."));
     expect(relatedInfo.location.uri, equals('$mainFileUri'));
     expect(relatedInfo.location.range, equals(rangeFromMarkers(content)));
@@ -50,7 +49,7 @@ void f() {
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
-    final diagnostics = await diagnosticsUpdate;
+    final diagnostics = (await diagnosticsUpdate)!;
     expect(diagnostics, hasLength(1));
     final diagnostic = diagnostics.first;
     expect(diagnostic.code, equals('invalid_assignment'));
@@ -70,7 +69,7 @@ linter:
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
-    final diagnostics = await diagnosticsUpdate;
+    final diagnostics = (await diagnosticsUpdate)!;
     expect(diagnostics, hasLength(1));
     final diagnostic = diagnostics.first;
     expect(diagnostic.code, equals('await_only_futures'));

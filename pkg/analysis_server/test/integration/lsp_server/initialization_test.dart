@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:test/test.dart';
@@ -29,8 +27,7 @@ class InitializationTest extends AbstractLspAnalysisServerIntegrationTest {
     );
     final response = await sendRequestToServer(request);
     expect(response.id, equals(request.id));
-    expect(response.error, isNotNull);
-    expect(response.error.code, equals(ErrorCodes.InvalidParams));
+    expect(response.error!.code, equals(ErrorCodes.InvalidParams));
     expect(response.result, isNull);
   }
 }

@@ -1,8 +1,6 @@
 // Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// @dart = 2.9
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
@@ -28,7 +26,7 @@ class LspSocketServer implements AbstractSocketServer {
   /// The analysis server that was created when a client established a
   /// connection, or `null` if no such connection has yet been established.
   @override
-  LspAnalysisServer analysisServer;
+  LspAnalysisServer? analysisServer;
 
   /// The function used to create a new SDK using the default SDK.
   final DartSdkManager sdkManager;
