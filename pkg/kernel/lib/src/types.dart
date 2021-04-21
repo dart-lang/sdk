@@ -112,6 +112,8 @@ class Types with StandardBounds {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
         return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
       }
     } else if (t is FunctionType) {
       const IsFunctionSubtypeOf relation = const IsFunctionSubtypeOf();
@@ -131,6 +133,8 @@ class Types with StandardBounds {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
         return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
       }
     } else if (t is TypeParameterType) {
       if (t.promotedBound == null) {
@@ -152,6 +156,8 @@ class Types with StandardBounds {
           return relation.isTypedefRelated(s, t, this);
         } else if (s is FutureOrType) {
           return relation.isFutureOrRelated(s, t, this);
+        } else if (s is ExtensionType) {
+          return relation.isExtensionRelated(s, t, this);
         }
       } else {
         const IsIntersectionSubtypeOf relation =
@@ -172,6 +178,8 @@ class Types with StandardBounds {
           return relation.isTypedefRelated(s, t, this);
         } else if (s is FutureOrType) {
           return relation.isFutureOrRelated(s, t, this);
+        } else if (s is ExtensionType) {
+          return relation.isExtensionRelated(s, t, this);
         }
       }
     } else if (t is TypedefType) {
@@ -192,6 +200,8 @@ class Types with StandardBounds {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
         return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
       }
     } else if (t is FutureOrType) {
       const IsFutureOrSubtypeOf relation = const IsFutureOrSubtypeOf();
@@ -211,6 +221,8 @@ class Types with StandardBounds {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
         return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
       }
     } else if (t is NullType) {
       const IsNullTypeSubtypeOf relation = const IsNullTypeSubtypeOf();
@@ -230,6 +242,8 @@ class Types with StandardBounds {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
         return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
       }
     } else if (t is NeverType) {
       const IsNeverTypeSubtypeOf relation = const IsNeverTypeSubtypeOf();
@@ -249,6 +263,30 @@ class Types with StandardBounds {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
         return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
+      }
+    } else if (t is ExtensionType) {
+      const IsExtensionTypeSubtypeOf relation =
+          const IsExtensionTypeSubtypeOf();
+      if (s is DynamicType) {
+        return relation.isDynamicRelated(s, t, this);
+      } else if (s is VoidType) {
+        return relation.isVoidRelated(s, t, this);
+      } else if (s is InterfaceType) {
+        return relation.isInterfaceRelated(s, t, this);
+      } else if (s is FunctionType) {
+        return relation.isFunctionRelated(s, t, this);
+      } else if (s is TypeParameterType) {
+        return s.promotedBound == null
+            ? relation.isTypeParameterRelated(s, t, this)
+            : relation.isIntersectionRelated(s, t, this);
+      } else if (s is TypedefType) {
+        return relation.isTypedefRelated(s, t, this);
+      } else if (s is FutureOrType) {
+        return relation.isFutureOrRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionRelated(s, t, this);
       }
     } else {
       throw "Unhandled type: ${t.runtimeType}";
