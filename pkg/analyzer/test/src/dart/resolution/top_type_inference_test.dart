@@ -34,8 +34,7 @@ class A {
 }
 final b = new A().a;
 ''', [
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 18, 1),
-      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 37, 1),
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 49, 1),
     ]);
 
     assertTypeDynamic(findElement.field('a').type);

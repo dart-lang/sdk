@@ -376,6 +376,15 @@ class _VariableInferenceNode extends _InferenceNode {
     return _node.name.name;
   }
 
+  bool get isImplicitlyTypedInstanceField {
+    var variables = _node.parent as VariableDeclarationList;
+    if (variables.type == null) {
+      var parent = variables.parent;
+      return parent is FieldDeclaration && !parent.isStatic;
+    }
+    return false;
+  }
+
   PropertyInducingElementImpl get _elementImpl {
     return _node.declaredElement as PropertyInducingElementImpl;
   }
@@ -391,7 +400,19 @@ class _VariableInferenceNode extends _InferenceNode {
       return const <_InferenceNode>[];
     }
 
-    return collector._set.map(_walker.getNode).whereNotNull().toList();
+    var dependencies =
+        collector._set.map(_walker.getNode).whereNotNull().toList();
+
+    for (var node in dependencies) {
+      if (node is _VariableInferenceNode &&
+          node.isImplicitlyTypedInstanceField) {
+        _elementImpl.type = DynamicTypeImpl.instance;
+        isEvaluated = true;
+        return const <_InferenceNode>[];
+      }
+    }
+
+    return dependencies;
   }
 
   @override
