@@ -1,4 +1,11 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/ignore_function.dart:18:7: Error: 'Function' is a built-in identifier, could not used as a class name.
+// class Function {
+//       ^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
