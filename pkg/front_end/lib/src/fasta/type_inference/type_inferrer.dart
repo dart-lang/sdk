@@ -59,8 +59,6 @@ import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
 import 'type_inference_engine.dart';
 
-import 'type_promotion.dart' show TypePromoter;
-
 import 'type_schema.dart' show isKnown, UnknownType;
 
 import 'type_schema_elimination.dart' show greatestClosure;
@@ -123,10 +121,6 @@ enum MethodContravarianceCheckKind {
 abstract class TypeInferrer {
   SourceLibraryBuilder get library;
 
-  /// Gets the [TypePromoter] that can be used to perform type promotion within
-  /// this method body or initializer.
-  TypePromoter get typePromoter;
-
   /// Gets the [TypeSchemaEnvironment] being used for type inference.
   TypeSchemaEnvironment get typeSchemaEnvironment;
 
@@ -183,9 +177,6 @@ class TypeInferrerImpl implements TypeInferrer {
 
   final TypeInferenceEngine engine;
 
-  @override
-  final TypePromoter typePromoter;
-
   final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
       DartType> flowAnalysis;
 
@@ -227,10 +218,13 @@ class TypeInferrerImpl implements TypeInferrer {
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel,
-        typePromoter = new TypePromoter(engine.typeSchemaEnvironment),
-        flowAnalysis = new FlowAnalysis(
-            new TypeOperationsCfe(engine.typeSchemaEnvironment),
-            assignedVariables);
+        flowAnalysis = library.isNonNullableByDefault
+            ? new FlowAnalysis(
+                new TypeOperationsCfe(engine.typeSchemaEnvironment),
+                assignedVariables)
+            : new FlowAnalysis.legacy(
+                new TypeOperationsCfe(engine.typeSchemaEnvironment),
+                assignedVariables);
 
   CoreTypes get coreTypes => engine.coreTypes;
 

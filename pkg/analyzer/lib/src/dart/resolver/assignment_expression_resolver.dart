@@ -74,7 +74,7 @@ class AssignmentExpressionResolver {
       var leftType = node.writeType;
       if (writeElement is VariableElement) {
         leftType = _resolver.localVariableTypeProvider
-            .getType(left as SimpleIdentifier);
+            .getType(left as SimpleIdentifier, isRead: false);
       }
       _setRhsContext(node, leftType!, operator, right);
     }

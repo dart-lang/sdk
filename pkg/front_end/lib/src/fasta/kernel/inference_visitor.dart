@@ -6545,7 +6545,8 @@ class InferenceVisitor
     if (initializerResult != null) {
       DartType initializerType = initializerResult.inferredType;
       if (node.isImplicitlyTyped) {
-        if (initializerType is TypeParameterType) {
+        if (inferrer.isNonNullableByDefault &&
+            initializerType is TypeParameterType) {
           inferrer.flowAnalysis.promote(node, initializerType);
         }
       } else {
@@ -6735,20 +6736,14 @@ class InferenceVisitor
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     if (isExtensionThis(variable)) {
       inferrer.flowAnalysis.thisOrSuper(node, variable.type);
-    } else if (inferrer.isNonNullableByDefault) {
-      if (node.forNullGuardedAccess) {
-        DartType nonNullableType = variable.type.toNonNull();
-        if (nonNullableType != variable.type) {
-          promotedType = nonNullableType;
-        }
-      } else if (!variable.isLocalFunction) {
-        // Don't promote local functions.
-        promotedType = inferrer.flowAnalysis.variableRead(node, variable);
+    } else if (inferrer.isNonNullableByDefault && node.forNullGuardedAccess) {
+      DartType nonNullableType = variable.type.toNonNull();
+      if (nonNullableType != variable.type) {
+        promotedType = nonNullableType;
       }
-    } else {
-      bool mutatedInClosure = variable.mutatedInClosure;
-      promotedType = inferrer.typePromoter
-          .computePromotedType(node.fact, node.scope, mutatedInClosure);
+    } else if (!variable.isLocalFunction) {
+      // Don't promote local functions.
+      promotedType = inferrer.flowAnalysis.variableRead(node, variable);
     }
     if (promotedType != null) {
       inferrer.instrumentation?.record(

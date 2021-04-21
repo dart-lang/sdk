@@ -684,13 +684,10 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
-    FlowAnalysisHelper? flowAnalysisHelper;
-    if (unit.featureSet.isEnabled(Feature.non_nullable)) {
-      flowAnalysisHelper =
-          FlowAnalysisHelper(_typeSystem, _testingData != null);
-      _testingData?.recordFlowAnalysisDataForTesting(
-          file.uri, flowAnalysisHelper.dataForTesting!);
-    }
+    FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(_typeSystem,
+        _testingData != null, unit.featureSet.isEnabled(Feature.non_nullable));
+    _testingData?.recordFlowAnalysisDataForTesting(
+        file.uri, flowAnalysisHelper.dataForTesting!);
 
     unit.accept(ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,

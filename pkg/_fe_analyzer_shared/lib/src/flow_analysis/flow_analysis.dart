@@ -4794,10 +4794,6 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   @override
   void write(Node node, Variable variable, Type writtenType,
       Expression? writtenExpression) {
-    assert(
-        _assignedVariables._anywhere._written.contains(variable),
-        "Variable is written to, but was not included in "
-        "_variablesWrittenAnywhere: $variable");
     _writeStackForAnd.last.add(variable);
   }
 

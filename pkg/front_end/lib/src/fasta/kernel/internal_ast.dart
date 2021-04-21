@@ -40,13 +40,7 @@ import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 
-import '../type_inference/type_promotion.dart'
-    show TypePromoter, TypePromoterImpl, TypePromotionFact, TypePromotionScope;
-
 import '../type_inference/type_schema.dart' show UnknownType;
-
-import '../type_inference/type_schema_environment.dart'
-    show TypeSchemaEnvironment;
 
 import 'inference_visitor.dart';
 
@@ -1449,50 +1443,6 @@ class ReturnStatementImpl extends ReturnStatement {
   }
 }
 
-/// Concrete implementation of [TypePromoter] specialized to work with kernel
-/// objects.
-class ShadowTypePromoter extends TypePromoterImpl {
-  ShadowTypePromoter.private(TypeSchemaEnvironment typeSchemaEnvironment)
-      : super.private(typeSchemaEnvironment);
-
-  @override
-  int getVariableFunctionNestingLevel(VariableDeclaration variable) {
-    if (variable is VariableDeclarationImpl) {
-      return variable.functionNestingLevel;
-    } else {
-      // Hack to deal with the fact that BodyBuilder still creates raw
-      // VariableDeclaration objects sometimes.
-      // TODO(paulberry): get rid of this once the type parameter is
-      // KernelVariableDeclaration.
-      return 0;
-    }
-  }
-
-  @override
-  bool isPromotionCandidate(VariableDeclaration variable) {
-    assert(variable is VariableDeclarationImpl);
-    VariableDeclarationImpl kernelVariableDeclaration = variable;
-    return !kernelVariableDeclaration.isLocalFunction;
-  }
-
-  @override
-  bool sameExpressions(Expression a, Expression b) {
-    return identical(a, b);
-  }
-
-  @override
-  void setVariableMutatedInClosure(VariableDeclaration variable) {
-    if (variable is VariableDeclarationImpl) {
-      variable.mutatedInClosure = true;
-    } else {
-      // Hack to deal with the fact that BodyBuilder still creates raw
-      // VariableDeclaration objects sometimes.
-      // TODO(paulberry): get rid of this once the type parameter is
-      // KernelVariableDeclaration.
-    }
-  }
-}
-
 /// Front end specific implementation of [VariableDeclaration].
 class VariableDeclarationImpl extends VariableDeclaration {
   final bool forSyntheticToken;
@@ -1635,16 +1585,11 @@ class VariableDeclarationImpl extends VariableDeclaration {
 
 /// Front end specific implementation of [VariableGet].
 class VariableGetImpl extends VariableGet {
-  final TypePromotionFact fact;
-
-  final TypePromotionScope scope;
-
   // TODO(johnniwinther): Remove the need for this by encoding all null aware
   // expressions explicitly.
   final bool forNullGuardedAccess;
 
-  VariableGetImpl(VariableDeclaration variable, this.fact, this.scope,
-      {this.forNullGuardedAccess})
+  VariableGetImpl(VariableDeclaration variable, {this.forNullGuardedAccess})
       : assert(forNullGuardedAccess != null),
         super(variable);
 

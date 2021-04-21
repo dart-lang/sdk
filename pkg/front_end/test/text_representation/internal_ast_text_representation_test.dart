@@ -511,15 +511,12 @@ late dynamic foo = 0;''');
 
 void _testVariableGetImpl() {
   VariableDeclaration variable = new VariableDeclaration('foo');
-  testExpression(
-      new VariableGetImpl(variable, null, null, forNullGuardedAccess: false),
-      '''
+  testExpression(new VariableGetImpl(variable, forNullGuardedAccess: false), '''
+foo''');
+  testExpression(new VariableGetImpl(variable, forNullGuardedAccess: true), '''
 foo''');
   testExpression(
-      new VariableGetImpl(variable, null, null, forNullGuardedAccess: true), '''
-foo''');
-  testExpression(
-      new VariableGetImpl(variable, null, null, forNullGuardedAccess: false)
+      new VariableGetImpl(variable, forNullGuardedAccess: false)
         ..promotedType = const VoidType(),
       '''
 foo{void}''');

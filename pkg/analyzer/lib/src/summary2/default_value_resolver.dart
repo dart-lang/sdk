@@ -119,6 +119,7 @@ class DefaultValueResolver {
       },
       enclosingClassElement: _classElement,
       enclosingExecutableElement: _executableElement,
+      isTopLevelVariableInitializer: true,
     );
   }
 

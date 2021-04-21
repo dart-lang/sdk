@@ -53,16 +53,12 @@ class AstResolver {
       node.accept(variableResolverVisitor);
     }
 
-    FlowAnalysisHelper? flowAnalysis;
+    FlowAnalysisHelper flowAnalysis = FlowAnalysisHelper(
+        _unitElement.library.typeSystem,
+        false,
+        _unitElement.library.isNonNullableByDefault);
     if (isTopLevelVariableInitializer) {
-      if (_unitElement.library.isNonNullableByDefault) {
-        flowAnalysis = FlowAnalysisHelper(
-          _unitElement.library.typeSystem,
-          false,
-        );
-        flowAnalysis.topLevelDeclaration_enter(
-            node.parent as Declaration, null, null);
-      }
+      flowAnalysis.topLevelDeclaration_enter(node.parent!, null, null);
     }
 
     var resolverVisitor = ResolverVisitor(
@@ -80,14 +76,11 @@ class AstResolver {
       enclosingClassElement: enclosingClassElement,
       enclosingExecutableElement: enclosingExecutableElement,
     );
-    if (enclosingFunctionBody != null) {
-      resolverVisitor.prepareCurrentFunctionBody(enclosingFunctionBody);
-    }
 
     node.accept(resolverVisitor);
 
     if (isTopLevelVariableInitializer) {
-      flowAnalysis?.topLevelDeclaration_exit();
+      flowAnalysis.topLevelDeclaration_exit();
     }
   }
 }
