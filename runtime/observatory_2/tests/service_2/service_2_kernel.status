@@ -165,6 +165,7 @@ regress_34841_test: SkipByDesign # Debugger is disabled in AOT mode.
 reload_sources_test: SkipByDesign # Hot reload is disabled in AOT mode.
 rewind_optimized_out_test: SkipByDesign # Debugger is disabled in AOT mode.
 rewind_test: SkipByDesign # Debugger is disabled in AOT mode.
+sdk_break_with_mixin_test: SkipByDesign # Debugger is disabled in AOT mode.
 set_breakpoint_state_test: SkipByDesign # Debugger is disabled in AOT mode.
 set_library_debuggable_test: SkipByDesign # Debugger is disabled in AOT mode.
 sigquit_starts_service_test: SkipByDesign # Spawns a secondary process using Platform.executable.

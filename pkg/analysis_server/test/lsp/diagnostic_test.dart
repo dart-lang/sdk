@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -21,8 +18,6 @@ void main() {
 
 @reflectiveTest
 class DiagnosticTest extends AbstractLspAnalysisServerTest {
-  Folder pedanticLibFolder;
-
   Future<void> checkPluginErrorsForFile(String pluginAnalyzedFilePath) async {
     final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
 
@@ -50,7 +45,7 @@ String b = "Test";
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
 
-    final err = diagnostics.first;
+    final err = diagnostics!.first;
     expect(err.severity, DiagnosticSeverity.Error);
     expect(err.message, equals('Test error from plugin'));
     expect(err.code, equals('ERR1'));
@@ -60,7 +55,7 @@ String b = "Test";
     expect(err.range.end.character, equals(6));
     expect(err.relatedInformation, hasLength(1));
 
-    final related = err.relatedInformation[0];
+    final related = err.relatedInformation![0];
     expect(related.message, equals('Related error'));
     expect(related.location.range.start.line, equals(1));
     expect(related.location.range.start.character, equals(12));
@@ -96,7 +91,7 @@ linter:
     await initialize();
     final initialDiagnostics = await firstDiagnosticsUpdate;
     expect(initialDiagnostics, hasLength(1));
-    expect(initialDiagnostics.first.severity, DiagnosticSeverity.Warning);
+    expect(initialDiagnostics!.first.severity, DiagnosticSeverity.Warning);
     expect(initialDiagnostics.first.code, 'undefined_lint_warning');
   }
 
@@ -111,7 +106,7 @@ include: package:pedantic/analysis_options.yaml
     await initialize();
     final initialDiagnostics = await firstDiagnosticsUpdate;
     expect(initialDiagnostics, hasLength(1));
-    expect(initialDiagnostics.first.severity, DiagnosticSeverity.Warning);
+    expect(initialDiagnostics!.first.severity, DiagnosticSeverity.Warning);
     expect(initialDiagnostics.first.code, 'include_file_not_found');
 
     // TODO(scheglov) The server does not handle the file change.
@@ -139,7 +134,7 @@ void f() {
     await initialize();
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    final diagnostic = diagnostics!.first;
     expect(diagnostic.relatedInformation, hasLength(1));
   }
 
@@ -154,7 +149,7 @@ void f() {
     await initialize();
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    final diagnostic = diagnostics!.first;
     expect(diagnostic.message, contains('\nTry'));
   }
 
@@ -187,7 +182,7 @@ void f() {
             emptyTextDocumentClientCapabilities, [DiagnosticTag.Deprecated]));
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    final diagnostic = diagnostics!.first;
     expect(diagnostic.code, equals('deprecated_member_use_from_same_package'));
     expect(diagnostic.tags, contains(DiagnosticTag.Deprecated));
   }
@@ -204,7 +199,7 @@ void f() {
     await initialize();
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    final diagnostic = diagnostics!.first;
     expect(diagnostic.code, equals('deprecated_member_use_from_same_package'));
     expect(diagnostic.tags, isNull);
   }
@@ -223,7 +218,7 @@ void f() {
             emptyTextDocumentClientCapabilities, [DiagnosticTag.Unnecessary]));
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    final diagnostic = diagnostics!.first;
     expect(diagnostic.code, equals('dead_code'));
     expect(diagnostic.tags, contains(DiagnosticTag.Unnecessary));
   }
@@ -235,7 +230,7 @@ void f() {
 
     newFile(dotFolderFilePath, content: 'String a = 1;');
 
-    List<Diagnostic> diagnostics;
+    List<Diagnostic>? diagnostics;
     waitForDiagnostics(dotFolderFileUri).then((d) => diagnostics = d);
 
     // Send a request for a hover.
@@ -258,7 +253,7 @@ version: latest
     await initialize();
     final initialDiagnostics = await firstDiagnosticsUpdate;
     expect(initialDiagnostics, hasLength(1));
-    expect(initialDiagnostics.first.severity, DiagnosticSeverity.Error);
+    expect(initialDiagnostics!.first.severity, DiagnosticSeverity.Error);
     expect(initialDiagnostics.first.code, 'invalid_value');
   }
 
@@ -281,7 +276,7 @@ version: latest
     await initialize();
     final initialDiagnostics = await initialDiagnosticsFuture;
     expect(initialDiagnostics, hasLength(1));
-    expect(initialDiagnostics.first.message, contains(serverErrorMessage));
+    expect(initialDiagnostics!.first.message, contains(serverErrorMessage));
 
     final pluginTriggeredDiagnosticFuture = waitForDiagnostics(mainFileUri);
     final pluginError = plugin.AnalysisError(
@@ -297,7 +292,7 @@ version: latest
 
     final pluginTriggeredDiagnostics = await pluginTriggeredDiagnosticFuture;
     expect(
-        pluginTriggeredDiagnostics.map((error) => error.message),
+        pluginTriggeredDiagnostics!.map((error) => error.message),
         containsAll([
           pluginErrorMessage,
           contains(serverErrorMessage),
@@ -315,7 +310,7 @@ version: latest
     await initialize();
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
+    final diagnostic = diagnostics!.first;
     expect(diagnostic.code, equals('invalid_assignment'));
     expect(diagnostic.range.start.line, equals(0));
     expect(diagnostic.range.start.character, equals(11));
@@ -332,7 +327,7 @@ version: latest
       await openFile(mainFileUri, 'final a = Bad();');
       final diagnostics = await diagnosticsUpdate;
       expect(diagnostics, hasLength(1));
-      final diagnostic = diagnostics.first;
+      final diagnostic = diagnostics!.first;
       expect(diagnostic.message, contains("The function 'Bad' isn't defined"));
     }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -68,7 +66,7 @@ abstract class AnalyzerStatusTest extends AbstractLspAnalysisServerTest {
     // To avoid races, set up listeners for the notifications before we initialise
     // and track which event came first to ensure they arrived in the expected
     // order.
-    bool firstNotificationWasAnalyzing;
+    bool? firstNotificationWasAnalyzing;
     final startNotification = waitForAnalysisStart()
         .then((_) => firstNotificationWasAnalyzing ??= true);
     final completeNotification = waitForAnalysisComplete()

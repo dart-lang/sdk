@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -55,18 +54,18 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     final assist = findEditAction(
         codeActions,
         CodeActionKind('refactor.add.showCombinator'),
-        "Add explicit 'show' combinator");
+        "Add explicit 'show' combinator")!;
 
     // Ensure the edit came back, and using documentChanges.
-    expect(assist, isNotNull);
-    expect(assist.edit.documentChanges, isNotNull);
-    expect(assist.edit.changes, isNull);
+    final edit = assist.edit!;
+    expect(edit.documentChanges, isNotNull);
+    expect(edit.changes, isNull);
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
       mainFilePath: withoutMarkers(content),
     };
-    applyDocumentChanges(contents, assist.edit.documentChanges);
+    applyDocumentChanges(contents, edit.documentChanges!);
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
@@ -94,18 +93,18 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     final assistAction = findEditAction(
         codeActions,
         CodeActionKind('refactor.add.showCombinator'),
-        "Add explicit 'show' combinator");
+        "Add explicit 'show' combinator")!;
 
     // Ensure the edit came back, and using changes.
-    expect(assistAction, isNotNull);
-    expect(assistAction.edit.changes, isNotNull);
-    expect(assistAction.edit.documentChanges, isNull);
+    final edit = assistAction.edit!;
+    expect(edit.changes, isNotNull);
+    expect(edit.documentChanges, isNull);
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
       mainFilePath: withoutMarkers(content),
     };
-    applyChanges(contents, assistAction.edit.changes);
+    applyChanges(contents, edit.changes!);
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
@@ -180,24 +179,26 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     final marker = positionFromMarker(content);
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: Range(start: marker, end: marker));
-    final assist = findEditAction(codeActions,
-        CodeActionKind('refactor.flutter.wrap.generic'), 'Wrap with widget...');
+    final assist = findEditAction(
+        codeActions,
+        CodeActionKind('refactor.flutter.wrap.generic'),
+        'Wrap with widget...')!;
 
     // Ensure the edit came back, and using documentChanges.
-    expect(assist, isNotNull);
-    expect(assist.edit.documentChanges, isNotNull);
-    expect(assist.edit.changes, isNull);
+    final edit = assist.edit!;
+    expect(edit.documentChanges, isNotNull);
+    expect(edit.changes, isNull);
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
       mainFilePath: withoutMarkers(content),
     };
-    applyDocumentChanges(contents, assist.edit.documentChanges);
+    applyDocumentChanges(contents, edit.documentChanges!);
     expect(contents[mainFilePath], equals(expectedContent));
 
     // Also ensure there was a single edit that was correctly marked
     // as a SnippetTextEdit.
-    final textEdits = _extractTextDocumentEdits(assist.edit.documentChanges)
+    final textEdits = _extractTextDocumentEdits(edit.documentChanges!)
         .expand((tde) => tde.edits)
         .map((edit) => edit.map(
               (e) => e,
@@ -240,17 +241,18 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     final marker = positionFromMarker(content);
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: Range(start: marker, end: marker));
-    final assist = findEditAction(codeActions,
-        CodeActionKind('refactor.flutter.wrap.generic'), 'Wrap with widget...');
+    final assist = findEditAction(
+        codeActions,
+        CodeActionKind('refactor.flutter.wrap.generic'),
+        'Wrap with widget...')!;
 
     // Ensure the edit came back, and using documentChanges.
-    expect(assist, isNotNull);
-    expect(assist.edit.documentChanges, isNotNull);
-    expect(assist.edit.changes, isNull);
+    final edit = assist.edit!;
+    expect(edit.documentChanges, isNotNull);
+    expect(edit.changes, isNull);
 
     // Extract just TextDocumentEdits, create/rename/delete are not relevant.
-    final textDocumentEdits =
-        _extractTextDocumentEdits(assist.edit.documentChanges);
+    final textDocumentEdits = _extractTextDocumentEdits(edit.documentChanges!);
     final textEdits = textDocumentEdits
         .expand((tde) => tde.edits)
         .map((edit) => edit.map((e) => e, (e) => e, (e) => e))
@@ -284,7 +286,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
                 (delete) => null,
               ),
             )
-            .where((e) => e != null)
+            .whereNotNull()
             .toList(),
       );
 }

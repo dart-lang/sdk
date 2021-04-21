@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
@@ -120,7 +118,7 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
     if (expectedRanges.isEmpty) {
       expect(highlights, isNull);
     } else {
-      final highlightRanges = highlights.map((h) => h.range).toList();
+      final highlightRanges = highlights!.map((h) => h.range).toList();
       expect(highlightRanges, equals(expectedRanges));
     }
   }

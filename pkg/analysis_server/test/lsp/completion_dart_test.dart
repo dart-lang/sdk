@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,10 +26,8 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
   void expectAutoImportCompletion(List<CompletionItem> items, String file) {
     expect(
-      items.singleWhere(
-        (c) => c.detail?.contains("Auto import from '$file'") ?? false,
-        orElse: () => null,
-      ),
+      items.singleWhereOrNull(
+          (c) => c.detail?.contains("Auto import from '$file'") ?? false),
       isNotNull,
     );
   }
@@ -166,7 +163,7 @@ main() {
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
     expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b})'));
-    final textEdit = toTextEdit(item.textEdit);
+    final textEdit = toTextEdit(item.textEdit!);
     expect(textEdit.newText, equals(item.insertText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
@@ -213,7 +210,7 @@ class _MyWidgetState extends State<MyWidget> {
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
     expect(item.insertText, equals('setState(() {\n      \${0:}\n    \\});'));
-    final textEdit = toTextEdit(item.textEdit);
+    final textEdit = toTextEdit(item.textEdit!);
     expect(textEdit.newText, equals(item.insertText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
@@ -242,7 +239,7 @@ class _MyWidgetState extends State<MyWidget> {
     // With no required params, there should still be parens and a tabstop inside.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
     expect(item.insertText, equals(r'myFunction(${0:})'));
-    final textEdit = toTextEdit(item.textEdit);
+    final textEdit = toTextEdit(item.textEdit!);
     expect(textEdit.newText, equals(item.insertText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
@@ -268,7 +265,7 @@ class _MyWidgetState extends State<MyWidget> {
     // no need for snippets.
     expect(item.insertTextFormat, isNull);
     expect(item.insertText, equals(r'min'));
-    final textEdit = toTextEdit(item.textEdit);
+    final textEdit = toTextEdit(item.textEdit!);
     expect(textEdit.newText, equals(item.insertText));
   }
 
@@ -302,7 +299,7 @@ class _MyWidgetState extends State<MyWidget> {
     // Ensure the item can be resolved and gets a proper TextEdit.
     final resolved = await resolveCompletion(item);
     expect(resolved.textEdit, isNotNull);
-    final textEdit = toTextEdit(resolved.textEdit);
+    final textEdit = toTextEdit(resolved.textEdit!);
     expect(textEdit.newText, equals(item.insertText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
@@ -488,10 +485,9 @@ class _MyWidgetState extends State<MyWidget> {
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    final item = res.singleWhere((c) => c.label.startsWith('name =>'),
-        orElse: () => null);
+    final item = res.singleWhereOrNull((c) => c.label.startsWith('name =>'));
     expect(item, isNotNull);
-    expect(item.label, equals('name => …'));
+    expect(item!.label, equals('name => …'));
     expect(item.filterText, isNull); // Falls back to label
     expect(item.insertText, equals('''@override
   // TODO: implement name
@@ -608,8 +604,8 @@ class _MyWidgetState extends State<MyWidget> {
 
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final fromServer = res.singleWhere((c) => c.label == 'x');
-    final fromPlugin = res.singleWhere((c) => c.label == 'x.toUpperCase()',
-        orElse: () => null);
+    final fromPlugin =
+        res.singleWhereOrNull((c) => c.label == 'x.toUpperCase()');
 
     // Server results should still be included.
     expect(fromServer.kind, equals(CompletionItemKind.Variable));
@@ -670,14 +666,14 @@ class _MyWidgetState extends State<MyWidget> {
     // we expect.
     final replaced = applyTextEdits(
       withoutMarkers(content),
-      [textEditForReplace(item.textEdit)],
+      [textEditForReplace(item.textEdit!)],
     );
     expect(replaced, contains('a.abcdefghij\n'));
     // When using the insert range, we should retain what was after the caret
     // ("def" in this case).
     final inserted = applyTextEdits(
       withoutMarkers(content),
-      [textEditForInsert(item.textEdit)],
+      [textEditForInsert(item.textEdit!)],
     );
     expect(inserted, contains('a.abcdefghijdef\n'));
   }
@@ -758,7 +754,7 @@ class _MyWidgetState extends State<MyWidget> {
     expect(item.deprecated, isNull);
     // If the does not say it supports the deprecated flag, we should show
     // '(deprecated)' in the details.
-    expect(item.detail.toLowerCase(), contains('deprecated'));
+    expect(item.detail!.toLowerCase(), contains('deprecated'));
   }
 
   Future<void> test_isDeprecated_supportedFlag() async {
@@ -817,8 +813,8 @@ class _MyWidgetState extends State<MyWidget> {
     Future<void> check(
       String code,
       String expectedLabel, {
-      String expectedReplace,
-      String expectedInsert,
+      required String expectedReplace,
+      required String expectedInsert,
     }) async {
       final content = '''
 class A { const A({int argOne, int argTwo, String argThree}); }
@@ -943,7 +939,7 @@ main() { }
     expect(item.insertText, anyOf(equals('test'), isNull));
     final updated = applyTextEdits(
       withoutMarkers(content),
-      [toTextEdit(item.textEdit)],
+      [toTextEdit(item.textEdit!)],
     );
     expect(updated, contains('one: '));
   }
@@ -967,7 +963,7 @@ main() { }
     // need to be provided.
     expect(item.insertTextFormat, isNull);
     expect(item.insertText, isNull);
-    final textEdit = toTextEdit(item.textEdit);
+    final textEdit = toTextEdit(item.textEdit!);
     expect(textEdit.newText, equals('one: '));
     expect(
       textEdit.range,
@@ -999,7 +995,7 @@ main() { }
     // placeholder.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
     expect(item.insertText, equals(r'one: ${0:},'));
-    final textEdit = toTextEdit(item.textEdit);
+    final textEdit = toTextEdit(item.textEdit!);
     expect(textEdit.newText, equals(r'one: ${0:},'));
     expect(
       textEdit.range,
@@ -1058,7 +1054,7 @@ main() { }
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     final updated = applyTextEdits(
       withoutMarkers(content),
-      [toTextEdit(item.textEdit)],
+      [toTextEdit(item.textEdit!)],
     );
     expect(updated, contains('a.abcdefghij'));
   }
@@ -1167,7 +1163,7 @@ main() {
 
     // Ensure the doc comment was added.
     expect(
-      resolved.documentation.valueEquals('This class is in another file.'),
+      resolved.documentation!.valueEquals('This class is in another file.'),
       isTrue,
     );
 
@@ -1181,8 +1177,8 @@ main() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     final newContent = applyTextEdits(
       withoutMarkers(content),
-      [toTextEdit(resolved.textEdit)]
-          .followedBy(resolved.additionalTextEdits)
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
           .toList(),
     );
 
@@ -1287,8 +1283,8 @@ main() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     final newContent = applyTextEdits(
       withoutMarkers(content),
-      [toTextEdit(resolved.textEdit)]
-          .followedBy(resolved.additionalTextEdits)
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
           .toList(),
     );
 
@@ -1483,7 +1479,7 @@ main() {
 
     // Ensure the doc comment was added.
     expect(
-      resolved.documentation.valueEquals('This class is in another file.'),
+      resolved.documentation!.valueEquals('This class is in another file.'),
       isTrue,
     );
 
@@ -1499,14 +1495,14 @@ main() {
 
     final newContentReplaceMode = applyTextEdits(
       withoutMarkers(content),
-      [textEditForReplace(resolved.textEdit)]
-          .followedBy(resolved.additionalTextEdits)
+      [textEditForReplace(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
           .toList(),
     );
     final newContentInsertMode = applyTextEdits(
       withoutMarkers(content),
-      [textEditForInsert(resolved.textEdit)]
-          .followedBy(resolved.additionalTextEdits)
+      [textEditForInsert(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
           .toList(),
     );
 
@@ -1573,8 +1569,8 @@ main() {
     // Apply all current-document edits.
     final newContent = applyTextEdits(
       withoutMarkers(content),
-      [toTextEdit(resolved.textEdit)]
-          .followedBy(resolved.additionalTextEdits)
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
           .toList(),
     );
     expect(newContent, equals('''
@@ -1585,12 +1581,12 @@ main() {
     '''));
 
     // Execute the associated command (which will handle edits in other files).
-    ApplyWorkspaceEditParams editParams;
-    final commandResponse = await handleExpectedRequest<Object,
+    ApplyWorkspaceEditParams? editParams;
+    final commandResponse = await handleExpectedRequest<Object?,
         ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams.fromJson,
-      () => executeCommand(resolved.command),
+      () => executeCommand(resolved.command!),
       handler: (edit) {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
@@ -1603,13 +1599,13 @@ main() {
 
     // Ensure the edit came back.
     expect(editParams, isNotNull);
-    expect(editParams.edit.changes, isNotNull);
+    expect(editParams!.edit.changes, isNotNull);
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
       parentFilePath: withoutMarkers(parentContent),
     };
-    applyChanges(contents, editParams.edit.changes);
+    applyChanges(contents, editParams!.edit.changes!);
 
     // Check the parent file was modified to include the import by the edits
     // that came from the server.
@@ -1677,8 +1673,8 @@ main() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     final newContent = applyTextEdits(
       withoutMarkers(content),
-      [toTextEdit(resolved.textEdit)]
-          .followedBy(resolved.additionalTextEdits)
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
           .toList(),
     );
 
@@ -1771,8 +1767,8 @@ main() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     final newContent = applyTextEdits(
       withoutMarkers(content),
-      [toTextEdit(resolved.textEdit)]
-          .followedBy(resolved.additionalTextEdits)
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
           .toList(),
     );
 
@@ -1811,10 +1807,7 @@ main() {
 
     // Ensure the item doesn't appear in the results (because we might not
     // be able to execute the import edits if they're in another file).
-    final completion = res.singleWhere(
-      (c) => c.label == 'InOtherFile',
-      orElse: () => null,
-    );
+    final completion = res.singleWhereOrNull((c) => c.label == 'InOtherFile');
     expect(completion, isNull);
   }
 
@@ -1840,10 +1833,7 @@ main() {
 
     // Ensure the item doesn't appear in the results (because we might not
     // be able to execute the import edits if they're in another file).
-    final completion = res.singleWhere(
-      (c) => c.label == 'InOtherFile',
-      orElse: () => null,
-    );
+    final completion = res.singleWhereOrNull((c) => c.label == 'InOtherFile');
     expect(completion, isNull);
   }
 
@@ -1869,7 +1859,7 @@ main() {
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     final updated = applyTextEdits(
       withoutMarkers(content),
-      [toTextEdit(item.textEdit)],
+      [toTextEdit(item.textEdit!)],
     );
     expect(updated, contains('a.abcdefghij'));
   }
@@ -1920,7 +1910,7 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
     // placeholders.
     expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
     expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, c: ${3:c})'));
-    final textEdit = toTextEdit(item.textEdit);
+    final textEdit = toTextEdit(item.textEdit!);
     expect(textEdit.newText, equals(item.insertText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
@@ -1962,7 +1952,7 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
     // Ensure the item can be resolved and gets a proper TextEdit.
     final resolved = await resolveCompletion(item);
     expect(resolved.textEdit, isNotNull);
-    final textEdit = toTextEdit(resolved.textEdit);
+    final textEdit = toTextEdit(resolved.textEdit!);
     expect(textEdit.newText, equals(item.insertText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
