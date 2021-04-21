@@ -463,7 +463,7 @@ void LiveRange::Print() {
   THR_Print("  live range v%" Pd " [%" Pd ", %" Pd ") in ", vreg(), Start(),
             End());
   assigned_location().Print();
-  if (spill_slot_.HasStackIndex()) {
+  if (spill_slot_.HasStackIndex() && spill_slot_.base_reg() == FPREG) {
     const intptr_t stack_slot =
         -compiler::target::frame_layout.VariableIndexForFrameSlot(
             spill_slot_.stack_index());
