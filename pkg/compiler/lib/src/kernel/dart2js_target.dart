@@ -110,6 +110,7 @@ class Dart2jsTarget extends Target {
         'dart:_interceptors',
         'dart:_js_helper',
         'dart:_late_helper',
+        'dart:js',
         'dart:js_util'
       ];
 
