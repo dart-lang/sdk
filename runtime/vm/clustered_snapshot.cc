@@ -690,10 +690,10 @@ class TypeArgumentsSerializationCluster
     TypeArgumentsPtr type_args = TypeArguments::RawCast(object);
     objects_.Add(type_args);
 
-    s->Push(type_args->untag()->instantiations_);
-    const intptr_t length = Smi::Value(type_args->untag()->length_);
+    s->Push(type_args->untag()->instantiations());
+    const intptr_t length = Smi::Value(type_args->untag()->length());
     for (intptr_t i = 0; i < length; i++) {
-      s->Push(type_args->untag()->types()[i]);
+      s->Push(type_args->untag()->element(i));
     }
   }
 
@@ -706,7 +706,7 @@ class TypeArgumentsSerializationCluster
       TypeArgumentsPtr type_args = objects_[i];
       s->AssignRef(type_args);
       AutoTraceObject(type_args);
-      const intptr_t length = Smi::Value(type_args->untag()->length_);
+      const intptr_t length = Smi::Value(type_args->untag()->length());
       s->WriteUnsigned(length);
       target_memory_size_ +=
           compiler::target::TypeArguments::InstanceSize(length);
@@ -719,15 +719,16 @@ class TypeArgumentsSerializationCluster
     for (intptr_t i = 0; i < count; i++) {
       TypeArgumentsPtr type_args = objects_[i];
       AutoTraceObject(type_args);
-      const intptr_t length = Smi::Value(type_args->untag()->length_);
+      const intptr_t length = Smi::Value(type_args->untag()->length());
       s->WriteUnsigned(length);
-      intptr_t hash = Smi::Value(type_args->untag()->hash_);
+      intptr_t hash = Smi::Value(type_args->untag()->hash());
       s->Write<int32_t>(hash);
-      const intptr_t nullability = Smi::Value(type_args->untag()->nullability_);
+      const intptr_t nullability =
+          Smi::Value(type_args->untag()->nullability());
       s->WriteUnsigned(nullability);
-      WriteField(type_args, instantiations_);
+      WriteField(type_args, instantiations());
       for (intptr_t j = 0; j < length; j++) {
-        s->WriteElementRef(type_args->untag()->types()[j], j);
+        s->WriteElementRef(type_args->untag()->element(j), j);
       }
     }
   }

@@ -624,6 +624,13 @@ class Assembler : public AssemblerBase {
                           OperandSize sz = kFourBytes) {
     LoadFromOffset(dst, FieldAddress(base, index, scale, payload_offset), sz);
   }
+  void LoadIndexedCompressed(Register dst,
+                             Register base,
+                             int32_t offset,
+                             Register index) {
+    LoadCompressedField(
+        dst, FieldAddress(base, index, TIMES_COMPRESSED_WORD_SIZE, offset));
+  }
   void LoadFromStack(Register dst, intptr_t depth);
   void StoreToStack(Register src, intptr_t depth);
   void CompareToStack(Register src, intptr_t depth);

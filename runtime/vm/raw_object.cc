@@ -180,7 +180,7 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
     case kTypeArgumentsCid: {
       const TypeArgumentsPtr raw_array =
           static_cast<const TypeArgumentsPtr>(this);
-      intptr_t array_length = Smi::Value(raw_array->untag()->length_);
+      intptr_t array_length = Smi::Value(raw_array->untag()->length());
       instance_size = TypeArguments::InstanceSize(array_length);
       break;
     }
@@ -572,7 +572,8 @@ COMPRESSED_VISITOR(MirrorReference)
 COMPRESSED_VISITOR(UserTag)
 REGULAR_VISITOR(SubtypeTestCache)
 COMPRESSED_VISITOR(LoadingUnit)
-VARIABLE_VISITOR(TypeArguments, Smi::Value(raw_obj->untag()->length_))
+VARIABLE_COMPRESSED_VISITOR(TypeArguments,
+                            Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(LocalVarDescriptors, raw_obj->untag()->num_entries_)
 VARIABLE_COMPRESSED_VISITOR(ExceptionHandlers, raw_obj->untag()->num_entries_)
 VARIABLE_VISITOR(Context, raw_obj->untag()->num_variables_)

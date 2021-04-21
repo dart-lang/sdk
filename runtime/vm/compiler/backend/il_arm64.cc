@@ -1783,7 +1783,11 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(representation() == kTagged);
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid) ||
              (class_id() == kTypeArgumentsCid));
-      __ ldr(result, element_address);
+      if (class_id() == kTypeArgumentsCid) {
+        __ LoadCompressed(result, element_address);
+      } else {
+        __ ldr(result, element_address);
+      }
       break;
   }
 }

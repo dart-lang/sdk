@@ -236,6 +236,11 @@ enum ScaleFactor {
 #else
 #error "Unexpected word size"
 #endif
+#if !defined(DART_COMPRESSED_POINTERS)
+  TIMES_COMPRESSED_WORD_SIZE = TIMES_WORD_SIZE,
+#else
+#error Cannot compress IA32
+#endif
 };
 
 class Instr {

@@ -969,6 +969,13 @@ class Assembler : public AssemblerBase {
                           OperandSize sz = kEightBytes) {
     LoadFromOffset(dst, FieldAddress(base, index, scale, payload_offset), sz);
   }
+  void LoadIndexedCompressed(Register dst,
+                             Register base,
+                             int32_t offset,
+                             Register index) {
+    LoadCompressed(
+        dst, FieldAddress(base, index, TIMES_COMPRESSED_WORD_SIZE, offset));
+  }
   void StoreFieldToOffset(Register src,
                           Register base,
                           int32_t offset,
@@ -999,6 +1006,9 @@ class Assembler : public AssemblerBase {
   }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
+    cmpq(value, address);
+  }
+  void CompareWithCompressedFieldValue(Register value, FieldAddress address) {
     OBJ(cmp)(value, address);
   }
 

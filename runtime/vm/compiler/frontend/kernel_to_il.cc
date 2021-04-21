@@ -2556,7 +2556,8 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
   Fragment loop_body(more);
   loop_body += LoadLocal(info.type_parameters);
   loop_body += LoadLocal(info.vars->current_param_index);
-  loop_body += LoadIndexed(kTypeArgumentsCid);
+  loop_body += LoadIndexed(
+      kTypeArgumentsCid, /*index_scale*/ compiler::target::kCompressedWordSize);
   LocalVariable* current_param = MakeTemporary("current_param");  // Read-only.
 
   // One read-only local variable on stack (param) to drop after joining.

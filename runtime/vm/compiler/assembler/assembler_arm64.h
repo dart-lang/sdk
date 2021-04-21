@@ -310,8 +310,9 @@ class Address : public ValueObject {
     switch (cid) {
       case kArrayCid:
       case kImmutableArrayCid:
-      case kTypeArgumentsCid:
         return kEightBytes;
+      case kTypeArgumentsCid:
+        return kObjectBytes;
       case kOneByteStringCid:
       case kExternalOneByteStringCid:
         return kByte;
@@ -576,10 +577,15 @@ class Assembler : public AssemblerBase {
   void CompareWithFieldValue(Register value, FieldAddress address) {
     CompareWithMemoryValue(value, address);
   }
+  void CompareWithCompressedFieldValue(Register value, FieldAddress address) {
+    CompareWithMemoryValue(value, address, kObjectBytes);
+  }
 
-  void CompareWithMemoryValue(Register value, Address address) {
-    ldr(TMP, address);
-    cmp(value, Operand(TMP));
+  void CompareWithMemoryValue(Register value,
+                              Address address,
+                              OperandSize sz = kEightBytes) {
+    ldr(TMP, address, sz);
+    cmp(value, Operand(TMP), sz);
   }
 
   void CompareTypeNullabilityWith(Register type, int8_t value) {
@@ -1706,6 +1712,13 @@ class Assembler : public AssemblerBase {
                           OperandSize sz = kEightBytes) {
     add(dest, base, Operand(index, LSL, scale));
     LoadFromOffset(dest, dest, payload_offset - kHeapObjectTag, sz);
+  }
+  void LoadIndexedCompressed(Register dest,
+                             Register base,
+                             int32_t offset,
+                             Register index) {
+    add(dest, base, Operand(index, LSL, TIMES_COMPRESSED_WORD_SIZE));
+    LoadCompressedFieldFromOffset(dest, dest, offset);
   }
   void LoadSFromOffset(VRegister dest, Register base, int32_t offset);
   void LoadDFromOffset(VRegister dest, Register base, int32_t offset);

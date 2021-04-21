@@ -106,7 +106,7 @@ class ParsedFunction;
   V(ArgumentsDescriptor, UntaggedArray, count, Smi, FINAL)                     \
   V(ArgumentsDescriptor, UntaggedArray, size, Smi, FINAL)                      \
   V(PointerBase, UntaggedPointerBase, data_field, Dynamic, FINAL)              \
-  V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL)                  \
+  V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL_COMPRESSED)       \
   V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL_COMPRESSED)    \
   V(TypeParameter, UntaggedTypeParameter, name, Dynamic, FINAL_COMPRESSED)     \
   V(UnhandledException, UntaggedUnhandledException, exception, Dynamic,        \
