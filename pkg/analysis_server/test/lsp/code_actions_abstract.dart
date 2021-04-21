@@ -74,17 +74,6 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
         .toList();
   }
 
-  Future<Either2<Command, CodeAction>> getFixAllAction(
-      String title, Uri uri, String content) async {
-    // TODO(dantup): Fix this once new server support has landed.
-    throw UnimplementedError();
-    // final codeActions =
-    //     await getCodeActions(uri.toString(), range: rangeFromMarkers(content));
-    // final fixAction =
-    //     findCommand(codeActions, Commands.fixAllOfErrorCodeInFile, title);
-    // return fixAction;
-  }
-
   /// Verifies that executing the given code actions command on the server
   /// results in an edit being sent in the client that updates the file to match
   /// the expected content.

@@ -300,10 +300,7 @@ var b = bar();
     expect(fixTitle, equals("Create function 'foo'"));
   }
 
-  @failingTest
   Future<void> test_fixAll_notWhenSingle() async {
-    // TODO(dantup): Fix the text used to locate the fix once the
-    // new server support has landed.
     const content = '''
 void f(String a) {
   [[print(a!)]];
@@ -316,17 +313,16 @@ void f(String a) {
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final fixAction = await getFixAllAction(
-        "Apply all: Remove the '!'", mainFileUri, content);
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final fixAction = findEditAction(
+        codeActions, CodeActionKind('quickfix'), "Remove '!'s in file");
 
     // Should not appear if there was only a single error.
     expect(fixAction, isNull);
   }
 
-  @failingTest
   Future<void> test_fixAll_whenMultiple() async {
-    // TODO(dantup): Fix this test up to use the new server support for
-    // fix-all-in-file once landed.
     const content = '''
 void f(String a) {
   [[print(a!!)]];
@@ -346,11 +342,17 @@ void f(String a) {
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final fixAction = await getFixAllAction(
-        "Apply all: Remove the '!'", mainFileUri, content);
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final fixAction = findEditAction(
+        codeActions, CodeActionKind('quickfix'), "Remove '!'s in file")!;
 
-    await verifyCodeActionEdits(
-        fixAction, withoutMarkers(content), expectedContent);
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyChanges(contents, fixAction.edit!.changes!);
+    expect(contents[mainFilePath], equals(expectedContent));
   }
 
   Future<void> test_noDuplicates_differentFix() async {
