@@ -3962,13 +3962,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF].
   void _checkForTypeAliasCannotReferenceItself(
-    AstNode node,
+    TypeAlias node,
     TypeAliasElementImpl element,
   ) {
     if (element.hasSelfReference) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
-        node,
+        node.name,
       );
     }
   }
