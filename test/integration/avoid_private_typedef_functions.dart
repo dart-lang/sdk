@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('avoid_private_typedef_functions', () {
@@ -28,8 +29,8 @@ void main() {
 
     test('handles parts', () async {
       await cli.run([
-        'test_data/integration/avoid_private_typedef_functions/lib.dart',
-        'test_data/integration/avoid_private_typedef_functions/part.dart',
+        '$integrationTestDir/avoid_private_typedef_functions/lib.dart',
+        '$integrationTestDir/avoid_private_typedef_functions/part.dart',
         '--rules=avoid_private_typedef_functions'
       ]);
       expect(

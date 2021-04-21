@@ -10,6 +10,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('prefer_asserts_in_initializer_lists', () {
@@ -27,7 +28,7 @@ void main() {
 
     test('only throw errors', () async {
       await cli.runLinter([
-        'test_data/integration/prefer_asserts_in_initializer_lists',
+        '$integrationTestDir/prefer_asserts_in_initializer_lists',
         '--rules=prefer_asserts_in_initializer_lists'
       ], LinterOptions());
       expect(

@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('unnecessary_lambdas', () {
@@ -21,7 +22,7 @@ void main() {
     });
     test('deferred import', () async {
       await cli.runLinter([
-        'test_data/integration/unnecessary_lambdas',
+        '$integrationTestDir/unnecessary_lambdas',
         '--rules=unnecessary_lambdas',
       ], LinterOptions());
       expect(collectingOut.trim(), contains('2 files analyzed, 1 issue found'));

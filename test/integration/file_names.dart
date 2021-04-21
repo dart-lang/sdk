@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('file_names', () {
@@ -26,7 +27,7 @@ void main() {
 
     test('bad', () async {
       await cli.run(
-          ['test_data/integration/file_names/a-b.dart', '--rules=file_names']);
+          ['$integrationTestDir/file_names/a-b.dart', '--rules=file_names']);
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
@@ -37,7 +38,7 @@ void main() {
 
     test('ok', () async {
       await cli.run([
-        'test_data/integration/file_names/non-strict.css.dart',
+        '$integrationTestDir/file_names/non-strict.css.dart',
         '--rules=file_names'
       ]);
       expect(exitCode, 0);

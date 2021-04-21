@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('directives_ordering', () {
@@ -29,7 +30,7 @@ void main() {
       await cli.run([
         '--packages',
         packagesFilePath,
-        'test_data/integration/directives_ordering/dart_directives_go_first',
+        '$integrationTestDir/directives_ordering/dart_directives_go_first',
         '--rules=directives_ordering'
       ]);
       expect(
@@ -53,7 +54,7 @@ void main() {
       await cli.run([
         '--packages',
         packagesFilePath,
-        'test_data/integration/directives_ordering/package_directives_before_relative',
+        '$integrationTestDir/directives_ordering/package_directives_before_relative',
         '--rules=directives_ordering'
       ]);
       expect(
@@ -77,7 +78,7 @@ void main() {
       await cli.run([
         '--packages',
         packagesFilePath,
-        'test_data/integration/directives_ordering/export_directives_after_import_directives',
+        '$integrationTestDir/directives_ordering/export_directives_after_import_directives',
         '--rules=directives_ordering'
       ]);
       expect(
@@ -97,7 +98,7 @@ void main() {
       await cli.run([
         '--packages',
         packagesFilePath,
-        'test_data/integration/directives_ordering/sort_directive_sections_alphabetically',
+        '$integrationTestDir/directives_ordering/sort_directive_sections_alphabetically',
         '--rules=directives_ordering'
       ]);
       expect(
@@ -137,7 +138,7 @@ void main() {
       await cli.run([
         '--packages',
         packagesFilePath,
-        'test_data/integration/directives_ordering/lint_one_node_no_more_than_once',
+        '$integrationTestDir/directives_ordering/lint_one_node_no_more_than_once',
         '--rules=directives_ordering'
       ]);
       expect(

@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('only_throw_errors', () {
@@ -26,7 +27,7 @@ void main() {
 
     test('only throw errors', () async {
       await cli.run([
-        'test_data/integration/only_throw_errors',
+        '$integrationTestDir/only_throw_errors',
         '--rules=only_throw_errors'
       ]);
       expect(

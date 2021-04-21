@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('avoid_renaming_method_parameters', () {
@@ -29,8 +30,8 @@ void main() {
     test('lint lib/ sources and non-lib/ sources', () async {
       await cli.run([
         '--packages',
-        'test_data/integration/avoid_renaming_method_parameters/_packages',
-        'test_data/integration/avoid_renaming_method_parameters',
+        '$integrationTestDir/avoid_renaming_method_parameters/_packages',
+        '$integrationTestDir/avoid_renaming_method_parameters',
         '--rules=avoid_renaming_method_parameters'
       ]);
       expect(

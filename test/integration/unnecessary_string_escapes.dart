@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('unnecessary_string_escapes', () {
@@ -21,7 +22,7 @@ void main() {
     });
     test('no_closing_quote', () async {
       await cli.runLinter([
-        'test_data/integration/unnecessary_string_escapes/no_closing_quote.dart',
+        '$integrationTestDir/unnecessary_string_escapes/no_closing_quote.dart',
         '--rules=unnecessary_string_escapes',
       ], LinterOptions());
       // No exception.

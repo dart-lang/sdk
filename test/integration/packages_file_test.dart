@@ -11,6 +11,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('p5', () {
@@ -29,9 +30,9 @@ void main() {
       test('basic', () async {
         // Requires .packages to analyze cleanly.
         await cli.runLinter([
-          'test_data/integration/p5',
+          '$integrationTestDir/p5',
           '--packages',
-          'test_data/integration/p5/_packages'
+          '$integrationTestDir/p5/_packages'
         ], LinterOptions([]));
         // Should have 0 issues.
         expect(exitCode, 0);

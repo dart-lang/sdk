@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('use_build_context_synchronously', () {
@@ -22,7 +23,7 @@ void main() {
     //https://github.com/dart-lang/linter/issues/2572
     test('mixed_mode', () async {
       await cli.runLinter([
-        'test_data/integration/use_build_context_synchronously/lib/unmigrated.dart',
+        '$integrationTestDir/use_build_context_synchronously/lib/unmigrated.dart',
         '--packages',
         'test/rules/.mock_packages',
         '--rules=use_build_context_synchronously',

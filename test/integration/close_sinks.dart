@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('close_sinks', () {
@@ -29,7 +30,7 @@ void main() {
       await cli.run([
         '--packages',
         packagesFilePath,
-        'test_data/integration/close_sinks',
+        '$integrationTestDir/close_sinks',
         '--rules=close_sinks'
       ]);
       expect(

@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 import '../rule_test.dart';
+import '../test_constants.dart';
 
 /// Solo rule test runner.  Handy for debugging until `dart test` supports
 /// VM debugging (https://github.com/dart-lang/test/issues/50).
@@ -19,6 +20,6 @@ import '../rule_test.dart';
 ///
 void main(List<String> args) {
   var ruleName = args[0];
-  var dir = Directory(ruleDir).absolute;
+  var dir = Directory(ruleTestDir).absolute;
   testRule(ruleName, File(p.join(dir.path, '$ruleName.dart')));
 }

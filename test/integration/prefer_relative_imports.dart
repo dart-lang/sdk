@@ -10,6 +10,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('prefer_relative_imports', () {
@@ -27,10 +28,10 @@ void main() {
 
     test('prefer relative imports', () async {
       await cli.runLinter([
-        'test_data/integration/prefer_relative_imports',
+        '$integrationTestDir/prefer_relative_imports',
         '--rules=prefer_relative_imports',
         '--packages',
-        'test_data/integration/prefer_relative_imports/_packages'
+        '$integrationTestDir/prefer_relative_imports/_packages'
       ], LinterOptions());
       expect(
           collectingOut.trim(),

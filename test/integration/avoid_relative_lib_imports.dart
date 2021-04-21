@@ -10,6 +10,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('avoid_relative_lib_imports', () {
@@ -27,10 +28,10 @@ void main() {
 
     test('avoid relative lib imports', () async {
       await cli.runLinter([
-        'test_data/integration/avoid_relative_lib_imports',
+        '$integrationTestDir/avoid_relative_lib_imports',
         '--rules=avoid_relative_lib_imports',
         '--packages',
-        'test_data/integration/avoid_relative_lib_imports/_packages'
+        '$integrationTestDir/avoid_relative_lib_imports/_packages'
       ], LinterOptions());
       expect(
           collectingOut.trim(),

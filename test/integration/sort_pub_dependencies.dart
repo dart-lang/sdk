@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('sort_pub_dependencies', () {
@@ -28,7 +29,7 @@ void main() {
 
     test('check order', () async {
       await cli.run([
-        'test_data/integration/sort_pub_dependencies',
+        '$integrationTestDir/sort_pub_dependencies',
         '--rules=sort_pub_dependencies',
       ]);
       expect(

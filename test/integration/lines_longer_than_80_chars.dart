@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('lines_longer_than_80_chars', () {
@@ -26,7 +27,7 @@ void main() {
 
     test('ignores can exceed 80', () async {
       await cli.run([
-        'test_data/integration/lines_longer_than_80_chars',
+        '$integrationTestDir/lines_longer_than_80_chars',
         '--rules=lines_longer_than_80_chars'
       ]);
       expect(

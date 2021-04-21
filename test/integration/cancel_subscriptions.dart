@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('cancel_subscriptions', () {
@@ -26,7 +27,7 @@ void main() {
 
     test('cancel subscriptions', () async {
       await cli.run([
-        'test_data/integration/cancel_subscriptions',
+        '$integrationTestDir/cancel_subscriptions',
         '--rules=cancel_subscriptions'
       ]);
       expect(

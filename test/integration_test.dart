@@ -48,6 +48,7 @@ import 'integration/use_build_context_synchronously.dart'
     as use_build_context_synchronously;
 import 'mocks.dart';
 import 'rules/experiments/experiments.dart';
+import 'test_constants.dart';
 
 void main() {
   group('integration', () {
@@ -72,9 +73,9 @@ void coreTests() {
       });
       test('excludes', () async {
         await cli.run([
-          'test_data/integration/p2',
+          '$integrationTestDir/p2',
           '-c',
-          'test_data/integration/p2/lintconfig.yaml'
+          '$integrationTestDir/p2/lintconfig.yaml'
         ]);
         expect(
             collectingOut.trim(),
@@ -84,16 +85,16 @@ void coreTests() {
       });
       test('overrides', () async {
         await cli.run([
-          'test_data/integration/p2',
+          '$integrationTestDir/p2',
           '-c',
-          'test_data/integration/p2/lintconfig2.yaml'
+          '$integrationTestDir/p2/lintconfig2.yaml'
         ]);
         expect(collectingOut.trim(),
             stringContainsInOrder(['4 files analyzed, 0 issues found, in']));
         expect(exitCode, 0);
       });
       test('default', () async {
-        await cli.run(['test_data/integration/p2']);
+        await cli.run(['$integrationTestDir/p2']);
         expect(collectingOut.trim(),
             stringContainsInOrder(['4 files analyzed, 3 issues found, in']));
         expect(exitCode, 1);
@@ -110,8 +111,8 @@ void coreTests() {
       });
       test('bad pubspec', () async {
         await cli.run([
-          'test_data/integration/p3',
-          'test_data/integration/p3/_pubpspec.yaml'
+          '$integrationTestDir/p3',
+          '$integrationTestDir/p3/_pubpspec.yaml'
         ]);
         expect(collectingOut.trim(),
             startsWith('1 file analyzed, 0 issues found, in'));
@@ -128,9 +129,9 @@ void coreTests() {
       });
       test('no warnings due to bad canonicalization', () async {
         var packagesFilePath =
-            File('test_data/integration/p4/_packages').absolute.path;
+            File('$integrationTestDir/p4/_packages').absolute.path;
         await cli.runLinter(
-            ['--packages', packagesFilePath, 'test_data/integration/p4'],
+            ['--packages', packagesFilePath, '$integrationTestDir/p4'],
             LinterOptions([]));
         expect(collectingOut.trim(),
             startsWith('3 files analyzed, 0 issues found, in'));

@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('exhaustive_cases', () {
@@ -21,7 +22,7 @@ void main() {
     });
     test('exhaustive_cases', () async {
       await cli.runLinter([
-        'test_data/integration/exhaustive_cases',
+        '$integrationTestDir/exhaustive_cases',
         '--rules=exhaustive_cases',
       ], LinterOptions());
       expect(collectingOut.trim(),

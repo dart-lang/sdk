@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('flutter_style_todos', () {
@@ -26,7 +27,7 @@ void main() {
 
     test('on bad TODOs', () async {
       await cli.run([
-        'test_data/integration/flutter_style_todos',
+        '$integrationTestDir/flutter_style_todos',
         '--rules=flutter_style_todos'
       ]);
       expect(

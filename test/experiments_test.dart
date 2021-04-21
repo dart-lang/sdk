@@ -9,12 +9,14 @@ import 'package:test/test.dart';
 
 import 'rule_test.dart';
 import 'rules/experiments/experiments.dart';
+import 'test_constants.dart';
 
 void main() {
   group('experiments', () {
     registerLintRuleExperiments();
 
-    for (var entry in Directory(p.join(ruleDir, 'experiments')).listSync()) {
+    for (var entry
+        in Directory(p.join(ruleTestDir, 'experiments')).listSync()) {
       if (entry is! Directory) continue;
 
       group(p.basename(entry.path), () {

@@ -6,6 +6,8 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 
+import '../test_constants.dart';
+
 void main() {
   group('public_member_api_docs', () {
     test('lint lib/ sources and non-lib/ sources', () async {
@@ -15,12 +17,12 @@ void main() {
             'pub',
             'get',
           ],
-          workingDirectory: 'test_data/integration/public_member_api_docs');
+          workingDirectory: '$integrationTestDir/public_member_api_docs');
       expect(pubResult.exitCode, 0);
 
       var result = Process.runSync(
         'dart',
-        ['analyze', 'test_data/integration/public_member_api_docs'],
+        ['analyze', '$integrationTestDir/public_member_api_docs'],
       );
       expect(
           result.stdout.trim(),

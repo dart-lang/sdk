@@ -10,6 +10,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('prefer_const_constructors_in_immutables', () {
@@ -27,7 +28,7 @@ void main() {
 
     test('only throw errors', () async {
       await cli.runLinter([
-        'test_data/integration/prefer_const_constructors_in_immutables',
+        '$integrationTestDir/prefer_const_constructors_in_immutables',
         '--rules=prefer_const_constructors_in_immutables',
         '--packages',
         'test/rules/.mock_packages',

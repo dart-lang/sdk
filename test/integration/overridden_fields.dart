@@ -9,6 +9,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('overridden_fields', () {
@@ -27,7 +28,7 @@ void main() {
     // https://github.com/dart-lang/linter/issues/246
     test('overrides across libraries', () async {
       await cli.run([
-        'test_data/integration/overridden_fields',
+        '$integrationTestDir/overridden_fields',
         '--rules',
         'overridden_fields'
       ]);

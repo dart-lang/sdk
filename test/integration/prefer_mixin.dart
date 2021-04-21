@@ -10,6 +10,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('prefer_mixin', () {
@@ -27,7 +28,7 @@ void main() {
 
     test('analysis', () async {
       await cli.runLinter([
-        'test_data/integration/prefer_mixin',
+        '$integrationTestDir/prefer_mixin',
         '--rules=prefer_mixin',
         '--packages',
         'test/rules/.mock_packages',

@@ -10,6 +10,7 @@ import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
 
 import '../mocks.dart';
+import '../test_constants.dart';
 
 void main() {
   group('always_require_non_null_named_parameters', () {
@@ -27,7 +28,7 @@ void main() {
 
     test('only throw errors', () async {
       await cli.runLinter([
-        'test_data/integration/always_require_non_null_named_parameters',
+        '$integrationTestDir/always_require_non_null_named_parameters',
         '--rules=always_require_non_null_named_parameters',
         '--packages',
         'test/rules/.mock_packages',
