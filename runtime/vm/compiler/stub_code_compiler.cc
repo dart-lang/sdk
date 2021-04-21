@@ -358,7 +358,7 @@ static void GenerateTypeIsTopTypeForSubtyping(Assembler* assembler,
   __ CompareObject(scratch2_reg, Object::null_object());
   // If the arguments are null, then unwrapping gives dynamic, a top type.
   __ BranchIf(EQUAL, &is_top_type, compiler::Assembler::kNearJump);
-  __ LoadField(
+  __ LoadCompressedField(
       scratch1_reg,
       compiler::FieldAddress(
           scratch2_reg, compiler::target::TypeArguments::type_at_offset(0)));
@@ -457,7 +457,7 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     // If the arguments are null, then unwrapping gives the dynamic type,
     // which can take null.
     __ BranchIf(EQUAL, &is_assignable);
-    __ LoadField(
+    __ LoadCompressedField(
         kCurrentTypeReg,
         compiler::FieldAddress(
             kScratchReg, compiler::target::TypeArguments::type_at_offset(0)));
@@ -483,9 +483,9 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
       // Resolve the type parameter to its instantiated type and loop.
       __ LoadFieldFromOffset(kIndexReg, kCurrentTypeReg,
                              target::TypeParameter::index_offset(), kTwoBytes);
-      __ LoadIndexedPayload(kCurrentTypeReg, tav,
-                            target::TypeArguments::types_offset(), kIndexReg,
-                            TIMES_WORD_SIZE);
+      __ LoadIndexedCompressed(kCurrentTypeReg, tav,
+                               target::TypeArguments::types_offset(),
+                               kIndexReg);
       __ Jump(&check_null_assignable);
     };
 
@@ -598,9 +598,9 @@ static void BuildTypeParameterTypeTestStub(Assembler* assembler,
     // instantiated type's TTS.
     __ LoadFieldFromOffset(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
                            target::TypeParameter::index_offset(), kTwoBytes);
-    __ LoadIndexedPayload(TypeTestABI::kScratchReg, tav,
-                          target::TypeArguments::types_offset(),
-                          TypeTestABI::kScratchReg, TIMES_WORD_SIZE);
+    __ LoadIndexedCompressed(TypeTestABI::kScratchReg, tav,
+                             target::TypeArguments::types_offset(),
+                             TypeTestABI::kScratchReg);
     __ Jump(FieldAddress(
         TypeTestABI::kScratchReg,
         target::AbstractType::type_test_stub_entry_point_offset()));

@@ -3459,8 +3459,9 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
     Assembler* assembler) {
   // Lookup cache before calling runtime.
-  __ LoadFieldFromOffset(R0, InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                         target::TypeArguments::instantiations_offset());
+  __ LoadCompressedFieldFromOffset(
+      R0, InstantiationABI::kUninstantiatedTypeArgumentsReg,
+      target::TypeArguments::instantiations_offset());
   __ AddImmediate(R0, Array::data_offset() - kHeapObjectTag);
   // The instantiations cache is initialized with Object::zero_array() and is
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
@@ -3513,10 +3514,12 @@ void StubCodeCompiler::
   // Return the instantiator type arguments if its nullability is compatible for
   // sharing, otherwise proceed to instantiation cache lookup.
   compiler::Label cache_lookup;
-  __ LoadFieldFromOffset(R0, InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                         target::TypeArguments::nullability_offset());
-  __ LoadFieldFromOffset(R4, InstantiationABI::kInstantiatorTypeArgumentsReg,
-                         target::TypeArguments::nullability_offset());
+  __ LoadCompressedSmi(
+      R0, FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                       target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      R4, FieldAddress(InstantiationABI::kInstantiatorTypeArgumentsReg,
+                       target::TypeArguments::nullability_offset()));
   __ and_(R4, R4, Operand(R0));
   __ cmp(R4, Operand(R0));
   __ b(&cache_lookup, NE);
@@ -3533,10 +3536,12 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
   // Return the function type arguments if its nullability is compatible for
   // sharing, otherwise proceed to instantiation cache lookup.
   compiler::Label cache_lookup;
-  __ LoadFieldFromOffset(R0, InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                         target::TypeArguments::nullability_offset());
-  __ LoadFieldFromOffset(R4, InstantiationABI::kFunctionTypeArgumentsReg,
-                         target::TypeArguments::nullability_offset());
+  __ LoadCompressedSmi(
+      R0, FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                       target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      R4, FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
+                       target::TypeArguments::nullability_offset()));
   __ and_(R4, R4, Operand(R0));
   __ cmp(R4, Operand(R0));
   __ b(&cache_lookup, NE);

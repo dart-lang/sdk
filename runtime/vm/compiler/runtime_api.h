@@ -297,6 +297,12 @@ static_assert(dart::kWordSize >= kWordSize,
 static constexpr word kBitsPerWordLog2 = kWordSizeLog2 + kBitsPerByteLog2;
 static constexpr word kBitsPerWord = 1 << kBitsPerWordLog2;
 
+#if !defined(DART_COMPRESSED_POINTERS)
+static constexpr int kCompressedWordSize = kWordSize;
+#else
+static constexpr int kCompressedWordSize = sizeof(uint32_t);
+#endif
+
 using ObjectAlignment = dart::ObjectAlignment<kWordSize, kWordSizeLog2>;
 
 constexpr word kWordMax = (static_cast<uword>(1) << (kBitsPerWord - 1)) - 1;

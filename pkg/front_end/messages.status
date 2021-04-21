@@ -369,9 +369,11 @@ ForInLoopNotAssignable/part_wrapped_statement: Fail
 ForInLoopNotAssignable/statement: Fail
 ForInLoopTypeNotIterablePartNullability/example: Fail # Cannot occur but needed for symmetry with ForInLoopTypeNotIterableNullability
 ForInLoopWithConstVariable/example: Fail
+FunctionAsTypeParameter/analyzerCode: Fail
 FunctionTypeDefaultValue/example: Fail
 FunctionTypedParameterVar/part_wrapped_script1: Fail
 FunctionTypedParameterVar/script1: Fail
+FunctionUsedAsDec/analyzerCode: Fail
 GeneratorReturnsValue/example: Fail
 GetterNotFound/example: Fail
 GetterWithFormals/example: Fail

@@ -111,12 +111,6 @@ class NamingConventionsTest extends RefactoringTest {
             'Constructor name must begin with a lowercase letter or underscore.');
   }
 
-  void test_validateConstructorName_null() {
-    assertRefactoringStatus(
-        validateConstructorName(null), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Constructor name must not be null.');
-  }
-
   void test_validateConstructorName_OK() {
     assertRefactoringStatusOK(validateConstructorName('newName'));
   }
@@ -287,12 +281,6 @@ class NamingConventionsTest extends RefactoringTest {
             'Import prefix name must begin with a lowercase letter or underscore.');
   }
 
-  void test_validateImportPrefixName_null() {
-    assertRefactoringStatus(
-        validateImportPrefixName(null), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Import prefix name must not be null.');
-  }
-
   void test_validateImportPrefixName_OK() {
     assertRefactoringStatusOK(validateImportPrefixName('newName'));
   }
@@ -431,12 +419,6 @@ class NamingConventionsTest extends RefactoringTest {
         validateLibraryName('my.2bad.name'), RefactoringProblemSeverity.FATAL,
         expectedMessage:
             'Library name identifier must begin with a lowercase letter or underscore.');
-  }
-
-  void test_validateLibraryName_null() {
-    assertRefactoringStatus(
-        validateLibraryName(null), RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Library name must not be null.');
   }
 
   void test_validateLibraryName_OK_oneIdentifier() {

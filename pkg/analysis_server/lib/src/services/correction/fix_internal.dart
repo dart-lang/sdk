@@ -381,8 +381,7 @@ class FixProcessor extends BaseProcessor {
     ],
     StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION: [
       FixInfo(
-        // todo (pq): consider adding
-        canBeAppliedToFile: false,
+        canBeAppliedToFile: true,
         canBeBulkApplied: true,
         generators: [
           RemoveNonNullAssertion.newInstance,
@@ -579,7 +578,7 @@ class FixProcessor extends BaseProcessor {
     LintNames.directives_ordering: [
       FixInfo(
         canBeAppliedToFile: false, // Fix will sort all directives.
-        canBeBulkApplied: false,
+        canBeBulkApplied: true,
         generators: [
           OrganizeImports.newInstance,
         ],

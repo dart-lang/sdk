@@ -760,6 +760,11 @@ enum ScaleFactor {
 #else
 #error "Unexpected word size"
 #endif
+#if !defined(DART_COMPRESSED_POINTERS)
+  TIMES_COMPRESSED_WORD_SIZE = TIMES_WORD_SIZE,
+#else
+#error Cannot compress ARM32
+#endif
 };
 
 // The class Instr enables access to individual fields defined in the ARM

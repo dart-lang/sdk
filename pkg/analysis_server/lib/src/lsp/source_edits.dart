@@ -79,7 +79,7 @@ ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
 
 ErrorOr<List<TextEdit>?> generateEditsForFormatting(
   ParsedUnitResult result,
-  int lineLength, {
+  int? lineLength, {
   Range? range,
 }) {
   final unformattedSource = result.content;

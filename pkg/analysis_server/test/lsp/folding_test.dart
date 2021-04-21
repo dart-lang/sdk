@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -271,7 +269,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     expect(regions, containsAll(expectedRegions));
   }
 
-  FoldingRange _toFoldingRange(Range range, FoldingRangeKind kind) {
+  FoldingRange _toFoldingRange(Range range, FoldingRangeKind? kind) {
     return FoldingRange(
       startLine: range.start.line,
       startCharacter: range.start.character,

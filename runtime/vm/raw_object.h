@@ -166,7 +166,7 @@ class UntaggedObject {
     }
 
     static constexpr bool SizeFits(intptr_t size) {
-      DEBUG_ASSERT(Utils::IsAligned(size, kObjectAlignment));
+      assert(Utils::IsAligned(size, kObjectAlignment));
       return (size <= kMaxSizeTag);
     }
 
@@ -585,10 +585,11 @@ class UntaggedObject {
     }
   }
 
-  void StorePointer(CompressedObjectPtr* addr,
-                    ObjectPtr value,
-                    Thread* thread) {
-    *addr = value;
+  template <typename type, typename compressed_type>
+  void StoreCompressedPointer(compressed_type const* addr,
+                              type value,
+                              Thread* thread) {
+    *const_cast<compressed_type*>(addr) = value;
     if (value->IsHeapObject()) {
       CheckHeapPointerStore(value, thread);
     }
@@ -619,10 +620,23 @@ class UntaggedObject {
     }
   }
 
-  void StoreArrayPointer(CompressedObjectPtr* addr,
-                         ObjectPtr value,
-                         Thread* thread) {
-    *addr = value;
+  template <typename type,
+            typename compressed_type,
+            std::memory_order order = std::memory_order_relaxed>
+  void StoreCompressedArrayPointer(compressed_type const* addr, type value) {
+    reinterpret_cast<std::atomic<compressed_type>*>(
+        const_cast<compressed_type*>(addr))
+        ->store(static_cast<compressed_type>(value), order);
+    if (value->IsHeapObject()) {
+      CheckArrayPointerStore(addr, value, Thread::Current());
+    }
+  }
+
+  template <typename type, typename compressed_type>
+  void StoreCompressedArrayPointer(compressed_type const* addr,
+                                   type value,
+                                   Thread* thread) {
+    *const_cast<compressed_type*>(addr) = value;
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, thread);
     }
@@ -843,6 +857,27 @@ inline intptr_t ObjectPtr::GetClassId() const {
  protected:                                                                    \
   type* array_name() { OPEN_ARRAY_START(type, type); }                         \
   type const* array_name() const { OPEN_ARRAY_START(type, type); }
+
+#define COMPRESSED_VARIABLE_POINTER_FIELDS(type, accessor_name, array_name)    \
+ public:                                                                       \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  type accessor_name(intptr_t index) const {                                   \
+    return LoadCompressedPointer<type, Compressed##type, order>(               \
+        &array_name()[index]);                                                 \
+  }                                                                            \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##accessor_name(intptr_t index, type value) {                       \
+    StoreCompressedArrayPointer<type, Compressed##type, order>(                \
+        &array_name()[index], value);                                          \
+  }                                                                            \
+                                                                               \
+ protected:                                                                    \
+  Compressed##type* array_name() {                                             \
+    OPEN_ARRAY_START(Compressed##type, Compressed##type);                      \
+  }                                                                            \
+  Compressed##type const* array_name() const {                                 \
+    OPEN_ARRAY_START(Compressed##type, Compressed##type);                      \
+  }
 
 #define SMI_FIELD(type, name)                                                  \
  public:                                                                       \
@@ -2443,17 +2478,17 @@ class UntaggedTypeArguments : public UntaggedInstance {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeArguments);
 
-  VISIT_FROM(ObjectPtr, instantiations)
+  VISIT_FROM(CompressedObjectPtr, instantiations)
   // The instantiations_ array remains empty for instantiated type arguments.
-  POINTER_FIELD(ArrayPtr,
-                instantiations)  // Of 3-tuple: 2 instantiators, result.
-  SMI_FIELD(SmiPtr, length)
-  SMI_FIELD(SmiPtr, hash)
-  SMI_FIELD(SmiPtr, nullability)
+  // Of 3-tuple: 2 instantiators, result.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, instantiations)
+  COMPRESSED_SMI_FIELD(SmiPtr, length)
+  COMPRESSED_SMI_FIELD(SmiPtr, hash)
+  COMPRESSED_SMI_FIELD(SmiPtr, nullability)
   // Variable length data follows here.
-  VARIABLE_POINTER_FIELDS(AbstractTypePtr, element, types)
-  ObjectPtr* to(intptr_t length) {
-    return reinterpret_cast<ObjectPtr*>(&types()[length - 1]);
+  COMPRESSED_VARIABLE_POINTER_FIELDS(AbstractTypePtr, element, types)
+  CompressedObjectPtr* to(intptr_t length) {
+    return reinterpret_cast<CompressedObjectPtr*>(&types()[length - 1]);
   }
 
   friend class Object;
@@ -2473,11 +2508,10 @@ class UntaggedAbstractType : public UntaggedInstance {
  protected:
   static constexpr intptr_t kTypeStateBitSize = 2;
 
-  uword type_test_stub_entry_point_;  // Accessed from generated code.
-  COMPRESSED_POINTER_FIELD(
-      CodePtr,
-      type_test_stub)  // Must be the last field, since subclasses use it
-                       // in their VISIT_FROM.
+  // Accessed from generated code.
+  uword type_test_stub_entry_point_;
+  // Must be the last field, since subclasses use it in their VISIT_FROM.
+  COMPRESSED_POINTER_FIELD(CodePtr, type_test_stub)
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);

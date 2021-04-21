@@ -473,8 +473,9 @@ word Instance::ElementSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
-    case kTypeArgumentsCid:
       return kWordSize;
+    case kTypeArgumentsCid:
+      return kCompressedWordSize;
     case kOneByteStringCid:
       return dart::OneByteString::kBytesPerElement;
     case kTwoByteStringCid:

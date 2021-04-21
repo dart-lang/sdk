@@ -144,7 +144,9 @@ abstract class MessageHandler<P, R>
       );
     }
 
-    final params = jsonHandler.convertParams(message.params);
+    final params = message.params != null
+        ? jsonHandler.convertParams(message.params)
+        : null as P;
     return handle(params, token);
   }
 }

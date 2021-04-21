@@ -3388,9 +3388,9 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
     Assembler* assembler) {
   // Lookup cache before calling runtime.
-  __ movq(RAX, compiler::FieldAddress(
-                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                   target::TypeArguments::instantiations_offset()));
+  __ LoadCompressed(RAX, compiler::FieldAddress(
+                             InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::instantiations_offset()));
   __ leaq(RAX, compiler::FieldAddress(RAX, Array::data_offset()));
 
   // The instantiations cache is initialized with Object::zero_array() and is
@@ -3446,12 +3446,13 @@ void StubCodeCompiler::
   // Return the instantiator type arguments if its nullability is compatible for
   // sharing, otherwise proceed to instantiation cache lookup.
   compiler::Label cache_lookup;
-  __ movq(RAX, compiler::FieldAddress(
-                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                   target::TypeArguments::nullability_offset()));
-  __ movq(RDI, compiler::FieldAddress(
-                   InstantiationABI::kInstantiatorTypeArgumentsReg,
-                   target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      RAX,
+      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(RDI, compiler::FieldAddress(
+                                InstantiationABI::kInstantiatorTypeArgumentsReg,
+                                target::TypeArguments::nullability_offset()));
   __ andq(RDI, RAX);
   __ cmpq(RDI, RAX);
   __ j(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);
@@ -3468,12 +3469,13 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
   // Return the function type arguments if its nullability is compatible for
   // sharing, otherwise proceed to instantiation cache lookup.
   compiler::Label cache_lookup;
-  __ movq(RAX, compiler::FieldAddress(
-                   InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                   target::TypeArguments::nullability_offset()));
-  __ movq(RDI,
-          compiler::FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
-                                 target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      RAX,
+      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
+                             target::TypeArguments::nullability_offset()));
+  __ LoadCompressedSmi(
+      RDI, compiler::FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
+                                  target::TypeArguments::nullability_offset()));
   __ andq(RDI, RAX);
   __ cmpq(RDI, RAX);
   __ j(NOT_EQUAL, &cache_lookup, compiler::Assembler::kNearJump);

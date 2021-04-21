@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -54,7 +52,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final dartOptions = CompletionRegistrationOptions.fromJson(
         dartRegistration.registerOptions);
     expect(dartOptions.documentSelector, hasLength(1));
-    expect(dartOptions.documentSelector[0].language, dartLanguageId);
+    expect(dartOptions.documentSelector![0].language, dartLanguageId);
     expect(dartOptions.triggerCharacters, isNotEmpty);
 
     // Check non-Dart registration.
@@ -63,7 +61,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         r != dartRegistration);
     final nonDartOptions = CompletionRegistrationOptions.fromJson(
         nonDartRegistration.registerOptions);
-    final otherLanguages = nonDartOptions.documentSelector
+    final otherLanguages = nonDartOptions.documentSelector!
         .map((selector) => selector.language)
         .toList();
     expect(otherLanguages, isNot(contains('dart')));
@@ -91,8 +89,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // static registrations for them.
     // https://github.com/dart-lang/sdk/issues/38490
     final initResult = InitializeResult.fromJson(initResponse.result);
-    expect(initResult.serverInfo.name, 'Dart SDK LSP Analysis Server');
-    expect(initResult.serverInfo.version, isNotNull);
+    expect(initResult.serverInfo!.name, 'Dart SDK LSP Analysis Server');
+    expect(initResult.serverInfo!.version, isNotNull);
     expect(initResult.capabilities, isNotNull);
     expect(initResult.capabilities.textDocumentSync, isNull);
 
@@ -113,16 +111,17 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // The hover capability should only specific Dart.
     expect(hover, isNotNull);
     expect(hover.documentSelector, hasLength(1));
-    expect(hover.documentSelector.single.language, equals('dart'));
+    expect(hover.documentSelector!.single.language, equals('dart'));
 
     // didChange should also include pubspec + analysis_options.
     expect(change, isNotNull);
     expect(change.documentSelector, hasLength(greaterThanOrEqualTo(3)));
-    expect(change.documentSelector.any((ds) => ds.language == 'dart'), isTrue);
-    expect(change.documentSelector.any((ds) => ds.pattern == '**/pubspec.yaml'),
+    expect(change.documentSelector!.any((ds) => ds.language == 'dart'), isTrue);
+    expect(
+        change.documentSelector!.any((ds) => ds.pattern == '**/pubspec.yaml'),
         isTrue);
     expect(
-        change.documentSelector
+        change.documentSelector!
             .any((ds) => ds.pattern == '**/analysis_options.yaml'),
         isTrue);
 
@@ -149,7 +148,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // When dynamic registration is not supported, we will always statically
     // request text document open/close and incremental updates.
     expect(initResult.capabilities.textDocumentSync, isNotNull);
-    initResult.capabilities.textDocumentSync.map(
+    initResult.capabilities.textDocumentSync!.map(
       (options) {
         expect(options.openClose, isTrue);
         expect(options.change, equals(TextDocumentSyncKind.Incremental));
@@ -169,7 +168,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.codeActionProvider, isNotNull);
     expect(initResult.capabilities.renameProvider, isNotNull);
     expect(initResult.capabilities.foldingRangeProvider, isNotNull);
-    expect(initResult.capabilities.workspace.fileOperations.willRename,
+    expect(initResult.capabilities.workspace!.fileOperations!.willRename,
         equals(ServerCapabilitiesComputer.fileOperationRegistrationOptions));
     expect(initResult.capabilities.semanticTokensProvider, isNotNull);
 
@@ -226,7 +225,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.codeActionProvider, isNull);
     expect(initResult.capabilities.renameProvider, isNull);
     expect(initResult.capabilities.foldingRangeProvider, isNull);
-    expect(initResult.capabilities.workspace.fileOperations, isNull);
+    expect(initResult.capabilities.workspace!.fileOperations, isNull);
     expect(initResult.capabilities.semanticTokensProvider, isNull);
 
     // Ensure all expected dynamic registrations.
@@ -465,7 +464,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(result.capabilities, isNotNull);
     // Check some basic capabilities that are unlikely to change.
     expect(result.capabilities.textDocumentSync, isNotNull);
-    result.capabilities.textDocumentSync.map(
+    result.capabilities.textDocumentSync!.map(
       (options) {
         // We'll always request open/closed notifications and incremental updates.
         expect(options.openClose, isTrue);
@@ -487,7 +486,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final response = await sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.error, isNotNull);
-    expect(response.error.code, equals(ErrorCodes.InvalidParams));
+    expect(response.error!.code, equals(ErrorCodes.InvalidParams));
     expect(response.result, isNull);
   }
 
@@ -497,8 +496,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(response, isNotNull);
     expect(response.result, isNull);
     expect(response.error, isNotNull);
-    expect(
-        response.error.code, equals(ServerErrorCodes.ServerAlreadyInitialized));
+    expect(response.error!.code,
+        equals(ServerErrorCodes.ServerAlreadyInitialized));
   }
 
   Future<void> test_initialize_rootPath() async {
@@ -643,7 +642,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     // Wait up to 1sec to ensure no error/log notifications were sent back.
     var didTimeout = false;
-    final notificationFromServer = await nextNotification.timeout(
+    final notificationFromServer = await nextNotification
+        .then<NotificationMessage?>((notification) => notification)
+        .timeout(
       const Duration(seconds: 1),
       onTimeout: () {
         didTimeout = true;
@@ -661,6 +662,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(response.id, equals(request.id));
     expect(response.result, isNull);
     expect(response.error, isNotNull);
-    expect(response.error.code, ErrorCodes.ServerNotInitialized);
+    expect(response.error!.code, ErrorCodes.ServerNotInitialized);
   }
 }

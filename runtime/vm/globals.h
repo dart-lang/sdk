@@ -33,6 +33,12 @@ const intptr_t kSmiBits32 = kBitsPerInt32 - 2;
 const intptr_t kSmiMax32 = (static_cast<intptr_t>(1) << kSmiBits32) - 1;
 const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
 
+#if !defined(DART_COMPRESSED_POINTERS)
+const intptr_t kCompressedWordSize = kWordSize;
+#else
+const intptr_t kCompressedWordSize = sizeof(uint32_t);
+#endif
+
 // Number of bytes per BigInt digit.
 const intptr_t kBytesPerBigIntDigit = 4;
 

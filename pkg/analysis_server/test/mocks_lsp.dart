@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -20,8 +18,6 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
       StreamController<lsp.Message>.broadcast();
   final StreamController<lsp.Message> _serverToClient =
       StreamController<lsp.Message>.broadcast();
-
-  String name;
 
   /// Completer that will be signalled when the input stream is closed.
   final Completer _closed = Completer();
@@ -78,7 +74,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
 
   @override
   void listen(void Function(lsp.Message message) onMessage,
-      {Function onError, void Function() onDone}) {
+      {Function? onError, void Function()? onDone}) {
     _clientToServer.stream.listen(onMessage, onError: onError, onDone: onDone);
   }
 

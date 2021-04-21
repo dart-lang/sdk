@@ -9,7 +9,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 /// A [MessageHandler] that rejects specific tpyes of messages with a given
 /// error code/message.
-class RejectMessageHandler extends MessageHandler<Object?, void> {
+class RejectMessageHandler extends MessageHandler<Object?, Null> {
   @override
   final Method handlesMessage;
   final ErrorCodes errorCode;
@@ -19,10 +19,10 @@ class RejectMessageHandler extends MessageHandler<Object?, void> {
       : super(server);
 
   @override
-  LspJsonHandler<Object?> get jsonHandler => NullJsonHandler;
+  LspJsonHandler<Null> get jsonHandler => NullJsonHandler;
 
   @override
-  ErrorOr<void> handle(void _, CancellationToken token) {
+  ErrorOr<Null> handle(Object? _, CancellationToken token) {
     return error(errorCode, errorMessage, null);
   }
 }

@@ -72,9 +72,6 @@ bool test_simulateRefactoringReset_afterInitialConditions = false;
 /// Instances of the class [EditDomainHandler] implement a [RequestHandler]
 /// that handles requests in the edit domain.
 class EditDomainHandler extends AbstractRequestHandler {
-  /// The [SearchEngine] for this server.
-  SearchEngine? searchEngine;
-
   /// The workspace for rename refactorings.
   RefactoringWorkspace? refactoringWorkspace;
 
@@ -84,9 +81,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   /// Initialize a newly created handler to handle requests for the given
   /// [server].
   EditDomainHandler(AnalysisServer server) : super(server) {
-    var search = searchEngine = server.searchEngine;
     refactoringWorkspace =
-        RefactoringWorkspace(server.driverMap.values, search);
+        RefactoringWorkspace(server.driverMap.values, server.searchEngine);
     _newRefactoringManager();
   }
 
@@ -815,10 +811,6 @@ length: $length
   }
 
   Response _getAvailableRefactorings(Request request) {
-    if (searchEngine == null) {
-      var result = EditGetAvailableRefactoringsResult([]);
-      return result.toResponse(request.id);
-    }
     _getAvailableRefactoringsImpl(request);
     return Response.DELAYED_RESPONSE;
   }
@@ -836,7 +828,7 @@ length: $length
     // add refactoring kinds
     var kinds = <RefactoringKind>[];
     // Check nodes.
-    final searchEngine = this.searchEngine;
+    final searchEngine = server.searchEngine;
     {
       var resolvedUnit = await server.getResolvedUnit(file);
       if (resolvedUnit != null) {
@@ -845,19 +837,15 @@ length: $length
             .isAvailable()) {
           kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
         }
-        if (searchEngine != null) {
-          // Try EXTRACT_METHOD.
-          if (ExtractMethodRefactoring(
-                  searchEngine, resolvedUnit, offset, length)
-              .isAvailable()) {
-            kinds.add(RefactoringKind.EXTRACT_METHOD);
-          }
-          // Try EXTRACT_WIDGETS.
-          if (ExtractWidgetRefactoring(
-                  searchEngine, resolvedUnit, offset, length)
-              .isAvailable()) {
-            kinds.add(RefactoringKind.EXTRACT_WIDGET);
-          }
+        // Try EXTRACT_METHOD.
+        if (ExtractMethodRefactoring(searchEngine, resolvedUnit, offset, length)
+            .isAvailable()) {
+          kinds.add(RefactoringKind.EXTRACT_METHOD);
+        }
+        // Try EXTRACT_WIDGETS.
+        if (ExtractWidgetRefactoring(searchEngine, resolvedUnit, offset, length)
+            .isAvailable()) {
+          kinds.add(RefactoringKind.EXTRACT_WIDGET);
         }
       }
     }
@@ -869,7 +857,7 @@ length: $length
         var element = server.getElementOfNode(node);
         if (element != null) {
           // try CONVERT_METHOD_TO_GETTER
-          if (element is ExecutableElement && searchEngine != null) {
+          if (element is ExecutableElement) {
             Refactoring refactoring = ConvertMethodToGetterRefactoring(
                 searchEngine, resolvedUnit.session, element);
             var status = await refactoring.checkInitialConditions();

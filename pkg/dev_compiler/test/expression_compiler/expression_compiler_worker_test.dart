@@ -10,13 +10,12 @@ import 'dart:io' show Directory, File, Platform, Process, stderr, stdout;
 import 'dart:isolate';
 
 import 'package:build_integration/file_system/multi_root.dart';
+import 'package:dev_compiler/src/kernel/expression_compiler_worker.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:path/path.dart' as p;
 import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
-
-import 'package:dev_compiler/src/kernel/expression_compiler_worker.dart';
 
 /// Verbose mode for debugging
 bool get verbose => false;

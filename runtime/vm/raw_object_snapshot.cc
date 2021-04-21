@@ -354,7 +354,7 @@ void UntaggedTypeArguments::WriteTo(SnapshotWriter* writer,
     // across (isolates spawned using spawnURI) we send them as dynamic.
     if (!writer->can_send_any_object()) {
       // Lookup the type class.
-      TypePtr raw_type = Type::RawCast(types()[i]);
+      TypePtr raw_type = Type::RawCast(element(i));
       SmiPtr raw_type_class_id =
           Smi::RawCast(raw_type->untag()->type_class_id());
       ClassPtr type_class = writer->isolate_group()->class_table()->At(
@@ -362,10 +362,10 @@ void UntaggedTypeArguments::WriteTo(SnapshotWriter* writer,
       if (!writer->AllowObjectsInDartLibrary(type_class->untag()->library())) {
         writer->WriteVMIsolateObject(kDynamicType);
       } else {
-        writer->WriteObjectImpl(types()[i], as_reference);
+        writer->WriteObjectImpl(element(i), as_reference);
       }
     } else {
-      writer->WriteObjectImpl(types()[i], as_reference);
+      writer->WriteObjectImpl(element(i), as_reference);
     }
   }
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -56,7 +54,7 @@ final a = A();
     final contents = {
       mainFilePath: withoutMarkers(mainContent),
     };
-    applyChanges(contents, edit.changes);
+    applyChanges(contents, edit.changes!);
     expect(contents[mainFilePath], equals(expectedMainContent));
   }
 }

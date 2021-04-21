@@ -318,6 +318,11 @@ enum ScaleFactor {
 #else
 #error "Unexpected word size"
 #endif
+#if !defined(DART_COMPRESSED_POINTERS)
+  TIMES_COMPRESSED_WORD_SIZE = TIMES_WORD_SIZE,
+#else
+  TIMES_COMPRESSED_WORD_SIZE = TIMES_HALF_WORD_SIZE,
+#endif
 };
 
 #define R(reg) (1 << (reg))

@@ -410,6 +410,9 @@ class Assembler : public AssemblerBase {
   void CompareWithFieldValue(Register value, FieldAddress address) {
     CompareWithMemoryValue(value, address);
   }
+  void CompareWithCompressedFieldValue(Register value, FieldAddress address) {
+    CompareWithMemoryValue(value, address);
+  }
 
   void CompareWithMemoryValue(Register value, Address address) {
     ldr(TMP, address);
@@ -946,14 +949,21 @@ class Assembler : public AssemblerBase {
   // For loading indexed payloads out of tagged objects like Arrays. If the
   // payload objects are word-sized, use TIMES_HALF_WORD_SIZE if the contents of
   // [index] is a Smi, otherwise TIMES_WORD_SIZE if unboxed.
-  void LoadIndexedPayload(Register reg,
+  void LoadIndexedPayload(Register dst,
                           Register base,
                           int32_t payload_start,
                           Register index,
                           ScaleFactor scale,
                           OperandSize type = kFourBytes) {
-    add(reg, base, Operand(index, LSL, scale));
-    LoadFromOffset(reg, reg, payload_start - kHeapObjectTag, type);
+    add(dst, base, Operand(index, LSL, scale));
+    LoadFromOffset(dst, dst, payload_start - kHeapObjectTag, type);
+  }
+  void LoadIndexedCompressed(Register dst,
+                             Register base,
+                             int32_t offset,
+                             Register index) {
+    add(dst, base, Operand(index, LSL, TIMES_COMPRESSED_WORD_SIZE));
+    LoadCompressedFieldFromOffset(dst, dst, offset);
   }
   void LoadFromStack(Register dst, intptr_t depth);
   void StoreToStack(Register src, intptr_t depth);

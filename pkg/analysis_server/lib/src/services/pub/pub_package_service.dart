@@ -65,7 +65,7 @@ class PackageDetailsCache {
     }
 
     final packagesJson = json['packages'];
-    if (packagesJson is! List<Object>) {
+    if (packagesJson is! List<Object?>) {
       return null;
     }
 

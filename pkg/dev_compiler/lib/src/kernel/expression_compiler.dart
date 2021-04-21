@@ -6,19 +6,15 @@
 
 import 'dart:async';
 
-import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage, DiagnosticMessageHandler;
-
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Code, Message, PlainAndColorizedString;
-
+import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
+    show DiagnosticMessage, DiagnosticMessageHandler;
 import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/compiler/js_names.dart' as js_ast;
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:dev_compiler/src/js_ast/js_ast.dart' as js_ast;
-
 import 'package:front_end/src/api_unstable/ddc.dart';
-
 import 'package:kernel/ast.dart'
     show
         Block,

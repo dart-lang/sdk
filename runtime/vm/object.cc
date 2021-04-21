@@ -1045,7 +1045,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   {
     uword address = heap->Allocate(TypeArguments::InstanceSize(0), Heap::kOld);
     InitializeObject(address, kTypeArgumentsCid, TypeArguments::InstanceSize(0),
-                     /*compressed*/ false);
+                     /*compressed*/ true);
     TypeArguments::initializeHandle(
         empty_type_arguments_,
         static_cast<TypeArgumentsPtr>(address + kHeapObjectTag));
@@ -6689,7 +6689,7 @@ TypeArgumentsPtr TypeArguments::New(intptr_t len, Heap::Space space) {
   {
     ObjectPtr raw = Object::Allocate(TypeArguments::kClassId,
                                      TypeArguments::InstanceSize(len), space,
-                                     /*compressed*/ false);
+                                     /*compressed*/ true);
     NoSafepointScope no_safepoint;
     result ^= raw;
     // Length must be set before we start storing into the array.

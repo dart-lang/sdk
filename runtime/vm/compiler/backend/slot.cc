@@ -238,8 +238,9 @@ const Slot& Slot::GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index) {
   const intptr_t offset =
       compiler::target::TypeArguments::type_at_offset(index);
   const Slot& slot =
-      Slot(Kind::kTypeArgumentsIndex, IsImmutableBit::encode(true), kDynamicCid,
-           offset, ":argument", /*static_type=*/nullptr, kTagged);
+      Slot(Kind::kTypeArgumentsIndex,
+           IsImmutableBit::encode(true) | IsCompressedBit::encode(true),
+           kDynamicCid, offset, ":argument", /*static_type=*/nullptr, kTagged);
   return SlotCache::Instance(thread).Canonicalize(slot);
 }
 

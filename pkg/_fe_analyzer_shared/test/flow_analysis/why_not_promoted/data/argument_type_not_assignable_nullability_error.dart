@@ -446,7 +446,7 @@ class C33 {
   int? bad;
 }
 
-test(C33 c) {
+explicitExtensionInvocation(C33 c) {
   if (c.bad == null) return;
   E33(c.
           /*notPromoted(propertyNotPromoted(target: member:C33.bad, type: int?))*/ bad)

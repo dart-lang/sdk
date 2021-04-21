@@ -7491,7 +7491,7 @@ class TypeArguments : public Instance {
     return OFFSET_OF_RETURNED_VALUE(UntaggedTypeArguments, types);
   }
   static intptr_t type_at_offset(intptr_t index) {
-    return types_offset() + index * kWordSize;
+    return types_offset() + index * kCompressedWordSize;
   }
   void SetTypeAt(intptr_t index, const AbstractType& value) const;
 
@@ -7500,7 +7500,7 @@ class TypeArguments : public Instance {
       return TypeArguments::types_offset();
     }
 
-    static constexpr intptr_t kElementSize = kWordSize;
+    static constexpr intptr_t kElementSize = kCompressedWordSize;
   };
 
   // The nullability of a type argument vector represents the nullability of its
@@ -7683,7 +7683,7 @@ class TypeArguments : public Instance {
     return OFFSET_OF(UntaggedTypeArguments, instantiations_);
   }
 
-  static const intptr_t kBytesPerElement = kWordSize;
+  static const intptr_t kBytesPerElement = kCompressedWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize() {
@@ -7696,7 +7696,7 @@ class TypeArguments : public Instance {
     // Ensure that the types() is not adding to the object size, which includes
     // 4 fields: instantiations_, length_, hash_, and nullability_.
     ASSERT(sizeof(UntaggedTypeArguments) ==
-           (sizeof(UntaggedObject) + (kNumFields * kWordSize)));
+           (sizeof(UntaggedObject) + (kNumFields * kCompressedWordSize)));
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(sizeof(UntaggedTypeArguments) +
                                  (len * kBytesPerElement));

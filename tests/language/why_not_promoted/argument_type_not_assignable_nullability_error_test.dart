@@ -655,7 +655,7 @@ class C33 {
   // [context 94] 'bad' refers to a property so it couldn't be promoted.
 }
 
-test(C33 c) {
+explicitExtensionInvocation(C33 c) {
   if (c.bad == null) return;
   E33(c.bad).f();
   //  ^^^^^

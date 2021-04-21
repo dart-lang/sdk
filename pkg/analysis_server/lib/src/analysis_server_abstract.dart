@@ -74,7 +74,7 @@ abstract class AbstractAnalysisServer {
   final DartSdkManager sdkManager;
 
   /// The [SearchEngine] for this server.
-  late SearchEngine searchEngine;
+  late final SearchEngine searchEngine;
 
   late ByteStore byteStore;
 

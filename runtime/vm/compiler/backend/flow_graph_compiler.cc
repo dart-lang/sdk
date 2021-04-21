@@ -2702,7 +2702,7 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
     __ CompareObject(kTypeArgumentsReg, Object::null_object());
     __ BranchIf(EQUAL, is_instance_lbl);
-    __ LoadFieldFromOffset(
+    __ LoadCompressedFieldFromOffset(
         kScratchReg, kTypeArgumentsReg,
         compiler::target::TypeArguments::type_at_offset(type_param.index()));
     // kScratchReg: Concrete type of type.
@@ -3036,7 +3036,7 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
     __ BranchIf(EQUAL, done);
     // Put the instantiated type parameter into the scratch register, so its
     // TTS can be called by the caller.
-    __ LoadField(
+    __ LoadCompressedField(
         TypeTestABI::kScratchReg,
         compiler::FieldAddress(kTypeArgumentsReg,
                                compiler::target::TypeArguments::type_at_offset(

@@ -672,7 +672,10 @@ class Parser {
     if (improveTypes) {
       final improvedTypeName = getImprovedType(containerName, fieldName);
       if (improvedTypeName != null) {
-        type = Type.identifier(improvedTypeName);
+        type = improvedTypeName.endsWith('[]')
+            ? ArrayType(Type.identifier(
+                improvedTypeName.substring(0, improvedTypeName.length - 2)))
+            : Type.identifier(improvedTypeName);
       }
     }
     return type;
