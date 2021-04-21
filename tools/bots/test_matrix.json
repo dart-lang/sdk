@@ -2918,27 +2918,12 @@
       "steps": [
         {
           "name": "build debian package",
-          "script": "tools/run_debian_build.sh",
+          "script": "tools/linux_dist_support/run_debian_build.sh",
           "arguments": []
         },
         {
           "name": "upload debian packages",
-          "script": "tools/bots/upload_debian_packages.py",
-          "arguments": []
-        }
-      ]
-    },
-    {
-      "builders": [
-        "versionchecker-linux"
-      ],
-      "meta": {
-        "description": "This configuration is used by the versionchecker-builder."
-      },
-      "steps": [
-        {
-          "name": "check version",
-          "script": "tools/bots/version_checker.py",
+          "script": "tools/linux_dist_support/upload_debian_packages.py",
           "arguments": []
         }
       ]

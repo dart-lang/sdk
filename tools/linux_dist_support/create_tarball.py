@@ -26,12 +26,12 @@ import optparse
 import sys
 import tarfile
 from os import listdir
-from os.path import join, split, abspath
-
+from os.path import join, split, abspath, dirname
+sys.path.append(join(dirname(__file__), '..'))
 import utils
 
 HOST_OS = utils.GuessOS()
-DART_DIR = abspath(join(__file__, '..', '..'))
+DART_DIR = abspath(join(dirname(__file__), '..', '..'))
 # Flags.
 verbose = False
 
@@ -40,21 +40,40 @@ versiondir = ''
 
 # Ignore Git/SVN files, checked-in binaries, backup files, etc..
 ignoredPaths = [
-    'third_party/7zip', 'third_party/android_tools', 'third_party/clang',
-    'third_party/d8', 'third_party/firefox_jsshell'
+    'buildtools/linux-x64/go',
+    'buildtools/linux-x64/rust',
+    'samples',
+    'samples_2',
+    'third_party/7zip',
+    'third_party/android_tools',
+    'third_party/clang',
+    'third_party/d8',
+    'third_party/firefox_jsshell',
+    'third_party/gsutil',
+    'third_party/llvm-build',
+    'third_party/mdn',
 ]
-ignoredDirs = ['.svn', '.git']
+ignoredDirs = [
+    '.cipd',
+    '.git',
+    'benchmarks',
+    'docs',
+    'fuchsia',
+    'parser_testcases',
+    'test',
+    'testcases',
+    'tests',
+]
 ignoredEndings = ['.mk', '.pyc', 'Makefile', '~']
 
 
 def BuildOptions():
     result = optparse.OptionParser()
-    result.add_option(
-        "-v",
-        "--verbose",
-        help='Verbose output.',
-        default=False,
-        action="store_true")
+    result.add_option("-v",
+                      "--verbose",
+                      help='Verbose output.',
+                      default=False,
+                      action="store_true")
     result.add_option("--tar_filename", default=None, help="The output file.")
 
     return result
@@ -134,9 +153,8 @@ def CreateTarball(tarfilename):
         for f in listdir(DART_DIR):
             tar.add(join(DART_DIR, f), filter=Filter)
         for f in listdir(join(DART_DIR, debian_dir)):
-            tar.add(
-                join(DART_DIR, debian_dir, f),
-                arcname='%s/debian/%s' % (versiondir, f))
+            tar.add(join(DART_DIR, debian_dir, f),
+                    arcname='%s/debian/%s' % (versiondir, f))
 
         with utils.TempDir() as temp_dir:
             # Generate and add debian/copyright
@@ -158,9 +176,8 @@ def CreateTarball(tarfilename):
             if utils.GetChannel() == 'be':
                 git_revision = join(temp_dir, 'GIT_REVISION')
                 GenerateGitRevision(git_revision, utils.GetGitRevision())
-                tar.add(
-                    git_revision,
-                    arcname='%s/dart/tools/GIT_REVISION' % versiondir)
+                tar.add(git_revision,
+                        arcname='%s/dart/tools/GIT_REVISION' % versiondir)
 
 
 def Main():
