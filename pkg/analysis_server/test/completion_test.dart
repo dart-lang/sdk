@@ -2443,9 +2443,10 @@ class A<Z extends X> {
         ++expectedFailCount;
         test('$testName (expected failure $expectedFailCount)', () {
           var test = CompletionTestCase();
-          return Future(() => test.runTest(spec, extraFiles)).then((_) {
-            fail('Test passed - expected to fail.');
-          }, onError: (_) {});
+          expect(
+            () => test.runTest(spec, extraFiles),
+            throwsA(anything),
+          );
         });
       } else {
         ++expectedPassCount;
