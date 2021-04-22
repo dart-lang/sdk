@@ -16,6 +16,7 @@ import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/binary_format_doc.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:collection/collection.dart';
 
 Uint8List writeUnitToBytes({required CompilationUnit unit}) {
   var byteSink = ByteSink();
@@ -372,7 +373,7 @@ class ResolutionSink {
     required StringIndexer stringIndexer,
     required BufferedSink sink,
     required _BundleWriterReferences references,
-  })   : _stringIndexer = stringIndexer,
+  })  : _stringIndexer = stringIndexer,
         _sink = sink,
         _references2 = references;
 
@@ -596,7 +597,8 @@ class ResolutionSink {
       }
 
       return typeParameters
-          .map((typeParameter) => substitution[typeParameter]!)
+          .map((typeParameter) => substitution[typeParameter])
+          .whereNotNull()
           .toList(growable: false);
     }
 

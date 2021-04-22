@@ -449,6 +449,20 @@ class B {}
 ''');
   }
 
+  test_methodInvocation_ofGenericClass_generic_static_fromLegacy() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A<T> {
+  static void foo<T2>() {}
+}
+''');
+    await _assertCanBeAnalyzed('''
+// @dart = 2.9
+import 'a.dart';
+
+const bar = A.foo();
+''');
+  }
+
   Future<void> _assertCanBeAnalyzed(String text) async {
     await resolveTestCode(text);
     assertHasTestErrors();
