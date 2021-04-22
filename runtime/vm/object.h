@@ -970,13 +970,15 @@ class Class : public Object {
                                   intptr_t target_value) const {
     ASSERT(Utils::IsAligned((host_value * kWordSize), kObjectAlignment));
     StoreNonPointer(&untag()->host_instance_size_in_words_, host_value);
+#if !defined(DART_PRECOMPILER)
+    // Could be different only during cross-compilation.
+    ASSERT_EQUAL(host_value, target_value);
+#endif  // !defined(DART_PRECOMPILER)
 #if !defined(DART_PRECOMPILED_RUNTIME)
     ASSERT(Utils::IsAligned((target_value * compiler::target::kWordSize),
                             compiler::target::kObjectAlignment));
     StoreNonPointer(&untag()->target_instance_size_in_words_, target_value);
-#else
-    ASSERT(host_value == target_value);
-#endif  // #!defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
   intptr_t host_next_field_offset() const {
@@ -988,7 +990,7 @@ class Class : public Object {
            compiler::target::kWordSize;
 #else
     return host_next_field_offset();
-#endif  // #!defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
   void set_next_field_offset(intptr_t host_value_in_bytes,
                              intptr_t target_value_in_bytes) const {
@@ -1004,6 +1006,10 @@ class Class : public Object {
            (!Utils::IsAligned((host_value * kWordSize), kObjectAlignment) &&
             ((host_value + 1) == untag()->host_instance_size_in_words_)));
     StoreNonPointer(&untag()->host_next_field_offset_in_words_, host_value);
+#if !defined(DART_PRECOMPILER)
+    // Could be different only during cross-compilation.
+    ASSERT_EQUAL(host_value, target_value);
+#endif  // !defined(DART_PRECOMPILER)
 #if !defined(DART_PRECOMPILED_RUNTIME)
     ASSERT((target_value == -1) ||
            (Utils::IsAligned((target_value * compiler::target::kWordSize),
@@ -1013,9 +1019,7 @@ class Class : public Object {
                               compiler::target::kObjectAlignment) &&
             ((target_value + 1) == untag()->target_instance_size_in_words_)));
     StoreNonPointer(&untag()->target_next_field_offset_in_words_, target_value);
-#else
-    ASSERT(host_value == target_value);
-#endif  // #!defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
   static bool is_valid_id(intptr_t value) {
@@ -1171,24 +1175,17 @@ class Class : public Object {
                                                 intptr_t target_value) const {
     StoreNonPointer(&untag()->host_type_arguments_field_offset_in_words_,
                     host_value);
+#if !defined(DART_PRECOMPILER)
+    // Could be different only during cross-compilation.
+    ASSERT_EQUAL(host_value, target_value);
+#endif  // !defined(DART_PRECOMPILER)
 #if !defined(DART_PRECOMPILED_RUNTIME)
     StoreNonPointer(&untag()->target_type_arguments_field_offset_in_words_,
                     target_value);
-#else
-    ASSERT(host_value == target_value);
 #endif  //  !defined(DART_PRECOMPILED_RUNTIME)
   }
   static intptr_t host_type_arguments_field_offset_in_words_offset() {
     return OFFSET_OF(UntaggedClass, host_type_arguments_field_offset_in_words_);
-  }
-
-  static intptr_t target_type_arguments_field_offset_in_words_offset() {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    return OFFSET_OF(UntaggedClass,
-                     target_type_arguments_field_offset_in_words_);
-#else
-    return host_type_arguments_field_offset_in_words_offset();
-#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
   }
 
   // The super type of this class, Object type if not explicitly specified.
@@ -5459,6 +5456,13 @@ class InstructionsTable : public Object {
   static const uint32_t kPayloadMask = ~(kPayloadAlignment - 1);
   COMPILE_ASSERT((kPayloadMask & kHasMonomorphicEntrypointFlag) == 0);
 
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() {
+      return sizeof(UntaggedInstructionsTable);
+    }
+    static constexpr intptr_t kElementSize = kBytesPerElement;
+  };
+
   static intptr_t InstanceSize() {
     ASSERT_EQUAL(sizeof(UntaggedInstructionsTable),
                  OFFSET_OF_RETURNED_VALUE(UntaggedInstructionsTable, data));
@@ -6421,6 +6425,11 @@ class Code : public Object {
       sizeof(reinterpret_cast<UntaggedCode*>(0)->data()[0]);
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() { return sizeof(UntaggedCode); }
+    static constexpr intptr_t kElementSize = kBytesPerElement;
+  };
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedCode) ==
            OFFSET_OF_RETURNED_VALUE(UntaggedCode, data));
@@ -6712,6 +6721,11 @@ class Context : public Object {
   static const intptr_t kFutureTimeoutFutureIndex = 2;
   static const intptr_t kFutureWaitFutureIndex = 2;
   static const intptr_t kIsSyncIndex = 2;
+
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() { return sizeof(UntaggedContext); }
+    static constexpr intptr_t kElementSize = kBytesPerElement;
+  };
 
   static intptr_t variable_offset(intptr_t context_index) {
     return OFFSET_OF_RETURNED_VALUE(UntaggedContext, data) +
@@ -8921,6 +8935,10 @@ class String : public Instance {
 
   static intptr_t HeaderSize() { return String::kSizeofRawString; }
 
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedString));
+  }
+
   class CodePointIterator : public ValueObject {
    public:
     explicit CodePointIterator(const String& str)
@@ -9301,6 +9319,13 @@ class OneByteString : public AllStatic {
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = String::kMaxElements;
 
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() {
+      return sizeof(UntaggedOneByteString);
+    }
+    static constexpr intptr_t kElementSize = kBytesPerElement;
+  };
+
   static intptr_t data_offset() {
     return OFFSET_OF_RETURNED_VALUE(UntaggedOneByteString, data);
   }
@@ -9440,6 +9465,13 @@ class TwoByteString : public AllStatic {
   // We use the same maximum elements for all strings.
   static const intptr_t kBytesPerElement = 2;
   static const intptr_t kMaxElements = String::kMaxElements;
+
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() {
+      return sizeof(UntaggedTwoByteString);
+    }
+    static constexpr intptr_t kElementSize = kBytesPerElement;
+  };
 
   static intptr_t data_offset() {
     return OFFSET_OF_RETURNED_VALUE(UntaggedTwoByteString, data);

@@ -51,7 +51,9 @@ class OffsetsExtractor : public AllStatic {
 //
 // TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
 
-// This doesn't use any special constants, just method calls, so no output.
+// These macros don't use any special constants, just method calls, so no
+// output.
+#define PRINT_ARRAY_SIZEOF(Class, Name, ElementOffset)
 #define PRINT_PAYLOAD_SIZEOF(Class, Name, HeaderSize)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -135,18 +137,21 @@ class OffsetsExtractor : public AllStatic {
             << Class::Name << ";\n";
 
     JIT_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
-                     PRINT_PAYLOAD_SIZEOF, PRINT_RANGE, PRINT_CONSTANT)
+                     PRINT_ARRAY_SIZEOF, PRINT_PAYLOAD_SIZEOF, PRINT_RANGE,
+                     PRINT_CONSTANT)
 
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
     COMMON_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
-                        PRINT_PAYLOAD_SIZEOF, PRINT_RANGE, PRINT_CONSTANT)
+                        PRINT_ARRAY_SIZEOF, PRINT_PAYLOAD_SIZEOF, PRINT_RANGE,
+                        PRINT_CONSTANT)
 
 #undef PRINT_FIELD_OFFSET
 #undef PRINT_ARRAY_LAYOUT
 #undef PRINT_SIZEOF
 #undef PRINT_RANGE
 #undef PRINT_CONSTANT
+#undef PRINT_ARRAY_SIZEOF
 #undef PRINT_PAYLOAD_SIZEOF
   }
 };

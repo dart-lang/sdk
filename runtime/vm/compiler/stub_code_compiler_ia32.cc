@@ -2944,7 +2944,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     }
 
     const intptr_t fixed_size_plus_alignment_padding =
-        target::TypedData::InstanceSize() +
+        target::TypedData::HeaderSize() +
         target::ObjectAlignment::kObjectAlignment - 1;
     __ leal(EDI, Address(EDI, scale_factor, fixed_size_plus_alignment_padding));
     __ andl(EDI, Immediate(-target::ObjectAlignment::kObjectAlignment));
@@ -3002,7 +3002,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     /* ECX: scratch register. */
     /* data area to be initialized. */
     __ xorl(ECX, ECX); /* Zero. */
-    __ leal(EDI, FieldAddress(EAX, target::TypedData::InstanceSize()));
+    __ leal(EDI, FieldAddress(EAX, target::TypedData::HeaderSize()));
     __ StoreInternalPointer(
         EAX, FieldAddress(EAX, target::TypedDataBase::data_field_offset()),
         EDI);

@@ -3443,7 +3443,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ b(&call_runtime, HI);
     __ mov(R2, Operand(R2, LSL, scale_shift));
     const intptr_t fixed_size_plus_alignment_padding =
-        target::TypedData::InstanceSize() +
+        target::TypedData::HeaderSize() +
         target::ObjectAlignment::kObjectAlignment - 1;
     __ AddImmediate(R2, fixed_size_plus_alignment_padding);
     __ bic(R2, R2, Operand(target::ObjectAlignment::kObjectAlignment - 1));
@@ -3500,7 +3500,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     /* data area to be initialized. */
     __ LoadImmediate(R8, 0);
     __ mov(R9, Operand(R8));
-    __ AddImmediate(R3, R0, target::TypedData::InstanceSize() - 1);
+    __ AddImmediate(R3, R0, target::TypedData::HeaderSize() - 1);
     __ StoreInternalPointer(
         R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R3);
     Label init_loop;
