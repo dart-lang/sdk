@@ -116,12 +116,12 @@ const _details = r'''
 **DO** ...
 
 **BAD:**
-```
+```dart
 
 ```
 
 **GOOD:**
-```
+```dart
 
 ```
 

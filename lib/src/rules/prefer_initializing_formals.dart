@@ -62,7 +62,7 @@ such a lint would require either renaming the field or renaming the parameter,
 and both of those actions would potentially be a breaking change. For example,
 the following will not generate a lint:
 
-```darts
+```dart
 class Point {
   bool isEnabled;
   Point({bool enabled}) {
