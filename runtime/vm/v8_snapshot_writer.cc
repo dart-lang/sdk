@@ -29,8 +29,6 @@ V8SnapshotProfileWriter::V8SnapshotProfileWriter(Zone* zone)
   idx = edge_types_.Add("internal");
   ASSERT_EQUAL(idx, static_cast<intptr_t>(Edge::Type::kInternal));
 
-  unknown_type_string_index_ = node_types_.Add("Unknown");
-
   SetObjectTypeAndName(kArtificialRootId, "ArtificialRoot",
                        "<artificial root>");
 }
@@ -113,14 +111,10 @@ const char* V8SnapshotProfileWriter::NodeInfo::ToCString(Zone* zone) const {
 
 void V8SnapshotProfileWriter::NodeInfo::Write(JSONWriter* writer) const {
   ASSERT(id.space() != IdSpace::kInvalid);
-  ASSERT(type != kInvalidString);
   if (type == kInvalidString) {
-    // Fall back on this string in non-DEBUG modes. See
-    // https://github.com/dart-lang/sdk/issues/45787 for context.
-    writer->PrintValue(profile_writer_->unknown_type_string_index_);
-  } else {
-    writer->PrintValue(type);
+    FATAL("No type given for node %s", id.ToCString(profile_writer_->zone_));
   }
+  writer->PrintValue(type);
   if (name != kInvalidString) {
     writer->PrintValue(name);
   } else {

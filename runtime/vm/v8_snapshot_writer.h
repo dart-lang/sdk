@@ -331,7 +331,6 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
   StringsTable edge_types_;
   StringsTable strings_;
   DirectChainedHashMap<ObjectIdSetKeyValueTrait> roots_;
-  intptr_t unknown_type_string_index_;
 #endif
 };
 

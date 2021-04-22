@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- Exported some ELF utilities in lib/elf.dart for use in Dart tests.
+
 ## 0.4.0
 
 - Stable null safe version of package.

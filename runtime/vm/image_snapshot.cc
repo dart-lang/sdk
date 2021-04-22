@@ -651,14 +651,14 @@ void ImageWriter::WriteText(bool vm) {
   const char* bss_symbol = SectionSymbol(ProgramSection::Bss, vm);
   ASSERT(bss_symbol != nullptr);
 
-  if (FLAG_precompiled_mode) {
-    if (profile_writer_ != nullptr) {
-      profile_writer_->SetObjectTypeAndName(parent_id, image_type_,
-                                            instructions_symbol);
-      profile_writer_->AttributeBytesTo(parent_id, Image::kHeaderSize);
-      profile_writer_->AddRoot(parent_id);
-    }
+  if (profile_writer_ != nullptr) {
+    profile_writer_->SetObjectTypeAndName(parent_id, image_type_,
+                                          instructions_symbol);
+    profile_writer_->AttributeBytesTo(parent_id, Image::kHeaderSize);
+    profile_writer_->AddRoot(parent_id);
+  }
 
+  if (FLAG_precompiled_mode) {
     const intptr_t section_header_length =
         compiler::target::InstructionsSection::HeaderSize();
     // Calculated using next_text_offset_, which doesn't include post-payload
