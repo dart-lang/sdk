@@ -128,16 +128,17 @@ CI_SANDBOX_TRIGGERERS = [CI_ACCOUNT, TRY_ACCOUNT]
 
 # List of recipes to opt-in to using the bbagent protocol.
 BBAGENT_ALLOW_LIST = [
-    "dart/external",
-    "dart/forward_branch",
+    "cron/cron",
     "dart/cbuild",
     "dart/chocolatey",
-    "dart/package_co19",
     "dart/docker",
+    "dart/external",
+    "dart/flutter_engine",
+    "dart/forward_branch",
     "dart/linearize",
+    "dart/package_co19",
     "roller/lkgr",
     "roller/roll_to_dev",
-    "cron/cron",
 ]
 
 lucicfg.config(
