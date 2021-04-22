@@ -653,7 +653,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    _checkForReturnOfDoNotStore(node.expression);
+    if (!_invalidAccessVerifier._inTestDirectory) {
+      _checkForReturnOfDoNotStore(node.expression);
+    }
     super.visitReturnStatement(node);
   }
 
