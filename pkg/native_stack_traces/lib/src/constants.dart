@@ -12,5 +12,11 @@ const String buildIdNoteName = "GNU";
 // The dynamic symbol name for the VM instructions section.
 const String vmSymbolName = "_kDartVmSnapshotInstructions";
 
+// The dynamic symbol name for the VM data section.
+const String vmDataSymbolName = "_kDartVmSnapshotData";
+
 // The dynamic symbol name for the isolate instructions section.
 const String isolateSymbolName = "_kDartIsolateSnapshotInstructions";
+
+// The dynamic symbol name for the isolate data section.
+const String isolateDataSymbolName = "_kDartIsolateSnapshotData";

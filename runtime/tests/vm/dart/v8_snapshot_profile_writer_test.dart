@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:expect/expect.dart';
+import 'package:native_stack_traces/elf.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_snapshot_analysis/v8_profile.dart';
 
@@ -14,31 +15,110 @@ import 'use_flag_test_helper.dart';
 // Used to ensure we don't have multiple equivalent calls to test.
 final _seenDescriptions = <String>{};
 
-Future<void> test(String dillPath,
+Snapshot testProfile(String profilePath) {
+  final profile =
+      Snapshot.fromJson(jsonDecode(File(profilePath).readAsStringSync()));
+
+  // Verify that there are no "unknown" nodes. These are emitted when we see a
+  // reference to an some object but no other metadata about the object was
+  // recorded. We should at least record the type for every object in the
+  // graph (in some cases the shallow size can legitimately be 0, e.g. for
+  // "base objects" not written to the snapshot or artificial nodes).
+  for (final node in profile.nodes) {
+    Expect.notEquals("Unknown", node.type, "unknown node ${node}");
+  }
+
+  final root = profile.nodeAt(0);
+  final reachable = <Node>{};
+
+  // HeapSnapshotWorker.HeapSnapshot.calculateDistances (from HeapSnapshot.js)
+  // assumes that the graph root has at most one edge to any other node
+  // (most likely an oversight).
+  for (final edge in root.edges) {
+    Expect.isTrue(
+        reachable.add(edge.target),
+        "root\n\n$root\n\nhas multiple edges to node\n\n${edge.target}:\n\n"
+        "${root.edges.where((e) => e.target == edge.target).toList()}");
+  }
+
+  // Check that all other nodes are reachable from the root.
+  final stack = <Node>[...reachable];
+  while (!stack.isEmpty) {
+    final next = stack.removeLast();
+    for (final edge in next.edges) {
+      if (reachable.add(edge.target)) {
+        stack.add(edge.target);
+      }
+    }
+  }
+
+  final unreachable =
+      profile.nodes.skip(1).where((Node n) => !reachable.contains(n)).toSet();
+  Expect.isEmpty(unreachable);
+
+  return profile;
+}
+
+Future<void> testJIT(String dillPath) async {
+  final description = 'jit';
+  Expect.isTrue(_seenDescriptions.add(description),
+      "test configuration $description would be run multiple times");
+
+  await withTempDir('v8-snapshot-profile-$description', (String tempDir) async {
+    // Generate the snapshot profile.
+    final profilePath = path.join(tempDir, 'profile.heapsnapshot');
+    final vmTextPath = path.join(tempDir, 'vm_instructions.bin');
+    final isolateTextPath = path.join(tempDir, 'isolate_instructions.bin');
+    final vmDataPath = path.join(tempDir, 'vm_data.bin');
+    final isolateDataPath = path.join(tempDir, 'isolate_data.bin');
+
+    await run(genSnapshot, <String>[
+      '--snapshot-kind=core-jit',
+      '--vm_snapshot_instructions=$vmTextPath',
+      '--isolate_snapshot_instructions=$isolateTextPath',
+      '--vm_snapshot_data=$vmDataPath',
+      '--isolate_snapshot_data=$isolateDataPath',
+      "--write-v8-snapshot-profile-to=$profilePath",
+      dillPath,
+    ]);
+
+    print("Snapshot profile generated at $profilePath.");
+
+    final profile = testProfile(profilePath);
+
+    // Verify that the total size of the snapshot text and data sections is
+    // the same as the sum of the shallow sizes of all objects in the profile.
+    // This ensures that all bytes are accounted for in some way.
+    final actualSize = await File(vmTextPath).length() +
+        await File(isolateTextPath).length() +
+        await File(vmDataPath).length() +
+        await File(isolateDataPath).length();
+    final expectedSize =
+        profile.nodes.fold<int>(0, (size, n) => size + n.selfSize);
+
+    Expect.equals(expectedSize, actualSize, "failed on $description snapshot");
+  });
+}
+
+Future<void> testAOT(String dillPath,
     {bool useAsm = false,
     bool useBare = true,
     bool forceDrops = false,
     bool useDispatch = true,
-    bool stripUtil = false, // Note: forced if useAsm.
-    bool stripFlag = false, // Note: forced if !stripUtil (and thus !useAsm).
+    bool stripUtil = false, // Note: forced true if useAsm.
+    bool stripFlag = false,
     bool disassemble = false}) async {
-  // We don't assume forced disassembler support in Product mode, so skip any
-  // disassembly test.
-  if (!const bool.fromEnvironment('dart.vm.product') && disassemble) {
-    return;
+  if (const bool.fromEnvironment('dart.vm.product') && disassemble) {
+    Expect.isFalse(disassemble, 'no use of disassembler in PRODUCT mode');
   }
 
-  // The assembler may add extra unnecessary information to the compiled
-  // snapshot whether or not we generate DWARF information in the assembly, so
-  // we force the use of a utility when generating assembly.
+  // For assembly, we can't test the sizes of the snapshot sections, since we
+  // don't have a Mach-O reader for Mac snapshots and for ELF, the assembler
+  // merges the text/data sections and the VM/isolate section symbols may not
+  // have length information. Thus, we force external stripping so we can test
+  // the approximate size of the stripped snapshot.
   if (useAsm) {
     stripUtil = true;
-  }
-
-  // We must strip the output in some way when generating ELF snapshots,
-  // else the debugging information added will cause the test to fail.
-  if (!stripUtil) {
-    stripFlag = true;
   }
 
   final descriptionBuilder = StringBuffer()..write(useAsm ? 'assembly' : 'elf');
@@ -70,7 +150,7 @@ Future<void> test(String dillPath,
     final profilePath = path.join(tempDir, 'profile.heapsnapshot');
     final snapshotPath = path.join(tempDir, 'test.snap');
     final commonSnapshotArgs = [
-      if (stripFlag) '--strip',
+      if (stripFlag) '--strip', //  gen_snapshot specific and not a VM flag.
       useBare ? '--use-bare-instructions' : '--no-use-bare-instructions',
       "--write-v8-snapshot-profile-to=$profilePath",
       if (forceDrops) ...[
@@ -78,9 +158,8 @@ Future<void> test(String dillPath,
         '--no-retain-function-objects',
         '--no-retain-code-objects'
       ],
-      if (!useDispatch) '--no-use-table-dispatch',
-      if (disassemble) '--disassemble',
-      '--ignore-unrecognized-flags',
+      useDispatch ? '--use-table-dispatch' : '--no-use-table-dispatch',
+      if (disassemble) '--disassemble', // Not defined in PRODUCT mode.
       dillPath,
     ];
 
@@ -102,70 +181,70 @@ Future<void> test(String dillPath,
       ]);
     }
 
-    String strippedPath;
-    if (stripUtil) {
-      strippedPath = snapshotPath + '.stripped';
-      await stripSnapshot(snapshotPath, strippedPath, forceElf: !useAsm);
-    } else {
-      strippedPath = snapshotPath;
-    }
-
+    print("Snapshot generated at $snapshotPath.");
     print("Snapshot profile generated at $profilePath.");
 
-    final profile =
-        Snapshot.fromJson(jsonDecode(File(profilePath).readAsStringSync()));
+    final profile = testProfile(profilePath);
 
-    // Verify that there are no "unknown" nodes. These are emitted when we see a
-    // reference to an some object but no other metadata about the object was
-    // recorded. We should at least record the type for every object in the
-    // graph (in some cases the shallow size can legitimately be 0, e.g. for
-    // "base objects" not written to the snapshot or artificial nodes).
-    for (final node in profile.nodes) {
-      Expect.notEquals("Unknown", node.type, "unknown node ${node}");
+    final expectedSize =
+        profile.nodes.fold<int>(0, (size, n) => size + n.selfSize);
+
+    var checkedSize = false;
+    if (!useAsm) {
+      // Verify that the total size of the snapshot text and data sections is
+      // the same as the sum of the shallow sizes of all objects in the profile.
+      // This ensures that all bytes are accounted for in some way.
+      final elf = Elf.fromFile(snapshotPath);
+      Expect.isNotNull(elf);
+      elf!; // To refine type to non-nullable version.
+
+      final vmTextSectionSymbol = elf.dynamicSymbolFor(vmSymbolName);
+      Expect.isNotNull(vmTextSectionSymbol);
+      final vmDataSectionSymbol = elf.dynamicSymbolFor(vmDataSymbolName);
+      Expect.isNotNull(vmDataSectionSymbol);
+      final isolateTextSectionSymbol = elf.dynamicSymbolFor(isolateSymbolName);
+      Expect.isNotNull(isolateTextSectionSymbol);
+      final isolateDataSectionSymbol =
+          elf.dynamicSymbolFor(isolateDataSymbolName);
+      Expect.isNotNull(isolateDataSectionSymbol);
+
+      final actualSize = vmTextSectionSymbol!.size +
+          vmDataSectionSymbol!.size +
+          isolateTextSectionSymbol!.size +
+          isolateDataSectionSymbol!.size;
+
+      Expect.equals(
+          expectedSize, actualSize, "failed on $description snapshot");
+      checkedSize = true;
     }
 
-    final root = profile.nodeAt(0);
-    final reachable = <Node>{};
-
-    // HeapSnapshotWorker.HeapSnapshot.calculateDistances (from HeapSnapshot.js)
-    // assumes that the graph root has at most one edge to any other node
-    // (most likely an oversight).
-    for (final edge in root.edges) {
-      Expect.isTrue(
-          reachable.add(edge.target),
-          "root\n\n$root\n\nhas multiple edges to node\n\n${edge.target}:\n\n"
-          "${root.edges.where((e) => e.target == edge.target).toList()}");
-    }
-
-    // Check that all other nodes are reachable from the root.
-    final stack = <Node>[...reachable];
-    while (!stack.isEmpty) {
-      final next = stack.removeLast();
-      for (final edge in next.edges) {
-        if (reachable.add(edge.target)) {
-          stack.add(edge.target);
-        }
+    if (stripUtil || stripFlag) {
+      var strippedSnapshotPath = snapshotPath;
+      if (stripUtil) {
+        strippedSnapshotPath = snapshotPath + '.stripped';
+        await stripSnapshot(snapshotPath, strippedSnapshotPath,
+            forceElf: !useAsm);
+        print("Stripped snapshot generated at $strippedSnapshotPath.");
       }
+
+      // Verify that the actual size of the stripped snapshot is close to the
+      // sum of the shallow sizes of all objects in the profile. They will not
+      // be exactly equal because of global headers and padding.
+      final actualSize = await File(strippedSnapshotPath).length();
+
+      // See Elf::kPages in runtime/vm/elf.h, which is also used for assembly
+      // padding.
+      final segmentAlignment = 16 * 1024;
+      // Not every byte is accounted for by the snapshot profile, and data and
+      // instruction segments are padded to an alignment boundary.
+      final tolerance = 0.03 * actualSize + 2 * segmentAlignment;
+
+      Expect.approxEquals(expectedSize, actualSize, tolerance,
+          "failed on $description snapshot");
+      checkedSize = true;
     }
 
-    final unreachable =
-        profile.nodes.skip(1).where((Node n) => !reachable.contains(n)).toSet();
-    Expect.isEmpty(unreachable);
-
-    // Verify that the actual size of the snapshot is close to the sum of the
-    // shallow sizes of all objects in the profile. They will not be exactly
-    // equal because of global headers and padding.
-    final actual = await File(strippedPath).length();
-    final expected = profile.nodes.fold<int>(0, (size, n) => size + n.selfSize);
-
-    // See Elf::kPages in runtime/vm/elf.h.
-    final segmentAlignment = 16 * 1024;
-    // Not every byte is accounted for by the snapshot profile, and data and
-    // instruction segments are padded to an alignment boundary.
-    final tolerance = 0.03 * actual + 2 * segmentAlignment;
-
-    Expect.approxEquals(
-        expected, actual, tolerance, "failed on $description snapshot");
+    Expect.isTrue(checkedSize, "no snapshot size checks were performed");
   });
 }
 
@@ -264,10 +343,24 @@ main() async {
   await testMacros();
 
   await withTempDir('v8-snapshot-profile-writer', (String tempDir) async {
-    // We only need to generate the dill file once.
+    // We only need to generate the dill file once for all JIT tests.
     final _thisTestPath = path.join(sdkDir, 'runtime', 'tests', 'vm', 'dart',
         'v8_snapshot_profile_writer_test.dart');
-    final dillPath = path.join(tempDir, 'test.dill');
+    final jitDillPath = path.join(tempDir, 'jit_test.dill');
+    await run(genKernel, <String>[
+      '--platform',
+      platformDill,
+      ...Platform.executableArguments.where((arg) =>
+          arg.startsWith('--enable-experiment=') ||
+          arg == '--sound-null-safety' ||
+          arg == '--no-sound-null-safety'),
+      '-o',
+      jitDillPath,
+      _thisTestPath
+    ]);
+
+    // We only need to generate the dill file once for all AOT tests.
+    final aotDillPath = path.join(tempDir, 'aot_test.dill');
     await run(genKernel, <String>[
       '--aot',
       '--platform',
@@ -277,26 +370,38 @@ main() async {
           arg == '--sound-null-safety' ||
           arg == '--no-sound-null-safety'),
       '-o',
-      dillPath,
+      aotDillPath,
       _thisTestPath
     ]);
 
-    // Just as a reminder (these rules are applied in order inside test):
-    // If useAsm is true, then stripUtil is forced (as the assembler may add
-    // extra information that needs stripping).
-    // If stripUtil is false, then stripFlag is forced (as the output must be
-    // stripped in some way to remove DWARF information).
+    // Just as a reminder for AOT tests:
+    // * If useAsm is true, then stripUtil is forced (as the assembler may add
+    //   extra information that needs stripping), so no need to specify
+    //   stripUtil for useAsm tests.
 
-    // Test stripped ELF generation directly.
-    await test(dillPath);
-    await test(dillPath, useBare: false);
-    await test(dillPath, forceDrops: true);
-    await test(dillPath, forceDrops: true, useBare: false);
-    await test(dillPath, forceDrops: true, useDispatch: false);
-    await test(dillPath, forceDrops: true, useDispatch: false, useBare: false);
+    // Test profile generation with a core JIT snapshot.
+    await testJIT(jitDillPath);
 
-    // Regression test for dartbug.com/41149.
-    await test(dillPath, useBare: false, disassemble: true);
+    // Test unstripped ELF generation directly.
+    await testAOT(aotDillPath);
+    await testAOT(aotDillPath, useBare: false);
+    await testAOT(aotDillPath, forceDrops: true);
+    await testAOT(aotDillPath, forceDrops: true, useBare: false);
+    await testAOT(aotDillPath, forceDrops: true, useDispatch: false);
+    await testAOT(aotDillPath,
+        forceDrops: true, useDispatch: false, useBare: false);
+
+    // Test flag-stripped ELF generation.
+    await testAOT(aotDillPath, stripFlag: true);
+    await testAOT(aotDillPath, useBare: false, stripFlag: true);
+
+    // Since we can't force disassembler support after the fact when running
+    // in PRODUCT mode, skip any --disassemble tests. Do these tests last as
+    // they have lots of output and so the log will be truncated.
+    if (!const bool.fromEnvironment('dart.vm.product')) {
+      // Regression test for dartbug.com/41149.
+      await testAOT(aotDillPath, useBare: false, disassemble: true);
+    }
 
     // We neither generate assembly nor have a stripping utility on Windows.
     if (Platform.isWindows) {
@@ -308,24 +413,24 @@ main() async {
     if (Platform.isMacOS && clangBuildToolsDir == null) {
       printSkip('ELF external stripping test');
     } else {
-      // Test unstripped ELF generation that is then stripped externally.
-      await test(dillPath, stripUtil: true);
-      await test(dillPath, stripUtil: true, useBare: false);
+      // Test unstripped ELF generation that is then externally stripped.
+      await testAOT(aotDillPath, stripUtil: true);
+      await testAOT(aotDillPath, stripUtil: true, useBare: false);
     }
 
     // TODO(sstrickl): Currently we can't assemble for SIMARM64 on MacOSX.
-    // For example, the test runner still uses blobs for dartkp-mac-*-simarm64.
-    // Change assembleSnapshot and remove this check when we can.
+    // For example, the test runner still uses blobs for
+    // dartkp-mac-*-simarm64. Change assembleSnapshot and remove this check
+    // when we can.
     if (Platform.isMacOS && buildDir.endsWith('SIMARM64')) {
       printSkip('assembly tests');
       return;
     }
-
-    // Test unstripped assembly generation that is then compiled and stripped.
-    await test(dillPath, useAsm: true);
-    await test(dillPath, useAsm: true, useBare: false);
-    // Test stripped assembly generation that is then compiled and stripped.
-    await test(dillPath, useAsm: true, stripFlag: true);
-    await test(dillPath, useAsm: true, stripFlag: true, useBare: false);
+    // Test unstripped assembly generation that is then externally stripped.
+    await testAOT(aotDillPath, useAsm: true);
+    await testAOT(aotDillPath, useAsm: true, useBare: false);
+    // Test stripped assembly generation that is then externally stripped.
+    await testAOT(aotDillPath, useAsm: true, stripFlag: true);
+    await testAOT(aotDillPath, useAsm: true, stripFlag: true, useBare: false);
   });
 }
