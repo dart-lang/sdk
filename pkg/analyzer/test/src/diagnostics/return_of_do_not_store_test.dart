@@ -37,6 +37,10 @@ String f() {
   var v = () => _v;
   return v();
 }
+
+String g() {
+  return _v;
+}
 ''',
     );
   }

@@ -3561,7 +3561,8 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   void EmitMoveToLocation(FlowGraphCompiler* compiler,
                           const Location& destination,
-                          Register tmp = kNoRegister);
+                          Register tmp = kNoRegister,
+                          intptr_t pair_index = 0);
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -5657,6 +5658,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   intptr_t class_id() const { return class_id_; }
   bool aligned() const { return alignment_ == kAlignedAccess; }
 
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
   virtual bool ComputeCanDeoptimize() const {
     return GetDeoptId() != DeoptId::kNone;
   }
@@ -6586,6 +6588,7 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(LoadField)
   virtual CompileType ComputeType() const;
 
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool ComputeCanDeoptimizeAfterCall() const {
     return calls_initializer() && !CompilerState::Current().is_aot();

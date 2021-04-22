@@ -183,16 +183,24 @@ GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
                                                        : &reverse_postorder_;
 }
 
-ConstantInstr* FlowGraph::GetExistingConstant(const Object& object) const {
-  return constant_instr_pool_.LookupValue(object);
+ConstantInstr* FlowGraph::GetExistingConstant(
+    const Object& object,
+    Representation representation) const {
+  return constant_instr_pool_.LookupValue(
+      ConstantAndRepresentation{object, representation});
 }
 
-ConstantInstr* FlowGraph::GetConstant(const Object& object) {
-  ConstantInstr* constant = GetExistingConstant(object);
+ConstantInstr* FlowGraph::GetConstant(const Object& object,
+                                      Representation representation) {
+  ConstantInstr* constant = GetExistingConstant(object, representation);
   if (constant == nullptr) {
     // Otherwise, allocate and add it to the pool.
-    constant =
-        new (zone()) ConstantInstr(Object::ZoneHandle(zone(), object.ptr()));
+    const Object& zone_object = Object::ZoneHandle(zone(), object.ptr());
+    if (representation == kTagged) {
+      constant = new (zone()) ConstantInstr(zone_object);
+    } else {
+      constant = new (zone()) UnboxedConstantInstr(zone_object, representation);
+    }
     constant->set_ssa_temp_index(alloc_ssa_temp_index());
     if (NeedsPairLocation(constant->representation())) {
       alloc_ssa_temp_index();
@@ -236,28 +244,21 @@ bool FlowGraph::IsConstantRepresentable(const Object& value,
 Definition* FlowGraph::TryCreateConstantReplacementFor(Definition* op,
                                                        const Object& value) {
   // Check that representation of the constant matches expected representation.
+  const auto representation = op->representation();
   if (!IsConstantRepresentable(
-          value, op->representation(),
+          value, representation,
           /*tagged_value_must_be_smi=*/op->Type()->IsNullableSmi())) {
     return op;
   }
 
-  Definition* result = GetConstant(value);
-  if (op->representation() != kTagged) {
-    // We checked above that constant can be safely unboxed.
-    result = UnboxInstr::Create(op->representation(), new Value(result),
-                                DeoptId::kNone, Instruction::kNotSpeculative);
-    // If the current instruction is a phi we need to insert the replacement
-    // into the block which contains this phi - because phis exist separately
-    // from all other instructions.
-    if (auto phi = op->AsPhi()) {
-      InsertAfter(phi->GetBlock(), result, nullptr, FlowGraph::kValue);
-    } else {
-      InsertBefore(op, result, nullptr, FlowGraph::kValue);
-    }
+  if (representation == kUnboxedDouble && value.IsInteger()) {
+    // Convert the boxed constant from int to double.
+    return GetConstant(Double::Handle(Double::NewCanonical(
+                           Integer::Cast(value).AsDoubleValue())),
+                       kUnboxedDouble);
   }
 
-  return result;
+  return GetConstant(value, representation);
 }
 
 void FlowGraph::AddToGraphInitialDefinitions(Definition* defn) {

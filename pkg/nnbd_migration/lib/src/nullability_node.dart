@@ -276,6 +276,9 @@ class NullabilityGraph {
   /// Set containing all sources being migrated.
   final _sourcesBeingMigrated = <Source>{};
 
+  /// Set containing paths to all sources being migrated.
+  final _pathsBeingMigrated = <String>{};
+
   /// A set containing all of the nodes in the graph.
   final Set<NullabilityNode> nodes = {};
 
@@ -391,6 +394,10 @@ class NullabilityGraph {
     return _sourcesBeingMigrated.contains(source);
   }
 
+  bool isPathBeingMigrated(String path) {
+    return _pathsBeingMigrated.contains(path);
+  }
+
   /// Creates a graph edge that will try to force the given [node] to be
   /// non-nullable.
   NullabilityEdge makeNonNullable(NullabilityNode node, EdgeOrigin origin,
@@ -421,6 +428,7 @@ class NullabilityGraph {
   /// Record source as code that is being migrated.
   void migrating(Source source) {
     _sourcesBeingMigrated.add(source);
+    _pathsBeingMigrated.add(source.fullName);
   }
 
   /// Determines the nullability of each node in the graph by propagating

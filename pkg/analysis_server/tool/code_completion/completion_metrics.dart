@@ -654,15 +654,17 @@ class CompletionMetricsComputer {
 
       var rank = place.rank;
       var suggestion = suggestions[rank - 1];
-      var actualSuggestion =
-          SuggestionData(suggestion, listener.featureMap[suggestion]!);
+      var features = listener.featureMap[suggestion] ??
+          MetricsSuggestionListener.noFeatures;
+      var actualSuggestion = SuggestionData(suggestion, features);
       List<SuggestionData>? topSuggestions;
       Map<int, int>? precedingRelevanceCounts;
       if (options.printWorstResults) {
+        var features = listener.featureMap[suggestion] ??
+            MetricsSuggestionListener.noFeatures;
         topSuggestions = suggestions
             .sublist(0, math.min(10, suggestions.length))
-            .map((suggestion) =>
-                SuggestionData(suggestion, listener.featureMap[suggestion]!))
+            .map((suggestion) => SuggestionData(suggestion, features))
             .toList();
         precedingRelevanceCounts = <int, int>{};
         for (var i = 0; i < rank - 1; i++) {
@@ -1687,9 +1689,9 @@ class LocationTableLine {
 }
 
 class MetricsSuggestionListener implements SuggestionListener {
-  Map<protocol.CompletionSuggestion, List<double>> featureMap = {};
-
-  List<double> cachedFeatures = const [
+  /// The feature values to use when there are no features for a suggestion.
+  static const List<double> noFeatures = [
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -1701,6 +1703,10 @@ class MetricsSuggestionListener implements SuggestionListener {
     0.0
   ];
 
+  Map<protocol.CompletionSuggestion, List<double>> featureMap = {};
+
+  List<double> cachedFeatures = noFeatures;
+
   String? missingCompletionLocation;
 
   String? missingCompletionLocationTable;
@@ -1708,7 +1714,7 @@ class MetricsSuggestionListener implements SuggestionListener {
   @override
   void builtSuggestion(protocol.CompletionSuggestion suggestion) {
     featureMap[suggestion] = cachedFeatures;
-    cachedFeatures = const [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+    cachedFeatures = noFeatures;
   }
 
   @override

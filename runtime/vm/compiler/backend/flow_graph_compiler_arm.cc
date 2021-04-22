@@ -966,10 +966,12 @@ void FlowGraphCompiler::EmitMove(Location destination,
     if (destination.IsFpuRegister() || destination.IsDoubleStackSlot() ||
         destination.IsStackSlot()) {
       Register tmp = allocator->AllocateTemporary();
-      source.constant_instruction()->EmitMoveToLocation(this, destination, tmp);
+      source.constant_instruction()->EmitMoveToLocation(this, destination, tmp,
+                                                        source.pair_index());
       allocator->ReleaseTemporary();
     } else {
-      source.constant_instruction()->EmitMoveToLocation(this, destination);
+      source.constant_instruction()->EmitMoveToLocation(
+          this, destination, kNoRegister, source.pair_index());
     }
   }
 }

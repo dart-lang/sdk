@@ -3207,21 +3207,14 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   if (representation() == kUnboxedDouble && value()->BindsToConstant()) {
-    UnboxedConstantInstr* uc = NULL;
-
     const Object& val = value()->BoundConstant();
     if (val.IsInteger()) {
       const Double& double_val = Double::ZoneHandle(
           flow_graph->zone(),
           Double::NewCanonical(Integer::Cast(val).AsDoubleValue()));
-      uc = new UnboxedConstantInstr(double_val, kUnboxedDouble);
+      return flow_graph->GetConstant(double_val, kUnboxedDouble);
     } else if (val.IsDouble()) {
-      uc = new UnboxedConstantInstr(val, kUnboxedDouble);
-    }
-
-    if (uc != NULL) {
-      flow_graph->InsertBefore(this, uc, NULL, FlowGraph::kValue);
-      return uc;
+      return flow_graph->GetConstant(val, kUnboxedDouble);
     }
   }
 
@@ -3283,13 +3276,7 @@ Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
       }
     }
 
-    UnboxedConstantInstr* uc =
-        new UnboxedConstantInstr(c->value(), kUnboxedInt32);
-    if (c->range() != NULL) {
-      uc->set_range(*c->range());
-    }
-    flow_graph->InsertBefore(this, uc, NULL, FlowGraph::kValue);
-    return uc;
+    return flow_graph->GetConstant(c->value(), kUnboxedInt32);
   }
 
   return this;
@@ -3304,14 +3291,8 @@ Definition* UnboxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
   // Currently we perform this only on 64-bit architectures.
   if (compiler::target::kBitsPerWord == 64) {
     ConstantInstr* c = value()->definition()->AsConstant();
-    if (c != NULL && (c->value().IsSmi() || c->value().IsMint())) {
-      UnboxedConstantInstr* uc =
-          new UnboxedConstantInstr(c->value(), kUnboxedInt64);
-      if (c->range() != NULL) {
-        uc->set_range(*c->range());
-      }
-      flow_graph->InsertBefore(this, uc, NULL, FlowGraph::kValue);
-      return uc;
+    if (c != NULL && c->value().IsInteger()) {
+      return flow_graph->GetConstant(c->value(), kUnboxedInt64);
     }
   }
 
