@@ -68,13 +68,9 @@ dynamic newObject() => JS('=Object', '{}');
 
 bool hasProperty(Object o, Object name) => JS('bool', '# in #', name, o);
 
-// All usage optimized away in a CFE transformation. Changes here will not
-// affect the generated JS.
 dynamic getProperty(Object o, Object name) =>
     JS('Object|Null', '#[#]', o, name);
 
-// Some usage optimized away in a CFE transformation. Changes here might not
-// affect the generated JS.
 dynamic setProperty(Object o, Object name, Object? value) {
   assertInterop(value);
   return JS('', '#[#]=#', o, name, value);
