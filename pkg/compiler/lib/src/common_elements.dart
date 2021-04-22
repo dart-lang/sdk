@@ -455,7 +455,7 @@ abstract class CommonElements {
 
   // From dart:_rti
 
-  FunctionEntity get setRuntimeTypeInfo;
+  FunctionEntity get setArrayType;
 
   FunctionEntity get findType;
   FunctionEntity get instanceType;
@@ -1848,10 +1848,10 @@ class CommonElementsImpl
   FunctionEntity _findRtiFunction(String name) =>
       _findLibraryMember(rtiLibrary, name);
 
-  FunctionEntity _setRuntimeTypeInfo;
+  FunctionEntity _setArrayType;
   @override
-  FunctionEntity get setRuntimeTypeInfo =>
-      _setRuntimeTypeInfo ??= _findRtiFunction('setRuntimeTypeInfo');
+  FunctionEntity get setArrayType =>
+      _setArrayType ??= _findRtiFunction('_setArrayType');
 
   FunctionEntity _findType;
   @override

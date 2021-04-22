@@ -2200,14 +2200,14 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   HInstruction _callSetRuntimeTypeInfo(HInstruction typeInfo,
       HInstruction newObject, SourceInformation sourceInformation) {
     // Set the runtime type information on the object.
-    FunctionEntity typeInfoSetterFn = _commonElements.setRuntimeTypeInfo;
+    FunctionEntity typeInfoSetterFn = _commonElements.setArrayType;
     // TODO(efortuna): Insert source information in this static invocation.
     _pushStaticInvocation(typeInfoSetterFn, <HInstruction>[newObject, typeInfo],
         _abstractValueDomain.dynamicType, const <DartType>[],
         sourceInformation: sourceInformation);
 
     // The new object will now be referenced through the
-    // `setRuntimeTypeInfo` call. We therefore set the type of that
+    // `setArrayType` call. We therefore set the type of that
     // instruction to be of the object's type.
     assert(
         stack.last is HInvokeStatic || stack.last == newObject,

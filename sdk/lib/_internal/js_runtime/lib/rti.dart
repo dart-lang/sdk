@@ -626,7 +626,7 @@ bool _isClosure(Object? object) => _Utils.instanceOf(object,
 // Don't inline.  Let the JS engine inline this.  The call expression is much
 // more compact that the inlined expansion.
 @pragma('dart2js:noInline')
-Object? setRuntimeTypeInfo(Object? target, Object? rti) {
+Object? _setArrayType(Object? target, Object? rti) {
   assert(rti != null);
   var rtiProperty = JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY);
   JS('var', r'#[#] = #', target, rtiProperty, rti);

@@ -178,7 +178,7 @@ class MinifyNamer extends Namer
       r'JSArray',
       r'createInvocationMirror',
       r'String',
-      r'setRuntimeTypeInfo',
+      r'setArrayType',
       r'createRuntimeType'
     ]);
   }
@@ -389,8 +389,11 @@ abstract class _MinifiedOneShotInterceptorNamer implements Namer {
     String root = selector.isOperator
         ? operatorNameToIdentifier(selector.name)
         : privateName(selector.memberName);
-    String prefix =
-        selector.isGetter ? r"$get" : selector.isSetter ? r"$set" : "";
+    String prefix = selector.isGetter
+        ? r"$get"
+        : selector.isSetter
+            ? r"$set"
+            : "";
     String callSuffix = selector.isCall
         ? Namer.callSuffixForStructure(selector.callStructure).join()
         : "";

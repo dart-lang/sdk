@@ -243,9 +243,9 @@ int topLevelFunction2Typed(String a, [num b, double c]) => null;
   _isObject(1),
   _isString(1),
   _isTop(1),
+  _setArrayType(2),
   findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
+  instanceType(1)],
  type=[
   inst:Closure,
   inst:JSArray<dynamic>,
@@ -334,9 +334,9 @@ testTopLevelInvokeTyped() {
   _isObject(1),
   _isString(1),
   _isTop(1),
+  _setArrayType(2),
   findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
+  instanceType(1)],
  type=[
   inst:Closure,
   inst:JSArray<dynamic>,
@@ -384,9 +384,9 @@ topLevelFunctionTyped1(void a(num b)) {}
   _isObject(1),
   _isString(1),
   _isTop(1),
+  _setArrayType(2),
   findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
+  instanceType(1)],
  type=[
   inst:Closure,
   inst:JSArray<dynamic>,
@@ -434,9 +434,9 @@ topLevelFunctionTyped2(void a(num b, [String c])) {}
   _isObject(1),
   _isString(1),
   _isTop(1),
+  _setArrayType(2),
   findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
+  instanceType(1)],
  type=[
   inst:Closure,
   inst:JSArray<dynamic>,
@@ -484,9 +484,9 @@ topLevelFunctionTyped3(void a(num b, {String c, int d})) {}
   _isObject(1),
   _isString(1),
   _isTop(1),
+  _setArrayType(2),
   findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
+  instanceType(1)],
  type=[
   inst:Closure,
   inst:JSArray<dynamic>,
@@ -796,9 +796,9 @@ testTopLevelFieldGeneric2() => topLevelFieldGeneric2;
   _isObject(1),
   _isString(1),
   _isTop(1),
+  _setArrayType(2),
   findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
+  instanceType(1)],
  type=[
   inst:Closure,
   inst:JSArray<dynamic>,
@@ -912,8 +912,8 @@ testLocalWithInitializerTyped() {
 
 /*member: testLocalFunction:
  static=[
-  def:localFunction,
-  setRuntimeTypeInfo(2)],
+  _setArrayType(2),
+  def:localFunction],
  type=[
   inst:Function,
   inst:JSArray<dynamic>,
@@ -962,10 +962,10 @@ testLocalFunction() {
   _isObject(1),
   _isString(1),
   _isTop(1),
+  _setArrayType(2),
   def:localFunction,
   findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
+  instanceType(1)],
  type=[
   inst:Closure,
   inst:Function,
@@ -986,9 +986,9 @@ testLocalFunctionTyped() {
 /*member: testLocalFunctionInvoke:
  dynamic=[call(0)],
  static=[
+  _setArrayType(2),
   def:localFunction,
-  localFunction(0),
-  setRuntimeTypeInfo(2)],
+  localFunction(0)],
  type=[
   inst:Function,
   inst:JSArray<dynamic>,
@@ -1004,8 +1004,8 @@ testLocalFunctionInvoke() {
 
 /*member: testLocalFunctionGet:
  static=[
-  def:localFunction,
-  setRuntimeTypeInfo(2)],
+  _setArrayType(2),
+  def:localFunction],
  type=[
   inst:Function,
   inst:JSArray<dynamic>,
@@ -1021,8 +1021,8 @@ testLocalFunctionGet() {
 
 /*member: testClosure:
  static=[
-  def:<anonymous>,
-  setRuntimeTypeInfo(2)],
+  _setArrayType(2),
+  def:<anonymous>],
  type=[
   inst:Function,
   inst:JSArray<dynamic>,
@@ -1038,8 +1038,8 @@ testClosure() {
 /*member: testClosureInvoke:
  dynamic=[call(0)],
  static=[
-  def:<anonymous>,
-  setRuntimeTypeInfo(2)],
+  _setArrayType(2),
+  def:<anonymous>],
  type=[
   inst:Function,
   inst:JSArray<dynamic>,
