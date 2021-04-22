@@ -8,7 +8,7 @@ import 'dart:math' as math;
 
 import 'package:front_end/src/api_unstable/vm.dart'
     show
-        messageFfiArrayGetNonPositiveParams,
+        messageFfiArrayDimensionsNonPositive,
         messageFfiPackedAnnotationAlignment,
         templateFfiEmptyStruct,
         templateFfiFieldAnnotation,
@@ -331,6 +331,16 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                   f.fileOffset,
                   f.name.text.length,
                   f.fileUri);
+            }
+            final dimensions = sizeAnnotations.single;
+            for (var dimension in dimensions) {
+              if (dimension < 0) {
+                diagnosticReporter.report(
+                    messageFfiArrayDimensionsNonPositive, f.fileOffset,
+                    f.name.name.length,
+                    f.fileUri);
+                success = false;
+              }
             }
           } else {
             diagnosticReporter.report(
@@ -776,8 +786,7 @@ abstract class NativeTypeCfe {
       final elementCfeType =
       NativeTypeCfe(
           transformer, node, elementType, compoundCache: compoundCache);
-      return ArrayNativeTypeCfe.multi(
-          transformer, node, elementCfeType, arrayDimensions);
+      return ArrayNativeTypeCfe.multi(elementCfeType, arrayDimensions);
     }
     throw "Invalid type $dartType";
   }
@@ -1139,20 +1148,13 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
 
   ArrayNativeTypeCfe(this.elementType, this.length);
 
-  factory ArrayNativeTypeCfe.multi(FfiTransformer transformer,
-      Member member, NativeTypeCfe elementType, List<int> dimensions) {
+  factory ArrayNativeTypeCfe.multi(NativeTypeCfe elementType,
+      List<int> dimensions) {
     if (dimensions.length == 1) {
-      final val = dimensions.single;
-      final reporter = transformer.diagnosticReporter;
-      if (val <= 0) {
-        reporter.report(
-            messageFfiArrayGetNonPositiveParams, member.fileOffset,
-            member.name.name.length, member.fileUri);
-      }
       return ArrayNativeTypeCfe(elementType, dimensions.single);
     }
-    return ArrayNativeTypeCfe(ArrayNativeTypeCfe.multi(
-        transformer, member, elementType, dimensions.sublist(1)),
+    return ArrayNativeTypeCfe(
+        ArrayNativeTypeCfe.multi(elementType, dimensions.sublist(1)),
         dimensions.first);
   }
 

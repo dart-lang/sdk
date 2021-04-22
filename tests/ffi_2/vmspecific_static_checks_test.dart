@@ -61,6 +61,7 @@ void main() {
   testSizeOfHandle();
   testElementAtGeneric();
   testElementAtNativeType();
+  testArrayDimensionNonPositive();
 }
 
 typedef Int8UnOp = Int8 Function(Int8);
@@ -663,6 +664,12 @@ void testElementAtNativeType() {
   calloc.free(p);
 }
 
+void testArrayDimensionNonPositive() {
+  TestStruct1800 ms1;
+  TestStruct1801 ms2;
+  TestStruct1801 ms3;
+}
+
 class TestStruct1400 extends Struct {
   @Array(8) //# 1400: compile-time error
   @Array(8)
@@ -756,4 +763,25 @@ class TestStruct1606Packed extends Struct {
 
   @Array(2) //# 1606: compile-time error
   Array<TestStruct1604> nestedLooselyPacked; //# 1606: compile-time error
+}
+
+class TestStruct1800 extends Struct {
+  Pointer<Uint8> notEmpty;
+
+  @Array(-1) //# 1800: compile-time error
+  Array<Uint8> inlineArray; //# 1800: compile-time error
+}
+
+class TestStruct1801 extends Struct {
+  Pointer<Uint8> notEmpty;
+
+  @Array(1, -1) //# 1801: compile-time error
+  Array<Uint8> inlineArray; //# 1801: compile-time error
+}
+
+class TestStruct1802 extends Struct {
+  Pointer<Uint8> notEmpty;
+
+  @Array.multi([2, 2, 2, 2, 2, 2, -1]) //# 1802: compile-time error
+  Array<Uint8> inlineArray; //# 1802: compile-time error
 }

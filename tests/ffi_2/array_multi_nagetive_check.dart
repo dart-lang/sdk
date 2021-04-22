@@ -4,7 +4,7 @@
 //
 // Dart test programing for testing that optimizations do wrongly assume loads
 // from and stores to C memory are not aliased.
-// 
+//
 // SharedOptions=--enable-experiment=no-non-nullable
 // @dart=2.12
 
@@ -12,7 +12,7 @@ import "dart:ffi";
 import "package:expect/expect.dart";
 
 class MyStruct extends Struct {
-  @Array.multi([-1])  // no error
+  @Array.multi([-1])
   external Array<Uint8> a0;
 }
 

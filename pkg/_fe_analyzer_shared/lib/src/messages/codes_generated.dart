@@ -3735,13 +3735,13 @@ const MessageCode messageFastaUsageShort =
   -h        Display this message (add -v for information about all options).""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeFfiArrayGetNonPositiveParams =
-    messageFfiArrayGetNonPositiveParams;
+const Code<Null> codeFfiArrayDimensionsNonPositive =
+    messageFfiArrayDimensionsNonPositive;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiArrayGetNonPositiveParams = const MessageCode(
-    "FfiArrayGetNonPositiveParams",
-    message: r"""Array type only accept a positive number.""");
+const MessageCode messageFfiArrayDimensionsNonPositive = const MessageCode(
+    "FfiArrayDimensionsNonPositive",
+    message: r"""Array dimensions must be positive numbers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
