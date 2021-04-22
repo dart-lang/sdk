@@ -32,6 +32,7 @@ Trigger builds to check recipe changes
 Trigger builds to check recipe changes
 Trigger builds to check recipe changes
 Trigger builds to check recipe changes
+Trigger builds to test builder configuration change
 
 Analyzer branch commits:
 Force build on new analyzer-branch linux build with new workflow
