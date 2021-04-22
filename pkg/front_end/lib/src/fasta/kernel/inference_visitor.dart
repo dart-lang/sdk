@@ -666,7 +666,8 @@ class InferenceVisitor
         read,
         readType,
         node.binaryName,
-        node.rhs);
+        node.rhs,
+        null);
 
     Expression binary = binaryResult.expression;
     DartType binaryType = binaryResult.inferredType;
@@ -2906,7 +2907,8 @@ class InferenceVisitor
         read,
         readType,
         node.binaryName,
-        node.rhs);
+        node.rhs,
+        null);
     DartType binaryType = binaryResult.inferredType;
 
     Expression binary =
@@ -3999,7 +4001,8 @@ class InferenceVisitor
       Expression left,
       DartType leftType,
       Name binaryName,
-      Expression right) {
+      Expression right,
+      Map<DartType, NonPromotionReason> Function() whyNotPromoted) {
     assert(binaryName != equalsName);
 
     ObjectAccessTarget binaryTarget = inferrer.findInterfaceMember(
@@ -4203,6 +4206,10 @@ class InferenceVisitor
     }
 
     if (!inferrer.isTopLevel && binaryTarget.isNullable) {
+      List<LocatedMessage> context = inferrer.getWhyNotPromotedContext(
+          whyNotPromoted?.call(),
+          binary,
+          (type) => !type.isPotentiallyNullable);
       return new ExpressionInferenceResult(
           binaryType,
           inferrer.helper.wrapInProblem(
@@ -4210,7 +4217,8 @@ class InferenceVisitor
               templateNullableOperatorCallError.withArguments(
                   binaryName.text, leftType, inferrer.isNonNullableByDefault),
               binary.fileOffset,
-              binaryName.text.length));
+              binaryName.text.length,
+              context: context));
     }
     return new ExpressionInferenceResult(binaryType, binary);
   }
@@ -4220,8 +4228,12 @@ class InferenceVisitor
   ///
   /// [fileOffset] is used as the file offset for created nodes.
   /// [expressionType] is the already inferred type of the [expression].
-  ExpressionInferenceResult _computeUnaryExpression(int fileOffset,
-      Expression expression, DartType expressionType, Name unaryName) {
+  ExpressionInferenceResult _computeUnaryExpression(
+      int fileOffset,
+      Expression expression,
+      DartType expressionType,
+      Name unaryName,
+      Map<DartType, NonPromotionReason> Function() whyNotPromoted) {
     ObjectAccessTarget unaryTarget = inferrer.findInterfaceMember(
         expressionType, unaryName, fileOffset,
         includeExtensionMethods: true);
@@ -4352,6 +4364,8 @@ class InferenceVisitor
     }
 
     if (!inferrer.isTopLevel && unaryTarget.isNullable) {
+      List<LocatedMessage> context = inferrer.getWhyNotPromotedContext(
+          whyNotPromoted?.call(), unary, (type) => !type.isPotentiallyNullable);
       // TODO(johnniwinther): Special case 'unary-' in messages. It should
       // probably be referred to as "Unary operator '-' ...".
       return new ExpressionInferenceResult(
@@ -4361,7 +4375,8 @@ class InferenceVisitor
               templateNullableOperatorCallError.withArguments(unaryName.text,
                   expressionType, inferrer.isNonNullableByDefault),
               unary.fileOffset,
-              unaryName == unaryMinusName ? 1 : unaryName.text.length));
+              unaryName == unaryMinusName ? 1 : unaryName.text.length,
+              context: context));
     }
     return new ExpressionInferenceResult(unaryType, unary);
   }
@@ -5121,7 +5136,8 @@ class InferenceVisitor
         left,
         readType,
         node.binaryName,
-        node.rhs);
+        node.rhs,
+        null);
     Expression binary = binaryResult.expression;
     DartType binaryType = binaryResult.inferredType;
 
@@ -5263,7 +5279,8 @@ class InferenceVisitor
         left,
         readType,
         node.binaryName,
-        node.rhs);
+        node.rhs,
+        null);
     Expression binary = binaryResult.expression;
     DartType binaryType = binaryResult.inferredType;
 
@@ -5417,7 +5434,8 @@ class InferenceVisitor
         left,
         readType,
         node.binaryName,
-        node.rhs);
+        node.rhs,
+        null);
     Expression binary = binaryResult.expression;
     DartType binaryType = binaryResult.inferredType;
 
@@ -5596,7 +5614,8 @@ class InferenceVisitor
         left,
         readType,
         node.binaryName,
-        node.rhs);
+        node.rhs,
+        null);
 
     Expression binary = binaryResult.expression;
     DartType binaryType = binaryResult.inferredType;
@@ -6922,13 +6941,16 @@ class InferenceVisitor
       BinaryExpression node, DartType typeContext) {
     ExpressionInferenceResult leftResult =
         inferrer.inferExpression(node.left, const UnknownType(), true);
+    Map<DartType, NonPromotionReason> Function() whyNotPromoted =
+        inferrer.flowAnalysis?.whyNotPromoted(leftResult.expression);
     return _computeBinaryExpression(
         node.fileOffset,
         typeContext,
         leftResult.expression,
         leftResult.inferredType,
         node.binaryName,
-        node.right);
+        node.right,
+        whyNotPromoted);
   }
 
   ExpressionInferenceResult visitUnary(
@@ -7001,8 +7023,10 @@ class InferenceVisitor
       expressionResult =
           inferrer.inferExpression(node.expression, const UnknownType(), true);
     }
+    Map<DartType, NonPromotionReason> Function() whyNotPromoted =
+        inferrer.flowAnalysis?.whyNotPromoted(expressionResult.expression);
     return _computeUnaryExpression(node.fileOffset, expressionResult.expression,
-        expressionResult.inferredType, node.unaryName);
+        expressionResult.inferredType, node.unaryName, whyNotPromoted);
   }
 
   ExpressionInferenceResult visitParenthesized(
