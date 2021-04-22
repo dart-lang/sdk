@@ -202,7 +202,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode NON_POSITIVE_ARRAY_DIMENSION = FfiCode(
     name: 'NON_POSITIVE_INPUT_ON_ARRAY',
     message: "Array dimensions must be positive numbers.",
-    correction: "Try changing the input to a positive num.");
+    correction: "Try changing the input to a positive number.");
 
   /**
    * Parameters:
