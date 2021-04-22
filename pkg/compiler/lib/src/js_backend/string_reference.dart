@@ -145,58 +145,55 @@ class StringReference extends js.DeferredExpression implements js.AstContainer {
   Iterable<js.Node> get containedNodes => isFinalized ? [_value] : const [];
 }
 
-/// A [StringReferenceResource] is a deferred JavaScript expression determined
+/// A [StringReferenceResource] is a deferred JavaScript statement determined
 /// by the finalization of string references. It is the injection point for data
 /// or code to support string references. For example, if the
 /// [StringReferenceFinalizer] decides that a string should be referred to via a
 /// variable, the [StringReferenceResource] would be set to code that declares
 /// and initializes the variable.
-class StringReferenceResource extends js.DeferredExpression
+class StringReferenceResource extends js.DeferredStatement
     implements js.AstContainer {
-  js.Expression _value;
+  js.Statement _statement;
 
   @override
   final js.JavaScriptNodeSourceInformation sourceInformation;
 
   StringReferenceResource() : sourceInformation = null;
-  StringReferenceResource._(this._value, this.sourceInformation);
+  StringReferenceResource._(this._statement, this.sourceInformation);
 
-  set value(js.Expression value) {
-    assert(!isFinalized && value != null);
-    _value = value;
+  set statement(js.Statement statement) {
+    assert(!isFinalized && statement != null);
+    _statement = statement;
   }
 
   @override
-  js.Expression get value {
+  js.Statement get statement {
     assert(isFinalized, 'StringReferenceResource is unassigned');
-    return _value;
+    return _statement;
   }
 
   @override
-  int get precedenceLevel => value.precedenceLevel;
-
-  @override
-  bool get isFinalized => _value != null;
+  bool get isFinalized => _statement != null;
 
   @override
   StringReferenceResource withSourceInformation(
       js.JavaScriptNodeSourceInformation newSourceInformation) {
     if (newSourceInformation == sourceInformation) return this;
     if (newSourceInformation == null) return this;
-    return StringReferenceResource._(_value, newSourceInformation);
+    return StringReferenceResource._(_statement, newSourceInformation);
   }
 
   @override
-  Iterable<js.Node> get containedNodes => isFinalized ? [_value] : const [];
+  Iterable<js.Node> get containedNodes => isFinalized ? [_statement] : const [];
 
   @override
   void visitChildren<T>(js.NodeVisitor<T> visitor) {
-    _value?.accept<T>(visitor);
+    _statement?.accept<T>(visitor);
   }
 
   @override
   void visitChildren1<R, A>(js.NodeVisitor1<R, A> visitor, A arg) {
-    _value?.accept1<R, A>(visitor, arg);
+    _statement?.accept1<R, A>(visitor, arg);
   }
 }
 
@@ -287,14 +284,11 @@ class StringReferenceFinalizerImpl implements StringReferenceFinalizer {
     }
 
     if (properties.isEmpty) {
-      // We don't have a deferred statement sequence. "0;" is the smallest we
-      // can do with an expression statement.
-      // TODO(sra): Add deferred expression statement sequences.
-      _resource.value = js.js('0');
+      _resource.statement = js.Block.empty();
     } else {
       js.Expression initializer =
           js.ObjectInitializer(properties, isOneLiner: false);
-      _resource.value = js.js(
+      _resource.statement = js.js.statement(
           r'var # = #', [js.VariableDeclaration(holderLocalName), initializer]);
     }
   }
@@ -432,7 +426,14 @@ class _StringReferenceCollectorVisitor extends js.BaseVisitor<void> {
   void visitDeferredExpression(js.DeferredExpression node) {
     if (node is StringReference) {
       _finalizer.registerStringReference(node);
-    } else if (node is StringReferenceResource) {
+    } else {
+      visitNode(node);
+    }
+  }
+
+  @override
+  void visitDeferredStatement(js.DeferredStatement node) {
+    if (node is StringReferenceResource) {
       _finalizer.registerStringReferenceResource(node);
     } else {
       visitNode(node);
