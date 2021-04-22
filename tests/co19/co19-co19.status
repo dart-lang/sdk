@@ -3,3 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 LibTest/io/RawDatagramSocket/*: Skip # https://github.com/dart-lang/co19/issues/195
+
+[ $compiler == dart2analyzer ]
+co19/LanguageFeatures/nnbd/static/strong/*: SkipByDesign # Strong mode tests should not be run with analyzer
+co19/LanguageFeatures/nnbd/static/weak/*: SkipByDesign # Weak mode tests should not be run with analyzer
