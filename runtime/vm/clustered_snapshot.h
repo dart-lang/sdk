@@ -79,13 +79,17 @@ class LoadingUnitSerializationData : public ZoneAllocated {
 
 class SerializationCluster : public ZoneAllocated {
  public:
+  static constexpr intptr_t kSizeVaries = -1;
   explicit SerializationCluster(const char* name,
-                                intptr_t target_instance_size = 0)
+                                intptr_t cid,
+                                intptr_t target_instance_size = kSizeVaries,
+                                bool is_canonical = false)
       : name_(name),
-        size_(0),
-        num_objects_(0),
+        cid_(cid),
         target_instance_size_(target_instance_size),
-        target_memory_size_(0) {}
+        is_canonical_(is_canonical) {
+    ASSERT(target_instance_size == kSizeVaries || target_instance_size >= 0);
+  }
   virtual ~SerializationCluster() {}
 
   // Add [object] to the cluster and push its outgoing references.
@@ -103,6 +107,8 @@ class SerializationCluster : public ZoneAllocated {
   void WriteAndMeasureFill(Serializer* serializer);
 
   const char* name() const { return name_; }
+  intptr_t cid() const { return cid_; }
+  bool is_canonical() const { return is_canonical_; }
   intptr_t size() const { return size_; }
   intptr_t num_objects() const { return num_objects_; }
 
@@ -116,40 +122,47 @@ class SerializationCluster : public ZoneAllocated {
   intptr_t target_memory_size() const { return target_memory_size_; }
 
  protected:
-  const char* name_;
-  intptr_t size_;
-  intptr_t num_objects_;
+  const char* const name_;
+  const intptr_t cid_;
   const intptr_t target_instance_size_;
-  intptr_t target_memory_size_;
+  const bool is_canonical_;
+  intptr_t size_ = 0;
+  intptr_t num_objects_ = 0;
+  intptr_t target_memory_size_ = 0;
 };
 
 class DeserializationCluster : public ZoneAllocated {
  public:
-  explicit DeserializationCluster(const char* name)
-      : name_(name), start_index_(-1), stop_index_(-1) {}
+  explicit DeserializationCluster(const char* name, bool is_canonical = false)
+      : name_(name),
+        is_canonical_(is_canonical),
+        start_index_(-1),
+        stop_index_(-1) {}
   virtual ~DeserializationCluster() {}
 
   // Allocate memory for all objects in the cluster and write their addresses
   // into the ref array. Do not touch this memory.
-  virtual void ReadAlloc(Deserializer* deserializer, bool stamp_canonical) = 0;
+  virtual void ReadAlloc(Deserializer* deserializer) = 0;
 
   // Initialize the cluster's objects. Do not touch the memory of other objects.
-  virtual void ReadFill(Deserializer* deserializer, bool stamp_canonical) = 0;
+  virtual void ReadFill(Deserializer* deserializer, bool primary) = 0;
 
   // Complete any action that requires the full graph to be deserialized, such
   // as rehashing.
   virtual void PostLoad(Deserializer* deserializer,
                         const Array& refs,
-                        bool canonicalize) {
-    if (canonicalize) {
+                        bool primary) {
+    if (!primary && is_canonical()) {
       FATAL1("%s needs canonicalization but doesn't define PostLoad", name());
     }
   }
 
   const char* name() const { return name_; }
+  bool is_canonical() const { return is_canonical_; }
 
  protected:
-  const char* name_;
+  const char* const name_;
+  const bool is_canonical_;
   // The range of the ref array that belongs to this cluster.
   intptr_t start_index_;
   intptr_t stop_index_;
@@ -197,6 +210,8 @@ static constexpr bool IsArtificialReference(intptr_t ref) {
 static constexpr bool IsReachableReference(intptr_t ref) {
   return ref == kUnallocatedReference || IsAllocatedReference(ref);
 }
+
+class CodeSerializationCluster;
 
 class Serializer : public ThreadStackResource {
  public:
@@ -473,6 +488,7 @@ class Serializer : public ThreadStackResource {
   ImageWriter* image_writer_;
   SerializationCluster** canonical_clusters_by_cid_;
   SerializationCluster** clusters_by_cid_;
+  CodeSerializationCluster* code_cluster_ = nullptr;
   GrowableArray<ObjectPtr> stack_;
   intptr_t num_cids_;
   intptr_t num_tlc_cids_;
@@ -532,7 +548,6 @@ class Serializer : public ThreadStackResource {
 #define WriteField(obj, field) s->WritePropertyRef(obj->untag()->field, #field)
 #define WriteCompressedField(obj, name)                                        \
   s->WritePropertyRef(obj->untag()->name(), #name "_")
-
 
 // This class can be used to read version and features from a snapshot before
 // the VM has been initialized.
@@ -693,14 +708,12 @@ class Deserializer : public ThreadStackResource {
   ImageReader* image_reader_;
   intptr_t num_base_objects_;
   intptr_t num_objects_;
-  intptr_t num_canonical_clusters_;
   intptr_t num_clusters_;
   ArrayPtr refs_;
   intptr_t next_ref_index_;
   intptr_t previous_text_offset_;
   intptr_t code_start_index_ = 0;
   intptr_t instructions_index_ = 0;
-  DeserializationCluster** canonical_clusters_;
   DeserializationCluster** clusters_;
   FieldTable* initial_field_table_;
   const bool is_non_root_unit_;
