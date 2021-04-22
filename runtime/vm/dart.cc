@@ -103,7 +103,8 @@ static void CheckOffsets() {
     ok = false;                                                                \
   }
 
-// No consistency checks needed for this construct.
+// No consistency checks needed for these constructs.
+#define CHECK_ARRAY_SIZEOF(Class, Name, ElementOffset)
 #define CHECK_PAYLOAD_SIZEOF(Class, Name, HeaderSize)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -144,11 +145,12 @@ static void CheckOffsets() {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   COMMON_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
-                      CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT)
+                      CHECK_ARRAY_SIZEOF, CHECK_PAYLOAD_SIZEOF, CHECK_RANGE,
+                      CHECK_CONSTANT)
 
-  NOT_IN_PRECOMPILED_RUNTIME(
-      JIT_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
-                       CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
+  NOT_IN_PRECOMPILED_RUNTIME(JIT_OFFSETS_LIST(
+      CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_ARRAY_SIZEOF,
+      CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
 
   if (!ok) {
     FATAL(

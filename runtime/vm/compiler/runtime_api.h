@@ -460,8 +460,6 @@ class Class : public AllStatic {
  public:
   static word host_type_arguments_field_offset_in_words_offset();
 
-  static word target_type_arguments_field_offset_in_words_offset();
-
   static word declaration_type_offset();
 
   static word super_type_offset();
@@ -603,8 +601,9 @@ class TypedDataBase : public PointerBase {
 class TypedData : public AllStatic {
  public:
   static word data_offset();
-  static word InstanceSize(intptr_t lengthInBytes);
+  static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(word lengthInBytes);
   static word NextFieldOffset();
 };
 
@@ -742,6 +741,9 @@ class OneByteString : public AllStatic {
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
+
+ private:
+  static word element_offset(intptr_t index);
 };
 
 class TwoByteString : public AllStatic {
@@ -750,6 +752,9 @@ class TwoByteString : public AllStatic {
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
+
+ private:
+  static word element_offset(intptr_t index);
 };
 
 class ExternalOneByteString : public AllStatic {
@@ -1201,9 +1206,13 @@ class InstructionsSection : public AllStatic {
 
 class InstructionsTable : public AllStatic {
  public:
-  static word InstanceSize(intptr_t length);
+  static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(intptr_t length);
   static word NextFieldOffset();
+
+ private:
+  static word element_offset(intptr_t index);
 };
 
 class Instructions : public AllStatic {
@@ -1231,8 +1240,13 @@ class Code : public AllStatic {
   static word entry_point_offset(CodeEntryKind kind = CodeEntryKind::kNormal);
   static word saved_instructions_offset();
   static word owner_offset();
+  static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(intptr_t length);
   static word NextFieldOffset();
+
+ private:
+  static word element_offset(intptr_t index);
 };
 
 class WeakSerializationReference : public AllStatic {
@@ -1269,8 +1283,8 @@ class Context : public AllStatic {
   static word header_size();
   static word parent_offset();
   static word num_variables_offset();
-  static word variable_offset(word i);
-  static word InstanceSize(word n);
+  static word variable_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   static word NextFieldOffset();
 };

@@ -211,7 +211,7 @@ word TypedDataElementSizeInBytes(classid_t cid) {
 }
 
 word TypedDataMaxNewSpaceElements(classid_t cid) {
-  return (dart::Heap::kNewAllocatableSize - target::TypedData::InstanceSize()) /
+  return (dart::Heap::kNewAllocatableSize - target::TypedData::HeaderSize()) /
          TypedDataElementSizeInBytes(cid);
 }
 
@@ -517,14 +517,6 @@ word ICData::EntryPointIndexFor(word num_args) {
 const word MegamorphicCache::kSpreadFactor =
     dart::MegamorphicCache::kSpreadFactor;
 
-word Context::InstanceSize(word n) {
-  return TranslateOffsetInWords(dart::Context::InstanceSize(n));
-}
-
-word Context::variable_offset(word n) {
-  return TranslateOffsetInWords(dart::Context::variable_offset(n));
-}
-
 // Currently we have two different axes for offset generation:
 //
 //  * Target architecture
@@ -533,6 +525,12 @@ word Context::variable_offset(word n) {
 // TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
 
 #define DEFINE_CONSTANT(Class, Name) const word Class::Name = Class##_##Name;
+
+#define DEFINE_ARRAY_SIZEOF(clazz, name, ElementOffset)                        \
+  word clazz::name() { return 0; }                                             \
+  word clazz::name(intptr_t length) {                                          \
+    return RoundedAllocationSize(clazz::ElementOffset(length));                \
+  }
 
 #define DEFINE_PAYLOAD_SIZEOF(clazz, name, header)                             \
   word clazz::name() { return 0; }                                             \
@@ -562,6 +560,7 @@ word Context::variable_offset(word n) {
 JIT_OFFSETS_LIST(DEFINE_FIELD,
                  DEFINE_ARRAY,
                  DEFINE_SIZEOF,
+                 DEFINE_ARRAY_SIZEOF,
                  DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_RANGE,
                  DEFINE_CONSTANT)
@@ -569,6 +568,7 @@ JIT_OFFSETS_LIST(DEFINE_FIELD,
 COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY,
                     DEFINE_SIZEOF,
+                    DEFINE_ARRAY_SIZEOF,
                     DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
                     DEFINE_CONSTANT)
@@ -614,6 +614,7 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
                  DEFINE_JIT_ARRAY,
                  DEFINE_JIT_SIZEOF,
+                 DEFINE_ARRAY_SIZEOF,
                  DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_JIT_RANGE,
                  DEFINE_CONSTANT)
@@ -657,6 +658,7 @@ JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
 COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY,
                     DEFINE_SIZEOF,
+                    DEFINE_ARRAY_SIZEOF,
                     DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
                     DEFINE_CONSTANT)
@@ -877,10 +879,6 @@ word ObjectPool::NextFieldOffset() {
   return -kWordSize;
 }
 
-word ObjectPool::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(ObjectPool::element_offset(length));
-}
-
 word Class::NextFieldOffset() {
   return -kWordSize;
 }
@@ -910,10 +908,6 @@ intptr_t Array::index_at_offset(intptr_t offset_in_bytes) {
       TranslateOffsetInWordsToHost(offset_in_bytes));
 }
 
-word Array::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(Array::element_offset(length));
-}
-
 word GrowableObjectArray::NextFieldOffset() {
   return -kWordSize;
 }
@@ -924,10 +918,6 @@ word TypedDataBase::NextFieldOffset() {
 
 word TypedData::NextFieldOffset() {
   return -kWordSize;
-}
-
-word TypedData::InstanceSize(intptr_t lengthInBytes) {
-  return RoundedAllocationSize(TypedData::InstanceSize() + lengthInBytes);
 }
 
 word ExternalTypedData::NextFieldOffset() {
@@ -978,18 +968,8 @@ word OneByteString::NextFieldOffset() {
   return -kWordSize;
 }
 
-word OneByteString::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(OneByteString::InstanceSize() +
-                               length * dart::OneByteString::kBytesPerElement);
-}
-
 word TwoByteString::NextFieldOffset() {
   return -kWordSize;
-}
-
-word TwoByteString::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(TwoByteString::InstanceSize() +
-                               length * dart::TwoByteString::kBytesPerElement);
 }
 
 word ExternalOneByteString::NextFieldOffset() {
@@ -1052,6 +1032,10 @@ word CompressedStackMaps::NextFieldOffset() {
   return -kWordSize;
 }
 
+word LocalVarDescriptors::InstanceSize() {
+  return 0;
+}
+
 word LocalVarDescriptors::NextFieldOffset() {
   return -kWordSize;
 }
@@ -1060,16 +1044,8 @@ word ExceptionHandlers::NextFieldOffset() {
   return -kWordSize;
 }
 
-word ExceptionHandlers::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(ExceptionHandlers::element_offset(length));
-}
-
 word ContextScope::NextFieldOffset() {
   return -kWordSize;
-}
-
-word ContextScope::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(ContextScope::element_offset(length));
 }
 
 word UnlinkedCall::NextFieldOffset() {
@@ -1125,7 +1101,11 @@ word StackTrace::NextFieldOffset() {
 }
 
 word Integer::NextFieldOffset() {
-  return -kWordSize;
+  return TranslateOffsetInWords(dart::Integer::NextFieldOffset());
+}
+
+word Smi::InstanceSize() {
+  return 0;
 }
 
 word Smi::NextFieldOffset() {
@@ -1141,7 +1121,7 @@ word MirrorReference::NextFieldOffset() {
 }
 
 word Number::NextFieldOffset() {
-  return -kWordSize;
+  return TranslateOffsetInWords(dart::Number::NextFieldOffset());
 }
 
 word MonomorphicSmiableCall::NextFieldOffset() {
@@ -1150,12 +1130,6 @@ word MonomorphicSmiableCall::NextFieldOffset() {
 
 word InstructionsSection::NextFieldOffset() {
   return -kWordSize;
-}
-
-word InstructionsTable::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(InstructionsTable::InstanceSize() +
-                               length *
-                                   dart::InstructionsTable::kBytesPerElement);
 }
 
 word InstructionsTable::NextFieldOffset() {
@@ -1208,10 +1182,6 @@ word Field::NextFieldOffset() {
 
 word TypeArguments::NextFieldOffset() {
   return -kWordSize;
-}
-
-word TypeArguments::InstanceSize(intptr_t length) {
-  return RoundedAllocationSize(TypeArguments::type_at_offset(length));
 }
 
 word FreeListElement::FakeInstance::NextFieldOffset() {

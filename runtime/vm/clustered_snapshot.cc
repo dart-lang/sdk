@@ -1914,7 +1914,7 @@ class CodeSerializationCluster : public SerializationCluster {
     const int32_t state_bits = code->untag()->state_bits_;
     s->Write<int32_t>(state_bits);
     if (!Code::DiscardedBit::decode(state_bits)) {
-      target_memory_size_ += compiler::target::Code::InstanceSize();
+      target_memory_size_ += compiler::target::Code::InstanceSize(0);
     }
   }
 
