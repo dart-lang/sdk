@@ -15,19 +15,19 @@ main() {
 
 @reflectiveTest
 class FfiArrayMultiNonPositiveInput extends PubPackageResolutionTest {
-  test_zero() async {
+  test_multi() async {
     await assertErrorsInCode(
-'''
+        '''
 import "dart:ffi";
 
 class MyStruct extends Struct {
-  @Array.multi([0])  
-  external Array<Uint8> a0;
+  @Array.multi([1, 2, 3, -4, 5, 6])
+  external Array<Array<Array<Array<Array<Array<Uint8>>>>>> a0;
 }
 
-void main() { }    
+void main() {}
 ''', [
-      error(FfiCode.NON_POSITIVE_INPUT_ON_ARRAY, 54, 17),
+      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 54, 33),
     ]);
   }
 
@@ -37,13 +37,43 @@ void main() { }
 import "dart:ffi";
 
 class MyStruct extends Struct {
-  @Array.multi([-1])  
+  @Array.multi([-1])
   external Array<Uint8> a0;
 }
 
-void main() { }    
+void main() {}
 ''', [
-      error(FfiCode.NON_POSITIVE_INPUT_ON_ARRAY, 54, 18),
+      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 54, 18),
+    ]);
+  }
+
+  test_non_error() async {
+    await assertNoErrorsInCode(
+'''
+import "dart:ffi";
+
+class MyStruct extends Struct {
+  @Array.multi([1])
+  external Array<Uint8> a0;
+}
+
+void main() {}
+''');
+  }
+
+  test_zero() async {
+    await assertErrorsInCode(
+'''
+import "dart:ffi";
+
+class MyStruct extends Struct {
+  @Array.multi([0])
+  external Array<Uint8> a0;
+}
+
+void main() {}
+''', [
+      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 54, 17),
     ]);
   }
 }

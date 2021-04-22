@@ -199,9 +199,9 @@ class FfiCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  static const FfiCode NON_POSITIVE_INPUT_ON_ARRAY = FfiCode(
+  static const FfiCode NON_POSITIVE_ARRAY_DIMENSION = FfiCode(
     name: 'NON_POSITIVE_INPUT_ON_ARRAY',
-    message: "Array type only accept a positive number.",
+    message: "Array dimensions must be positive numbers.",
     correction: "Try changing the input to a positive num.");
 
   /**

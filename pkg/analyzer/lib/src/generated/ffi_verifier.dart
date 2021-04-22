@@ -817,7 +817,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     for (int dimension in dimensions) {
       if (dimension <= 0) {
         _errorReporter.reportErrorForNode(
-            FfiCode.NON_POSITIVE_INPUT_ON_ARRAY, annotation);
+            FfiCode.NON_POSITIVE_ARRAY_DIMENSION, annotation);
       }
     }
   }
