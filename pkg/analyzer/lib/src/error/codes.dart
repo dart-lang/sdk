@@ -12618,9 +12618,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "defining a getter or field named '{0}'.",
       hasPublishedDocs: true);
 
+  /**
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the name of the inherited getter
+   * 2: the name of the top-level setter
+   */
   static const CompileTimeErrorCode UNDEFINED_TOP_LEVEL_GETTER = CompileTimeErrorCode(
       'UNDEFINED_TOP_LEVEL_GETTER',
-      "Getter not found: '{0}'.");
+      "'{0}' can't be used as a getter because inherited getter `{1}` has"
+          " been hidden by top-level setter `{2}`");
 
   /**
    * Parameters:

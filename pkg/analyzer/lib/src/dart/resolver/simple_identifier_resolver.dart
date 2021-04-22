@@ -184,7 +184,7 @@ class SimpleIdentifierResolver {
       if (getter == null && val is TopLevelVariableElement) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_TOP_LEVEL_GETTER, node,
-            [node.name]);
+            [node.name, result.readElement, val.setter]);
       }
     }
 
