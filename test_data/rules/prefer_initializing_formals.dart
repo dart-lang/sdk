@@ -4,6 +4,16 @@
 
 // test w/ `dart test -N prefer_initializing_formals`
 
+class Foo {
+  final bool isBlahEnabled;
+  final List<String> whatever;
+
+  /// https://github.com/dart-lang/linter/issues/2605
+  Foo(bool isThingEnabled)
+      : whatever = isThingEnabled ? ['thingstuff'] : ['otherstuff'],
+        isBlahEnabled = isThingEnabled; // OK
+}
+
 class A {
   int x;
   A(this.x);
@@ -43,20 +53,22 @@ class SimpleBadCaseWithOnlyOneLint {
   }
 }
 
-class SimpleBadCaseWithoutThis {
+/// https://github.com/dart-lang/linter/issues/2605
+class RenamedFieldsForReadability {
   num x, y;
-  SimpleBadCaseWithoutThis(num a, num b) {
-    x = a; // LINT
-    y = b; // LINT
+  RenamedFieldsForReadability(num a, num b) {
+    x = a; // OK
+    y = b; // OK
   }
 }
 
-class SimpleBadCaseWithoutThisAndDifferentDeclarations {
+/// https://github.com/dart-lang/linter/issues/2605
+class RenamedFieldsForReadability2 {
   num x;
   num y;
-  SimpleBadCaseWithoutThisAndDifferentDeclarations(num a, num b) {
-    x = a; // LINT
-    y = b; // LINT
+  RenamedFieldsForReadability2(num a, num b) {
+    x = a; // OK
+    y = b; // OK
   }
 }
 
@@ -103,13 +115,13 @@ class SuperCallWithConstructorParameters extends SimpleGoodCase {
   }
 }
 
-class BadCaseWithNamedConstructorAndInitializerLint {
+class NamedConstructorRenameAndInitializer {
   num x, y;
-  BadCaseWithNamedConstructorAndInitializerLint.lint1(num a, this.y)
-      : this.x = a, // LINT
+  NamedConstructorRenameAndInitializer.ok1(num a, this.y)
+      : this.x = a, // OK
         super();
-  BadCaseWithNamedConstructorAndInitializerLint.lint2(num a, this.y)
-      : x = a, // LINT
+  NamedConstructorRenameAndInitializer.ok2(num a, this.y)
+      : x = a, // OK
         super();
 }
 

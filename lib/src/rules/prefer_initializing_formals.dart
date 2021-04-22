@@ -131,6 +131,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var rightElement = _getRightElement(assignment);
       return leftElement != null &&
           rightElement != null &&
+          leftElement.name == rightElement.name &&
           !leftElement.isPrivate &&
           leftElement is FieldElement &&
           !leftElement.isSynthetic &&
@@ -146,6 +147,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         ConstructorFieldInitializer constructorFieldInitializer) {
       var expression = constructorFieldInitializer.expression;
       if (expression is SimpleIdentifier) {
+        var fieldName = constructorFieldInitializer.fieldName;
+        if (fieldName.name != expression.name) {
+          return false;
+        }
         var staticElement = expression.staticElement;
         return staticElement is ParameterElement &&
             !(constructorFieldInitializer.fieldName.staticElement?.isPrivate ??
