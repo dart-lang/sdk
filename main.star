@@ -136,6 +136,7 @@ BBAGENT_ALLOW_LIST = [
     "dart/flutter_engine",
     "dart/forward_branch",
     "dart/linearize",
+    "dart/neo",
     "dart/package_co19",
     "roller/lkgr",
     "roller/roll_to_dev",
