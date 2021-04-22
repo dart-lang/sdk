@@ -9837,12 +9837,12 @@ class Array : public Instance {
 
   template <std::memory_order order = std::memory_order_relaxed>
   ObjectPtr At(intptr_t index) const {
-    return untag()->element(index);
+    return untag()->element<order>(index);
   }
   template <std::memory_order order = std::memory_order_relaxed>
   void SetAt(intptr_t index, const Object& value) const {
     // TODO(iposva): Add storing NoSafepointScope.
-    untag()->set_element(index, value.ptr());
+    untag()->set_element<order>(index, value.ptr());
   }
 
   // Access to the array with acquire release semantics.
