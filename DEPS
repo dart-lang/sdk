@@ -107,6 +107,7 @@ vars = {
   "chromedriver_tag": "83.0.4103.39",
   "browser_launcher_rev": "12ab9f351a44ac803de9bc17bb2180bb312a9dd7",
   "dartdoc_rev" : "505f163f7cb48e917503e4a23fbff1227e08b263",
+  "jsshell_tag": "version:88.0",
   "ffi_rev": "f3346299c55669cc0db48afae85b8110088bf8da",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "file_rev": "0e09370f581ab6388d46fda4cdab66638c0171a1",
@@ -223,6 +224,23 @@ deps = {
           "package": "dart/d8",
           "version": "version:8.5.210",
       }],
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/third_party/firefox_jsshell": {
+      "packages": [{
+          "package": "dart/third_party/jsshell/${{platform}}",
+          "version": Var("jsshell_tag"),
+      }],
+      "condition": "checkout_javascript_engines",
+      "dep_type": "cipd",
+  },
+  # TODO(b/186078239): remove this copy to the old location
+  Var("dart_root") + "/third_party/firefox_jsshell/linux/jsshell": {
+      "packages": [{
+          "package": "dart/third_party/jsshell/linux-amd64",
+          "version": Var("jsshell_tag"),
+      }],
+      "condition": "checkout_javascript_engines",
       "dep_type": "cipd",
   },
   Var("dart_root") + "/third_party/devtools": {
@@ -651,23 +669,6 @@ deps_os = {
 }
 
 hooks = [
-  {
-    "name": "firefox_jsshell",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--recursive",
-      "--auto_platform",
-      "--extract",
-      "--directory",
-      Var('dart_root') + "/third_party/firefox_jsshell",
-    ],
-    "condition": "checkout_javascript_engines",
-  },
   {
     # Pull Debian sysroot for i386 Linux
     'name': 'sysroot_i386',
