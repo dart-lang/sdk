@@ -8,8 +8,8 @@ import 'dart:math' as math;
 
 import 'package:front_end/src/api_unstable/vm.dart'
     show
-        messageFfiArrayDimensionsNonPositive,
         messageFfiPackedAnnotationAlignment,
+        messageNonPositiveArrayDimensions,
         templateFfiEmptyStruct,
         templateFfiFieldAnnotation,
         templateFfiFieldNull,
@@ -324,7 +324,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               compoundClassDependencies[node].add(clazz);
               _checkPacking(node, packing, clazz, f);
             }
-            if (arrayDimensions(type) != sizeAnnotations.single.length) {
+            final dimensions = sizeAnnotations.single;
+            if (arrayDimensions(type) != dimensions.length) {
               diagnosticReporter.report(
                   templateFfiSizeAnnotationDimensions
                       .withArguments(f.name.text),
@@ -332,12 +333,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                   f.name.text.length,
                   f.fileUri);
             }
-            final dimensions = sizeAnnotations.single;
             for (var dimension in dimensions) {
               if (dimension < 0) {
                 diagnosticReporter.report(
-                    messageFfiArrayDimensionsNonPositive, f.fileOffset,
-                    f.name.name.length,
+                    messageNonPositiveArrayDimensions, f.fileOffset,
+                    f.name.text.length,
                     f.fileUri);
                 success = false;
               }
@@ -489,12 +489,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final sizeAnnotations = _getArraySizeAnnotations(m).toList();
         if (sizeAnnotations.length == 1) {
           final arrayDimensions = sizeAnnotations.single;
-          type = NativeTypeCfe(this, m, dartType,
-              compoundCache: compoundCache, arrayDimensions: arrayDimensions);
+          type = NativeTypeCfe(this, dartType, compoundCache: compoundCache,
+              arrayDimensions: arrayDimensions);
         }
       } else if (isPointerType(dartType) || isCompoundSubtype(dartType)) {
-        type =
-            NativeTypeCfe(this, m, dartType, compoundCache: compoundCache);
+        type = NativeTypeCfe(this, dartType, compoundCache: compoundCache);
       } else {
         // The C type is in the annotation, not the field type itself.
         final nativeTypeAnnos = _getNativeTypeAnnotations(m).toList();
@@ -759,8 +758,8 @@ class CompoundLayout {
 /// This algebraic data structure does not stand on its own but refers
 /// intimately to AST nodes such as [Class].
 abstract class NativeTypeCfe {
-  factory NativeTypeCfe(FfiTransformer transformer, Member node,
-      DartType dartType, {List<int> arrayDimensions,
+  factory NativeTypeCfe(FfiTransformer transformer, DartType dartType,
+      {List<int> arrayDimensions,
         Map<Class, CompoundNativeTypeCfe> compoundCache = const {}}) {
     if (transformer.isPrimitiveType(dartType)) {
       final clazz = (dartType as InterfaceType).classNode;
@@ -784,8 +783,7 @@ abstract class NativeTypeCfe {
       }
       final elementType = transformer.arraySingleElementType(dartType);
       final elementCfeType =
-      NativeTypeCfe(
-          transformer, node, elementType, compoundCache: compoundCache);
+      NativeTypeCfe(transformer, elementType, compoundCache: compoundCache);
       return ArrayNativeTypeCfe.multi(elementCfeType, arrayDimensions);
     }
     throw "Invalid type $dartType";

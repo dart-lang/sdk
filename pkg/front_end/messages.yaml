@@ -4481,11 +4481,6 @@ FfiExceptionalReturnNull:
   template: "Exceptional return value must not be null."
   external: test/ffi_test.dart
 
-FfiArrayDimensionsNonPositive:
-  # Used by dart:ffi
-  template: "Array dimensions must be positive numbers."
-  external: test/ffi_test.dart
-
 SpreadTypeMismatch:
   template: "Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable."
   script:
@@ -4630,6 +4625,11 @@ NonNullAwareSpreadIsNull:
     main() {
       <int>[...null];
     }
+
+NonPositiveArrayDimensions:
+  # Used by dart:ffi
+  template: "Array dimensions must be positive numbers."
+  external: test/ffi_test.dart
 
 InvalidTypeVariableInSupertype:
   template: "Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'."

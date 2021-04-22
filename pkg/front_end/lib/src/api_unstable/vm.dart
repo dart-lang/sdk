@@ -50,10 +50,10 @@ export '../fasta/compiler_context.dart' show CompilerContext;
 export '../fasta/fasta_codes.dart'
     show
         LocatedMessage,
-        messageFfiArrayDimensionsNonPositive,
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
         messageFfiPackedAnnotationAlignment,
+        messageNonPositiveArrayDimensions,
         noLength,
         templateFfiDartTypeMismatch,
         templateFfiEmptyStruct,

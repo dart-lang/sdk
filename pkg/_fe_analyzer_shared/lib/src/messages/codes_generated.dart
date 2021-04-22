@@ -3735,15 +3735,6 @@ const MessageCode messageFastaUsageShort =
   -h        Display this message (add -v for information about all options).""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeFfiArrayDimensionsNonPositive =
-    messageFfiArrayDimensionsNonPositive;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiArrayDimensionsNonPositive = const MessageCode(
-    "FfiArrayDimensionsNonPositive",
-    message: r"""Array dimensions must be positive numbers.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String string,
@@ -7284,6 +7275,15 @@ const MessageCode messageNonPartOfDirectiveInPart = const MessageCode(
     message: r"""The part-of directive must be the only directive in a part.""",
     tip:
         r"""Try removing the other directives, or moving them to the library for which this is a part.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonPositiveArrayDimensions =
+    messageNonPositiveArrayDimensions;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonPositiveArrayDimensions = const MessageCode(
+    "NonPositiveArrayDimensions",
+    message: r"""Array dimensions must be positive numbers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>

@@ -61,7 +61,6 @@ void main() {
   testSizeOfHandle();
   testElementAtGeneric();
   testElementAtNativeType();
-  testArrayDimensionNonPositive();
 }
 
 typedef Int8UnOp = Int8 Function(Int8);
@@ -662,12 +661,6 @@ void testElementAtNativeType() {
   Pointer<NativeType> p2 = p;
   p2.elementAt(1); //# 1311: compile-time error
   calloc.free(p);
-}
-
-void testArrayDimensionNonPositive() {
-  TestStruct1800 ms1;
-  TestStruct1801 ms2;
-  TestStruct1801 ms3;
 }
 
 class TestStruct1400 extends Struct {
