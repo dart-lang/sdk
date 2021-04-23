@@ -2475,6 +2475,13 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               interfaceTarget: node.interfaceTarget));
     } else if (receiver is NullConstant) {
       return createErrorConstant(node, messageConstEvalNullValue);
+    } else if (receiver is InstanceConstant && enableConstFunctions) {
+      for (final Reference fieldRef in receiver.fieldValues.keys) {
+        final Field field = fieldRef.asField;
+        if (field.name == node.name) {
+          return receiver.fieldValues[fieldRef];
+        }
+      }
     }
     return createErrorConstant(
         node,
@@ -2587,6 +2594,13 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                 node, new StateError('Too many elements'));
           }
           return receiver.entries.single;
+      }
+    } else if (receiver is InstanceConstant && enableConstFunctions) {
+      for (final Reference fieldRef in receiver.fieldValues.keys) {
+        final Field field = fieldRef.asField;
+        if (field.name == node.name) {
+          return receiver.fieldValues[fieldRef];
+        }
       }
     }
     return createErrorConstant(

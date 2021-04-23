@@ -132,8 +132,16 @@ static void CheckOffsets() {
   CHECK_OFFSET(Class::ArrayTraits::elements_start_offset(),                    \
                Class##_elements_start_offset);                                 \
   CHECK_OFFSET(Class::ArrayTraits::kElementSize, Class##_element_size);
+#if defined(DART_PRECOMPILER)
+// Objects in precompiler may have extra fields only used during
+// precompilation (such as Class::target_instance_size_in_words_),
+// so size of objects in precompiler doesn't necessarily match
+// size of objects at run time.
+#define CHECK_SIZEOF(Class, Name, What)
+#else
 #define CHECK_SIZEOF(Class, Name, What)                                        \
   CHECK_OFFSET(sizeof(What), Class##_##Name);
+#endif  // defined(DART_PRECOMPILER)
 #define CHECK_RANGE(Class, Getter, Type, First, Last, Filter)                  \
   for (intptr_t i = static_cast<intptr_t>(First);                              \
        i <= static_cast<intptr_t>(Last); i++) {                                \

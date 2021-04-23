@@ -941,23 +941,23 @@ class Class : public Object {
   }
   intptr_t target_instance_size() const {
     ASSERT(is_finalized() || is_prefinalized());
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
     return (untag()->target_instance_size_in_words_ *
             compiler::target::kWordSize);
 #else
     return host_instance_size();
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILER)
   }
   static intptr_t host_instance_size(ClassPtr clazz) {
     return (clazz->untag()->host_instance_size_in_words_ * kWordSize);
   }
   static intptr_t target_instance_size(ClassPtr clazz) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
     return (clazz->untag()->target_instance_size_in_words_ *
             compiler::target::kWordSize);
 #else
     return host_instance_size(clazz);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILER)
   }
   void set_instance_size(intptr_t host_value_in_bytes,
                          intptr_t target_value_in_bytes) const {
@@ -970,27 +970,26 @@ class Class : public Object {
                                   intptr_t target_value) const {
     ASSERT(Utils::IsAligned((host_value * kWordSize), kObjectAlignment));
     StoreNonPointer(&untag()->host_instance_size_in_words_, host_value);
-#if !defined(DART_PRECOMPILER)
-    // Could be different only during cross-compilation.
-    ASSERT_EQUAL(host_value, target_value);
-#endif  // !defined(DART_PRECOMPILER)
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
     ASSERT(Utils::IsAligned((target_value * compiler::target::kWordSize),
                             compiler::target::kObjectAlignment));
     StoreNonPointer(&untag()->target_instance_size_in_words_, target_value);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#else
+    // Could be different only during cross-compilation.
+    ASSERT_EQUAL(host_value, target_value);
+#endif  // defined(DART_PRECOMPILER)
   }
 
   intptr_t host_next_field_offset() const {
     return untag()->host_next_field_offset_in_words_ * kWordSize;
   }
   intptr_t target_next_field_offset() const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
     return untag()->target_next_field_offset_in_words_ *
            compiler::target::kWordSize;
 #else
     return host_next_field_offset();
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILER)
   }
   void set_next_field_offset(intptr_t host_value_in_bytes,
                              intptr_t target_value_in_bytes) const {
@@ -1006,11 +1005,7 @@ class Class : public Object {
            (!Utils::IsAligned((host_value * kWordSize), kObjectAlignment) &&
             ((host_value + 1) == untag()->host_instance_size_in_words_)));
     StoreNonPointer(&untag()->host_next_field_offset_in_words_, host_value);
-#if !defined(DART_PRECOMPILER)
-    // Could be different only during cross-compilation.
-    ASSERT_EQUAL(host_value, target_value);
-#endif  // !defined(DART_PRECOMPILER)
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
     ASSERT((target_value == -1) ||
            (Utils::IsAligned((target_value * compiler::target::kWordSize),
                              compiler::target::kObjectAlignment) &&
@@ -1019,7 +1014,10 @@ class Class : public Object {
                               compiler::target::kObjectAlignment) &&
             ((target_value + 1) == untag()->target_instance_size_in_words_)));
     StoreNonPointer(&untag()->target_next_field_offset_in_words_, target_value);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#else
+    // Could be different only during cross-compilation.
+    ASSERT_EQUAL(host_value, target_value);
+#endif  // defined(DART_PRECOMPILER)
   }
 
   static bool is_valid_id(intptr_t value) {
@@ -1143,7 +1141,7 @@ class Class : public Object {
     return untag()->host_type_arguments_field_offset_in_words_ * kWordSize;
   }
   intptr_t target_type_arguments_field_offset() const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
     ASSERT(is_type_finalized() || is_prefinalized());
     if (untag()->target_type_arguments_field_offset_in_words_ ==
         compiler::target::Class::kNoTypeArguments) {
@@ -1153,7 +1151,7 @@ class Class : public Object {
            compiler::target::kWordSize;
 #else
     return host_type_arguments_field_offset();
-#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILER)
   }
   void set_type_arguments_field_offset(intptr_t host_value_in_bytes,
                                        intptr_t target_value_in_bytes) const {
@@ -1175,14 +1173,13 @@ class Class : public Object {
                                                 intptr_t target_value) const {
     StoreNonPointer(&untag()->host_type_arguments_field_offset_in_words_,
                     host_value);
-#if !defined(DART_PRECOMPILER)
-    // Could be different only during cross-compilation.
-    ASSERT_EQUAL(host_value, target_value);
-#endif  // !defined(DART_PRECOMPILER)
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
     StoreNonPointer(&untag()->target_type_arguments_field_offset_in_words_,
                     target_value);
-#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+#else
+    // Could be different only during cross-compilation.
+    ASSERT_EQUAL(host_value, target_value);
+#endif  // defined(DART_PRECOMPILER)
   }
   static intptr_t host_type_arguments_field_offset_in_words_offset() {
     return OFFSET_OF(UntaggedClass, host_type_arguments_field_offset_in_words_);
@@ -1610,11 +1607,11 @@ class Class : public Object {
   }
 
   static int32_t target_instance_size_in_words(const ClassPtr cls) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
     return cls->untag()->target_instance_size_in_words_;
 #else
     return host_instance_size_in_words(cls);
-#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILER)
   }
 
   static int32_t host_next_field_offset_in_words(const ClassPtr cls) {
@@ -1622,11 +1619,11 @@ class Class : public Object {
   }
 
   static int32_t target_next_field_offset_in_words(const ClassPtr cls) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
     return cls->untag()->target_next_field_offset_in_words_;
 #else
     return host_next_field_offset_in_words(cls);
-#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILER)
   }
 
   static int32_t host_type_arguments_field_offset_in_words(const ClassPtr cls) {
@@ -1635,11 +1632,11 @@ class Class : public Object {
 
   static int32_t target_type_arguments_field_offset_in_words(
       const ClassPtr cls) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
     return cls->untag()->target_type_arguments_field_offset_in_words_;
 #else
     return host_type_arguments_field_offset_in_words(cls);
-#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILER)
   }
 
  private:
@@ -9837,12 +9834,12 @@ class Array : public Instance {
 
   template <std::memory_order order = std::memory_order_relaxed>
   ObjectPtr At(intptr_t index) const {
-    return untag()->element(index);
+    return untag()->element<order>(index);
   }
   template <std::memory_order order = std::memory_order_relaxed>
   void SetAt(intptr_t index, const Object& value) const {
     // TODO(iposva): Add storing NoSafepointScope.
-    untag()->set_element(index, value.ptr());
+    untag()->set_element<order>(index, value.ptr());
   }
 
   // Access to the array with acquire release semantics.

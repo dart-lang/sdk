@@ -384,24 +384,24 @@ class ClassDeserializationCluster : public DeserializationCluster {
       if (!IsInternalVMdefinedClassId(class_id)) {
         cls->untag()->host_instance_size_in_words_ = d->Read<int32_t>();
         cls->untag()->host_next_field_offset_in_words_ = d->Read<int32_t>();
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
         // Only one pair is serialized. The target field only exists when
-        // DART_PRECOMPILED_RUNTIME is not defined
+        // DART_PRECOMPILER is defined
         cls->untag()->target_instance_size_in_words_ =
             cls->untag()->host_instance_size_in_words_;
         cls->untag()->target_next_field_offset_in_words_ =
             cls->untag()->host_next_field_offset_in_words_;
-#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILER)
       } else {
         d->Read<int32_t>();  // Skip.
         d->Read<int32_t>();  // Skip.
       }
       cls->untag()->host_type_arguments_field_offset_in_words_ =
           d->Read<int32_t>();
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
       cls->untag()->target_type_arguments_field_offset_in_words_ =
           cls->untag()->host_type_arguments_field_offset_in_words_;
-#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILER)
       cls->untag()->num_type_arguments_ = d->Read<int16_t>();
       cls->untag()->num_native_fields_ = d->Read<uint16_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -435,14 +435,14 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->untag()->host_next_field_offset_in_words_ = d->Read<int32_t>();
       cls->untag()->host_type_arguments_field_offset_in_words_ =
           d->Read<int32_t>();
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILER)
       cls->untag()->target_instance_size_in_words_ =
           cls->untag()->host_instance_size_in_words_;
       cls->untag()->target_next_field_offset_in_words_ =
           cls->untag()->host_next_field_offset_in_words_;
       cls->untag()->target_type_arguments_field_offset_in_words_ =
           cls->untag()->host_type_arguments_field_offset_in_words_;
-#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILER)
       cls->untag()->num_type_arguments_ = d->Read<int16_t>();
       cls->untag()->num_native_fields_ = d->Read<uint16_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3542,10 +3542,16 @@ class InstanceSerializationCluster : public SerializationCluster {
     host_next_field_offset_in_words_ =
         cls->untag()->host_next_field_offset_in_words_;
     ASSERT(host_next_field_offset_in_words_ > 0);
+#if defined(DART_PRECOMPILER)
     target_next_field_offset_in_words_ =
         cls->untag()->target_next_field_offset_in_words_;
     target_instance_size_in_words_ =
         cls->untag()->target_instance_size_in_words_;
+#else
+    target_next_field_offset_in_words_ =
+        cls->untag()->host_next_field_offset_in_words_;
+    target_instance_size_in_words_ = cls->untag()->host_instance_size_in_words_;
+#endif  // defined(DART_PRECOMPILER)
     ASSERT(target_next_field_offset_in_words_ > 0);
     ASSERT(target_instance_size_in_words_ > 0);
   }

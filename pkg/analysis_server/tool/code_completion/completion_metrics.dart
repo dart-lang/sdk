@@ -123,16 +123,6 @@ Counter rankComparison = Counter('relevance rank comparison');
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
   return ArgParser()
-    ..addFlag(CompletionMetricsOptions.AVAILABLE_SUGGESTIONS,
-        abbr: 'a',
-        help:
-            'Use the available suggestions feature in the Analysis Server when '
-            'computing the set of code completions. With this feature enabled, '
-            'completion will match the support in the Dart Plugin for '
-            'IntelliJ, without this enabled the completion support matches the '
-            'support in LSP.',
-        defaultsTo: false,
-        negatable: false)
     ..addOption(
       'help',
       abbr: 'h',
@@ -282,6 +272,10 @@ class CompletionMetrics {
   /// The name associated with this set of metrics.
   final String name;
 
+  /// A flag indicating whether available suggestions should be enabled for this
+  /// run.
+  final bool availableSuggestions;
+
   /// The function to be executed when this metrics collector is enabled.
   final void Function()? enableFunction;
 
@@ -336,11 +330,15 @@ class CompletionMetrics {
 
   final Map<CompletionGroup, List<CompletionResult>> worstResults = {};
 
-  CompletionMetrics(this.name, {this.enableFunction, this.disableFunction});
+  CompletionMetrics(this.name,
+      {required this.availableSuggestions,
+      this.enableFunction,
+      this.disableFunction});
 
   /// Return an instance extracted from the decoded JSON [map].
   factory CompletionMetrics.fromJson(Map<String, dynamic> map) {
-    var metrics = CompletionMetrics(map['name'] as String);
+    var metrics = CompletionMetrics(map['name'] as String,
+        availableSuggestions: map['availableSuggestions'] as bool);
     metrics.completionCounter
         .fromJson(map['completionCounter'] as Map<String, dynamic>);
     metrics.completionMissedTokenCounter
@@ -467,6 +465,7 @@ class CompletionMetrics {
   Map<String, dynamic> toJson() {
     return {
       'name': name,
+      'availableSuggestions': availableSuggestions,
       'completionCounter': completionCounter.toJson(),
       'completionMissedTokenCounter': completionMissedTokenCounter.toJson(),
       'completionKindCounter': completionKindCounter.toJson(),
@@ -583,31 +582,43 @@ class CompletionMetricsComputer {
   CompletionMetricsComputer(this.rootPath, this.options);
 
   /// Compare the metrics when each feature is used in isolation.
-  void compareIndividualFeatures() {
+  void compareIndividualFeatures({bool availableSuggestions = false}) {
     var featureNames = FeatureComputer.featureNames;
     var featureCount = featureNames.length;
     for (var i = 0; i < featureCount; i++) {
       var weights = List.filled(featureCount, 0.00);
       weights[i] = 1.00;
-      targetMetrics.add(CompletionMetrics(featureNames[i], enableFunction: () {
-        FeatureComputer.featureWeights = weights;
-      }, disableFunction: () {
-        FeatureComputer.featureWeights = FeatureComputer.defaultFeatureWeights;
-      }));
+      targetMetrics.add(CompletionMetrics(
+        featureNames[i],
+        availableSuggestions: availableSuggestions,
+        enableFunction: () {
+          FeatureComputer.featureWeights = weights;
+        },
+        disableFunction: () {
+          FeatureComputer.featureWeights =
+              FeatureComputer.defaultFeatureWeights;
+        },
+      ));
     }
   }
 
   /// Compare the relevance [tables] to the default relevance tables.
-  void compareRelevanceTables(List<RelevanceTables> tables) {
+  void compareRelevanceTables(List<RelevanceTables> tables,
+      {bool availableSuggestions = false}) {
     assert(tables.isNotEmpty);
     for (var tablePair in tables) {
-      targetMetrics.add(CompletionMetrics(tablePair.name, enableFunction: () {
-        elementKindRelevance = tablePair.elementKindRelevance;
-        keywordRelevance = tablePair.keywordRelevance;
-      }, disableFunction: () {
-        elementKindRelevance = defaultElementKindRelevance;
-        keywordRelevance = defaultKeywordRelevance;
-      }));
+      targetMetrics.add(CompletionMetrics(
+        tablePair.name,
+        availableSuggestions: availableSuggestions,
+        enableFunction: () {
+          elementKindRelevance = tablePair.elementKindRelevance;
+          keywordRelevance = tablePair.keywordRelevance;
+        },
+        disableFunction: () {
+          elementKindRelevance = defaultElementKindRelevance;
+          keywordRelevance = defaultKeywordRelevance;
+        },
+      ));
     }
   }
 
@@ -616,16 +627,18 @@ class CompletionMetricsComputer {
     // To compare two or more changes to completions, add a `CompletionMetrics`
     // object with enable and disable functions to the list of `targetMetrics`.
     targetMetrics.add(CompletionMetrics('shipping',
-        enableFunction: null, disableFunction: null));
+        availableSuggestions: false,
+        enableFunction: null,
+        disableFunction: null));
 
     // To compare two or more relevance tables, uncomment the line below and
     // add the `RelevanceTables` to the list. The default relevance tables
     // should not be included in the list.
-//     compareRelevanceTables([]);
+//     compareRelevanceTables([], availableSuggestions: false);
 
     // To compare the relative benefit from each of the features, uncomment the
     // line below.
-//    compareIndividualFeatures();
+//    compareIndividualFeatures(availableSuggestions: false);
 
     final collection = AnalysisContextCollectionImpl(
       includedPaths: [rootPath],
@@ -916,7 +929,10 @@ class CompletionMetricsComputer {
       var computers = sources.toList();
       var row = [computers.first.name];
       for (var computer in computers) {
-        row.add(computer.mean.toStringAsFixed(6));
+        var min = computer.min;
+        var mean = computer.mean.toStringAsFixed(6);
+        var max = computer.max;
+        row.add('$min, $mean, $max');
       }
       return row;
     }
@@ -1097,7 +1113,7 @@ class CompletionMetricsComputer {
     // suggestions if doComputeCompletionsFromAnalysisServer is true.
     DeclarationsTracker? declarationsTracker;
     protocol.CompletionAvailableSuggestionsParams? availableSuggestionsParams;
-    if (options.availableSuggestions) {
+    if (targetMetrics.any((metrics) => metrics.availableSuggestions)) {
       declarationsTracker = DeclarationsTracker(
           MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
       declarationsTracker.addContext(context);
@@ -1177,8 +1193,10 @@ class CompletionMetricsComputer {
                     listener,
                     performance,
                     request,
-                    declarationsTracker,
-                    availableSuggestionsParams,
+                    metrics.availableSuggestions ? declarationsTracker : null,
+                    metrics.availableSuggestions
+                        ? availableSuggestionsParams
+                        : null,
                   );
                 },
               );
@@ -1391,10 +1409,6 @@ class CompletionMetricsComputer {
 
 /// The options specified on the command-line.
 class CompletionMetricsOptions {
-  /// A flag that causes the available suggestion sets to be used while
-  /// computing suggestions.
-  static const String AVAILABLE_SUGGESTIONS = 'available-suggestions';
-
   /// An option to control whether and how overlays should be produced.
   static const String OVERLAY = 'overlay';
 
@@ -1438,10 +1452,6 @@ class CompletionMetricsOptions {
   /// that had the worst mrr scores.
   static const String PRINT_WORST_RESULTS = 'print-worst-results';
 
-  /// A flag indicating whether available suggestions should be enabled for this
-  /// run.
-  final bool availableSuggestions;
-
   /// The overlay mode that should be used.
   final String overlay;
 
@@ -1474,7 +1484,6 @@ class CompletionMetricsOptions {
 
   factory CompletionMetricsOptions(results) {
     return CompletionMetricsOptions._(
-        availableSuggestions: results[AVAILABLE_SUGGESTIONS],
         overlay: results[OVERLAY],
         printMissedCompletionDetails: results[PRINT_MISSED_COMPLETION_DETAILS],
         printMissedCompletionSummary: results[PRINT_MISSED_COMPLETION_SUMMARY],
@@ -1485,8 +1494,7 @@ class CompletionMetricsOptions {
   }
 
   CompletionMetricsOptions._(
-      {required this.availableSuggestions,
-      required this.overlay,
+      {required this.overlay,
       required this.printMissedCompletionDetails,
       required this.printMissedCompletionSummary,
       required this.printMissingInformation,
