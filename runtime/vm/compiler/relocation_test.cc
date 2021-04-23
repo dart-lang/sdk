@@ -67,19 +67,27 @@ struct RelocatorTestHelper {
 
     EmitCodeFor(code, [&](compiler::Assembler* assembler) {
 #if defined(TARGET_ARCH_ARM64)
-      __ SetupDartSP();
-      __ EnterFrame(0);
+      // TODO(kustermann): Remove conservative approximation in relocator and
+      // make tests precise.
+      __ mov(R0, R0);
+      __ mov(R0, R0);
+      __ mov(R0, R0);
+      SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(
+          __ stp(LR, R1,
+                 compiler::Address(CSP, -2 * kWordSize,
+                                   compiler::Address::PairPreIndex)));
 #elif defined(TARGET_ARCH_ARM)
-    SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(
-      __ EnterFrame((1 << LR), 0));
+      SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(__ PushList((1 << LR)));
 #endif
       __ GenerateUnRelocatedPcRelativeCall();
       AddPcRelativeCallTargetAt(__ CodeSize(), code, target);
 #if defined(TARGET_ARCH_ARM64)
-      __ LeaveFrame();
+      RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(
+          __ ldp(LR, R1,
+                 compiler::Address(CSP, 2 * kWordSize,
+                                   compiler::Address::PairPostIndex)));
 #elif defined(TARGET_ARCH_ARM)
-    RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(
-      __ LeaveFrame((1 << LR)));
+      RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(__ PopList((1 << LR)));
 #endif
       __ Ret();
     });

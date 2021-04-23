@@ -526,7 +526,10 @@
     },
     "dart2js-(linux|mac|win)-chrome": {
       "options": {
-        "use-sdk": true
+        "use-sdk": true,
+        "dart2js-options": [
+          "--no-legacy-javascript"
+        ]
       }
     },
     "dart2js-(linux|mac|win)-chrome-unsound": {
