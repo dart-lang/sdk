@@ -495,6 +495,10 @@ abstract class DiagnosticMessage extends base.SummaryClass {
   /// source range associated with this message.
   @Id(3)
   int get offset;
+
+  /// The URL of the message, if any.
+  @Id(4)
+  String get url;
 }
 
 /// Information about the Dartdoc directives in an [AvailableFile].

@@ -946,7 +946,8 @@ class AnalysisError implements Diagnostic {
         filePath: source.fullName,
         length: length,
         message: message,
-        offset: offset);
+        offset: offset,
+        url: null);
   }
 
   /// Initialize a newly created analysis error with given values.
@@ -958,7 +959,8 @@ class AnalysisError implements Diagnostic {
         filePath: source.fullName,
         length: length,
         message: message,
-        offset: offset);
+        offset: offset,
+        url: null);
   }
 
   /// Initialize a newly created analysis error. The error is associated with
@@ -980,6 +982,7 @@ class AnalysisError implements Diagnostic {
       length: length,
       message: messageText,
       offset: offset,
+      url: null,
     );
   }
 
@@ -1008,7 +1011,7 @@ class AnalysisError implements Diagnostic {
 
   /// Return the message to be displayed for this error. The message should
   /// indicate what is wrong and why it is wrong.
-  String get message => _problemMessage.message;
+  String get message => _problemMessage.messageText(includeUrl: true);
 
   /// The character offset from the beginning of the source (zero based) where
   /// the error occurred.

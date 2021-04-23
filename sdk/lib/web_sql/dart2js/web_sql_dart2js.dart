@@ -9,6 +9,7 @@
  * The [dart:indexed_db] APIs is a recommended alternatives.
  *
  * {@category Web}
+ * {@nodoc}
  */
 library dart.dom.web_sql;
 
@@ -23,6 +24,7 @@ import 'dart:_interceptors' show Interceptor;
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:audio library.
 
+@deprecated
 import 'dart:_js_helper'
     show
         applyExtension,

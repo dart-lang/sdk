@@ -13,7 +13,9 @@
  * The [dart:indexed_db] APIs is a recommended alternatives.
  *
  * {@category Web}
+ * {@nodoc}
  */
+@deprecated
 library dart.dom.web_sql;
 
 import 'dart:async';

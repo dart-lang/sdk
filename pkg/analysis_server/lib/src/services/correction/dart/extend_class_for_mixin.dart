@@ -28,7 +28,7 @@ class ExtendClassForMixin extends CorrectionProducer {
     if (declaration != null && declaration.extendsClause == null) {
       // TODO(brianwilkerson) Find a way to pass in the name of the class
       //  without needing to parse the message.
-      var message = diagnostic.problemMessage.message;
+      var message = diagnostic.problemMessage.messageText(includeUrl: false);
       var endIndex = message.lastIndexOf("'");
       var startIndex = message.lastIndexOf("'", endIndex - 1) + 1;
       _typeName = message.substring(startIndex, endIndex);

@@ -20,7 +20,7 @@ class InsertSemicolon extends CorrectionProducer {
     }
 
     var message = diagnostic.problemMessage;
-    if (message.message.contains("';'")) {
+    if (message.messageText(includeUrl: false).contains("';'")) {
       if (_isAwaitNode()) {
         return;
       }

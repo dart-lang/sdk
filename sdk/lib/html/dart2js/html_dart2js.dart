@@ -33660,6 +33660,7 @@ class Window extends EventTarget
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Creates('SqlDatabase')
+  @deprecated
   SqlDatabase openDatabase(
       String name, String version, String displayName, int estimatedSize,
       [DatabaseCallback? creationCallback]) {

@@ -29,7 +29,8 @@ class DiagnosticFactory {
           filePath: source.fullName,
           message: "The first element with this value.",
           offset: originalElement.offset,
-          length: originalElement.length)
+          length: originalElement.length,
+          url: null)
     ]);
   }
 
@@ -43,7 +44,8 @@ class DiagnosticFactory {
           filePath: source.fullName,
           message: "The first key with this value.",
           offset: originalKey.offset,
-          length: originalKey.length)
+          length: originalKey.length,
+          url: null)
     ]);
   }
 
@@ -62,7 +64,8 @@ class DiagnosticFactory {
           filePath: source.fullName,
           message: "The operator '$lexeme' is causing the short circuiting.",
           offset: previousToken.offset,
-          length: previousToken.length)
+          length: previousToken.length,
+          url: null)
     ]);
   }
 
@@ -81,7 +84,8 @@ class DiagnosticFactory {
             filePath: source.fullName,
             message: "The declaration of '$name' is here.",
             offset: declarationOffset,
-            length: staticElement.nameLength)
+            length: staticElement.nameLength,
+            url: null)
       ];
     }
     return AnalysisError(

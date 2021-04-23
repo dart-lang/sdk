@@ -14,6 +14,17 @@
     daylight saving changes that are not precisely one hour.
     (No change on the Web which uses the JavaScript `Date` object.)
 
+#### `dart:web_sql`
+
+*   `dart:web_sql` is marked deprecated and will be removed in an upcoming
+    release. Also the API `window.openDatabase` in `dart:html` is deprecated as
+    well.
+
+    This API and library was exposing the WebSQL proposed standard. The standard
+    was abandoned more than 5 years ago and is not supported by most browsers.
+    The `dart:web_sql` library has been documented as unsupported and deprecated
+    for many years as well and but wasn't annotated properly until now.
+
 ### Dart VM
 
 *   **Breaking Change** [#45071][]: `Dart_NewWeakPersistentHandle`'s and
