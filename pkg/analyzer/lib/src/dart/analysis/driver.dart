@@ -2393,12 +2393,14 @@ class ErrorEncoding {
 
     var contextMessages = <DiagnosticMessageImpl>[];
     for (var message in error.contextMessages) {
+      var url = message.url;
       contextMessages.add(
         DiagnosticMessageImpl(
           filePath: message.filePath,
           length: message.length,
           message: message.message,
           offset: message.offset,
+          url: url.isEmpty ? null : url,
         ),
       );
     }
@@ -2421,8 +2423,9 @@ class ErrorEncoding {
         DiagnosticMessageBuilder(
           filePath: message.filePath,
           length: message.length,
-          message: message.message,
+          message: message.messageText(includeUrl: false),
           offset: message.offset,
+          url: message.url,
         ),
       );
     }

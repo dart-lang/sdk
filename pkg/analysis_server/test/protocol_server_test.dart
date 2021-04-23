@@ -62,6 +62,7 @@ class AnalysisErrorTest {
         offset: 30,
         length: 5,
         message: 'context',
+        url: null,
       ),
     );
     var error = newAnalysisError_fromEngine(

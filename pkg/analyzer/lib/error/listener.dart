@@ -221,7 +221,8 @@ class ErrorReporter {
                 filePath: element.source!.fullName,
                 length: element.nameLength,
                 message: '$name is defined in ${element.source!.fullName}',
-                offset: element.nameOffset));
+                offset: element.nameOffset,
+                url: null));
           }
 
           if (buffer != null) {

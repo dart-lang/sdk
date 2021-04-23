@@ -3777,6 +3777,7 @@ class DiagnosticMessageBuilder extends Object
   int? _length;
   String? _message;
   int? _offset;
+  String? _url;
 
   @override
   String get filePath => _filePath ??= '';
@@ -3813,12 +3814,25 @@ class DiagnosticMessageBuilder extends Object
     this._offset = value;
   }
 
+  @override
+  String get url => _url ??= '';
+
+  /// The URL of the message, if any.
+  set url(String value) {
+    this._url = value;
+  }
+
   DiagnosticMessageBuilder(
-      {String? filePath, int? length, String? message, int? offset})
+      {String? filePath,
+      int? length,
+      String? message,
+      int? offset,
+      String? url})
       : _filePath = filePath,
         _length = length,
         _message = message,
-        _offset = offset;
+        _offset = offset,
+        _url = url;
 
   /// Flush [informative] data recursively.
   void flushInformative() {}
@@ -3829,11 +3843,13 @@ class DiagnosticMessageBuilder extends Object
     signatureSink.addInt(this._length ?? 0);
     signatureSink.addString(this._message ?? '');
     signatureSink.addInt(this._offset ?? 0);
+    signatureSink.addString(this._url ?? '');
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset? offset_filePath;
     fb.Offset? offset_message;
+    fb.Offset? offset_url;
     var filePath = _filePath;
     if (filePath != null) {
       offset_filePath = fbBuilder.writeString(filePath);
@@ -3841,6 +3857,10 @@ class DiagnosticMessageBuilder extends Object
     var message = _message;
     if (message != null) {
       offset_message = fbBuilder.writeString(message);
+    }
+    var url = _url;
+    if (url != null) {
+      offset_url = fbBuilder.writeString(url);
     }
     fbBuilder.startTable();
     if (offset_filePath != null) {
@@ -3851,6 +3871,9 @@ class DiagnosticMessageBuilder extends Object
       fbBuilder.addOffset(2, offset_message);
     }
     fbBuilder.addUint32(3, _offset, 0);
+    if (offset_url != null) {
+      fbBuilder.addOffset(4, offset_url);
+    }
     return fbBuilder.endTable();
   }
 }
@@ -3875,6 +3898,7 @@ class _DiagnosticMessageImpl extends Object
   int? _length;
   String? _message;
   int? _offset;
+  String? _url;
 
   @override
   String get filePath {
@@ -3896,6 +3920,11 @@ class _DiagnosticMessageImpl extends Object
   @override
   int get offset {
     return _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 3, 0);
+  }
+
+  @override
+  String get url {
+    return _url ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 4, '');
   }
 }
 
@@ -3919,6 +3948,10 @@ abstract class _DiagnosticMessageMixin implements idl.DiagnosticMessage {
     if (local_offset != 0) {
       _result["offset"] = local_offset;
     }
+    var local_url = url;
+    if (local_url != '') {
+      _result["url"] = local_url;
+    }
     return _result;
   }
 
@@ -3928,6 +3961,7 @@ abstract class _DiagnosticMessageMixin implements idl.DiagnosticMessage {
         "length": length,
         "message": message,
         "offset": offset,
+        "url": url,
       };
 
   @override

@@ -166,7 +166,7 @@ DiagnosticMessage newDiagnosticMessage(
   var endColumn = endLocation.columnNumber;
 
   return DiagnosticMessage(
-      message.message,
+      message.messageText(includeUrl: true),
       Location(
           file, offset, length, startLine, startColumn, endLine, endColumn));
 }

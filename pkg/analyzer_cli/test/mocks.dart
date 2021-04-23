@@ -42,7 +42,8 @@ class MockAnalysisError implements AnalysisError {
       filePath: source.fullName,
       length: length,
       message: message,
-      offset: offset);
+      offset: offset,
+      url: null);
 
   @override
   Severity get severity => null;

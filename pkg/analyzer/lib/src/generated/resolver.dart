@@ -3424,9 +3424,10 @@ class _WhyNotPromotedVisitor
   DiagnosticMessage? visitThisNotPromoted(ThisNotPromoted reason) {
     return DiagnosticMessageImpl(
         filePath: source.fullName,
-        message: "'this' can't be promoted.  See ${reason.documentationLink}",
+        message: "'this' can't be promoted",
         offset: _errorEntity.offset,
-        length: _errorEntity.length);
+        length: _errorEntity.length,
+        url: reason.documentationLink);
   }
 
   DiagnosticMessageImpl _contextMessageForProperty(
@@ -3435,10 +3436,11 @@ class _WhyNotPromotedVisitor
       NonPromotionReason reason) {
     return DiagnosticMessageImpl(
         filePath: property.source.fullName,
-        message: "'$propertyName' refers to a property so it couldn't be "
-            "promoted.  See ${reason.documentationLink}",
+        message:
+            "'$propertyName' refers to a property so it couldn't be promoted",
         offset: property.nameOffset,
-        length: property.nameLength);
+        length: property.nameLength,
+        url: reason.documentationLink);
   }
 
   DiagnosticMessageImpl _contextMessageForWrite(
@@ -3446,8 +3448,9 @@ class _WhyNotPromotedVisitor
     return DiagnosticMessageImpl(
         filePath: source.fullName,
         message: "Variable '$variableName' could not be promoted due to an "
-            "assignment.  See ${reason.documentationLink}",
+            "assignment",
         offset: node.offset,
-        length: node.length);
+        length: node.length,
+        url: reason.documentationLink);
   }
 }

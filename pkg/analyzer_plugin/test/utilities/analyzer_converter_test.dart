@@ -84,7 +84,8 @@ class AnalyzerConverterTest extends _AnalyzerConverterTest
           filePath: source.fullName,
           offset: 53,
           length: 7,
-          message: contextMessage));
+          message: contextMessage,
+          url: null));
     }
     return analyzer.AnalysisError(
         source,

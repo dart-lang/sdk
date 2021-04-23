@@ -33,7 +33,7 @@ class ExpectedContextMessage {
     return message.filePath == filePath &&
         message.offset == offset &&
         message.length == length &&
-        (text == null || message.message == text);
+        (text == null || message.messageText(includeUrl: true) == text);
   }
 }
 

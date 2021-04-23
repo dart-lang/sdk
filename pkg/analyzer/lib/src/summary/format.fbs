@@ -437,6 +437,9 @@ table DiagnosticMessage {
   /// The zero-based offset from the start of the file to the beginning of the
   /// source range associated with this message.
   offset:uint (id: 3);
+
+  /// The URL of the message, if any.
+  url:string (id: 4);
 }
 
 /// Information about the Dartdoc directives in an [AvailableFile].
