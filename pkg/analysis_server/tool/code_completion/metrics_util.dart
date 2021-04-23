@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
@@ -10,22 +12,28 @@ import 'output_utilities.dart';
 /// https://en.wikipedia.org/wiki/Average#Arithmetic_mean
 class ArithmeticMeanComputer {
   final String name;
-  num sum = 0;
+  int sum = 0;
   int count = 0;
+  int? min;
+  int? max;
 
   ArithmeticMeanComputer(this.name);
 
-  num get mean => sum / count;
+  double get mean => sum / count;
 
   /// Add the data from the given [computer] to this computer.
   void addData(ArithmeticMeanComputer computer) {
     sum += computer.sum;
     count += computer.count;
+    min = _min(min, computer.min);
+    max = _max(max, computer.max);
   }
 
-  void addValue(num val) {
+  void addValue(int val) {
     sum += val;
     count++;
+    min = _min(min, val);
+    max = _max(max, val);
   }
 
   void clear() {
@@ -36,8 +44,10 @@ class ArithmeticMeanComputer {
   /// Set the state of this computer to the state recorded in the decoded JSON
   /// [map].
   void fromJson(Map<String, dynamic> map) {
-    sum = map['sum'] as num;
+    sum = map['sum'] as int;
     count = map['count'] as int;
+    min = map['min'] as int?;
+    max = map['max'] as int?;
   }
 
   void printMean() {
@@ -49,7 +59,29 @@ class ArithmeticMeanComputer {
     return {
       'sum': sum,
       'count': count,
+      if (min != null) 'min': min,
+      if (max != null) 'max': max,
     };
+  }
+
+  int? _max(int? first, int? second) {
+    if (first == null) {
+      return second;
+    } else if (second == null) {
+      return first;
+    } else {
+      return math.max(first, second);
+    }
+  }
+
+  int? _min(int? first, int? second) {
+    if (first == null) {
+      return second;
+    } else if (second == null) {
+      return first;
+    } else {
+      return math.min(first, second);
+    }
   }
 }
 
