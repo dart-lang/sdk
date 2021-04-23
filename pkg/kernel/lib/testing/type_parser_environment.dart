@@ -4,30 +4,7 @@
 
 // @dart = 2.9
 
-import "package:kernel/ast.dart"
-    show
-        Class,
-        Component,
-        DartType,
-        DynamicType,
-        FunctionType,
-        FutureOrType,
-        InterfaceType,
-        InvalidType,
-        Library,
-        NamedType,
-        NeverType,
-        Node,
-        NullType,
-        Nullability,
-        Supertype,
-        TreeNode,
-        TypeParameter,
-        TypeParameterType,
-        Typedef,
-        TypedefType,
-        VoidType,
-        setParents;
+import "package:kernel/ast.dart" hide Visitor;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -78,6 +55,13 @@ Library parseLibrary(Uri uri, String text,
           new Class(fileUri: fileUri, name: name)
             ..typeParameters.addAll(new List<TypeParameter>.filled(
                 type.typeVariables.length, null)));
+    } else if (type is ParsedExtension) {
+      String name = type.name;
+      environment._registerDeclaration(
+          name,
+          new Extension(fileUri: fileUri, name: name)
+            ..typeParameters.addAll(new List<TypeParameter>.filled(
+                type.typeVariables.length, null)));
     }
   }
   for (ParsedType type in types) {
@@ -86,6 +70,8 @@ Library parseLibrary(Uri uri, String text,
       library.addClass(node);
     } else if (node is Typedef) {
       library.addTypedef(node);
+    } else if (node is Extension) {
+      library.addExtension(node);
     } else {
       throw "Unsupported: $node";
     }
@@ -379,6 +365,26 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       }
     }
     return cls;
+  }
+
+  Extension visitExtension(
+      ParsedExtension node, TypeParserEnvironment environment) {
+    String name = node.name;
+    Extension ext = environment.lookupDeclaration(name);
+    ParameterEnvironment parameterEnvironment =
+        computeTypeParameterEnvironment(node.typeVariables, environment);
+    List<TypeParameter> parameters = parameterEnvironment.parameters;
+    setParents(parameters, ext);
+    ext.typeParameters
+      ..clear()
+      ..addAll(parameters);
+    {
+      TypeParserEnvironment environment = parameterEnvironment.environment;
+      InterfaceType onType =
+          node.onType?.accept<Node, TypeParserEnvironment>(this, environment);
+      ext.onType = onType;
+    }
+    return ext;
   }
 
   Typedef visitTypedef(ParsedTypedef node, TypeParserEnvironment environment) {
