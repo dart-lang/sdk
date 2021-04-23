@@ -2,6 +2,12 @@
 
 ### Core libraries
 
+#### `dart:async`
+
+* The uncaught error handlers of `Zone`s are now run in the parent zone
+  of the zone where they were declared. This prevents a throwing handler
+  from causing an infinite loop by repeatedly triggering itself.
+
 #### `dart:core`
 
 *   The native `DateTime` class now better handles local time around
