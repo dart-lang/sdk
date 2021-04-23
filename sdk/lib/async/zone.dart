@@ -17,6 +17,15 @@ typedef R ZoneBinaryCallback<R, T1, T2>(T1 arg1, T2 arg2);
 ///
 /// The [error] and [stackTrace] are the error and stack trace that
 /// was uncaught in [zone].
+///
+/// The function must only access zone-related functionality through
+/// [self], [parent] or [zone].
+/// It should not depend on the current zone ([Zone.current]).
+///
+/// If the uncaught error handler throws, the error will be passed
+/// to `parent.handleUncaughtError`. If the thrown object is [error],
+/// the throw is considered a re-throw and the original [stackTrace]
+/// is retained. This allows an asynchronous error to leave the error zone.
 typedef HandleUncaughtErrorHandler = void Function(Zone self,
     ZoneDelegate parent, Zone zone, Object error, StackTrace stackTrace);
 
@@ -34,6 +43,10 @@ typedef HandleUncaughtErrorHandler = void Function(Zone self,
 /// to call [f] in the current zone, [zone].
 /// A custom handler can do things before, after or instead of
 /// calling [f].
+///
+/// The function must only access zone-related functionality through
+/// [self], [parent] or [zone].
+/// It should not depend on the current zone ([Zone.current]).
 typedef RunHandler = R Function<R>(
     Zone self, ZoneDelegate parent, Zone zone, R Function() f);
 
@@ -51,6 +64,10 @@ typedef RunHandler = R Function<R>(
 /// to call [f] with argument [arg] in the current zone, [zone].
 /// A custom handler can do things before, after or instead of
 /// calling [f].
+///
+/// The function must only access zone-related functionality through
+/// [self], [parent] or [zone].
+/// It should not depend on the current zone ([Zone.current]).
 typedef RunUnaryHandler = R Function<R, T>(
     Zone self, ZoneDelegate parent, Zone zone, R Function(T arg) f, T arg);
 
@@ -68,6 +85,10 @@ typedef RunUnaryHandler = R Function<R, T>(
 /// to call [f] with arguments [arg1] and [arg2] in the current zone, [zone].
 /// A custom handler can do things before, after or instead of
 /// calling [f].
+///
+/// The function must only access zone-related functionality through
+/// [self], [parent] or [zone].
+/// It should not depend on the current zone ([Zone.current]).
 typedef RunBinaryHandler = R Function<R, T1, T2>(Zone self, ZoneDelegate parent,
     Zone zone, R Function(T1 arg1, T2 arg2) f, T1 arg1, T2 arg2);
 
@@ -85,6 +106,10 @@ typedef RunBinaryHandler = R Function<R, T1, T2>(Zone self, ZoneDelegate parent,
 /// or another function replacing [f],
 /// typically by wrapping [f] in a function
 /// which does something extra before and after invoking [f]
+///
+/// The function must only access zone-related functionality through
+/// [self], [parent] or [zone].
+/// It should not depend on the current zone ([Zone.current]).
 typedef RegisterCallbackHandler = ZoneCallback<R> Function<R>(
     Zone self, ZoneDelegate parent, Zone zone, R Function() f);
 
@@ -102,6 +127,10 @@ typedef RegisterCallbackHandler = ZoneCallback<R> Function<R>(
 /// or another function replacing [f],
 /// typically by wrapping [f] in a function
 /// which does something extra before and after invoking [f]
+///
+/// The function must only access zone-related functionality through
+/// [self], [parent] or [zone].
+/// It should not depend on the current zone ([Zone.current]).
 typedef RegisterUnaryCallbackHandler = ZoneUnaryCallback<R, T> Function<R, T>(
     Zone self, ZoneDelegate parent, Zone zone, R Function(T arg) f);
 
@@ -137,6 +166,12 @@ typedef RegisterBinaryCallbackHandler
 /// to replace the original error and stack trace,
 /// or an [AsyncError] containing a replacement error and stack trace
 /// which will be used to replace the originals.
+///
+/// The error callback handler must not throw.
+///
+/// The function must only access zone-related functionality through
+/// [self], [parent] or [zone].
+/// It should not depend on the current zone ([Zone.current]).
 typedef AsyncError? ErrorCallbackHandler(Zone self, ZoneDelegate parent,
     Zone zone, Object error, StackTrace? stackTrace);
 
@@ -155,6 +190,10 @@ typedef AsyncError? ErrorCallbackHandler(Zone self, ZoneDelegate parent,
 /// and then call `parent.scheduleMicrotask(zone, replacement)`.
 /// or it can implement its own microtask scheduling queue, which typically
 /// still depends on `parent.scheduleMicrotask` to as a way to get started.
+///
+/// The function must only access zone-related functionality through
+/// [self], [parent] or [zone].
+/// It should not depend on the current zone ([Zone.current]).
 typedef void ScheduleMicrotaskHandler(
     Zone self, ZoneDelegate parent, Zone zone, void f());
 
@@ -177,6 +216,10 @@ typedef void ScheduleMicrotaskHandler(
 ///
 /// The function should return a [Timer] object which can be used
 /// to inspect and control the scheduled timer callback.
+///
+/// The function must only access zone-related functionality through
+/// [self], [parent] or [zone].
+/// It should not depend on the current zone ([Zone.current]).
 typedef Timer CreateTimerHandler(
     Zone self, ZoneDelegate parent, Zone zone, Duration duration, void f());
 
@@ -199,6 +242,10 @@ typedef Timer CreateTimerHandler(
 ///
 /// The function should return a [Timer] object which can be used
 /// to inspect and control the scheduled timer callbacks.
+///
+/// The function must only access zone-related functionality through
+/// [self], [parent] or [zone].
+/// It should not depend on the current zone ([Zone.current]).
 typedef Timer CreatePeriodicTimerHandler(Zone self, ZoneDelegate parent,
     Zone zone, Duration period, void f(Timer timer));
 
@@ -214,6 +261,10 @@ typedef Timer CreatePeriodicTimerHandler(Zone self, ZoneDelegate parent,
 ///
 /// The custom handler can intercept print operations and
 /// redirect them to other targets than the console.
+///
+/// The function must only access zone-related functionality through
+/// [self], [parent] or [zone].
+/// It should not depend on the current zone ([Zone.current]).
 typedef void PrintHandler(
     Zone self, ZoneDelegate parent, Zone zone, String line);
 
@@ -235,6 +286,10 @@ typedef void PrintHandler(
 /// values before calling `parent.fork(zone, specification, zoneValues)`,
 /// but it has to call the [parent]'s [ZoneDelegate.fork] in order
 /// to create a valid [Zone] object.
+///
+/// The function must only access zone-related functionality through
+/// [self], [parent] or [zone].
+/// It should not depend on the current zone ([Zone.current]).
 typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
     ZoneSpecification? specification, Map<Object?, Object?>? zoneValues);
 
@@ -915,10 +970,7 @@ class _ZoneDelegate implements ZoneDelegate {
   _ZoneDelegate(this._delegationTarget);
 
   void handleUncaughtError(Zone zone, Object error, StackTrace stackTrace) {
-    var implementation = _delegationTarget._handleUncaughtError;
-    _Zone implZone = implementation.zone;
-    HandleUncaughtErrorHandler handler = implementation.function;
-    return handler(implZone, implZone._parentDelegate, zone, error, stackTrace);
+    _delegationTarget._processUncaughtError(zone, error, stackTrace);
   }
 
   R run<R>(Zone zone, R f()) {
@@ -1039,6 +1091,28 @@ abstract class _Zone implements Zone {
   bool inSameErrorZone(Zone otherZone) {
     return identical(this, otherZone) ||
         identical(errorZone, otherZone.errorZone);
+  }
+
+  void _processUncaughtError(Zone zone, Object error, StackTrace stackTrace) {
+    var implementation = _handleUncaughtError;
+    _Zone implZone = implementation.zone;
+    if (identical(implZone, _rootZone)) {
+      _rootHandleError(error, stackTrace);
+      return;
+    }
+    HandleUncaughtErrorHandler handler = implementation.function;
+    ZoneDelegate parentDelegate = implZone._parentDelegate;
+    _Zone parentZone = implZone.parent!; // Not null for non-root zones.
+    _Zone currentZone = Zone._current;
+    try {
+      Zone._current = parentZone;
+      handler(implZone, parentDelegate, zone, error, stackTrace);
+      Zone._current = currentZone;
+    } catch (e, s) {
+      Zone._current = currentZone;
+      parentZone._processUncaughtError(
+          implZone, e, identical(error, e) ? stackTrace : s);
+    }
   }
 }
 
@@ -1235,11 +1309,7 @@ class _CustomZone extends _Zone {
   // Methods that can be customized by the zone specification.
 
   void handleUncaughtError(Object error, StackTrace stackTrace) {
-    var implementation = this._handleUncaughtError;
-    ZoneDelegate parentDelegate = implementation.zone._parentDelegate;
-    HandleUncaughtErrorHandler handler = implementation.function;
-    return handler(
-        implementation.zone, parentDelegate, this, error, stackTrace);
+    _processUncaughtError(this, error, stackTrace);
   }
 
   Zone fork(
@@ -1335,6 +1405,10 @@ class _CustomZone extends _Zone {
 
 void _rootHandleUncaughtError(Zone? self, ZoneDelegate? parent, Zone zone,
     Object error, StackTrace stackTrace) {
+  _rootHandleError(error, stackTrace);
+}
+
+void _rootHandleError(Object error, StackTrace stackTrace) {
   _schedulePriorityAsyncCallback(() {
     _rethrow(error, stackTrace);
   });
