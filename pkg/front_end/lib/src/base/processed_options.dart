@@ -362,11 +362,7 @@ class ProcessedOptions {
   Target get target =>
       _target ??= _raw.target ?? new NoneTarget(new TargetFlags());
 
-  /// Returns `true` if the [flag] is enabled globally.
-  ///
-  /// This is `true` either if the [flag] is passed through an explicit
-  /// `--enable-experiment` option or if the [flag] is expired and on by
-  /// default.
+  /// Returns `true` if the [flag] is enabled globally by default.
   bool isExperimentEnabledByDefault(flags.ExperimentalFlag flag) {
     return flags.isExperimentEnabled(flag,
         defaultExperimentFlagsForTesting:
@@ -385,22 +381,29 @@ class ProcessedOptions {
             _raw.defaultExperimentFlagsForTesting);
   }
 
-  /// Returns `true` if the [flag] is enabled in the library with the given
-  /// [importUri].
+  /// Returns `true` if the experiment with the given [flag] is enabled either
+  /// explicitly or implicitly for the library with the given [importUri].
   ///
-  /// This is `true` either if the [flag] is enabled globally as defined
-  /// by [isExperimentEnabledGlobally] or is explicitly enabled through
-  /// the 'allowed_experiments.json' file for this library.
+  /// Note that the library can still opt out of the experiment by having a
+  /// lower language version than required for the experiment. See
+  /// [getExperimentEnabledVersionInLibrary].
   bool isExperimentEnabledInLibrary(
       flags.ExperimentalFlag flag, Uri importUri) {
     return _raw.isExperimentEnabledInLibrary(flag, importUri);
   }
 
+  /// Returns the minimum language version needed for a library with the given
+  /// [importUri] to opt in to the experiment with the given [flag].
+  ///
+  /// Note that the experiment might not be enabled at all for the library, as
+  /// computed by [isExperimentEnabledInLibrary].
   Version getExperimentEnabledVersionInLibrary(
       flags.ExperimentalFlag flag, Uri importUri) {
     return _raw.getExperimentEnabledVersionInLibrary(flag, importUri);
   }
 
+  /// Return `true` if the experiment with the given [flag] is enabled for the
+  /// library with the given [importUri] and language [version].
   bool isExperimentEnabledInLibraryByVersion(
       flags.ExperimentalFlag flag, Uri importUri, Version version) {
     return _raw.isExperimentEnabledInLibraryByVersion(flag, importUri, version);
