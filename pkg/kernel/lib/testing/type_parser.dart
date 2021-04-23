@@ -123,6 +123,32 @@ class ParsedClass extends ParsedDeclaration {
   }
 }
 
+class ParsedExtension extends ParsedDeclaration {
+  final List<ParsedTypeVariable> typeVariables;
+  final ParsedInterfaceType onType;
+
+  ParsedExtension(String name, this.typeVariables, this.onType) : super(name);
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write("extension ");
+    sb.write(name);
+    if (typeVariables.isNotEmpty) {
+      sb.write("<");
+      sb.writeAll(typeVariables, ", ");
+      sb.write(">");
+    }
+    sb.write(" on ");
+    sb.write(onType);
+    sb.write(";");
+    return "$sb";
+  }
+
+  R accept<R, A>(Visitor<R, A> visitor, [A a]) {
+    return visitor.visitExtension(this, a);
+  }
+}
+
 class ParsedTypedef extends ParsedDeclaration {
   final List<ParsedTypeVariable> typeVariables;
 
@@ -347,6 +373,7 @@ class Parser {
   ParsedType parseType() {
     if (optional("class")) return parseClass();
     if (optional("typedef")) return parseTypedef();
+    if (optional("extension")) return parseExtension();
     List<ParsedType> results = <ParsedType>[];
     do {
       ParsedType type;
@@ -494,6 +521,16 @@ class Parser {
         name, typeVariables, supertype, mixedInType, interfaces, callableType);
   }
 
+  ParsedExtension parseExtension() {
+    expect("extension");
+    String name = parseName();
+    List<ParsedTypeVariable> typeVariables = parseTypeVariablesOpt();
+    expect("on");
+    ParsedType onType = parseType();
+    expect(";");
+    return new ParsedExtension(name, typeVariables, onType);
+  }
+
   /// This parses a general typedef on this form:
   ///
   ///     typedef <name> <type-variables-opt> <type> ;
@@ -625,6 +662,10 @@ abstract class Visitor<R, A> {
   }
 
   R visitClass(ParsedClass node, A a) {
+    return DefaultAction.perform<R, A>(this, node, a);
+  }
+
+  R visitExtension(ParsedExtension node, A a) {
     return DefaultAction.perform<R, A>(this, node, a);
   }
 
