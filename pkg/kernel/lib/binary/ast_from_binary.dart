@@ -768,7 +768,7 @@ class BinaryBuilder {
     _ComponentIndex index = _readComponentIndex(componentFileSize);
 
     _byteOffset = index.binaryOffsetForSourceTable;
-    Map<Uri?, Source> uriToSource = readUriToSource(readCoverage: false);
+    Map<Uri, Source> uriToSource = readUriToSource(readCoverage: false);
     _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = _componentStartOffset + componentFileSize;
@@ -818,7 +818,7 @@ class BinaryBuilder {
     _associateMetadata(component, _componentStartOffset);
 
     _byteOffset = index.binaryOffsetForSourceTable;
-    Map<Uri?, Source> uriToSource = readUriToSource(readCoverage: true);
+    Map<Uri, Source> uriToSource = readUriToSource(readCoverage: true);
     _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = index.binaryOffsetForConstantTable;
@@ -866,7 +866,7 @@ class BinaryBuilder {
   /// [readCoverage] is true, otherwise coverage will be skipped. Note also that
   /// if [readCoverage] is true, references are read and that the link table
   /// thus has to be read first.
-  Map<Uri?, Source> readUriToSource({required bool readCoverage}) {
+  Map<Uri, Source> readUriToSource({required bool readCoverage}) {
     // ignore: unnecessary_null_comparison
     assert(!readCoverage || (readCoverage && _linkTable != null));
 
@@ -874,10 +874,10 @@ class BinaryBuilder {
 
     // Read data.
     _sourceUriTable.length = length;
-    Map<Uri?, Source> uriToSource = <Uri, Source>{};
+    Map<Uri, Source> uriToSource = <Uri, Source>{};
     for (int i = 0; i < length; ++i) {
       String uriString = readString();
-      Uri? uri = uriString.isEmpty ? null : Uri.parse(uriString);
+      Uri uri = Uri.parse(uriString);
       _sourceUriTable[i] = uri;
       Uint8List sourceCode = readByteList();
       int lineCount = readUInt30();
@@ -893,8 +893,7 @@ class BinaryBuilder {
         previousLineStart = lineStart;
       }
       String importUriString = readString();
-      Uri? importUri =
-          importUriString.isEmpty ? null : Uri.parse(importUriString);
+      Uri importUri = Uri.parse(importUriString);
 
       Set<Reference>? coverageConstructors;
       {
@@ -928,12 +927,12 @@ class BinaryBuilder {
   // source with an empty source. Empty sources may be introduced by
   // synthetic, copy-down implementations such as mixin applications or
   // noSuchMethod forwarders.
-  void _mergeUriToSource(Map<Uri?, Source> dst, Map<Uri?, Source> src) {
+  void _mergeUriToSource(Map<Uri, Source> dst, Map<Uri, Source> src) {
     if (dst.isEmpty) {
       // Fast path for the common case of one component per binary.
       dst.addAll(src);
     } else {
-      src.forEach((Uri? key, Source value) {
+      src.forEach((Uri key, Source value) {
         Source? originalDestinationSource = dst[key];
         Source? mergeFrom;
         Source mergeTo;
