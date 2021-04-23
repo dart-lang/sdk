@@ -309,14 +309,14 @@ class Reader : public ValueObject {
 
   intptr_t ReadSLEB128() {
     ReadStream stream(this->buffer(), size_, offset_);
-    const intptr_t result = stream.ReadSLEB128();
+    const intptr_t result = stream.Read();
     offset_ = stream.Position();
     return result;
   }
 
   int64_t ReadSLEB128AsInt64() {
     ReadStream stream(this->buffer(), size_, offset_);
-    const int64_t result = stream.ReadSLEB128<int64_t>();
+    const int64_t result = stream.Read<int64_t>();
     offset_ = stream.Position();
     return result;
   }

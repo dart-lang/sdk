@@ -5641,7 +5641,7 @@ class PcDescriptors : public Object {
                         byte_index_);
       // Moves to record that matches kind_mask_.
       while (byte_index_ < descriptors_.Length()) {
-        const int32_t kind_and_metadata = stream.ReadSLEB128<int32_t>();
+        const int32_t kind_and_metadata = stream.Read<int32_t>();
         cur_kind_ = UntaggedPcDescriptors::KindAndMetadata::DecodeKind(
             kind_and_metadata);
         cur_try_index_ = UntaggedPcDescriptors::KindAndMetadata::DecodeTryIndex(
@@ -5650,12 +5650,12 @@ class PcDescriptors : public Object {
             UntaggedPcDescriptors::KindAndMetadata::DecodeYieldIndex(
                 kind_and_metadata);
 
-        cur_pc_offset_ += stream.ReadSLEB128();
+        cur_pc_offset_ += stream.Read();
 
         if (!FLAG_precompiled_mode) {
-          cur_deopt_id_ += stream.ReadSLEB128();
-          cur_token_pos_ = Utils::AddWithWrapAround(
-              cur_token_pos_, stream.ReadSLEB128<int32_t>());
+          cur_deopt_id_ += stream.Read();
+          cur_token_pos_ =
+              Utils::AddWithWrapAround(cur_token_pos_, stream.Read<int32_t>());
         }
         byte_index_ = stream.Position();
 
