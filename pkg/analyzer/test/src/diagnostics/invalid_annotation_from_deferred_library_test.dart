@@ -31,7 +31,6 @@ import 'lib1.dart' deferred as a;
     ]);
   }
 
-  @FailingTest(reason: 'https://github.com/dart-lang/sdk/issues/45418')
   test_constructor_argument() async {
     newFile('$testPackageLibPath/lib1.dart', content: '''
 const x = 0;
@@ -42,8 +41,7 @@ import 'lib1.dart' deferred as a;
 class C { const C(int i); }
 @C(a.x) main () {}
 ''', [
-      error(
-          CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY, 49, 3),
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY, 79, 3),
     ]);
   }
 

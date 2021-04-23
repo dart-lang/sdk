@@ -416,6 +416,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           argument is NamedExpression ? argument.expression : argument;
       _validate(
           realArgument, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
+      if (realArgument is PrefixedIdentifier && realArgument.isDeferred) {
+        _reportErrorIfFromDeferredLibrary(
+            realArgument,
+            CompileTimeErrorCode
+                .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
+      }
     }
   }
 
