@@ -5185,16 +5185,23 @@ TypePtr Class::DeclarationType() const {
   if (declaration_type() != Type::null()) {
     return declaration_type();
   }
-  // For efficiency, the runtimeType intrinsic returns the type cached by
-  // DeclarationType without checking its nullability. Therefore, we
-  // consistently cache the kNonNullable version of the type.
-  // The exception is type Null which is stored as kNullable.
-  Type& type =
-      Type::Handle(Type::New(*this, TypeArguments::Handle(type_parameters()),
-                             Nullability::kNonNullable));
-  type ^= ClassFinalizer::FinalizeType(type);
-  set_declaration_type(type);
-  return type.ptr();
+  {
+    auto thread = Thread::Current();
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    if (declaration_type() != Type::null()) {
+      return declaration_type();
+    }
+    // For efficiency, the runtimeType intrinsic returns the type cached by
+    // DeclarationType without checking its nullability. Therefore, we
+    // consistently cache the kNonNullable version of the type.
+    // The exception is type Null which is stored as kNullable.
+    Type& type =
+        Type::Handle(Type::New(*this, TypeArguments::Handle(type_parameters()),
+                               Nullability::kNonNullable));
+    type ^= ClassFinalizer::FinalizeType(type);
+    set_declaration_type(type);
+    return type.ptr();
+  }
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
