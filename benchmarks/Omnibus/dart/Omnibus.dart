@@ -9,9 +9,11 @@
 //
 //     -N: run benchmarks N times, defaults to once.
 
-import '../../ListCopy/dart/ListCopy.dart' as lib_ListCopy;
+// ignore_for_file: library_prefixes
+
 import '../../BigIntParsePrint/dart/BigIntParsePrint.dart'
     as lib_BigIntParsePrint;
+import '../../ListCopy/dart/ListCopy.dart' as lib_ListCopy;
 import '../../MD5/dart/md5.dart' as lib_MD5;
 import '../../RuntimeType/dart/RuntimeType.dart' as lib_RuntimeType;
 import '../../SHA1/dart/sha1.dart' as lib_SHA1;
@@ -39,13 +41,13 @@ final Map<String, Function()> benchmarks = {
   'Utf8Encode': () => lib_Utf8Encode.main([]),
 };
 
-main(List<String> originalArguments) {
-  List<String> args = List.of(originalArguments);
+void main(List<String> originalArguments) {
+  final List<String> args = List.of(originalArguments);
 
   int repeats = 1;
 
   for (final arg in args.toList()) {
-    int? count = int.tryParse(arg);
+    final int? count = int.tryParse(arg);
     if (count != null && count < 0) {
       repeats = 0 - count;
       args.remove(arg);
