@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -49,7 +47,7 @@ FunctionType substituteTypeParams(
       requiredParameterCount: type.requiredParameterCount,
       typedefType: type.typedefType == null
           ? null
-          : substitution.substituteType(type.typedefType));
+          : substitution.substituteType(type.typedefType!) as TypedefType);
 }
 
 /// Given a [FunctionType], gets the type of the named parameter with the given
@@ -247,8 +245,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   void inferGenericFunctionOrType(
       DartType declaredReturnType,
       List<TypeParameter> typeParametersToInfer,
-      List<DartType> formalTypes,
-      List<DartType> actualTypes,
+      List<DartType>? formalTypes,
+      List<DartType>? actualTypes,
       DartType returnContextType,
       List<DartType> inferredTypes,
       Library clientLibrary,
@@ -283,7 +281,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       for (int i = 0; i < formalTypes.length; i++) {
         // Try to pass each argument to each parameter, recording any type
         // parameter bounds that were implied by this assignment.
-        gatherer.tryConstrainLower(formalTypes[i], actualTypes[i]);
+        gatherer.tryConstrainLower(formalTypes[i], actualTypes![i]);
       }
     }
 
@@ -332,27 +330,27 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       List<DartType> inferredTypes,
       Library clientLibrary,
       {bool downwardsInferPhase: false}) {
-    List<DartType> typesFromDownwardsInference =
+    List<DartType>? typesFromDownwardsInference =
         downwardsInferPhase ? null : inferredTypes.toList(growable: false);
 
     for (int i = 0; i < typeParametersToInfer.length; i++) {
       TypeParameter typeParam = typeParametersToInfer[i];
 
       DartType typeParamBound = typeParam.bound;
-      DartType extendsConstraint;
+      DartType? extendsConstraint;
       if (!hasOmittedBound(typeParam)) {
         extendsConstraint =
             Substitution.fromPairs(typeParametersToInfer, inferredTypes)
                 .substituteType(typeParamBound);
       }
 
-      TypeConstraint constraint = constraints[typeParam];
+      TypeConstraint constraint = constraints[typeParam]!;
       if (downwardsInferPhase) {
         inferredTypes[i] = _inferTypeParameterFromContext(
             constraint, extendsConstraint, clientLibrary);
       } else {
         inferredTypes[i] = _inferTypeParameterFromAll(
-            typesFromDownwardsInference[i],
+            typesFromDownwardsInference![i],
             constraint,
             extendsConstraint,
             clientLibrary,
@@ -405,7 +403,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
     DartType unwrappedSupertype = supertype;
     while (unwrappedSupertype is FutureOrType) {
-      unwrappedSupertype = (unwrappedSupertype as FutureOrType).typeArgument;
+      unwrappedSupertype = unwrappedSupertype.typeArgument;
     }
     if (unwrappedSupertype is UnknownType) {
       return const IsSubtypeOf.always();
@@ -413,7 +411,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return super.performNullabilityAwareSubtypeCheck(subtype, supertype);
   }
 
-  bool isEmptyContext(DartType context) {
+  // TODO(johnniwinther): Should [context] be non-nullable?
+  bool isEmptyContext(DartType? context) {
     if (context is DynamicType) {
       // Analyzer treats a type context of `dynamic` as equivalent to an empty
       // context.  TODO(paulberry): this is not spec'ed anywhere; do we still
@@ -433,7 +432,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// by giving special treatment to certain arithmetic operators.
   bool isSpecialCasesBinaryForReceiverType(
       Procedure member, DartType receiverType,
-      {bool isNonNullableByDefault}) {
+      {required bool isNonNullableByDefault}) {
+    // ignore: unnecessary_null_comparison
     assert(isNonNullableByDefault != null);
     if (!isNonNullableByDefault) {
       // TODO(paulberry): this matches what is defined in the spec.  It would be
@@ -523,7 +523,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   DartType _inferTypeParameterFromAll(
       DartType typeFromContextInference,
       TypeConstraint constraint,
-      DartType extendsConstraint,
+      DartType? extendsConstraint,
       Library clientLibrary,
       {bool isContravariant: false,
       bool preferUpwardsInference: false}) {
@@ -552,7 +552,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   DartType _inferTypeParameterFromContext(TypeConstraint constraint,
-      DartType extendsConstraint, Library clientLibrary) {
+      DartType? extendsConstraint, Library clientLibrary) {
     DartType t = solveTypeConstraint(
         constraint,
         clientLibrary.isNonNullableByDefault

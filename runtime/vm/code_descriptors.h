@@ -209,7 +209,7 @@ struct CodeSourceMapOps : AllStatic {
   using ArgField = BitField<int32_t, int32_t, OpField::kNextBit>;
 
   static constexpr int32_t kMaxArgValue =
-      Utils::NBitMaskUnsafe(ArgField::bitsize() - 1);
+      Utils::NBitMask(ArgField::bitsize() - 1);
   static constexpr int32_t kMinArgValue = ~kMaxArgValue;
   static constexpr int32_t kSignBits = static_cast<uint32_t>(kMinArgValue) << 1;
 };

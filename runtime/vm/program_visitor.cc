@@ -502,8 +502,8 @@ class StackMapEntry : public ZoneAllocated {
   // initial offset of the entry in the array.
   intptr_t EncodeTo(NonStreamingWriteStream* stream) {
     auto const current_offset = stream->Position();
-    stream->WriteLEB128(spill_slot_bit_count_);
-    stream->WriteLEB128(non_spill_slot_bit_count_);
+    stream->WriteUnsigned(spill_slot_bit_count_);
+    stream->WriteUnsigned(non_spill_slot_bit_count_);
     {
       NoSafepointScope scope;
       stream->WriteBytes(PayloadData(), PayloadLength());
@@ -711,8 +711,8 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(
         StackMapEntry entry(zone_, it);
         const intptr_t entry_offset = entry_offsets_.LookupValue(&entry);
         const intptr_t pc_delta = it.pc_offset() - last_offset;
-        new_payload.WriteLEB128(pc_delta);
-        new_payload.WriteLEB128(entry_offset);
+        new_payload.WriteUnsigned(pc_delta);
+        new_payload.WriteUnsigned(entry_offset);
         last_offset = it.pc_offset();
       }
       return CompressedStackMaps::NewUsingTable(new_payload.buffer(),

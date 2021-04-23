@@ -230,7 +230,6 @@ abstract class NamedNode extends TreeNode {
 
 abstract class FileUriNode extends TreeNode {
   /// The URI of the source file this node was loaded from.
-  // TODO(johnniwinther): Make this non-nullable.
   Uri get fileUri;
 }
 
@@ -12876,7 +12875,7 @@ class Component extends TreeNode {
   Component get enclosingComponent => this;
 
   /// Translates an offset to line and column numbers in the given file.
-  Location? getLocation(Uri? file, int offset) {
+  Location? getLocation(Uri file, int offset) {
     return uriToSource[file]?.getLocation(file, offset);
   }
 
@@ -12909,8 +12908,7 @@ class Component extends TreeNode {
 /// A tuple with file, line, and column number, for displaying human-readable
 /// locations.
 class Location {
-  // TODO(johnniwinther): Make this non-nullable.
-  final Uri? file;
+  final Uri file;
   final int line; // 1-based.
   final int column; // 1-based.
 
@@ -13098,7 +13096,7 @@ class Source {
   }
 
   /// Translates an offset to 1-based line and column numbers in the given file.
-  Location getLocation(Uri? file, int offset) {
+  Location getLocation(Uri file, int offset) {
     List<int>? lineStarts = this.lineStarts;
     if (lineStarts == null || lineStarts.isEmpty) {
       return new Location(file, TreeNode.noOffset, TreeNode.noOffset);
@@ -13394,7 +13392,7 @@ CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
 const Null informative = null;
 
 Location? _getLocationInComponent(
-    Component? component, Uri? fileUri, int offset) {
+    Component? component, Uri fileUri, int offset) {
   if (component != null) {
     return component.getLocation(fileUri, offset);
   } else {

@@ -395,29 +395,23 @@ class Utils {
     return ((-0x20000000000000LL <= value) && (value <= 0x20000000000000LL));
   }
 
-  static constexpr uword NBitMaskUnsafe(uint32_t n) {
-    static_assert((sizeof(uword) * kBitsPerByte) == kBitsPerWord,
-                  "Unexpected uword size");
-    return n == kBitsPerWord ? std::numeric_limits<uword>::max()
-                             : (static_cast<uword>(1) << n) - 1;
-  }
-
   // The lowest n bits are 1, the others are 0.
-  static uword NBitMask(uint32_t n) {
-    ASSERT(n <= kBitsPerWord);
-    return NBitMaskUnsafe(n);
-  }
-
-  static word SignedNBitMask(uint32_t n) {
-    uword mask = NBitMask(n);
-    return bit_cast<word>(mask);
+  template <typename T = uword>
+  static constexpr T NBitMask(size_t n) {
+    static_assert(std::is_integral<T>::value, "Must be integral type");
+    using Unsigned = typename std::make_unsigned<T>::type;
+    assert(n <= sizeof(T) * kBitsPerByte);
+    return n == sizeof(T) * kBitsPerByte
+               ? static_cast<T>(-1)
+               : static_cast<T>((static_cast<Unsigned>(1) << n) - 1);
   }
 
   template <typename T = uword>
-  static T Bit(uint32_t n) {
-    ASSERT(n < sizeof(T) * kBitsPerByte);
-    T bit = 1;
-    return bit << n;
+  static constexpr T Bit(size_t n) {
+    static_assert(std::is_integral<T>::value, "Must be integral type");
+    using Unsigned = typename std::make_unsigned<T>::type;
+    assert(n < sizeof(T) * kBitsPerByte);
+    return static_cast<T>(static_cast<Unsigned>(1) << n);
   }
 
   template <typename T>
