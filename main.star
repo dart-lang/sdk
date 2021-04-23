@@ -1677,15 +1677,19 @@ luci.console_view_entry(
     console_view = "flutter-hhh",
 )
 
+def chromium_infra_recipe(name):
+    return luci.recipe(
+        name = name,
+        cipd_package =
+            "infra/recipe_bundles/chromium.googlesource.com/infra/infra",
+        cipd_version = "git_revision:e1a6b1a375a07455c00cc236d2b52277aa46ea84",
+        use_bbagent = True,
+    )
+
 # Rolls dart recipe dependencies.
 dart_infra_builder(
     name = "recipe-deps-roller",
-    executable = luci.recipe(
-        name = "recipe_autoroller",
-        cipd_package =
-            "infra/recipe_bundles/chromium.googlesource.com/infra/infra",
-        cipd_version = "git_revision:905c1df843d7771bf3adc0cf21f58eb9498ff063",
-    ),
+    executable = chromium_infra_recipe("recipe_autoroller"),
     execution_timeout = 20 * time.minute,
     expiration_timeout = time.day,
     priority = LOW,
@@ -1700,17 +1704,12 @@ dart_infra_builder(
 
 dart_infra_builder(
     name = "recipe-bundler",
-    executable = luci.recipe(
-        name = "recipe_bundler",
-        cipd_package =
-            "infra/recipe_bundles/chromium.googlesource.com/infra/infra",
-        cipd_version = "git_revision:40621e908eb88bd10451ee9d013b7ef89ea91e37",
-    ),
+    executable = chromium_infra_recipe("recipe_bundler"),
     execution_timeout = 5 * time.minute,
     properties = {
         # This property controls the version of the recipe_bundler go tool:
         #   https://chromium.googlesource.com/infra/infra/+/master/go/src/infra/tools/recipe_bundler
-        "recipe_bundler_vers": "git_revision:2ed88b2c854578b512e1c0486824175fe0d7aab6",
+        "recipe_bundler_vers": "git_revision:e1a6b1a375a07455c00cc236d2b52277aa46ea84",
         # These control the prefix of the CIPD package names that the tool
         # will create.
         "package_name_prefix": "dart/recipe_bundles",
