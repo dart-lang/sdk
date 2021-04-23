@@ -72,7 +72,7 @@ struct RelocatorTestHelper {
                  compiler::Address(CSP, -2 * kWordSize,
                                    compiler::Address::PairPreIndex)));
 #elif defined(TARGET_ARCH_ARM)
-      SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(__ PushList((1 << LR);
+      SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(__ PushList((1 << LR)));
 #endif
       __ GenerateUnRelocatedPcRelativeCall();
       AddPcRelativeCallTargetAt(__ CodeSize(), code, target);
@@ -82,7 +82,7 @@ struct RelocatorTestHelper {
                  compiler::Address(CSP, 2 * kWordSize,
                                    compiler::Address::PairPostIndex)));
 #elif defined(TARGET_ARCH_ARM)
-      RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(__ PopList((1 << LR));
+      RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(__ PopList((1 << LR)));
 #endif
       __ Ret();
     });
