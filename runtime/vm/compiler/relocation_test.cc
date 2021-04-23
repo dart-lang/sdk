@@ -67,6 +67,11 @@ struct RelocatorTestHelper {
 
     EmitCodeFor(code, [&](compiler::Assembler* assembler) {
 #if defined(TARGET_ARCH_ARM64)
+      // TODO(kustermann): Remove conservative approximation in relocator and
+      // make tests precise.
+      __ mov(R0, R0);
+      __ mov(R0, R0);
+      __ mov(R0, R0);
       SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(
           __ stp(LR, R1,
                  compiler::Address(CSP, -2 * kWordSize,
