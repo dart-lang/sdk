@@ -93,7 +93,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   /// Fills [elements] with [Element]s to rename.
   Future _prepareElements() async {
-    var element = this.element;
+    final element = this.element;
     if (element is ParameterElement && element.isNamed) {
       elements = await getHierarchyNamedParameters(searchEngine, element);
     } else {

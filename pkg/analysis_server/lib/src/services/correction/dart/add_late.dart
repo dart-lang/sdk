@@ -21,7 +21,7 @@ class AddLate extends CorrectionProducer {
     if (!libraryElement.isNonNullableByDefault) {
       return;
     }
-    var node = this.node;
+    final node = this.node;
     if (node is SimpleIdentifier) {
       var variable = node.parent;
       var variableList = variable?.parent;

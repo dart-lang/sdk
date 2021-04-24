@@ -24,16 +24,16 @@ class ConvertToRelativeImport extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is StringLiteral) {
-      node = node.parent!;
+    var targetNode = node;
+    if (targetNode is StringLiteral) {
+      targetNode = targetNode.parent!;
     }
-    if (node is! ImportDirective) {
+    if (targetNode is! ImportDirective) {
       return;
     }
 
     // Ignore if invalid URI.
-    if (node.uriSource == null) {
+    if (targetNode.uriSource == null) {
       return;
     }
 
@@ -45,7 +45,7 @@ class ConvertToRelativeImport extends CorrectionProducer {
 
     Uri importUri;
     try {
-      var uriContent = node.uriContent;
+      var uriContent = targetNode.uriContent;
       if (uriContent == null) {
         return;
       }
@@ -75,7 +75,7 @@ class ConvertToRelativeImport extends CorrectionProducer {
       from: path.dirname(sourceUri.path),
     );
 
-    final node_final = node;
+    final node_final = targetNode;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
         range.node(node_final.uri).getExpanded(-1),

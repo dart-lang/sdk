@@ -23,7 +23,7 @@ class AddNullCheck extends CorrectionProducer {
       return;
     }
     Expression? target;
-    var coveredNode = this.coveredNode;
+    final coveredNode = this.coveredNode;
     var coveredNodeParent = coveredNode?.parent;
     if (coveredNode is SimpleIdentifier) {
       if (coveredNodeParent is MethodInvocation) {

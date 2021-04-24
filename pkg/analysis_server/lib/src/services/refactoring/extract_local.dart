@@ -121,7 +121,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange() {
     var change = SourceChange(refactoringName);
     // prepare occurrences
-    List<SourceRange> occurrences;
+    late final List<SourceRange> occurrences;
     if (extractAll) {
       occurrences = this.occurrences;
     } else {
@@ -130,7 +130,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     occurrences.sort((a, b) => a.offset - b.offset);
     // If the whole expression of a statement is selected, like '1 + 2',
     // then convert it into a variable declaration statement.
-    var singleExpression = this.singleExpression;
+    final singleExpression = this.singleExpression;
     if (singleExpression != null &&
         singleExpression.parent is ExpressionStatement &&
         occurrences.length == 1) {
@@ -490,7 +490,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
     // prepare selection
     String? selectionSource;
-    var singleExpression = this.singleExpression;
+    final singleExpression = this.singleExpression;
     if (singleExpression != null) {
       var tokens = TokenUtils.getNodeTokens(singleExpression);
       selectionSource = _encodeExpressionTokens(singleExpression, tokens);

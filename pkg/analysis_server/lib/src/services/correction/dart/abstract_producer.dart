@@ -373,7 +373,7 @@ abstract class _AbstractCorrectionProducer {
   AstNode? get coveredNode {
     // TODO(brianwilkerson) Consider renaming this to `coveringNode`.
     if (_coveredNode == null) {
-      var diagnostic = this.diagnostic;
+      final diagnostic = this.diagnostic;
       if (diagnostic == null) {
         return null;
       }

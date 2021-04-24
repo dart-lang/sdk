@@ -80,7 +80,7 @@ class ExpectedError {
     if (message != null && error.message != message) {
       return false;
     }
-    var messageContains = this.messageContains;
+    final messageContains = this.messageContains;
     if (messageContains != null &&
         error.message.contains(messageContains) != true) {
       return false;

@@ -42,7 +42,7 @@ class AddMissingRequiredArgument extends CorrectionProducer {
       }
     }
 
-    var diagnostic = this.diagnostic;
+    final diagnostic = this.diagnostic;
     if (diagnostic == null) {
       return;
     }

@@ -15,7 +15,7 @@ class RemoveParametersInGetterDeclaration extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     if (node is MethodDeclaration) {
       // Support for the analyzer error.
       var name = node.name;

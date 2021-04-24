@@ -67,6 +67,7 @@ class ShadowField extends CorrectionProducer {
       builder.addInsertion(offset, (builder) {
         // TODO(brianwilkerson) Conditionally write a type annotation instead of
         //  'var' when we're able to discover user preferences.
+        // TODO(brianwilkerson) Consider writing `final` rather than `var`.
         builder.write('var ');
         builder.write(fieldName);
         builder.write(' = this.');
