@@ -110,7 +110,7 @@ class SocketServerTest {
         null);
 
     server.createAnalysisServer(channel);
-    errorNotifier.server = server.analysisServer!;
+    errorNotifier.server = server.analysisServer;
     AnalysisEngine.instance.instrumentationService = errorNotifier;
 
     return server;

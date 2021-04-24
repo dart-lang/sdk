@@ -1636,7 +1636,7 @@ class B {}
     expect(result.units, hasLength(1));
     expect(result.units![0].path, testFile);
     expect(result.units![0].content, content);
-    expect(result.units![0].unit!, isNotNull);
+    expect(result.units![0].unit, isNotNull);
     expect(result.units![0].errors, isEmpty);
   }
 
@@ -1689,7 +1689,7 @@ class B {}
     expect(result.uri.toString(), 'package:test/test.dart');
     expect(result.state, ResultState.VALID);
     expect(result.content, content);
-    expect(result.unit!, isNotNull);
+    expect(result.unit, isNotNull);
     expect(result.errors, hasLength(0));
 
     var f = result.unit!.declarations[0] as FunctionDeclaration;
@@ -2135,7 +2135,7 @@ var A2 = B1;
 
     var result = await resultFuture;
     expect(result.path, testFile);
-    expect(result.unit!, isNotNull);
+    expect(result.unit, isNotNull);
   }
 
   test_getResult_twoPendingFutures() async {
@@ -2150,7 +2150,7 @@ var A2 = B1;
     ResolvedUnitResult result2 = await future2;
     expect(result2, same(result1));
     expect(result1.path, testFile);
-    expect(result1.unit!, isNotNull);
+    expect(result1.unit, isNotNull);
   }
 
   @deprecated
@@ -3158,7 +3158,7 @@ var b = new B();
     // A and B references.
     ResolvedUnitResult result = await driver.getResultValid(c);
     expect(result.errors, isNotEmpty);
-    expect(result.unit!, isNotNull);
+    expect(result.unit, isNotNull);
   }
 
   test_part_getUnitElement2_afterLibrary() async {
@@ -3536,7 +3536,7 @@ var b = new B();
     // analyze the delayed parts.
     ResolvedUnitResult result = allResults.lastWhere((r) => r.path == c);
     expect(result.errors, isEmpty);
-    expect(result.unit!, isNotNull);
+    expect(result.unit, isNotNull);
   }
 
   test_removeFile_changeFile_implicitlyAnalyzed() async {
@@ -3786,7 +3786,7 @@ class F extends X {}
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
     expect(result.content, content);
-    expect(result.unit!, isNotNull);
+    expect(result.unit, isNotNull);
     expect(result.errors, hasLength(0));
 
     var f = result.unit!.declarations[0] as FunctionDeclaration;
@@ -3811,7 +3811,7 @@ class F extends X {}
     expect(allResults, hasLength(3));
     ResolvedUnitResult result = allResults[0];
     expect(result.path, b);
-    expect(result.unit!, isNotNull);
+    expect(result.unit, isNotNull);
     expect(result.errors, hasLength(0));
   }
 

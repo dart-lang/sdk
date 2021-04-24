@@ -440,7 +440,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     // constant node
     var constDeclVName =
-        addNodeAndFacts(schema.CONSTANT_KIND, element: node.declaredElement!);
+        addNodeAndFacts(schema.CONSTANT_KIND, element: node.declaredElement);
 
     // anchor- defines/binding, defines
     addAnchorEdgesContainingEdge(
