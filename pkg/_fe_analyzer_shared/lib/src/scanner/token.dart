@@ -1269,11 +1269,11 @@ class TokenType {
 
   static const TokenType AMPERSAND = const TokenType(
       '&', 'AMPERSAND', BITWISE_AND_PRECEDENCE, AMPERSAND_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType AMPERSAND_AMPERSAND = const TokenType('&&',
       'AMPERSAND_AMPERSAND', LOGICAL_AND_PRECEDENCE, AMPERSAND_AMPERSAND_TOKEN,
-      isOperator: true);
+      isOperator: true, isBinaryOperator: true);
 
   // This is not yet part of the language and not supported by fasta
   static const TokenType AMPERSAND_AMPERSAND_EQ = const TokenType(
@@ -1303,11 +1303,11 @@ class TokenType {
 
   static const TokenType BAR = const TokenType(
       '|', 'BAR', BITWISE_OR_PRECEDENCE, BAR_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType BAR_BAR = const TokenType(
       '||', 'BAR_BAR', LOGICAL_OR_PRECEDENCE, BAR_BAR_TOKEN,
-      isOperator: true);
+      isOperator: true, isBinaryOperator: true);
 
   // This is not yet part of the language and not supported by fasta
   static const TokenType BAR_BAR_EQ = const TokenType(
@@ -1326,7 +1326,7 @@ class TokenType {
 
   static const TokenType CARET = const TokenType(
       '^', 'CARET', BITWISE_XOR_PRECEDENCE, CARET_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType CARET_EQ = const TokenType(
       '^=', 'CARET_EQ', ASSIGNMENT_PRECEDENCE, CARET_EQ_TOKEN,
@@ -1347,7 +1347,7 @@ class TokenType {
 
   static const TokenType EQ_EQ = const TokenType(
       '==', 'EQ_EQ', EQUALITY_PRECEDENCE, EQ_EQ_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   /// The `===` operator is not supported in the Dart language
   /// but is parsed as such by the scanner to support better recovery
@@ -1360,15 +1360,15 @@ class TokenType {
 
   static const TokenType GT = const TokenType(
       '>', 'GT', RELATIONAL_PRECEDENCE, GT_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType GT_EQ = const TokenType(
       '>=', 'GT_EQ', RELATIONAL_PRECEDENCE, GT_EQ_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType GT_GT = const TokenType(
       '>>', 'GT_GT', SHIFT_PRECEDENCE, GT_GT_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType GT_GT_EQ = const TokenType(
       '>>=', 'GT_GT_EQ', ASSIGNMENT_PRECEDENCE, GT_GT_EQ_TOKEN,
@@ -1376,7 +1376,7 @@ class TokenType {
 
   static const TokenType GT_GT_GT = const TokenType(
       '>>>', 'GT_GT_GT', SHIFT_PRECEDENCE, GT_GT_GT_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType GT_GT_GT_EQ = const TokenType(
       '>>>=', 'GT_GT_GT_EQ', ASSIGNMENT_PRECEDENCE, GT_GT_GT_EQ_TOKEN,
@@ -1395,15 +1395,15 @@ class TokenType {
 
   static const TokenType LT = const TokenType(
       '<', 'LT', RELATIONAL_PRECEDENCE, LT_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType LT_EQ = const TokenType(
       '<=', 'LT_EQ', RELATIONAL_PRECEDENCE, LT_EQ_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType LT_LT = const TokenType(
       '<<', 'LT_LT', SHIFT_PRECEDENCE, LT_LT_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType LT_LT_EQ = const TokenType(
       '<<=', 'LT_LT_EQ', ASSIGNMENT_PRECEDENCE, LT_LT_EQ_TOKEN,
@@ -1411,7 +1411,7 @@ class TokenType {
 
   static const TokenType MINUS = const TokenType(
       '-', 'MINUS', ADDITIVE_PRECEDENCE, MINUS_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType MINUS_EQ = const TokenType(
       '-=', 'MINUS_EQ', ASSIGNMENT_PRECEDENCE, MINUS_EQ_TOKEN,
@@ -1432,7 +1432,7 @@ class TokenType {
 
   static const TokenType PERCENT = const TokenType(
       '%', 'PERCENT', MULTIPLICATIVE_PRECEDENCE, PERCENT_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType PERCENT_EQ = const TokenType(
       '%=', 'PERCENT_EQ', ASSIGNMENT_PRECEDENCE, PERCENT_EQ_TOKEN,
@@ -1447,7 +1447,7 @@ class TokenType {
 
   static const TokenType PLUS = const TokenType(
       '+', 'PLUS', ADDITIVE_PRECEDENCE, PLUS_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType PLUS_EQ = const TokenType(
       '+=', 'PLUS_EQ', ASSIGNMENT_PRECEDENCE, PLUS_EQ_TOKEN,
@@ -1467,7 +1467,7 @@ class TokenType {
 
   static const TokenType QUESTION_QUESTION = const TokenType(
       '??', 'QUESTION_QUESTION', IF_NULL_PRECEDENCE, QUESTION_QUESTION_TOKEN,
-      isOperator: true);
+      isOperator: true, isBinaryOperator: true);
 
   static const TokenType QUESTION_QUESTION_EQ = const TokenType('??=',
       'QUESTION_QUESTION_EQ', ASSIGNMENT_PRECEDENCE, QUESTION_QUESTION_EQ_TOKEN,
@@ -1478,7 +1478,7 @@ class TokenType {
 
   static const TokenType SLASH = const TokenType(
       '/', 'SLASH', MULTIPLICATIVE_PRECEDENCE, SLASH_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType SLASH_EQ = const TokenType(
       '/=', 'SLASH_EQ', ASSIGNMENT_PRECEDENCE, SLASH_EQ_TOKEN,
@@ -1486,7 +1486,7 @@ class TokenType {
 
   static const TokenType STAR = const TokenType(
       '*', 'STAR', MULTIPLICATIVE_PRECEDENCE, STAR_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType STAR_EQ = const TokenType(
       '*=', 'STAR_EQ', ASSIGNMENT_PRECEDENCE, STAR_EQ_TOKEN,
@@ -1510,7 +1510,7 @@ class TokenType {
 
   static const TokenType TILDE_SLASH = const TokenType(
       '~/', 'TILDE_SLASH', MULTIPLICATIVE_PRECEDENCE, TILDE_SLASH_TOKEN,
-      isOperator: true, isUserDefinableOperator: true);
+      isOperator: true, isBinaryOperator: true, isUserDefinableOperator: true);
 
   static const TokenType TILDE_SLASH_EQ = const TokenType(
       '~/=', 'TILDE_SLASH_EQ', ASSIGNMENT_PRECEDENCE, TILDE_SLASH_EQ_TOKEN,
@@ -1661,6 +1661,11 @@ class TokenType {
   final bool isOperator;
 
   /**
+   * `true` if this token type represents a binary operator.
+   */
+  final bool isBinaryOperator;
+
+  /**
    * `true` if this token type represents a keyword starting a top level
    * declaration such as `class`, `enum`, `import`, etc.
    */
@@ -1697,6 +1702,7 @@ class TokenType {
   const TokenType(this.lexeme, this.name, this.precedence, this.kind,
       {this.isModifier: false,
       this.isOperator: false,
+      this.isBinaryOperator: false,
       this.isTopLevelKeyword: false,
       this.isUserDefinableOperator: false,
       String? stringValue: 'unspecified'})
