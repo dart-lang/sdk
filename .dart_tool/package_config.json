@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-04-22T20:51:04.585975",
+  "generated": "2021-04-23T17:16:06.111697",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -381,7 +381,7 @@
       "name": "json_rpc_2",
       "rootUri": "../third_party/pkg/json_rpc_2",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.12"
     },
     {
       "name": "kernel",
