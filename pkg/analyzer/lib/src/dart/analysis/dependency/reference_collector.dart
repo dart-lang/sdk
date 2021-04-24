@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/dependency/node.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 
 /// Collector of information about external nodes referenced by a node.
 ///
@@ -202,11 +201,13 @@ class ReferenceCollector {
 
     if (assignmentType != TokenType.EQ &&
         assignmentType != TokenType.QUESTION_QUESTION_EQ) {
-      var operatorType = operatorFromCompoundAssignment(assignmentType);
-      _recordClassMemberReference(
-        targetType: node.readType,
-        name: operatorType.lexeme,
-      );
+      var operatorType = assignmentType.binaryOperatorOfCompoundAssignment;
+      if (operatorType != null) {
+        _recordClassMemberReference(
+          targetType: node.readType,
+          name: operatorType.lexeme,
+        );
+      }
     }
   }
 
