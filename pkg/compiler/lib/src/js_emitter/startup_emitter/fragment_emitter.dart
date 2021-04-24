@@ -768,8 +768,8 @@ class FragmentEmitter {
       'throwLateFieldADI': _emitter
           .staticFunctionAccess(_closedWorld.commonElements.throwLateFieldADI),
       'operatorIsPrefix': js.string(_namer.fixedNames.operatorIsPrefix),
-      'tearOffCode': new js.Block(buildTearOffCode(
-          _options, _emitter, _namer, _closedWorld.commonElements)),
+      'tearOffCode': new js.Block(
+          buildTearOffCode(_options, _emitter, _closedWorld.commonElements)),
       'embeddedTypes': generateEmbeddedGlobalAccess(TYPES),
       'embeddedInterceptorTags':
           generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG),

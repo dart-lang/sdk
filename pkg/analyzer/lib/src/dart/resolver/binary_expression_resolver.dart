@@ -27,7 +27,7 @@ class BinaryExpressionResolver {
 
   BinaryExpressionResolver({
     required ResolverVisitor resolver,
-  })   : _resolver = resolver,
+  })  : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper;
 
@@ -62,9 +62,15 @@ class BinaryExpressionResolver {
       return;
     }
 
-    if (operator.isUserDefinableOperator) {
+    if (operator.isUserDefinableOperator && operator.isBinaryOperator) {
       _resolveUserDefinable(node);
       return;
+    }
+
+    // Report an error if not already reported by the parser.
+    if (operator != TokenType.BANG_EQ_EQ && operator != TokenType.EQ_EQ_EQ) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_BINARY_OPERATOR, node, [operator.lexeme]);
     }
 
     _resolveUnsupportedOperator(node);

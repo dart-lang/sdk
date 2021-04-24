@@ -472,6 +472,7 @@ import 'non_void_return_for_setter_test.dart' as non_void_return_for_setter;
 import 'not_a_type_test.dart' as not_a_type;
 import 'not_assigned_potentially_non_nullable_local_variable_test.dart'
     as not_assigned_potentially_non_nullable_local_variable;
+import 'not_binary_operator_test.dart' as not_binary_operator;
 import 'not_enough_positional_arguments_test.dart'
     as not_enough_positional_arguments;
 import 'not_initialized_non_nullable_instance_field_test.dart'
@@ -970,6 +971,8 @@ main() {
     non_bool_expression.main();
     non_bool_negation_expression.main();
     non_bool_operand.main();
+    non_const_call_to_literal_constructor.main();
+    non_const_map_as_expression_statement.main();
     non_constant_annotation_constructor.main();
     non_constant_list_element.main();
     non_constant_case_expression_from_deferred_library.main();
@@ -995,8 +998,7 @@ main() {
     non_void_return_for_setter.main();
     not_a_type.main();
     not_assigned_potentially_non_nullable_local_variable.main();
-    non_const_call_to_literal_constructor.main();
-    non_const_map_as_expression_statement.main();
+    not_binary_operator.main();
     not_enough_positional_arguments.main();
     not_initialized_non_nullable_instance_field.main();
     not_initialized_non_nullable_variable.main();

@@ -9573,6 +9573,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the operator that is not a binary operator.
+   */
+  static const CompileTimeErrorCode NOT_BINARY_OPERATOR = CompileTimeErrorCode(
+      'NOT_BINARY_OPERATOR', "'{0}' isn't a binary operator.");
+
+  /**
+   * Parameters:
    * 0: the expected number of required arguments
    * 1: the actual number of positional arguments given
    */
