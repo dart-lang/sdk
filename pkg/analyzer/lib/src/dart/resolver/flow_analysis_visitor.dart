@@ -242,7 +242,7 @@ class FlowAnalysisHelper {
     // Set this.flow to null before doing any clean-up so that if an exception
     // is raised, the state is already updated correctly, and we don't have
     // cascading failures.
-    var flow = this.flow;
+    final flow = this.flow;
     this.flow = null;
     assignedVariables = null;
 
@@ -253,7 +253,7 @@ class FlowAnalysisHelper {
   /// associated with [newNode].  We need to do this when doing AST rewriting,
   /// so that test data can be found using the rewritten tree.
   void transferTestData(AstNode oldNode, AstNode newNode) {
-    var dataForTesting = this.dataForTesting;
+    final dataForTesting = this.dataForTesting;
     if (dataForTesting != null) {
       var oldNonPromotionReasons = dataForTesting.nonPromotionReasons[oldNode];
       if (oldNonPromotionReasons != null) {

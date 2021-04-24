@@ -74,7 +74,7 @@ class DartProject {
   bool isApi(Element element) => _apiModel.contains(element);
 
   String _calculateName() {
-    var pubspec = this.pubspec;
+    final pubspec = this.pubspec;
     if (pubspec != null) {
       var nameEntry = pubspec.name;
       if (nameEntry != null) {

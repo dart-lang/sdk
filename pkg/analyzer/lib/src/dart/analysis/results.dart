@@ -369,7 +369,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
 
   @override
   LibraryElement get libraryElement {
-    var unit = this.unit;
+    final unit = this.unit;
     if (unit == null) {
       throw StateError('The result has no unit');
     }

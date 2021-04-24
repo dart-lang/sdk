@@ -409,7 +409,7 @@ abstract class _PhysicalResource implements Resource {
   /// https://support.microsoft.com/en-us/kb/74496
   void _throwIfWindowsDeviceDriver() {
     if (io.Platform.isWindows) {
-      String shortName = this.shortName.toUpperCase();
+      final shortName = this.shortName.toUpperCase();
       if (shortName == r'CON' ||
           shortName == r'PRN' ||
           shortName == r'AUX' ||
