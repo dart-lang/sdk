@@ -9,7 +9,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 /// An instrumentation service to show instrumentation errors as error
 /// notifications to the user.
 class ErrorNotifier extends NoopInstrumentationService {
-  late AbstractAnalysisServer server;
+  AbstractAnalysisServer? server;
 
   @override
   void logException(
@@ -17,7 +17,8 @@ class ErrorNotifier extends NoopInstrumentationService {
     StackTrace? stackTrace,
     List<InstrumentationServiceAttachment>? attachments,
   ]) {
-    if (exception is SilentException) {
+    final server = this.server;
+    if (server == null || exception is SilentException) {
       // Silent exceptions should not be reported to the user.
       return;
     }

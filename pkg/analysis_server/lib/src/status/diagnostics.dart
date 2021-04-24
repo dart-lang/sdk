@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:developer' as developer;
 import 'dart:io';
 
@@ -25,12 +23,14 @@ import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 final String kCustomCss = '''
@@ -206,7 +206,7 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
     buf.writeln(
         '<tr><th>Time</th><th>Results</th><th>Source</th><th>Snippet</th></tr>');
     for (var completion in completions) {
-      var shortName = pathContext.basename(completion.path);
+      var shortName = pathContext.basename(completion.path ?? '<missing path>');
       buf.writeln('<tr>'
           '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
           '<td class="right">${completion.suggestionCountStr}</td>'
@@ -219,13 +219,13 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
 }
 
 class AstPage extends DiagnosticPageWithNav {
-  String _description;
+  String? _description;
 
   AstPage(DiagnosticsSite site)
       : super(site, 'ast', 'AST', description: 'The AST for a file.');
 
   @override
-  String get description => _description ?? super.description;
+  String? get description => _description ?? super.description;
 
   @override
   bool get showInNav => false;
@@ -246,7 +246,7 @@ class AstPage extends DiagnosticPageWithNav {
     var result = await driver.getResult2(filePath);
     if (result is ResolvedUnitResult) {
       var writer = AstWriter(buf);
-      result.unit.accept(writer);
+      result.unit!.accept(writer);
     } else {
       p(
           'An AST could not be produced for the file '
@@ -274,7 +274,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
 
   @override
   Future generateContent(Map<String, String> params) async {
-    void writeRow(List<String> data, {List<String> classes}) {
+    void writeRow(List<String> data, {List<String?>? classes}) {
       buf.write('<tr>');
       for (var i = 0; i < data.length; i++) {
         var c = classes == null ? null : classes[i];
@@ -289,11 +289,12 @@ class CommunicationsPage extends DiagnosticPageWithNav {
 
     buf.writeln('<div class="columns">');
 
-    if (server.performanceAfterStartup != null) {
+    var performanceAfterStartup = server.performanceAfterStartup;
+    if (performanceAfterStartup != null) {
       buf.writeln('<div class="column one-half">');
 
       h3('Current');
-      _writePerformanceTable(server.performanceAfterStartup, writeRow);
+      _writePerformanceTable(performanceAfterStartup, writeRow);
 
       var time = server.uptime.toString();
       if (time.contains('.')) {
@@ -309,8 +310,8 @@ class CommunicationsPage extends DiagnosticPageWithNav {
     h3('Startup');
     _writePerformanceTable(server.performanceDuringStartup, writeRow);
 
-    if (server.performanceAfterStartup != null) {
-      var startupTime = server.performanceAfterStartup.startTime -
+    if (performanceAfterStartup != null) {
+      var startupTime = performanceAfterStartup.startTime -
           server.performanceDuringStartup.startTime;
       buf.writeln(
           writeOption('Initial analysis time', printMilliseconds(startupTime)));
@@ -322,7 +323,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
   }
 
   void _writePerformanceTable(ServerPerformance perf,
-      void Function(List<String> data, {List<String> classes}) writeRow) {
+      void Function(List<String> data, {List<String?> classes}) writeRow) {
     var requestCount = perf.requestCount;
     var latencyCount = perf.latencyCount;
     var averageLatency =
@@ -355,7 +356,8 @@ class CompletionPage extends AbstractCompletionPage {
   CompletionPage(DiagnosticsSite site, this.server) : super(site);
 
   CompletionDomainHandler get completionDomain => server.handlers
-      .firstWhere((handler) => handler is CompletionDomainHandler);
+          .firstWhere((handler) => handler is CompletionDomainHandler)
+      as CompletionDomainHandler;
 
   @override
   path.Context get pathContext =>
@@ -367,14 +369,14 @@ class CompletionPage extends AbstractCompletionPage {
 }
 
 class ContentsPage extends DiagnosticPageWithNav {
-  String _description;
+  String? _description;
 
   ContentsPage(DiagnosticsSite site)
       : super(site, 'contents', 'Contents',
             description: 'The Contents/Overlay of a file.');
 
   @override
-  String get description => _description ?? super.description;
+  String? get description => _description ?? super.description;
 
   @override
   bool get showInNav => false;
@@ -453,22 +455,23 @@ class ContextsPage extends DiagnosticPageWithNav {
     }
 
     var contextPath = params['context'];
-    var folders = driverMap.keys.toList();
-    folders
-        .sort((first, second) => first.shortName.compareTo(second.shortName));
-    var folder =
-        folders.firstWhere((f) => f.path == contextPath, orElse: () => null);
+    var entries = driverMap.entries.toList();
+    entries.sort(
+        (first, second) => first.key.shortName.compareTo(second.key.shortName));
+    var entry = entries.firstWhereOrNull((f) => f.key.path == contextPath);
 
-    if (folder == null) {
-      folder = folders.first;
-      contextPath = folder.path;
+    if (entry == null) {
+      entry = entries.first;
+      contextPath = entry.key.path;
     }
 
-    var driver = driverMap[folder];
+    var folder = entry.key;
+    var driver = entry.value;
 
     buf.writeln('<div class="tabnav">');
     buf.writeln('<nav class="tabnav-tabs">');
-    for (var f in folders) {
+    for (var entry in entries) {
+      var f = entry.key;
       if (f == folder) {
         buf.writeln(
             '<a class="tabnav-tab selected">${escape(f.shortName)}</a>');
@@ -485,15 +488,15 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln(writeOption(
         'Analysis options path',
         escape(
-            driver.analysisContext?.contextRoot?.optionsFile?.path ?? 'none')));
+            driver.analysisContext?.contextRoot.optionsFile?.path ?? 'none')));
     buf.writeln(
-        writeOption('SDK root', escape(driver.analysisContext.sdkRoot?.path)));
+        writeOption('SDK root', escape(driver.analysisContext?.sdkRoot?.path)));
 
     buf.writeln('<div class="columns">');
 
     buf.writeln('<div class="column one-half">');
     h3('Analysis options');
-    p(describe(driver.analysisOptions), raw: true);
+    p(describe(driver.analysisOptions as AnalysisOptionsImpl), raw: true);
 
     h3('Pub files');
     buf.writeln('<p>');
@@ -584,7 +587,7 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     h3('Dartdoc template info');
     var info = server.declarationsTracker
-            ?.getContext(driver.analysisContext)
+            ?.getContext(driver.analysisContext!)
             ?.dartdocDirectiveInfo ??
         DartdocDirectiveInfo();
     buf.write('<p class="scroll-table">');
@@ -622,19 +625,19 @@ class ContextsPage extends DiagnosticPageWithNav {
 abstract class DiagnosticPage extends Page {
   final DiagnosticsSite site;
 
-  DiagnosticPage(this.site, String id, String title, {String description})
+  DiagnosticPage(this.site, String id, String title, {String? description})
       : super(id, title, description: description);
 
   bool get isNavPage => false;
 
-  AbstractAnalysisServer get server => site.socketServer.analysisServer;
+  AbstractAnalysisServer get server => site.socketServer.analysisServer!;
 
   Future<void> generateContainer(Map<String, String> params) async {
     buf.writeln('<div class="columns docs-layout">');
     buf.writeln('<div class="three-fourths column markdown-body">');
     h1(title, classes: 'page-title');
     await asyncDiv(() async {
-      p(description);
+      p(description ?? 'Unknown Page');
       await generateContent(params);
     }, classes: 'markdown-body');
     buf.writeln('</div>');
@@ -701,13 +704,13 @@ abstract class DiagnosticPage extends Page {
 
 abstract class DiagnosticPageWithNav extends DiagnosticPage {
   DiagnosticPageWithNav(DiagnosticsSite site, String id, String title,
-      {String description})
+      {String? description})
       : super(site, id, title, description: description);
 
   @override
   bool get isNavPage => true;
 
-  String get navDetail => null;
+  String? get navDetail => null;
 
   bool get showInNav => true;
 
@@ -736,7 +739,7 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
     buf.writeln('<div class="four-fifths column markdown-body">');
     h1(title, classes: 'page-title');
     await asyncDiv(() async {
-      p(description);
+      p(description ?? 'Unknown Page');
       await generateContent(params);
     }, classes: 'markdown-body');
     buf.writeln('</div>');
@@ -764,8 +767,9 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     // Add server-specific pages. Ordering doesn't matter as the items are
     // sorted later.
     var server = socketServer.analysisServer;
-    pages.add(PluginsPage(this, server));
-
+    if (server != null) {
+      pages.add(PluginsPage(this, server));
+    }
     if (server is AnalysisServer) {
       pages.add(CompletionPage(this, server));
       pages.add(SubscriptionsPage(this, server));
@@ -804,14 +808,14 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
 }
 
 class ElementModelPage extends DiagnosticPageWithNav {
-  String _description;
+  String? _description;
 
   ElementModelPage(DiagnosticsSite site)
       : super(site, 'element', 'Element model',
             description: 'The element model for a file.');
 
   @override
-  String get description => _description ?? super.description;
+  String? get description => _description ?? super.description;
 
   @override
   bool get showInNav => false;
@@ -830,9 +834,13 @@ class ElementModelPage extends DiagnosticPageWithNav {
       return;
     }
     var result = await driver.getResult2(filePath);
+    CompilationUnitElement? compilationUnitElement;
     if (result is ResolvedUnitResult) {
+      compilationUnitElement = result.unit?.declaredElement;
+    }
+    if (compilationUnitElement != null) {
       var writer = ElementWriter(buf);
-      result.unit.declaredElement.accept(writer);
+      compilationUnitElement.accept(writer);
     } else {
       p(
           'An element model could not be produced for the file '
@@ -929,11 +937,13 @@ class FeedbackPage extends DiagnosticPage {
     ], (line) => buf.writeln(line));
 
     var ideInfo = <String>[];
-    if (server.options.clientId != null) {
-      ideInfo.add(server.options.clientId);
+    var clientId = server.options.clientId;
+    if (clientId != null) {
+      ideInfo.add(clientId);
     }
-    if (server.options.clientVersion != null) {
-      ideInfo.add(server.options.clientVersion);
+    var clientVersion = server.options.clientVersion;
+    if (clientVersion != null) {
+      ideInfo.add(clientVersion);
     }
     var ideText = ideInfo.map((str) => '<code>$str</code>').join(', ');
 
@@ -962,19 +972,21 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
 
     buf.writeln('<div class="column one-half">');
     h3('Client Capabilities');
-    if (server.clientCapabilities == null) {
+    var clientCapabilities = server.clientCapabilities;
+    if (clientCapabilities == null) {
       p('Client capabilities have not yet been received.');
     } else {
-      prettyJson(server.clientCapabilities.raw.toJson());
+      prettyJson(clientCapabilities.raw.toJson());
     }
     buf.writeln('</div>');
 
     buf.writeln('<div class="column one-half">');
     h3('Server Capabilities');
-    if (server.capabilities == null) {
+    var capabilities = server.capabilities;
+    if (capabilities == null) {
       p('Server capabilities have not yet been computed.');
     } else {
-      prettyJson(server.capabilities.toJson());
+      prettyJson(capabilities.toJson());
     }
     buf.writeln('</div>'); // half for server capabilities
     buf.writeln('</div>'); // columns
@@ -1108,7 +1120,7 @@ class PluginsPage extends DiagnosticPageWithNav {
       for (var plugin in analysisPlugins) {
         var id = plugin.pluginId;
         var data = plugin.data;
-        var responseTimes = PluginManager.pluginResponseTimes[plugin];
+        var responseTimes = PluginManager.pluginResponseTimes[plugin] ?? {};
 
         var components = path.split(id);
         var length = components.length;
@@ -1148,10 +1160,11 @@ class PluginsPage extends DiagnosticPageWithNav {
             });
           }
           p('Performance:');
-          var requestNames = responseTimes.keys.toList();
-          requestNames.sort();
-          for (var requestName in requestNames) {
-            var data = responseTimes[requestName];
+          var entries = responseTimes.entries.toList();
+          entries.sort((first, second) => first.key.compareTo(second.key));
+          for (var entry in entries) {
+            var requestName = entry.key;
+            var data = entry.value;
             // TODO(brianwilkerson) Consider displaying these times as a graph,
             //  similar to the one in AbstractCompletionPage.generateContent.
             var buffer = StringBuffer();
@@ -1199,7 +1212,8 @@ class StatusPage extends DiagnosticPageWithNav {
 
       buf.writeln('<div class="column one-half">');
       h3('Configuration Overrides');
-      buf.writeln('<pre><code>${sdkConfig.displayString}</code></pre><br>');
+      buf.writeln(
+          '<pre><code>${sdkConfig?.displayString ?? '<unknown overrides>'}</code></pre><br>');
       buf.writeln('</div>');
 
       buf.writeln('</div>');
@@ -1237,18 +1251,18 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
     h3('Analysis domain subscriptions');
     for (var service in AnalysisService.VALUES) {
       buf.writeln('${service.name}<br>');
-      ul(server.analysisServices[service] ?? [], (item) {
+      ul(server.analysisServices[service] ?? {}, (item) {
         buf.write('$item');
       });
     }
 
     // completion domain
-    CompletionDomainHandler handler = server.handlers.firstWhere(
-        (handler) => handler is CompletionDomainHandler,
-        orElse: () => null);
+    var handler = server.handlers
+            .firstWhereOrNull((handler) => handler is CompletionDomainHandler)
+        as CompletionDomainHandler?;
     h3('Completion domain subscriptions');
     ul(CompletionService.VALUES, (service) {
-      if (handler.subscriptions.contains(service)) {
+      if (handler?.subscriptions.contains(service) ?? false) {
         buf.write('$service (has subscriptions)');
       } else {
         buf.write('$service (no subscriptions)');
