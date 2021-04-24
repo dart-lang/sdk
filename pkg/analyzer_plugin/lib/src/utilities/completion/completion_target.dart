@@ -385,7 +385,7 @@ class CompletionTarget {
 
   /// Return `true` if the target is a double or int literal.
   bool isDoubleOrIntLiteral() {
-    var entity = this.entity;
+    final entity = this.entity;
     if (entity is Token) {
       var previousTokenType = containingNode.findPrevious(entity)?.type;
       return previousTokenType == TokenType.DOUBLE ||
