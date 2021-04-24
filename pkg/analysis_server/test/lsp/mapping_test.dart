@@ -72,6 +72,22 @@ class MappingTest extends AbstractLspAnalysisServerTest {
     expect(result, isNull);
   }
 
+  void test_relevanceToSortText() {
+    // The expected order is the same as from the highest relevance.
+    final expectedOrder =
+        [999999, 1000, 100, 1, 0].map(lsp.relevanceToSortText).toList();
+
+    // Test with inputs in both directions to ensure the results are actually
+    // unique and sorted.
+    final results1 =
+        [999999, 1000, 100, 1, 0].map(lsp.relevanceToSortText).toList()..sort();
+    final results2 =
+        [0, 1, 100, 1000, 999999].map(lsp.relevanceToSortText).toList()..sort();
+
+    expect(results1, equals(expectedOrder));
+    expect(results2, equals(expectedOrder));
+  }
+
   Future<void> test_tabStopsInSnippets_contains() async {
     var result = lsp.buildSnippetStringWithTabStops('a, b, c', [3, 1]);
     expect(result, equals(r'a, ${0:b}, c'));

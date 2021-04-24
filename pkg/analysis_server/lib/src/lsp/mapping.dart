@@ -364,12 +364,7 @@ lsp.CompletionItem declarationToCompletionItem(
         supportsDeprecatedFlag || supportsDeprecatedTag),
     deprecated:
         supportsDeprecatedFlag && declaration.isDeprecated ? true : null,
-    // Relevance is a number, highest being best. LSP does text sort so subtract
-    // from a large number so that a text sort will result in the correct order.
-    // 555 -> 999455
-    //  10 -> 999990
-    //   1 -> 999999
-    sortText: (1000000 - itemRelevance).toString(),
+    sortText: relevanceToSortText(itemRelevance),
     filterText: completion != label
         ? completion
         : null, // filterText uses label if not set
@@ -776,6 +771,22 @@ lsp.DiagnosticSeverity pluginToDiagnosticSeverity(
   }
 }
 
+/// Converts a numeric relevance to a sortable string.
+///
+/// The servers relevance value is a number with highest being best. LSP uses a
+/// a string sort on the `sortText` field. Subtracting the relevance from a large
+/// number will produce text that will sort correctly.
+///
+/// Relevance can be 0, so it's important to subtract from a number like 999
+/// and not 1000 or the 0 relevance items will sort at the top instead of the
+/// bottom.
+///
+/// 555 -> 9999999 - 555 -> 9 999 444
+///  10 -> 9999999 -  10 -> 9 999 989
+///   1 -> 9999999 -   1 -> 9 999 998
+///   0 -> 9999999 -   0 -> 9 999 999
+String relevanceToSortText(int relevance) => (9999999 - relevance).toString();
+
 lsp.Location? searchResultToLocation(
     server.SearchResult result, server.LineInfo? lineInfo) {
   final location = result.location;
@@ -957,12 +968,7 @@ lsp.CompletionItem toCompletionItem(
     deprecated: supportsCompletionDeprecatedFlag && suggestion.isDeprecated
         ? true
         : null,
-    // Relevance is a number, highest being best. LSP does text sort so subtract
-    // from a large number so that a text sort will result in the correct order.
-    // 555 -> 999455
-    //  10 -> 999990
-    //   1 -> 999999
-    sortText: (1000000 - suggestion.relevance).toString(),
+    sortText: relevanceToSortText(suggestion.relevance),
     filterText: filterText != label
         ? filterText
         : null, // filterText uses label if not set
