@@ -67,7 +67,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   void assertNoSuggestions({CompletionSuggestionKind? kind}) {
     if (kind == null) {
-      var suggestions = this.suggestions;
+      final suggestions = this.suggestions;
       if (suggestions != null && suggestions.isNotEmpty) {
         failedCompletion('Expected no suggestions', suggestions);
       }

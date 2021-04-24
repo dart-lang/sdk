@@ -52,13 +52,12 @@ class SourceFactoryImpl implements SourceFactory {
 
   @override
   DartSdk? get dartSdk {
-    List<UriResolver> resolvers = this.resolvers;
+    final resolvers = this.resolvers;
     int length = resolvers.length;
     for (int i = 0; i < length; i++) {
-      UriResolver resolver = resolvers[i];
+      var resolver = resolvers[i];
       if (resolver is DartUriResolver) {
-        DartUriResolver dartUriResolver = resolver;
-        return dartUriResolver.dartSdk;
+        return resolver.dartSdk;
       }
     }
     return null;

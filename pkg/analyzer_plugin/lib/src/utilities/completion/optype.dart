@@ -478,7 +478,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         return node.end;
       }
 
-      var entity = this.entity;
+      final entity = this.entity;
       if (entity != null) {
         if (entity.offset <= declarationStart()) {
           optype.completionLocation = 'CompilationUnit_declaration';
@@ -708,7 +708,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     optype.completionLocation = 'FormalParameterList_parameter';
-    var entity = this.entity;
+    final entity = this.entity;
     if (entity is Token) {
       var previous = node.findPrevious(entity);
       if (previous != null) {
@@ -744,7 +744,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitForParts(ForParts node) {
-    var entity = this.entity;
+    final entity = this.entity;
     if (_isEntityPrevTokenSynthetic()) {
       // Actual: for (var v i^)
       // Parsed: for (var i; i^;)
@@ -1412,7 +1412,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   bool _isEntityPrevTokenSynthetic() {
-    var entity = this.entity;
+    final entity = this.entity;
     if (entity is AstNode) {
       var previous = entity.findPrevious(entity.beginToken);
       if (previous?.isSynthetic ?? false) {

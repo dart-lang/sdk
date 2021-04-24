@@ -841,7 +841,7 @@ class ParameterMember extends VariableMember
 
   @override
   List<ParameterElement> get parameters {
-    DartType type = this.type;
+    final type = this.type;
     if (type is FunctionType) {
       return type.parameters;
     }

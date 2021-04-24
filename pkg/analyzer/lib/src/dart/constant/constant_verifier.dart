@@ -636,12 +636,12 @@ class _ConstLiteralVerifier {
 
       _validateExpressionFromDeferredLibrary(element);
 
-      var listElementType = this.listElementType;
+      final listElementType = this.listElementType;
       if (listElementType != null) {
         return _validateListExpression(listElementType, element, value);
       }
 
-      var setConfig = this.setConfig;
+      final setConfig = this.setConfig;
       if (setConfig != null) {
         return _validateSetExpression(setConfig, element, value);
       }
@@ -690,7 +690,7 @@ class _ConstLiteralVerifier {
         return _validateListOrSetSpread(element, value);
       }
 
-      var mapConfig = this.mapConfig;
+      final mapConfig = this.mapConfig;
       if (mapConfig != null) {
         return _validateMapSpread(mapConfig, element, value);
       }
@@ -800,7 +800,7 @@ class _ConstLiteralVerifier {
       }
     }
 
-    var setConfig = this.setConfig;
+    final setConfig = this.setConfig;
     if (setConfig != null) {
       for (var item in iterableValue) {
         Expression expression = element.expression;

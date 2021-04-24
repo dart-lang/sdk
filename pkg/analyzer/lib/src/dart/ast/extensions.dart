@@ -151,7 +151,7 @@ extension TypeAnnotationExtension on TypeAnnotation {
   /// be already resolved. Every such expression must have the type set,
   /// at least `dynamic`.
   DartType get typeOrThrow {
-    var type = this.type;
+    final type = this.type;
     if (type == null) {
       throw StateError('No type: $this');
     }

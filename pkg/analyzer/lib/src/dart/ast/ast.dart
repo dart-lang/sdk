@@ -751,14 +751,14 @@ abstract class AstNodeImpl implements AstNode {
 
   @override
   int get length {
-    Token beginToken = this.beginToken;
-    Token endToken = this.endToken;
+    final beginToken = this.beginToken;
+    final endToken = this.endToken;
     return endToken.offset + endToken.length - beginToken.offset;
   }
 
   @override
   int get offset {
-    Token beginToken = this.beginToken;
+    final beginToken = this.beginToken;
     return beginToken.offset;
   }
 
@@ -768,10 +768,10 @@ abstract class AstNodeImpl implements AstNode {
   @override
   AstNode get root {
     AstNode root = this;
-    var parent = this.parent;
-    while (parent != null) {
-      root = parent;
-      parent = root.parent;
+    var rootParent = parent;
+    while (rootParent != null) {
+      root = rootParent;
+      rootParent = root.parent;
     }
     return root;
   }
@@ -2067,7 +2067,7 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   @override
   int get length {
-    Token endToken = this.endToken;
+    final endToken = this.endToken;
     return endToken.offset + endToken.length;
   }
 
@@ -3517,7 +3517,7 @@ abstract class ExpressionImpl extends AstNodeImpl
 
   @override
   ParameterElement? get staticParameterElement {
-    var parent = this.parent;
+    final parent = this.parent;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
     } else if (parent is IndexExpressionImpl) {
@@ -4007,7 +4007,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    NodeListImpl<Annotation> metadata = this.metadata;
+    final metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
     } else if (requiredKeyword != null) {
@@ -4279,7 +4279,7 @@ abstract class FormalParameterImpl extends AstNodeImpl
 
   @override
   ParameterElement? get declaredElement {
-    var identifier = this.identifier;
+    final identifier = this.identifier;
     if (identifier == null) {
       return null;
     }
@@ -5128,7 +5128,7 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    NodeListImpl<Annotation> metadata = this.metadata;
+    final metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
     } else if (requiredKeyword != null) {
@@ -5896,7 +5896,7 @@ class IndexExpressionImpl extends ExpressionImpl
   ParameterElement? get _staticParameterElementForIndex {
     Element? element = staticElement;
 
-    var parent = this.parent;
+    final parent = this.parent;
     if (parent is CompoundAssignmentExpression) {
       var assignment = parent as CompoundAssignmentExpression;
       element = assignment.writeElement ?? assignment.readElement;
@@ -5918,7 +5918,7 @@ class IndexExpressionImpl extends ExpressionImpl
   @override
   bool inGetterContext() {
     // TODO(brianwilkerson) Convert this to a getter.
-    AstNode parent = this.parent!;
+    final parent = this.parent!;
     if (parent is AssignmentExpression) {
       AssignmentExpression assignment = parent;
       if (identical(assignment.leftHandSide, this) &&
@@ -5932,7 +5932,7 @@ class IndexExpressionImpl extends ExpressionImpl
   @override
   bool inSetterContext() {
     // TODO(brianwilkerson) Convert this to a getter.
-    AstNode parent = this.parent!;
+    final parent = this.parent!;
     if (parent is PrefixExpression) {
       return parent.operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
@@ -6101,7 +6101,7 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   /// the literal is the child of a negation operation. The literal value itself
   /// will always be positive.
   bool get immediatelyNegated {
-    AstNode parent = this.parent!; // Capture for type propagation.
+    final parent = this.parent!;
     return parent is PrefixExpression &&
         parent.operator.type == TokenType.MINUS;
   }
@@ -6651,7 +6651,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
     if (constKeyword != null) {
       return constKeyword!;
     }
-    var typeArguments = this.typeArguments;
+    final typeArguments = this.typeArguments;
     if (typeArguments != null) {
       return typeArguments.beginToken;
     }
@@ -7618,7 +7618,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
 
   @override
   ParameterKind get kind {
-    var parent = this.parent;
+    final parent = this.parent;
     if (parent is DefaultFormalParameterImpl) {
       return parent.kind;
     }
@@ -8561,7 +8561,7 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
     if (constKeyword != null) {
       return constKeyword!;
     }
-    var typeArguments = this.typeArguments;
+    final typeArguments = this.typeArguments;
     if (typeArguments != null) {
       return typeArguments.beginToken;
     }
@@ -8690,7 +8690,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
 
   @override
   Token get beginToken {
-    NodeListImpl<Annotation> metadata = this.metadata;
+    final metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
     } else if (requiredKeyword != null) {
@@ -8773,7 +8773,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
 
   @override
   bool get isQualified {
-    AstNode parent = this.parent!;
+    final parent = this.parent!;
     if (parent is PrefixedIdentifier) {
       return identical(parent.identifier, this);
     } else if (parent is PropertyAccess) {
@@ -10384,19 +10384,19 @@ class VariableDeclarationImpl extends DeclarationImpl
 
   @override
   bool get isConst {
-    var parent = this.parent;
+    final parent = this.parent;
     return parent is VariableDeclarationList && parent.isConst;
   }
 
   @override
   bool get isFinal {
-    var parent = this.parent;
+    final parent = this.parent;
     return parent is VariableDeclarationList && parent.isFinal;
   }
 
   @override
   bool get isLate {
-    var parent = this.parent;
+    final parent = this.parent;
     return parent is VariableDeclarationList && parent.isLate;
   }
 

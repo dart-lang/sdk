@@ -89,7 +89,7 @@ class NamedTypeBuilder extends TypeBuilder {
       return _type!;
     }
 
-    var element = this.element;
+    final element = this.element;
     if (element is ClassElement) {
       var parameters = element.typeParameters;
       var arguments = _buildArguments(parameters);

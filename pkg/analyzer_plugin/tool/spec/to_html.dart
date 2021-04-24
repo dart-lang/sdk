@@ -749,7 +749,7 @@ class TypeVisitor extends HierarchicalApiVisitor
     indent(() {
       for (var field in typeObject.fields) {
         write('"');
-        var fieldsToBold = this.fieldsToBold;
+        final fieldsToBold = this.fieldsToBold;
         if (fieldsToBold != null && fieldsToBold.contains(field.name)) {
           b(() {
             write(field.name);

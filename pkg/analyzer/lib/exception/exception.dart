@@ -21,7 +21,7 @@ class AnalysisException implements Exception {
     buffer.write('$runtimeType: ');
     buffer.writeln(message);
 
-    var cause = this.cause;
+    final cause = this.cause;
     if (cause != null) {
       buffer.write('Caused by ');
       cause._writeOn(buffer);
@@ -75,7 +75,7 @@ class CaughtException implements Exception {
     if (message != null) {
       buffer.writeln(message);
     }
-    var exception = this.exception;
+    final exception = this.exception;
     if (exception is AnalysisException) {
       buffer.writeln(exception.message);
       buffer.writeln(stackTrace.toString());

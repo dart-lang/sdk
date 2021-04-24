@@ -580,7 +580,7 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
     // However in summary code it doesn't look like the AST node with span is
     // available.
     String prefix;
-    var genericClass = this.genericClass;
+    final genericClass = this.genericClass;
     if (genericClass != null &&
         (genericClass.name == "List" || genericClass.name == "Map") &&
         genericClass.library.isDartCore == true) {

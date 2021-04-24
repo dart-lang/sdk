@@ -278,7 +278,7 @@ class BazelWorkspace extends Workspace
         return writableFile;
       }
       // READONLY
-      var readonly = this.readonly;
+      final readonly = this.readonly;
       if (readonly != null) {
         File file = provider.getFile(context.join(readonly, relative));
         if (file.exists) {
@@ -406,7 +406,7 @@ class BazelWorkspace extends Workspace
       }
     }
     // READONLY
-    var readonly = this.readonly;
+    final readonly = this.readonly;
     if (readonly != null) {
       if (context.isWithin(readonly, p)) {
         return context.relative(p, from: readonly);

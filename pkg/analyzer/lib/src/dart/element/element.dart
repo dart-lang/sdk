@@ -726,7 +726,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get isValidMixin {
-    var supertype = this.supertype;
+    final supertype = this.supertype;
     if (supertype != null && !supertype.isDartCoreObject) {
       return false;
     }
@@ -913,7 +913,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     // forwarded to this class.
     Iterable<ConstructorElement> constructorsToForward;
     if (!superElement.isMixinApplication) {
-      var library = this.library;
+      final library = this.library;
       constructorsToForward = superElement.constructors
           .where((constructor) => constructor.isAccessibleIn(library))
           .where((constructor) => !constructor.isFactory);
@@ -1370,7 +1370,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @Deprecated('Not useful for clients')
   @override
   bool get hasLoadLibraryFunction {
-    List<FunctionElement> functions = this.functions;
+    final functions = this.functions;
     for (int i = 0; i < functions.length; i++) {
       if (functions[i].name == FunctionElement.LOAD_LIBRARY_NAME) {
         return true;
@@ -1954,7 +1954,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   bool get isConst {
     if (linkedNode != null) {
-      var linkedNode = this.linkedNode as ConstructorDeclaration;
+      final linkedNode = this.linkedNode as ConstructorDeclaration;
       return linkedNode.constKeyword != null;
     }
     return hasModifier(Modifier.CONST);
@@ -1978,7 +1978,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   bool get isFactory {
     if (linkedNode != null) {
-      var linkedNode = this.linkedNode as ConstructorDeclaration;
+      final linkedNode = this.linkedNode as ConstructorDeclaration;
       return linkedNode.factoryKeyword != null;
     }
     return hasModifier(Modifier.FACTORY);
@@ -2388,7 +2388,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isDeprecated {
-    var element = this.element;
+    final element = this.element;
     if (element is ConstructorElement) {
       return element.library.isDartCore &&
           element.enclosingElement.name == _DEPRECATED_CLASS_NAME;
@@ -2497,7 +2497,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     required String libraryName,
     required String className,
   }) {
-    var element = this.element;
+    final element = this.element;
     return element is ConstructorElement &&
         element.enclosingElement.name == className &&
         element.library.name == libraryName;
@@ -2521,7 +2521,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
     required String libraryName,
     required String name,
   }) {
-    var element = this.element;
+    final element = this.element;
     return element is PropertyAccessorElement &&
         element.name == name &&
         element.library.name == libraryName;
@@ -2639,7 +2639,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasAlwaysThrows {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isAlwaysThrows) {
@@ -2651,7 +2651,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasDeprecated {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isDeprecated) {
@@ -2663,7 +2663,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasDoNotStore {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isDoNotStore) {
@@ -2675,7 +2675,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasFactory {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isFactory) {
@@ -2694,7 +2694,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasInternal {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isInternal) {
@@ -2706,7 +2706,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasIsTest {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isIsTest) {
@@ -2718,7 +2718,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasIsTestGroup {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isIsTestGroup) {
@@ -2730,7 +2730,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasJS {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isJS) {
@@ -2742,7 +2742,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasLiteral {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isLiteral) {
@@ -2754,7 +2754,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasMustCallSuper {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isMustCallSuper) {
@@ -2766,7 +2766,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasNonVirtual {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isNonVirtual) {
@@ -2778,7 +2778,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasOptionalTypeArgs {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isOptionalTypeArgs) {
@@ -2790,7 +2790,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasOverride {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isOverride) {
@@ -2802,7 +2802,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasProtected {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isProtected) {
@@ -2814,7 +2814,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasRequired {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isRequired) {
@@ -2826,7 +2826,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasSealed {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isSealed) {
@@ -2838,7 +2838,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasVisibleForTemplate {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isVisibleForTemplate) {
@@ -2850,7 +2850,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasVisibleForTesting {
-    var metadata = this.metadata;
+    final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isVisibleForTesting) {
@@ -2870,7 +2870,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get isPrivate {
-    var name = this.name;
+    final name = this.name;
     if (name == null) {
       return true;
     }
@@ -3010,7 +3010,7 @@ abstract class ElementImpl implements Element {
   @override
   String getExtendedDisplayName(String? shortName) {
     shortName ??= displayName;
-    var source = this.source;
+    final source = this.source;
     return "$shortName (${source?.fullName})";
   }
 
@@ -3903,7 +3903,7 @@ class ExtensionElementImpl extends _ExistingElementImpl
     if (_extendedType != null) return _extendedType!;
 
     if (linkedNode != null) {
-      var linkedNode = this.linkedNode as ExtensionDeclaration;
+      final linkedNode = this.linkedNode as ExtensionDeclaration;
       linkedContext!.applyResolution(linkedNode);
       return _extendedType = linkedNode.extendedType.typeOrThrow;
     }
@@ -4690,7 +4690,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   @override
   bool get isDeferred {
     if (linkedNode != null) {
-      var linkedNode = this.linkedNode as ImportDirective;
+      final linkedNode = this.linkedNode as ImportDirective;
       return linkedNode.deferredKeyword != null;
     }
     return hasModifier(Modifier.DEFERRED);
@@ -4724,7 +4724,7 @@ class ImportElementImpl extends UriReferencedElementImpl
     if (_prefix != null) return _prefix;
 
     if (linkedNode != null) {
-      var linkedNode = this.linkedNode as ImportDirective;
+      final linkedNode = this.linkedNode as ImportDirective;
       var prefix = linkedNode.prefix;
       if (prefix != null) {
         var name = prefix.name;
@@ -5550,7 +5550,7 @@ class MixinElementImpl extends ClassElementImpl {
       return _superclassConstraints;
     }
 
-    var linkedNode = this.linkedNode;
+    final linkedNode = this.linkedNode;
     if (linkedNode is MixinDeclaration) {
       linkedContext!.applyResolution(linkedNode);
       List<InterfaceType>? constraints;
@@ -6076,7 +6076,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   String? get defaultValueCode {
-    var linkedNode = this.linkedNode;
+    final linkedNode = this.linkedNode;
     if (linkedNode is DefaultFormalParameter) {
       return linkedNode.defaultValue?.toSource();
     }
@@ -6129,7 +6129,7 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   bool get isFinal {
     if (linkedNode != null) {
-      var linkedNode = this.linkedNode as FormalParameter;
+      final linkedNode = this.linkedNode as FormalParameter;
       return linkedNode.isFinal;
     }
     return super.isFinal;
@@ -6167,7 +6167,7 @@ class ParameterElementImpl extends VariableElementImpl
     if (_parameterKind != null) return _parameterKind!;
 
     if (linkedNode != null) {
-      var linkedNode = this.linkedNode as FormalParameterImpl;
+      final linkedNode = this.linkedNode as FormalParameterImpl;
       return linkedNode.kind;
     }
 
@@ -7044,7 +7044,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
     _ensureAliasedElement();
 
-    var linkedNode = this.linkedNode;
+    final linkedNode = this.linkedNode;
     if (linkedNode is GenericTypeAlias) {
       var typeNode = linkedNode.type;
       if (isNonFunctionTypeAliasesEnabled) {
@@ -7198,7 +7198,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     if (_isAliasedElementReady) return;
     _isAliasedElementReady = true;
 
-    var linkedNode = this.linkedNode;
+    final linkedNode = this.linkedNode;
     if (linkedNode != null) {
       if (linkedNode is GenericTypeAlias) {
         var type = linkedNode.type;
@@ -7287,7 +7287,7 @@ class TypeParameterElementImpl extends ElementImpl
   DartType? get boundInternal {
     if (_bound != null) return _bound;
 
-    var linkedNode = this.linkedNode;
+    final linkedNode = this.linkedNode;
     if (linkedNode is TypeParameter) {
       return _bound = linkedNode.bound?.type;
     }

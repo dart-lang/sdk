@@ -1217,10 +1217,10 @@ class _ElementWriter {
   }
 
   void _withIndent(void Function() f) {
-    var indent = this.indent;
-    this.indent = '$indent  ';
+    var savedIndent = indent;
+    indent = '$savedIndent  ';
     f();
-    this.indent = indent;
+    indent = savedIndent;
   }
 
   void _writelnTypeWithIndent(String name, DartType? type) {
