@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert' show jsonDecode, jsonEncode;
 import 'dart:io';
@@ -159,7 +157,7 @@ class LspAnalysisServerBenchmarkTest extends AbstractBenchmarkTest
 
   @override
   Future<void> complete(String filePath, int offset) {
-    final contents = _fileContents[filePath];
+    final contents = _fileContents[filePath]!;
     final position = _test.positionFromOffset(offset, contents);
     return _test.getCompletion(Uri.file(filePath), position);
   }
@@ -221,7 +219,7 @@ class LspAnalysisServerMemoryUsageTest
   Map<String, List<Diagnostic>> currentAnalysisErrors = {};
 
   @override
-  void expect(actual, matcher, {String reason}) =>
+  void expect(actual, matcher, {String? reason}) =>
       outOfTestExpect(actual, matcher, reason: reason);
 
   /// The server is automatically started before every test.
@@ -247,7 +245,7 @@ class LspAnalysisServerMemoryUsageTest
 }
 
 mixin ServerMemoryUsageMixin {
-  int _vmServicePort;
+  late int _vmServicePort;
 
   Future<int> getMemoryUsage() async {
     var uri = Uri.parse('ws://127.0.0.1:$_vmServicePort/ws');
@@ -262,8 +260,8 @@ mixin ServerMemoryUsageMixin {
           await service.call('getIsolate', {'isolateId': isolateRef['id']});
 
       Map _heaps = isolate['_heaps'];
-      total += _heaps['new']['used'] + _heaps['new']['external'];
-      total += _heaps['old']['used'] + _heaps['old']['external'];
+      total += _heaps['new']['used'] + _heaps['new']['external'] as int;
+      total += _heaps['old']['used'] + _heaps['old']['external'] as int;
     }
 
     service.dispose();
@@ -292,7 +290,7 @@ class ServiceProtocol {
       'method': method,
       'args': args
     };
-    if (args != null) m['params'] = args;
+    m['params'] = args;
     var message = jsonEncode(m);
     socket.add(message);
     return completer.future;

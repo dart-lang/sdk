@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -14,7 +12,7 @@ import '../benchmarks.dart';
 Future<int> _runProcess(
   String command,
   List<String> args, {
-  String cwd,
+  String? cwd,
   bool failOnError = true,
 }) async {
   print('\n$command ${args.join(' ')}');
@@ -43,7 +41,7 @@ Future<int> _runProcess(
 /// benchmarks:
 ///   - analysis-flutter-analyze
 class FlutterAnalyzeBenchmark extends Benchmark {
-  Directory flutterDir;
+  late Directory flutterDir;
 
   FlutterAnalyzeBenchmark()
       : super(
