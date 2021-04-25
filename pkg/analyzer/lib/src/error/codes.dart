@@ -1188,6 +1188,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Common fixes
   //
   // Choose a different name for the extension.
+  // TODO(brianwilkerson) When the documentation for
+  //  'BUILT_IN_IDENTIFIER_IN_DECLARATION' is committed it should replace the
+  //  text above and the name of this code should be changed to match it. We
+  //  also need to add a forward for this code at the same time.
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME =
       CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME',
           "The built-in identifier '{0}' can't be used as an extension name.",
@@ -1203,9 +1207,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the built-in identifier that is being used
    */
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_PREFIX_NAME =
-      CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_PREFIX_NAME',
+      CompileTimeErrorCode('BUILT_IN_IDENTIFIER_IN_DECLARATION',
           "The built-in identifier '{0}' can't be used as a prefix name.",
-          correction: "Try choosing a different name for the prefix.");
+          correction: "Try choosing a different name for the prefix.",
+          uniqueName: 'BUILT_IN_IDENTIFIER_AS_PREFIX_NAME');
 
   /**
    * Parameters:
@@ -1247,9 +1252,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the built-in identifier that is being used
    */
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPE_NAME =
-      CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_TYPE_NAME',
+      CompileTimeErrorCode('BUILT_IN_IDENTIFIER_IN_DECLARATION',
           "The built-in identifier '{0}' can't be used as a type name.",
-          correction: "Try choosing a different name for the type.");
+          correction: "Try choosing a different name for the type.",
+          uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_NAME');
 
   /**
    * 16.33 Identifier Reference: It is a compile-time error if a built-in
@@ -1261,10 +1267,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME =
       CompileTimeErrorCode(
-          'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME',
+          'BUILT_IN_IDENTIFIER_IN_DECLARATION',
           "The built-in identifier '{0}' can't be used as a type parameter "
               "name.",
-          correction: "Try choosing a different name for the type parameter.");
+          correction: "Try choosing a different name for the type parameter.",
+          uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME');
 
   /**
    * 16.33 Identifier Reference: It is a compile-time error if a built-in
@@ -1275,9 +1282,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the built-in identifier that is being used
    */
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME =
-      CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME',
+      CompileTimeErrorCode('BUILT_IN_IDENTIFIER_IN_DECLARATION',
           "The built-in identifier '{0}' can't be used as a typedef name.",
-          correction: "Try choosing a different name for the typedef.");
+          correction: "Try choosing a different name for the typedef.",
+          uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME');
 
   /**
    * No parameters.
