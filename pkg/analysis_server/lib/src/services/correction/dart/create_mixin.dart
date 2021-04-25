@@ -24,7 +24,7 @@ class CreateMixin extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     Element? prefixElement;
     SimpleIdentifier nameNode;
-    var node = this.node;
+    final node = this.node;
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       var grandParent = parent?.parent;

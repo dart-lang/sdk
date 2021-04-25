@@ -199,7 +199,8 @@ class DartCompletionManager {
   }
 
   void _addIncludedSuggestionRelevanceTags(DartCompletionRequestImpl request) {
-    var includedSuggestionRelevanceTags = this.includedSuggestionRelevanceTags!;
+    final includedSuggestionRelevanceTags =
+        this.includedSuggestionRelevanceTags!;
     var location = request.opType.completionLocation;
     if (location != null) {
       var locationTable = elementKindRelevance[location];

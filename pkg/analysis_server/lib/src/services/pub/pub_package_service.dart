@@ -168,15 +168,15 @@ class PubPackageService {
   /// Begin a request to pre-load the package name list.
   void beginPackageNamePreload() {
     // If first time, try to read from disk.
-    var packageCache = this.packageCache;
-    if (packageCache == null) {
-      packageCache ??= readDiskCache() ?? PackageDetailsCache.empty();
-      this.packageCache = packageCache;
+    var cache = packageCache;
+    if (cache == null) {
+      cache ??= readDiskCache() ?? PackageDetailsCache.empty();
+      packageCache = cache;
     }
 
     // If there is no queued request, initialize one when the current cache expires.
     _nextPackageNameListRequestTimer ??=
-        Timer(packageCache.cacheTimeRemaining, _fetchFromServer);
+        Timer(cache.cacheTimeRemaining, _fetchFromServer);
   }
 
   /// Gets the cached package details for package [packageName].

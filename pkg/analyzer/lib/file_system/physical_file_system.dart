@@ -23,7 +23,7 @@ const String _SERVER_DIR = ".dartServer";
 String? _getStandardStateLocation() {
   final Map<String, String> env = io.Platform.environment;
   if (env.containsKey('ANALYZER_STATE_LOCATION_OVERRIDE')) {
-    return env['ANALYZER_STATE_LOCATION_OVERRIDE']!;
+    return env['ANALYZER_STATE_LOCATION_OVERRIDE'];
   }
 
   final home = io.Platform.isWindows ? env['LOCALAPPDATA'] : env['HOME'];

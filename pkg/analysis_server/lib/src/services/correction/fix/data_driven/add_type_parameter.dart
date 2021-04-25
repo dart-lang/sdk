@@ -73,7 +73,7 @@ class AddTypeParameter extends Change<_Data> {
       return _TypeArgumentData(typeArguments, parent.argumentList.offset);
     } else if (parent is MethodDeclaration) {
       // invalid_override
-      var extendedType = this.extendedType;
+      final extendedType = this.extendedType;
       if (extendedType != null && !extendedType.validate(context)) {
         return null;
       }
@@ -130,7 +130,7 @@ class AddTypeParameter extends Change<_Data> {
 
     void writeParameter(DartEditBuilder builder) {
       builder.write(name);
-      var extendedType = this.extendedType;
+      final extendedType = this.extendedType;
       if (extendedType != null) {
         builder.write(' extends ');
         extendedType.writeOn(builder, context);

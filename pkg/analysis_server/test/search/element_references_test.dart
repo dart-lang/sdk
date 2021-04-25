@@ -799,7 +799,7 @@ main() {
 }
 ''');
     await findElementReferences('ppp;', false);
-    var searchElement = this.searchElement!;
+    final searchElement = this.searchElement!;
     expect(searchElement.kind, ElementKind.PREFIX);
     expect(searchElement.name, 'ppp');
     expect(searchElement.location!.startLine, 1);

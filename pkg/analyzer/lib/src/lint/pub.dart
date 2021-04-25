@@ -303,7 +303,7 @@ class _PSNode implements PSNode {
   @override
   Source get source => (resourceProvider ?? PhysicalResourceProvider.INSTANCE)
       .getFile(span.sourceUrl!.toFilePath())
-      .createSource(span.sourceUrl!);
+      .createSource(span.sourceUrl);
 
   @override
   String toString() => '$text';

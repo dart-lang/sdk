@@ -95,7 +95,7 @@ class CreateMethod extends CorrectionProducer {
 
     CompilationUnitMember? targetNode;
     var target = invocation.realTarget;
-    var utils = this.utils;
+    var utilsForTargetNode = utils;
     if (target is ExtensionOverride) {
       targetElement = target.staticElement;
       if (targetElement is ExtensionElement) {
@@ -152,12 +152,13 @@ class CreateMethod extends CorrectionProducer {
       if (targetResolveResult is! ResolvedUnitResult) {
         return;
       }
-      utils = CorrectionUtils(targetResolveResult);
+      utilsForTargetNode = CorrectionUtils(targetResolveResult);
     }
     if (targetElement == null || targetNode == null) {
       return;
     }
-    var targetLocation = utils.prepareNewMethodLocation(targetNode);
+    var targetLocation =
+        utilsForTargetNode.prepareNewMethodLocation(targetNode);
     if (targetLocation == null) {
       return;
     }

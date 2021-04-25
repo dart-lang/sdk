@@ -561,7 +561,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitEnumDeclaration(EnumDeclaration node) {
     var outerEnum = _enclosingEnum;
     try {
-      _enclosingEnum = node.declaredElement!;
+      _enclosingEnum = node.declaredElement;
       _duplicateDefinitionVerifier.checkEnum(node);
       super.visitEnumDeclaration(node);
     } finally {

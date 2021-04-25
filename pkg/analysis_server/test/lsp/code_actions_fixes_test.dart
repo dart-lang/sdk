@@ -123,7 +123,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
         CodeActionKind('quickfix.create.file'), "Create file 'newfile.dart'")!;
 
     final edit = fixAction.edit!;
-    expect(edit.documentChanges!, isNotNull);
+    expect(edit.documentChanges, isNotNull);
 
     // Ensure applying the changes creates the file and with the expected content.
     final contents = {

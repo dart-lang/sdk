@@ -18,12 +18,12 @@ class ReplaceNewWithConst extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    AstNode? node = this.node;
-    if (node is ConstructorName) {
-      node = node.parent;
+    AstNode? targetNode = node;
+    if (targetNode is ConstructorName) {
+      targetNode = targetNode.parent;
     }
-    if (node is InstanceCreationExpression) {
-      final keyword = node.keyword;
+    if (targetNode is InstanceCreationExpression) {
+      final keyword = targetNode.keyword;
       if (keyword != null) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleReplacement(range.token(keyword), 'const');

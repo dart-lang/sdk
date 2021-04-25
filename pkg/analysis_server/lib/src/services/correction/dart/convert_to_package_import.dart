@@ -23,12 +23,12 @@ class ConvertToPackageImport extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is StringLiteral) {
-      node = node.parent!;
+    var targetNode = node;
+    if (targetNode is StringLiteral) {
+      targetNode = targetNode.parent!;
     }
-    if (node is ImportDirective) {
-      var importDirective = node;
+    if (targetNode is ImportDirective) {
+      var importDirective = targetNode;
       var uriSource = importDirective.uriSource;
 
       // Ignore if invalid URI.

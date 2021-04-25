@@ -436,7 +436,7 @@ class CompletionMetrics {
   /// Perform any operations required in order to revert computing the kind of
   /// completions represented by this metrics collector.
   void disable() {
-    var disableFunction = this.disableFunction;
+    final disableFunction = this.disableFunction;
     if (disableFunction != null) {
       disableFunction();
     }
@@ -445,7 +445,7 @@ class CompletionMetrics {
   /// Perform any initialization required in order to compute the kind of
   /// completions represented by this metrics collector.
   void enable() {
-    var enableFunction = this.enableFunction;
+    final enableFunction = this.enableFunction;
     if (enableFunction != null) {
       enableFunction();
     }

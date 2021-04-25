@@ -583,7 +583,7 @@ class _ElementWriter {
       writeNode(e.name);
       if (e.constructorName != null) {
         buffer.write('.');
-        writeNode(e.constructorName!);
+        writeNode(e.constructorName);
       }
       if (e.arguments != null) {
         writeList('(', ')', e.arguments!.arguments, ', ', writeNode,
@@ -598,7 +598,7 @@ class _ElementWriter {
       writeNode(e.condition);
       if (e.message != null) {
         buffer.write(', ');
-        writeNode(e.message!);
+        writeNode(e.message);
       }
       buffer.write(')');
     } else if (e is BinaryExpression) {
@@ -623,13 +623,13 @@ class _ElementWriter {
       writeNode(e.type);
       if (e.name != null) {
         buffer.write('.');
-        writeNode(e.name!);
+        writeNode(e.name);
       }
     } else if (e is DoubleLiteral) {
       buffer.write(e.value);
     } else if (e is GenericFunctionType) {
       if (e.returnType != null) {
-        writeNode(e.returnType!);
+        writeNode(e.returnType);
         buffer.write(' ');
       }
       buffer.write('Function');

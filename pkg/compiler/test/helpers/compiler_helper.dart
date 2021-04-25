@@ -44,7 +44,6 @@ Future<String> compile(String code,
     bool disableInlining: true,
     bool disableTypeInference: true,
     bool omitImplicitChecks: true,
-    bool enableTripleShift: false, // TODO(30890): remove.
     bool enableVariance: false,
     void check(String generatedEntry),
     bool returnAll: false,
@@ -65,9 +64,6 @@ Future<String> compile(String code,
   }
   if (disableInlining) {
     options.add(Flags.disableInlining);
-  }
-  if (enableTripleShift) {
-    options.add('${Flags.enableLanguageExperiments}=triple-shift');
   }
   if (enableVariance) {
     options.add('${Flags.enableLanguageExperiments}=variance');

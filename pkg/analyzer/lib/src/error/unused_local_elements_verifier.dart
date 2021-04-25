@@ -85,7 +85,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
-      usedElements.addElement(node.declaredElement!);
+      usedElements.addElement(node.declaredElement);
     }
     super.visitFunctionExpression(node);
   }

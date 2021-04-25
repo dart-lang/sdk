@@ -62,7 +62,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as ClassElementImpl;
-    reference = element.reference!;
+    reference = element.reference;
     element.accessors; // create elements
     element.constructors; // create elements
     element.methods; // create elements
@@ -91,7 +91,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as ClassElementImpl;
-    reference = element.reference!;
+    reference = element.reference;
 
     _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
@@ -119,7 +119,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as ConstructorElementImpl;
-    reference = element.reference!;
+    reference = element.reference;
     element.parameters; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
@@ -153,7 +153,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as ExtensionElementImpl;
-    reference = element.reference!;
+    reference = element.reference;
 
     _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(scope, element.typeParameters);
@@ -208,7 +208,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as ExecutableElementImpl;
-    reference = element.reference!;
+    reference = element.reference;
     element.parameters; // create elements
 
     _createTypeParameterElements(
@@ -238,7 +238,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as TypeAliasElementImpl;
-    reference = element.reference!;
+    reference = element.reference;
 
     _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(outerScope, element.typeParameters);
@@ -247,7 +247,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.typeParameters?.accept(this);
 
     var function = element.aliasedElement as GenericFunctionTypeElementImpl;
-    reference = function.reference!;
+    reference = function.reference;
     function.parameters; // create elements
     node.parameters.accept(this);
 
@@ -291,7 +291,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var element = GenericFunctionTypeElementImpl.forLinkedNode(
       unitReference.element as CompilationUnitElementImpl,
-      reference!,
+      reference,
       node,
     );
     element.parameters; // create elements
@@ -318,7 +318,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as TypeAliasElementImpl;
-    reference = element.reference!;
+    reference = element.reference;
 
     _createTypeParameterElements(element, node.typeParameters);
     scope = TypeParameterScope(outerScope, element.typeParameters);
@@ -349,7 +349,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as ExecutableElementImpl;
-    reference = element.reference!;
+    reference = element.reference;
     element.parameters; // create elements
 
     _createTypeParameterElements(element, node.typeParameters);
@@ -372,7 +372,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = reference;
 
     var element = node.declaredElement as MixinElementImpl;
-    reference = element.reference!;
+    reference = element.reference;
     element.accessors; // create elements
     element.constructors; // create elements
     element.methods; // create elements

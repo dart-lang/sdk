@@ -15,12 +15,12 @@ class ConvertToMultilineString extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is InterpolationElement) {
-      node = node.parent!;
+    var targetNode = node;
+    if (targetNode is InterpolationElement) {
+      targetNode = targetNode.parent!;
     }
-    if (node is SingleStringLiteral) {
-      var literal = node;
+    if (targetNode is SingleStringLiteral) {
+      var literal = targetNode;
       if (!literal.isSynthetic && !literal.isMultiline) {
         await builder.addDartFileEdit(file, (builder) {
           var newQuote = literal.isSingleQuoted ? "'''" : '"""';

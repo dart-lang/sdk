@@ -817,7 +817,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       reportLocatedMessage(reporter, message, context);
     },
         environment: _environment.toMap(),
-        enableTripleShift: options.enableTripleShift,
         evaluationMode: options.useLegacySubtyping
             ? ir.EvaluationMode.weak
             : ir.EvaluationMode.strong);

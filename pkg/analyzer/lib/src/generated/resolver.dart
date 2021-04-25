@@ -1221,7 +1221,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var outerFunction = _enclosingFunction;
-    _enclosingFunction = node.declaredElement!;
+    _enclosingFunction = node.declaredElement;
 
     flowAnalysis!.topLevelDeclaration_enter(node, node.parameters, node.body);
     flowAnalysis!.executableDeclaration_enter(node, node.parameters, false);
@@ -1510,7 +1510,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     var outerFunction = _enclosingFunction;
-    _enclosingFunction = node.declaredElement!;
+    _enclosingFunction = node.declaredElement;
 
     if (node.parent is FunctionDeclaration) {
       _functionExpressionResolver.resolve(node);
@@ -1711,7 +1711,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     var outerFunction = _enclosingFunction;
-    _enclosingFunction = node.declaredElement!;
+    _enclosingFunction = node.declaredElement;
 
     flowAnalysis!.topLevelDeclaration_enter(node, node.parameters, node.body);
     flowAnalysis!.executableDeclaration_enter(node, node.parameters, false);

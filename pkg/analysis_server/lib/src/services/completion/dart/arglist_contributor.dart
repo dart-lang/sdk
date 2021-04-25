@@ -133,7 +133,7 @@ class ArgListContributor extends DartCompletionContributor {
 
   /// Return the number of arguments in the argument list.
   int _argCount() {
-    var argumentList = this.argumentList;
+    final argumentList = this.argumentList;
     if (argumentList != null) {
       var paren = argumentList.rightParenthesis;
       if (request.target.entity == paren) {
@@ -159,7 +159,7 @@ class ArgListContributor extends DartCompletionContributor {
   /// Return `true` if the caret is preceding an arg where a name could be added
   /// (turning a positional arg into a named arg).
   bool _isAddingLabelToPositional() {
-    var argumentList = this.argumentList;
+    final argumentList = this.argumentList;
     if (argumentList != null) {
       var entity = request.target.entity;
       if (entity is! Expression) {
@@ -194,7 +194,7 @@ class ArgListContributor extends DartCompletionContributor {
   /// Return `true` if the completion target is at the end of the list of
   /// arguments.
   bool _isAppendingToArgList() {
-    var argumentList = this.argumentList;
+    final argumentList = this.argumentList;
     if (argumentList != null) {
       var entity = request.target.entity;
       if (entity == argumentList.rightParenthesis) {
@@ -275,7 +275,7 @@ class ArgListContributor extends DartCompletionContributor {
   /// [_isInsertingToArgListWithNoSynthetic] have been called and both returned
   /// `false`.
   bool _isInsertingToArgListWithSynthetic() {
-    var argumentList = this.argumentList;
+    final argumentList = this.argumentList;
     if (argumentList != null) {
       var entity = request.target.entity;
       if (entity is SimpleIdentifier) {
@@ -295,7 +295,7 @@ class ArgListContributor extends DartCompletionContributor {
   /// Return a list containing the currently specified named arguments.
   List<String> _namedArgs() {
     var namedArgs = <String>[];
-    var argumentList = this.argumentList;
+    final argumentList = this.argumentList;
     if (argumentList != null) {
       for (var arg in argumentList.arguments) {
         if (arg is NamedExpression) {

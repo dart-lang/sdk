@@ -1227,7 +1227,7 @@ class _RefactoringManager {
     initStatus = await refactoring.checkInitialConditions();
     _checkForReset_afterInitialConditions();
     if (refactoring is ExtractLocalRefactoring) {
-      var feedback = this.feedback as ExtractLocalVariableFeedback;
+      final feedback = this.feedback as ExtractLocalVariableFeedback;
       feedback.names = refactoring.names;
       feedback.offsets = refactoring.offsets;
       feedback.lengths = refactoring.lengths;
@@ -1236,7 +1236,7 @@ class _RefactoringManager {
       feedback.coveringExpressionLengths =
           refactoring.coveringExpressionLengths;
     } else if (refactoring is ExtractMethodRefactoring) {
-      var feedback = this.feedback as ExtractMethodFeedback;
+      final feedback = this.feedback as ExtractMethodFeedback;
       feedback.canCreateGetter = refactoring.canCreateGetter;
       feedback.returnType = refactoring.returnType;
       feedback.names = refactoring.names;
@@ -1255,7 +1255,7 @@ class _RefactoringManager {
             className: refactoring.className);
       }
     } else if (refactoring is RenameRefactoring) {
-      var feedback = this.feedback as RenameFeedback;
+      final feedback = this.feedback as RenameFeedback;
       feedback.elementKindName = refactoring.elementKindName;
       feedback.oldName = refactoring.oldName;
     }

@@ -901,7 +901,7 @@ class PluginSession {
   /// Send a request, based on the given [parameters]. Return a future that will
   /// complete when a response is received.
   Future<Response> sendRequest(RequestParams parameters) {
-    var channel = this.channel;
+    final channel = this.channel;
     if (channel == null) {
       throw StateError('Cannot send a request to a plugin that has stopped.');
     }

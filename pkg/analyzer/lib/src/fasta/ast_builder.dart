@@ -467,10 +467,10 @@ class AstBuilder extends StackListener {
         target = target.function;
       } else if (target is MethodInvocation) {
         argumentList = target.argumentList;
-        target = target.target!;
+        target = target.target;
       } else if (target is PropertyAccess) {
         argumentList = null;
-        target = target.target!;
+        target = target.target;
       } else {
         break;
       }

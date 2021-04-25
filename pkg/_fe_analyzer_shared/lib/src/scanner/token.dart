@@ -1281,10 +1281,12 @@ class TokenType {
       'AMPERSAND_AMPERSAND_EQ',
       ASSIGNMENT_PRECEDENCE,
       AMPERSAND_AMPERSAND_EQ_TOKEN,
+      binaryOperatorOfCompoundAssignment: TokenType.AMPERSAND_AMPERSAND,
       isOperator: true);
 
   static const TokenType AMPERSAND_EQ = const TokenType(
       '&=', 'AMPERSAND_EQ', ASSIGNMENT_PRECEDENCE, AMPERSAND_EQ_TOKEN,
+      binaryOperatorOfCompoundAssignment: TokenType.AMPERSAND,
       isOperator: true);
 
   static const TokenType AT =
@@ -1312,11 +1314,11 @@ class TokenType {
   // This is not yet part of the language and not supported by fasta
   static const TokenType BAR_BAR_EQ = const TokenType(
       '||=', 'BAR_BAR_EQ', ASSIGNMENT_PRECEDENCE, BAR_BAR_EQ_TOKEN,
-      isOperator: true);
+      binaryOperatorOfCompoundAssignment: TokenType.BAR_BAR, isOperator: true);
 
   static const TokenType BAR_EQ = const TokenType(
       '|=', 'BAR_EQ', ASSIGNMENT_PRECEDENCE, BAR_EQ_TOKEN,
-      isOperator: true);
+      binaryOperatorOfCompoundAssignment: TokenType.BAR, isOperator: true);
 
   static const TokenType COLON =
       const TokenType(':', 'COLON', NO_PRECEDENCE, COLON_TOKEN);
@@ -1330,7 +1332,7 @@ class TokenType {
 
   static const TokenType CARET_EQ = const TokenType(
       '^=', 'CARET_EQ', ASSIGNMENT_PRECEDENCE, CARET_EQ_TOKEN,
-      isOperator: true);
+      binaryOperatorOfCompoundAssignment: TokenType.CARET, isOperator: true);
 
   static const TokenType CLOSE_CURLY_BRACKET = const TokenType(
       '}', 'CLOSE_CURLY_BRACKET', NO_PRECEDENCE, CLOSE_CURLY_BRACKET_TOKEN);
@@ -1372,7 +1374,7 @@ class TokenType {
 
   static const TokenType GT_GT_EQ = const TokenType(
       '>>=', 'GT_GT_EQ', ASSIGNMENT_PRECEDENCE, GT_GT_EQ_TOKEN,
-      isOperator: true);
+      binaryOperatorOfCompoundAssignment: TokenType.GT_GT, isOperator: true);
 
   static const TokenType GT_GT_GT = const TokenType(
       '>>>', 'GT_GT_GT', SHIFT_PRECEDENCE, GT_GT_GT_TOKEN,
@@ -1380,7 +1382,7 @@ class TokenType {
 
   static const TokenType GT_GT_GT_EQ = const TokenType(
       '>>>=', 'GT_GT_GT_EQ', ASSIGNMENT_PRECEDENCE, GT_GT_GT_EQ_TOKEN,
-      isOperator: true);
+      binaryOperatorOfCompoundAssignment: TokenType.GT_GT_GT, isOperator: true);
 
   static const TokenType HASH =
       const TokenType('#', 'HASH', NO_PRECEDENCE, HASH_TOKEN);
@@ -1407,7 +1409,7 @@ class TokenType {
 
   static const TokenType LT_LT_EQ = const TokenType(
       '<<=', 'LT_LT_EQ', ASSIGNMENT_PRECEDENCE, LT_LT_EQ_TOKEN,
-      isOperator: true);
+      binaryOperatorOfCompoundAssignment: TokenType.LT_LT, isOperator: true);
 
   static const TokenType MINUS = const TokenType(
       '-', 'MINUS', ADDITIVE_PRECEDENCE, MINUS_TOKEN,
@@ -1415,7 +1417,7 @@ class TokenType {
 
   static const TokenType MINUS_EQ = const TokenType(
       '-=', 'MINUS_EQ', ASSIGNMENT_PRECEDENCE, MINUS_EQ_TOKEN,
-      isOperator: true);
+      binaryOperatorOfCompoundAssignment: TokenType.MINUS, isOperator: true);
 
   static const TokenType MINUS_MINUS = const TokenType(
       '--', 'MINUS_MINUS', POSTFIX_PRECEDENCE, MINUS_MINUS_TOKEN,
@@ -1436,7 +1438,7 @@ class TokenType {
 
   static const TokenType PERCENT_EQ = const TokenType(
       '%=', 'PERCENT_EQ', ASSIGNMENT_PRECEDENCE, PERCENT_EQ_TOKEN,
-      isOperator: true);
+      binaryOperatorOfCompoundAssignment: TokenType.PERCENT, isOperator: true);
 
   static const TokenType PERIOD =
       const TokenType('.', 'PERIOD', SELECTOR_PRECEDENCE, PERIOD_TOKEN);
@@ -1451,7 +1453,7 @@ class TokenType {
 
   static const TokenType PLUS_EQ = const TokenType(
       '+=', 'PLUS_EQ', ASSIGNMENT_PRECEDENCE, PLUS_EQ_TOKEN,
-      isOperator: true);
+      binaryOperatorOfCompoundAssignment: TokenType.PLUS, isOperator: true);
 
   static const TokenType PLUS_PLUS = const TokenType(
       '++', 'PLUS_PLUS', POSTFIX_PRECEDENCE, PLUS_PLUS_TOKEN,
@@ -1471,6 +1473,7 @@ class TokenType {
 
   static const TokenType QUESTION_QUESTION_EQ = const TokenType('??=',
       'QUESTION_QUESTION_EQ', ASSIGNMENT_PRECEDENCE, QUESTION_QUESTION_EQ_TOKEN,
+      binaryOperatorOfCompoundAssignment: TokenType.QUESTION_QUESTION,
       isOperator: true);
 
   static const TokenType SEMICOLON =
@@ -1482,7 +1485,7 @@ class TokenType {
 
   static const TokenType SLASH_EQ = const TokenType(
       '/=', 'SLASH_EQ', ASSIGNMENT_PRECEDENCE, SLASH_EQ_TOKEN,
-      isOperator: true);
+      binaryOperatorOfCompoundAssignment: TokenType.SLASH, isOperator: true);
 
   static const TokenType STAR = const TokenType(
       '*', 'STAR', MULTIPLICATIVE_PRECEDENCE, STAR_TOKEN,
@@ -1490,7 +1493,7 @@ class TokenType {
 
   static const TokenType STAR_EQ = const TokenType(
       '*=', 'STAR_EQ', ASSIGNMENT_PRECEDENCE, STAR_EQ_TOKEN,
-      isOperator: true);
+      binaryOperatorOfCompoundAssignment: TokenType.STAR, isOperator: true);
 
   static const TokenType STRING_INTERPOLATION_EXPRESSION = const TokenType(
       '\${',
@@ -1514,6 +1517,7 @@ class TokenType {
 
   static const TokenType TILDE_SLASH_EQ = const TokenType(
       '~/=', 'TILDE_SLASH_EQ', ASSIGNMENT_PRECEDENCE, TILDE_SLASH_EQ_TOKEN,
+      binaryOperatorOfCompoundAssignment: TokenType.TILDE_SLASH,
       isOperator: true);
 
   static const TokenType BACKPING =
@@ -1647,6 +1651,12 @@ class TokenType {
     //TokenType.RECOVERY,
   ];
 
+  /**
+   * The binary operator that is invoked by this compound assignment operator,
+   * or `null` otherwise.
+   */
+  final TokenType? binaryOperatorOfCompoundAssignment;
+
   final int kind;
 
   /**
@@ -1700,9 +1710,10 @@ class TokenType {
   final String? stringValue;
 
   const TokenType(this.lexeme, this.name, this.precedence, this.kind,
-      {this.isModifier: false,
-      this.isOperator: false,
+      {this.binaryOperatorOfCompoundAssignment,
       this.isBinaryOperator: false,
+      this.isModifier: false,
+      this.isOperator: false,
       this.isTopLevelKeyword: false,
       this.isUserDefinableOperator: false,
       String? stringValue: 'unspecified'})

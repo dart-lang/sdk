@@ -16,7 +16,7 @@ class RemoveDeadCode extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var coveredNode = this.coveredNode;
+    final coveredNode = this.coveredNode;
     var parent = coveredNode?.parent;
 
     if (coveredNode is Expression) {

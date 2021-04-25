@@ -20,7 +20,7 @@ class AddNeNull extends CorrectionProducerWithDiagnostic {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     if (unit.featureSet.isEnabled(Feature.non_nullable)) {
-      var node = this.node;
+      final node = this.node;
       if (node is Expression &&
           node.staticType?.nullabilitySuffix == NullabilitySuffix.none) {
         return;

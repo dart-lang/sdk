@@ -133,11 +133,6 @@ class CompilerOptions implements DiagnosticOptions {
       fe.isExperimentEnabled(fe.ExperimentalFlag.nonNullable,
           explicitExperimentalFlags: explicitExperimentalFlags);
 
-  /// Whether `--enable-experiment=triple-shift` is provided.
-  bool get enableTripleShift =>
-      fe.isExperimentEnabled(fe.ExperimentalFlag.tripleShift,
-          explicitExperimentalFlags: explicitExperimentalFlags);
-
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
 

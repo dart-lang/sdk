@@ -19,7 +19,7 @@ class WrapInFuture extends CorrectionProducer {
     // Extract the information needed to build the edit.
     //
     Expression? expression;
-    var node = this.node;
+    final node = this.node;
     if (node is ReturnStatement) {
       expression = node.expression;
     } else if (node is Expression) {

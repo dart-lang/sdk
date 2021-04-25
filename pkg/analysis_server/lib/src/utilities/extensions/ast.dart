@@ -117,7 +117,7 @@ extension FunctionBodyExtensions on FunctionBody {
 
 extension MethodDeclarationExtension on MethodDeclaration {
   Token? get propertyKeywordGet {
-    var propertyKeyword = this.propertyKeyword;
+    final propertyKeyword = this.propertyKeyword;
     return propertyKeyword != null && propertyKeyword.keyword == Keyword.GET
         ? propertyKeyword
         : null;
@@ -126,7 +126,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
 
 extension VariableDeclarationListExtension on VariableDeclarationList {
   Token? get finalKeyword {
-    var keyword = this.keyword;
+    final keyword = this.keyword;
     return keyword != null && keyword.keyword == Keyword.FINAL ? keyword : null;
   }
 }

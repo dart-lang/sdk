@@ -94,7 +94,7 @@ class ElementNameComponents {
     String? classMemberName;
     if (element.enclosingElement is ClassElement ||
         element.enclosingElement is ExtensionElement) {
-      classMemberName = element.name!;
+      classMemberName = element.name;
       element = element.enclosingElement!;
     }
 

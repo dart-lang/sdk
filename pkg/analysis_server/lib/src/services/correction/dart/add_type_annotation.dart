@@ -27,7 +27,7 @@ class AddTypeAnnotation extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
+    final node = this.node;
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is SimpleFormalParameter) {
