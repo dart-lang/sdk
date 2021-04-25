@@ -6,15 +6,15 @@
 // Pseudo keywords are not allowed to be used as class names.
 class abstract { }
 //    ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_AS_TYPE_NAME
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] Can't use 'abstract' as a name here.
 class as { }
 //    ^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_AS_TYPE_NAME
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] Can't use 'as' as a name here.
 class dynamic { }
 //    ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_AS_TYPE_NAME
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] Can't use 'dynamic' as a name here.
 class export { }
 //    ^^^^^^
@@ -38,11 +38,11 @@ class export { }
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 class external { }
 //    ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_AS_TYPE_NAME
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] Can't use 'external' as a name here.
 class factory { }
 //    ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_AS_TYPE_NAME
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] Can't use 'factory' as a name here.
 class get { }
 //    ^^^
@@ -56,7 +56,7 @@ class get { }
 // [cfe] Expected an identifier, but got 'get'.
 class interface { }
 //    ^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_AS_TYPE_NAME
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] Can't use 'interface' as a name here.
 class implements { }
 //    ^^^^^^^^^^
@@ -118,7 +118,7 @@ class library { }
 // [cfe] Expected a declaration, but got '}'.
 class operator { }
 //    ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_AS_TYPE_NAME
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] Can't use 'operator' as a name here.
 class part { }
 //    ^^^^
@@ -152,7 +152,7 @@ class set { }
 // [cfe] Expected an identifier, but got 'set'.
 class static { }
 //    ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_AS_TYPE_NAME
+// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 // [cfe] Can't use 'static' as a name here.
 class typedef { }
 //    ^^^^^^^
