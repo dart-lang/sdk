@@ -194,7 +194,7 @@ ConstEvalDeferredLibrary:
   tip: >
     Try moving the constant from the deferred library, or removing 'deferred'
     from the import.
-  analyzerCode: NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY
+  analyzerCode: NON_CONST_EVAL_DEFERRED_LIBRARY
 
 ConstEvalFreeTypeParameter:
   template: "The type '#type' is not a constant because it depends on a type parameter, only instantiated types are allowed."

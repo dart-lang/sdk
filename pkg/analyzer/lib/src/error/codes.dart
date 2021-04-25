@@ -8919,6 +8919,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try leaving the default as null and initializing the parameter "
               "inside the function body.");
 
+  static const CompileTimeErrorCode
+      NON_CONSTANT_EVAL_DEFERRED_LIBRARY = CompileTimeErrorCode(
+          'NON_CONST_EVAL_DEFERRED_LIBRARY',
+          "{0} can't be used in a constant expression because it's marked as"
+              "deferred' which means it isn't available until loaded.",
+          correction: "Try moving the constant from the deferred library,"
+              " or removing 'deferred' from the import.");
+
   /**
    * No parameters.
    */

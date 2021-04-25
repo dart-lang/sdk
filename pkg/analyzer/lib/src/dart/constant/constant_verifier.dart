@@ -11,6 +11,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -310,13 +311,15 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ///        reference
   /// @param errorCode the error code to be used if the expression is or
   ///        consists of a reference to a deferred library
-  void _reportErrorIfFromDeferredLibrary(
-      Expression expression, ErrorCode errorCode) {
+  void _reportErrorIfFromDeferredLibrary(Expression expression,
+      ErrorCode errorCode,
+      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
     DeferredLibraryReferenceDetector referenceDetector =
         DeferredLibraryReferenceDetector();
     expression.accept(referenceDetector);
     if (referenceDetector.result) {
-      _errorReporter.reportErrorForNode(errorCode, expression);
+      _errorReporter.reportErrorForNode(
+          errorCode, expression, arguments, messages);
     }
   }
 
@@ -419,8 +422,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (realArgument is PrefixedIdentifier && realArgument.isDeferred) {
         _reportErrorIfFromDeferredLibrary(
             realArgument,
-            CompileTimeErrorCode
-                .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
+            CompileTimeErrorCode.NON_CONSTANT_EVAL_DEFERRED_LIBRARY,
+            [realArgument]);
       }
     }
   }
