@@ -63,7 +63,7 @@ analysis over some code. It has a few methods you call on it to set up an
 analysis:
 
 *   `addHistogram()` registers a new named histogram. This is the main way you
-    count occurences of datapoints you care about in the code you are analyzing.
+    count occurrences of datapoints you care about in the code you are analyzing.
     Each histogram is a named collection of datapoints. When the analysis
     completes, scrape prints out each histogram, buckets the datapoints, and
     shows how many of each datapoint occurred.

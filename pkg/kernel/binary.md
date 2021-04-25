@@ -36,7 +36,7 @@ type UInt7 extends UInt {
 
 type UInt14 extends UInt {
   Byte byte1(10xxxxxx); // most significant byte, discard the high bit
-  Byte byte2(xxxxxxxx); // least signficant byte
+  Byte byte2(xxxxxxxx); // least significant byte
 }
 
 type UInt30 extends UInt {
