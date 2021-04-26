@@ -184,6 +184,8 @@ import 'extra_annotation_on_struct_field_test.dart'
     as extra_annotation_on_struct_field;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
 import 'extra_size_annotation_carray_test.dart' as extra_size_annotation_carray;
+import 'ffi_array_multi_non_positive_input_test.dart'
+    as ffi_array_multi_non_positive_input_test;
 import 'field_in_struct_with_initializer_test.dart'
     as field_in_struct_with_initializer;
 import 'field_initialized_by_multiple_initializers_test.dart'
@@ -812,6 +814,7 @@ main() {
     extra_annotation_on_struct_field.main();
     extra_positional_arguments.main();
     extra_size_annotation_carray.main();
+    ffi_array_multi_non_positive_input_test.main();
     field_in_struct_with_initializer.main();
     field_initialized_by_multiple_initializers.main();
     final_initialized_in_declaration_and_constructor.main();
