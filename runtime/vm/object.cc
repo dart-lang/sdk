@@ -14667,7 +14667,7 @@ bool CompressedStackMaps::Iterator::MoveNext() {
   NoSafepointScope scope;
   ReadStream stream(maps_.untag()->data(), maps_.payload_size(), next_offset_);
 
-  auto const pc_delta = stream.ReadUnsigned();
+  auto const pc_delta = stream.ReadLEB128();
   ASSERT(pc_delta <= (kMaxUint32 - current_pc_offset_));
   current_pc_offset_ += pc_delta;
 
@@ -14675,7 +14675,7 @@ bool CompressedStackMaps::Iterator::MoveNext() {
   // the post-delta part of inlined entries has the same information as
   // global table entries.
   if (maps_.UsesGlobalTable()) {
-    current_global_table_offset_ = stream.ReadUnsigned();
+    current_global_table_offset_ = stream.ReadLEB128();
     ASSERT(current_global_table_offset_ < bits_container_.payload_size());
 
     // Since generally we only use entries in the GC and the GC only needs
@@ -14688,10 +14688,10 @@ bool CompressedStackMaps::Iterator::MoveNext() {
 
     next_offset_ = stream.Position();
   } else {
-    current_spill_slot_bit_count_ = stream.ReadUnsigned();
+    current_spill_slot_bit_count_ = stream.ReadLEB128();
     ASSERT(current_spill_slot_bit_count_ >= 0);
 
-    current_non_spill_slot_bit_count_ = stream.ReadUnsigned();
+    current_non_spill_slot_bit_count_ = stream.ReadLEB128();
     ASSERT(current_non_spill_slot_bit_count_ >= 0);
 
     const auto stackmap_bits =
@@ -14737,10 +14737,10 @@ void CompressedStackMaps::Iterator::LazyLoadGlobalTableEntry() const {
                     bits_container_.payload_size(),
                     current_global_table_offset_);
 
-  current_spill_slot_bit_count_ = stream.ReadUnsigned();
+  current_spill_slot_bit_count_ = stream.ReadLEB128();
   ASSERT(current_spill_slot_bit_count_ >= 0);
 
-  current_non_spill_slot_bit_count_ = stream.ReadUnsigned();
+  current_non_spill_slot_bit_count_ = stream.ReadLEB128();
   ASSERT(current_non_spill_slot_bit_count_ >= 0);
 
   const auto stackmap_bits = Length();
