@@ -4,6 +4,7 @@
 
 import("../../build/dart/dart_action.gni")
 import("../application_snapshot.gni")
+import("../create_timestamp.gni")
 
 group("dartanalyzer") {
   deps = [
@@ -11,13 +12,6 @@ group("dartanalyzer") {
     ":generate_summary_strong",
   ]
 }
-
-analyzer_files = exec_script("../../tools/list_dart_files.py",
-                             [
-                               "absolute",
-                               rebase_path("../../pkg/analyzer"),
-                             ],
-                             "list lines")
 
 application_snapshot("generate_dartanalyzer_snapshot") {
   main_dart = "../../pkg/analyzer_cli/bin/analyzer.dart"
@@ -31,21 +25,21 @@ application_snapshot("generate_dartanalyzer_snapshot") {
   name = "dartanalyzer"
 }
 
-sdk_lib_files = exec_script("../../tools/list_dart_files.py",
-                            [
-                              "absolute",
-                              rebase_path("../../sdk/lib"),
-                            ],
-                            "list lines")
+sdk_root = "../../sdk"
+
+create_timestamp_file("sdk_lib_files") {
+  path = rebase_path("$sdk_root/lib")
+  output = "$target_gen_dir/sdk_lib_files.stamp"
+}
 
 dart_action("generate_summary_strong") {
   deps = [
+    ":sdk_lib_files",
     "../../sdk:copy_libraries",
     "../../sdk:write_version_file",
   ]
   script = "../../pkg/analyzer/tool/summary/build_sdk_summaries.dart"
   packages = "../../.packages"
-  inputs = sdk_lib_files + analyzer_files
   output = "$root_gen_dir/strong.sum"
   outputs = [ output ]
   vm_args = [ "-Dsdk_hash=$sdk_hash" ]
