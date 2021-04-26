@@ -40,6 +40,27 @@ application_snapshot("dartdevc") {
 
 sdk_root = "../../sdk"
 
+sdk_lib_files = exec_script("../../tools/list_dart_files.py",
+                            [
+                              "absolute",
+                              rebase_path("$sdk_root/lib"),
+                            ],
+                            "list lines")
+
+compiler_files = exec_script("../../tools/list_dart_files.py",
+                             [
+                               "absolute",
+                               rebase_path("../../pkg/compiler"),
+                             ],
+                             "list lines")
+
+dev_compiler_files = exec_script("../../tools/list_dart_files.py",
+                                 [
+                                   "absolute",
+                                   rebase_path("../../pkg/dev_compiler"),
+                                 ],
+                                 "list lines")
+
 template("dart2js_compile") {
   assert(defined(invoker.main), "Must specify the main file")
   main = invoker.main
@@ -49,12 +70,12 @@ template("dart2js_compile") {
   abs_output = rebase_path(out)
 
   prebuilt_dart_action(target_name) {
-    deps = invoker.deps + [ "../compiler:compile_dart2js_platform" ]
+    deps = [ "../compiler:compile_dart2js_platform" ]
 
-    inputs = [
-      "$root_out_dir/dart2js_platform.dill",
-      "$root_out_dir/dart2js_outline.dill",
-    ]
+    inputs = sdk_lib_files + compiler_files + dev_compiler_files + [
+               "$root_out_dir/dart2js_platform.dill",
+               "$root_out_dir/dart2js_outline.dill",
+             ]
     outputs = [ out ]
 
     script = "../../pkg/compiler/lib/src/dart2js.dart"
@@ -76,7 +97,6 @@ template("dart2js_compile") {
 dart2js_compile("stack_trace_mapper") {
   main = rebase_path("../../pkg/dev_compiler/web/stack_trace_mapper.dart")
   out = "$root_out_dir/dev_compiler/build/web/dart_stack_trace_mapper.js"
-  deps = [ ":dartdevc_files_stamp" ]
 }
 
 # Builds everything needed to run dartdevc tests using test.dart.
@@ -160,11 +180,16 @@ template("dartdevc_kernel_compile") {
     deps = [
       ":dartdevc_files_stamp",
       platform_dep,
+
+      # TODO(sigmund): depend only on the compiler and the actual files in the
+      # package
+      "../../pkg:pkg_files_stamp",
     ]
 
     inputs = [
       sdk_outline,
       "$target_gen_dir/dartdevc_files.stamp",
+      "$root_gen_dir/pkg_files.stamp",
     ]
 
     outputs = [
@@ -302,9 +327,17 @@ template("dartdevc_sdk_js") {
   }
 
   prebuilt_dart_action(target_name) {
-    deps = [ platform_dep ]
+    deps = [
+      ":dartdevc_files_stamp",
+      "../../pkg:pkg_files_stamp",
+      platform_dep,
+    ]
 
-    inputs = [ platform_input ]
+    inputs = [
+      "$target_gen_dir/dartdevc_files.stamp",
+      "$root_gen_dir/pkg_files.stamp",
+      platform_input,
+    ]
 
     outputs = [
       "$js_gen_dir/amd/dart_sdk.js",

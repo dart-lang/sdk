@@ -1,0 +1,62 @@
+# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../utils/create_timestamp.gni")
+
+template("make_third_party_pkg_files_stamp") {
+  assert(defined(invoker.id), "Must define the stamp file id")
+  path = rebase_path("../third_party/pkg")
+  if (defined(invoker.path)) {
+    path = invoker.path
+  }
+  id = invoker.id
+  create_timestamp_file(target_name) {
+    if (defined(invoker.pattern)) {
+      pattern = invoker.pattern
+    }
+    path = path
+    output = "$target_gen_dir/third_party_pkg_files_$id.stamp"
+  }
+}
+
+make_third_party_pkg_files_stamp("make_third_party_pkg_files_0_stamp") {
+  path = rebase_path(".")
+  id = "0"
+}
+
+make_third_party_pkg_files_stamp("make_third_party_pkg_files_1_stamp") {
+  pattern = "[a-k].*"
+  id = "1"
+}
+
+make_third_party_pkg_files_stamp("make_third_party_pkg_files_2_stamp") {
+  pattern = "[l-r].*"
+  id = "2"
+}
+
+make_third_party_pkg_files_stamp("make_third_party_pkg_files_3_stamp") {
+  pattern = "[s-z].*"
+  id = "3"
+}
+
+action("pkg_files_stamp") {
+  deps = [
+    ":make_third_party_pkg_files_0_stamp",
+    ":make_third_party_pkg_files_1_stamp",
+    ":make_third_party_pkg_files_2_stamp",
+    ":make_third_party_pkg_files_3_stamp",
+  ]
+
+  stamp0_outputs = get_target_outputs(":make_third_party_pkg_files_0_stamp")
+  stamp1_outputs = get_target_outputs(":make_third_party_pkg_files_1_stamp")
+  stamp2_outputs = get_target_outputs(":make_third_party_pkg_files_2_stamp")
+  stamp3_outputs = get_target_outputs(":make_third_party_pkg_files_3_stamp")
+
+  inputs = stamp0_outputs + stamp1_outputs + stamp2_outputs + stamp3_outputs
+
+  outputs = [ "$root_gen_dir/pkg_files.stamp" ]
+
+  script = "../tools/create_timestamp_file.py"
+  args = [ rebase_path("$root_gen_dir/pkg_files.stamp") ]
+}

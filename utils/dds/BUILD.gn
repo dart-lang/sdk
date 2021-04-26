@@ -4,6 +4,13 @@
 
 import("../application_snapshot.gni")
 
+dds_files = exec_script("../../tools/list_dart_files.py",
+                        [
+                          "absolute",
+                          rebase_path("../../pkg/dds"),
+                        ],
+                        "list lines")
+
 group("dds") {
   public_deps = [ ":copy_dds_snapshot" ]
 }
@@ -18,5 +25,6 @@ copy("copy_dds_snapshot") {
 application_snapshot("generate_dds_snapshot") {
   main_dart = "../../pkg/dds/bin/dds.dart"
   training_args = []
+  inputs = dds_files
   output = "$root_gen_dir/dds.dart.snapshot"
 }
