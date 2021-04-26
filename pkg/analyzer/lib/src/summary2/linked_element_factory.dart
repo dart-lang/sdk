@@ -415,8 +415,8 @@ class LinkedElementFactory {
   }
 
   bool isLibraryUri(String uriStr) {
-    var libraryContext = libraryReaders[uriStr]!;
-    return !libraryContext.hasPartOfDirective;
+    var libraryContext = libraryReaders[uriStr];
+    return libraryContext?.hasPartOfDirective ?? false;
   }
 
   LibraryElementImpl? libraryOfUri(String uriStr) {
