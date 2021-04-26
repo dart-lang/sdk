@@ -3288,12 +3288,9 @@ Definition* UnboxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
     return replacement;
   }
 
-  // Currently we perform this only on 64-bit architectures.
-  if (compiler::target::kBitsPerWord == 64) {
-    ConstantInstr* c = value()->definition()->AsConstant();
-    if (c != NULL && c->value().IsInteger()) {
-      return flow_graph->GetConstant(c->value(), kUnboxedInt64);
-    }
+  ConstantInstr* c = value()->definition()->AsConstant();
+  if (c != NULL && c->value().IsInteger()) {
+    return flow_graph->GetConstant(c->value(), kUnboxedInt64);
   }
 
   return this;

@@ -1809,6 +1809,7 @@ void FlowGraph::InsertConversion(Representation from,
                                  Representation to,
                                  Value* use,
                                  bool is_environment_use) {
+  ASSERT(from != to);
   Instruction* insert_before;
   Instruction* deopt_target;
   PhiInstr* phi = use->instruction()->AsPhi();

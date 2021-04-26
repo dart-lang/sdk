@@ -6475,6 +6475,7 @@ class StoreUntaggedInstr : public TemplateInstruction<2, NoThrow> {
   Value* value() const { return inputs_[1]; }
   intptr_t offset() const { return offset_; }
 
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
   virtual bool AttributesEqual(const Instruction& other) const {
