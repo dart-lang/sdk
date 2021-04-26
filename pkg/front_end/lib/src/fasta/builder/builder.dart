@@ -298,7 +298,6 @@ abstract class BuilderImpl implements Builder {
   int finishPatch() {
     if (!isPatch) return 0;
     unsupported("${runtimeType}.finishPatch", charOffset, fileUri);
-    return 0;
   }
 
   @override

@@ -132,7 +132,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
   }
 
   FormattedMessage withFormatting(PlainAndColorizedString formatted, int line,
-      int column, Severity severity, List<FormattedMessage> relatedInformation,
+      int column, Severity severity, List<FormattedMessage>? relatedInformation,
       {List<Uri>? involvedFiles}) {
     return new FormattedMessage(this, formatted.plain, formatted.colorized,
         line, column, severity, relatedInformation,

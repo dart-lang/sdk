@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show exitCode;
 
 import 'dart:typed_data' show Uint8List;
@@ -99,16 +97,16 @@ class ProcessedOptions {
 
   /// The package map derived from the options, or `null` if the package map has
   /// not been computed yet.
-  PackageConfig _packages;
+  PackageConfig? _packages;
 
   /// The uri for .packages derived from the options, or `null` if the package
   /// map has not been computed yet or there is no .packages in effect.
-  Uri _packagesUri;
-  Uri get packagesUri => _packagesUri;
+  Uri? _packagesUri;
+  Uri? get packagesUri => _packagesUri;
 
   /// The object that knows how to resolve "package:" and "dart:" URIs,
   /// or `null` if it has not been computed yet.
-  UriTranslator _uriTranslator;
+  UriTranslator? _uriTranslator;
 
   /// The SDK summary, or `null` if it has not been read yet.
   ///
@@ -116,7 +114,7 @@ class ProcessedOptions {
   /// where all method bodies are left out. In essence, it contains just API
   /// signatures and constants. The summary should include inferred top-level
   /// types unless legacy mode is enabled.
-  Component _sdkSummaryComponent;
+  Component? _sdkSummaryComponent;
 
   /// The component for each uri in `options.additionalDills`.
   ///
@@ -124,45 +122,45 @@ class ProcessedOptions {
   /// where all method bodies are left out. In essence, it contains just API
   /// signatures and constants. The summaries should include inferred top-level
   /// types unless legacy mode is enabled.
-  List<Component> _additionalDillComponents;
+  List<Component>? _additionalDillComponents;
 
   /// The location of the SDK, or `null` if the location hasn't been determined
   /// yet.
-  Uri _sdkRoot;
-  Uri get sdkRoot {
+  Uri? _sdkRoot;
+  Uri? get sdkRoot {
     _ensureSdkDefaults();
     return _sdkRoot;
   }
 
-  Uri _sdkSummary;
-  Uri get sdkSummary {
+  Uri? _sdkSummary;
+  Uri? get sdkSummary {
     _ensureSdkDefaults();
     return _sdkSummary;
   }
 
-  List<int> _sdkSummaryBytes;
+  List<int>? _sdkSummaryBytes;
   bool _triedLoadingSdkSummary = false;
 
   /// Get the bytes of the SDK outline, if any.
-  Future<List<int>> loadSdkSummaryBytes() async {
+  Future<List<int>?> loadSdkSummaryBytes() async {
     if (_sdkSummaryBytes == null && !_triedLoadingSdkSummary) {
       if (sdkSummary == null) return null;
-      FileSystemEntity entry = fileSystem.entityForUri(sdkSummary);
+      FileSystemEntity entry = fileSystem.entityForUri(sdkSummary!);
       _sdkSummaryBytes = await _readAsBytes(entry);
       _triedLoadingSdkSummary = true;
     }
     return _sdkSummaryBytes;
   }
 
-  Uri _librariesSpecificationUri;
-  Uri get librariesSpecificationUri {
+  Uri? _librariesSpecificationUri;
+  Uri? get librariesSpecificationUri {
     _ensureSdkDefaults();
     return _librariesSpecificationUri;
   }
 
   Ticker ticker;
 
-  Uri get packagesUriRaw => _raw.packagesFileUri;
+  Uri? get packagesUriRaw => _raw.packagesFileUri;
 
   bool get verbose => _raw.verbose;
 
@@ -192,9 +190,9 @@ class ProcessedOptions {
   final List<Uri> inputs;
 
   /// The Uri where output is generated, may be null.
-  final Uri output;
+  final Uri? output;
 
-  final Map<String, String> environmentDefines;
+  final Map<String, String>? environmentDefines;
 
   bool get errorOnUnevaluatedConstant => _raw.errorOnUnevaluatedConstant;
 
@@ -202,7 +200,7 @@ class ProcessedOptions {
   int fatalDiagnosticCount = 0;
 
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
-  ProcessedOptions({CompilerOptions options, List<Uri> inputs, this.output})
+  ProcessedOptions({CompilerOptions? options, List<Uri>? inputs, this.output})
       : this._raw = options ?? new CompilerOptions(),
         this.inputs = inputs ?? <Uri>[],
         // TODO(askesc): Copy the map when kernel_service supports that.
@@ -212,20 +210,20 @@ class ProcessedOptions {
         this.ticker = new Ticker(isVerbose: options?.verbose ?? false);
 
   FormattedMessage format(
-      LocatedMessage message, Severity severity, List<LocatedMessage> context,
-      {List<Uri> involvedFiles}) {
+      LocatedMessage message, Severity severity, List<LocatedMessage>? context,
+      {List<Uri>? involvedFiles}) {
     int offset = message.charOffset;
-    Uri uri = message.uri;
-    Location location = offset == -1 ? null : getLocation(uri, offset);
+    Uri? uri = message.uri;
+    Location? location =
+        offset == -1 || uri == null ? null : getLocation(uri, offset);
     PlainAndColorizedString formatted =
         command_line_reporting.format(message, severity, location: location);
-    List<FormattedMessage> formattedContext;
+    List<FormattedMessage>? formattedContext;
     if (context != null && context.isNotEmpty) {
       formattedContext =
-          new List<FormattedMessage>.filled(context.length, null);
-      for (int i = 0; i < context.length; i++) {
-        formattedContext[i] = format(context[i], Severity.context, null);
-      }
+          new List<FormattedMessage>.generate(context.length, (int i) {
+        return format(context[i], Severity.context, null);
+      });
     }
     return message.withFormatting(formatted, location?.line ?? -1,
         location?.column ?? -1, severity, formattedContext,
@@ -233,7 +231,7 @@ class ProcessedOptions {
   }
 
   void report(LocatedMessage message, Severity severity,
-      {List<LocatedMessage> context, List<Uri> involvedFiles}) {
+      {List<LocatedMessage>? context, List<Uri>? involvedFiles}) {
     if (command_line_reporting.isHidden(severity)) return;
     if (command_line_reporting.isCompileTimeError(severity)) {
       CompilerContext.current.logError(message, severity);
@@ -304,13 +302,13 @@ class ProcessedOptions {
     }
 
     if (_raw.sdkRoot != null &&
-        !await fileSystem.entityForUri(sdkRoot).exists()) {
+        !await fileSystem.entityForUri(sdkRoot!).exists()) {
       reportWithoutLocation(
-          templateSdkRootNotFound.withArguments(sdkRoot), Severity.error);
+          templateSdkRootNotFound.withArguments(sdkRoot!), Severity.error);
       return false;
     }
 
-    Uri summary = sdkSummary;
+    Uri? summary = sdkSummary;
     if (summary != null && !await fileSystem.entityForUri(summary).exists()) {
       reportWithoutLocation(
           templateSdkSummaryNotFound.withArguments(summary), Severity.error);
@@ -340,7 +338,7 @@ class ProcessedOptions {
   /// whole-program.
   bool get compileSdk => _raw.compileSdk;
 
-  FileSystem _fileSystem;
+  FileSystem? _fileSystem;
 
   /// Get the [FileSystem] which should be used by the front end to access
   /// files.
@@ -358,7 +356,7 @@ class ProcessedOptions {
   /// version).
   String get currentSdkVersion => _raw.currentSdkVersion;
 
-  Target _target;
+  Target? _target;
   Target get target =>
       _target ??= _raw.target ?? new NoneTarget(new TargetFlags());
 
@@ -429,10 +427,10 @@ class ProcessedOptions {
 
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<Component> loadSdkSummary(CanonicalName nameRoot) async {
+  Future<Component?> loadSdkSummary(CanonicalName nameRoot) async {
     if (_sdkSummaryComponent == null) {
       if (sdkSummary == null) return null;
-      List<int> bytes = await loadSdkSummaryBytes();
+      List<int>? bytes = await loadSdkSummaryBytes();
       if (bytes != null && bytes.isNotEmpty) {
         _sdkSummaryComponent =
             loadComponent(bytes, nameRoot, fileUri: sdkSummary);
@@ -455,19 +453,20 @@ class ProcessedOptions {
   Future<List<Component>> loadAdditionalDills(CanonicalName nameRoot) async {
     if (_additionalDillComponents == null) {
       List<Uri> uris = _raw.additionalDills;
+      // ignore: unnecessary_null_comparison
       if (uris == null || uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent operations.
-      List<List<int>> allBytes = await Future.wait(
+      List<List<int>?> allBytes = await Future.wait(
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
       List<Component> result = [];
       for (int i = 0; i < uris.length; i++) {
-        if (allBytes[i] == null) continue;
-        List<int> bytes = allBytes[i];
+        List<int>? bytes = allBytes[i];
+        if (bytes == null) continue;
         result.add(loadComponent(bytes, nameRoot, fileUri: uris[i]));
       }
       _additionalDillComponents = result;
     }
-    return _additionalDillComponents;
+    return _additionalDillComponents!;
   }
 
   void set loadAdditionalDillsComponents(List<Component> components) {
@@ -480,7 +479,7 @@ class ProcessedOptions {
 
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
   Component loadComponent(List<int> bytes, CanonicalName nameRoot,
-      {bool alwaysCreateNewNamedNodes, Uri fileUri}) {
+      {bool? alwaysCreateNewNamedNodes, Uri? fileUri}) {
     Component component =
         target.configureComponent(new Component(nameRoot: nameRoot));
     // TODO(ahe): Control lazy loading via an option.
@@ -510,7 +509,7 @@ class ProcessedOptions {
       ticker.logMs("Read packages file");
       _uriTranslator = new UriTranslator(libraries, packages);
     }
-    return _uriTranslator;
+    return _uriTranslator!;
   }
 
   Future<TargetLibrariesSpecification> _computeLibrarySpecification() async {
@@ -520,21 +519,22 @@ class ProcessedOptions {
     if (name.endsWith('_fasta')) name = name.substring(0, name.length - 6);
 
     if (librariesSpecificationUri == null ||
-        !await fileSystem.entityForUri(librariesSpecificationUri).exists()) {
+        !await fileSystem.entityForUri(librariesSpecificationUri!).exists()) {
       if (compileSdk) {
         reportWithoutLocation(
             templateSdkSpecificationNotFound
-                .withArguments(librariesSpecificationUri),
+                .withArguments(librariesSpecificationUri!),
             Severity.error);
       }
       return new TargetLibrariesSpecification(name);
     }
 
-    String json =
-        await fileSystem.entityForUri(librariesSpecificationUri).readAsString();
+    String json = await fileSystem
+        .entityForUri(librariesSpecificationUri!)
+        .readAsString();
     try {
       LibrariesSpecification spec =
-          await LibrariesSpecification.parse(librariesSpecificationUri, json);
+          await LibrariesSpecification.parse(librariesSpecificationUri!, json);
       return spec.specificationFor(name);
     } on LibrariesSpecificationException catch (e) {
       reportWithoutLocation(
@@ -549,10 +549,10 @@ class ProcessedOptions {
   /// This is an asynchronous getter since file system operations may be
   /// required to locate/read the packages file.
   Future<PackageConfig> _getPackages() async {
-    if (_packages != null) return _packages;
+    if (_packages != null) return _packages!;
     _packagesUri = null;
     if (_raw.packagesFileUri != null) {
-      return _packages = await createPackagesFromFile(_raw.packagesFileUri);
+      return _packages = await createPackagesFromFile(_raw.packagesFileUri!);
     }
 
     if (inputs.length > 1) {
@@ -582,7 +582,7 @@ class ProcessedOptions {
     return _packages = await _findPackages(inputs.first);
   }
 
-  Future<Uint8List> _readFile(Uri uri, bool reportError) async {
+  Future<Uint8List?> _readFile(Uri uri, bool reportError) async {
     try {
       // TODO(ahe): We need to compute line endings for this file.
       FileSystemEntity entityForUri = fileSystem.entityForUri(uri);
@@ -616,9 +616,9 @@ class ProcessedOptions {
   /// based in [forceCreation]).
   /// If the file does exist but is invalid an error is always reported and an
   /// empty package config is returned.
-  Future<PackageConfig> _createPackagesFromFile(
+  Future<PackageConfig?> _createPackagesFromFile(
       Uri requestedUri, bool forceCreation, bool requireJson) async {
-    Uint8List contents = await _readFile(requestedUri, forceCreation);
+    Uint8List? contents = await _readFile(requestedUri, forceCreation);
     if (contents == null) {
       if (forceCreation) {
         _packagesUri = null;
@@ -634,7 +634,7 @@ class ProcessedOptions {
           report(
               templatePackagesFileFormat
                   .withArguments(error.message)
-                  .withLocation(requestedUri, error.offset, noLength),
+                  .withLocation(requestedUri, error.offset ?? -1, noLength),
               Severity.error);
         } else {
           reportWithoutLocation(
@@ -658,7 +658,7 @@ class ProcessedOptions {
       report(
           templatePackagesFileFormat
               .withArguments(e.message)
-              .withLocation(requestedUri, e.offset, noLength),
+              .withLocation(requestedUri, e.offset ?? -1, noLength),
           Severity.error);
     } catch (e) {
       reportWithoutLocation(
@@ -679,14 +679,15 @@ class ProcessedOptions {
     // If the input is a ".packages" file we assume the standard layout, and
     // if a ".dart_tool/package_config.json" exists, we'll use that (and require
     // it to be a json file).
+    PackageConfig? result;
     if (file.path.endsWith("/.packages")) {
       // .packages -> try the package_config first.
       Uri tryFirst = file.resolve(".dart_tool/package_config.json");
-      PackageConfig result =
-          await _createPackagesFromFile(tryFirst, false, true);
+      result = await _createPackagesFromFile(tryFirst, false, true);
       if (result != null) return result;
     }
-    return _createPackagesFromFile(file, true, false);
+    result = await _createPackagesFromFile(file, true, false);
+    return result ?? PackageConfig.empty;
   }
 
   /// Finds a package resolution strategy using a [FileSystem].
@@ -711,8 +712,8 @@ class ProcessedOptions {
       return PackageConfig.empty;
     }
 
-    Future<Uri> checkInDir(Uri dir) async {
-      Uri candidate;
+    Future<Uri?> checkInDir(Uri dir) async {
+      Uri? candidate;
       try {
         candidate = dir.resolve('.dart_tool/package_config.json');
         if (await fileSystem.entityForUri(candidate).exists()) return candidate;
@@ -721,7 +722,7 @@ class ProcessedOptions {
         return null;
       } catch (e) {
         Message message =
-            templateExceptionReadingFile.withArguments(candidate, '$e');
+            templateExceptionReadingFile.withArguments(candidate!, '$e');
         reportWithoutLocation(message, Severity.error);
         // We throw a new exception to ensure that the message include the uri
         // that led to the exception. Exceptions in Uri don't include the
@@ -731,7 +732,7 @@ class ProcessedOptions {
     }
 
     // Check for $cwd/.packages
-    Uri candidate = await checkInDir(dir);
+    Uri? candidate = await checkInDir(dir);
     if (candidate != null) return createPackagesFromFile(candidate);
 
     // Check for cwd(/..)+/.packages
@@ -756,7 +757,7 @@ class ProcessedOptions {
   void _ensureSdkDefaults() {
     if (_computedSdkDefaults) return;
     _computedSdkDefaults = true;
-    Uri root = _raw.sdkRoot;
+    Uri? root = _raw.sdkRoot;
     if (root != null) {
       // Normalize to always end in '/'
       if (!root.path.endsWith('/')) {
@@ -781,7 +782,7 @@ class ProcessedOptions {
     if (_raw.librariesSpecificationUri != null) {
       _librariesSpecificationUri = _raw.librariesSpecificationUri;
     } else if (compileSdk) {
-      _librariesSpecificationUri = sdkRoot.resolve('lib/libraries.json');
+      _librariesSpecificationUri = sdkRoot!.resolve('lib/libraries.json');
     }
   }
 
@@ -835,7 +836,7 @@ class ProcessedOptions {
     return '$sb';
   }
 
-  Future<List<int>> _readAsBytes(FileSystemEntity file) async {
+  Future<List<int>?> _readAsBytes(FileSystemEntity file) async {
     try {
       return await file.readAsBytes();
     } on FileSystemException catch (error) {

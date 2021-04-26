@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "dart:io" show File, Platform;
 
 import 'package:kernel/ast.dart' show Source;
@@ -19,7 +17,7 @@ import 'fasta/compiler_context.dart' show CompilerContext;
 ///
 /// If the target doesn't have a default platform dill file for the nnbd mode,
 /// [onError] is called.
-String computePlatformDillName(
+String? computePlatformDillName(
     Target target, NnbdMode nnbdMode, void Function() onError) {
   switch (target.name) {
     case 'dartdevc':
@@ -69,7 +67,7 @@ String computePlatformDillName(
 /// of the platform libraries that are used to avoid recompiling those
 /// libraries.
 Uri computePlatformBinariesLocation({bool forceBuildDir: false}) {
-  String resolvedExecutable = Platform.environment['resolvedExecutable'];
+  String? resolvedExecutable = Platform.environment['resolvedExecutable'];
   // The directory of the Dart VM executable.
   Uri vmDirectory = Uri.base
       .resolveUri(
@@ -93,7 +91,7 @@ Uri translateSdk(Uri uri) {
       String path = uri.path;
       if (path.startsWith("/sdk/")) {
         CompilerContext context = CompilerContext.current;
-        Uri sdkRoot = context.cachedSdkRoot;
+        Uri? sdkRoot = context.cachedSdkRoot;
         if (sdkRoot == null) {
           ProcessedOptions options = context.options;
           sdkRoot = options.sdkRoot;
@@ -108,6 +106,7 @@ Uri translateSdk(Uri uri) {
           if (sdkRoot == null) {
             sdkRoot = (options.sdkSummary ?? computePlatformBinariesLocation())
                 .resolve("../../");
+            // ignore: unnecessary_null_comparison
             if (sdkRoot != null) {
               if (!isExistingFile(sdkRoot.resolve("lib/libraries.json"))) {
                 if (isExistingFile(sdkRoot.resolve("sdk/lib/libraries.json"))) {
@@ -124,7 +123,7 @@ Uri translateSdk(Uri uri) {
         Uri candidate = sdkRoot.resolve(path.substring(5));
         if (isExistingFile(candidate)) {
           Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
-          Source source = uriToSource[uri];
+          Source source = uriToSource[uri]!;
           if (source.source.isEmpty) {
             uriToSource[uri] = new Source(
                 source.lineStarts,
