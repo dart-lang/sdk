@@ -498,6 +498,12 @@ class _Transform extends RecursiveVisitor {
     super.visitProcedure(node);
   }
 
+  @override
+  void visitField(Field node) {
+    typeContext = StaticTypeContext(node, shaker.typeFlowAnalysis.environment);
+    super.visitField(node);
+  }
+
   static void forEachArgumentRev(Arguments args, _ProcedureInfo info,
       void Function(Expression, _ParameterInfo) fun) {
     for (int i = args.named.length - 1; i >= 0; i--) {

@@ -203,8 +203,8 @@ class ReturnPattern : public ValueObject {
 class PcRelativePatternBase : public ValueObject {
  public:
   // 26 bit signed integer which will get multiplied by 4.
-  static const intptr_t kLowerCallingRange = -(1 << 27);
-  static const intptr_t kUpperCallingRange = (1 << 27) - 1;
+  static constexpr intptr_t kLowerCallingRange = -(1 << 27);
+  static constexpr intptr_t kUpperCallingRange = (1 << 27) - Instr::kInstrSize;
 
   explicit PcRelativePatternBase(uword pc) : pc_(pc) {}
 
