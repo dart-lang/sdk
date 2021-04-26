@@ -52,6 +52,24 @@ void f(A a) {
     ]);
   }
 
+  test_simpleIdentifier_inheritedSetter_shadowedBy_topLevelGetter() async {
+    await assertErrorsInCode('''
+class A {
+  void set foo(int _) {}
+}
+
+int get foo => 0;
+
+class B extends A {
+  void bar() {
+    foo = 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 3),
+    ]);
+  }
+
   test_simpleIdentifier_topLevelGetter() async {
     await assertErrorsInCode('''
 int get x => 0;
