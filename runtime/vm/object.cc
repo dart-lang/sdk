@@ -11392,6 +11392,15 @@ void Field::set_type_test_cache(const SubtypeTestCache& cache) const {
 }
 #endif
 
+StringPtr Script::resolved_url() const {
+#if defined(DART_PRECOMPILER)
+  return String::RawCast(
+      WeakSerializationReference::Unwrap(untag()->resolved_url()));
+#else
+  return untag()->resolved_url();
+#endif
+}
+
 bool Script::HasSource() const {
   return untag()->source() != String::null();
 }
@@ -11546,9 +11555,15 @@ void Script::set_url(const String& value) const {
   untag()->set_url(value.ptr());
 }
 
+#if defined(DART_PRECOMPILER)
+void Script::set_resolved_url(const Object& value) const {
+  untag()->set_resolved_url(value.ptr());
+}
+#else
 void Script::set_resolved_url(const String& value) const {
   untag()->set_resolved_url(value.ptr());
 }
+#endif
 
 void Script::set_source(const String& value) const {
   untag()->set_source(value.ptr());
