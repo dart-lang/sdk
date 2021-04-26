@@ -1192,6 +1192,95 @@ main() {
     '''));
   }
 
+  Future<void>
+      test_suggestionSets_doesNotDuplicate_importedViaMultipleLibraries() async {
+    // An item that's already imported through multiple libraries that
+    // export it should not result in multiple entries.
+    newFile(
+      join(projectFolderPath, 'lib/source_file.dart'),
+      content: '''
+      class MyExportedClass {}
+      ''',
+    );
+    newFile(
+      join(projectFolderPath, 'lib/reexport1.dart'),
+      content: '''
+      export 'source_file.dart';
+      ''',
+    );
+    newFile(
+      join(projectFolderPath, 'lib/reexport2.dart'),
+      content: '''
+      export 'source_file.dart';
+      ''',
+    );
+
+    final content = '''
+import 'reexport1.dart';
+import 'reexport2.dart';
+
+main() {
+  MyExported^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completions = res.where((c) => c.label == 'MyExportedClass').toList();
+    expect(completions, hasLength(1));
+  }
+
+  Future<void>
+      test_suggestionSets_doesNotDuplicate_importedViaSingleLibrary() async {
+    // An item that's already imported through a library that exports it
+    // should not result in multiple entries.
+    newFile(
+      join(projectFolderPath, 'lib/source_file.dart'),
+      content: '''
+      class MyExportedClass {}
+      ''',
+    );
+    newFile(
+      join(projectFolderPath, 'lib/reexport1.dart'),
+      content: '''
+      export 'source_file.dart';
+      ''',
+    );
+    newFile(
+      join(projectFolderPath, 'lib/reexport2.dart'),
+      content: '''
+      export 'source_file.dart';
+      ''',
+    );
+
+    final content = '''
+import 'reexport1.dart';
+
+main() {
+  MyExported^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completions = res.where((c) => c.label == 'MyExportedClass').toList();
+    expect(completions, hasLength(1));
+  }
+
   Future<void> test_suggestionSets_doesNotFilterSymbolsWithSameName() async {
     // Classes here are not re-exports, so should not be filtered out.
     newFile(
