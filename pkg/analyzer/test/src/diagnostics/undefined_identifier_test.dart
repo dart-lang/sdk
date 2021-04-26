@@ -133,6 +133,24 @@ main() {
     ]);
   }
 
+  test_inheritedGetter_shadowedBy_topLevelSetter() async {
+    await assertErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+void set foo(int _) {}
+
+class B extends A {
+  void bar() {
+    foo;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 96, 3),
+    ]);
+  }
+
   test_initializer() async {
     await assertErrorsInCode('''
 var a = b;
