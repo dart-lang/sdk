@@ -4,9 +4,6 @@
 
 library dart2js.js_emitter.program_builder;
 
-import 'dart:io';
-import 'dart:convert' show jsonDecode;
-
 import '../../common.dart';
 import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'
@@ -64,7 +61,6 @@ part 'registry.dart';
 /// emitted more easily by the individual emitters.
 class ProgramBuilder {
   final CompilerOptions _options;
-  final DiagnosticReporter _reporter;
   final JElementEnvironment _elementEnvironment;
   final JCommonElements _commonElements;
   final OutputUnitData _outputUnitData;
@@ -111,7 +107,6 @@ class ProgramBuilder {
 
   ProgramBuilder(
       this._options,
-      this._reporter,
       this._elementEnvironment,
       this._commonElements,
       this._outputUnitData,
@@ -173,17 +168,8 @@ class ProgramBuilder {
   List<StubMethod> _jsInteropIsChecks = [];
   final Set<TypeCheck> _jsInteropTypeChecks = {};
 
-  /// Classes that have been allocated during a profile run.
-  ///
-  /// These classes should not be soft-deferred.
-  ///
-  /// Also contains classes that are not tracked by the profile run (like
-  /// interceptors, ...).
-  Set<ClassEntity> _notSoftDeferred;
-
   Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
     collector.collect();
-    _initializeSoftDeferredMap();
 
     this._storeFunctionTypesInMetadata = storeFunctionTypesInMetadata;
     // Note: In rare cases (mostly tests) output units can be empty. This
@@ -279,76 +265,11 @@ class ProgramBuilder {
     return new Program(fragments, holders, _buildTypeToInterceptorMap(),
         _task.metadataCollector, finalizers,
         needsNativeSupport: needsNativeSupport,
-        outputContainsConstantList: collector.outputContainsConstantList,
-        hasSoftDeferredClasses: _notSoftDeferred != null);
+        outputContainsConstantList: collector.outputContainsConstantList);
   }
 
   void _markEagerClasses() {
     _markEagerInterceptorClasses();
-  }
-
-  void _initializeSoftDeferredMap() {
-    var allocatedClassesPath = _options.experimentalAllocationsPath;
-    if (allocatedClassesPath != null) {
-      // TODO(29574): the following denylist is ad-hoc and potentially
-      // incomplete. We need to mark all classes as black listed, that are
-      // used without code going through the class' constructor.
-      var denylist = [
-        'dart:_interceptors',
-        'dart:html',
-        'dart:typed_data_implementation',
-        'dart:_native_typed_data'
-      ].toSet();
-
-      // TODO(29574): the compiler should not just use dart:io to get the
-      // contents of a file.
-      File file = new File(allocatedClassesPath);
-
-      // TODO(29574): are the following checks necessary?
-      // To make compilation in build-systems easier, we ignore non-existing
-      // or empty profiles.
-      if (!file.existsSync()) {
-        _reporter.log("Profile file does not exist: $allocatedClassesPath");
-        return;
-      }
-      if (file.lengthSync() == 0) {
-        _reporter.log("Profile information (allocated classes) is empty.");
-        return;
-      }
-
-      String data = new File(allocatedClassesPath).readAsStringSync();
-      Set<String> allocatedClassesKeys = jsonDecode(data).keys.toSet();
-      Set<ClassEntity> allocatedClasses = new Set<ClassEntity>();
-
-      // Collects all super and mixin classes of a class.
-      void collect(ClassEntity element) {
-        allocatedClasses.add(element);
-        if (_elementEnvironment.isMixinApplication(element)) {
-          collect(_elementEnvironment.getEffectiveMixinClass(element));
-        }
-        ClassEntity superclass = _elementEnvironment.getSuperClass(element);
-        if (superclass != null) {
-          collect(superclass);
-        }
-      }
-
-      // For every known class, see if it was allocated in the profile. If yes,
-      // collect its dependencies (supers and mixins) and mark them as
-      // not-soft-deferrable.
-      collector.outputClassLists.forEach((_, List<ClassEntity> elements) {
-        for (ClassEntity element in elements) {
-          // TODO(29574): share the encoding of the element with the code
-          // that emits the profile-run.
-          var key = "${element.library.canonicalUri}:${element.name}";
-          if (allocatedClassesKeys.contains(key) ||
-              _nativeData.isJsInteropClass(element) ||
-              denylist.contains(element.library.canonicalUri.toString())) {
-            collect(element);
-          }
-        }
-      });
-      _notSoftDeferred = allocatedClasses;
-    }
   }
 
   js.Expression _buildTypeToInterceptorMap() {
@@ -641,10 +562,6 @@ class ProgramBuilder {
         staticFieldsForReflection);
   }
 
-  bool _isSoftDeferred(ClassEntity element) {
-    return _notSoftDeferred != null && !_notSoftDeferred.contains(element);
-  }
-
   Class _buildClass(ClassEntity cls) {
     ClassTypeData typeData = _buildClassTypeData(cls);
 
@@ -850,7 +767,6 @@ class ProgramBuilder {
           onlyForConstructor: onlyForConstructor,
           isNative: _nativeData.isNativeClass(cls),
           isClosureBaseClass: isClosureBaseClass,
-          isSoftDeferred: _isSoftDeferred(cls),
           isMixinApplicationWithMembers: isMixinApplicationWithMembers);
     }
     _classes[cls] = result;

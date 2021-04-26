@@ -125,7 +125,6 @@ class CodeEmitterTask extends CompilerTask {
       });
       ProgramBuilder programBuilder = ProgramBuilder(
           _compiler.options,
-          _compiler.reporter,
           closedWorld.elementEnvironment,
           closedWorld.commonElements,
           closedWorld.outputUnitData,

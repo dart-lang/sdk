@@ -592,7 +592,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     // TODO(29574): provide a warning/hint/error, when profile-based data is
     // used without `--fast-startup`.
     new OptionHandler(Flags.experimentalTrackAllocations, passThrough),
-    new OptionHandler("${Flags.experimentalAllocationsPath}=.+", passThrough),
 
     new OptionHandler(Flags.experimentLocalNames, ignoreOption),
     new OptionHandler(Flags.experimentStartupFunctions, passThrough),

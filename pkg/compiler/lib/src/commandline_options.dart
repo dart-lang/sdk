@@ -27,8 +27,6 @@ class Flags {
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
   static const String experimentalTrackAllocations =
       '--experimental-track-allocations';
-  static const String experimentalAllocationsPath =
-      '--experimental-allocations-path';
 
   static const String experimentalWrapped = '--experimental-wrapped';
   static const String experimentalPowersets = '--experimental-powersets';

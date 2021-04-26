@@ -19,7 +19,6 @@ class Program {
   final List<Holder> holders;
   final bool outputContainsConstantList;
   final bool needsNativeSupport;
-  final bool hasSoftDeferredClasses;
 
   // If this field is not `null` then its value must be emitted in the embedded
   // global `TYPE_TO_INTERCEPTOR_MAP`. The map references constants and classes.
@@ -32,9 +31,7 @@ class Program {
 
   Program(this.fragments, this.holders, this.typeToInterceptorMap,
       this._metadataCollector, this.finalizers,
-      {this.needsNativeSupport,
-      this.outputContainsConstantList,
-      this.hasSoftDeferredClasses}) {
+      {this.needsNativeSupport, this.outputContainsConstantList}) {
     assert(needsNativeSupport != null);
     assert(outputContainsConstantList != null);
   }
@@ -289,11 +286,6 @@ class Class implements FieldContainer {
   final bool isNative;
   final bool isClosureBaseClass; // Common base class for closures.
 
-  /// Whether this class should be soft deferred.
-  ///
-  /// A soft-deferred class is only fully initialized at first instantiation.
-  final bool isSoftDeferred;
-
   final bool isMixinApplicationWithMembers;
 
   // If the class implements a function type, and the type is encoded in the
@@ -331,7 +323,6 @@ class Class implements FieldContainer {
       this.isDirectlyInstantiated,
       this.isNative,
       this.isClosureBaseClass,
-      this.isSoftDeferred = false,
       this.isMixinApplicationWithMembers}) {
     assert(onlyForRti != null);
     assert(onlyForConstructor != null);

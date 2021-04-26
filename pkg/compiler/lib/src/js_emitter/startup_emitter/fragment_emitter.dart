@@ -433,24 +433,6 @@ function getGlobalFromName(name) {
   }
 }
 
-if (#hasSoftDeferredClasses) {
-  // Loads the soft-deferred classes and initializes them.
-  // Updates the prototype of the given object.
-  function softDef(o) {
-    softDef = function(o) {};  // Replace ourselves.
-    #deferredGlobal[#softId](
-        holders, #embeddedGlobalsObject, #staticState,
-        hunkHelpers);
-    if (o != null) {
-      // TODO(29574): should we do something different for Firefox?
-      // If we recommend that the program triggers the load by itself before
-      // classes are needed, then this line should rarely be hit.
-      // Also, it is only hit at most once (per soft-deferred chunk).
-      o.__proto__ = o.constructor.prototype;
-    }
-  }
-}
-
 if (#isTrackingAllocations) {
   var allocations = #deferredGlobal['allocations'] = {};
 }
@@ -606,27 +588,6 @@ var #typesOffset = hunkHelpers.updateTypes(#types);
 #nativeSupport;
 }''';
 
-///
-/// However, they don't contribute anything to global namespace, but just
-/// initialize existing classes. For example, they update the inheritance
-/// hierarchy, and add methods the prototypes.
-const String _softDeferredBoilerplate = '''
-#deferredGlobal[#softId] =
-  function(holdersList, #embeddedGlobalsObject, #staticState,
-           hunkHelpers) {
-
-// Installs the holders as local variables.
-#installHoldersAsLocals;
-// Sets the prototypes of the new classes.
-#prototypes;
-// Sets aliases of methods (on the prototypes of classes).
-#aliases;
-// Installs the tear-offs of functions.
-#tearOffs;
-// Builds the inheritance structure.
-#inheritance;
-}''';
-
 /// This class builds a JavaScript tree for a given fragment.
 ///
 /// A fragment is generally written into a separate file so that it can be
@@ -751,11 +712,6 @@ class FragmentEmitter {
       DeferredLoadingState deferredLoadingState) {
     MainFragment fragment = program.fragments.first;
 
-    Iterable<Holder> nonStaticStateHolders =
-        program.holders.where((Holder holder) => !holder.isStaticStateHolder);
-
-    String softDeferredId = "softDeferred${new Random().nextInt(0x7FFFFFFF)}";
-
     HolderCode holderCode = emitHolders(program.holders, fragment.libraries,
         initializeEmptyHolders: true);
 
@@ -786,8 +742,6 @@ class FragmentEmitter {
       'argumentCount': js.string(_namer.fixedNames.requiredParameterField),
       'defaultArgumentValues': js.string(_namer.fixedNames.defaultValuesField),
       'deferredGlobal': ModelEmitter.deferredInitializersGlobal,
-      'hasSoftDeferredClasses': program.hasSoftDeferredClasses,
-      'softId': js.string(softDeferredId),
       'isTrackingAllocations': _options.experimentalTrackAllocations,
       'prototypes': emitPrototypes(fragment),
       'inheritance': emitInheritance(fragment),
@@ -814,37 +768,8 @@ class FragmentEmitter {
       'call1selector': js.quoteName(call1Name),
       'call2selector': js.quoteName(call2Name)
     });
-    if (program.hasSoftDeferredClasses) {
-      mainCode = js.Block([
-        js.js.statement(_softDeferredBoilerplate, {
-          'deferredGlobal': ModelEmitter.deferredInitializersGlobal,
-          'softId': js.string(softDeferredId),
-          // TODO(floitsch): don't just reference 'init'.
-          'embeddedGlobalsObject': new js.Parameter('init'),
-          'staticState': new js.Parameter(_namer.staticStateHolder),
-          'installHoldersAsLocals':
-              emitInstallHoldersAsLocals(nonStaticStateHolders),
-          'prototypes': emitPrototypes(fragment, softDeferred: true),
-          'aliases': emitInstanceMethodAliases(fragment, softDeferred: true),
-          'tearOffs': emitInstallTearOffs(fragment, softDeferred: true),
-          'inheritance': emitInheritance(fragment, softDeferred: true),
-        }),
-        mainCode
-      ]);
-    }
     finalizeCode(mainCode);
     return mainCode;
-  }
-
-  js.Statement emitInstallHoldersAsLocals(Iterable<Holder> holders) {
-    List<js.Statement> holderInits = [];
-    int counter = 0;
-    for (Holder holder in holders) {
-      holderInits.add(new js.ExpressionStatement(new js.VariableInitialization(
-          new js.VariableDeclaration(holder.name, allowRename: false),
-          js.js("holdersList[#]", js.number(counter++)))));
-    }
-    return new js.Block(holderInits);
   }
 
   js.Expression emitCodeFragment(CodeFragment fragment, List<Holder> holders) {
@@ -1064,9 +989,7 @@ class FragmentEmitter {
     var parameters = <js.Parameter>[];
     var thisRef;
 
-    if (cls.isSoftDeferred) {
-      statements.add(js.js.statement('softDef(this)'));
-    } else if (_options.experimentalTrackAllocations) {
+    if (_options.experimentalTrackAllocations) {
       String qualifiedName =
           "${cls.element.library.canonicalUri}:${cls.element.name}";
       statements.add(js.js.statement('allocations["$qualifiedName"] = true'));
@@ -1141,14 +1064,10 @@ class FragmentEmitter {
   /// This section updates the prototype-property of all constructors in the
   /// global holders.
   ///
-  /// [softDeferred] determine whether prototypes for soft deferred classes are
-  /// generated.
-  ///
   /// If [includeClosures] is `true` only prototypes for closure classes are
   /// generated, if [includeClosures] is `false` only prototypes for non-closure
   /// classes are generated. Otherwise prototypes for all classes are generated.
-  js.Statement emitPrototypes(Fragment fragment,
-      {bool softDeferred = false, bool includeClosures}) {
+  js.Statement emitPrototypes(Fragment fragment, {bool includeClosures}) {
     List<js.Statement> assignments = fragment.libraries
         .expand((Library library) => library.classes)
         .where((Class cls) {
@@ -1157,7 +1076,7 @@ class FragmentEmitter {
           return false;
         }
       }
-      return cls.isSoftDeferred == softDeferred;
+      return true;
     }).map((Class cls) {
       var proto = js.js.statement(
           '#.prototype = #;', [classReference(cls), emitPrototype(cls)]);
@@ -1362,7 +1281,7 @@ class FragmentEmitter {
   ///
   /// In this section prototype chains are updated and mixin functions are
   /// copied.
-  js.Statement emitInheritance(Fragment fragment, {bool softDeferred = false}) {
+  js.Statement emitInheritance(Fragment fragment) {
     List<js.Statement> inheritCalls = [];
     List<js.Statement> mixinCalls = [];
     // local caches of functions to allow minifaction of function name in call.
@@ -1370,8 +1289,7 @@ class FragmentEmitter {
 
     Set<Class> classesInFragment = Set();
     for (Library library in fragment.libraries) {
-      classesInFragment.addAll(library.classes
-          .where(((Class cls) => cls.isSoftDeferred == softDeferred)));
+      classesInFragment.addAll(library.classes);
     }
 
     Map<Class, List<Class>> subclasses = {};
@@ -1392,7 +1310,6 @@ class FragmentEmitter {
 
     for (Library library in fragment.libraries) {
       for (Class cls in library.classes) {
-        if (cls.isSoftDeferred != softDeferred) continue;
         collect(cls);
         if (cls.mixinClass != null) {
           js.Statement statement = js.js.statement('#(#, #)', [
@@ -1454,13 +1371,11 @@ class FragmentEmitter {
   ///
   /// This step consists of simply copying JavaScript functions to their
   /// aliased names so they point to the same function.
-  js.Statement emitInstanceMethodAliases(Fragment fragment,
-      {bool softDeferred = false}) {
+  js.Statement emitInstanceMethodAliases(Fragment fragment) {
     List<js.Statement> assignments = [];
 
     for (Library library in fragment.libraries) {
       for (Class cls in library.classes) {
-        if (cls.isSoftDeferred != softDeferred) continue;
         bool firstAlias = true;
         for (InstanceMethod method in cls.methods) {
           if (method.aliasName != null) {
@@ -1527,8 +1442,7 @@ class FragmentEmitter {
   }
 
   /// Emits the section that installs tear-off getters.
-  js.Statement emitInstallTearOffs(Fragment fragment,
-      {bool softDeferred = false}) {
+  js.Statement emitInstallTearOffs(Fragment fragment) {
     LocalAliases locals = LocalAliases();
 
     /// Emits the statement that installs a tear off for a method.
@@ -1690,7 +1604,6 @@ class FragmentEmitter {
         }
       }
       for (Class cls in library.classes) {
-        if (cls.isSoftDeferred != softDeferred) continue;
         var methods = cls.methods.where((dynamic m) => m.needsTearOff).toList();
         js.Expression container = js.js("#.prototype", classReference(cls));
         js.Expression reference = container;
