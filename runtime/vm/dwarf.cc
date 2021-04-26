@@ -723,7 +723,7 @@ void Dwarf::WriteLineNumberProgramFromCodeSourceMaps(
   }
 }
 
-static constexpr char kResolvedFileRoot[] = "file://";
+static constexpr char kResolvedFileRoot[] = "file:///";
 static constexpr intptr_t kResolvedFileRootLen = sizeof(kResolvedFileRoot) - 1;
 static constexpr char kResolvedSdkRoot[] = "org-dartlang-sdk:///sdk/";
 static constexpr intptr_t kResolvedSdkRootLen = sizeof(kResolvedSdkRoot) - 1;
@@ -732,7 +732,11 @@ static const char* ConvertResolvedURI(const char* str) {
   const intptr_t len = strlen(str);
   if (len > kResolvedFileRootLen &&
       strncmp(str, kResolvedFileRoot, kResolvedFileRootLen) == 0) {
-    return str + kResolvedFileRootLen;
+#if defined(HOST_OS_WINDOWS)
+    return str + kResolvedFileRootLen;  // Strip off the entire prefix.
+#else
+    return str + kResolvedFileRootLen - 1;  // Leave a '/' on the front.
+#endif
   }
   if (len > kResolvedSdkRootLen &&
       strncmp(str, kResolvedSdkRoot, kResolvedSdkRootLen) == 0) {
