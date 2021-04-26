@@ -6,6 +6,8 @@
 // generated during all phases of compilation and deoptimization.
 // VMOptions=--optimization_counter_threshold=10 --no-use-osr --complete-timeline --no-background_compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 test1(a, start, step, N) {

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that instanceof works correctly with type variables.
 
+// @dart = 2.9
+
 library GenericInstanceofTest.dart;
 
 import "package:expect/expect.dart";

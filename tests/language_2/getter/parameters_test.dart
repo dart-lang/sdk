@@ -4,28 +4,30 @@
 //
 // Test that a getter has no parameters.
 
+// @dart = 2.9
+
 get f1 => null;
 get f2
 ()
-// [error line 9, column 1, length 1]
+// [error line 11, column 1, length 1]
 // [analyzer] SYNTACTIC_ERROR.GETTER_WITH_PARAMETERS
 // [cfe] A getter can't have formal parameters.
     => null;
 get f3
 (arg)
-// [error line 15, column 1, length 1]
+// [error line 17, column 1, length 1]
 // [analyzer] SYNTACTIC_ERROR.GETTER_WITH_PARAMETERS
 // [cfe] A getter can't have formal parameters.
     => null;
 get f4
 ([arg])
-// [error line 21, column 1, length 1]
+// [error line 23, column 1, length 1]
 // [analyzer] SYNTACTIC_ERROR.GETTER_WITH_PARAMETERS
 // [cfe] A getter can't have formal parameters.
     => null;
 get f5
 ({arg})
-// [error line 27, column 1, length 1]
+// [error line 29, column 1, length 1]
 // [analyzer] SYNTACTIC_ERROR.GETTER_WITH_PARAMETERS
 // [cfe] A getter can't have formal parameters.
     => null;

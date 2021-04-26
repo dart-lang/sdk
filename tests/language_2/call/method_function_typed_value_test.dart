@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test arithmetic operations.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 int f(int i) => 2 * i;

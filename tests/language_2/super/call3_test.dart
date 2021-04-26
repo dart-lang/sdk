@@ -4,6 +4,8 @@
 // Dart test for testing implicit super calls with bad arguments or no default
 // constructor in super class.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A {

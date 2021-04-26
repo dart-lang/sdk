@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable_type_checks
 
+// @dart = 2.9
+
 library Issue1363Test.dart;
 
 import 'regress1363_lib.dart' as lib;

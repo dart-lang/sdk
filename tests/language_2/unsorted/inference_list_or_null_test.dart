@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for dart2js that used to statically inline the length of an
 // array held in a variable when it could, even if that variable could
 // be null.

@@ -5,6 +5,8 @@
 // Unresolved symbols should be reported as an static type warnings.
 // This should not prevent execution.
 
+// @dart = 2.9
+
 library Prefix23Test.dart;
 
 import "../library12.dart" as lib12;

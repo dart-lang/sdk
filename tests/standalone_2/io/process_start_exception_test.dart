@@ -4,6 +4,8 @@
 //
 // Process test program to errors during startup of the process.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:io';
 import "package:expect/expect.dart";

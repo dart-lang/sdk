@@ -5,6 +5,8 @@
 // Test that the executable is looked up on the user's PATH when spawning a
 // process.
 
+// @dart = 2.9
+
 import "dart:io";
 import "package:expect/expect.dart";
 

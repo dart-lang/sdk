@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class Test1 {
@@ -95,9 +97,9 @@ void testStackTrace(void testCase(bool condition), List<int> lineNumbers) {
 }
 
 main() {
-  testStackTrace(test1, [9, 18]);
-  testStackTrace(test2, [26, 35]);
-  testStackTrace(test3, [45, 54]);
-  testStackTrace(test4, [60]); //# 01: ok
-  testStackTrace(test5, [67]); //# 02: ok
+  testStackTrace(test1, [11, 20]);
+  testStackTrace(test2, [28, 37]);
+  testStackTrace(test3, [47, 56]);
+  testStackTrace(test4, [62]); //# 01: ok
+  testStackTrace(test5, [69]); //# 02: ok
 }

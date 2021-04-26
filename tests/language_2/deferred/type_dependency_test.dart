@@ -2,6 +2,8 @@
 // source code is governed by a BSD-style license that can be found in
 // the LICENSE file.
 
+// @dart = 2.9
+
 /// Checks that lib1.fooX's dependencies on [A] via is-checks, as-expressions
 /// and type-annotations(in checked-mode) is correctly tracked.
 

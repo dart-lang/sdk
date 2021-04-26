@@ -4,6 +4,8 @@
 // VMOptions=--load-deferred-eagerly
 // VMOptions=
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 import "regress28278_lib.dart" deferred as def;

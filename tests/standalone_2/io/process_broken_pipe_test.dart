@@ -4,6 +4,8 @@
 //
 // Process test program to test closed stdin from child process.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 import "dart:io";
 import "dart:isolate";

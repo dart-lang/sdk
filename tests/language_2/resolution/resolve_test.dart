@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing resolving of dynamic and static calls.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A {

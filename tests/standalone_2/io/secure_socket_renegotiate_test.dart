@@ -6,6 +6,8 @@
 // OtherResources=certificates/server_key.pem
 // OtherResources=secure_socket_renegotiate_client.dart
 
+// @dart = 2.9
+
 // This test verifies that client certificates work, if the client and server
 // are in separate processes, and that connection renegotiation works, and
 // can request a client certificate to be sent.

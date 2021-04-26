@@ -6,6 +6,8 @@
 // Test for issue 1393.  Invoking a library prefix name caused an internal error
 // in dartc.
 
+// @dart = 2.9
+
 import "illegal_invocation_lib.dart" as foo;
 
 main() {

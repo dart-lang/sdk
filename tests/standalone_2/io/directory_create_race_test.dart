@@ -7,6 +7,8 @@
 // issue https://code.google.com/p/dart/issues/detail?id=7679 in revisions
 // without the fix for this issue.
 
+// @dart = 2.9
+
 import "dart:async";
 import "dart:io";
 

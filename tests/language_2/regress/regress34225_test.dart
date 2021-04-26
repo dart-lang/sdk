@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 class C {
   static set C(v) {} //# 01: compile-time error
   set C(v) {} //# 02: compile-time error

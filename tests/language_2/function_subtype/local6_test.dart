@@ -4,6 +4,8 @@
 // Dart test program for constructors and initializers.
 // VMOptions=--no-eliminate-type-checks
 
+// @dart = 2.9
+
 // Regression test for issue 12127.
 
 class C<T> {

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Tests the type checking when passing code into closure from inside a factory method
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 abstract class Foo<T> {

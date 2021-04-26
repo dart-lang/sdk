@@ -4,6 +4,8 @@
 // Dart test program to test arithmetic operations.
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
+// @dart = 2.9
+
 library arithmetic_test;
 
 import "package:expect/expect.dart";

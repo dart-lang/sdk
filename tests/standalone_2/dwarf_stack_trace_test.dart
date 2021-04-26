@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 /// VMOptions=--dwarf-stack-traces --save-debugging-info=dwarf.so
 
 import 'dart:convert';
@@ -138,13 +140,13 @@ final expectedCallsInfo = <List<DartCallInfo>>[
     DartCallInfo(
         function: "bar",
         filename: "dwarf_stack_trace_test.dart",
-        line: 17,
+        line: 19,
         column: 3,
         inlined: true),
     DartCallInfo(
         function: "foo",
         filename: "dwarf_stack_trace_test.dart",
-        line: 23,
+        line: 25,
         column: 3,
         inlined: false)
   ],
@@ -153,7 +155,7 @@ final expectedCallsInfo = <List<DartCallInfo>>[
     DartCallInfo(
         function: "main",
         filename: "dwarf_stack_trace_test.dart",
-        line: 29,
+        line: 31,
         column: 5,
         inlined: false)
   ],

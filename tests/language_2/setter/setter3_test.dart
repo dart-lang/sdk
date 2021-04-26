@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test that setters cannot have defined, non-void return types.
 // Note: The language specification specifies the absence of a type means
 // it is dynamic, however you cannot specify dynamic.

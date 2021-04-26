@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Disallow re-assignment of a final static variable.
 
+// @dart = 2.9
+
 class A {
   static const x = 1;
 }

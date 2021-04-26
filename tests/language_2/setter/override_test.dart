@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test that we do not report a compile-time error when a static setter named
 // foo= is declared in a class inheriting an instance method or getter named
 // foo, and that we do report an error if an instance setter named foo= or

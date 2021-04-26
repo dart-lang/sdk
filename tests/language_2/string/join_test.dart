@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Regression test ensuring that only ObjectArrays are handed to the VM code.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class StringJoinTest {

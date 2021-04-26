@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that initializers are not duplicated
 
+// @dart = 2.9
+
  class Class {
    Class(var v) : field_ = v
    // Test against duplicate final field initialization in initializing list.

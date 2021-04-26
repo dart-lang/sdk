@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing bad named parameters.
 
+// @dart = 2.9
+
 class BadNamedParameters2Test {
   int foo(int a) {
     // Although no optional named parameters are declared, we must check that

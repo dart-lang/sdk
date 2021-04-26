@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization_counter_threshold=100 --no-use-osr --no-background_compilation
 
+// @dart = 2.9
+
 // Test CHA-based optimizations in presence of try-catch.
 
 import "package:expect/expect.dart";

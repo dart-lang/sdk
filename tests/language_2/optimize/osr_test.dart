@@ -4,6 +4,8 @@
 // VMOptions=--optimization-counter-threshold=5 --no-background-compilation
 // Test correct OSR (issue 16151).
 
+// @dart = 2.9
+
 import "dart:collection";
 import "package:expect/expect.dart";
 

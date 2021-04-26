@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Validate the following spec text from section 16.32 (Identifier Reference):
 //     Evaluation of an identifier expression e of the form id proceeds as
 //   follows:

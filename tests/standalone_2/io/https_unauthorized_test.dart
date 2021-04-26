@@ -9,6 +9,8 @@
 // OtherResources=certificates/trusted_certs.pem
 // OtherResources=https_unauthorized_client.dart
 
+// @dart = 2.9
+
 // This test verifies that secure connections that fail due to
 // unauthenticated certificates throw exceptions in HttpClient.
 

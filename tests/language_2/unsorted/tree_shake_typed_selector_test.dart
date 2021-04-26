@@ -4,6 +4,8 @@
 // Check that dart2js emits code for classes that implement another
 // class.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A {

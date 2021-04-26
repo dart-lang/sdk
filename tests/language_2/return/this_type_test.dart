@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Make sure the engine does not infer the wrong type for [:A.foo:].
 
 import "package:expect/expect.dart";

@@ -4,6 +4,8 @@
 // Test megamorphic, but single target field load.
 // VMOptions=--optimization-counter-threshold=10
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class Base {

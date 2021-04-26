@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 import "load_library_wrong_args_lib.dart" deferred as lib;
 
 void main() {

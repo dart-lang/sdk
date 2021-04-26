@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing factory generic result types.
 
+// @dart = 2.9
+
 class A<T> {
   A() {}
   factory A.factory() {

@@ -6,6 +6,8 @@
 //
 // SharedObjects=ffi_test_dynamic_library ffi_test_functions
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import "package:ffi/ffi.dart";

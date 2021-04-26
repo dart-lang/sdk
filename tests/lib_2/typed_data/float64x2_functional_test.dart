@@ -4,6 +4,8 @@
 // VMOptions=--max_deoptimization_counter_threshold=1000 --optimization-counter-threshold=10 --no-background-compilation
 // VMOptions=--no-intrinsify
 
+// @dart = 2.9
+
 library float64x2_functional_test;
 
 import 'dart:typed_data';

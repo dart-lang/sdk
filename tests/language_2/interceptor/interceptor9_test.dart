@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for dart2js whose codegen in some cases did not take is
 // tests into account when computing the set of classes for interceptors.
 // See http://dartbug.com/17325

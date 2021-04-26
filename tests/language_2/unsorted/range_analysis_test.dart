@@ -4,6 +4,8 @@
 // Dart test program for constructors and initializers.
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 // Check that range analysis does not enter infinite loop trying to propagate

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Tests VM optimizing compiler negate condition for doubles (bug 5376516).
 
+// @dart = 2.9
+
 loop() {
   for (double d = 0.0; d < 1100.0; d++) {}
   for (double d = 0.0; d <= 1100.0; d++) {}

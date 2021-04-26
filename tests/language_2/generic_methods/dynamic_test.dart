@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test that if the type of a parameter of a generic method is a type parameter,
 // the type of the passed argument is checked (01) at compile time
 // if the receiver is given via an interface-type variable, and (02) at runtime

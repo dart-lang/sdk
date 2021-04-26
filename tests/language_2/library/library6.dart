@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This tests that it is a compile-time error to both import a library
 // that defines a function type alias and to have a local definition for
 // another function type alias with the same name.

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--old_gen_heap_size=50
 
+// @dart = 2.9
+
 // Test that non-capturing closures don't retain unnecessary memory.
 // It tests that the context of `f` allocated within `bar` not leaking and does
 // not become the context of empty non-capturing closure allocated inside `foo`.

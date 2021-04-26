@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for capturing.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 // Regression test for issue 5991015.

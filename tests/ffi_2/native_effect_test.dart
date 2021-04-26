@@ -4,6 +4,8 @@
 //
 // SharedObjects=ffi_test_functions
 
+// @dart = 2.9
+
 // Tests that the dart:internal _nativeEffect flow graph builder works.
 
 import 'dart:ffi';

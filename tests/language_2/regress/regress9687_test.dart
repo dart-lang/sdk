@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for dart2js code generation in checked mode. See
 // last part of https://code.google.com/p/dart/issues/detail?id=9687.
 

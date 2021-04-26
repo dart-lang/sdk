@@ -4,6 +4,8 @@
 // Dart test for loading several dart files and resolving superclasses lazily.
 // Same as MultiPassTest, except that the file order is reversed.
 
+// @dart = 2.9
+
 library MultiPassTest.dart;
 
 import "package:expect/expect.dart";

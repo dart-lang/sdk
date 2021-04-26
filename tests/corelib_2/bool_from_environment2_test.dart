@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 main() {
   const bool.fromEnvironment('NOT_FOUND', defaultValue: ''); // //# 01: compile-time error
   const bool.fromEnvironment('NOT_FOUND', defaultValue: 1); // //# 02: compile-time error

@@ -6,6 +6,8 @@
 //
 // Test of asserts in initializer lists.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class C {

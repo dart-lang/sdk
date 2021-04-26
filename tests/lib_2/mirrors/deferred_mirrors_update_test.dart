@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 library main;
 
 // Test that the library-mirrors are updated after loading a deferred library.

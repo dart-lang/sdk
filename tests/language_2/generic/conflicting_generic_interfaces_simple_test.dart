@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program to test arithmetic operations.
 
+// @dart = 2.9
+
 class I<T> {}
 
 class A implements I<int> {}

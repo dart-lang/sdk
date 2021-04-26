@@ -4,6 +4,8 @@
 //
 // Tests that a "const factory" with body produces a compile-time error.
 
+// @dart = 2.9
+
 class ConstFactoryWithBody {
   const factory ConstFactoryWithBody.one() { }
 //^^^^^
