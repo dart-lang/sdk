@@ -2917,6 +2917,7 @@ DuplicatedDeclarationSyntheticCause:
 # Use this message when a duplicated declaration is used.
 DuplicatedDeclarationUse:
   template: "Can't use '#name' because it is declared more than once."
+  exampleAllowMoreCodes: true
   script:
     - main.dart: |
         // This test can't pass as tests must produce only one error message.
@@ -2936,6 +2937,18 @@ DuplicatedDeclarationUse:
         class C {}
       lib2.dart: |
         class C {}
+    - main.dart: |
+        class C {
+          method() {}
+          method() {}
+        }
+        main() => new C().method();
+    - main.dart: |
+        class C {
+          method() {}
+          method() {}
+        }
+        var f = new C().method();
 
 DuplicatedNamePreviouslyUsed:
   template: "Can't declare '#name' because it was already used in this scope."
@@ -3023,6 +3036,8 @@ SupertypeIsIllegal:
   template: "The type '#name' can't be used as supertype."
   analyzerCode: EXTENDS_NON_CLASS
   script: |
+
+
     class C extends dynamic {}
 
 SupertypeIsIllegalAliased:
