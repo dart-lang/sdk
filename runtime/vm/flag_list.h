@@ -60,6 +60,7 @@ constexpr bool FLAG_support_il_printer = false;
 // automatically included in FLAG_LIST.
 // TODO(cskau): Remove causal_async_stacks when deprecated.
 #define VM_GLOBAL_FLAG_LIST(P, R, C, D)                                        \
+  P(code_comments, bool, false, "Include comments into code and disassembly.") \
   P(dwarf_stack_traces_mode, bool, false,                                      \
     "Use --[no-]dwarf-stack-traces instead.")                                  \
   P(causal_async_stacks, bool, false, "DEPRECATED: Improved async stacks")     \
@@ -98,7 +99,6 @@ constexpr bool FLAG_support_il_printer = false;
     "Run optimizing compilation in background")                                \
   P(check_token_positions, bool, false,                                        \
     "Check validity of token positions while compiling flow graphs")           \
-  P(code_comments, bool, false, "Include comments into code and disassembly.") \
   P(collect_code, bool, false, "Attempt to GC infrequently used code.")        \
   P(collect_dynamic_function_names, bool, true,                                \
     "Collects all dynamic function names to identify unique targets")          \

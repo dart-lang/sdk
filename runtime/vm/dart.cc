@@ -976,10 +976,6 @@ const char* Dart::FeaturesString(IsolateGroup* isolate_group,
                              FLAG_use_field_guards);
       ADD_ISOLATE_GROUP_FLAG(use_osr, use_osr, FLAG_use_osr);
     }
-#if !defined(PRODUCT)
-    buffer.AddString(FLAG_code_comments ? " code-comments"
-                                        : " no-code-comments");
-#endif
 
 // Generated code must match the host architecture and ABI.
 #if defined(TARGET_ARCH_ARM)

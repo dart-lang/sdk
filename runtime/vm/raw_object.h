@@ -1486,7 +1486,13 @@ class alignas(8) UntaggedScript : public UntaggedObject {
 
   VISIT_FROM(CompressedObjectPtr, url)
   COMPRESSED_POINTER_FIELD(StringPtr, url)
+#if defined(DART_PRECOMPILER)
+  // We use WSRs to keep the information available to the DWARF writer
+  // without being actually serialized.
+  COMPRESSED_POINTER_FIELD(ObjectPtr, resolved_url)
+#else
   COMPRESSED_POINTER_FIELD(StringPtr, resolved_url)
+#endif
   COMPRESSED_POINTER_FIELD(ArrayPtr, compile_time_constants)
   COMPRESSED_POINTER_FIELD(TypedDataPtr, line_starts)
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
