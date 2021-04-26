@@ -16,6 +16,8 @@ static const field core::int singleCatchVar = self::singleCatchFn();
 static const field core::int singleCatchVar2 = self::singleCatchFn2();
 static const field core::Type typeExample = core::int;
 static const field core::Type typeVar = self::typeFn();
+static const field core::int getWithIndexVar = self::getWithIndexFn();
+static const field core::int rangeErrorCatchVar = self::rangeErrorCatchFn();
 static method firstFn() → core::int
   ;
 static method firstCatchFn() → core::int
@@ -38,10 +40,14 @@ static method singleCatchFn2() → core::int
   ;
 static method typeFn() → core::Type
   ;
+static method getWithIndexFn() → core::int
+  ;
+static method rangeErrorCatchFn() → core::int
+  ;
 static method main() → void
   ;
 
 
 Extra constant evaluation status:
 Evaluated: TypeLiteral @ org-dartlang-testcase:///const_functions_list.dart:89:21 -> TypeLiteralConstant(int*)
-Extra constant evaluation: evaluated: 12, effectively constant: 1
+Extra constant evaluation: evaluated: 14, effectively constant: 1

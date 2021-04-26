@@ -36,4 +36,22 @@ int invalidPropertyFn() {
   return x.invalidProperty;
 }
 
+const getWithIndexException = getWithIndexExceptionFn();
+int getWithIndexExceptionFn() {
+  const List<int> x = [1];
+  return x[1];
+}
+
+const getWithIndexException2 = getWithIndexExceptionFn2();
+int getWithIndexExceptionFn2() {
+  const List<int> x = [1];
+  return x[-1];
+}
+
+const getWithIndexException3 = getWithIndexExceptionFn3();
+int getWithIndexExceptionFn3() {
+  const List<int> x = [1];
+  return x[0.1];
+}
+
 void main() {}

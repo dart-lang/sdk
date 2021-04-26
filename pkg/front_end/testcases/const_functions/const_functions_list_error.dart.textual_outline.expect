@@ -10,4 +10,10 @@ const singleExceptionMulti = singleExceptionMultiFn();
 int singleExceptionMultiFn() {}
 const invalidProperty = invalidPropertyFn();
 int invalidPropertyFn() {}
+const getWithIndexException = getWithIndexExceptionFn();
+int getWithIndexExceptionFn() {}
+const getWithIndexException2 = getWithIndexExceptionFn2();
+int getWithIndexExceptionFn2() {}
+const getWithIndexException3 = getWithIndexExceptionFn3();
+int getWithIndexExceptionFn3() {}
 void main() {}

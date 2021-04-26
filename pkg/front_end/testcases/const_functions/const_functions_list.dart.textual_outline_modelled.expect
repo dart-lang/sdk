@@ -5,11 +5,13 @@ bool isEmptyFn() {}
 bool isNotEmptyFn() {}
 const firstCatchVar = firstCatchFn();
 const firstVar = firstFn();
+const getWithIndexVar = getWithIndexFn();
 const isEmptyVar = isEmptyFn();
 const isNotEmptyVar = isNotEmptyFn();
 const lastCatchVar = lastCatchFn();
 const lastVar = lastFn();
 const lengthVar = lengthFn();
+const rangeErrorCatchVar = rangeErrorCatchFn();
 const singleCatchVar = singleCatchFn();
 const singleCatchVar2 = singleCatchFn2();
 const singleVar = singleFn();
@@ -17,9 +19,11 @@ const typeExample = int;
 const typeVar = typeFn();
 int firstCatchFn() {}
 int firstFn() {}
+int getWithIndexFn() {}
 int lastCatchFn() {}
 int lastFn() {}
 int lengthFn() {}
+int rangeErrorCatchFn() {}
 int singleCatchFn() {}
 int singleCatchFn2() {}
 int singleFn() {}

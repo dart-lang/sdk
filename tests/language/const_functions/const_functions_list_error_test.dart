@@ -54,3 +54,32 @@ int invalidPropertyFn() {
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'invalidProperty' isn't defined for the class 'List<int>'.
 }
+
+const getWithIndexException = getWithIndexExceptionFn();
+//                            ^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [cfe] Constant evaluation error:
+int getWithIndexExceptionFn() {
+  const List<int> x = [1];
+  return x[1];
+}
+
+const getWithIndexException2 = getWithIndexExceptionFn2();
+//                             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [cfe] Constant evaluation error:
+int getWithIndexExceptionFn2() {
+  const List<int> x = [1];
+  return x[-1];
+}
+
+const getWithIndexException3 = getWithIndexExceptionFn3();
+//                             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+int getWithIndexExceptionFn3() {
+  const List<int> x = [1];
+  return x[0.1];
+  //       ^^^
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] A value of type 'double' can't be assigned to a variable of type 'int'.
+}
