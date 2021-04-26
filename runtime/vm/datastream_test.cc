@@ -126,4 +126,60 @@ TEST_CASE(ReadStream_Read64) {
   TestRaw<int64_t>();
 }
 
+TEST_CASE(BaseWriteStream_WriteLEB128) {
+  MallocWriteStream writer(1 * KB);
+  for (uintptr_t i = 0; i < kUnsignedEnd; i++) {
+    writer.WriteLEB128(i);
+  }
+  DEFINE_LARGE_CONSTANTS(uintptr_t);
+  writer.WriteLEB128(all_ones);
+  writer.WriteLEB128(min);
+  writer.WriteLEB128(max);
+  writer.WriteLEB128(half_min);
+  writer.WriteLEB128(half_max);
+  ReadStream reader(writer.buffer(), writer.bytes_written());
+  for (uintptr_t i = 0; i < kUnsignedEnd; i++) {
+    const uintptr_t r = reader.ReadLEB128();
+    EXPECT_EQ(i, r);
+  }
+  const uintptr_t read_all_ones = reader.ReadLEB128();
+  EXPECT_EQ(all_ones, read_all_ones);
+  const uintptr_t read_min = reader.ReadLEB128();
+  EXPECT_EQ(min, read_min);
+  const uintptr_t read_max = reader.ReadLEB128();
+  EXPECT_EQ(max, read_max);
+  const uintptr_t read_half_min = reader.ReadLEB128();
+  EXPECT_EQ(half_min, read_half_min);
+  const uintptr_t read_half_max = reader.ReadLEB128();
+  EXPECT_EQ(half_max, read_half_max);
+}
+
+TEST_CASE(BaseWriteStream_WriteSLEB128) {
+  MallocWriteStream writer(1 * KB);
+  for (intptr_t i = kSignedStart; i < kSignedEnd; i++) {
+    writer.WriteSLEB128(i);
+  }
+  DEFINE_LARGE_CONSTANTS(intptr_t);
+  writer.WriteSLEB128(all_ones);
+  writer.WriteSLEB128(min);
+  writer.WriteSLEB128(max);
+  writer.WriteSLEB128(half_min);
+  writer.WriteSLEB128(half_max);
+  ReadStream reader(writer.buffer(), writer.bytes_written());
+  for (intptr_t i = kSignedStart; i < kSignedEnd; i++) {
+    const intptr_t r = reader.ReadSLEB128();
+    EXPECT_EQ(i, r);
+  }
+  const intptr_t read_all_ones = reader.ReadSLEB128();
+  EXPECT_EQ(all_ones, read_all_ones);
+  const intptr_t read_min = reader.ReadSLEB128();
+  EXPECT_EQ(min, read_min);
+  const intptr_t read_max = reader.ReadSLEB128();
+  EXPECT_EQ(max, read_max);
+  const intptr_t read_half_min = reader.ReadSLEB128();
+  EXPECT_EQ(half_min, read_half_min);
+  const intptr_t read_half_max = reader.ReadSLEB128();
+  EXPECT_EQ(half_max, read_half_max);
+}
+
 }  // namespace dart

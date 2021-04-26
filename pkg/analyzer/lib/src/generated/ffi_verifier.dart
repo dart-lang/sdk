@@ -813,6 +813,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           FfiCode.SIZE_ANNOTATION_DIMENSIONS, annotation);
     }
+    // Check dimensions is positive
+    for (int dimension in dimensions) {
+      if (dimension <= 0) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.NON_POSITIVE_ARRAY_DIMENSION, annotation);
+      }
+    }
   }
 
   /// Validate that the given [typeArgument] has a constant value. Return `true`

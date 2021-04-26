@@ -54,8 +54,8 @@ void DescriptorList::AddDescriptor(UntaggedPcDescriptors::Kind kind,
         UntaggedPcDescriptors::KindAndMetadata::Encode(kind, try_index,
                                                        yield_index);
 
-    encoded_data_.Write(kind_and_metadata);
-    encoded_data_.Write(pc_offset - prev_pc_offset);
+    encoded_data_.WriteSLEB128(kind_and_metadata);
+    encoded_data_.WriteSLEB128(pc_offset - prev_pc_offset);
     prev_pc_offset = pc_offset;
 
     if (!FLAG_precompiled_mode) {
@@ -80,8 +80,8 @@ void DescriptorList::AddDescriptor(UntaggedPcDescriptors::Kind kind,
         }
       }
       const int32_t encoded_pos = token_pos.Serialize();
-      encoded_data_.Write(deopt_id - prev_deopt_id);
-      encoded_data_.Write(
+      encoded_data_.WriteSLEB128(deopt_id - prev_deopt_id);
+      encoded_data_.WriteSLEB128(
           Utils::SubWithWrapAround(encoded_pos, prev_token_pos));
       prev_deopt_id = deopt_id;
       prev_token_pos = encoded_pos;
@@ -106,9 +106,9 @@ void CompressedStackMapsBuilder::AddEntry(intptr_t pc_offset,
   const uword pc_delta = pc_offset - last_pc_offset_;
   const uword non_spill_slot_bit_count =
       bitmap->Length() - spill_slot_bit_count;
-  encoded_bytes_.WriteUnsigned(pc_delta);
-  encoded_bytes_.WriteUnsigned(spill_slot_bit_count);
-  encoded_bytes_.WriteUnsigned(non_spill_slot_bit_count);
+  encoded_bytes_.WriteLEB128(pc_delta);
+  encoded_bytes_.WriteLEB128(spill_slot_bit_count);
+  encoded_bytes_.WriteLEB128(non_spill_slot_bit_count);
   bitmap->AppendAsBytesTo(&encoded_bytes_);
   last_pc_offset_ = pc_offset;
 }

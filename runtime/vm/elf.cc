@@ -1106,8 +1106,8 @@ class DwarfElfStream : public DwarfWriteStream {
         stream_(ASSERT_NOTNULL(stream)),
         table_(table) {}
 
-  void sleb128(intptr_t value) { stream_->Write(value); }
-  void uleb128(uintptr_t value) { stream_->WriteUnsigned(value); }
+  void sleb128(intptr_t value) { stream_->WriteSLEB128(value); }
+  void uleb128(uintptr_t value) { stream_->WriteLEB128(value); }
   void u1(uint8_t value) { stream_->WriteByte(value); }
   void u2(uint16_t value) { stream_->WriteFixed(value); }
   void u4(uint32_t value) { stream_->WriteFixed(value); }

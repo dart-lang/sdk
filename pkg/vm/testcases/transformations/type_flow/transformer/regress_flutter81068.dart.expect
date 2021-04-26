@@ -1,0 +1,30 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+abstract class A<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T*>*
+    : super core::Object::•()
+    ;
+}
+class B<T extends core::Object* = dynamic> extends self::A<core::String*> implements asy::Future<self::B::T*> {
+  synthetic constructor •() → self::B<self::B::T*>*
+    : super self::A::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method noSuchMethod(core::Invocation* i) → dynamic
+    return throw "Not implemented";
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  no-such-method-forwarder method then<R extends core::Object* = dynamic>((self::B::T*) →* FutureOr<self::B::then::R*>* onValue, {core::Function* onError = #C1}) → asy::Future<self::B::then::R*>*
+    return [@vm.direct-call.metadata=#lib::B.noSuchMethod] [@vm.inferred-type.metadata=! (skip check)] this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, core::List::unmodifiable<core::Type*>([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::Type*>] core::_GrowableList::_literal1<core::Type*>(self::B::then::R*)), core::List::unmodifiable<dynamic>([@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::_literal1<dynamic>(onValue)), [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol*, dynamic>] core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C3: onError}))) as{TypeError,ForDynamic} asy::Future<self::B::then::R*>*;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  no-such-method-forwarder method catchError(core::Function* onError, {[@vm.inferred-type.metadata=dart.core::Null? (value: null)] (core::Object*) →* core::bool* test = #C1}) → asy::Future<self::B::T*>*
+    return [@vm.direct-call.metadata=#lib::B.noSuchMethod] [@vm.inferred-type.metadata=! (skip check)] this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C4, 0, #C5, core::List::unmodifiable<dynamic>([@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::_literal1<dynamic>(onError)), [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol*, dynamic>] core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C6: test}))) as{TypeError,ForDynamic} asy::Future<self::B::T*>*;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  no-such-method-forwarder method whenComplete(() →* FutureOr<void>* action) → asy::Future<self::B::T*>*
+    return [@vm.direct-call.metadata=#lib::B.noSuchMethod] [@vm.inferred-type.metadata=! (skip check)] this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C5, core::List::unmodifiable<dynamic>([@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::_literal1<dynamic>(action)), [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol*, dynamic>] core::Map::unmodifiable<core::Symbol*, dynamic>(#C9))) as{TypeError,ForDynamic} asy::Future<self::B::T*>*;
+}
+static method createB<T extends core::Object* = dynamic>() → self::B<dynamic>*
+  return new self::B::•<self::createB::T*>();
+static method main() → void {
+  core::print([@vm.inferred-type.metadata=#lib::B<?>] self::createB<core::int*>() as FutureOr<core::double*>*);
+}
