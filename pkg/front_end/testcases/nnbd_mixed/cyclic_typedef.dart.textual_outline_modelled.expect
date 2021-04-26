@@ -1,3 +1,4 @@
+// @dart = 2.13
 import 'cyclic_typedef_lib.dart';
 
 class Hest2<TypeX extends Fisk2> {}

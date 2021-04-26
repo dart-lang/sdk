@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/issue34803.dart:5:9: Error: Type variables can't have generic function types in their bounds.
+// pkg/front_end/testcases/nnbd/issue34803.dart:7:9: Error: Type variables can't have generic function types in their bounds.
 // class A<X extends G<num>> {}
 //         ^
 //

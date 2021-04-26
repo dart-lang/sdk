@@ -2556,8 +2556,9 @@ AnnotationOnTypeArgument:
 
 AnnotationOnFunctionTypeTypeVariable:
   template: "A type variable on a function type can't have annotations."
-  script:
-    - "main() { Function<@Object() T>() x; }"
+  script: |
+     // @dart=2.13
+     main() { Function<@Object() T>() x; }
 
 ExpectedEnumBody:
   template: "Expected a enum body, but got '#lexeme'."
@@ -4013,6 +4014,7 @@ GenericFunctionTypeInBound:
   template: "Type variables can't have generic function types in their bounds."
   analyzerCode: GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND
   script: |
+    // @dart=2.13
     class Hest<X extends Y Function<Y>(Y)> {}
 
 VoidExpression:
@@ -4305,13 +4307,15 @@ GenericFunctionTypeUsedAsActualTypeArgument:
   tip: "Try using a non-generic function type."
   analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
   script:
-    - >-
+    - |
+      // @dart=2.13
       typedef F = Class<T> Function<T>(T);
       class Class<T> {}
       main() {
         Class<F> class1;
       }
-    - >-
+    - |
+      // @dart=2.13
       typedef F = Class<T> Function<T>(T);
       class Class<T> {}
       main() {
@@ -4322,7 +4326,8 @@ GenericFunctionTypeInferredAsActualTypeArgument:
   template: "Generic function type '#type' inferred as a type argument."
   tip: "Try providing a non-generic function type explicitly."
   analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
-  script:
+  script: |
+    // @dart=2.13
     foo<X>(X x) => null;
     bar<Y>(Y y) => null;
     main() { foo(bar); }

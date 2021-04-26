@@ -2,22 +2,22 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue45330.dart:10:31: Error: Type 'T' is a bound of itself via 'T'.
+// pkg/front_end/testcases/general/issue45330.dart:12:31: Error: Type 'T' is a bound of itself via 'T'.
 // Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
 //   genericMethod<void Function<T extends T>()>();
 //                               ^
 //
-// pkg/front_end/testcases/general/issue45330.dart:10:3: Error: A generic function type can't be used as a type argument.
+// pkg/front_end/testcases/general/issue45330.dart:12:3: Error: A generic function type can't be used as a type argument.
 // Try using a non-generic function type.
 //   genericMethod<void Function<T extends T>()>();
 //   ^
 //
-// pkg/front_end/testcases/general/issue45330_lib.dart:35:31: Error: Type 'T' is a bound of itself via 'T'.
+// pkg/front_end/testcases/general/issue45330_lib.dart:37:31: Error: Type 'T' is a bound of itself via 'T'.
 // Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
 //   genericMethod<void Function<T extends T>()>();
 //                               ^
 //
-// pkg/front_end/testcases/general/issue45330_lib.dart:35:3: Error: A generic function type can't be used as a type argument.
+// pkg/front_end/testcases/general/issue45330_lib.dart:37:3: Error: A generic function type can't be used as a type argument.
 // Try using a non-generic function type.
 //   genericMethod<void Function<T extends T>()>();
 //   ^
