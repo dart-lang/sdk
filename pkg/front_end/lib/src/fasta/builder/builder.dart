@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.declaration;
 
 import '../problems.dart' show unsupported;
@@ -12,7 +10,7 @@ abstract class Builder {
   /// Used when multiple things with the same name are declared within the same
   /// parent. Only used for top-level and class-member declarations, not for
   /// block scopes.
-  Builder next;
+  Builder? next;
 
   Builder get parent;
 
@@ -211,7 +209,7 @@ abstract class Builder {
 
 abstract class BuilderImpl implements Builder {
   @override
-  Builder next;
+  Builder? next;
 
   BuilderImpl();
 
