@@ -57,7 +57,6 @@ import '../messages.dart'
         templateCombinedMemberSignatureFailed,
         templateDuplicatedDeclaration,
         templateDuplicatedDeclarationCause,
-        templateDuplicatedDeclarationUse,
         templateMissingImplementationCause,
         templateMissingImplementationNotAbstract;
 
@@ -724,34 +723,9 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
         ?.getMember(this);
   }
 
-  Member getDispatchTargetKernel(Class cls, Name name, bool isSetter) {
-    ClassMember classMember =
-        getNodeFromClass(cls).getDispatchTarget(name, isSetter);
-    Member member = classMember?.getMember(this);
-    if (member != null && member.isAbstract) {
-      if (cls.superclass != null) {
-        return getDispatchTargetKernel(cls.superclass, name, isSetter);
-      } else {
-        return null;
-      }
-    }
-    return member;
-  }
-
-  Member getCombinedMemberSignatureKernel(Class cls, Name name, bool isSetter,
-      int charOffset, SourceLibraryBuilder library) {
-    ClassMember declaration =
-        getNodeFromClass(cls).getInterfaceMember(name, isSetter);
-    if (declaration?.isStatic ?? true) return null;
-    if (declaration.isDuplicate) {
-      library?.addProblem(
-          templateDuplicatedDeclarationUse.withArguments(name.text),
-          charOffset,
-          name.text.length,
-          library.fileUri);
-      return null;
-    }
-    return declaration.getMember(this);
+  ClassMember getInterfaceClassMember(Class cls, Name name,
+      {bool setter: false}) {
+    return getNodeFromClass(cls).getInterfaceMember(name, setter);
   }
 
   static ClassHierarchyBuilder build(ClassBuilder objectClass,

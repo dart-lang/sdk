@@ -23,4 +23,8 @@ int singleCatchFn2() {}
 const typeExample = int;
 const typeVar = typeFn();
 Type typeFn() {}
+const getWithIndexVar = getWithIndexFn();
+int getWithIndexFn() {}
+const rangeErrorCatchVar = rangeErrorCatchFn();
+int rangeErrorCatchFn() {}
 void main() {}

@@ -17,6 +17,8 @@ static const field core::int singleCatchVar = #C2;
 static const field core::int singleCatchVar2 = #C2;
 static const field core::Type typeExample = #C6;
 static const field core::Type typeVar = #C6;
+static const field core::int getWithIndexVar = #C1;
+static const field core::int rangeErrorCatchVar = #C2;
 static method firstFn() → core::int {
   return (#C7).{core::Iterable::first};
 }
@@ -74,6 +76,18 @@ static method singleCatchFn2() → core::int {
 static method typeFn() → core::Type {
   return (#C7).{core::Object::runtimeType};
 }
+static method getWithIndexFn() → core::int {
+  return (#C9).{core::List::[]}(0);
+}
+static method rangeErrorCatchFn() → core::int {
+  try {
+    core::int v = (#C9).{core::List::[]}(1);
+  }
+  on core::RangeError catch(no-exception-var) {
+    return 0;
+  }
+  return 1;
+}
 static method main() → void {
   exp::Expect::equals(#C1, 1);
   exp::Expect::equals(#C2, 0);
@@ -86,6 +100,8 @@ static method main() → void {
   exp::Expect::equals(#C2, 0);
   exp::Expect::equals(#C2, 0);
   exp::Expect::equals(#C6, #C6);
+  exp::Expect::equals(#C1, 1);
+  exp::Expect::equals(#C2, 0);
 }
 
 constants  {

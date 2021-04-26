@@ -81,8 +81,6 @@ part of _fe_analyzer_shared.messages.codes;
   cfeMessages.writeln(preamble1);
   cfeMessages.writeln("""
 
-// @dart = 2.9
-
 """);
   cfeMessages.writeln(preamble2);
   cfeMessages.writeln("""

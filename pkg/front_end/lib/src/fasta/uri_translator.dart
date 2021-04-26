@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.uri_translator;
 
 import 'package:package_config/package_config.dart';
@@ -19,7 +17,7 @@ class UriTranslator {
 
   UriTranslator(this.dartLibraries, this.packages);
 
-  List<Uri> getDartPatches(String libraryName) =>
+  List<Uri>? getDartPatches(String libraryName) =>
       dartLibraries.libraryInfoFor(libraryName)?.patches;
 
   bool isPlatformImplementation(Uri uri) {
@@ -31,7 +29,7 @@ class UriTranslator {
   // TODO(sigmund, ahe): consider expanding this API to include an error
   // callback, so we can provide an error location when one is available. For
   // example, if the error occurs in an `import`.
-  Uri translate(Uri uri, [bool reportMessage = true]) {
+  Uri? translate(Uri uri, [bool reportMessage = true]) {
     if (uri.scheme == "dart") return _translateDartUri(uri);
     if (uri.scheme == "package") {
       return _translatePackageUri(uri, reportMessage);
@@ -40,7 +38,8 @@ class UriTranslator {
   }
 
   /// For a package uri, get the corresponding [Package].
-  Package getPackage(Uri uri) {
+  Package? getPackage(Uri uri) {
+    // ignore: unnecessary_null_comparison
     if (packages == null) return null;
     if (uri.scheme != "package") return null;
     int firstSlash = uri.path.indexOf('/');
@@ -55,16 +54,16 @@ class UriTranslator {
     return dartLibraries.libraryInfoFor(libraryName)?.isSupported ?? true;
   }
 
-  Uri _translateDartUri(Uri uri) {
+  Uri? _translateDartUri(Uri uri) {
     if (!uri.isScheme('dart')) return null;
     return dartLibraries.libraryInfoFor(uri.path)?.uri;
   }
 
-  Uri _translatePackageUri(Uri uri, bool reportMessage) {
+  Uri? _translatePackageUri(Uri uri, bool reportMessage) {
     try {
       // TODO(sigmund): once we remove the `parse` API, we can ensure that
       // packages will never be null and get rid of `?` below.
-      Uri translated = packages?.resolve(uri);
+      Uri? translated = packages.resolve(uri);
       if (translated == null) {
         return (reportMessage
             ? _packageUriNotFound
@@ -82,7 +81,7 @@ class UriTranslator {
     }
   }
 
-  static Uri _packageUriNotFound(Uri uri) {
+  static Uri? _packageUriNotFound(Uri uri) {
     String name = uri.pathSegments.first;
     CompilerContext.current.reportWithoutLocation(
         templatePackageNotFound.withArguments(name, uri), Severity.error);
@@ -92,7 +91,7 @@ class UriTranslator {
     return null;
   }
 
-  static Uri _packageUriNotFoundNoReport(Uri uri) {
+  static Uri? _packageUriNotFoundNoReport(Uri uri) {
     return null;
   }
 }

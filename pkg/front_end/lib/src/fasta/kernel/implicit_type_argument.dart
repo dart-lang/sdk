@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 library fasta.implicit_type_argument;
 
 import 'package:kernel/ast.dart'
@@ -35,11 +33,11 @@ class ImplicitTypeArgument extends DartType {
 
   @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
-    throw unhandled("$runtimeType", "${v.runtimeType}", -1, null);
+    return unhandled("$runtimeType", "${v.runtimeType}", -1, null);
   }
 
   @override
-  visitChildren(Visitor<Object> v) {
+  visitChildren(Visitor v) {
     unhandled("$runtimeType", "${v.runtimeType}", -1, null);
   }
 
@@ -54,7 +52,7 @@ class ImplicitTypeArgument extends DartType {
   }
 
   @override
-  bool equals(Object other, Assumptions assumptions) => this == other;
+  bool equals(Object other, Assumptions? assumptions) => this == other;
 
   @override
   void toTextInternal(AstPrinter printer) {

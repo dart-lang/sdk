@@ -3302,6 +3302,21 @@ Definition* UnboxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
 Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return NULL;
 
+  // Fold IntConverter({Unboxed}Constant(...)) to UnboxedConstant.
+  if (auto constant = value()->definition()->AsConstant()) {
+    if (from() != kUntagged && to() != kUntagged &&
+        constant->representation() == from() && constant->value().IsInteger()) {
+      const int64_t value = Integer::Cast(constant->value()).AsInt64Value();
+      const int64_t result =
+          Evaluator::TruncateTo(Evaluator::TruncateTo(value, from()), to());
+      if (is_truncating() || (value == result)) {
+        auto& box = Integer::Handle(Integer::New(result, Heap::kOld));
+        box ^= box.Canonicalize(flow_graph->thread());
+        return flow_graph->GetConstant(box, to());
+      }
+    }
+  }
+
   IntConverterInstr* box_defn = value()->definition()->AsIntConverter();
   if ((box_defn != NULL) && (box_defn->representation() == from())) {
     // If the first convertion can erase bits (or deoptimize) we can't

@@ -845,6 +845,8 @@ void BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(
     f->AddString(" {");
     for (intptr_t i = 0; i < defns.length(); ++i) {
       Definition* def = defns[i];
+      // Skip constants which are not used in the graph.
+      if (def->IsConstant() && !def->HasUses()) continue;
       f->AddString("\n      ");
       def->PrintTo(f);
     }

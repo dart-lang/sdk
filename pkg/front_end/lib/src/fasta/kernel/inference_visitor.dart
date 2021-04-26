@@ -67,7 +67,6 @@ class InferenceVisitor
       Expression node, DartType typeContext) {
     unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
-    return new ExpressionInferenceResult(const InvalidType(), node);
   }
 
   @override

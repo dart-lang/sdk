@@ -2075,6 +2075,18 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
   }
 
+  /// Converts integer constant types to an int value.
+  ///
+  /// Returns [null] on unmatched [intFolder] and [value] type.
+  int _convertToInt(Constant value) {
+    if (intFolder is JsConstantIntFolder && value is DoubleConstant) {
+      return value.value.toInt();
+    } else if (intFolder is VmConstantIntFolder && value is IntConstant) {
+      return value.value;
+    }
+    return null;
+  }
+
   Constant _handleInvocation(
       Expression node, Name name, Constant receiver, List<Constant> arguments) {
     final String op = name.text;
@@ -2107,12 +2119,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           case '[]':
             if (enableConstFunctions) {
               if (intFolder.isInt(other)) {
-                int index;
-                if (intFolder is JsConstantIntFolder) {
-                  index = (other as DoubleConstant).value.toInt();
-                } else if (intFolder is VmConstantIntFolder) {
-                  index = (other as IntConstant).value;
-                }
+                int index = _convertToInt(other);
                 assert(index != null);
 
                 if (index < 0 || index >= receiver.value.length) {
@@ -2218,6 +2225,31 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       }
     } else if (receiver is NullConstant) {
       return createErrorConstant(node, messageConstEvalNullValue);
+    } else if (receiver is ListConstant && enableConstFunctions) {
+      if (arguments.length == 1) {
+        final Constant other = arguments[0];
+        switch (op) {
+          case '[]':
+            if (intFolder.isInt(other)) {
+              int index = _convertToInt(other);
+              assert(index != null);
+
+              if (index < 0 || index >= receiver.entries.length) {
+                return new _AbortDueToThrowConstant(
+                    node, new RangeError.index(index, receiver.entries));
+              }
+              return receiver.entries[index];
+            }
+            return createErrorConstant(
+                node,
+                templateConstEvalInvalidBinaryOperandType.withArguments(
+                    '[]',
+                    receiver,
+                    typeEnvironment.coreTypes.intNonNullableRawType,
+                    other.getType(_staticTypeContext),
+                    isNonNullableByDefault));
+        }
+      }
     } else if (receiver is MapConstant && enableConstFunctions) {
       if (arguments.length == 1) {
         final Constant other = arguments[0];

@@ -11,11 +11,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
-
-import 'package:front_end/src/fasta/kernel/internal_ast.dart';
-import 'package:front_end/src/fasta/type_inference/type_demotion.dart';
-import 'package:front_end/src/testing/id_extractor.dart';
-import 'package:front_end/src/testing/id_testing_utils.dart';
+import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -35,16 +31,19 @@ import '../../base/instrumentation.dart'
 
 import '../../base/nnbd_mode.dart';
 
+import '../../testing/id_extractor.dart';
+import '../../testing/id_testing_utils.dart';
+
 import '../builder/constructor_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/member_builder.dart';
 
 import '../fasta_codes.dart';
 
+import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/inference_visitor.dart';
-
+import '../kernel/internal_ast.dart';
 import '../kernel/invalid_type.dart';
-
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 
 import '../names.dart';
@@ -54,15 +53,11 @@ import '../problems.dart' show internalProblem, unexpected, unhandled;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'inference_helper.dart' show InferenceHelper;
-
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
-
+import 'type_demotion.dart';
 import 'type_inference_engine.dart';
-
 import 'type_schema.dart' show isKnown, UnknownType;
-
 import 'type_schema_elimination.dart' show greatestClosure;
-
 import 'type_schema_environment.dart'
     show
         getNamedParameterType,
@@ -4045,10 +4040,26 @@ class TypeInferrerImpl implements TypeInferrer {
 
   Member _getInterfaceMember(
       Class class_, Name name, bool setter, int charOffset) {
-    Member member = engine.hierarchyBuilder.getCombinedMemberSignatureKernel(
-        class_, name, setter, charOffset, library);
+    ClassMember classMember = engine.hierarchyBuilder
+        .getInterfaceClassMember(class_, name, setter: setter);
+    if (classMember != null) {
+      if (classMember.isStatic) {
+        classMember = null;
+      } else if (classMember.isDuplicate) {
+        if (!isTopLevel) {
+          library.addProblem(
+              templateDuplicatedDeclarationUse.withArguments(name.text),
+              charOffset,
+              name.text.length,
+              helper.uri);
+        }
+        classMember = null;
+      }
+    }
+    Member member = classMember?.getMember(engine.hierarchyBuilder);
     if (member == null && library.isPatch) {
-      // TODO(dmitryas): Hack for parts.
+      // TODO(johnniwinther): Injected members are currently not included
+      // in the class hierarchy builder.
       member ??=
           classHierarchy.getInterfaceMember(class_, name, setter: setter);
     }

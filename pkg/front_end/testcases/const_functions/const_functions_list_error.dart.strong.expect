@@ -8,6 +8,10 @@ library /*isNonNullableByDefault*/;
 //   return x.invalidProperty;
 //            ^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:54:12: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//   return x[0.1];
+//            ^
+//
 // pkg/front_end/testcases/const_functions/const_functions_list_error.dart:9:24: Error: Constant evaluation error:
 // const firstException = firstExceptionFn();
 //                        ^
@@ -36,6 +40,20 @@ library /*isNonNullableByDefault*/;
 //   return x.single;
 //            ^
 //
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:39:31: Error: Constant evaluation error:
+// const getWithIndexException = getWithIndexExceptionFn();
+//                               ^
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:42:11: Context: Unhandled core exception: RangeError: Index out of range: index should be less than 1: 1
+//   return x[1];
+//           ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:45:32: Error: Constant evaluation error:
+// const getWithIndexException2 = getWithIndexExceptionFn2();
+//                                ^
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:48:11: Context: Unhandled core exception: RangeError: Index out of range: index must not be negative: -1
+//   return x[-1];
+//           ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -50,6 +68,11 @@ static const field core::int invalidProperty = invalid-expression "pkg/front_end
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'invalidProperty'.
   return x.invalidProperty;
            ^^^^^^^^^^^^^^^";
+static const field core::int getWithIndexException = invalid-expression "Unhandled core exception: RangeError: Index out of range: index should be less than 1: 1";
+static const field core::int getWithIndexException2 = invalid-expression "Unhandled core exception: RangeError: Index out of range: index must not be negative: -1";
+static const field core::int getWithIndexException3 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_list_error.dart:54:12: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+  return x[0.1];
+           ^";
 static method firstExceptionFn() → core::int {
   return (#C1).{core::Iterable::first};
 }
@@ -69,6 +92,17 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   return x.invalidProperty;
            ^^^^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
 }
+static method getWithIndexExceptionFn() → core::int {
+  return (#C5).{core::List::[]}(1);
+}
+static method getWithIndexExceptionFn2() → core::int {
+  return (#C5).{core::List::[]}(1.{core::int::unary-}());
+}
+static method getWithIndexExceptionFn3() → core::int {
+  return (#C5).{core::List::[]}(let final Never #t1 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_list_error.dart:54:12: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+  return x[0.1];
+           ^" in 0.1 as{TypeError,ForNonNullableByDefault} core::int);
+}
 static method main() → void {}
 
 constants  {
@@ -76,4 +110,5 @@ constants  {
   #C2 = 1
   #C3 = 2
   #C4 = <core::int>[#C2, #C3]
+  #C5 = <core::int>[#C2]
 }

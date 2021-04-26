@@ -2723,7 +2723,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     } else {
       unhandled("${declaration.runtimeType}", "buildBuilder",
           declaration.charOffset, declaration.fileUri);
-      return;
     }
   }
 
