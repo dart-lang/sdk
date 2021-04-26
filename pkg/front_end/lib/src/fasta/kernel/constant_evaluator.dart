@@ -1207,7 +1207,10 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (env.isEmpty) {
       // We only try to evaluate the same [node] *once* within an empty
       // environment.
-      if (nodeCache.containsKey(node)) {
+      // For const functions, recompute getters instead of using the cached
+      // value.
+      bool isGetter = node is InstanceGet || node is PropertyGet;
+      if (nodeCache.containsKey(node) && !(enableConstFunctions && isGetter)) {
         result = nodeCache[node];
         if (result == null) {
           // [null] is a sentinel value only used when still evaluating the same
@@ -2088,8 +2091,16 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 
   Constant _handleInvocation(
-      Expression node, Name name, Constant receiver, List<Constant> arguments) {
+      Expression node, Name name, Constant receiver, List<Constant> arguments,
+      {List<DartType> typeArguments, Map<String, Constant> namedArguments}) {
     final String op = name.text;
+
+    // TODO(kallentu): Handle all constant toString methods.
+    if (receiver is PrimitiveConstant &&
+        op == 'toString' &&
+        enableConstFunctions) {
+      return new StringConstant(receiver.value.toString());
+    }
 
     // Handle == and != first (it's common between all types). Since `a != b` is
     // parsed as `!(a == b)` it is handled implicitly through ==.
@@ -2262,31 +2273,38 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         }
       }
     } else if (receiver is InstanceConstant && enableConstFunctions) {
-      if (arguments.length == 1) {
-        final Constant other = arguments[0];
-        if (receiver.classNode.name == '_ImmutableMap') {
-          switch (op) {
-            case '[]':
-              final ListConstant values = receiver.fieldValues.entries
-                  .firstWhere(
-                      (entry) => entry.key.canonicalName.name == '_kvPairs',
-                      orElse: () => null)
-                  .value;
-              assert(values != null);
+      final Class instanceClass = receiver.classNode;
+      assert(typeEnvironment.hierarchy is ClassHierarchy);
+      final Member member = (typeEnvironment.hierarchy as ClassHierarchy)
+          .getDispatchTarget(instanceClass, name);
+      final FunctionNode function = member.function;
 
-              // Each i index element in [values] is a key whose value is the
-              // i+1 index element.
-              int keyIndex = values.entries.indexOf(other);
-              if (keyIndex != -1) {
-                int valueIndex = keyIndex + 1;
-                assert(valueIndex != values.entries.length);
-                return values.entries[valueIndex];
-              } else {
-                // Null value if key is not in the map.
-                return new NullConstant();
-              }
+      // TODO(kallentu): Implement [Object] class methods which have backend
+      // specific functions that cannot be run by the constant evaluator.
+      final bool isObjectMember = member.enclosingClass != null &&
+          member.enclosingClass.name == "Object";
+      if (function != null && !isObjectMember) {
+        return withNewInstanceBuilder(instanceClass, typeArguments, () {
+          final EvaluationEnvironment newEnv = new EvaluationEnvironment();
+          for (int i = 0; i < instanceClass.typeParameters.length; i++) {
+            newEnv.addTypeParameterValue(
+                instanceClass.typeParameters[i], receiver.typeArguments[i]);
           }
-        }
+
+          // Ensure that fields are visible for instance access.
+          receiver.fieldValues.forEach((Reference fieldRef, Constant value) =>
+              instanceBuilder.setFieldValue(fieldRef.asField, value));
+          return _handleFunctionInvocation(
+              function, receiver.typeArguments, arguments, namedArguments,
+              functionEnvironment: newEnv);
+        });
+      }
+
+      switch (op) {
+        case 'toString':
+          // Default value for toString() of instances.
+          return new StringConstant(
+              "Instance of '${receiver.classReference.toStringInternal()}'");
       }
     }
 
@@ -2324,7 +2342,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     assert(_gotError == null);
     assert(arguments != null);
 
-    if (enableConstFunctions && receiver is FunctionValue) {
+    if (enableConstFunctions) {
       // Evaluate type arguments of the method invoked.
       List<DartType> types = _evaluateTypeArguments(node, node.arguments);
       if (types == null && _gotError != null) {
@@ -2346,9 +2364,14 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       assert(_gotError == null);
       assert(named != null);
 
-      return _handleFunctionInvocation(
-          receiver.function, types, arguments, named,
-          functionEnvironment: receiver.environment);
+      if (receiver is FunctionValue) {
+        return _handleFunctionInvocation(
+            receiver.function, types, arguments, named,
+            functionEnvironment: receiver.environment);
+      }
+
+      return _handleInvocation(node, node.name, receiver, arguments,
+          typeArguments: types, namedArguments: named);
     }
 
     if (shouldBeUnevaluated) {
@@ -3940,8 +3963,13 @@ class EvaluationEnvironment {
   }
 
   DartType substituteType(DartType type) {
-    if (_typeVariables.isEmpty) return type;
-    return substitute(type, _typeVariables);
+    if (_typeVariables.isEmpty) return _parent?.substituteType(type) ?? type;
+    final DartType substitutedType = substitute(type, _typeVariables);
+    if (identical(substitutedType, type) && _parent != null) {
+      // No distinct type created, substitute type in parent.
+      return _parent.substituteType(type);
+    }
+    return substitutedType;
   }
 }
 
