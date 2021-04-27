@@ -159,6 +159,11 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
             (options != null ? options['name'] : null) ?? 'NewWidget';
         return success(refactor);
 
+      case RefactoringKind.INLINE_LOCAL_VARIABLE:
+        final refactor =
+            InlineLocalRefactoring(server.searchEngine, result, offset);
+        return success(refactor);
+
       default:
         return error(ServerErrorCodes.InvalidCommandArguments,
             'Unknown RefactoringKind $kind was supplied to $commandName');

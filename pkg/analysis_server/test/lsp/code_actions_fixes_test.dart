@@ -374,10 +374,8 @@ void f(String a) {
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final caretPos = positionFromMarker(content);
-
     final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: Range(start: caretPos, end: caretPos));
+        position: positionFromMarker(content));
     final removeNnaAction = findEditActions(codeActions,
         CodeActionKind('quickfix.remove.nonNullAssertion'), "Remove the '!'");
 

@@ -210,6 +210,10 @@ abstract class InlineLocalRefactoring implements Refactoring {
 
   /// Returns the name of the variable being inlined.
   String? get variableName;
+
+  /// Return `true` if refactoring is available, possibly without checking all
+  /// initial conditions.
+  bool isAvailable();
 }
 
 /// [Refactoring] to inline an [ExecutableElement].

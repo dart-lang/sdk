@@ -18,6 +18,7 @@ void main() {
     defineReflectiveTests(ExtractMethodRefactorCodeActionsTest);
     defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
     defineReflectiveTests(ExtractVariableRefactorCodeActionsTest);
+    defineReflectiveTests(InlineLocalVariableRefactorCodeActionsTest);
   });
 }
 
@@ -508,5 +509,39 @@ main() {}
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractWidgetTitle);
     expect(codeAction, isNull);
+  }
+}
+
+@reflectiveTest
+class InlineLocalVariableRefactorCodeActionsTest
+    extends AbstractCodeActionsTest {
+  final extractVariableTitle = 'Inline Local Variable';
+
+  Future<void> test_appliesCorrectEdits() async {
+    const content = '''
+void main() {
+  var a^ = 1;
+  print(a);
+  print(a);
+  print(a);
+}
+    ''';
+    const expectedContent = '''
+void main() {
+  print(1);
+  print(1);
+  print(1);
+}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, extractVariableTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
   }
 }

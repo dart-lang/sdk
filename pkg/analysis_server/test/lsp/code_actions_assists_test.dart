@@ -176,9 +176,8 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
       },
     );
 
-    final marker = positionFromMarker(content);
     final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: Range(start: marker, end: marker));
+        position: positionFromMarker(content));
     final assist = findEditAction(
         codeActions,
         CodeActionKind('refactor.flutter.wrap.generic'),
@@ -238,9 +237,8 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
     );
 
-    final marker = positionFromMarker(content);
     final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: Range(start: marker, end: marker));
+        position: positionFromMarker(content));
     final assist = findEditAction(
         codeActions,
         CodeActionKind('refactor.flutter.wrap.generic'),

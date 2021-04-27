@@ -164,6 +164,26 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     return Future.value(change);
   }
 
+  @override
+  bool isAvailable() {
+    return !_checkOffset().hasFatalError;
+  }
+
+  /// Checks if [offset] is a variable that can be inlined.
+  RefactoringStatus _checkOffset() {
+    var offsetNode = NodeLocator(offset).searchWithin(resolveResult.unit);
+    if (offsetNode is! SimpleIdentifier) {
+      return _noLocalVariableStatus();
+    }
+
+    var element = offsetNode.staticElement;
+    if (element is! LocalVariableElement) {
+      return _noLocalVariableStatus();
+    }
+
+    return RefactoringStatus();
+  }
+
   RefactoringStatus _noLocalVariableStatus() {
     return RefactoringStatus.fatal(
       'Local variable declaration or reference must be selected '

@@ -39,10 +39,6 @@ const dartLanguageId = 'dart';
 /// communication to be printed to stdout.
 const debugPrintCommunication = false;
 
-final beginningOfDocument = Range(
-    start: Position(line: 0, character: 0),
-    end: Position(line: 0, character: 0));
-
 abstract class AbstractLspAnalysisServerTest
     with
         ResourceProviderMixin,
@@ -957,13 +953,17 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<List<Either2<Command, CodeAction>>> getCodeActions(
     String fileUri, {
     Range? range,
+    Position? position,
     List<CodeActionKind>? kinds,
   }) {
+    range ??= position != null
+        ? Range(start: position, end: position)
+        : startOfDocRange;
     final request = makeRequest(
       Method.textDocument_codeAction,
       CodeActionParams(
         textDocument: TextDocumentIdentifier(uri: fileUri),
-        range: range ?? beginningOfDocument,
+        range: range,
         // TODO(dantup): We may need to revise the tests/implementation when
         // it's clear how we're supposed to handle diagnostics:
         // https://github.com/Microsoft/language-server-protocol/issues/583
