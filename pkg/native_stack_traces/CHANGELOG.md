@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.2
+
+- When decoding a stack trace, frames corresponding to the functions
+  with DW_AT_artificial DWARF attribute are now omitted from the symbolized
+  stack traces. This is needed because Dart VM no longer omits invisible
+  functions from binary stack traces in certain cases.
+
 ## 0.4.1
 
 - Exported some ELF utilities in lib/elf.dart for use in Dart tests.

@@ -259,6 +259,8 @@ void Dwarf::WriteAbbreviations(DwarfWriteStream* stream) {
   stream->uleb128(DW_FORM_addr);
   stream->uleb128(DW_AT_high_pc);
   stream->uleb128(DW_FORM_addr);
+  stream->uleb128(DW_AT_artificial);
+  stream->uleb128(DW_FORM_flag);
   stream->uleb128(0);
   stream->uleb128(0);  // End of attributes.
 
@@ -388,6 +390,8 @@ void Dwarf::WriteConcreteFunctions(DwarfWriteStream* stream) {
     stream->OffsetFromSymbol(asm_name, 0);
     // DW_AT_high_pc
     stream->OffsetFromSymbol(asm_name, code.Size());
+    // DW_AT_artificial
+    stream->u1(function.is_visible() ? 0 : 1);
 
     InliningNode* node = ExpandInliningTree(code);
     if (node != NULL) {
