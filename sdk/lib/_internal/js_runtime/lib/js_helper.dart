@@ -2736,7 +2736,7 @@ Future<Null> loadDeferredLibrary(String loadId) {
       waitingForLoad[i] = false;
       return new Future.value();
     }
-    return _loadHunk(uris[i]).then((Null _) {
+    return _loadHunk(uris[i], loadId).then((Null _) {
       waitingForLoad[i] = false;
       initializeSomeLoadedHunks();
     });
@@ -2833,7 +2833,7 @@ String _computeThisScriptFromTrace() {
   throw new UnsupportedError('Cannot extract URI from "$stack"');
 }
 
-Future<Null> _loadHunk(String hunkName) {
+Future<Null> _loadHunk(String hunkName, String loadId) {
   var future = _loadingLibraries[hunkName];
   _eventLog.add(' - _loadHunk: $hunkName');
   if (future != null) {
@@ -2873,8 +2873,10 @@ Future<Null> _loadHunk(String hunkName) {
 
   if (JS('bool', 'typeof # === "function"', deferredLibraryLoader)) {
     try {
-      JS('void', '#(#, #, #)', deferredLibraryLoader, uri, jsSuccess,
-          jsFailure);
+      // Share the loadId that hunk belongs to, this will allow for any
+      // additional loadId based bundling optimizations.
+      JS('void', '#(#, #, #, #)', deferredLibraryLoader, uri, jsSuccess,
+          jsFailure, loadId);
     } catch (error, stackTrace) {
       failure(error, "invoking dartDeferredLibraryLoader hook", stackTrace);
     }
