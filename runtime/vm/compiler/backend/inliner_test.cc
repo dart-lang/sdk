@@ -220,11 +220,6 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
       kMoveGlob,
       kMatchAndMoveCreateArray,
       kMatchAndMoveUnboxInt64,
-#if defined(TARGET_ARCH_IS_32_BIT)
-      // TODO(rmacnak): Implement missing ops to allow 32-bit architectures in
-      // UnboxInt64Instr::Canonicalize.
-      kMatchAndMoveUnboxInt64,
-#endif
       kMatchAndMoveGoto,
 
       // Loop header

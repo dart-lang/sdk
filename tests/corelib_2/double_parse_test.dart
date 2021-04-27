@@ -4,6 +4,8 @@
 // VMOptions=--no-use-field-guards
 // VMOptions=
 
+// @dart = 2.9
+
 import "dart:math" show pow;
 import "package:expect/expect.dart";
 

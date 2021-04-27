@@ -6,6 +6,8 @@
 //
 // VMOptions=--deterministic --optimization-counter-threshold=5 --use-slow-path --stacktrace-every=100
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import "package:expect/expect.dart";

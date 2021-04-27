@@ -4,6 +4,8 @@
 // Test that BoxAllocationSlowPath for Mint emits stackmap in unoptimized code.
 // VMOptions=--inline_alloc=false
 
+// @dart = 2.9
+
 main() {
   var re = new RegExp(r"IsolateStubs (.*)");
   return re.firstMatch("oooo");

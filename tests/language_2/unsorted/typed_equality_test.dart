@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for http://dartbug.com/6036. dart2js used to fail
 // this method because it was computing that intersecting type D with
 // type C is conflicting.

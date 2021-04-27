@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that const objects (including literals) are immutable.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A {

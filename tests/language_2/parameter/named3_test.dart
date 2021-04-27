@@ -4,6 +4,8 @@
 // Dart test program for testing named parameters.
 // Specifying named argument for not existing named parameter is run time error.
 
+// @dart = 2.9
+
 int test(int a, [int b]) {
   return a;
 }

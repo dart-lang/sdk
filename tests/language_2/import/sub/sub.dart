@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 library sub;
 
 import '../cyclic_test.dart';

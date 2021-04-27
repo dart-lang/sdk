@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This test checks for a regression found in Dart Editor: the
 // analyzer was treating [Type] as more specific than any type
 // variable (generic parameter).

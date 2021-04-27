@@ -4,6 +4,8 @@
 //
 // A type mismatch in a list literal is a compile-time error
 
+// @dart = 2.9
+
 main() {
   var m = const
       <String>

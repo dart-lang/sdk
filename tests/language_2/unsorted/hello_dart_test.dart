@@ -5,6 +5,8 @@
 // compile all code that is loaded in the isolate.
 // VMOptions=--compile_all
 
+// @dart = 2.9
+
 class HelloDartTest {
   static testMain() {
     print("Hello, Darter!");

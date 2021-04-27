@@ -4,6 +4,8 @@
 //
 // dart2jsOptions=-Ddart2js.testing.String.replaceAll.force.regexp=true
 
+// @dart = 2.9
+
 import "string_replace_all_test.dart" as base;
 
 main() {

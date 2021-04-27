@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Verify that the ?. operator cannot be used for forwarding "this"
 // constructors.
 
@@ -15,15 +17,13 @@ class B {
     : this?.namedConstructor()
     //^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_REFERENCE_TO_THIS
-    // [cfe] Expected an assignment after the field name.
-    //^^^^
     // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNMENT_IN_INITIALIZER
     //^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INITIALIZER_FOR_NON_EXISTENT_FIELD
-    // [error line 15, column 11, length 0]
-    // [cfe] Expected '.' before this.
+    // [cfe] Expected an assignment after the field name.
     //    ^^
     // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+    // [cfe] Expected '.' before this.
     // [cfe] Expected an identifier, but got ''.
   ;
 

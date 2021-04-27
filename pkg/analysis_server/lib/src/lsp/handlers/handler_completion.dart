@@ -357,11 +357,15 @@ class CompletionHandler
               final key = _createImportedSymbolKey(nameKey, declaringUri);
               final importingUris = alreadyImportedSymbols[key];
 
-              // Keep it only if there are either:
-              // - no URIs importing it
-              // - the URIs importing it include this one
+              // Keep it only if:
+              // - no existing imports include it
+              //     (in which case all libraries will be offered as
+              //     auto-imports)
+              // - this is the first imported URI that includes it
+              //     (we don't want to repeat it for each imported library that
+              //     includes it)
               return importingUris == null ||
-                  importingUris.contains('${library.uri}');
+                  importingUris.first == '${library.uri}';
             }).map((item) => declarationToCompletionItem(
                       capabilities,
                       unit.path!,

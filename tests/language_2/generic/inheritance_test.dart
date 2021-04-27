@@ -5,6 +5,8 @@
 // Test verifying that the type argument vector of subclasses are properly
 // initialized by the class finalizer.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class A<T> {

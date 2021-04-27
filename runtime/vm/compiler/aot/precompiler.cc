@@ -359,8 +359,6 @@ Precompiler::Precompiler(Thread* thread)
       pending_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New())),
       sent_selectors_(),
-      entry_point_functions_(
-          HashTables::New<FunctionSet>(/*initial_capacity=*/128)),
       functions_called_dynamically_(
           HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
       seen_functions_(HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
@@ -384,7 +382,6 @@ Precompiler::Precompiler(Thread* thread)
 
 Precompiler::~Precompiler() {
   // We have to call Release() in DEBUG mode.
-  entry_point_functions_.Release();
   functions_called_dynamically_.Release();
   seen_functions_.Release();
   possibly_retained_functions_.Release();
@@ -1464,7 +1461,6 @@ void Precompiler::AddAnnotatedRoots() {
           if (type == EntryPointPragma::kAlways ||
               type == EntryPointPragma::kCallOnly) {
             AddFunction(function, RetainReasons::kEntryPointPragma);
-            entry_point_functions_.Insert(function);
           }
 
           if ((type == EntryPointPragma::kAlways ||
@@ -1473,12 +1469,10 @@ void Precompiler::AddAnnotatedRoots() {
               !function.IsSetterFunction()) {
             function2 = function.ImplicitClosureFunction();
             AddFunction(function2, RetainReasons::kEntryPointPragma);
-            entry_point_functions_.Insert(function2);
           }
 
           if (function.IsGenerativeConstructor()) {
             AddInstantiatedClass(cls);
-            entry_point_functions_.Insert(function);
           }
         }
         if (function.kind() == UntaggedFunction::kImplicitGetter &&
@@ -1487,7 +1481,6 @@ void Precompiler::AddAnnotatedRoots() {
             field ^= implicit_getters.At(i);
             if (function.accessor_field() == field.ptr()) {
               AddFunction(function, RetainReasons::kImplicitGetter);
-              entry_point_functions_.Insert(function);
             }
           }
         }
@@ -1497,7 +1490,6 @@ void Precompiler::AddAnnotatedRoots() {
             field ^= implicit_setters.At(i);
             if (function.accessor_field() == field.ptr()) {
               AddFunction(function, RetainReasons::kImplicitSetter);
-              entry_point_functions_.Insert(function);
             }
           }
         }
@@ -1507,7 +1499,6 @@ void Precompiler::AddAnnotatedRoots() {
             field ^= implicit_static_getters.At(i);
             if (function.accessor_field() == field.ptr()) {
               AddFunction(function, RetainReasons::kImplicitStaticGetter);
-              entry_point_functions_.Insert(function);
             }
           }
         }
@@ -2717,7 +2708,6 @@ void Precompiler::DiscardCodeObjects() {
    public:
     DiscardCodeVisitor(Zone* zone,
                        const FunctionSet& functions_to_retain,
-                       const FunctionSet& entry_point_functions,
                        const FunctionSet& functions_called_dynamically)
         : zone_(zone),
           function_(Function::Handle(zone)),
@@ -2730,7 +2720,6 @@ void Precompiler::DiscardCodeObjects() {
           targets_of_calls_via_code_(
               GrowableObjectArray::Handle(zone, GrowableObjectArray::New())),
           functions_to_retain_(functions_to_retain),
-          entry_point_functions_(entry_point_functions),
           functions_called_dynamically_(functions_called_dynamically) {}
 
     // Certain static calls (e.g. between different loading units) are
@@ -2794,12 +2783,6 @@ void Precompiler::DiscardCodeObjects() {
           return;
         }
 
-        // Retain Code objects for entry points.
-        if (entry_point_functions_.ContainsKey(function_)) {
-          ++codes_with_entry_point_function_;
-          return;
-        }
-
         // Retain Code objects corresponding to dynamically
         // called functions.
         if (functions_called_dynamically_.ContainsKey(function_)) {
@@ -2807,7 +2790,6 @@ void Precompiler::DiscardCodeObjects() {
           return;
         }
       } else {
-        ASSERT(!entry_point_functions_.ContainsKey(function_));
         ASSERT(!functions_called_dynamically_.ContainsKey(function_));
       }
 
@@ -2857,8 +2839,6 @@ void Precompiler::DiscardCodeObjects() {
                 codes_with_native_function_);
       THR_Print("    %8" Pd " Codes with async closure functions\n",
                 codes_with_async_closure_function_);
-      THR_Print("    %8" Pd " Codes with entry point functions\n",
-                codes_with_entry_point_function_);
       THR_Print("    %8" Pd " Codes with dynamically called functions\n",
                 codes_with_dynamically_called_function_);
       THR_Print("    %8" Pd " Codes with deferred functions\n",
@@ -2882,7 +2862,6 @@ void Precompiler::DiscardCodeObjects() {
     Code& call_target_;
     GrowableObjectArray& targets_of_calls_via_code_;
     const FunctionSet& functions_to_retain_;
-    const FunctionSet& entry_point_functions_;
     const FunctionSet& functions_called_dynamically_;
 
     // Statistics
@@ -2893,7 +2872,6 @@ void Precompiler::DiscardCodeObjects() {
     intptr_t codes_with_invisible_function_ = 0;
     intptr_t codes_with_native_function_ = 0;
     intptr_t codes_with_async_closure_function_ = 0;
-    intptr_t codes_with_entry_point_function_ = 0;
     intptr_t codes_with_dynamically_called_function_ = 0;
     intptr_t codes_with_deferred_function_ = 0;
     intptr_t codes_with_ffi_trampoline_function_ = 0;
@@ -2909,7 +2887,7 @@ void Precompiler::DiscardCodeObjects() {
     return;
   }
 
-  DiscardCodeVisitor visitor(Z, functions_to_retain_, entry_point_functions_,
+  DiscardCodeVisitor visitor(Z, functions_to_retain_,
                              functions_called_dynamically_);
   ProgramVisitor::WalkProgram(Z, IG, &visitor);
   visitor.RetainCodeObjectsUsedAsCallTargets();

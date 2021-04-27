@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing regular expressions in Dart.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 // Regression test for http://dartbug.com/17998

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Verify that compiler loads class id from the receiver and not from type
 // arguments when performing polymorphic inlining in the AOT mode.
 

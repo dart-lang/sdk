@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization_counter_threshold=10 --no-use-osr --no-background_compilation
 
+// @dart = 2.9
+
 test(a) {
   var e;
   for (var i = 0; i < a.length; i++) {

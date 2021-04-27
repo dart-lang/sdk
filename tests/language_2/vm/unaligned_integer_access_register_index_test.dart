@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization_counter_threshold=10 --no-background_compilation
 
+// @dart = 2.9
+
 import 'dart:typed_data';
 import 'package:expect/expect.dart';
 

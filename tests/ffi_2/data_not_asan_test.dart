@@ -7,6 +7,8 @@
 // These callocs trigger an asan alarm, so these tests are in a separate file
 // which is excluded in asan mode.
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import "package:ffi/ffi.dart";

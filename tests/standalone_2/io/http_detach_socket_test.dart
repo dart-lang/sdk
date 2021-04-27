@@ -7,6 +7,8 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import "dart:io";

@@ -12,6 +12,8 @@
 //
 // Test that compaction does occur on repeated add/remove.
 
+// @dart = 2.9
+
 main() {
   var x = {};
   for (int i = 0; i < 1000000; i++) {

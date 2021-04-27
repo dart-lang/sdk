@@ -4,6 +4,8 @@
 // Testing optimized 'is' tests.
 // VMOptions=--optimization-counter-threshold=5 --no-use-osr --no-background-compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 bool isInt(x) => x is int;

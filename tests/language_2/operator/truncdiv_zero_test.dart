@@ -4,6 +4,8 @@
 // Dart test optimization of modulo operator on Smi.
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 import "truncdiv_test.dart" as truncdiv_test show foo, foo2;

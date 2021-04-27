@@ -5,6 +5,8 @@
 // Test that canonicalization inserts constants with correct representation.
 // VMOptions=--optimization-counter-threshold=10 --optimization-filter=bar --no-background-compilation
 
+// @dart = 2.9
+
 import 'dart:typed_data';
 
 toSigned(v, width) {

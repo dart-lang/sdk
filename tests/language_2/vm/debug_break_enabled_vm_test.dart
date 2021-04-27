@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization-counter-threshold=5 --enable-debug-break --no-background-compilation
 
+// @dart = 2.9
+
 // Verify that the optimizer does not trip over the debug break (StopInstr).
 
 test(i) {

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing regular expressions in Dart.
 
+// @dart = 2.9
+
 // [NNBD non-migrated] Note: This test is specific to legacy mode and
 // deliberately does not have a counter-part in corelib/.
 

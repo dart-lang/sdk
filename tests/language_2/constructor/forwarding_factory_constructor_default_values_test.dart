@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for dart2js bug 18257: Properly infer types for forwarding
 // factory constructors with optional parameters with default values.
 

@@ -6406,7 +6406,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       {bool isConstantExpression: false,
       bool isNullAware: false,
       bool isSuper: false}) {
-    if (constantContext != ConstantContext.none && !isConstantExpression) {
+    if (constantContext != ConstantContext.none &&
+        !isConstantExpression &&
+        !enableConstFunctionsInLibrary) {
       return buildProblem(
           fasta.templateNotConstantExpression
               .withArguments('Method invocation'),

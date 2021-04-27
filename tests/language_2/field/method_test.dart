@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test. Fields can be invoked directly if they are unqualified.
 
+// @dart = 2.9
+
 class A {
   var foo;
   A() {

@@ -6,6 +6,8 @@
 //
 // VMOptions=--optimization-counter-threshold=5
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import 'dylib_utils.dart';

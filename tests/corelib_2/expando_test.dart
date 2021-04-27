@@ -5,6 +5,8 @@
 // VMOptions=--enable-ffi=true
 // VMOptions=--enable-ffi=false
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class ExpandoTest {

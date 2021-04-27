@@ -4,6 +4,8 @@
 //
 // Dart test program for testing File.copy*
 
+// @dart = 2.9
+
 import 'dart:io';
 
 import "package:expect/expect.dart";

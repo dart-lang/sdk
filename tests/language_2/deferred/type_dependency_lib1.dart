@@ -2,6 +2,8 @@
 // source code is governed by a BSD-style license that can be found in
 // the LICENSE file.
 
+// @dart = 2.9
+
 library lib1;
 
 import "type_dependency_lib3.dart";

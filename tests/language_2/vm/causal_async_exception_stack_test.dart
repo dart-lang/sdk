@@ -4,6 +4,8 @@
 //
 // VMOptions=--lazy-async-stacks
 
+// @dart = 2.9
+
 import 'package:async_helper/async_minitest.dart';
 
 import 'causal_async_exception_stack_helper.dart' as h;
@@ -36,8 +38,8 @@ main() async {
     } catch (e, st) {
       expect(
           h.stringContainsInOrder(st.toString(), [
-            'thrower', '.dart:12', // no auto-format.
-            'generator', '.dart:21', // no auto-format.
+            'thrower', '.dart:14', // no auto-format.
+            'generator', '.dart:23', // no auto-format.
             '<asynchronous suspension>', // no auto-format.
             'foo', '.dart', // no auto-format.
             'main',
@@ -74,8 +76,8 @@ main() async {
     } catch (e, st) {
       expect(
           h.stringContainsInOrder(st.toString(), [
-            'thrower', '.dart:12', // no auto-format.
-            'main.<anonymous closure>', '.dart:73', // no auto-format.
+            'thrower', '.dart:14', // no auto-format.
+            'main.<anonymous closure>', '.dart:75', // no auto-format.
           ]),
           isTrue);
     }

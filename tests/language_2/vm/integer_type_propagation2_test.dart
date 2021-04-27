@@ -4,6 +4,8 @@
 // Test various optimizations and deoptimizations of optimizing compiler..
 // VMOptions=--no-background-compilation --optimization-counter-threshold=1000
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 import "dart:typed_data";
 

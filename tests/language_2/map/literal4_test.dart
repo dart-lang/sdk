@@ -5,6 +5,8 @@
 //
 // Dart test program testing type checks in map literals.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class MapLiteral4Test<T> {

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for the "is" and "as" operator with malformed type.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 testEval(x) {

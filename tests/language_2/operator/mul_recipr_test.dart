@@ -7,6 +7,8 @@
 //
 // VMOptions=--optimization-counter-threshold=8 --no-use-osr --no-background-compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 var xx = 23.0;

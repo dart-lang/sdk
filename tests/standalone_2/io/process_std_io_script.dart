@@ -4,6 +4,8 @@
 //
 // Utility script to echo stdin to stdout or stderr or both.
 
+// @dart = 2.9
+
 import "dart:io";
 
 main(List<String> arguments) {

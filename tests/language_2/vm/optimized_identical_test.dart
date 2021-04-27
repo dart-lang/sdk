@@ -4,6 +4,8 @@
 // Test various optimizations and deoptimizations of optimizing compiler..
 // VMOptions=--optimization-counter-threshold=10 --no-constant-propagation --no-background-compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 // Test canonicalization of identical with double input.

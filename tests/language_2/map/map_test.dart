@@ -4,6 +4,8 @@
 // A subtest of the larger MapTest. Will eliminate once the full
 // test is running.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class MapTest {

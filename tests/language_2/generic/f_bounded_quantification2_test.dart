@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test for F-Bounded Quantification. Regression test for issue 9291.
 
 class Entities<T extends ConceptEntity<T>> implements EntitiesApi<T> {}

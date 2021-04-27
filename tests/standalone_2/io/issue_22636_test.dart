@@ -6,6 +6,8 @@
 // closed for read (the other end has closed for write) does not send
 // an additional READ_CLOSED event.
 
+// @dart = 2.9
+
 import "dart:async";
 import "dart:io";
 import "package:expect/expect.dart";

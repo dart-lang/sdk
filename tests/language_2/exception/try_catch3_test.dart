@@ -5,6 +5,8 @@
 // being thrown.
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 abstract class TestException {

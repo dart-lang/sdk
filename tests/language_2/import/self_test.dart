@@ -5,6 +5,8 @@
 // Check that private names cannot be imported even if the library imports
 // itself.
 
+// @dart = 2.9
+
 library import_self;
 
 import "package:expect/expect.dart";

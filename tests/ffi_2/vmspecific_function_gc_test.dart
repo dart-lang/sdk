@@ -17,6 +17,8 @@
 //
 // SharedObjects=ffi_test_functions
 
+// @dart = 2.9
+
 import 'dart:ffi' as ffi;
 import "package:expect/expect.dart";
 import 'ffi_test_helpers.dart';

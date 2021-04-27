@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
+// @dart = 2.9
+
 import "dart:io";
 
 main() {

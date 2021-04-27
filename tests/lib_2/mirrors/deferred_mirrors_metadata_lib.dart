@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 library lib;
 
 import "deferred_mirrors_metadata_test.dart";

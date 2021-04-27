@@ -7,6 +7,8 @@
 // VMOptions=
 // VMOptions=--use-slow-path
 // SharedObjects=ffi_test_functions
+
+// @dart = 2.9
 import 'dart:io';
 import 'dart:ffi';
 import 'dart:isolate';

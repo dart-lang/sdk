@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 library catch_errors;
 
 import 'dart:async';

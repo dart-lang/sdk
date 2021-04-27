@@ -4,6 +4,8 @@
 //
 // Dart test program for testing using a lot of native port operations.
 
+// @dart = 2.9
+
 import "dart:io";
 
 main() {

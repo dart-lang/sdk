@@ -8,6 +8,8 @@
 // VMOptions=--short_socket_read --short_socket_write
 // OtherResources=http_server_response_test.dart
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";

@@ -5,7 +5,6 @@
 library dart2js.js_emitter.startup_emitter.model_emitter;
 
 import 'dart:convert' show JsonEncoder;
-import 'dart:math' show Random;
 
 import 'package:js_runtime/shared/embedded_names.dart'
     show
@@ -334,7 +333,6 @@ class ModelEmitter {
     _task.measureSubtask('write fragments', () {
       writeMainFragment(mainFragment, mainCode,
           isSplit: program.deferredFragments.isNotEmpty ||
-              program.hasSoftDeferredClasses ||
               _options.experimentalTrackAllocations);
     });
 

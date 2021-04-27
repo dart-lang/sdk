@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--old_gen_heap_size=512
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 void main() {

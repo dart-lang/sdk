@@ -4,6 +4,8 @@
 //
 // DartOptions=10 arguments_test 20
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 main(List<String> args) {

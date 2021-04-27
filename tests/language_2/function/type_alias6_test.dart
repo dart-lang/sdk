@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for legally self referencing function type alias.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 typedef F(List<F> x);
-// [error line 8, column 1, length 21]
+// [error line 10, column 1, length 21]
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
 //      ^
 // [cfe] The typedef 'F' has a reference to itself.

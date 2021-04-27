@@ -4,6 +4,8 @@
 // VMOptions=--optimization-counter-threshold=100 --no-background-compilation
 // VMOptions=--optimization-counter-threshold=100 --no-background-compilation --no-use-field-guards
 
+// @dart = 2.9
+
 // Test lazy deoptimization at type checks with deferred loading.
 
 import "package:expect/expect.dart";

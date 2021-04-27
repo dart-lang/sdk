@@ -4,6 +4,8 @@
 // VMOptions=--enable_type_checks --enable_asserts --no_show_internal_names
 // Dart test program testing type checks.
 
+// @dart = 2.9
+
 import "package:expect/expect.dart";
 
 class C {

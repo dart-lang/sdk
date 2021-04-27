@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing file input stream, VM-only, standalone test.
 
+// @dart = 2.9
+
 import "dart:io";
 
 import "package:async_helper/async_helper.dart";

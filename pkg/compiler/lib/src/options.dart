@@ -410,14 +410,6 @@ class CompilerOptions implements DiagnosticOptions {
     return !enableNonNullable || (nullSafetyMode == NullSafetyMode.unsound);
   }
 
-  /// The path to the file that contains the profiled allocations.
-  ///
-  /// The file must contain the Map that was produced by using
-  /// [experimentalTrackAllocations] encoded as a JSON map.
-  ///
-  /// This is an experimental feature.
-  String experimentalAllocationsPath;
-
   /// If specified, a bundle of optimizations to enable (or disable).
   int optimizationLevel = null;
 
@@ -506,8 +498,6 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.noNativeNullAssertions)
       ..experimentalTrackAllocations =
           _hasOption(options, Flags.experimentalTrackAllocations)
-      ..experimentalAllocationsPath = _extractStringOption(
-          options, "${Flags.experimentalAllocationsPath}=", null)
       ..experimentStartupFunctions =
           _hasOption(options, Flags.experimentStartupFunctions)
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)

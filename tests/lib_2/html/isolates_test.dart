@@ -1,3 +1,5 @@
+
+// @dart = 2.9
 library IsolatesTest;
 
 import 'package:async_helper/async_minitest.dart';

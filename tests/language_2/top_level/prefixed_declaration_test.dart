@@ -4,6 +4,8 @@
 //
 // Dart test for top level declarations involving an imported type.
 
+// @dart = 2.9
+
 library main;
 
 import "package:expect/expect.dart";

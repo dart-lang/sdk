@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that an instance field cannot be read as a static field.
 
+// @dart = 2.9
+
 class Foo {
   Foo() {}
   var x;

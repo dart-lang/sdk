@@ -7,6 +7,8 @@
 //
 // VMOptions=--compile_all
 
+// @dart = 2.9
+
 import "dart:io";
 
 main() => null;

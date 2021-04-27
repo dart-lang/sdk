@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Variant of hello_world_test that uses the default WASI imports.
 
 import "package:async_helper/async_helper.dart";

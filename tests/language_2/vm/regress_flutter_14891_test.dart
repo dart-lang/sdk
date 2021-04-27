@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test verifying that type literals hidden within other constant objects
 // are correctly handled by the AOT compiler.
 

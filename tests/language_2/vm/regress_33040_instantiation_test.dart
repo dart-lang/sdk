@@ -4,6 +4,8 @@
 //
 // Exact regression test for issue #33040.
 
+// @dart = 2.9
+
 import 'dart:async';
 
 class Optional<T> {}

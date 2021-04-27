@@ -6,6 +6,8 @@
 //
 // VMOptions=--enable-ffi=false
 
+// @dart = 2.9
+
 import 'dart:ffi'; //# 01: compile-time error
 
 import 'package:ffi/ffi.dart'; //# 01: compile-time error

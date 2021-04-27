@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Tests the functionality of object properties with the js_util library. For
 // js_util tests with HTML objects see tests/lib/html/js_util_test.dart.
 
