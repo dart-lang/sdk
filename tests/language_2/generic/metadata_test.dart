@@ -6,6 +6,8 @@
 
 // Check that annotations cannot use type arguments, but can be raw.
 
+// @dart=2.11
+
 class C<T> {
   const C();
 }

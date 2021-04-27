@@ -130,9 +130,9 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.generic_metadata,
     isExpired: IsExpired.generic_metadata,
     documentation:
-        'Allow annotations to accept type arguments; also allow generic function types as type arguments',
+        'Allow annotations to accept type arguments; also allow generic function types as type arguments.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('2.14.0'),
   );
 
   static final non_nullable = ExperimentalFeature(
@@ -225,7 +225,7 @@ class IsEnabledByDefault {
   static const bool extension_types = false;
 
   /// Default state of the experiment "generic-metadata"
-  static const bool generic_metadata = false;
+  static const bool generic_metadata = true;
 
   /// Default state of the experiment "non-nullable"
   static const bool non_nullable = true;
