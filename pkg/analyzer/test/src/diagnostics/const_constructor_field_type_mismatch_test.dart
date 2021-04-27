@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class ConstConstructorFieldTypeMismatchTest extends PubPackageResolutionTest {
-  test_assignable_generic() async {
+  test_generic_int_int() async {
     await assertErrorsInCode(
       r'''
 class C<T> {
@@ -31,41 +31,7 @@ var v = const C<int>();
     );
   }
 
-  test_assignable_nullValue() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  const A(x) : y = x;
-  final int y;
-}
-var v = const A(null);
-''');
-  }
-
-  test_assignable_unresolvedFieldAndNullValue() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A(x) : y = x;
-  final Unresolved y;
-}
-var v = const A(null);
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 10),
-    ]);
-  }
-
-  test_notAssignable() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A(x) : y = x;
-  final int y;
-}
-var v = const A('foo');
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH, 57, 14),
-    ]);
-  }
-
-  test_notAssignable_generic() async {
+  test_generic_string_int() async {
     await assertErrorsInCode(
       r'''
 class C<T> {
@@ -83,13 +49,50 @@ var v = const C<String>();
     );
   }
 
-  test_notAssignable_unresolved() async {
+  test_notGeneric_int_int() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(x) : y = x;
+  final int y;
+}
+var v = const A('foo');
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH, 57, 14),
+    ]);
+  }
+
+  test_notGeneric_int_null() async {
+    var errors = expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH, 57, 13),
+    ], legacy: []);
+    await assertErrorsInCode(r'''
+class A {
+  const A(x) : y = x;
+  final int y;
+}
+var v = const A(null);
+''', errors);
+  }
+
+  test_notGeneric_unresolved_int() async {
     await assertErrorsInCode(r'''
 class A {
   const A(x) : y = x;
   final Unresolved y;
 }
-var v = const A('foo');
+var v = const A(0);
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 10),
+    ]);
+  }
+
+  test_notGeneric_unresolved_null() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(x) : y = x;
+  final Unresolved y;
+}
+var v = const A(null);
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 10),
     ]);
