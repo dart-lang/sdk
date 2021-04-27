@@ -217,7 +217,7 @@ class DevCompilerTarget extends Target {
       if (arguments.named.isNotEmpty)
         MapLiteral([
           for (var n in arguments.named)
-            MapEntry(SymbolLiteral(n.name), n.value)
+            MapLiteralEntry(SymbolLiteral(n.name), n.value)
         ], keyType: coreTypes.symbolLegacyRawType),
     ];
     return createInvocation('method', ctorArgs);

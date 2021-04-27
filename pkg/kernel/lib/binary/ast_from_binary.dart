@@ -2496,14 +2496,14 @@ class BinaryBuilder {
     return new ConstantExpression(constant, type)..fileOffset = offset;
   }
 
-  List<MapEntry> readMapEntryList() {
+  List<MapLiteralEntry> readMapEntryList() {
     int length = readUInt30();
-    return new List<MapEntry>.generate(length, (_) => readMapEntry(),
+    return new List<MapLiteralEntry>.generate(length, (_) => readMapEntry(),
         growable: useGrowableLists);
   }
 
-  MapEntry readMapEntry() {
-    return new MapEntry(readExpression(), readExpression());
+  MapLiteralEntry readMapEntry() {
+    return new MapLiteralEntry(readExpression(), readExpression());
   }
 
   List<Statement> readStatementList() {

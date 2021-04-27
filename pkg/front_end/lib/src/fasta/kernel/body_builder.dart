@@ -2919,7 +2919,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       assert(conditionStatement is EmptyStatement);
     }
-    if (entry is MapEntry) {
+    if (entry is MapLiteralEntry) {
       ForMapEntry result = forest.createForMapEntry(
           offsetForToken(forToken), variables, condition, updates, entry);
       typeInferrer?.assignedVariables?.endNode(result);
@@ -3115,7 +3115,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     List<Expression> expressions = <Expression>[];
     if (setOrMapEntries != null) {
       for (dynamic entry in setOrMapEntries) {
-        if (entry is MapEntry) {
+        if (entry is MapLiteralEntry) {
           // TODO(danrubel): report the error on the colon
           addProblem(fasta.templateExpectedButGot.withArguments(','),
               entry.fileOffset, 1);
@@ -3163,7 +3163,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // TODO(danrubel): Revise this to handle control flow and spread
       if (elem == invalidCollectionElement) {
         setOrMapEntries.removeAt(i);
-      } else if (elem is MapEntry) {
+      } else if (elem is MapLiteralEntry) {
         setOrMapEntries[i] = elem;
       } else {
         setOrMapEntries[i] = toValue(elem);
@@ -3186,7 +3186,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             : null;
 
     for (int i = 0; i < setOrMapEntries.length; ++i) {
-      if (setOrMapEntries[i] is! MapEntry &&
+      if (setOrMapEntries[i] is! MapLiteralEntry &&
           !isConvertibleToMapEntry(setOrMapEntries[i])) {
         hasSetEntry = true;
       }
@@ -3201,10 +3201,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (isSet) {
       buildLiteralSet(typeArguments, constKeyword, leftBrace, setOrMapEntries);
     } else {
-      List<MapEntry> mapEntries =
-          new List<MapEntry>.filled(setOrMapEntries.length, null);
+      List<MapLiteralEntry> mapEntries =
+          new List<MapLiteralEntry>.filled(setOrMapEntries.length, null);
       for (int i = 0; i < setOrMapEntries.length; ++i) {
-        if (setOrMapEntries[i] is MapEntry) {
+        if (setOrMapEntries[i] is MapLiteralEntry) {
           mapEntries[i] = setOrMapEntries[i];
         } else {
           mapEntries[i] = convertToMapEntry(setOrMapEntries[i], this,
@@ -3237,7 +3237,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void buildLiteralMap(List<UnresolvedType> typeArguments, Token constKeyword,
-      Token leftBrace, List<MapEntry> entries) {
+      Token leftBrace, List<MapLiteralEntry> entries) {
     DartType keyType;
     DartType valueType;
     if (typeArguments != null) {
@@ -4780,7 +4780,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // Resolve the top of the stack so that if it's a delayed assignment it
     // happens before we go into the else block.
     Object node = pop();
-    if (node is! MapEntry) node = toValue(node);
+    if (node is! MapLiteralEntry) node = toValue(node);
     // This is matched by the call to [beginNode] in
     // [handleThenControlFlow] and by the call to [storeInfo] in
     // [endIfElseControlFlow].
@@ -4797,7 +4797,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     transformCollections = true;
     TreeNode node;
-    if (entry is MapEntry) {
+    if (entry is MapLiteralEntry) {
       node = forest.createIfMapEntry(
           offsetForToken(ifToken), toValue(condition), entry);
     } else {
@@ -4822,13 +4822,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     transformCollections = true;
     TreeNode node;
-    if (thenEntry is MapEntry) {
-      if (elseEntry is MapEntry) {
+    if (thenEntry is MapLiteralEntry) {
+      if (elseEntry is MapLiteralEntry) {
         node = forest.createIfMapEntry(
             offsetForToken(ifToken), toValue(condition), thenEntry, elseEntry);
       } else if (elseEntry is ControlFlowElement) {
-        MapEntry elseMapEntry =
-            elseEntry.toMapEntry(typeInferrer?.assignedVariables?.reassignInfo);
+        MapLiteralEntry elseMapEntry = elseEntry
+            .toMapLiteralEntry(typeInferrer?.assignedVariables?.reassignInfo);
         if (elseMapEntry != null) {
           node = forest.createIfMapEntry(offsetForToken(ifToken),
               toValue(condition), thenEntry, elseMapEntry);
@@ -4836,7 +4836,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           int offset = elseEntry is Expression
               ? elseEntry.fileOffset
               : offsetForToken(ifToken);
-          node = new MapEntry(
+          node = new MapLiteralEntry(
               buildProblem(
                   fasta.messageCantDisambiguateAmbiguousInformation, offset, 1),
               new NullLiteral())
@@ -4846,16 +4846,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         int offset = elseEntry is Expression
             ? elseEntry.fileOffset
             : offsetForToken(ifToken);
-        node = new MapEntry(
+        node = new MapLiteralEntry(
             buildProblem(fasta.templateExpectedAfterButGot.withArguments(':'),
                 offset, 1),
             new NullLiteral())
           ..fileOffset = offsetForToken(ifToken);
       }
-    } else if (elseEntry is MapEntry) {
+    } else if (elseEntry is MapLiteralEntry) {
       if (thenEntry is ControlFlowElement) {
-        MapEntry thenMapEntry =
-            thenEntry.toMapEntry(typeInferrer?.assignedVariables?.reassignInfo);
+        MapLiteralEntry thenMapEntry = thenEntry
+            .toMapLiteralEntry(typeInferrer?.assignedVariables?.reassignInfo);
         if (thenMapEntry != null) {
           node = forest.createIfMapEntry(offsetForToken(ifToken),
               toValue(condition), thenMapEntry, elseEntry);
@@ -4863,7 +4863,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           int offset = thenEntry is Expression
               ? thenEntry.fileOffset
               : offsetForToken(ifToken);
-          node = new MapEntry(
+          node = new MapLiteralEntry(
               buildProblem(
                   fasta.messageCantDisambiguateAmbiguousInformation, offset, 1),
               new NullLiteral())
@@ -4873,7 +4873,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         int offset = thenEntry is Expression
             ? thenEntry.fileOffset
             : offsetForToken(ifToken);
-        node = new MapEntry(
+        node = new MapLiteralEntry(
             buildProblem(fasta.templateExpectedAfterButGot.withArguments(':'),
                 offset, 1),
             new NullLiteral())
@@ -5257,7 +5257,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     typeInferrer?.assignedVariables?.pushNode(assignedVariablesNodeInfo);
     VariableDeclaration variable = elements.variable;
     Expression problem = elements.expressionProblem;
-    if (entry is MapEntry) {
+    if (entry is MapLiteralEntry) {
       ForInMapEntry result = forest.createForInMapEntry(
           offsetForToken(forToken),
           variable,

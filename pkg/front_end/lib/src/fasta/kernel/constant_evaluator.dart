@@ -1413,7 +1413,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // We therefore reset it before each call, combine it and set it correctly
     // at the end.
     bool wasOrBecameUnevaluated = seenUnevaluatedChild;
-    for (MapEntry element in node.entries) {
+    for (MapLiteralEntry element in node.entries) {
       seenUnevaluatedChild = false;
       AbortConstant error = builder.add(element);
       wasOrBecameUnevaluated |= seenUnevaluatedChild;

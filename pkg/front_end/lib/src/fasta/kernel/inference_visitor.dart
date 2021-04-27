@@ -1934,8 +1934,8 @@ class InferenceVisitor
   // actualTypesForSet, only inferMapEntry adds exactly one element to that
   // list: the actual type of the iterable spread elements in case the map
   // literal will be disambiguated as a set literal later.
-  MapEntry inferMapEntry(
-      MapEntry entry,
+  MapLiteralEntry inferMapEntry(
+      MapLiteralEntry entry,
       TreeNode parent,
       DartType inferredKeyType,
       DartType inferredValueType,
@@ -1968,12 +1968,12 @@ class InferenceVisitor
       DartType actualElementType =
           getSpreadElementType(spreadType, spreadTypeBound, entry.isNullAware);
 
-      MapEntry replacement = entry;
+      MapLiteralEntry replacement = entry;
       if (typeChecksNeeded) {
         if (actualKeyType == null) {
           if (inferrer.coreTypes.isNull(spreadTypeBound) &&
               !entry.isNullAware) {
-            replacement = new MapEntry(
+            replacement = new MapLiteralEntry(
                 inferrer.helper.buildProblem(
                     templateNonNullAwareSpreadIsNull.withArguments(
                         spreadType, inferrer.isNonNullableByDefault),
@@ -2014,7 +2014,7 @@ class InferenceVisitor
                     entry,
                     (type) => !type.isPotentiallyNullable));
             _copyNonPromotionReasonToReplacement(entry, problem);
-            replacement = new MapEntry(problem, new NullLiteral())
+            replacement = new MapLiteralEntry(problem, new NullLiteral())
               ..fileOffset = entry.fileOffset;
           }
         } else if (spreadTypeBound is InterfaceType) {
@@ -2128,7 +2128,7 @@ class InferenceVisitor
           if (keyError != null || valueError != null) {
             keyError ??= new NullLiteral();
             valueError ??= new NullLiteral();
-            replacement = new MapEntry(keyError, valueError)
+            replacement = new MapLiteralEntry(keyError, valueError)
               ..fileOffset = entry.fileOffset;
           }
         }
@@ -2181,7 +2181,7 @@ class InferenceVisitor
       // Note that this recursive invocation of inferMapEntry will add two types
       // to actualTypes; they are the actual types of the current invocation if
       // the 'else' branch is empty.
-      MapEntry then = inferMapEntry(
+      MapLiteralEntry then = inferMapEntry(
           entry.then,
           entry,
           inferredKeyType,
@@ -2194,7 +2194,7 @@ class InferenceVisitor
           inferenceNeeded,
           typeChecksNeeded);
       entry.then = then..parent = entry;
-      MapEntry otherwise;
+      MapLiteralEntry otherwise;
       if (entry.otherwise != null) {
         inferrer.flowAnalysis.ifStatement_elseBegin();
         // We need to modify the actual types added in the recursive call to
@@ -2282,7 +2282,7 @@ class InferenceVisitor
       }
       inferrer.flowAnalysis.for_bodyBegin(null, entry.condition);
       // Actual types are added by the recursive call.
-      MapEntry body = inferMapEntry(
+      MapLiteralEntry body = inferMapEntry(
           entry.body,
           entry,
           inferredKeyType,
@@ -2334,7 +2334,7 @@ class InferenceVisitor
         entry.problem = problemResult.expression..parent = entry;
       }
       // Actual types are added by the recursive call.
-      MapEntry body = inferMapEntry(
+      MapLiteralEntry body = inferMapEntry(
           entry.body,
           entry,
           inferredKeyType,
@@ -2375,16 +2375,16 @@ class InferenceVisitor
     }
   }
 
-  MapEntry checkMapEntry(
-      MapEntry entry,
+  MapLiteralEntry checkMapEntry(
+      MapLiteralEntry entry,
       DartType keyType,
       DartType valueType,
       Map<TreeNode, DartType> inferredSpreadTypes,
       Map<Expression, DartType> inferredConditionTypes) {
     // It's disambiguated as a map literal.
-    MapEntry replacement = entry;
+    MapLiteralEntry replacement = entry;
     if (iterableSpreadOffset != null) {
-      replacement = new MapEntry(
+      replacement = new MapLiteralEntry(
           inferrer.helper.buildProblem(
               templateSpreadMapEntryTypeMismatch.withArguments(
                   iterableSpreadType, inferrer.isNonNullableByDefault),
@@ -2404,12 +2404,12 @@ class InferenceVisitor
         entry.expression = expression..parent = entry;
       }
     } else if (entry is IfMapEntry) {
-      MapEntry then = checkMapEntry(entry.then, keyType, valueType,
+      MapLiteralEntry then = checkMapEntry(entry.then, keyType, valueType,
           inferredSpreadTypes, inferredConditionTypes);
       entry.then = then..parent = entry;
       if (entry.otherwise != null) {
-        MapEntry otherwise = checkMapEntry(entry.otherwise, keyType, valueType,
-            inferredSpreadTypes, inferredConditionTypes);
+        MapLiteralEntry otherwise = checkMapEntry(entry.otherwise, keyType,
+            valueType, inferredSpreadTypes, inferredConditionTypes);
         entry.otherwise = otherwise..parent = entry;
       }
     } else if (entry is ForMapEntry) {
@@ -2421,11 +2421,11 @@ class InferenceVisitor
             entry.condition);
         entry.condition = condition..parent = entry;
       }
-      MapEntry body = checkMapEntry(entry.body, keyType, valueType,
+      MapLiteralEntry body = checkMapEntry(entry.body, keyType, valueType,
           inferredSpreadTypes, inferredConditionTypes);
       entry.body = body..parent = entry;
     } else if (entry is ForInMapEntry) {
-      MapEntry body = checkMapEntry(entry.body, keyType, valueType,
+      MapLiteralEntry body = checkMapEntry(entry.body, keyType, valueType,
           inferredSpreadTypes, inferredConditionTypes);
       entry.body = body..parent = entry;
     } else {
@@ -2526,7 +2526,7 @@ class InferenceVisitor
             <DartType>[inferredKeyType, inferredValueType]);
       }
       for (int index = 0; index < node.entries.length; ++index) {
-        MapEntry entry = node.entries[index];
+        MapLiteralEntry entry = node.entries[index];
         entry = inferMapEntry(
             entry,
             node,
@@ -2648,7 +2648,7 @@ class InferenceVisitor
     }
     if (typeChecksNeeded) {
       for (int index = 0; index < node.entries.length; ++index) {
-        MapEntry entry = checkMapEntry(node.entries[index], node.keyType,
+        MapLiteralEntry entry = checkMapEntry(node.entries[index], node.keyType,
             node.valueType, inferredSpreadTypes, inferredConditionTypes);
         node.entries[index] = entry..parent = node;
       }

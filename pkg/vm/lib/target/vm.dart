@@ -234,9 +234,9 @@ class VmTarget extends Target {
           new StaticInvocation(
               coreTypes.mapUnmodifiable,
               new Arguments([
-                new MapLiteral(new List<MapEntry>.from(
+                new MapLiteral(new List<MapLiteralEntry>.from(
                     arguments.named.map((NamedExpression arg) {
-                  return new MapEntry(
+                  return new MapLiteralEntry(
                       new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
                       arg.value)
                     ..fileOffset = arg.fileOffset;

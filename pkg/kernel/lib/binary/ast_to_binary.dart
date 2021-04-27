@@ -1932,7 +1932,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitMapEntry(MapEntry node) {
+  void visitMapLiteralEntry(MapLiteralEntry node) {
     // Note: there is no tag on MapEntry
     writeNode(node.key);
     writeNode(node.value);

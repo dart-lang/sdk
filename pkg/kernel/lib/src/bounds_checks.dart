@@ -4,7 +4,7 @@
 
 import 'package:kernel/src/replacement_visitor.dart';
 
-import '../ast.dart' hide MapEntry;
+import '../ast.dart';
 
 import '../type_algebra.dart' show Substitution, substitute;
 

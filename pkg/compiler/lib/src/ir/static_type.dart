@@ -1572,7 +1572,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   }
 
   @override
-  Null visitMapEntry(ir.MapEntry entry) {
+  Null visitMapLiteralEntry(ir.MapLiteralEntry entry) {
     visitNode(entry.key);
     visitNode(entry.value);
   }

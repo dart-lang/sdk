@@ -8,7 +8,7 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'ast.dart' hide MapEntry;
+import 'ast.dart';
 import 'core_types.dart';
 import 'type_algebra.dart';
 import 'src/heap.dart';

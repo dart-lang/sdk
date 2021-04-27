@@ -39,12 +39,12 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.12.0",
+  "sdk_tag": "version:2.13.0-211.13.beta",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "8c5fea8a51cf8c35724ddf136248350bb307d344",
+  "co19_rev": "13f010c4047c4c7d52afe67ecc57ebc415ea4ea8",
   "co19_2_rev": "f7f583366396cb1457e58c9bfb6d6e53dc21d741",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal

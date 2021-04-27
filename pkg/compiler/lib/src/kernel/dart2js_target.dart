@@ -185,9 +185,9 @@ class Dart2jsTarget extends Target {
           new ir.ListLiteral(
               arguments.types.map((t) => new ir.TypeLiteral(t)).toList()),
           new ir.ListLiteral(arguments.positional)..fileOffset = offset,
-          new ir.MapLiteral(new List<ir.MapEntry>.from(
+          new ir.MapLiteral(new List<ir.MapLiteralEntry>.from(
               arguments.named.map((ir.NamedExpression arg) {
-            return new ir.MapEntry(
+            return new ir.MapLiteralEntry(
                 new ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
                 arg.value)
               ..fileOffset = arg.fileOffset;

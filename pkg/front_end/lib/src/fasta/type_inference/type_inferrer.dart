@@ -4,14 +4,12 @@
 
 // @dart = 2.9
 
-import 'dart:core' hide MapEntry;
-import 'dart:core' as core;
+import 'dart:core';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
-import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -286,7 +284,7 @@ class TypeInferrerImpl implements TypeInferrer {
     if (whyNotPromoted != null && whyNotPromoted.isNotEmpty) {
       _WhyNotPromotedVisitor whyNotPromotedVisitor =
           new _WhyNotPromotedVisitor(this);
-      for (core.MapEntry<DartType, NonPromotionReason> entry
+      for (MapEntry<DartType, NonPromotionReason> entry
           in whyNotPromoted.entries) {
         if (!typeFilter(entry.key)) continue;
         LocatedMessage message = entry.value.accept(whyNotPromotedVisitor);
