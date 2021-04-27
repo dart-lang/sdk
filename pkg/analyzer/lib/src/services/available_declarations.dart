@@ -1346,8 +1346,9 @@ class _File {
     String? docSummary;
 
     void setDartDoc(AnnotatedNode node) {
-      if (node.documentationComment != null) {
-        var rawText = getCommentNodeRawText(node.documentationComment);
+      var docComment = node.documentationComment;
+      if (docComment != null) {
+        var rawText = getCommentNodeRawText(docComment);
         docComplete = getDartDocPlainText(rawText);
         docSummary = getDartDocSummary(docComplete);
       } else {
