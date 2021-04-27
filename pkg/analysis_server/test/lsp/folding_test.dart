@@ -104,6 +104,32 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     expect(regions, containsAll(expectedRegions));
   }
 
+  Future<void> test_enum() async {
+    final content = '''
+    enum MyEnum {[[
+      one,
+      two,
+      three
+    ]]}
+    ''';
+
+    final range1 = rangeFromMarkers(content);
+    final expectedRegions = [
+      FoldingRange(
+        startLine: range1.start.line,
+        startCharacter: range1.start.character,
+        endLine: range1.end.line,
+        endCharacter: range1.end.character,
+      )
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final regions = await getFoldingRegions(mainFileUri);
+    expect(regions, unorderedEquals(expectedRegions));
+  }
+
   Future<void> test_fromPlugins_dartFile() async {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.dart');
     final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
