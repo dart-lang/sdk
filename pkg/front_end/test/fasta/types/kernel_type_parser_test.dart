@@ -38,6 +38,9 @@ class ExtendedClass;
 class ExtendedGenericClass<X>;
 extension Extension on ExtendedClass;
 extension GenericExtension<Y> on ExtendedGenericClass<Y>;
+extension TopExtension on dynamic;
+extension GenericTopExtension<Z> on dynamic;
+class ExtendedSubclass extends ExtendedClass;
 """;
 
 const String expectedSdk = """
@@ -89,9 +92,15 @@ class ExtendedClass extends self::Object {
 }
 class ExtendedGenericClass<X extends self::Object? = dynamic> extends self::Object {
 }
+class ExtendedSubclass extends self::ExtendedClass {
+}
 extension Extension on self::ExtendedClass {
 }
 extension GenericExtension<Y extends self::Object? = dynamic> on self::ExtendedGenericClass<Y%> {
+}
+extension TopExtension on dynamic {
+}
+extension GenericTopExtension<Z extends self::Object? = dynamic> on dynamic {
 }
 """;
 
