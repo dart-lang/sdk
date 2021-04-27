@@ -196,6 +196,9 @@ class SuggestionBuilder {
     return _cachedContainingMemberName;
   }
 
+  bool get _isNonNullableByDefault =>
+      request.libraryElement?.isNonNullableByDefault ?? false;
+
   /// Add a suggestion for an [accessor] declared within a class or extension.
   /// If the accessor is being invoked with a target of `super`, then the
   /// [containingMemberName] should be the name of the member containing the
@@ -633,9 +636,8 @@ class SuggestionBuilder {
       required bool appendComma,
       int? replacementLength}) {
     var name = parameter.name;
-    var type = parameter.type.getDisplayString(
-        withNullability:
-            request.libraryElement?.isNonNullableByDefault ?? false);
+    var type = parameter.type
+        .getDisplayString(withNullability: _isNonNullableByDefault);
 
     var completion = name;
     if (appendColon) {
@@ -688,7 +690,8 @@ class SuggestionBuilder {
         replacementLength: replacementLength);
     if (parameter is FieldFormalParameterElement) {
       _setDocumentation(suggestion, parameter);
-      suggestion.element = convertElement(parameter);
+      suggestion.element =
+          convertElement(parameter, withNullability: _isNonNullableByDefault);
     }
     _add(suggestion);
   }
@@ -747,7 +750,8 @@ class SuggestionBuilder {
         element.hasDeprecated,
         false,
         displayText: displayText);
-    suggestion.element = protocol.convertElement(element);
+    suggestion.element = protocol.convertElement(element,
+        withNullability: _isNonNullableByDefault);
     _add(suggestion);
   }
 
@@ -1016,9 +1020,8 @@ class SuggestionBuilder {
         completion.length, 0, element.hasOrInheritsDeprecated, false);
 
     _setDocumentation(suggestion, element);
-
-    var suggestedElement =
-        suggestion.element = protocol.convertElement(element);
+    var suggestedElement = suggestion.element = protocol.convertElement(element,
+        withNullability: _isNonNullableByDefault);
     if (elementKind != null) {
       suggestedElement.kind = elementKind;
     }
@@ -1026,7 +1029,8 @@ class SuggestionBuilder {
     if (enclosingElement is ClassElement) {
       suggestion.declaringType = enclosingElement.displayName;
     }
-    suggestion.returnType = getReturnTypeString(element);
+    suggestion.returnType =
+        getReturnTypeString(element, withNullability: _isNonNullableByDefault);
     if (element is ExecutableElement && element is! PropertyAccessorElement) {
       suggestion.parameterNames = element.parameters
           .map((ParameterElement parameter) => parameter.name)
@@ -1035,8 +1039,7 @@ class SuggestionBuilder {
           element.parameters.map((ParameterElement parameter) {
         var paramType = parameter.type;
         return paramType.getDisplayString(
-            withNullability:
-                request.libraryElement?.isNonNullableByDefault ?? false);
+            withNullability: _isNonNullableByDefault);
       }).toList();
 
       var requiredParameters = element.parameters

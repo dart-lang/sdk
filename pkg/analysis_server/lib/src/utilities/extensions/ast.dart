@@ -87,6 +87,14 @@ extension AstNodeExtensions on AstNode {
   }
 }
 
+extension CompilationUnitExtension on CompilationUnit {
+  /// Is `true` if library being analyzed is non-nullable by default.
+  ///
+  /// Will return false if the AST structure has not been resolved.
+  bool get isNonNullableByDefault =>
+      declaredElement?.library.isNonNullableByDefault ?? false;
+}
+
 extension ExpressionExtensions on Expression {
   /// Return `true` if this expression is an invocation of the method `cast`
   /// from either Iterable`, `List`, `Map`, or `Set`.

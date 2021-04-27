@@ -32,7 +32,7 @@ class A {
 
     var engineElement = findElement.constructor('myConstructor');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement(engineElement, withNullability: false);
     expect(element.parameters, '(int a, {@required int c, int b})');
   }
 
@@ -47,7 +47,7 @@ class A {
 
     var engineElement = findElement.constructor('myConstructor');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement(engineElement, withNullability: false);
     expect(element.parameters,
         '(int a, {@required int d, @required int c, int b})');
   }
@@ -64,7 +64,7 @@ class A {
 
     var engineElement = findElement.constructor('myConstructor');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement(engineElement, withNullability: false);
     expect(element.parameters,
         '(int a, {@required int d, @required int c, int b, int a})');
   }
@@ -81,7 +81,7 @@ class B<K, V> {}''');
     {
       var engineElement = findElement.class_('_A');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement(engineElement, withNullability: true);
       expect(element.kind, ElementKind.CLASS);
       expect(element.name, '_A');
       expect(element.typeParameters, isNull);
@@ -103,7 +103,7 @@ class B<K, V> {}''');
     {
       var engineElement = findElement.class_('B');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement(engineElement, withNullability: true);
       expect(element.kind, ElementKind.CLASS);
       expect(element.name, 'B');
       expect(element.typeParameters, '<K, V>');
@@ -118,7 +118,7 @@ class A {
 }''');
     var engineElement = findElement.constructor('myConstructor');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement(engineElement, withNullability: true);
     expect(element.kind, ElementKind.CONSTRUCTOR);
     expect(element.name, 'myConstructor');
     expect(element.typeParameters, isNull);
@@ -130,7 +130,7 @@ class A {
       expect(location.startLine, 2);
       expect(location.startColumn, 11);
     }
-    expect(element.parameters, '(int a, [String b])');
+    expect(element.parameters, '(int a, [String? b])');
     expect(element.returnType, 'A');
     expect(element.flags, Element.FLAG_CONST);
   }
@@ -145,8 +145,8 @@ class A {
 
     var engineElement = findElement.constructor('myConstructor');
     // create notification Element
-    var element = convertElement(engineElement);
-    expect(element.parameters, '(int a, {required int c, int b})');
+    var element = convertElement(engineElement, withNullability: true);
+    expect(element.parameters, '(int a, {required int c, int? b})');
   }
 
   /// Verify parameter re-ordering for required params
@@ -160,9 +160,9 @@ class A {
 
     var engineElement = findElement.constructor('myConstructor');
     // create notification Element
-    var element = convertElement(engineElement);
-    expect(
-        element.parameters, '(int a, {required int d, required int c, int b})');
+    var element = convertElement(engineElement, withNullability: true);
+    expect(element.parameters,
+        '(int a, {required int d, required int c, int? b})');
   }
 
   /// Verify parameter re-ordering for required params
@@ -177,7 +177,7 @@ class A {
 
     var engineElement = findElement.constructor('myConstructor');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement(engineElement, withNullability: true);
     expect(element.parameters,
         '(int a, {required int d, required int c, int b, int a})');
   }
@@ -185,7 +185,7 @@ class A {
   void test_dynamic() {
     var engineElement = engine.DynamicElementImpl.instance;
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement(engineElement, withNullability: true);
     expect(element.kind, ElementKind.UNKNOWN);
     expect(element.name, 'dynamic');
     expect(element.location, isNull);
@@ -203,7 +203,7 @@ enum E2 { three, four }''');
       var engineElement = findElement.enum_('_E1');
       expect(engineElement.hasDeprecated, isTrue);
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement(engineElement, withNullability: true);
       expect(element.kind, ElementKind.ENUM);
       expect(element.name, '_E1');
       expect(element.typeParameters, isNull);
@@ -224,7 +224,7 @@ enum E2 { three, four }''');
     {
       var engineElement = findElement.enum_('E2');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement(engineElement, withNullability: true);
       expect(element.kind, ElementKind.ENUM);
       expect(element.name, 'E2');
       expect(element.typeParameters, isNull);
@@ -240,7 +240,7 @@ enum E2 { three, four }''');
     {
       var engineElement = findElement.field('one');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement(engineElement, withNullability: true);
       expect(element.kind, ElementKind.ENUM_CONSTANT);
       expect(element.name, 'one');
       {
@@ -264,7 +264,7 @@ enum E2 { three, four }''');
     {
       var engineElement = findElement.field('three');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement(engineElement, withNullability: true);
       expect(element.kind, ElementKind.ENUM_CONSTANT);
       expect(element.name, 'three');
       {
@@ -282,7 +282,7 @@ enum E2 { three, four }''');
     {
       var engineElement = findElement.field('index', of: 'E2');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement(engineElement, withNullability: true);
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'index');
       {
@@ -300,7 +300,7 @@ enum E2 { three, four }''');
     {
       var engineElement = findElement.field('values', of: 'E2');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement(engineElement, withNullability: true);
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'values');
       {
@@ -324,7 +324,7 @@ class A {
 }''');
     var engineElement = findElement.field('myField');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement(engineElement, withNullability: true);
     expect(element.kind, ElementKind.FIELD);
     expect(element.name, 'myField');
     {
@@ -346,7 +346,7 @@ typedef F<T> = int Function(String x);
 ''');
     var engineElement = findElement.typeAlias('F');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement(engineElement, withNullability: true);
     expect(element.kind, ElementKind.TYPE_ALIAS);
     expect(element.name, 'F');
     expect(element.typeParameters, '<T>');
@@ -369,7 +369,7 @@ typedef F<T> = Map<int, T>;
 ''');
     var engineElement = findElement.typeAlias('F');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement(engineElement, withNullability: true);
     expect(element.kind, ElementKind.TYPE_ALIAS);
     expect(element.name, 'F');
     expect(element.typeParameters, '<out T>');
@@ -393,7 +393,7 @@ typedef int F<T>(String x);
 ''');
     var engineElement = findElement.typeAlias('F');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement(engineElement, withNullability: true);
     expect(element.kind, ElementKind.TYPE_ALIAS);
     expect(element.name, 'F');
     expect(element.typeParameters, '<T>');
@@ -418,7 +418,7 @@ class A {
 }''');
     var engineElement = findElement.getter('myGetter');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement(engineElement, withNullability: true);
     expect(element.kind, ElementKind.GETTER);
     expect(element.name, 'myGetter');
     {
@@ -444,7 +444,7 @@ myLabel:
 }''');
     var engineElement = findElement.label('myLabel');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement(engineElement, withNullability: true);
     expect(element.kind, ElementKind.LABEL);
     expect(element.name, 'myLabel');
     {
@@ -469,7 +469,7 @@ class A {
 }''');
     var engineElement = findElement.method('myMethod');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement(engineElement, withNullability: true);
     expect(element.kind, ElementKind.METHOD);
     expect(element.name, 'myMethod');
     {
@@ -480,7 +480,7 @@ class A {
       expect(location.startLine, 2);
       expect(location.startColumn, 23);
     }
-    expect(element.parameters, '(int a, {String b, int c})');
+    expect(element.parameters, '(int a, {String? b, int? c})');
     expect(element.returnType, 'List<String>');
     expect(element.flags, Element.FLAG_STATIC);
   }
@@ -492,7 +492,7 @@ mixin A {}
     {
       var engineElement = findElement.mixin('A');
       // create notification Element
-      var element = convertElement(engineElement);
+      var element = convertElement(engineElement, withNullability: true);
       expect(element.kind, ElementKind.MIXIN);
       expect(element.name, 'A');
       expect(element.typeParameters, isNull);
@@ -516,7 +516,7 @@ class A {
 }''');
     var engineElement = findElement.setter('mySetter');
     // create notification Element
-    var element = convertElement(engineElement);
+    var element = convertElement(engineElement, withNullability: true);
     expect(element.kind, ElementKind.SETTER);
     expect(element.name, 'mySetter');
     {

@@ -45,6 +45,8 @@ class TypeHierarchyComputer {
     }
   }
 
+  bool get _isNonNullableByDefault => _pivotLibrary.isNonNullableByDefault;
+
   /// Returns the computed type hierarchy, maybe `null`.
   Future<List<TypeHierarchyItem>?> compute() async {
     var pivotClass = _pivotClass;
@@ -80,9 +82,11 @@ class TypeHierarchyComputer {
       }
       // create a subclass item
       var subMemberElement = _findMemberElement(subElement);
-      subItem = TypeHierarchyItem(convertElement(subElement),
+      subItem = TypeHierarchyItem(
+          convertElement(subElement, withNullability: _isNonNullableByDefault),
           memberElement: subMemberElement != null
-              ? convertElement(subMemberElement)
+              ? convertElement(subMemberElement,
+                  withNullability: _isNonNullableByDefault)
               : null,
           superclass: itemId);
       var subItemId = _items.length;
@@ -116,15 +120,20 @@ class TypeHierarchyComputer {
       String? displayName;
       if (typeArguments != null && typeArguments.isNotEmpty) {
         var typeArgumentsStr = typeArguments
-            .map((type) => type.getDisplayString(withNullability: false))
+            .map((type) =>
+                type.getDisplayString(withNullability: _isNonNullableByDefault))
             .join(', ');
         displayName = classElement.displayName + '<' + typeArgumentsStr + '>';
       }
       var memberElement = _findMemberElement(classElement);
-      item = TypeHierarchyItem(convertElement(classElement),
+      item = TypeHierarchyItem(
+          convertElement(classElement,
+              withNullability: _isNonNullableByDefault),
           displayName: displayName,
-          memberElement:
-              memberElement != null ? convertElement(memberElement) : null);
+          memberElement: memberElement != null
+              ? convertElement(memberElement,
+                  withNullability: _isNonNullableByDefault)
+              : null);
       _elementItemMap[classElement] = item;
       itemId = _items.length;
       _items.add(item);

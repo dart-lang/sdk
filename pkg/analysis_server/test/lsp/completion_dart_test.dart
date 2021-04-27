@@ -2045,4 +2045,23 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
     expect(textEdit.newText, equals(item.insertText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
+
+  Future<void> test_nullableTypes() async {
+    final content = '''
+    String? foo(int? a, [int b = 1]) {}
+
+    main() {
+      fo^
+    }
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completion = res.singleWhere((c) => c.label.startsWith('foo'));
+    expect(completion.detail, '(int? a, [int b = 1]) → String?');
+  }
 }

@@ -46,7 +46,9 @@ class SearchDomainHandler implements protocol.RequestHandler {
     var result = protocol.SearchFindElementReferencesResult();
     if (element != null) {
       result.id = searchId;
-      result.element = protocol.convertElement(element);
+      var withNullability = element.library?.isNonNullableByDefault ?? false;
+      result.element =
+          protocol.convertElement(element, withNullability: withNullability);
     }
     _sendSearchResult(request, result);
     // search elements

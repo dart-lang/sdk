@@ -5,6 +5,7 @@
 import 'package:analysis_server/protocol/protocol_generated.dart'
     show HoverInformation;
 import 'package:analysis_server/src/computer/computer_overrides.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -21,10 +22,6 @@ class DartUnitHoverComputer {
   final int _offset;
 
   DartUnitHoverComputer(this._dartdocInfo, this._unit, this._offset);
-
-  bool get _isNonNullableByDefault {
-    return _unit.declaredElement?.library.isNonNullableByDefault ?? false;
-  }
 
   /// Returns the computed hover, maybe `null`.
   HoverInformation? compute() {
@@ -135,12 +132,13 @@ class DartUnitHoverComputer {
 
   String? _elementDisplayString(Element? element) {
     return element?.getDisplayString(
-      withNullability: _isNonNullableByDefault,
+      withNullability: _unit.isNonNullableByDefault,
     );
   }
 
   String? _typeDisplayString(DartType? type) {
-    return type?.getDisplayString(withNullability: _isNonNullableByDefault);
+    return type?.getDisplayString(
+        withNullability: _unit.isNonNullableByDefault);
   }
 
   static String? computeDocumentation(
