@@ -50,7 +50,7 @@ class C {
       "const Center(name: 'v')",
       context: '''
 class Align {
-  final double? widthFactor;
+  final double widthFactor;
   const Align({String name, this.widthFactor})
         assert(widthFactor == null || widthFactor >= 0.0);
 }
