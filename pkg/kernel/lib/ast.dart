@@ -65,7 +65,6 @@
 library kernel.ast;
 
 import 'dart:core';
-import 'dart:core' as core show MapEntry;
 import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 
@@ -7892,7 +7891,7 @@ class MapLiteral extends Expression {
   bool isConst;
   DartType keyType; // Not null, defaults to DynamicType.
   DartType valueType; // Not null, defaults to DynamicType.
-  final List<MapEntry> entries;
+  final List<MapLiteralEntry> entries;
 
   MapLiteral(this.entries,
       {this.keyType: const DynamicType(),
@@ -7968,20 +7967,21 @@ class MapLiteral extends Expression {
   }
 }
 
-class MapEntry extends TreeNode {
+class MapLiteralEntry extends TreeNode {
   Expression key;
   Expression value;
 
-  MapEntry(this.key, this.value) {
+  MapLiteralEntry(this.key, this.value) {
     key.parent = this;
     value.parent = this;
   }
 
   @override
-  R accept<R>(TreeVisitor<R> v) => v.visitMapEntry(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitMapLiteralEntry(this);
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) => v.visitMapEntry(this, arg);
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      v.visitMapLiteralEntry(this, arg);
 
   @override
   void visitChildren(Visitor v) {
@@ -12954,7 +12954,7 @@ abstract class MetadataRepository<T> {
   /// can't have metadata attached to them. Also, metadata is not saved on
   /// Block nodes inside BlockExpressions.
   static bool isSupported(Node node) {
-    return !(node is MapEntry ||
+    return !(node is MapLiteralEntry ||
         node is Catch ||
         (node is Block && node.parent is BlockExpression));
   }
@@ -13324,7 +13324,7 @@ class _Hash {
         // `-1` is used as a dummy default value.
         -1);
     int i = 0;
-    for (core.MapEntry entry in map.entries) {
+    for (MapEntry entry in map.entries) {
       entryHashes[i++] = combine(entry.key.hashCode, entry.value.hashCode);
     }
     entryHashes.sort();
@@ -13733,12 +13733,13 @@ final VariableDeclaration dummyVariableDeclaration =
 /// constructor.
 final TypeParameter dummyTypeParameter = new TypeParameter();
 
-/// Non-nullable [MapEntry] dummy value.
+/// Non-nullable [MapLiteralEntry] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final MapEntry dummyMapEntry = new MapEntry(dummyExpression, dummyExpression);
+final MapLiteralEntry dummyMapLiteralEntry =
+    new MapLiteralEntry(dummyExpression, dummyExpression);
 
 /// Non-nullable [Arguments] dummy value.
 ///

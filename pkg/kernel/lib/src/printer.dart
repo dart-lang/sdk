@@ -223,7 +223,7 @@ class AstPrinter {
     node.toTextInternal(this);
   }
 
-  void writeMapEntry(MapEntry node) {
+  void writeMapEntry(MapLiteralEntry node) {
     node.toTextInternal(this);
   }
 

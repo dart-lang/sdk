@@ -3214,7 +3214,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
     // The map literal constructors take the key-value pairs as a List
     List<HInstruction> constructorArgs = <HInstruction>[];
-    for (ir.MapEntry mapEntry in node.entries) {
+    for (ir.MapLiteralEntry mapEntry in node.entries) {
       mapEntry.key.accept(this);
       constructorArgs.add(pop());
       mapEntry.value.accept(this);
@@ -3287,7 +3287,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  void visitMapEntry(ir.MapEntry node) {
+  void visitMapLiteralEntry(ir.MapLiteralEntry node) {
     failedAt(CURRENT_ELEMENT_SPANNABLE,
         'ir.MapEntry should be handled in visitMapLiteral');
   }
@@ -4269,7 +4269,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           selector = new Selector.indexSet();
         } else {
           if (namedArgumentsLiteral is ir.MapLiteral) {
-            namedArgumentsLiteral.entries.forEach((ir.MapEntry entry) {
+            namedArgumentsLiteral.entries.forEach((ir.MapLiteralEntry entry) {
               String key = _readStringLiteral(entry.key);
               namedArguments[key] = entry.value;
             });

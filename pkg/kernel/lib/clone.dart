@@ -317,8 +317,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
         isConst: node.isConst);
   }
 
-  visitMapEntry(MapEntry node) {
-    return new MapEntry(clone(node.key), clone(node.value));
+  visitMapLiteralEntry(MapLiteralEntry node) {
+    return new MapLiteralEntry(clone(node.key), clone(node.value));
   }
 
   visitAwaitExpression(AwaitExpression node) {

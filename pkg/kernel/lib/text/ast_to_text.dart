@@ -4,9 +4,7 @@
 
 library kernel.ast_to_text;
 
-import 'dart:core' hide MapEntry;
-import 'dart:core' as core show MapEntry;
-
+import 'dart:core';
 import 'dart:convert' show json;
 
 import '../ast.dart';
@@ -1787,7 +1785,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('}');
   }
 
-  visitMapEntry(MapEntry node) {
+  visitMapLiteralEntry(MapLiteralEntry node) {
     writeExpression(node.key);
     writeComma(':');
     writeExpression(node.value);
@@ -2636,8 +2634,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     }
 
     writeSymbol(' {');
-    writeList(node.fieldValues.entries,
-        (core.MapEntry<Reference, Constant> entry) {
+    writeList(node.fieldValues.entries, (MapEntry<Reference, Constant> entry) {
       if (entry.key.node != null) {
         writeWord('${entry.key.asField.name.text}');
       } else {

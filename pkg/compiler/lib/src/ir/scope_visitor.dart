@@ -879,7 +879,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   @override
-  EvaluationComplexity visitMapEntry(ir.MapEntry node) {
+  EvaluationComplexity visitMapLiteralEntry(ir.MapLiteralEntry node) {
     node.key = _handleExpression(node.key);
     EvaluationComplexity keyComplexity = _lastExpressionComplexity;
 

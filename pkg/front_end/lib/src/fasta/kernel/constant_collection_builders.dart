@@ -228,7 +228,7 @@ class MapConstantBuilder {
   ///
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
-  AbortConstant add(MapEntry element) {
+  AbortConstant add(MapLiteralEntry element) {
     Constant key = evaluator._evaluateSubexpression(element.key);
     if (key is AbortConstant) return key;
     Constant value = evaluator._evaluateSubexpression(element.value);
@@ -236,9 +236,10 @@ class MapConstantBuilder {
     if (evaluator.shouldBeUnevaluated) {
       parts.add(evaluator.unevaluated(
           element.key,
-          new MapLiteral(
-              [new MapEntry(evaluator.extract(key), evaluator.extract(value))],
-              isConst: true)));
+          new MapLiteral([
+            new MapLiteralEntry(
+                evaluator.extract(key), evaluator.extract(value))
+          ], isConst: true)));
       return null;
     } else {
       return addConstant(key, value, element.key, element.value);

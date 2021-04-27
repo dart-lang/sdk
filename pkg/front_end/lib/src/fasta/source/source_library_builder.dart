@@ -16,7 +16,7 @@ import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart'
     show DillLibraryBuilder;
 
-import 'package:kernel/ast.dart' hide Combinator, MapEntry;
+import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 

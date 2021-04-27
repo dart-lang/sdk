@@ -10,7 +10,7 @@ import 'dart:math' show max, min;
 
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart' hide MapEntry;
+import 'package:kernel/kernel.dart';
 import 'package:kernel/library_index.dart';
 import 'package:kernel/src/dart_type_equivalence.dart';
 import 'package:kernel/type_algebra.dart';

@@ -372,7 +372,7 @@ Tuple3<DartType, DartType, List<Expression>> unwrapMapLiteral(
   List<Expression> entries =
       new List.filled(2 * expression.entries.length, dummyExpression);
   for (int from = 0, to = 0; from < expression.entries.length; ++from) {
-    MapEntry entry = expression.entries[from];
+    MapLiteralEntry entry = expression.entries[from];
     entries[to++] = entry.key;
     entries[to++] = entry.value;
   }
@@ -380,10 +380,10 @@ Tuple3<DartType, DartType, List<Expression>> unwrapMapLiteral(
 }
 
 MapLiteral wrapMapLiteral(Tuple3<DartType, DartType, List<Expression>> tuple) {
-  List<MapEntry> entries =
-      new List.filled(tuple.third.length ~/ 2, dummyMapEntry);
+  List<MapLiteralEntry> entries =
+      new List.filled(tuple.third.length ~/ 2, dummyMapLiteralEntry);
   for (int from = 0, to = 0; to < entries.length; ++to) {
-    entries[to] = new MapEntry(tuple.third[from++], tuple.third[from++]);
+    entries[to] = new MapLiteralEntry(tuple.third[from++], tuple.third[from++]);
   }
   return new MapLiteral(entries,
       keyType: tuple.first, valueType: tuple.second, isConst: false);
@@ -397,10 +397,10 @@ TextSerializer<MapLiteral> constMapLiteralSerializer = new Wrapped(
 
 MapLiteral wrapConstMapLiteral(
     Tuple3<DartType, DartType, List<Expression>> tuple) {
-  List<MapEntry> entries =
-      new List.filled(tuple.third.length ~/ 2, dummyMapEntry);
+  List<MapLiteralEntry> entries =
+      new List.filled(tuple.third.length ~/ 2, dummyMapLiteralEntry);
   for (int from = 0, to = 0; to < entries.length; ++to) {
-    entries[to] = new MapEntry(tuple.third[from++], tuple.third[from++]);
+    entries[to] = new MapLiteralEntry(tuple.third[from++], tuple.third[from++]);
   }
   return new MapLiteral(entries,
       keyType: tuple.first, valueType: tuple.second, isConst: true);

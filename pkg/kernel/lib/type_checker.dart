@@ -550,7 +550,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitMapLiteral(MapLiteral node) {
-    for (MapEntry entry in node.entries) {
+    for (MapLiteralEntry entry in node.entries) {
       entry.key = checkAndDowncastExpression(entry.key, node.keyType);
       entry.value = checkAndDowncastExpression(entry.value, node.valueType);
     }
