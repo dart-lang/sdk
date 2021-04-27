@@ -38,14 +38,14 @@
 
 #### Linter
 
-Updated the Linter to `1.3.0`, which includes:
+Updated the Linter to `1.4.0`, which includes:
 
-- updated `non_constant_identifier_names` to check local variables, for-loop
-  initializers and catch clauses.
-- updated error range of `lines_longer_than_80_chars` to start at 80 to make
-  splitting easier.
-- new lint: `require_trailing_commas`.
-- new lint: `prefer_null_aware_method_calls`.
+- `directives_ordering` now checks ordering of `package:` imports in code
+  outside pub packages.
+- simple reachability analysis added to `use_build_context_synchronously` to
+  short-circuit await-discovery in terminating blocks.
+- `use_build_context_synchronously` updated to recognize nullable types when
+  accessed from legacy libraries.
 
 ### Language
 
