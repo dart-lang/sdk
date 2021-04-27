@@ -1042,5 +1042,32 @@ abstract class SubtypeTest<T, E> {
     isSubtype("List<int?>?", "List<int?>?");
     isSubtype("T & int?", "T & int?", typeParameters: "T extends Object?");
     isSubtype("T? & int?", "T? & int?", typeParameters: "T extends Object");
+
+    // Tests for extension types.
+    isSubtype("Never", "Extension");
+    isSubtype("Never", "GenericExtension<Never>");
+    isSubtype("Extension", "dynamic");
+    isSubtype("Extension", "void");
+    isSubtype("Extension", "Object?");
+    isSubtype("Extension", "FutureOr<dynamic>");
+    isSubtype("GenericExtension<dynamic>", "dynamic");
+    isSubtype("GenericExtension<dynamic>", "void");
+    isSubtype("GenericExtension<dynamic>", "Object?");
+    isSubtype("GenericExtension<dynamic>", "FutureOr<dynamic>");
+    isSubtype("dynamic", "TopExtension");
+    isSubtype("void", "TopExtension");
+    isSubtype("Object?", "TopExtension");
+    isSubtype("FutureOr<dynamic>", "TopExtension");
+    isSubtype("num", "TopExtension");
+    isSubtype("dynamic", "GenericTopExtension<String>");
+    isSubtype("void", "GenericTopExtension<String>");
+    isSubtype("Object?", "GenericTopExtension<String>");
+    isSubtype("FutureOr<dynamic>", "GenericTopExtension<String>");
+    isSubtype("num", "GenericTopExtension<String>");
+    isNotSubtype("Extension", "ExtendedClass");
+    isNotSubtype("GenericExtension<num>", "ExtendedGenericClass<num>");
+    isSubtype("ExtendedClass", "Extension");
+    isSubtype("ExtendedGenericClass<num>", "GenericExtension<num>");
+    isSubtype("ExtendedSubclass", "Extension");
   }
 }

@@ -948,7 +948,7 @@ void FlowGraph::ComputeDominators(
   //
   // The algorithm is described in Georgiadis, Tarjan, and Werneck's
   // "Finding Dominators in Practice".
-  // See http://www.cs.princeton.edu/~rwerneck/dominators/ .
+  // https://renatowerneck.files.wordpress.com/2016/06/gtw06-dominators.pdf
 
   // All arrays are maps between preorder basic-block numbers.
   intptr_t size = parent_.length();
@@ -1115,7 +1115,10 @@ void FlowGraph::AddSyntheticPhis(BlockEntryInstr* block) {
   ASSERT(IsCompiledForOsr());
   if (auto join = block->AsJoinEntry()) {
     const intptr_t local_phi_count = variable_count() + join->stack_depth();
-    for (intptr_t i = variable_count(); i < local_phi_count; ++i) {
+    // Never insert more phi's than that we had osr variables.
+    const intptr_t osr_phi_count =
+        Utils::Minimum(local_phi_count, osr_variable_count());
+    for (intptr_t i = variable_count(); i < osr_phi_count; ++i) {
       if (join->phis() == nullptr || (*join->phis())[i] == nullptr) {
         join->InsertPhi(i, local_phi_count)->mark_alive();
       }
@@ -1150,15 +1153,23 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   // These phis are synthetic since they are not driven by live variable
   // analysis, but merely serve the purpose of merging stack slots from
   // parameters and other predecessors at the block in which OSR occurred.
+  // The original definition could flow into a join via multiple predecessors
+  // but with the same definition, not requiring a phi. However, with an OSR
+  // entry in a different block, phis are required to merge the OSR variable
+  // and original definition where there was no phi. Therefore, we need
+  // synthetic phis in all (reachable) blocks, not just in the first join.
   if (IsCompiledForOsr()) {
-    AddSyntheticPhis(entry->osr_entry()->last_instruction()->SuccessorAt(0));
-    for (intptr_t i = 0, n = entry->dominated_blocks().length(); i < n; ++i) {
-      AddSyntheticPhis(entry->dominated_blocks()[i]);
+    for (intptr_t i = 0, n = preorder().length(); i < n; ++i) {
+      AddSyntheticPhis(preorder()[i]);
     }
   }
 
   RenameRecursive(entry, &env, live_phis, variable_liveness,
                   inlining_parameters);
+
+#if defined(DEBUG)
+  ValidatePhis();
+#endif  // defined(DEBUG)
 }
 
 void FlowGraph::PopulateEnvironmentFromFunctionEntry(
@@ -1594,6 +1605,46 @@ void FlowGraph::RenameRecursive(
     }
   }
 }
+
+#if defined(DEBUG)
+void FlowGraph::ValidatePhis() {
+  if (!FLAG_prune_dead_locals) {
+    // We can only check if dead locals are pruned.
+    return;
+  }
+
+  for (intptr_t i = 0, n = preorder().length(); i < n; ++i) {
+    BlockEntryInstr* block_entry = preorder()[i];
+    Instruction* last_instruction = block_entry->last_instruction();
+
+    if ((last_instruction->SuccessorCount() == 1) &&
+        last_instruction->SuccessorAt(0)->IsJoinEntry()) {
+      JoinEntryInstr* successor =
+          last_instruction->SuccessorAt(0)->AsJoinEntry();
+      if (successor->phis() != NULL) {
+        for (intptr_t j = 0; j < successor->phis()->length(); ++j) {
+          PhiInstr* phi = (*successor->phis())[j];
+          if (phi == nullptr) {
+            // We have no phi node for the this variable.
+            // Double check we do not have a different value in our env.
+            // If we do, we would have needed a phi-node in the successsor.
+            ASSERT(last_instruction->env() != nullptr);
+            Definition* current_definition =
+                last_instruction->env()->ValueAt(j)->definition();
+            ASSERT(successor->env() != nullptr);
+            Definition* successor_definition =
+                successor->env()->ValueAt(j)->definition();
+            if (!current_definition->IsConstant() &&
+                !successor_definition->IsConstant()) {
+              ASSERT(current_definition == successor_definition);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+#endif  // defined(DEBUG)
 
 void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
   // Augment live_phis with those that have implicit real used at
