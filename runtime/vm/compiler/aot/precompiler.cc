@@ -1809,6 +1809,7 @@ void Precompiler::TraceForRetainedFunctions() {
       cls = it.GetNextClass();
       functions = cls.current_functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
+        SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
         function ^= functions.At(j);
         bool retain = possibly_retained_functions_.ContainsKey(function);
         if (!retain && function.HasImplicitClosureFunction()) {

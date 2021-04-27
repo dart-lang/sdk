@@ -3763,7 +3763,7 @@ class Function : public Object {
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(uint32_t value) const;
 
-  ObjectPtr data() const { return untag()->data(); }
+  ObjectPtr data() const { return untag()->data<std::memory_order_acquire>(); }
   void set_data(const Object& value) const;
 
   static FunctionPtr New(Heap::Space space = Heap::kOld);

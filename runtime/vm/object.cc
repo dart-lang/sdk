@@ -7282,22 +7282,26 @@ FunctionPtr Function::implicit_closure_function() const {
   }
   ASSERT(is_native());
   ASSERT(obj.IsArray());
-  const Object& res = Object::Handle(Array::Cast(obj).At(1));
+  const Object& res = Object::Handle(Array::Cast(obj).AtAcquire(1));
   return res.IsNull() ? Function::null() : Function::Cast(res).ptr();
 }
 
 void Function::set_implicit_closure_function(const Function& value) const {
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!IsClosureFunction());
   const Object& old_data = Object::Handle(data());
   if (is_native()) {
     ASSERT(old_data.IsArray());
-    ASSERT((Array::Cast(old_data).At(1) == Object::null()) || value.IsNull());
-    Array::Cast(old_data).SetAt(1, value);
+    ASSERT((Array::Cast(old_data).AtAcquire(1) == Object::null()) ||
+           value.IsNull());
+    Array::Cast(old_data).SetAtRelease(1, value);
   } else {
     // Maybe this function will turn into a native later on :-/
     if (old_data.IsArray()) {
-      ASSERT((Array::Cast(old_data).At(1) == Object::null()) || value.IsNull());
-      Array::Cast(old_data).SetAt(1, value);
+      ASSERT((Array::Cast(old_data).AtAcquire(1) == Object::null()) ||
+             value.IsNull());
+      Array::Cast(old_data).SetAtRelease(1, value);
     } else {
       ASSERT(old_data.IsNull() || value.IsNull());
       set_data(value);
@@ -7424,7 +7428,7 @@ void Function::SetForwardingChecks(const Array& checks) const {
 //   dyn inv forwarder:       Array[0] = Function target
 //                            Array[1] = TypeArguments default type args
 void Function::set_data(const Object& value) const {
-  untag()->set_data(value.ptr());
+  untag()->set_data<std::memory_order_release>(value.ptr());
 }
 
 void Function::set_name(const String& value) const {
