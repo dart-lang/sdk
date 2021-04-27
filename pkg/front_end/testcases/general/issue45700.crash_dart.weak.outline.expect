@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue45700.dart:5:7: Error: Can't use a function type as supertype.
+// pkg/front_end/testcases/general/issue45700.crash_dart:5:7: Error: Can't use a function type as supertype.
 // mixin M on Function() {}
 //       ^
 //
