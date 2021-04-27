@@ -53,6 +53,7 @@ export '../fasta/fasta_codes.dart'
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
         messageFfiPackedAnnotationAlignment,
+        messageNonPositiveArrayDimensions,
         noLength,
         templateFfiDartTypeMismatch,
         templateFfiEmptyStruct,

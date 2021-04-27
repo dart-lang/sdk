@@ -4646,6 +4646,11 @@ NonNullAwareSpreadIsNull:
       <int>[...null];
     }
 
+NonPositiveArrayDimensions:
+  # Used by dart:ffi
+  template: "Array dimensions must be positive numbers."
+  external: test/ffi_test.dart
+
 InvalidTypeVariableInSupertype:
   template: "Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'."
   script: >

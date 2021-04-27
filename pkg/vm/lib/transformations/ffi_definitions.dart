@@ -9,6 +9,7 @@ import 'dart:math' as math;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         messageFfiPackedAnnotationAlignment,
+        messageNonPositiveArrayDimensions,
         templateFfiEmptyStruct,
         templateFfiFieldAnnotation,
         templateFfiFieldNull,
@@ -323,13 +324,23 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               compoundClassDependencies[node].add(clazz);
               _checkPacking(node, packing, clazz, f);
             }
-            if (arrayDimensions(type) != sizeAnnotations.single.length) {
+            final dimensions = sizeAnnotations.single;
+            if (arrayDimensions(type) != dimensions.length) {
               diagnosticReporter.report(
                   templateFfiSizeAnnotationDimensions
                       .withArguments(f.name.text),
                   f.fileOffset,
                   f.name.text.length,
                   f.fileUri);
+            }
+            for (var dimension in dimensions) {
+              if (dimension < 0) {
+                diagnosticReporter.report(
+                    messageNonPositiveArrayDimensions, f.fileOffset,
+                    f.name.text.length,
+                    f.fileUri);
+                success = false;
+              }
             }
           } else {
             diagnosticReporter.report(
@@ -478,8 +489,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final sizeAnnotations = _getArraySizeAnnotations(m).toList();
         if (sizeAnnotations.length == 1) {
           final arrayDimensions = sizeAnnotations.single;
-          type = NativeTypeCfe(this, dartType,
-              compoundCache: compoundCache, arrayDimensions: arrayDimensions);
+          type = NativeTypeCfe(this, dartType, compoundCache: compoundCache,
+              arrayDimensions: arrayDimensions);
         }
       } else if (isPointerType(dartType) || isCompoundSubtype(dartType)) {
         type = NativeTypeCfe(this, dartType, compoundCache: compoundCache);
@@ -749,7 +760,7 @@ class CompoundLayout {
 abstract class NativeTypeCfe {
   factory NativeTypeCfe(FfiTransformer transformer, DartType dartType,
       {List<int> arrayDimensions,
-      Map<Class, CompoundNativeTypeCfe> compoundCache = const {}}) {
+        Map<Class, CompoundNativeTypeCfe> compoundCache = const {}}) {
     if (transformer.isPrimitiveType(dartType)) {
       final clazz = (dartType as InterfaceType).classNode;
       final nativeType = transformer.getType(clazz);
@@ -772,7 +783,7 @@ abstract class NativeTypeCfe {
       }
       final elementType = transformer.arraySingleElementType(dartType);
       final elementCfeType =
-          NativeTypeCfe(transformer, elementType, compoundCache: compoundCache);
+      NativeTypeCfe(transformer, elementType, compoundCache: compoundCache);
       return ArrayNativeTypeCfe.multi(elementCfeType, arrayDimensions);
     }
     throw "Invalid type $dartType";
@@ -1135,8 +1146,8 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
 
   ArrayNativeTypeCfe(this.elementType, this.length);
 
-  factory ArrayNativeTypeCfe.multi(
-      NativeTypeCfe elementType, List<int> dimensions) {
+  factory ArrayNativeTypeCfe.multi(NativeTypeCfe elementType,
+      List<int> dimensions) {
     if (dimensions.length == 1) {
       return ArrayNativeTypeCfe(elementType, dimensions.single);
     }
