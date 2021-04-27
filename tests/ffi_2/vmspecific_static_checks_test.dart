@@ -759,3 +759,24 @@ class TestStruct1606Packed extends Struct {
   @Array(2) //# 1606: compile-time error
   Array<TestStruct1604> nestedLooselyPacked; //# 1606: compile-time error
 }
+
+class TestStruct1800 extends Struct {
+  Pointer<Uint8> notEmpty;
+
+  @Array(-1) //# 1800: compile-time error
+  Array<Uint8> inlineArray; //# 1800: compile-time error
+}
+
+class TestStruct1801 extends Struct {
+  Pointer<Uint8> notEmpty;
+
+  @Array(1, -1) //# 1801: compile-time error
+  Array<Uint8> inlineArray; //# 1801: compile-time error
+}
+
+class TestStruct1802 extends Struct {
+  Pointer<Uint8> notEmpty;
+
+  @Array.multi([2, 2, 2, 2, 2, 2, -1]) //# 1802: compile-time error
+  Array<Uint8> inlineArray; //# 1802: compile-time error
+}
