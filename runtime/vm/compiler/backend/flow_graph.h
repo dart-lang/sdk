@@ -490,6 +490,10 @@ class FlowGraph : public ZoneAllocated {
                        GrowableArray<PhiInstr*>* live_phis,
                        VariableLivenessAnalysis* variable_liveness,
                        ZoneGrowableArray<Definition*>* inlining_parameters);
+#if defined(DEBUG)
+  // Validates no phis are missing on join entry instructions.
+  void ValidatePhis();
+#endif  // defined(DEBUG)
 
   void PopulateEnvironmentFromFunctionEntry(
       FunctionEntryInstr* function_entry,
