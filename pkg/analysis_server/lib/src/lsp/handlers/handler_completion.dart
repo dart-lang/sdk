@@ -215,10 +215,10 @@ class CompletionHandler
           server.getDartdocDirectiveInfoFor(completionRequest.result);
       final dartCompletionRequest = await DartCompletionRequestImpl.from(
           perf, completionRequest, directiveInfo);
+      final target = dartCompletionRequest.target;
 
       if (triggerCharacter != null) {
-        if (!_triggerCharacterValid(
-            offset, triggerCharacter, dartCompletionRequest.target)) {
+        if (!_triggerCharacterValid(offset, triggerCharacter, target)) {
           return success([]);
         }
       }
@@ -256,6 +256,13 @@ class CompletionHandler
           return cancelled();
         }
 
+        /// completeFunctionCalls should be suppressed if the target is an
+        /// invocation that already has an argument list, otherwise we would
+        /// insert dupes.
+        final completeFunctionCalls = _hasExistingArgList(target.entity)
+            ? false
+            : server.clientConfiguration.completeFunctionCalls;
+
         final results = serverSuggestions.map(
           (item) {
             var itemReplacementOffset =
@@ -286,8 +293,7 @@ class CompletionHandler
               // https://github.com/microsoft/vscode-languageserver-node/issues/673
               includeCommitCharacters:
                   server.clientConfiguration.previewCommitCharacters,
-              completeFunctionCalls:
-                  server.clientConfiguration.completeFunctionCalls,
+              completeFunctionCalls: completeFunctionCalls,
             );
           },
         ).toList();
@@ -386,8 +392,7 @@ class CompletionHandler
                       // https://github.com/microsoft/vscode-languageserver-node/issues/673
                       includeCommitCharacters:
                           server.clientConfiguration.previewCommitCharacters,
-                      completeFunctionCalls:
-                          server.clientConfiguration.completeFunctionCalls,
+                      completeFunctionCalls: completeFunctionCalls,
                     ));
             results.addAll(setResults);
           });
@@ -451,6 +456,27 @@ class CompletionHandler
         )
         .toList();
     return success(completionItems);
+  }
+
+  /// Returns true if [node] is part of an invocation and already has an argument
+  /// list.
+  bool _hasExistingArgList(Object? node) {
+    // print^('foo');
+    if (node is ast.ExpressionStatement) {
+      node = node.expression;
+    }
+    // super.foo^();
+    if (node is ast.SimpleIdentifier) {
+      node = node.parent;
+    }
+    // new Aaaa.bar^()
+    if (node is ast.ConstructorName) {
+      node = node.parent;
+    }
+    return (node is ast.InvocationExpression &&
+            node.argumentList.length != 0) ||
+        (node is ast.InstanceCreationExpression &&
+            node.argumentList.length != 0);
   }
 
   Iterable<CompletionItem> _pluginResultsToItems(
