@@ -53,3 +53,13 @@ class A {
 class B extends A {
   const B() : super();
 }
+
+const var4 = C();
+//           ^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
+//           ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
+class C {
+  int? x;
+}

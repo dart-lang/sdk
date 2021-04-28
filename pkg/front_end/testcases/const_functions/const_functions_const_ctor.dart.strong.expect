@@ -21,6 +21,9 @@ class A extends core::Object /*hasConstConstructor*/  {
 static const field core::String printString = #C1;
 static const field self::Simple var1 = #C2;
 static const field self::A var2 = #C3;
+static const field self::A var3 = #C3;
+static method fn() → self::A
+  return new self::A::•();
 static method main() → void {
   exp::Expect::equals((#C2).{self::Simple::name}, #C1);
 }
