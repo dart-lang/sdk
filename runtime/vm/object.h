@@ -4224,14 +4224,19 @@ class Field : public Object {
   // Internally we is_nullable_ field contains either kNullCid (nullable) or
   // kInvalidCid (non-nullable) instead of boolean. This is done to simplify
   // guarding sequence in the generated code.
-  bool is_nullable(bool silence_assert = false) const;
+  bool is_nullable() const;
   void set_is_nullable(bool val) const {
     DEBUG_ASSERT(
         IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
     set_is_nullable_unsafe(val);
   }
+  bool is_nullable_unsafe() const {
+    return LoadNonPointer<ClassIdTagType, std::memory_order_relaxed>(
+               &untag()->is_nullable_) == kNullCid;
+  }
   void set_is_nullable_unsafe(bool val) const {
-    StoreNonPointer(&untag()->is_nullable_, val ? kNullCid : kIllegalCid);
+    StoreNonPointer<ClassIdTagType, ClassIdTagType, std::memory_order_relaxed>(
+        &untag()->is_nullable_, val ? kNullCid : kIllegalCid);
   }
   static intptr_t is_nullable_offset() {
     return OFFSET_OF(UntaggedField, is_nullable_);

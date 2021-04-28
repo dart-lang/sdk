@@ -10235,21 +10235,18 @@ intptr_t Field::guarded_cid() const {
       &untag()->guarded_cid_);
 }
 
-bool Field::is_nullable(bool silence_assert) const {
+bool Field::is_nullable() const {
 #if defined(DEBUG)
-  if (!silence_assert) {
-    // Same assert as guarded_cid(), because is_nullable() also needs to be
-    // consistent for the background compiler.
-    Thread* thread = Thread::Current();
-    ASSERT(
-        !thread->IsInsideCompiler() ||
+  // Same assert as guarded_cid(), because is_nullable() also needs to be
+  // consistent for the background compiler.
+  Thread* thread = Thread::Current();
+  ASSERT(!thread->IsInsideCompiler() ||
 #if !defined(DART_PRECOMPILED_RUNTIME)
-        ((CompilerState::Current().should_clone_fields() == !IsOriginal())) ||
+         ((CompilerState::Current().should_clone_fields() == !IsOriginal())) ||
 #endif
-        is_static());
-  }
+         is_static());
 #endif
-  return untag()->is_nullable_ == kNullCid;
+  return is_nullable_unsafe();
 }
 
 void Field::SetOriginal(const Field& value) const {
