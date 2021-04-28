@@ -1,0 +1,3 @@
+analyzer:
+  exclude:
+    - inner/lib/excluded_error.dart
