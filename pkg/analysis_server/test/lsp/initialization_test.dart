@@ -566,6 +566,31 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
   }
 
+  Future<void> test_nonProjectFiles_basicWorkspace() async {
+    final file1 = convertPath('/home/nonProject/file1.dart');
+    newFile(file1);
+
+    await initialize(allowEmptyRootUri: true);
+
+    // Because the file is not in a project, it should be added itself.
+    await openFile(Uri.file(file1), '');
+    expect(server.contextManager.includedPaths, equals([file1]));
+  }
+
+  Future<void> test_nonProjectFiles_bazelWorkspace() async {
+    final file1 = convertPath('/home/nonProject/file1.dart');
+    newFile(file1);
+
+    // Make /home a bazel workspace.
+    newFile(convertPath('/home/WORKSPACE'));
+
+    await initialize(allowEmptyRootUri: true);
+
+    // Because the file is not in a project, it should be added itself.
+    await openFile(Uri.file(file1), '');
+    expect(server.contextManager.includedPaths, equals([file1]));
+  }
+
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_multipleFiles() async {
     final file1 = join(projectFolderPath, 'file1.dart');
     final file1Uri = Uri.file(file1);

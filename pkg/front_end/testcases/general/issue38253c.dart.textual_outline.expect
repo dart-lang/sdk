@@ -1,0 +1,9 @@
+var a = () {
+  g f1() {}
+  g f2() async {}
+  int f3() {}
+  Future<int> f4() async {}
+};
+var b = (f) async => await f;
+var c = (f) => f;
+main() {}

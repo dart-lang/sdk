@@ -1677,7 +1677,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'CONFLICTING_GENERIC_INTERFACES',
           "The class '{0}' can't implement both '{1}' and '{2}' because the "
-              "type arguments are different.");
+              "type arguments are different.",
+          hasPublishedDocs: true);
 
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
@@ -2034,7 +2035,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "A constant constructor can't call a non-constant super constructor "
               "of '{0}'.",
           correction: "Try calling a constant constructor in the superclass, "
-              "or removing the keyword 'const' from the constructor.");
+              "or removing the keyword 'const' from the constructor.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2133,7 +2135,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode CONST_DEFERRED_CLASS = CompileTimeErrorCode(
       'CONST_DEFERRED_CLASS', "Deferred classes can't be created with 'const'.",
       correction: "Try using 'new' to create the instance, or "
-          "changing the import to not be deferred.");
+          "changing the import to not be deferred.",
+      hasPublishedDocs: true);
 
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -2320,7 +2323,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try initializing the variable without referencing members of "
               "the deferred library, or changing the import to not be "
-              "deferred.");
+              "deferred.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2423,7 +2427,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The type of a key in a constant map can't override the '==' "
               "operator, but the class '{0}' does.",
           correction: "Try using a different value for the key, or "
-              "removing the keyword 'const' from the map.");
+              "removing the keyword 'const' from the map.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -2513,7 +2518,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The type of an element in a constant set can't override the '==' "
               "operator, but the type '{0}' does.",
           correction: "Try using a different value for the element, or "
-              "removing the keyword 'const' from the set.");
+              "removing the keyword 'const' from the set.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2993,7 +2999,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try adding either a show combinator listing the names you need "
               "to reference or a hide combinator listing all of the "
-              "extensions.");
+              "extensions.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -3635,6 +3642,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'SUBTYPE_OF_DEFERRED_CLASS', "Classes can't extend deferred classes.",
           correction: "Try specifying a different superclass, or "
               "removing the extends clause.",
+          hasPublishedDocs: true,
           uniqueName: 'EXTENDS_DEFERRED_CLASS');
 
   /**
@@ -4886,7 +4894,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'FOR_IN_OF_INVALID_ELEMENT_TYPE',
           "The type '{0}' used in the 'for' loop must implement '{1}' with a "
-              "type argument that can be assigned to '{2}'.");
+              "type argument that can be assigned to '{2}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -4968,7 +4977,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('FOR_IN_WITH_CONST_VARIABLE',
           "A for-in loop variable can't be a 'const'.",
           correction: "Try removing the 'const' modifier from the variable, or "
-              "use a different variable.");
+              "use a different variable.",
+          hasPublishedDocs: true);
 
   /**
    * It is a compile-time error if a generic function type is used as a bound
@@ -5215,6 +5225,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try specifying a different interface, "
               "removing the class from the list, or "
               "changing the import to not be deferred.",
+          hasPublishedDocs: true,
           uniqueName: 'IMPLEMENTS_DEFERRED_CLASS');
 
   /**
@@ -5952,7 +5963,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If you intend to use an instance of a class, then use the name of that class in place of the name of the enum.
   static const CompileTimeErrorCode INSTANTIATE_ENUM = CompileTimeErrorCode(
       'INSTANTIATE_ENUM', "Enums can't be instantiated.",
-      correction: "Try using one of the defined constants.");
+      correction: "Try using one of the defined constants.",
+      hasPublishedDocs: true);
 
   /**
    * It is a compile-time error for an instance creation `C<T1, .. Tk>(...)` or
@@ -6143,7 +6155,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Constant values from a deferred library can't be used as "
               "annotations.",
           correction: "Try removing the annotation, or "
-              "changing the import to not be deferred.");
+              "changing the import to not be deferred.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -6518,7 +6531,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'INVALID_IMPLEMENTATION_OVERRIDE',
           "'{1}.{0}' ('{2}') isn't a valid concrete implementation of "
-              "'{3}.{0}' ('{4}').");
+              "'{3}.{0}' ('{4}').",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -7616,7 +7630,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Reinstall the Dart or Flutter SDK.
   static const CompileTimeErrorCode MISSING_DART_LIBRARY = CompileTimeErrorCode(
       'MISSING_DART_LIBRARY', "Required library '{0}' is missing.",
-      correction: "Re-install the Dart or Flutter SDK.");
+      correction: "Re-install the Dart or Flutter SDK.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -7814,7 +7829,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER = CompileTimeErrorCode(
           'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
           "The class doesn't have a concrete implementation of the "
-              "super-invoked member '{0}'.");
+              "super-invoked member '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * It's a compile-time error to apply a mixin to a class that doesn't
@@ -7859,6 +7875,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode MIXIN_DEFERRED_CLASS = CompileTimeErrorCode(
       'SUBTYPE_OF_DEFERRED_CLASS', "Classes can't mixin deferred classes.",
       correction: "Try changing the import to not be deferred.",
+      hasPublishedDocs: true,
       uniqueName: 'MIXIN_DEFERRED_CLASS');
 
   static const CompileTimeErrorCode
@@ -7918,7 +7935,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If you intend to use an instance of a class, then use the name of that
   // class in place of the name of the mixin.
   static const CompileTimeErrorCode MIXIN_INSTANTIATE = CompileTimeErrorCode(
-      'MIXIN_INSTANTIATE', "Mixins can't be instantiated.");
+      'MIXIN_INSTANTIATE', "Mixins can't be instantiated.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -8808,7 +8826,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "expression.",
           correction:
               "Try re-writing the switch as a series of if statements, or "
-              "changing the import to not be deferred.");
+              "changing the import to not be deferred.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -8912,7 +8931,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "parameter value.",
           correction:
               "Try leaving the default as null and initializing the parameter "
-              "inside the function body.");
+              "inside the function body.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -9026,6 +9046,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "a 'const' list literal.",
           correction: "Try removing the keyword 'const' from the list literal "
               "or removing the keyword 'deferred' from the import.",
+          hasPublishedDocs: true,
           uniqueName: 'NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY');
 
   /**
@@ -9128,6 +9149,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try removing the keyword 'const' from the map literal or removing "
               "the keyword 'deferred' from the import.",
+          hasPublishedDocs: true,
           uniqueName: 'NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY');
 
   /**
@@ -9180,6 +9202,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try removing the keyword 'const' from the map literal or removing "
               "the keyword 'deferred' from the import.",
+          hasPublishedDocs: true,
           uniqueName: 'NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY');
 
   /**
@@ -11277,6 +11300,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try removing the keyword 'const' from the set literal or removing "
               "the keyword 'deferred' from the import.",
+          hasPublishedDocs: true,
           uniqueName: 'SET_ELEMENT_FROM_DEFERRED_LIBRARY');
 
   /**
@@ -11688,7 +11712,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The deferred type '{0}' can't be used in a declaration, cast, or "
               "type test.",
           correction: "Try using a different type, or "
-              "changing the import to not be deferred.");
+              "changing the import to not be deferred.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:

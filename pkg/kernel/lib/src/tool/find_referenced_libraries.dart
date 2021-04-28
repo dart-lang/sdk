@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/visitor.dart';
 
@@ -32,7 +30,7 @@ class _LibraryCollector extends RecursiveVisitor {
       seen(node);
     } else if (node is Name) {
       if (node.library != null) {
-        seen(node.library);
+        seen(node.library!);
       }
     }
     super.defaultNode(node);
@@ -44,10 +42,10 @@ class _LibraryCollector extends RecursiveVisitor {
   }
 
   void seen(TreeNode node) {
-    TreeNode parent = node;
+    TreeNode? parent = node;
     while (parent != null && parent is! Library) {
       parent = parent.parent;
     }
-    allSeenLibraries.add(parent);
+    allSeenLibraries.add(parent as Library);
   }
 }
