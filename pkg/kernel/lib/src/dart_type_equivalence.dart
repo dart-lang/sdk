@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import '../ast.dart';
 import '../core_types.dart';
 import '../visitor.dart';
@@ -64,7 +62,7 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
         // themselves if the typedef types are equal.
         assert(() {
           DartTypeEquivalence copy = this.copy();
-          if (!copy.areEqual(node.typedefType, other.typedefType)) {
+          if (!copy.areEqual(node.typedefType!, other.typedefType!)) {
             return true;
           }
           FunctionType nodeWithoutTypedefType = new FunctionType(
@@ -85,7 +83,7 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
               typedefType: null);
           return copy.areEqual(nodeWithoutTypedefType, otherWithoutTypedefType);
         }());
-        return node.typedefType.accept1(this, other.typedefType);
+        return node.typedefType!.accept1(this, other.typedefType);
       }
 
       // Perform simple number checks before the checks on parts.
@@ -130,7 +128,7 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
         String otherName = other.namedParameters[i].name;
         DartType otherType = other.namedParameters[i].type;
         if (!nodeNamedParameters.containsKey(otherName) ||
-            !nodeNamedParameters[otherName].accept1(this, otherType)) {
+            !nodeNamedParameters[otherName]!.accept1(this, otherType)) {
           result = false;
         }
       }
@@ -251,7 +249,7 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
         return false;
       }
       return nodeIsIntersection
-          ? node.promotedBound.accept1(this, other.promotedBound)
+          ? node.promotedBound!.accept1(this, other.promotedBound)
           : true;
     }
     return false;
@@ -315,7 +313,7 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   TypeParameter _lookup(TypeParameter parameter) {
     for (int i = _alphaRenamingStack.length - 1; i >= 0; --i) {
       if (_alphaRenamingStack[i].containsKey(parameter)) {
-        return _alphaRenamingStack[i][parameter];
+        return _alphaRenamingStack[i][parameter]!;
       }
     }
     return parameter;
