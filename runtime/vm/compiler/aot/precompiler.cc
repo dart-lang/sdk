@@ -1809,6 +1809,7 @@ void Precompiler::TraceForRetainedFunctions() {
       cls = it.GetNextClass();
       functions = cls.current_functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
+        SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
         function ^= functions.At(j);
         bool retain = possibly_retained_functions_.ContainsKey(function);
         if (!retain && function.HasImplicitClosureFunction()) {
@@ -2767,13 +2768,8 @@ void Precompiler::DiscardCodeObjects() {
       function_ = code.function();
       if (functions_to_retain_.ContainsKey(function_)) {
         // Retain Code objects corresponding to:
-        // * invisible functions (to filter them from stack traces);
         // * async/async* closures (to construct async stacks).
         // * native functions (to find native implementation).
-        if (!function_.is_visible()) {
-          ++codes_with_invisible_function_;
-          return;
-        }
         if (function_.is_native()) {
           ++codes_with_native_function_;
           return;
@@ -2833,8 +2829,6 @@ void Precompiler::DiscardCodeObjects() {
                 codes_with_exception_handlers_);
       THR_Print("    %8" Pd " Codes with pc descriptors\n",
                 codes_with_pc_descriptors_);
-      THR_Print("    %8" Pd " Codes with invisible functions\n",
-                codes_with_invisible_function_);
       THR_Print("    %8" Pd " Codes with native functions\n",
                 codes_with_native_function_);
       THR_Print("    %8" Pd " Codes with async closure functions\n",
@@ -2869,7 +2863,6 @@ void Precompiler::DiscardCodeObjects() {
     intptr_t non_function_codes_ = 0;
     intptr_t codes_with_exception_handlers_ = 0;
     intptr_t codes_with_pc_descriptors_ = 0;
-    intptr_t codes_with_invisible_function_ = 0;
     intptr_t codes_with_native_function_ = 0;
     intptr_t codes_with_async_closure_function_ = 0;
     intptr_t codes_with_dynamically_called_function_ = 0;

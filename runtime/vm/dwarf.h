@@ -269,6 +269,7 @@ class Dwarf : public ZoneAllocated {
   static const intptr_t DW_AT_inline = 0x20;
   static const intptr_t DW_AT_producer = 0x25;
   static const intptr_t DW_AT_abstract_origin = 0x31;
+  static const intptr_t DW_AT_artificial = 0x34;
   static const intptr_t DW_AT_decl_column = 0x39;
   static const intptr_t DW_AT_decl_file = 0x3a;
   static const intptr_t DW_AT_decl_line = 0x3b;
@@ -278,6 +279,7 @@ class Dwarf : public ZoneAllocated {
 
   static const intptr_t DW_FORM_addr = 0x01;
   static const intptr_t DW_FORM_string = 0x08;
+  static const intptr_t DW_FORM_flag = 0x0c;
   static const intptr_t DW_FORM_udata = 0x0f;
   static const intptr_t DW_FORM_ref4 = 0x13;
   static const intptr_t DW_FORM_ref_udata = 0x15;
