@@ -1,0 +1,10 @@
+main() {}
+var a = () {
+  g f1() {
+    return;
+  }
+
+  g f2() async {
+    return;
+  }
+};
