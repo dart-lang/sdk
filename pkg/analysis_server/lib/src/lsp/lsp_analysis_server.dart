@@ -49,6 +49,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
+import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:watcher/watcher.dart';
@@ -666,17 +667,22 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     final contextLocator = ContextLocator(resourceProvider: resourceProvider);
     final roots = contextLocator.locateRoots(includedPaths: openFiles);
 
-    // For files in folders that don't have pubspecs, a root would be
-    // produced for the root of the drive which we do not want, so filter those out.
-    roots.removeWhere((root) => root.root.isRoot);
-
-    // Find any files that are no longer covered by roots because of the above
-    // removal.
-    final additionalFiles =
-        openFiles.where((file) => !roots.any((root) => root.isAnalyzed(file)));
+    var packages = <String>{};
+    var additionalFiles = <String>[];
+    for (var file in openFiles) {
+      var package = roots
+          .where((root) => root.isAnalyzed(file))
+          .map((root) => root.workspace.findPackageFor(file)?.root)
+          .firstWhereOrNull((p) => p != null);
+      if (package != null && !resourceProvider.getFolder(package).isRoot) {
+        packages.add(package);
+      } else {
+        additionalFiles.add(file);
+      }
+    }
 
     return [
-      ...roots.map((root) => root.root.path),
+      ...packages,
       ...additionalFiles,
     ];
   }

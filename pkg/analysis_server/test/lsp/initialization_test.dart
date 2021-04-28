@@ -29,6 +29,27 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         registrationFor(registrations, method)?.registerOptions);
   }
 
+  Future<void> test_bazelWorkspace() async {
+    var workspacePath = '/home/user/ws';
+    // Make it a Bazel workspace.
+    newFile(convertPath('$workspacePath/WORKSPACE'));
+
+    var packagePath = '$workspacePath/team/project1';
+
+    // Make it a Blaze project.
+    newFile(convertPath('$packagePath/BUILD'));
+
+    final file1 = convertPath('$packagePath/lib/file1.dart');
+    newFile(file1);
+
+    await initialize(allowEmptyRootUri: true);
+
+    // Expect that context manager includes a whole package.
+    await openFile(Uri.file(file1), '');
+    expect(server.contextManager.includedPaths,
+        equals([convertPath(packagePath)]));
+  }
+
   Future<void> test_completionRegistrations_triggerCharacters() async {
     final registrations = <Registration>[];
     final initResponse = await monitorDynamicRegistrations(
