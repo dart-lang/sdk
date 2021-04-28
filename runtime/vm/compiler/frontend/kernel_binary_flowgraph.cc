@@ -155,7 +155,7 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
       LeaveCompilerScope cs(H.thread());
       field.RecordStore(Object::null_object());
     } else {
-      ASSERT(field.is_nullable(/* silence_assert = */ true));
+      ASSERT(field.is_nullable_unsafe());
     }
     return Fragment();
   }
@@ -187,7 +187,7 @@ Fragment StreamingFlowGraphBuilder::BuildLateFieldInitializer(
       LeaveCompilerScope cs(H.thread());
       field.RecordStore(Object::null_object());
     } else {
-      ASSERT(field.is_nullable(/* silence_assert = */ true));
+      ASSERT(field.is_nullable_unsafe());
     }
     return Fragment();
   }
