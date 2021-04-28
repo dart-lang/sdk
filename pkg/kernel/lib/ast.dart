@@ -329,9 +329,9 @@ class Library extends NamedNode
   List<String>? problemsAsJson;
 
   @override
-  final List<Expression> annotations;
+  List<Expression> annotations;
 
-  final List<LibraryDependency> dependencies;
+  List<LibraryDependency> dependencies;
 
   /// References to nodes exported by `export` declarations that:
   /// - aren't ambiguous, or
@@ -339,13 +339,13 @@ class Library extends NamedNode
   final List<Reference> additionalExports = <Reference>[];
 
   @informative
-  final List<LibraryPart> parts;
+  List<LibraryPart> parts;
 
-  final List<Typedef> typedefs;
-  final List<Class> classes;
-  final List<Extension> extensions;
-  final List<Procedure> procedures;
-  final List<Field> fields;
+  List<Typedef> _typedefs;
+  List<Class> _classes;
+  List<Extension> _extensions;
+  List<Procedure> _procedures;
+  List<Field> _fields;
 
   Library(this.importUri,
       {this.name,
@@ -364,19 +364,64 @@ class Library extends NamedNode
         this.annotations = annotations ?? <Expression>[],
         this.dependencies = dependencies ?? <LibraryDependency>[],
         this.parts = parts ?? <LibraryPart>[],
-        this.typedefs = typedefs ?? <Typedef>[],
-        this.classes = classes ?? <Class>[],
-        this.extensions = extensions ?? <Extension>[],
-        this.procedures = procedures ?? <Procedure>[],
-        this.fields = fields ?? <Field>[],
+        this._typedefs = typedefs ?? <Typedef>[],
+        this._classes = classes ?? <Class>[],
+        this._extensions = extensions ?? <Extension>[],
+        this._procedures = procedures ?? <Procedure>[],
+        this._fields = fields ?? <Field>[],
         super(reference) {
     setParents(this.dependencies, this);
     setParents(this.parts, this);
-    setParents(this.typedefs, this);
-    setParents(this.classes, this);
-    setParents(this.extensions, this);
-    setParents(this.procedures, this);
-    setParents(this.fields, this);
+    setParents(this._typedefs, this);
+    setParents(this._classes, this);
+    setParents(this._extensions, this);
+    setParents(this._procedures, this);
+    setParents(this._fields, this);
+  }
+
+  List<Typedef> get typedefs => _typedefs;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding typedefs when reading the dill file.
+  void set typedefsInternal(List<Typedef> typedefs) {
+    _typedefs = typedefs;
+  }
+
+  List<Class> get classes => _classes;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding classes when reading the dill file.
+  void set classesInternal(List<Class> classes) {
+    _classes = classes;
+  }
+
+  List<Extension> get extensions => _extensions;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding extensions when reading the dill file.
+  void set extensionsInternal(List<Extension> extensions) {
+    _extensions = extensions;
+  }
+
+  List<Procedure> get procedures => _procedures;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding procedures when reading the dill file.
+  void set proceduresInternal(List<Procedure> procedures) {
+    _procedures = procedures;
+  }
+
+  List<Field> get fields => _fields;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding fields when reading the dill file.
+  void set fieldsInternal(List<Field> fields) {
+    _fields = fields;
   }
 
   Nullability get nullable {
@@ -1050,7 +1095,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   Supertype? mixedInType;
 
   /// The types from the `implements` clause.
-  final List<Supertype> implementedTypes;
+  List<Supertype> implementedTypes;
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///
@@ -1070,10 +1115,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     }
   }
 
-  /// Internal. Should *ONLY* be used from within kernel.
-  ///
-  /// Used for adding fields when reading the dill file.
-  final List<Field> fieldsInternal;
+  List<Field> _fieldsInternal;
   DirtifyingList<Field>? _fieldsView;
 
   /// Fields declared in the class.
@@ -1082,28 +1124,39 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   List<Field> get fields {
     ensureLoaded();
     // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return fieldsInternal;
-    return _fieldsView ??= new DirtifyingList(this, fieldsInternal);
+    if (dirty) return _fieldsInternal;
+    return _fieldsView ??= new DirtifyingList(this, _fieldsInternal);
   }
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///
-  /// Used for adding constructors when reading the dill file.
-  final List<Constructor> constructorsInternal;
+  /// Used for adding fields when reading the dill file.
+  void set fieldsInternal(List<Field> fields) {
+    _fieldsInternal = fields;
+    _fieldsView = null;
+  }
+
+  List<Constructor> _constructorsInternal;
   DirtifyingList<Constructor>? _constructorsView;
 
   /// Constructors declared in the class.
   List<Constructor> get constructors {
     ensureLoaded();
     // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return constructorsInternal;
-    return _constructorsView ??= new DirtifyingList(this, constructorsInternal);
+    if (dirty) return _constructorsInternal;
+    return _constructorsView ??=
+        new DirtifyingList(this, _constructorsInternal);
   }
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///
-  /// Used for adding procedures when reading the dill file.
-  final List<Procedure> proceduresInternal;
+  /// Used for adding constructors when reading the dill file.
+  void set constructorsInternal(List<Constructor> constructors) {
+    _constructorsInternal = constructors;
+    _constructorsView = null;
+  }
+
+  List<Procedure> _proceduresInternal;
   DirtifyingList<Procedure>? _proceduresView;
 
   /// Procedures declared in the class.
@@ -1112,16 +1165,19 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   List<Procedure> get procedures {
     ensureLoaded();
     // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return proceduresInternal;
-    return _proceduresView ??= new DirtifyingList(this, proceduresInternal);
+    if (dirty) return _proceduresInternal;
+    return _proceduresView ??= new DirtifyingList(this, _proceduresInternal);
   }
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///
-  /// Used for adding redirecting factory constructor when reading the dill
-  /// file.
-  final List<RedirectingFactoryConstructor>
-      redirectingFactoryConstructorsInternal;
+  /// Used for adding procedures when reading the dill file.
+  void set proceduresInternal(List<Procedure> procedures) {
+    _proceduresInternal = procedures;
+    _proceduresView = null;
+  }
+
+  List<RedirectingFactoryConstructor> _redirectingFactoryConstructorsInternal;
   DirtifyingList<RedirectingFactoryConstructor>?
       _redirectingFactoryConstructorsView;
 
@@ -1131,9 +1187,19 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   List<RedirectingFactoryConstructor> get redirectingFactoryConstructors {
     ensureLoaded();
     // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return redirectingFactoryConstructorsInternal;
+    if (dirty) return _redirectingFactoryConstructorsInternal;
     return _redirectingFactoryConstructorsView ??=
-        new DirtifyingList(this, redirectingFactoryConstructorsInternal);
+        new DirtifyingList(this, _redirectingFactoryConstructorsInternal);
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding redirecting factory constructor when reading the dill
+  /// file.
+  void set redirectingFactoryConstructorsInternal(
+      List<RedirectingFactoryConstructor> redirectingFactoryConstructors) {
+    _redirectingFactoryConstructorsInternal = redirectingFactoryConstructors;
+    _redirectingFactoryConstructorsView = null;
   }
 
   Class(
@@ -1156,17 +1222,17 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
         assert(fileUri != null),
         this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.implementedTypes = implementedTypes ?? <Supertype>[],
-        this.fieldsInternal = fields ?? <Field>[],
-        this.constructorsInternal = constructors ?? <Constructor>[],
-        this.proceduresInternal = procedures ?? <Procedure>[],
-        this.redirectingFactoryConstructorsInternal =
+        this._fieldsInternal = fields ?? <Field>[],
+        this._constructorsInternal = constructors ?? <Constructor>[],
+        this._proceduresInternal = procedures ?? <Procedure>[],
+        this._redirectingFactoryConstructorsInternal =
             redirectingFactoryConstructors ?? <RedirectingFactoryConstructor>[],
         super(reference) {
     setParents(this.typeParameters, this);
-    setParents(this.constructorsInternal, this);
-    setParents(this.proceduresInternal, this);
-    setParents(this.fieldsInternal, this);
-    setParents(this.redirectingFactoryConstructorsInternal, this);
+    setParents(this._constructorsInternal, this);
+    setParents(this._proceduresInternal, this);
+    setParents(this._fieldsInternal, this);
+    setParents(this._redirectingFactoryConstructorsInternal, this);
     this.isAbstract = isAbstract;
     this.isAnonymousMixin = isAnonymousMixin;
   }
@@ -1292,21 +1358,21 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   void addConstructor(Constructor constructor) {
     dirty = true;
     constructor.parent = this;
-    constructorsInternal.add(constructor);
+    _constructorsInternal.add(constructor);
   }
 
   /// Adds a procedure to this class.
   void addProcedure(Procedure procedure) {
     dirty = true;
     procedure.parent = this;
-    proceduresInternal.add(procedure);
+    _proceduresInternal.add(procedure);
   }
 
   /// Adds a field to this class.
   void addField(Field field) {
     dirty = true;
     field.parent = this;
-    fieldsInternal.add(field);
+    _fieldsInternal.add(field);
   }
 
   /// Adds a field to this class.
@@ -1314,7 +1380,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       RedirectingFactoryConstructor redirectingFactoryConstructor) {
     dirty = true;
     redirectingFactoryConstructor.parent = this;
-    redirectingFactoryConstructorsInternal.add(redirectingFactoryConstructor);
+    _redirectingFactoryConstructorsInternal.add(redirectingFactoryConstructor);
   }
 
   @override
@@ -1451,7 +1517,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   ///
   /// The members are converted into top-level members and only accessible
   /// by reference through [ExtensionMemberDescriptor].
-  final List<ExtensionMemberDescriptor> members;
+  List<ExtensionMemberDescriptor> members;
 
   @override
   List<Expression> annotations = const <Expression>[];
@@ -13566,6 +13632,77 @@ final List<NamedType> emptyListOfNamedType =
 final List<TypeParameter> emptyListOfTypeParameter =
     List.filled(0, dummyTypeParameter, growable: false);
 
+/// Almost const <Constant>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Constant> emptyListOfConstant =
+    List.filled(0, dummyConstant, growable: false);
+
+/// Almost const <String>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<String> emptyListOfString = List.filled(0, '', growable: false);
+
+/// Almost const <Typedef>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Typedef> emptyListOfTypedef =
+    List.filled(0, dummyTypedef, growable: false);
+
+/// Almost const <Extension>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Extension> emptyListOfExtension =
+    List.filled(0, dummyExtension, growable: false);
+
+/// Almost const <Field>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Field> emptyListOfField =
+    List.filled(0, dummyField, growable: false);
+
+/// Almost const <LibraryPart>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<LibraryPart> emptyListOfLibraryPart =
+    List.filled(0, dummyLibraryPart, growable: false);
+
+/// Almost const <LibraryDependency>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<LibraryDependency> emptyListOfLibraryDependency =
+    List.filled(0, dummyLibraryDependency, growable: false);
+
+/// Almost const <Procedure>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Procedure> emptyListOfProcedure =
+    List.filled(0, dummyProcedure, growable: false);
+
+/// Almost const <MapLiteralEntry>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<MapLiteralEntry> emptyListOfMapLiteralEntry =
+    List.filled(0, dummyMapLiteralEntry, growable: false);
+
+/// Almost const <Class>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Class> emptyListOfClass =
+    List.filled(0, dummyClass, growable: false);
+
+/// Almost const <ExtensionMemberDescriptor>[], but not const in an attempt to
+/// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<ExtensionMemberDescriptor> emptyListOfExtensionMemberDescriptor =
+    List.filled(0, dummyExtensionMemberDescriptor, growable: false);
+
+/// Almost const <Constructor>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Constructor> emptyListOfConstructor =
+    List.filled(0, dummyConstructor, growable: false);
+
+/// Almost const <RedirectingFactoryConstructor>[], but not const in an attempt
+/// to avoid polymorphism. See
+/// https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<RedirectingFactoryConstructor>
+    emptyListOfRedirectingFactoryConstructor =
+    List.filled(0, dummyRedirectingFactoryConstructor, growable: false);
+
+/// Almost const <Initializer>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Initializer> emptyListOfInitializer =
+    List.filled(0, dummyInitializer, growable: false);
+
 /// Non-nullable [DartType] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
@@ -13593,6 +13730,9 @@ final Uri dummyUri = new Uri(scheme: 'dummy');
 
 /// Non-nullable [Name] dummy value.
 final Name dummyName = new _PublicName('');
+
+/// Non-nullable [Reference] dummy value.
+final Reference dummyReference = new Reference();
 
 /// Non-nullable [Library] dummy value.
 ///
@@ -13644,6 +13784,17 @@ final Constructor dummyConstructor =
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final Extension dummyExtension = new Extension(name: '', fileUri: dummyUri);
+
+/// Non-nullable [ExtensionMemberDescriptor] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final ExtensionMemberDescriptor dummyExtensionMemberDescriptor =
+    new ExtensionMemberDescriptor(
+        name: dummyName,
+        kind: ExtensionMemberKind.Getter,
+        member: dummyReference);
 
 /// Non-nullable [Member] dummy value.
 ///
@@ -13771,6 +13922,13 @@ final SwitchCase dummySwitchCase = new SwitchCase.defaultCase(dummyStatement);
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final Catch dummyCatch = new Catch(null, dummyStatement);
+
+/// Non-nullable [Constant] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final Constant dummyConstant = new NullConstant();
 
 /// Sentinel value used to signal that a node cannot be removed through the
 /// [RemovingTransformer].

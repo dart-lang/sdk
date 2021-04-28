@@ -37,9 +37,9 @@ class CommandLineHelper {
   static Component tryLoadDill(String file) {
     try {
       return loadComponentFromBinary(file);
-    } catch (e) {
-      print("$file can't be loaded.");
-      print(e);
+    } catch (e, s) {
+      print("$file can't be loaded:");
+      print('$e\n$s');
       exit(1);
     }
   }

@@ -52,9 +52,9 @@ class WrappedBinaryBuilder extends BinaryBuilder {
     return result;
   }
 
-  void readStringTable(List<String> table) {
+  void readStringTable() {
     stringTableSize -= byteOffset;
-    super.readStringTable(table);
+    super.readStringTable();
     stringTableSize += byteOffset;
   }
 

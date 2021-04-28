@@ -120,8 +120,8 @@ class BinaryBuilder {
   final String? filename;
   final List<int> _bytes;
   int _byteOffset = 0;
-  final List<String> _stringTable = <String>[];
-  final List<Uri?> _sourceUriTable = <Uri>[];
+  List<String> _stringTable = const [];
+  List<Uri> _sourceUriTable = const [];
   Map<int, Constant> _constantTable = <int, Constant>{};
   late List<CanonicalName> _linkTable;
   int _transformerFlags = 0;
@@ -313,18 +313,18 @@ class BinaryBuilder {
     return node;
   }
 
-  void readStringTable(List<String> table) {
+  void readStringTable() {
     // Read the table of end offsets.
     int length = readUInt30();
     List<int> endOffsets =
         new List<int>.generate(length, (_) => readUInt30(), growable: false);
     // Read the WTF-8 encoded strings.
-    table.length = length;
     int startOffset = 0;
-    for (int i = 0; i < length; ++i) {
-      table[i] = readStringEntry(endOffsets[i] - startOffset);
-      startOffset = endOffsets[i];
-    }
+    _stringTable = new List<String>.generate(length, (int index) {
+      String result = readStringEntry(endOffsets[index] - startOffset);
+      startOffset = endOffsets[index];
+      return result;
+    }, growable: false);
   }
 
   void readConstantTable() {
@@ -465,12 +465,17 @@ class BinaryBuilder {
 
   List<Constant> _readConstantReferenceList() {
     final int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfConstant;
+    }
     return new List<Constant>.generate(length, (_) => readConstantReference(),
         growable: useGrowableLists);
   }
 
   Uri readUriReference() {
-    return _sourceUriTable[readUInt30()]!;
+    return _sourceUriTable[readUInt30()];
   }
 
   String readStringReference() {
@@ -479,6 +484,11 @@ class BinaryBuilder {
 
   List<String> readStringReferenceList() {
     int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfString;
+    }
     return new List<String>.generate(length, (_) => readStringReference(),
         growable: useGrowableLists);
   }
@@ -501,43 +511,14 @@ class BinaryBuilder {
 
   List<Expression> readAnnotationList([TreeNode? parent]) {
     int length = readUInt30();
-    if (length == 0) return const <Expression>[];
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfExpression;
+    }
     return new List<Expression>.generate(
         length, (_) => readExpression()..parent = parent,
         growable: useGrowableLists);
-  }
-
-  void _fillTreeNodeList(
-      List<TreeNode> list, TreeNode buildObject(int index), TreeNode parent) {
-    int length = readUInt30();
-    list.length = length;
-    for (int i = 0; i < length; ++i) {
-      TreeNode object = buildObject(i);
-      list[i] = object..parent = parent;
-    }
-  }
-
-  void _fillNonTreeNodeList(List<Node> list, Node buildObject()) {
-    int length = readUInt30();
-    list.length = length;
-    for (int i = 0; i < length; ++i) {
-      Node object = buildObject();
-      list[i] = object;
-    }
-  }
-
-  /// Reads a list of named nodes, reusing any existing objects already in the
-  /// linking tree. The nodes are merged into [list], and if reading the library
-  /// implementation, the order is corrected.
-  ///
-  /// [readObject] should read the object definition and its canonical name.
-  /// If an existing object is bound to the canonical name, the existing object
-  /// must be reused and returned.
-  void _mergeNamedNodeList(
-      List<NamedNode> list, NamedNode readObject(int index), TreeNode parent) {
-    // When reading the library implementation, overwrite the whole list
-    // with the new one.
-    _fillTreeNodeList(list, readObject, parent);
   }
 
   void readLinkTable(CanonicalName linkRoot) {
@@ -806,7 +787,7 @@ class BinaryBuilder {
         mergeCompilationModeOrThrow(compilationMode, index.compiledMode);
 
     _byteOffset = index.binaryOffsetForStringTable;
-    readStringTable(_stringTable);
+    readStringTable();
 
     _byteOffset = index.binaryOffsetForCanonicalNames;
     readLinkTable(component.root);
@@ -873,7 +854,7 @@ class BinaryBuilder {
     int length = readUint32();
 
     // Read data.
-    _sourceUriTable.length = length;
+    _sourceUriTable = new List<Uri>.filled(length, dummyUri, growable: false);
     Map<Uri, Source> uriToSource = <Uri, Source>{};
     for (int i = 0; i < length; ++i) {
       String uriString = readString();
@@ -1073,32 +1054,22 @@ class BinaryBuilder {
     // There is a field for the procedure count.
     _byteOffset = endOffset - (1) * 4;
     int procedureCount = readUint32();
-    List<int> procedureOffsets = new List<int>.filled(
-        procedureCount + 1,
-        // Use `-1` as a dummy default value.
-        -1,
-        growable: false);
 
     // There is a field for the procedure count, that number + 1 (for the end)
     // offsets, and then the class count (i.e. procedure count + 3 fields).
     _byteOffset = endOffset - (procedureCount + 3) * 4;
     int classCount = readUint32();
-    for (int i = 0; i < procedureCount + 1; i++) {
-      procedureOffsets[i] = _componentStartOffset + readUint32();
-    }
-    List<int> classOffsets = new List<int>.filled(
-        classCount + 1,
-        // Use `-1` as a dummy default value.
-        -1,
+    List<int> procedureOffsets = new List<int>.generate(
+        procedureCount + 1, (int index) => _componentStartOffset + readUint32(),
         growable: false);
 
     // There is a field for the procedure count, that number + 1 (for the end)
     // offsets, then the class count and that number + 1 (for the end) offsets.
     // (i.e. procedure count + class count + 4 fields).
     _byteOffset = endOffset - (procedureCount + classCount + 4) * 4;
-    for (int i = 0; i < classCount + 1; i++) {
-      classOffsets[i] = _componentStartOffset + readUint32();
-    }
+    List<int> classOffsets = new List<int>.generate(
+        classCount + 1, (int index) => _componentStartOffset + readUint32(),
+        growable: false);
     _byteOffset = savedByteOffset;
 
     int flags = readByte();
@@ -1145,44 +1116,104 @@ class BinaryBuilder {
       return true;
     }());
 
-    _fillTreeNodeList(
-        library.annotations, (index) => readExpression(), library);
+    library.annotations = readAnnotationList(library);
     _readLibraryDependencies(library);
     _readAdditionalExports(library);
     _readLibraryParts(library);
-    _mergeNamedNodeList(library.typedefs, (index) => readTypedef(), library);
-
-    _mergeNamedNodeList(library.classes, (index) {
-      _byteOffset = classOffsets[index];
-      return readClass(classOffsets[index + 1]);
-    }, library);
-    _byteOffset = classOffsets.last;
-
-    _mergeNamedNodeList(library.extensions, (index) {
-      return readExtension();
-    }, library);
-
-    _mergeNamedNodeList(library.fields, (index) => readField(), library);
-    _mergeNamedNodeList(library.procedures, (index) {
-      _byteOffset = procedureOffsets[index];
-      return readProcedure(procedureOffsets[index + 1]);
-    }, library);
-    _byteOffset = procedureOffsets.last;
+    _readTypedefList(library);
+    _readClassList(library, classOffsets);
+    _readExtensionList(library);
+    library.fieldsInternal = _readFieldList(library);
+    library.proceduresInternal = _readProcedureList(library, procedureOffsets);
 
     assert(((_) => true)(debugPath.removeLast()));
     _currentLibrary = null;
     return library;
   }
 
-  void _readLibraryDependencies(Library library) {
+  void _readTypedefList(Library library) {
     int length = readUInt30();
-    library.dependencies.length = length;
-    for (int i = 0; i < length; ++i) {
-      library.dependencies[i] = readLibraryDependency(library);
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      library.typedefsInternal = emptyListOfTypedef;
+    } else {
+      library.typedefsInternal = new List<Typedef>.generate(
+          length, (int index) => readTypedef()..parent = library,
+          growable: useGrowableLists);
     }
   }
 
-  LibraryDependency readLibraryDependency(Library library) {
+  void _readClassList(Library library, List<int> classOffsets) {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      library.classesInternal = emptyListOfClass;
+    } else {
+      library.classesInternal = new List<Class>.generate(length, (int index) {
+        _byteOffset = classOffsets[index];
+        return readClass(classOffsets[index + 1])..parent = library;
+      }, growable: useGrowableLists);
+      _byteOffset = classOffsets.last;
+    }
+  }
+
+  void _readExtensionList(Library library) {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      library.extensionsInternal = emptyListOfExtension;
+    } else {
+      library.extensionsInternal = new List<Extension>.generate(
+          length, (int index) => readExtension()..parent = library,
+          growable: useGrowableLists);
+    }
+  }
+
+  List<Field> _readFieldList(TreeNode parent) {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfField;
+    }
+    return new List<Field>.generate(
+        length, (int index) => readField()..parent = parent,
+        growable: useGrowableLists);
+  }
+
+  List<Procedure> _readProcedureList(
+      TreeNode parent, List<int> procedureOffsets) {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfProcedure;
+    }
+    List<Procedure> list = new List<Procedure>.generate(length, (int index) {
+      _byteOffset = procedureOffsets[index];
+      return readProcedure(procedureOffsets[index + 1])..parent = parent;
+    }, growable: useGrowableLists);
+    _byteOffset = procedureOffsets.last;
+    return list;
+  }
+
+  void _readLibraryDependencies(Library library) {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      library.dependencies = emptyListOfLibraryDependency;
+    } else {
+      library.dependencies = new List<LibraryDependency>.generate(
+          length, (int index) => readLibraryDependency()..parent = library,
+          growable: useGrowableLists);
+    }
+  }
+
+  LibraryDependency readLibraryDependency() {
     int fileOffset = readOffset();
     int flags = readByte();
     List<Expression> annotations = readExpressionList();
@@ -1191,8 +1222,7 @@ class BinaryBuilder {
     List<Combinator> names = readCombinatorList();
     return new LibraryDependency.byReference(
         flags, annotations, targetLibrary, prefixName, names)
-      ..fileOffset = fileOffset
-      ..parent = library;
+      ..fileOffset = fileOffset;
   }
 
   void _readAdditionalExports(Library library) {
@@ -1226,16 +1256,21 @@ class BinaryBuilder {
 
   void _readLibraryParts(Library library) {
     int length = readUInt30();
-    library.parts.length = length;
-    for (int i = 0; i < length; ++i) {
-      library.parts[i] = readLibraryPart(library);
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      library.parts = emptyListOfLibraryPart;
+    } else {
+      library.parts = new List<LibraryPart>.generate(
+          length, (int index) => readLibraryPart()..parent = library,
+          growable: useGrowableLists);
     }
   }
 
-  LibraryPart readLibraryPart(Library library) {
+  LibraryPart readLibraryPart() {
     List<Expression> annotations = readExpressionList();
     String partUri = readStringReference();
-    return new LibraryPart(annotations, partUri)..parent = library;
+    return new LibraryPart(annotations, partUri);
   }
 
   Typedef readTypedef() {
@@ -1319,7 +1354,7 @@ class BinaryBuilder {
     readAndPushTypeParameterList(node.typeParameters, node);
     Supertype? supertype = readSupertypeOption();
     Supertype? mixedInType = readSupertypeOption();
-    _fillNonTreeNodeList(node.implementedTypes, readSupertype);
+    node.implementedTypes = readSupertypeList();
     if (_disableLazyClassReading) {
       readClassPartialContent(node, procedureOffsets);
     } else {
@@ -1377,36 +1412,70 @@ class BinaryBuilder {
     node.fileUri = fileUri;
     node.onType = onType;
 
-    int length = readUInt30();
-    node.members.length = length;
-    for (int i = 0; i < length; i++) {
-      Name name = readName();
-      int kind = readByte();
-      int flags = readByte();
-      CanonicalName canonicalName = readNonNullCanonicalNameReference();
-      node.members[i] = new ExtensionMemberDescriptor(
-          name: name,
-          kind: ExtensionMemberKind.values[kind],
-          member: canonicalName.reference)
-        ..flags = flags;
-    }
+    node.members = _readExtensionMemberDescriptorList();
+
     return node;
+  }
+
+  List<ExtensionMemberDescriptor> _readExtensionMemberDescriptorList() {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      return emptyListOfExtensionMemberDescriptor;
+    }
+    return new List<ExtensionMemberDescriptor>.generate(
+        length, (_) => _readExtensionMemberDescriptor(),
+        growable: useGrowableLists);
+  }
+
+  ExtensionMemberDescriptor _readExtensionMemberDescriptor() {
+    Name name = readName();
+    int kind = readByte();
+    int flags = readByte();
+    CanonicalName canonicalName = readNonNullCanonicalNameReference();
+    return new ExtensionMemberDescriptor(
+        name: name,
+        kind: ExtensionMemberKind.values[kind],
+        member: canonicalName.reference)
+      ..flags = flags;
   }
 
   /// Reads the partial content of a class, namely fields, procedures,
   /// constructors and redirecting factory constructors.
   void readClassPartialContent(Class node, List<int> procedureOffsets) {
-    _mergeNamedNodeList(node.fieldsInternal, (index) => readField(), node);
-    _mergeNamedNodeList(
-        node.constructorsInternal, (index) => readConstructor(), node);
+    node.fieldsInternal = _readFieldList(node);
+    _readConstructorList(node);
+    node.proceduresInternal = _readProcedureList(node, procedureOffsets);
+    _readRedirectingFactoryConstructorList(node);
+  }
 
-    _mergeNamedNodeList(node.proceduresInternal, (index) {
-      _byteOffset = procedureOffsets[index];
-      return readProcedure(procedureOffsets[index + 1]);
-    }, node);
-    _byteOffset = procedureOffsets.last;
-    _mergeNamedNodeList(node.redirectingFactoryConstructorsInternal,
-        (index) => readRedirectingFactoryConstructor(), node);
+  void _readConstructorList(Class node) {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      node.constructorsInternal = emptyListOfConstructor;
+    } else {
+      node.constructorsInternal = new List<Constructor>.generate(
+          length, (int index) => readConstructor()..parent = node,
+          growable: useGrowableLists);
+    }
+  }
+
+  void _readRedirectingFactoryConstructorList(Class node) {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      node.redirectingFactoryConstructorsInternal =
+          emptyListOfRedirectingFactoryConstructor;
+    } else {
+      node.redirectingFactoryConstructorsInternal =
+          new List<RedirectingFactoryConstructor>.generate(length,
+              (int index) => readRedirectingFactoryConstructor()..parent = node,
+              growable: useGrowableLists);
+    }
   }
 
   /// Set the lazyBuilder on the class so it can be lazy loaded in the future.
@@ -1513,7 +1582,7 @@ class BinaryBuilder {
     }
     pushVariableDeclarations(function.positionalParameters);
     pushVariableDeclarations(function.namedParameters);
-    _fillTreeNodeList(node.initializers, (index) => readInitializer(), node);
+    _readInitializers(node);
     variableStack.length = 0;
     int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
@@ -1639,6 +1708,19 @@ class BinaryBuilder {
     node.positionalParameters = positional;
     node.namedParameters = named;
     return node;
+  }
+
+  void _readInitializers(Constructor constructor) {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use a
+      // constant one for the empty list.
+      constructor.initializers = emptyListOfInitializer;
+    } else {
+      constructor.initializers = new List<Initializer>.generate(
+          length, (int index) => readInitializer()..parent = constructor,
+          growable: useGrowableLists);
+    }
   }
 
   Initializer readInitializer() {
@@ -2442,7 +2524,7 @@ class BinaryBuilder {
     int offset = readOffset();
     DartType keyType = readDartType();
     DartType valueType = readDartType();
-    return new MapLiteral(readMapEntryList(),
+    return new MapLiteral(readMapLiteralEntryList(),
         keyType: keyType, valueType: valueType, isConst: false)
       ..fileOffset = offset;
   }
@@ -2451,7 +2533,7 @@ class BinaryBuilder {
     int offset = readOffset();
     DartType keyType = readDartType();
     DartType valueType = readDartType();
-    return new MapLiteral(readMapEntryList(),
+    return new MapLiteral(readMapLiteralEntryList(),
         keyType: keyType, valueType: valueType, isConst: true)
       ..fileOffset = offset;
   }
@@ -2496,8 +2578,13 @@ class BinaryBuilder {
     return new ConstantExpression(constant, type)..fileOffset = offset;
   }
 
-  List<MapLiteralEntry> readMapEntryList() {
+  List<MapLiteralEntry> readMapLiteralEntryList() {
     int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfMapLiteralEntry;
+    }
     return new List<MapLiteralEntry>.generate(length, (_) => readMapEntry(),
         growable: useGrowableLists);
   }
@@ -2732,11 +2819,9 @@ class BinaryBuilder {
 
   void _readSwitchCaseInto(SwitchCase caseNode) {
     int length = readUInt30();
-    caseNode.expressions.length = length;
-    caseNode.expressionOffsets.length = length;
     for (int i = 0; i < length; ++i) {
-      caseNode.expressionOffsets[i] = readOffset();
-      caseNode.expressions[i] = readExpression()..parent = caseNode;
+      caseNode.expressionOffsets.add(readOffset());
+      caseNode.expressions.add(readExpression()..parent = caseNode);
     }
     caseNode.isDefault = readByte() == 1;
     caseNode.body = readStatement()..parent = caseNode;
@@ -2977,9 +3062,8 @@ class BinaryBuilder {
           length, (_) => new TypeParameter(null, null)..parent = parent,
           growable: useGrowableLists);
     } else if (list.length != length) {
-      list.length = length;
       for (int i = 0; i < length; ++i) {
-        list[i] = new TypeParameter(null, null)..parent = parent;
+        list.add(new TypeParameter(null, null)..parent = parent);
       }
     }
     typeParameterStack.addAll(list);
@@ -3304,16 +3388,16 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  LibraryDependency readLibraryDependency(Library library) {
+  LibraryDependency readLibraryDependency() {
     final int nodeOffset = _byteOffset;
-    final LibraryDependency result = super.readLibraryDependency(library);
+    final LibraryDependency result = super.readLibraryDependency();
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
-  LibraryPart readLibraryPart(Library library) {
+  LibraryPart readLibraryPart() {
     final int nodeOffset = _byteOffset;
-    final LibraryPart result = super.readLibraryPart(library);
+    final LibraryPart result = super.readLibraryPart();
     return _associateMetadata(result, nodeOffset);
   }
 

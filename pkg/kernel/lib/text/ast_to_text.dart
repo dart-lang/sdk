@@ -427,9 +427,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       endLine(":");
       endLine("//");
       for (String s in problemsAsJson) {
-        Map<String, Object> decoded = json.decode(s);
-        List<Object> plainTextFormatted =
-            decoded["plainTextFormatted"] as List<Object>;
+        Map<String, dynamic> decoded = json.decode(s);
+        List<dynamic> plainTextFormatted =
+            decoded["plainTextFormatted"] as List<dynamic>;
         List<String> lines = plainTextFormatted.join("\n").split("\n");
         for (int i = 0; i < lines.length; i++) {
           write("//");
