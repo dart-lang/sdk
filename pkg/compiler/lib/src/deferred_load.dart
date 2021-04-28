@@ -670,15 +670,27 @@ class DeferredLoadTask extends CompilerTask {
   }
 
   void _setupImportNames() {
+    // If useSimpleLoadIds is true then we use a monotonically increasing number
+    // to generate loadIds. Otherwise, we will use the user provided names.
+    bool useIds = compiler.options.useSimpleLoadIds;
+    var allDeferredImports = _allDeferredImports.toList();
+    if (useIds) {
+      // Sort for a canonical order of [ImportEntity]s.
+      allDeferredImports.sort(_compareImportEntities);
+    }
+    int nextDeferId = 0;
     Set<String> usedImportNames = {};
-
-    for (ImportEntity import in _allDeferredImports) {
+    for (ImportEntity import in allDeferredImports) {
       String result = computeImportDeferName(import, compiler);
       assert(result != null);
-      // Note: tools that process the json file to build multi-part initial load
-      // bundles depend on the fact that makeUnique appends only digits, or a
-      // period followed by digits.
-      importDeferName[import] = makeUnique(result, usedImportNames, '.');
+      if (useIds) {
+        importDeferName[import] = (++nextDeferId).toString();
+      } else {
+        // Note: tools that process the json file to build multi-part initial load
+        // bundles depend on the fact that makeUnique appends only digits, or a
+        // period followed by digits.
+        importDeferName[import] = makeUnique(result, usedImportNames, '.');
+      }
     }
   }
 

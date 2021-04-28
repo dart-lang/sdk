@@ -479,12 +479,12 @@ class SignatureHelpWithNullSafetyTest extends AbstractLspAnalysisServerTest
     // This test requires support for the "required" keyword.
     final content = '''
     /// Does foo.
-    foo(String s, {bool b = true, required bool a}) {
+    foo(String s, {bool? b = true, required bool a}) {
       foo(^);
     }
     ''';
 
-    final expectedLabel = 'foo(String s, {bool b = true, required bool a})';
+    final expectedLabel = 'foo(String s, {bool? b = true, required bool a})';
     final expectedDoc = 'Does foo.';
 
     await initialize(
@@ -497,7 +497,7 @@ class SignatureHelpWithNullSafetyTest extends AbstractLspAnalysisServerTest
       expectedDoc,
       [
         ParameterInformation(label: 'String s'),
-        ParameterInformation(label: 'bool b = true'),
+        ParameterInformation(label: 'bool? b = true'),
         ParameterInformation(label: 'required bool a'),
       ],
     );

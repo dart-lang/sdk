@@ -207,8 +207,6 @@ import 'field_initializing_formal_not_assignable_test.dart'
     as field_initializing_formal_not_assignable;
 import 'final_initialized_in_delcaration_and_constructor_test.dart'
     as final_initialized_in_declaration_and_constructor;
-import 'final_initialized_multiple_times_test.dart'
-    as final_initialized_multiple_times;
 import 'final_not_initialized_constructor_test.dart'
     as final_not_initialized_constructor;
 import 'final_not_initialized_test.dart' as final_not_initialized;
@@ -820,7 +818,6 @@ main() {
     final_initialized_in_declaration_and_constructor.main();
     field_initialized_in_initializer_and_declaration.main();
     field_initialized_in_parameter_and_initializer.main();
-    final_initialized_multiple_times.main();
     field_initializer_factory_constructor.main();
     field_initializer_in_struct.main();
     field_initializer_not_assignable.main();

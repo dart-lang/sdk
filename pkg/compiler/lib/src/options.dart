@@ -352,6 +352,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// (experimental)
   bool useNewSourceInfo = false;
 
+  /// Whether or not use simple load ids.
+  bool useSimpleLoadIds = false;
+
   /// Enable verbose printing during compilation. Includes a time-breakdown
   /// between phases at the end.
   bool verbose = false;
@@ -524,6 +527,7 @@ class CompilerOptions implements DiagnosticOptions {
           !_hasOption(options, Flags.noFrequencyBasedMinification)
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
+      ..useSimpleLoadIds = _hasOption(options, Flags.useSimpleLoadIds)
       ..verbose = _hasOption(options, Flags.verbose)
       ..reportPrimaryMetrics = _hasOption(options, Flags.reportMetrics)
       ..reportSecondaryMetrics = _hasOption(options, Flags.reportAllMetrics)

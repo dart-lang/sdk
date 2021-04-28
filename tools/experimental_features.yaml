@@ -116,9 +116,6 @@ features:
   value-class:
     help: "Value class"
 
-  generic-metadata:
-    help: "Allow annotations to accept type arguments; also allow generic function types as type arguments"
-
   extension-types:
     help: "Extension Types"
 
@@ -163,6 +160,12 @@ features:
     help: "Control Flow Collections"
     enabledIn: '2.0.0'
     expired: true
+
+  generic-metadata:
+    help: >-
+      Allow annotations to accept type arguments;
+      also allow generic function types as type arguments.
+    enabledIn: '2.14.0'
 
   set-literals:
     help: "Set Literals"

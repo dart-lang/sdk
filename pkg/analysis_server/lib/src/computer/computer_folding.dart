@@ -233,6 +233,14 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    _computer._addRegionForAnnotations(node.metadata);
+    _computer._addRegion(
+        node.leftBracket.end, node.rightBracket.offset, FoldingKind.CLASS_BODY);
+    super.visitEnumDeclaration(node);
+  }
+
+  @override
   void visitExportDirective(ExportDirective node) {
     _computer._recordDirective(node);
     super.visitExportDirective(node);

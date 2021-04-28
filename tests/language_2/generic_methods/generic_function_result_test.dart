@@ -7,6 +7,8 @@
 // Verify that function type parameter S can be resolved in bar's result type.
 // Verify that generic function types are not allowed as type arguments.
 
+// @dart=2.11
+
 import "package:expect/expect.dart";
 
 int foo

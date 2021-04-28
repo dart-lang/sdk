@@ -3168,8 +3168,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode DUPLICATE_FIELD_FORMAL_PARAMETER =
       CompileTimeErrorCode(
           'DUPLICATE_FIELD_FORMAL_PARAMETER',
-          "The field '{0}' can't be referenced in multiple initializing "
-              "parameters in the same constructor.",
+          "The field '{0}' can't be initialized by multiple parameters in the "
+              "same constructor.",
           correction: "Try removing one of the parameters, or "
               "using different fields.");
 
@@ -4652,19 +4652,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "so it can't be set to a new value.",
           correction: "Try removing one of the initializations.",
           hasPublishedDocs: true);
-
-  /**
-   * 5 Variables: It is a compile-time error if a final instance variable that
-   * has is initialized by means of an initializing formal of a constructor is
-   * also initialized elsewhere in the same constructor.
-   *
-   * Parameters:
-   * 0: the name of the field in question
-   */
-  static const CompileTimeErrorCode FINAL_INITIALIZED_MULTIPLE_TIMES =
-      CompileTimeErrorCode('FINAL_INITIALIZED_MULTIPLE_TIMES',
-          "'{0}' is a final field and so can only be set once.",
-          correction: "Try removing all but one of the initializations.");
 
   /**
    * Parameters:

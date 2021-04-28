@@ -54,6 +54,44 @@ Updated the Linter to `1.3.0`, which includes:
     as an unsigned integer, so `a >>> b` gives the same result as
     `a.toUnsigned(32) >>> b` on the VM.
 
+*   Prior to Dart 2.14, metadata (annotations) were not permitted to be
+    specified with generic type arguments.  This restriction is lifted in Dart
+    Dart 2.14.
+
+    ```dart
+    class C<T> {
+      const C();
+    }
+    @C();      // Previously permitted.
+    @C<int>(); // Previously an error, now permitted.
+    ```
+
+*   Prior to Dart 2.14, generic function types were not permitted as arguments
+    to generic classes or functions, nor to be used as generic bounds.  This
+    restriction is lifted in Dart 2.14.
+
+    ```dart
+    T wrapWithLogging<T>(T f) {
+      if (f is void Function<T>(T x)) {
+        return <S>(S x) {
+          print("Call: f<$S>($x)");
+          var r = f<S>(x);
+          print("Return: $x");
+          return r;
+        } as T;
+      } // More cases here
+      return f;
+    }
+    void foo<T>(T x) {
+      print("Foo!");
+    }
+    void main() {
+      // Previously an error, now permitted.
+      var f = wrapWithLogging<void Function<T>(T)>(foo);
+      f<int>(3);
+    }
+    ```
+
 ## 2.13.0
 
 ### Language

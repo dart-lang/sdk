@@ -194,6 +194,7 @@ class GenericTypeAliasDriverResolutionWithoutGenericMetadataTest
 
   test_genericFunctionTypeCannotBeTypeArgument_def_class() async {
     await assertErrorsInCode(r'''
+// @dart=2.12
 class C<T> {}
 
 typedef G = Function<S>();
@@ -201,23 +202,25 @@ typedef G = Function<S>();
 C<G>? x;
 ''', [
       error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-          45, 1),
+          59, 1),
     ]);
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_class() async {
     await assertErrorsInCode(r'''
+// @dart=2.12
 class C<T> {}
 
 C<Function<S>()>? x;
 ''', [
       error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-          17, 13),
+          31, 13),
     ]);
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_function() async {
     await assertErrorsInCode(r'''
+// @dart=2.12
 void f<T>(T) {}
 
 main() {
@@ -225,12 +228,13 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-          30, 13),
+          44, 13),
     ]);
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_functionType() async {
     await assertErrorsInCode(r'''
+// @dart=2.12
 late T Function<T>(T?) f;
 
 main() {
@@ -238,12 +242,13 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-          40, 13),
+          54, 13),
     ]);
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_method() async {
     await assertErrorsInCode(r'''
+// @dart=2.12
 class C {
   void f<T>(T) {}
 }
@@ -253,18 +258,19 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-          52, 13),
+          66, 13),
     ]);
   }
 
   test_genericFunctionTypeCannotBeTypeArgument_literal_typedef() async {
     await assertErrorsInCode(r'''
+// @dart=2.12
 typedef T F<T>(T t);
 
 F<Function<S>()>? x;
 ''', [
       error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-          24, 13),
+          38, 13),
     ]);
   }
 }

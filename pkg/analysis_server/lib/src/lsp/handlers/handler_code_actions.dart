@@ -409,6 +409,15 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         }
       }
 
+      if (shouldIncludeKind(CodeActionKind.RefactorInline)) {
+        // Inline Local Variable
+        if (InlineLocalRefactoring(server.searchEngine, unit, offset)
+            .isAvailable()) {
+          refactorActions.add(createRefactor(CodeActionKind.RefactorInline,
+              'Inline Local Variable', RefactoringKind.INLINE_LOCAL_VARIABLE));
+        }
+      }
+
       return refactorActions;
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified

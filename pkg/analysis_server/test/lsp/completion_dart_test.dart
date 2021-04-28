@@ -24,6 +24,34 @@ void main() {
 @reflectiveTest
 class CompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
+  Future<void> checkCompleteFunctionCallInsertText(
+      String content, String completion,
+      {required String insertText, InsertTextFormat? insertTextFormat}) async {
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere(
+      (c) => c.label == completion,
+      orElse: () =>
+          throw 'Did not find $completion in ${res.map((r) => r.label).toList()}',
+    );
+
+    expect(item.insertTextFormat, equals(insertTextFormat));
+    expect(item.insertText, equals(insertText));
+
+    final textEdit = toTextEdit(item.textEdit!);
+    expect(textEdit.newText, equals(item.insertText));
+    expect(textEdit.range, equals(rangeFromMarkers(content)));
+  }
+
   void expectAutoImportCompletion(List<CompletionItem> items, String file) {
     expect(
       items.singleWhereOrNull(
@@ -138,35 +166,93 @@ main() {
     expect(options.allCommitCharacters, equals(dartCompletionCommitCharacters));
   }
 
-  Future<void> test_completeFunctionCalls() async {
-    final content = '''
-    void myFunction(String a, int b, {String c}) {}
+  Future<void> test_completeFunctionCalls_constructor() =>
+      checkCompleteFunctionCallInsertText(
+        '''
+        class Aaaaa {
+          Aaaaa(int a);
+        }
+        void main(int aaa) {
+          var a = new [[Aaa^]]
+        }
+        ''',
+        'Aaaaa(…)',
+        insertTextFormat: InsertTextFormat.Snippet,
+        insertText: r'Aaaaa(${0:a})',
+      );
 
-    main() {
-      [[myFu^]]
-    }
-    ''';
+  Future<void> test_completeFunctionCalls_existingArgList_constructor() =>
+      checkCompleteFunctionCallInsertText(
+        '''
+        class Aaaaa {
+          Aaaaa(int a);
+        }
+        void main(int aaa) {
+          var a = new [[Aaa^]]()
+        }
+        ''',
+        'Aaaaa(…)',
+        insertText: 'Aaaaa',
+      );
 
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
-      {'completeFunctionCalls': true},
-    );
-    await openFile(mainFileUri, withoutMarkers(content));
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
-    // Ensure the snippet comes through in the expected format with the expected
-    // placeholders.
-    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b})'));
-    final textEdit = toTextEdit(item.textEdit!);
-    expect(textEdit.newText, equals(item.insertText));
-    expect(textEdit.range, equals(rangeFromMarkers(content)));
-  }
+  Future<void> test_completeFunctionCalls_existingArgList_expression() =>
+      checkCompleteFunctionCallInsertText(
+        '''
+        int myFunction(String a, int b, {String c}) {
+          var a = [[myFu^]]()
+        }
+        ''',
+        'myFunction(…)',
+        insertText: 'myFunction',
+      );
+
+  Future<void> test_completeFunctionCalls_existingArgList_namedConstructor() =>
+      checkCompleteFunctionCallInsertText(
+        '''
+        class Aaaaa {
+          Aaaaa.foo(int a);
+        }
+        void main() {
+          var a = new Aaaaa.[[foo^]]()
+        }
+        ''',
+        'foo(…)',
+        insertText: 'foo',
+      );
+
+  Future<void> test_completeFunctionCalls_existingArgList_statement() =>
+      checkCompleteFunctionCallInsertText(
+        '''
+        void main(int a) {
+          [[mai^]]()
+        }
+        ''',
+        'main(…)',
+        insertText: 'main',
+      );
+
+  Future<void> test_completeFunctionCalls_existingArgList_suggestionSets() =>
+      checkCompleteFunctionCallInsertText(
+        '''
+        void main(int a) {
+          [[pri^]]()
+        }
+        ''',
+        'print(…)',
+        insertText: 'print',
+      );
+
+  Future<void> test_completeFunctionCalls_expression() =>
+      checkCompleteFunctionCallInsertText(
+        '''
+        int myFunction(String a, int b, {String c}) {
+          var a = [[myFu^]]
+        }
+        ''',
+        'myFunction(…)',
+        insertTextFormat: InsertTextFormat.Snippet,
+        insertText: r'myFunction(${1:a}, ${2:b})',
+      );
 
   Future<void> test_completeFunctionCalls_flutterSetState() async {
     // Flutter's setState method has special handling inside SuggestionBuilder
@@ -214,6 +300,21 @@ class _MyWidgetState extends State<MyWidget> {
     expect(textEdit.newText, equals(item.insertText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
   }
+
+  Future<void> test_completeFunctionCalls_namedConstructor() =>
+      checkCompleteFunctionCallInsertText(
+        '''
+        class Aaaaa {
+          Aaaaa.foo(int a);
+        }
+        void main() {
+          var a = new Aaaaa.[[foo^]]
+        }
+        ''',
+        'foo(…)',
+        insertTextFormat: InsertTextFormat.Snippet,
+        insertText: r'foo(${0:a})',
+      );
 
   Future<void> test_completeFunctionCalls_noRequiredParameters() async {
     final content = '''
@@ -269,40 +370,29 @@ class _MyWidgetState extends State<MyWidget> {
     expect(textEdit.newText, equals(item.insertText));
   }
 
-  Future<void> test_completeFunctionCalls_suggestionSets() async {
-    final content = '''
-    main() {
-      [[pri]]^
-    }
-    ''';
+  Future<void> test_completeFunctionCalls_statement() =>
+      checkCompleteFunctionCallInsertText(
+        '''
+        void main(int a) {
+          [[mai^]]
+        }
+        ''',
+        'main(…)',
+        insertTextFormat: InsertTextFormat.Snippet,
+        insertText: r'main(${0:a})',
+      );
 
-    final initialAnalysis = waitForAnalysisComplete();
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-        workspaceCapabilities: withConfigurationSupport(
-            withApplyEditSupport(emptyWorkspaceClientCapabilities)),
-      ),
-      {'completeFunctionCalls': true},
-    );
-    await openFile(mainFileUri, withoutMarkers(content));
-    await initialAnalysis;
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    final item = res.singleWhere((c) => c.label == 'print(…)');
-    // Ensure the snippet comes through in the expected format with the expected
-    // placeholders.
-    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
-    expect(item.insertText, equals(r'print(${0:object})'));
-    expect(item.textEdit, isNull);
-
-    // Ensure the item can be resolved and gets a proper TextEdit.
-    final resolved = await resolveCompletion(item);
-    expect(resolved.textEdit, isNotNull);
-    final textEdit = toTextEdit(resolved.textEdit!);
-    expect(textEdit.newText, equals(item.insertText));
-    expect(textEdit.range, equals(rangeFromMarkers(content)));
-  }
+  Future<void> test_completeFunctionCalls_suggestionSets() =>
+      checkCompleteFunctionCallInsertText(
+        '''
+        void main(int a) {
+          [[pri^]]
+        }
+        ''',
+        'print(…)',
+        insertTextFormat: InsertTextFormat.Snippet,
+        insertText: r'print(${0:object})',
+      );
 
   Future<void> test_completionKinds_default() async {
     newFile(join(projectFolderPath, 'file.dart'));
@@ -2044,5 +2134,24 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
     final textEdit = toTextEdit(resolved.textEdit!);
     expect(textEdit.newText, equals(item.insertText));
     expect(textEdit.range, equals(rangeFromMarkers(content)));
+  }
+
+  Future<void> test_nullableTypes() async {
+    final content = '''
+    String? foo(int? a, [int b = 1]) {}
+
+    main() {
+      fo^
+    }
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completion = res.singleWhere((c) => c.label.startsWith('foo'));
+    expect(completion.detail, '(int? a, [int b = 1]) → String?');
   }
 }

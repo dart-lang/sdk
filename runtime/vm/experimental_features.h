@@ -19,6 +19,7 @@ enum class ExperimentalFeature {
   extension_methods,
   constant_update_2018,
   control_flow_collections,
+  generic_metadata,
   set_literals,
   spread_collections,
   triple_shift,
