@@ -301,7 +301,8 @@ class E {
   }
 
   test_class_alias_with_const_constructors() async {
-    addLibrarySource('/a.dart', '''
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/a.dart', r'''
 class Base {
   const Base._priv();
   const Base();
@@ -316,7 +317,7 @@ class MixinApp = Base with M;
     checkElementText(
         library,
         r'''
-import 'a.dart';
+import 'package:test/a.dart';
 class M {
 }
 class alias MixinApp extends Base with M {
@@ -324,16 +325,16 @@ class alias MixinApp extends Base with M {
     constantInitializers
       SuperConstructorInvocation
         argumentList: ArgumentList
-        staticElement: file:///a.dart::@class::Base::@constructor::•
+        staticElement: package:test/a.dart::@class::Base::@constructor::•
   synthetic const MixinApp.named();
     constantInitializers
       SuperConstructorInvocation
         argumentList: ArgumentList
         constructorName: SimpleIdentifier
-          staticElement: file:///a.dart::@class::Base::@constructor::named
+          staticElement: package:test/a.dart::@class::Base::@constructor::named
           staticType: null
           token: named
-        staticElement: file:///a.dart::@class::Base::@constructor::named
+        staticElement: package:test/a.dart::@class::Base::@constructor::named
 }
 ''',
         withFullyResolvedAst: true);

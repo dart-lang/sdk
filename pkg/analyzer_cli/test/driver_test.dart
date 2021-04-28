@@ -396,6 +396,16 @@ class OptionsTest extends BaseTest {
     _expectUndefinedClassErrorsWithoutExclusions();
   }
 
+  Future<void> test_analysisOptions_excludes_inner() async {
+    await drive('data/exclude_portion_of_inner_context/inner',
+        options: 'data/exclude_portion_of_inner_context/$analysisOptionsYaml');
+    expect(
+      bulletToDash(outSink),
+      contains("error - Undefined class 'IncludedUndefinedClassInInner'"),
+    );
+    expect(outSink.toString(), contains('1 error found.'));
+  }
+
   Future<void>
       test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() async {
     // The exclude is relative to the project, not/ the analyzed path, and it
