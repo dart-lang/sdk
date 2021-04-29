@@ -54,4 +54,11 @@ int getWithIndexExceptionFn3() {
   return x[0.1];
 }
 
+const constListAddException = constListAddExceptionFn();
+List<int> constListAddExceptionFn() {
+  const List<int> x = [1, 2];
+  x.add(3);
+  return x;
+}
+
 void main() {}

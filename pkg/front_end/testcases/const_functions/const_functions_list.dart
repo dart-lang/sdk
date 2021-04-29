@@ -110,6 +110,19 @@ int rangeErrorCatchFn() {
   return 1;
 }
 
+const mutableListVar = mutableList();
+List<int> mutableList() {
+  List<int> x = [1, 2];
+  return x;
+}
+
+const mutableListAddVar = mutableListAdd();
+List<int> mutableListAdd() {
+  List<int> x = [1, 2];
+  x.add(3);
+  return x;
+}
+
 void main() {
   Expect.equals(firstVar, 1);
   Expect.equals(firstCatchVar, 0);
@@ -124,4 +137,6 @@ void main() {
   Expect.equals(typeVar, int);
   Expect.equals(getWithIndexVar, 1);
   Expect.equals(rangeErrorCatchVar, 0);
+  Expect.equals(mutableListVar, const [1, 2]);
+  Expect.equals(mutableListAddVar, const [1, 2, 3]);
 }

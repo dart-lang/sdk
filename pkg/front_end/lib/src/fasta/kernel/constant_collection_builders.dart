@@ -88,8 +88,15 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
 }
 
 class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
+  /// If [true], builds a [MutableListConstant].
+  ///
+  /// [MutableListConstant]s can be modified during constant evaluation, but
+  /// still results in a normal constant list at runtime.
+  final bool isMutable;
+
   ListConstantBuilder(
-      Expression original, DartType elementType, ConstantEvaluator evaluator)
+      Expression original, DartType elementType, ConstantEvaluator evaluator,
+      {this.isMutable: false})
       : super(original, elementType, evaluator);
 
   @override
@@ -115,9 +122,13 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
   Constant build() {
     if (parts.length == 1) {
       // Fully evaluated
+      if (isMutable) {
+        return new MutableListConstant(elementType, parts.single);
+      }
       return evaluator
           .lowerListConstant(new ListConstant(elementType, parts.single));
     }
+    // TODO(kallentu): Handle partially evaluated [isMutable] lists.
     List<Expression> lists = <Expression>[];
     for (Object part in parts) {
       if (part is List<Constant>) {

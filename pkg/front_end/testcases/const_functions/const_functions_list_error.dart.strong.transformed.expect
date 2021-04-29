@@ -54,6 +54,13 @@ library /*isNonNullableByDefault*/;
 //   return x[-1];
 //           ^
 //
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:57:31: Error: Constant evaluation error:
+// const constListAddException = constListAddExceptionFn();
+//                               ^
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:60:5: Context: Unhandled core exception: Unsupported operation: add
+//   x.add(3);
+//     ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -73,6 +80,7 @@ static const field core::int getWithIndexException2 = invalid-expression "Unhand
 static const field core::int getWithIndexException3 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_list_error.dart:54:12: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
   return x[0.1];
            ^";
+static const field core::List<core::int> constListAddException = invalid-expression "Unhandled core exception: Unsupported operation: add";
 static method firstExceptionFn() → core::int {
   return (#C1).{core::Iterable::first};
 }
@@ -103,6 +111,10 @@ static method getWithIndexExceptionFn3() → core::int {
   return x[0.1];
            ^" in 0.1 as{TypeError,ForNonNullableByDefault} core::int);
 }
+static method constListAddExceptionFn() → core::List<core::int> {
+  (#C4).{core::List::add}(3);
+  return #C4;
+}
 static method main() → void {}
 
 constants  {
@@ -115,4 +127,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: MethodInvocation @ org-dartlang-testcase:///const_functions_list_error.dart:48:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 10, effectively constant: 1
+Extra constant evaluation: evaluated: 11, effectively constant: 1

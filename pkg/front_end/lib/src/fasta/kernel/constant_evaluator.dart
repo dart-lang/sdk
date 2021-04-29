@@ -1337,11 +1337,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitListLiteral(ListLiteral node) {
-    if (!node.isConst) {
+    if (!node.isConst && !enableConstFunctions) {
       return createInvalidExpressionConstant(node, "Non-constant list literal");
     }
-    final ListConstantBuilder builder =
-        new ListConstantBuilder(node, convertType(node.typeArgument), this);
+    final ListConstantBuilder builder = new ListConstantBuilder(
+        node, convertType(node.typeArgument), this,
+        isMutable: !node.isConst);
     // These expressions are at the same level, so one of them being
     // unevaluated doesn't mean a sibling is or has an unevaluated child.
     // We therefore reset it before each call, combine it and set it correctly
@@ -2259,6 +2260,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                     typeEnvironment.coreTypes.intNonNullableRawType,
                     other.getType(_staticTypeContext),
                     isNonNullableByDefault));
+          case 'add':
+            if (receiver is MutableListConstant) {
+              receiver.entries.add(other);
+              return receiver;
+            }
+            return new _AbortDueToThrowConstant(node, new UnsupportedError(op));
         }
       }
     } else if (receiver is MapConstant && enableConstFunctions) {
@@ -4039,6 +4046,15 @@ class AbortStatus extends ExecutionStatus {
 class BreakStatus extends ExecutionStatus {
   final LabeledStatement target;
   BreakStatus(this.target);
+}
+
+/// Mutable lists used within the [ConstantEvaluator].
+class MutableListConstant extends ListConstant {
+  MutableListConstant(DartType typeArgument, List<Constant> entries)
+      : super(typeArgument, entries);
+
+  @override
+  String toString() => 'MutableListConstant(${toStringInternal()})';
 }
 
 /// An intermediate result that is used for invoking function nodes with their
