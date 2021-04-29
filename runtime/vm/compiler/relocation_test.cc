@@ -23,6 +23,20 @@ DECLARE_FLAG(int, lower_pc_relative_call_distance);
 DECLARE_FLAG(int, upper_pc_relative_call_distance);
 
 struct RelocatorTestHelper {
+  const intptr_t kTrampolineSize =
+      Utils::RoundUp(PcRelativeTrampolineJumpPattern::kLengthInBytes,
+                     compiler::target::Instructions::kBarePayloadAlignment);
+
+  // The callers on arm/arm64 have to save LR before calling, so the call
+  // instruction will be 4 byte sinto the instruction stream.
+#if defined(TARGET_ARCH_ARM64)
+  static const intptr_t kOffsetOfCall = 4;
+#elif defined(TARGET_ARCH_ARM)
+  static const intptr_t kOffsetOfCall = 4;
+#else
+  static const intptr_t kOffsetOfCall = 0;
+#endif
+
   explicit RelocatorTestHelper(Thread* thread)
       : thread(thread),
         locker(thread, thread->isolate_group()->program_lock()),
@@ -67,11 +81,6 @@ struct RelocatorTestHelper {
 
     EmitCodeFor(code, [&](compiler::Assembler* assembler) {
 #if defined(TARGET_ARCH_ARM64)
-      // TODO(kustermann): Remove conservative approximation in relocator and
-      // make tests precise.
-      __ mov(R0, R0);
-      __ mov(R0, R0);
-      __ mov(R0, R0);
       SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(
           __ stp(LR, R1,
                  compiler::Address(CSP, -2 * kWordSize,
@@ -260,7 +269,18 @@ struct RelocatorTestHelper {
 
 ISOLATE_UNIT_TEST_CASE(CodeRelocator_DirectForwardCall) {
   RelocatorTestHelper helper(thread);
-  helper.CreateInstructions({32, 36, 32});
+  const intptr_t fmax = FLAG_upper_pc_relative_call_distance;
+
+  // The gap is 8 bytes smaller than what could be directly forward-called,
+  // because the relocator's decision when to insert a trampoline is purely
+  // based on whether unresolved calls can reach such a trampoline if the next
+  // instruction is emitted (not taking into account that the next instruction
+  // might actually make some of those unresolved calls resolved).
+  helper.CreateInstructions({
+      16,  // caller (call instruction @helper.kOffsetOfCall)
+      fmax - (16 - helper.kOffsetOfCall) - 8,  // 8 bytes less than maximum gap
+      8                                        // forward call target
+  });
   helper.EmitPcRelativeCallFunction(0, 2);
   helper.EmitReturn42Function(2);
   helper.BuildImageAndRunTest(
@@ -280,8 +300,13 @@ ISOLATE_UNIT_TEST_CASE(CodeRelocator_DirectForwardCall) {
 
 ISOLATE_UNIT_TEST_CASE(CodeRelocator_OutOfRangeForwardCall) {
   RelocatorTestHelper helper(thread);
-  helper.CreateInstructions(
-      {32, FLAG_upper_pc_relative_call_distance - 32 + 4, 32});
+  const intptr_t fmax = FLAG_upper_pc_relative_call_distance;
+
+  helper.CreateInstructions({
+      16,  // caller (call instruction @helper.kOffsetOfCall)
+      fmax - (16 - helper.kOffsetOfCall) + 4,  // 4 bytes above maximum gap
+      8                                        // forwards call target
+  });
   helper.EmitPcRelativeCallFunction(0, 2);
   helper.EmitReturn42Function(2);
   helper.BuildImageAndRunTest([&](const GrowableArray<ImageWriterCommand>&
@@ -305,7 +330,13 @@ ISOLATE_UNIT_TEST_CASE(CodeRelocator_OutOfRangeForwardCall) {
 
 ISOLATE_UNIT_TEST_CASE(CodeRelocator_DirectBackwardCall) {
   RelocatorTestHelper helper(thread);
-  helper.CreateInstructions({32, 32, 32});
+  const intptr_t bmax = -FLAG_lower_pc_relative_call_distance;
+
+  helper.CreateInstructions({
+      8,                                // backwards call target
+      bmax - 8 - helper.kOffsetOfCall,  // maximize out backwards call range
+      16  // caller (call instruction @helper.kOffsetOfCall)
+  });
   helper.EmitReturn42Function(0);
   helper.EmitPcRelativeCallFunction(2, 0);
   helper.BuildImageAndRunTest(
@@ -325,58 +356,73 @@ ISOLATE_UNIT_TEST_CASE(CodeRelocator_DirectBackwardCall) {
 
 ISOLATE_UNIT_TEST_CASE(CodeRelocator_OutOfRangeBackwardCall) {
   RelocatorTestHelper helper(thread);
-  helper.CreateInstructions({32, 32, 32, 32 + 4, 32, 32, 32, 32, 32});
+  const intptr_t bmax = -FLAG_lower_pc_relative_call_distance;
+  const intptr_t fmax = FLAG_upper_pc_relative_call_distance;
+
+  helper.CreateInstructions({
+      8,                                    // backward call target
+      bmax - 8 - helper.kOffsetOfCall + 4,  // 4 bytes exceeding backwards range
+      16,  // caller (call instruction @helper.kOffsetOfCall)
+      fmax - (16 - helper.kOffsetOfCall) -
+          4,  // 4 bytes less than forward range
+      4,
+      4,  // out-of-range, so trampoline has to be inserted before this
+  });
   helper.EmitReturn42Function(0);
-  helper.EmitPcRelativeCallFunction(4, 0);
+  helper.EmitPcRelativeCallFunction(2, 0);
   helper.BuildImageAndRunTest([&](const GrowableArray<ImageWriterCommand>&
                                       commands,
                                   uword* entry_point) {
-    EXPECT_EQ(10, commands.length());
+    EXPECT_EQ(7, commands.length());
 
     // This is the backwards call target.
     EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[0].op);
     EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[1].op);
-    EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[2].op);
-    EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[3].op);
     // This makes an out-of-range backwards call. The relocator will make the
     // call go to a trampoline instead. It will delay insertion of the
     // trampoline until it almost becomes out-of-range.
+    EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[2].op);
+    EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[3].op);
     EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[4].op);
-    EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[5].op);
-    EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[6].op);
     // This is the last change the relocator thinks it can ensure the
     // out-of-range call above can call a trampoline - so it injets it here and
     // no later.
-    EXPECT_EQ(ImageWriterCommand::InsertBytesOfTrampoline, commands[7].op);
-    EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[8].op);
-    EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[9].op);
+    EXPECT_EQ(ImageWriterCommand::InsertBytesOfTrampoline, commands[5].op);
+    EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[6].op);
 
-    *entry_point = commands[4].expected_offset;
+    *entry_point = commands[2].expected_offset;
   });
 }
 
 ISOLATE_UNIT_TEST_CASE(CodeRelocator_OutOfRangeBackwardCall2) {
   RelocatorTestHelper helper(thread);
-  helper.CreateInstructions({32, 32, 32, 32 + 4, 32});
+  const intptr_t bmax = -FLAG_lower_pc_relative_call_distance;
+
+  helper.CreateInstructions({
+      8,                                    // backwards call target
+      bmax - 8 - helper.kOffsetOfCall + 4,  // 4 bytes exceeding backwards range
+      16,  // caller (call instruction @helper.kOffsetOfCall)
+      4,
+  });
   helper.EmitReturn42Function(0);
-  helper.EmitPcRelativeCallFunction(4, 0);
+  helper.EmitPcRelativeCallFunction(2, 0);
   helper.BuildImageAndRunTest(
       [&](const GrowableArray<ImageWriterCommand>& commands,
           uword* entry_point) {
-        EXPECT_EQ(6, commands.length());
+        EXPECT_EQ(5, commands.length());
 
         // This is the backwards call target.
         EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[0].op);
         EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[1].op);
-        EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[2].op);
-        EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[3].op);
         // This makes an out-of-range backwards call. The relocator will make
         // the call go to a trampoline instead. It will delay insertion of the
-        // trampoline until it almost becomes out-of-range.
-        EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[4].op);
+        // trampoline until it almost becomes out-of-range (or in this case no
+        // more instructions follow).
+        EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[2].op);
+        EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[3].op);
         // There's no other instructions coming, so the relocator will resolve
         // any pending out-of-range calls by inserting trampolines at the end.
-        EXPECT_EQ(ImageWriterCommand::InsertBytesOfTrampoline, commands[5].op);
+        EXPECT_EQ(ImageWriterCommand::InsertBytesOfTrampoline, commands[4].op);
 
         *entry_point = commands[4].expected_offset;
       });

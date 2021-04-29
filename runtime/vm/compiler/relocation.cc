@@ -81,13 +81,8 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
   auto& current_caller = Code::Handle(zone);
   auto& call_targets = Array::Handle(zone);
 
-  // Do one linear pass over all code objects and determine:
-  //
-  //    * the maximum instruction size
-  //    * the maximum number of calls
-  //    * the maximum offset into a target instruction
-  //
-  FindLargestInstruction();
+  auto& next_caller = Code::Handle(zone);
+  auto& next_caller_targets = Array::Handle(zone);
 
   // Emit all instructions and do relocations on the way.
   for (intptr_t i = 0; i < code_objects_->length(); ++i) {
@@ -106,8 +101,14 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
 
     // If we have forward/backwards calls which are almost out-of-range, we'll
     // create trampolines now.
-    BuildTrampolinesForAlmostOutOfRangeCalls(
-        /*force=*/(i == (code_objects_->length() - 1)));
+    if (i < (code_objects_->length() - 1)) {
+      next_caller = (*code_objects_)[i + 1];
+      next_caller_targets = next_caller.static_calls_target_table();
+    } else {
+      next_caller = Code::null();
+      next_caller_targets = Array::null();
+    }
+    BuildTrampolinesForAlmostOutOfRangeCalls(next_caller, next_caller_targets);
   }
 
   // We're guaranteed to have all calls resolved, since
@@ -141,40 +142,6 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
 
   // Don't drop static call targets table yet. Snapshotter will skip it anyway
   // however we might need it to write information into V8 snapshot profile.
-}
-
-void CodeRelocator::FindLargestInstruction() {
-  auto zone = thread_->zone();
-  auto& current_caller = Code::Handle(zone);
-  auto& call_targets = Array::Handle(zone);
-
-  for (intptr_t i = 0; i < code_objects_->length(); ++i) {
-    current_caller = (*code_objects_)[i];
-    const intptr_t size =
-        ImageWriter::SizeInSnapshot(current_caller.instructions());
-    if (size > max_instructions_size_) {
-      max_instructions_size_ = size;
-    }
-
-    call_targets = current_caller.static_calls_target_table();
-    if (!call_targets.IsNull()) {
-      intptr_t num_calls = 0;
-      StaticCallsTable calls(call_targets);
-      for (auto call : calls) {
-        kind_type_and_offset_ = call.Get<Code::kSCallTableKindAndOffset>();
-        const auto kind =
-            Code::KindField::decode(kind_type_and_offset_.Value());
-        if (kind == Code::kCallViaCode) {
-          continue;
-        }
-        num_calls++;
-      }
-
-      if (num_calls > max_calls_) {
-        max_calls_ = num_calls;
-      }
-    }
-  }
 }
 
 bool CodeRelocator::AddInstructionsToText(CodePtr code) {
@@ -418,11 +385,11 @@ bool CodeRelocator::IsTargetInRangeFor(UnresolvedCall* unresolved_call,
   const auto forward_distance =
       target_text_offset - unresolved_call->text_offset;
   if (unresolved_call->is_tail_call) {
-    return TailCallDistanceLimits::Lower() < forward_distance &&
-           forward_distance < TailCallDistanceLimits::Upper();
+    return TailCallDistanceLimits::Lower() <= forward_distance &&
+           forward_distance <= TailCallDistanceLimits::Upper();
   } else {
-    return CallDistanceLimits::Lower() < forward_distance &&
-           forward_distance < CallDistanceLimits::Upper();
+    return CallDistanceLimits::Lower() <= forward_distance &&
+           forward_distance <= CallDistanceLimits::Upper();
   }
 }
 
@@ -478,21 +445,37 @@ CodePtr CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
   return destination_.ptr();
 }
 
-void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls(bool force) {
+void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls(
+    const Code& next_caller,
+    const Array& next_caller_targets) {
+  const bool all_functions_emitted = next_caller.IsNull();
+
+  uword next_size = 0;
+  uword next_call_count = 0;
+  if (!all_functions_emitted) {
+    next_size = ImageWriter::SizeInSnapshot(next_caller.instructions());
+    if (!next_caller_targets.IsNull()) {
+      StaticCallsTable calls(next_caller_targets);
+      next_call_count = calls.Length();
+    }
+  }
+
   while (!all_unresolved_calls_.IsEmpty()) {
     UnresolvedCall* unresolved_call = all_unresolved_calls_.First();
 
-    // If we can emit another instructions object without causing the unresolved
-    // forward calls to become out-of-range, we'll not resolve it yet (maybe the
-    // target function will come very soon and we don't need a trampoline at
-    // all).
-    const intptr_t future_boundary =
-        next_text_offset_ + max_instructions_size_ +
-        kTrampolineSize *
-            (unresolved_calls_by_destination_.Length() + max_calls_);
-    if (IsTargetInRangeFor(unresolved_call, future_boundary) &&
-        !FLAG_always_generate_trampolines_for_testing && !force) {
-      break;
+    if (!all_functions_emitted) {
+      // If we can emit another instructions object without causing the
+      // unresolved forward calls to become out-of-range, we'll not resolve it
+      // yet (maybe the target function will come very soon and we don't need
+      // a trampoline at all).
+      const intptr_t future_boundary =
+          next_text_offset_ + next_size +
+          kTrampolineSize *
+              (unresolved_calls_by_destination_.Length() + next_call_count - 1);
+      if (IsTargetInRangeFor(unresolved_call, future_boundary) &&
+          !FLAG_always_generate_trampolines_for_testing) {
+        break;
+      }
     }
 
     // We have a "critical" [unresolved_call] we have to resolve.  If an
