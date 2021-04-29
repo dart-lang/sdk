@@ -26,7 +26,7 @@ class A extends core::Object {
     ;
 }
 static method nonConstant() → dynamic
-  return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(1);
+  return [@vm.inferred-type.metadata=dart.core::bool] [@vm.inferred-type.metadata=int?] core::int::parse("1").{core::num::==}(1);
 static method main() → dynamic {
   self::A x = new self::A::•();
   core::print([@vm.direct-call.metadata=#lib::A.literal1] [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] x.{self::A::literal1});
