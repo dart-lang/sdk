@@ -76,9 +76,22 @@ self.content = {};
 self.currentLoadLibraryCall = 0;
 self.filesPerLoadLibraryCall = null;
 
+function equal(a, b) {
+  return a.length === b.length &&
+      a.every(function (value, index) {
+        return value === b[index];
+      });
+}
+
 self.initFilesPerLoadLibraryCall = function() {
-  // We assume we load d1, then d2, then d3.
-  var loadOrder = ['d1', 'd2', 'd3'];
+  // We assume we load d1, then d2, then d3. However, we may have integer load
+  // ids instead of the full load id.
+  var loadOrder = Object.keys(init.deferredLibraryParts);
+  var expectedLoadOrder = equal(loadOrder, ['d1', 'd2', 'd3']) ||
+      equal(loadOrder, ['1', '2', '3']);
+  if (!expectedLoadOrder) {
+    throw 'Unexpected load order ' + loadOrder;
+  }
   var uniques = {};
   self.filesPerLoadLibraryCall = [];
   for (var i = 0; i < loadOrder.length; i++) {

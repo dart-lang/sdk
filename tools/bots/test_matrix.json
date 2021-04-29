@@ -625,7 +625,8 @@
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/",
-          "--merge-fragments-threshold=3"
+          "--merge-fragments-threshold=3",
+          "--simple-load-ids"
         ]
       }
     },
@@ -653,7 +654,8 @@
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/",
-          "--merge-fragments-threshold=3"
+          "--merge-fragments-threshold=3",
+          "--simple-load-ids"
         ]
       }
     },
@@ -718,7 +720,8 @@
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/",
-          "--merge-fragments-threshold=3"
+          "--merge-fragments-threshold=3",
+          "--simple-load-ids"
         ]
       }
     },
@@ -752,7 +755,8 @@
         "dart2js-options": [
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/",
-          "--merge-fragments-threshold=3"
+          "--merge-fragments-threshold=3",
+          "--simple-load-ids"
         ]
       }
     },
