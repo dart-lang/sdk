@@ -30,7 +30,7 @@ class Merger {
   ///   * maps are merged recursively.
   ///   * if map values cannot be merged, the overriding value is taken.
   ///
-  YamlNode merge(YamlNode o1, YamlNode? o2) {
+  YamlNode merge(YamlNode o1, YamlNode o2) {
     // Handle promotion first.
     YamlMap listToMap(YamlList list) {
       Map<YamlNode, YamlNode> map =
@@ -56,7 +56,10 @@ class Merger {
       return mergeList(o1, o2);
     }
     // Default to override, unless the overriding value is `null`.
-    return o2 ?? o1;
+    if (o2 is YamlScalar && o2.value == null) {
+      return o1;
+    }
+    return o2;
   }
 
   /// Merge lists, avoiding duplicates.
@@ -75,7 +78,7 @@ class Merger {
   YamlMap mergeMap(YamlMap m1, YamlMap m2) {
     Map<YamlNode, YamlNode> merged =
         HashMap<YamlNode, YamlNode>(); // equals: _equals, hashCode: _hashCode
-    m1.nodes.forEach((k, v) {
+    m1.nodeMap.forEach((k, v) {
       merged[k] = v;
     });
     m2.nodeMap.forEach((k, v) {
