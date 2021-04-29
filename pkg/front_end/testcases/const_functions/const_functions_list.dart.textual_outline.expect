@@ -27,4 +27,8 @@ const getWithIndexVar = getWithIndexFn();
 int getWithIndexFn() {}
 const rangeErrorCatchVar = rangeErrorCatchFn();
 int rangeErrorCatchFn() {}
+const mutableListVar = mutableList();
+List<int> mutableList() {}
+const mutableListAddVar = mutableListAdd();
+List<int> mutableListAdd() {}
 void main() {}

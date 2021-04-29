@@ -1,5 +1,7 @@
 import "package:expect/expect.dart";
 
+List<int> constListAddExceptionFn() {}
+const constListAddException = constListAddExceptionFn();
 const firstException = firstExceptionFn();
 const getWithIndexException = getWithIndexExceptionFn();
 const getWithIndexException2 = getWithIndexExceptionFn2();

@@ -83,3 +83,13 @@ int getWithIndexExceptionFn3() {
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'double' can't be assigned to a variable of type 'int'.
 }
+
+const constListAddException = constListAddExceptionFn();
+//                            ^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [cfe] Constant evaluation error:
+List<int> constListAddExceptionFn() {
+  const List<int> x = [1, 2];
+  x.add(3);
+  return x;
+}
