@@ -335,10 +335,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             }
             for (var dimension in dimensions) {
               if (dimension < 0) {
-                diagnosticReporter.report(
-                    messageNonPositiveArrayDimensions, f.fileOffset,
-                    f.name.text.length,
-                    f.fileUri);
+                diagnosticReporter.report(messageNonPositiveArrayDimensions,
+                    f.fileOffset, f.name.text.length, f.fileUri);
                 success = false;
               }
             }
@@ -489,8 +487,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final sizeAnnotations = _getArraySizeAnnotations(m).toList();
         if (sizeAnnotations.length == 1) {
           final arrayDimensions = sizeAnnotations.single;
-          type = NativeTypeCfe(this, dartType, compoundCache: compoundCache,
-              arrayDimensions: arrayDimensions);
+          type = NativeTypeCfe(this, dartType,
+              compoundCache: compoundCache, arrayDimensions: arrayDimensions);
         }
       } else if (isPointerType(dartType) || isCompoundSubtype(dartType)) {
         type = NativeTypeCfe(this, dartType, compoundCache: compoundCache);
@@ -760,7 +758,7 @@ class CompoundLayout {
 abstract class NativeTypeCfe {
   factory NativeTypeCfe(FfiTransformer transformer, DartType dartType,
       {List<int> arrayDimensions,
-        Map<Class, CompoundNativeTypeCfe> compoundCache = const {}}) {
+      Map<Class, CompoundNativeTypeCfe> compoundCache = const {}}) {
     if (transformer.isPrimitiveType(dartType)) {
       final clazz = (dartType as InterfaceType).classNode;
       final nativeType = transformer.getType(clazz);
@@ -783,7 +781,7 @@ abstract class NativeTypeCfe {
       }
       final elementType = transformer.arraySingleElementType(dartType);
       final elementCfeType =
-      NativeTypeCfe(transformer, elementType, compoundCache: compoundCache);
+          NativeTypeCfe(transformer, elementType, compoundCache: compoundCache);
       return ArrayNativeTypeCfe.multi(elementCfeType, arrayDimensions);
     }
     throw "Invalid type $dartType";
@@ -1102,7 +1100,9 @@ class StructNativeTypeCfe extends CompoundNativeTypeCfe {
       if (packing != null && packing < alignment) {
         alignment = packing;
       }
-      offset = _alignOffset(offset, alignment);
+      if (alignment > 0) {
+        offset = _alignOffset(offset, alignment);
+      }
       offsets.add(offset);
       offset += size;
       structAlignment = math.max(structAlignment, alignment);
@@ -1146,8 +1146,8 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
 
   ArrayNativeTypeCfe(this.elementType, this.length);
 
-  factory ArrayNativeTypeCfe.multi(NativeTypeCfe elementType,
-      List<int> dimensions) {
+  factory ArrayNativeTypeCfe.multi(
+      NativeTypeCfe elementType, List<int> dimensions) {
     if (dimensions.length == 1) {
       return ArrayNativeTypeCfe(elementType, dimensions.single);
     }

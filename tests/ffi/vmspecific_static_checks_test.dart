@@ -761,6 +761,11 @@ class TestStruct1606Packed extends Struct {
       nestedLooselyPacked; //# 1606: compile-time error
 }
 
+@Packed(0) //# 1607: compile-time error
+class TestStruct1607 extends Struct {
+  external Pointer<Uint8> notEmpty;
+}
+
 class TestStruct1800 extends Struct {
   external Pointer<Uint8> notEmpty;
 
