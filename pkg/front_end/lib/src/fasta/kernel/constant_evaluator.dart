@@ -1444,7 +1444,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitConstructorInvocation(ConstructorInvocation node) {
-    if (!node.isConst) {
+    if (!node.isConst && !enableConstFunctions) {
       return createInvalidExpressionConstant(
           node, 'Non-constant constructor invocation "$node".');
     }

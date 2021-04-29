@@ -29,6 +29,11 @@ class A {
   }
 }
 
+const var3 = fn();
+//           ^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+A fn() => A();
+
 void main() {
   Expect.equals(var1.name, printString);
 }

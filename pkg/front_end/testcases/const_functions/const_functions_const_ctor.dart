@@ -23,6 +23,9 @@ class A {
   }
 }
 
+const var3 = fn();
+A fn() => A();
+
 void main() {
   Expect.equals(var1.name, printString);
 }

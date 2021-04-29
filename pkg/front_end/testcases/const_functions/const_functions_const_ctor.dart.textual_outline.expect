@@ -9,4 +9,6 @@ const var2 = A();
 class A {
   const A() {}
 }
+const var3 = fn();
+A fn() => A();
 void main() {}
