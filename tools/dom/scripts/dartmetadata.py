@@ -171,6 +171,16 @@ _dart2js_annotations = monitored.Dict(
             "@Creates('JSExtendableArray|GamepadButton')",
             "@Returns('JSExtendableArray')",
         ],
+        # Creates a GeolocationPosition or a GeolocationPositionError for a
+        # callback. See issue #45562.
+        'Geolocation.getCurrentPosition': [
+            "@Creates('Geoposition')",
+            "@Creates('PositionError')",
+        ],
+        'Geolocation.watchPosition': [
+            "@Creates('Geoposition')",
+            "@Creates('PositionError')",
+        ],
         'HTMLCanvasElement.getContext': [
             "@Creates('CanvasRenderingContext2D|RenderingContext|RenderingContext2')",
             "@Returns('CanvasRenderingContext2D|RenderingContext|RenderingContext2|Null')",

@@ -386,7 +386,7 @@ interface ImageBitmapFactories {};
 interface ImageData {
     [DartSuppress] ImageDataColorSettings getColorSettings();
     // Below needs 'any' because ImageDataArray is union of (Uint8ClampedArray
-    // or Uint16Array or Float32Array) 
+    // or Uint16Array or Float32Array)
     [DartSuppress] readonly attribute any dataUnion;
 };
 
@@ -648,3 +648,7 @@ interface NoncedElement {
     [DartSuppress, CEReactions] attribute DOMString nonce;
     [CEReactions] attribute DOMString? nonce;
 };
+
+// PositionCallback can be used on a deprecated Position object,
+// a GeolocationPosition object, or a Firefox-specific object.
+callback PositionCallback = void(object position);

@@ -16953,6 +16953,8 @@ class Geolocation extends Interceptor {
   @JSName('clearWatch')
   void _clearWatch(int watchID) native;
 
+  @Creates('Geoposition')
+  @Creates('PositionError')
   void _getCurrentPosition(_PositionCallback successCallback,
       [_PositionErrorCallback? errorCallback, Map? options]) {
     if (options != null) {
@@ -16972,14 +16974,22 @@ class Geolocation extends Interceptor {
   }
 
   @JSName('getCurrentPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   void _getCurrentPosition_1(
       successCallback, _PositionErrorCallback? errorCallback, options) native;
   @JSName('getCurrentPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   void _getCurrentPosition_2(
       successCallback, _PositionErrorCallback? errorCallback) native;
   @JSName('getCurrentPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   void _getCurrentPosition_3(successCallback) native;
 
+  @Creates('Geoposition')
+  @Creates('PositionError')
   int _watchPosition(_PositionCallback successCallback,
       [_PositionErrorCallback? errorCallback, Map? options]) {
     if (options != null) {
@@ -16996,12 +17006,18 @@ class Geolocation extends Interceptor {
   }
 
   @JSName('watchPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   int _watchPosition_1(
       successCallback, _PositionErrorCallback? errorCallback, options) native;
   @JSName('watchPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   int _watchPosition_2(successCallback, _PositionErrorCallback? errorCallback)
       native;
   @JSName('watchPosition')
+  @Creates('Geoposition')
+  @Creates('PositionError')
   int _watchPosition_3(successCallback) native;
 }
 
@@ -17021,7 +17037,7 @@ class _GeopositionWrapper implements Geoposition {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Native("Position")
+@Native("Position,GeolocationPosition")
 class Geoposition extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Geoposition._() {
@@ -25723,13 +25739,13 @@ class PopStateEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 @Unstable()
-typedef void _PositionCallback(Geoposition position);
+typedef void _PositionCallback(position);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 @Unstable()
-@Native("PositionError")
+@Native("PositionError,GeolocationPositionError")
 class PositionError extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory PositionError._() {

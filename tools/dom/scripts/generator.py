@@ -292,7 +292,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
         'ApplicationCache':
         'ApplicationCache,DOMApplicationCache,OfflineResourceList',
         'Event':
-        'Event,InputEvent,SubmitEvent', # Workaround for issue 40901.
+        'Event,InputEvent,SubmitEvent',  # Workaround for issue 40901.
         'HTMLTableCellElement':
         'HTMLTableCellElement,HTMLTableDataCellElement,HTMLTableHeaderCellElement',
         'GainNode':
@@ -311,6 +311,10 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
         'OscillatorNode,Oscillator',
         'PannerNode':
         'PannerNode,AudioPannerNode,webkitAudioPannerNode',
+        'Position':
+        'Position,GeolocationPosition',
+        'PositionError':
+        'PositionError,GeolocationPositionError',
         'RTCPeerConnection':
         'RTCPeerConnection,webkitRTCPeerConnection,mozRTCPeerConnection',
         'RTCIceCandidate':
