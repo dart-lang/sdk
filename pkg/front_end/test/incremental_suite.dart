@@ -15,6 +15,8 @@ import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
+import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
+
 import "package:dev_compiler/src/kernel/target.dart" show DevCompilerTarget;
 
 import 'package:expect/expect.dart' show Expect;
@@ -32,7 +34,7 @@ import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
+    show computePlatformBinariesLocation, computePlatformDillName;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
@@ -213,7 +215,8 @@ class RunCompilations extends Step<TestData, TestData, Context> {
           "target",
           "forceLateLoweringForTesting",
           "trackWidgetCreation",
-          "incrementalSerialization"
+          "incrementalSerialization",
+          "nnbdMode",
         ]);
         result = await new NewWorldTest().newWorldTest(
           data,
@@ -225,6 +228,7 @@ class RunCompilations extends Step<TestData, TestData, Context> {
           map["forceLateLoweringForTesting"] ?? false,
           map["trackWidgetCreation"] ?? false,
           map["incrementalSerialization"],
+          map["nnbdMode"] == "strong" ? NnbdMode.Strong : NnbdMode.Weak,
         );
         break;
       default:
@@ -390,7 +394,8 @@ class NewWorldTest {
       String targetName,
       bool forceLateLoweringForTesting,
       bool trackWidgetCreation,
-      bool incrementalSerialization) async {
+      bool incrementalSerialization,
+      NnbdMode nnbdMode) async {
     final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
 
     TargetFlags targetFlags = new TargetFlags(
@@ -398,19 +403,25 @@ class NewWorldTest {
             forceLateLoweringForTesting ? LateLowering.all : LateLowering.none,
         trackWidgetCreation: trackWidgetCreation);
     Target target = new VmTarget(targetFlags);
-    String sdkSummary = "vm_platform_strong.dill";
     if (targetName != null) {
       if (targetName == "None") {
         target = new NoneTarget(targetFlags);
       } else if (targetName == "DDC") {
         target = new DevCompilerTarget(targetFlags);
-        sdkSummary = "ddc_platform.dill";
+      } else if (targetName == "dart2js") {
+        target = new Dart2jsTarget("dart2js", targetFlags);
       } else if (targetName == "VM") {
         // default.
       } else {
         throw "Unknown target name '$targetName'";
       }
     }
+
+    String sdkSummary = computePlatformDillName(
+        target,
+        nnbdMode,
+        () => throw new UnsupportedError(
+            "No platform dill for target '${targetName}' with $nnbdMode."));
 
     final Uri base = Uri.parse("org-dartlang-test:///");
     final Uri sdkSummaryUri = base.resolve(sdkSummary);
@@ -525,6 +536,7 @@ class NewWorldTest {
 
       if (brandNewWorld) {
         options = getOptions(target: target, sdkSummary: sdkSummary);
+        options.nnbdMode = nnbdMode;
         options.fileSystem = fs;
         options.sdkRoot = null;
         options.sdkSummary = sdkSummaryUri;
@@ -549,6 +561,8 @@ class NewWorldTest {
             ExperimentalFlag.nonNullable: false
           };
         }
+        // A separate "world" can also change nnbd mode ---
+        // notice that the platform is not updated though!
         if (world["nnbdMode"] != null) {
           String nnbdMode = world["nnbdMode"];
           switch (nnbdMode) {

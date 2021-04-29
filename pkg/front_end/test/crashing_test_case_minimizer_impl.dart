@@ -25,6 +25,8 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
+import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
+
 import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -1652,7 +1654,8 @@ worlds:
     Uint8List candidate = builder.takeBytes();
     if (candidate.length == data.length) return;
 
-    if (!_parsesWithoutError(candidate, _isUriNnbd(uri))) {
+    if (uri.path.endsWith(".dart") &&
+        !_parsesWithoutError(candidate, _isUriNnbd(uri))) {
       print("WARNING: Parser error after stuff at ${StackTrace.current}");
     }
 
@@ -1940,6 +1943,9 @@ worlds:
         break;
       case "ddc":
         target = new DevCompilerTarget(targetFlags);
+        break;
+      case "dart2js":
+        target = new Dart2jsTarget("dart2js", targetFlags);
         break;
       default:
         throw "Unknown target '$target'";
