@@ -242,6 +242,10 @@ abstract class InlineMethodRefactoring implements Refactoring {
 
   /// The name of the method (or function) being inlined.
   String? get methodName;
+
+  /// Return `true` if refactoring is available, possibly without checking all
+  /// initial conditions.
+  bool isAvailable();
 }
 
 /// [Refactoring] to move/rename a file.

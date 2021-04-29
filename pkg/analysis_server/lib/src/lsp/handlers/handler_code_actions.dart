@@ -409,12 +409,20 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         }
       }
 
+      // Inlines
       if (shouldIncludeKind(CodeActionKind.RefactorInline)) {
         // Inline Local Variable
         if (InlineLocalRefactoring(server.searchEngine, unit, offset)
             .isAvailable()) {
           refactorActions.add(createRefactor(CodeActionKind.RefactorInline,
               'Inline Local Variable', RefactoringKind.INLINE_LOCAL_VARIABLE));
+        }
+
+        // Inline Method
+        if (InlineMethodRefactoring(server.searchEngine, unit, offset)
+            .isAvailable()) {
+          refactorActions.add(createRefactor(CodeActionKind.RefactorInline,
+              'Inline Method', RefactoringKind.INLINE_METHOD));
         }
       }
 

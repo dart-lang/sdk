@@ -19,6 +19,7 @@ void main() {
     defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
     defineReflectiveTests(ExtractVariableRefactorCodeActionsTest);
     defineReflectiveTests(InlineLocalVariableRefactorCodeActionsTest);
+    defineReflectiveTests(InlineMethodRefactorCodeActionsTest);
   });
 }
 
@@ -515,7 +516,7 @@ main() {}
 @reflectiveTest
 class InlineLocalVariableRefactorCodeActionsTest
     extends AbstractCodeActionsTest {
-  final extractVariableTitle = 'Inline Local Variable';
+  final inlineVariableTitle = 'Inline Local Variable';
 
   Future<void> test_appliesCorrectEdits() async {
     const content = '''
@@ -539,7 +540,86 @@ void main() {
     final codeActions = await getCodeActions(mainFileUri.toString(),
         position: positionFromMarker(content));
     final codeAction = findCommand(
-        codeActions, Commands.performRefactor, extractVariableTitle)!;
+        codeActions, Commands.performRefactor, inlineVariableTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+}
+
+@reflectiveTest
+class InlineMethodRefactorCodeActionsTest extends AbstractCodeActionsTest {
+  final inlineMethodTitle = 'Inline Method';
+
+  Future<void> test_inlineAtCallSite() async {
+    const content = '''
+void foo1() {
+  ba^r();
+}
+
+void foo2() {
+  bar();
+}
+
+void bar() {
+  print('test');
+}
+    ''';
+    const expectedContent = '''
+void foo1() {
+  print('test');
+}
+
+void foo2() {
+  bar();
+}
+
+void bar() {
+  print('test');
+}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_inlineAtMethod() async {
+    const content = '''
+void foo1() {
+  bar();
+}
+
+void foo2() {
+  bar();
+}
+
+void ba^r() {
+  print('test');
+}
+    ''';
+    const expectedContent = '''
+void foo1() {
+  print('test');
+}
+
+void foo2() {
+  print('test');
+}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
 
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
