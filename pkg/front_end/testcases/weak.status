@@ -9,6 +9,7 @@ general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure
 general/error_recovery/issue_39202.crash: SemiFuzzCrash
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
 regress/utf_16_le_content.crash: SemiFuzzCrash
+dart2js/late_statics: SemiFuzzFailure # dartbug.com/45854
 
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
 extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
