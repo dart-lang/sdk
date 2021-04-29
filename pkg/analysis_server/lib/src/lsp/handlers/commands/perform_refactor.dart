@@ -164,6 +164,11 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
             InlineLocalRefactoring(server.searchEngine, result, offset);
         return success(refactor);
 
+      case RefactoringKind.INLINE_METHOD:
+        final refactor =
+            InlineMethodRefactoring(server.searchEngine, result, offset);
+        return success(refactor);
+
       default:
         return error(ServerErrorCodes.InvalidCommandArguments,
             'Unknown RefactoringKind $kind was supplied to $commandName');

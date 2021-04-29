@@ -290,6 +290,39 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     return Future.value(change);
   }
 
+  @override
+  bool isAvailable() {
+    return !_checkOffset().hasFatalError;
+  }
+
+  /// Checks if [offset] is a method that can be inlined.
+  RefactoringStatus _checkOffset() {
+    var fatalStatus = RefactoringStatus.fatal(
+        'Method declaration or reference must be selected to activate this refactoring.');
+
+    var identifier = NodeLocator(offset).searchWithin(resolveResult.unit);
+    if (identifier is! SimpleIdentifier) {
+      return fatalStatus;
+    }
+    var element = identifier.writeOrReadElement;
+    if (element is! ExecutableElement) {
+      return fatalStatus;
+    }
+    if (element.isSynthetic) {
+      return fatalStatus;
+    }
+    // maybe operator
+    if (element.isOperator) {
+      return RefactoringStatus.fatal('Cannot inline operator.');
+    }
+    // maybe [a]sync*
+    if (element.isGenerator) {
+      return RefactoringStatus.fatal('Cannot inline a generator.');
+    }
+
+    return RefactoringStatus();
+  }
+
   _SourcePart _createSourcePart(SourceRange range) {
     var source = _methodUtils.getRangeText(range);
     var prefix = getLinePrefix(source);

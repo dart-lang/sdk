@@ -3056,7 +3056,21 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         if (value is AbortConstant) return value;
         env.addVariableValue(parameter, value);
       }
-      return executeBody(function.body);
+
+      final Constant result = executeBody(function.body);
+      if (result is NullConstant &&
+          function.returnType.nullability == Nullability.nonNullable) {
+        // Ensure that the evaluated constant returned is not null if the
+        // function has a non-nullable return type.
+        return createErrorConstant(
+            function,
+            templateConstEvalInvalidType.withArguments(
+                result,
+                function.returnType,
+                result.getType(_staticTypeContext),
+                isNonNullableByDefault));
+      }
+      return result;
     }
 
     if (functionEnvironment != null) {
@@ -3822,6 +3836,8 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
     if (node.initializer != null) {
       value = evaluate(node.initializer);
       if (value is AbortConstant) return new AbortStatus(value);
+    } else {
+      value = new NullConstant();
     }
     exprEvaluator.env.addVariableValue(node, value);
     return const ProceedStatus();

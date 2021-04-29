@@ -17,4 +17,6 @@ const var7 = function7();
 int function7() {}
 const var8 = function8();
 int function8() {}
+const var9 = function9();
+int? function9() {}
 void main() {}

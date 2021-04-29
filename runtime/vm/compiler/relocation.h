@@ -183,7 +183,9 @@ class CodeRelocator : public StackResource {
                                 intptr_t destination_text);
   void ResolveTrampoline(UnresolvedTrampoline* unresolved_trampoline);
 
-  void BuildTrampolinesForAlmostOutOfRangeCalls(bool force);
+  void BuildTrampolinesForAlmostOutOfRangeCalls(
+      const Code& next_caller,
+      const Array& next_caller_targets);
 
   intptr_t FindDestinationInText(const InstructionsPtr destination,
                                  intptr_t offset_into_target);
