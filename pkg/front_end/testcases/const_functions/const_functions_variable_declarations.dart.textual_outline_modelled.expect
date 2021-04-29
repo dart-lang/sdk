@@ -10,6 +10,8 @@ const var5 = function5();
 const var6 = function6();
 const var7 = function7();
 const var8 = function8();
+const var9 = function9();
+int? function9() {}
 int function1(int a, int b) {}
 int function3() {}
 int function4() {}

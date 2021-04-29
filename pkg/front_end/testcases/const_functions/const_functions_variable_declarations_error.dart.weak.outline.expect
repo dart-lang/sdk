@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static const field core::int var1 = self::fn1();
+static const field core::int var2 = self::fn2();
+static method fn1() → core::int
+  ;
+static method fn2() → core::int
+  ;
+static method main() → void
+  ;
