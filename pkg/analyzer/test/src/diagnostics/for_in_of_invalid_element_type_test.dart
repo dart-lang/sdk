@@ -15,6 +15,16 @@ main() {
 
 @reflectiveTest
 class ForInOfInvalidElementTypeTest extends PubPackageResolutionTest {
+  test_await_declaredVariable_dynamic() async {
+    await assertNoErrorsInCode('''
+f(dynamic a) async {
+  await for (int i in a) {
+    i;
+  }
+}
+''');
+  }
+
   test_await_declaredVariableWrongType() async {
     await assertErrorsInCode('''
 f(Stream<String> stream) async {
@@ -52,6 +62,16 @@ class Foo<T extends Iterable<int>> {
 ''', [
       error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
     ]);
+  }
+
+  test_declaredVariable_dynamic() async {
+    await assertNoErrorsInCode('''
+f(dynamic a) {
+  for (int i in a) {
+    i;
+  }
+}
+''');
   }
 
   test_declaredVariable_interfaceTypeTypedef_ok() async {

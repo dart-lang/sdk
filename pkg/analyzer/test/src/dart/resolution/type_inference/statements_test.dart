@@ -8,16 +8,16 @@ import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AssertWithNullSafetyTest);
-    defineReflectiveTests(DoWithNullSafetyTest);
-    defineReflectiveTests(ForWithNullSafetyTest);
-    defineReflectiveTests(IfWithNullSafetyTest);
-    defineReflectiveTests(WhileWithNullSafetyTest);
+    defineReflectiveTests(AssertTest);
+    defineReflectiveTests(DoTest);
+    defineReflectiveTests(ForTest);
+    defineReflectiveTests(IfTest);
+    defineReflectiveTests(WhileTest);
   });
 }
 
 @reflectiveTest
-class AssertWithNullSafetyTest extends PubPackageResolutionTest {
+class AssertTest extends PubPackageResolutionTest {
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -30,7 +30,7 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class DoWithNullSafetyTest extends PubPackageResolutionTest {
+class DoTest extends PubPackageResolutionTest {
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -43,8 +43,18 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class ForWithNullSafetyTest extends PubPackageResolutionTest {
-  test_awaitForIn_dynamic_downward() async {
+class ForTest extends PubPackageResolutionTest {
+  test_awaitForIn_int_downward() async {
+    await resolveTestCode('''
+void f() async {
+  await for (int e in a()) {}
+}
+T a<T>() => throw '';
+''');
+    assertInvokeType(findNode.methodInvocation('a('), 'Stream<int> Function()');
+  }
+
+  test_awaitForIn_var_downward() async {
     await resolveTestCode('''
 void f() async {
   await for (var e in a()) {}
@@ -55,14 +65,15 @@ T a<T>() => throw '';
         findNode.methodInvocation('a('), 'Stream<Object?> Function()');
   }
 
-  test_awaitForIn_int_downward() async {
+  test_awaitForIn_var_upward() async {
     await resolveTestCode('''
-void f() async {
-  await for (int e in a()) {}
+void f(Stream<int> s) async {
+  await for (var e in s) {
+    e;
+  }
 }
-T a<T>() => throw '';
 ''');
-    assertInvokeType(findNode.methodInvocation('a('), 'Stream<int> Function()');
+    assertType(findNode.simple('e;'), 'int');
   }
 
   test_for_downward() async {
@@ -96,10 +107,21 @@ T a<T>() => throw '';
     assertInvokeType(
         findNode.methodInvocation('a('), 'Iterable<int> Function()');
   }
+
+  test_forIn_var_upward() async {
+    await resolveTestCode('''
+void f(List<int> s) async {
+  for (var e in s) {
+    e;
+  }
+}
+''');
+    assertType(findNode.simple('e;'), 'int');
+  }
 }
 
 @reflectiveTest
-class IfWithNullSafetyTest extends PubPackageResolutionTest {
+class IfTest extends PubPackageResolutionTest {
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -112,7 +134,7 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class WhileWithNullSafetyTest extends PubPackageResolutionTest {
+class WhileTest extends PubPackageResolutionTest {
   test_downward() async {
     await resolveTestCode('''
 void f() {
