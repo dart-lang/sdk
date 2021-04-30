@@ -518,6 +518,10 @@ class FileSystemState {
   /// to batch file reads in systems where file fetches are expensive.
   final void Function(List<String> paths)? prefetchFiles;
 
+  /// A function that returns true if the given file path is likely to be that
+  /// of a file that is generated.
+  final bool Function(String path)? isGenerated;
+
   final FileSystemStateTimers timers2 = FileSystemStateTimers();
 
   final FileSystemStateTestView testView = FileSystemStateTestView();
@@ -533,6 +537,7 @@ class FileSystemState {
     this.featureSetProvider,
     this.getFileDigest,
     this.prefetchFiles,
+    this.isGenerated,
   );
 
   /// Update the state to reflect the fact that the file with the given [path]
@@ -660,6 +665,19 @@ class FileSystemState {
       );
     }
     return file;
+  }
+
+  /// Returns a list of files whose contents contains the given string.
+  /// Generated files are not included in the search.
+  List<String> getFilesContaining(String value) {
+    var result = <String>[];
+    _pathToFile.forEach((path, file) {
+      var genFile = isGenerated == null ? false : isGenerated!(path);
+      if (!genFile && file.getContent().contains(value)) {
+        result.add(path);
+      }
+    });
+    return result;
   }
 
   String? getPathForUri(Uri uri) {

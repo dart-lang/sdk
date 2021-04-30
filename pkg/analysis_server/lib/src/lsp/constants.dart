@@ -104,9 +104,13 @@ abstract class CustomSemanticTokenModifiers {
   /// - parameter
   static const label = SemanticTokenModifiers('label');
 
+  /// A modifier applied to constructors to allow colouring them differently
+  /// to class names that are not constructors.
+  static const constructor = SemanticTokenModifiers('constructor');
+
   /// All custom semantic token modifiers, used to populate the LSP Legend which must
   /// include all used modifiers.
-  static const values = [control, label];
+  static const values = [control, label, constructor];
 }
 
 abstract class CustomSemanticTokenTypes {
