@@ -8567,6 +8567,17 @@
     },
     "support_level": "stable"
   },
+  "GeolocationPosition": {
+    "members": {
+      "coords": {
+        "support_level": "untriaged"
+      },
+      "timestamp": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "Geoposition": {
     "comment": "http://dev.w3.org/geo/api/spec-source.html#position",
     "dart_action": "unstable",
