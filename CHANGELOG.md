@@ -223,8 +223,11 @@ initializers containing async closures (issue [#45306][]).
 ## 2.12.3 - 2021-04-14
 
 This is a patch release that fixes a vulnerability in `dart:html` related to
-DOM clobbering. Thanks again to **Vincenzo di Cicco** for finding and reporting
-this vulnerability.
+DOM clobbering. See the [vulnerability advisory][CVE-2021-22540] for more
+details. Thanks again to **Vincenzo di Cicco** for finding and reporting this
+vulnerability.
+
+[CVE-2021-22540]: https://github.com/dart-lang/sdk/security/advisories/GHSA-3rfv-4jvg-9522
 
 ## 2.12.2 - 2021-03-17
 
