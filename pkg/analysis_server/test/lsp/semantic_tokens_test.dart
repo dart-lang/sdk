@@ -82,6 +82,46 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     expect(decoded, equals(expected));
   }
 
+  Future<void> test_class_constructors() async {
+    final content = '''
+    class MyClass {
+      MyClass();
+      MyClass.named();
+    }
+
+    final a = MyClass();
+    final b = MyClass.named();
+    ''';
+
+    final expected = [
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('named', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
+      _Token('final', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
+      _Token('final', SemanticTokenTypes.keyword),
+      _Token('b', SemanticTokenTypes.variable,
+          [SemanticTokenModifiers.declaration]),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
+      _Token('named', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor])
+    ];
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(decoded, equals(expected));
+  }
+
   Future<void> test_class_fields() async {
     final content = '''
     class MyClass {
@@ -119,7 +159,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('final', SemanticTokenTypes.keyword),
       _Token('a', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
       _Token('print', SemanticTokenTypes.function),
       _Token('a', SemanticTokenTypes.variable),
       _Token('myField', SemanticTokenTypes.property),
@@ -197,7 +238,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('final', SemanticTokenTypes.keyword),
       _Token('a', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
       _Token('print', SemanticTokenTypes.function),
       _Token('a', SemanticTokenTypes.variable),
       _Token('myGetter', SemanticTokenTypes.property),
@@ -255,7 +297,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('final', SemanticTokenTypes.keyword),
       _Token('a', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
-      _Token('MyClass', SemanticTokenTypes.class_),
+      _Token('MyClass', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
       _Token('a', SemanticTokenTypes.variable),
       _Token('myMethod', SemanticTokenTypes.method),
       _Token('MyClass', SemanticTokenTypes.class_),
@@ -443,7 +486,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('a', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
       _Token('new', SemanticTokenTypes.keyword),
-      _Token('Object', SemanticTokenTypes.class_),
+      _Token('Object', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
       _Token('await', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.control]),
       _Token('null', SemanticTokenTypes.keyword),
