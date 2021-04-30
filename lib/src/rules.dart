@@ -117,6 +117,7 @@ import 'rules/prefer_expression_function_bodies.dart';
 import 'rules/prefer_final_fields.dart';
 import 'rules/prefer_final_in_for_each.dart';
 import 'rules/prefer_final_locals.dart';
+import 'rules/prefer_final_parameters.dart';
 import 'rules/prefer_for_elements_to_map_fromIterable.dart';
 import 'rules/prefer_foreach.dart';
 import 'rules/prefer_function_declarations_over_variables.dart';
@@ -310,6 +311,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(PreferFinalFields())
     ..register(PreferFinalInForEach())
     ..register(PreferFinalLocals())
+    ..register(PreferFinalParameters())
     ..register(PreferForeach())
     ..register(PreferForElementsToMapFromIterable())
     ..register(PreferFunctionDeclarationsOverVariables())
