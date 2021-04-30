@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
+import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:test/test.dart';
@@ -344,6 +345,289 @@ class A {}
     fileResolver.collectSharedDataIdentifiers();
     expect(fileResolver.removedCacheIds.length,
         (fileResolver.byteStore as CiderCachedByteStore).testView!.length);
+  }
+
+  test_findReferences_class() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(aPath, content: r'''
+class A {
+  int foo;
+}
+''');
+
+    var bPath = convertPath('/workspace/dart/test/lib/b.dart');
+    newFile(bPath, content: r'''
+import 'a.dart';
+
+void func() {
+  var a = A();
+  print(a.foo);
+}
+''');
+
+    await resolveFile(bPath);
+    var result = fileResolver.findReferences(6, aPath);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(aPath, [6]),
+      CiderSearchMatch(bPath, [42])
+    ];
+    expect(result, unorderedEquals(expected));
+  }
+
+  test_findReferences_field() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(aPath, content: r'''
+class A {
+  int foo = 0;
+
+  void func(int bar) {
+    foo = bar;
+ }
+}
+''');
+
+    await resolveFile(aPath);
+    var result = fileResolver.findReferences(16, aPath);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(aPath, [16, 53])
+    ];
+    expect(result, unorderedEquals(expected));
+  }
+
+  test_findReferences_function() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(aPath, content: r'''
+main() {
+  foo('Hello');
+}
+
+foo(String str) {}
+''');
+
+    await resolveFile(aPath);
+    var result = fileResolver.findReferences(11, aPath);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(aPath, [11, 28])
+    ];
+    expect(result, unorderedEquals(expected));
+  }
+
+  test_findReferences_getter() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(aPath, content: r'''
+class A {
+  int get foo => 6;
+}
+''');
+    var bPath = convertPath('/workspace/dart/test/lib/b.dart');
+    newFile(bPath, content: r'''
+import 'a.dart';
+
+main() {
+  var a = A();
+  var bar = a.foo;
+}
+''');
+
+    await resolveFile(bPath);
+    var result = fileResolver.findReferences(20, aPath);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(aPath, [20]),
+      CiderSearchMatch(bPath, [56])
+    ];
+    expect(result, unorderedEquals(expected));
+  }
+
+  test_findReferences_local_variable() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(aPath, content: r'''
+class A {
+  void func(int n) {
+    var foo = bar+1;
+    print(foo);
+ }
+}
+''');
+    await resolveFile(aPath);
+    var result = fileResolver.findReferences(39, aPath);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(aPath, [39, 62])
+    ];
+    expect(result, unorderedEquals(expected));
+  }
+
+  test_findReferences_method() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(aPath, content: r'''
+class A {
+  void func() {
+   print('hello');
+ }
+ 
+ void func2() {
+   func();
+ }
+}
+''');
+
+    var bPath = convertPath('/workspace/dart/test/lib/b.dart');
+    newFile(bPath, content: r'''
+import 'a.dart';
+
+main() {
+  var a = A();
+  a.func();
+}
+''');
+
+    await resolveFile(bPath);
+    var result = fileResolver.findReferences(17, aPath);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(aPath, [17, 69]),
+      CiderSearchMatch(bPath, [46])
+    ];
+    expect(result, unorderedEquals(expected));
+  }
+
+  test_findReferences_setter() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(aPath, content: r'''
+class A {
+  void set value(int m){ };
+}
+''');
+    var bPath = convertPath('/workspace/dart/test/lib/b.dart');
+    newFile(bPath, content: r'''
+import 'a.dart';
+
+main() {
+  var a = A();
+  a.value = 6;
+}
+''');
+
+    await resolveFile(bPath);
+    var result = fileResolver.findReferences(21, aPath);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(aPath, [21]),
+      CiderSearchMatch(bPath, [46])
+    ];
+    expect(result, unorderedEquals(expected));
+  }
+
+  test_findReferences_top_level_getter() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+
+    newFile(aPath, content: r'''
+int _foo;
+
+int get foo => _foo;
+''');
+
+    var bPath = convertPath('/workspace/dart/test/lib/b.dart');
+    newFile(bPath, content: r'''
+import 'a.dart';
+
+main() {
+  var bar = foo;
+}
+''');
+
+    await resolveFile(bPath);
+    var result = fileResolver.findReferences(19, aPath);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(aPath, [19]),
+      CiderSearchMatch(bPath, [39])
+    ];
+    expect(result, unorderedEquals(expected));
+  }
+
+  test_findReferences_top_level_setter() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+
+    newFile(aPath, content: r'''
+int _foo;
+
+void set foo(int bar) { _foo = bar; }
+''');
+
+    var bPath = convertPath('/workspace/dart/test/lib/b.dart');
+    newFile(bPath, content: r'''
+import 'a.dart';
+
+main() {
+  foo = 6;
+}
+''');
+
+    await resolveFile(bPath);
+    var result = fileResolver.findReferences(20, aPath);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(aPath, [20]),
+      CiderSearchMatch(bPath, [29])
+    ];
+    expect(result, unorderedEquals(expected));
+  }
+
+  test_findReferences_top_level_variable() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+
+    newFile(aPath, content: r'''
+const int C = 42;
+
+void func() {
+    print(C);
+}
+''');
+
+    await resolveFile(aPath);
+    var result = fileResolver.findReferences(10, aPath);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(aPath, [10, 43])
+    ];
+    expect(result, unorderedEquals(expected));
+  }
+
+  test_findReferences_type_parameter() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(aPath, content: r'''
+class Foo<T> {
+  List<T> l;
+  
+  void bar(T t) {}
+}
+''');
+    await resolveFile(aPath);
+    var result = fileResolver.findReferences(10, aPath);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(aPath, [10, 22, 42])
+    ];
+    expect(result.map((e) => e.path),
+        unorderedEquals(expected.map((e) => e.path)));
+    expect(result.map((e) => e.offsets),
+        unorderedEquals(expected.map((e) => e.offsets)));
+  }
+
+  test_findReferences_typedef() async {
+    var aPath = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(aPath, content: r'''
+typedef func = int Function(int);
+
+''');
+    var bPath = convertPath('/workspace/dart/test/lib/b.dart');
+    newFile(bPath, content: r'''
+import 'a.dart';
+
+void f(func o) {}
+''');
+
+    await resolveFile(bPath);
+    var result = fileResolver.findReferences(8, aPath);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(aPath, [8]),
+      CiderSearchMatch(bPath, [25])
+    ];
+    expect(result, unorderedEquals(expected));
   }
 
   test_getErrors() {
