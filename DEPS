@@ -170,7 +170,7 @@ vars = {
   "watcher_rev": "3924194385fb215cef483193ed2879a618a3d69c",
   "webdriver_rev": "ff5ccb1522edf4bed578ead4d65e0cbc1f2c4f02",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
-  "web_socket_channel_rev": "d3e100de8feb0283a04732366bb591ebd2282d7d",
+  "web_socket_channel_rev": "6448ce532445a8a458fa191d9346df071ae0acad",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
   "webkit_inspection_protocol_rev": "6b15729292d030f2e5c5861022da4c5a4c11961c",
   "yaml_rev": "b4c4411631bda556ce9a45af1ab0eecaf9f3ac53",
