@@ -1613,6 +1613,10 @@ void FlowGraph::ValidatePhis() {
     return;
   }
 
+  // Current_context_var is never pruned, it is artificially kept alive, so
+  // it should not be checked here.
+  const intptr_t current_context_var_index = CurrentContextEnvIndex();
+
   for (intptr_t i = 0, n = preorder().length(); i < n; ++i) {
     BlockEntryInstr* block_entry = preorder()[i];
     Instruction* last_instruction = block_entry->last_instruction();
@@ -1624,7 +1628,7 @@ void FlowGraph::ValidatePhis() {
       if (successor->phis() != NULL) {
         for (intptr_t j = 0; j < successor->phis()->length(); ++j) {
           PhiInstr* phi = (*successor->phis())[j];
-          if (phi == nullptr) {
+          if (phi == nullptr && j != current_context_var_index) {
             // We have no phi node for the this variable.
             // Double check we do not have a different value in our env.
             // If we do, we would have needed a phi-node in the successsor.

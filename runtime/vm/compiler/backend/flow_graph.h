@@ -651,8 +651,8 @@ class LivenessAnalysis : public ValueObject {
   const GrowableArray<BlockEntryInstr*>& postorder_;
 
   // Live-out sets for each block.  They contain indices of variables
-  // that are live out from this block: that is values that were either
-  // defined in this block or live into it and that are used in some
+  // that are live out from this block. That is values that were (1) either
+  // defined in this block or live into it, and (2) that are used in some
   // successor block.
   GrowableArray<BitVector*> live_out_;
 
