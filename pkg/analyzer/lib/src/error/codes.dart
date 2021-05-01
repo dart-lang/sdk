@@ -3763,12 +3763,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   static const CompileTimeErrorCode
       EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
-          'EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+          'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
           "Type aliases that expand to a type parameter can't be used as "
               "superclasses.",
           correction:
               "Try specifying a different superclass, or removing the extends "
-              "clause.");
+              "clause.",
+          uniqueName: 'EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   /**
    * Parameters:
@@ -5363,9 +5364,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   static const CompileTimeErrorCode
       IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
-          'IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+          'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
           "Type aliases that expand to a type parameter can't be implemented.",
-          correction: "Try specifying a class or mixin, or removing the list.");
+          correction: "Try specifying a class or mixin, or removing the list.",
+          uniqueName: 'IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   /**
    * Parameters:
@@ -7987,14 +7989,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   static const CompileTimeErrorCode
       MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
-          'MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-          "Type aliases that expand to a type parameter can't be mixed in.");
+          'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
+          "Type aliases that expand to a type parameter can't be mixed in.",
+          uniqueName: 'MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   static const CompileTimeErrorCode
       MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
-          'MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
+          'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
           "Type aliases that expand to a type parameter can't be used as"
-              "superclass constraints.");
+              "superclass constraints.",
+          uniqueName: 'MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   /**
    * No parameters.
