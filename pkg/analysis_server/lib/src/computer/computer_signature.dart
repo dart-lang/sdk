@@ -62,7 +62,8 @@ class DartUnitSignatureComputer {
 
     return AnalysisGetSignatureResult(name, parameters,
         dartdoc: DartUnitHoverComputer.computeDocumentation(
-            _dartdocInfo, execElement));
+                _dartdocInfo, execElement)
+            ?.full);
   }
 
   ParameterInfo _convertParam(ParameterElement param) {

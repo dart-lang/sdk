@@ -1178,7 +1178,7 @@ class A {}
 /// Before macro.
 /// {@macro foo}
 /// After macro.''');
-    expect(result, '''
+    expect(result.full, '''
 Before macro.
 Body of the template.
 After macro.''');
