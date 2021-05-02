@@ -265,8 +265,6 @@ import 'initializer_for_non_existent_field_test.dart'
 import 'initializer_for_static_field_test.dart' as initializer_for_static_field;
 import 'initializing_formal_for_non_existent_field_test.dart'
     as initializing_formal_for_non_existent_field;
-import 'initializing_formal_for_static_field_test.dart'
-    as initializing_formal_for_static_field;
 import 'instance_access_to_static_member_test.dart'
     as instance_access_to_static_member;
 import 'instance_member_access_from_factory_test.dart'
@@ -860,7 +858,6 @@ main() {
     initializer_for_non_existent_field.main();
     initializer_for_static_field.main();
     initializing_formal_for_non_existent_field.main();
-    initializing_formal_for_static_field.main();
     instance_access_to_static_member.main();
     instance_member_access_from_factory.main();
     instance_member_access_from_static.main();
