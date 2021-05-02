@@ -20,7 +20,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -1111,10 +1111,11 @@ class SuggestionBuilder {
   /// documentation fields.
   void _setDocumentation(CompletionSuggestion suggestion, Element element) {
     var doc = DartUnitHoverComputer.computeDocumentation(
-        request.dartdocDirectiveInfo, element);
-    if (doc != null) {
-      suggestion.docComplete = doc;
-      suggestion.docSummary = getDartDocSummary(doc);
+        request.dartdocDirectiveInfo, element,
+        includeSummary: true);
+    if (doc is DocumentationWithSummary) {
+      suggestion.docComplete = doc.full;
+      suggestion.docSummary = doc.summary;
     }
   }
 }

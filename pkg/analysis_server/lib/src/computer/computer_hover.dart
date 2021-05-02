@@ -102,7 +102,7 @@ class DartUnitHoverComputer {
           }
         }
         // documentation
-        hover.dartdoc = computeDocumentation(_dartdocInfo, element);
+        hover.dartdoc = computeDocumentation(_dartdocInfo, element)?.full;
       }
       // parameter
       hover.parameter = _elementDisplayString(
@@ -141,8 +141,9 @@ class DartUnitHoverComputer {
         withNullability: _unit.isNonNullableByDefault);
   }
 
-  static String? computeDocumentation(
-      DartdocDirectiveInfo dartdocInfo, Element elementBeingDocumented) {
+  static Documentation? computeDocumentation(
+      DartdocDirectiveInfo dartdocInfo, Element elementBeingDocumented,
+      {bool includeSummary = false}) {
     // TODO(dantup) We're reusing this in parameter information - move it
     // somewhere shared?
     Element? element = elementBeingDocumented;
@@ -192,12 +193,14 @@ class DartUnitHoverComputer {
     if (rawDoc == null) {
       return null;
     }
-    var result = dartdocInfo.processDartdoc(rawDoc);
+    var result =
+        dartdocInfo.processDartdoc(rawDoc, includeSummary: includeSummary);
 
     var documentedElementClass = documentedElement.enclosingElement;
     if (documentedElementClass != null &&
         documentedElementClass != element.enclosingElement) {
-      result += '\n\nCopied from `${documentedElementClass.displayName}`.';
+      var documentedClass = documentedElementClass.displayName;
+      result.full = '${result.full}\n\nCopied from `$documentedClass`.';
     }
 
     return result;

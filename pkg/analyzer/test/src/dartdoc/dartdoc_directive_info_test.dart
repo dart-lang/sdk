@@ -17,11 +17,11 @@ class DartdocDirectiveInfoTest {
   DartdocDirectiveInfo info = DartdocDirectiveInfo();
 
   test_processDartdoc_animation_directive() {
-    String result = info.processDartdoc('''
+    var result = info.processDartdoc('''
 /// {@animation 464 192 https://flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4}
 ''');
     expect(
-        result,
+        result.full,
         '[flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4]'
         '(https://flutter.github.io/assets-for-api-docs/assets/animation/curve_bounce_in.mp4)');
   }
@@ -34,13 +34,13 @@ class DartdocDirectiveInfoTest {
  * template.
  * {@endtemplate}
  */''');
-    String result = info.processDartdoc('''
+    var result = info.processDartdoc('''
 /**
  * Before macro.
  * {@macro foo}
  * After macro.
  */''');
-    expect(result, '''
+    expect(result.full, '''
 Before macro.
 Body of the
 template.
@@ -48,11 +48,11 @@ After macro.''');
   }
 
   test_processDartdoc_macro_undefined() {
-    String result = info.processDartdoc('''
+    var result = info.processDartdoc('''
 /**
  * {@macro foo}
  */''');
-    expect(result, '''
+    expect(result.full, '''
 {@macro foo}''');
   }
 
@@ -67,7 +67,7 @@ After macro.''');
 /// {@template bar}
 /// Second template.
 /// {@endtemplate}''');
-    String result = info.processDartdoc('''
+    var result = info.processDartdoc('''
 /**
  * Before macro.
  * {@macro foo}
@@ -75,7 +75,7 @@ After macro.''');
  * {@macro bar}
  * After macro.
  */''');
-    expect(result, '''
+    expect(result.full, '''
 Before macro.
 First template.
 Between macros.
@@ -84,27 +84,51 @@ After macro.''');
   }
 
   test_processDartdoc_noMacro() {
-    String result = info.processDartdoc('''
+    var result = info.processDartdoc('''
 /**
  * Comment without a macro.
  */''');
-    expect(result, '''
+    expect(result.full, '''
+Comment without a macro.''');
+  }
+
+  test_processDartdoc_summary_different() {
+    var result = info.processDartdoc('''
+/// Comment without a macro.
+///
+/// Has content after summary.
+''', includeSummary: true) as DocumentationWithSummary;
+    expect(result.full, '''
+Comment without a macro.
+
+Has content after summary.''');
+    expect(result.summary, '''
+Comment without a macro.''');
+  }
+
+  test_processDartdoc_summary_same() {
+    var result = info.processDartdoc('''
+/// Comment without a macro.
+''', includeSummary: true) as DocumentationWithSummary;
+    expect(result.full, '''
+Comment without a macro.''');
+    expect(result.summary, '''
 Comment without a macro.''');
   }
 
   test_processDartdoc_youtube_directive() {
-    String result = info.processDartdoc('''
+    var result = info.processDartdoc('''
 /// {@youtube 560 315 https://www.youtube.com/watch?v=2uaoEDOgk_I}
 ''');
-    expect(result, '''
+    expect(result.full, '''
 [www.youtube.com/watch?v=2uaoEDOgk_I](https://www.youtube.com/watch?v=2uaoEDOgk_I)''');
   }
 
   test_processDartdoc_youtube_malformed() {
-    String result = info.processDartdoc('''
+    var result = info.processDartdoc('''
 /// {@youtube 560x315 https://www.youtube.com/watch?v=2uaoEDOgk_I}
 ''');
-    expect(result,
+    expect(result.full,
         '{@youtube 560x315 https://www.youtube.com/watch?v=2uaoEDOgk_I}');
   }
 }
