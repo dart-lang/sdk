@@ -2592,7 +2592,9 @@ void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
           loc->token_pos_.ToCString(), lowest_pc,
           lowest_pc - code.PayloadStart());
     }
-    code_bpt->AddBreakpointLocation(loc);
+    if (!code_bpt->HasBreakpointLocation(loc)) {
+      code_bpt->AddBreakpointLocation(loc);
+    }
   }
   if (loc->AnyEnabled()) {
     code_bpt->Enable();
@@ -3998,14 +4000,23 @@ ErrorPtr Debugger::PauseBreakpoint() {
     return Error::null();
   }
 
-  CodeBreakpoint* cbpt = nullptr;
-  BreakpointLocation* bpt_location =
-      group_debugger()->GetBreakpointLocationFor(this, top_frame->pc(), &cbpt);
-  if (bpt_location == nullptr) {
-    // There might be no breakpoint locations for this isolate/debugger.
-    return Error::null();
+  BreakpointLocation* bpt_location = nullptr;
+  const char* cbpt_tostring = nullptr;
+  {
+    SafepointReadRwLocker cbl(Thread::Current(),
+                              group_debugger()->code_breakpoints_lock());
+    CodeBreakpoint* cbpt = nullptr;
+    bpt_location = group_debugger()->GetBreakpointLocationFor(
+        this, top_frame->pc(), &cbpt);
+    if (bpt_location == nullptr) {
+      // There might be no breakpoint locations for this isolate/debugger.
+      return Error::null();
+    }
+    ASSERT(cbpt != nullptr);
+    if (FLAG_verbose_debug) {
+      cbpt_tostring = cbpt->ToCString();
+    }
   }
-  ASSERT(cbpt != nullptr);
 
   Breakpoint* bpt_hit = bpt_location->FindHitBreakpoint(top_frame);
   if (bpt_hit == nullptr) {
@@ -4023,7 +4034,7 @@ ErrorPtr Debugger::PauseBreakpoint() {
       OS::PrintErr(
           ">>> hit synthetic %s"
           " (func %s token %s address %#" Px " offset %#" Px ")\n",
-          cbpt->ToCString(),
+          cbpt_tostring,
           String::Handle(top_frame->QualifiedFunctionName()).ToCString(),
           bpt_location->token_pos().ToCString(), top_frame->pc(),
           top_frame->pc() - top_frame->code().PayloadStart());
@@ -4044,13 +4055,10 @@ ErrorPtr Debugger::PauseBreakpoint() {
   }
 
   if (FLAG_verbose_debug) {
-    // Lock is needed for CodeBreakpoint::ToCString().
-    SafepointReadRwLocker sl(Thread::Current(),
-                             group_debugger()->code_breakpoints_lock());
     OS::PrintErr(">>> hit %" Pd
                  " %s"
                  " (func %s token %s address %#" Px " offset %#" Px ")\n",
-                 bpt_hit->id(), cbpt->ToCString(),
+                 bpt_hit->id(), cbpt_tostring,
                  String::Handle(top_frame->QualifiedFunctionName()).ToCString(),
                  bpt_location->token_pos().ToCString(), top_frame->pc(),
                  top_frame->pc() - top_frame->code().PayloadStart());
