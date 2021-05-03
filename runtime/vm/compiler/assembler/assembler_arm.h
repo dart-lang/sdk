@@ -928,6 +928,15 @@ class Assembler : public AssemblerBase {
   intptr_t FindImmediate(int32_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadFromOffset(Register reg,
+                      const Address& address,
+                      OperandSize type,
+                      Condition cond);
+  void LoadFromOffset(Register reg,
+                      const Address& address,
+                      OperandSize type = kFourBytes) override {
+    LoadFromOffset(reg, address, type, AL);
+  }
+  void LoadFromOffset(Register reg,
                       Register base,
                       int32_t offset,
                       OperandSize type = kFourBytes,
@@ -969,6 +978,15 @@ class Assembler : public AssemblerBase {
   void StoreToStack(Register src, intptr_t depth);
   void CompareToStack(Register src, intptr_t depth);
 
+  void StoreToOffset(Register reg,
+                     const Address& address,
+                     OperandSize type,
+                     Condition cond);
+  void StoreToOffset(Register reg,
+                     const Address& address,
+                     OperandSize type = kFourBytes) override {
+    StoreToOffset(reg, address, type, AL);
+  }
   void StoreToOffset(Register reg,
                      Register base,
                      int32_t offset,

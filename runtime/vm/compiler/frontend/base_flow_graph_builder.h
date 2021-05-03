@@ -171,7 +171,6 @@ class BaseFlowGraphBuilder {
                        AlignmentType alignment = kAlignedAccess);
 
   Fragment LoadUntagged(intptr_t offset);
-  Fragment StoreUntagged(intptr_t offset);
   Fragment ConvertUntaggedToUnboxed(Representation to);
   Fragment ConvertUnboxedToUntagged(Representation from);
   Fragment UnboxSmiToIntptr();
@@ -192,12 +191,20 @@ class BaseFlowGraphBuilder {
   Fragment GuardFieldLength(const Field& field, intptr_t deopt_id);
   Fragment GuardFieldClass(const Field& field, intptr_t deopt_id);
   static const Field& MayCloneField(Zone* zone, const Field& field);
-  Fragment StoreInstanceField(
+  Fragment StoreNativeField(
       TokenPosition position,
-      const Slot& field,
+      const Slot& slot,
       StoreInstanceFieldInstr::Kind kind =
           StoreInstanceFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
+  Fragment StoreNativeField(
+      const Slot& slot,
+      StoreInstanceFieldInstr::Kind kind =
+          StoreInstanceFieldInstr::Kind::kOther,
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier) {
+    return StoreNativeField(TokenPosition::kNoSource, slot, kind,
+                            emit_store_barrier);
+  }
   Fragment StoreInstanceField(
       const Field& field,
       StoreInstanceFieldInstr::Kind kind =

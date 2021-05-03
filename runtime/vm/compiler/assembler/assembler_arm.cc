@@ -2716,6 +2716,32 @@ void Assembler::LoadDImmediate(DRegister dd,
 }
 
 void Assembler::LoadFromOffset(Register reg,
+                               const Address& address,
+                               OperandSize size,
+                               Condition cond) {
+  switch (size) {
+    case kByte:
+      ldrsb(reg, address, cond);
+      break;
+    case kUnsignedByte:
+      ldrb(reg, address, cond);
+      break;
+    case kTwoBytes:
+      ldrsh(reg, address, cond);
+      break;
+    case kUnsignedTwoBytes:
+      ldrh(reg, address, cond);
+      break;
+    case kUnsignedFourBytes:
+    case kFourBytes:
+      ldr(reg, address, cond);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+void Assembler::LoadFromOffset(Register reg,
                                Register base,
                                int32_t offset,
                                OperandSize size,
@@ -2728,25 +2754,7 @@ void Assembler::LoadFromOffset(Register reg,
     base = IP;
     offset = offset & offset_mask;
   }
-  switch (size) {
-    case kByte:
-      ldrsb(reg, Address(base, offset), cond);
-      break;
-    case kUnsignedByte:
-      ldrb(reg, Address(base, offset), cond);
-      break;
-    case kTwoBytes:
-      ldrsh(reg, Address(base, offset), cond);
-      break;
-    case kUnsignedTwoBytes:
-      ldrh(reg, Address(base, offset), cond);
-      break;
-    case kFourBytes:
-      ldr(reg, Address(base, offset), cond);
-      break;
-    default:
-      UNREACHABLE();
-  }
+  LoadFromOffset(reg, Address(base, offset), size, cond);
 }
 
 void Assembler::LoadFromStack(Register dst, intptr_t depth) {
@@ -2765,6 +2773,28 @@ void Assembler::CompareToStack(Register src, intptr_t depth) {
 }
 
 void Assembler::StoreToOffset(Register reg,
+                              const Address& address,
+                              OperandSize size,
+                              Condition cond) {
+  switch (size) {
+    case kUnsignedByte:
+    case kByte:
+      strb(reg, address, cond);
+      break;
+    case kUnsignedTwoBytes:
+    case kTwoBytes:
+      strh(reg, address, cond);
+      break;
+    case kUnsignedFourBytes:
+    case kFourBytes:
+      str(reg, address, cond);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+void Assembler::StoreToOffset(Register reg,
                               Register base,
                               int32_t offset,
                               OperandSize size,
@@ -2778,19 +2808,7 @@ void Assembler::StoreToOffset(Register reg,
     base = IP;
     offset = offset & offset_mask;
   }
-  switch (size) {
-    case kByte:
-      strb(reg, Address(base, offset), cond);
-      break;
-    case kTwoBytes:
-      strh(reg, Address(base, offset), cond);
-      break;
-    case kFourBytes:
-      str(reg, Address(base, offset), cond);
-      break;
-    default:
-      UNREACHABLE();
-  }
+  StoreToOffset(reg, Address(base, offset), size, cond);
 }
 
 void Assembler::LoadSFromOffset(SRegister reg,

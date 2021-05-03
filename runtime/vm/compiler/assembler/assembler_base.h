@@ -199,10 +199,18 @@ enum OperandSize {
 #endif
 };
 
+// For declaring default sizes in AssemblerBase.
+#if defined(TARGET_ARCH_IS_64_BIT)
+constexpr OperandSize kWordBytes = kEightBytes;
+#else
+constexpr OperandSize kWordBytes = kFourBytes;
+#endif
+
 // Forward declarations.
 class Assembler;
 class AssemblerFixup;
 class AssemblerBuffer;
+class Address;
 
 class Label : public ZoneAllocated {
  public:
@@ -552,6 +560,13 @@ class AssemblerBase : public StackResource {
   static bool EmittingComments();
 
   virtual void Breakpoint() = 0;
+
+  virtual void LoadFromOffset(Register dst,
+                              const Address& address,
+                              OperandSize sz = kWordBytes) = 0;
+  virtual void StoreToOffset(Register src,
+                             const Address& address,
+                             OperandSize sz = kWordBytes) = 0;
 
   intptr_t InsertAlignedRelocation(BSS::Relocation reloc);
 

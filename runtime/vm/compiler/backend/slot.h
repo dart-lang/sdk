@@ -135,6 +135,8 @@ class ParsedFunction;
   V(Function, UntaggedFunction, kind_tag, Uint32, FINAL)                       \
   V(Function, UntaggedFunction, packed_fields, Uint32, FINAL)                  \
   V(FunctionType, UntaggedFunctionType, packed_fields, Uint32, FINAL)          \
+  V(Pointer, UntaggedPointer, data_field, FfiIntPtr, FINAL)                    \
+  V(TypedDataBase, UntaggedTypedDataBase, data_field, IntPtr, VAR)             \
   V(TypeParameter, UntaggedTypeParameter, flags, Uint8, FINAL)
 
 // For uses that do not need the exact_type (boxed) or representation (unboxed)

@@ -1685,7 +1685,9 @@ class Assembler : public AssemblerBase {
 
   void LoadFromOffset(Register dest,
                       const Address& address,
-                      OperandSize sz = kEightBytes);
+                      OperandSize sz = kEightBytes) override {
+    ldr(dest, address, sz);
+  }
   void LoadFromOffset(Register dest,
                       Register base,
                       int32_t offset,
@@ -1734,6 +1736,11 @@ class Assembler : public AssemblerBase {
   void StoreToStack(Register src, intptr_t depth);
   void CompareToStack(Register src, intptr_t depth);
 
+  void StoreToOffset(Register src,
+                     const Address& address,
+                     OperandSize sz = kEightBytes) override {
+    str(src, address, sz);
+  }
   void StoreToOffset(Register src,
                      Register base,
                      int32_t offset,

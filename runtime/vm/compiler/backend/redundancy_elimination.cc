@@ -1452,7 +1452,6 @@ static bool MayHaveVisibleEffect(Instruction* instr) {
     case Instruction::kStoreStaticField:
     case Instruction::kStoreIndexed:
     case Instruction::kStoreIndexedUnsafe:
-    case Instruction::kStoreUntagged:
       return true;
     default:
       return instr->HasUnknownSideEffects() || instr->MayThrow();

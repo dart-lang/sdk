@@ -1646,9 +1646,32 @@ void Assembler::LoadFromOffset(Register reg,
     case kUnsignedTwoBytes:
       return movzxw(reg, address);
     case kFourBytes:
+      return movsxd(reg, address);
+    case kUnsignedFourBytes:
       return movl(reg, address);
     case kEightBytes:
       return movq(reg, address);
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+void Assembler::StoreToOffset(Register reg,
+                              const Address& address,
+                              OperandSize sz) {
+  switch (sz) {
+    case kByte:
+    case kUnsignedByte:
+      return movb(address, reg);
+    case kTwoBytes:
+    case kUnsignedTwoBytes:
+      return movw(address, reg);
+    case kFourBytes:
+    case kUnsignedFourBytes:
+      return movl(address, reg);
+    case kEightBytes:
+      return movq(address, reg);
     default:
       UNREACHABLE();
       break;

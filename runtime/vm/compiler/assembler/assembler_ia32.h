@@ -272,6 +272,7 @@ class Assembler : public AssemblerBase {
   void movsxb(Register dst, ByteRegister src);
   void movsxb(Register dst, const Address& src);
   void movb(Register dst, const Address& src);
+  void movb(const Address& dst, Register src);
   void movb(const Address& dst, ByteRegister src);
   void movb(const Address& dst, const Immediate& imm);
 
@@ -590,7 +591,7 @@ class Assembler : public AssemblerBase {
   // Arch-specific LoadFromOffset to choose the right operation for [sz].
   void LoadFromOffset(Register dst,
                       const Address& address,
-                      OperandSize sz = kFourBytes);
+                      OperandSize sz = kFourBytes) override;
   void LoadFromOffset(Register dst,
                       Register base,
                       int32_t offset,
@@ -630,6 +631,21 @@ class Assembler : public AssemblerBase {
                              Register index) {
     LoadCompressedField(
         dst, FieldAddress(base, index, TIMES_COMPRESSED_WORD_SIZE, offset));
+  }
+  void StoreToOffset(Register src,
+                     const Address& address,
+                     OperandSize sz = kFourBytes) override;
+  void StoreToOffset(Register src,
+                     Register base,
+                     int32_t offset,
+                     OperandSize sz = kFourBytes) {
+    StoreToOffset(src, Address(base, offset), sz);
+  }
+  void StoreFieldToOffset(Register src,
+                          Register base,
+                          int32_t offset,
+                          OperandSize sz = kFourBytes) {
+    StoreToOffset(src, FieldAddress(base, offset), sz);
   }
   void LoadFromStack(Register dst, intptr_t depth);
   void StoreToStack(Register src, intptr_t depth);

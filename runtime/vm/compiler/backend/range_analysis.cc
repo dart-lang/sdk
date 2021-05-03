@@ -2822,14 +2822,13 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       UNREACHABLE();
       break;
 
-    case Slot::Kind::kClosureData_default_type_arguments_kind:
-    case Slot::Kind::kFunction_kind_tag:
-    case Slot::Kind::kFunction_packed_fields:
-    case Slot::Kind::kTypeParameter_flags:
+#define UNBOXED_NATIVE_SLOT_CASE(Class, Untagged, Field, Rep, IsFinal)         \
+  case Slot::Kind::k##Class##_##Field:
+      UNBOXED_NATIVE_SLOTS_LIST(UNBOXED_NATIVE_SLOT_CASE)
+#undef UNBOXED_NATIVE_SLOT_CASE
       *range = Range::Full(RepresentationToRangeSize(slot().representation()));
       break;
 
-    case Slot::Kind::kFunctionType_packed_fields:
     case Slot::Kind::kClosure_hash:
     case Slot::Kind::kLinkedHashMap_hash_mask:
     case Slot::Kind::kLinkedHashMap_used_data:

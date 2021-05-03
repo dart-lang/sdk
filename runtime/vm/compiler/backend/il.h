@@ -432,7 +432,6 @@ struct InstrAttrs {
   M(AllocateTypedData, _)                                                      \
   M(LoadField, _)                                                              \
   M(LoadUntagged, kNoGC)                                                       \
-  M(StoreUntagged, kNoGC)                                                      \
   M(LoadClassId, kNoGC)                                                        \
   M(InstantiateType, _)                                                        \
   M(InstantiateTypeArguments, _)                                               \
@@ -5301,6 +5300,16 @@ enum StoreBarrierType { kNoStoreBarrier, kEmitStoreBarrier };
 // field initializers *must* be marked as initializing. Initializing stores
 // into unboxed fields are responsible for allocating the mutable box which
 // would be mutated by subsequent stores.
+//
+// Note: If the value to store is an unboxed derived pointer (e.g. pointer to
+// start of internal typed data array backing) then this instruction cannot be
+// moved across instructions which can trigger GC, to ensure that
+//
+//    LoadUntagged + Arithmetic + StoreInstanceField
+//
+// are performed as an effectively atomic set of instructions.
+//
+// See kernel_to_il.cc:BuildTypedDataViewFactoryConstructor.
 class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
  public:
   enum class Kind {
@@ -5345,8 +5354,9 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
     // In AOT unbox is done based on TFA, therefore it was proven to be correct
-    // and it can never deoptmize.
-    return (IsUnboxedStore() && CompilerState::Current().is_aot())
+    // and it can never deoptimize.
+    return (slot().representation() != kTagged ||
+            (IsUnboxedDartFieldStore() && CompilerState::Current().is_aot()))
                ? kNotSpeculative
                : kGuardInputs;
   }
@@ -5363,6 +5373,10 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
   bool is_initialization() const { return is_initialization_; }
 
   bool ShouldEmitStoreBarrier() const {
+    if (RepresentationUtils::IsUnboxed(slot().representation())) {
+      // The target field is native and unboxed, so not traversed by the GC.
+      return false;
+    }
     if (instance()->definition() == value()->definition()) {
       // `x.slot = x` cannot create an old->new or old&marked->old&unmarked
       // reference.
@@ -5381,7 +5395,7 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
   }
 
   virtual bool CanTriggerGC() const {
-    return IsUnboxedStore() || IsPotentialUnboxedStore();
+    return IsUnboxedDartFieldStore() || IsPotentialUnboxedDartFieldStore();
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -5394,8 +5408,14 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
   // are marked as having no side-effects.
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  bool IsUnboxedStore() const;
-  bool IsPotentialUnboxedStore() const;
+  // Returns whether this instruction is an unboxed store into a _boxed_ Dart
+  // field. Unboxed Dart fields are handled similar to unboxed native fields.
+  bool IsUnboxedDartFieldStore() const;
+
+  // Returns whether this instruction is an potential unboxed store into a
+  // _boxed_ Dart field. Unboxed Dart fields are handled similar to unboxed
+  // native fields.
+  bool IsPotentialUnboxedDartFieldStore() const;
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const;
 
@@ -6441,56 +6461,6 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
   intptr_t offset_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadUntaggedInstr);
-};
-
-// Stores an untagged value into the given object.
-//
-// If the untagged value is a derived pointer (e.g. pointer to start of internal
-// typed data array backing) then this instruction cannot be moved across
-// instructions which can trigger GC, to ensure that
-//
-//    LoadUntaggeed + Arithmetic + StoreUntagged
-//
-// are performed atomically
-//
-// See kernel_to_il.cc:BuildTypedDataViewFactoryConstructor.
-class StoreUntaggedInstr : public TemplateInstruction<2, NoThrow> {
- public:
-  StoreUntaggedInstr(Value* object, Value* value, intptr_t offset)
-      : offset_(offset) {
-    SetInputAt(0, object);
-    SetInputAt(1, value);
-  }
-
-  DECLARE_INSTRUCTION(StoreUntagged)
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0 || idx == 1);
-    // The object may be tagged or untagged (for external objects).
-    if (idx == 0) return kNoRepresentation;
-    return kUntagged;
-  }
-
-  Value* object() const { return inputs_[0]; }
-  Value* value() const { return inputs_[1]; }
-  intptr_t offset() const { return offset_; }
-
-  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
-  virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool HasUnknownSideEffects() const { return false; }
-  virtual bool AttributesEqual(const Instruction& other) const {
-    return other.AsStoreUntagged()->offset_ == offset_;
-  }
-
-  intptr_t offset_from_tagged() const {
-    const bool is_tagged = object()->definition()->representation() == kTagged;
-    return offset() - (is_tagged ? kHeapObjectTag : 0);
-  }
-
- private:
-  intptr_t offset_;
-
-  DISALLOW_COPY_AND_ASSIGN(StoreUntaggedInstr);
 };
 
 class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {

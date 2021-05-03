@@ -288,8 +288,6 @@ void ConstantPropagator::VisitTailCall(TailCallInstr* instr) {}
 void ConstantPropagator::VisitCheckEitherNonSmi(CheckEitherNonSmiInstr* instr) {
 }
 
-void ConstantPropagator::VisitStoreUntagged(StoreUntaggedInstr* instr) {}
-
 void ConstantPropagator::VisitStoreIndexedUnsafe(
     StoreIndexedUnsafeInstr* instr) {}
 
