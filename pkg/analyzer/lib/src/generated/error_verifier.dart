@@ -4272,7 +4272,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 [parameter.identifier.name]);
           } else if (fieldElement.isStatic) {
             errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
+                CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
                 parameter,
                 [parameter.identifier.name]);
           } else if (!typeSystem.isSubtypeOf(declaredType, fieldType)) {
@@ -4289,7 +4289,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 [parameter.identifier.name]);
           } else if (fieldElement.isStatic) {
             errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
+                CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
                 parameter,
                 [parameter.identifier.name]);
           }

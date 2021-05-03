@@ -5638,8 +5638,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the initializing formal that is a static variable in the
    *    immediately enclosing class
-   *
-   * See [INITIALIZING_FORMAL_FOR_STATIC_FIELD].
    */
   static const CompileTimeErrorCode INITIALIZER_FOR_STATIC_FIELD =
       CompileTimeErrorCode(
@@ -5729,24 +5727,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try correcting the name to match an existing field, or "
               "defining a field named '{0}'.",
           hasPublishedDocs: true);
-
-  /**
-   * 7.6.1 Generative Constructors: An initializing formal has the form
-   * <i>this.id</i>. It is a compile-time error if <i>id</i> is not the name of
-   * an instance variable of the immediately enclosing class.
-   *
-   * Parameters:
-   * 0: the name of the initializing formal that is a static variable in the
-   *    immediately enclosing class
-   *
-   * See [INITIALIZER_FOR_STATIC_FIELD].
-   */
-  static const CompileTimeErrorCode INITIALIZING_FORMAL_FOR_STATIC_FIELD =
-      CompileTimeErrorCode(
-          'INITIALIZING_FORMAL_FOR_STATIC_FIELD',
-          "'{0}' is a static field in the enclosing class. Fields initialized "
-              "in a constructor can't be static.",
-          correction: "Try removing the initialization.");
 
   /**
    * Parameters:
