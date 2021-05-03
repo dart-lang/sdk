@@ -77,7 +77,7 @@ BreakpointLocation::BreakpointLocation(
       requested_column_number_(requested_column_number),
       code_token_pos_(TokenPosition::kNoSource) {
   ASSERT(scripts.length() > 0);
-  ASSERT(token_pos_.IsReal());
+  ASSERT(token_pos.IsReal());
   for (intptr_t i = 0; i < scripts.length(); ++i) {
     scripts_.Add(scripts.At(i).ptr());
   }
@@ -134,8 +134,8 @@ void BreakpointLocation::SetResolved(const Function& func,
   ASSERT(!IsLatent());
   ASSERT(token_pos.IsWithin(func.token_pos(), func.end_token_pos()));
   ASSERT(func.is_debuggable());
-  token_pos_ = token_pos;
-  end_token_pos_ = token_pos;
+  token_pos_.store(token_pos);
+  end_token_pos_.store(token_pos);
   code_token_pos_ = token_pos;
 }
 
@@ -2547,7 +2547,7 @@ bool BreakpointLocation::EnsureIsResolved(const Function& target_function,
 
 void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
                                          BreakpointLocation* loc) {
-  ASSERT(loc->token_pos_.IsReal());
+  ASSERT(loc->token_pos().IsReal());
   ASSERT((loc != NULL) && loc->IsResolved());
   ASSERT(!func.HasOptimizedCode());
   ASSERT(func.HasCode());
@@ -2580,7 +2580,7 @@ void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
     if (FLAG_verbose_debug) {
       OS::PrintErr("Setting code breakpoint at pos %s pc %#" Px " offset %#" Px
                    "\n",
-                   loc->token_pos_.ToCString(), lowest_pc,
+                   loc->token_pos().ToCString(), lowest_pc,
                    lowest_pc - code.PayloadStart());
     }
     RegisterCodeBreakpoint(code_bpt);
@@ -2589,7 +2589,7 @@ void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
       OS::PrintErr(
           "Adding location to existing code breakpoint at pos %s pc %#" Px
           " offset %#" Px "\n",
-          loc->token_pos_.ToCString(), lowest_pc,
+          loc->token_pos().ToCString(), lowest_pc,
           lowest_pc - code.PayloadStart());
     }
     if (!code_bpt->HasBreakpointLocation(loc)) {
@@ -4514,7 +4514,7 @@ BreakpointLocation* Debugger::GetBreakpointLocation(
   while (loc != NULL) {
     loc_url = loc->url();
     if (script_url.Equals(loc_url) &&
-        (!token_pos.IsReal() || (loc->token_pos_ == token_pos)) &&
+        (!token_pos.IsReal() || (loc->token_pos() == token_pos)) &&
         ((requested_line == -1) ||
          (loc->requested_line_number_ == requested_line)) &&
         ((requested_column == -1) ||
