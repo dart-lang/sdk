@@ -110,10 +110,21 @@ class BazelFilePoller {
   /// exist.
   _TimestampAndLength? _pollOne(String path) {
     try {
-      var file = _provider.getFile(path);
-      var timestamp = file.modificationStamp;
-      var length = file.lengthSync;
-      return _TimestampAndLength(timestamp, length);
+      // This might seem a bit convoluted but is necessary to deal with a
+      // symlink to a directory (e.g., `bazel-bin`).
+      var resource = _provider.getResource(
+          _provider.getResource(path).resolveSymbolicLinksSync().path);
+      if (resource is File) {
+        var timestamp = resource.modificationStamp;
+        var length = resource.lengthSync;
+        return _TimestampAndLength(timestamp, length);
+      } else if (resource is Folder) {
+        // `ResourceProvider` doesn't currently support getting timestamps of a
+        // folder, so we use a dummy value here. But it's still useful: this
+        // will correctly generate `ADD` or `REMOVE` events (we'll be just
+        // unable to generate any `CHANGE` events).
+        return _TimestampAndLength(0, 0);
+      }
     } on FileSystemException catch (_) {
       // File doesn't exist, so return null.
       return null;
