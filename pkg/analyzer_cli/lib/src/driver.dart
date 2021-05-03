@@ -505,7 +505,16 @@ class _AnalysisContextProvider {
 
   /// TODO(scheglov) Use analyzedFiles()
   PathFilter get pathFilter {
-    return PathFilter(analysisContext.contextRoot.root.path,
+    var contextRoot = analysisContext.contextRoot;
+    var optionsFile = contextRoot.optionsFile;
+
+    // If there is no options file, there can be no excludes.
+    if (optionsFile == null) {
+      return PathFilter(contextRoot.root.path, contextRoot.root.path, []);
+    }
+
+    // Exclude patterns are relative to the directory with the options file.
+    return PathFilter(contextRoot.root.path, optionsFile.parent2.path,
         analysisContext.analysisOptions.excludePatterns);
   }
 
