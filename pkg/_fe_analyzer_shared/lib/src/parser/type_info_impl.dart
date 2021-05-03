@@ -923,6 +923,9 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   /// and may not be part of the token stream.
   Token? skipEnd;
 
+  @override
+  bool recovered = false;
+
   ComplexTypeParamOrArgInfo(
       Token token, this.inDeclaration, this.allowsVariance)
       : assert(optional('<', token.next!)),
@@ -988,6 +991,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     // Recovery
     skipEnd = splitCloser(next);
     if (skipEnd == null) {
+      recovered = true;
       if (optional('(', next)) {
         token = next.endGroup!;
         next = token.next!;
