@@ -45,7 +45,7 @@ Future<void> main(List<String> args) async {
   final startDevTools = args[4] == 'true';
   Uri devToolsBuildDirectory;
   if (args[5].isNotEmpty) {
-    devToolsBuildDirectory = Uri.parse(args[5]);
+    devToolsBuildDirectory = Uri.file(args[5]);
   }
   final logRequests = args[6] == 'true';
   try {
