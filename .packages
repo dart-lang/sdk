@@ -20,7 +20,6 @@ async_helper:pkg/async_helper/lib
 bazel_worker:third_party/pkg/bazel_worker/lib
 benchmark_harness:third_party/pkg/benchmark_harness/lib
 boolean_selector:third_party/pkg/boolean_selector/lib
-browser_launcher:third_party/pkg/browser_launcher/lib
 build_integration:pkg/build_integration/lib
 browser_launcher:third_party/pkg/browser_launcher/lib
 charcode:third_party/pkg/charcode/lib
