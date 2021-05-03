@@ -1408,15 +1408,24 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
   __ ret();
 }
 
-void AsmIntrinsifier::Object_setHash(Assembler* assembler,
-                                     Label* normal_ir_body) {
+void AsmIntrinsifier::Object_setHashIfNotSetYet(Assembler* assembler,
+                                                Label* normal_ir_body) {
+  Label already_set;
   __ movq(RAX, Address(RSP, +2 * target::kWordSize));  // Object.
+  __ movl(RDX, FieldAddress(RAX, target::String::hash_offset()));
+  __ testl(RDX, RDX);
+  __ j(NOT_ZERO, &already_set, AssemblerBase::kNearJump);
   __ movq(RDX, Address(RSP, +1 * target::kWordSize));  // Value.
   __ SmiUntag(RDX);
   __ shlq(RDX, Immediate(target::UntaggedObject::kHashTagPos));
   // lock+orq is an atomic read-modify-write.
   __ lock();
   __ orq(FieldAddress(RAX, target::Object::tags_offset()), RDX);
+  __ movq(RAX, Address(RSP, +1 * target::kWordSize));
+  __ ret();
+  __ Bind(&already_set);
+  __ movl(RAX, RDX);
+  __ SmiTag(RAX);
   __ ret();
 }
 
