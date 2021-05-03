@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 library vm.transformations.specializer.list_factory_specializer;
 
 import 'package:kernel/ast.dart';
@@ -39,28 +41,29 @@ class ListFactorySpecializer extends BaseSpecializer {
 
   ListFactorySpecializer(CoreTypes coreTypes)
       : _defaultListFactory =
-            coreTypes.index.getMember('dart:core', 'List', ''),
+            coreTypes.index.getProcedure('dart:core', 'List', ''),
         _listEmptyFactory =
-            coreTypes.index.getMember('dart:core', 'List', 'empty'),
+            coreTypes.index.getProcedure('dart:core', 'List', 'empty'),
         _listFilledFactory =
-            coreTypes.index.getMember('dart:core', 'List', 'filled'),
+            coreTypes.index.getProcedure('dart:core', 'List', 'filled'),
         _listGenerateFactory =
-            coreTypes.index.getMember('dart:core', 'List', 'generate'),
+            coreTypes.index.getProcedure('dart:core', 'List', 'generate'),
         _growableListFactory =
-            coreTypes.index.getMember('dart:core', '_GrowableList', ''),
+            coreTypes.index.getProcedure('dart:core', '_GrowableList', ''),
         _growableListEmptyFactory =
-            coreTypes.index.getMember('dart:core', '_GrowableList', 'empty'),
-        _growableListFilledFactory =
-            coreTypes.index.getMember('dart:core', '_GrowableList', 'filled'),
-        _growableListGenerateFactory =
-            coreTypes.index.getMember('dart:core', '_GrowableList', 'generate'),
-        _fixedListFactory = coreTypes.index.getMember('dart:core', '_List', ''),
+            coreTypes.index.getProcedure('dart:core', '_GrowableList', 'empty'),
+        _growableListFilledFactory = coreTypes.index
+            .getProcedure('dart:core', '_GrowableList', 'filled'),
+        _growableListGenerateFactory = coreTypes.index
+            .getProcedure('dart:core', '_GrowableList', 'generate'),
+        _fixedListFactory =
+            coreTypes.index.getProcedure('dart:core', '_List', ''),
         _fixedListEmptyFactory =
-            coreTypes.index.getMember('dart:core', '_List', 'empty'),
+            coreTypes.index.getProcedure('dart:core', '_List', 'empty'),
         _fixedListFilledFactory =
-            coreTypes.index.getMember('dart:core', '_List', 'filled'),
+            coreTypes.index.getProcedure('dart:core', '_List', 'filled'),
         _fixedListGenerateFactory =
-            coreTypes.index.getMember('dart:core', '_List', 'generate') {
+            coreTypes.index.getProcedure('dart:core', '_List', 'generate') {
     assert(_defaultListFactory.isFactory);
     assert(_listEmptyFactory.isFactory);
     assert(_listFilledFactory.isFactory);
@@ -96,7 +99,8 @@ class ListFactorySpecializer extends BaseSpecializer {
   TreeNode transformListEmptyFactory(StaticInvocation node) {
     final args = node.arguments;
     assert(args.positional.length == 0);
-    final bool growable = _getConstantOptionalArgument(args, 'growable', false);
+    final bool? growable =
+        _getConstantOptionalArgument(args, 'growable', false);
     if (growable == null) {
       return node;
     }
@@ -118,7 +122,8 @@ class ListFactorySpecializer extends BaseSpecializer {
     final fill = args.positional[1];
     final fillingWithNull = fill is NullLiteral ||
         (fill is ConstantExpression && fill.constant is NullConstant);
-    final bool growable = _getConstantOptionalArgument(args, 'growable', false);
+    final bool? growable =
+        _getConstantOptionalArgument(args, 'growable', false);
     if (growable == null) {
       return node;
     }
@@ -150,7 +155,7 @@ class ListFactorySpecializer extends BaseSpecializer {
     assert(args.positional.length == 2);
     final length = args.positional[0];
     final generator = args.positional[1];
-    final bool growable = _getConstantOptionalArgument(args, 'growable', true);
+    final bool? growable = _getConstantOptionalArgument(args, 'growable', true);
     if (growable == null) {
       return node;
     }
@@ -168,7 +173,7 @@ class ListFactorySpecializer extends BaseSpecializer {
   /// Returns constant value of the only optional argument in [args],
   /// or null if it is not a constant. Returns [defaultValue] if optional
   /// argument is not passed. Argument is asserted to have the given [name].
-  bool /*?*/ _getConstantOptionalArgument(
+  bool? _getConstantOptionalArgument(
       Arguments args, String name, bool defaultValue) {
     if (args.named.isEmpty) {
       return defaultValue;

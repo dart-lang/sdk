@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'package:kernel/ast.dart';
 
 /// Wraps the initializers of late local variables in closures.
@@ -18,7 +20,7 @@ class LateVarInitTransformer {
 
       // Variables with no initializer or a trivial initializer are ignored.
       if (s.initializer == null) return false;
-      final Expression init = s.initializer;
+      final Expression? init = s.initializer;
       if (init is StringLiteral) return false;
       if (init is BoolLiteral) return false;
       if (init is IntLiteral) return false;
@@ -47,12 +49,13 @@ class LateVarInitTransformer {
     return [fn, node];
   }
 
-  List<Statement> _transformStatements(List<Statement> statements) {
+  List<Statement>? _transformStatements(List<Statement> statements) {
     if (!statements.any((s) => _shouldApplyTransform(s))) return null;
     final List<Statement> newStatements = <Statement>[];
     for (Statement s in statements) {
       if (_shouldApplyTransform(s)) {
-        newStatements.addAll(_transformVariableDeclaration(s));
+        newStatements
+            .addAll(_transformVariableDeclaration(s as VariableDeclaration));
       } else {
         newStatements.add(s);
       }

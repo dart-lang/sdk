@@ -1329,13 +1329,23 @@ uint32_t HeapSnapshotWriter::GetHeapSnapshotIdentityHash(Thread* thread,
   return hash;
 }
 
+// Generates a random value which can serve as an identity hash.
+// It must be a non-zero smi value (see also [Object._getObjectHash]).
+static uint32_t GenerateHash(Random* random) {
+  uint32_t hash;
+  do {
+    hash = random->NextUInt32();
+  } while (hash == 0 || (kSmiBits < 32 && !Smi::IsValid(hash)));
+  return hash;
+}
+
 uint32_t HeapSnapshotWriter::GetHashHelper(Thread* thread, ObjectPtr obj) {
   uint32_t hash;
 #if defined(HASH_IN_OBJECT_HEADER)
   hash = Object::GetCachedHash(obj);
   if (hash == 0) {
     ASSERT(!thread->heap()->old_space()->IsObjectFromImagePages(obj));
-    hash = thread->random()->NextUInt32();
+    hash = GenerateHash(thread->random());
     Object::SetCachedHash(obj, hash);
   }
 #else
@@ -1343,7 +1353,7 @@ uint32_t HeapSnapshotWriter::GetHashHelper(Thread* thread, ObjectPtr obj) {
   hash = heap->GetHash(obj);
   if (hash == 0) {
     ASSERT(!heap->old_space()->IsObjectFromImagePages(obj));
-    hash = thread->random()->NextUInt32();
+    hash = GenerateHash(thread->random());
     heap->SetHash(obj, hash);
   }
 #endif
