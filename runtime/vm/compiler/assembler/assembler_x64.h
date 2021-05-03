@@ -935,7 +935,7 @@ class Assembler : public AssemblerBase {
   // Arch-specific LoadFromOffset to choose the right operation for [sz].
   void LoadFromOffset(Register dst,
                       const Address& address,
-                      OperandSize sz = kEightBytes);
+                      OperandSize sz = kEightBytes) override;
   void LoadFromOffset(Register dst,
                       Register base,
                       int32_t offset,
@@ -976,14 +976,20 @@ class Assembler : public AssemblerBase {
     LoadCompressed(
         dst, FieldAddress(base, index, TIMES_COMPRESSED_WORD_SIZE, offset));
   }
+  void StoreToOffset(Register src,
+                     const Address& address,
+                     OperandSize sz = kEightBytes) override;
+  void StoreToOffset(Register src,
+                     Register base,
+                     int32_t offset,
+                     OperandSize sz = kEightBytes) {
+    StoreToOffset(src, Address(base, offset), sz);
+  }
   void StoreFieldToOffset(Register src,
                           Register base,
                           int32_t offset,
                           OperandSize sz = kEightBytes) {
-    if (sz != kEightBytes) {
-      UNIMPLEMENTED();
-    }
-    StoreMemoryValue(src, base, offset - kHeapObjectTag);
+    StoreToOffset(src, FieldAddress(base, offset), sz);
   }
   void LoadFromStack(Register dst, intptr_t depth);
   void StoreToStack(Register src, intptr_t depth);

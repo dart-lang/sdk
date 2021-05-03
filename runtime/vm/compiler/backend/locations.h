@@ -77,6 +77,8 @@ struct RepresentationUtils : AllStatic {
 
   // Whether the values described by this representation are unsigned integers.
   static bool IsUnsigned(Representation rep);
+
+  static compiler::OperandSize OperandSize(Representation rep);
 };
 
 // 'UnboxedFfiIntPtr' should be able to hold a pointer of the target word-size.

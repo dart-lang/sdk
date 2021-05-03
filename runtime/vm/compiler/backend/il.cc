@@ -972,24 +972,10 @@ bool LoadFieldInstr::IsPotentialUnboxedDartFieldLoad() const {
 }
 
 Representation LoadFieldInstr::representation() const {
-  if (slot().representation() != kTagged) {
-    return slot().representation();
-  } else if (IsUnboxedDartFieldLoad()) {
-    const Field& field = slot().field();
-    const intptr_t cid = field.UnboxedFieldCid();
-    switch (cid) {
-      case kDoubleCid:
-        return kUnboxedDouble;
-      case kFloat32x4Cid:
-        return kUnboxedFloat32x4;
-      case kFloat64x2Cid:
-        return kUnboxedFloat64x2;
-      default:
-        UNREACHABLE();
-        break;
-    }
+  if (IsUnboxedDartFieldLoad()) {
+    return FlowGraph::UnboxedFieldRepresentationOf(slot().field());
   }
-  return kTagged;
+  return slot().representation();
 }
 
 AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
@@ -1022,24 +1008,27 @@ void AllocateTypedDataInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                              locs(), deopt_id());
 }
 
-bool StoreInstanceFieldInstr::IsUnboxedStore() const {
-  return slot().IsDartField() &&
+bool StoreInstanceFieldInstr::IsUnboxedDartFieldStore() const {
+  return slot().representation() == kTagged && slot().IsDartField() &&
          FlowGraphCompiler::IsUnboxedField(slot().field());
 }
 
-bool StoreInstanceFieldInstr::IsPotentialUnboxedStore() const {
-  return slot().IsDartField() &&
+bool StoreInstanceFieldInstr::IsPotentialUnboxedDartFieldStore() const {
+  return slot().representation() == kTagged && slot().IsDartField() &&
          FlowGraphCompiler::IsPotentialUnboxedField(slot().field());
 }
 
 Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
     intptr_t index) const {
   ASSERT((index == 0) || (index == 1));
-  if ((index == 1) && IsUnboxedStore()) {
-    const Field& field = slot().field();
-    return FlowGraph::UnboxedFieldRepresentationOf(field);
+  if (index == 0) {
+    // The instance is always tagged.
+    return kTagged;
   }
-  return kTagged;
+  if (IsUnboxedDartFieldStore()) {
+    return FlowGraph::UnboxedFieldRepresentationOf(slot().field());
+  }
+  return slot().representation();
 }
 
 Instruction* StoreInstanceFieldInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -1048,7 +1037,7 @@ Instruction* StoreInstanceFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // Context objects can be allocated uninitialized as a performance
   // optimization in JIT mode - however in AOT mode we always allocate them
   // null initialized.
-  if (is_initialization_ &&
+  if (is_initialization_ && slot().representation() == kTagged &&
       (!slot().IsContextSlot() ||
        !instance()->definition()->IsAllocateUninitializedContext()) &&
       value()->BindsToConstantNull()) {
@@ -2680,6 +2669,10 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
       return false;
 
     // Not length loads.
+#define UNBOXED_NATIVE_SLOT_CASE(Class, Untagged, Field, Rep, IsFinal)         \
+  case Slot::Kind::k##Class##_##Field:
+      UNBOXED_NATIVE_SLOTS_LIST(UNBOXED_NATIVE_SLOT_CASE)
+#undef UNBOXED_NATIVE_SLOT_CASE
     case Slot::Kind::kLinkedHashMap_index:
     case Slot::Kind::kLinkedHashMap_data:
     case Slot::Kind::kLinkedHashMap_hash_mask:
@@ -2702,14 +2695,10 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kClosure_instantiator_type_arguments:
     case Slot::Kind::kClosure_hash:
     case Slot::Kind::kClosureData_default_type_arguments:
-    case Slot::Kind::kClosureData_default_type_arguments_kind:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
     case Slot::Kind::kFunction_data:
-    case Slot::Kind::kFunction_kind_tag:
-    case Slot::Kind::kFunction_packed_fields:
     case Slot::Kind::kFunction_signature:
-    case Slot::Kind::kFunctionType_packed_fields:
     case Slot::Kind::kFunctionType_parameter_names:
     case Slot::Kind::kFunctionType_parameter_types:
     case Slot::Kind::kFunctionType_type_parameters:
@@ -2717,7 +2706,6 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
     case Slot::Kind::kTypeParameter_bound:
-    case Slot::Kind::kTypeParameter_flags:
     case Slot::Kind::kTypeParameter_name:
     case Slot::Kind::kUnhandledException_exception:
     case Slot::Kind::kUnhandledException_stacktrace:

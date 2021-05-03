@@ -182,6 +182,12 @@ void Assembler::movb(Register dst, const Address& src) {
   FATAL("Use movzxb or movsxb instead.");
 }
 
+void Assembler::movb(const Address& dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x88);
+  EmitOperand(src, dst);
+}
+
 void Assembler::movb(const Address& dst, ByteRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x88);
@@ -1774,8 +1780,28 @@ void Assembler::LoadFromOffset(Register reg,
       return movsxw(reg, address);
     case kUnsignedTwoBytes:
       return movzxw(reg, address);
+    case kUnsignedFourBytes:
     case kFourBytes:
       return movl(reg, address);
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+void Assembler::StoreToOffset(Register reg,
+                              const Address& address,
+                              OperandSize sz) {
+  switch (sz) {
+    case kByte:
+    case kUnsignedByte:
+      return movb(address, reg);
+    case kTwoBytes:
+    case kUnsignedTwoBytes:
+      return movw(address, reg);
+    case kFourBytes:
+    case kUnsignedFourBytes:
+      return movl(address, reg);
     default:
       UNREACHABLE();
       break;

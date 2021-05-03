@@ -812,11 +812,11 @@ void Assembler::LoadFromOffset(Register dest,
                                int32_t offset,
                                OperandSize sz) {
   if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
-    ldr(dest, Address(base, offset, Address::Offset, sz), sz);
+    LoadFromOffset(dest, Address(base, offset, Address::Offset, sz), sz);
   } else {
     ASSERT(base != TMP2);
     AddImmediate(TMP2, base, offset);
-    ldr(dest, Address(TMP2), sz);
+    LoadFromOffset(dest, Address(TMP2), sz);
   }
 }
 
@@ -856,11 +856,11 @@ void Assembler::StoreToOffset(Register src,
                               OperandSize sz) {
   ASSERT(base != TMP2);
   if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
-    str(src, Address(base, offset, Address::Offset, sz), sz);
+    StoreToOffset(src, Address(base, offset, Address::Offset, sz), sz);
   } else {
     ASSERT(src != TMP2);
     AddImmediate(TMP2, base, offset);
-    str(src, Address(TMP2), sz);
+    StoreToOffset(src, Address(TMP2), sz);
   }
 }
 

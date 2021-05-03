@@ -668,8 +668,7 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
         // Copy the parameter from the stack to the context.
         body += LoadLocal(context);
         body += LoadLocal(&raw_parameter);
-        body += flow_graph_builder_->StoreInstanceField(
-            TokenPosition::kNoSource,
+        body += flow_graph_builder_->StoreNativeField(
             Slot::GetContextVariableSlotFor(thread(), *variable),
             StoreInstanceFieldInstr::Kind::kInitializing);
       }
@@ -3804,8 +3803,8 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
 
   instructions += LoadLocal(new_closure);
   instructions += LoadLocal(type_args_vec);
-  instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_delayed_type_arguments(),
+  instructions += flow_graph_builder_->StoreNativeField(
+      Slot::Closure_delayed_type_arguments(),
       StoreInstanceFieldInstr::Kind::kInitializing);
   instructions += Drop();  // Drop type args.
 
@@ -3814,17 +3813,16 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   instructions += LoadLocal(original_closure);
   instructions +=
       flow_graph_builder_->LoadNativeField(Slot::Closure_function());
-  instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_function(),
-      StoreInstanceFieldInstr::Kind::kInitializing);
+  instructions += flow_graph_builder_->StoreNativeField(
+      Slot::Closure_function(), StoreInstanceFieldInstr::Kind::kInitializing);
 
   // Copy over the instantiator type arguments.
   instructions += LoadLocal(new_closure);
   instructions += LoadLocal(original_closure);
   instructions += flow_graph_builder_->LoadNativeField(
       Slot::Closure_instantiator_type_arguments());
-  instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_instantiator_type_arguments(),
+  instructions += flow_graph_builder_->StoreNativeField(
+      Slot::Closure_instantiator_type_arguments(),
       StoreInstanceFieldInstr::Kind::kInitializing);
 
   // Copy over the function type arguments.
@@ -3832,17 +3830,16 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   instructions += LoadLocal(original_closure);
   instructions += flow_graph_builder_->LoadNativeField(
       Slot::Closure_function_type_arguments());
-  instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_function_type_arguments(),
+  instructions += flow_graph_builder_->StoreNativeField(
+      Slot::Closure_function_type_arguments(),
       StoreInstanceFieldInstr::Kind::kInitializing);
 
   // Copy over the context.
   instructions += LoadLocal(new_closure);
   instructions += LoadLocal(original_closure);
   instructions += flow_graph_builder_->LoadNativeField(Slot::Closure_context());
-  instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_context(),
-      StoreInstanceFieldInstr::Kind::kInitializing);
+  instructions += flow_graph_builder_->StoreNativeField(
+      Slot::Closure_context(), StoreInstanceFieldInstr::Kind::kInitializing);
 
   instructions += DropTempsPreserveTop(1);  // Drop old closure.
 
@@ -4981,8 +4978,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   if (!function.HasInstantiatedSignature(kCurrentClass)) {
     instructions += LoadLocal(closure);
     instructions += LoadInstantiatorTypeArguments();
-    instructions += flow_graph_builder_->StoreInstanceField(
-        TokenPosition::kNoSource, Slot::Closure_instantiator_type_arguments(),
+    instructions += flow_graph_builder_->StoreNativeField(
+        Slot::Closure_instantiator_type_arguments(),
         StoreInstanceFieldInstr::Kind::kInitializing);
   }
 
@@ -4990,8 +4987,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   // type parameters.
   instructions += LoadLocal(closure);
   instructions += LoadFunctionTypeArguments();
-  instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_function_type_arguments(),
+  instructions += flow_graph_builder_->StoreNativeField(
+      Slot::Closure_function_type_arguments(),
       StoreInstanceFieldInstr::Kind::kInitializing);
 
   if (function.IsGeneric()) {
@@ -4999,23 +4996,21 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     // delayed_type_arguments.
     instructions += LoadLocal(closure);
     instructions += Constant(Object::empty_type_arguments());
-    instructions += flow_graph_builder_->StoreInstanceField(
-        TokenPosition::kNoSource, Slot::Closure_delayed_type_arguments(),
+    instructions += flow_graph_builder_->StoreNativeField(
+        Slot::Closure_delayed_type_arguments(),
         StoreInstanceFieldInstr::Kind::kInitializing);
   }
 
   // Store the function and the context in the closure.
   instructions += LoadLocal(closure);
   instructions += Constant(function);
-  instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_function(),
-      StoreInstanceFieldInstr::Kind::kInitializing);
+  instructions += flow_graph_builder_->StoreNativeField(
+      Slot::Closure_function(), StoreInstanceFieldInstr::Kind::kInitializing);
 
   instructions += LoadLocal(closure);
   instructions += LoadLocal(parsed_function()->current_context_var());
-  instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_context(),
-      StoreInstanceFieldInstr::Kind::kInitializing);
+  instructions += flow_graph_builder_->StoreNativeField(
+      Slot::Closure_context(), StoreInstanceFieldInstr::Kind::kInitializing);
 
   return instructions;
 }
