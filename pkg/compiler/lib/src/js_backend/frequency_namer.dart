@@ -14,20 +14,11 @@ class FrequencyBasedNamer extends Namer
   Map<NamingScope, TokenScope> _tokenScopes =
       new Maplet<NamingScope, TokenScope>();
 
-  // Some basic settings for smaller names
-  @override
-  String get isolateName => 'I';
-  @override
-  String get isolatePropertiesName => 'p';
   @override
   bool get shouldMinify => true;
 
   @override
   String get genericInstantiationPrefix => r'$I';
-
-  @override
-  jsAst.Name get staticsPropertyName =>
-      _staticsPropertyName ??= getFreshName(instanceScope, 'static');
 
   FrequencyBasedNamer(JClosedWorld closedWorld, FixedNames fixedNames)
       : super(closedWorld, fixedNames) {

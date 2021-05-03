@@ -20,10 +20,6 @@ class MinifyNamer extends Namer
   _FieldNamingRegistry fieldRegistry;
 
   @override
-  String get isolateName => 'I';
-  @override
-  String get isolatePropertiesName => 'p';
-  @override
   bool get shouldMinify => true;
   @override
   String get genericInstantiationPrefix => r'$I';
