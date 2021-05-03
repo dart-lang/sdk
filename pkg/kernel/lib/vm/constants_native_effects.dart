@@ -25,8 +25,8 @@ class VmConstantsBackend extends ConstantsBackend {
         .firstWhere((Class klass) => klass.name == '_ImmutableMap');
     // ignore: unnecessary_null_comparison
     assert(immutableMapClass != null);
-    Field unmodifiableSetMap = coreTypes.index
-        .getMember('dart:collection', '_UnmodifiableSet', '_map') as Field;
+    Field unmodifiableSetMap =
+        coreTypes.index.getField('dart:collection', '_UnmodifiableSet', '_map');
 
     return new VmConstantsBackend._(immutableMapClass, unmodifiableSetMap,
         unmodifiableSetMap.enclosingClass!);

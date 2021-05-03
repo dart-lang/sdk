@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 library vm.transformations.specializer.map_factory_specializer;
 
 import 'package:kernel/ast.dart';
@@ -19,14 +21,14 @@ class MapFactorySpecializer extends BaseSpecializer {
 
   MapFactorySpecializer(CoreTypes coreTypes)
       : _linkedHashMapDefaultFactory = assertNotNull(
-          coreTypes.index.getMember(
+          coreTypes.index.getProcedure(
             'dart:collection',
             'LinkedHashMap',
             '',
           ),
         ),
         _internalLinkedHashMapConstructor = assertNotNull(
-          coreTypes.index.getMember(
+          coreTypes.index.getConstructor(
             'dart:collection',
             '_InternalLinkedHashMap',
             '',
