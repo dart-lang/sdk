@@ -11556,15 +11556,9 @@ void Script::set_url(const String& value) const {
   untag()->set_url(value.ptr());
 }
 
-#if defined(DART_PRECOMPILER)
-void Script::set_resolved_url(const Object& value) const {
-  untag()->set_resolved_url(value.ptr());
-}
-#else
 void Script::set_resolved_url(const String& value) const {
   untag()->set_resolved_url(value.ptr());
 }
-#endif
 
 void Script::set_source(const String& value) const {
   untag()->set_source(value.ptr());

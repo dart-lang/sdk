@@ -2479,16 +2479,6 @@ void Precompiler::DropLibraryEntries() {
   Array& dict = Array::Handle(Z);
   Object& entry = Object::Handle(Z);
 
-  Array& scripts = Array::Handle(Z);
-  Script& script = Script::Handle(Z);
-  KernelProgramInfo& program_info = KernelProgramInfo::Handle(Z);
-  const TypedData& null_typed_data = TypedData::Handle(Z);
-  const KernelProgramInfo& null_info = KernelProgramInfo::Handle(Z);
-#if defined(PRODUCT)
-  auto& str = String::Handle(Z);
-  auto& wsr = WeakSerializationReference::Handle(Z);
-#endif
-
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
 
@@ -2520,32 +2510,6 @@ void Precompiler::DropLibraryEntries() {
         FATAL1("Unexpected library entry: %s", entry.ToCString());
       }
       dict.SetAt(j, Object::null_object());
-    }
-
-    scripts = lib.LoadedScripts();
-    if (!scripts.IsNull()) {
-      for (intptr_t i = 0; i < scripts.Length(); ++i) {
-        script = Script::RawCast(scripts.At(i));
-        program_info = script.kernel_program_info();
-        if (!program_info.IsNull()) {
-          program_info.set_constants(Array::null_array());
-          program_info.set_scripts(Array::null_array());
-          program_info.set_libraries_cache(Array::null_array());
-          program_info.set_classes_cache(Array::null_array());
-        }
-#if defined(PRODUCT)
-        str = script.resolved_url();
-        if (!str.IsNull()) {
-          wsr = WeakSerializationReference::New(str, String::null_string());
-          script.set_resolved_url(wsr);
-        }
-#endif  // defined(PRODUCT)
-        script.set_compile_time_constants(Array::null_array());
-        script.set_line_starts(null_typed_data);
-        script.set_debug_positions(Array::null_array());
-        script.set_kernel_program_info(null_info);
-        script.set_source(String::null_string());
-      }
     }
 
     lib.RehashDictionary(dict, used * 4 / 3 + 1);

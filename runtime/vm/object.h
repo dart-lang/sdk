@@ -4531,11 +4531,7 @@ class Script : public Object {
   void SetCachedMaxPosition(intptr_t value) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-#if defined(DART_PRECOMPILER)
-  void set_resolved_url(const Object& value) const;
-#else
   void set_resolved_url(const String& value) const;
-#endif
   void set_source(const String& value) const;
   void set_load_timestamp(int64_t value) const;
   ArrayPtr debug_positions() const;
