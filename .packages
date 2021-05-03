@@ -22,6 +22,7 @@ benchmark_harness:third_party/pkg/benchmark_harness/lib
 boolean_selector:third_party/pkg/boolean_selector/lib
 browser_launcher:third_party/pkg/browser_launcher/lib
 build_integration:pkg/build_integration/lib
+browser_launcher:third_party/pkg/browser_launcher/lib
 charcode:third_party/pkg/charcode/lib
 cli_util:third_party/pkg/cli_util/lib
 collection:third_party/pkg/collection/lib
@@ -38,6 +39,7 @@ dartdev:pkg/dartdev/lib
 dartdoc:third_party/pkg/dartdoc/lib
 dds:pkg/dds/lib
 dev_compiler:pkg/dev_compiler/lib
+devtools_shared:third_party/devtools/devtools_shared/lib
 diagnostic:pkg/diagnostic/lib
 expect:pkg/expect/lib
 ffi:third_party/pkg/ffi/lib

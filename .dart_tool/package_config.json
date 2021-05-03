@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-04-30T16:02:33.294454",
+  "generated": "2021-05-03T09:47:39.938400",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -249,6 +249,18 @@
     {
       "name": "dev_compiler",
       "rootUri": "../pkg/dev_compiler",
+      "packageUri": "lib/",
+      "languageVersion": "2.3"
+    },
+    {
+      "name": "devtools_server",
+      "rootUri": "../third_party/devtools/devtools_server",
+      "packageUri": "lib/",
+      "languageVersion": "2.6"
+    },
+    {
+      "name": "devtools_shared",
+      "rootUri": "../third_party/devtools/devtools_shared",
       "packageUri": "lib/",
       "languageVersion": "2.3"
     },
@@ -726,6 +738,12 @@
       "rootUri": "../third_party/pkg/usage",
       "packageUri": "lib/",
       "languageVersion": "2.12"
+    },
+    {
+      "name": "uuid",
+      "rootUri": "../third_party/pkg/uuid",
+      "packageUri": "lib/",
+      "languageVersion": "2.0"
     },
     {
       "name": "vector_math",

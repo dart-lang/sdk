@@ -158,6 +158,10 @@ class RunCommand extends DartdevCommand {
         hide: !verbose,
         negatable: false,
         help: 'Enables tracing of library and script loading.',
+      )
+      ..addFlag(
+        'debug-dds',
+        hide: true,
       );
     addExperimentalFlags(argParser, verbose);
   }
@@ -179,13 +183,18 @@ class RunCommand extends DartdevCommand {
     String launchDdsArg = argResults['launch-dds'];
     String ddsHost = '';
     String ddsPort = '';
+
+    // TODO(bkonyi): allow for users to choose not to launch DevTools
+    // See https://github.com/dart-lang/sdk/issues/45867.
+    const bool launchDevTools = true;
     bool launchDds = false;
     if (launchDdsArg != null) {
       launchDds = true;
-      final ddsUrl = launchDdsArg.split(':');
+      final ddsUrl = launchDdsArg.split('\\:');
       ddsHost = ddsUrl[0];
       ddsPort = ddsUrl[1];
     }
+    final bool debugDds = argResults['debug-dds'];
 
     bool disableServiceAuthCodes = argResults['disable-service-auth-codes'];
 
@@ -198,7 +207,12 @@ class RunCommand extends DartdevCommand {
     if (launchDds) {
       debugSession = _DebuggingSession();
       if (!await debugSession.start(
-          ddsHost, ddsPort, disableServiceAuthCodes)) {
+        ddsHost,
+        ddsPort,
+        disableServiceAuthCodes,
+        launchDevTools,
+        debugDds,
+      )) {
         return errorExitCode;
       }
     }
@@ -242,10 +256,19 @@ String maybeUriToFilename(String maybeUri) {
 
 class _DebuggingSession {
   Future<bool> start(
-      String host, String port, bool disableServiceAuthCodes) async {
-    final ddsSnapshot = (dirname(sdk.dart).endsWith('bin'))
+    String host,
+    String port,
+    bool disableServiceAuthCodes,
+    bool enableDevTools,
+    bool debugDds,
+  ) async {
+    final sdkDir = dirname(sdk.dart);
+    final fullSdk = sdkDir.endsWith('bin');
+    final ddsSnapshot = fullSdk
         ? sdk.ddsSnapshot
-        : absolute(dirname(sdk.dart), 'gen', 'dds.dart.snapshot');
+        : absolute(sdkDir, 'gen', 'dds.dart.snapshot');
+    final devToolsBinaries =
+        fullSdk ? sdk.devToolsBinaries : absolute(sdkDir, 'devtools');
     if (!Sdk.checkArtifactExists(ddsSnapshot)) {
       return false;
     }
@@ -256,30 +279,51 @@ class _DebuggingSession {
       serviceInfo = await Service.getInfo();
     }
     final process = await Process.start(
-        sdk.dart,
-        [
-          if (dirname(sdk.dart).endsWith('bin'))
-            sdk.ddsSnapshot
-          else
-            absolute(dirname(sdk.dart), 'gen', 'dds.dart.snapshot'),
-          serviceInfo.serverUri.toString(),
-          host,
-          port,
-          disableServiceAuthCodes.toString(),
-        ],
-        mode: ProcessStartMode.detachedWithStdio);
+      sdk.dart,
+      [
+        if (debugDds) '--enable-vm-service=0',
+        ddsSnapshot,
+        serviceInfo.serverUri.toString(),
+        host,
+        port,
+        disableServiceAuthCodes.toString(),
+        enableDevTools.toString(),
+        devToolsBinaries,
+        debugDds.toString(),
+      ],
+      mode: ProcessStartMode.detachedWithStdio,
+    );
     final completer = Completer<void>();
-    StreamSubscription sub;
-    sub = process.stderr.transform(utf8.decoder).listen((event) {
-      if (event == 'DDS started') {
-        sub.cancel();
+    const devToolsMessagePrefix =
+        'The Dart DevTools debugger and profiler is available at:';
+    if (debugDds) {
+      StreamSubscription stdoutSub;
+      stdoutSub = process.stdout.transform(utf8.decoder).listen((event) {
+        if (event.startsWith(devToolsMessagePrefix)) {
+          final ddsDebuggingUri = event.split(' ').last;
+          print(
+            'A DevTools debugger for DDS is available at: $ddsDebuggingUri',
+          );
+          stdoutSub.cancel();
+        }
+      });
+    }
+    StreamSubscription stderrSub;
+    stderrSub = process.stderr.transform(utf8.decoder).listen((event) {
+      final result = json.decode(event) as Map<String, dynamic>;
+      final state = result['state'];
+      if (state == 'started') {
+        if (result.containsKey('devToolsUri')) {
+          final devToolsUri = result['devToolsUri'];
+          print('$devToolsMessagePrefix $devToolsUri');
+        }
+        stderrSub.cancel();
         completer.complete();
-      } else if (event.contains('Failed to start DDS')) {
-        sub.cancel();
-        completer.completeError(event.replaceAll(
-          'Failed to start DDS',
+      } else {
+        stderrSub.cancel();
+        completer.completeError(
           'Could not start Observatory HTTP server',
-        ));
+        );
       }
     });
     try {

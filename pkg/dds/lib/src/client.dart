@@ -21,27 +21,25 @@ import 'stream_manager.dart';
 /// Representation of a single DDS client which manages the connection and
 /// DDS request intercepting / forwarding.
 class DartDevelopmentServiceClient {
-  factory DartDevelopmentServiceClient.fromWebSocket(
+  DartDevelopmentServiceClient.fromWebSocket(
     DartDevelopmentService dds,
     WebSocketChannel ws,
     json_rpc.Peer vmServicePeer,
-  ) =>
-      DartDevelopmentServiceClient._(
-        dds,
-        ws,
-        vmServicePeer,
-      );
+  ) : this._(
+          dds,
+          ws,
+          vmServicePeer,
+        );
 
-  factory DartDevelopmentServiceClient.fromSSEConnection(
+  DartDevelopmentServiceClient.fromSSEConnection(
     DartDevelopmentService dds,
     SseConnection sse,
     json_rpc.Peer vmServicePeer,
-  ) =>
-      DartDevelopmentServiceClient._(
-        dds,
-        sse,
-        vmServicePeer,
-      );
+  ) : this._(
+          dds,
+          sse,
+          vmServicePeer,
+        );
 
   DartDevelopmentServiceClient._(
     this.dds,
