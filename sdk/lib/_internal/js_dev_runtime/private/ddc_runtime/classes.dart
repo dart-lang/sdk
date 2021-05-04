@@ -168,7 +168,6 @@ normalizeFutureOr(typeConstructor, setBaseClass) {
     // this method. This ensures that the we can test a type value returned here
     // as a FutureOr because it is equal to 'async.FutureOr` (in the JS).
     JS('!', '#[#] = #', genericType, _originalDeclaration, normalize);
-    JS('!', '#(#)', addTypeCaches, genericType);
     // Add FutureOr specific is and as methods.
     is_FutureOr(obj) =>
         JS<bool>('!', '#.is(#)', typeArg, obj) ||
