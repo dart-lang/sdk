@@ -2648,11 +2648,9 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
     // concurrent marker on ARM and ARM64 (the marker may observe a
     // publishing store of this object before the stores that initialize its
     // slots), and helps the collection to finish sooner.
-    raw_obj->untag()->SetMarkBitUnsynchronized();
-    // Setting the mark bit must not be ordered after a publishing store of
-    // this object. Adding a barrier here is cheaper than making every store
-    // into the heap a store-release. Compare Scavenger::ScavengePointer.
-    std::atomic_thread_fence(std::memory_order_release);
+    // release: Setting the mark bit must not be ordered after a publishing
+    // store of this object. Compare Scavenger::ScavengePointer.
+    raw_obj->untag()->SetMarkBitRelease();
     heap->old_space()->AllocateBlack(size);
   }
 #ifndef PRODUCT

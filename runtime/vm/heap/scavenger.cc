@@ -305,16 +305,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     ObjectPtr new_obj = ScavengeObject(raw_obj);
 
     // Update the reference.
-    if (!new_obj->IsNewObject()) {
-      // Setting the mark bit above must not be ordered after a publishing store
-      // of this object. Note this could be a publishing store even if the
-      // object was promoted by an early invocation of ScavengePointer. Compare
-      // Object::Allocate.
-      reinterpret_cast<std::atomic<ObjectPtr>*>(p)->store(
-          new_obj, std::memory_order_release);
-    } else {
-      *p = new_obj;
-    }
+    *p = new_obj;
 
     // Update the store buffer as needed.
     if (visiting_old_object_ != nullptr) {
@@ -412,7 +403,9 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         // push it to the mark stack after forwarding its slots.
         tags = UntaggedObject::OldAndNotMarkedBit::update(
             !thread_->is_marking(), tags);
-        new_obj->untag()->tags_ = tags;
+        // release: Setting the mark bit above must not be ordered after a
+        // publishing store of this object. Compare Object::Allocate.
+        new_obj->untag()->tags_.store(tags, std::memory_order_release);
       }
 
       intptr_t cid = UntaggedObject::ClassIdTag::decode(header);
