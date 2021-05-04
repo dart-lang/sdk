@@ -952,6 +952,8 @@ class Type extends TypeBase {
       'boolean': 'bool',
       'string': 'String',
       'number': 'num',
+      'integer': 'int',
+      'uinteger': 'int',
       'any': 'dynamic',
       'object': 'dynamic',
       // Simplify MarkedString from

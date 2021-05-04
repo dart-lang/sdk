@@ -80,7 +80,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   Future verifyCodeActionEdits(Either2<Command, CodeAction> codeAction,
       String content, String expectedContent,
       {bool expectDocumentChanges = false,
-      Either2<num, String>? workDoneToken}) async {
+      Either2<int, String>? workDoneToken}) async {
     final command = codeAction.map(
       (command) => command,
       (codeAction) => codeAction.command!,
@@ -97,7 +97,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   Future<void> verifyCommandEdits(
       Command command, String content, String expectedContent,
       {bool expectDocumentChanges = false,
-      Either2<num, String>? workDoneToken}) async {
+      Either2<int, String>? workDoneToken}) async {
     ApplyWorkspaceEditParams? editParams;
 
     final commandResponse = await handleExpectedRequest<Object?,

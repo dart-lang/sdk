@@ -571,7 +571,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// A progress token used in tests where the client-provides the token, which
   /// should not be validated as being created by the server first.
   final clientProvidedTestWorkDoneToken =
-      Either2<num, String>.t2('client-test');
+      Either2<int, String>.t2('client-test');
 
   int _id = 0;
   late String projectFolderPath,
@@ -804,7 +804,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   Future<Object?> executeCommand(Command command,
-      {Either2<num, String>? workDoneToken}) async {
+      {Either2<int, String>? workDoneToken}) async {
     final request = makeRequest(
       Method.workspace_executeCommand,
       ExecuteCommandParams(
@@ -1334,7 +1334,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   RequestMessage makeRequest(Method method, ToJsonable? params) {
-    final id = Either2<num, String>.t1(_id++);
+    final id = Either2<int, String>.t1(_id++);
     return RequestMessage(
         id: id, method: method, params: params, jsonrpc: jsonRpcVersion);
   }

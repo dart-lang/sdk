@@ -46,7 +46,7 @@ const dartSignatureHelpTriggerCharacters = <String>['('];
 const dartTypeFormattingCharacters = ['}', ';'];
 
 /// A [ProgressToken] used for reporting progress when the server is analyzing.
-final analyzingProgressToken = Either2<num, String>.t2('ANALYZING');
+final analyzingProgressToken = Either2<int, String>.t2('ANALYZING');
 
 final emptyWorkspaceEdit = WorkspaceEdit();
 
