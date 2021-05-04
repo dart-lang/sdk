@@ -704,6 +704,44 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     return node;
   }
 
+  @override
+  visitInstanceInvocation(InstanceInvocation node) {
+    super.visitInstanceInvocation(node);
+
+    final Member target = node.interfaceTarget;
+    try {
+      if (target == elementAtMethod) {
+        final DartType pointerType =
+            node.receiver.getStaticType(_staticTypeContext);
+        final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
+
+        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+
+        Expression inlineSizeOf = _inlineSizeOf(nativeType);
+        if (inlineSizeOf != null) {
+          // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
+          return MethodInvocation(
+              node.receiver,
+              offsetByMethod.name,
+              Arguments([
+                MethodInvocation(
+                    node.arguments.positional.single,
+                    numMultiplication.name,
+                    Arguments([inlineSizeOf]),
+                    numMultiplication)
+              ]),
+              offsetByMethod);
+        }
+      }
+    } on _FfiStaticTypeError {
+      // It's OK to swallow the exception because the diagnostics issued will
+      // cause compilation to fail. By continuing, we can report more
+      // diagnostics before compilation ends.
+    }
+
+    return node;
+  }
+
   DartType _pointerTypeGetTypeArg(DartType pointerType) {
     return pointerType is InterfaceType ? pointerType.typeArguments[0] : null;
   }

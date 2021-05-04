@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/type_testing_stubs.h"
+#include <functional>
+
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/stub_code.h"
 #include "vm/timeline.h"
+#include "vm/type_testing_stubs.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/backend/flow_graph_compiler.h"
@@ -195,6 +198,37 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
 #if !defined(TARGET_ARCH_IA32)
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+#define ONLY_ON_ARM(...) __VA_ARGS__
+#else
+#define ONLY_ON_ARM(...)
+#endif
+
+static CodePtr RetryCompilationWithFarBranches(
+    Thread* thread,
+    std::function<CodePtr(compiler::Assembler&)> fun) {
+  bool use_far_branches = false;
+  while (true) {
+    LongJumpScope jump;
+    if (setjmp(*jump.Set()) == 0) {
+      // To use the already-defined __ Macro !
+      compiler::Assembler assembler(nullptr ONLY_ON_ARM(, use_far_branches));
+      return fun(assembler);
+    } else {
+      // We bailed out or we encountered an error.
+      const Error& error = Error::Handle(thread->StealStickyError());
+      if (error.ptr() == Object::branch_offset_error().ptr()) {
+        ASSERT(!use_far_branches);
+        use_far_branches = true;
+      } else {
+        UNREACHABLE();
+      }
+    }
+  }
+}
+
+#undef ONLY_ON_ARM
+
 CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   auto thread = Thread::Current();
   auto zone = thread->zone();
@@ -214,55 +248,64 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
     slow_tts_stub = thread->isolate_group()->object_store()->slow_tts_stub();
   }
 
-  // To use the already-defined __ Macro !
-  compiler::Assembler assembler(nullptr);
-  compiler::UnresolvedPcRelativeCalls unresolved_calls;
-  BuildOptimizedTypeTestStub(&assembler, &unresolved_calls, slow_tts_stub, hi,
-                             type, type_class);
+  const Code& code = Code::Handle(
+      thread->zone(),
+      RetryCompilationWithFarBranches(
+          thread, [&](compiler::Assembler& assembler) {
+            compiler::UnresolvedPcRelativeCalls unresolved_calls;
+            BuildOptimizedTypeTestStub(&assembler, &unresolved_calls,
+                                       slow_tts_stub, hi, type, type_class);
 
-  const auto& static_calls_table =
-      Array::Handle(zone, compiler::StubCodeCompiler::BuildStaticCallsTable(
-                              zone, &unresolved_calls));
+            const auto& static_calls_table = Array::Handle(
+                zone, compiler::StubCodeCompiler::BuildStaticCallsTable(
+                          zone, &unresolved_calls));
 
-  const char* name = namer_.StubNameForType(type);
-  const auto pool_attachment = FLAG_use_bare_instructions
-                                   ? Code::PoolAttachment::kNotAttachPool
-                                   : Code::PoolAttachment::kAttachPool;
+            const char* name = namer_.StubNameForType(type);
+            const auto pool_attachment =
+                FLAG_use_bare_instructions
+                    ? Code::PoolAttachment::kNotAttachPool
+                    : Code::PoolAttachment::kAttachPool;
 
-  Code& code = Code::Handle(thread->zone());
-  auto install_code_fun = [&]() {
-    code = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
-                              /*optimized=*/false, /*stats=*/nullptr);
-    if (!static_calls_table.IsNull()) {
-      code.set_static_calls_target_table(static_calls_table);
-    }
-  };
+            Code& code = Code::Handle(thread->zone());
+            auto install_code_fun = [&]() {
+              code = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
+                                        /*optimized=*/false, /*stats=*/nullptr);
+              if (!static_calls_table.IsNull()) {
+                code.set_static_calls_target_table(static_calls_table);
+              }
+            };
 
-  // We have to ensure no mutators are running, because:
-  //
-  //   a) We allocate an instructions object, which might cause us to
-  //      temporarily flip page protections from (RX -> RW -> RX).
-  //
-  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-  thread->isolate_group()->RunWithStoppedMutators(install_code_fun,
-                                                  /*use_force_growth=*/true);
+            // We have to ensure no mutators are running, because:
+            //
+            //   a) We allocate an instructions object, which might cause us to
+            //      temporarily flip page protections from (RX -> RW -> RX).
+            //
+            SafepointWriteRwLocker ml(thread,
+                                      thread->isolate_group()->program_lock());
+            thread->isolate_group()->RunWithStoppedMutators(
+                install_code_fun,
+                /*use_force_growth=*/true);
 
-  Code::NotifyCodeObservers(name, code, /*optimized=*/false);
+            Code::NotifyCodeObservers(name, code, /*optimized=*/false);
 
-  code.set_owner(type);
+            code.set_owner(type);
 #ifndef PRODUCT
-  if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
-    LogBlock lb;
-    THR_Print("Code for stub '%s' (type = %s): {\n", name, type.ToCString());
-    DisassembleToStdout formatter;
-    code.Disassemble(&formatter);
-    THR_Print("}\n");
-    const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
-    if (!object_pool.IsNull()) {
-      object_pool.DebugPrint();
-    }
-  }
+            if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
+              LogBlock lb;
+              THR_Print("Code for stub '%s' (type = %s): {\n", name,
+                        type.ToCString());
+              DisassembleToStdout formatter;
+              code.Disassemble(&formatter);
+              THR_Print("}\n");
+              const ObjectPool& object_pool =
+                  ObjectPool::Handle(code.object_pool());
+              if (!object_pool.IsNull()) {
+                object_pool.DebugPrint();
+              }
+            }
 #endif  // !PRODUCT
+            return code.ptr();
+          }));
 
   return code.ptr();
 }

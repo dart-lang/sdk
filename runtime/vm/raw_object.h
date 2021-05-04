@@ -219,13 +219,13 @@ class UntaggedObject {
     Tags() : tags_(0) {}
 
     operator T() const { return tags_.load(std::memory_order_relaxed); }
-
     T operator=(T tags) {
       tags_.store(tags, std::memory_order_relaxed);
       return tags;
     }
 
     T load(std::memory_order order) const { return tags_.load(order); }
+    void store(T value, std::memory_order order) { tags_.store(value, order); }
 
     bool compare_exchange_weak(T old_tags,
                                T new_tags,
@@ -243,12 +243,13 @@ class UntaggedObject {
       return TagBitField::decode(*reinterpret_cast<const T*>(&tags_));
     }
 
-    template <class TagBitField>
+    template <class TagBitField,
+              std::memory_order order = std::memory_order_relaxed>
     void UpdateBool(bool value) {
       if (value) {
-        tags_.fetch_or(TagBitField::encode(true), std::memory_order_relaxed);
+        tags_.fetch_or(TagBitField::encode(true), order);
       } else {
-        tags_.fetch_and(~TagBitField::encode(true), std::memory_order_relaxed);
+        tags_.fetch_and(~TagBitField::encode(true), order);
       }
     }
 
@@ -319,6 +320,11 @@ class UntaggedObject {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
     tags_.UpdateUnsynchronized<OldAndNotMarkedBit>(false);
+  }
+  void SetMarkBitRelease() {
+    ASSERT(IsOldObject());
+    ASSERT(!IsMarked());
+    tags_.UpdateBool<OldAndNotMarkedBit, std::memory_order_release>(false);
   }
   void ClearMarkBit() {
     ASSERT(IsOldObject());

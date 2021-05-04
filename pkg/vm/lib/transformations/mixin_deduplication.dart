@@ -172,15 +172,48 @@ class ReferenceUpdater extends RecursiveVisitor {
   }
 
   @override
+  visitInstanceGet(InstanceGet node) {
+    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget)!;
+    super.visitInstanceGet(node);
+  }
+
+  @override
+  visitInstanceTearOff(InstanceTearOff node) {
+    node.interfaceTarget =
+        _resolveNewInterfaceTarget(node.interfaceTarget) as Procedure;
+    super.visitInstanceTearOff(node);
+  }
+
+  @override
   visitPropertySet(PropertySet node) {
     node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
     super.visitPropertySet(node);
   }
 
   @override
+  visitInstanceSet(InstanceSet node) {
+    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget)!;
+    super.visitInstanceSet(node);
+  }
+
+  @override
   visitMethodInvocation(MethodInvocation node) {
     node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
     super.visitMethodInvocation(node);
+  }
+
+  @override
+  visitInstanceInvocation(InstanceInvocation node) {
+    node.interfaceTarget =
+        _resolveNewInterfaceTarget(node.interfaceTarget) as Procedure;
+    super.visitInstanceInvocation(node);
+  }
+
+  @override
+  visitEqualsCall(EqualsCall node) {
+    node.interfaceTarget =
+        _resolveNewInterfaceTarget(node.interfaceTarget) as Procedure;
+    super.visitEqualsCall(node);
   }
 
   @override

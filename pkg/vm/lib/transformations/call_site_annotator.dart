@@ -55,9 +55,23 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
         receiverType: receiver.getStaticType(_staticTypeContext!));
   }
 
+  void annotateWithFunctionType(TreeNode node, FunctionType type) {
+    _metadata.mapping[node] =
+        new CallSiteAttributesMetadata(receiverType: type);
+  }
+
   @override
   visitPropertySet(PropertySet node) {
     super.visitPropertySet(node);
+
+    if (hasGenericCovariantParameters(node.interfaceTarget)) {
+      annotateWithType(node, node.receiver);
+    }
+  }
+
+  @override
+  visitInstanceSet(InstanceSet node) {
+    super.visitInstanceSet(node);
 
     if (hasGenericCovariantParameters(node.interfaceTarget)) {
       annotateWithType(node, node.receiver);
@@ -73,6 +87,46 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
     if (node.name.text == 'call' ||
         hasGenericCovariantParameters(node.interfaceTarget)) {
       annotateWithType(node, node.receiver);
+    }
+  }
+
+  @override
+  visitInstanceInvocation(InstanceInvocation node) {
+    super.visitInstanceInvocation(node);
+
+    // TODO(34162): We don't need to save the type here for calls, just whether
+    // or not it's a statically-checked call.
+    if (hasGenericCovariantParameters(node.interfaceTarget)) {
+      annotateWithType(node, node.receiver);
+    }
+  }
+
+  @override
+  visitLocalFunctionInvocation(LocalFunctionInvocation node) {
+    super.visitLocalFunctionInvocation(node);
+
+    // TODO(34162): We don't need to save the type here for calls, just whether
+    // or not it's a statically-checked call.
+    annotateWithFunctionType(node, node.functionType);
+  }
+
+  @override
+  visitFunctionInvocation(FunctionInvocation node) {
+    super.visitFunctionInvocation(node);
+
+    // TODO(34162): We don't need to save the type here for calls, just whether
+    // or not it's a statically-checked call.
+    annotateWithType(node, node.receiver);
+  }
+
+  @override
+  visitEqualsCall(EqualsCall node) {
+    super.visitEqualsCall(node);
+
+    // TODO(34162): We don't need to save the type here for calls, just whether
+    // or not it's a statically-checked call.
+    if (hasGenericCovariantParameters(node.interfaceTarget)) {
+      annotateWithType(node, node.left);
     }
   }
 
