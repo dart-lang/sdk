@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-05-03T09:47:39.938400",
+  "generated": "2021-05-03T18:00:16.673010",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -455,6 +455,12 @@
       "languageVersion": "2.2"
     },
     {
+      "name": "mustache",
+      "rootUri": "../third_party/pkg/mustache",
+      "packageUri": "lib/",
+      "languageVersion": "2.0"
+    },
+    {
       "name": "native_stack_traces",
       "rootUri": "../pkg/native_stack_traces",
       "packageUri": "lib/",
@@ -644,6 +650,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "stagehand",
+      "rootUri": "../third_party/pkg/stagehand",
+      "packageUri": "lib/",
+      "languageVersion": "2.10"
+    },
+    {
       "name": "status_file",
       "rootUri": "../pkg/status_file",
       "packageUri": "lib/",
@@ -738,12 +750,6 @@
       "rootUri": "../third_party/pkg/usage",
       "packageUri": "lib/",
       "languageVersion": "2.12"
-    },
-    {
-      "name": "uuid",
-      "rootUri": "../third_party/pkg/uuid",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
     },
     {
       "name": "vector_math",
