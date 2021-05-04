@@ -789,11 +789,8 @@ class FfiTransformer extends Transformer {
 /// Contains all information collected by _FfiDefinitionTransformer that is
 /// needed in _FfiUseSiteTransformer.
 class FfiTransformerData {
-  final Map<Field, Procedure> replacedGetters;
-  final Map<Field, Procedure> replacedSetters;
   final Set<Class> emptyCompounds;
-  FfiTransformerData(
-      this.replacedGetters, this.replacedSetters, this.emptyCompounds);
+  FfiTransformerData(this.emptyCompounds);
 }
 
 /// Checks if any library depends on dart:ffi.

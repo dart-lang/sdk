@@ -77,18 +77,17 @@ FfiTransformerData transformLibraries(
     // TODO: This check doesn't make sense: "dart:ffi" is always loaded/created
     // for the VM target.
     // If dart:ffi is not loaded, do not do the transformation.
-    return FfiTransformerData({}, {}, {});
+    return FfiTransformerData({});
   }
   if (index.tryGetClass('dart:ffi', 'NativeFunction') == null) {
     // If dart:ffi is not loaded (for real): do not do the transformation.
-    return FfiTransformerData({}, {}, {});
+    return FfiTransformerData({});
   }
   final transformer = new _FfiDefinitionTransformer(index, coreTypes, hierarchy,
       diagnosticReporter, referenceFromIndex, changedStructureNotifier);
   libraries.forEach(transformer.visitLibrary);
   transformer.manualVisitInTopologicalOrder();
-  return FfiTransformerData(transformer.replacedGetters,
-      transformer.replacedSetters, transformer.emptyCompounds);
+  return FfiTransformerData(transformer.emptyCompounds);
 }
 
 class CompoundDependencyGraph<T> implements Graph<T> {
@@ -109,8 +108,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   Map<Class, bool> fieldsValid = {};
   Map<Class, CompoundNativeTypeCfe> compoundCache = {};
 
-  Map<Field, Procedure> replacedGetters = {};
-  Map<Field, Procedure> replacedSetters = {};
   Set<Class> emptyCompounds = {};
 
   ChangedStructureNotifier changedStructureNotifier;
@@ -643,9 +640,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         ..fileOffset = field.fileOffset
         ..isNonNullableByDefault = field.isNonNullableByDefault;
     }
-
-    replacedGetters[field] = getter;
-    replacedSetters[field] = setter;
 
     return [getter, if (setter != null) setter];
   }
